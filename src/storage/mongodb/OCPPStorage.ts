@@ -451,7 +451,7 @@ export default class OCPPStorage {
           siteAreaID: meterValueToSave.siteAreaID,
           companyID: meterValueToSave.companyID,
           module: MODULE_NAME, method: 'saveMeterValues',
-          action: ServerAction.METER_VALUES,
+          action: ServerAction.OCPP_METER_VALUES,
           message: 'An error occurred while trying to save the meter value',
           detailedMessages: { error: error.stack, meterValue: meterValueToSave, meterValues: meterValuesToSave }
         });

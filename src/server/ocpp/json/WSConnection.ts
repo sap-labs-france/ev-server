@@ -8,6 +8,7 @@ import DatabaseUtils from '../../../storage/mongodb/DatabaseUtils';
 import JsonCentralSystemServer from './JsonCentralSystemServer';
 import Logging from '../../../utils/Logging';
 import OCPPError from '../../../exception/OcppError';
+import OCPPUtils from '../utils/OCPPUtils';
 import { OCPPVersion } from '../../../types/ocpp/OCPPServer';
 import { ServerAction } from '../../../types/Server';
 import Tenant from '../../../types/Tenant';
@@ -139,12 +140,12 @@ export default abstract class WSConnection {
   }
 
   public async onMessage(messageEvent: MessageEvent): Promise<void> {
-    let [messageType, messageId, commandName, commandPayload, errorDetails]: OCPPIncomingRequest = [0, '', '' as ServerAction, '', {}];
+    let [messageType, messageId, command, commandPayload, errorDetails]: OCPPIncomingRequest = [0, '', '' as Command, '', {}];
     let responseCallback: (payload?: Record<string, unknown> | string) => void;
     let rejectCallback: (reason?: OCPPError) => void;
     try {
       // Parse the message
-      [messageType, messageId, commandName, commandPayload, errorDetails] = JSON.parse(messageEvent.toString()) as OCPPIncomingRequest;
+      [messageType, messageId, command, commandPayload, errorDetails] = JSON.parse(messageEvent.toString()) as OCPPIncomingRequest;
       // Initialize: done in the message as init could be lengthy and first message may be lost
       await this.initialize();
       // Check the Type of message
@@ -152,7 +153,7 @@ export default abstract class WSConnection {
         // Incoming Message
         case OCPPMessageType.CALL_MESSAGE:
           // Process the call
-          await this.handleRequest(messageId, commandName, commandPayload);
+          await this.handleRequest(messageId, command, commandPayload);
           break;
         // Outcome Message
         case OCPPMessageType.CALL_RESULT_MESSAGE:
@@ -165,7 +166,7 @@ export default abstract class WSConnection {
               module: MODULE_NAME,
               method: 'onMessage',
               message: `Response request for message id ${messageId} is not iterable`,
-              action: commandName
+              action: OCPPUtils.getServerActionFromOcppCommand(command)
             });
           }
           if (!responseCallback) {
@@ -175,11 +176,11 @@ export default abstract class WSConnection {
               module: MODULE_NAME,
               method: 'onMessage',
               message: `Response request for unknown message id ${messageId}`,
-              action: commandName
+              action: OCPPUtils.getServerActionFromOcppCommand(command)
             });
           }
           delete this.requests[messageId];
-          responseCallback(commandName);
+          responseCallback(command);
           break;
         // Error Message
         case OCPPMessageType.CALL_ERROR_MESSAGE:
@@ -188,9 +189,9 @@ export default abstract class WSConnection {
             tenantID: this.getTenantID(),
             module: MODULE_NAME,
             method: 'onMessage',
-            action: commandName,
-            message: `Error occurred '${commandName}' with message content '${JSON.stringify(commandPayload)}'`,
-            detailedMessages: { messageType, messageId, commandName, commandPayload, errorDetails }
+            action: OCPPUtils.getServerActionFromOcppCommand(command),
+            message: `Error occurred '${command}' with message content '${JSON.stringify(commandPayload)}'`,
+            detailedMessages: { messageType, messageId, command, commandPayload, errorDetails }
           });
           if (!this.requests[messageId]) {
             // Error
@@ -199,7 +200,7 @@ export default abstract class WSConnection {
               module: MODULE_NAME,
               method: 'onMessage',
               message: `Error request for unknown message id ${messageId}`,
-              action: commandName
+              action: OCPPUtils.getServerActionFromOcppCommand(command)
             });
           }
           if (Utils.isIterable(this.requests[messageId])) {
@@ -210,7 +211,7 @@ export default abstract class WSConnection {
               module: MODULE_NAME,
               method: 'onMessage',
               message: `Error request for message id ${messageId} is not iterable`,
-              action: commandName
+              action: OCPPUtils.getServerActionFromOcppCommand(command)
             });
           }
           delete this.requests[messageId];
@@ -218,7 +219,7 @@ export default abstract class WSConnection {
             source: this.getChargingStationID(),
             module: MODULE_NAME,
             method: 'onMessage',
-            code: commandName,
+            code: command,
             message: commandPayload.toString(),
             details: { errorDetails }
           }));
@@ -231,12 +232,12 @@ export default abstract class WSConnection {
             module: MODULE_NAME,
             method: 'onMessage',
             message: `Wrong message type ${messageType}`,
-            action: commandName
+            action: OCPPUtils.getServerActionFromOcppCommand(command)
           });
       }
     } catch (error) {
       // Log
-      await Logging.logException(error, commandName, this.getChargingStationID(), MODULE_NAME, 'onMessage', this.getTenantID());
+      await Logging.logException(error, OCPPUtils.getServerActionFromOcppCommand(command), this.getChargingStationID(), MODULE_NAME, 'onMessage', this.getTenantID());
       // Send error
       await this.sendError(messageId, error);
     }
@@ -260,7 +261,7 @@ export default abstract class WSConnection {
   }
 
   public async sendMessage(messageId: string, commandParams: Record<string, unknown> | OCPPError, messageType: OCPPMessageType,
-      commandName?: Command | ServerAction): Promise<unknown> {
+      command?: Command): Promise<unknown> {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
     // Send a message through WSConnection
@@ -295,7 +296,7 @@ export default abstract class WSConnection {
         case OCPPMessageType.CALL_MESSAGE:
           // Build request
           this.requests[messageId] = [responseCallback, rejectCallback];
-          messageToSend = JSON.stringify([messageType, messageId, commandName, commandParams]);
+          messageToSend = JSON.stringify([messageType, messageId, command, commandParams]);
           break;
         // Response
         case OCPPMessageType.CALL_RESULT_MESSAGE:
@@ -388,7 +389,7 @@ export default abstract class WSConnection {
     return this.wsConnection?.readyState;
   }
 
-  public abstract handleRequest(messageId: string, commandName: ServerAction, commandPayload: Record<string, unknown> | string): Promise<void>;
+  public abstract handleRequest(messageId: string, command: Command, commandPayload: Record<string, unknown> | string): Promise<void>;
 
   public abstract onError(errorEvent: ErrorEvent): void;
 

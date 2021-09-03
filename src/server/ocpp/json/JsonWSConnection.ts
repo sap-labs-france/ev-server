@@ -6,6 +6,7 @@ import WebSocket, { CloseEvent, ErrorEvent } from 'ws';
 import BackendError from '../../../exception/BackendError';
 import ChargingStationClient from '../../../client/ocpp/ChargingStationClient';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import { Command } from '../../../types/ChargingStation';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import JsonCentralSystemServer from './JsonCentralSystemServer';
@@ -109,7 +110,7 @@ export default class JsonWSConnection extends WSConnection {
       } else {
         // Check connection Token
         await OCPPUtils.checkChargingStationConnectionToken(
-          ServerAction.BOOT_NOTIFICATION, this.getTenant(), this.getChargingStationID(), this.getToken(), { headers: this.headers });
+          ServerAction.OCPP_BOOT_NOTIFICATION, this.getTenant(), this.getChargingStationID(), this.getToken(), { headers: this.headers });
       }
       this.initialized = true;
       await Logging.logInfo({
@@ -157,47 +158,25 @@ export default class JsonWSConnection extends WSConnection {
   }
 
   public async onPing(): Promise<void> {
-//     Commented for perfs reasons (1 ping/sec for certain chargers)
-//     void Logging.logDebug({
-//       tenantID: this.getTenantID(),
-//       siteID: this.getSiteID(),
-//       siteAreaID: this.getSiteAreaID(),
-//       companyID: this.getCompanyID(),
-//       chargingStationID: this.getChargingStationID(),
-//       source: this.getChargingStationID(),
-//       action: ServerAction.WS_JSON_CONNECTION_PINGED,
-//       module: MODULE_NAME, method: 'onPing',
-//       message: 'Ping received',
-//     });
+    this.isConnectionAlive = true;
     await this.updateChargingStationLastSeen();
   }
 
   public async onPong(): Promise<void> {
     this.isConnectionAlive = true;
-//     void Logging.logDebug({
-//       tenantID: this.getTenantID(),
-//       siteID: this.getSiteID(),
-//       siteAreaID: this.getSiteAreaID(),
-//       companyID: this.getCompanyID(),
-//       chargingStationID: this.getChargingStationID(),
-//       source: this.getChargingStationID(),
-//       action: ServerAction.WS_JSON_CONNECTION_PONGED,
-//       module: MODULE_NAME, method: 'onPong',
-//       message: 'Pong received',
-//     });
     await this.updateChargingStationLastSeen();
   }
 
-  public async handleRequest(messageId: string, commandName: ServerAction, commandPayload: Record<string, unknown> | string): Promise<void> {
+  public async handleRequest(messageId: string, command: Command, commandPayload: Record<string, unknown> | string): Promise<void> {
     await Logging.logChargingStationServerReceiveAction(Constants.MODULE_JSON_OCPP_SERVER_16, this.getTenantID(), this.getChargingStationID(), {
       siteAreaID: this.getSiteAreaID(),
       siteID: this.getSiteID(),
       companyID: this.getCompanyID(),
-    }, commandName, commandPayload);
-    const methodName = `handle${commandName}`;
+    }, OCPPUtils.getServerActionFromOcppCommand(command), commandPayload);
+    const methodName = `handle${command}`;
     // Check if method exist in the service
     if (typeof this.chargingStationService[methodName] === 'function') {
-      if ((commandName === 'BootNotification') || (commandName === 'Heartbeat')) {
+      if ((command === Command.BOOT_NOTIFICATION) || (command === Command.HEARTBEAT)) {
         this.headers.currentIPAddress = this.getClientIP();
       }
       // Call it
@@ -207,9 +186,9 @@ export default class JsonWSConnection extends WSConnection {
         siteAreaID: this.getSiteAreaID(),
         siteID: this.getSiteID(),
         companyID: this.getCompanyID(),
-      }, commandName, result);
+      }, OCPPUtils.getServerActionFromOcppCommand(command), result);
       // Send Response
-      await this.sendMessage(messageId, result, OCPPMessageType.CALL_RESULT_MESSAGE, commandName);
+      await this.sendMessage(messageId, result, OCPPMessageType.CALL_RESULT_MESSAGE, command);
     } else {
       // Throw Exception
       throw new OCPPError({
@@ -217,7 +196,7 @@ export default class JsonWSConnection extends WSConnection {
         module: MODULE_NAME,
         method: 'handleRequest',
         code: OCPPErrorType.NOT_IMPLEMENTED,
-        message: `The OCPP method 'handle${typeof commandName === 'string' ? commandName : JSON.stringify(commandName)}' has not been implemented`
+        message: `The OCPP method 'handle${typeof command === 'string' ? command : JSON.stringify(command)}' has not been implemented`
       });
     }
   }
