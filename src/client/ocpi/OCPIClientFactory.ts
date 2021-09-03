@@ -1,3 +1,5 @@
+import Tenant, { TenantComponents } from '../../types/Tenant';
+
 import ChargingStation from '../../types/ChargingStation';
 import Constants from '../../utils/Constants';
 import CpoOCPIClient from './CpoOCPIClient';
@@ -10,8 +12,6 @@ import { OCPIRegistrationStatus } from '../../types/ocpi/OCPIRegistrationStatus'
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
 import { ServerAction } from '../../types/Server';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
-import Tenant from '../../types/Tenant';
-import TenantComponents from '../../types/TenantComponents';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'OCPIClientFactory';

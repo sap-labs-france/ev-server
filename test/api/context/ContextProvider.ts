@@ -2,7 +2,7 @@ import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 import { ObjectId } from 'mongodb';
 import { OCPPVersion } from '../../../src/types/ocpp/OCPPServer';
-import TenantComponents from '../../../src/types/TenantComponents';
+import { TenantComponents } from '../../../src/types/Tenant';
 import Constants from '../../../src/utils/Constants';
 import config from '../../config';
 import Factory from '../../factories/Factory';

@@ -23,7 +23,7 @@ import SiteContext from './context/SiteContext';
 import { StatusCodes } from 'http-status-codes';
 import Stripe from 'stripe';
 import StripeBillingIntegration from '../../src/integration/billing/stripe/StripeBillingIntegration';
-import TenantComponents from '../../src/types/TenantComponents';
+import { TenantComponents } from '../../src/types/Tenant';
 import TenantContext from './context/TenantContext';
 import TestConstants from './client/utils/TestConstants';
 import TestUtils from './TestUtils';

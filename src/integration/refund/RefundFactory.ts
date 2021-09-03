@@ -7,7 +7,7 @@ import RefundIntegration from './RefundIntegration';
 import { ServerAction } from '../../types/Server';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Tenant from '../../types/Tenant';
-import TenantComponents from '../../types/TenantComponents';
+import { TenantComponents } from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'RefundFactory';

@@ -23,7 +23,7 @@ import SmartChargingApi from './SmartChargingApi';
 import StatisticsApi from './StatisticsApi';
 import { StatusCodes } from 'http-status-codes';
 import TenantApi from './TenantApi';
-import TenantComponents from '../../../src/types/TenantComponents';
+import { TenantComponents } from '../../../src/types/Tenant';
 import TestConstants from './utils/TestConstants';
 import TransactionApi from './TransactionApi';
 import User from '../../../src/types/User';

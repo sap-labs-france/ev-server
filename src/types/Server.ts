@@ -27,7 +27,7 @@ export enum ServerAction {
   CHARGING_STATION_DOWNLOAD_QR_CODE_PDF = 'RestChargingStationDownloadQrCodePdf',
 
   CHARGING_STATIONS_EXPORT = 'RestChargingStationsExport',
-  CHARGING_STATIONS_OCPP_PARAMS_EXPORT = 'RestChargingStationsOCPPParamsExport',
+  CHARGING_STATIONS_OCPP_PARAMS_EXPORT = 'RestChargingStationsOcppParamsExport',
   CHARGING_STATION = 'RestChargingStation',
   CHARGING_STATIONS_OCPP_PARAMETERS = 'RestChargingStationOcppParameters',
   CHARGING_STATIONS_IN_ERROR = 'RestChargingStationsInError',
@@ -78,7 +78,7 @@ export enum ServerAction {
   CHARGING_PROFILE_UPDATE = 'RestChargingProfileUpdate',
   CHARGING_PROFILE_CREATE = 'RestChargingProfileCreate',
   GENERATE_QR_CODE_FOR_CONNECTOR = 'RestGenerateQrCodeForConnector',
-  OCPP_PARAM_UPDATE = 'OCPPParamUpdate',
+  OCPP_PARAM_UPDATE = 'OcppParamUpdate',
   RESEND_VERIFICATION_MAIL = 'RestResendVerificationEmail',
   END_USER_LICENSE_AGREEMENT = 'RestEndUserLicenseAgreement',
   CHECK_END_USER_LICENSE_AGREEMENT = 'RestCheckEndUserLicenseAgreement',
@@ -195,7 +195,7 @@ export enum ServerAction {
   OICP_ENDPOINT_UNREGISTER = 'OicpEndpointUnregister',
   OICP_ENDPOINT_DELETE = 'OicpEndpointDelete',
 
-  OCPP_SERVICE = 'OCPPService',
+  OCPP_SERVICE = 'OcppService',
 
   AUTHORIZATIONS = 'Authorizations',
 
@@ -211,17 +211,16 @@ export enum ServerAction {
 
   SOCKET_IO = 'SocketIO',
 
-  // OCPP server commands
-  BOOT_NOTIFICATION = 'BootNotification',
-  AUTHORIZE = 'Authorize',
-  HEARTBEAT = 'Heartbeat',
-  DIAGNOSTICS_STATUS_NOTIFICATION = 'DiagnosticsStatusNotification',
-  FIRMWARE_STATUS_NOTIFICATION = 'FirmwareStatusNotification',
-  STATUS_NOTIFICATION = 'StatusNotification',
-  START_TRANSACTION = 'StartTransaction',
-  STOP_TRANSACTION = 'StopTransaction',
-  METER_VALUES = 'MeterValues',
-  DATA_TRANSFER = 'DataTransfer',
+  OCPP_BOOT_NOTIFICATION = 'OcppBootNotification',
+  OCPP_AUTHORIZE = 'OcppAuthorize',
+  OCPP_HEARTBEAT = 'OcppHeartbeat',
+  OCPP_DIAGNOSTICS_STATUS_NOTIFICATION = 'OcppDiagnosticsStatusNotification',
+  OCPP_FIRMWARE_STATUS_NOTIFICATION = 'OcppFirmwareStatusNotification',
+  OCPP_STATUS_NOTIFICATION = 'OcppStatusNotification',
+  OCPP_START_TRANSACTION = 'OcppStartTransaction',
+  OCPP_STOP_TRANSACTION = 'OcppStopTransaction',
+  OCPP_METER_VALUES = 'OcppMeterValues',
+  OCPP_DATA_TRANSFER = 'OcppDataTransfer',
 
   EXTRA_INACTIVITY = 'ExtraInactivity',
 
@@ -532,7 +531,12 @@ export enum ServerRoute {
   REST_TAGS_IMPORT = 'tags/action/import',
   REST_TAGS_EXPORT = 'tags/action/export',
 
-  REST_ASSET_CONSUMPTION = 'assets/:assetID/consumption',
+  REST_ASSETS = 'assets',
+  REST_ASSET = 'assets/:id',
+  REST_ASSET_CONSUMPTION = 'assets/:id/consumption',
+  REST_ASSETS_IN_ERROR = 'assets/status/in-error',
+  REST_ASSET_CHECK_CONNECTION = 'assets/:id/connector/connection/check',
+  REST_ASSET_RETRIEVE_CONSUMPTION = 'assets/:id/connector/consumption/retrieve-last',
 
   REST_PING = 'ping',
 

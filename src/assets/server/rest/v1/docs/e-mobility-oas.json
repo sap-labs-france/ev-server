@@ -47,6 +47,10 @@
     {
       "name": "Loggings",
       "description": "Loggings API"
+    },
+    {
+      "name": "Assets",
+      "description": "Assets API"
     }
   ],
   "paths": {
@@ -5583,7 +5587,84 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/User"
+                "type": "object",
+                "properties": {
+                  "costCenter": {
+                    "type": "string",
+                    "example": "######"
+                  },
+                  "name": {
+                    "type": "string",
+                    "example": "Demo"
+                  },
+                  "firstName": {
+                    "type": "string",
+                    "example": "User"
+                  },
+                  "iNumber": {
+                    "type": "string",
+                    "example": "1234567"
+                  },
+                  "image": {
+                    "type": "string"
+                  },
+                  "mobile": {
+                    "type": "string",
+                    "example": "0000000000"
+                  },
+                  "locale": {
+                    "type": "string",
+                    "example": "en_EN"
+                  },
+                  "address": {
+                    "$ref": "#/components/schemas/Address"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "DeM*Us$r1"
+                  },
+                  "phone": {
+                    "type": "string",
+                    "example": "0000000000"
+                  },
+                  "email": {
+                    "type": "string",
+                    "example": "user.demo@sap.com"
+                  },
+                  "issuer": {
+                    "type": "boolean"
+                  },
+                  "notifcationsActive": {
+                    "type": "boolean"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "P",
+                      "A",
+                      "I",
+                      "B",
+                      "L"
+                    ]
+                  },
+                  "plateID": {
+                    "type": "string",
+                    "example": "DEMO"
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "S",
+                      "A",
+                      "B",
+                      "D"
+                    ],
+                    "example": "B"
+                  },
+                  "notifications": {
+                    "$ref": "#/components/schemas/Notifications"
+                  }
+                }
               }
             }
           }
@@ -7144,6 +7225,393 @@
           }
         }
       }
+    },
+    "/api/assets": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get assets list",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/Issuer"
+          },
+          {
+            "$ref": "#/components/parameters/SiteAreaIDs"
+          },
+          {
+            "$ref": "#/components/parameters/SiteIDs"
+          },
+          {
+            "$ref": "#/components/parameters/WithSiteArea"
+          },
+          {
+            "$ref": "#/components/parameters/WithNoSiteArea"
+          },
+          {
+            "in": "query",
+            "name": "DynamicOnly",
+            "description": "Dynamic assets only",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Assets"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return assets list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "assetType": "###",
+                      "connectionID": "###",
+                      "coordinates": [
+                        7.01672,
+                        43.6121039
+                      ],
+                      "currentInstantWatts": 300,
+                      "dynamicAsset": true,
+                      "issuer": true,
+                      "meterID": "###",
+                      "name": "###",
+                      "siteAreaID": "###",
+                      "currentStateOfCharge": 52,
+                      "siteID": "###",
+                      "id": "###"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Create an Asset",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Asset"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Assets"
+        ],
+        "responses": {
+          "200": {
+            "description": "Asset created successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success",
+                  "id": "###"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/assets/{id}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get asset",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/assetID"
+          },
+          {
+            "$ref": "#/components/parameters/WithSiteArea"
+          }
+        ],
+        "tags": [
+          "Assets"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return asset",
+            "content": {
+              "application/json": {
+                "example": {
+                  "assetType": "###",
+                  "connectionID": "123456789",
+                  "coordinates": [
+                    7.01672,
+                    43.6121039
+                  ],
+                  "createdBy": null,
+                  "createdOn": "2021-02-03T22:57:34.435Z",
+                  "currentConsumptionWh": 3.75,
+                  "currentInstantAmps": 1.3043478260869565,
+                  "currentInstantAmpsL1": 0,
+                  "currentInstantAmpsL2": 0,
+                  "currentInstantAmpsL3": 0,
+                  "currentInstantVolts": 0,
+                  "currentInstantVoltsL1": 0,
+                  "currentInstantVoltsL2": 0,
+                  "currentInstantVoltsL3": 0,
+                  "currentInstantWatts": 300,
+                  "currentInstantWattsL1": 0,
+                  "currentInstantWattsL2": 0,
+                  "currentInstantWattsL3": 0,
+                  "dynamicAsset": true,
+                  "fluctuationPercent": 5,
+                  "issuer": true,
+                  "lastChangedBy": null,
+                  "meterID": "###",
+                  "name": "###",
+                  "siteAreaID": "###",
+                  "staticValueWatt": 10000,
+                  "lastConsumption": {
+                    "value": 3.75,
+                    "timestamp": "2021-03-05T22:36:00.942Z"
+                  },
+                  "lastChangedOn": "2021-03-04T10:12:52.514Z",
+                  "currentStateOfCharge": 52,
+                  "excludeFromSmartCharging": false,
+                  "siteID": "###",
+                  "id": "###",
+                  "siteArea": null
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/assets/status/in-error": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get assets in error list",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/Issuer"
+          },
+          {
+            "$ref": "#/components/parameters/SiteAreaIDs"
+          },
+          {
+            "$ref": "#/components/parameters/SiteIDs"
+          },
+          {
+            "$ref": "#/components/parameters/WithSiteArea"
+          },
+          {
+            "in": "query",
+            "name": "ErrorType",
+            "description": "Pipe separated asset error types (missing_site_area)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Assets"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return assets in error list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "name": "###",
+                      "errorCode": "missing_site_area",
+                      "id": "###"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/assets/{id}/connection/check": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Check the asset connection",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/assetID"
+          }
+        ],
+        "tags": [
+          "Assets"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return asset connection status",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success",
+                  "connectionIsValid": true
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/assets/{id}/connector/consumption/retrieve-last": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve the asset last consumption",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/assetID"
+          }
+        ],
+        "tags": [
+          "Assets"
+        ],
+        "responses": {
+          "200": {
+            "description": "Asset's last consumption retrieved",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -8117,6 +8585,62 @@
               "Rejected",
               "RebootRequired",
               "NotSupported"
+            ]
+          }
+        }
+      },
+      "Asset": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "siteAreaID": {
+            "type": "string"
+          },
+          "assetType": {
+            "type": "string",
+            "enum": [
+              "CO",
+              "PR",
+              "CO-PR"
+            ]
+          },
+          "excludeFromSmartCharging": {
+            "type": "boolean"
+          },
+          "variationThresholdPercent": {
+            "type": "number"
+          },
+          "fluctuationPercent": {
+            "type": "number"
+          },
+          "staticValueWatt": {
+            "type": "number"
+          },
+          "image": {
+            "type": "string"
+          },
+          "dynamicAsset": {
+            "type": "boolean"
+          },
+          "connectionID": {
+            "type": "string"
+          },
+          "meterID": {
+            "type": "string"
+          },
+          "usePushAPI": {
+            "type": "boolean"
+          },
+          "coordinates": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "example": [
+              0,
+              0
             ]
           }
         }

@@ -3,6 +3,7 @@ import { ChargingProfile, ChargingProfilePurposeType, ChargingRateUnitType } fro
 import ChargingStation, { ChargePoint, ChargingStationOcpiData, ChargingStationOcppParameters, ChargingStationOicpData, ChargingStationTemplate, Connector, ConnectorType, CurrentType, OcppParameter, PhaseAssignmentToGrid, RemoteAuthorization, Voltage } from '../../types/ChargingStation';
 import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
 import { GridFSBucket, GridFSBucketReadStream, GridFSBucketWriteStream, ObjectId } from 'mongodb';
+import Tenant, { TenantComponents } from '../../types/Tenant';
 import global, { FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
@@ -15,8 +16,6 @@ import DbParams from '../../types/database/DbParams';
 import { InactivityStatus } from '../../types/Transaction';
 import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
-import Tenant from '../../types/Tenant';
-import TenantComponents from '../../types/TenantComponents';
 import TenantStorage from './TenantStorage';
 import Utils from '../../utils/Utils';
 import fs from 'fs';

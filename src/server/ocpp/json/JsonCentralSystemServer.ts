@@ -45,12 +45,20 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     this.startWSServer();
   }
 
-  public getChargingStationClient(tenantID: string, chargingStationID: string): ChargingStationClient {
+  public getChargingStationClient(tenantID: string, chargingStationID: string, chargingStationLocation?: {
+    siteID: string,
+    siteAreaID: string,
+    companyID: string
+  }): ChargingStationClient {
     // Get the Json Web Socket
     const jsonWebSocket = this.jsonChargingStationClients.get(`${tenantID}~${chargingStationID}`);
     if (!jsonWebSocket) {
       void Logging.logError({
         tenantID: tenantID,
+        siteID: chargingStationLocation?.siteID,
+        siteAreaID: chargingStationLocation?.siteAreaID,
+        companyID: chargingStationLocation?.companyID,
+        chargingStationID: chargingStationID,
         source: chargingStationID,
         module: MODULE_NAME, method: 'getChargingStationClient',
         action: ServerAction.WS_CONNECTION,
@@ -176,6 +184,10 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
           if (!jsonWSConnection.isConnectionAlive) {
             void Logging.logError({
               tenantID: jsonWSConnection.getTenantID(),
+              siteID: jsonWSConnection.getSiteID(),
+              siteAreaID: jsonWSConnection.getSiteAreaID(),
+              companyID: jsonWSConnection.getCompanyID(),
+              chargingStationID: jsonWSConnection.getChargingStationID(),
               source: jsonWSConnection.getChargingStationID(),
               action: ServerAction.WS_JSON_CONNECTION_CLOSED,
               module: MODULE_NAME, method: 'createWSServer',
