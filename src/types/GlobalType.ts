@@ -30,6 +30,10 @@ export interface Image {
   image: string;
 }
 
+export interface GroupParams {
+  [param: string]: any | string[];
+}
+
 export interface FilterParams {
   [param: string]: any | string[];
 }

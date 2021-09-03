@@ -64,6 +64,10 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
         await Logging.logError({
           tenantID: tenant.id,
           action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
+          siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          companyID: chargingStation.companyID,
+          chargingStationID: chargingStation.id,
           source: chargingStation.id,
           module: MODULE_NAME, method: 'applyTemplateToChargingStations',
           message: `Template update error in Tenant ${Utils.buildTenantName(tenant)}): ${error.message}`,

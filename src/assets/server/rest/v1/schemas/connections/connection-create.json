@@ -4,13 +4,15 @@
   "type": "object",
   "properties": {
     "connectorId": {
-      "type": "string"
+      "type": "string",
+      "sanitize": "mongo"
     },
     "userId": {
-      "type": "string"
+      "$ref": "user.json#/definitions/id"
     },
     "data": {
-      "type": "object"
+      "type": "object",
+      "sanitize": "mongo"
     }
   },
   "required": [

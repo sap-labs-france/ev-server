@@ -117,6 +117,7 @@ export enum Action {
   ASSIGN = 'Assign',
   UNASSIGN = 'Unassign',
   CLEAR_CACHE = 'ClearCache',
+  TRIGGER_DATA_TRANSFER = 'DataTransfer',
   SYNCHRONIZE = 'Synchronize',
   GET_CONFIGURATION = 'GetConfiguration',
   CHANGE_CONFIGURATION = 'ChangeConfiguration',

@@ -111,6 +111,22 @@ export interface HttpChargingStationCommandRequest {
   args?: any;
 }
 
+export interface HttpChargingStationStartTransactionRequest {
+  chargingStationID: string,
+  args: {
+    tagID?: string,
+    visualTagID?: string,
+    connectorId: string
+  }
+}
+
+export interface HttpChargingStationStopTransactionRequest {
+  chargingStationID: string,
+  args: {
+    transactionID: string
+  }
+}
+
 export interface HttpIsAuthorizedRequest {
   Action: string;
   Arg1: any;

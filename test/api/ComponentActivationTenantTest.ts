@@ -4,7 +4,7 @@ import chai, { expect } from 'chai';
 import CentralServerService from './client/CentralServerService';
 import ContextDefinition from './context/ContextDefinition';
 import { StatusCodes } from 'http-status-codes';
-import TenantComponents from '../../src/types/TenantComponents';
+import { TenantComponents } from '../../src/types/Tenant';
 import TestConstants from './client/utils/TestConstants';
 import chaiSubset from 'chai-subset';
 import config from '../config';

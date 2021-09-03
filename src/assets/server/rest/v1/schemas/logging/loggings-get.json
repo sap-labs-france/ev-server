@@ -1,0 +1,63 @@
+{
+  "title": "Get Loggings",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "StartDateTime": {
+      "type": "string",
+      "format": "date-time",
+      "sanitize": "mongo"
+    },
+    "EndDateTime": {
+      "type": "string",
+      "format": "date-time",
+      "sanitize": "mongo"
+    },
+    "Level": {
+      "type": "string",
+      "sanitize": "mongo",
+      "pattern": "^((D|I|W|E|NONE|DEFAULT)(\\||D|I|W|E|NONE|DEFAULT)*)?$"
+    },
+    "Source": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "Host": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "Type": {
+      "type": "string",
+      "sanitize": "mongo",
+      "enum": [
+        "R", "S"
+      ]
+    },
+    "Action": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "UserID": {
+      "$ref": "common.json#/definitions/IDs"
+    },
+    "Search": {
+      "$ref": "common.json#/definitions/search"
+    },
+    "SortFields": {
+      "$ref": "common.json#/definitions/sortFields"
+    },
+    "Limit": {
+      "$ref": "common.json#/definitions/limit"
+    },
+    "Skip": {
+      "$ref": "common.json#/definitions/skip"
+    },
+    "OnlyRecordCount": {
+      "$ref": "common.json#/definitions/onlyRecordCount"
+    },
+    "ProjectFields": {
+      "$ref": "common.json#/definitions/projectFields"
+    }
+  },
+  "required": []
+}

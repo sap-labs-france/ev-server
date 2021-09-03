@@ -19,7 +19,7 @@ import { SiteAreaDataResult } from '../../../../types/DataResult';
 import SiteAreaSecurity from './security/SiteAreaSecurity';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SmartChargingFactory from '../../../../integration/smart-charging/SmartChargingFactory';
-import TenantComponents from '../../../../types/TenantComponents';
+import { TenantComponents } from '../../../../types/Tenant';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
@@ -263,7 +263,7 @@ export default class SiteAreaService {
       siteAreaID: filteredRequest.SiteAreaID,
       startDate: filteredRequest.StartDate,
       endDate: filteredRequest.EndDate
-    }, [ 'startedAt', 'instantAmps', 'instantWatts', 'limitAmps', 'limitWatts' ]);
+    });
     // Assign
     siteArea.values = consumptions;
     // Return
