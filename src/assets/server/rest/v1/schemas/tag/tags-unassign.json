@@ -1,0 +1,17 @@
+{
+  "title": "Unassign several Tags",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "visualTagsIDs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "sanitize": "mongo"
+      }
+    }
+  },
+  "required": [
+    "visualTagsIDs"
+  ]
+}

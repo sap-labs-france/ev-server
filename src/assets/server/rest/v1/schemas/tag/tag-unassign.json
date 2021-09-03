@@ -1,0 +1,14 @@
+{
+  "title": "Unassign Tag",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "visualTagID": {
+      "type": "string",
+      "sanitize": "mongo"
+    }
+  },
+  "required": [
+    "visualTagID"
+  ]
+}

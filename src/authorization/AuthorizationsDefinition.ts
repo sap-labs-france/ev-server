@@ -521,7 +521,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           args: { filters: ['OwnUser'] }
         },
         attributes: [
-          'id', 'userID', 'active', 'ocpiToken', 'description', 'visualID', 'issuer', 'default',
+          'userID', 'active', 'ocpiToken', 'description', 'visualID', 'issuer', 'default',
           'createdOn', 'lastChangedOn'
         ],
       },
@@ -532,12 +532,37 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           args: { filters: ['OwnUser'] }
         },
         attributes: [
-          'id', 'userID', 'issuer', 'active', 'description', 'visualID', 'default',
+          'userID', 'issuer', 'active', 'description', 'visualID', 'default',
           'user.id', 'user.name', 'user.firstName', 'user.email', 'user.issuer'
         ],
       },
       {
-        resource: Entity.TAG, action: [Action.DELETE, Action.UPDATE],
+        resource: Entity.TAGS, action: Action.UNASSIGN,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: { filters: ['OwnUser'] }
+        }
+      },
+      {
+        resource: Entity.TAG, action: Action.UNASSIGN,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: { filters: ['OwnUser'] }
+        }
+      },
+      {
+        resource: Entity.TAG, action:  Action.UPDATE_BY_VISUAL_ID,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: { filters: ['OwnUser'] }
+        }
+      },
+      {
+        resource: Entity.TAG, action: Action.ASSIGN,
+        attributes: [
+          'userID', 'active', 'ocpiToken', 'description', 'visualID', 'issuer', 'default',
+          'user.name', 'user.firstName', 'user.email', 'createdOn', 'lastChangedOn'
+        ],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: { filters: ['OwnUser'] }

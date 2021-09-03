@@ -33,10 +33,6 @@
     },
     "ProjectFields": {
       "$ref": "common.json#/definitions/projectFields"
-    },
-    "WithUser": {
-      "type": "boolean",
-      "sanitize": "mongo"
     }
   },
   "required": []

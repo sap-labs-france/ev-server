@@ -106,6 +106,7 @@ export enum Action {
   READ = 'Read',
   CREATE = 'Create',
   UPDATE = 'Update',
+  UPDATE_BY_VISUAL_ID = 'UpdateByVisualID',
   REPLACE = 'Replace',
   DELETE = 'Delete',
   LOGOUT = 'Logout',
@@ -182,7 +183,9 @@ export interface AuthorizationActions {
   canRead?: boolean;
   canCreate?: boolean;
   canUpdate?: boolean;
+  canUpdateByVisualID?: boolean;
   canDelete?: boolean;
+  canUnassign?: boolean;
 }
 export interface SiteAreaAuthorizationActions extends AuthorizationActions {
   canAssignAssets?: boolean;

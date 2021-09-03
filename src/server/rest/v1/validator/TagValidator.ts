@@ -1,4 +1,4 @@
-import { HttpTagRequest, HttpTagsRequest } from '../../../../types/requests/HttpTagRequest';
+import { HttpTagByVisualIDRequest, HttpTagRequest, HttpTagsRequest } from '../../../../types/requests/HttpTagRequest';
 import Tag, { ImportedTag } from '../../../../types/Tag';
 
 import Schema from '../../../../types/validator/Schema';
@@ -10,19 +10,29 @@ export default class TagValidator extends SchemaValidator {
   private static instance: TagValidator|null = null;
   private importedTagCreation: Schema;
   private tagCreate: Schema;
+  private tagAssign: Schema;
   private tagUpdate: Schema;
+  private tagUpdateByVisualID: Schema;
   private tagsGet: Schema;
   private tagGet: Schema;
+  private tagGetByVisualID: Schema;
   private tagsDelete: Schema;
+  private tagsUnassign: Schema;
+  private tagUnassign: Schema;
 
   private constructor() {
     super('TagValidator');
     this.importedTagCreation = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tag/imported-tag-create-req.json`, 'utf8'));
     this.tagCreate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tag/tag-create.json`, 'utf8'));
+    this.tagAssign = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tag/tag-assign.json`, 'utf8'));
     this.tagUpdate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tag/tag-update.json`, 'utf8'));
+    this.tagUpdateByVisualID = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tag/tag-update-by-visual-id.json`, 'utf8'));
     this.tagsGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tag/tags-get.json`, 'utf8'));
     this.tagGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tag/tag-get.json`, 'utf8'));
+    this.tagGetByVisualID = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tag/tag-get-by-visual-id.json`, 'utf8'));
     this.tagsDelete = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tag/tags-delete.json`, 'utf8'));
+    this.tagsUnassign = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tag/tags-unassign.json`, 'utf8'));
+    this.tagUnassign = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tag/tag-unassign.json`, 'utf8'));
   }
 
   public static getInstance(): TagValidator {
@@ -41,8 +51,18 @@ export default class TagValidator extends SchemaValidator {
     return tag;
   }
 
+  validateTagAssign(tag:Partial<Tag>):Partial<Tag> {
+    this.validate(this.tagAssign, tag);
+    return tag;
+  }
+
   validateTagUpdate(tag: Tag): Tag {
     this.validate(this.tagUpdate, tag);
+    return tag;
+  }
+
+  validateTagUpdateByVisualID(tag: Partial<Tag>): Partial<Tag> {
+    this.validate(this.tagUpdateByVisualID, tag);
     return tag;
   }
 
@@ -56,8 +76,23 @@ export default class TagValidator extends SchemaValidator {
     return data;
   }
 
+  validateTagGetByVisualID(data: any): HttpTagByVisualIDRequest {
+    this.validate(this.tagGetByVisualID, data);
+    return data;
+  }
+
   validateTagsDelete(data: { tagsIDs: string[] }): { tagsIDs: string[] } {
     this.validate(this.tagsDelete, data);
+    return data;
+  }
+
+  validateTagsUnassign(data: { visualTagsIDs: string[] }): { visualTagsIDs: string[] } {
+    this.validate(this.tagsUnassign, data);
+    return data;
+  }
+
+  validateTagUnassign(data: { visualTagID: string }): { visualTagID: string } {
+    this.validate(this.tagUnassign, data);
     return data;
   }
 }
