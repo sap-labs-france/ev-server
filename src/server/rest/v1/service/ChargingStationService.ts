@@ -1165,6 +1165,17 @@ export default class ChargingStationService {
         message: 'Charging Station is not connected to the backend',
       });
     }
+    // Check auth
+    if (!await Authorizations.canPerformActionOnChargingStation(req.user, command as unknown as Action, chargingStation)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: command as unknown as Action,
+        entity: Entity.CHARGING_STATION,
+        module: MODULE_NAME, method: 'handleAction',
+        value: chargingStation.id
+      });
+    }
     let result: any;
     switch (command) {
       // Remote Stop Transaction / Unlock Connector
@@ -1181,51 +1192,19 @@ export default class ChargingStationService {
       case Command.GET_COMPOSITE_SCHEDULE:
         result = await ChargingStationService.executeChargingStationGetCompositeSchedule(action, chargingStation, command, filteredRequest, req, res, next);
         break;
+      // Get diagnostic
+      case Command.GET_DIAGNOSTICS:
+        // const filteredRequest = ChargingStationValidator.validateChargingStationGetDiagnostics(params);
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationGetDiagnostics(req.body);
+        result = await ChargingStationService.executeChargingStationCommand(
+          req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
+        break;
       // Other commands
       default:
-        // Check auth
-        if (!await Authorizations.canPerformActionOnChargingStation(req.user, command as unknown as Action, chargingStation)) {
-          throw new AppAuthError({
-            errorCode: HTTPAuthError.FORBIDDEN,
-            user: req.user,
-            action: command as unknown as Action,
-            entity: Entity.CHARGING_STATION,
-            module: MODULE_NAME, method: 'handleAction',
-            value: chargingStation.id
-          });
-        }
-        switch (command) {
-          // Get diagnostic
-          case Command.GET_DIAGNOSTICS:
-            // const filteredRequest = ChargingStationValidator.validateChargingStationGetDiagnostics(params);
-            filteredRequest = ChargingStationValidator.getInstance().validateChargingStationGetDiagnostics(req.body);
-            result = await chargingStationClient.getDiagnostics({
-              location: filteredRequest.args.location,
-              retries: filteredRequest.args.retries,
-              retryInterval: filteredRequest.args.retryInterval,
-              startTime: filteredRequest.args.startTime,
-              stopTime: filteredRequest.args.stopTime
-            }).catch(async (error) => {
-              // Log
-              await Logging.logException(error, ServerAction.CHARGING_STATION, filteredRequest.chargingStationID,
-                MODULE_NAME, 'GetDiagnostics', req.tenant ?? Constants.DEFAULT_TENANT);
-              throw new AppError({
-                source: chargingStation.id,
-                action: command as unknown as ServerAction,
-                errorCode: HTTPError.GENERAL_ERROR,
-                message: `OCPP Command '${command}' has failed: ` + error.message,
-                module: MODULE_NAME, method: 'handleAction',
-                user: req.user,
-                detailedMessages: { error: error.stack, filteredRequest }
-              });
-            });
-            break;
-          default:
-            // Execute it
-            result = await ChargingStationService.executeChargingStationCommand(
-              req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
-            break;
-        }
+        // Execute it
+        result = await ChargingStationService.executeChargingStationCommand(
+          req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
+        break;
     }
     res.json(result);
     next();
@@ -1629,6 +1608,28 @@ export default class ChargingStationService {
             retries: params.retries,
             retrieveDate: params.retrieveDate,
             retryInterval: params.retryInterval
+          });
+          break;
+        case Command.GET_DIAGNOSTICS:
+          result = await chargingStationClient.getDiagnostics({
+            location: params.location,
+            retries: params.retries,
+            retryInterval: params.retryInterval,
+            startTime: params.startTime,
+            stopTime: params.stopTime
+          }).catch(async (error) => {
+            // Log
+            await Logging.logException(error, ServerAction.CHARGING_STATION, chargingStation.id,
+              MODULE_NAME, 'GetDiagnostics', tenant.id ?? Constants.DEFAULT_TENANT);
+            throw new AppError({
+              source: chargingStation.id,
+              action: command as unknown as ServerAction,
+              errorCode: HTTPError.GENERAL_ERROR,
+              message: `OCPP Command '${command}' has failed: ` + error.message,
+              module: MODULE_NAME, method: 'handleAction',
+              user,
+              detailedMessages: { error: error.stack, params }
+            });
           });
           break;
         case Command.TRIGGER_DATA_TRANSFER:
