@@ -432,7 +432,7 @@ export default class OCPIUtilsService {
     const chargingStations = await ChargingStationStorage.getChargingStations(tenant,
       { ...dbFilters, siteIDs: [ siteID ], public: true, issuer: true, withSiteArea: true },
       dbParams ?? Constants.DB_PARAMS_MAX_LIMIT,
-      [ 'id', 'chargePoints', 'connectors', 'coordinates', 'lastSeen', 'siteAreaID', 'siteID' ]);
+      [ 'id', 'chargePoints', 'connectors', 'coordinates', 'lastSeen', 'siteAreaID', 'siteID', 'companyID' ]);
     for (const chargingStation of chargingStations.result) {
       const chargingStationEvses: OCPIEvse[] = [];
       if (!Utils.isEmptyArray(chargingStation.chargePoints)) {
@@ -831,6 +831,9 @@ export default class OCPIUtilsService {
       // Check addChargeBoxID flag
       if (options?.addChargeBoxID) {
         evse.chargeBoxId = chargingStation.id;
+        evse.siteID = chargingStation.siteID;
+        evse.siteAreaID = chargingStation.siteAreaID;
+        evse.companyID = chargingStation.companyID;
       }
       return evse;
     });
@@ -869,6 +872,9 @@ export default class OCPIUtilsService {
     // Check addChargeBoxID flag
     if (options?.addChargeBoxID) {
       evse.chargeBoxId = chargingStation.id;
+      evse.siteID = chargingStation.siteID;
+      evse.siteAreaID = chargingStation.siteAreaID;
+      evse.companyID = chargingStation.companyID;
     }
     return [evse];
   }

@@ -18,7 +18,7 @@ import Mustache from 'mustache';
 import { ObjectId } from 'mongodb';
 import TagStorage from './TagStorage';
 import Tenant from '../../types/Tenant';
-import TenantComponents from '../../types/TenantComponents';
+import { TenantComponents } from '../../types/Tenant';
 import TenantStorage from './TenantStorage';
 import UserNotifications from '../../types/UserNotifications';
 import Utils from '../../utils/Utils';

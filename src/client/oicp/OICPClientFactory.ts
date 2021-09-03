@@ -1,3 +1,5 @@
+import Tenant, { TenantComponents } from '../../types/Tenant';
+
 import Constants from '../../utils/Constants';
 import CpoOICPClient from './CpoOICPClient';
 import Logging from '../../utils/Logging';
@@ -8,8 +10,6 @@ import { OICPRegistrationStatus } from '../../types/oicp/OICPRegistrationStatus'
 import { OICPRole } from '../../types/oicp/OICPRole';
 import { ServerAction } from '../../types/Server';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
-import Tenant from '../../types/Tenant';
-import TenantComponents from '../../types/TenantComponents';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'OICPClientFactory';

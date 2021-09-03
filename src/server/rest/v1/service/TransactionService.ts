@@ -1,6 +1,7 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
+import Tenant, { TenantComponents } from '../../../../types/Tenant';
 import Transaction, { TransactionAction } from '../../../../types/Transaction';
 
 import { ActionsResponse } from '../../../../types/GlobalType';
@@ -26,10 +27,7 @@ import { RefundStatus } from '../../../../types/Refund';
 import { ServerAction } from '../../../../types/Server';
 import SynchronizeRefundTransactionsTask from '../../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
-import Tenant from '../../../../types/Tenant';
-import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
-import TransactionSecurity from './security/TransactionSecurity';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import TransactionValidator from '../validator/TransactionValidator';
 import User from '../../../../types/User';
@@ -305,16 +303,7 @@ export default class TransactionService {
       });
     }
     // Filter
-    const filteredRequest = TransactionSecurity.filterUnassignedTransactionsCountRequest(req.query);
-    if (!filteredRequest.TagID) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Tag ID must be provided',
-        module: MODULE_NAME, method: 'handleGetUnassignedTransactionsCount',
-        user: req.user, action: action
-      });
-    }
+    const filteredRequest = TransactionValidator.getInstance().validateTransactionsUnassignedCountReq(req.query);
     // Get the user
     const tag = await TagStorage.getTag(req.tenant, filteredRequest.TagID);
     UtilsService.assertObjectExists(action, tag, `Tag ID '${filteredRequest.TagID}' does not exist`,
@@ -497,6 +486,9 @@ export default class TransactionService {
       const result = await new OCPPService(Configuration.getChargingStationConfig()).handleStopTransaction(
         {
           chargeBoxIdentity: chargingStation.id,
+          companyID: chargingStation.companyID,
+          siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
           tenantID: req.user.tenantID
         },
         {
@@ -908,7 +900,7 @@ export default class TransactionService {
     }
     const filter: any = {};
     // Filter
-    const filteredRequest = TransactionSecurity.filterTransactionsInErrorRequest(req.query);
+    const filteredRequest = TransactionValidator.getInstance().validateTransactionsInErrorGetReq(req.query);
     // Site Area
     const transactions = await TransactionStorage.getTransactionsInError(req.tenant,
       {
@@ -926,7 +918,7 @@ export default class TransactionService {
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.SortFields
+        sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields)
       },
       projectFields
     );

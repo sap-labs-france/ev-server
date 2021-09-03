@@ -44,6 +44,9 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
               await Logging.logInfo({
                 tenantID: tenant.id,
                 siteID: chargingStation.siteID,
+                siteAreaID: chargingStation.siteAreaID,
+                companyID: chargingStation.companyID,
+                chargingStationID: chargingStation.id,
                 source: chargingStation.id,
                 action: ServerAction.OFFLINE_CHARGING_STATION,
                 module: MODULE_NAME, method: 'processTenant',
