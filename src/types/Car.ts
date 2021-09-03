@@ -1,5 +1,6 @@
 import { AuthorizationActions } from './Authorization';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
+import { CarConnectorConnectionSetting } from './Setting';
 
 export interface CarCatalog extends CreatedUpdatedProps, AuthorizationActions {
   id: number;
@@ -138,6 +139,9 @@ export interface Car extends CreatedUpdatedProps, AuthorizationActions {
   default: boolean;
   type?: CarType;
   converter?: CarConverter;
+  carConnectorID?: string;
+  carConnectorMeterID?: string;
+  carConnector?: CarConnectorConnectionSetting
 }
 
 export interface CarConverter {

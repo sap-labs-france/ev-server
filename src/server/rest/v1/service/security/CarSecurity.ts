@@ -55,6 +55,8 @@ export default class CarSecurity {
         type: sanitize(request.converter.type),
         powerWatts: sanitize(request.converter.powerWatts)
       },
+      carConnectorID: sanitize(request.carConnectorID),
+      carConnectorMeterID: sanitize(request.carConnectorMeterID)
     };
   }
 
@@ -73,6 +75,8 @@ export default class CarSecurity {
         type: sanitize(request.converter.type),
         powerWatts: sanitize(request.converter.powerWatts)
       },
+      carConnectorID: sanitize(request.carConnectorID),
+      carConnectorMeterID: sanitize(request.carConnectorMeterID)
     };
     return filteredRequest;
   }
