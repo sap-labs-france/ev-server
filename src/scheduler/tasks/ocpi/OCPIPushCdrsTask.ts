@@ -8,7 +8,7 @@ import { ServerAction } from '../../../types/Server';
 import TagStorage from '../../../storage/mongodb/TagStorage';
 import { TaskConfig } from '../../../types/TaskConfig';
 import Tenant from '../../../types/Tenant';
-import TenantComponents from '../../../types/TenantComponents';
+import { TenantComponents } from '../../../types/Tenant';
 import { TransactionAction } from '../../../types/Transaction';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import Utils from '../../../utils/Utils';

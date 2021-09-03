@@ -6,6 +6,7 @@ import WebSocket, { CloseEvent, ErrorEvent } from 'ws';
 import BackendError from '../../../exception/BackendError';
 import ChargingStationClient from '../../../client/ocpp/ChargingStationClient';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import { Command } from '../../../types/ChargingStation';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import JsonCentralSystemServer from './JsonCentralSystemServer';
@@ -37,7 +38,11 @@ export default class JsonWSConnection extends WSConnection {
       // OCPP 1.6?
       case WSServerProtocol.OCPP16:
         // Create the Json Client
-        this.chargingStationClient = new JsonChargingStationClient(this, this.getTenantID(), this.getChargingStationID());
+        this.chargingStationClient = new JsonChargingStationClient(this, this.getTenantID(), this.getChargingStationID(), {
+          siteID: this.getSiteID(),
+          siteAreaID: this.getSiteAreaID(),
+          companyID: this.getCompanyID(),
+        });
         // Create the Json Server Service
         this.chargingStationService = new JsonChargingStationService();
         break;
@@ -75,6 +80,9 @@ export default class JsonWSConnection extends WSConnection {
       // Initialize the default Headers
       this.headers = {
         chargeBoxIdentity: this.getChargingStationID(),
+        siteID: this.getSiteID(),
+        siteAreaID: this.getSiteAreaID(),
+        companyID: this.getCompanyID(),
         ocppVersion: (this.getWSConnection().protocol.startsWith('ocpp') ? this.getWSConnection().protocol.replace('ocpp', '') : this.getWSConnection().protocol) as OCPPVersion,
         ocppProtocol: OCPPProtocol.JSON,
         chargingStationURL: Configuration.getJsonEndpointConfig().baseSecureUrl ?? Configuration.getJsonEndpointConfig().baseUrl,
@@ -88,6 +96,8 @@ export default class JsonWSConnection extends WSConnection {
       const chargingStation = await ChargingStationStorage.getChargingStation(
         this.getTenant(), this.getChargingStationID(), { issuer: true }, ['id']);
       if (chargingStation) {
+        // Update charging station details
+        this.setChargingStationDetails(chargingStation);
         // Update Last Seen
         await ChargingStationStorage.saveChargingStationLastSeen(this.getTenant(),
           chargingStation.id, { lastSeen: new Date() });
@@ -100,11 +110,15 @@ export default class JsonWSConnection extends WSConnection {
       } else {
         // Check connection Token
         await OCPPUtils.checkChargingStationConnectionToken(
-          ServerAction.BOOT_NOTIFICATION, this.getTenant(), this.getChargingStationID(), this.getToken(), { headers: this.headers });
+          ServerAction.OCPP_BOOT_NOTIFICATION, this.getTenant(), this.getChargingStationID(), this.getToken(), { headers: this.headers });
       }
       this.initialized = true;
       await Logging.logInfo({
         tenantID: this.getTenantID(),
+        siteID: this.getSiteID(),
+        siteAreaID: this.getSiteAreaID(),
+        companyID: this.getCompanyID(),
+        chargingStationID: this.getChargingStationID(),
         source: this.getChargingStationID(),
         action: ServerAction.WS_JSON_CONNECTION_OPENED,
         module: MODULE_NAME, method: 'initialize',
@@ -116,6 +130,10 @@ export default class JsonWSConnection extends WSConnection {
   public onError(errorEvent: ErrorEvent): void {
     void Logging.logError({
       tenantID: this.getTenantID(),
+      siteID: this.getSiteID(),
+      siteAreaID: this.getSiteAreaID(),
+      companyID: this.getCompanyID(),
+      chargingStationID: this.getChargingStationID(),
       source: this.getChargingStationID(),
       action: ServerAction.WS_JSON_CONNECTION_ERROR,
       module: MODULE_NAME, method: 'onError',
@@ -127,6 +145,10 @@ export default class JsonWSConnection extends WSConnection {
   public onClose(closeEvent: CloseEvent): void {
     void Logging.logInfo({
       tenantID: this.getTenantID(),
+      siteID: this.getSiteID(),
+      siteAreaID: this.getSiteAreaID(),
+      companyID: this.getCompanyID(),
+      chargingStationID: this.getChargingStationID(),
       source: this.getChargingStationID(),
       action: ServerAction.WS_JSON_CONNECTION_CLOSED,
       module: MODULE_NAME, method: 'onClose',
@@ -136,42 +158,37 @@ export default class JsonWSConnection extends WSConnection {
   }
 
   public async onPing(): Promise<void> {
-    void Logging.logDebug({
-      tenantID: this.getTenantID(),
-      source: this.getChargingStationID(),
-      action: ServerAction.WS_JSON_CONNECTION_PINGED,
-      module: MODULE_NAME, method: 'onPing',
-      message: 'Ping received',
-    });
+    this.isConnectionAlive = true;
     await this.updateChargingStationLastSeen();
   }
 
   public async onPong(): Promise<void> {
     this.isConnectionAlive = true;
-    void Logging.logDebug({
-      tenantID: this.getTenantID(),
-      source: this.getChargingStationID(),
-      action: ServerAction.WS_JSON_CONNECTION_PONGED,
-      module: MODULE_NAME, method: 'onPong',
-      message: 'Pong received',
-    });
     await this.updateChargingStationLastSeen();
   }
 
-  public async handleRequest(messageId: string, commandName: ServerAction, commandPayload: Record<string, unknown> | string): Promise<void> {
-    await Logging.logChargingStationServerReceiveAction(Constants.MODULE_JSON_OCPP_SERVER_16, this.getTenantID(), this.getChargingStationID(), commandName, commandPayload);
-    const methodName = `handle${commandName}`;
+  public async handleRequest(messageId: string, command: Command, commandPayload: Record<string, unknown> | string): Promise<void> {
+    await Logging.logChargingStationServerReceiveAction(Constants.MODULE_JSON_OCPP_SERVER_16, this.getTenantID(), this.getChargingStationID(), {
+      siteAreaID: this.getSiteAreaID(),
+      siteID: this.getSiteID(),
+      companyID: this.getCompanyID(),
+    }, OCPPUtils.getServerActionFromOcppCommand(command), commandPayload);
+    const methodName = `handle${command}`;
     // Check if method exist in the service
     if (typeof this.chargingStationService[methodName] === 'function') {
-      if ((commandName === 'BootNotification') || (commandName === 'Heartbeat')) {
+      if ((command === Command.BOOT_NOTIFICATION) || (command === Command.HEARTBEAT)) {
         this.headers.currentIPAddress = this.getClientIP();
       }
       // Call it
       const result = await this.chargingStationService[methodName](this.headers, commandPayload);
       // Log
-      await Logging.logChargingStationServerRespondAction(Constants.MODULE_JSON_OCPP_SERVER_16, this.getTenantID(), this.getChargingStationID(), commandName, result);
+      await Logging.logChargingStationServerRespondAction(Constants.MODULE_JSON_OCPP_SERVER_16, this.getTenantID(), this.getChargingStationID(), {
+        siteAreaID: this.getSiteAreaID(),
+        siteID: this.getSiteID(),
+        companyID: this.getCompanyID(),
+      }, OCPPUtils.getServerActionFromOcppCommand(command), result);
       // Send Response
-      await this.sendMessage(messageId, result, OCPPMessageType.CALL_RESULT_MESSAGE, commandName);
+      await this.sendMessage(messageId, result, OCPPMessageType.CALL_RESULT_MESSAGE, command);
     } else {
       // Throw Exception
       throw new OCPPError({
@@ -179,7 +196,7 @@ export default class JsonWSConnection extends WSConnection {
         module: MODULE_NAME,
         method: 'handleRequest',
         code: OCPPErrorType.NOT_IMPLEMENTED,
-        message: `The OCPP method 'handle${typeof commandName === 'string' ? commandName : JSON.stringify(commandName)}' has not been implemented`
+        message: `The OCPP method 'handle${typeof command === 'string' ? command : JSON.stringify(command)}' has not been implemented`
       });
     }
   }
@@ -188,6 +205,10 @@ export default class JsonWSConnection extends WSConnection {
     if (!this.isWSConnectionOpen()) {
       void Logging.logError({
         tenantID: this.getTenantID(),
+        siteID: this.getSiteID(),
+        siteAreaID: this.getSiteAreaID(),
+        companyID: this.getCompanyID(),
+        chargingStationID: this.getChargingStationID(),
         source: this.getChargingStationID(),
         module: MODULE_NAME, method: 'getChargingStationClient',
         action: ServerAction.WS_CONNECTION,

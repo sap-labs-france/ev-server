@@ -453,7 +453,11 @@ export default class RemotePushNotificationTask implements NotificationTask {
     if (!user || !user.mobileToken || user.mobileToken.length === 0) {
       await Logging.logDebug({
         tenantID: tenant.id,
-        source: (data && Utils.objectHasProperty(data, 'chargeBoxID') ? data['chargeBoxID'] : null),
+        siteID: data?.siteID,
+        siteAreaID: data?.siteAreaID,
+        companyID: data?.companyID,
+        chargingStationID: data?.chargeBoxID,
+        source: data?.chargeBoxID,
         action: ServerAction.REMOTE_PUSH_NOTIFICATION,
         module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
         message: `'${notificationType}': No mobile token found for this User`,
@@ -474,7 +478,11 @@ export default class RemotePushNotificationTask implements NotificationTask {
       // Response is a message ID string.
       void Logging.logDebug({
         tenantID: tenant.id,
-        source: (data && Utils.objectHasProperty(data, 'chargeBoxID') ? data['chargeBoxID'] : null),
+        siteID: data?.siteID,
+        siteAreaID: data?.siteAreaID,
+        companyID: data?.companyID,
+        chargingStationID: data?.chargeBoxID,
+        source: data?.chargeBoxID,
         action: ServerAction.REMOTE_PUSH_NOTIFICATION,
         module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
         message: `Notification Sent: '${notificationType}' - '${title}'`,
@@ -484,7 +492,11 @@ export default class RemotePushNotificationTask implements NotificationTask {
     }).catch((error: Error) => {
       void Logging.logError({
         tenantID: tenant.id,
-        source: (data && Utils.objectHasProperty(data, 'chargeBoxID') ? data['chargeBoxID'] : null),
+        siteID: data?.siteID,
+        siteAreaID: data?.siteAreaID,
+        companyID: data?.companyID,
+        chargingStationID: data?.chargeBoxID,
+        source: data?.chargeBoxID,
         action: ServerAction.REMOTE_PUSH_NOTIFICATION,
         module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
         message: `Error when sending Notification: '${notificationType}' - '${error.message}'`,

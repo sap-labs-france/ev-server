@@ -188,7 +188,11 @@ export default class EMailNotificationTask implements NotificationTask {
       // No suitable main SMTP server configuration found to send the email
       await Logging.logError({
         tenantID: tenant.id,
-        source: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
+        siteID: data?.siteID,
+        siteAreaID: data?.siteAreaID,
+        companyID: data?.companyID,
+        chargingStationID: data?.chargeBoxID,
+        source: data?.chargeBoxID,
         action: ServerAction.EMAIL_NOTIFICATION,
         module: MODULE_NAME, method: 'sendEmail',
         message: 'No suitable main SMTP server configuration found to send email',
@@ -200,7 +204,11 @@ export default class EMailNotificationTask implements NotificationTask {
     // No suitable backup SMTP server configuration found or activated to send the email
       await Logging.logError({
         tenantID: tenant.id,
-        source: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
+        siteID: data?.siteID,
+        siteAreaID: data?.siteAreaID,
+        companyID: data?.companyID,
+        chargingStationID: data?.chargeBoxID,
+        source: data?.chargeBoxID,
         action: ServerAction.EMAIL_NOTIFICATION,
         module: MODULE_NAME, method: 'sendEmail',
         message: 'No suitable backup SMTP server configuration found or activated to send email after an error on the main SMTP server',
@@ -228,7 +236,11 @@ export default class EMailNotificationTask implements NotificationTask {
       // Email sent successfully
       await Logging.logDebug({
         tenantID: tenant.id ? tenant.id : Constants.DEFAULT_TENANT,
-        source: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
+        siteID: data?.siteID,
+        siteAreaID: data?.siteAreaID,
+        companyID: data?.companyID,
+        chargingStationID: data?.chargeBoxID,
+        source: data?.chargeBoxID,
         action: ServerAction.EMAIL_NOTIFICATION,
         module: MODULE_NAME, method: 'sendEmail',
         actionOnUser: user,
@@ -244,7 +256,11 @@ export default class EMailNotificationTask implements NotificationTask {
       try {
         await Logging.logError({
           tenantID: tenant.id ? tenant.id : Constants.DEFAULT_TENANT,
-          source: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
+          siteID: data?.siteID,
+          siteAreaID: data?.siteAreaID,
+          companyID: data?.companyID,
+          chargingStationID: data?.chargeBoxID,
+          source: data?.chargeBoxID,
           action: ServerAction.EMAIL_NOTIFICATION,
           module: MODULE_NAME, method: 'sendEmail',
           message: `Error Sending Email (${rfc2047.decode(messageToSend.header.from.toString())}): '${rfc2047.decode(messageToSend.header.subject)}'`,
@@ -418,7 +434,11 @@ export default class EMailNotificationTask implements NotificationTask {
     } catch (error) {
       await Logging.logError({
         tenantID: tenant.id,
-        source: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
+        siteID: data?.siteID,
+        siteAreaID: data?.siteAreaID,
+        companyID: data?.companyID,
+        chargingStationID: data?.chargeBoxID,
+        source: data?.chargeBoxID,
         action: ServerAction.EMAIL_NOTIFICATION,
         module: MODULE_NAME, method: 'prepareAndSendEmail',
         message: 'Error in preparing email for user',
