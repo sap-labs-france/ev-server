@@ -30,6 +30,8 @@ export default interface PricingDefinition extends CreatedUpdatedProps, Authoriz
   entityType: PricingEntity; // Type of the entity this model belongs to
   name: string, // Short marketing name - e.g.: BLUE Tariff,
   description: string, // A long description to explain it, e.g.: Time-based pricing for low charging stations
+  validFrom: Date,
+  validTo: Date,
   connectorTypes?: ConnectorType[], // Connector types allowed to use this tariff
   minOutputPowerkW?: number, // Minimum power in kW, for example 0, valid from this charging speed
   maxOutputPowerkW?: number, // Maximum power in kW, for example 20, valid up to this charging speed

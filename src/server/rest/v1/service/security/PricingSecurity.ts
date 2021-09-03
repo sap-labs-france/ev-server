@@ -43,6 +43,11 @@ export default class PricingSecurity {
       entityType: sanitize(request.entityType),
       name: sanitize(request.name),
       description: sanitize(request.description),
+      connectorTypes: sanitize(request.connectorTypes),
+      validFrom: sanitize(request.validFrom),
+      validTo: sanitize(request.validTo),
+      minOutputPowerkW: sanitize(request.minOutputPowerkW),
+      maxOutputPowerkW: sanitize(request.maxOutputPowerkW),
       // TODO - not yet sanitized properly
       restrictions: sanitize(request.restrictions),
       dimensions: sanitize(request.dimensions),

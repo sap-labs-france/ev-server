@@ -74,7 +74,7 @@ export default class PricingService {
       return;
     }
     // Get the companies
-    const pricingModels = await PricingStorage.getPricingDefinitions(req.tenant,
+    const pricingDefinitions = await PricingStorage.getPricingDefinitions(req.tenant,
       {
         // search: filteredRequest.Search,
         ...authorizationPricingDefinitionsFilter.filters
@@ -88,9 +88,9 @@ export default class PricingService {
       authorizationPricingDefinitionsFilter.projectFields
     );
     // Add Auth flags
-    await AuthorizationService.addPricingDefinitionsAuthorizations(req.tenant, req.user, pricingModels as PricingDataResult, authorizationPricingDefinitionsFilter);
+    await AuthorizationService.addPricingDefinitionsAuthorizations(req.tenant, req.user, pricingDefinitions as PricingDataResult, authorizationPricingDefinitionsFilter);
     // Return
-    res.json(pricingModels);
+    res.json(pricingDefinitions);
     next();
   }
 
@@ -151,6 +151,11 @@ export default class PricingService {
     pricingDefinition.entityType = filteredRequest.entityType;
     pricingDefinition.name = filteredRequest.name;
     pricingDefinition.description = filteredRequest.description;
+    pricingDefinition.validFrom = filteredRequest.validFrom;
+    pricingDefinition.validTo = filteredRequest.validTo;
+    pricingDefinition.connectorTypes = filteredRequest.connectorTypes;
+    pricingDefinition.minOutputPowerkW = filteredRequest.minOutputPowerkW;
+    pricingDefinition.maxOutputPowerkW = filteredRequest.maxOutputPowerkW;
     pricingDefinition.restrictions = filteredRequest.restrictions;
     pricingDefinition.dimensions = filteredRequest.dimensions;
     pricingDefinition.lastChangedBy = { 'id': req.user.id };
