@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
-import { PricedConsumption, PricingDefinition, PricingSource, ResolvedPricingModel } from '../../../types/Pricing';
+import PricingDefinition, { PricedConsumption, PricingSource, ResolvedPricingModel } from '../../../types/Pricing';
 
 import ChargingStation from '../../../types/ChargingStation';
 import Consumption from '../../../types/Consumption';
@@ -79,7 +79,7 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
             stepSize: 10 // kWh
           },
         }
-      };
+      } as PricingDefinition;
     }
     if (FeatureToggles.isFeatureActive(Feature.PRICING_TEST_PARKING_TIME)) {
       // TODO - Should be removed - just for testing purposes!
@@ -101,7 +101,7 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
             price: 7, // per hour
           },
         }
-      };
+      } as PricingDefinition;
     }
     // Defaults to the simple pricing settings
     return {
@@ -113,7 +113,7 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
           price: this.setting.price,
         }
       }
-    };
+    } as PricingDefinition;
   }
 
 }

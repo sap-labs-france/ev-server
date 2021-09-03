@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import AuthenticatedBaseApi from './utils/AuthenticatedBaseApi';
 import CrudApi from './utils/CrudApi';
-import PricingModel from '../../../src/types/Pricing';
+import PricingDefinition from '../../../src/types/Pricing';
 import { ServerRoute } from '../../../src/types/Server';
 import TestConstants from './utils/TestConstants';
 
@@ -10,23 +10,23 @@ export default class PricingApi extends CrudApi {
     super(authenticatedApi);
   }
 
-  public async readPricingModels(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
+  public async readPricingDefinitions(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
     return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(ServerRoute.REST_PRICING_MODELS));
   }
 
-  public async readPricingModel(id: string) {
+  public async readPricingDefinition(id: string) {
     return super.read({ ID: id }, this.buildRestEndpointUrl(ServerRoute.REST_PRICING_MODEL, { id }));
   }
 
-  public async updatePricingModel(data: PricingModel) {
+  public async updatePricingDefinition(data: PricingDefinition) {
     return super.update(data, this.buildRestEndpointUrl(ServerRoute.REST_PRICING_MODEL, { id: data.id }));
   }
 
-  public async createPricingModel(data: Partial<PricingModel>) {
+  public async createPricingDefinition(data: Partial<PricingDefinition>) {
     return super.create(data, this.buildRestEndpointUrl(ServerRoute.REST_PRICING_MODELS));
   }
 
-  public async deletePricingModel(id: string) {
+  public async deletePricingDefinition(id: string) {
     return super.delete(id, this.buildRestEndpointUrl(ServerRoute.REST_PRICING_MODEL, { id }));
   }
 

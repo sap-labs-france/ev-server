@@ -7,7 +7,7 @@ import Constants from '../../../../utils/Constants';
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
 import { PricingDataResult } from '../../../../types/DataResult';
-import PricingModel from '../../../../types/Pricing';
+import PricingDefinition from '../../../../types/Pricing';
 import PricingSecurity from './security/PricingSecurity';
 import PricingStorage from '../../../../storage/mongodb/PricingStorage';
 import { ServerAction } from '../../../../types/Server';
@@ -18,22 +18,22 @@ const MODULE_NAME = 'PricingService';
 
 export default class PricingService {
 
-  public static async handleDeletePricingModel(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleDeletePricingDefinition(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
-      Action.DELETE, Entity.COMPANY, MODULE_NAME, 'handleDeletePricingModel');
+      Action.DELETE, Entity.COMPANY, MODULE_NAME, 'handleDeletePricingDefinition');
     // Filter
-    const pricingModelID = PricingSecurity.filterPricingModelRequestByID(req.query);
-    UtilsService.assertIdIsProvided(action, pricingModelID, MODULE_NAME, 'handleDeletePricingModel', req.user);
+    const pricingModelID = PricingSecurity.filterPricingDefinitionRequestByID(req.query);
+    UtilsService.assertIdIsProvided(action, pricingModelID, MODULE_NAME, 'handleDeletePricingDefinition', req.user);
     // Check and Get Pricing
-    const pricing = await UtilsService.checkAndGetPricingModelAuthorization(
+    const pricing = await UtilsService.checkAndGetPricingDefinitionAuthorization(
       req.tenant, req.user, pricingModelID, Action.DELETE, action);
     // Delete
-    await PricingStorage.deletePricingModel(req.tenant, pricing.id);
+    await PricingStorage.deletePricingDefinition(req.tenant, pricing.id);
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: MODULE_NAME, method: 'handleDeletePricingModel',
+      user: req.user, module: MODULE_NAME, method: 'handleDeletePricingDefinition',
       // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       message: `Pricing model '${pricingModelID}' has been deleted successfully`,
       action: action,
@@ -44,15 +44,15 @@ export default class PricingService {
     next();
   }
 
-  public static async handleGetPricingModel(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetPricingDefinition(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
-      Action.READ, Entity.COMPANY, MODULE_NAME, 'handleGetPricingModel');
+      Action.READ, Entity.COMPANY, MODULE_NAME, 'handleGetPricingDefinition');
     // Filter
-    const filteredRequest = PricingSecurity.filterPricingModelRequest(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetPricingModel', req.user);
+    const filteredRequest = PricingSecurity.filterPricingDefinitionRequest(req.query);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetPricingDefinition', req.user);
     // Check and Get Pricing
-    const pricing = await UtilsService.checkAndGetPricingModelAuthorization(
+    const pricing = await UtilsService.checkAndGetPricingDefinitionAuthorization(
       req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {
         withLogo: true
       }, true);
@@ -60,24 +60,24 @@ export default class PricingService {
     next();
   }
 
-  public static async handleGetPricingModels(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetPricingDefinitions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
-      Action.LIST, Entity.PRICING_MODELS, MODULE_NAME, 'handleGetPricingModels');
+      Action.LIST, Entity.PRICING_DEFINITIONS, MODULE_NAME, 'handleGetPricingDefinitions');
     // Filter
-    const filteredRequest = PricingSecurity.filterPricingModelsRequest(req.query);
+    const filteredRequest = PricingSecurity.filterPricingDefinitionsRequest(req.query);
     // Check dynamic auth
-    const authorizationPricingModelsFilter = await AuthorizationService.checkAndGetPricingModelsAuthorizations(
+    const authorizationPricingDefinitionsFilter = await AuthorizationService.checkAndGetPricingDefinitionsAuthorizations(
       req.tenant, req.user, filteredRequest);
-    if (!authorizationPricingModelsFilter.authorized) {
+    if (!authorizationPricingDefinitionsFilter.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
     // Get the companies
-    const pricingModels = await PricingStorage.getPricingModels(req.tenant,
+    const pricingModels = await PricingStorage.getPricingDefinitions(req.tenant,
       {
         // search: filteredRequest.Search,
-        ...authorizationPricingModelsFilter.filters
+        ...authorizationPricingDefinitionsFilter.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -85,82 +85,85 @@ export default class PricingService {
         sort: filteredRequest.SortFields,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      authorizationPricingModelsFilter.projectFields
+      authorizationPricingDefinitionsFilter.projectFields
     );
     // Add Auth flags
-    await AuthorizationService.addPricingModelsAuthorizations(req.tenant, req.user, pricingModels as PricingDataResult, authorizationPricingModelsFilter);
+    await AuthorizationService.addPricingDefinitionsAuthorizations(req.tenant, req.user, pricingModels as PricingDataResult, authorizationPricingDefinitionsFilter);
     // Return
     res.json(pricingModels);
     next();
   }
 
-  public static async handleCreatePricingModel(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleCreatePricingDefinition(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
-      Action.CREATE, Entity.COMPANY, MODULE_NAME, 'handleCreatePricingModel');
+      Action.CREATE, Entity.COMPANY, MODULE_NAME, 'handleCreatePricingDefinition');
     // Filter
-    const filteredRequest = PricingSecurity.filterPricingModelCreateRequest(req.body);
+    const filteredRequest = PricingSecurity.filterPricingDefinitionCreateRequest(req.body);
     // Check
-    UtilsService.checkIfPricingModelValid(filteredRequest, req);
+    UtilsService.checkIfPricingDefinitionValid(filteredRequest, req);
     // Get dynamic auth
-    const authorizationFilter = await AuthorizationService.checkAndGetPricingModelAuthorizations(
-      req.tenant, req.user, {}, Action.CREATE, filteredRequest as PricingModel);
+    const authorizationFilter = await AuthorizationService.checkAndGetPricingDefinitionAuthorizations(
+      req.tenant, req.user, {}, Action.CREATE, filteredRequest as PricingDefinition);
     if (!authorizationFilter.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.CREATE, entity: Entity.COMPANY,
-        module: MODULE_NAME, method: 'handleCreatePricingModel'
+        module: MODULE_NAME, method: 'handleCreatePricingDefinition'
       });
     }
     // Create pricing
-    const newPricingModel: PricingModel = {
+    const newPricingDefinition: PricingDefinition = {
       ...filteredRequest,
       issuer: true,
       createdBy: { id: req.user.id },
       createdOn: new Date()
-    } as PricingModel;
+    } as PricingDefinition;
     // Save
-    newPricingModel.id = await PricingStorage.savePricingModel(req.tenant, newPricingModel);
+    newPricingDefinition.id = await PricingStorage.savePricingDefinition(req.tenant, newPricingDefinition);
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: MODULE_NAME, method: 'handleCreatePricingModel',
-      message: `Pricing model '${newPricingModel.id}' has been created successfully`,
+      user: req.user, module: MODULE_NAME, method: 'handleCreatePricingDefinition',
+      message: `Pricing model '${newPricingDefinition.id}' has been created successfully`,
       action: action,
-      detailedMessages: { pricingModel: newPricingModel }
+      detailedMessages: { pricingDefinition: newPricingDefinition }
     });
     // Ok
-    res.json(Object.assign({ id: newPricingModel.id }, Constants.REST_RESPONSE_SUCCESS));
+    res.json(Object.assign({ id: newPricingDefinition.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 
-  public static async handleUpdatePricingModel(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdatePricingDefinition(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
-      Action.UPDATE, Entity.COMPANY, MODULE_NAME, 'handleUpdatePricingModel');
+      Action.UPDATE, Entity.COMPANY, MODULE_NAME, 'handleUpdatePricingDefinition');
     // Filter
-    const filteredRequest = PricingSecurity.filterPricingModelUpdateRequest(req.body);
+    const filteredRequest = PricingSecurity.filterPricingDefinitionUpdateRequest(req.body);
     // Check Mandatory fields
-    UtilsService.checkIfPricingModelValid(filteredRequest, req);
+    UtilsService.checkIfPricingDefinitionValid(filteredRequest, req);
     // Check and Get Pricing
-    const pricingModel = await UtilsService.checkAndGetPricingModelAuthorization(
-      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest as PricingModel);
+    const pricingDefinition = await UtilsService.checkAndGetPricingDefinitionAuthorization(
+      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest as PricingDefinition);
     // Update
-    pricingModel.entityID = filteredRequest.entityID;
-    pricingModel.entityType = filteredRequest.entityType;
-    pricingModel.pricingDefinitions = filteredRequest.pricingDefinitions;
-    pricingModel.lastChangedBy = { 'id': req.user.id };
-    pricingModel.lastChangedOn = new Date();
+    pricingDefinition.entityID = filteredRequest.entityID;
+    pricingDefinition.entityType = filteredRequest.entityType;
+    pricingDefinition.name = filteredRequest.name;
+    pricingDefinition.description = filteredRequest.description;
+    pricingDefinition.restrictions = filteredRequest.restrictions;
+    pricingDefinition.dimensions = filteredRequest.dimensions;
+    pricingDefinition.lastChangedBy = { 'id': req.user.id };
+    pricingDefinition.lastChangedOn = new Date();
     // Update Pricing
-    await PricingStorage.savePricingModel(req.tenant, pricingModel);
+    await PricingStorage.savePricingDefinition(req.tenant, pricingDefinition);
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: MODULE_NAME, method: 'handleUpdatePricingModel',
-      message: `Pricing model '${pricingModel.id}' has been updated successfully`,
+      user: req.user, module: MODULE_NAME, method: 'handleUpdatePricingDefinition',
+      message: `Pricing model '${pricingDefinition.id}' has been updated successfully`,
       action: action,
-      detailedMessages: { pricingModel: pricingModel }
+      detailedMessages: { pricingDefinition }
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);

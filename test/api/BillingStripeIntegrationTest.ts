@@ -31,7 +31,7 @@ describe('Billing Stripe Service', function() {
       });
 
       xit('check CRUD operations on a Pricing Model', async () => {
-        await testData.checkPricingModel();
+        await testData.checkPricingDefinitionEndpoints();
       });
     });
 

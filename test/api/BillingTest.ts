@@ -2,7 +2,7 @@ import AsyncTask, { AsyncTaskStatus } from '../../src/types/AsyncTask';
 import { BillingChargeInvoiceAction, BillingDataTransactionStop, BillingInvoiceStatus, BillingStatus, BillingUser } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
 import FeatureToggles, { Feature } from '../../src/utils/FeatureToggles';
-import PricingModel, { PricingDefinition, PricingDimensions, PricingEntity } from '../../src/types/Pricing';
+import PricingDefinition, { PricingDimensions, PricingEntity } from '../../src/types/Pricing';
 import chai, { assert, expect } from 'chai';
 
 import AsyncTaskStorage from '../../src/storage/mongodb/AsyncTaskStorage';
@@ -14,7 +14,6 @@ import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Cypher from '../../src/utils/Cypher';
 import { DataResult } from '../../src/types/DataResult';
-import { Entity } from '../../src/types/Authorization';
 import Factory from '../factories/Factory';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
 import { ObjectId } from 'mongodb';
@@ -278,7 +277,7 @@ class TestData {
     return (draftInvoice) ? draftInvoice.sessions?.length : 0;
   }
 
-  public async initializePricingModels(): Promise<void> {
+  public async initializePricingDefinitions(): Promise<void> {
     // const company = (await this.adminUserService.companyApi.readAll({}, { limit: 0, skip: 0 }))?.data?.result?.[0];
     // assert(company, 'The Company should not be null');
     // await this.createTariff4Company(company.id);
@@ -326,25 +325,12 @@ class TestData {
   }
 
   public async createTariff4Company(companyID: string): Promise<void> {
-    const initialPricingModel: Partial<PricingModel> = {
+    const tariff: Partial<PricingDefinition> = {
       entityID: companyID, // a pricing model for the Company
       entityType: PricingEntity.COMPANY,
-      pricingDefinitions: []
-    };
-    let response = await this.adminUserService.pricingApi.createPricingModel(initialPricingModel);
-    assert(response?.data?.status === 'Success', 'The operation should succeed');
-    assert(response?.data?.id, 'The ID should not be null');
-
-    const pricingModelId = response?.data?.id;
-    response = await this.adminUserService.pricingApi.readPricingModel(pricingModelId);
-    assert(response?.data?.id === pricingModelId, 'The ID should be: ' + pricingModelId);
-
-    const tariff: PricingDefinition = {
       name: 'GREEN Tariff',
       description: 'Tariff for slow chargers',
-      staticRestrictions: {
-        maxOutputPowerkW: 40,
-      },
+      maxOutputPowerkW: 40,
       dimensions: {
         flatFee: {
           price: 1.25,
@@ -365,32 +351,28 @@ class TestData {
       }
     };
 
-    const pricingModel = response?.data;
-    pricingModel.pricingDefinitions = [tariff];
-    response = await this.adminUserService.pricingApi.updatePricingModel(pricingModel);
+    let response = await this.adminUserService.pricingApi.createPricingDefinition(tariff);
+    assert(response?.data?.status === 'Success', 'The operation should succeed');
+    assert(response?.data?.id, 'The ID should not be null');
+
+    const pricingDefinitionId = response?.data?.id;
+    response = await this.adminUserService.pricingApi.readPricingDefinition(pricingDefinitionId);
+    assert(response?.data?.id === pricingDefinitionId, 'The ID should be: ' + pricingDefinitionId);
+
+
+    const pricingDefinition = response?.data;
+    pricingDefinition.pricingDefinitions = [tariff];
+    response = await this.adminUserService.pricingApi.updatePricingDefinition(pricingDefinition);
     assert(response?.data?.status === 'Success', 'The operation should succeed');
   }
 
   public async createTariff4Site(siteID: string): Promise<void> {
-    const initialPricingModel: Partial<PricingModel> = {
+    const tariff: Partial<PricingDefinition> = {
       entityID: siteID, // a pricing model for the site
       entityType: PricingEntity.SITE,
-      pricingDefinitions: []
-    };
-    let response = await this.adminUserService.pricingApi.createPricingModel(initialPricingModel);
-    assert(response?.data?.status === 'Success', 'The operation should succeed');
-    assert(response?.data?.id, 'The ID should not be null');
-
-    const pricingModelId = response?.data?.id;
-    response = await this.adminUserService.pricingApi.readPricingModel(pricingModelId);
-    assert(response?.data?.id === pricingModelId, 'The ID should be: ' + pricingModelId);
-
-    const tariff: PricingDefinition = {
       name: 'RED Tariff',
       description: 'Tariff for fast chargers',
-      staticRestrictions: {
-        minOutputPowerkW: 40,
-      },
+      minOutputPowerkW: 40,
       dimensions: {
         flatFee: {
           price: 2.25,
@@ -411,9 +393,17 @@ class TestData {
       }
     };
 
-    const pricingModel = response?.data;
-    pricingModel.pricingDefinitions = [tariff];
-    response = await this.adminUserService.pricingApi.updatePricingModel(pricingModel);
+    let response = await this.adminUserService.pricingApi.createPricingDefinition(tariff);
+    assert(response?.data?.status === 'Success', 'The operation should succeed');
+    assert(response?.data?.id, 'The ID should not be null');
+
+    const pricingDefinitionId = response?.data?.id;
+    response = await this.adminUserService.pricingApi.readPricingDefinition(pricingDefinitionId);
+    assert(response?.data?.id === pricingDefinitionId, 'The ID should be: ' + pricingDefinitionId);
+
+    const pricingDefinition = response?.data;
+    pricingDefinition.pricingDefinitions = [tariff];
+    response = await this.adminUserService.pricingApi.updatePricingDefinition(pricingDefinition);
     assert(response?.data?.status === 'Success', 'The operation should succeed');
   }
 
@@ -437,28 +427,25 @@ class TestData {
       },
     };
 
-    const initialPricingModel: Partial<PricingModel> = {
+    const tariff: Partial<PricingDefinition> = {
       entityID: chargingStation.id, // a pricing model for the site
       entityType: PricingEntity.CHARGING_STATION,
-      pricingDefinitions: []
-    };
-    let response = await this.adminUserService.pricingApi.createPricingModel(initialPricingModel);
-    assert(response?.data?.status === 'Success', 'The operation should succeed');
-    assert(response?.data?.id, 'The ID should not be null');
-
-    const pricingModelId = response?.data?.id;
-    response = await this.adminUserService.pricingApi.readPricingModel(pricingModelId);
-    assert(response?.data?.id === pricingModelId, 'The ID should be: ' + pricingModelId);
-
-    const tariff: PricingDefinition = {
       name: 'CS Tariff - ' + chargingStation.id,
       description: 'Tariff for CS' + chargingStation.id,
       dimensions
     };
 
-    const pricingModel = response?.data;
-    pricingModel.pricingDefinitions = [tariff];
-    response = await this.adminUserService.pricingApi.updatePricingModel(pricingModel);
+    let response = await this.adminUserService.pricingApi.createPricingDefinition(tariff);
+    assert(response?.data?.status === 'Success', 'The operation should succeed');
+    assert(response?.data?.id, 'The ID should not be null');
+
+    const pricingDefinitionId = response?.data?.id;
+    response = await this.adminUserService.pricingApi.readPricingDefinition(pricingDefinitionId);
+    assert(response?.data?.id === pricingDefinitionId, 'The ID should be: ' + pricingDefinitionId);
+
+    const pricingDefinition = response?.data;
+    pricingDefinition.pricingDefinitions = [tariff];
+    response = await this.adminUserService.pricingApi.updatePricingDefinition(pricingDefinition);
     assert(response?.data?.status === 'Success', 'The operation should succeed');
   }
 }
@@ -639,7 +626,7 @@ describe('Billing Service', function() {
       });
 
       it('Initialize the Pricing Models', async () => {
-        await testData.initializePricingModels();
+        await testData.initializePricingDefinitions();
       });
     });
 

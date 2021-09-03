@@ -1,7 +1,7 @@
 import { Car, CarCatalog } from './Car';
 
 import Company from './Company';
-import PricingModel from './Pricing';
+import PricingDefinition from './Pricing';
 import Site from './Site';
 import SiteArea from './SiteArea';
 import Tag from './Tag';
@@ -18,7 +18,7 @@ export interface DataResult<T> {
   projectedFields?: string[];
 }
 
-export interface PricingDataResult extends DataResult<PricingModel>{
+export interface PricingDataResult extends DataResult<PricingDefinition>{
   canCreate: boolean;
 }
 

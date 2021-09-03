@@ -6,7 +6,7 @@ import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { ObjectId } from 'mongodb';
-import PricingModel from '../../types/Pricing';
+import PricingDefinition from '../../types/Pricing';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 
@@ -14,60 +14,63 @@ const MODULE_NAME = 'PricingStorage';
 
 export default class PricingStorage {
 
-  public static async savePricingModel(tenant: Tenant, pricingModel: PricingModel): Promise<string> {
+  public static async savePricingDefinition(tenant: Tenant, pricingDefinition: PricingDefinition): Promise<string> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'savePricingModel');
+    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'savePricingDefinition');
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
-    const pricingModelMDB = {
-      _id: pricingModel.id ? DatabaseUtils.convertToObjectID(pricingModel.id) : new ObjectId(),
-      entityID: pricingModel.entityID,
-      entityType: pricingModel.entityType,
-      pricingDefinitions: pricingModel.pricingDefinitions, // TODO - check here some data consistency
+    const pricingDefinitionMDB = {
+      _id: pricingDefinition.id ? DatabaseUtils.convertToObjectID(pricingDefinition.id) : new ObjectId(),
+      entityID: pricingDefinition.entityID,
+      entityType: pricingDefinition.entityType,
+      name: pricingDefinition.name,
+      description: pricingDefinition.description,
+      restrictions: pricingDefinition.restrictions,
+      dimensions: pricingDefinition.dimensions,
     };
     // Check Created/Last Changed By
-    DatabaseUtils.addLastChangedCreatedProps(pricingModelMDB, pricingModel);
+    DatabaseUtils.addLastChangedCreatedProps(pricingDefinitionMDB, pricingDefinition);
     // Save
-    await global.database.getCollection<any>(tenant.id, 'pricingmodels').findOneAndUpdate(
-      { '_id': pricingModelMDB._id },
-      { $set: pricingModelMDB },
+    await global.database.getCollection<any>(tenant.id, 'pricingdefinitions').findOneAndUpdate(
+      { '_id': pricingDefinitionMDB._id },
+      { $set: pricingDefinitionMDB },
       { upsert: true, returnDocument: 'after' });
     // Debug
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'savePricingModel', uniqueTimerID, pricingModelMDB);
-    return pricingModelMDB._id.toString();
+    await Logging.traceEnd(tenant.id, MODULE_NAME, 'savePricingDefinition', uniqueTimerID, pricingDefinitionMDB);
+    return pricingDefinitionMDB._id.toString();
   }
 
-  public static async deletePricingModel(tenant: Tenant, pricingModelID: string): Promise<void> {
+  public static async deletePricingDefinition(tenant: Tenant, pricingDefinitionID: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'deletePricing');
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete
-    await global.database.getCollection<any>(tenant.id, 'pricingmodels').deleteOne(
+    await global.database.getCollection<any>(tenant.id, 'pricingdefinitions').deleteOne(
       {
-        '_id': pricingModelID,
+        '_id': pricingDefinitionID,
       }
     );
     // Debug
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'deletePricingModel', uniqueTimerID, { id: pricingModelID });
+    await Logging.traceEnd(tenant.id, MODULE_NAME, 'deletePricingDefinition', uniqueTimerID, { id: pricingDefinitionID });
   }
 
-  public static async getPricingModel(tenant: Tenant, id: string,
-      params: { entityIDs?: string[]; } = {}, projectFields?: string[]): Promise<PricingModel> {
-    const pricingModelMDB = await PricingStorage.getPricingModels(tenant, {
-      pricingModelIDs: [id],
+  public static async getPricingDefinition(tenant: Tenant, id: string,
+      params: { entityIDs?: string[]; } = {}, projectFields?: string[]): Promise<PricingDefinition> {
+    const pricingDefinitionMDB = await PricingStorage.getPricingDefinitions(tenant, {
+      pricingDefinitionIDs: [id],
       entityIDs: params.entityIDs,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
-    return pricingModelMDB.count === 1 ? pricingModelMDB.result[0] : null;
+    return pricingDefinitionMDB.count === 1 ? pricingDefinitionMDB.result[0] : null;
   }
 
-  public static async getPricingModels(tenant: Tenant,
+  public static async getPricingDefinitions(tenant: Tenant,
       params: {
-        pricingModelIDs?: string[],
+        pricingDefinitionIDs?: string[],
         entityIDs?: string[];
       },
-      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<PricingModel>> {
-    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'getPricingModels');
+      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<PricingDefinition>> {
+    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'getPricingDefinitions');
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -80,9 +83,9 @@ export default class PricingStorage {
     const aggregation = [];
     const filters: FilterParams = {};
     // Model IDs
-    if (!Utils.isEmptyArray(params.pricingModelIDs)) {
+    if (!Utils.isEmptyArray(params.pricingDefinitionIDs)) {
       filters._id = {
-        $in: params.pricingModelIDs.map((pricingModelID) => DatabaseUtils.convertToObjectID(pricingModelID))
+        $in: params.pricingDefinitionIDs.map((pricingDefinitionID) => DatabaseUtils.convertToObjectID(pricingDefinitionID))
       };
     }
     // Context IDs
@@ -103,15 +106,15 @@ export default class PricingStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const pricingModelsCountMDB = await global.database.getCollection<any>(tenant.id, 'pricingmodels')
+    const pricingDefinitionsCountMDB = await global.database.getCollection<any>(tenant.id, 'pricingdefinitions')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
-      await Logging.traceEnd(tenant.id, MODULE_NAME, 'getPricingModels', uniqueTimerID, pricingModelsCountMDB);
+      await Logging.traceEnd(tenant.id, MODULE_NAME, 'getPricingDefinitions', uniqueTimerID, pricingDefinitionsCountMDB);
       return {
-        count: (pricingModelsCountMDB.length > 0 ? pricingModelsCountMDB[0].count : 0),
+        count: (pricingDefinitionsCountMDB.length > 0 ? pricingDefinitionsCountMDB[0].count : 0),
         result: []
       };
     }
@@ -140,18 +143,18 @@ export default class PricingStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const pricingModelsMDB = await global.database.getCollection<PricingModel>(tenant.id, 'pricingmodels')
+    const pricingDefinitionsMDB = await global.database.getCollection<PricingDefinition>(tenant.id, 'pricingdefinitions')
       .aggregate(aggregation, {
         allowDiskUse: true
       })
       .toArray();
     // Debug
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'getPricingModels', uniqueTimerID, pricingModelsMDB);
+    await Logging.traceEnd(tenant.id, MODULE_NAME, 'getPricingDefinitions', uniqueTimerID, pricingDefinitionsMDB);
     // Ok
     return {
-      count: (pricingModelsCountMDB.length > 0 ?
-        (pricingModelsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : pricingModelsCountMDB[0].count) : 0),
-      result: pricingModelsMDB,
+      count: (pricingDefinitionsCountMDB.length > 0 ?
+        (pricingDefinitionsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : pricingDefinitionsCountMDB[0].count) : 0),
+      result: pricingDefinitionsMDB,
       projectedFields: projectFields
     };
   }

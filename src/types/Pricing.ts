@@ -2,13 +2,6 @@ import { AuthorizationActions } from './Authorization';
 import { ConnectorType } from './ChargingStation';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 
-export default interface PricingModel extends CreatedUpdatedProps, AuthorizationActions {
-  id: string;
-  entityID: string; // id of the entity the pricing definition belongs to!
-  entityType: PricingEntity; // Type of the entity this model belongs to
-  pricingDefinitions: PricingDefinition[];
-}
-
 export enum PricingEntity {
   TENANT = 'Tenant',
   COMPANY = 'Company',
@@ -31,10 +24,15 @@ export interface ResolvedPricingModel {
   flatFeeAlreadyPriced: boolean
 }
 
-export interface PricingDefinition {
+export default interface PricingDefinition extends CreatedUpdatedProps, AuthorizationActions {
+  id: string;
+  entityID: string; // id of the entity the pricing definition belongs to
+  entityType: PricingEntity; // Type of the entity this model belongs to
   name: string, // Short marketing name - e.g.: BLUE Tariff,
   description: string, // A long description to explain it, e.g.: Time-based pricing for low charging stations
-  staticRestrictions?: PricingStaticRestriction,
+  connectorTypes?: ConnectorType[], // Connector types allowed to use this tariff
+  minOutputPowerkW?: number, // Minimum power in kW, for example 0, valid from this charging speed
+  maxOutputPowerkW?: number, // Maximum power in kW, for example 20, valid up to this charging speed
   restrictions?: PricingRestriction,
   dimensions: PricingDimensions
 }
@@ -52,12 +50,6 @@ export interface PricingDimension {
   pricedData?: PricedDimensionData // Information set dynamically while charging
 }
 
-// Restriction that can be checked on session start
-export interface PricingStaticRestriction {
-  connectorTypes?: ConnectorType[], // Connector types allowed to use this tariff
-  minOutputPowerkW?: number, // Minimum power in kW, for example 0, valid from this charging speed
-  maxOutputPowerkW?: number, // Maximum power in kW, for example 20, valid up to this charging speed
-}
 export interface PricingRestriction {
   // TODO - first Pricing implementation - some options are not yet supported
   // startDate?: string, // Start date, for example: 2015-12-24, valid from this day

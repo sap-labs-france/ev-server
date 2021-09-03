@@ -1,6 +1,6 @@
 import { BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingUser, BillingUserData } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
-import PricingModel, { PricedConsumptionData, PricingDefinition, PricingDimension, PricingStaticRestriction } from '../../src/types/Pricing';
+import PricingDefinition, { PricedConsumptionData, PricingDimension } from '../../src/types/Pricing';
 import Tenant, { TenantComponents } from '../../src/types/Tenant';
 import chai, { assert, expect } from 'chai';
 
@@ -433,56 +433,48 @@ export default class StripeIntegrationTestData {
     }
   }
 
-  public async checkPricingModel(): Promise<void> {
-    const initialPricingModel: Partial<PricingModel> = {
-      entityID: null, // a pricing model for the tenant
-      entityType: null,
-      pricingDefinitions: []
-    };
-    let response = await this.adminUserService.pricingApi.createPricingModel(initialPricingModel);
-    assert(response?.data?.status === 'Success', 'The operation should succeed');
-    assert(response?.data?.id, 'The ID should not be null');
-
-    const pricingModelId = response?.data?.id;
-    response = await this.adminUserService.pricingApi.readPricingModel(pricingModelId);
-    assert(response?.data?.id === pricingModelId, 'The ID should be: ' + pricingModelId);
+  public async checkPricingDefinitionEndpoints(): Promise<void> {
     const parkingPrice: PricingDimension = {
       price: 0.75,
       active: true
     };
-    const lowConsumptionRestrictions: PricingStaticRestriction = {
-      maxOutputPowerkW: 40000,
-    };
-    const tariff1: PricingDefinition = {
+    const tariff1: Partial<PricingDefinition> = {
+      entityID: null, // a pricing model for the tenant
+      entityType: null,
       name: 'BLUE Tariff',
       description: 'Tariff for low EVSE',
-      staticRestrictions: lowConsumptionRestrictions,
+      maxOutputPowerkW: 40000,
       dimensions: {
         chargingTime: parkingPrice,
         // energy: price4TheEnergy, // do not bill the energy - bill the parking time instead
         parkingTime: parkingPrice,
       }
     };
-    const fastChargerRestrictions: PricingStaticRestriction = {
-      minOutputPowerkW: 40000
-    };
+    let response = await this.adminUserService.pricingApi.createPricingDefinition(tariff1);
+    assert(response?.data?.status === 'Success', 'The operation should succeed');
+    assert(response?.data?.id, 'The ID should not be null');
+
+    const pricingDefinitionId = response?.data?.id;
+    response = await this.adminUserService.pricingApi.readPricingDefinition(pricingDefinitionId);
+    assert(response?.data?.id === pricingDefinitionId, 'The ID should be: ' + pricingDefinitionId);
+
     const price4TheEnergy: PricingDimension = {
       price: 0.35,
       active: true
     };
-    const tariff2: PricingDefinition = {
+    const tariff2: Partial<PricingDefinition> = {
       name: 'GREEN Tariff',
       description: 'Tariff for fast chargers',
-      staticRestrictions: fastChargerRestrictions,
+      minOutputPowerkW: 40000,
       dimensions: {
         // chargingTime: parkingPrice, // parking time is free while charging
         energy: price4TheEnergy,
         parkingTime: parkingPrice, // Parking time is not free when not charging
       }
     };
-    const pricingModel = response?.data;
-    pricingModel.pricingDefinitions = [tariff1, tariff2];
-    response = await this.adminUserService.pricingApi.updatePricingModel(pricingModel);
+
+    response = await this.adminUserService.pricingApi.createPricingDefinition(tariff2);
     assert(response?.data?.status === 'Success', 'The operation should succeed');
+    assert(response?.data?.id, 'The ID should not be null');
   }
 }

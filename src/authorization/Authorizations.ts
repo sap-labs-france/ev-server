@@ -1,5 +1,6 @@
 import { Action, AuthorizationContext, AuthorizationResult, Entity } from '../types/Authorization';
 import ChargingStation, { Connector } from '../types/ChargingStation';
+import Tenant, { TenantComponents } from '../types/Tenant';
 import User, { UserRole, UserStatus } from '../types/User';
 
 import AuthorizationConfiguration from '../types/configuration/AuthorizationConfiguration';
@@ -28,8 +29,6 @@ import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../storage/mongodb/SiteStorage';
 import Tag from '../types/Tag';
 import TagStorage from '../storage/mongodb/TagStorage';
-import Tenant, { TenantComponents } from '../types/Tenant';
-
 import Transaction from '../types/Transaction';
 import TransactionStorage from '../storage/mongodb/TransactionStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
@@ -612,12 +611,12 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.CONNECTIONS, Action.LIST);
   }
 
-  public static async canReadPricingModel(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.PRICING_MODEL, Action.READ);
+  public static async canReadPricingDefinition(loggedUser: UserToken): Promise<boolean> {
+    return Authorizations.canPerformAction(loggedUser, Entity.PRICING_DEFINITION, Action.READ);
   }
 
   public static async canUpdatePricingModel(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.PRICING_MODEL, Action.UPDATE);
+    return Authorizations.canPerformAction(loggedUser, Entity.PRICING_DEFINITION, Action.UPDATE);
   }
 
   public static async canClearBillingTestData(loggedUser: UserToken): Promise<boolean> {

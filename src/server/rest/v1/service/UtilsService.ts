@@ -3,6 +3,7 @@ import { Car, CarCatalog, CarType } from '../../../../types/Car';
 import ChargingStation, { ChargePoint, Voltage } from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
+import Tenant, { TenantComponents } from '../../../../types/Tenant';
 import User, { UserRole, UserStatus } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -25,7 +26,7 @@ import Logging from '../../../../utils/Logging';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import OICPEndpoint from '../../../../types/oicp/OICPEndpoint';
 import PDFDocument from 'pdfkit';
-import PricingModel from '../../../../types/Pricing';
+import PricingDefinition from '../../../../types/Pricing';
 import PricingStorage from '../../../../storage/mongodb/PricingStorage';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
@@ -34,8 +35,6 @@ import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
-import Tenant, { TenantComponents } from '../../../../types/Tenant';
-
 import { TransactionInErrorType } from '../../../../types/InError';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
@@ -108,46 +107,46 @@ export default class UtilsService {
     return chargingStation;
   }
 
-  public static async checkAndGetPricingModelAuthorization(tenant: Tenant, userToken: UserToken, pricingModelID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityDataType, additionalFilters: Record<string, any> = {}, applyProjectFields = false, checkIssuer = true): Promise<PricingModel> {
+  public static async checkAndGetPricingDefinitionAuthorization(tenant: Tenant, userToken: UserToken, pricingDefinitionID: string, authAction: Action,
+      action: ServerAction, entityData?: EntityDataType, additionalFilters: Record<string, any> = {}, applyProjectFields = false, checkIssuer = true): Promise<PricingDefinition> {
   // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, pricingModelID, MODULE_NAME, 'checkAndGetPricingModelAuthorization', userToken);
+    UtilsService.assertIdIsProvided(action, pricingDefinitionID, MODULE_NAME, 'checkAndGetPricingDefinitionAuthorization', userToken);
     // Get dynamic auth
-    const authorizationFilter = await AuthorizationService.checkAndGetPricingModelAuthorizations(
-      tenant, userToken, { ID: pricingModelID }, authAction, entityData);
+    const authorizationFilter = await AuthorizationService.checkAndGetPricingDefinitionAuthorizations(
+      tenant, userToken, { ID: pricingDefinitionID }, authAction, entityData);
     if (!authorizationFilter.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: authAction, entity: Entity.PRICING_MODEL,
-        module: MODULE_NAME, method: 'checkAndGetPricingModelAuthorization',
-        value: pricingModelID
+        action: authAction, entity: Entity.PRICING_DEFINITION,
+        module: MODULE_NAME, method: 'checkAndGetPricingDefinitionAuthorization',
+        value: pricingDefinitionID
       });
     }
     // Get Pricing
-    const pricingModel = await PricingStorage.getPricingModel(tenant, pricingModelID,
+    const pricingDefinition = await PricingStorage.getPricingDefinition(tenant, pricingDefinitionID,
       {
         ...additionalFilters,
         ...authorizationFilter.filters
       },
       applyProjectFields ? authorizationFilter.projectFields : null
     );
-    UtilsService.assertObjectExists(action, pricingModel, `Pricing Model ID '${pricingModelID}' does not exist`,
-      MODULE_NAME, 'checkAndGetPricingModelAuthorization', userToken);
+    UtilsService.assertObjectExists(action, pricingDefinition, `Pricing Model ID '${pricingDefinitionID}' does not exist`,
+      MODULE_NAME, 'checkAndGetPricingDefinitionAuthorization', userToken);
     // Add actions
-    await AuthorizationService.addPricingAuthorizations(tenant, userToken, pricingModel, authorizationFilter);
+    await AuthorizationService.addPricingAuthorizations(tenant, userToken, pricingDefinition, authorizationFilter);
     // Check
-    const authorized = AuthorizationService.canPerformAction(pricingModel, authAction);
+    const authorized = AuthorizationService.canPerformAction(pricingDefinition, authAction);
     if (!authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: authAction, entity: Entity.PRICING_MODEL,
-        module: MODULE_NAME, method: 'checkAndGetPricingModelAuthorization',
-        value: pricingModelID
+        action: authAction, entity: Entity.PRICING_DEFINITION,
+        module: MODULE_NAME, method: 'checkAndGetPricingDefinitionAuthorization',
+        value: pricingDefinitionID
       });
     }
-    return pricingModel;
+    return pricingDefinition;
   }
 
   public static async checkAndGetCompanyAuthorization(tenant: Tenant, userToken: UserToken, companyID: string, authAction: Action,
@@ -1330,22 +1329,22 @@ export default class UtilsService {
     }
   }
 
-  public static checkIfPricingModelValid(pricing: Partial<PricingModel>, req: Request): void {
+  public static checkIfPricingDefinitionValid(pricing: Partial<PricingDefinition>, req: Request): void {
     if (req.method !== 'POST' && !pricing.id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Pricing ID is mandatory',
-        module: MODULE_NAME, method: 'checkIfPricingModelValid',
+        module: MODULE_NAME, method: 'checkIfPricingDefinitionValid',
         user: req.user.id
       });
     }
-    if (!pricing.pricingDefinitions) {
+    if (!pricing.dimensions) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Pricing Definition is mandatory',
-        module: MODULE_NAME, method: 'checkIfPricingModelValid',
+        message: 'Pricing Dimensions are mandatory',
+        module: MODULE_NAME, method: 'checkIfPricingDefinitionValid',
         user: req.user.id
       });
     }

@@ -16,44 +16,44 @@ export default class PricingRouter {
     // -----------------------------------
     // ROUTES for PRICING MODELS
     // -----------------------------------
-    this.buildRoutePricingModels();
-    this.buildRoutePricingModel();
-    this.buildRouteCreatePricingModel();
-    this.buildRouteDeletePricingModel();
-    this.buildRouteUpdatePricingModel();
+    this.buildRoutePricingDefinitions();
+    this.buildRoutePricingDefinition();
+    this.buildRouteCreatePricingDefinition();
+    this.buildRouteDeletePricingDefinition();
+    this.buildRouteUpdatePricingDefinition();
     return this.router;
   }
 
-  protected buildRoutePricingModels(): void {
+  protected buildRoutePricingDefinitions(): void {
     this.router.get(`/${ServerRoute.REST_PRICING_MODELS}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(PricingService.handleGetPricingModels.bind(this), ServerAction.PRICING_MODELS, req, res, next);
+      await RouterUtils.handleServerAction(PricingService.handleGetPricingDefinitions.bind(this), ServerAction.PRICING_DEFINITIONS, req, res, next);
     });
   }
 
-  protected buildRoutePricingModel(): void {
+  protected buildRoutePricingDefinition(): void {
     this.router.get(`/${ServerRoute.REST_PRICING_MODEL}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
-      await RouterUtils.handleServerAction(PricingService.handleGetPricingModel.bind(this), ServerAction.PRICING_MODEL, req, res, next);
+      await RouterUtils.handleServerAction(PricingService.handleGetPricingDefinition.bind(this), ServerAction.PRICING_DEFINITION, req, res, next);
     });
   }
 
-  protected buildRouteCreatePricingModel(): void {
+  protected buildRouteCreatePricingDefinition(): void {
     this.router.post(`/${ServerRoute.REST_PRICING_MODELS}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
-      await RouterUtils.handleServerAction(PricingService.handleCreatePricingModel.bind(this), ServerAction.PRICING_MODEL_CREATE, req, res, next);
+      await RouterUtils.handleServerAction(PricingService.handleCreatePricingDefinition.bind(this), ServerAction.PRICING_DEFINITION_CREATE, req, res, next);
     });
   }
 
-  protected buildRouteDeletePricingModel(): void {
+  protected buildRouteDeletePricingDefinition(): void {
     this.router.delete(`/${ServerRoute.REST_PRICING_MODEL}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
-      await RouterUtils.handleServerAction(PricingService.handleDeletePricingModel.bind(this), ServerAction.PRICING_MODEL_DELETE, req, res, next);
+      await RouterUtils.handleServerAction(PricingService.handleDeletePricingDefinition.bind(this), ServerAction.PRICING_DEFINITION_DELETE, req, res, next);
     });
   }
 
-  protected buildRouteUpdatePricingModel(): void {
+  protected buildRouteUpdatePricingDefinition(): void {
     this.router.put(`/${ServerRoute.REST_PRICING_MODEL}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(PricingService.handleUpdatePricingModel.bind(this), ServerAction.PRICING_MODEL_UPDATE, req, res, next);
+      await RouterUtils.handleServerAction(PricingService.handleUpdatePricingDefinition.bind(this), ServerAction.PRICING_DEFINITION_UPDATE, req, res, next);
     });
   }
 }

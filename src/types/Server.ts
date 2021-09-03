@@ -429,11 +429,11 @@ export enum ServerAction {
   BILLING_WEB_HOOK = 'BillingWebHook',
   BILLING_TEST_DATA_CLEANUP = 'BillingTestDataCleanup',
 
-  PRICING_MODEL = 'PricingModel',
-  PRICING_MODELS = 'PricingModels',
-  PRICING_MODEL_CREATE = 'PricingModelCreate',
-  PRICING_MODEL_UPDATE = 'PricingModelUpdate',
-  PRICING_MODEL_DELETE = 'PricingModelDelete',
+  PRICING_DEFINITION = 'PricingDefinition',
+  PRICING_DEFINITIONS = 'PricingDefinitions',
+  PRICING_DEFINITION_CREATE = 'PricingDefinitionCreate',
+  PRICING_DEFINITION_UPDATE = 'PricingDefinitionUpdate',
+  PRICING_DEFINITION_DELETE = 'PricingDefinitionDelete',
 
   MONGO_DB = 'MongoDB',
 
