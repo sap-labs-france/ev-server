@@ -1,0 +1,13 @@
+{
+  "title": "Get all the Car Catalogs Request",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "type": "number",
+      "sanitize": "mongo"
+    }
+  },
+  "required": [
+    "ID"
+  ]
+}

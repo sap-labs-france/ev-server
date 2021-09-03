@@ -158,7 +158,6 @@ describe('Car', function() {
             }), false
           );
           expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
-          expect(response.data.message).to.equal('Car type is mandatory');
         });
 
         it('Should not be able to create a new car without a car catalog ID', async () => {
