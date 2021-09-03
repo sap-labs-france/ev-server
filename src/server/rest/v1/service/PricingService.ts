@@ -11,7 +11,7 @@ import PricingModel from '../../../../types/Pricing';
 import PricingSecurity from './security/PricingSecurity';
 import PricingStorage from '../../../../storage/mongodb/PricingStorage';
 import { ServerAction } from '../../../../types/Server';
-import TenantComponents from '../../../../types/TenantComponents';
+import { TenantComponents } from '../../../../types/Tenant';
 import UtilsService from './UtilsService';
 
 const MODULE_NAME = 'PricingService';

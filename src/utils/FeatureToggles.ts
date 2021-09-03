@@ -7,6 +7,7 @@ export enum Feature {
   PRICING_NEW_MODEL,
   PRICING_TEST_PARKING_TIME,
   PRICING_TEST_ENERGY_WITH_STEP_SIZE,
+  PRICING_WITH_RESTRICTION_CHECKS,
 }
 
 export default class FeatureToggles {
@@ -16,6 +17,7 @@ export default class FeatureToggles {
     Feature.BILLING_CHECK_THRESHOLD_ON_STOP,
     Feature.BILLING_PREVENT_CUSTOMER_DELETION,
     Feature.PRICING_NEW_MODEL,
+    Feature.PRICING_WITH_RESTRICTION_CHECKS,
     // Feature.PRICING_TEST_PARKING_TIME
     // Feature.PRICING_TEST_ENERGY_WITH_STEP_SIZE
   ];

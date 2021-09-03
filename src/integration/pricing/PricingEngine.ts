@@ -1,3 +1,4 @@
+import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
 /* eslint-disable @typescript-eslint/member-ordering */
 import PricingModel, { DimensionType, PricedConsumptionData, PricedDimensionData, PricingDefinition, PricingDimension, PricingRestriction, PricingStaticRestriction, ResolvedPricingModel } from '../../types/Pricing';
 
@@ -349,8 +350,13 @@ export default class PricingEngine {
 
   static priceConsumption(tenant: Tenant, pricingModel: ResolvedPricingModel, consumptionData: Consumption): PricedConsumptionData {
     // Check the restrictions to find the pricing definition matching the current context
-    let actualPricingDefinitions = pricingModel.pricingDefinitions.filter((pricingDefinition) =>
-      PricingEngine.checkPricingDefinitionRestrictions(pricingDefinition, consumptionData)
+    let actualPricingDefinitions = pricingModel.pricingDefinitions.filter((pricingDefinition) => {
+      if (FeatureToggles.isFeatureActive(Feature.PRICING_WITH_RESTRICTION_CHECKS)) {
+        return PricingEngine.checkPricingDefinitionRestrictions(pricingDefinition, consumptionData);
+      }
+      // Dynamic restrictions check are not yet supported
+      return pricingDefinition;
+    }
     );
     // Having more than one pricing definition this NOT a normal situation.
     // This means that two different tariff matches the same criteria. This should not happen!
