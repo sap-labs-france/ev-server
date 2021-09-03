@@ -19,6 +19,7 @@ import UserStorage from '../../src/storage/mongodb/UserStorage';
 import Utils from '../../src/utils/Utils';
 import chaiSubset from 'chai-subset';
 import config from '../config';
+import moment from 'moment';
 import responseHelper from '../helpers/responseHelper';
 
 chai.use(chaiSubset);
@@ -443,6 +444,9 @@ export default class StripeIntegrationTestData {
       entityType: null,
       name: 'BLUE Tariff',
       description: 'Tariff for low EVSE',
+      connectorTypes: null,
+      validFrom: new Date(),
+      validTo: moment().add(10, 'minutes').toDate(),
       maxOutputPowerkW: 40000,
       dimensions: {
         chargingTime: parkingPrice,
@@ -466,6 +470,9 @@ export default class StripeIntegrationTestData {
       name: 'GREEN Tariff',
       description: 'Tariff for fast chargers',
       minOutputPowerkW: 40000,
+      connectorTypes: null,
+      validFrom: new Date(),
+      validTo: moment().add(10, 'minutes').toDate(),
       dimensions: {
         // chargingTime: parkingPrice, // parking time is free while charging
         energy: price4TheEnergy,

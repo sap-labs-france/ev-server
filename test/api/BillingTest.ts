@@ -1,13 +1,13 @@
 import AsyncTask, { AsyncTaskStatus } from '../../src/types/AsyncTask';
 import { BillingChargeInvoiceAction, BillingDataTransactionStop, BillingInvoiceStatus, BillingStatus, BillingUser } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
+import ChargingStation, { ConnectorType } from '../../src/types/ChargingStation';
 import FeatureToggles, { Feature } from '../../src/utils/FeatureToggles';
 import PricingDefinition, { PricingDimensions, PricingEntity } from '../../src/types/Pricing';
 import chai, { assert, expect } from 'chai';
 
 import AsyncTaskStorage from '../../src/storage/mongodb/AsyncTaskStorage';
 import CentralServerService from './client/CentralServerService';
-import ChargingStation from '../../src/types/ChargingStation';
 import ChargingStationContext from './context/ChargingStationContext';
 import Constants from '../../src/utils/Constants';
 import ContextDefinition from './context/ContextDefinition';
@@ -407,7 +407,7 @@ class TestData {
     assert(response?.data?.status === 'Success', 'The operation should succeed');
   }
 
-  public async createTariff4ChargingStation(chargingStation: ChargingStation, dimensions: PricingDimensions = null): Promise<void> {
+  public async createTariff4ChargingStation(chargingStation: ChargingStation, dimensions: PricingDimensions = null, connectorTypes: ConnectorType[] = null): Promise<void> {
     dimensions = dimensions || {
       flatFee: {
         price: 1.25,
@@ -427,11 +427,17 @@ class TestData {
       },
     };
 
+    // Set a default value
+    connectorTypes = connectorTypes || [ ConnectorType.TYPE_2 ];
+
     const tariff: Partial<PricingDefinition> = {
       entityID: chargingStation.id, // a pricing model for the site
       entityType: PricingEntity.CHARGING_STATION,
       name: 'CS Tariff - ' + chargingStation.id,
-      description: 'Tariff for CS' + chargingStation.id,
+      description: 'Tariff for CS -' + chargingStation.id,
+      connectorTypes,
+      validFrom: new Date(),
+      validTo: moment().add(10, 'minutes').toDate(),
       dimensions
     };
 
