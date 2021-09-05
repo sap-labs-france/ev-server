@@ -4,6 +4,7 @@ import axiosRetry, { IAxiosRetryConfig } from 'axios-retry';
 
 import AxiosFactory from '../../../utils/AxiosFactory';
 import BackendError from '../../../exception/BackendError';
+import { Car } from '../../../types/Car';
 import CarConnectorIntegration from '../CarConnectorIntegration';
 import Connection from '../../../types/Connection';
 import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
@@ -137,10 +138,39 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
     }
   }
 
-  public async getCurrentSoC(userID: string): Promise<number> {
-    // To be implemented
+  public async getCurrentSoC(userID: string, car: Car): Promise<number> {
     const connection = await this.getRefreshedConnection(userID);
-    return 0;
+    const request = `${this.connection.mercedesConnection.apiUrl}/vehicledata/v2/vehicles/${car.vin}/resources/soc`;
+    try {
+      // Get consumption
+      const response = await this.axiosInstance.get(
+        request,
+        {
+          headers: { 'Authorization': 'Bearer ' + connection.data.access_token }
+        }
+      );
+      await Logging.logDebug({
+        tenantID: this.tenant.id,
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.CAR_CONNECTOR,
+        message: `${car.vin} > Mercedes web service has been called successfully`,
+        module: MODULE_NAME, method: 'getCurrentSoC',
+        detailedMessages: { response: response.data }
+      });
+      if (response?.data?.soc?.value) {
+        return response.data.soc.value;
+      }
+      return null;
+    } catch (error) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'getCurrentSoC',
+        action: ServerAction.CAR_CONNECTOR,
+        message: 'Error while retrieving the SOC',
+        detailedMessages: { request, error: error.stack }
+      });
+    }
   }
 
   private computeValidUntilAt(response: AxiosResponse) {

@@ -1,3 +1,5 @@
+import Tenant, { TenantComponents } from '../../types/Tenant';
+
 import BackendError from '../../exception/BackendError';
 import ChargingStation from '../../types/ChargingStation';
 import ChargingStationClient from './ChargingStationClient';
@@ -5,8 +7,6 @@ import JsonRestChargingStationClient from './json/JsonRestChargingStationClient'
 import OCPIClientFactory from '../ocpi/OCPIClientFactory';
 import { OCPPProtocol } from '../../types/ocpp/OCPPServer';
 import SoapChargingStationClient from './soap/SoapChargingStationClient';
-import Tenant from '../../types/Tenant';
-import TenantComponents from '../../types/TenantComponents';
 import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
 
@@ -22,7 +22,11 @@ export default class ChargingStationClientFactory {
         case OCPPProtocol.JSON:
           // Get the client from Json Server
           if (global.centralSystemJsonServer) {
-            chargingClient = global.centralSystemJsonServer.getChargingStationClient(tenant.id, chargingStation.id);
+            chargingClient = global.centralSystemJsonServer.getChargingStationClient(tenant.id, chargingStation.id, {
+              siteAreaID: chargingStation.siteAreaID,
+              siteID: chargingStation.siteID,
+              companyID: chargingStation.companyID,
+            });
           }
           // Not Found
           if (!chargingClient) {

@@ -6,7 +6,7 @@ import PricingIntegration from './PricingIntegration';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import SimplePricingIntegration from './simple-pricing/SimplePricingIntegration';
 import Tenant from '../../types/Tenant';
-import TenantComponents from '../../types/TenantComponents';
+import { TenantComponents } from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 
 export default class PricingFactory {

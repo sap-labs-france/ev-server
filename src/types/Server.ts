@@ -27,7 +27,7 @@ export enum ServerAction {
   CHARGING_STATION_DOWNLOAD_QR_CODE_PDF = 'RestChargingStationDownloadQrCodePdf',
 
   CHARGING_STATIONS_EXPORT = 'RestChargingStationsExport',
-  CHARGING_STATIONS_OCPP_PARAMS_EXPORT = 'RestChargingStationsOCPPParamsExport',
+  CHARGING_STATIONS_OCPP_PARAMS_EXPORT = 'RestChargingStationsOcppParamsExport',
   CHARGING_STATION = 'RestChargingStation',
   CHARGING_STATIONS_OCPP_PARAMETERS = 'RestChargingStationOcppParameters',
   CHARGING_STATIONS_IN_ERROR = 'RestChargingStationsInError',
@@ -78,7 +78,7 @@ export enum ServerAction {
   CHARGING_PROFILE_UPDATE = 'RestChargingProfileUpdate',
   CHARGING_PROFILE_CREATE = 'RestChargingProfileCreate',
   GENERATE_QR_CODE_FOR_CONNECTOR = 'RestGenerateQrCodeForConnector',
-  OCPP_PARAM_UPDATE = 'OCPPParamUpdate',
+  OCPP_PARAM_UPDATE = 'OcppParamUpdate',
   RESEND_VERIFICATION_MAIL = 'RestResendVerificationEmail',
   END_USER_LICENSE_AGREEMENT = 'RestEndUserLicenseAgreement',
   CHECK_END_USER_LICENSE_AGREEMENT = 'RestCheckEndUserLicenseAgreement',
@@ -195,7 +195,7 @@ export enum ServerAction {
   OICP_ENDPOINT_UNREGISTER = 'OicpEndpointUnregister',
   OICP_ENDPOINT_DELETE = 'OicpEndpointDelete',
 
-  OCPP_SERVICE = 'OCPPService',
+  OCPP_SERVICE = 'OcppService',
 
   AUTHORIZATIONS = 'Authorizations',
 
@@ -211,17 +211,16 @@ export enum ServerAction {
 
   SOCKET_IO = 'SocketIO',
 
-  // OCPP server commands
-  BOOT_NOTIFICATION = 'BootNotification',
-  AUTHORIZE = 'Authorize',
-  HEARTBEAT = 'Heartbeat',
-  DIAGNOSTICS_STATUS_NOTIFICATION = 'DiagnosticsStatusNotification',
-  FIRMWARE_STATUS_NOTIFICATION = 'FirmwareStatusNotification',
-  STATUS_NOTIFICATION = 'StatusNotification',
-  START_TRANSACTION = 'StartTransaction',
-  STOP_TRANSACTION = 'StopTransaction',
-  METER_VALUES = 'MeterValues',
-  DATA_TRANSFER = 'DataTransfer',
+  OCPP_BOOT_NOTIFICATION = 'OcppBootNotification',
+  OCPP_AUTHORIZE = 'OcppAuthorize',
+  OCPP_HEARTBEAT = 'OcppHeartbeat',
+  OCPP_DIAGNOSTICS_STATUS_NOTIFICATION = 'OcppDiagnosticsStatusNotification',
+  OCPP_FIRMWARE_STATUS_NOTIFICATION = 'OcppFirmwareStatusNotification',
+  OCPP_STATUS_NOTIFICATION = 'OcppStatusNotification',
+  OCPP_START_TRANSACTION = 'OcppStartTransaction',
+  OCPP_STOP_TRANSACTION = 'OcppStopTransaction',
+  OCPP_METER_VALUES = 'OcppMeterValues',
+  OCPP_DATA_TRANSFER = 'OcppDataTransfer',
 
   EXTRA_INACTIVITY = 'ExtraInactivity',
 
@@ -493,15 +492,23 @@ export enum ServerRoute {
   REST_CHARGING_PROFILE = 'charging-profiles/:id',
 
   REST_TRANSACTIONS = 'transactions',
+  REST_TRANSACTIONS_IN_ERROR = 'transactions/status/in-error',
+  REST_TRANSACTIONS_ACTIVE = 'transactions/status/active',
+  REST_TRANSACTIONS_COMPLETED = 'transactions/status/completed',
+  REST_TRANSACTIONS_UNASSIGNED_COUNT = 'transactions/status/unassigned/count',
   REST_TRANSACTION = 'transactions/:id',
   REST_TRANSACTIONS_EXPORT = 'transactions/action/export',
   REST_TRANSACTION_CDR = 'transactions/:id/ocpi/cdr',
-  REST_TRANSACTION_CDR_EXPORT = 'transactions/:id/ocpi/cdr/action/export',
-  REST_TRANSACTIONS_CONSUMPTION = 'transactions/:id/consumptions',
+  REST_TRANSACTION_CDR_EXPORT = 'transactions/:id/ocpi/cdr/export',
+  REST_TRANSACTION_CONSUMPTIONS = 'transactions/:id/consumptions',
   REST_TRANSACTION_CONSUMPTIONS_REBUILD = 'transactions/:id/consumptions/rebuild',
-  REST_TRANSACTION_SOFT_STOP = 'transactions/:id/stop/soft',
-  REST_TRANSACTIONS_REFUND = 'transactions/action/refund',
-  REST_TRANSACTIONS_ASSIGN_USER = 'transactions/action/assign',
+  REST_TRANSACTION_SOFT_STOP = 'transactions/:id/soft-stop',
+  REST_TRANSACTIONS_REFUND_ACTION = 'transactions/action/refund',
+  REST_TRANSACTIONS_REFUND = 'transactions/status/refund',
+  REST_TRANSACTIONS_REFUND_EXPORT = 'transactions/status/refund/export',
+  REST_TRANSACTIONS_ASSIGN_USER = 'transactions/action/assign-user',
+  REST_TRANSACTIONS_SYNCHRONIZE_REFUNDED = 'transactions/status/refund/synchronize',
+  REST_TRANSACTIONS_REFUND_REPORTS = 'transactions/status/refund/reports',
 
   REST_USERS = 'users',
   REST_USER = 'users/:id',
@@ -518,12 +525,24 @@ export enum ServerRoute {
   REST_TAGS_IMPORT = 'tags/action/import',
   REST_TAGS_EXPORT = 'tags/action/export',
 
-  REST_ASSET_CONSUMPTION = 'assets/:assetID/consumption',
+  REST_ASSETS = 'assets',
+  REST_ASSET = 'assets/:id',
+  REST_ASSET_CONSUMPTION = 'assets/:id/consumption',
+  REST_ASSETS_IN_ERROR = 'assets/status/in-error',
+  REST_ASSET_CHECK_CONNECTION = 'assets/:id/connector/connection/check',
+  REST_ASSET_RETRIEVE_CONSUMPTION = 'assets/:id/connector/consumption/retrieve-last',
 
   REST_PING = 'ping',
 
   REST_TENANTS = 'tenants',
   REST_TENANT = 'tenants/:id',
+
+  REST_CONNECTIONS = 'connections',
+  REST_CONNECTION = 'connections/:id',
+
+  REST_LOGGINGS = 'loggings',
+  REST_LOGGING = 'loggings/:id',
+  REST_LOGGINGS_EXPORT = 'loggings/action/export',
 
   // BILLING URLs for CRUD operations on PAYMENT METHODS
   REST_BILLING_PAYMENT_METHODS = 'users/:userID/payment-methods',

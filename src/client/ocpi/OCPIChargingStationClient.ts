@@ -98,7 +98,7 @@ export default class OCPIChargingStationClient extends ChargingStationClient {
   async updateFirmware(params: OCPPUpdateFirmwareCommandParam): Promise<void> { }
 
   // eslint-disable-next-line @typescript-eslint/require-await
-  public async triggerDataTransfer(params: OCPPDataTransferCommandParam): Promise<OCPPDataTransferCommandResult> {
+  public async dataTransfer(params: OCPPDataTransferCommandParam): Promise<OCPPDataTransferCommandResult> {
     throw new Error('Method not implemented.');
   }
 }

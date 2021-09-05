@@ -5,7 +5,7 @@ import SapSmartChargingIntegration from './export/sap-smart-charging';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import SmartChargingIntegration from './SmartChargingIntegration';
 import Tenant from '../../types/Tenant';
-import TenantComponents from '../../types/TenantComponents';
+import { TenantComponents } from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 
 export default class SmartChargingFactory {
