@@ -1180,6 +1180,7 @@ export default class ChargingStationService {
         break;
       // Get the Charging Plans
       case Command.GET_COMPOSITE_SCHEDULE:
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionGetCompositeScheduleReq(req.body);
         result = await ChargingStationService.executeChargingStationGetCompositeSchedule(action, chargingStation, command, filteredRequest, req, res, next);
         break;
       // Get diagnostic

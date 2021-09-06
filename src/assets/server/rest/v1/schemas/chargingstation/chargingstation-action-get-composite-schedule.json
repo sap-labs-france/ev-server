@@ -1,0 +1,32 @@
+{
+  "title": "Get Charging Station Composite Schedule (endpoint)",
+  "type": "object",
+  "properties": {
+    "chargingStationID": {
+      "$ref": "chargingstation.json#/definitions/id"
+    },
+    "args": {
+      "type": "object",
+      "properties": {
+        "connectorId": {
+          "$ref": "chargingstation.json#/definitions/connector/connectorId"
+        },
+        "duration": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "schedulingUnit": {
+          "type": "string",
+          "sanitize": "mongo"
+        }
+      },
+      "required": [
+        "connectorId",
+        "duration"
+      ]
+    }
+  },
+  "required": [
+    "chargingStationID"
+  ]
+}
