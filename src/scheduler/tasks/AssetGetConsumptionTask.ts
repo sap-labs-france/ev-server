@@ -1,4 +1,5 @@
 import Consumption, { AbstractCurrentConsumption } from '../../types/Consumption';
+import Tenant, { TenantComponents } from '../../types/Tenant';
 
 import Asset from '../../types/Asset';
 import AssetFactory from '../../integration/asset/AssetFactory';
@@ -13,10 +14,8 @@ import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
 import SiteArea from '../../types/SiteArea';
-import SmartChargingFactory from '../../integration/smart-charging-2/SmartChargingFactory';
+import SmartChargingFactory from '../../integration/smart-charging/SmartChargingFactory';
 import { TaskConfig } from '../../types/TaskConfig';
-import Tenant, { TenantComponents } from '../../types/Tenant';
-
 import Utils from '../../utils/Utils';
 import moment from 'moment';
 
