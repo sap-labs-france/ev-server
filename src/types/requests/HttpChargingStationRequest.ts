@@ -132,7 +132,7 @@ export interface HttpChargingStationGetCompositeScheduleRequest {
   args: {
     connectorId: string,
     duration: number,
-    schedulingUnit?: string
+    chargingRateUnit?: string
   }
 }
 
