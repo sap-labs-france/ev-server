@@ -1590,15 +1590,7 @@ export default class ChargingStationService {
             type: params.type
           });
           break;
-        // Update Firmware
-        case Command.UPDATE_FIRMWARE:
-          result = await chargingStationClient.updateFirmware({
-            location: params.location,
-            retries: params.retries,
-            retrieveDate: params.retrieveDate,
-            retryInterval: params.retryInterval
-          });
-          break;
+        // Get Diagnostics
         case Command.GET_DIAGNOSTICS:
           result = await chargingStationClient.getDiagnostics({
             location: params.location,
@@ -1606,6 +1598,15 @@ export default class ChargingStationService {
             retryInterval: params.retryInterval,
             startTime: params.startTime,
             stopTime: params.stopTime
+          });
+          break;
+        // Update Firmware
+        case Command.UPDATE_FIRMWARE:
+          result = await chargingStationClient.updateFirmware({
+            location: params.location,
+            retries: params.retries,
+            retrieveDate: params.retrieveDate,
+            retryInterval: params.retryInterval
           });
           break;
         case Command.TRIGGER_DATA_TRANSFER:
