@@ -29,6 +29,7 @@ import TestConstants from './client/utils/TestConstants';
 import TestUtils from './TestUtils';
 import User from '../../src/types/User';
 import { UserInErrorType } from '../../src/types/InError';
+import Utils from '../../src/utils/Utils';
 import chaiSubset from 'chai-subset';
 import config from '../config';
 import global from '../../src/types/GlobalType';
@@ -139,29 +140,36 @@ class TestData {
         active: true
       },
       chargingTime: {
-        price: 0.4,
-        active: false // THIS IS OFF
+        price: 777, // THIS IS OFF
+        active: false
       }
     });
     return this.chargingStationContext;
   }
 
-  public async initChargingStationContext2TestFastCharger() : Promise<ChargingStationContext> {
+  public async initChargingStationContext2TestFastCharger(billChargingTime = false) : Promise<ChargingStationContext> {
     this.siteContext = this.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
     this.siteAreaContext = this.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC);
     this.chargingStationContext = this.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16 + '-' + ContextDefinition.SITE_CONTEXTS.SITE_BASIC + '-' + ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC);
     assert(!!this.chargingStationContext, 'Charging station context should not be null');
-    await this.createTariff4ChargingStation(this.chargingStationContext.getChargingStation(), {
-      chargingTime: {
-        price: 0.16,
-        active: true
-      },
-      energy: {
-        price: 0.50,
-        active: true
-      }
-    }, ConnectorType.COMBO_CCS);
 
+    let dimensions: PricingDimensions;
+    if (billChargingTime) {
+      dimensions = {
+        chargingTime: {
+          price: 5, // Euro per hour
+          active: true
+        }
+      };
+    } else {
+      dimensions = {
+        energy: {
+          price: 0.50,
+          active: true
+        }
+      };
+    }
+    await this.createTariff4ChargingStation(this.chargingStationContext.getChargingStation(), dimensions, ConnectorType.COMBO_CCS);
     return this.chargingStationContext;
   }
 
@@ -244,24 +252,73 @@ class TestData {
   }
 
   public async generateTransaction(user: any, expectedStatus = 'Accepted'): Promise<number> {
+
+    const meterStart = 0;
+    const meterStop = 32325; // Unit: Wh
+    const meterValue1 = Utils.createDecimal(meterStop).divToInt(80).toNumber();
+    const meterValue2 = Utils.createDecimal(meterStop).divToInt(30).toNumber();
+    const meterValue3 = Utils.createDecimal(meterStop).divToInt(60).toNumber();
+
     // const user:any = this.userContext;
     const connectorId = 1;
     assert((user.tags && user.tags.length), 'User must have a valid tag');
     const tagId = user.tags[0].id;
-    const meterStart = 0;
-    const meterStop = 32325; // Unit: Wh
-    const startDate = moment().toDate();
-    const stopDate = moment(startDate).add(1, 'hour').toDate();
-    const startTransactionResponse = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    // # Begin
+    const startDate = moment();
+    const startTransactionResponse = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
     expect(startTransactionResponse).to.be.transactionStatus(expectedStatus);
     const transactionId = startTransactionResponse.transactionId;
+
+    const currentTime = startDate.clone();
+    let cumulated = 0;
+    // Phase #0
+    for (let index = 0; index < 5; index++) {
+      // cumulated += meterValue1; - not charging yet!
+      await this.sendConsumptionMeterValue(connectorId, transactionId, currentTime, cumulated);
+    }
+    // Phase #1
+    for (let index = 0; index < 15; index++) {
+      cumulated += meterValue1;
+      await this.sendConsumptionMeterValue(connectorId, transactionId, currentTime, cumulated);
+    }
+    // Phase #2
+    for (let index = 0; index < 20; index++) {
+      cumulated += meterValue2;
+      await this.sendConsumptionMeterValue(connectorId, transactionId, currentTime, cumulated);
+    }
+    // Phase #3
+    for (let index = 0; index < 15; index++) {
+      cumulated = Math.min(meterStop, cumulated += meterValue3);
+      await this.sendConsumptionMeterValue(connectorId, transactionId, currentTime, cumulated);
+    }
+    assert(cumulated === meterStop, 'Inconsistent meter values - cumulated energy should equal meterStop - ' + cumulated);
+    // Phase #4 - parking time
+    for (let index = 0; index < 4; index++) {
+      // cumulated += 0; // Parking time - not charging anymore
+      await this.sendConsumptionMeterValue(connectorId, transactionId, currentTime, meterStop);
+    }
+
+    // #end
+    const stopDate = startDate.clone().add(1, 'hour');
     if (expectedStatus === 'Accepted') {
-      const stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate);
+      const stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate.toDate());
       expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
     }
     // Give some time to the asyncTask to bill the transaction
     await this.waitForAsyncTasks();
     return transactionId;
+  }
+
+  public async sendConsumptionMeterValue(connectorId: number, transactionId: number, currentTime: moment.Moment, energyActiveImportMeterValue: number): Promise<void> {
+    currentTime.add(1, 'minute');
+    const meterValueResponse = await this.chargingStationContext.sendConsumptionMeterValue(
+      connectorId,
+      transactionId,
+      currentTime.toDate(), {
+        energyActiveImportMeterValue
+      }
+    );
+    expect(meterValueResponse).to.eql({});
   }
 
   public async waitForAsyncTasks() {
@@ -372,81 +429,81 @@ class TestData {
     // });
   }
 
-  public async createTariff4Company(companyID: string): Promise<void> {
-    const tariff: Partial<PricingDefinition> = {
-      entityID: companyID, // a pricing model for the Company
-      entityType: PricingEntity.COMPANY,
-      name: 'GREEN Tariff',
-      description: 'Tariff for slow chargers',
-      staticRestrictions: {
-        connectorPowerkW: 40,
-      },
-      dimensions: {
-        flatFee: {
-          price: 1.25,
-          active: true
-        },
-        chargingTime: {
-          price: 0.15,
-          active: true
-        },
-        energy: {
-          price: 0.35,
-          active: true
-        },
-        parkingTime: {
-          price: 0.75,
-          active: true
-        },
-      }
-    };
+  // public async createTariff4Company(companyID: string): Promise<void> {
+  //   const tariff: Partial<PricingDefinition> = {
+  //     entityID: companyID, // a pricing model for the Company
+  //     entityType: PricingEntity.COMPANY,
+  //     name: 'GREEN Tariff',
+  //     description: 'Tariff for slow chargers',
+  //     staticRestrictions: {
+  //       connectorPowerkW: 40,
+  //     },
+  //     dimensions: {
+  //       flatFee: {
+  //         price: 1.25,
+  //         active: true
+  //       },
+  //       chargingTime: {
+  //         price: 0.15,
+  //         active: true
+  //       },
+  //       energy: {
+  //         price: 0.35,
+  //         active: true
+  //       },
+  //       parkingTime: {
+  //         price: 0.75,
+  //         active: true
+  //       },
+  //     }
+  //   };
 
-    let response = await this.adminUserService.pricingApi.createPricingDefinition(tariff);
-    assert(response?.data?.status === 'Success', 'The operation should succeed');
-    assert(response?.data?.id, 'The ID should not be null');
+  //   let response = await this.adminUserService.pricingApi.createPricingDefinition(tariff);
+  //   assert(response?.data?.status === 'Success', 'The operation should succeed');
+  //   assert(response?.data?.id, 'The ID should not be null');
 
-    const pricingDefinitionId = response?.data?.id;
-    response = await this.adminUserService.pricingApi.readPricingDefinition(pricingDefinitionId);
-    assert(response?.data?.id === pricingDefinitionId, 'The ID should be: ' + pricingDefinitionId);
-  }
+  //   const pricingDefinitionId = response?.data?.id;
+  //   response = await this.adminUserService.pricingApi.readPricingDefinition(pricingDefinitionId);
+  //   assert(response?.data?.id === pricingDefinitionId, 'The ID should be: ' + pricingDefinitionId);
+  // }
 
-  public async createTariff4Site(siteID: string): Promise<void> {
-    const tariff: Partial<PricingDefinition> = {
-      entityID: siteID, // a pricing model for the site
-      entityType: PricingEntity.SITE,
-      name: 'RED Tariff',
-      description: 'Tariff for fast chargers',
-      staticRestrictions: {
-        connectorPowerkW: 40,
-      },
-      dimensions: {
-        flatFee: {
-          price: 2.25,
-          active: true
-        },
-        chargingTime: {
-          price: 0,
-          active: false
-        },
-        energy: {
-          price: 0.75,
-          active: true
-        },
-        parkingTime: {
-          price: 0,
-          active: true
-        },
-      }
-    };
+  // public async createTariff4Site(siteID: string): Promise<void> {
+  //   const tariff: Partial<PricingDefinition> = {
+  //     entityID: siteID, // a pricing model for the site
+  //     entityType: PricingEntity.SITE,
+  //     name: 'RED Tariff',
+  //     description: 'Tariff for fast chargers',
+  //     staticRestrictions: {
+  //       connectorPowerkW: 40,
+  //     },
+  //     dimensions: {
+  //       flatFee: {
+  //         price: 2.25,
+  //         active: true
+  //       },
+  //       chargingTime: {
+  //         price: 0,
+  //         active: false
+  //       },
+  //       energy: {
+  //         price: 0.75,
+  //         active: true
+  //       },
+  //       parkingTime: {
+  //         price: 0,
+  //         active: true
+  //       },
+  //     }
+  //   };
 
-    let response = await this.adminUserService.pricingApi.createPricingDefinition(tariff);
-    assert(response?.data?.status === 'Success', 'The operation should succeed');
-    assert(response?.data?.id, 'The ID should not be null');
+  //   let response = await this.adminUserService.pricingApi.createPricingDefinition(tariff);
+  //   assert(response?.data?.status === 'Success', 'The operation should succeed');
+  //   assert(response?.data?.id, 'The ID should not be null');
 
-    const pricingDefinitionId = response?.data?.id;
-    response = await this.adminUserService.pricingApi.readPricingDefinition(pricingDefinitionId);
-    assert(response?.data?.id === pricingDefinitionId, 'The ID should be: ' + pricingDefinitionId);
-  }
+  //   const pricingDefinitionId = response?.data?.id;
+  //   response = await this.adminUserService.pricingApi.readPricingDefinition(pricingDefinitionId);
+  //   assert(response?.data?.id === pricingDefinitionId, 'The ID should be: ' + pricingDefinitionId);
+  // }
 
   public async createTariff4ChargingStation(chargingStation: ChargingStation, dimensions: PricingDimensions, connectorType: ConnectorType = null): Promise<void> {
     // Set a default value
@@ -1158,11 +1215,25 @@ describe('Billing Service', function() {
       describe('On COMBO CCS - DC', () => {
       // eslint-disable-next-line @typescript-eslint/require-await
         before(async () => {
-        // Initialize the charing station context
-          await testData.initChargingStationContext2TestFastCharger();
         });
 
-        it('should create and bill an invoice on COMBO CCS - DC', async () => {
+        it('should bill the Energy on COMBO CCS - DC', async () => {
+          // Initialize the charging station context
+          await testData.initChargingStationContext2TestFastCharger();
+
+          await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
+          const userWithBillingData = await testData.billingImpl.getUser(testData.userContext);
+          await testData.assignPaymentMethod(userWithBillingData, 'tok_fr');
+          const transactionID = await testData.generateTransaction(testData.userContext);
+          assert(transactionID, 'transactionID should not be null');
+          // Check that we have a new invoice with an invoiceID and an invoiceNumber
+          await testData.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID);
+        });
+
+        it('should bill the ChargingTime on COMBO CCS - DC', async () => {
+          // Initialize the charging station context
+          await testData.initChargingStationContext2TestFastCharger(true);
+
           await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
           const userWithBillingData = await testData.billingImpl.getUser(testData.userContext);
           await testData.assignPaymentMethod(userWithBillingData, 'tok_fr');

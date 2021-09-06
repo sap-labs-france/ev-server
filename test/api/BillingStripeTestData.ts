@@ -286,7 +286,7 @@ export default class StripeIntegrationTestData {
         taxes // Array of taxes - cannot be null
       },
       parkingTime: {
-        itemDescription: `Parking time - ${consumptionTestData.partingTime} minutes * ${consumptionTestData.parkingAmount} Eur/hour`,
+        itemDescription: `Parking time - ${consumptionTestData.partingTime} minutes`,
         unitPrice: Utils.createDecimal(consumptionTestData.parkingAmount).div(consumptionTestData.partingTime).toNumber(),
         amount: consumptionTestData.parkingAmount, // Euros
         roundedAmount: Utils.truncTo(consumptionTestData.parkingAmount, 2),

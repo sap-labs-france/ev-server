@@ -189,7 +189,16 @@ export default class PricingEngine {
     const activePricingDefinition = PricingEngine.getActiveDefinition4Dimension(pricingDefinitions, DimensionType.ENERGY);
     if (activePricingDefinition) {
       const dimensionToPrice = activePricingDefinition.dimensions.energy;
-      const pricedData = PricingEngine.priceEnergyDimension(dimensionToPrice, consumptionData?.cumulatedConsumptionWh || 0);
+      if (FeatureToggles.isFeatureActive(Feature.PRICING_PRICE_ACCUMULATED_WH)) {
+        // POC - Price accumulated consumption
+        const pricedData = PricingEngine.priceCumulatedEnergyDimension(dimensionToPrice, consumptionData?.cumulatedConsumptionWh || 0);
+        if (pricedData) {
+          pricedData.sourceName = activePricingDefinition.name;
+        }
+        return pricedData;
+      }
+      // Let's price each consumption individually
+      const pricedData = PricingEngine.priceEnergyDimension(dimensionToPrice, consumptionData?.consumptionWh || 0);
       if (pricedData) {
         pricedData.sourceName = activePricingDefinition.name;
       }
@@ -267,7 +276,31 @@ export default class PricingEngine {
     return pricingDimension.pricedData;
   }
 
-  static priceEnergyDimension(pricingDimension: PricingDimension, cumulatedConsumptionWh: number): PricedDimensionData {
+  static priceEnergyDimension(pricingDimension: PricingDimension, consumptionWh: number): PricedDimensionData {
+    const unitPrice = pricingDimension.price || 0;
+    const amount = Utils.createDecimal(unitPrice).times(consumptionWh).div(1000).toNumber();
+    const consumptionkWh = Utils.createDecimal(consumptionWh).div(1000).toNumber();
+    // Price the consumption
+    const pricedData: PricedDimensionData = {
+      unitPrice: unitPrice,
+      amount,
+      roundedAmount: Utils.truncTo(amount, 2),
+      quantity: consumptionkWh
+    };
+    // Add the consumption to the previous data (if any) - for the billing
+    const previousData = pricingDimension.pricedData;
+    if (previousData) {
+      previousData.amount += pricedData.amount;
+      previousData.quantity += pricedData.quantity;
+      previousData.roundedAmount = Utils.truncTo(previousData.amount, 2);
+    } else {
+      pricingDimension.pricedData = pricedData;
+    }
+    // Return the current consumption!
+    return pricedData;
+  }
+
+  static priceCumulatedEnergyDimension(pricingDimension: PricingDimension, cumulatedConsumptionWh: number): PricedDimensionData {
     let amount: number;
     let consumptionkWh: number;
     const unitPrice = pricingDimension.price || 0;
