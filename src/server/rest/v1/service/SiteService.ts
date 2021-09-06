@@ -394,14 +394,18 @@ export default class SiteService {
     site.companyID = filteredRequest.companyID;
     if (Utils.objectHasProperty(filteredRequest, 'public')) {
       if (!filteredRequest.public) {
-        const publicChargingStation = await ChargingStationStorage.getPublicChargingStationInSite(req.tenant, {
-          siteID: site.id
+        const publicChargingStations = await ChargingStationStorage.getChargingStations(req.tenant, {
+          siteIDs: [site.id],
+          public: true,
+        }, {
+          skip: 0,
+          limit: 1,
         } , ['id']);
-        if (publicChargingStation) {
+        if (publicChargingStations.count > 0) {
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
             errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
-            message: `Cannot set site ${site.name} to private as charging station ${publicChargingStation.id} under site is public`,
+            message: `Cannot set site ${site.name} to private as charging station ${publicChargingStations.result[0].id} under site is public`,
             module: MODULE_NAME, method: 'handleUpdateSite',
             user: req.user,
           });
