@@ -14,10 +14,10 @@
       "sanitize": "mongo"
     },
     "SiteID": {
-      "$ref": "common.json#/definitions/ids"
+      "$ref": "common.json#/definitions/IDs"
     },
     "CompanyID": {
-      "$ref": "common.json#/definitions/ids"
+      "$ref": "common.json#/definitions/IDs"
     },
     "WithSite": {
       "type": "boolean",
@@ -28,7 +28,7 @@
       "sanitize": "mongo"
     },
     "SiteAreaID": {
-      "$ref": "common.json#/definitions/ids"
+      "$ref": "common.json#/definitions/IDs"
     },
     "ConnectorStatus": {
       "type": "string",
@@ -41,7 +41,7 @@
       "sanitize": "mongo"
     },
     "ChargingStationID": {
-      "$ref": "chargingstation.json#/definitions/ids"
+      "$ref": "chargingstation.json#/definitions/IDs"
     },
     "IncludeDeleted": {
       "type": "boolean",

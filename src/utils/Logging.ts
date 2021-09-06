@@ -515,23 +515,42 @@ export default class Logging {
   }
 
   public static async logChargingStationClientSendAction(module: string, tenantID: string, chargeBoxID: string,
-      action: ServerAction, args: any): Promise<void> {
-    await this.traceChargingStationActionStart(module, tenantID, chargeBoxID, action, args, '<<');
+      chargingStationDetails: {
+        siteID: string,
+        siteAreaID: string,
+        companyID: string,
+      },action: ServerAction, args: any): Promise<void> {
+    await this.traceChargingStationActionStart(module, tenantID, chargeBoxID, action, args, '<<', chargingStationDetails);
   }
 
   public static async logChargingStationClientReceiveAction(module: string, tenantID: string, chargeBoxID: string,
+      chargingStationDetails: {
+        siteID: string,
+        siteAreaID: string,
+        companyID: string,
+      },
       action: ServerAction, detailedMessages: any): Promise<void> {
-    await this.traceChargingStationActionEnd(module, tenantID, chargeBoxID, action, detailedMessages, '>>');
+    await this.traceChargingStationActionEnd(module, tenantID, chargeBoxID, action, detailedMessages, '>>', chargingStationDetails);
   }
 
   public static async logChargingStationServerReceiveAction(module: string, tenantID: string, chargeBoxID: string,
+      chargingStationDetails: {
+        siteID: string,
+        siteAreaID: string,
+        companyID: string,
+      },
       action: ServerAction, payload: any): Promise<void> {
-    await this.traceChargingStationActionStart(module, tenantID, chargeBoxID, action, payload, '>>');
+    await this.traceChargingStationActionStart(module, tenantID, chargeBoxID, action, payload, '>>', chargingStationDetails);
   }
 
   public static async logChargingStationServerRespondAction(module: string, tenantID: string, chargeBoxID: string,
+      chargingStationDetails: {
+        siteID: string,
+        siteAreaID: string,
+        companyID: string,
+      },
       action: ServerAction, detailedMessages: any): Promise<void> {
-    await this.traceChargingStationActionEnd(module, tenantID, chargeBoxID, action, detailedMessages, '<<');
+    await this.traceChargingStationActionEnd(module, tenantID, chargeBoxID, action, detailedMessages, '<<', chargingStationDetails);
   }
 
   // Used to log exception in catch(...) only
@@ -903,7 +922,11 @@ export default class Logging {
   }
 
   private static async traceChargingStationActionStart(module: string, tenantID: string, chargeBoxID: string,
-      action: ServerAction, args: any, direction: '<<' | '>>'): Promise<void> {
+      action: ServerAction, args: any, direction: '<<' | '>>', chargingStationDetails: {
+        siteID: string,
+        siteAreaID: string,
+        companyID: string,
+      }): Promise<void> {
     // Keep duration (only for one Action per Charging Station)
     // If 2 Actions for the same Charging Station arrive at the same time, the second one will not have response time measured
     Logging.traceCalls[`${chargeBoxID}~${action}`] = new Date().getTime();
@@ -912,6 +935,10 @@ export default class Logging {
     await Logging.logDebug({
       tenantID: tenantID,
       source: chargeBoxID,
+      chargingStationID: chargeBoxID,
+      siteAreaID: chargingStationDetails.siteAreaID,
+      siteID: chargingStationDetails.siteID,
+      companyID: chargingStationDetails.companyID,
       module: module, method: action, action,
       message,
       detailedMessages: { args }
@@ -919,7 +946,11 @@ export default class Logging {
   }
 
   private static async traceChargingStationActionEnd(module: string, tenantID: string, chargingStationID: string,
-      action: ServerAction, detailedMessages: any, direction: '<<' | '>>'): Promise<void> {
+      action: ServerAction, detailedMessages: any, direction: '<<' | '>>', chargingStationDetails: {
+        siteID: string,
+        siteAreaID: string,
+        companyID: string,
+      }): Promise<void> {
     // Compute duration if provided
     let executionDurationMillis: number;
     let found = false;
@@ -953,6 +984,10 @@ export default class Logging {
       await Logging.logError({
         tenantID,
         source: chargingStationID,
+        chargingStationID: chargingStationID,
+        siteID: chargingStationDetails.siteID,
+        siteAreaID: chargingStationDetails.siteAreaID,
+        companyID: chargingStationDetails.companyID,
         module, method: action, action,
         message, detailedMessages
       });
@@ -960,6 +995,10 @@ export default class Logging {
       await Logging.logDebug({
         tenantID,
         source: chargingStationID,
+        chargingStationID: chargingStationID,
+        siteID: chargingStationDetails.siteID,
+        siteAreaID: chargingStationDetails.siteAreaID,
+        companyID: chargingStationDetails.companyID,
         module, method: action, action,
         message, detailedMessages
       });

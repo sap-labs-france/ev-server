@@ -2,7 +2,7 @@ import { Action, Entity } from '../../../../types/Authorization';
 import { CryptoSettings, CryptoSettingsType, SettingDB, SettingDBContent, TechnicalSettings, UserSettings, UserSettingsType } from '../../../../types/Setting';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-import Tenant, { TenantLogo } from '../../../../types/Tenant';
+import Tenant, { TenantComponents , TenantLogo } from '../../../../types/Tenant';
 import User, { UserRole } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -13,6 +13,7 @@ import { LockEntity } from '../../../../types/Locking';
 import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
+import OCPIEndpointStorage from '../../../../storage/mongodb/OCPIEndpointStorage';
 import OICPEndpointStorage from '../../../../storage/mongodb/OICPEndpointStorage';
 import { OICPRole } from '../../../../types/oicp/OICPRole';
 import OICPUtils from '../../../oicp/OICPUtils';
@@ -20,6 +21,7 @@ import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import { StatusCodes } from 'http-status-codes';
+
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import TenantValidator from '../validator/TenantValidator';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
@@ -403,19 +405,25 @@ export default class TenantService {
         // Delete settings
         if (currentSetting) {
           await SettingStorage.deleteSetting(tenant, currentSetting.id);
+          // Delete deps
+          switch (componentName) {
+            case TenantComponents.OCPI:
+              await OCPIEndpointStorage.deleteOcpiEndpoints(tenant);
+              break;
+            case TenantComponents.OICP:
+              await OICPEndpointStorage.deleteOicpEndpoints(tenant);
+              break;
+          }
         }
         continue;
       }
       // Create
-      const newSettingContent: SettingDBContent = Utils.createDefaultSettingContent(
-        {
-          ...tenant.components[componentName],
-          name: componentName
-        }, (currentSetting ? currentSetting.content : null));
+      const newSettingContent = Utils.createDefaultSettingContent(
+        componentName, tenant.components[componentName], currentSetting?.content);
       if (newSettingContent) {
         // Create & Save
         if (!currentSetting) {
-          const newSetting: SettingDB = {
+          const newSetting = {
             identifier: componentName,
             content: newSettingContent
           } as SettingDB;

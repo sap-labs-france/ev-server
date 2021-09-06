@@ -11,7 +11,7 @@ import ODataTransactions from './odata-entities/ODataTransactions';
 import ODataUsers from './odata-entities/ODataUsers';
 import { ServerAction } from '../../types/Server';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
-import TenantComponents from '../../types/TenantComponents';
+import { TenantComponents } from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
 import auth from 'basic-auth';

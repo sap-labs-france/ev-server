@@ -1,3 +1,4 @@
+import User, { UserRole } from '../../src/types/User';
 import chai, { assert, expect } from 'chai';
 
 import CentralServerService from '../api/client/CentralServerService';
@@ -14,7 +15,6 @@ import { StatusCodes } from 'http-status-codes';
 import Tag from '../../src/types/Tag';
 import TenantContext from './context/TenantContext';
 import TestUtils from './TestUtils';
-import User from '../../src/types/User';
 import chaiSubset from 'chai-subset';
 import moment from 'moment';
 import responseHelper from '../helpers/responseHelper';
@@ -168,6 +168,20 @@ describe('User', function() {
             testData.userService.userApi,
             { ...testData.newUser, password: testData.newUser.password }
           );
+        });
+
+        it('Should be able to update the user with a single attribute in the request', async () => {
+          // Update
+          await testData.userService.updateEntity(
+            testData.userService.userApi,
+            { id: testData.newUser.id, role: UserRole.ADMIN }
+          );
+
+          testData.newUser = (await testData.userService.getEntityById(
+            testData.userService.userApi,
+            testData.newUser,
+            false
+          )).data;
         });
 
         it('Should be able to create a tag for user', async () => {

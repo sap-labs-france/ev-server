@@ -1,9 +1,14 @@
 import chai, { expect } from 'chai';
 
+import Asset from '../../src/types/Asset';
 import CentralServerService from './client/CentralServerService';
+import Company from '../../src/types/Company';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
+import Site from '../../src/types/Site';
+import SiteArea from '../../src/types/SiteArea';
+import { StatusCodes } from 'http-status-codes';
 import TenantContext from './context/TenantContext';
 import chaiSubset from 'chai-subset';
 
@@ -15,14 +20,14 @@ class TestData {
   public centralUserService: CentralServerService;
   public userContext: any;
   public userService: CentralServerService;
-  public newCompany: any;
-  public createdCompanies: any[] = [];
-  public newSite: any;
-  public createdSites: any[] = [];
-  public newSiteArea: any;
-  public createdSiteAreas: any[] = [];
-  public newAsset: any;
-  public createdAssets: any[] = [];
+  public newCompany: Company;
+  public createdCompanies: Company[] = [];
+  public newSite: Site;
+  public createdSites: Site[] = [];
+  public newSiteArea: SiteArea;
+  public createdSiteAreas: SiteArea[] = [];
+  public newAsset: Asset;
+  public createdAssets: Asset[] = [];
 }
 
 const testData: TestData = new TestData();
@@ -200,6 +205,39 @@ describe('Asset', function() {
           testData.userService.assetApi,
           testData.newAsset
         );
+      });
+
+      it('Should be able to find assets in error', async () => {
+        // Create a new Site Area
+        const newSiteArea = await testData.userService.createEntity(
+          testData.userService.siteAreaApi,
+          Factory.siteArea.build({
+            siteID: testData.newSite.id
+          })
+        );
+        testData.createdSiteAreas.push(newSiteArea);
+        expect(newSiteArea).to.not.be.null;
+
+        // Create a new asset
+        const newAsset = await testData.userService.createEntity(
+          testData.userService.assetApi,
+          Factory.asset.build({
+            siteAreaID: newSiteArea.id,
+            assetType: 'PR'
+          })
+        );
+        testData.createdAssets.push(newAsset);
+
+        // Delete the site area
+        await testData.userService.deleteEntity(
+          testData.userService.siteAreaApi,
+          newSiteArea
+        );
+
+        // Read all in error
+        const response = await testData.userService.assetApi.readAllInError({ });
+        expect(response.status).to.be.eq(StatusCodes.OK);
+        expect(response.data.count).to.be.eq(1);
       });
     });
   });

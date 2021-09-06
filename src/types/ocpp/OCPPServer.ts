@@ -123,12 +123,18 @@ export interface OCPPMeterValuesResponse {}
 
 export interface OCPPNormalizedMeterValues {
   chargeBoxID: string;
+  siteID: string;
+  siteAreaID: string;
+  companyID: string;
   values: OCPPNormalizedMeterValue[];
 }
 
 export interface OCPPNormalizedMeterValue {
   id: string;
   chargeBoxID: string;
+  siteID: string;
+  siteAreaID: string;
+  companyID: string;
   connectorId: number;
   transactionId: number;
   timestamp: Date;
