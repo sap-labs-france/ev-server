@@ -10,52 +10,6 @@ on:
       - master-qa
 
 jobs:
-  # unit-tests:
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       node-version: [14.x]
-  #       mongodb-version: [4.2]
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #   - uses: actions/checkout@v2
-  #     with:
-  #       repository: sap-labs-france/ev-ci
-  #       ssh-key: ${{ secrets.ACTION_ACCESS_SUB_MODULES_PRIVATE_REPOS }}
-  #       path: src/assets/configs-ci
-  #   - name: Start MongoDB
-  #     uses: supercharge/mongodb-github-action@1.3.0
-  #     with:
-  #       mongodb-version: ${{ matrix.mongodb-version }}
-  #       mongodb-replica-set: rs0
-  #   - name: Initialize DB
-  #     run: |
-  #       mongo docker/initdb/000_createMongoUsers.js
-  #       mongo docker/initdb/002_createSuperAdmin.js
-  #   - name: Use Node.js ${{ matrix.node-version }}
-  #     uses: actions/setup-node@v2
-  #     with:
-  #       node-version: ${{ matrix.node-version }}
-  #   - name: npm install
-  #     run: npm ci
-  #   - name: npm run build:dev
-  #     run: |
-  #       cp src/assets/configs-ci/config.json src/assets
-  #       npm run build:dev
-  #   - name: npm run start:devbuild
-  #     run: |
-  #       npm run start:email &
-  #       npm run start:devbuild &
-  #   - name: npm run mochatest:createContext
-  #     run: |
-  #       if [ ! -d test/config ]; then mkdir -p test/config; fi
-  #       cp src/assets/configs-ci/local.json test/config
-  #       npm run mochatest:createContext
-  #   - name: npm run mochatest:nyc:parallel
-  #     run: npm run mochatest:nyc:parallel
-  #   - name: npm run coverage
-  #     run: npm run coverage
-
   unit-tests-submodules:
     runs-on: ubuntu-latest
     strategy:
