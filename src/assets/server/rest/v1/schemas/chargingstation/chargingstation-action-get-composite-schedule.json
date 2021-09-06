@@ -9,7 +9,7 @@
       "type": "object",
       "properties": {
         "connectorId": {
-          "$ref": "chargingstation.json#/definitions/connector/connectorId"
+          "$ref": "chargingstation.json#/definitions/connector/properties/connectorId"
         },
         "duration": {
           "type": "number",
@@ -17,7 +17,8 @@
         },
         "schedulingUnit": {
           "type": "string",
-          "sanitize": "mongo"
+          "sanitize": "mongo",
+          "enum": ["A", "W"]
         }
       },
       "required": [

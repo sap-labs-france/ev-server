@@ -130,10 +130,15 @@ export enum OCPPChargingProfileStatus {
   NOT_SUPPORTED = 'NotSupported'
 }
 
+export enum SchedulingUnitRate {
+  A = 'A',
+  W = 'W'
+}
+
 export interface OCPPGetCompositeScheduleCommandParam extends OCPPCommandParam {
   connectorId: number;
   duration: number;
-  chargingRateUnit?: ChargingRateUnitType;
+  schedulingUnit?: SchedulingUnitRate;
 }
 
 export interface OCPPGetCompositeScheduleCommandResult {
