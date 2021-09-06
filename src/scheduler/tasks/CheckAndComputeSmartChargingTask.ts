@@ -5,9 +5,9 @@ import Logging from '../../utils/Logging';
 import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
 import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
-import SmartChargingFactory from '../../integration/smart-charging/SmartChargingFactory';
-import Tenant from '../../types/Tenant';
-import { TenantComponents } from '../../types/Tenant';
+import SmartChargingFactory from '../../integration/smart-charging-2/SmartChargingFactory';
+import Tenant, { TenantComponents } from '../../types/Tenant';
+
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'CheckAndComputeSmartChargingTask';

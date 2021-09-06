@@ -18,7 +18,7 @@ import SiteArea from '../../../../types/SiteArea';
 import { SiteAreaDataResult } from '../../../../types/DataResult';
 import SiteAreaSecurity from './security/SiteAreaSecurity';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
-import SmartChargingFactory from '../../../../integration/smart-charging/SmartChargingFactory';
+import SmartChargingFactory from '../../../../integration/smart-charging-2/SmartChargingFactory';
 import { TenantComponents } from '../../../../types/Tenant';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import Utils from '../../../../utils/Utils';

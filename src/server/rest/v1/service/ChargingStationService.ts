@@ -36,7 +36,7 @@ import { ServerAction } from '../../../../types/Server';
 import SiteArea from '../../../../types/SiteArea';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
-import SmartChargingFactory from '../../../../integration/smart-charging/SmartChargingFactory';
+import SmartChargingFactory from '../../../../integration/smart-charging-2/SmartChargingFactory';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';

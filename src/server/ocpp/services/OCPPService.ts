@@ -35,7 +35,7 @@ import OICPClientFactory from '../../../client/oicp/OICPClientFactory';
 import { OICPRole } from '../../../types/oicp/OICPRole';
 import { ServerAction } from '../../../types/Server';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
-import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
+import SmartChargingFactory from '../../../integration/smart-charging-2/SmartChargingFactory';
 import Tag from '../../../types/Tag';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
