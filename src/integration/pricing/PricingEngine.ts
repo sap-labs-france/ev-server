@@ -1,13 +1,15 @@
 import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
 /* eslint-disable @typescript-eslint/member-ordering */
-import PricingDefinition, { DimensionType, PricedConsumptionData, PricedDimensionData, PricingDimension, PricingRestriction, ResolvedPricingModel } from '../../types/Pricing';
+import PricingDefinition, { DimensionType, PricedConsumptionData, PricedDimensionData, PricingDimension, PricingRestriction, PricingStaticRestriction, ResolvedPricingModel } from '../../types/Pricing';
 
 import ChargingStation from '../../types/ChargingStation';
+import Constants from '../../utils/Constants';
 import Consumption from '../../types/Consumption';
 import PricingStorage from '../../storage/mongodb/PricingStorage';
 import Tenant from '../../types/Tenant';
 import Transaction from '../../types/Transaction';
 import Utils from '../../utils/Utils';
+import moment from 'moment';
 
 // --------------------------------------------------------------------------------------------------
 // TODO - POC - PricingEngine is hidden behind a feature toggle
@@ -55,7 +57,9 @@ export default class PricingEngine {
   private static async _getPricingDefinitions4Entity(tenant: Tenant, entityID: string): Promise<PricingDefinition[]> {
     if (entityID) {
       const entityIDs = [ entityID ];
-      const pricingModelResults = await PricingStorage.getPricingDefinitions(tenant, { entityIDs }, { limit: 1, skip: 0, sort: { createdOn: -1 } });
+      const pricingModelResults = await PricingStorage.getPricingDefinitions(tenant, { entityIDs }, {
+        limit: Constants.DB_RECORD_COUNT_NO_LIMIT, skip: 0, sort: { createdOn: -1 }
+      });
       if (pricingModelResults.count > 0) {
         return pricingModelResults.result;
       }
@@ -64,16 +68,14 @@ export default class PricingEngine {
   }
 
   static checkStaticRestrictions(pricingDefinition: PricingDefinition, transaction: Transaction, chargingStation: ChargingStation) : PricingDefinition {
-    // -----------------------------------------------------------------------
-    // TODO - check here the static restrictions
-    // i.e.: - restrictions that are not depending on the actual consumption
-    // e.g.: - validity dates, minPowerkW/maxPowerkW
-    // -----------------------------------------------------------------------
-    if (!PricingEngine.checkConnectorType(pricingDefinition, transaction, chargingStation)
-      || !PricingEngine.checkMinPower(pricingDefinition, transaction, chargingStation)
-      || !PricingEngine.checkMaxPower(pricingDefinition, transaction, chargingStation)
-    ) {
-      return null;
+    if (pricingDefinition.staticRestrictions) {
+      if (
+        !PricingEngine.checkDateValidity(pricingDefinition.staticRestrictions, transaction)
+      || !PricingEngine.checkConnectorType(pricingDefinition.staticRestrictions, transaction, chargingStation)
+      || !PricingEngine.checkConnectorPower(pricingDefinition.staticRestrictions, transaction, chargingStation)
+      ) {
+        return null;
+      }
     }
     // a definition matching the restrictions has been found
     return pricingDefinition;
@@ -100,30 +102,34 @@ export default class PricingEngine {
     return pricingDefinition;
   }
 
-  static checkConnectorType(pricingDefinition: PricingDefinition, transaction: Transaction, chargingStation: ChargingStation): boolean {
-    if (!Utils.isNullOrUndefined(pricingDefinition.connectorTypes)) {
+  static checkDateValidity(staticRestrictions: PricingStaticRestriction, transaction: Transaction): boolean {
+    if (!Utils.isNullOrUndefined(staticRestrictions.validFrom)) {
+      if (moment(transaction.timestamp).isBefore(staticRestrictions.validFrom)) {
+        return false;
+      }
+    }
+    if (!Utils.isNullOrUndefined(staticRestrictions.validTo)) {
+      if (moment(transaction.timestamp).isSameOrAfter(staticRestrictions.validTo)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  static checkConnectorType(staticRestrictions: PricingStaticRestriction, transaction: Transaction, chargingStation: ChargingStation): boolean {
+    if (!Utils.isNullOrUndefined(staticRestrictions.connectorType)) {
       const connectorType = Utils.getConnectorFromID(chargingStation, transaction.connectorId)?.type;
-      if (!pricingDefinition.connectorTypes.includes(connectorType)) {
+      if (staticRestrictions.connectorType !== connectorType) {
         return false;
       }
     }
     return true;
   }
 
-  static checkMinPower(pricingDefinition: PricingDefinition, transaction: Transaction, chargingStation: ChargingStation): boolean {
-    if (!Utils.isNullOrUndefined(pricingDefinition.minOutputPowerkW)) {
+  static checkConnectorPower(staticRestrictions: PricingStaticRestriction, transaction: Transaction, chargingStation: ChargingStation): boolean {
+    if (!Utils.isNullOrUndefined(staticRestrictions.connectorPowerkW)) {
       const connectorPowerWatts = Utils.getConnectorFromID(chargingStation, transaction.connectorId)?.power;
-      if (Utils.createDecimal(connectorPowerWatts).dividedBy(1000).lessThan(pricingDefinition.minOutputPowerkW)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  static checkMaxPower(pricingDefinition: PricingDefinition, transaction: Transaction, chargingStation: ChargingStation): boolean {
-    if (!Utils.isNullOrUndefined(pricingDefinition.maxOutputPowerkW)) {
-      const connectorPowerWatts = Utils.getConnectorFromID(chargingStation, transaction.connectorId)?.power;
-      if (Utils.createDecimal(connectorPowerWatts).dividedBy(1000).greaterThanOrEqualTo(pricingDefinition.maxOutputPowerkW)) {
+      if (!Utils.createDecimal(connectorPowerWatts).div(1000).equals(staticRestrictions.connectorPowerkW)) {
         return false;
       }
     }

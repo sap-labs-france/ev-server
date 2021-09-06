@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import AsyncTask, { AsyncTaskStatus } from '../../src/types/AsyncTask';
 import { BillingChargeInvoiceAction, BillingDataTransactionStop, BillingInvoiceStatus, BillingStatus, BillingUser } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
@@ -93,27 +94,74 @@ class TestData {
     assert(!!this.userService, 'User service cannot be null');
   }
 
-  public initChargingStationContext() : ChargingStationContext {
+  public async initChargingStationContext() : Promise<ChargingStationContext> {
     this.siteContext = this.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION);
     this.siteAreaContext = this.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
     this.chargingStationContext = this.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
     assert(!!this.chargingStationContext, 'Charging station context should not be null');
-    return this.chargingStationContext;
+    // -------------------------------------------------
+    // No pricing definition here!
+    // -------------------------------------------------
+    // await this.createTariff4ChargingStation(this.chargingStationContext.getChargingStation());
+    return Promise.resolve(this.chargingStationContext);
   }
 
-  public initChargingStationContext2TestChargingTime() : ChargingStationContext {
+  public async initChargingStationContext2TestChargingTime() : Promise<ChargingStationContext> {
     this.siteContext = this.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
     this.siteAreaContext = this.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED);
     this.chargingStationContext = this.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16 + '-' + ContextDefinition.SITE_CONTEXTS.SITE_BASIC + '-' + ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED + '-singlePhased');
     assert(!!this.chargingStationContext, 'Charging station context should not be null');
+    await this.createTariff4ChargingStation(this.chargingStationContext.getChargingStation(), {
+      flatFee: {
+        price: 1,
+        active: true
+      },
+      chargingTime: {
+        price: 0.4,
+        active: true
+      }
+    });
     return this.chargingStationContext;
   }
 
-  public initChargingStationContext2EnergyPlusFlatFee() : ChargingStationContext {
+  public async initChargingStationContext2TestEnergyPlusFlatFee() : Promise<ChargingStationContext> {
     this.siteContext = this.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
     this.siteAreaContext = this.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED);
     this.chargingStationContext = this.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16 + '-' + ContextDefinition.SITE_CONTEXTS.SITE_BASIC + '-' + ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED);
     assert(!!this.chargingStationContext, 'Charging station context should not be null');
+    await this.createTariff4ChargingStation(this.chargingStationContext.getChargingStation(), {
+      flatFee: {
+        price: 2,
+        active: true
+      },
+      energy: {
+        price: 0.25,
+        active: true
+      },
+      chargingTime: {
+        price: 0.4,
+        active: false // THIS IS OFF
+      }
+    });
+    return this.chargingStationContext;
+  }
+
+  public async initChargingStationContext2TestFastCharger() : Promise<ChargingStationContext> {
+    this.siteContext = this.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
+    this.siteAreaContext = this.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC);
+    this.chargingStationContext = this.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16 + '-' + ContextDefinition.SITE_CONTEXTS.SITE_BASIC + '-' + ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC);
+    assert(!!this.chargingStationContext, 'Charging station context should not be null');
+    await this.createTariff4ChargingStation(this.chargingStationContext.getChargingStation(), {
+      chargingTime: {
+        price: 0.16,
+        active: true
+      },
+      energy: {
+        price: 0.50,
+        active: true
+      }
+    }, ConnectorType.COMBO_CCS);
+
     return this.chargingStationContext;
   }
 
@@ -288,40 +336,40 @@ class TestData {
     // assert(selectedSites[0], 'The Site should not be null');
     // await this.createTariff4Site(selectedSites[0].id);
 
-    const chargingStations: ChargingStation[] = (await this.adminUserService.chargingStationApi.readAll({}, { limit: 0, skip: 0 }))?.data?.result;
-    let selectedChargingStations = chargingStations.filter((chargingStation) => chargingStation.id === 'cs-16-ut-site-withSmartChargingDC');
-    await this.createTariff4ChargingStation(selectedChargingStations[0]);
+    // const chargingStations: ChargingStation[] = (await this.adminUserService.chargingStationApi.readAll({}, { limit: 0, skip: 0 }))?.data?.result;
+    // let selectedChargingStations = chargingStations.filter((chargingStation) => chargingStation.id === 'cs-16-ut-site-withSmartChargingDC');
+    // await this.createTariff4ChargingStation(selectedChargingStations[0], null, ConnectorType.COMBO_CCS);
 
-    selectedChargingStations = chargingStations.filter((chargingStation) => chargingStation.id === 'cs-16-ut-site-withSmartChargingSinglePhased');
-    await this.createTariff4ChargingStation(selectedChargingStations[0]);
+    // selectedChargingStations = chargingStations.filter((chargingStation) => chargingStation.id === 'cs-16-ut-site-withSmartChargingSinglePhased');
+    // await this.createTariff4ChargingStation(selectedChargingStations[0]);
 
-    selectedChargingStations = chargingStations.filter((chargingStation) => chargingStation.id === 'cs-16-ut-site-withSmartChargingThreePhased');
-    await this.createTariff4ChargingStation(selectedChargingStations[0], {
-      flatFee: {
-        price: 2,
-        active: true
-      },
-      energy: {
-        price: 0.25,
-        active: true
-      },
-      chargingTime: {
-        price: 0.4,
-        active: false // THIS IS OFF
-      }
-    });
+    // selectedChargingStations = chargingStations.filter((chargingStation) => chargingStation.id === 'cs-16-ut-site-withSmartChargingThreePhased');
+    // await this.createTariff4ChargingStation(selectedChargingStations[0], {
+    //   flatFee: {
+    //     price: 2,
+    //     active: true
+    //   },
+    //   energy: {
+    //     price: 0.25,
+    //     active: true
+    //   },
+    //   chargingTime: {
+    //     price: 0.4,
+    //     active: false // THIS IS OFF
+    //   }
+    // });
 
-    selectedChargingStations = chargingStations.filter((chargingStation) => chargingStation.id === 'cs-16-ut-site-withSmartChargingThreePhased-singlePhased');
-    await this.createTariff4ChargingStation(selectedChargingStations[0], {
-      flatFee: {
-        price: 1,
-        active: true
-      },
-      chargingTime: {
-        price: 0.4,
-        active: true
-      }
-    });
+    // selectedChargingStations = chargingStations.filter((chargingStation) => chargingStation.id === 'cs-16-ut-site-withSmartChargingThreePhased-singlePhased');
+    // await this.createTariff4ChargingStation(selectedChargingStations[0], {
+    //   flatFee: {
+    //     price: 1,
+    //     active: true
+    //   },
+    //   chargingTime: {
+    //     price: 0.4,
+    //     active: true
+    //   }
+    // });
   }
 
   public async createTariff4Company(companyID: string): Promise<void> {
@@ -330,7 +378,9 @@ class TestData {
       entityType: PricingEntity.COMPANY,
       name: 'GREEN Tariff',
       description: 'Tariff for slow chargers',
-      maxOutputPowerkW: 40,
+      staticRestrictions: {
+        connectorPowerkW: 40,
+      },
       dimensions: {
         flatFee: {
           price: 1.25,
@@ -358,12 +408,6 @@ class TestData {
     const pricingDefinitionId = response?.data?.id;
     response = await this.adminUserService.pricingApi.readPricingDefinition(pricingDefinitionId);
     assert(response?.data?.id === pricingDefinitionId, 'The ID should be: ' + pricingDefinitionId);
-
-
-    const pricingDefinition = response?.data;
-    pricingDefinition.pricingDefinitions = [tariff];
-    response = await this.adminUserService.pricingApi.updatePricingDefinition(pricingDefinition);
-    assert(response?.data?.status === 'Success', 'The operation should succeed');
   }
 
   public async createTariff4Site(siteID: string): Promise<void> {
@@ -372,7 +416,9 @@ class TestData {
       entityType: PricingEntity.SITE,
       name: 'RED Tariff',
       description: 'Tariff for fast chargers',
-      minOutputPowerkW: 40,
+      staticRestrictions: {
+        connectorPowerkW: 40,
+      },
       dimensions: {
         flatFee: {
           price: 2.25,
@@ -400,44 +446,22 @@ class TestData {
     const pricingDefinitionId = response?.data?.id;
     response = await this.adminUserService.pricingApi.readPricingDefinition(pricingDefinitionId);
     assert(response?.data?.id === pricingDefinitionId, 'The ID should be: ' + pricingDefinitionId);
-
-    const pricingDefinition = response?.data;
-    pricingDefinition.pricingDefinitions = [tariff];
-    response = await this.adminUserService.pricingApi.updatePricingDefinition(pricingDefinition);
-    assert(response?.data?.status === 'Success', 'The operation should succeed');
   }
 
-  public async createTariff4ChargingStation(chargingStation: ChargingStation, dimensions: PricingDimensions = null, connectorTypes: ConnectorType[] = null): Promise<void> {
-    dimensions = dimensions || {
-      flatFee: {
-        price: 1.25,
-        active: true
-      },
-      chargingTime: {
-        price: 0.15,
-        active: true
-      },
-      energy: {
-        price: 0.35,
-        active: true
-      },
-      parkingTime: {
-        price: 0.75,
-        active: true
-      },
-    };
-
+  public async createTariff4ChargingStation(chargingStation: ChargingStation, dimensions: PricingDimensions, connectorType: ConnectorType = null): Promise<void> {
     // Set a default value
-    connectorTypes = connectorTypes || [ ConnectorType.TYPE_2 ];
+    connectorType = connectorType || ConnectorType.TYPE_2;
 
     const tariff: Partial<PricingDefinition> = {
       entityID: chargingStation.id, // a pricing model for the site
       entityType: PricingEntity.CHARGING_STATION,
       name: 'CS Tariff - ' + chargingStation.id,
       description: 'Tariff for CS -' + chargingStation.id,
-      connectorTypes,
-      validFrom: new Date(),
-      validTo: moment().add(10, 'minutes').toDate(),
+      staticRestrictions: {
+        connectorType,
+        validFrom: new Date(),
+        validTo: moment().add(10, 'minutes').toDate()
+      },
       dimensions
     };
 
@@ -449,10 +473,33 @@ class TestData {
     response = await this.adminUserService.pricingApi.readPricingDefinition(pricingDefinitionId);
     assert(response?.data?.id === pricingDefinitionId, 'The ID should be: ' + pricingDefinitionId);
 
-    const pricingDefinition = response?.data;
-    pricingDefinition.pricingDefinitions = [tariff];
-    response = await this.adminUserService.pricingApi.updatePricingDefinition(pricingDefinition);
+    // Create a 2nd one valid in the future with a stupid flat fee
+    tariff.name = tariff.name + ' - In the future';
+    tariff.staticRestrictions = {
+      connectorType,
+      validFrom: moment().add(10, 'years').toDate(),
+    },
+    tariff.dimensions.flatFee = {
+      active: true,
+      price: 111
+    };
+    response = await this.adminUserService.pricingApi.createPricingDefinition(tariff);
     assert(response?.data?.status === 'Success', 'The operation should succeed');
+    assert(response?.data?.id, 'The ID should not be null');
+
+    // Create a 3rd one valid in the past
+    tariff.name = tariff.name + ' - In the past';
+    tariff.staticRestrictions = {
+      connectorType,
+      validTo: moment().add(-1, 'hours').toDate(),
+    },
+    tariff.dimensions.flatFee = {
+      active: true,
+      price: 222
+    };
+    response = await this.adminUserService.pricingApi.createPricingDefinition(tariff);
+    assert(response?.data?.status === 'Success', 'The operation should succeed');
+    assert(response?.data?.id, 'The ID should not be null');
   }
 }
 
@@ -639,7 +686,7 @@ describe('Billing Service', function() {
     describe('with Transaction Billing ON', () => {
       before(async () => {
         // Initialize the charing station context
-        testData.initChargingStationContext();
+        await testData.initChargingStationContext();
         // Initialize the Billing module
         testData.billingImpl = await testData.setBillingSystemValidCredentials();
         // Make sure the required users are in sync
@@ -1036,7 +1083,7 @@ describe('Billing Service', function() {
     describe('with Transaction Billing OFF', () => {
       before(async () => {
         expect(testData.userContext).to.not.be.null;
-        testData.initChargingStationContext();
+        await testData.initChargingStationContext();
         // Initialize the Billing module
         testData.billingImpl = await testData.setBillingSystemValidCredentials(false);
       });
@@ -1070,11 +1117,11 @@ describe('Billing Service', function() {
         testData.billingImpl = await testData.setBillingSystemValidCredentials(true, true /* immediateBillingAllowed ON */);
       });
 
-      describe('Where admin user', () => {
+      describe('FF + CT', () => {
         // eslint-disable-next-line @typescript-eslint/require-await
         before(async () => {
           // Initialize the charing station context
-          testData.initChargingStationContext2TestChargingTime();
+          await testData.initChargingStationContext2TestChargingTime();
         });
 
         it('should create and bill an invoice with FF + CT', async () => {
@@ -1089,14 +1136,33 @@ describe('Billing Service', function() {
 
       });
 
-      describe('Where admin user', () => {
+      describe('FF + ENERGY', () => {
         // eslint-disable-next-line @typescript-eslint/require-await
         before(async () => {
           // Initialize the charing station context
-          testData.initChargingStationContext2EnergyPlusFlatFee();
+          await testData.initChargingStationContext2TestEnergyPlusFlatFee();
         });
 
         it('should create and bill an invoice with FF + ENERGY', async () => {
+          await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
+          const userWithBillingData = await testData.billingImpl.getUser(testData.userContext);
+          await testData.assignPaymentMethod(userWithBillingData, 'tok_fr');
+          const transactionID = await testData.generateTransaction(testData.userContext);
+          assert(transactionID, 'transactionID should not be null');
+          // Check that we have a new invoice with an invoiceID and an invoiceNumber
+          await testData.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID);
+        });
+
+      });
+
+      describe('On COMBO CCS - DC', () => {
+      // eslint-disable-next-line @typescript-eslint/require-await
+        before(async () => {
+        // Initialize the charing station context
+          await testData.initChargingStationContext2TestFastCharger();
+        });
+
+        it('should create and bill an invoice on COMBO CCS - DC', async () => {
           await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
           const userWithBillingData = await testData.billingImpl.getUser(testData.userContext);
           await testData.assignPaymentMethod(userWithBillingData, 'tok_fr');
@@ -1112,8 +1178,6 @@ describe('Billing Service', function() {
     describe('with Transaction Billing + Periodic Billing ON', () => {
       before(async () => {
         testData.initUserContextAsAdmin();
-        // Initialize the charing station context
-        testData.initChargingStationContext2TestChargingTime();
         // Initialize the Billing module
         testData.billingImpl = await testData.setBillingSystemValidCredentials(true, false /* immediateBillingAllowed OFF, so periodicBilling ON */);
       });
@@ -1121,6 +1185,8 @@ describe('Billing Service', function() {
       describe('Where admin user', () => {
       // eslint-disable-next-line @typescript-eslint/require-await
         before(async () => {
+          // Initialize the charing station context
+          await testData.initChargingStationContext2TestChargingTime();
         });
 
         it('should create a DRAFT invoice, Finalize it and Pay it', async () => {

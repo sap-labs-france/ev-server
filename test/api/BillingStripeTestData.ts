@@ -444,10 +444,12 @@ export default class StripeIntegrationTestData {
       entityType: null,
       name: 'BLUE Tariff',
       description: 'Tariff for low EVSE',
-      connectorTypes: null,
-      validFrom: new Date(),
-      validTo: moment().add(10, 'minutes').toDate(),
-      maxOutputPowerkW: 40000,
+      staticRestrictions: {
+        connectorType: null,
+        connectorPowerkW: 40,
+        validFrom: new Date(),
+        validTo: moment().add(10, 'minutes').toDate(),
+      },
       dimensions: {
         chargingTime: parkingPrice,
         // energy: price4TheEnergy, // do not bill the energy - bill the parking time instead
@@ -469,10 +471,12 @@ export default class StripeIntegrationTestData {
     const tariff2: Partial<PricingDefinition> = {
       name: 'GREEN Tariff',
       description: 'Tariff for fast chargers',
-      minOutputPowerkW: 40000,
-      connectorTypes: null,
-      validFrom: new Date(),
-      validTo: moment().add(10, 'minutes').toDate(),
+      staticRestrictions: {
+        connectorType: null,
+        connectorPowerkW: 40,
+        validFrom: new Date(),
+        validTo: moment().add(10, 'minutes').toDate(),
+      },
       dimensions: {
         // chargingTime: parkingPrice, // parking time is free while charging
         energy: price4TheEnergy,

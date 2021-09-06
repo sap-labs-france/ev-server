@@ -151,11 +151,7 @@ export default class PricingService {
     pricingDefinition.entityType = filteredRequest.entityType;
     pricingDefinition.name = filteredRequest.name;
     pricingDefinition.description = filteredRequest.description;
-    pricingDefinition.validFrom = filteredRequest.validFrom;
-    pricingDefinition.validTo = filteredRequest.validTo;
-    pricingDefinition.connectorTypes = filteredRequest.connectorTypes;
-    pricingDefinition.minOutputPowerkW = filteredRequest.minOutputPowerkW;
-    pricingDefinition.maxOutputPowerkW = filteredRequest.maxOutputPowerkW;
+    pricingDefinition.staticRestrictions = filteredRequest.staticRestrictions;
     pricingDefinition.restrictions = filteredRequest.restrictions;
     pricingDefinition.dimensions = filteredRequest.dimensions;
     pricingDefinition.lastChangedBy = { 'id': req.user.id };

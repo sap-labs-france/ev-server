@@ -25,11 +25,7 @@ export default class PricingStorage {
       entityType: pricingDefinition.entityType,
       name: pricingDefinition.name,
       description: pricingDefinition.description,
-      validFrom: Utils.convertToDate(pricingDefinition.validFrom),
-      validTo: Utils.convertToDate(pricingDefinition.validTo),
-      connectorTypes: pricingDefinition.connectorTypes,
-      maxOutputPowerkW: pricingDefinition.maxOutputPowerkW,
-      minOutputPowerkW: pricingDefinition.minOutputPowerkW,
+      staticRestrictions: pricingDefinition.staticRestrictions,
       restrictions: pricingDefinition.restrictions,
       dimensions: pricingDefinition.dimensions,
     };
