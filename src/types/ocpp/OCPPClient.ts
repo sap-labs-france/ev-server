@@ -129,6 +129,7 @@ export enum OCPPChargingProfileStatus {
   REJECTED = 'Rejected',
   NOT_SUPPORTED = 'NotSupported'
 }
+
 export interface OCPPGetCompositeScheduleCommandParam extends OCPPCommandParam {
   connectorId: number;
   duration: number;
