@@ -138,7 +138,7 @@ export interface HttpChargingStationGetFirmwareRequest {
   FileName: string;
 }
 
-export interface HttpChargingStationGetDiagnostics {
+export interface HttpChargingStationGetDiagnosticsRequest {
   chargingStationID: string,
   args: {
     location: string,

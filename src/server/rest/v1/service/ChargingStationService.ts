@@ -1194,7 +1194,6 @@ export default class ChargingStationService {
         break;
       // Get diagnostic
       case Command.GET_DIAGNOSTICS:
-        // const filteredRequest = ChargingStationValidator.validateChargingStationGetDiagnostics(params);
         filteredRequest = ChargingStationValidator.getInstance().validateChargingStationGetDiagnostics(req.body);
         result = await ChargingStationService.executeChargingStationCommand(
           req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
@@ -1617,19 +1616,6 @@ export default class ChargingStationService {
             retryInterval: params.retryInterval,
             startTime: params.startTime,
             stopTime: params.stopTime
-          }).catch(async (error) => {
-            // Log
-            await Logging.logException(error, ServerAction.CHARGING_STATION, chargingStation.id,
-              MODULE_NAME, 'GetDiagnostics', tenant.id ?? Constants.DEFAULT_TENANT);
-            throw new AppError({
-              source: chargingStation.id,
-              action: command as unknown as ServerAction,
-              errorCode: HTTPError.GENERAL_ERROR,
-              message: `OCPP Command '${command}' has failed: ` + error.message,
-              module: MODULE_NAME, method: 'handleAction',
-              user,
-              detailedMessages: { error: error.stack, params }
-            });
           });
           break;
         case Command.TRIGGER_DATA_TRANSFER:
