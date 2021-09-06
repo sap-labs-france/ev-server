@@ -1756,14 +1756,14 @@ export default class ChargingStationService {
         // Connector ID > 0
         const chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
         result.push(await chargingStationVendor.getCompositeSchedule(
-          req.tenant, chargingStation, chargePoint, connector.connectorId, filteredRequest.args.duration, filteredRequest.args.schedulingUnit));
+          req.tenant, chargingStation, chargePoint, connector.connectorId, filteredRequest.args.duration, filteredRequest.args.chargingRateUnit));
       }
     } else {
       // Connector ID > 0
       const connector = Utils.getConnectorFromID(chargingStation, filteredRequest.args.connectorId);
       const chargePoint = Utils.getChargePointFromID(chargingStation, connector?.chargePointID);
       result = await chargingStationVendor.getCompositeSchedule(
-        req.tenant, chargingStation, chargePoint, filteredRequest.args.connectorId, filteredRequest.args.duration, filteredRequest.args.schedulingUnit);
+        req.tenant, chargingStation, chargePoint, filteredRequest.args.connectorId, filteredRequest.args.duration, filteredRequest.args.chargingRateUnit);
     }
     return result;
   }

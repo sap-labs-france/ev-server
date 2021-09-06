@@ -129,16 +129,10 @@ export enum OCPPChargingProfileStatus {
   REJECTED = 'Rejected',
   NOT_SUPPORTED = 'NotSupported'
 }
-
-export enum SchedulingUnitRate {
-  A = 'A',
-  W = 'W'
-}
-
 export interface OCPPGetCompositeScheduleCommandParam extends OCPPCommandParam {
   connectorId: number;
   duration: number;
-  schedulingUnit?: SchedulingUnitRate;
+  chargingRateUnit?: ChargingRateUnitType;
 }
 
 export interface OCPPGetCompositeScheduleCommandResult {

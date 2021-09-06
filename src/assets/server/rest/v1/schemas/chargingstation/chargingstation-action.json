@@ -42,11 +42,6 @@
           "sanitize": "mongo",
           "enum": ["A", "W"]
         },
-        "schedulingUnit": {
-          "type": "string",
-          "sanitize": "mongo",
-          "enum": ["A", "W"]
-        },
         "chargingProfilePurpose": {
           "$ref": "chargingstation.json#/definitions/chargingProfile/properties/profile/properties/chargingProfilePurpose"
         },
