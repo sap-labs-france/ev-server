@@ -842,16 +842,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
 
   // eslint-disable-next-line @typescript-eslint/require-await
   public async updateTransaction(transaction: Transaction): Promise<BillingDataTransactionUpdate> {
-    // Check User
-    if (!transaction.userID || !transaction.user) {
-      throw new BackendError({
-        message: 'User is not provided',
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME,
-        method: 'updateTransaction',
-        action: ServerAction.BILLING_TRANSACTION
-      });
-    }
     return {
       // Just propagate the initial state
       withBillingActive: transaction.billingData?.withBillingActive

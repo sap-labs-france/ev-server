@@ -2,7 +2,7 @@ import { Action, Entity } from '../../../../types/Authorization';
 import ChargingStation, { ChargingStationOcppParameters, ChargingStationQRCode, Command, OCPPParams, StaticLimitAmps } from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-import { OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPRemoteStartStopStatus, OCPPStatus, OCPPUnlockStatus } from '../../../../types/ocpp/OCPPClient';
+import { OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPStatus, OCPPUnlockStatus } from '../../../../types/ocpp/OCPPClient';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
 
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -1154,6 +1154,17 @@ export default class ChargingStationService {
     // Get the Charging station
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
       req.tenant, req.user, filteredRequest.chargingStationID, action, null, { withSite: true, withSiteArea: true });
+    // Check auth
+    if (!await Authorizations.canPerformActionOnChargingStation(req.user, command as unknown as Action, chargingStation)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: command as unknown as Action,
+        entity: Entity.CHARGING_STATION,
+        module: MODULE_NAME, method: 'handleAction',
+        value: chargingStation.id
+      });
+    }
     let result: any;
     switch (command) {
       // Remote Stop Transaction / Unlock Connector
@@ -1170,19 +1181,14 @@ export default class ChargingStationService {
       case Command.GET_COMPOSITE_SCHEDULE:
         result = await ChargingStationService.executeChargingStationGetCompositeSchedule(action, chargingStation, command, filteredRequest, req, res, next);
         break;
+      // Get diagnostic
+      case Command.GET_DIAGNOSTICS:
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationGetDiagnostics(req.body);
+        result = await ChargingStationService.executeChargingStationCommand(
+          req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
+        break;
       // Other commands
       default:
-        // Check auth
-        if (!await Authorizations.canPerformActionOnChargingStation(req.user, command as unknown as Action, chargingStation)) {
-          throw new AppAuthError({
-            errorCode: HTTPAuthError.FORBIDDEN,
-            user: req.user,
-            action: command as unknown as Action,
-            entity: Entity.CHARGING_STATION,
-            module: MODULE_NAME, method: 'handleAction',
-            value: chargingStation.id
-          });
-        }
         // Execute it
         result = await ChargingStationService.executeChargingStationCommand(
           req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
@@ -1583,7 +1589,7 @@ export default class ChargingStationService {
             type: params.type
           });
           break;
-        // Get diagnostic
+        // Get Diagnostics
         case Command.GET_DIAGNOSTICS:
           result = await chargingStationClient.getDiagnostics({
             location: params.location,

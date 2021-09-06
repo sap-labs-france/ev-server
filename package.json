@@ -1,6 +1,6 @@
 {
   "name": "ev-server",
-  "version": "2.4.88",
+  "version": "2.4.89",
   "engines": {
     "node": "14.x.x",
     "npm": "6.x.x"
@@ -26,7 +26,6 @@
     "git:supdate": "git submodule update --remote --recursive --merge",
     "git:spush": "git push --recurse-submodules=on-demand",
     "git:sreset": "git submodule foreach 'git reset --hard'",
-    "components:export": "node src/componentsExport.js",
     "start": "npm run start:prod",
     "prestart": "npm run build:prod",
     "config:batch": "ncp src/assets/configs-scp/e-Mobility-config/config_batch_server.json dist/assets/config.json",
@@ -36,10 +35,10 @@
     "config:rest": "ncp src/assets/configs-scp/e-Mobility-config/config_rest_server.json dist/assets/config.json",
     "config:chargebox-json": "ncp src/assets/configs-scp/e-Mobility-config/config_chargebox_json_server.json dist/assets/config.json",
     "config:chargebox-soap": "ncp src/assets/configs-scp/e-Mobility-config/config_chargebox_soap_server.json dist/assets/config.json",
-    "start:dev": "npm run components:export && cross-env NODE_ENV=development ts-node-dev --files --max-old-space-size=4096 -- src/start.ts",
-    "start:dev:debug": "npm run components:export && cross-env NODE_ENV=development ts-node-dev --inspect --files --max-old-space-size=4096 -- src/start.ts",
-    "start:dev:nodemon": "npm run components:export && nodemon --exec 'ts-node --files' src/start.ts",
-    "start:dev:debug:nodemon": "npm run components:export && nodemon --exec 'ts-node --files' src/start.ts 9229",
+    "start:dev": "cross-env NODE_ENV=development ts-node-dev --files --max-old-space-size=4096 -- src/start.ts",
+    "start:dev:debug": "cross-env NODE_ENV=development ts-node-dev --inspect --files --max-old-space-size=4096 -- src/start.ts",
+    "start:dev:nodemon": "nodemon --exec 'ts-node --files' src/start.ts",
+    "start:dev:debug:nodemon": "nodemon --exec 'ts-node --files' src/start.ts 9229",
     "start:dev:prof": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=development node -r source-map-support/register --prof -- dist/start.js",
     "start:dev:doctorprof": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=development clinic doctor -- node -r source-map-support/register dist/start.js",
     "start:dev:flameprof": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=development clinic flame -- node -r source-map-support/register dist/start.js",

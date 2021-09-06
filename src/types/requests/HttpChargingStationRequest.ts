@@ -137,3 +137,14 @@ export interface HttpIsAuthorizedRequest {
 export interface HttpChargingStationGetFirmwareRequest {
   FileName: string;
 }
+
+export interface HttpChargingStationGetDiagnosticsRequest {
+  chargingStationID: string,
+  args: {
+    location: string,
+    retries?: number,
+    retryInterval?: number,
+    startTime?: Date,
+    stopTime?: Date
+  }
+}
