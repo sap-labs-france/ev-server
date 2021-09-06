@@ -159,6 +159,10 @@ class TestData {
         chargingTime: {
           price: 5, // Euro per hour
           active: true
+        },
+        parkingTime: {
+          price: 10, // Euro per hour
+          active: true
         }
       };
     } else {

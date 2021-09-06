@@ -210,7 +210,14 @@ export default class PricingEngine {
     const activePricingDefinition = PricingEngine.getActiveDefinition4Dimension(pricingDefinitions, DimensionType.PARKING_TIME);
     if (activePricingDefinition) {
       const dimensionToPrice = activePricingDefinition.dimensions.parkingTime;
-      const pricedData = PricingEngine.priceTimeBasedDimension(dimensionToPrice, consumptionData?.totalInactivitySecs || 0);
+      if (FeatureToggles.isFeatureActive(Feature.PRICING_PRICE_ACCUMULATED_TIME)) {
+        const pricedData = PricingEngine.priceTimeBasedDimension(dimensionToPrice, consumptionData?.totalInactivitySecs || 0);
+        if (pricedData) {
+          pricedData.sourceName = activePricingDefinition.name;
+        }
+        return pricedData;
+      }
+      const pricedData = PricingEngine.priceParkingTimeDimension(dimensionToPrice, consumptionData);
       if (pricedData) {
         pricedData.sourceName = activePricingDefinition.name;
       }
@@ -218,15 +225,71 @@ export default class PricingEngine {
     }
   }
 
+  private static priceParkingTimeDimension(pricingDimension: PricingDimension, consumptionData: Consumption): PricedDimensionData {
+    const cumulatedConsumptionDataWh = consumptionData?.cumulatedConsumptionWh || 0;
+    const consumptionWh = consumptionData?.consumptionWh || 0;
+
+    // Price the parking time only after having charged - NOT during the warmup!
+    if (cumulatedConsumptionDataWh > 0 && consumptionWh <= 0) {
+      const seconds = moment(consumptionData.endedAt).diff(moment(consumptionData.startedAt), 'seconds');
+      if (seconds > 0) {
+        return this.priceTimeDimension(pricingDimension, seconds);
+      }
+    }
+  }
+
+  private static priceTimeDimension(pricingDimension: PricingDimension, seconds: number): PricedDimensionData {
+    const unitPrice = pricingDimension.price || 0;
+    const amount = Utils.createDecimal(unitPrice).times(seconds).div(3600).toNumber();
+    const hours = Utils.createDecimal(seconds).div(3600).toNumber();
+    // Price the consumption
+    const pricedData: PricedDimensionData = {
+      unitPrice: unitPrice,
+      amount,
+      roundedAmount: Utils.truncTo(amount, 2),
+      quantity: hours
+    };
+    // Add the consumption to the previous data (if any) - for the billing
+    const previousData = pricingDimension.pricedData;
+    if (previousData) {
+      previousData.amount += pricedData.amount;
+      previousData.quantity += pricedData.quantity;
+      previousData.roundedAmount = Utils.truncTo(previousData.amount, 2);
+    } else {
+      pricingDimension.pricedData = pricedData;
+    }
+    // Return the current consumption!
+    return pricedData;
+  }
+
   private static priceChargingTimeConsumption(pricingDefinitions: PricingDefinition[], consumptionData: Consumption): PricedDimensionData {
     const activePricingDefinition = PricingEngine.getActiveDefinition4Dimension(pricingDefinitions, DimensionType.CHARGING_TIME);
     if (activePricingDefinition) {
       const dimensionToPrice = activePricingDefinition.dimensions.chargingTime;
-      const pricedData = PricingEngine.priceTimeBasedDimension(dimensionToPrice, consumptionData?.totalDurationSecs || 0);
+      if (FeatureToggles.isFeatureActive(Feature.PRICING_PRICE_ACCUMULATED_TIME)) {
+        const pricedData = PricingEngine.priceTimeBasedDimension(dimensionToPrice, consumptionData?.totalDurationSecs || 0);
+        if (pricedData) {
+          pricedData.sourceName = activePricingDefinition.name;
+        }
+        return pricedData;
+      }
+      const pricedData = PricingEngine.priceChargingTimeDimension(dimensionToPrice, consumptionData);
       if (pricedData) {
         pricedData.sourceName = activePricingDefinition.name;
       }
       return pricedData;
+    }
+  }
+
+  private static priceChargingTimeDimension(pricingDimension: PricingDimension, consumptionData: Consumption): PricedDimensionData {
+    const consumptionWh = consumptionData?.consumptionWh || 0;
+
+    if (consumptionWh > 0) {
+      // Price the charging time only when charging!
+      const seconds = moment(consumptionData.endedAt).diff(moment(consumptionData.startedAt), 'seconds');
+      if (seconds > 0) {
+        return this.priceTimeDimension(pricingDimension, seconds);
+      }
     }
   }
 
