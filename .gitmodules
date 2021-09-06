@@ -10,10 +10,6 @@
 	path = src/integration/pricing/convergent-charging
 	url = ../../sap-labs-france/ev-sap-pricing-convergent-charging.git
 	branch = master
-[submodule "src/integration/refund/concur"]
-	path = src/integration/refund/concur
-	url = ../../sap-labs-france/ev-sap-refund-concur.git
-	branch = master
 [submodule "src/assets/charging-station-templates"]
 	path = src/assets/charging-station-templates
 	url = ../../sap-labs-france/ev-sap-charging-station-templates.git
