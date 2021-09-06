@@ -1155,16 +1155,6 @@ export default class ChargingStationService {
     // Get the Charging station
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
       req.tenant, req.user, filteredRequest.chargingStationID, action, null, { withSite: true, withSiteArea: true });
-    // Get the OCPP Client
-    const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(req.tenant, chargingStation);
-    if (!chargingStationClient) {
-      throw new BackendError({
-        source: chargingStation.id,
-        action: action,
-        module: MODULE_NAME, method: 'handleChargingStationCommand',
-        message: 'Charging Station is not connected to the backend',
-      });
-    }
     // Check auth
     if (!await Authorizations.canPerformActionOnChargingStation(req.user, command as unknown as Action, chargingStation)) {
       throw new AppAuthError({
