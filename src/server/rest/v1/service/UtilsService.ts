@@ -3,6 +3,7 @@ import { Car, CarCatalog, CarType } from '../../../../types/Car';
 import ChargingStation, { ChargePoint, Voltage } from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
+import Tenant, { TenantComponents } from '../../../../types/Tenant';
 import User, { UserRole, UserStatus } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -32,8 +33,6 @@ import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
-import Tenant, { TenantComponents } from '../../../../types/Tenant';
-
 import { TransactionInErrorType } from '../../../../types/InError';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
@@ -1389,16 +1388,6 @@ export default class UtilsService {
     // Check description
     if (!tag.description) {
       tag.description = `Tag ID '${tag.id}'`;
-    }
-    // Check user ID
-    if (!tag.userID) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'User ID is mandatory',
-        module: MODULE_NAME, method: 'checkIfUserTagIsValid',
-        user: req.user.id
-      });
     }
     // Check user activation
     if (!Utils.objectHasProperty(tag, 'active')) {

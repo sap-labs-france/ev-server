@@ -22,7 +22,7 @@ export default class TagStorage {
     DatabaseUtils.checkTenantObject(tenant);
     const tagMDB = {
       _id: tag.id,
-      userID: DatabaseUtils.convertToObjectID(tag.userID),
+      userID: tag.userID ? DatabaseUtils.convertToObjectID(tag.userID) : null,
       issuer: Utils.convertToBoolean(tag.issuer),
       active: Utils.convertToBoolean(tag.active),
       default: Utils.convertToBoolean(tag.default),

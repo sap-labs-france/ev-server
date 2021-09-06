@@ -5,6 +5,7 @@ import { DataResult, TagDataResult } from '../../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import Tag, { ImportedTag, TagRequiredImportProperties } from '../../../../types/Tag';
+import Tenant, { TenantComponents } from '../../../../types/Tenant';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
@@ -28,8 +29,6 @@ import { ServerAction } from '../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import TagValidator from '../validator/TagValidator';
-import Tenant from '../../../../types/Tenant';
-import { TenantComponents } from '../../../../types/Tenant';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import UserToken from '../../../../types/UserToken';
 import UserValidator from '../validator/UserValidator';
@@ -158,21 +157,23 @@ export default class TagService {
         action: action
       });
     }
-    // Get User
-    const user = await UtilsService.checkAndGetUserAuthorization(req.tenant, req.user, filteredRequest.userID,
-      Action.READ, ServerAction.TAG_CREATE);
-    // Default tag?
-    if (filteredRequest.default) {
-      // Clear
-      await TagStorage.clearDefaultUserTag(req.tenant, filteredRequest.userID);
-    // Check if another one is the default
-    } else {
-      const defaultTag = await TagStorage.getDefaultUserTag(req.tenant, filteredRequest.userID, {
-        issuer: true,
-      });
-      // No default tag: Force default
-      if (!defaultTag) {
-        filteredRequest.default = true;
+    if (filteredRequest.userID) {
+      // Get User
+      await UtilsService.checkAndGetUserAuthorization(req.tenant, req.user, filteredRequest.userID,
+        Action.READ, ServerAction.TAG_CREATE);
+      // Default tag?
+      if (filteredRequest.default) {
+        // Clear
+        await TagStorage.clearDefaultUserTag(req.tenant, filteredRequest.userID);
+        // Check if another one is the default
+      } else {
+        const defaultTag = await TagStorage.getDefaultUserTag(req.tenant, filteredRequest.userID, {
+          issuer: true,
+        });
+        // No default tag: Force default
+        if (!defaultTag) {
+          filteredRequest.default = true;
+        }
       }
     }
     // Create
@@ -194,7 +195,7 @@ export default class TagService {
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       action: action,
-      user: req.user, actionOnUser: user,
+      user: req.user,
       module: MODULE_NAME, method: 'handleCreateTag',
       message: `Tag with ID '${newTag.id}'has been created successfully`,
       detailedMessages: { tag: newTag }
@@ -345,10 +346,10 @@ export default class TagService {
     // Check and Get Tag
     const tag = await UtilsService.checkAndGetTagAuthorization(req.tenant, req.user, filteredRequest.id, Action.UPDATE, action,
       filteredRequest, { withNbrTransactions: true, withUser: true }, true);
-    // Get User
-    const user = await UtilsService.checkAndGetUserAuthorization(req.tenant, req.user, filteredRequest.userID,
-      Action.READ, ServerAction.TAG_UPDATE);
-    // Check visualID uniqueness
+    if (filteredRequest.userID) {
+      await UtilsService.checkAndGetUserAuthorization(req.tenant, req.user, filteredRequest.userID,
+        Action.READ, ServerAction.TAG_UPDATE);
+    } // Check visualID uniqueness
     if (tag.visualID !== filteredRequest.visualID) {
       const tagVisualID = await TagStorage.getTagByVisualID(req.tenant, filteredRequest.visualID);
       if (tagVisualID) {
@@ -380,17 +381,17 @@ export default class TagService {
       formerTagDefault = tag.default;
     }
     // Clear User's default Tag
-    if (filteredRequest.default && !formerTagUserID && (tag.default !== filteredRequest.default)) {
+    if (filteredRequest.default && !formerTagUserID && filteredRequest.userID && (tag.default !== filteredRequest.default)) {
       await TagStorage.clearDefaultUserTag(req.tenant, filteredRequest.userID);
     }
     // Check default Tag existence
-    if (!filteredRequest.default) {
+    if (!filteredRequest.default && filteredRequest.userID) {
       // Check if another one is the default
       const defaultTag = await TagStorage.getDefaultUserTag(req.tenant, filteredRequest.userID, {
         issuer: true,
       });
       // Force default Tag
-      if (!defaultTag) {
+      if (!defaultTag && filteredRequest.userID) {
         filteredRequest.default = true;
       }
     }
@@ -415,12 +416,13 @@ export default class TagService {
       action: action,
       module: MODULE_NAME, method: 'handleUpdateTag',
       message: `Tag with ID '${tag.id}' has been updated successfully`,
-      user: req.user, actionOnUser: user,
+      user: req.user,
       detailedMessages: { tag: tag }
     });
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
+
 
   // eslint-disable-next-line @typescript-eslint/require-await
   public static async handleImportTags(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -501,8 +503,8 @@ export default class TagService {
               tag.importedBy = importedBy;
               tag.importedOn = importedOn;
               tag.importedData = {
-                'autoActivateUserAtImport' : UtilsSecurity.filterBoolean(req.headers.autoactivateuseratimport),
-                'autoActivateTagAtImport' :  UtilsSecurity.filterBoolean(req.headers.autoactivatetagatimport)
+                'autoActivateUserAtImport': UtilsSecurity.filterBoolean(req.headers.autoactivateuseratimport),
+                'autoActivateTagAtImport': UtilsSecurity.filterBoolean(req.headers.autoactivatetagatimport)
               };
               // Import
               const importSuccess = await TagService.processTag(action, req, tag, tagsToBeImported);
@@ -678,7 +680,7 @@ export default class TagService {
       try {
         // Check and Get Tag
         const tag = await UtilsService.checkAndGetTagAuthorization(
-          tenant, loggedUser, tagID, Action.DELETE, action, null, { }, true);
+          tenant, loggedUser, tagID, Action.DELETE, action, null, {}, true);
         // Delete OCPI
         await TagService.checkAndDeleteTagOCPI(tenant, loggedUser, tag);
         // Delete the Tag
