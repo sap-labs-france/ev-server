@@ -2,6 +2,7 @@ import { addedDiff, deletedDiff } from 'deep-object-diff';
 
 import Constants from '../src/utils/Constants';
 import { promises as fs } from 'fs';
+import { trim } from 'lodash';
 
 class I18nChecker {
 
@@ -26,16 +27,34 @@ class I18nChecker {
             console.log(deleted);
           }
           if (Object.keys(added).length === 0 && Object.keys(deleted).length === 0) {
-            console.log('No issue found for: ' + file);
+            I18nChecker.compareContent(parsedContentEN, parsedContentOtherLanguage, file);
           }
         } catch (err) {
           console.log('File not found or with wrong format: ' + file);
+          console.log(err.message);
           continue;
         }
       }
     } catch (err) {
       console.log('English file not found.');
       throw err;
+    }
+  }
+
+  private static compareContent(originalLanguage: JSON, comparedLanguage: JSON, file: string): void {
+    let noIssue = true;
+    for (let i = 0 ; i < Object.keys(originalLanguage).length; i++) {
+      const keyName = Object.keys(originalLanguage)[i];
+      if (typeof originalLanguage[keyName] !== 'string') {
+        continue;
+      }
+      if (originalLanguage[keyName].trim() === comparedLanguage[keyName].trim()) {
+        console.log('Content `' + keyName + '` probably not yet translated into ' + file + ' (current value is: `' + originalLanguage[keyName] + '`)');
+        noIssue = false;
+      }
+    }
+    if (noIssue) {
+      console.log('No issue found for: ' + file);
     }
   }
 }

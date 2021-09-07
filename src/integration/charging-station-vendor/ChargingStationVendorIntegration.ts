@@ -332,7 +332,7 @@ export default abstract class ChargingStationVendorIntegration {
   }
 
   public async getCompositeSchedule(tenant: Tenant, chargingStation: ChargingStation, chargePoint: ChargePoint,
-      connectorID: number, durationSecs: number): Promise<OCPPGetCompositeScheduleCommandResult> {
+      connectorID: number, durationSecs: number, chargingRateUnit?: ChargingRateUnitType): Promise<OCPPGetCompositeScheduleCommandResult> {
     // Check if feature is supported
     if (!chargingStation.capabilities?.supportChargingProfiles) {
       throw new BackendError({
@@ -365,7 +365,7 @@ export default abstract class ChargingStationVendorIntegration {
       const result = await chargingStationClient.getCompositeSchedule({
         connectorId: connectorID,
         duration: durationSecs,
-        chargingRateUnit: chargingStation.powerLimitUnit
+        chargingRateUnit
       });
       // Convert
       result.chargingSchedule = this.convertFromVendorChargingSchedule(chargingStation, chargePoint, result.connectorId, result.chargingSchedule);

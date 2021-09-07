@@ -533,10 +533,11 @@ export enum ServerRoute {
 
   REST_ASSETS = 'assets',
   REST_ASSET = 'assets/:id',
-  REST_ASSET_CONSUMPTION = 'assets/:id/consumption',
   REST_ASSETS_IN_ERROR = 'assets/status/in-error',
   REST_ASSET_CHECK_CONNECTION = 'assets/:id/connector/connection/check',
   REST_ASSET_RETRIEVE_CONSUMPTION = 'assets/:id/connector/consumption/retrieve-last',
+  REST_ASSET_CONSUMPTIONS = 'assets/:id/consumptions',
+  REST_ASSET_IMAGE = 'assets/:id/image',
 
   REST_PING = 'ping',
 
