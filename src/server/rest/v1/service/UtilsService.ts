@@ -32,8 +32,8 @@ import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
-import Tenant from '../../../../types/Tenant';
-import TenantComponents from '../../../../types/TenantComponents';
+import Tenant, { TenantComponents } from '../../../../types/Tenant';
+
 import { TransactionInErrorType } from '../../../../types/InError';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
