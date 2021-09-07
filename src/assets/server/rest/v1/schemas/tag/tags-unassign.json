@@ -3,15 +3,14 @@
   "description": "",
   "type": "object",
   "properties": {
-    "visualTagsIDs": {
+    "visualIDs": {
       "type": "array",
       "items": {
-        "type": "string",
-        "sanitize": "mongo"
+        "$ref": "tag.json#/definitions/visualID"
       }
     }
   },
   "required": [
-    "visualTagsIDs"
+    "visualIDs"
   ]
 }

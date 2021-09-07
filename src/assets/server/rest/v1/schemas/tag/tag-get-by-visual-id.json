@@ -4,8 +4,7 @@
   "type": "object",
   "properties": {
     "VisualID": {
-      "type": "string",
-      "sanitize": "mongo"
+      "$ref": "tag.json#/definitions/visualID"
     },
     "WithUser": {
       "type": "boolean",

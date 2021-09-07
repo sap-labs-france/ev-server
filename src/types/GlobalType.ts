@@ -48,7 +48,7 @@ export enum ImportStatus {
   ERROR = 'E',
 }
 
-export type EntityDataType = Car|User|Company|Site|SiteArea|Tag|CarCatalog|ChargingStation|Partial<Tag>;
+export type EntityDataType = Car|User|Company|Site|SiteArea|Tag|CarCatalog|ChargingStation;
 
 interface TSGlobal extends Global {
   database: MongoDBStorage;

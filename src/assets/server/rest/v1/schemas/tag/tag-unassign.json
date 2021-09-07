@@ -3,12 +3,11 @@
   "description": "",
   "type": "object",
   "properties": {
-    "visualTagID": {
-      "type": "string",
-      "sanitize": "mongo"
+    "visualID": {
+      "$ref": "tag.json#/definitions/visualID"
     }
   },
   "required": [
-    "visualTagID"
+    "visualID"
   ]
 }

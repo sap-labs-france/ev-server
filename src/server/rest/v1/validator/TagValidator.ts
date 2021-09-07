@@ -86,12 +86,12 @@ export default class TagValidator extends SchemaValidator {
     return data;
   }
 
-  validateTagsUnassign(data: any): { visualTagsIDs: string[] } {
+  validateTagsUnassign(data: any): { visualIDs: string[] } {
     this.validate(this.tagsUnassign, data);
     return data;
   }
 
-  validateTagUnassign(data: any): { visualTagID: string } {
+  validateTagUnassign(data: any): { visualID: string } {
     this.validate(this.tagUnassign, data);
     return data;
   }
