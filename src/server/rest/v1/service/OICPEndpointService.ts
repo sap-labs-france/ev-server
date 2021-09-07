@@ -15,7 +15,7 @@ import { OICPRegistrationStatus } from '../../../../types/oicp/OICPRegistrationS
 import { OICPStatusCode } from '../../../../types/oicp/OICPStatusCode';
 import { ServerAction } from '../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
-import TenantComponents from '../../../../types/TenantComponents';
+import { TenantComponents } from '../../../../types/Tenant';
 import UtilsService from './UtilsService';
 
 const MODULE_NAME = 'OICPEndpointService';

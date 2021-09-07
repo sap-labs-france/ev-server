@@ -4,7 +4,7 @@ import CarConnectorIntegration from './CarConnectorIntegration';
 import MercedesCarConnectorIntegration from './mercedes-connector/MercedesCarConnectorIntegration';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Tenant from '../../types/Tenant';
-import TenantComponents from '../../types/TenantComponents';
+import { TenantComponents } from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 
 export default class CarConnectorFactory {
