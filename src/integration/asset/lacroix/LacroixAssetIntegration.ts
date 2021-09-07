@@ -1,5 +1,5 @@
 import Asset, { LacroixPeriods, LacroixResponse } from '../../../types/Asset';
-import { AssetConnectionSetting, AssetSetting } from '../../../types/Setting';
+import { AssetConnectionSetting, AssetSettings } from '../../../types/Setting';
 
 import { AbstractCurrentConsumption } from '../../../types/Consumption';
 import AssetIntegration from '../AssetIntegration';
@@ -18,10 +18,10 @@ import moment from 'moment';
 
 const MODULE_NAME = 'LacroixAssetIntegration';
 
-export default class LacroixAssetIntegration extends AssetIntegration<AssetSetting> {
+export default class LacroixAssetIntegration extends AssetIntegration<AssetSettings> {
   private axiosInstance: AxiosInstance;
 
-  public constructor(tenant: Tenant, settings: AssetSetting, connection: AssetConnectionSetting) {
+  public constructor(tenant: Tenant, settings: AssetSettings, connection: AssetConnectionSetting) {
     super(tenant, settings, connection);
     this.axiosInstance = AxiosFactory.getAxiosInstance(tenant.id);
   }

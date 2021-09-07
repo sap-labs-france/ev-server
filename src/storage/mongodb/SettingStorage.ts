@@ -503,4 +503,16 @@ export default class SettingStorage {
     }
     return SettingStorage.saveSettings(tenant, setting);
   }
+
+  public static async saveAssetSettings(tenant: Tenant, assetSettings: AssetSettings): Promise<string> {
+    const { id, identifier, backupSensitiveData, sensitiveData } = assetSettings;
+    const setting: SettingDB = {
+      id, identifier, sensitiveData, backupSensitiveData,
+      content: {
+        type: assetSettings.type,
+        asset: assetSettings.asset,
+      },
+    };
+    return SettingStorage.saveSettings(tenant, setting);
+  }
 }

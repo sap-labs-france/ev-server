@@ -268,11 +268,21 @@ export interface AssetSetting {
   connections: AssetConnectionSetting[];
 }
 
+export interface AssetConnectionTokenSetting {
+  accessToken: string,
+  tokenType?: string,
+  expiresIn?: number,
+  userName?: string,
+  issued?: Date,
+  expires: Date,
+}
+
 export interface AssetConnectionSetting {
   id: string;
   name: string;
   description: string;
   url: string;
+  token?: AssetConnectionTokenSetting,
   timestamp: Date;
   type: AssetConnectionType;
   refreshIntervalMins?: number;

@@ -1,5 +1,5 @@
 import Asset, { AssetType, IothinkProperty } from '../../../types/Asset';
-import { AssetConnectionSetting, AssetSetting } from '../../../types/Setting';
+import { AssetConnectionSetting, AssetConnectionTokenSetting, AssetSettings, Setting } from '../../../types/Setting';
 
 import { AbstractCurrentConsumption } from '../../../types/Consumption';
 import AssetIntegration from '../AssetIntegration';
@@ -10,17 +10,18 @@ import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
+import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import Tenant from '../../../types/Tenant';
 import Utils from '../../../utils/Utils';
 import moment from 'moment';
 
 const MODULE_NAME = 'IothinkAssetIntegration';
 
-export default class IothinkAssetIntegration extends AssetIntegration<AssetSetting> {
+export default class IothinkAssetIntegration extends AssetIntegration<AssetSettings> {
   private axiosInstance: AxiosInstance;
   private timestampReference = moment.utc('20000101 00:00:00', 'YYYYMMDD HH:mm:ss');
 
-  public constructor(tenant: Tenant, settings: AssetSetting, connection: AssetConnectionSetting) {
+  public constructor(tenant: Tenant, settings: AssetSettings, connection: AssetConnectionSetting) {
     super(tenant, settings, connection);
     this.axiosInstance = AxiosFactory.getAxiosInstance(tenant.id);
   }
@@ -145,12 +146,7 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
     return 0;
   }
 
-  private async connect(): Promise<string> {
-    // Check if connection is initialized
-    this.checkConnectionIsProvided();
-    // Get credential params
-    const credentials = await this.getCredentialURLParams();
-    // Send credentials to get the token
+  private async fetchNewToken(credentials: URLSearchParams) {
     const response = await Utils.executePromiseWithTimeout(5000,
       this.axiosInstance.post(`${this.connection.url}/token`,
         credentials,
@@ -162,8 +158,30 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
         }),
       `Time out error (5s) when getting the token with the connection URL '${this.connection.url}/token'`
     );
-    // Return the Token
-    return response.data.access_token;
+    const data = response.data;
+    const token : AssetConnectionTokenSetting = {
+      accessToken: data.access_token,
+      tokenType: data.token_type,
+      expiresIn: data.expires_in,
+      userName: data.userName,
+      issued: data['.issued'],
+      expires: data['.expires']
+    };
+    this.connection.token = token;
+    await SettingStorage.saveAssetSettings(this.tenant, this.settings);
+    return token;
+  }
+
+  private async connect(): Promise<string> {
+    if (!this.checkIfTokenExpired(this.connection.token)) {
+      return this.connection.token.accessToken;
+    }
+    // Check if connection is initialized
+    this.checkConnectionIsProvided();
+    // Get credential params
+    const credentials = await this.getCredentialURLParams();
+    const response = await this.fetchNewToken(credentials);
+    return response.accessToken;
   }
 
   private async getCredentialURLParams(): Promise<URLSearchParams> {

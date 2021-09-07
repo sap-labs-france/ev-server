@@ -1,5 +1,5 @@
 import Asset, { AssetType, SchneiderProperty } from '../../../types/Asset';
-import { AssetConnectionSetting, AssetSetting } from '../../../types/Setting';
+import { AssetConnectionSetting, AssetSettings } from '../../../types/Setting';
 
 import { AbstractCurrentConsumption } from '../../../types/Consumption';
 import AssetIntegration from '../AssetIntegration';
@@ -15,10 +15,10 @@ import Utils from '../../../utils/Utils';
 
 const MODULE_NAME = 'SchneiderAssetIntegration';
 
-export default class SchneiderAssetIntegration extends AssetIntegration<AssetSetting> {
+export default class SchneiderAssetIntegration extends AssetIntegration<AssetSettings> {
   private axiosInstance: AxiosInstance;
 
-  public constructor(tenant: Tenant, settings: AssetSetting, connection: AssetConnectionSetting) {
+  public constructor(tenant: Tenant, settings: AssetSettings, connection: AssetConnectionSetting) {
     super(tenant, settings, connection);
     this.axiosInstance = AxiosFactory.getAxiosInstance(tenant.id);
   }
