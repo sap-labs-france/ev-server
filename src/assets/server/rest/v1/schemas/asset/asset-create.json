@@ -41,5 +41,10 @@
     "meterID": {
       "$ref": "asset.json#/definitions/meterID"
     }
-  }
+  },
+  "required": [
+    "name",
+    "siteAreaID",
+    "assetType"
+  ]
 }

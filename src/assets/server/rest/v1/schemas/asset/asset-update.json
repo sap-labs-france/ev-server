@@ -46,6 +46,9 @@
     }
   },
   "required": [
-    "id"
+    "id",
+    "name",
+    "siteAreaID",
+    "assetType"
   ]
 }
