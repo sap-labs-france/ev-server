@@ -397,10 +397,7 @@ export default class SiteService {
         const publicChargingStations = await ChargingStationStorage.getChargingStations(req.tenant, {
           siteIDs: [site.id],
           public: true,
-        }, {
-          skip: 0,
-          limit: 1,
-        } , ['id']);
+        }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);
         if (publicChargingStations.count > 0) {
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
