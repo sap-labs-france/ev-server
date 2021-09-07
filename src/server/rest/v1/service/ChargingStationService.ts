@@ -2,7 +2,7 @@ import { Action, Entity } from '../../../../types/Authorization';
 import ChargingStation, { ChargingStationOcppParameters, ChargingStationQRCode, Command, OCPPParams, StaticLimitAmps } from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-import { OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPRemoteStartStopStatus, OCPPStatus, OCPPUnlockStatus } from '../../../../types/ocpp/OCPPClient';
+import { OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPStatus, OCPPUnlockStatus } from '../../../../types/ocpp/OCPPClient';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
 
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -46,7 +46,6 @@ import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
-import { filter } from 'lodash';
 
 const MODULE_NAME = 'ChargingStationService';
 
@@ -1180,6 +1179,7 @@ export default class ChargingStationService {
         break;
       // Get the Charging Plans
       case Command.GET_COMPOSITE_SCHEDULE:
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionGetCompositeScheduleReq(req.body);
         result = await ChargingStationService.executeChargingStationGetCompositeSchedule(action, chargingStation, command, filteredRequest, req, res, next);
         break;
       // Get diagnostic
@@ -1755,14 +1755,14 @@ export default class ChargingStationService {
         // Connector ID > 0
         const chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
         result.push(await chargingStationVendor.getCompositeSchedule(
-          req.tenant, chargingStation, chargePoint, connector.connectorId, filteredRequest.args.duration));
+          req.tenant, chargingStation, chargePoint, connector.connectorId, filteredRequest.args.duration, filteredRequest.args.chargingRateUnit));
       }
     } else {
       // Connector ID > 0
       const connector = Utils.getConnectorFromID(chargingStation, filteredRequest.args.connectorId);
       const chargePoint = Utils.getChargePointFromID(chargingStation, connector?.chargePointID);
       result = await chargingStationVendor.getCompositeSchedule(
-        req.tenant, chargingStation, chargePoint, filteredRequest.args.connectorId, filteredRequest.args.duration);
+        req.tenant, chargingStation, chargePoint, filteredRequest.args.connectorId, filteredRequest.args.duration, filteredRequest.args.chargingRateUnit);
     }
     return result;
   }

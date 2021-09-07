@@ -127,6 +127,15 @@ export interface HttpChargingStationStopTransactionRequest {
   }
 }
 
+export interface HttpChargingStationGetCompositeScheduleRequest {
+  chargingStationID: string,
+  args: {
+    connectorId: string,
+    duration: number,
+    chargingRateUnit?: string
+  }
+}
+
 export interface HttpIsAuthorizedRequest {
   Action: string;
   Arg1: any;
