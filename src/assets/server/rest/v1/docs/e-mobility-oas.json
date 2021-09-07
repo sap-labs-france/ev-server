@@ -5766,15 +5766,24 @@
                   "tag": {
                     "active": true,
                     "description": "###",
-                    "id": "###"
+                    "id": "###",
+                    "default": "###"
                   },
                   "car": {
                     "licensePlate": "###",
+                    "default": "###",
                     "type": "#",
+                    "converter": {
+                      "powerWatts": "###",
+                      "numberOfPhases": "###"
+                    },
                     "carCatalog": {
                       "vehicleMake": "###",
                       "vehicleModel": "###",
-                      "vehicleModelVersion": "###"
+                      "vehicleModelVersion": "###",
+                      "image": "###",
+                      "batteryCapacityFull": "###",
+                      "fastChargePowerMax": "###"
                     },
                     "id": "###"
                   }
