@@ -42,26 +42,26 @@ export default class TagValidator extends SchemaValidator {
     return TagValidator.instance;
   }
 
-  validateImportedTagCreation(importedTag: ImportedTag): void {
+  validateImportedTagCreation(importedTag: any): void {
     this.validate(this.importedTagCreation, importedTag);
   }
 
-  validateTagCreate(tag: Tag): Tag {
+  validateTagCreate(tag: any): Tag {
     this.validate(this.tagCreate, tag);
     return tag;
   }
 
-  validateTagAssign(tag:Partial<Tag>):Partial<Tag> {
+  validateTagAssign(tag: any): Tag {
     this.validate(this.tagAssign, tag);
     return tag;
   }
 
-  validateTagUpdate(tag: Tag): Tag {
+  validateTagUpdate(tag: any): Tag {
     this.validate(this.tagUpdate, tag);
     return tag;
   }
 
-  validateTagUpdateByVisualID(tag: Partial<Tag>): Partial<Tag> {
+  validateTagUpdateByVisualID(tag: any): Tag {
     this.validate(this.tagUpdateByVisualID, tag);
     return tag;
   }
@@ -81,17 +81,17 @@ export default class TagValidator extends SchemaValidator {
     return data;
   }
 
-  validateTagsDelete(data: { tagsIDs: string[] }): { tagsIDs: string[] } {
+  validateTagsDelete(data: any): { tagsIDs: string[] } {
     this.validate(this.tagsDelete, data);
     return data;
   }
 
-  validateTagsUnassign(data: { visualTagsIDs: string[] }): { visualTagsIDs: string[] } {
+  validateTagsUnassign(data: any): { visualTagsIDs: string[] } {
     this.validate(this.tagsUnassign, data);
     return data;
   }
 
-  validateTagUnassign(data: { visualTagID: string }): { visualTagID: string } {
+  validateTagUnassign(data: any): { visualTagID: string } {
     this.validate(this.tagUnassign, data);
     return data;
   }
