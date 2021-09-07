@@ -35,7 +35,7 @@ export default class TenantValidator extends SchemaValidator {
     return TenantValidator.instance;
   }
 
-  public validateTenantCreateRequestSuperAdmin(tenant: Tenant): Tenant {
+  public validateTenantCreateRequestSuperAdmin(tenant: any): Tenant {
     // Validate schema
     this.validate(this.tenantCreateReqSuperAdmin, tenant);
     // Validate deps between components
@@ -43,7 +43,7 @@ export default class TenantValidator extends SchemaValidator {
     return tenant;
   }
 
-  public validateTenantUpdateRequestSuperAdmin(tenant: Tenant): Tenant {
+  public validateTenantUpdateRequestSuperAdmin(tenant: any): Tenant {
     // Validate schema
     this.validate(this.tenantUpdateReqSuperAdmin, tenant);
     // Validate deps between components
@@ -57,7 +57,7 @@ export default class TenantValidator extends SchemaValidator {
     return data.ID;
   }
 
-  public validateGetLogoReqSuperAdmin(data: HttpTenantLogoRequest): HttpTenantLogoRequest {
+  public validateGetLogoReqSuperAdmin(data: any): HttpTenantLogoRequest {
     // Validate schema
     this.validate(this.tenantGetLogoReqSuperAdmin, data);
     return data;
