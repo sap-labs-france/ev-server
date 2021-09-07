@@ -380,19 +380,20 @@ export default class TagService {
       formerTagUserID = tag.userID;
       formerTagDefault = tag.default;
     }
-    // Clear User's default Tag
-    if (filteredRequest.default && !formerTagUserID && filteredRequest.userID && (tag.default !== filteredRequest.default)) {
-      await TagStorage.clearDefaultUserTag(req.tenant, filteredRequest.userID);
-    }
-    // Check default Tag existence
-    if (!filteredRequest.default && filteredRequest.userID) {
-      // Check if another one is the default
-      const defaultTag = await TagStorage.getDefaultUserTag(req.tenant, filteredRequest.userID, {
-        issuer: true,
-      });
-      // Force default Tag
-      if (!defaultTag && filteredRequest.userID) {
-        filteredRequest.default = true;
+    if (filteredRequest.userID) {
+      // Clear User's default Tag
+      if (filteredRequest.default) {
+        await TagStorage.clearDefaultUserTag(req.tenant, filteredRequest.userID);
+      // Check default Tag existence
+      } else {
+        // Check if another one is the default
+        const defaultTag = await TagStorage.getDefaultUserTag(req.tenant, filteredRequest.userID, {
+          issuer: true,
+        });
+        // Force default Tag
+        if (!defaultTag) {
+          filteredRequest.default = true;
+        }
       }
     }
     // Update
