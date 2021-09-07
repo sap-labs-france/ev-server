@@ -10,7 +10,7 @@
       "$ref": "tag.json#/definitions/issuer"
     },
     "UserID": {
-      "$ref": "user.json#/definitions/IDs"
+      "$ref": "common.json#/definitions/ids"
     },
     "WithUser": {
       "type": "boolean",

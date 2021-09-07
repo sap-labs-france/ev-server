@@ -3,7 +3,7 @@
   "type": "object",
   "properties": {
     "ChargingStationID": {
-      "$ref": "chargingstation.json#/definitions/IDs"
+      "$ref": "common.json#/definitions/string-ids"
     },
     "Issuer": {
       "type": "boolean",
@@ -38,16 +38,16 @@
       "sanitize": "mongo"
     },
     "ConnectorID": {
-      "$ref": "chargingstation.json#/definitions/connectorIDs"
+      "$ref": "common.json#/definitions/string-ids"
     },
     "SiteAreaID": {
-      "$ref": "common.json#/definitions/IDs"
+      "$ref": "common.json#/definitions/ids"
     },
     "SiteID": {
-      "$ref": "common.json#/definitions/IDs"
+      "$ref": "common.json#/definitions/ids"
     },
     "UserID": {
-      "$ref": "common.json#/definitions/IDs"
+      "$ref": "common.json#/definitions/ids"
     },
     "TagID": {
       "type": "string",
@@ -95,7 +95,7 @@
       ]
     },
     "ReportIDs": {
-      "$ref": "common.json#/definitions/IDs"
+      "$ref": "common.json#/definitions/ids"
     },
     "Status": {
       "type": "string",
