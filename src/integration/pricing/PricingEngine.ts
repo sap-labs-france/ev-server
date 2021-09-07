@@ -1,6 +1,6 @@
 import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
 /* eslint-disable @typescript-eslint/member-ordering */
-import PricingDefinition, { DimensionType, PricedConsumptionData, PricedDimensionData, PricingDimension, PricingRestriction, PricingStaticRestriction, ResolvedPricingModel } from '../../types/Pricing';
+import PricingDefinition, { CurrentContext, DimensionType, PricedConsumptionData, PricedDimensionData, PricingDimension, PricingRestriction, PricingStaticRestriction, ResolvedPricingModel } from '../../types/Pricing';
 
 import ChargingStation from '../../types/ChargingStation';
 import Constants from '../../utils/Constants';
@@ -39,7 +39,10 @@ export default class PricingEngine {
     pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, transaction.companyID.toString()));
     // TODO - No pricing definition? => Throw an exception ? or create dynamically a simple one based on the simple pricing settings?
     const resolvedPricingModel: ResolvedPricingModel = {
-      flatFeeAlreadyPriced: false,
+      currentContext: {
+        flatFeeAlreadyPriced: false,
+        startDate: transaction.timestamp
+      },
       pricingDefinitions
     };
     return Promise.resolve(resolvedPricingModel);
@@ -189,15 +192,6 @@ export default class PricingEngine {
     const activePricingDefinition = PricingEngine.getActiveDefinition4Dimension(pricingDefinitions, DimensionType.ENERGY);
     if (activePricingDefinition) {
       const dimensionToPrice = activePricingDefinition.dimensions.energy;
-      if (FeatureToggles.isFeatureActive(Feature.PRICING_PRICE_ACCUMULATED_WH)) {
-        // POC - Price accumulated consumption
-        const pricedData = PricingEngine.priceCumulatedEnergyDimension(dimensionToPrice, consumptionData?.cumulatedConsumptionWh || 0);
-        if (pricedData) {
-          pricedData.sourceName = activePricingDefinition.name;
-        }
-        return pricedData;
-      }
-      // Let's price each consumption individually
       const pricedData = PricingEngine.priceEnergyDimension(dimensionToPrice, consumptionData?.consumptionWh || 0);
       if (pricedData) {
         pricedData.sourceName = activePricingDefinition.name;
@@ -210,13 +204,6 @@ export default class PricingEngine {
     const activePricingDefinition = PricingEngine.getActiveDefinition4Dimension(pricingDefinitions, DimensionType.PARKING_TIME);
     if (activePricingDefinition) {
       const dimensionToPrice = activePricingDefinition.dimensions.parkingTime;
-      if (FeatureToggles.isFeatureActive(Feature.PRICING_PRICE_ACCUMULATED_TIME)) {
-        const pricedData = PricingEngine.priceTimeBasedDimension(dimensionToPrice, consumptionData?.totalInactivitySecs || 0);
-        if (pricedData) {
-          pricedData.sourceName = activePricingDefinition.name;
-        }
-        return pricedData;
-      }
       const pricedData = PricingEngine.priceParkingTimeDimension(dimensionToPrice, consumptionData);
       if (pricedData) {
         pricedData.sourceName = activePricingDefinition.name;
@@ -250,30 +237,16 @@ export default class PricingEngine {
       quantity: hours
     };
     // Add the consumption to the previous data (if any) - for the billing
-    const previousData = pricingDimension.pricedData;
-    if (previousData) {
-      previousData.amount += pricedData.amount;
-      previousData.quantity += pricedData.quantity;
-      previousData.roundedAmount = Utils.truncTo(previousData.amount, 2);
-    } else {
-      pricingDimension.pricedData = pricedData;
-    }
+    PricingEngine.addPricedData(pricingDimension, pricedData);
     // Return the current consumption!
     return pricedData;
   }
 
-  private static priceChargingTimeConsumption(pricingDefinitions: PricingDefinition[], consumptionData: Consumption): PricedDimensionData {
+  private static priceChargingTimeConsumption(pricingDefinitions: PricingDefinition[], consumptionData: Consumption, currentContext: CurrentContext): PricedDimensionData {
     const activePricingDefinition = PricingEngine.getActiveDefinition4Dimension(pricingDefinitions, DimensionType.CHARGING_TIME);
     if (activePricingDefinition) {
       const dimensionToPrice = activePricingDefinition.dimensions.chargingTime;
-      if (FeatureToggles.isFeatureActive(Feature.PRICING_PRICE_ACCUMULATED_TIME)) {
-        const pricedData = PricingEngine.priceTimeBasedDimension(dimensionToPrice, consumptionData?.totalDurationSecs || 0);
-        if (pricedData) {
-          pricedData.sourceName = activePricingDefinition.name;
-        }
-        return pricedData;
-      }
-      const pricedData = PricingEngine.priceChargingTimeDimension(dimensionToPrice, consumptionData);
+      const pricedData = PricingEngine.priceChargingTimeDimension(dimensionToPrice, consumptionData, currentContext);
       if (pricedData) {
         pricedData.sourceName = activePricingDefinition.name;
       }
@@ -281,14 +254,55 @@ export default class PricingEngine {
     }
   }
 
-  private static priceChargingTimeDimension(pricingDimension: PricingDimension, consumptionData: Consumption): PricedDimensionData {
+  private static priceChargingTimeDimensionByStep(pricingDimension: PricingDimension, consumptionData: Consumption, currentContext: CurrentContext): PricedDimensionData {
     const consumptionWh = consumptionData?.consumptionWh || 0;
-
     if (consumptionWh > 0) {
+      const lastStepDate = currentContext.lastStepDate || currentContext.startDate;
       // Price the charging time only when charging!
-      const seconds = moment(consumptionData.endedAt).diff(moment(consumptionData.startedAt), 'seconds');
-      if (seconds > 0) {
-        return this.priceTimeDimension(pricingDimension, seconds);
+      const timeSpent = moment(consumptionData.endedAt).diff(moment(lastStepDate), 'seconds');
+      const nbSteps = Utils.createDecimal(timeSpent).divToInt(pricingDimension.stepSize).toNumber();
+      if (nbSteps > 0) {
+        currentContext.lastStepDate = consumptionData.endedAt;
+        return this.priceStepForTimeDimension(pricingDimension, nbSteps);
+      }
+    }
+  }
+
+  private static priceStepForTimeDimension(pricingDimension: PricingDimension, steps: number): PricedDimensionData {
+    const unitPrice = pricingDimension.price || 0;
+    const amount = Utils.createDecimal(unitPrice).times(steps).times(pricingDimension.stepSize).div(3600).toNumber();
+    // Price the consumption
+    const pricedData: PricedDimensionData = {
+      unitPrice: unitPrice,
+      amount,
+      roundedAmount: Utils.truncTo(amount, 2),
+      quantity: steps
+    };
+    // Add the consumption to the previous data (if any) - for the billing
+    PricingEngine.addPricedData(pricingDimension, pricedData);
+    // Return the current consumption!
+    return pricedData;
+  }
+
+  private static priceChargingTimeDimension(pricingDimension: PricingDimension, consumptionData: Consumption, currentContext: CurrentContext): PricedDimensionData {
+    const consumptionWh = consumptionData?.consumptionWh || 0;
+    // Price the charging time only when charging!
+    if (consumptionWh > 0) {
+      // Is there a step size
+      if (pricingDimension.stepSize) {
+        const lastStepDate = currentContext.lastStepDate || currentContext.startDate;
+        // Price the charging time only when charging!
+        const timeSpent = moment(consumptionData.endedAt).diff(moment(lastStepDate), 'seconds');
+        const nbSteps = Utils.createDecimal(timeSpent).divToInt(pricingDimension.stepSize).toNumber();
+        if (nbSteps > 0) {
+          currentContext.lastStepDate = consumptionData.endedAt;
+          return this.priceStepForTimeDimension(pricingDimension, nbSteps);
+        }
+      } else {
+        const seconds = moment(consumptionData.endedAt).diff(moment(consumptionData.startedAt), 'seconds');
+        if (seconds > 0) {
+          return this.priceTimeDimension(pricingDimension, seconds);
+        }
       }
     }
   }
@@ -351,98 +365,9 @@ export default class PricingEngine {
       quantity: consumptionkWh
     };
     // Add the consumption to the previous data (if any) - for the billing
-    const previousData = pricingDimension.pricedData;
-    if (previousData) {
-      previousData.amount += pricedData.amount;
-      previousData.quantity += pricedData.quantity;
-      previousData.roundedAmount = Utils.truncTo(previousData.amount, 2);
-    } else {
-      pricingDimension.pricedData = pricedData;
-    }
+    PricingEngine.addPricedData(pricingDimension, pricedData);
     // Return the current consumption!
     return pricedData;
-  }
-
-  static priceCumulatedEnergyDimension(pricingDimension: PricingDimension, cumulatedConsumptionWh: number): PricedDimensionData {
-    let amount: number;
-    let consumptionkWh: number;
-    const unitPrice = pricingDimension.price || 0;
-    if (pricingDimension.stepSize) { // In kWh
-      // TODO - clarify the .plus(1) below - shall we bill the first step?
-      const nbSteps = Utils.createDecimal(cumulatedConsumptionWh).div(1000).divToInt(unitPrice).plus(1).toNumber();
-      consumptionkWh = Utils.createDecimal(nbSteps).mul(pricingDimension.stepSize).toNumber();
-      amount = Utils.createDecimal(unitPrice).mul(consumptionkWh).toNumber();
-    } else {
-      // Convert to kWh
-      consumptionkWh = Utils.createDecimal(cumulatedConsumptionWh).div(1000).toNumber();
-      amount = Utils.createDecimal(unitPrice).times(consumptionkWh).toNumber();
-    }
-    const previousData = pricingDimension.pricedData;
-    if (previousData) {
-      // The new priced data is the delta
-      const delta = Utils.createDecimal(amount).minus(previousData?.amount || 0).toNumber();
-      const newData : PricedDimensionData = {
-        unitPrice: unitPrice,
-        amount: delta,
-        roundedAmount: Utils.truncTo(delta, 2),
-        quantity: Utils.createDecimal(consumptionkWh).minus(previousData?.quantity || 0).toNumber(),
-      };
-      // Update the previous data
-      previousData.amount = amount;
-      previousData.roundedAmount = Utils.truncTo(amount, 2);
-      previousData.quantity = consumptionkWh;
-      // return the delta
-      return newData;
-    }
-    // first call for this dimension
-    pricingDimension.pricedData = {
-      unitPrice: unitPrice,
-      amount,
-      roundedAmount: Utils.truncTo(amount, 2),
-      quantity: consumptionkWh
-    };
-    return pricingDimension.pricedData;
-  }
-
-  static priceTimeBasedDimension(pricingDimension: PricingDimension, seconds: number): PricedDimensionData {
-    let amount: number;
-    let hours: number;
-    const unitPrice = pricingDimension.price || 0;
-    if (pricingDimension.stepSize) { // stepSize is in second
-      // bill at least one step
-      const nbSteps = Utils.createDecimal(seconds).divToInt(pricingDimension.stepSize).plus(1).toNumber();
-      const nbSeconds = Utils.createDecimal(nbSteps).mul(pricingDimension.stepSize).toNumber();
-      hours = Utils.createDecimal(nbSeconds).div(3600).toNumber();
-      amount = Utils.createDecimal(unitPrice).mul(nbSeconds).div(3600).toNumber();
-    } else {
-      hours = Utils.createDecimal(seconds).div(3600).toNumber();
-      amount = Utils.createDecimal(unitPrice).mul(seconds).div(3600).toNumber();
-    }
-    const previousData = pricingDimension.pricedData;
-    if (previousData) {
-      // The new priced data is the delta
-      const delta = Utils.createDecimal(amount).minus(previousData?.amount || 0).toNumber();
-      const newData : PricedDimensionData = {
-        unitPrice: unitPrice,
-        roundedAmount: Utils.truncTo(delta, 2),
-        amount: delta,
-        quantity: Utils.createDecimal(hours).minus(previousData?.quantity || 0).toNumber(),
-      };
-      // Update the previous data
-      previousData.amount = amount;
-      previousData.roundedAmount = Utils.truncTo(amount, 2);
-      previousData.quantity = hours;
-      // return the delta
-      return newData;
-    }
-    // first call for this dimension
-    pricingDimension.pricedData = {
-      unitPrice: unitPrice,
-      amount,
-      roundedAmount: Utils.truncTo(amount, 2),
-      quantity: hours
-    };
-    return pricingDimension.pricedData;
   }
 
   static priceConsumption(tenant: Tenant, pricingModel: ResolvedPricingModel, consumptionData: Consumption): PricedConsumptionData {
@@ -453,8 +378,7 @@ export default class PricingEngine {
       }
       // Dynamic restrictions check are not yet supported
       return pricingDefinition;
-    }
-    );
+    });
     // Having more than one pricing definition this NOT a normal situation.
     // This means that two different tariff matches the same criteria. This should not happen!
     if (actualPricingDefinitions.length > 1) {
@@ -462,16 +386,15 @@ export default class PricingEngine {
       actualPricingDefinitions = [ actualPricingDefinitions?.[0] ];
     }
     let flatFee: PricedDimensionData = null;
-    if (!pricingModel.flatFeeAlreadyPriced) {
+    if (!pricingModel.currentContext.flatFeeAlreadyPriced) {
       // Flat fee must not be priced only once
       flatFee = PricingEngine.priceFlatFeeConsumption(actualPricingDefinitions, consumptionData);
-      pricingModel.flatFeeAlreadyPriced = !!flatFee;
+      pricingModel.currentContext.flatFeeAlreadyPriced = !!flatFee;
     }
     // Build the consumption data for each dimension
     const energy: PricedDimensionData = PricingEngine.priceEnergyConsumption(actualPricingDefinitions, consumptionData);
-    const chargingTime: PricedDimensionData = PricingEngine.priceChargingTimeConsumption(actualPricingDefinitions, consumptionData);
+    const chargingTime: PricedDimensionData = PricingEngine.priceChargingTimeConsumption(actualPricingDefinitions, consumptionData, pricingModel.currentContext);
     const parkingTime: PricedDimensionData = PricingEngine.priceParkingTimeConsumption(actualPricingDefinitions, consumptionData);
-
     // Return all dimensions
     const pricingConsumptionData: PricedConsumptionData = {
       flatFee,
@@ -480,6 +403,18 @@ export default class PricingEngine {
       parkingTime
     };
     return pricingConsumptionData;
+  }
+
+  private static addPricedData(pricingDimension: PricingDimension, pricedData: PricedDimensionData): void {
+    // Add the consumption to the previous data (if any) - for the billing
+    const previousData = pricingDimension.pricedData;
+    if (previousData) {
+      previousData.amount += pricedData.amount;
+      previousData.quantity += pricedData.quantity;
+      previousData.roundedAmount = Utils.truncTo(previousData.amount, 2);
+    } else {
+      pricingDimension.pricedData = pricedData;
+    }
   }
 
   static extractFinalPricingData(pricingModel: ResolvedPricingModel): PricedConsumptionData[] {

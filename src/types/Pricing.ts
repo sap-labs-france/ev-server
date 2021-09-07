@@ -21,7 +21,13 @@ export enum DimensionType {
 export interface ResolvedPricingModel {
   // Put there only the information that is to be kept with the Transaction
   pricingDefinitions: PricingDefinition[];
-  flatFeeAlreadyPriced: boolean
+  currentContext: CurrentContext;
+}
+
+export interface CurrentContext {
+  flatFeeAlreadyPriced: boolean,
+  startDate: Date,
+  lastStepDate?: Date,
 }
 
 export default interface PricingDefinition extends CreatedUpdatedProps, AuthorizationActions {

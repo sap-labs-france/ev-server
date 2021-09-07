@@ -147,17 +147,29 @@ class TestData {
     return this.chargingStationContext;
   }
 
-  public async initChargingStationContext2TestFastCharger(billChargingTime = false) : Promise<ChargingStationContext> {
+  public async initChargingStationContext2TestFastCharger(testMode = 'E') : Promise<ChargingStationContext> {
     this.siteContext = this.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
     this.siteAreaContext = this.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC);
     this.chargingStationContext = this.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16 + '-' + ContextDefinition.SITE_CONTEXTS.SITE_BASIC + '-' + ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC);
     assert(!!this.chargingStationContext, 'Charging station context should not be null');
 
     let dimensions: PricingDimensions;
-    if (billChargingTime) {
+    if (testMode === 'CT') {
       dimensions = {
         chargingTime: {
           price: 5, // Euro per hour
+          active: true
+        },
+        parkingTime: {
+          price: 10, // Euro per hour
+          active: true
+        }
+      };
+    } else if (testMode === 'CT+STEP') {
+      dimensions = {
+        chargingTime: {
+          price: 12, // Euro per hour
+          stepSize: 300, // 300 seconds == 5 minutes
           active: true
         },
         parkingTime: {
@@ -1234,9 +1246,22 @@ describe('Billing Service', function() {
           await testData.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID);
         });
 
-        it('should bill the ChargingTime on COMBO CCS - DC', async () => {
+        it('should bill the CT + PT on COMBO CCS - DC', async () => {
           // Initialize the charging station context
-          await testData.initChargingStationContext2TestFastCharger(true);
+          await testData.initChargingStationContext2TestFastCharger('CT');
+
+          await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
+          const userWithBillingData = await testData.billingImpl.getUser(testData.userContext);
+          await testData.assignPaymentMethod(userWithBillingData, 'tok_fr');
+          const transactionID = await testData.generateTransaction(testData.userContext);
+          assert(transactionID, 'transactionID should not be null');
+          // Check that we have a new invoice with an invoiceID and an invoiceNumber
+          await testData.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID);
+        });
+
+        it('should bill the CT with 1EUR Step on COMBO CCS - DC', async () => {
+          // Initialize the charging station context
+          await testData.initChargingStationContext2TestFastCharger('CT+STEP');
 
           await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
           const userWithBillingData = await testData.billingImpl.getUser(testData.userContext);
