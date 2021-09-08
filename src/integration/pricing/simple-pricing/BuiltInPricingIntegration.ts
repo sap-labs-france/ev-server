@@ -63,48 +63,9 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
   }
 
   private getDefaultPricingDefinition(): PricingDefinition {
-    if (FeatureToggles.isFeatureActive(Feature.PRICING_TEST_ENERGY_WITH_STEP_SIZE)) {
-      // TODO - Should be removed - just for testing purposes!
-      return {
-        name: 'Tariff Energy StepSize',
-        description: 'Tariff - E + SZ',
-        dimensions: {
-          flatFee: {
-            active: true,
-            price: 3, // per session
-          },
-          energy: {
-            active: true,
-            price: 0.3, // per kWh
-            stepSize: 10 // kWh
-          },
-        }
-      } as PricingDefinition;
-    }
-    if (FeatureToggles.isFeatureActive(Feature.PRICING_TEST_PARKING_TIME)) {
-      // TODO - Should be removed - just for testing purposes!
-      return {
-        name: 'Tariff 3 Dimensions',
-        description: 'Tariff - FF + CT + PT',
-        dimensions: {
-          flatFee: {
-            active: true,
-            price: 3, // per session
-          },
-          chargingTime: {
-            active: true,
-            price: 120, // per hour
-            stepSize: 60, // seconds
-          },
-          parkingTime: {
-            active: true,
-            price: 7, // per hour
-          },
-        }
-      } as PricingDefinition;
-    }
     // Defaults to the simple pricing settings
     return {
+      // TODO - translate default tariff name
       name: 'Default Tariff',
       description: 'Tariff based on simple pricing settings',
       dimensions: {

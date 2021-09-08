@@ -1,5 +1,3 @@
-import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
-/* eslint-disable @typescript-eslint/member-ordering */
 import PricingDefinition, { CurrentContext, DimensionType, PricedConsumptionData, PricedDimensionData, PricingDimension, PricingRestriction, PricingStaticRestriction, ResolvedPricingModel } from '../../types/Pricing';
 
 import ChargingStation from '../../types/ChargingStation';
@@ -16,20 +14,7 @@ import moment from 'moment';
 // --------------------------------------------------------------------------------------------------
 export default class PricingEngine {
 
-  static async resolvePricingContext(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation): Promise<ResolvedPricingModel> {
-    // -----------------------------------------------------------------------------------------
-    // TODO - We need to find the pricing model to apply by resolving the hierarchy of contexts
-    // that may override (or extend) the pricing definitions.
-    // Forseen hierarchy is:
-    // - Tenant/Organization
-    // - Company
-    // - Site
-    // - Site Area
-    // - Charging Station
-    // - User Group
-    // - User
-    // Of course, the date has an impact as well ... but not sure were to check for it!
-    // -----------------------------------------------------------------------------------------
+  public static async resolvePricingContext(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation): Promise<ResolvedPricingModel> {
     // Merge the pricing definitions from the different contexts
     const pricingDefinitions: PricingDefinition[] = [];
     // pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction.userID));
@@ -37,7 +22,7 @@ export default class PricingEngine {
     pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, transaction.siteAreaID.toString()));
     pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, transaction.siteID.toString()));
     pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, transaction.companyID.toString()));
-    // TODO - No pricing definition? => Throw an exception ? or create dynamically a simple one based on the simple pricing settings?
+    // Return the resolution result as a resolved pricing model
     const resolvedPricingModel: ResolvedPricingModel = {
       currentContext: {
         flatFeeAlreadyPriced: false,
@@ -48,7 +33,42 @@ export default class PricingEngine {
     return Promise.resolve(resolvedPricingModel);
   }
 
-  static async getPricingDefinitions4Entity(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, entityID: string): Promise<PricingDefinition[]> {
+  public static priceConsumption(tenant: Tenant, pricingModel: ResolvedPricingModel, consumptionData: Consumption): PricedConsumptionData {
+    // Check the restrictions to find the pricing definition matching the current context
+    let actualPricingDefinitions = pricingModel.pricingDefinitions.filter((pricingDefinition) =>
+      PricingEngine.checkPricingDefinitionRestrictions(pricingDefinition, consumptionData)
+    );
+    // Having more than one pricing definition this NOT a normal situation.
+    // This means that two different tariff matches the same criteria. This should not happen!
+    if (actualPricingDefinitions.length > 1) {
+      // TODO - to be clarified! - Shall we mix several pricing definitions for a single transaction?
+      actualPricingDefinitions = [ actualPricingDefinitions?.[0] ];
+    }
+    // Build the consumption data for each dimension
+    const flatFee = PricingEngine.priceFlatFeeConsumption(actualPricingDefinitions, consumptionData, pricingModel.currentContext);
+    const energy: PricedDimensionData = PricingEngine.priceEnergyConsumption(actualPricingDefinitions, consumptionData);
+    const chargingTime: PricedDimensionData = PricingEngine.priceChargingTimeConsumption(actualPricingDefinitions, consumptionData, pricingModel.currentContext);
+    const parkingTime: PricedDimensionData = PricingEngine.priceParkingTimeConsumption(actualPricingDefinitions, consumptionData, pricingModel.currentContext);
+    // Return all dimensions
+    const pricingConsumptionData: PricedConsumptionData = {
+      flatFee,
+      energy,
+      chargingTime,
+      parkingTime
+    };
+    return pricingConsumptionData;
+  }
+
+  public static extractFinalPricingData(pricingModel: ResolvedPricingModel): PricedConsumptionData[] {
+    // Iterate throw the list of pricing definitions
+    const pricedData: PricedConsumptionData[] = pricingModel.pricingDefinitions.map((pricingDefinition) =>
+      PricingEngine.extractFinalPricedConsumptionData(pricingDefinition)
+    );
+    // Remove null/undefined entries (if any)
+    return pricedData.filter((pricingConsumptionData) => !!pricingConsumptionData);
+  }
+
+  private static async getPricingDefinitions4Entity(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, entityID: string): Promise<PricingDefinition[]> {
     let pricingDefinitions = await PricingEngine._getPricingDefinitions4Entity(tenant, entityID);
     pricingDefinitions = pricingDefinitions || [];
     const actualPricingDefinitions = pricingDefinitions.filter((pricingDefinition) =>
@@ -70,7 +90,7 @@ export default class PricingEngine {
     return null;
   }
 
-  static checkStaticRestrictions(pricingDefinition: PricingDefinition, transaction: Transaction, chargingStation: ChargingStation) : PricingDefinition {
+  private static checkStaticRestrictions(pricingDefinition: PricingDefinition, transaction: Transaction, chargingStation: ChargingStation) : PricingDefinition {
     if (pricingDefinition.staticRestrictions) {
       if (
         !PricingEngine.checkDateValidity(pricingDefinition.staticRestrictions, transaction)
@@ -84,7 +104,7 @@ export default class PricingEngine {
     return pricingDefinition;
   }
 
-  static checkPricingDefinitionRestrictions(pricingDefinition: PricingDefinition, consumptionData: Consumption) : PricingDefinition {
+  private static checkPricingDefinitionRestrictions(pricingDefinition: PricingDefinition, consumptionData: Consumption) : PricingDefinition {
     if (pricingDefinition.restrictions) {
       if (!PricingEngine.checkMinEnergy(pricingDefinition.restrictions, consumptionData)
         || !PricingEngine.checkMaxEnergy(pricingDefinition.restrictions, consumptionData)
@@ -105,7 +125,7 @@ export default class PricingEngine {
     return pricingDefinition;
   }
 
-  static checkDateValidity(staticRestrictions: PricingStaticRestriction, transaction: Transaction): boolean {
+  private static checkDateValidity(staticRestrictions: PricingStaticRestriction, transaction: Transaction): boolean {
     if (!Utils.isNullOrUndefined(staticRestrictions.validFrom)) {
       if (moment(transaction.timestamp).isBefore(staticRestrictions.validFrom)) {
         return false;
@@ -119,7 +139,7 @@ export default class PricingEngine {
     return true;
   }
 
-  static checkConnectorType(staticRestrictions: PricingStaticRestriction, transaction: Transaction, chargingStation: ChargingStation): boolean {
+  private static checkConnectorType(staticRestrictions: PricingStaticRestriction, transaction: Transaction, chargingStation: ChargingStation): boolean {
     if (!Utils.isNullOrUndefined(staticRestrictions.connectorType)) {
       const connectorType = Utils.getConnectorFromID(chargingStation, transaction.connectorId)?.type;
       if (staticRestrictions.connectorType !== connectorType) {
@@ -129,7 +149,7 @@ export default class PricingEngine {
     return true;
   }
 
-  static checkConnectorPower(staticRestrictions: PricingStaticRestriction, transaction: Transaction, chargingStation: ChargingStation): boolean {
+  private static checkConnectorPower(staticRestrictions: PricingStaticRestriction, transaction: Transaction, chargingStation: ChargingStation): boolean {
     if (!Utils.isNullOrUndefined(staticRestrictions.connectorPowerkW)) {
       const connectorPowerWatts = Utils.getConnectorFromID(chargingStation, transaction.connectorId)?.power;
       if (!Utils.createDecimal(connectorPowerWatts).div(1000).equals(staticRestrictions.connectorPowerkW)) {
@@ -139,7 +159,7 @@ export default class PricingEngine {
     return true;
   }
 
-  static checkMinEnergy(restrictions: PricingRestriction, consumptionData: Consumption): boolean {
+  private static checkMinEnergy(restrictions: PricingRestriction, consumptionData: Consumption): boolean {
     if (!Utils.isNullOrUndefined(restrictions.minEnergyKWh)) {
       if (Utils.createDecimal(consumptionData.cumulatedConsumptionWh).div(1000).lessThan(restrictions.minEnergyKWh)) {
         return false;
@@ -148,7 +168,7 @@ export default class PricingEngine {
     return true;
   }
 
-  static checkMaxEnergy(restrictions: PricingRestriction, consumptionData: Consumption): boolean {
+  private static checkMaxEnergy(restrictions: PricingRestriction, consumptionData: Consumption): boolean {
     if (!Utils.isNullOrUndefined(restrictions.maxEnergyKWh)) {
       if (Utils.createDecimal(consumptionData.cumulatedConsumptionWh).div(1000).greaterThanOrEqualTo(restrictions.maxEnergyKWh)) {
         return false;
@@ -157,7 +177,7 @@ export default class PricingEngine {
     return true;
   }
 
-  static checkMinDuration(restrictions: PricingRestriction, consumptionData: Consumption): boolean {
+  private static checkMinDuration(restrictions: PricingRestriction, consumptionData: Consumption): boolean {
     if (!Utils.isNullOrUndefined(restrictions.minDurationSecs)) {
       if (Utils.createDecimal(consumptionData.totalDurationSecs).lessThan(restrictions.minDurationSecs)) {
         return false;
@@ -166,7 +186,7 @@ export default class PricingEngine {
     return true;
   }
 
-  static checkMaxDuration(restrictions: PricingRestriction, consumptionData: Consumption): boolean {
+  private static checkMaxDuration(restrictions: PricingRestriction, consumptionData: Consumption): boolean {
     if (!Utils.isNullOrUndefined(restrictions.maxDurationSecs)) {
       if (Utils.createDecimal(consumptionData.totalDurationSecs).greaterThanOrEqualTo(restrictions.maxDurationSecs)) {
         return false;
@@ -176,15 +196,19 @@ export default class PricingEngine {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private static priceFlatFeeConsumption(pricingDefinitions: PricingDefinition[], consumptionData: Consumption): PricedDimensionData {
-    const activePricingDefinition = PricingEngine.getActiveDefinition4Dimension(pricingDefinitions, DimensionType.FLAT_FEE);
-    if (activePricingDefinition) {
-      const dimensionToPrice = activePricingDefinition.dimensions.flatFee;
-      const pricedData = PricingEngine.priceFlatFeeDimension(dimensionToPrice);
-      if (pricedData) {
-        pricedData.sourceName = activePricingDefinition.name;
+  private static priceFlatFeeConsumption(pricingDefinitions: PricingDefinition[], consumptionData: Consumption, currentContext: CurrentContext): PricedDimensionData {
+    // Flat fee must not be priced only once
+    if (!currentContext.flatFeeAlreadyPriced) {
+      const activePricingDefinition = PricingEngine.getActiveDefinition4Dimension(pricingDefinitions, DimensionType.FLAT_FEE);
+      if (activePricingDefinition) {
+        const dimensionToPrice = activePricingDefinition.dimensions.flatFee;
+        const pricedData = PricingEngine.priceFlatFeeDimension(dimensionToPrice);
+        if (pricedData) {
+          pricedData.sourceName = activePricingDefinition.name;
+          currentContext.flatFeeAlreadyPriced = true;
+        }
+        return pricedData;
       }
-      return pricedData;
     }
   }
 
@@ -233,7 +257,7 @@ export default class PricingEngine {
     }
   }
 
-  static getActiveDefinition4Dimension(actualPricingDefinitions: PricingDefinition[], dimensionType: string): PricingDefinition {
+  private static getActiveDefinition4Dimension(actualPricingDefinitions: PricingDefinition[], dimensionType: string): PricingDefinition {
     // Search for the first pricing definition matching the current dimension type
     const activePricingDefinitions = actualPricingDefinitions.filter((pricingDefinition) =>
       // We search for a pricing definition where the current dimension exists
@@ -249,7 +273,7 @@ export default class PricingEngine {
     return null;
   }
 
-  static checkPricingDimensionRestrictions(pricingDefinition: PricingDefinition, dimensionType: string) : PricingDefinition {
+  private static checkPricingDimensionRestrictions(pricingDefinition: PricingDefinition, dimensionType: string) : PricingDefinition {
     const pricingDimension: PricingDimension = pricingDefinition.dimensions[dimensionType];
     if (pricingDimension?.active) {
       return pricingDefinition;
@@ -257,7 +281,31 @@ export default class PricingEngine {
     return null;
   }
 
-  static priceFlatFeeDimension(pricingDimension: PricingDimension): PricedDimensionData {
+  private static extractFinalPricedConsumptionData(pricingDefinition: PricingDefinition): PricedConsumptionData {
+    const flatFee = pricingDefinition.dimensions.flatFee?.pricedData;
+    const energy = pricingDefinition.dimensions.energy?.pricedData;
+    const chargingTime = pricingDefinition.dimensions.chargingTime?.pricedData;
+    const parkingTime = pricingDefinition.dimensions.parkingTime?.pricedData;
+    if (flatFee || energy || chargingTime || parkingTime) {
+      return {
+        flatFee,
+        energy,
+        chargingTime,
+        parkingTime
+      };
+    }
+    // Nothing to bill for the current pricing definition
+    return null;
+  }
+
+  private static extractPricedDataFromDimension(pricedData: PricedDimensionData[], pricingDefinition: PricingDefinition, dimensionType: string): void {
+    const pricingDimensionData = pricingDefinition.dimensions[dimensionType]?.pricedData;
+    if (pricingDimensionData) {
+      pricedData.push(pricingDimensionData);
+    }
+  }
+
+  private static priceFlatFeeDimension(pricingDimension: PricingDimension): PricedDimensionData {
     const unitPrice = pricingDimension.price || 0;
     if (pricingDimension.pricedData) {
       // This should not happen for the flatFee dimension - Flat Fee is billed only once per session
@@ -279,7 +327,7 @@ export default class PricingEngine {
     return pricingDimension.pricedData;
   }
 
-  static priceEnergyDimension(pricingDimension: PricingDimension, consumptionWh: number): PricedDimensionData {
+  private static priceEnergyDimension(pricingDimension: PricingDimension, consumptionWh: number): PricedDimensionData {
     const unitPrice = pricingDimension.price || 0;
     const amount = Utils.createDecimal(unitPrice).times(consumptionWh).div(1000).toNumber();
     const consumptionkWh = Utils.createDecimal(consumptionWh).div(1000).toNumber();
@@ -294,74 +342,6 @@ export default class PricingEngine {
     PricingEngine.addPricedData(pricingDimension, pricedData);
     // Return the current consumption!
     return pricedData;
-  }
-
-  static priceConsumption(tenant: Tenant, pricingModel: ResolvedPricingModel, consumptionData: Consumption): PricedConsumptionData {
-    // Check the restrictions to find the pricing definition matching the current context
-    let actualPricingDefinitions = pricingModel.pricingDefinitions.filter((pricingDefinition) => {
-      if (FeatureToggles.isFeatureActive(Feature.PRICING_WITH_RESTRICTION_CHECKS)) {
-        return PricingEngine.checkPricingDefinitionRestrictions(pricingDefinition, consumptionData);
-      }
-      // Dynamic restrictions check are not yet supported
-      return pricingDefinition;
-    });
-    // Having more than one pricing definition this NOT a normal situation.
-    // This means that two different tariff matches the same criteria. This should not happen!
-    if (actualPricingDefinitions.length > 1) {
-      // TODO - to be clarified! - Shall we mix several pricing definitions for a single transaction?
-      actualPricingDefinitions = [ actualPricingDefinitions?.[0] ];
-    }
-    let flatFee: PricedDimensionData = null;
-    if (!pricingModel.currentContext.flatFeeAlreadyPriced) {
-      // Flat fee must not be priced only once
-      flatFee = PricingEngine.priceFlatFeeConsumption(actualPricingDefinitions, consumptionData);
-      pricingModel.currentContext.flatFeeAlreadyPriced = !!flatFee;
-    }
-    // Build the consumption data for each dimension
-    const energy: PricedDimensionData = PricingEngine.priceEnergyConsumption(actualPricingDefinitions, consumptionData);
-    const chargingTime: PricedDimensionData = PricingEngine.priceChargingTimeConsumption(actualPricingDefinitions, consumptionData, pricingModel.currentContext);
-    const parkingTime: PricedDimensionData = PricingEngine.priceParkingTimeConsumption(actualPricingDefinitions, consumptionData, pricingModel.currentContext);
-    // Return all dimensions
-    const pricingConsumptionData: PricedConsumptionData = {
-      flatFee,
-      energy,
-      chargingTime,
-      parkingTime
-    };
-    return pricingConsumptionData;
-  }
-
-  static extractFinalPricingData(pricingModel: ResolvedPricingModel): PricedConsumptionData[] {
-    // Iterate throw the list of pricing definitions
-    const pricedData: PricedConsumptionData[] = pricingModel.pricingDefinitions.map((pricingDefinition) =>
-      PricingEngine.extractFinalPricedConsumptionData(pricingDefinition)
-    );
-    // Remove null/undefined entries (if any)
-    return pricedData.filter((pricingConsumptionData) => !!pricingConsumptionData);
-  }
-
-  static extractFinalPricedConsumptionData(pricingDefinition: PricingDefinition): PricedConsumptionData {
-    const flatFee = pricingDefinition.dimensions.flatFee?.pricedData;
-    const energy = pricingDefinition.dimensions.energy?.pricedData;
-    const chargingTime = pricingDefinition.dimensions.chargingTime?.pricedData;
-    const parkingTime = pricingDefinition.dimensions.parkingTime?.pricedData;
-    if (flatFee || energy || chargingTime || parkingTime) {
-      return {
-        flatFee,
-        energy,
-        chargingTime,
-        parkingTime
-      };
-    }
-    // Nothing to bill for the current pricing definition
-    return null;
-  }
-
-  static extractPricedDataFromDimension(pricedData: PricedDimensionData[], pricingDefinition: PricingDefinition, dimensionType: string): void {
-    const pricingDimensionData = pricingDefinition.dimensions[dimensionType]?.pricedData;
-    if (pricingDimensionData) {
-      pricedData.push(pricingDimensionData);
-    }
   }
 
   private static priceTimeDimension(pricingDimension: PricingDimension, consumptionData: Consumption, currentContext: CurrentContext): PricedDimensionData {
