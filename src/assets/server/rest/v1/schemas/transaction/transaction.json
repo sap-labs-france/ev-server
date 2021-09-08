@@ -2,8 +2,7 @@
   "$id": "transaction.json",
   "definitions": {
     "id": {
-      "type": "number",
-      "sanitize": "mongo"
+      "$ref": "common.json#/definitions/number-id"
     }
   }
 }
