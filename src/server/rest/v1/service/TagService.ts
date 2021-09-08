@@ -67,9 +67,9 @@ export default class TagService {
 
   public static async handleUnassignTags(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const visualIDs = TagValidator.getInstance().validateTagsUnassign(req.body).visualIDs;
+    const filteredRequest = TagValidator.getInstance().validateTagsUnassign(req.body);
     // Delete
-    const result = await TagService.unassignTags(req.tenant, action, req.user, visualIDs);
+    const result = await TagService.unassignTags(req.tenant, action, req.user, filteredRequest.visualIDs);
     res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
     next();
   }
