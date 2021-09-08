@@ -26,7 +26,7 @@
       "sanitize": "mongo"
     },
     "ConnectorID": {
-      "$ref": "common.json#/definitions/string-ids"
+      "$ref": "common.json#/definitions/number-ids"
     },
     "UserID": {
       "$ref": "common.json#/definitions/ids"

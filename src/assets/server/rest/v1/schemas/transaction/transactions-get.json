@@ -38,7 +38,7 @@
       "sanitize": "mongo"
     },
     "ConnectorID": {
-      "$ref": "common.json#/definitions/string-ids"
+      "$ref": "common.json#/definitions/number-ids"
     },
     "SiteAreaID": {
       "$ref": "common.json#/definitions/ids"
