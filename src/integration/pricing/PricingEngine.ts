@@ -38,10 +38,8 @@ export default class PricingEngine {
     let actualPricingDefinitions = pricingModel.pricingDefinitions.filter((pricingDefinition) =>
       PricingEngine.checkPricingDefinitionRestrictions(pricingDefinition, consumptionData)
     );
-    // Having more than one pricing definition this NOT a normal situation.
-    // This means that two different tariff matches the same criteria. This should not happen!
     if (actualPricingDefinitions.length > 1) {
-      // TODO - to be clarified! - Shall we mix several pricing definitions for a single transaction?
+      // It does not make sense to apply several tariffs to a single consumption
       actualPricingDefinitions = [ actualPricingDefinitions?.[0] ];
     }
     // Build the consumption data for each dimension
@@ -182,6 +180,7 @@ export default class PricingEngine {
       if (Utils.createDecimal(consumptionData.totalDurationSecs).lessThan(restrictions.minDurationSecs)) {
         return false;
       }
+      return true;
     }
     return true;
   }
