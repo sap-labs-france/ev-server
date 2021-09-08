@@ -55,7 +55,7 @@ class I18nChecker {
     for (const keyName of Object.keys(originalLanguage)) {
       switch (typeof originalLanguage[keyName]) {
         case 'string':
-          noIssue = noIssue && I18nChecker.compareValueContent(keyName, originalLanguage[keyName], comparedLanguage[keyName], file);
+          noIssue = I18nChecker.compareValueContent(keyName, originalLanguage[keyName], comparedLanguage[keyName], file) && noIssue;
           break;
         case 'object':
           noIssue = I18nChecker.compareContent(Object.assign({}, originalLanguage[keyName]), Object.assign({}, comparedLanguage[keyName]), file) && noIssue;
