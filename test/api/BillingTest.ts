@@ -173,7 +173,8 @@ class TestData {
           active: true
         },
         parkingTime: {
-          price: 10, // Euro per hour
+          price: 20, // Euro per hour
+          stepSize: 120, // 120 seconds == 2 minutes
           active: true
         }
       };
