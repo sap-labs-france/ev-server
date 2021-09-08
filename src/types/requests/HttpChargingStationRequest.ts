@@ -83,6 +83,8 @@ export interface HttpChargingStationParamsUpdateRequest {
 
 export interface HttpChargingStationRequest extends HttpByIDRequest {
   ID: string;
+  WithSite?: boolean,
+  WithSiteArea?: boolean;
 }
 
 export interface HttpChargingStationOcppRequest {
