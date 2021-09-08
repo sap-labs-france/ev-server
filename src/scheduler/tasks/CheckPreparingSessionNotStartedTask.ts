@@ -39,6 +39,9 @@ export default class CheckPreparingSessionNotStartedTask extends SchedulerTask {
                 await NotificationHandler.sendPreparingSessionNotStarted(tenant, chargingStation, siteOwners.result[0].user, {
                   user: siteOwners.result[0].user,
                   chargeBoxID: chargingStation.id,
+                  siteID: chargingStation.siteID,
+                  siteAreaID: chargingStation.siteAreaID,
+                  companyID: chargingStation.companyID,
                   connectorId: Utils.getConnectorLetterFromConnectorID(connector.connectorId),
                   startedOn: moment(chargingStation.connectors['statusLastChangedOn']).format('LL'),
                   evseDashboardChargingStationURL: Utils.buildEvseChargingStationURL(tenant.subdomain, chargingStation, '#all'),

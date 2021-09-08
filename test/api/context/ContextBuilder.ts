@@ -21,7 +21,7 @@ import StatisticsContext from './StatisticsContext';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../src/types/Tag';
 import TagStorage from '../../../src/storage/mongodb/TagStorage';
-import TenantComponents from '../../../src/types/TenantComponents';
+import { TenantComponents } from '../../../src/types/Tenant';
 import TenantContext from './TenantContext';
 import TenantFactory from '../../factories/TenantFactory';
 import TenantStorage from '../../../src/storage/mongodb/TenantStorage';

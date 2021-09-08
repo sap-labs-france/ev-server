@@ -20,11 +20,15 @@ export default class AssetRouter {
     this.buildRouteGetAssetsInError();
     this.buildRouteCheckAssetConnection();
     this.buildRouteGetAssetLastConsumption();
+    this.buildRouteGetAssetConsumptions();
+    this.buildRouteUpdateAsset();
+    this.buildRouteDeleteAsset();
+    this.buildRouteGetAssetImage();
     return this.router;
   }
 
   protected buildRouteCreateAssetConsumption(): void {
-    this.router.post(`/${ServerRoute.REST_ASSET_CONSUMPTION}`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.post(`/${ServerRoute.REST_ASSET_CONSUMPTIONS}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.assetID = req.params.id;
       await RouterUtils.handleServerAction(AssetService.handleCreateAssetConsumption.bind(this), ServerAction.ASSET_CONSUMPTION, req, res, next);
     });
@@ -66,6 +70,34 @@ export default class AssetRouter {
     this.router.get(`/${ServerRoute.REST_ASSET_RETRIEVE_CONSUMPTION}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
       await RouterUtils.handleServerAction(AssetService.handleRetrieveConsumption.bind(this), ServerAction.RETRIEVE_ASSET_CONSUMPTION, req, res, next);
+    });
+  }
+
+  protected buildRouteGetAssetConsumptions(): void {
+    this.router.get(`/${ServerRoute.REST_ASSET_CONSUMPTIONS}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.AssetID = req.params.id;
+      await RouterUtils.handleServerAction(AssetService.handleGetAssetConsumption.bind(this), ServerAction.ASSET_CONSUMPTION, req, res, next);
+    });
+  }
+
+  protected buildRouteUpdateAsset(): void {
+    this.router.put(`/${ServerRoute.REST_ASSET}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.body.id = req.params.id;
+      await RouterUtils.handleServerAction(AssetService.handleUpdateAsset.bind(this), ServerAction.ASSET_UPDATE, req, res, next);
+    });
+  }
+
+  protected buildRouteDeleteAsset(): void {
+    this.router.delete(`/${ServerRoute.REST_ASSET}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = req.params.id;
+      await RouterUtils.handleServerAction(AssetService.handleDeleteAsset.bind(this), ServerAction.ASSET_DELETE, req, res, next);
+    });
+  }
+
+  protected buildRouteGetAssetImage(): void {
+    this.router.get(`/${ServerRoute.REST_ASSET_IMAGE}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = req.params.id;
+      await RouterUtils.handleServerAction(AssetService.handleGetAssetImage.bind(this), ServerAction.ASSET_IMAGE, req, res, next);
     });
   }
 }

@@ -3,7 +3,7 @@
   "type": "object",
   "definitions": {
     "userID": {
-      "$ref": "common.json#/definitions/id"
+      "$ref": "user.json#/definitions/id"
     },
     "siteIDs": {
       "type": "array",

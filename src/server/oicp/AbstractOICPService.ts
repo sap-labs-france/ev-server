@@ -12,7 +12,7 @@ import OICPUtils from './OICPUtils';
 import { ServerAction } from '../../types/Server';
 import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../types/Tenant';
-import TenantComponents from '../../types/TenantComponents';
+import { TenantComponents } from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
 

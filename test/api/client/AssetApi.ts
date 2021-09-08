@@ -22,11 +22,11 @@ export default class AssetApi extends CrudApi {
   }
 
   public async update(data: Asset): Promise<any> {
-    return super.update(data, '/client/api/AssetUpdate');
+    return super.update(data, this.buildRestEndpointUrl(ServerRoute.REST_ASSET, { id: data.id }));
   }
 
   public async delete(id: string): Promise<any> {
-    return super.delete(id, '/client/api/AssetDelete');
+    return super.delete(id, this.buildRestEndpointUrl(ServerRoute.REST_ASSET, { id }));
   }
 
   public async readAllInError(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING): Promise<any> {

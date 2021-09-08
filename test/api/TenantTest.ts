@@ -70,7 +70,8 @@ describe('Tenant', function() {
           'type': null
         },
         'organization': {
-          'active': false
+          'active': false,
+          'type': null
         },
         'pricing': {
           'active': false,

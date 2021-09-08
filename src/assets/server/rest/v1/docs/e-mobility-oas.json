@@ -5770,15 +5770,24 @@
                   "tag": {
                     "active": true,
                     "description": "###",
-                    "id": "###"
+                    "id": "###",
+                    "default": "###"
                   },
                   "car": {
                     "licensePlate": "###",
+                    "default": "###",
                     "type": "#",
+                    "converter": {
+                      "powerWatts": "###",
+                      "numberOfPhases": "###"
+                    },
                     "carCatalog": {
                       "vehicleMake": "###",
                       "vehicleModel": "###",
-                      "vehicleModelVersion": "###"
+                      "vehicleModelVersion": "###",
+                      "image": "###",
+                      "batteryCapacityFull": "###",
+                      "fastChargePowerMax": "###"
                     },
                     "id": "###"
                   }
@@ -6530,6 +6539,7 @@
                     "name": "###",
                     "id": "###"
                   },
+                  "visualID": "###",
                   "id": "###"
                 }
               }
@@ -6567,18 +6577,17 @@
               "schema": {
                 "required": [
                   "userID",
-                  "issuer",
                   "active",
-                  "description"
+                  "visualID"
                 ],
                 "properties": {
                   "userID": {
                     "type": "string",
                     "example": "###"
                   },
-                  "issuer": {
-                    "type": "boolean",
-                    "example": true
+                  "visualID": {
+                    "type": "string",
+                    "example": "###"
                   },
                   "active": {
                     "type": "boolean",
@@ -7943,6 +7952,95 @@
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
+      },
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Update an Asset",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/assetID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Asset"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Assets"
+        ],
+        "responses": {
+          "200": {
+            "description": "Asset updated successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Delete an Asset",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/assetID"
+          }
+        ],
+        "tags": [
+          "Assets"
+        ],
+        "responses": {
+          "200": {
+            "description": "Asset deleted successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
       }
     },
     "/api/assets/status/in-error": {
@@ -8095,6 +8193,101 @@
                 }
               }
             }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/assets/{id}/consumptions": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get asset's consumptions",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/assetID"
+          },
+          {
+            "in": "query",
+            "name": "StartDate",
+            "description": "Consumption Start Date (ISO format)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "EndDate",
+            "description": "Consumption start Date (ISO format)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Assets"
+        ],
+        "responses": {
+          "200": {
+            "description": "Asset's last consumption retrieved",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/assets/{id}/image": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get asset's image",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/assetID"
+          }
+        ],
+        "tags": [
+          "Assets"
+        ],
+        "responses": {
+          "200": {
+            "description": "Returned asset's image"
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
