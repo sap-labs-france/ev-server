@@ -920,6 +920,7 @@ export default class ChargingStationService {
     // Check and Get Charging Station
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
       req.tenant, req.user, filteredRequest.ID, action, null, {
+        withSite: true,
         withSiteArea: true,
         withLogo: true
       }, true);
