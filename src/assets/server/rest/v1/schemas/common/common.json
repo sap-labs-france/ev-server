@@ -27,7 +27,7 @@
       "sanitize": "mongo"
     },
     "number-ids": {
-      "type": "number",
+      "type": "string",
       "pattern": "^(\\d\\|?)*$",
       "sanitize": "mongo"
     },
