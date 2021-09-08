@@ -11,7 +11,7 @@ import { Log } from '../../../../types/Log';
 import LoggingStorage from '../../../../storage/mongodb/LoggingStorage';
 import LoggingValidator from '../validator/LoggingValidator';
 import { ServerAction } from '../../../../types/Server';
-import TenantComponents from '../../../../types/TenantComponents';
+import { TenantComponents } from '../../../../types/Tenant';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 import moment from 'moment';

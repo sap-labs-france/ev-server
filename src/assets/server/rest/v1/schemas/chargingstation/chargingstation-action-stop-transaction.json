@@ -1,0 +1,23 @@
+{
+  "title": "Charging Station Action Request for Stop Transaction (endpoint)",
+  "type": "object",
+  "properties": {
+    "chargingStationID": {
+      "$ref": "chargingstation.json#/definitions/id"
+    },
+    "args": {
+      "type": "object",
+      "properties": {
+        "transactionId": {
+          "$ref": "transaction.json#/definitions/id"
+        }
+      },
+      "required": [
+        "transactionId"
+      ]
+    }
+  },
+  "required": [
+    "chargingStationID"
+  ]
+}

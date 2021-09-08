@@ -3,7 +3,7 @@
   "type": "object",
   "properties": {
     "ChargingStationID": {
-      "$ref": "chargingstation.json#/definitions/IDs"
+      "$ref": "common.json#/definitions/string-ids"
     },
     "StartDateTime": {
       "type": "string",
@@ -16,20 +16,20 @@
       "sanitize": "mongo"
     },
     "SiteID": {
-      "$ref": "common.json#/definitions/IDs"
+      "$ref": "common.json#/definitions/ids"
     },
     "SiteAreaID": {
-      "$ref": "common.json#/definitions/IDs"
+      "$ref": "common.json#/definitions/ids"
     },
     "ErrorType": {
       "type": "string",
       "sanitize": "mongo"
     },
     "ConnectorID": {
-      "$ref": "chargingstation.json#/definitions/connectorIDs"
+      "$ref": "common.json#/definitions/number-ids"
     },
     "UserID": {
-      "$ref": "common.json#/definitions/IDs"
+      "$ref": "common.json#/definitions/ids"
     },
     "Search": {
       "$ref": "common.json#/definitions/search"
