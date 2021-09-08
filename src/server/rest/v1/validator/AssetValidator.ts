@@ -51,13 +51,13 @@ export default class AssetValidator extends SchemaValidator {
     return data;
   }
 
-  public validateAssetCreateReq(data: Partial<Asset>): Partial<Asset> {
+  public validateAssetCreateReq(data: any): Asset {
     // Validate schema
     this.validate(this.assetCreate, data);
     return data;
   }
 
-  public validateAssetUpdateReq(data: Partial<Asset>): Partial<Asset> {
+  public validateAssetUpdateReq(data: any): Asset {
     // Validate schema
     this.validate(this.assetUpdate, data);
     return data;
