@@ -6535,6 +6535,7 @@
                     "name": "###",
                     "id": "###"
                   },
+                  "visualID": "###",
                   "id": "###"
                 }
               }
@@ -6572,18 +6573,17 @@
               "schema": {
                 "required": [
                   "userID",
-                  "issuer",
                   "active",
-                  "description"
+                  "visualID"
                 ],
                 "properties": {
                   "userID": {
                     "type": "string",
                     "example": "###"
                   },
-                  "issuer": {
-                    "type": "boolean",
-                    "example": true
+                  "visualID": {
+                    "type": "string",
+                    "example": "###"
                   },
                   "active": {
                     "type": "boolean",
