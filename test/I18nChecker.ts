@@ -43,8 +43,7 @@ class I18nChecker {
 
   private static compareContent(originalLanguage: JSON, comparedLanguage: JSON, file: string): void {
     let noIssue = true;
-    for (let i = 0 ; i < Object.keys(originalLanguage).length; i++) {
-      const keyName = Object.keys(originalLanguage)[i];
+    for (const keyName of Object.keys(originalLanguage)) {
       if (typeof originalLanguage[keyName] !== 'string') {
         continue;
       }
