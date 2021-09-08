@@ -2,7 +2,6 @@ import { addedDiff, deletedDiff } from 'deep-object-diff';
 
 import Constants from '../src/utils/Constants';
 import { promises as fs } from 'fs';
-import { trim } from 'lodash';
 
 class I18nChecker {
 
@@ -27,7 +26,9 @@ class I18nChecker {
             console.log(deleted);
           }
           if (Object.keys(added).length === 0 && Object.keys(deleted).length === 0) {
-            I18nChecker.compareContent(parsedContentEN, parsedContentOtherLanguage, file);
+            if (I18nChecker.compareContent(parsedContentEN, parsedContentOtherLanguage, file)) {
+              console.log('No error found for file ' + file);
+            }
           }
         } catch (err) {
           console.log('File not found or with wrong format: ' + file);
@@ -41,21 +42,29 @@ class I18nChecker {
     }
   }
 
-  private static compareContent(originalLanguage: JSON, comparedLanguage: JSON, file: string): void {
+  private static compareValueContent(keyName: string, originalValue: string, comparedValue: string, file: string): boolean {
+    if (originalValue.trim() === comparedValue.trim()) {
+      console.log(file + ': Content `' + keyName + '` probably not yet translated (current value is: `' + originalValue + '`)');
+      return false; // Value is same!
+    }
+    return true; // Value is translated.
+  }
+
+  private static compareContent(originalLanguage: JSON, comparedLanguage: JSON, file: string): boolean {
     let noIssue = true;
-    for (let i = 0 ; i < Object.keys(originalLanguage).length; i++) {
-      const keyName = Object.keys(originalLanguage)[i];
-      if (typeof originalLanguage[keyName] !== 'string') {
-        continue;
-      }
-      if (originalLanguage[keyName].trim() === comparedLanguage[keyName].trim()) {
-        console.log('Content `' + keyName + '` probably not yet translated into ' + file + ' (current value is: `' + originalLanguage[keyName] + '`)');
-        noIssue = false;
+    for (const keyName of Object.keys(originalLanguage)) {
+      switch (typeof originalLanguage[keyName]) {
+        case 'string':
+          noIssue = I18nChecker.compareValueContent(keyName, originalLanguage[keyName], comparedLanguage[keyName], file) && noIssue;
+          break;
+        case 'object':
+          noIssue = I18nChecker.compareContent(Object.assign({}, originalLanguage[keyName]), Object.assign({}, comparedLanguage[keyName]), file) && noIssue;
+          break;
+        default:
+          console.error(keyName + ' is not a supported type!');
       }
     }
-    if (noIssue) {
-      console.log('No issue found for: ' + file);
-    }
+    return noIssue;
   }
 }
 
