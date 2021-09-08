@@ -51,7 +51,9 @@ const MODULE_NAME = 'OCPPUtils';
 
 export default class OCPPUtils {
   public static getServerActionFromOcppCommand(command: Command): ServerAction {
-    return `Ocpp${command}` as ServerAction;
+    if (command) {
+      return `Ocpp${command}` as ServerAction;
+    }
   }
 
   public static async checkChargingStationConnectionToken(action: ServerAction, tenant: Tenant, chargingStationID: string,
