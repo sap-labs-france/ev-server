@@ -2,7 +2,6 @@ import { addedDiff, deletedDiff } from 'deep-object-diff';
 
 import Constants from '../src/utils/Constants';
 import { promises as fs } from 'fs';
-import { trim } from 'lodash';
 
 class I18nChecker {
 
