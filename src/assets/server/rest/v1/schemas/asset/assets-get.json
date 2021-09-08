@@ -11,10 +11,10 @@
       "sanitize": "mongo"
     },
     "SiteAreaID": {
-      "$ref": "common.json#/definitions/IDs"
+      "$ref": "common.json#/definitions/ids"
     },
     "SiteID": {
-      "$ref": "common.json#/definitions/IDs"
+      "$ref": "common.json#/definitions/ids"
     },
     "DynamicOnly": {
       "type": "boolean",
