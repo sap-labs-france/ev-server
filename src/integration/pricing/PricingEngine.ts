@@ -26,7 +26,7 @@ export default class PricingEngine {
     const resolvedPricingModel: ResolvedPricingModel = {
       currentContext: {
         flatFeeAlreadyPriced: false,
-        startDate: transaction.timestamp
+        sessionStartDate: transaction.timestamp
       },
       pricingDefinitions
     };
@@ -230,12 +230,16 @@ export default class PricingEngine {
       const consumptionWh = consumptionData?.consumptionWh || 0;
       // Price the charging time only when charging!
       if (consumptionWh > 0) {
-        const pricedData = PricingEngine.priceTimeDimension(dimensionToPrice, consumptionData, currentContext);
+        const lastStepDate = currentContext.lastChargingTimeStepDate || currentContext.sessionStartDate;
+        const pricedData = PricingEngine.priceTimeDimension(dimensionToPrice, consumptionData, lastStepDate);
         if (pricedData) {
+          currentContext.lastChargingTimeStepDate = consumptionData.endedAt;
           pricedData.sourceName = activePricingDefinition.name;
         }
         return pricedData;
       }
+      // IMPORTANT - keep track of the consumption where nothing was priced
+      currentContext.lastChargingTimeStepDate = consumptionData.endedAt;
     }
   }
 
@@ -247,13 +251,17 @@ export default class PricingEngine {
       const consumptionWh = consumptionData?.consumptionWh || 0;
       // Price the parking time only after having charged - NOT during the warmup!
       if (cumulatedConsumptionDataWh > 0 && consumptionWh <= 0) {
-        const pricedData = PricingEngine.priceTimeDimension(dimensionToPrice, consumptionData, currentContext);
+        const lastStepDate = currentContext.lastParkingTimeStepDate || currentContext.sessionStartDate;
+        const pricedData = PricingEngine.priceTimeDimension(dimensionToPrice, consumptionData, lastStepDate);
         if (pricedData) {
+          currentContext.lastParkingTimeStepDate = consumptionData.endedAt;
           pricedData.sourceName = activePricingDefinition.name;
         }
         return pricedData;
       }
     }
+    // IMPORTANT - keep track of the consumption where nothing was priced
+    currentContext.lastParkingTimeStepDate = consumptionData.endedAt;
   }
 
   private static getActiveDefinition4Dimension(actualPricingDefinitions: PricingDefinition[], dimensionType: string): PricingDefinition {
@@ -343,15 +351,13 @@ export default class PricingEngine {
     return pricedData;
   }
 
-  private static priceTimeDimension(pricingDimension: PricingDimension, consumptionData: Consumption, currentContext: CurrentContext): PricedDimensionData {
+  private static priceTimeDimension(pricingDimension: PricingDimension, consumptionData: Consumption, lastStepDate: Date): PricedDimensionData {
     // Is there a step size
     if (pricingDimension.stepSize) {
-      const lastStepDate = currentContext.lastStepDate || currentContext.startDate;
       // Price the charging time only when charging!
       const timeSpent = moment(consumptionData.endedAt).diff(moment(lastStepDate), 'seconds');
       const nbSteps = Utils.createDecimal(timeSpent).divToInt(pricingDimension.stepSize).toNumber();
       if (nbSteps > 0) {
-        currentContext.lastStepDate = consumptionData.endedAt;
         return this.priceTimeSteps(pricingDimension, nbSteps);
       }
     } else {
@@ -361,6 +367,25 @@ export default class PricingEngine {
       }
     }
   }
+
+  // private static __priceTimeDimension(pricingDimension: PricingDimension, consumptionData: Consumption, currentContext: CurrentContext): PricedDimensionData {
+  //   // Is there a step size
+  //   if (pricingDimension.stepSize) {
+  //     const lastStepDate = currentContext.lastConsumptionDate || currentContext.sessionStartDate;
+  //     // Price the charging time only when charging!
+  //     const timeSpent = moment(consumptionData.endedAt).diff(moment(lastStepDate), 'seconds');
+  //     const nbSteps = Utils.createDecimal(timeSpent).divToInt(pricingDimension.stepSize).toNumber();
+  //     if (nbSteps > 0) {
+  //       currentContext.lastConsumptionDate = consumptionData.endedAt;
+  //       return this.priceTimeSteps(pricingDimension, nbSteps);
+  //     }
+  //   } else {
+  //     const seconds = moment(consumptionData.endedAt).diff(moment(consumptionData.startedAt), 'seconds');
+  //     if (seconds > 0) {
+  //       return this.priceTimeSpent(pricingDimension, seconds);
+  //     }
+  //   }
+  // }
 
   private static priceTimeSteps(pricingDimension: PricingDimension, steps: number): PricedDimensionData {
     const unitPrice = pricingDimension.price || 0;

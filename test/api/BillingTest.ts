@@ -179,6 +179,18 @@ class TestData {
           active: true
         }
       };
+    } else if (testMode === 'E+PT+STEP') {
+      dimensions = {
+        energy: {
+          price: 0.50,
+          active: true
+        },
+        parkingTime: {
+          price: 20, // Euro per hour
+          stepSize: 120, // 120 seconds == 2 minutes
+          active: true
+        }
+      };
     } else if (testMode === 'E-After30mins') {
       // Create a second tariff with a different pricing strategy
       dimensions = {
@@ -1207,7 +1219,7 @@ describe('Billing Service', function() {
     });
 
 
-    describe('with Transaction Billing + Immediate Billing ON', () => {
+    describe('with Pricing + Billing', () => {
       before(async () => {
         testData.initUserContextAsAdmin();
         // Initialize the Billing module
@@ -1279,8 +1291,19 @@ describe('Billing Service', function() {
           await testData.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID);
         });
 
-        it('should bill the CT with 1EUR Step on COMBO CCS - DC', async () => {
+        it('should bill the CT(STEP)+PT(STEP) on COMBO CCS - DC', async () => {
           await testData.initChargingStationContext2TestFastCharger('CT+STEP');
+          await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
+          const userWithBillingData = await testData.billingImpl.getUser(testData.userContext);
+          await testData.assignPaymentMethod(userWithBillingData, 'tok_fr');
+          const transactionID = await testData.generateTransaction(testData.userContext);
+          assert(transactionID, 'transactionID should not be null');
+          // Check that we have a new invoice with an invoiceID and an invoiceNumber
+          await testData.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID);
+        });
+
+        it('should bill the ENERGY + PT(STEP) on COMBO CCS - DC', async () => {
+          await testData.initChargingStationContext2TestFastCharger('E+PT+STEP');
           await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
           const userWithBillingData = await testData.billingImpl.getUser(testData.userContext);
           await testData.assignPaymentMethod(userWithBillingData, 'tok_fr');
