@@ -6,13 +6,24 @@ This application server (NodeJs) collects and stores the data (MongoDB) received
 
 The application features:
 
-* Displays of the charging stations, their status and their delivered power in real time.
-* User management (create, update, delete, authorize, change role...)
-* Charging station charging curves in real time
-* Actions on charging stations: Reboot, Clear Cache, Stop Transaction, Unlock Connector...
-* Energy control: set the maximum energy delivered by the charging station
+* Charging Stations details and real-time statuses
+* Charging sessions curves in real time
+* Charging stations remote control (Reboot, Clear Cache, Stop Transaction, Unlock Connector)
+* Charging Station Template management: Zero configuration
+* User management
+* Badge management
+* Role management (ABAC)
+* Static Energy Management: Manually limit the charging station
+* Smart Charging with Assets, Fair Sharing, Peak Shaving, Cost Management and Phase Balancing
+* Realtime Asset Management (Building, Battery, Solar Panel) 
+* Billing with Stripe
+* Complex Pricing
+* Roaming integration (Gire, Hubject)
+* Refunding (SAP Concur)
+* Simple Statistics + Advanced Analytics (SAP Analytics)
+* Car Connector Management (Get the car's data to optimize the charging session)
 
-**Live demo here** <a href="https://slf.evse.cfapps.eu10.hana.ondemand.com/auth/login?email=demo.demo@sap.com&password=DeM*Us$r1" target="_blank">e-Mobility</a>
+**Contact the author** <a href="https://www.linkedin.com/in/serge-fabiano-a420a218/" target="_blank">Serge FABIANO</a>
 
 ## Installation
 
