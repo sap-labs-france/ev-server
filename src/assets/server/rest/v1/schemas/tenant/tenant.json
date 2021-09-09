@@ -1,6 +1,9 @@
 {
   "$id": "tenant.json",
   "definitions": {
+    "id": {
+      "$ref": "common.json#/definitions/id"
+    },
     "name": {
       "type": "string",
       "minLength": 1,

@@ -13,6 +13,9 @@ export interface OCPIEvse {
   };
   last_updated: Date;
   chargeBoxId?: string;
+  siteID?: string;
+  siteAreaID?: string;
+  companyID?: string;
 }
 
 export enum OCPIEvseStatus {

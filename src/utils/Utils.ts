@@ -20,8 +20,8 @@ import QRCode from 'qrcode';
 import { Request } from 'express';
 import { ServerAction } from '../types/Server';
 import Tag from '../types/Tag';
-import Tenant from '../types/Tenant';
-import TenantComponents from '../types/TenantComponents';
+import Tenant, { TenantComponentContent , TenantComponents } from '../types/Tenant';
+
 import UserToken from '../types/UserToken';
 import { WebSocketCloseEventStatusString } from '../types/WebSocket';
 import _ from 'lodash';
@@ -1255,19 +1255,19 @@ export default class Utils {
     return await QRCode.toDataURL(data);
   }
 
-  public static createDefaultSettingContent(activeComponent: any, currentSettingContent: SettingDBContent): SettingDBContent {
-    switch (activeComponent.name) {
+  public static createDefaultSettingContent(componentName: string, activeComponentContent: TenantComponentContent, currentSettingContent: SettingDBContent): SettingDBContent {
+    switch (componentName) {
       // Pricing
       case TenantComponents.PRICING:
-        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
+        if (!currentSettingContent || currentSettingContent.type !== activeComponentContent.type) {
           // Create default settings
-          if (activeComponent.type === PricingSettingsType.SIMPLE) {
+          if (activeComponentContent.type === PricingSettingsType.SIMPLE) {
             // Simple Pricing
             return {
               'type': PricingSettingsType.SIMPLE,
               'simple': {}
             } as SettingDBContent;
-          } else if (activeComponent.type === PricingSettingsType.CONVERGENT_CHARGING) {
+          } else if (activeComponentContent.type === PricingSettingsType.CONVERGENT_CHARGING) {
             // SAP CC
             return {
               'type': PricingSettingsType.CONVERGENT_CHARGING,
@@ -1278,7 +1278,7 @@ export default class Utils {
         break;
       // Billing
       case TenantComponents.BILLING:
-        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
+        if (!currentSettingContent || currentSettingContent.type !== activeComponentContent.type) {
           // Only Stripe
           return {
             'type': BillingSettingsType.STRIPE,
@@ -1288,7 +1288,7 @@ export default class Utils {
         break;
       // Refund
       case TenantComponents.REFUND:
-        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
+        if (!currentSettingContent || currentSettingContent.type !== activeComponentContent.type) {
           // Only Concur
           return {
             'type': RefundSettingsType.CONCUR,
@@ -1298,7 +1298,7 @@ export default class Utils {
         break;
       // OCPI
       case TenantComponents.OCPI:
-        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
+        if (!currentSettingContent) {
           // Only Gireve
           return {
             'type': RoamingSettingsType.OCPI,
@@ -1308,7 +1308,7 @@ export default class Utils {
         break;
       // OICP
       case TenantComponents.OICP:
-        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
+        if (!currentSettingContent) {
           // Only Hubject
           return {
             'type': RoamingSettingsType.OICP,
@@ -1318,7 +1318,7 @@ export default class Utils {
         break;
       // SAC
       case TenantComponents.ANALYTICS:
-        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
+        if (!currentSettingContent || currentSettingContent.type !== activeComponentContent.type) {
           // Only SAP Analytics
           return {
             'type': AnalyticsSettingsType.SAC,
@@ -1328,7 +1328,7 @@ export default class Utils {
         break;
       // Smart Charging
       case TenantComponents.SMART_CHARGING:
-        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
+        if (!currentSettingContent || currentSettingContent.type !== activeComponentContent.type) {
           // Only SAP sapSmartCharging
           return {
             'type': SmartChargingContentType.SAP_SMART_CHARGING,

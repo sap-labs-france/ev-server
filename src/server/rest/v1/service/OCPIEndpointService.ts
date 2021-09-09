@@ -19,7 +19,7 @@ import { OCPIRegistrationStatus } from '../../../../types/ocpi/OCPIRegistrationS
 import OCPIUtils from '../../../ocpi/OCPIUtils';
 import { ServerAction } from '../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
-import TenantComponents from '../../../../types/TenantComponents';
+import { TenantComponents } from '../../../../types/Tenant';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import UtilsService from './UtilsService';
 

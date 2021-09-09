@@ -1,4 +1,5 @@
 import Consumption, { AbstractCurrentConsumption } from '../../types/Consumption';
+import Tenant, { TenantComponents } from '../../types/Tenant';
 
 import Asset from '../../types/Asset';
 import AssetFactory from '../../integration/asset/AssetFactory';
@@ -15,8 +16,6 @@ import { ServerAction } from '../../types/Server';
 import SiteArea from '../../types/SiteArea';
 import SmartChargingFactory from '../../integration/smart-charging/SmartChargingFactory';
 import { TaskConfig } from '../../types/TaskConfig';
-import Tenant from '../../types/Tenant';
-import TenantComponents from '../../types/TenantComponents';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
 

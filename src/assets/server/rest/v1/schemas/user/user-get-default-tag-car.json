@@ -3,7 +3,7 @@
   "type": "object",
   "definitions": {
     "UserID": {
-      "$ref": "common.json#/definitions/id"
+      "$ref": "user.json#/definitions/id"
     },
     "ProjectFields": {
       "$ref": "common.json#/definitions/projectFields"

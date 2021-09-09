@@ -15,31 +15,6 @@ export default class LoggingStorage {
     DatabaseUtils.checkTenantObject(tenant);
     // Build filter
     const filters: FilterParams = {};
-    // Do Not Delete Security Logs
-    filters.type = {};
-    filters.type.$ne = 'S';
-    // Date provided?
-    if (deleteUpToDate) {
-      filters.timestamp = {};
-      filters.timestamp.$lte = Utils.convertToDate(deleteUpToDate);
-    } else {
-      return;
-    }
-    // Delete Logs
-    const result = await global.database.getCollection<Log>(tenant.id, 'logs')
-      .deleteMany(filters);
-    // Return the result
-    return { acknowledged: result.acknowledged, deletedCount: result.deletedCount };
-  }
-
-  public static async deleteSecurityLogs(tenant: Tenant, deleteUpToDate: Date): Promise<DeletedResult> {
-    // Check Tenant
-    DatabaseUtils.checkTenantObject(tenant);
-    // Build filter
-    const filters: FilterParams = {};
-    // Delete Only Security Logs
-    filters.type = {};
-    filters.type.$eq = 'S';
     // Date provided?
     if (deleteUpToDate) {
       filters.timestamp = {};
@@ -60,7 +35,10 @@ export default class LoggingStorage {
       userID: logToSave.user ? DatabaseUtils.convertUserToObjectID(logToSave.user) : null,
       actionOnUserID: DatabaseUtils.convertUserToObjectID(logToSave.actionOnUser),
       level: logToSave.level,
-      siteID: logToSave.siteID,
+      chargingStationID: logToSave.chargingStationID,
+      companyID: DatabaseUtils.convertToObjectID(logToSave.companyID),
+      siteID: DatabaseUtils.convertToObjectID(logToSave.siteID),
+      siteAreaID: DatabaseUtils.convertToObjectID(logToSave.siteAreaID),
       source: logToSave.source,
       host: logToSave.host ? logToSave.host : Utils.getHostname(),
       process: logToSave.process ? logToSave.process : (cluster.isWorker ? 'worker ' + cluster.worker.id.toString() : 'master'),
@@ -107,20 +85,20 @@ export default class LoggingStorage {
     // Date provided?
     if (params.startDateTime || params.endDateTime) {
       filters.timestamp = {};
+      // Start date
+      if (params.startDateTime) {
+        filters.timestamp.$gte = Utils.convertToDate(params.startDateTime);
+      }
+      // End date
+      if (params.endDateTime) {
+        filters.timestamp.$lte = Utils.convertToDate(params.endDateTime);
+      }
     }
-    // Start date
-    if (params.startDateTime) {
-      filters.timestamp.$gte = Utils.convertToDate(params.startDateTime);
-    }
-    // End date
-    if (params.endDateTime) {
-      filters.timestamp.$lte = Utils.convertToDate(params.endDateTime);
-    }
-    // Filter on log levels
+    // Level
     if (params.levels && params.levels.length > 0) {
       filters.level = { $in: params.levels };
     }
-    // Filter on charging Stations
+    // Source
     if (params.sources && params.sources.length > 0) {
       filters.source = { $in: params.sources };
     }
@@ -128,22 +106,22 @@ export default class LoggingStorage {
     if (params.type) {
       filters.type = params.type;
     }
-    // Filter on actions
+    // Action
     if (params.actions && params.actions.length > 0) {
       filters.action = { $in: params.actions };
     }
-    // Filter on host
+    // Host
     if (params.hosts && params.hosts.length > 0) {
       filters.host = { $in: params.hosts };
     }
-    // Filter on users
+    // User
     if (!Utils.isEmptyArray(params.userIDs)) {
       filters.$or = [
         { userID: { $in: params.userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID)) } },
         { actionOnUserID: { $in: params.userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID)) } }
       ];
     }
-    // Log ID
+    // ID
     if (!Utils.isEmptyArray(params.logIDs)) {
       filters._id = {
         $in: params.logIDs.map((logID) => DatabaseUtils.convertToObjectID(logID))
