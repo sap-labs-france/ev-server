@@ -155,8 +155,12 @@ class TestData {
 
     let dimensions: PricingDimensions;
     let restrictions: PricingRestriction;
-    if (testMode === 'CT') {
+    if (testMode === 'FF+CT+PT') {
       dimensions = {
+        flatFee: {
+          price: 1, // Euro
+          active: true
+        },
         chargingTime: {
           price: 5, // Euro per hour
           active: true
@@ -166,7 +170,7 @@ class TestData {
           active: true
         }
       };
-    } else if (testMode === 'CT+STEP') {
+    } else if (testMode === 'CT+PT+STEP') {
       dimensions = {
         chargingTime: {
           price: 12, // Euro per hour
@@ -205,6 +209,17 @@ class TestData {
       };
       restrictions = {
         minDurationSecs: 30 * 60 // Apply this tariff after 30 minutes
+      };
+    } else if (testMode === 'FF+E') {
+      dimensions = {
+        flatFee: {
+          price: 1.5, // Euro
+          active: true
+        },
+        energy: {
+          price: 0.50,
+          active: true
+        }
       };
     } else {
       dimensions = {
@@ -1280,8 +1295,8 @@ describe('Billing Service', function() {
           await testData.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID);
         });
 
-        it('should bill the CT + PT on COMBO CCS - DC', async () => {
-          await testData.initChargingStationContext2TestFastCharger('CT');
+        it('should bill the FF+CT+PT on COMBO CCS - DC', async () => {
+          await testData.initChargingStationContext2TestFastCharger('FF+CT+PT');
           await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
           const userWithBillingData = await testData.billingImpl.getUser(testData.userContext);
           await testData.assignPaymentMethod(userWithBillingData, 'tok_fr');
@@ -1292,7 +1307,7 @@ describe('Billing Service', function() {
         });
 
         it('should bill the CT(STEP)+PT(STEP) on COMBO CCS - DC', async () => {
-          await testData.initChargingStationContext2TestFastCharger('CT+STEP');
+          await testData.initChargingStationContext2TestFastCharger('CT+PT+STEP');
           await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
           const userWithBillingData = await testData.billingImpl.getUser(testData.userContext);
           await testData.assignPaymentMethod(userWithBillingData, 'tok_fr');
@@ -1313,9 +1328,9 @@ describe('Billing Service', function() {
           await testData.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID);
         });
 
-        it('should bill the ENERGY with 2 tariffs on COMBO CCS - DC', async () => {
+        it('should bill the FF+E with 2 tariffs on COMBO CCS - DC', async () => {
           // A first Tariff for the ENERGY Only
-          await testData.initChargingStationContext2TestFastCharger();
+          await testData.initChargingStationContext2TestFastCharger('FF+E');
           // A second Tariff applied after 30 mins!
           await testData.initChargingStationContext2TestFastCharger('E-After30mins');
           // A tariff applied immediately
