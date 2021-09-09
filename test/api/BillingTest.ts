@@ -125,25 +125,41 @@ class TestData {
     return this.chargingStationContext;
   }
 
-  public async initChargingStationContext2TestEnergyPlusFlatFee() : Promise<ChargingStationContext> {
+  public async initChargingStationContext2TestCS3Phased(testMode = 'FF+E') : Promise<ChargingStationContext> {
     this.siteContext = this.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
     this.siteAreaContext = this.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED);
     this.chargingStationContext = this.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16 + '-' + ContextDefinition.SITE_CONTEXTS.SITE_BASIC + '-' + ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED);
     assert(!!this.chargingStationContext, 'Charging station context should not be null');
-    await this.createTariff4ChargingStation('test FF+E', this.chargingStationContext.getChargingStation(), {
-      flatFee: {
-        price: 2,
-        active: true
-      },
-      energy: {
-        price: 0.25,
-        active: true
-      },
-      chargingTime: {
-        price: 777, // THIS IS OFF
-        active: false
-      }
-    });
+    let dimensions: PricingDimensions;
+    if (testMode === 'FF+E(STEP)') {
+      dimensions = {
+        flatFee: {
+          price: 2,
+          active: true
+        },
+        energy: {
+          price: 0.25, // 25 cents per kWh
+          stepSize: 5000, // Step Size - 5 kWh
+          active: true
+        }
+      };
+    } else {
+      dimensions = {
+        flatFee: {
+          price: 2,
+          active: true
+        },
+        energy: {
+          price: 0.25,
+          active: true
+        },
+        chargingTime: {
+          price: 777, // THIS IS OFF
+          active: false
+        }
+      };
+    }
+    await this.createTariff4ChargingStation('test FF+E', this.chargingStationContext.getChargingStation(), dimensions);
     return this.chargingStationContext;
   }
 
@@ -1263,11 +1279,10 @@ describe('Billing Service', function() {
       describe('FF + ENERGY', () => {
         // eslint-disable-next-line @typescript-eslint/require-await
         before(async () => {
-          // Initialize the charing station context
-          await testData.initChargingStationContext2TestEnergyPlusFlatFee();
         });
 
         it('should create and bill an invoice with FF + ENERGY', async () => {
+          await testData.initChargingStationContext2TestCS3Phased();
           await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
           const userWithBillingData = await testData.billingImpl.getUser(testData.userContext);
           await testData.assignPaymentMethod(userWithBillingData, 'tok_fr');
@@ -1277,6 +1292,16 @@ describe('Billing Service', function() {
           await testData.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID);
         });
 
+        it('should create and bill an invoice with FF+ENERGY(STEP)', async () => {
+          await testData.initChargingStationContext2TestCS3Phased('FF+E(STEP)');
+          await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
+          const userWithBillingData = await testData.billingImpl.getUser(testData.userContext);
+          await testData.assignPaymentMethod(userWithBillingData, 'tok_fr');
+          const transactionID = await testData.generateTransaction(testData.userContext);
+          assert(transactionID, 'transactionID should not be null');
+          // Check that we have a new invoice with an invoiceID and an invoiceNumber
+          await testData.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID);
+        });
       });
 
       describe('On COMBO CCS - DC', () => {

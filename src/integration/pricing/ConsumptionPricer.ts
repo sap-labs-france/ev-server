@@ -117,12 +117,20 @@ export default class ConsumptionPricer {
     const activePricingDefinition = this.getActiveDefinition4Dimension(this.actualPricingDefinitions, DimensionType.ENERGY);
     if (activePricingDefinition) {
       const dimensionToPrice = activePricingDefinition.dimensions.energy;
-      const pricedData = this.priceEnergyDimension(dimensionToPrice, this.consumptionData?.consumptionWh || 0);
-      if (pricedData) {
-        pricedData.sourceName = activePricingDefinition.name;
+      // Price the charging time only when charging!
+      const consumptionWh = this.consumptionData?.consumptionWh || 0;
+      if (consumptionWh > 0) {
+        const lastStepCumulatedConsumption = this.pricingModel.pricerContext.lastStepCumulatedConsumption || 0;
+        const pricedData = this.priceEnergyDimension(dimensionToPrice, lastStepCumulatedConsumption);
+        if (pricedData) {
+          this.pricingModel.pricerContext.lastStepCumulatedConsumption = this.consumptionData.cumulatedConsumptionWh;
+          pricedData.sourceName = activePricingDefinition.name;
+        }
+        return pricedData;
       }
-      return pricedData;
     }
+    // IMPORTANT - keep track of the latest consumption even when nothing was priced
+    this.pricingModel.pricerContext.lastStepCumulatedConsumption = this.consumptionData.consumptionWh;
   }
 
   private priceChargingTimeConsumption(): PricedDimensionData {
@@ -132,16 +140,16 @@ export default class ConsumptionPricer {
       const consumptionWh = this.consumptionData?.consumptionWh || 0;
       // Price the charging time only when charging!
       if (consumptionWh > 0) {
-        const lastStepDate = this.pricingModel.pricerContext.lastChargingTimeStepDate || this.pricingModel.pricerContext.sessionStartDate;
+        const lastStepDate = this.pricingModel.pricerContext.lastStepChargingTimeDate || this.pricingModel.pricerContext.sessionStartDate;
         const pricedData = this.priceTimeDimension(dimensionToPrice, lastStepDate);
         if (pricedData) {
-          this.pricingModel.pricerContext.lastChargingTimeStepDate = this.consumptionData.endedAt;
+          this.pricingModel.pricerContext.lastStepChargingTimeDate = this.consumptionData.endedAt;
           pricedData.sourceName = activePricingDefinition.name;
         }
         return pricedData;
       }
-      // IMPORTANT - keep track of the consumption where nothing was priced
-      this.pricingModel.pricerContext.lastChargingTimeStepDate = this.consumptionData.endedAt;
+      // IMPORTANT - keep track of the latest consumption even when nothing was priced
+      this.pricingModel.pricerContext.lastStepChargingTimeDate = this.consumptionData.endedAt;
     }
   }
 
@@ -153,17 +161,17 @@ export default class ConsumptionPricer {
       const consumptionWh = this.consumptionData?.consumptionWh || 0;
       // Price the parking time only after having charged - NOT during the warmup!
       if (cumulatedConsumptionDataWh > 0 && consumptionWh <= 0) {
-        const lastStepDate = this.pricingModel.pricerContext.lastParkingTimeStepDate || this.pricingModel.pricerContext.sessionStartDate;
+        const lastStepDate = this.pricingModel.pricerContext.lastStepParkingTimeDate || this.pricingModel.pricerContext.sessionStartDate;
         const pricedData = this.priceTimeDimension(dimensionToPrice, lastStepDate);
         if (pricedData) {
-          this.pricingModel.pricerContext.lastParkingTimeStepDate = this.consumptionData.endedAt;
+          this.pricingModel.pricerContext.lastStepParkingTimeDate = this.consumptionData.endedAt;
           pricedData.sourceName = activePricingDefinition.name;
         }
         return pricedData;
       }
     }
-    // IMPORTANT - keep track of the consumption where nothing was priced
-    this.pricingModel.pricerContext.lastParkingTimeStepDate = this.consumptionData.endedAt;
+    // IMPORTANT - keep track of the latest consumption even when nothing was priced
+    this.pricingModel.pricerContext.lastStepParkingTimeDate = this.consumptionData.endedAt;
   }
 
   private getActiveDefinition4Dimension(actualPricingDefinitions: PricingDefinition[], dimensionType: string): PricingDefinition {
@@ -207,13 +215,6 @@ export default class ConsumptionPricer {
     return null;
   }
 
-  private extractPricedDataFromDimension(pricedData: PricedDimensionData[], pricingDefinition: PricingDefinition, dimensionType: string): void {
-    const pricingDimensionData = pricingDefinition.dimensions[dimensionType]?.pricedData;
-    if (pricingDimensionData) {
-      pricedData.push(pricingDimensionData);
-    }
-  }
-
   private priceFlatFeeDimension(pricingDimension: PricingDimension): PricedDimensionData {
     const unitPrice = pricingDimension.price || 0;
     if (pricingDimension.pricedData) {
@@ -236,7 +237,40 @@ export default class ConsumptionPricer {
     return pricingDimension.pricedData;
   }
 
-  private priceEnergyDimension(pricingDimension: PricingDimension, consumptionWh: number): PricedDimensionData {
+  private priceEnergyDimension(pricingDimension: PricingDimension, lastStepCumulatedConsumption: number): PricedDimensionData {
+    // Is there a step size
+    if (pricingDimension.stepSize) {
+      // Price the charging time only when charging!
+      const delta = Utils.createDecimal(this.consumptionData.cumulatedConsumptionWh).minus(lastStepCumulatedConsumption);
+      const nbSteps = delta.divToInt(pricingDimension.stepSize).toNumber();
+      if (nbSteps > 0) {
+        return this.priceConsumptionStep(pricingDimension, nbSteps);
+      }
+    } else {
+      const consumptionWh = this.consumptionData?.consumptionWh || 0;
+      if (consumptionWh > 0) {
+        return this.priceConsumptionWh(pricingDimension, consumptionWh);
+      }
+    }
+  }
+
+  private priceConsumptionStep(pricingDimension: PricingDimension, steps: number): PricedDimensionData {
+    const unitPrice = pricingDimension.price || 0;
+    const amount = Utils.createDecimal(unitPrice).times(steps).times(pricingDimension.stepSize).div(1000).toNumber();
+    // Price the consumption
+    const pricedData: PricedDimensionData = {
+      unitPrice: unitPrice,
+      amount,
+      roundedAmount: Utils.truncTo(amount, 2),
+      quantity: steps
+    };
+    // Add the consumption to the previous data (if any) - for the billing
+    this.addPricedData(pricingDimension, pricedData);
+    // Return the current consumption!
+    return pricedData;
+  }
+
+  private priceConsumptionWh(pricingDimension: PricingDimension, consumptionWh: number): PricedDimensionData {
     const unitPrice = pricingDimension.price || 0;
     const amount = Utils.createDecimal(unitPrice).times(consumptionWh).div(1000).toNumber();
     const consumptionkWh = Utils.createDecimal(consumptionWh).div(1000).toNumber();

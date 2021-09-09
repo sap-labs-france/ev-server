@@ -27,8 +27,9 @@ export interface ResolvedPricingModel {
 export interface ConsumptionPricerContext {
   flatFeeAlreadyPriced: boolean,
   sessionStartDate: Date,
-  lastChargingTimeStepDate?: Date // IMPORTANT - used to price when CT when stepSize is set!
-  lastParkingTimeStepDate?: Date, // IMPORTANT - used to price when PT when stepSize is set!
+  lastStepCumulatedConsumption?: number, // IMPORTANT - used to price when E when stepSize is set!
+  lastStepChargingTimeDate?: Date // IMPORTANT - used to price when CT when stepSize is set!
+  lastStepParkingTimeDate?: Date, // IMPORTANT - used to price when PT when stepSize is set!
 }
 
 export default interface PricingDefinition extends CreatedUpdatedProps, AuthorizationActions {
