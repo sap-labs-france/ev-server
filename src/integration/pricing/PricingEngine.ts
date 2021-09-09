@@ -22,7 +22,7 @@ export default class PricingEngine {
     pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, transaction.companyID.toString()));
     // Return the resolution result as a resolved pricing model
     const resolvedPricingModel: ResolvedPricingModel = {
-      currentContext: {
+      pricerContext: {
         flatFeeAlreadyPriced: false,
         sessionStartDate: transaction.timestamp
       },

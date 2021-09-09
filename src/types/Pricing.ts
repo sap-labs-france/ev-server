@@ -21,10 +21,10 @@ export enum DimensionType {
 export interface ResolvedPricingModel {
   // Put there only the information that is to be kept with the Transaction
   pricingDefinitions: PricingDefinition[];
-  currentContext: CurrentContext;
+  pricerContext: ConsumptionPricerContext;
 }
 
-export interface CurrentContext {
+export interface ConsumptionPricerContext {
   flatFeeAlreadyPriced: boolean,
   sessionStartDate: Date,
   lastChargingTimeStepDate?: Date // IMPORTANT - used to price when CT when stepSize is set!

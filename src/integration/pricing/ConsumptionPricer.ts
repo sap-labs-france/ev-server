@@ -99,14 +99,14 @@ export default class ConsumptionPricer {
 
   private priceFlatFeeConsumption(): PricedDimensionData {
     // Flat fee must not be priced only once
-    if (!this.pricingModel.currentContext.flatFeeAlreadyPriced) {
+    if (!this.pricingModel.pricerContext.flatFeeAlreadyPriced) {
       const activePricingDefinition = this.getActiveDefinition4Dimension(this.actualPricingDefinitions, DimensionType.FLAT_FEE);
       if (activePricingDefinition) {
         const dimensionToPrice = activePricingDefinition.dimensions.flatFee;
         const pricedData = this.priceFlatFeeDimension(dimensionToPrice);
         if (pricedData) {
           pricedData.sourceName = activePricingDefinition.name;
-          this.pricingModel.currentContext.flatFeeAlreadyPriced = true;
+          this.pricingModel.pricerContext.flatFeeAlreadyPriced = true;
         }
         return pricedData;
       }
@@ -132,16 +132,16 @@ export default class ConsumptionPricer {
       const consumptionWh = this.consumptionData?.consumptionWh || 0;
       // Price the charging time only when charging!
       if (consumptionWh > 0) {
-        const lastStepDate = this.pricingModel.currentContext.lastChargingTimeStepDate || this.pricingModel.currentContext.sessionStartDate;
+        const lastStepDate = this.pricingModel.pricerContext.lastChargingTimeStepDate || this.pricingModel.pricerContext.sessionStartDate;
         const pricedData = this.priceTimeDimension(dimensionToPrice, lastStepDate);
         if (pricedData) {
-          this.pricingModel.currentContext.lastChargingTimeStepDate = this.consumptionData.endedAt;
+          this.pricingModel.pricerContext.lastChargingTimeStepDate = this.consumptionData.endedAt;
           pricedData.sourceName = activePricingDefinition.name;
         }
         return pricedData;
       }
       // IMPORTANT - keep track of the consumption where nothing was priced
-      this.pricingModel.currentContext.lastChargingTimeStepDate = this.consumptionData.endedAt;
+      this.pricingModel.pricerContext.lastChargingTimeStepDate = this.consumptionData.endedAt;
     }
   }
 
@@ -153,17 +153,17 @@ export default class ConsumptionPricer {
       const consumptionWh = this.consumptionData?.consumptionWh || 0;
       // Price the parking time only after having charged - NOT during the warmup!
       if (cumulatedConsumptionDataWh > 0 && consumptionWh <= 0) {
-        const lastStepDate = this.pricingModel.currentContext.lastParkingTimeStepDate || this.pricingModel.currentContext.sessionStartDate;
+        const lastStepDate = this.pricingModel.pricerContext.lastParkingTimeStepDate || this.pricingModel.pricerContext.sessionStartDate;
         const pricedData = this.priceTimeDimension(dimensionToPrice, lastStepDate);
         if (pricedData) {
-          this.pricingModel.currentContext.lastParkingTimeStepDate = this.consumptionData.endedAt;
+          this.pricingModel.pricerContext.lastParkingTimeStepDate = this.consumptionData.endedAt;
           pricedData.sourceName = activePricingDefinition.name;
         }
         return pricedData;
       }
     }
     // IMPORTANT - keep track of the consumption where nothing was priced
-    this.pricingModel.currentContext.lastParkingTimeStepDate = this.consumptionData.endedAt;
+    this.pricingModel.pricerContext.lastParkingTimeStepDate = this.consumptionData.endedAt;
   }
 
   private getActiveDefinition4Dimension(actualPricingDefinitions: PricingDefinition[], dimensionType: string): PricingDefinition {
