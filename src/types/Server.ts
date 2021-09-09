@@ -539,6 +539,15 @@ export enum ServerRoute {
   REST_ASSET_CONSUMPTIONS = 'assets/:id/consumptions',
   REST_ASSET_IMAGE = 'assets/:id/image',
 
+  REST_CARS = 'cars',
+  REST_CAR = 'cars/:id',
+  REST_CAR_CATALOGS = 'car-catalogs',
+  REST_CAR_CATALOG = 'car-catalogs/:id',
+  REST_CAR_CATALOG_IMAGES = 'car-catalogs/:id/images',
+  REST_CAR_CATALOG_IMAGE = 'car-catalogs/:id/image',
+  REST_CAR_CATALOG_SYNCHRONIZE = 'car-catalogs/action/synchronize',
+  REST_CAR_MAKERS = 'car-makes',
+
   REST_PING = 'ping',
 
   REST_TENANTS = 'tenants',

@@ -1,29 +1,41 @@
 {
-  "title": "Get Tags",
-  "description": "",
+  "title": "Get Assets Request",
   "type": "object",
   "properties": {
-    "Active": {
-      "$ref": "tag.json#/definitions/active"
+    "WithSiteArea": {
+      "type": "boolean",
+      "sanitize": "mongo"
     },
-    "Issuer": {
-      "$ref": "tag.json#/definitions/issuer"
+    "WithNoSiteArea": {
+      "type": "boolean",
+      "sanitize": "mongo"
     },
-    "UserID": {
+    "SiteAreaID": {
       "$ref": "common.json#/definitions/ids"
     },
-    "WithUser": {
+    "SiteID": {
+      "$ref": "common.json#/definitions/ids"
+    },
+    "DynamicOnly": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "ErrorType": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "Issuer": {
       "type": "boolean",
       "sanitize": "mongo"
     },
     "Search": {
       "$ref": "common.json#/definitions/search"
     },
-    "SortFields": {
-      "$ref": "common.json#/definitions/sortFields"
-    },
     "Limit": {
       "$ref": "common.json#/definitions/limit"
+    },
+    "SortFields": {
+      "$ref": "common.json#/definitions/sortFields"
     },
     "Skip": {
       "$ref": "common.json#/definitions/skip"

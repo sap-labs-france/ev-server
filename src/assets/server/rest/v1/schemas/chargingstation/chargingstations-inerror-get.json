@@ -6,10 +6,10 @@
       "$ref": "common.json#/definitions/search"
     },
     "SiteID": {
-      "$ref": "common.json#/definitions/IDs"
+      "$ref": "common.json#/definitions/ids"
     },
     "SiteAreaID": {
-      "$ref": "common.json#/definitions/IDs"
+      "$ref": "common.json#/definitions/ids"
     },
     "ErrorType": {
       "type": "string",
