@@ -1,5 +1,6 @@
 import AuthenticatedBaseApi from './utils/AuthenticatedBaseApi';
 import CrudApi from './utils/CrudApi';
+import { ServerRoute } from '../../../src/types/Server';
 import TestConstants from './utils/TestConstants';
 
 export default class CarApi extends CrudApi {
@@ -12,11 +13,11 @@ export default class CarApi extends CrudApi {
   }
 
   public async readCarCatalog(id) {
-    return super.read({ ID: id }, '/client/api/CarCatalog');
+    return super.read({ ID: id }, this.buildRestEndpointUrl(ServerRoute.REST_CAR_CATALOG, { id }));
   }
 
   public async readCarCatalogs(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, '/client/api/CarCatalogs');
+    return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(ServerRoute.REST_CAR_CATALOGS));
   }
 
   public async readCarMakers(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
@@ -24,7 +25,7 @@ export default class CarApi extends CrudApi {
   }
 
   public async readCarImages(id) {
-    return super.read({ ID: id }, '/client/api/CarCatalogImages');
+    return super.read({ ID: id }, this.buildRestEndpointUrl(ServerRoute.REST_CAR_CATALOG_IMAGES, { id }));
   }
 
   public async readCar(id) {

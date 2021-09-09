@@ -393,7 +393,7 @@ export default class DatabaseUtils {
     return userID;
   }
 
-  public static async checkTenant(tenantID: string): Promise<Tenant> {
+  public static async checkTenant(tenantID: string): Promise<void> {
     if (!tenantID) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -422,7 +422,6 @@ export default class DatabaseUtils {
           message: `Invalid Tenant ID '${tenantID}'`
         });
       }
-      return tenant;
     }
   }
 

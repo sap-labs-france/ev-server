@@ -51,6 +51,10 @@
     {
       "name": "Assets",
       "description": "Assets API"
+    },
+    {
+      "name": "Cars",
+      "description": "Cars API"
     }
   ],
   "paths": {
@@ -5766,15 +5770,24 @@
                   "tag": {
                     "active": true,
                     "description": "###",
-                    "id": "###"
+                    "id": "###",
+                    "default": "###"
                   },
                   "car": {
                     "licensePlate": "###",
+                    "default": "###",
                     "type": "#",
+                    "converter": {
+                      "powerWatts": "###",
+                      "numberOfPhases": "###"
+                    },
                     "carCatalog": {
                       "vehicleMake": "###",
                       "vehicleModel": "###",
-                      "vehicleModelVersion": "###"
+                      "vehicleModelVersion": "###",
+                      "image": "###",
+                      "batteryCapacityFull": "###",
+                      "fastChargePowerMax": "###"
                     },
                     "id": "###"
                   }
@@ -6526,6 +6539,7 @@
                     "name": "###",
                     "id": "###"
                   },
+                  "visualID": "###",
                   "id": "###"
                 }
               }
@@ -6563,18 +6577,17 @@
               "schema": {
                 "required": [
                   "userID",
-                  "issuer",
                   "active",
-                  "description"
+                  "visualID"
                 ],
                 "properties": {
                   "userID": {
                     "type": "string",
                     "example": "###"
                   },
-                  "issuer": {
-                    "type": "boolean",
-                    "example": true
+                  "visualID": {
+                    "type": "string",
+                    "example": "###"
                   },
                   "active": {
                     "type": "boolean",
@@ -7226,6 +7239,294 @@
         }
       }
     },
+    "/api/car-catalogs": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get car catalogs list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "CarMaker",
+            "description": "Pipe separated car makers",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Cars"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return car catalogs list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "vehicleMake": "Tesla",
+                      "vehicleModel": "Model S",
+                      "vehicleModelVersion": "Standard Range",
+                      "drivetrainPowerHP": 333,
+                      "performanceAcceleration": 4.4,
+                      "performanceTopspeed": 225,
+                      "rangeWLTP": 0,
+                      "rangeReal": 385,
+                      "efficiencyReal": 18.8,
+                      "chargePlug": "Type 2",
+                      "chargeStandardPower": 16.5,
+                      "chargeStandardPhase": 3,
+                      "chargeStandardPhaseAmp": 24,
+                      "chargeAlternativePower": 0,
+                      "chargeAlternativePhase": 0,
+                      "chargeAlternativePhaseAmp": 0,
+                      "chargeOptionPower": 0,
+                      "chargeOptionPhase": 0,
+                      "chargeOptionPhaseAmp": 0,
+                      "fastChargePlug": "Supercharger",
+                      "fastChargePowerMax": 100,
+                      "batteryCapacityFull": 75,
+                      "image": "###",
+                      "id": "###",
+                      "canRead": true,
+                      "canDelete": false,
+                      "canUpdate": false
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Create an Asset",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Asset"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Assets"
+        ],
+        "responses": {
+          "200": {
+            "description": "Asset created successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success",
+                  "id": "###"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/car-catalogs/{id}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get car catalog",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/carCatalogID"
+          }
+        ],
+        "tags": [
+          "Cars"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return car catalog",
+            "content": {
+              "application/json": {
+                "example": {
+                  "vehicleMake": "Tesla",
+                  "vehicleModel": "Model S",
+                  "vehicleModelVersion": "Standard Range",
+                  "drivetrainPropulsion": "AWD",
+                  "drivetrainPowerHP": 333,
+                  "drivetrainTorque": 525,
+                  "performanceAcceleration": 4.4,
+                  "performanceTopspeed": 225,
+                  "rangeWLTP": 0,
+                  "rangeReal": 385,
+                  "efficiencyReal": 18.8,
+                  "chargePlug": "Type 2",
+                  "chargePlugLocation": "Left Side - Rear",
+                  "chargeStandardPower": 16.5,
+                  "chargeStandardPhase": 3,
+                  "chargeStandardChargeTime": 315,
+                  "chargeStandardChargeSpeed": 73,
+                  "chargeAlternativePower": 0,
+                  "chargeAlternativePhase": 0,
+                  "chargeAlternativePhaseAmp": 0,
+                  "chargeOptionPower": 0,
+                  "chargeOptionPhase": 0,
+                  "chargeOptionPhaseAmp": 0,
+                  "fastChargePlug": "Supercharger",
+                  "fastChargePowerMax": 100,
+                  "batteryCapacityUseable": 72.5,
+                  "batteryCapacityFull": 75,
+                  "miscBody": "Liftback Sedan",
+                  "miscSegment": "F - Luxury",
+                  "miscSeats": 5,
+                  "miscIsofix": true,
+                  "miscIsofixSeats": 2,
+                  "miscTurningCircle": 12.4,
+                  "hash": null,
+                  "image": "###",
+                  "id": "###",
+                  "canRead": true,
+                  "canDelete": false,
+                  "canUpdate": false
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/car-catalogs/{id}/image": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get car catalog image",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/carCatalogID"
+          }
+        ],
+        "tags": [
+          "Cars"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return car catalog image"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/car-catalogs/{id}/images": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get car catalog images",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/carCatalogID"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          }
+        ],
+        "tags": [
+          "Cars"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return car catalog images"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
     "/api/assets": {
       "get": {
         "security": [
@@ -7445,6 +7746,95 @@
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
+      },
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Update an Asset",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/assetID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Asset"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Assets"
+        ],
+        "responses": {
+          "200": {
+            "description": "Asset updated successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Delete an Asset",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/assetID"
+          }
+        ],
+        "tags": [
+          "Assets"
+        ],
+        "responses": {
+          "200": {
+            "description": "Asset deleted successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
       }
     },
     "/api/assets/status/in-error": {
@@ -7597,6 +7987,101 @@
                 }
               }
             }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/assets/{id}/consumptions": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get asset's consumptions",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/assetID"
+          },
+          {
+            "in": "query",
+            "name": "StartDate",
+            "description": "Consumption Start Date (ISO format)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "EndDate",
+            "description": "Consumption start Date (ISO format)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Assets"
+        ],
+        "responses": {
+          "200": {
+            "description": "Asset's last consumption retrieved",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/assets/{id}/image": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get asset's image",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/assetID"
+          }
+        ],
+        "tags": [
+          "Assets"
+        ],
+        "responses": {
+          "200": {
+            "description": "Returned asset's image"
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
@@ -9178,6 +9663,15 @@
         "in": "query",
         "name": "ReportIDs",
         "description": "Pipe separated report IDs",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "carCatalogID": {
+        "in": "query",
+        "name": "id",
+        "description": "Car Catalog ID",
+        "required": true,
         "schema": {
           "type": "string"
         }
