@@ -1,5 +1,5 @@
 {
-  "title": "Get all the Car Catalogs Request",
+  "title": "Get a Car Catalog Request",
   "type": "object",
   "properties": {
     "ID": {

@@ -59,13 +59,13 @@ export default class CarValidator extends SchemaValidator {
     return data;
   }
 
-  public validateCreateCarReq(data: HttpCarCreateRequest): HttpCarCreateRequest {
+  public validateCreateCarReq(data: any): HttpCarCreateRequest {
     // Validate schema
     this.validate(this.carCreate, data);
     return data;
   }
 
-  public validateUpdateCarReq(data: HttpCarUpdateRequest): HttpCarUpdateRequest {
+  public validateUpdateCarReq(data: any): HttpCarUpdateRequest {
     // Validate schema
     this.validate(this.carUpdate, data);
     return data;
