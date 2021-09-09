@@ -26,9 +26,9 @@ export default class ConsumptionPricer {
   public priceConsumption(): PricedConsumptionData {
     // Price the consumption data for each dimension
     const flatFee = this.priceFlatFeeConsumption();
-    const energy: PricedDimensionData = this.priceEnergyConsumption();
-    const chargingTime: PricedDimensionData = this.priceChargingTimeConsumption();
-    const parkingTime: PricedDimensionData = this.priceParkingTimeConsumption();
+    const energy = this.priceEnergyConsumption();
+    const chargingTime = this.priceChargingTimeConsumption();
+    const parkingTime = this.priceParkingTimeConsumption();
     // Return all dimensions
     const pricingConsumptionData: PricedConsumptionData = {
       flatFee,
@@ -45,9 +45,9 @@ export default class ConsumptionPricer {
         || !this.checkMaxEnergy(pricingDefinition.restrictions)
         || !this.checkMinDuration(pricingDefinition.restrictions)
         || !this.checkMaxDuration(pricingDefinition.restrictions)) {
-        // -----------------------------------------------------------------------------------------
-        // TODO - to be clarified - why don't we put "validity date" at the pricing model level?
-        // -----------------------------------------------------------------------------------------
+        // ---------------------------------------------------
+        // TODO - additional restrictions may be checked here
+        // ---------------------------------------------------
         // startTime?: string, // Start time of day, for example 13:30, valid from this time of the day. Must be in 24h format with leading zeros. Hour/Minute se
         // endTime?: string, // End time of day, for example 19:45, valid until this time of the day. Same syntax as start_time
         // startDate?: string, // Start date, for example: 2015-12-24, valid from this day
