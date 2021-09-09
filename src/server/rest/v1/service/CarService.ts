@@ -3,6 +3,7 @@ import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
 import { CarCatalogDataResult, CarDataResult } from '../../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
+import Tenant, { TenantComponents } from '../../../../types/Tenant';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
@@ -17,8 +18,6 @@ import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
-import Tenant from '../../../../types/Tenant';
-import { TenantComponents } from '../../../../types/Tenant';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 
@@ -265,6 +264,7 @@ export default class CarService {
       userID: filteredRequest.userID,
       default: filteredRequest.default,
       converter: filteredRequest.converter,
+      carConnectorData: filteredRequest.carConnectorData,
       createdOn: new Date()
     };
     // Save
@@ -343,6 +343,7 @@ export default class CarService {
     car.converter = filteredRequest.converter;
     car.userID = filteredRequest.userID;
     car.default = filteredRequest.default;
+    car.carConnectorData = filteredRequest.carConnectorData;
     car.lastChangedBy = { 'id': req.user.id };
     car.lastChangedOn = new Date();
     // Save

@@ -55,8 +55,10 @@ export default class CarSecurity {
         type: sanitize(request.converter.type),
         powerWatts: sanitize(request.converter.powerWatts)
       },
-      carConnectorID: sanitize(request.carConnectorID),
-      carConnectorMeterID: sanitize(request.carConnectorMeterID)
+      carConnectorData: {
+        carConnectorID: sanitize(request.carConnectorData.carConnectorID),
+        carConnectorMeterID: sanitize(request.carConnectorData.carConnectorMeterID)
+      }
     };
   }
 
@@ -75,8 +77,10 @@ export default class CarSecurity {
         type: sanitize(request.converter.type),
         powerWatts: sanitize(request.converter.powerWatts)
       },
-      carConnectorID: sanitize(request.carConnectorID),
-      carConnectorMeterID: sanitize(request.carConnectorMeterID)
+      carConnectorData: {
+        carConnectorID: sanitize(request.carConnectorData.carConnectorID),
+        carConnectorMeterID: sanitize(request.carConnectorData.carConnectorMeterID)
+      }
     };
     return filteredRequest;
   }
@@ -86,7 +90,8 @@ export default class CarSecurity {
       Search: sanitize(request.Search),
       CarMaker: sanitize(request.CarMaker),
       WithUser: UtilsSecurity.filterBoolean(request.WithUser),
-      UserID: sanitize(request.UserID)
+      UserID: sanitize(request.UserID),
+      WithCarConnector: UtilsSecurity.filterBoolean(request.WithCarConnector),
     } as HttpCarsRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);

@@ -497,6 +497,10 @@ export default class CarStorage {
         amperagePerPhase: Utils.convertToInt(carToSave.converter.amperagePerPhase),
         numberOfPhases: Utils.convertToFloat(carToSave.converter.numberOfPhases),
         type: carToSave.converter.type
+      },
+      carConnectorData: {
+        carConnectorID: carToSave.carConnectorData.carConnectorID,
+        carConnectorMeterID: carToSave.carConnectorData.carConnectorMeterID
       }
     };
     // Add Last Changed/Created props
