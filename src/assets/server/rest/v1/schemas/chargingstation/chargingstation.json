@@ -2,13 +2,7 @@
   "$id": "chargingstation.json",
   "definitions": {
     "id": {
-      "type": "string",
-      "pattern": "^[^|]*$",
-      "sanitize": "mongo"
-    },
-    "IDs": {
-      "type": "string",
-      "sanitize": "mongo"
+      "$ref": "common.json#/definitions/string-id"
     },
     "chargingProfile": {
       "type": "object",
@@ -148,11 +142,6 @@
         "chargingStationID",
         "profile"
       ]
-    },
-    "connectorIDs": {
-      "type": "string",
-      "pattern": "^(\\d\\|?)*$",
-      "sanitize": "mongo"
     },
     "connector": {
       "type": "object",

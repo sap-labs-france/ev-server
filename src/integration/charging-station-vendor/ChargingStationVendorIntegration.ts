@@ -304,19 +304,7 @@ export default abstract class ChargingStationVendorIntegration {
             });
             results.push(ret);
           }
-          // Reapply the current limitation
-          for (const chargePoint of chargingStation.chargePoints) {
-            await this.setStaticPowerLimitation(tenant, chargingStation, chargePoint,
-              this.getStaticPowerLimitation(chargingStation, chargePoint));
-          }
           return results;
-        }
-        // Reapply the current limitation
-        if (result.status === OCPPClearChargingProfileStatus.ACCEPTED) {
-          for (const chargePoint of chargingStation.chargePoints) {
-            await this.setStaticPowerLimitation(tenant, chargingStation, chargePoint,
-              this.getStaticPowerLimitation(chargingStation, chargePoint));
-          }
         }
         return result;
       }
@@ -325,13 +313,6 @@ export default abstract class ChargingStationVendorIntegration {
       const result = await chargingStationClient.clearChargingProfile({
         connectorId: chargingProfile.connectorID
       });
-      // Reapply the current limitation
-      if (result.status === OCPPClearChargingProfileStatus.ACCEPTED) {
-        for (const chargePoint of chargingStation.chargePoints) {
-          await this.setStaticPowerLimitation(tenant, chargingStation, chargePoint,
-            this.getStaticPowerLimitation(chargingStation, chargePoint));
-        }
-      }
       return result;
     } catch (error) {
       await Logging.logError({
@@ -351,7 +332,7 @@ export default abstract class ChargingStationVendorIntegration {
   }
 
   public async getCompositeSchedule(tenant: Tenant, chargingStation: ChargingStation, chargePoint: ChargePoint,
-      connectorID: number, durationSecs: number): Promise<OCPPGetCompositeScheduleCommandResult> {
+      connectorID: number, durationSecs: number, chargingRateUnit?: ChargingRateUnitType): Promise<OCPPGetCompositeScheduleCommandResult> {
     // Check if feature is supported
     if (!chargingStation.capabilities?.supportChargingProfiles) {
       throw new BackendError({
@@ -384,7 +365,7 @@ export default abstract class ChargingStationVendorIntegration {
       const result = await chargingStationClient.getCompositeSchedule({
         connectorId: connectorID,
         duration: durationSecs,
-        chargingRateUnit: chargingStation.powerLimitUnit
+        chargingRateUnit
       });
       // Convert
       result.chargingSchedule = this.convertFromVendorChargingSchedule(chargingStation, chargePoint, result.connectorId, result.chargingSchedule);
@@ -654,6 +635,8 @@ export default abstract class ChargingStationVendorIntegration {
         if (moment(chargingSchedule.startSchedule).isAfter(now)) {
           chargingSchedule.startSchedule.setDate(currentDate.getDate() - 1);
         }
+      } else if (moment(chargingSchedule.startSchedule).isAfter(now)) {
+        return null;
       }
       // Check if the Charging Profile is active
       if (moment(chargingSchedule.startSchedule).add(chargingSchedule.duration, 's').isAfter(now)) {

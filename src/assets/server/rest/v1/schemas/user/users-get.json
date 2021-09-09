@@ -7,10 +7,10 @@
       "sanitize": "mongo"
     },
     "SiteID": {
-      "$ref": "common.json#/definitions/IDs"
+      "$ref": "common.json#/definitions/ids"
     },
     "UserID": {
-      "$ref": "user.json#/definitions/IDs"
+      "$ref": "common.json#/definitions/ids"
     },
     "Roles": {
       "type": "string",
@@ -23,7 +23,7 @@
       "pattern": "^[PAIBL](\\|[PAIBL])*$"
     },
     "ExcludeSiteID": {
-      "$ref": "common.json#/definitions/IDs"
+      "$ref": "common.json#/definitions/ids"
     },
     "VisualTagID": {
       "type": "string",

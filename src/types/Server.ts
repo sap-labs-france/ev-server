@@ -527,10 +527,20 @@ export enum ServerRoute {
 
   REST_ASSETS = 'assets',
   REST_ASSET = 'assets/:id',
-  REST_ASSET_CONSUMPTION = 'assets/:id/consumption',
   REST_ASSETS_IN_ERROR = 'assets/status/in-error',
   REST_ASSET_CHECK_CONNECTION = 'assets/:id/connector/connection/check',
   REST_ASSET_RETRIEVE_CONSUMPTION = 'assets/:id/connector/consumption/retrieve-last',
+  REST_ASSET_CONSUMPTIONS = 'assets/:id/consumptions',
+  REST_ASSET_IMAGE = 'assets/:id/image',
+
+  REST_CARS = 'cars',
+  REST_CAR = 'cars/:id',
+  REST_CAR_CATALOGS = 'car-catalogs',
+  REST_CAR_CATALOG = 'car-catalogs/:id',
+  REST_CAR_CATALOG_IMAGES = 'car-catalogs/:id/images',
+  REST_CAR_CATALOG_IMAGE = 'car-catalogs/:id/image',
+  REST_CAR_CATALOG_SYNCHRONIZE = 'car-catalogs/action/synchronize',
+  REST_CAR_MAKERS = 'car-makers',
 
   REST_CARS = 'cars',
   REST_CAR = 'cars/:id',

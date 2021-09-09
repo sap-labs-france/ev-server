@@ -22,6 +22,7 @@ export default class SchemaValidator {
   private transactionSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transaction.json`, 'utf8'));
   private userSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user.json`, 'utf8'));
   private carSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/car/car.json`, 'utf8'));
+  private assetSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/asset/asset.json`, 'utf8'));
 
   constructor(readonly moduleName: string,
       config: {
@@ -50,6 +51,7 @@ export default class SchemaValidator {
     this.ajv.addSchema(this.transactionSchema);
     this.ajv.addSchema(this.userSchema);
     this.ajv.addSchema(this.carSchema);
+    this.ajv.addSchema(this.assetSchema);
   }
 
   public validate(schema: Schema, content: any): void {
