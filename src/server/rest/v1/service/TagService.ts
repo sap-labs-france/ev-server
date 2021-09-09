@@ -229,6 +229,17 @@ export default class TagService {
         action: action
       });
     }
+    // Check if tag is active
+    if (!tag.active) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.TAG_INACTIVE,
+        message: `Tag with visual ID '${filteredRequest.visualID}' is not active and cannot be assigned`,
+        module: MODULE_NAME, method: 'handleAssignTag',
+        user: req.user,
+        action: action
+      });
+    }
     if (tag.user) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -397,7 +408,7 @@ export default class TagService {
     tag.description = filteredRequest.description;
     tag.active = filteredRequest.active;
     tag.userID = filteredRequest.userID;
-    tag.default = filteredRequest.default;
+    tag.default = filteredRequest.userID ? filteredRequest.default : false;
     tag.lastChangedBy = { id: req.user.id };
     tag.lastChangedOn = new Date();
     // Save
@@ -725,6 +736,7 @@ export default class TagService {
         // Unassign the Tag
         const userID = tag.userID;
         tag.userID = null;
+        tag.active = false;
         await TagStorage.saveTag(tenant, tag);
         result.inSuccess++;
         // Ensure User has a default Tag
