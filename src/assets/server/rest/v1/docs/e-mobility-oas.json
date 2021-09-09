@@ -7249,12 +7249,7 @@
         "description": "Get car catalogs list",
         "parameters": [
           {
-            "in": "query",
-            "name": "CarMaker",
-            "description": "Pipe separated car makers",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/CarMakers"
           },
           {
             "$ref": "#/components/parameters/Search"
@@ -7316,48 +7311,6 @@
                       "canUpdate": false
                     }
                   ]
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          },
-          "403": {
-            "$ref": "#/components/responses/ForbiddenError"
-          },
-          "500": {
-            "$ref": "#/components/responses/BackendError"
-          }
-        }
-      },
-      "post": {
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "description": "Create an Asset",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Asset"
-              }
-            }
-          }
-        },
-        "tags": [
-          "Assets"
-        ],
-        "responses": {
-          "200": {
-            "description": "Asset created successfully",
-            "content": {
-              "application/json": {
-                "example": {
-                  "status": "Success",
-                  "id": "###"
                 }
               }
             }
@@ -7510,7 +7463,20 @@
         ],
         "responses": {
           "200": {
-            "description": "Return car catalog images"
+            "description": "Return car catalog images",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "id": "###",
+                      "image": "###"
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
@@ -7523,6 +7489,246 @@
           },
           "550": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/car-catalogs/action/synchronize": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Synchronize car catalogs",
+        "tags": [
+          "Cars"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return car catalogs list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/car-makers": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get car makers list",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Cars"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return car makers list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "carMaker": "###"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/cars": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get cars list",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/CarMakers"
+          },
+          {
+            "$ref": "#/components/parameters/WithUser"
+          },
+          {
+            "$ref": "#/components/parameters/UserID"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Cars"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return cars list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "converter": {
+                        "powerWatts": 11,
+                        "amperagePerPhase": 16,
+                        "numberOfPhases": 3,
+                        "type": "S"
+                      },
+                      "createdOn": "2021-01-08T10:13:19.650Z",
+                      "lastChangedBy": {
+                        "firstName": "###",
+                        "name": "###"
+                      },
+                      "licensePlate": "###",
+                      "type": "C",
+                      "vin": "###",
+                      "default": true,
+                      "lastChangedOn": "2021-09-02T14:25:20.771Z",
+                      "userID": "###",
+                      "carCatalog": {
+                        "vehicleMake": "Tesla",
+                        "vehicleModel": "Model 3",
+                        "vehicleModelVersion": "Long Range Dual Motor",
+                        "fastChargePowerMax": 250,
+                        "batteryCapacityFull": 78,
+                        "image": "###",
+                        "id": "###"
+                      },
+                      "user": {
+                        "firstName": "###",
+                        "name": "###",
+                        "id": "###"
+                      },
+                      "id": "###",
+                      "canRead": true,
+                      "canDelete": true,
+                      "canUpdate": true
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Create car",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Car"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Cars"
+        ],
+        "responses": {
+          "200": {
+            "description": "Car successfully created",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "###",
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "591": {
+            "description": "The Car with the given VIN and given License plate already exists"
           }
         }
       }
@@ -9129,6 +9335,67 @@
             ]
           }
         }
+      },
+      "Car": {
+        "type": "object",
+        "required": [
+          "vin",
+          "licensePlate",
+          "carCatalogID",
+          "type",
+          "userID",
+          "default"
+        ],
+        "properties": {
+          "vin": {
+            "type": "string"
+          },
+          "licensePlate": {
+            "type": "string"
+          },
+          "carCatalogID": {
+            "type": "number"
+          },
+          "forced": {
+            "type": "boolean"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "P",
+              "C",
+              "PC"
+            ]
+          },
+          "userID": {
+            "type": "string"
+          },
+          "default": {
+            "type": "boolean"
+          },
+          "converter": {
+            "type": "object",
+            "properties": {
+              "amperagePerPhase": {
+                "type": "number"
+              },
+              "numberOfPhases": {
+                "type": "number"
+              },
+              "powerWatts": {
+                "type": "number"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "S",
+                  "O",
+                  "A"
+                ]
+              }
+            }
+          }
+        }
       }
     },
     "parameters": {
@@ -9672,6 +9939,14 @@
         "name": "id",
         "description": "Car Catalog ID",
         "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "CarMakers": {
+        "in": "query",
+        "name": "CarMaker",
+        "description": "Pipe separated car makers",
         "schema": {
           "type": "string"
         }
