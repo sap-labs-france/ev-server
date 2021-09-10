@@ -497,12 +497,14 @@ export default class CarStorage {
         amperagePerPhase: Utils.convertToInt(carToSave.converter.amperagePerPhase),
         numberOfPhases: Utils.convertToFloat(carToSave.converter.numberOfPhases),
         type: carToSave.converter.type
-      },
-      carConnectorData: {
-        carConnectorID: carToSave.carConnectorData.carConnectorID,
-        carConnectorMeterID: carToSave.carConnectorData.carConnectorMeterID
       }
     };
+    if (carToSave.carConnectorData) {
+      carMDB.carConnectorData = {
+        carConnectorID: carToSave.carConnectorData?.carConnectorID ?? null,
+        carConnectorMeterID: carToSave.carConnectorData?.carConnectorMeterID ?? null,
+      };
+    }
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(carMDB, carToSave);
     // Modify

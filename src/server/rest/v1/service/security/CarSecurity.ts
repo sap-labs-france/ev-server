@@ -90,8 +90,7 @@ export default class CarSecurity {
       Search: sanitize(request.Search),
       CarMaker: sanitize(request.CarMaker),
       WithUser: UtilsSecurity.filterBoolean(request.WithUser),
-      UserID: sanitize(request.UserID),
-      WithCarConnector: UtilsSecurity.filterBoolean(request.WithCarConnector),
+      UserID: sanitize(request.UserID)
     } as HttpCarsRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);

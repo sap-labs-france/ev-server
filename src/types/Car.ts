@@ -1,5 +1,4 @@
 import { AuthorizationActions } from './Authorization';
-import { CarConnectorConnectionSetting } from './Setting';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 
 export interface CarCatalog extends CreatedUpdatedProps, AuthorizationActions {
