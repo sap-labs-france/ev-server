@@ -2242,6 +2242,15 @@ export default class OCPPService {
         action: ServerAction.OCPP_METER_VALUES,
         detailedMessages: { headers, meterValues }
       });
+    // Transaction finished!
+    } else if (transaction.stop) {
+      throw new BackendError({
+        source: chargingStation.id,
+        module: MODULE_NAME, method: 'getTransactionFromMeterValues',
+        message: `${Utils.buildConnectorInfo(meterValues.connectorId, meterValues.transactionId)} Transaction is already stopped`,
+        action: ServerAction.OCPP_METER_VALUES,
+        detailedMessages: { headers, transaction, meterValues }
+      });
     }
     // Received Meter Values after the Transaction End Meter Value
     if (transaction.transactionEndReceived) {
