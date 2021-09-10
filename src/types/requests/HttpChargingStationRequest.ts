@@ -136,6 +136,16 @@ export interface HttpChargingStationGetCompositeScheduleRequest {
   }
 }
 
+export interface HttpChargingStationUpdateFirmwareRequest {
+  chargingStationID: string,
+  args: {
+    location: string,
+    retries?: number,
+    retryInterval?: number,
+    retrieveDate: Date
+  }
+}
+
 export interface HttpIsAuthorizedRequest {
   Action: string;
   Arg1: any;

@@ -1188,8 +1188,28 @@ export default class ChargingStationService {
         result = await ChargingStationService.executeChargingStationCommand(
           req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
         break;
+      // Update Firmware
+      case Command.UPDATE_FIRMWARE:
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionUpdateFirmwareReq(req.body);
+        result = await ChargingStationService.executeChargingStationCommand(
+          req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
+        break;
       // Other commands
       default:
+        // Log Specific Schema has not been verified yet:
+        await Logging.logWarning({
+          tenantID: req.tenant.id,
+          siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          companyID: chargingStation.companyID,
+          chargingStationID: chargingStation.id,
+          source: chargingStation.id,
+          user: req.user,
+          action: action,
+          module: MODULE_NAME, method: 'handleAction',
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+          message: `Command '${command}' has not yet its own validation schema.`
+        });
         // Execute it
         result = await ChargingStationService.executeChargingStationCommand(
           req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
