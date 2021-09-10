@@ -1,6 +1,7 @@
 import { BillingDataTransactionStart, BillingDataTransactionStop } from '../../../types/Billing';
 import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate, Command, Connector, ConnectorCurrentLimitSource, CurrentType, OcppParameter, SiteAreaLimitSource, StaticLimitAmps, TemplateUpdate, TemplateUpdateResult } from '../../../types/ChargingStation';
+import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPResetCommandResult, OCPPResetStatus, OCPPResetType } from '../../../types/ocpp/OCPPClient';
 import { OCPPMeasurand, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat } from '../../../types/ocpp/OCPPServer';
 import { OICPIdentification, OICPSessionID } from '../../../types/oicp/OICPIdentification';
@@ -255,7 +256,7 @@ export default class OCPPUtils {
             );
           }
           // Set
-          pricedConsumption = await pricingImpl.startSession(transaction, consumption);
+          pricedConsumption = await pricingImpl.startSession(transaction, consumption, chargingStation);
           if (pricedConsumption) {
             // Set the initial pricing
             transaction.price = pricedConsumption.amount;
@@ -263,12 +264,16 @@ export default class OCPPUtils {
             transaction.priceUnit = pricedConsumption.currencyCode;
             transaction.pricingSource = pricedConsumption.pricingSource;
             transaction.currentCumulatedPrice = pricedConsumption.amount;
+            if (FeatureToggles.isFeatureActive(Feature.PRICING_NEW_MODEL)) {
+              // TODO - To be clarified - check for the PricingSource instead?
+              transaction.pricingModel = pricedConsumption.pricingModel;
+            }
           }
           break;
         // Meter Values
         case TransactionAction.UPDATE:
           // Set
-          pricedConsumption = await pricingImpl.updateSession(transaction, consumption);
+          pricedConsumption = await pricingImpl.updateSession(transaction, consumption, chargingStation);
           if (pricedConsumption) {
             // Update consumption
             consumption.amount = pricedConsumption.amount;
@@ -282,7 +287,7 @@ export default class OCPPUtils {
         // Stop Transaction
         case TransactionAction.STOP:
           // Set
-          pricedConsumption = await pricingImpl.stopSession(transaction, consumption);
+          pricedConsumption = await pricingImpl.stopSession(transaction, consumption, chargingStation);
           if (pricedConsumption) {
             // Update consumption
             consumption.amount = pricedConsumption.amount;

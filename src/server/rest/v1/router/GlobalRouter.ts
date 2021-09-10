@@ -8,6 +8,7 @@ import CarRouter from './api/CarRouter';
 import ChargingStationRouter from './api/ChargingStationRouter';
 import ConnectionRouter from './api/ConnectionRouter';
 import LoggingRouter from './api/LoggingRouter';
+import PricingRouter from './api/PricingRouter';
 import { StatusCodes } from 'http-status-codes';
 import SwaggerRouter from './doc/SwaggerRouter';
 import TagRouter from './api/TagRouter';
@@ -42,7 +43,6 @@ export default class GlobalRouter {
       AuthService.checkSessionHash.bind(this),
       [
         new AssetRouter().buildRoutes(),
-        new BillingRouter().buildRoutes(),
         new CarRouter().buildRoutes(),
         new ChargingStationRouter().buildRoutes(),
         new ConnectionRouter().buildRoutes(),
@@ -51,6 +51,8 @@ export default class GlobalRouter {
         new TenantRouter().buildRoutes(),
         new TransactionRouter().buildRoutes(),
         new UserRouter().buildRoutes(),
+        new BillingRouter().buildRoutes(),
+        new PricingRouter().buildRoutes(),
       ]);
   }
 

@@ -1,6 +1,6 @@
 import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity, SiteAreaAuthorizationActions } from '../../../../types/Authorization';
 import { Car, CarCatalog } from '../../../../types/Car';
-import { CarCatalogDataResult, CarDataResult, CompanyDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, UserDataResult } from '../../../../types/DataResult';
+import { CarCatalogDataResult, CarDataResult, CompanyDataResult, PricingDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, UserDataResult } from '../../../../types/DataResult';
 import { HttpAssignAssetsToSiteAreaRequest, HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
 import { HttpCarCatalogRequest, HttpCarCatalogsRequest, HttpCarRequest, HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
 import { HttpChargingStationRequest, HttpChargingStationsRequest } from '../../../../types/requests/HttpChargingStationRequest';
@@ -8,6 +8,7 @@ import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requ
 import { HttpSiteAssignUsersRequest, HttpSiteRequest, HttpSiteUsersRequest } from '../../../../types/requests/HttpSiteRequest';
 import { HttpTagRequest, HttpTagsRequest } from '../../../../types/requests/HttpTagRequest';
 import { HttpUserAssignSitesRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
+import Tenant, { TenantComponents } from '../../../../types/Tenant';
 import User, { UserRole } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -19,13 +20,13 @@ import DynamicAuthorizationFactory from '../../../../authorization/DynamicAuthor
 import { EntityDataType } from '../../../../types/GlobalType';
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import { HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
+import { HttpPricingDefinitionRequest } from '../../../../types/requests/HttpPricingRequest';
+import PricingDefinition from '../../../../types/Pricing';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import Tag from '../../../../types/Tag';
-import Tenant from '../../../../types/Tenant';
-import { TenantComponents } from '../../../../types/Tenant';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
@@ -383,6 +384,46 @@ export default class AuthorizationService {
       filteredRequest: Partial<HttpCompanyRequest>, authAction: Action, entityData?: EntityDataType): Promise<AuthorizationFilter> {
     return AuthorizationService.checkAndGetEntityAuthorizations(
       tenant, Entity.COMPANY, userToken, filteredRequest, filteredRequest.ID ? { CompanyID: filteredRequest.ID } : {}, authAction, entityData);
+  }
+
+  public static async checkAndGetPricingDefinitionsAuthorizations(tenant: Tenant, userToken: UserToken,
+      filteredRequest: Partial<HttpPricingDefinitionRequest>): Promise<AuthorizationFilter> {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      dataSources: new Map(),
+      projectFields: [],
+      authorized: false,
+    };
+    // Check static & dynamic authorization
+    await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.PRICING_DEFINITIONS, Action.LIST,
+      authorizationFilters, filteredRequest);
+    return authorizationFilters;
+  }
+
+  public static async addPricingDefinitionsAuthorizations(tenant: Tenant, userToken: UserToken, dataResult: PricingDataResult, authorizationFilter: AuthorizationFilter): Promise<void> {
+    // Add canCreate flag to root
+    dataResult.canCreate = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.PRICING_DEFINITION, Action.CREATE, authorizationFilter);
+    // Enrich
+    for (const pricingDefinition of dataResult.result) {
+      await AuthorizationService.addPricingAuthorizations(tenant, userToken, pricingDefinition, authorizationFilter);
+    }
+  }
+
+  public static async addPricingAuthorizations(tenant: Tenant, userToken: UserToken, pricingDefinition: PricingDefinition, authorizationFilter: AuthorizationFilter): Promise<void> {
+    // Enrich
+    pricingDefinition.canRead = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.PRICING_DEFINITION, Action.READ, authorizationFilter, { CompanyID: pricingDefinition.id }, pricingDefinition);
+    pricingDefinition.canDelete = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.PRICING_DEFINITION, Action.DELETE, authorizationFilter, { CompanyID: pricingDefinition.id }, pricingDefinition);
+    pricingDefinition.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.PRICING_DEFINITION, Action.UPDATE, authorizationFilter, { CompanyID: pricingDefinition.id }, pricingDefinition);
+  }
+
+  public static async checkAndGetPricingDefinitionAuthorizations(tenant: Tenant, userToken: UserToken,
+      filteredRequest: Partial<HttpCompanyRequest>, authAction: Action, entityData?: EntityDataType): Promise<AuthorizationFilter> {
+    return AuthorizationService.checkAndGetEntityAuthorizations(
+      tenant, Entity.PRICING_DEFINITION, userToken, filteredRequest, filteredRequest.ID ? { PricingID: filteredRequest.ID } : {}, authAction, entityData);
   }
 
   public static async checkAndGetSiteAreaAuthorizations(tenant: Tenant, userToken: UserToken,

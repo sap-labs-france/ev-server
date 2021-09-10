@@ -1,5 +1,7 @@
 import { BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingUser, BillingUserData } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
+import PricingDefinition, { PricedConsumptionData, PricingDimension } from '../../src/types/Pricing';
+import Tenant, { TenantComponents } from '../../src/types/Tenant';
 import chai, { assert, expect } from 'chai';
 
 import BillingStorage from '../../src/storage/mongodb/BillingStorage';
@@ -10,8 +12,6 @@ import Cypher from '../../src/utils/Cypher';
 import Factory from '../factories/Factory';
 import Stripe from 'stripe';
 import StripeBillingIntegration from '../../src/integration/billing/stripe/StripeBillingIntegration';
-import Tenant, { TenantComponents } from '../../src/types/Tenant';
-
 import TenantContext from './context/TenantContext';
 import TestConstants from './client/utils/TestConstants';
 import User from '../../src/types/User';
@@ -19,13 +19,13 @@ import UserStorage from '../../src/storage/mongodb/UserStorage';
 import Utils from '../../src/utils/Utils';
 import chaiSubset from 'chai-subset';
 import config from '../config';
+import moment from 'moment';
 import responseHelper from '../helpers/responseHelper';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
 
 export default class StripeIntegrationTestData {
-
   // Tenant: utbilling
   public tenantContext: TenantContext;
   // User Service for action requiring admin permissions (e.g.: set/reset stripe settings)
@@ -195,10 +195,22 @@ export default class StripeIntegrationTestData {
     // The user should have no DRAFT invoices
     await this.checkForDraftInvoices(this.dynamicUser.id, 0);
     // Let's create an Invoice with a first Item
-    const dynamicInvoice = await this.billInvoiceItem(1000 /* kW.h */, 4 /* EUR */, taxId);
+    const dynamicInvoice = await this.billInvoiceItem({
+      energyConsumptionkWh: 4, // kWh
+      energyAmount: 1, // EUR
+      partingTime: 10, // Minutes
+      parkingAmount: 5, // EUR
+      taxId
+    });
     assert(dynamicInvoice, 'Invoice should not be null');
     // Let's add an second item to the same invoice
-    const updatedInvoice = await this.billInvoiceItem(2000 /* kW.h */, 8 /* EUR */, taxId);
+    const updatedInvoice = await this.billInvoiceItem({
+      energyConsumptionkWh: 8, // kWh
+      energyAmount: 2, // EUR
+      partingTime: 10, // Minutes
+      parkingAmount: 5, // EUR
+      taxId
+    });
     assert(updatedInvoice, 'Invoice should not be null');
     // User should have a DRAFT invoice
     const draftInvoices = await this.getInvoicesByState(this.dynamicUser.id, BillingInvoiceStatus.DRAFT);
@@ -219,9 +231,7 @@ export default class StripeIntegrationTestData {
 
   public async checkImmediateBillingWithTaxes() : Promise<void> {
     // Inputs / Expected Outputs
-    const transactionPrice = 4 /* EUR */;
     const tax20percent = 20 /* VAT 20 % */;
-    const expectedTotal = 480; /* in cents, including taxes */
     // PREREQUISITE - immediateBillingAllowed MUST BE ON!
     const taxRate: Stripe.TaxRate = await this.assignTaxRate(tax20percent);
     const taxId = taxRate.id;
@@ -229,7 +239,14 @@ export default class StripeIntegrationTestData {
     await this.checkForDraftInvoices(this.dynamicUser.id, 0);
     // Let's create an Invoice with a first Item
     const beforeInvoiceDateTime = Utils.createDecimal(new Date().getTime()).div(1000).trunc().toNumber();
-    const dynamicInvoice = await this.billInvoiceItem(500 /* kW.h */, transactionPrice /* EUR */, taxId);
+    const dynamicInvoice = await this.billInvoiceItem({
+      energyConsumptionkWh: 16, // kWh
+      energyAmount: 4, // EUR
+      partingTime: 10, // Minutes
+      parkingAmount: 5, // EUR
+      taxId
+    });
+    const expectedTotal = 1080; /* in cents, including taxes */
     assert(dynamicInvoice, 'Invoice should not be null');
     // User should have a PAID invoice
     const paidInvoices = await this.getInvoicesByState(this.dynamicUser.id, BillingInvoiceStatus.PAID);
@@ -248,23 +265,41 @@ export default class StripeIntegrationTestData {
     expect(nbDraftInvoice).to.be.eql(0);
   }
 
-  public async billInvoiceItem(quantity: number, amount: number, taxId?: string) : Promise<BillingInvoice> {
+  public async billInvoiceItem(consumptionTestData: {
+    energyConsumptionkWh: number, // kWh
+    energyAmount: number, // EUR
+    partingTime: number, // Minutes
+    parkingAmount: number // EUR
+    taxId: string
+  }) : Promise<BillingInvoice> {
     assert(this.billingUser, 'Billing user cannot be null');
-    const price = amount / quantity;
-
     // array of tax ids to apply to the line item
-    const invoiceItem:BillingInvoiceItem = {
-      description: `Stripe Integration - ${quantity} kWh * ${price} Eur`,
-      transactionID: 777,
-      pricingData: {
-        quantity, // kW.h
-        amount, // total amount to bill -  not yet in cents
-        currency: 'EUR'
+    const taxes = (consumptionTestData.taxId) ? [ consumptionTestData.taxId ] : [];
+    // Pricing/Consumption Data
+    const pricingConsumptionData: PricedConsumptionData = {
+      energy: {
+        itemDescription: `Energy consumption - ${consumptionTestData.energyConsumptionkWh} kWh * ${consumptionTestData.energyAmount / consumptionTestData.energyConsumptionkWh} Eur`,
+        unitPrice: Utils.createDecimal(consumptionTestData.energyAmount).div(consumptionTestData.energyConsumptionkWh).toNumber(),
+        amount: consumptionTestData.energyAmount, // total amount to bill -  not yet in cents
+        roundedAmount: Utils.truncTo(consumptionTestData.energyAmount, 2),
+        quantity: consumptionTestData.energyConsumptionkWh, // kW.h
+        taxes // Array of taxes - cannot be null
+      },
+      parkingTime: {
+        itemDescription: `Parking time - ${consumptionTestData.partingTime} minutes`,
+        unitPrice: Utils.createDecimal(consumptionTestData.parkingAmount).div(consumptionTestData.partingTime).toNumber(),
+        amount: consumptionTestData.parkingAmount, // Euros
+        roundedAmount: Utils.truncTo(consumptionTestData.parkingAmount, 2),
+        quantity: consumptionTestData.partingTime, // minutes
+        taxes // Array of taxes - cannot be null
       }
     };
-    if (taxId) {
-      invoiceItem.taxes = [ taxId ];
-    }
+    // Invoice Item
+    const invoiceItem:BillingInvoiceItem = {
+      currency: 'EUR',
+      transactionID: Utils.getRandomIntSafe(),
+      pricingData: [ pricingConsumptionData ]
+    };
     // Let's attempt to bill the line item
     const billingInvoice: BillingInvoice = await this.billingImpl.billInvoiceItem(this.dynamicUser, invoiceItem);
     assert(billingInvoice, 'Billing invoice should not be null');
@@ -397,5 +432,60 @@ export default class StripeIntegrationTestData {
       assert(response?.data?.succeeded === false, 'The operation should fail');
       assert(response?.data?.error, 'error should not be null');
     }
+  }
+
+  public async checkPricingDefinitionEndpoints(): Promise<void> {
+    const parkingPrice: PricingDimension = {
+      price: 0.75,
+      active: true
+    };
+    const tariff1: Partial<PricingDefinition> = {
+      entityID: null, // a pricing model for the tenant
+      entityType: null,
+      name: 'BLUE Tariff',
+      description: 'Tariff for low EVSE',
+      staticRestrictions: {
+        connectorType: null,
+        connectorPowerkW: 40,
+        validFrom: new Date(),
+        validTo: moment().add(10, 'minutes').toDate(),
+      },
+      dimensions: {
+        chargingTime: parkingPrice,
+        // energy: price4TheEnergy, // do not bill the energy - bill the parking time instead
+        parkingTime: parkingPrice,
+      }
+    };
+    let response = await this.adminUserService.pricingApi.createPricingDefinition(tariff1);
+    assert(response?.data?.status === 'Success', 'The operation should succeed');
+    assert(response?.data?.id, 'The ID should not be null');
+
+    const pricingDefinitionId = response?.data?.id;
+    response = await this.adminUserService.pricingApi.readPricingDefinition(pricingDefinitionId);
+    assert(response?.data?.id === pricingDefinitionId, 'The ID should be: ' + pricingDefinitionId);
+
+    const price4TheEnergy: PricingDimension = {
+      price: 0.35,
+      active: true
+    };
+    const tariff2: Partial<PricingDefinition> = {
+      name: 'GREEN Tariff',
+      description: 'Tariff for fast chargers',
+      staticRestrictions: {
+        connectorType: null,
+        connectorPowerkW: 40,
+        validFrom: new Date(),
+        validTo: moment().add(10, 'minutes').toDate(),
+      },
+      dimensions: {
+        // chargingTime: parkingPrice, // parking time is free while charging
+        energy: price4TheEnergy,
+        parkingTime: parkingPrice, // Parking time is not free when not charging
+      }
+    };
+
+    response = await this.adminUserService.pricingApi.createPricingDefinition(tariff2);
+    assert(response?.data?.status === 'Success', 'The operation should succeed');
+    assert(response?.data?.id, 'The ID should not be null');
   }
 }

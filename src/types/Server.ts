@@ -429,6 +429,12 @@ export enum ServerAction {
   BILLING_WEB_HOOK = 'BillingWebHook',
   BILLING_TEST_DATA_CLEANUP = 'BillingTestDataCleanup',
 
+  PRICING_DEFINITION = 'PricingDefinition',
+  PRICING_DEFINITIONS = 'PricingDefinitions',
+  PRICING_DEFINITION_CREATE = 'PricingDefinitionCreate',
+  PRICING_DEFINITION_UPDATE = 'PricingDefinitionUpdate',
+  PRICING_DEFINITION_DELETE = 'PricingDefinitionDelete',
+
   MONGO_DB = 'MongoDB',
 
   CHECK_AND_APPLY_SMART_CHARGING = 'CheckAndApplySmartCharging',
@@ -573,6 +579,10 @@ export enum ServerRoute {
 
   // BILLING URLs for Non-CRUD operations on INVOICES
   REST_BILLING_DOWNLOAD_INVOICE = 'invoices/:invoiceID/download',
+
+  // PRICING URLs for CRUD operations
+  REST_PRICING_DEFINITIONS = 'pricing-definitions',
+  REST_PRICING_DEFINITION = 'pricing-definitions/:id'
 }
 
 export enum ServerProtocol {

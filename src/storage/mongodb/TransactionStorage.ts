@@ -69,6 +69,7 @@ export default class TransactionStorage {
       roundedPrice: Utils.convertToFloat(transactionToSave.roundedPrice),
       priceUnit: transactionToSave.priceUnit,
       pricingSource: transactionToSave.pricingSource,
+      pricingModel: transactionToSave.pricingModel,
       stateOfCharge: transactionToSave.stateOfCharge,
       timezone: transactionToSave.timezone,
       signedData: transactionToSave.signedData,
