@@ -215,11 +215,35 @@ class TestData {
       // Create a second tariff with a different pricing strategy
       dimensions = {
         energy: {
-          price: 0.30,
+          price: 0.70,
           active: true
         },
         parkingTime: {
           price: 20, // Euro per hour
+          active: true
+        }
+      };
+      restrictions = {
+        minDurationSecs: 30 * 60 // Apply this tariff after 30 minutes
+      };
+    } else if (testMode === 'FF+E(STEP)-MainTariff') {
+      dimensions = {
+        flatFee: {
+          price: 2,
+          active: true
+        },
+        energy: {
+          price: 1, // 25 cents per kWh
+          stepSize: 2000, // Step Size - 2kWh
+          active: true
+        }
+      };
+    } else if (testMode === 'E(STEP)-After30mins') {
+      // Create a second tariff with a different pricing strategy
+      dimensions = {
+        energy: {
+          price: 0.5,
+          stepSize: 4000, // Step Size - 4kWh
           active: true
         }
       };
@@ -1358,6 +1382,36 @@ describe('Billing Service', function() {
           await testData.initChargingStationContext2TestFastCharger('FF+E');
           // A second Tariff applied after 30 mins!
           await testData.initChargingStationContext2TestFastCharger('E-After30mins');
+          // A tariff applied immediately
+          await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
+          const userWithBillingData = await testData.billingImpl.getUser(testData.userContext);
+          await testData.assignPaymentMethod(userWithBillingData, 'tok_fr');
+          const transactionID = await testData.generateTransaction(testData.userContext);
+          assert(transactionID, 'transactionID should not be null');
+          // Check that we have a new invoice with an invoiceID and an invoiceNumber
+          await testData.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID);
+        });
+
+        it('should bill the FF+E(STEP)+E(STEP) with 2 tariffs on COMBO CCS - DC', async () => {
+          // A first Tariff for the ENERGY Only
+          await testData.initChargingStationContext2TestFastCharger('FF+E(STEP)-MainTariff');
+          // A second Tariff applied after 30 mins!
+          await testData.initChargingStationContext2TestFastCharger('E(STEP)-After30mins');
+          // A tariff applied immediately
+          await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
+          const userWithBillingData = await testData.billingImpl.getUser(testData.userContext);
+          await testData.assignPaymentMethod(userWithBillingData, 'tok_fr');
+          const transactionID = await testData.generateTransaction(testData.userContext);
+          assert(transactionID, 'transactionID should not be null');
+          // Check that we have a new invoice with an invoiceID and an invoiceNumber
+          await testData.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID);
+        });
+
+        it('should bill the FF+E+E(STEP) with 2 tariffs on COMBO CCS - DC', async () => {
+          // A first Tariff for the ENERGY Only
+          await testData.initChargingStationContext2TestFastCharger('FF+E');
+          // A second Tariff applied after 30 mins!
+          await testData.initChargingStationContext2TestFastCharger('E(STEP)-After30mins');
           // A tariff applied immediately
           await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
           const userWithBillingData = await testData.billingImpl.getUser(testData.userContext);
