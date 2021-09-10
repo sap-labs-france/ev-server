@@ -42,56 +42,56 @@ export default class TagValidator extends SchemaValidator {
     return TagValidator.instance;
   }
 
-  validateImportedTagCreation(importedTag: any): void {
+  public validateImportedTagCreation(importedTag: any): void {
     this.validate(this.importedTagCreation, importedTag);
   }
 
-  validateTagCreate(tag: any): Tag {
+  public validateTagCreate(tag: any): Tag {
     this.validate(this.tagCreate, tag);
     return tag;
   }
 
-  validateTagAssign(tag: any): Tag {
+  public validateTagAssign(tag: any): Tag {
     this.validate(this.tagAssign, tag);
     return tag;
   }
 
-  validateTagUpdate(tag: any): Tag {
+  public validateTagUpdate(tag: any): Tag {
     this.validate(this.tagUpdate, tag);
     return tag;
   }
 
-  validateTagUpdateByVisualID(tag: any): Tag {
+  public validateTagUpdateByVisualID(tag: any): Tag {
     this.validate(this.tagUpdateByVisualID, tag);
     return tag;
   }
 
-  validateTagsGet(data: any): HttpTagsRequest {
+  public validateTagsGet(data: any): HttpTagsRequest {
     this.validate(this.tagsGet, data);
     return data;
   }
 
-  validateTagGetByID(data: any): HttpTagRequest {
+  public validateTagGetByID(data: any): HttpTagRequest {
     this.validate(this.tagGet, data);
     return data;
   }
 
-  validateTagGetByVisualID(data: any): HttpTagByVisualIDRequest {
+  public validateTagGetByVisualID(data: any): HttpTagByVisualIDRequest {
     this.validate(this.tagGetByVisualID, data);
     return data;
   }
 
-  validateTagsDelete(data: any): { tagsIDs: string[] } {
+  public validateTagsDelete(data: any): { tagsIDs: string[] } {
     this.validate(this.tagsDelete, data);
     return data;
   }
 
-  validateTagsUnassign(data: any): { visualIDs: string[] } {
+  public validateTagsUnassign(data: any): { visualIDs: string[] } {
     this.validate(this.tagsUnassign, data);
     return data;
   }
 
-  validateTagUnassign(data: any): { visualID: string } {
+  public validateTagUnassign(data: any): { visualID: string } {
     this.validate(this.tagUnassign, data);
     return data;
   }
