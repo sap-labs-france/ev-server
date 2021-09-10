@@ -188,10 +188,11 @@ export default class ConsumptionPricer {
     const activePricingDefinition = this.getActiveDefinition4Dimension(this.actualPricingDefinitions, DimensionType.PARKING_TIME);
     if (activePricingDefinition) {
       const dimensionToPrice = activePricingDefinition.dimensions.parkingTime;
+      const totalInactivitySecs = this.consumptionData?.totalInactivitySecs || 0;
       const cumulatedConsumptionDataWh = this.consumptionData?.cumulatedConsumptionWh || 0;
       const consumptionWh = this.consumptionData?.consumptionWh || 0;
-      // Price the parking time only after having charged - NOT during the warmup!
-      if (cumulatedConsumptionDataWh > 0 && consumptionWh <= 0) {
+      // Price the parking time only it makes sense - NOT during the warmup!
+      if (totalInactivitySecs > 0 && cumulatedConsumptionDataWh > 0 && consumptionWh <= 0) {
         // TODO - to be clarified - do we pay the first step before consuming it or not?
         const pricedData = this.priceTimeDimension(dimensionToPrice, this.getAbsorbedParkingTime());
         if (pricedData) {
