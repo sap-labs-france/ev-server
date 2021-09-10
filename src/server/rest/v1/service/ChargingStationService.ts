@@ -922,7 +922,6 @@ export default class ChargingStationService {
       req.tenant, req.user, filteredRequest.ID, action, null, {
         withSite: filteredRequest.WithSite,
         withSiteArea: filteredRequest.WithSiteArea,
-        withLogo: true
       }, true);
     res.json(chargingStation);
     next();
