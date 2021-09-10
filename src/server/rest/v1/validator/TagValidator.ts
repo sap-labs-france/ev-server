@@ -1,8 +1,8 @@
 import { HttpTagByVisualIDRequest, HttpTagRequest, HttpTagsRequest } from '../../../../types/requests/HttpTagRequest';
-import Tag, { ImportedTag } from '../../../../types/Tag';
 
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from './SchemaValidator';
+import Tag from '../../../../types/Tag';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
