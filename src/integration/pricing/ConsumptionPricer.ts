@@ -195,23 +195,6 @@ export default class ConsumptionPricer {
     return null;
   }
 
-  private extractFinalPricedConsumptionData(pricingDefinition: PricingDefinition): PricedConsumptionData {
-    const flatFee = pricingDefinition.dimensions.flatFee?.pricedData;
-    const energy = pricingDefinition.dimensions.energy?.pricedData;
-    const chargingTime = pricingDefinition.dimensions.chargingTime?.pricedData;
-    const parkingTime = pricingDefinition.dimensions.parkingTime?.pricedData;
-    if (flatFee || energy || chargingTime || parkingTime) {
-      return {
-        flatFee,
-        energy,
-        chargingTime,
-        parkingTime
-      };
-    }
-    // Nothing to bill for the current pricing definition
-    return null;
-  }
-
   private priceFlatFeeDimension(pricingDimension: PricingDimension): PricedDimensionData {
     const unitPrice = pricingDimension.price || 0;
     if (pricingDimension.pricedData) {
