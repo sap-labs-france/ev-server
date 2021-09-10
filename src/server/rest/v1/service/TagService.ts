@@ -285,7 +285,6 @@ export default class TagService {
     tag.description = filteredRequest.description;
     tag.lastChangedBy = { id: req.user.id };
     tag.lastChangedOn = new Date();
-    tag.active = filteredRequest.active;
     // Assign
     await TagStorage.saveTag(req.tenant, tag);
     // OCPI
