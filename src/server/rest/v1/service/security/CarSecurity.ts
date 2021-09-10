@@ -41,7 +41,7 @@ export default class CarSecurity {
   }
 
   public static filterCarCreateRequest(request: any): HttpCarCreateRequest {
-    return {
+    const filteredRequest: HttpCarCreateRequest = {
       vin: sanitize(request.vin),
       licensePlate: sanitize(request.licensePlate),
       carCatalogID: Utils.convertToInt(sanitize(request.carCatalogID)),
@@ -54,12 +54,15 @@ export default class CarSecurity {
         numberOfPhases: sanitize(request.converter.numberOfPhases),
         type: sanitize(request.converter.type),
         powerWatts: sanitize(request.converter.powerWatts)
-      },
-      carConnectorData: {
-        carConnectorID: sanitize(request.carConnectorData.carConnectorID),
-        carConnectorMeterID: sanitize(request.carConnectorData.carConnectorMeterID)
       }
     };
+    if (Utils.objectHasProperty(request, 'carConnectorData')) {
+      filteredRequest.carConnectorData = {
+        carConnectorID: sanitize(request.carConnectorData.carConnectorID),
+        carConnectorMeterID: sanitize(request.carConnectorData.carConnectorMeterID)
+      };
+    }
+    return filteredRequest;
   }
 
   public static filterCarUpdateRequest(request: any): HttpCarUpdateRequest {
@@ -76,12 +79,14 @@ export default class CarSecurity {
         numberOfPhases: sanitize(request.converter.numberOfPhases),
         type: sanitize(request.converter.type),
         powerWatts: sanitize(request.converter.powerWatts)
-      },
-      carConnectorData: {
-        carConnectorID: sanitize(request.carConnectorData.carConnectorID),
-        carConnectorMeterID: sanitize(request.carConnectorData.carConnectorMeterID)
       }
     };
+    if (Utils.objectHasProperty(request, 'carConnectorData')) {
+      filteredRequest.carConnectorData = {
+        carConnectorID: sanitize(request.carConnectorData.carConnectorID),
+        carConnectorMeterID: sanitize(request.carConnectorData.carConnectorMeterID)
+      };
+    }
     return filteredRequest;
   }
 

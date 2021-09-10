@@ -34,9 +34,9 @@ export interface HttpCarCreateRequest {
   converter?: CarConverter;
   userID: string;
   default: boolean;
-  carConnectorData: {
+  carConnectorData?: {
     carConnectorID: string;
-    carConnectorMeterID: string;
+    carConnectorMeterID?: string;
   }
 }
 
@@ -50,9 +50,9 @@ export interface HttpCarUpdateRequest {
   converter?: CarConverter;
   userID: string;
   default: boolean;
-  carConnectorData: {
+  carConnectorData?: {
     carConnectorID: string;
-    carConnectorMeterID: string;
+    carConnectorMeterID?: string;
   }
 }
 

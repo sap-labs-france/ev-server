@@ -158,7 +158,7 @@ export default class DatabaseUtils {
     }
   }
 
-  public static pushCollectionLookupInAggregation(collection: string, lookupParams: Partial<DbLookup>, additionalPipeline?: Record<string, any>[]): void {
+  public static pushCollectionLookupInAggregation(collection: string, lookupParams: DbLookup, additionalPipeline?: Record<string, any>[]): void {
     // Build Lookup's pipeline
     if (!lookupParams.pipelineMatch) {
       lookupParams.pipelineMatch = {};
