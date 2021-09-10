@@ -117,20 +117,17 @@ export default class ConsumptionPricer {
     const activePricingDefinition = this.getActiveDefinition4Dimension(this.actualPricingDefinitions, DimensionType.ENERGY);
     if (activePricingDefinition) {
       const dimensionToPrice = activePricingDefinition.dimensions.energy;
-      // Price the charging time only when charging!
       const consumptionWh = this.consumptionData?.consumptionWh || 0;
-      if (consumptionWh > 0) {
-        const lastStepCumulatedConsumption = this.pricingModel.pricerContext.lastStepCumulatedConsumption || 0;
-        const pricedData = this.priceEnergyDimension(dimensionToPrice, lastStepCumulatedConsumption);
-        if (pricedData) {
-          this.pricingModel.pricerContext.lastStepCumulatedConsumption = this.consumptionData.cumulatedConsumptionWh;
-          pricedData.sourceName = activePricingDefinition.name;
-        }
-        return pricedData;
+      const lastStepCumulatedConsumption = this.pricingModel.pricerContext.lastStepCumulatedConsumption || 0;
+      const pricedData = this.priceEnergyDimension(dimensionToPrice, lastStepCumulatedConsumption, consumptionWh);
+      if (pricedData) {
+        this.pricingModel.pricerContext.lastStepCumulatedConsumption = this.consumptionData.cumulatedConsumptionWh;
+        pricedData.sourceName = activePricingDefinition.name;
       }
+      return pricedData;
     }
     // IMPORTANT - keep track of the latest consumption even when nothing was priced
-    this.pricingModel.pricerContext.lastStepCumulatedConsumption = this.consumptionData.consumptionWh;
+    this.pricingModel.pricerContext.lastStepCumulatedConsumption = this.consumptionData.cumulatedConsumptionWh;
   }
 
   private priceChargingTimeConsumption(): PricedDimensionData {
@@ -237,20 +234,16 @@ export default class ConsumptionPricer {
     return pricingDimension.pricedData;
   }
 
-  private priceEnergyDimension(pricingDimension: PricingDimension, lastStepCumulatedConsumption: number): PricedDimensionData {
+  private priceEnergyDimension(pricingDimension: PricingDimension, lastStepCumulatedConsumption: number, consumptionWh: number): PricedDimensionData {
     // Is there a step size
     if (pricingDimension.stepSize) {
-      // Price the charging time only when charging!
       const delta = Utils.createDecimal(this.consumptionData.cumulatedConsumptionWh).minus(lastStepCumulatedConsumption);
       const nbSteps = delta.divToInt(pricingDimension.stepSize).toNumber();
       if (nbSteps > 0) {
         return this.priceConsumptionStep(pricingDimension, nbSteps);
       }
-    } else {
-      const consumptionWh = this.consumptionData?.consumptionWh || 0;
-      if (consumptionWh > 0) {
-        return this.priceConsumptionWh(pricingDimension, consumptionWh);
-      }
+    } else if (consumptionWh > 0) {
+      return this.priceConsumptionWh(pricingDimension, consumptionWh);
     }
   }
 
