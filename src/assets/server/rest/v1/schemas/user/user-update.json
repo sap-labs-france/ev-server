@@ -55,6 +55,9 @@
     },
     "role": {
       "$ref": "user.json#/definitions/role"
+    },
+    "technical": {
+      "type": "boolean"
     }
   },
   "required": [
