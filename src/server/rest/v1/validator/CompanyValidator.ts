@@ -42,13 +42,13 @@ export default class CompanyValidator extends SchemaValidator {
     return data;
   }
 
-  public validateCompanyCreate(data: Company): Company {
+  public validateCompanyCreate(data: any): Company {
     // Validate schema
     this.validate(this.companyCreate, data);
     return data;
   }
 
-  public validateCompanyUpdate(data: Company): Company {
+  public validateCompanyUpdate(data: any): Company {
     // Validate schema
     this.validate(this.companyUpdate, data);
     return data;

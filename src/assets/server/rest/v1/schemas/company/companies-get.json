@@ -43,6 +43,9 @@
     },
     "ProjectFields": {
       "$ref": "common.json#/definitions/projectFields"
+    },
+    "OnlyRecordCount": {
+      "$ref": "common.json#/definitions/onlyRecordCount"
     }
   },
   "required": []
