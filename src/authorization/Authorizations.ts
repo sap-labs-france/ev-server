@@ -724,10 +724,6 @@ export default class Authorizations {
     return user.role === UserRole.DEMO;
   }
 
-  public static isTechnical(user: UserToken | User): boolean {
-    return user.technical === true;
-  }
-
   public static async can(loggedUser: UserToken, entity: Entity, action: Action, context?: AuthorizationContext): Promise<AuthorizationResult> {
     // Check
     const authDefinition = AuthorizationsDefinition.getInstance();

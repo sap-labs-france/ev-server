@@ -226,12 +226,15 @@ export default class UserService {
       if (filteredRequest.role) {
         await UserStorage.saveUserRole(req.tenant, user.id, filteredRequest.role);
       }
-      // Save Technical user flag
-      await UserStorage.saveUserTechnicalFlag(req.tenant, user.id, user.technical);
       // Save Admin Data
       if (Utils.objectHasProperty(filteredRequest, 'plateID')) {
         const adminData: { plateID?: string; } = {};
         adminData.plateID = filteredRequest.plateID || null;
+        await UserStorage.saveUserAdminData(req.tenant, user.id, adminData);
+      }
+      if (Utils.objectHasProperty(filteredRequest, 'technical')) {
+        const adminData: { technical?: boolean; } = {};
+        adminData.technical = filteredRequest.technical || null;
         await UserStorage.saveUserAdminData(req.tenant, user.id, adminData);
       }
     }
@@ -679,11 +682,9 @@ export default class UserService {
       if (newUser.role) {
         await UserStorage.saveUserRole(req.tenant, newUser.id, newUser.role);
       }
-      // Save Technical user flag
-      await UserStorage.saveUserTechnicalFlag(req.tenant, newUser.id, newUser.technical);
       // Save Admin Data
-      if (newUser.plateID || Utils.objectHasProperty(newUser, 'notificationsActive')) {
-        const adminData: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications } = {};
+      if (newUser.plateID || Utils.objectHasProperty(newUser, 'notificationsActive') || Utils.objectHasProperty(newUser, 'technical')) {
+        const adminData: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications, technical?: boolean } = {};
         if (newUser.plateID) {
           adminData.plateID = newUser.plateID;
         }
@@ -692,6 +693,9 @@ export default class UserService {
           if (newUser.notifications) {
             adminData.notifications = newUser.notifications;
           }
+        }
+        if (Utils.objectHasProperty(newUser, 'technical')) {
+          adminData.technical = newUser.technical;
         }
         // Save User Admin data
         await UserStorage.saveUserAdminData(req.tenant, newUser.id, adminData);

@@ -755,7 +755,7 @@ export default class AuthService {
       token = jwt.sign(payload, jwtOptions.secretOrKey, {
         expiresIn: _centralSystemRestConfig.userDemoTokenLifetimeDays * 24 * 3600
       });
-    } else if (Authorizations.isTechnical(user)) {
+    } else if (user.technical) {
       token = jwt.sign(payload, jwtOptions.secretOrKey, {
         expiresIn: _centralSystemRestConfig.userTechnicalTokenLifetimeDays * 24 * 3600
       });

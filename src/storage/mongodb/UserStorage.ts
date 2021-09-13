@@ -454,19 +454,6 @@ export default class UserStorage {
     await Logging.traceEnd(tenant.id, MODULE_NAME, 'saveUserRole', uniqueTimerID);
   }
 
-  public static async saveUserTechnicalFlag(tenant: Tenant, userID: string, flag: boolean): Promise<void> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'saveUserTechnicalFlag');
-    // Check Tenant
-    DatabaseUtils.checkTenantObject(tenant);
-    // Modify and return the modified document
-    await global.database.getCollection<any>(tenant.id, 'users').findOneAndUpdate(
-      { '_id': DatabaseUtils.convertToObjectID(userID) },
-      { $set: { technical: flag === true } });
-    // Debug
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'saveUserTechnicalFlag', uniqueTimerID);
-  }
-
   public static async saveUserEULA(tenant: Tenant, userID: string,
       params: { eulaAcceptedHash: string; eulaAcceptedOn: Date; eulaAcceptedVersion: number }): Promise<void> {
     // Debug
@@ -496,7 +483,7 @@ export default class UserStorage {
   }
 
   public static async saveUserAdminData(tenant: Tenant, userID: string,
-      params: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications }): Promise<void> {
+      params: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications, technical?: boolean }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'saveUserAdminData');
     // Check Tenant
@@ -512,6 +499,9 @@ export default class UserStorage {
     }
     if (Utils.objectHasProperty(params, 'notifications')) {
       updatedUserMDB.notifications = params.notifications;
+    }
+    if (Utils.objectHasProperty(params, 'technical')) {
+      updatedUserMDB.technical = params.technical;
     }
     // Modify and return the modified document
     await global.database.getCollection<any>(tenant.id, 'users').findOneAndUpdate(
