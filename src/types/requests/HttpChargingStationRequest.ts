@@ -83,6 +83,8 @@ export interface HttpChargingStationParamsUpdateRequest {
 
 export interface HttpChargingStationRequest extends HttpByIDRequest {
   ID: string;
+  WithSite?: boolean,
+  WithSiteArea?: boolean;
 }
 
 export interface HttpChargingStationOcppRequest {
@@ -133,6 +135,16 @@ export interface HttpChargingStationGetCompositeScheduleRequest {
     connectorId: string,
     duration: number,
     chargingRateUnit?: string
+  }
+}
+
+export interface HttpChargingStationUpdateFirmwareRequest {
+  chargingStationID: string,
+  args: {
+    location: string,
+    retries?: number,
+    retryInterval?: number,
+    retrieveDate: Date
   }
 }
 
