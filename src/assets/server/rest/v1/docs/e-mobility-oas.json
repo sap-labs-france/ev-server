@@ -8605,6 +8605,7 @@
                       "lastChangedOn": "2020-03-15T10:36:56.784Z",
                       "issuer": true,
                       "id": "###",
+                      "logo": "###",
                       "canRead": true,
                       "canDelete": true,
                       "canUpdate": true
@@ -8769,15 +8770,8 @@
           }
         ],
         "responses": {
-          "201": {
-            "description": "Company deleted successfully",
-            "content": {
-              "application/json": {
-                "example": {
-                  "status": "Success"
-                }
-              }
-            }
+          "200": {
+            "description": "Company deleted successfully"
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
