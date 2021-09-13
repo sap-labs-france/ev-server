@@ -44,8 +44,8 @@ export default class GlobalRouter {
       [
         new AssetRouter().buildRoutes(),
         new BillingRouter().buildRoutes(),
-        new ChargingStationRouter().buildRoutes(),
         new CarRouter().buildRoutes(),
+        new ChargingStationRouter().buildRoutes(),
         new CompanyRouter().buildRoutes(),
         new ConnectionRouter().buildRoutes(),
         new LoggingRouter().buildRoutes(),
