@@ -7792,7 +7792,11 @@
                   "id": "###",
                   "canRead": true,
                   "canDelete": true,
-                  "canUpdate": true
+                  "canUpdate": true,
+                  "carConnectorData": {
+                    "carConnectorName": "string",
+                    "carConnectorMeterID": "string"
+                  }
                 }
               }
             }
@@ -9608,6 +9612,10 @@
                 ]
               }
             }
+          },
+          "carConnectorData": {
+            "carConnectorName": "string",
+            "carConnectorMeterID": "string"
           }
         }
       }

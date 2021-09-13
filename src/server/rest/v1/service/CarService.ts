@@ -264,6 +264,7 @@ export default class CarService {
       userID: filteredRequest.userID,
       default: filteredRequest.default,
       converter: filteredRequest.converter,
+      carConnectorData: filteredRequest.carConnectorData,
       createdOn: new Date()
     };
     // Save
@@ -342,6 +343,7 @@ export default class CarService {
     car.converter = filteredRequest.converter;
     car.userID = filteredRequest.userID;
     car.default = filteredRequest.default;
+    car.carConnectorData = filteredRequest.carConnectorData;
     car.lastChangedBy = { 'id': req.user.id };
     car.lastChangedOn = new Date();
     // Save

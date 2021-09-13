@@ -28,6 +28,9 @@
     },
     "converter": {
       "$ref": "car.json#/definitions/converter"
+    },
+    "carConnectorData": {
+      "$ref": "car.json#/definitions/carConnectorData"
     }
   },
   "required": [
