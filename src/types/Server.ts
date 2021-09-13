@@ -547,6 +547,10 @@ export enum ServerRoute {
   REST_TENANTS = 'tenants',
   REST_TENANT = 'tenants/:id',
 
+  REST_COMPANIES = 'companies',
+  REST_COMPANY = 'companies/:id',
+  REST_COMPANY_LOGO = 'companies/:id/logo',
+
   REST_CONNECTIONS = 'connections',
   REST_CONNECTION = 'connections/:id',
 
