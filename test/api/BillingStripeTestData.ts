@@ -1,6 +1,5 @@
 import { BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingUser, BillingUserData } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
-import FeatureToggles, { Feature } from '../../src/utils/FeatureToggles';
 import chai, { assert, expect } from 'chai';
 
 import BillingStorage from '../../src/storage/mongodb/BillingStorage';
@@ -11,8 +10,8 @@ import Cypher from '../../src/utils/Cypher';
 import Factory from '../factories/Factory';
 import Stripe from 'stripe';
 import StripeBillingIntegration from '../../src/integration/billing/stripe/StripeBillingIntegration';
-import Tenant from '../../src/types/Tenant';
-import TenantComponents from '../../src/types/TenantComponents';
+import Tenant, { TenantComponents } from '../../src/types/Tenant';
+
 import TenantContext from './context/TenantContext';
 import TestConstants from './client/utils/TestConstants';
 import User from '../../src/types/User';

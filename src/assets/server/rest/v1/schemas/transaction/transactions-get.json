@@ -3,7 +3,7 @@
   "type": "object",
   "properties": {
     "ChargingStationID": {
-      "$ref": "chargingstation.json#/definitions/ids"
+      "$ref": "common.json#/definitions/string-ids"
     },
     "Issuer": {
       "type": "boolean",
@@ -38,7 +38,7 @@
       "sanitize": "mongo"
     },
     "ConnectorID": {
-      "$ref": "chargingstation.json#/definitions/connectorIDs"
+      "$ref": "common.json#/definitions/number-ids"
     },
     "SiteAreaID": {
       "$ref": "common.json#/definitions/ids"

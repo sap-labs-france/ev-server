@@ -5,6 +5,7 @@ import { Car, CarType } from '../../../../types/Car';
 import { DataResult, UserDataResult } from '../../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
+import Tenant, { TenantComponents } from '../../../../types/Tenant';
 import User, { ImportedUser, UserRequiredImportProperties } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -31,8 +32,6 @@ import { ServerAction } from '../../../../types/Server';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { StartTransactionErrorCode } from '../../../../types/Transaction';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
-import Tenant from '../../../../types/Tenant';
-import TenantComponents from '../../../../types/TenantComponents';
 import { UserInErrorType } from '../../../../types/InError';
 import UserNotifications from '../../../../types/UserNotifications';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
@@ -60,24 +59,24 @@ export default class UserService {
     // Get the default Tag
     let tag = await TagStorage.getDefaultUserTag(req.tenant, user.id, {
       issuer: true
-    }, ['visualID', 'description', 'active']);
+    }, ['visualID', 'description', 'active', 'default']);
     if (!tag) {
       // Get the first active Tag
       tag = await TagStorage.getFirstActiveUserTag(req.tenant, user.id, {
         issuer: true
-      }, ['visualID', 'description', 'active']);
+      }, ['visualID', 'description', 'active', 'default']);
     }
     // Handle Car
     let car: Car;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
       // Get the default Car
       car = await CarStorage.getDefaultUserCar(req.tenant, filteredRequest.UserID, {},
-        ['id', 'type', 'licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion']
+        ['id', 'type', 'licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image', 'carCatalog.batteryCapacityFull', 'carCatalog.fastChargePowerMax', 'converter.powerWatts', 'converter.numberOfPhases', 'default']
       );
       if (!car) {
         // Get the first available car
         car = await CarStorage.getFirstAvailableUserCar(req.tenant, filteredRequest.UserID,
-          ['id', 'type', 'licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion']
+          ['id', 'type', 'licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image', 'carCatalog.batteryCapacityFull', 'carCatalog.fastChargePowerMax', 'converter.powerWatts', 'converter.numberOfPhases', 'default']
         );
       }
     }
@@ -168,16 +167,18 @@ export default class UserService {
     let user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest);
     // Check email already exists
-    const userWithEmail = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
-    if (userWithEmail && user.id !== userWithEmail.id) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
-        message: `Email '${filteredRequest.email}' already exists`,
-        module: MODULE_NAME, method: 'handleUpdateUser',
-        user: req.user,
-        action: action
-      });
+    if (filteredRequest.email) {
+      const userWithEmail = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
+      if (userWithEmail && user.id !== userWithEmail.id) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
+          message: `Email '${filteredRequest.email}' already exists`,
+          module: MODULE_NAME, method: 'handleUpdateUser',
+          user: req.user,
+          action: action
+        });
+      }
     }
     // Check if Status has been changed
     if (filteredRequest.status && filteredRequest.status !== user.status) {
@@ -192,11 +193,15 @@ export default class UserService {
     user = {
       ...user,
       ...filteredRequest,
-      name: filteredRequest.name.toUpperCase(),
-      email: filteredRequest.email.toLowerCase(),
       lastChangedBy: lastChangedBy,
       lastChangedOn: lastChangedOn,
     };
+    if (filteredRequest.name) {
+      user.name = filteredRequest.name.toUpperCase();
+    }
+    if (filteredRequest.email) {
+      user.email = filteredRequest.email.toLowerCase();
+    }
     // Update User (override TagIDs because it's not of the same type as in filteredRequest)
     await UserStorage.saveUser(req.tenant, user, true);
     // Save User's password
@@ -483,7 +488,7 @@ export default class UserService {
               user.importedBy = importedBy;
               user.importedOn = importedOn;
               user.importedData = {
-                'autoActivateUserAtImport' : UtilsSecurity.filterBoolean(req.headers.autoactivateuseratimport)
+                'autoActivateUserAtImport': UtilsSecurity.filterBoolean(req.headers.autoactivateuseratimport)
               };
               // Import
               const importSuccess = await UserService.processUser(action, req, user, usersToBeImported);

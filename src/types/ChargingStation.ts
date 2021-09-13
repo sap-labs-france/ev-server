@@ -122,6 +122,17 @@ export enum Command {
   GET_COMPOSITE_SCHEDULE = 'GetCompositeSchedule',
   CHANGE_AVAILABILITY = 'ChangeAvailability',
   UPDATE_FIRMWARE = 'UpdateFirmware',
+  TRIGGER_DATA_TRANSFER = 'DataTransfer',
+  BOOT_NOTIFICATION = 'BootNotification',
+  AUTHORIZE = 'Authorize',
+  HEARTBEAT = 'Heartbeat',
+  DIAGNOSTICS_STATUS_NOTIFICATION = 'DiagnosticsStatusNotification',
+  FIRMWARE_STATUS_NOTIFICATION = 'FirmwareStatusNotification',
+  STATUS_NOTIFICATION = 'StatusNotification',
+  START_TRANSACTION = 'StartTransaction',
+  STOP_TRANSACTION = 'StopTransaction',
+  METER_VALUES = 'MeterValues',
+  DATA_TRANSFER = 'DataTransfer',
 }
 
 export enum StaticLimitAmps {

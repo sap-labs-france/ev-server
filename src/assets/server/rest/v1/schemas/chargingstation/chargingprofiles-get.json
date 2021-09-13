@@ -6,7 +6,7 @@
       "$ref": "common.json#/definitions/search"
     },
     "ChargingStationID": {
-      "$ref": "chargingstation.json#/definitions/ids"
+      "$ref": "common.json#/definitions/string-ids"
     },
     "ConnectorID": {
       "$ref": "chargingstation.json#/definitions/connector/properties/connectorId"

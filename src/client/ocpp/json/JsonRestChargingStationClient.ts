@@ -1,5 +1,5 @@
 import ChargingStation, { Command } from '../../../types/ChargingStation';
-import { OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPClearCacheCommandResult, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPStatus, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUpdateFirmwareCommandParam } from '../../../types/ocpp/OCPPClient';
+import { OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPClearCacheCommandResult, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPDataTransferCommandParam, OCPPDataTransferCommandResult, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPStatus, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUpdateFirmwareCommandParam } from '../../../types/ocpp/OCPPClient';
 import { OCPPIncomingRequest, OCPPMessageType, OCPPOutgoingRequest } from '../../../types/ocpp/OCPPCommon';
 import { ServerAction, WSServerProtocol } from '../../../types/Server';
 
@@ -16,7 +16,7 @@ const MODULE_NAME = 'JsonRestChargingStationClient';
 export default class JsonRestChargingStationClient extends ChargingStationClient {
   private serverURL: string;
   private chargingStation: ChargingStation;
-  private requests: { [messageUID: string]: { resolve?: (result: Record<string, unknown> | string) => void; reject?: (error: Record<string, unknown>) => void; command: ServerAction } };
+  private requests: { [messageUID: string]: { resolve?: (result: Record<string, unknown> | string) => void; reject?: (error: Record<string, unknown>) => void; command: Command } };
   private wsConnection: WSClient;
   private tenantID: string;
 
@@ -97,11 +97,18 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     return this.sendMessage(this.buildRequest(Command.UPDATE_FIRMWARE, params));
   }
 
+  public async dataTransfer(params: OCPPDataTransferCommandParam): Promise<OCPPDataTransferCommandResult> {
+    return this.sendMessage(this.buildRequest(Command.TRIGGER_DATA_TRANSFER, params));
+  }
+
   private async openConnection(): Promise<unknown> {
     // Log
     await Logging.logInfo({
       tenantID: this.tenantID,
       siteID: this.chargingStation.siteID,
+      siteAreaID: this.chargingStation.siteAreaID,
+      companyID: this.chargingStation.companyID,
+      chargingStationID: this.chargingStation.id,
       source: this.chargingStation.id,
       action: ServerAction.WS_REST_CLIENT_CONNECTION_OPENED,
       module: MODULE_NAME, method: 'onOpen',
@@ -136,6 +143,9 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         await Logging.logInfo({
           tenantID: this.tenantID,
           siteID: this.chargingStation.siteID,
+          siteAreaID: this.chargingStation.siteAreaID,
+          companyID: this.chargingStation.companyID,
+          chargingStationID: this.chargingStation.id,
           source: this.chargingStation.id,
           action: ServerAction.WS_REST_CLIENT_CONNECTION_OPENED,
           module: MODULE_NAME, method: 'onOpen',
@@ -150,6 +160,9 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         await Logging.logInfo({
           tenantID: this.tenantID,
           siteID: this.chargingStation.siteID,
+          siteAreaID: this.chargingStation.siteAreaID,
+          companyID: this.chargingStation.companyID,
+          chargingStationID: this.chargingStation.id,
           source: this.chargingStation.id,
           action: ServerAction.WS_REST_CLIENT_CONNECTION_CLOSED,
           module: MODULE_NAME, method: 'onClose',
@@ -163,6 +176,9 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         await Logging.logError({
           tenantID: this.tenantID,
           siteID: this.chargingStation.siteID,
+          siteAreaID: this.chargingStation.siteAreaID,
+          companyID: this.chargingStation.companyID,
+          chargingStationID: this.chargingStation.id,
           source: this.chargingStation.id,
           action: ServerAction.WS_REST_CLIENT_CONNECTION_ERROR,
           module: MODULE_NAME, method: 'onError',
@@ -176,7 +192,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
       this.wsConnection.onmessage = async (message) => {
         try {
           // Parse the message
-          const [messageType, messageId, commandName, commandPayload, errorDetails]: OCPPIncomingRequest = JSON.parse(message.data) as OCPPIncomingRequest;
+          const [messageType, messageId, command, commandPayload, errorDetails]: OCPPIncomingRequest = JSON.parse(message.data) as OCPPIncomingRequest;
           // Check if this corresponds to a request
           if (this.requests[messageId]) {
             // Check message type
@@ -185,17 +201,20 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
               await Logging.logError({
                 tenantID: this.tenantID,
                 siteID: this.chargingStation.siteID,
+                siteAreaID: this.chargingStation.siteAreaID,
+                companyID: this.chargingStation.companyID,
+                chargingStationID: this.chargingStation.id,
                 source: this.chargingStation.id,
                 action: ServerAction.WS_REST_CLIENT_ERROR_RESPONSE,
                 module: MODULE_NAME, method: 'onMessage',
                 message: `${commandPayload.toString()}`,
-                detailedMessages: { messageType, messageId, commandName, commandPayload, errorDetails }
+                detailedMessages: { messageType, messageId, command, commandPayload, errorDetails }
               });
               // Resolve with error message
-              this.requests[messageId].reject({ status: OCPPStatus.REJECTED, error: [messageType, messageId, commandName, commandPayload, errorDetails] });
+              this.requests[messageId].reject({ status: OCPPStatus.REJECTED, error: [messageType, messageId, command, commandPayload, errorDetails] });
             } else {
               // Respond to the request
-              this.requests[messageId].resolve(commandName);
+              this.requests[messageId].resolve(command);
             }
             // Close WS
             this.closeConnection();
@@ -204,11 +223,14 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             await Logging.logError({
               tenantID: this.tenantID,
               siteID: this.chargingStation.siteID,
+              siteAreaID: this.chargingStation.siteAreaID,
+              companyID: this.chargingStation.companyID,
+              chargingStationID: this.chargingStation.id,
               source: this.chargingStation.id,
               action: ServerAction.WS_REST_CLIENT_ERROR_RESPONSE,
               module: MODULE_NAME, method: 'onMessage',
               message: 'Received unknown message',
-              detailedMessages: { messageType, messageId, commandName, commandPayload, errorDetails }
+              detailedMessages: { messageType, messageId, command, commandPayload, errorDetails }
             });
           }
         } catch (error) {

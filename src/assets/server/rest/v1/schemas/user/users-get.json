@@ -10,7 +10,7 @@
       "$ref": "common.json#/definitions/ids"
     },
     "UserID": {
-      "$ref": "user.json#/definitions/ids"
+      "$ref": "common.json#/definitions/ids"
     },
     "Roles": {
       "type": "string",
