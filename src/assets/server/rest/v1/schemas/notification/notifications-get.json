@@ -1,0 +1,33 @@
+{
+  "title": "Get Notifications",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "UserID": {
+      "$ref": "user.json#/definitions/id"
+    },
+    "DateFrom": {
+      "type": "string",
+      "format": "date-time",
+      "sanitize": "mongo"
+    },
+    "Channel": {
+      "type": "string",
+      "sanitize": "mongo",
+      "enum": [
+        "email",
+        "remote-push-notification"
+      ]
+    },
+    "SortFields": {
+      "$ref": "common.json#/definitions/sortFields"
+    },
+    "Limit": {
+      "$ref": "common.json#/definitions/limit"
+    },
+    "Skip": {
+      "$ref": "common.json#/definitions/skip"
+    }
+  },
+  "required": []
+}
