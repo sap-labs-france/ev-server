@@ -55,6 +55,10 @@
     {
       "name": "Cars",
       "description": "Cars API"
+    },
+    {
+      "name": "Notifications",
+      "description": "Notifications API"
     }
   ],
   "paths": {
@@ -899,8 +903,11 @@
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": [
+                  "transactionsIDs"
+                ],
                 "properties": {
-                  "transactionIDs": {
+                  "transactionsIDs": {
                     "type": "array",
                     "items": {
                       "type": "number"
@@ -2057,8 +2064,11 @@
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": [
+                  "transactionIds"
+                ],
                 "properties": {
-                  "transactionIds": {
+                  "transactionsIds": {
                     "type": "array",
                     "items": {
                       "type": "number"
@@ -6454,6 +6464,9 @@
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": [
+                  "tagsIDs"
+                ],
                 "properties": {
                   "tagsIDs": {
                     "type": "array",
@@ -6795,6 +6808,153 @@
         }
       }
     },
+    "/api/notifications": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a list of notifications",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "DateFrom",
+            "description": "Start Date (ISO format)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/UserID"
+          },
+          {
+            "in": "query",
+            "name": "Channel",
+            "description": "Notification channel",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "email",
+                "remote-push-notification"
+              ]
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          }
+        ],
+        "tags": [
+          "Notifications"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return notification list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "_id": "###",
+                      "userID": "###",
+                      "timestamp": "2021-09-08T08:29:00.994Z",
+                      "channel": "email",
+                      "sourceId": "###",
+                      "sourceDescr": "###",
+                      "data": {},
+                      "chargeBoxID": "###",
+                      "user": {
+                        "email": "###",
+                        "firstName": "###",
+                        "name": "###",
+                        "id": "###"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/notifications/action/end-user/report-error": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Report an error",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "subject",
+                  "description"
+                ],
+                "properties": {
+                  "subject": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "mobile": {
+                    "type": "string",
+                    "description": "Phone number"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Notifications"
+        ],
+        "responses": {
+          "200": {
+            "description": "Error reported successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
     "/api/loggings": {
       "get": {
         "security": [
@@ -7102,6 +7262,10 @@
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": [
+                  "connectorId",
+                  "userId"
+                ],
                 "properties": {
                   "connectorId": {
                     "type": "number"
