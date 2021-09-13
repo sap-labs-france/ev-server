@@ -1,5 +1,6 @@
 import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
 import Site, { SiteUser } from '../../types/Site';
+import Tenant, { TenantComponents } from '../../types/Tenant';
 import User, { ImportedUser, UserRole, UserStatus } from '../../types/User';
 import { UserInError, UserInErrorType } from '../../types/InError';
 import global, { FilterParams, Image, ImportStatus } from '../../types/GlobalType';
@@ -17,8 +18,6 @@ import Logging from '../../utils/Logging';
 import Mustache from 'mustache';
 import { ObjectId } from 'mongodb';
 import TagStorage from './TagStorage';
-import Tenant from '../../types/Tenant';
-import { TenantComponents } from '../../types/Tenant';
 import TenantStorage from './TenantStorage';
 import UserNotifications from '../../types/UserNotifications';
 import Utils from '../../utils/Utils';
@@ -453,6 +452,19 @@ export default class UserStorage {
       { $set: { role } });
     // Debug
     await Logging.traceEnd(tenant.id, MODULE_NAME, 'saveUserRole', uniqueTimerID);
+  }
+
+  public static async saveUserTechnicalFlag(tenant: Tenant, userID: string, flag: boolean): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'saveUserTechnicalFlag');
+    // Check Tenant
+    DatabaseUtils.checkTenantObject(tenant);
+    // Modify and return the modified document
+    await global.database.getCollection<any>(tenant.id, 'users').findOneAndUpdate(
+      { '_id': DatabaseUtils.convertToObjectID(userID) },
+      { $set: { technical: flag === true } });
+    // Debug
+    await Logging.traceEnd(tenant.id, MODULE_NAME, 'saveUserTechnicalFlag', uniqueTimerID);
   }
 
   public static async saveUserEULA(tenant: Tenant, userID: string,

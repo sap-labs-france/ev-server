@@ -226,6 +226,8 @@ export default class UserService {
       if (filteredRequest.role) {
         await UserStorage.saveUserRole(req.tenant, user.id, filteredRequest.role);
       }
+      // Save Technical user flag
+      await UserStorage.saveUserTechnicalFlag(req.tenant, user.id, user.technical);
       // Save Admin Data
       if (Utils.objectHasProperty(filteredRequest, 'plateID')) {
         const adminData: { plateID?: string; } = {};
@@ -677,6 +679,8 @@ export default class UserService {
       if (newUser.role) {
         await UserStorage.saveUserRole(req.tenant, newUser.id, newUser.role);
       }
+      // Save Technical user flag
+      await UserStorage.saveUserTechnicalFlag(req.tenant, newUser.id, newUser.technical);
       // Save Admin Data
       if (newUser.plateID || Utils.objectHasProperty(newUser, 'notificationsActive')) {
         const adminData: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications } = {};
