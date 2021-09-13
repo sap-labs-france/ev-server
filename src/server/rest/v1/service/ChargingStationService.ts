@@ -920,8 +920,8 @@ export default class ChargingStationService {
     // Check and Get Charging Station
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
       req.tenant, req.user, filteredRequest.ID, action, null, {
-        withSiteArea: true,
-        withLogo: true
+        withSite: filteredRequest.WithSite,
+        withSiteArea: filteredRequest.WithSiteArea,
       }, true);
     res.json(chargingStation);
     next();
@@ -935,6 +935,7 @@ export default class ChargingStationService {
   public static async handleExportChargingStationsOCPPParams(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Always with site
     req.query.WithSite = 'true';
+    req.query.WithSiteArea = 'true';
     // Get Charging Stations
     const chargingStations = await ChargingStationService.getChargingStations(req);
     for (const chargingStation of chargingStations.result) {
