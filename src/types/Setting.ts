@@ -333,12 +333,15 @@ export interface CarConnectorConnectionSetting {
   description: string;
   timestamp: Date;
   type: CarConnectorConnectionType;
+  token?: CarConnectorConnectionToken;
   mercedesConnection?: CarConnectorMercedesConnectionType;
+  tronityConnection?: CarConnectorTronityConnectionType;
 }
 
 export enum CarConnectorConnectionType {
   NONE = '',
   MERCEDES = 'mercedes',
+  TRONITY = 'tronity'
 }
 
 export interface CarConnectorMercedesConnectionType {
@@ -346,6 +349,21 @@ export interface CarConnectorMercedesConnectionType {
   apiUrl: string;
   clientId: string;
   clientSecret: string;
+}
+
+export interface CarConnectorTronityConnectionType {
+  apiUrl: string;
+  clientId: string;
+  clientSecret: string;
+}
+
+export interface CarConnectorConnectionToken {
+  accessToken: string,
+  tokenType?: string,
+  expiresIn?: number,
+  userName?: string,
+  issued?: Date,
+  expires: Date,
 }
 
 export enum CryptoSettingsType {
