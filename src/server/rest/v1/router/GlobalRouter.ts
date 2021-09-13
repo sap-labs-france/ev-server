@@ -8,6 +8,7 @@ import CarRouter from './api/CarRouter';
 import ChargingStationRouter from './api/ChargingStationRouter';
 import ConnectionRouter from './api/ConnectionRouter';
 import LoggingRouter from './api/LoggingRouter';
+import NotificationRouter from './api/NotificationRouter';
 import { StatusCodes } from 'http-status-codes';
 import SwaggerRouter from './doc/SwaggerRouter';
 import TagRouter from './api/TagRouter';
@@ -47,6 +48,7 @@ export default class GlobalRouter {
         new ChargingStationRouter().buildRoutes(),
         new ConnectionRouter().buildRoutes(),
         new LoggingRouter().buildRoutes(),
+        new NotificationRouter().buildRoutes(),
         new TagRouter().buildRoutes(),
         new TenantRouter().buildRoutes(),
         new TransactionRouter().buildRoutes(),

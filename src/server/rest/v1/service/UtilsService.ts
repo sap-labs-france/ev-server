@@ -1,8 +1,9 @@
 import { Action, Entity } from '../../../../types/Authorization';
-import { Car, CarCatalog, CarType } from '../../../../types/Car';
+import { Car, CarCatalog } from '../../../../types/Car';
 import ChargingStation, { ChargePoint, Voltage } from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
+import Tenant, { TenantComponents } from '../../../../types/Tenant';
 import User, { UserRole, UserStatus } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -20,7 +21,6 @@ import Constants from '../../../../utils/Constants';
 import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
 import { EntityDataType } from '../../../../types/GlobalType';
-import { HttpEndUserReportErrorRequest } from '../../../../types/requests/HttpNotificationRequest';
 import Logging from '../../../../utils/Logging';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import OICPEndpoint from '../../../../types/oicp/OICPEndpoint';
@@ -32,8 +32,6 @@ import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
-import Tenant, { TenantComponents } from '../../../../types/Tenant';
-
 import { TransactionInErrorType } from '../../../../types/InError';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
@@ -1674,36 +1672,6 @@ export default class UtilsService {
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Car Converter type is mandatory',
         module: MODULE_NAME, method: 'checkIfCarValid',
-        user: req.user.id
-      });
-    }
-  }
-
-  public static checkIfEndUserErrorNotificationValid(endUserErrorNotificationValid: HttpEndUserReportErrorRequest, req: Request): void {
-    if (!endUserErrorNotificationValid.subject) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Subject is mandatory.',
-        module: MODULE_NAME, method: 'checkIfEndUserErrorNotificationValid',
-        user: req.user.id
-      });
-    }
-    if (!endUserErrorNotificationValid.description) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Description is mandatory.',
-        module: MODULE_NAME, method: 'checkIfEndUserErrorNotificationValid',
-        user: req.user.id
-      });
-    }
-    if (endUserErrorNotificationValid.mobile && !Utils.isPhoneValid(endUserErrorNotificationValid.mobile)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Phone is invalid',
-        module: MODULE_NAME, method: 'checkIfEndUserErrorNotificationValid',
         user: req.user.id
       });
     }
