@@ -68,6 +68,22 @@
           "sanitize": "mongo"
         }
       }
+    },
+    "carConnectorData": {
+      "type": "object",
+      "required": [
+        "carConnectorID"
+      ],
+      "properties": {
+        "carConnectorID": {
+          "type": "string",
+          "sanitize": "mongo"
+        },
+        "carConnectorMeterID": {
+          "type": "string",
+          "sanitize": "mongo"
+        }
+      }
     }
   }
 }
