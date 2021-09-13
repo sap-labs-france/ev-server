@@ -11,6 +11,26 @@
       "pattern": "^$|^([0-9a-fA-F]{24}\\|?)*$",
       "sanitize": "mongo"
     },
+    "string-id": {
+      "type": "string",
+      "pattern": "^[^|]*$",
+      "sanitize": "mongo"
+    },
+    "string-ids": {
+      "type": "string",
+      "pattern": "^(([^|]*)(\\||[^|])*)?$",
+      "sanitize": "mongo"
+    },
+    "number-id": {
+      "type": "number",
+      "pattern": "^(\\d)*$",
+      "sanitize": "mongo"
+    },
+    "number-ids": {
+      "type": "string",
+      "pattern": "^(\\d\\|?)*$",
+      "sanitize": "mongo"
+    },
     "authSubdomain": {
       "type": "string",
       "pattern": "^[a-z0-9]*$",

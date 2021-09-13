@@ -2,7 +2,8 @@ import { Action, Entity } from '../../../../types/Authorization';
 import ChargingStation, { ChargingStationOcppParameters, ChargingStationQRCode, Command, OCPPParams, StaticLimitAmps } from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-import { OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPRemoteStartStopStatus, OCPPStatus, OCPPUnlockStatus } from '../../../../types/ocpp/OCPPClient';
+import { OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPStatus, OCPPUnlockStatus } from '../../../../types/ocpp/OCPPClient';
+import Tenant, { TenantComponents } from '../../../../types/Tenant';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
@@ -39,8 +40,6 @@ import SmartChargingFactory from '../../../../integration/smart-charging/SmartCh
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
-import Tenant from '../../../../types/Tenant';
-import TenantComponents from '../../../../types/TenantComponents';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import User from '../../../../types/User';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
@@ -446,6 +445,9 @@ export default class ChargingStationService {
         await Logging.logWarning({
           tenantID: req.user.tenantID,
           siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          companyID: chargingStation.companyID,
+          chargingStationID: chargingStation.id,
           source: chargingStation.id,
           action: action,
           user: req.user,
@@ -475,6 +477,9 @@ export default class ChargingStationService {
     await Logging.logInfo({
       tenantID: req.user.tenantID,
       siteID: chargingStation.siteID,
+      siteAreaID: chargingStation.siteAreaID,
+      companyID: chargingStation.companyID,
+      chargingStationID: chargingStation.id,
       source: chargingStation.id,
       action: action,
       user: req.user,
@@ -915,8 +920,8 @@ export default class ChargingStationService {
     // Check and Get Charging Station
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
       req.tenant, req.user, filteredRequest.ID, action, null, {
-        withSiteArea: true,
-        withLogo: true
+        withSite: filteredRequest.WithSite,
+        withSiteArea: filteredRequest.WithSiteArea,
       }, true);
     res.json(chargingStation);
     next();
@@ -930,6 +935,7 @@ export default class ChargingStationService {
   public static async handleExportChargingStationsOCPPParams(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Always with site
     req.query.WithSite = 'true';
+    req.query.WithSiteArea = 'true';
     // Get Charging Stations
     const chargingStations = await ChargingStationService.getChargingStations(req);
     for (const chargingStation of chargingStations.result) {
@@ -1144,38 +1150,67 @@ export default class ChargingStationService {
     req.body.chargeBoxID && (req.body.chargingStationID = req.body.chargeBoxID);
     // Filter - Type is hacked because code below is. Would need approval to change code structure.
     const command = action.slice('RestChargingStation'.length) as Command;
-    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionReq(req.body);
+    let filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionReq(req.body);
     UtilsService.assertIdIsProvided(action, filteredRequest.chargingStationID, MODULE_NAME, 'handleAction', req.user);
     // Get the Charging station
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
       req.tenant, req.user, filteredRequest.chargingStationID, action, null, { withSite: true, withSiteArea: true });
+    // Check auth
+    if (!await Authorizations.canPerformActionOnChargingStation(req.user, command as unknown as Action, chargingStation)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: command as unknown as Action,
+        entity: Entity.CHARGING_STATION,
+        module: MODULE_NAME, method: 'handleAction',
+        value: chargingStation.id
+      });
+    }
     let result: any;
     switch (command) {
       // Remote Stop Transaction / Unlock Connector
       case Command.REMOTE_STOP_TRANSACTION:
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionStopTransactionReq(req.body);
         result = await ChargingStationService.executeChargingStationStopTransaction(action, chargingStation, command, filteredRequest, req, res, next);
         break;
       // Remote Start Transaction
       case Command.REMOTE_START_TRANSACTION:
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionStartTransactionReq(req.body);
         result = await ChargingStationService.executeChargingStationStartTransaction(action, chargingStation, command, filteredRequest, req, res, next);
         break;
       // Get the Charging Plans
       case Command.GET_COMPOSITE_SCHEDULE:
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionGetCompositeScheduleReq(req.body);
         result = await ChargingStationService.executeChargingStationGetCompositeSchedule(action, chargingStation, command, filteredRequest, req, res, next);
+        break;
+      // Get diagnostic
+      case Command.GET_DIAGNOSTICS:
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationGetDiagnostics(req.body);
+        result = await ChargingStationService.executeChargingStationCommand(
+          req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
+        break;
+      // Update Firmware
+      case Command.UPDATE_FIRMWARE:
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionUpdateFirmwareReq(req.body);
+        result = await ChargingStationService.executeChargingStationCommand(
+          req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
         break;
       // Other commands
       default:
-        // Check auth
-        if (!await Authorizations.canPerformActionOnChargingStation(req.user, command as unknown as Action, chargingStation)) {
-          throw new AppAuthError({
-            errorCode: HTTPAuthError.FORBIDDEN,
-            user: req.user,
-            action: command as unknown as Action,
-            entity: Entity.CHARGING_STATION,
-            module: MODULE_NAME, method: 'handleAction',
-            value: chargingStation.id
-          });
-        }
+        // Log Specific Schema has not been verified yet:
+        await Logging.logWarning({
+          tenantID: req.tenant.id,
+          siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          companyID: chargingStation.companyID,
+          chargingStationID: chargingStation.id,
+          source: chargingStation.id,
+          user: req.user,
+          action: action,
+          module: MODULE_NAME, method: 'handleAction',
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+          message: `Command '${command}' has not yet its own validation schema.`
+        });
         // Execute it
         result = await ChargingStationService.executeChargingStationCommand(
           req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
@@ -1500,6 +1535,9 @@ export default class ChargingStationService {
               await Logging.logWarning({
                 tenantID: tenant.id,
                 siteID: chargingStation.siteID,
+                siteAreaID: chargingStation.siteAreaID,
+                companyID: chargingStation.companyID,
+                chargingStationID: chargingStation.id,
                 source: chargingStation.id,
                 user: user,
                 action: action,
@@ -1573,7 +1611,7 @@ export default class ChargingStationService {
             type: params.type
           });
           break;
-        // Get diagnostic
+        // Get Diagnostics
         case Command.GET_DIAGNOSTICS:
           result = await chargingStationClient.getDiagnostics({
             location: params.location,
@@ -1592,6 +1630,9 @@ export default class ChargingStationService {
             retryInterval: params.retryInterval
           });
           break;
+        case Command.TRIGGER_DATA_TRANSFER:
+          result = await chargingStationClient.dataTransfer(params);
+          break;
       }
       if (result) {
         // OCPP Command with status
@@ -1599,6 +1640,9 @@ export default class ChargingStationService {
           await Logging.logError({
             tenantID: tenant.id,
             siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            companyID: chargingStation.companyID,
+            chargingStationID: chargingStation.id,
             source: chargingStation.id,
             user: user,
             module: MODULE_NAME, method: 'handleChargingStationCommand',
@@ -1611,6 +1655,9 @@ export default class ChargingStationService {
           await Logging.logInfo({
             tenantID: tenant.id,
             siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            companyID: chargingStation.companyID,
+            chargingStationID: chargingStation.id,
             source: chargingStation.id,
             user: user,
             module: MODULE_NAME, method: 'handleChargingStationCommand',
@@ -1729,14 +1776,14 @@ export default class ChargingStationService {
         // Connector ID > 0
         const chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
         result.push(await chargingStationVendor.getCompositeSchedule(
-          req.tenant, chargingStation, chargePoint, connector.connectorId, filteredRequest.args.duration));
+          req.tenant, chargingStation, chargePoint, connector.connectorId, filteredRequest.args.duration, filteredRequest.args.chargingRateUnit));
       }
     } else {
       // Connector ID > 0
       const connector = Utils.getConnectorFromID(chargingStation, filteredRequest.args.connectorId);
       const chargePoint = Utils.getChargePointFromID(chargingStation, connector?.chargePointID);
       result = await chargingStationVendor.getCompositeSchedule(
-        req.tenant, chargingStation, chargePoint, filteredRequest.args.connectorId, filteredRequest.args.duration);
+        req.tenant, chargingStation, chargePoint, filteredRequest.args.connectorId, filteredRequest.args.duration, filteredRequest.args.chargingRateUnit);
     }
     return result;
   }
@@ -1801,17 +1848,15 @@ export default class ChargingStationService {
     }
     // Check Charging Station
     Authorizations.isChargingStationValidInOrganization(action, req.tenant, chargingStation);
+    // Save Car selection
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
+      if (filteredRequest.carID && filteredRequest.carID !== user.lastSelectedCarID) {
+        await UserStorage.saveUserLastSelectedCarID(req.tenant, user.id, filteredRequest.carID);
+      }
+    }
     // Execute it
     const result = await ChargingStationService.executeChargingStationCommand(
       req.tenant, req.user, chargingStation, action, command, { tagID: tag.id, connectorId: filteredRequest.args.connectorId });
-    // Save Car selection
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
-      if (result?.status === OCPPRemoteStartStopStatus.ACCEPTED) {
-        if (filteredRequest.carID && filteredRequest.carID !== user.lastSelectedCarID) {
-          await UserStorage.saveUserLastSelectedCarID(req.tenant, user.id, filteredRequest.carID);
-        }
-      }
-    }
     return result;
   }
 
@@ -1853,7 +1898,7 @@ export default class ChargingStationService {
     const tag = tags.result[0];
     // Check if user is authorized
     await Authorizations.isAuthorizedToStopTransaction(req.tenant, chargingStation, transaction, tag.id,
-      ServerAction.STOP_TRANSACTION, Action.REMOTE_STOP_TRANSACTION);
+      ServerAction.OCPP_STOP_TRANSACTION, Action.REMOTE_STOP_TRANSACTION);
     // Set the tag ID to handle the Stop Transaction afterwards
     transaction.remotestop = {
       timestamp: new Date(),

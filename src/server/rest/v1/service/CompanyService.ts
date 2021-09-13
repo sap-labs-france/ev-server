@@ -11,7 +11,7 @@ import Constants from '../../../../utils/Constants';
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
-import TenantComponents from '../../../../types/TenantComponents';
+import { TenantComponents } from '../../../../types/Tenant';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';

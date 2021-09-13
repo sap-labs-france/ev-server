@@ -3,7 +3,7 @@
   "type": "object",
   "properties": {
     "id": {
-      "$ref": "common.json#/definitions/id"
+      "$ref": "tenant.json#/definitions/id"
     },
     "name": {
       "$ref": "tenant.json#/definitions/name"

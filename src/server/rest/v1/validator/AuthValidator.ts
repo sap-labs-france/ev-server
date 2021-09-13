@@ -33,19 +33,19 @@ export default class AuthValidator extends SchemaValidator {
     return AuthValidator.instance;
   }
 
-  public validateAuthSignIn(data: HttpLoginRequest): HttpLoginRequest {
+  public validateAuthSignIn(data: any): HttpLoginRequest {
     // Validate schema
     this.validate(this.authSignIn, data);
     return data;
   }
 
-  public validateAuthSignOn(data: HttpRegisterUserRequest): Partial<HttpRegisterUserRequest> {
+  public validateAuthSignOn(data: any): Partial<HttpRegisterUserRequest> {
     // Validate schema
     this.validate(this.authSignOn, data);
     return data;
   }
 
-  public validateAuthResetPassword(data: HttpResetPasswordRequest): Partial<HttpResetPasswordRequest> {
+  public validateAuthResetPassword(data: any): Partial<HttpResetPasswordRequest> {
     // Validate schema
     this.validate(this.authResetPassword, data);
     return data;
@@ -63,7 +63,7 @@ export default class AuthValidator extends SchemaValidator {
     return data;
   }
 
-  public validateAuthResendVerificationEmail(data: HttpResendVerificationMailRequest): Partial<HttpResendVerificationMailRequest> {
+  public validateAuthResendVerificationEmail(data: any): Partial<HttpResendVerificationMailRequest> {
     // Validate schema
     this.validate(this.authResendVerificationEmail, data);
     return data;

@@ -83,6 +83,8 @@ export interface HttpChargingStationParamsUpdateRequest {
 
 export interface HttpChargingStationRequest extends HttpByIDRequest {
   ID: string;
+  WithSite?: boolean,
+  WithSiteArea?: boolean;
 }
 
 export interface HttpChargingStationOcppRequest {
@@ -111,6 +113,41 @@ export interface HttpChargingStationCommandRequest {
   args?: any;
 }
 
+export interface HttpChargingStationStartTransactionRequest {
+  chargingStationID: string,
+  args: {
+    tagID?: string,
+    visualTagID?: string,
+    connectorId: string
+  }
+}
+
+export interface HttpChargingStationStopTransactionRequest {
+  chargingStationID: string,
+  args: {
+    transactionID: string
+  }
+}
+
+export interface HttpChargingStationGetCompositeScheduleRequest {
+  chargingStationID: string,
+  args: {
+    connectorId: string,
+    duration: number,
+    chargingRateUnit?: string
+  }
+}
+
+export interface HttpChargingStationUpdateFirmwareRequest {
+  chargingStationID: string,
+  args: {
+    location: string,
+    retries?: number,
+    retryInterval?: number,
+    retrieveDate: Date
+  }
+}
+
 export interface HttpIsAuthorizedRequest {
   Action: string;
   Arg1: any;
@@ -120,4 +157,15 @@ export interface HttpIsAuthorizedRequest {
 
 export interface HttpChargingStationGetFirmwareRequest {
   FileName: string;
+}
+
+export interface HttpChargingStationGetDiagnosticsRequest {
+  chargingStationID: string,
+  args: {
+    location: string,
+    retries?: number,
+    retryInterval?: number,
+    startTime?: Date,
+    stopTime?: Date
+  }
 }

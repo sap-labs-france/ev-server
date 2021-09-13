@@ -43,7 +43,7 @@ export default class CompanyRouter {
 
   protected buildRouteUpdateCompany(): void {
     this.router.put(`/${ServerRoute.REST_COMPANY}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.query.ID = req.params.id;
+      req.body.id = req.params.id;
       await RouterUtils.handleServerAction(CompanyService.handleUpdateCompany.bind(this), ServerAction.COMPANY_UPDATE, req, res, next);
     });
   }

@@ -41,7 +41,7 @@
       "sanitize": "mongo"
     },
     "ChargingStationID": {
-      "$ref": "chargingstation.json#/definitions/ids"
+      "$ref": "common.json#/definitions/string-ids"
     },
     "IncludeDeleted": {
       "type": "boolean",
