@@ -187,6 +187,7 @@ export interface AuthorizationActions {
   canUpdateByVisualID?: boolean;
   canDelete?: boolean;
   canUnassign?: boolean;
+  canAssign?: boolean;
 }
 export interface SiteAreaAuthorizationActions extends AuthorizationActions {
   canAssignAssets?: boolean;
@@ -211,6 +212,7 @@ export enum DynamicAuthorizationFilterName {
   ASSIGNED_SITES = 'AssignedSites',
   OWN_USER = 'OwnUser',
   LOCAL_ISSUER = 'LocalIssuer',
+  EXCLUDE_ACTION = 'ExcludeAction',
 }
 
 export enum DynamicAuthorizationAssertName {
@@ -224,6 +226,7 @@ export enum DynamicAuthorizationDataSourceName {
   SITES_OWNER = 'SitesOwner',
   ASSIGNED_SITES = 'AssignedSites',
   OWN_USER = 'OwnUser',
+  EXCLUDE_ACTION = 'ExcludeAction',
 }
 
 export interface DynamicAuthorizationDataSourceData {}

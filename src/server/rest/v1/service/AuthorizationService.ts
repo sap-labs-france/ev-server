@@ -8,6 +8,7 @@ import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requ
 import { HttpSiteAssignUsersRequest, HttpSiteRequest, HttpSiteUsersRequest } from '../../../../types/requests/HttpSiteRequest';
 import { HttpTagRequest, HttpTagsRequest } from '../../../../types/requests/HttpTagRequest';
 import { HttpUserAssignSitesRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
+import Tenant, { TenantComponents } from '../../../../types/Tenant';
 import User, { UserRole } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -24,8 +25,6 @@ import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import Tag from '../../../../types/Tag';
-import Tenant from '../../../../types/Tenant';
-import { TenantComponents } from '../../../../types/Tenant';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
@@ -47,6 +46,8 @@ export default class AuthorizationService {
         return authActions.canDelete;
       case Action.UNASSIGN:
         return authActions.canUnassign;
+      case Action.ASSIGN:
+        return authActions.canAssign;
       case Action.UPDATE_BY_VISUAL_ID:
         return authActions.canUpdateByVisualID;
       case Action.ASSIGN_CHARGING_STATIONS_TO_SITE_AREA:
@@ -346,6 +347,8 @@ export default class AuthorizationService {
         tenant, userToken, Entity.TAG, Action.UPDATE_BY_VISUAL_ID, authorizationFilter, { TagID: tag.id }, tag);
       tag.canUnassign = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.TAG, Action.UNASSIGN, authorizationFilter, { TagID: tag.id }, tag);
+      tag.canAssign = await AuthorizationService.canPerformAuthorizationAction(
+        tenant, userToken, Entity.TAG, Action.ASSIGN, authorizationFilter, { TagID: tag.id }, tag);
     }
   }
 

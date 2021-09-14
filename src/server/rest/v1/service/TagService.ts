@@ -78,7 +78,16 @@ export default class TagService {
     // Filter
     const filteredRequest = TagValidator.getInstance().validateTagUnassign(req.body);
     // Delete
-    await TagService.unassignTags(req.tenant, action, req.user, [filteredRequest.visualID]);
+    const response = await TagService.unassignTags(req.tenant, action, req.user, [filteredRequest.visualID]);
+    if (response.inSuccess === 0) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.TAG_UNASSIGN,
+        module: MODULE_NAME, method: 'handleUnassignTag',
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Unable to unassign the Tag visualID '${filteredRequest.visualID}'`
+      });
+    }
     // Return
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
@@ -98,7 +107,16 @@ export default class TagService {
     // Filter
     const filteredRequest = TagValidator.getInstance().validateTagGetByID(req.query);
     // Delete
-    await TagService.deleteTags(req.tenant, action, req.user, [filteredRequest.ID]);
+    const response = await TagService.deleteTags(req.tenant, action, req.user, [filteredRequest.ID]);
+    if (response.inSuccess === 0) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.TAG_DELETE,
+        module: MODULE_NAME, method: 'handleDeleteTag',
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Unable to delete the Tag ID '${filteredRequest.ID}'`
+      });
+    }
     // Return
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
@@ -206,19 +224,10 @@ export default class TagService {
 
   public static async handleAssignTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     const filteredRequest = TagValidator.getInstance().validateTagAssign(req.body);
-    // Get dynamic auth
-    const authorizationFilter = await AuthorizationService.checkAndGetTagAuthorizations(
-      req.tenant, req.user, {}, Action.ASSIGN, filteredRequest);
-    if (!authorizationFilter.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.ASSIGN, entity: Entity.TAG,
-        module: MODULE_NAME, method: 'handleAssignTag'
-      });
-    }
+    // Check and Get Tag
+    const tag = await UtilsService.checkAndGetTagByVisualIDAuthorization(req.tenant, req.user, filteredRequest.visualID, Action.ASSIGN, action,
+      filteredRequest, { withNbrTransactions: true, withUser: true });
     // Check Tag with Visual ID
-    const tag = await TagStorage.getTagByVisualID(req.tenant, filteredRequest.visualID, { withUser: true });
     if (!tag) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -324,7 +333,6 @@ export default class TagService {
     }
     // Update
     tag.description = filteredRequest.description;
-    tag.active = filteredRequest.active;
     tag.default = filteredRequest.default;
     tag.lastChangedBy = { id: req.user.id };
     tag.lastChangedOn = new Date();
