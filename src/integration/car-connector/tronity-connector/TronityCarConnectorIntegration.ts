@@ -19,61 +19,11 @@ const MODULE_NAME = 'TronityCarConnectorIntegration';
 
 export default class TronityCarConnectorIntegration extends CarConnectorIntegration<CarConnectorSettings> {
   private axiosInstance: AxiosInstance;
-  private readonly axiosRetryConfiguration: IAxiosRetryConfig = {
-    retries: 3,
-    retryCondition: (error) => error.response.status === StatusCodes.INTERNAL_SERVER_ERROR || axiosRetry.isNetworkError(error),
-    retryDelay: (retryCount, error) => {
-      try {
-        if (error.config.method === 'post') {
-          if (error.config.url.endsWith('/token.oauth2')) {
-            throw new BackendError({
-              source: Constants.CENTRAL_SERVER,
-              module: MODULE_NAME,
-              method: 'retryDelay',
-              message: `Unable to post token, response status ${error.response.status}, attempt ${retryCount}`,
-              action: ServerAction.CAR_CONNECTOR,
-              detailedMessages: { response: error.response }
-            });
-          } else {
-            const payload = {
-              error: error.response.data,
-              payload: JSON.parse(error.config.data)
-            };
-            throw new BackendError({
-              source: Constants.CENTRAL_SERVER,
-              module: MODULE_NAME,
-              method: 'retryDelay',
-              message: `Unable to post data on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`,
-              action: ServerAction.CAR_CONNECTOR,
-              detailedMessages: { payload }
-            });
-          }
-        } else {
-          throw new BackendError({
-            source: Constants.CENTRAL_SERVER,
-            module: MODULE_NAME,
-            method: 'retryDelay',
-            message: `Unable to make data request on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`,
-            action: ServerAction.CAR_CONNECTOR,
-            detailedMessages: { response: error.response.data }
-          });
-        }
-      } catch (err) {
-        void Logging.logException(
-          err, ServerAction.CAR_CONNECTOR, Constants.CENTRAL_SERVER, MODULE_NAME, 'anonymous', this.tenant.id, null);
-      }
-      return axiosRetry.exponentialDelay(retryCount);
-    },
-    shouldResetTimeout: true
-  };
 
   constructor(tenant: Tenant, settings: CarConnectorSettings, connection: CarConnectorConnectionSetting) {
     super(tenant, settings, connection);
     // Get Axios
-    this.axiosInstance = AxiosFactory.getAxiosInstance(this.tenant.id,
-      {
-        axiosRetryConfig: this.axiosRetryConfiguration,
-      });
+    this.axiosInstance = AxiosFactory.getAxiosInstance(this.tenant.id);
   }
 
   public async connect(): Promise<string> {
@@ -90,7 +40,7 @@ export default class TronityCarConnectorIntegration extends CarConnectorIntegrat
 
   public async getCurrentSoC(userID: string, car: Car): Promise<number> {
     const connectionToken = await this.connect();
-    const request = `${this.connection.tronityConnection.apiUrl}/`;
+    const request = `${this.connection.tronityConnection.apiUrl}/v1/vehicles/${car.carConnectorData.carConnectorMeterID}/battery`;
     try {
       // Get consumption
       const response = await this.axiosInstance.get(
@@ -107,8 +57,8 @@ export default class TronityCarConnectorIntegration extends CarConnectorIntegrat
         module: MODULE_NAME, method: 'getCurrentSoC',
         detailedMessages: { response: response.data }
       });
-      if (response?.data?.soc?.value) {
-        return response.data.soc.value;
+      if (response?.data?.level) {
+        return response.data.level;
       }
       return null;
     } catch (error) {
@@ -146,13 +96,13 @@ export default class TronityCarConnectorIntegration extends CarConnectorIntegrat
       expires: data['.expires']
     };
     this.connection.token = token;
-    await SettingStorage.saveSettings(this.tenant, this.settings);
+    await SettingStorage.saveCarConnectorSettings(this.tenant, this.settings);
     return token;
   }
 
   private buildFormHeaders(): any {
     return {
-      'Content-Type': 'application/x-www-form-urlencoded'
+      'Content-Type': 'application/json'
     };
   }
 
@@ -168,11 +118,11 @@ export default class TronityCarConnectorIntegration extends CarConnectorIntegrat
     }
   }
 
-  private async getCredentialURLParams(): Promise<URLSearchParams> {
-    const params = new URLSearchParams();
-    params.append('grant_type', 'app');
-    params.append('client_id', this.connection.tronityConnection.clientId);
-    params.append('client_secret', await Cypher.decrypt(this.tenant, this.connection.tronityConnection.clientSecret));
-    return params;
+  private async getCredentialURLParams(): Promise<any> {
+    return {
+      'grant_type': 'app',
+      'client_id': this.connection.tronityConnection.clientId,
+      'client_secret': await Cypher.decrypt(this.tenant, this.connection.tronityConnection.clientSecret)
+    };
   }
 }

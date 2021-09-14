@@ -15,7 +15,7 @@ export default class CarConnectorFactory {
       if (settings?.carConnector?.connections) {
         // Find connection
         // Vehicle make will be replaced with specific car information in the car object --> coming with Tronity
-        const foundConnection = settings.carConnector.connections.find((connection) => connection.type === connectorId);
+        const foundConnection = settings.carConnector.connections.find((connection) => connection.id === connectorId);
         if (foundConnection) {
           let carConnectorIntegrationImpl: CarConnectorIntegration<CarConnectorSettings> = null;
           switch (foundConnection.type) {
