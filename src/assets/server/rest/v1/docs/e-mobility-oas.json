@@ -41,6 +41,10 @@
       "description": "Tags API"
     },
     {
+      "name": "Companies",
+      "description": "Company API"
+    },
+    {
       "name": "Connections",
       "description": "Integration connection API"
     },
@@ -51,6 +55,14 @@
     {
       "name": "Assets",
       "description": "Assets API"
+    },
+    {
+      "name": "Cars",
+      "description": "Cars API"
+    },
+    {
+      "name": "Notifications",
+      "description": "Notifications API"
     }
   ],
   "paths": {
@@ -895,8 +907,11 @@
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": [
+                  "transactionsIDs"
+                ],
                 "properties": {
-                  "transactionIDs": {
+                  "transactionsIDs": {
                     "type": "array",
                     "items": {
                       "type": "number"
@@ -2053,8 +2068,11 @@
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": [
+                  "transactionIds"
+                ],
                 "properties": {
-                  "transactionIds": {
+                  "transactionsIds": {
                     "type": "array",
                     "items": {
                       "type": "number"
@@ -5766,15 +5784,24 @@
                   "tag": {
                     "active": true,
                     "description": "###",
-                    "id": "###"
+                    "id": "###",
+                    "default": "###"
                   },
                   "car": {
                     "licensePlate": "###",
+                    "default": "###",
                     "type": "#",
+                    "converter": {
+                      "powerWatts": "###",
+                      "numberOfPhases": "###"
+                    },
                     "carCatalog": {
                       "vehicleMake": "###",
                       "vehicleModel": "###",
-                      "vehicleModelVersion": "###"
+                      "vehicleModelVersion": "###",
+                      "image": "###",
+                      "batteryCapacityFull": "###",
+                      "fastChargePowerMax": "###"
                     },
                     "id": "###"
                   }
@@ -6441,6 +6468,9 @@
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": [
+                  "tagsIDs"
+                ],
                 "properties": {
                   "tagsIDs": {
                     "type": "array",
@@ -6526,6 +6556,7 @@
                     "name": "###",
                     "id": "###"
                   },
+                  "visualID": "###",
                   "id": "###"
                 }
               }
@@ -6563,18 +6594,17 @@
               "schema": {
                 "required": [
                   "userID",
-                  "issuer",
                   "active",
-                  "description"
+                  "visualID"
                 ],
                 "properties": {
                   "userID": {
                     "type": "string",
                     "example": "###"
                   },
-                  "issuer": {
-                    "type": "boolean",
-                    "example": true
+                  "visualID": {
+                    "type": "string",
+                    "example": "###"
                   },
                   "active": {
                     "type": "boolean",
@@ -6778,6 +6808,153 @@
           },
           "584": {
             "$ref": "#/components/responses/InvalidCSVHeaderFormat"
+          }
+        }
+      }
+    },
+    "/api/notifications": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a list of notifications",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "DateFrom",
+            "description": "Start Date (ISO format)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/UserID"
+          },
+          {
+            "in": "query",
+            "name": "Channel",
+            "description": "Notification channel",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "email",
+                "remote-push-notification"
+              ]
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          }
+        ],
+        "tags": [
+          "Notifications"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return notification list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "_id": "###",
+                      "userID": "###",
+                      "timestamp": "2021-09-08T08:29:00.994Z",
+                      "channel": "email",
+                      "sourceId": "###",
+                      "sourceDescr": "###",
+                      "data": {},
+                      "chargeBoxID": "###",
+                      "user": {
+                        "email": "###",
+                        "firstName": "###",
+                        "name": "###",
+                        "id": "###"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/notifications/action/end-user/report-error": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Report an error",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "subject",
+                  "description"
+                ],
+                "properties": {
+                  "subject": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "mobile": {
+                    "type": "string",
+                    "description": "Phone number"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Notifications"
+        ],
+        "responses": {
+          "200": {
+            "description": "Error reported successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
@@ -7089,6 +7266,10 @@
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": [
+                  "connectorId",
+                  "userId"
+                ],
                 "properties": {
                   "connectorId": {
                     "type": "number"
@@ -7203,6 +7384,718 @@
         "responses": {
           "200": {
             "description": "Connection successfully deleted",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/car-catalogs": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get car catalogs list",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CarMakers"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Cars"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return car catalogs list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "vehicleMake": "Tesla",
+                      "vehicleModel": "Model S",
+                      "vehicleModelVersion": "Standard Range",
+                      "drivetrainPowerHP": 333,
+                      "performanceAcceleration": 4.4,
+                      "performanceTopspeed": 225,
+                      "rangeWLTP": 0,
+                      "rangeReal": 385,
+                      "efficiencyReal": 18.8,
+                      "chargePlug": "Type 2",
+                      "chargeStandardPower": 16.5,
+                      "chargeStandardPhase": 3,
+                      "chargeStandardPhaseAmp": 24,
+                      "chargeAlternativePower": 0,
+                      "chargeAlternativePhase": 0,
+                      "chargeAlternativePhaseAmp": 0,
+                      "chargeOptionPower": 0,
+                      "chargeOptionPhase": 0,
+                      "chargeOptionPhaseAmp": 0,
+                      "fastChargePlug": "Supercharger",
+                      "fastChargePowerMax": 100,
+                      "batteryCapacityFull": 75,
+                      "image": "###",
+                      "id": "###",
+                      "canRead": true,
+                      "canDelete": false,
+                      "canUpdate": false
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/car-catalogs/{id}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get car catalog",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/carCatalogID"
+          }
+        ],
+        "tags": [
+          "Cars"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return car catalog",
+            "content": {
+              "application/json": {
+                "example": {
+                  "vehicleMake": "Tesla",
+                  "vehicleModel": "Model S",
+                  "vehicleModelVersion": "Standard Range",
+                  "drivetrainPropulsion": "AWD",
+                  "drivetrainPowerHP": 333,
+                  "drivetrainTorque": 525,
+                  "performanceAcceleration": 4.4,
+                  "performanceTopspeed": 225,
+                  "rangeWLTP": 0,
+                  "rangeReal": 385,
+                  "efficiencyReal": 18.8,
+                  "chargePlug": "Type 2",
+                  "chargePlugLocation": "Left Side - Rear",
+                  "chargeStandardPower": 16.5,
+                  "chargeStandardPhase": 3,
+                  "chargeStandardChargeTime": 315,
+                  "chargeStandardChargeSpeed": 73,
+                  "chargeAlternativePower": 0,
+                  "chargeAlternativePhase": 0,
+                  "chargeAlternativePhaseAmp": 0,
+                  "chargeOptionPower": 0,
+                  "chargeOptionPhase": 0,
+                  "chargeOptionPhaseAmp": 0,
+                  "fastChargePlug": "Supercharger",
+                  "fastChargePowerMax": 100,
+                  "batteryCapacityUseable": 72.5,
+                  "batteryCapacityFull": 75,
+                  "miscBody": "Liftback Sedan",
+                  "miscSegment": "F - Luxury",
+                  "miscSeats": 5,
+                  "miscIsofix": true,
+                  "miscIsofixSeats": 2,
+                  "miscTurningCircle": 12.4,
+                  "hash": null,
+                  "image": "###",
+                  "id": "###",
+                  "canRead": true,
+                  "canDelete": false,
+                  "canUpdate": false
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/car-catalogs/{id}/image": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get car catalog image",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/carCatalogID"
+          }
+        ],
+        "tags": [
+          "Cars"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return car catalog image"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/car-catalogs/{id}/images": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get car catalog images",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/carCatalogID"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          }
+        ],
+        "tags": [
+          "Cars"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return car catalog images",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "id": "###",
+                      "image": "###"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/car-catalogs/action/synchronize": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Synchronize car catalogs",
+        "tags": [
+          "Cars"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return car catalogs list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/car-makers": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get car makers list",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Cars"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return car makers list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "carMaker": "###"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/cars": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get cars list",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/CarMakers"
+          },
+          {
+            "$ref": "#/components/parameters/WithUser"
+          },
+          {
+            "$ref": "#/components/parameters/UserID"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Cars"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return cars list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "converter": {
+                        "powerWatts": 11,
+                        "amperagePerPhase": 16,
+                        "numberOfPhases": 3,
+                        "type": "S"
+                      },
+                      "createdOn": "2021-01-08T10:13:19.650Z",
+                      "lastChangedBy": {
+                        "firstName": "###",
+                        "name": "###"
+                      },
+                      "licensePlate": "###",
+                      "type": "C",
+                      "vin": "###",
+                      "default": true,
+                      "lastChangedOn": "2021-09-02T14:25:20.771Z",
+                      "userID": "###",
+                      "carCatalog": {
+                        "vehicleMake": "Tesla",
+                        "vehicleModel": "Model 3",
+                        "vehicleModelVersion": "Long Range Dual Motor",
+                        "fastChargePowerMax": 250,
+                        "batteryCapacityFull": 78,
+                        "image": "###",
+                        "id": "###"
+                      },
+                      "user": {
+                        "firstName": "###",
+                        "name": "###",
+                        "id": "###"
+                      },
+                      "id": "###",
+                      "canRead": true,
+                      "canDelete": true,
+                      "canUpdate": true
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Create car",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Car"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Cars"
+        ],
+        "responses": {
+          "200": {
+            "description": "Car successfully created",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "###",
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "591": {
+            "description": "The Car with the given VIN and given License plate already exists"
+          }
+        }
+      }
+    },
+    "/api/cars/{id}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get car",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/carID"
+          }
+        ],
+        "tags": [
+          "Cars"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return car",
+            "content": {
+              "application/json": {
+                "example": {
+                  "carCatalogID": 1234,
+                  "converter": {
+                    "powerWatts": 11,
+                    "amperagePerPhase": 16,
+                    "numberOfPhases": 3,
+                    "type": "S"
+                  },
+                  "createdOn": "2021-01-08T10:13:19.650Z",
+                  "licensePlate": "###",
+                  "type": "C",
+                  "vin": "###",
+                  "default": true,
+                  "lastChangedOn": "2021-09-02T14:25:20.771Z",
+                  "userID": "###",
+                  "carCatalog": {
+                    "vehicleMake": "Tesla",
+                    "vehicleModel": "Model 3",
+                    "vehicleModelVersion": "Long Range Dual Motor",
+                    "chargeStandardPower": 11,
+                    "chargeStandardPhase": 3,
+                    "chargeStandardPhaseAmp": 16,
+                    "chargeAlternativePower": 0,
+                    "chargeAlternativePhase": 0,
+                    "chargeAlternativePhaseAmp": 0,
+                    "chargeOptionPower": 0,
+                    "chargeOptionPhase": 0,
+                    "chargeOptionPhaseAmp": 0,
+                    "image": "###"
+                  },
+                  "user": {
+                    "firstName": "###",
+                    "name": "###",
+                    "id": "###"
+                  },
+                  "id": "###",
+                  "canRead": true,
+                  "canDelete": true,
+                  "canUpdate": true,
+                  "carConnectorData": {
+                    "carConnectorName": "string",
+                    "carConnectorMeterID": "string"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Create car",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Car"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Cars"
+        ],
+        "responses": {
+          "200": {
+            "description": "Car successfully created",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "###",
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "591": {
+            "description": "The Car with the given VIN and given License plate already exists"
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Update a car",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/carID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Car"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Cars"
+        ],
+        "responses": {
+          "200": {
+            "description": "Car successfully updated",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "###",
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "591": {
+            "description": "The Car with the given VIN and given License plate already exists"
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Delete a car",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/carID"
+          }
+        ],
+        "tags": [
+          "Cars"
+        ],
+        "responses": {
+          "200": {
+            "description": "Car successfully deleted",
             "content": {
               "application/json": {
                 "example": {
@@ -7445,6 +8338,95 @@
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
+      },
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Update an Asset",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/assetID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Asset"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Assets"
+        ],
+        "responses": {
+          "200": {
+            "description": "Asset updated successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Delete an Asset",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/assetID"
+          }
+        ],
+        "tags": [
+          "Assets"
+        ],
+        "responses": {
+          "200": {
+            "description": "Asset deleted successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
       }
     },
     "/api/assets/status/in-error": {
@@ -7597,6 +8579,363 @@
                 }
               }
             }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/assets/{id}/consumptions": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get asset's consumptions",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/assetID"
+          },
+          {
+            "in": "query",
+            "name": "StartDate",
+            "description": "Consumption Start Date (ISO format)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "EndDate",
+            "description": "Consumption start Date (ISO format)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Assets"
+        ],
+        "responses": {
+          "200": {
+            "description": "Asset's last consumption retrieved",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/assets/{id}/image": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get asset's image",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/assetID"
+          }
+        ],
+        "tags": [
+          "Assets"
+        ],
+        "responses": {
+          "200": {
+            "description": "Returned asset's image"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/companies": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a list of Companies",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/Issuer"
+          },
+          {
+            "$ref": "#/components/parameters/WithSite"
+          },
+          {
+            "in": "query",
+            "name": "WithLogo",
+            "description": "With Logo",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/LocLongitude"
+          },
+          {
+            "$ref": "#/components/parameters/LocLatitude"
+          },
+          {
+            "$ref": "#/components/parameters/LocMaxDistanceMeters"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Companies"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return companies list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "address": {
+                        "address1": "###",
+                        "address2": "###",
+                        "postalCode": "###",
+                        "city": "###",
+                        "country": "###",
+                        "coordinates": [
+                          7.01692790000004,
+                          43.6123063
+                        ]
+                      },
+                      "createdOn": "2018-03-30T22:29:08.388Z",
+                      "name": "###",
+                      "lastChangedOn": "2020-03-15T10:36:56.784Z",
+                      "issuer": true,
+                      "id": "###",
+                      "logo": "###",
+                      "canRead": true,
+                      "canDelete": true,
+                      "canUpdate": true
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Create a Company",
+        "tags": [
+          "Companies"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Company"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Company created successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "###",
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/companies/{id}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a Company",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/companyID"
+          }
+        ],
+        "tags": [
+          "Companies"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return company",
+            "content": {
+              "application/json": {
+                "example": {
+                  "$ref": "#/components/schemas/Company"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Update a Company",
+        "tags": [
+          "Companies"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Company"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Company updated successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Delete a Company",
+        "tags": [
+          "Companies"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/companyID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Company deleted successfully"
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
@@ -8644,6 +9983,104 @@
             ]
           }
         }
+      },
+      "Car": {
+        "type": "object",
+        "required": [
+          "vin",
+          "licensePlate",
+          "carCatalogID",
+          "type",
+          "userID",
+          "default"
+        ],
+        "properties": {
+          "vin": {
+            "type": "string"
+          },
+          "licensePlate": {
+            "type": "string"
+          },
+          "carCatalogID": {
+            "type": "number"
+          },
+          "forced": {
+            "type": "boolean"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "P",
+              "C",
+              "PC"
+            ]
+          },
+          "userID": {
+            "type": "string"
+          },
+          "default": {
+            "type": "boolean"
+          },
+          "converter": {
+            "type": "object",
+            "properties": {
+              "amperagePerPhase": {
+                "type": "number"
+              },
+              "numberOfPhases": {
+                "type": "number"
+              },
+              "powerWatts": {
+                "type": "number"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "S",
+                  "O",
+                  "A"
+                ]
+              }
+            }
+          },
+          "carConnectorData": {
+            "type": "object",
+            "properties": {
+              "carConnectorName": {
+                "type": "string"
+              },
+              "carConnectorMeterID": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "Company": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "logo": {
+            "type": "string",
+            "description": "Base64 encoded logo"
+          },
+          "issuer": {
+            "type": "boolean",
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "readOnly": true
+          }
+        }
       }
     },
     "parameters": {
@@ -9178,6 +10615,41 @@
         "in": "query",
         "name": "ReportIDs",
         "description": "Pipe separated report IDs",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "carCatalogID": {
+        "in": "query",
+        "name": "id",
+        "description": "Car Catalog ID",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "CarMakers": {
+        "in": "query",
+        "name": "CarMaker",
+        "description": "Pipe separated car makers",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "carID": {
+        "in": "query",
+        "name": "id",
+        "description": "Car ID",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "companyID": {
+        "in": "path",
+        "name": "id",
+        "description": "Company ID",
+        "required": true,
         "schema": {
           "type": "string"
         }

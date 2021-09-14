@@ -26,17 +26,17 @@ export default class ConnectionValidator extends SchemaValidator {
     return ConnectionValidator.instance;
   }
 
-  validateConnectionCreation(content): Connection {
+  validateConnectionCreation(content: any): Connection {
     this.validate(this.connectionCreation, content);
     return content;
   }
 
-  validateConnectionsGet(content): HttpConnectionsRequest {
+  validateConnectionsGet(content: any): HttpConnectionsRequest {
     this.validate(this.connectionsGet, content);
     return content;
   }
 
-  validateConnectionGet(content): HttpConnectionRequest {
+  validateConnectionGet(content: any): HttpConnectionRequest {
     this.validate(this.connectionGet, content);
     return content;
   }
