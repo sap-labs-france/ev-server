@@ -643,7 +643,8 @@ export default class Logging {
         'stack': exception.stack,
       };
     }
-    const log: Log = {
+    // Log
+    await Logging.logError({
       tenantID: tenantID,
       type: LogType.SECURITY,
       source: exception.params.source,
@@ -654,15 +655,7 @@ export default class Logging {
       action: action,
       message: exception.message,
       detailedMessages: { ...exception.params.detailedMessages, ...detailedMessages }
-    };
-    if (exception.params.chargingStationID) {
-      log.chargingStationID = exception.params.chargingStationID;
-      log.siteAreaID = exception.params.siteAreaID;
-      log.siteID = exception.params.siteID;
-      log.companyID = exception.params.companyID;
-    }
-    // Log
-    await Logging.logError(log);
+    });
   }
 
   private static async _logActionBackendExceptionMessage(tenantID: string, action: ServerAction, exception: BackendError, detailedMessages = {}): Promise<void> {
@@ -677,7 +670,8 @@ export default class Logging {
         'stack': exception.stack,
       };
     }
-    const log: Log = {
+    // Log
+    await Logging.logError({
       tenantID: tenantID,
       type: LogType.SECURITY,
       source: exception.params.source,
@@ -688,15 +682,7 @@ export default class Logging {
       user: exception.params.user,
       actionOnUser: exception.params.actionOnUser,
       detailedMessages: { ...exception.params.detailedMessages, ...detailedMessages }
-    };
-    if (exception.params.chargingStationID) {
-      log.chargingStationID = exception.params.chargingStationID;
-      log.siteAreaID = exception.params.siteAreaID;
-      log.siteID = exception.params.siteID;
-      log.companyID = exception.params.companyID;
-    }
-    // Log
-    await Logging.logError(log);
+    });
   }
 
   // Used to check URL params (not in catch)

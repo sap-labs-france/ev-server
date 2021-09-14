@@ -96,10 +96,6 @@ export default class ChargingStationService {
       if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredRequest.public && !siteArea.site?.public) {
         throw new AppError({
           source: chargingStation.id,
-          chargingStationID: chargingStation.id,
-          siteAreaID: chargingStation.siteAreaID,
-          siteID: chargingStation.siteID,
-          companyID: chargingStation.companyID,
           action: action,
           errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
           message: `Cannot set charging station ${chargingStation.id} attached to the non public site ${siteArea.site.name} public`,
@@ -345,10 +341,6 @@ export default class ChargingStationService {
     if (!filteredRequest.chargePointID) {
       throw new AppError({
         source: filteredRequest.chargingStationID,
-        chargingStationID: filteredRequest.chargingStationID,
-        siteAreaID: filteredRequest.siteAreaID,
-        siteID: filteredRequest.siteID,
-        companyID: filteredRequest.companyID,
         action: action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'You must provide a Charge Point ID',
@@ -369,10 +361,6 @@ export default class ChargingStationService {
     if (filteredRequest.ampLimitValue < (StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases * chargePoint.connectorIDs.length)) {
       throw new AppError({
         source: filteredRequest.chargingStationID,
-        chargingStationID: filteredRequest.chargingStationID,
-        siteAreaID: filteredRequest.siteAreaID,
-        siteID: filteredRequest.siteID,
-        companyID: filteredRequest.companyID,
         action: action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Limitation to ${filteredRequest.ampLimitValue}A is too low, min required is ${StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases * chargePoint.connectorIDs.length}A`,
@@ -401,10 +389,6 @@ export default class ChargingStationService {
     if (!chargingStationVendor) {
       throw new AppError({
         source: chargingStation.id,
-        chargingStationID: chargingStation.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
         action: action,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
         message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for limiting the charge`,
@@ -416,10 +400,6 @@ export default class ChargingStationService {
     if (!chargingStationVendor.hasStaticLimitationSupport(chargingStation)) {
       throw new AppError({
         source: chargingStation.id,
-        chargingStationID: chargingStation.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
         action: action,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
         message: 'Charging Station does not support power limitation',
@@ -453,10 +433,6 @@ export default class ChargingStationService {
         if (!filteredRequest.forceUpdateChargingPlan) {
           throw new AppError({
             source: chargingStation.id,
-            chargingStationID: chargingStation.id,
-            siteID: chargingStation.siteID,
-            siteAreaID: chargingStation.siteAreaID,
-            companyID: chargingStation.companyID,
             action: action,
             user: req.user,
             errorCode: HTTPError.GENERAL_ERROR,
@@ -490,10 +466,6 @@ export default class ChargingStationService {
     if (result.status !== OCPPConfigurationStatus.ACCEPTED && result.status !== OCPPConfigurationStatus.REBOOT_REQUIRED) {
       throw new AppError({
         source: chargingStation.id,
-        chargingStationID: chargingStation.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
         action: action,
         errorCode: HTTPError.LIMIT_POWER_ERROR,
         module: MODULE_NAME, method: 'handleChargingStationLimitPower',
@@ -1699,10 +1671,6 @@ export default class ChargingStationService {
       // Throw error
       throw new AppError({
         source: chargingStation.id,
-        chargingStationID: chargingStation.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
         action: action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Unknown OCPP command '${command}'`,
@@ -1713,10 +1681,6 @@ export default class ChargingStationService {
     } catch (error) {
       throw new AppError({
         source: chargingStation.id,
-        chargingStationID: chargingStation.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
         action: action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `OCPP Command '${command}' has failed`,
@@ -1768,10 +1732,6 @@ export default class ChargingStationService {
     if (!chargingStation.capabilities?.supportChargingProfiles) {
       throw new AppError({
         source: chargingStation.id,
-        chargingStationID: chargingStation.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
         action: action,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
         user: req.user,
@@ -1801,10 +1761,6 @@ export default class ChargingStationService {
     if (!chargingStationVendor) {
       throw new AppError({
         source: chargingStation.id,
-        chargingStationID: chargingStation.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
         action: action,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
         message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for limiting the charge`,
