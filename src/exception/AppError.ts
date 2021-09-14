@@ -11,7 +11,6 @@ export default class AppError extends Error {
     source: string; message: string; errorCode: HTTPError | StatusCodes; module: string;
     method: string; user?: User | string | UserToken; actionOnUser?: User | string | UserToken;
     action?: ServerAction; detailedMessages?: any; ocpiError?: OCPIStatusCode; oicpError?: OICPStatusCode;
-    chargingStationID?: string; siteID?: string; siteAreaID?: string; companyID?: string;
   }) {
     super(params.message);
   }
