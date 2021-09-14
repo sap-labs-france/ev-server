@@ -1499,6 +1499,10 @@ export default class ChargingStationService {
     if (!chargingStationClient) {
       throw new BackendError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         action: action,
         module: MODULE_NAME, method: 'handleChargingStationCommand',
         message: 'Charging Station is not connected to the backend',
@@ -1829,6 +1833,10 @@ export default class ChargingStationService {
     if (!tag.active) {
       throw new BackendError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         action: action,
         message: `Tag ID '${tag.id}' is not active`,
         module: MODULE_NAME, method: 'handleAction',
@@ -1853,6 +1861,10 @@ export default class ChargingStationService {
     if (tag.userID !== user.id) {
       throw new BackendError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         action: action,
         message: `Tag ID '${tag.id}' is not linked to User ID '${user.id}'`,
         module: MODULE_NAME, method: 'handleAction',

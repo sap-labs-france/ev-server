@@ -695,6 +695,10 @@ export default class OCPPService {
     if (transaction.stop) {
       throw new BackendError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         module: MODULE_NAME, method: 'checkAuthorizeStopTransactionAndGetUsers',
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has already been stopped`,
         action: ServerAction.OCPP_STOP_TRANSACTION,
@@ -1970,6 +1974,10 @@ export default class OCPPService {
       }
       throw new BackendError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         action: ServerAction.OCPP_BOOT_NOTIFICATION,
         module: MODULE_NAME, method: 'checkExistingChargingStation',
         message: 'Boot Notification Rejected: Attribute mismatch: ' +
@@ -2175,6 +2183,10 @@ export default class OCPPService {
     if (!meterValues.transactionId) {
       throw new BackendError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         module: MODULE_NAME, method: 'getTransactionFromMeterValues',
         message: `${Utils.buildConnectorInfo(meterValues.connectorId)} Meter Values are not linked to a transaction and will be ignored`,
         action: ServerAction.OCPP_METER_VALUES,
@@ -2237,6 +2249,10 @@ export default class OCPPService {
       // Unkown Transaction
       throw new BackendError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         module: MODULE_NAME, method: 'getTransactionFromMeterValues',
         message: `${Utils.buildConnectorInfo(meterValues.connectorId, meterValues.transactionId)} Transaction does not exist`,
         action: ServerAction.OCPP_METER_VALUES,
@@ -2267,6 +2283,10 @@ export default class OCPPService {
     if (!transaction) {
       throw new BackendError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         module: MODULE_NAME, method: 'getTransactionFromStopTransaction',
         message: `Transaction with ID '${stopTransaction.transactionId}' doesn't exist`,
         action: ServerAction.OCPP_STOP_TRANSACTION,

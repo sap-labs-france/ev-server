@@ -99,6 +99,10 @@ export default abstract class WSConnection {
     if (!Utils.isChargingStationIDValid(this.chargingStationID)) {
       const backendError = new BackendError({
         source: this.chargingStationID,
+        chargingStationID: this.chargingStationID,
+        siteID: this.siteID,
+        siteAreaID: this.siteAreaID,
+        companyID: this.companyID,
         module: MODULE_NAME,
         method: 'constructor',
         message: `The Charging Station ID is invalid: '${this.chargingStationID}'`
@@ -130,6 +134,10 @@ export default abstract class WSConnection {
       await Logging.logException(error, ServerAction.WS_CONNECTION, this.getChargingStationID(), 'WSConnection', 'initialize', this.tenantID);
       throw new BackendError({
         source: this.getChargingStationID(),
+        chargingStationID: this.getChargingStationID(),
+        siteID: this.getSiteID(),
+        siteAreaID: this.getSiteAreaID(),
+        companyID: this.getCompanyID(),
         action: ServerAction.WS_CONNECTION,
         module: MODULE_NAME, method: 'initialize',
         message: `Invalid Tenant '${this.tenantID}' in URL '${this.getURL()}'`,
@@ -162,6 +170,10 @@ export default abstract class WSConnection {
           } else {
             throw new BackendError({
               source: this.getChargingStationID(),
+              chargingStationID: this.getChargingStationID(),
+              siteID: this.getSiteID(),
+              siteAreaID: this.getSiteAreaID(),
+              companyID: this.getCompanyID(),
               module: MODULE_NAME,
               method: 'onMessage',
               message: `Response request for message id ${messageId} is not iterable`,
@@ -172,6 +184,10 @@ export default abstract class WSConnection {
             // Error
             throw new BackendError({
               source: this.getChargingStationID(),
+              chargingStationID: this.getChargingStationID(),
+              siteID: this.getSiteID(),
+              siteAreaID: this.getSiteAreaID(),
+              companyID: this.getCompanyID(),
               module: MODULE_NAME,
               method: 'onMessage',
               message: `Response request for unknown message id ${messageId}`,
@@ -196,6 +212,10 @@ export default abstract class WSConnection {
             // Error
             throw new BackendError({
               source: this.getChargingStationID(),
+              chargingStationID: this.getChargingStationID(),
+              siteID: this.getSiteID(),
+              siteAreaID: this.getSiteAreaID(),
+              companyID: this.getCompanyID(),
               module: MODULE_NAME,
               method: 'onMessage',
               message: `Error request for unknown message id ${messageId}`,
@@ -207,6 +227,10 @@ export default abstract class WSConnection {
           } else {
             throw new BackendError({
               source: this.getChargingStationID(),
+              chargingStationID: this.getChargingStationID(),
+              siteID: this.getSiteID(),
+              siteAreaID: this.getSiteAreaID(),
+              companyID: this.getCompanyID(),
               module: MODULE_NAME,
               method: 'onMessage',
               message: `Error request for message id ${messageId} is not iterable`,
@@ -228,6 +252,10 @@ export default abstract class WSConnection {
           // Error
           throw new BackendError({
             source: this.getChargingStationID(),
+            chargingStationID: this.getChargingStationID(),
+            siteID: this.getSiteID(),
+            siteAreaID: this.getSiteAreaID(),
+            companyID: this.getCompanyID(),
             module: MODULE_NAME,
             method: 'onMessage',
             message: `Wrong message type ${messageType}`,

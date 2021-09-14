@@ -50,6 +50,10 @@ export default class JsonWSConnection extends WSConnection {
       default:
         backendError = new BackendError({
           source: this.getChargingStationID(),
+          chargingStationID: this.getChargingStationID(),
+          siteID: this.getSiteID(),
+          siteAreaID: this.getSiteAreaID(),
+          companyID: this.getCompanyID(),
           module: MODULE_NAME,
           method: 'constructor',
           message: wsConnection.protocol ?

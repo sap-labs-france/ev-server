@@ -1,5 +1,6 @@
 import { Action, AuthorizationContext, AuthorizationResult, Entity } from '../types/Authorization';
 import ChargingStation, { Connector } from '../types/ChargingStation';
+import Tenant, { TenantComponents } from '../types/Tenant';
 import User, { UserRole, UserStatus } from '../types/User';
 
 import AuthorizationConfiguration from '../types/configuration/AuthorizationConfiguration';
@@ -28,8 +29,6 @@ import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../storage/mongodb/SiteStorage';
 import Tag from '../types/Tag';
 import TagStorage from '../storage/mongodb/TagStorage';
-import Tenant, { TenantComponents } from '../types/Tenant';
-
 import Transaction from '../types/Transaction';
 import TransactionStorage from '../storage/mongodb/TransactionStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
@@ -940,6 +939,10 @@ export default class Authorizations {
     if (user.status !== UserStatus.ACTIVE) {
       throw new BackendError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         action: action,
         message: `User with Tag ID '${tag.id}' is not Active ('${Utils.getStatusDescription(user.status)}')`,
         module: MODULE_NAME,
@@ -964,6 +967,10 @@ export default class Authorizations {
       if (!await Authorizations.canPerformActionOnChargingStation(userToken, authAction, chargingStation, context)) {
         throw new BackendError({
           source: chargingStation.id,
+          chargingStationID: chargingStation.id,
+          siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          companyID: chargingStation.companyID,
           action: action,
           message: `User with Tag ID '${tag.id}' is not authorized to perform the action '${authAction}'`,
           module: MODULE_NAME,
@@ -1002,6 +1009,10 @@ export default class Authorizations {
     ).catch(() => { });
     throw new BackendError({
       source: chargingStation.id,
+      chargingStationID: chargingStation.id,
+      siteID: chargingStation.siteID,
+      siteAreaID: chargingStation.siteAreaID,
+      companyID: chargingStation.companyID,
       action: action,
       module: MODULE_NAME, method: 'notifyUnknownBadgeHasBeenUsedAndAbort',
       message: `Tag ID '${tagID}' is unknown`,
@@ -1042,6 +1053,10 @@ export default class Authorizations {
       if (!tag.active) {
         throw new BackendError({
           source: chargingStation.id,
+          chargingStationID: chargingStation.id,
+          siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          companyID: chargingStation.companyID,
           action: action,
           message: `Tag ID '${tagID}' is not active`,
           module: MODULE_NAME, method: 'checkAndGetAuthorizedTag',
@@ -1053,6 +1068,10 @@ export default class Authorizations {
       if (!tag.user) {
         throw new BackendError({
           source: chargingStation.id,
+          chargingStationID: chargingStation.id,
+          siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          companyID: chargingStation.companyID,
           action: action,
           message: `Tag ID '${tagID}' is not assigned to a User`,
           module: MODULE_NAME, method: 'checkAndGetAuthorizedTag',
