@@ -307,11 +307,14 @@ export default class UserService {
     // Filter
     const filteredRequest = UserValidator.getInstance().validateUserGetByID(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetUser', req.user);
+    // Get dynamic auth
+    const authorizationFilter = await AuthorizationService.checkAndGetUserAuthorizations(req.tenant, req.user, { ID: filteredRequest.ID.toString() }, Action.READ);
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, filteredRequest.ID.toString(), Action.READ, action, null, {
         withImage: true
       }, true, false);
+    user.projectedFields = authorizationFilter.projectFields;
     res.json(user);
     next();
   }
