@@ -558,6 +558,10 @@ export enum ServerRoute {
   REST_LOGGING = 'loggings/:id',
   REST_LOGGINGS_EXPORT = 'loggings/action/export',
 
+  REST_NOTIFICATIONS = 'notifications',
+  REST_NOTIFICATIONS_END_USER_REPORT_ERROR = 'notifications/action/end-user/report-error',
+
+
   REST_OCPI_ENDPOINT_CREATE = 'ocpi/endpoints',
   REST_OCPI_ENDPOINT_PING = 'ocpi/endpoints/:id/ping',
   REST_OCPI_ENDPOINT_CHECK_CDRS = 'ocpi/endpoints/:id/cdrs/check',
