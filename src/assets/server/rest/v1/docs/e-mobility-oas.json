@@ -9283,6 +9283,173 @@
           }
         }
       }
+    },
+    "/api/ocpi/endpoints/{id}/tokens/pull": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Pull OCPI Endpoint's tokens",
+        "tags": [
+          "OCPI"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OCPIEndpointID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OCPI Endpoint's tokens pulled",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/ocpi/endpoints/:id/evses/statuses/send": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Send OCPI EVSE's statuses",
+        "tags": [
+          "OCPI"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OCPIEndpointID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OCPI Endpoint's EVSE's statuses sent",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/ocpi/endpoints/:id/tokens/send": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Push OCPI Endpoint's tokens",
+        "tags": [
+          "OCPI"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OCPIEndpointID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OCPI Endpoint's tokens pushed",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/ocpi/endpoints/:id/tokens/generate": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Generate OCPI Endpoint's local token",
+        "tags": [
+          "OCPI"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OCPIEndpointID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OCPIEndpoint"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OCPI Endpoint's local tokens generated",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success",
+                  "id": "###",
+                  "localToken": "###"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
     }
   },
   "components": {

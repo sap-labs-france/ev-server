@@ -21,6 +21,10 @@ export default class OCPIRouter {
     this.buildRouteOcpiEndpointPullCDRs();
     this.buildRouteOcpiEndpointPullLocations();
     this.buildRouteOcpiEndpointPullSessions();
+    this.buildRouteOcpiEndpointPullTokens();
+    this.buildRouteOcpiEndpointSendEVSEStatuses();
+    this.buildRouteOcpiEndpointSendTokens();
+    this.buildRouteOcpiEndpointGenerateTokens();
     return this.router;
   }
 
@@ -69,6 +73,30 @@ export default class OCPIRouter {
   protected buildRouteOcpiEndpointPullSessions(): void {
     this.router.put(`/${ServerRoute.REST_OCPI_ENDPOINT_PULL_SESSIONS}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(OCPIEndpointService.handlePullSessionsEndpoint.bind(this), ServerAction.OCPI_PULL_SESSIONS, req, res, next);
+    });
+  }
+
+  protected buildRouteOcpiEndpointPullTokens(): void {
+    this.router.put(`/${ServerRoute.REST_OCPI_ENDPOINT_PULL_TOKENS}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(OCPIEndpointService.handlePullTokensEndpoint.bind(this), ServerAction.OCPI_PULL_TOKENS, req, res, next);
+    });
+  }
+
+  protected buildRouteOcpiEndpointSendEVSEStatuses(): void {
+    this.router.put(`/${ServerRoute.REST_OCPI_ENDPOINT_SEND_EVSE_STATUSES}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(OCPIEndpointService.handlePushEVSEStatusesOcpiEndpoint.bind(this), ServerAction.OCPI_ENDPOINT_SEND_EVSE_STATUSES, req, res, next);
+    });
+  }
+
+  protected buildRouteOcpiEndpointSendTokens(): void {
+    this.router.put(`/${ServerRoute.REST_OCPI_ENDPOINT_SEND_TOKENS}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(OCPIEndpointService.handlePushTokensOcpiEndpoint.bind(this), ServerAction.OCPI_ENDPOINT_SEND_TOKENS, req, res, next);
+    });
+  }
+
+  protected buildRouteOcpiEndpointGenerateTokens(): void {
+    this.router.put(`/${ServerRoute.REST_OCPI_ENDPOINT_GENERATE_LOCAL_TOKEN}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(OCPIEndpointService.handleGenerateLocalTokenOcpiEndpoint.bind(this), ServerAction.OCPI_ENDPOINT_GENERATE_LOCAL_TOKEN, req, res, next);
     });
   }
 }
