@@ -55,6 +55,10 @@
     {
       "name": "Cars",
       "description": "Cars API"
+    },
+    {
+      "name": "OCPI",
+      "description": "OCPI API"
     }
   ],
   "paths": {
