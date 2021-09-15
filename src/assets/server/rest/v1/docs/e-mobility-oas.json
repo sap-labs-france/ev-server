@@ -8957,105 +8957,6 @@
       }
     },
     "/api/ocpi/endpoints": {
-      "get": {
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "description": "Retrieve a list of Companies",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/Search"
-          },
-          {
-            "$ref": "#/components/parameters/Issuer"
-          },
-          {
-            "$ref": "#/components/parameters/WithSite"
-          },
-          {
-            "in": "query",
-            "name": "WithLogo",
-            "description": "With Logo",
-            "schema": {
-              "type": "boolean"
-            }
-          },
-          {
-            "$ref": "#/components/parameters/LocLongitude"
-          },
-          {
-            "$ref": "#/components/parameters/LocLatitude"
-          },
-          {
-            "$ref": "#/components/parameters/LocMaxDistanceMeters"
-          },
-          {
-            "$ref": "#/components/parameters/Skip"
-          },
-          {
-            "$ref": "#/components/parameters/SortFields"
-          },
-          {
-            "$ref": "#/components/parameters/Limit"
-          },
-          {
-            "$ref": "#/components/parameters/OnlyRecordCount"
-          },
-          {
-            "$ref": "#/components/parameters/ProjectFields"
-          }
-        ],
-        "tags": [
-          "Companies"
-        ],
-        "responses": {
-          "200": {
-            "description": "Return companies list",
-            "content": {
-              "application/json": {
-                "example": {
-                  "count": 1,
-                  "result": [
-                    {
-                      "address": {
-                        "address1": "###",
-                        "address2": "###",
-                        "postalCode": "###",
-                        "city": "###",
-                        "country": "###",
-                        "coordinates": [
-                          7.01692790000004,
-                          43.6123063
-                        ]
-                      },
-                      "createdOn": "2018-03-30T22:29:08.388Z",
-                      "name": "###",
-                      "lastChangedOn": "2020-03-15T10:36:56.784Z",
-                      "issuer": true,
-                      "id": "###",
-                      "logo": "###",
-                      "canRead": true,
-                      "canDelete": true,
-                      "canUpdate": true
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          },
-          "403": {
-            "$ref": "#/components/responses/ForbiddenError"
-          },
-          "500": {
-            "$ref": "#/components/responses/BackendError"
-          }
-        }
-      },
       "post": {
         "security": [
           {
@@ -9082,6 +8983,134 @@
               "application/json": {
                 "example": {
                   "id": "###",
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/ocpi/endpoints/{id}/ping": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Ping an OCPI Endpoint",
+        "tags": [
+          "OCPI"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OCPIEndpointID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OCPIEndpoint"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OCPI Endpoint is reachable",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success",
+                  "statusCode": 200,
+                  "statusText": "OK"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/ocpi/endpoints/{id}/cdrs/check": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Check OCPI Endpoint's CDRs",
+        "tags": [
+          "OCPI"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OCPIEndpointID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OCPI Endpoint's CDRs checked",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/ocpi/endpoints/{id}/locations/check": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Check OCPI Endpoint's locations",
+        "tags": [
+          "OCPI"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OCPIEndpointID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OCPI Endpoint's locations checked",
+            "content": {
+              "application/json": {
+                "example": {
                   "status": "Success"
                 }
               }
@@ -10231,9 +10260,17 @@
       },
       "OCPIEndpoint": {
         "type": "object",
+        "required": [
+          "name",
+          "role",
+          "baseUrl",
+          "localToken",
+          "token"
+        ],
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "readOnly": true
           },
           "name": {
             "type": "string"
@@ -10832,6 +10869,15 @@
         "in": "path",
         "name": "id",
         "description": "Company ID",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "OCPIEndpointID": {
+        "in": "path",
+        "name": "id",
+        "description": "OCPI Endpoint ID",
         "required": true,
         "schema": {
           "type": "string"
