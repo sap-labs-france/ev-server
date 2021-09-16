@@ -27,10 +27,9 @@ export default abstract class AssetIntegration<AssetSettings> {
 
   public checkIfTokenExpired(token: AssetConnectionTokenSetting): boolean {
     if (!Utils.isNullOrUndefined(token)) {
-      const expireTime = new Date(token.expires).getTime() - 60000; // 1 minute buffer
-      const now = new Date().getTime();
-      return expireTime <= now;
+      return moment(new Date(token.expires)).subtract(60, 'seconds').isBefore(new Date());
     }
+    // return true by default if token is not valid
     return true;
   }
 
