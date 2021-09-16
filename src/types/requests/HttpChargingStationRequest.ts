@@ -149,7 +149,10 @@ export interface HttpChargingStationUpdateFirmwareRequest {
 }
 
 export interface HttpChargingStationResetRequest {
-  chargingStationID: string
+  chargingStationID: string,
+  args: {
+    type: 'Soft' | 'Hard';
+  }
 }
 
 export interface HttpIsAuthorizedRequest {
