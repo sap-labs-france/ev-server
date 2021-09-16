@@ -41,6 +41,10 @@
       "description": "Tags API"
     },
     {
+      "name": "Companies",
+      "description": "Company API"
+    },
+    {
       "name": "Connections",
       "description": "Integration connection API"
     },
@@ -55,6 +59,10 @@
     {
       "name": "Cars",
       "description": "Cars API"
+    },
+    {
+      "name": "Notifications",
+      "description": "Notifications API"
     }
   ],
   "paths": {
@@ -899,8 +907,11 @@
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": [
+                  "transactionsIDs"
+                ],
                 "properties": {
-                  "transactionIDs": {
+                  "transactionsIDs": {
                     "type": "array",
                     "items": {
                       "type": "number"
@@ -2057,8 +2068,11 @@
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": [
+                  "transactionIds"
+                ],
                 "properties": {
-                  "transactionIds": {
+                  "transactionsIds": {
                     "type": "array",
                     "items": {
                       "type": "number"
@@ -6454,6 +6468,9 @@
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": [
+                  "tagsIDs"
+                ],
                 "properties": {
                   "tagsIDs": {
                     "type": "array",
@@ -6795,6 +6812,153 @@
         }
       }
     },
+    "/api/notifications": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a list of notifications",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "DateFrom",
+            "description": "Start Date (ISO format)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/UserID"
+          },
+          {
+            "in": "query",
+            "name": "Channel",
+            "description": "Notification channel",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "email",
+                "remote-push-notification"
+              ]
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          }
+        ],
+        "tags": [
+          "Notifications"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return notification list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "_id": "###",
+                      "userID": "###",
+                      "timestamp": "2021-09-08T08:29:00.994Z",
+                      "channel": "email",
+                      "sourceId": "###",
+                      "sourceDescr": "###",
+                      "data": {},
+                      "chargeBoxID": "###",
+                      "user": {
+                        "email": "###",
+                        "firstName": "###",
+                        "name": "###",
+                        "id": "###"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/notifications/action/end-user/report-error": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Report an error",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "subject",
+                  "description"
+                ],
+                "properties": {
+                  "subject": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "mobile": {
+                    "type": "string",
+                    "description": "Phone number"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Notifications"
+        ],
+        "responses": {
+          "200": {
+            "description": "Error reported successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
     "/api/loggings": {
       "get": {
         "security": [
@@ -7102,6 +7266,10 @@
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": [
+                  "connectorId",
+                  "userId"
+                ],
                 "properties": {
                   "connectorId": {
                     "type": "number"
@@ -8521,6 +8689,268 @@
           }
         }
       }
+    },
+    "/api/companies": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a list of Companies",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/Issuer"
+          },
+          {
+            "$ref": "#/components/parameters/WithSite"
+          },
+          {
+            "in": "query",
+            "name": "WithLogo",
+            "description": "With Logo",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/LocLongitude"
+          },
+          {
+            "$ref": "#/components/parameters/LocLatitude"
+          },
+          {
+            "$ref": "#/components/parameters/LocMaxDistanceMeters"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Companies"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return companies list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "address": {
+                        "address1": "###",
+                        "address2": "###",
+                        "postalCode": "###",
+                        "city": "###",
+                        "country": "###",
+                        "coordinates": [
+                          7.01692790000004,
+                          43.6123063
+                        ]
+                      },
+                      "createdOn": "2018-03-30T22:29:08.388Z",
+                      "name": "###",
+                      "lastChangedOn": "2020-03-15T10:36:56.784Z",
+                      "issuer": true,
+                      "id": "###",
+                      "logo": "###",
+                      "canRead": true,
+                      "canDelete": true,
+                      "canUpdate": true
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Create a Company",
+        "tags": [
+          "Companies"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Company"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Company created successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "###",
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/companies/{id}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a Company",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/companyID"
+          }
+        ],
+        "tags": [
+          "Companies"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return company",
+            "content": {
+              "application/json": {
+                "example": {
+                  "$ref": "#/components/schemas/Company"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Update a Company",
+        "tags": [
+          "Companies"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Company"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Company updated successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Delete a Company",
+        "tags": [
+          "Companies"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/companyID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Company deleted successfully"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -9614,8 +10044,41 @@
             }
           },
           "carConnectorData": {
-            "carConnectorName": "string",
-            "carConnectorMeterID": "string"
+            "type": "object",
+            "properties": {
+              "carConnectorName": {
+                "type": "string"
+              },
+              "carConnectorMeterID": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "Company": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "logo": {
+            "type": "string",
+            "description": "Base64 encoded logo"
+          },
+          "issuer": {
+            "type": "boolean",
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "readOnly": true
           }
         }
       }
@@ -10177,6 +10640,15 @@
         "in": "query",
         "name": "id",
         "description": "Car ID",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "companyID": {
+        "in": "path",
+        "name": "id",
+        "description": "Company ID",
         "required": true,
         "schema": {
           "type": "string"
