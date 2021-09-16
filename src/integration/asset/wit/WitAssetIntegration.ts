@@ -118,7 +118,7 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSettings>
       `Time out error (5s) when getting the token with the connection URL '${this.connection.witConnection.authenticationUrl}/token'`
     );
     const data = response.data;
-    const expireTime = moment(now).add(data.expires_in, 'seconds').toDate();
+    const expireTime = moment().add(data.expires_in, 'seconds').toDate();
     const token : AssetConnectionTokenSetting = {
       accessToken: data.access_token,
       tokenType: data.token_type,
