@@ -148,6 +148,10 @@ export interface HttpChargingStationUpdateFirmwareRequest {
   }
 }
 
+export interface HttpChargingStationResetRequest {
+  chargingStationID: string
+}
+
 export interface HttpIsAuthorizedRequest {
   Action: string;
   Arg1: any;
