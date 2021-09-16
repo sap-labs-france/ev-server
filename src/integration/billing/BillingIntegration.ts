@@ -240,7 +240,7 @@ export default abstract class BillingIntegration {
         const tenant = await TenantStorage.getTenant(this.tenant.id);
         // Stripe saves amount in cents
         const decimInvoiceAmount = new Decimal(billingInvoice.amount).div(100);
-        // Format amunt with currency symbol depending on locale
+        // Format amount with currency symbol depending on locale
         const invoiceAmount = new Intl.NumberFormat(Utils.convertLocaleForCurrency(billingInvoice.user.locale), { style: 'currency', currency: billingInvoice.currency.toUpperCase() }).format(decimInvoiceAmount.toNumber());
         // Send async notification
         await NotificationHandler.sendBillingNewInvoiceNotification(
@@ -559,10 +559,10 @@ export default abstract class BillingIntegration {
     // Filter the invoice status based on the billing settings
     let invoiceStatus;
     if (this.settings.billing?.periodicBillingAllowed) {
-      // Let's finalize DRAFT invoices and trigger a payment attemnpt for unpaid invoices as well
+      // Let's finalize DRAFT invoices and trigger a payment attempt for unpaid invoices as well
       invoiceStatus = [ BillingInvoiceStatus.DRAFT, BillingInvoiceStatus.OPEN ];
     } else {
-      // Let's trigger a new payment attemnpt for unpaid invoices
+      // Let's trigger a new payment attempt for unpaid invoices
       invoiceStatus = [ BillingInvoiceStatus.OPEN ];
     }
     // Now return the query parameters
@@ -621,11 +621,13 @@ export default abstract class BillingIntegration {
 
   abstract downloadInvoiceDocument(invoice: BillingInvoice): Promise<Buffer>;
 
-  abstract chargeInvoice(invoice: BillingInvoice): Promise<BillingInvoice>;
+  abstract chargeInvoice(invoice: BillingInvoice, paymentMethodID?: string): Promise<BillingInvoice>;
 
   abstract consumeBillingEvent(req: Request): Promise<boolean>;
 
   abstract setupPaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult>;
+
+  abstract attemptInvoicePayment(user: User, billingInvoice: BillingInvoice, paymentMethodId: string): Promise<BillingOperationResult>;
 
   abstract getPaymentMethods(user: User): Promise<BillingPaymentMethod[]>;
 

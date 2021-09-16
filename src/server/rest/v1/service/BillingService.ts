@@ -1,5 +1,5 @@
 import { Action, Entity } from '../../../../types/Authorization';
-import { BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingUserSynchronizeAction } from '../../../../types/Billing';
+import { BillingInvoice, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingUserSynchronizeAction } from '../../../../types/Billing';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 
@@ -373,7 +373,7 @@ export default class BillingService {
     // Get invoice
     const invoice = await BillingStorage.getInvoice(req.tenant, filteredRequest.ID,
       [
-        'id', 'number', 'status', 'amount', 'createdOn', 'currency', 'downloadable', 'sessions',
+        'id', 'number', 'status', 'amount', 'createdOn', 'currency', 'downloadable', 'sessions', 'downloadUrl',
         ...userProject
       ]);
     UtilsService.assertObjectExists(action, invoice, `Invoice ID '${filteredRequest.ID}' does not exist`, MODULE_NAME, 'handleGetInvoice', req.user);
@@ -408,6 +408,7 @@ export default class BillingService {
     if (!Authorizations.isAdmin(req.user)) {
       // Get the User
       user = await UserStorage.getUser(req.tenant, req.user.id);
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       UtilsService.assertObjectExists(action, user, `User ID '${req.user.id}' does not exist`,
         MODULE_NAME, 'handleSynchronizeUserInvoices', req.user);
     }
@@ -549,6 +550,50 @@ export default class BillingService {
     next();
   }
 
+  public static async handleBillingInvoicePayment(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
+      Action.BILLING_INVOICE_PAYMENT, Entity.BILLING, MODULE_NAME, 'handleBillingInvoicePayment');
+    // Filter
+    const filteredRequest = BillingSecurity.filterInvoicePaymentRequest(req.body);
+    if (!await Authorizations.canPayInvoice(req.user, filteredRequest.userID)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.PAY, entity: Entity.INVOICE,
+        module: MODULE_NAME, method: 'handleBillingInvoicePayment'
+      });
+    }
+    // Get the billing impl
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
+    if (!billingImpl) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Billing service is not configured',
+        module: MODULE_NAME, method: 'handleBillingInvoicePayment',
+        action: action,
+        user: req.user
+      });
+    }
+    // Verify invoice exists
+    const billingInvoice: BillingInvoice = await BillingStorage.getInvoice(req.tenant, filteredRequest.invoiceID);
+    UtilsService.assertObjectExists(action, billingInvoice, `Invoice ID '${filteredRequest.invoiceID}' does not exist`,
+      MODULE_NAME, 'handleBillingInvoicePayment', req.user);
+    const user: User = await UserStorage.getUser(req.tenant, filteredRequest.userID);
+    UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.userID}' does not exist`,
+      MODULE_NAME, 'handleBillingInvoicePayment', req.user);
+    // Invoke the billing implementation
+    const paymentMethodID: string = filteredRequest.paymentMethodID;
+    // setup payment intent
+    const operationResult = await billingImpl.attemptInvoicePayment(user, billingInvoice, paymentMethodID);
+    if (operationResult) {
+      console.log(operationResult);
+    }
+    res.json(operationResult);
+    next();
+  }
+
   public static async handleBillingGetPaymentMethods(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = BillingSecurity.filterPaymentMethodsRequest(req.query);
@@ -641,7 +686,7 @@ export default class BillingService {
     next();
   }
 
-  public static async handleDownloadInvoice(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleDownloadInvoice(action: ServerAction, req: Request, res: Response): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.DOWNLOAD, Entity.BILLING, MODULE_NAME, 'handleDownloadInvoice');

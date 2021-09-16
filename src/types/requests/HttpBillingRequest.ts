@@ -24,6 +24,12 @@ export interface HttpSetupPaymentMethod {
   paymentMethodId?: string;
 }
 
+export interface HttpSetupPaymentIntent {
+  userID: string;
+  invoiceID: string;
+  paymentMethodID?: string;
+}
+
 export interface HttpPaymentMethods {
   userID: string;
 }

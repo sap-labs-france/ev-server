@@ -36,6 +36,10 @@ export default class BillingRouter {
     this.buildRouteBillingInvoices();
     this.buildRouteBillingInvoice();
     this.buildRouteBillingInvoiceDownload();
+    // -----------------------------------
+    // ROUTE to PAY an INVOICE
+    // -----------------------------------
+    this.buildRouteBillingInvoicePayment();
     return this.router;
   }
 
@@ -85,6 +89,16 @@ export default class BillingRouter {
       // STRIPE prerequisite - ask for a setup intent first!
       req.body.userID = req.params.userID;
       void RouterUtils.handleServerAction(BillingService.handleBillingSetupPaymentMethod.bind(this), ServerAction.BILLING_SETUP_PAYMENT_METHOD, req, res, next);
+    });
+  }
+
+  protected buildRouteBillingInvoicePayment(): void {
+    this.router.post(`/${ServerRoute.REST_BILLING_INVOICE_PAYMENT}`, (req: Request, res: Response, next: NextFunction) => {
+      // STRIPE prerequisite - ask for a payment intent first!
+      req.body.userID = req.params.userID;
+      req.body.invoiceId = req.params.invoiceID;
+      req.body.paymentMethodId = req.params.paymentMethodID;
+      void RouterUtils.handleServerAction(BillingService.handleBillingInvoicePayment.bind(this), ServerAction.BILLING_INVOICE_PAYMENT, req, res, next);
     });
   }
 

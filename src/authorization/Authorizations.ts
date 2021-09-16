@@ -662,6 +662,11 @@ export default class Authorizations {
       { user: userID, owner: loggedUser.id });
   }
 
+  public static async canPayInvoice(loggedUser: UserToken, userID: string): Promise<boolean> {
+    return Authorizations.canPerformAction(loggedUser, Entity.INVOICE, Action.PAY,
+      { user: userID, owner: loggedUser.id });
+  }
+
   public static async canCheckAssetConnection(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.CHECK_CONNECTION);
   }
