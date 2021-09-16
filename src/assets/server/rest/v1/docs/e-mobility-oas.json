@@ -9671,7 +9671,7 @@
         },
         "responses": {
           "200": {
-            "description": "OCPI Endpoint's local tokens generated",
+            "description": "OCPI Endpoint registered",
             "content": {
               "application/json": {
                 "example": {
