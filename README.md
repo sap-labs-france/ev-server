@@ -255,6 +255,7 @@ To set the end point, fill the following information in the **config.json** file
     "userTokenKey": "MySecureKeyToEncodeTokenAuth",
     "userTokenLifetimeHours": 12,
     "userDemoTokenLifetimeDays": 365,
+    "userTechnicalTokenLifetimeDays": 365,
     "socketIO": true,
     "socketIOListNotificationIntervalSecs": 5,
     "socketIOSingleNotificationIntervalSecs": 1,
@@ -272,6 +273,7 @@ To set the end point, fill the following information in the **config.json** file
     "userTokenKey": "YourSecureKeyToEncodeTokenAuth",
     "userTokenLifetimeHours": 12,
     "userDemoTokenLifetimeDays": 365,
+    "userTechnicalTokenLifetimeDays": 365,
     "socketIO": true,
     "socketIOListNotificationIntervalSecs": 5,
     "socketIOSingleNotificationIntervalSecs": 1,
@@ -359,6 +361,7 @@ The token key is provided is the **config.json** file:
     "userTokenKey": "MySecureKeyToEncodeTokenAuth",
     "userTokenLifetimeHours": 12,
     "userDemoTokenLifetimeDays": 365,
+    "userTechnicalTokenLifetimeDays": 365,
     ...
   }
 ```
