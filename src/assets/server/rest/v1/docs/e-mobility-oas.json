@@ -8957,6 +8957,80 @@
       }
     },
     "/api/ocpi/endpoints": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a list of OCPI Endpoints",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "OCPI"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return OCPI Endpoints list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "name": "###",
+                      "baseUrl": "###",
+                      "localToken": "###",
+                      "token": "###",
+                      "countryCode": "##",
+                      "partyId": "###",
+                      "backgroundPatchJob": true,
+                      "status": "###",
+                      "version": "2.1.1",
+                      "lastPatchJobOn": "2021-03-05T22:35:03.857Z",
+                      "lastPatchJobResult": {
+                        "successNbr": 0,
+                        "failureNbr": 0,
+                        "totalNbr": 12
+                      },
+                      "lastChangedOn": "2020-11-07T22:36:50.094Z",
+                      "role": "###",
+                      "id": "###"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      },
       "post": {
         "security": [
           {
@@ -8996,6 +9070,92 @@
           },
           "500": {
             "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/ocpi/endpoints/{id}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve an OCPI Endpoints",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OCPIEndpointID"
+          }
+        ],
+        "tags": [
+          "OCPI"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return OCPI Endpoint",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OCPIEndpoint"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Update an OCPI Endpoint",
+        "tags": [
+          "OCPI"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OCPIEndpoint"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OCPI Endpoint updated successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
       }
@@ -9046,6 +9206,9 @@
           },
           "500": {
             "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
       }
@@ -9085,6 +9248,9 @@
           },
           "500": {
             "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
       }
@@ -9124,6 +9290,9 @@
           },
           "500": {
             "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
       }
@@ -9163,6 +9332,9 @@
           },
           "500": {
             "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
       }
@@ -9202,6 +9374,9 @@
           },
           "500": {
             "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
       }
@@ -9241,6 +9416,9 @@
           },
           "500": {
             "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
       }
@@ -9280,6 +9458,9 @@
           },
           "500": {
             "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
       }
@@ -9319,6 +9500,9 @@
           },
           "500": {
             "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
       }
@@ -9358,6 +9542,9 @@
           },
           "500": {
             "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
       }
@@ -9397,6 +9584,9 @@
           },
           "500": {
             "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
       }
@@ -9447,6 +9637,62 @@
           },
           "500": {
             "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/ocpi/endpoints/:id/register": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Register OCPI Endpoint",
+        "tags": [
+          "OCPI"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OCPIEndpointID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OCPIEndpoint"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OCPI Endpoint's local tokens generated",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success",
+                  "statusCode": 200,
+                  "statusText": "OK"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
       }
