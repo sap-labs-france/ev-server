@@ -29,6 +29,8 @@ export default class OCPIRouter {
     this.buildRouteOcpiEndpoint();
     this.buildRouteOcpiEndpointUpdate();
     this.buildRouteOcpiEndpointRegister();
+    this.buildRouteOcpiEndpointUnregister();
+    this.buildRouteOcpiEndpointDelete();
     return this.router;
   }
 
@@ -139,6 +141,20 @@ export default class OCPIRouter {
     this.router.put(`/${ServerRoute.REST_OCPI_ENDPOINT_REGISTER}`, async (req: Request, res: Response, next: NextFunction) => {
       req.body.id = req.params.id;
       await RouterUtils.handleServerAction(OCPIEndpointService.handleRegisterOcpiEndpoint.bind(this), ServerAction.OCPI_ENDPOINT_REGISTER, req, res, next);
+    });
+  }
+
+  protected buildRouteOcpiEndpointUnregister(): void {
+    this.router.put(`/${ServerRoute.REST_OCPI_ENDPOINT_UNREGISTER}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.body.id = req.params.id;
+      await RouterUtils.handleServerAction(OCPIEndpointService.handleUnregisterOcpiEndpoint.bind(this), ServerAction.OCPI_ENDPOINT_UNREGISTER, req, res, next);
+    });
+  }
+
+  protected buildRouteOcpiEndpointDelete(): void {
+    this.router.delete(`/${ServerRoute.REST_OCPI_ENDPOINT}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = req.params.id;
+      await RouterUtils.handleServerAction(OCPIEndpointService.handleDeleteOcpiEndpoint.bind(this), ServerAction.OCPI_ENDPOINT_DELETE, req, res, next);
     });
   }
 }

@@ -9081,7 +9081,7 @@
             "bearerAuth": []
           }
         ],
-        "description": "Retrieve an OCPI Endpoints",
+        "description": "Retrieve an OCPI Endpoint",
         "parameters": [
           {
             "$ref": "#/components/parameters/OCPIEndpointID"
@@ -9144,6 +9144,39 @@
                 }
               }
             }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Delete an OCPI Endpoint",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OCPIEndpointID"
+          }
+        ],
+        "tags": [
+          "OCPI"
+        ],
+        "responses": {
+          "200": {
+            "description": "OCPI Endpoint deleted"
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
@@ -9672,6 +9705,50 @@
         "responses": {
           "200": {
             "description": "OCPI Endpoint's local tokens generated",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success",
+                  "statusCode": 200,
+                  "statusText": "OK"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/ocpi/endpoints/:id/unregister": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Unregister OCPI Endpoint",
+        "tags": [
+          "OCPI"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OCPIEndpointID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OCPI Endpoint unregistered",
             "content": {
               "application/json": {
                 "example": {
