@@ -1,5 +1,4 @@
 import { CarConnectorConnectionSetting, CarConnectorConnectionToken, CarConnectorSettings } from '../../../types/Setting';
-import axiosRetry, { IAxiosRetryConfig } from 'axios-retry';
 
 import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
@@ -11,7 +10,6 @@ import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
-import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../../types/Tenant';
 import Utils from '../../../utils/Utils';
 
@@ -38,7 +36,18 @@ export default class TronityCarConnectorIntegration extends CarConnectorIntegrat
     return response.accessToken;
   }
 
-  public async getCurrentSoC(userID: string, car: Car): Promise<number> {
+  public async getCurrentSoC(car: Car): Promise<number> {
+    if (Utils.isNullOrUndefined(car.carConnectorData.carConnectorMeterID)) {
+      await Logging.logError({
+        tenantID: this.tenant.id,
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'getCurrentSoC',
+        action: ServerAction.CAR_CONNECTOR,
+        message: `No Tronity meter id for > ${car.vin}`,
+      });
+      return null;
+    }
     const connectionToken = await this.connect();
     const request = `${this.connection.tronityConnection.apiUrl}/v1/vehicles/${car.carConnectorData.carConnectorMeterID}/battery`;
     try {
@@ -57,7 +66,7 @@ export default class TronityCarConnectorIntegration extends CarConnectorIntegrat
         module: MODULE_NAME, method: 'getCurrentSoC',
         detailedMessages: { response: response.data }
       });
-      if (response?.data?.level) {
+      if (response.data?.level) {
         return response.data.level;
       }
       return null;
@@ -87,13 +96,13 @@ export default class TronityCarConnectorIntegration extends CarConnectorIntegrat
       `Time out error (5s) when getting the token with the connection URL '${this.connection.tronityConnection.apiUrl}/oauth/authentication'`
     );
     const data = response.data;
+    const currentTime = new Date();
     const token : CarConnectorConnectionToken = {
       accessToken: data.access_token,
       tokenType: data.token_type,
       expiresIn: data.expires_in,
-      userName: data.userName,
-      issued: data['.issued'],
-      expires: data['.expires']
+      issued: currentTime,
+      expires: new Date(currentTime.getTime() + data.expires_in * 1000)
     };
     this.connection.token = token;
     await SettingStorage.saveCarConnectorSettings(this.tenant, this.settings);

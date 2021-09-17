@@ -1828,11 +1828,12 @@ export default class OCPPService {
 
   private async getCurrentSoc(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation): Promise<number> {
     if (Utils.isTenantComponentActive(tenant, TenantComponents.CAR_CONNECTOR) && !Utils.isNullOrUndefined(transaction.car) &&
-    !Utils.isNullOrUndefined(transaction.car.carConnectorData) && Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId) === CurrentType.AC) {
-      const carImplementation = await CarConnectorFactory.getCarConnectorImpl(tenant, transaction.car.carConnectorData?.carConnectorID);
+    !Utils.isNullOrUndefined(transaction.car.carConnectorData?.carConnectorID) &&
+    Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId) === CurrentType.AC) {
+      const carImplementation = await CarConnectorFactory.getCarConnectorImpl(tenant, transaction.car.carConnectorData.carConnectorID);
       if (carImplementation) {
         try {
-          return await carImplementation.getCurrentSoC(transaction.userID, transaction.car);
+          return await carImplementation.getCurrentSoC(transaction.car, transaction.userID);
         } catch {
           return null;
         }

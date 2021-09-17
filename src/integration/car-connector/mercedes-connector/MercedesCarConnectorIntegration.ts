@@ -138,7 +138,7 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
     }
   }
 
-  public async getCurrentSoC(userID: string, car: Car): Promise<number> {
+  public async getCurrentSoC(car: Car, userID: string): Promise<number> {
     const connection = await this.getRefreshedConnection(userID);
     const request = `${this.connection.mercedesConnection.apiUrl}/vehicledata/v2/vehicles/${car.vin}/resources/soc`;
     try {

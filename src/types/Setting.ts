@@ -359,11 +359,11 @@ export interface CarConnectorTronityConnectionType {
 
 export interface CarConnectorConnectionToken {
   accessToken: string,
+  expires: Date,
   tokenType?: string,
   expiresIn?: number,
   userName?: string,
   issued?: Date,
-  expires: Date,
 }
 
 export enum CryptoSettingsType {
