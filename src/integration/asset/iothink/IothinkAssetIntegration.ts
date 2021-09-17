@@ -1,5 +1,5 @@
 import Asset, { AssetType, IothinkProperty } from '../../../types/Asset';
-import { AssetConnectionSetting, AssetConnectionTokenSetting, AssetSettings, Setting } from '../../../types/Setting';
+import { AssetConnectionSetting, AssetConnectionTokenSetting, AssetSettings } from '../../../types/Setting';
 
 import { AbstractCurrentConsumption } from '../../../types/Consumption';
 import AssetIntegration from '../AssetIntegration';
