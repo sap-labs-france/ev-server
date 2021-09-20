@@ -10,7 +10,7 @@ import CompanyRouter from './api/CompanyRouter';
 import ConnectionRouter from './api/ConnectionRouter';
 import LoggingRouter from './api/LoggingRouter';
 import NotificationRouter from './api/NotificationRouter';
-import OCPIRouter from './api/OCPIRouter';
+import OCPIEndpointRouter from './api/OCPIEndpointRouter';
 import { StatusCodes } from 'http-status-codes';
 import SwaggerRouter from './doc/SwaggerRouter';
 import TagRouter from './api/TagRouter';
@@ -52,7 +52,7 @@ export default class GlobalRouter {
         new ConnectionRouter().buildRoutes(),
         new LoggingRouter().buildRoutes(),
         new NotificationRouter().buildRoutes(),
-        new OCPIRouter().buildRoutes(),
+        new OCPIEndpointRouter().buildRoutes(),
         new TagRouter().buildRoutes(),
         new TenantRouter().buildRoutes(),
         new TransactionRouter().buildRoutes(),

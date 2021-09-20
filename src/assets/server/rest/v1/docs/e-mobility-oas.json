@@ -8514,7 +8514,7 @@
         }
       }
     },
-    "/api/assets/{id}/connection/check": {
+    "/api/assets/connectors/:id/connection/check": {
       "get": {
         "security": [
           {
@@ -8524,7 +8524,13 @@
         "description": "Check the asset connection",
         "parameters": [
           {
-            "$ref": "#/components/parameters/assetID"
+            "in": "query",
+            "name": "ID",
+            "description": "Asset connection ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "tags": [

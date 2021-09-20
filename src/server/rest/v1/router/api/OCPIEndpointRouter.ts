@@ -5,7 +5,7 @@ import express, { NextFunction, Request, Response } from 'express';
 import OCPIEndpointService from '../../service/OCPIEndpointService';
 import RouterUtils from '../RouterUtils';
 
-export default class OCPIRouter {
+export default class OCPIEndpointRouter {
   private router: express.Router;
 
   public constructor() {
