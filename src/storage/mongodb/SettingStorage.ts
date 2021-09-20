@@ -214,16 +214,20 @@ export default class SettingStorage {
     return carConnectorSettings;
   }
 
-  public static async saveCarConnectorSettings(tenant: Tenant, carConnectorSettings: CarConnectorSettings): Promise<string> {
-    const { id, identifier, backupSensitiveData, sensitiveData } = carConnectorSettings;
-    const setting: SettingDB = {
-      id, identifier, sensitiveData, backupSensitiveData,
+  public static async saveCarConnectorSettings(tenant: Tenant, carConnectorSettingToSave: CarConnectorSettings): Promise<void> {
+    // Build internal structure
+    const settingsToSave = {
+      id: carConnectorSettingToSave.id,
+      identifier: carConnectorSettingToSave.identifier,
+      lastChangedOn: new Date(),
+      sensitiveData: carConnectorSettingToSave.sensitiveData,
       content: {
-        type: carConnectorSettings.type,
-        carConnector: carConnectorSettings.carConnector,
+        type: carConnectorSettingToSave.type,
+        carConnector: carConnectorSettingToSave.carConnector
       },
-    };
-    return SettingStorage.saveSettings(tenant, setting);
+    } as SettingDB;
+    // Save
+    await SettingStorage.saveSettings(tenant, settingsToSave);
   }
 
   public static async getPricingSettings(tenant: Tenant, limit?: number, skip?: number, dateFrom?: Date, dateTo?: Date): Promise<PricingSettings> {

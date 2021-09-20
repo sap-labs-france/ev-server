@@ -26,14 +26,14 @@ export default class TronityCarConnectorIntegration extends CarConnectorIntegrat
 
   public async connect(): Promise<string> {
     if (!this.checkIfTokenExpired(this.connection.token)) {
-      return this.connection.token.accessToken;
+      return await Cypher.decrypt(this.tenant, this.connection.token.accessToken);
     }
     // Check if connection is initialized
     this.checkConnectionIsProvided();
     // Get credential params
     const credentials = await this.getCredentialURLParams();
-    const response = await this.fetchNewToken(credentials);
-    return response.accessToken;
+    const token = await this.fetchNewToken(credentials);
+    return Cypher.decrypt(this.tenant, token.accessToken);
   }
 
   public async getCurrentSoC(car: Car): Promise<number> {
@@ -95,16 +95,17 @@ export default class TronityCarConnectorIntegration extends CarConnectorIntegrat
         }),
       `Time out error (5s) when getting the token with the connection URL '${this.connection.tronityConnection.apiUrl}/oauth/authentication'`
     );
-    const data = response.data;
     const currentTime = new Date();
     const token : CarConnectorConnectionToken = {
-      accessToken: data.access_token,
-      tokenType: data.token_type,
-      expiresIn: data.expires_in,
+      accessToken: await Cypher.encrypt(this.tenant, response.data.access_token),
+      tokenType: response.data.token_type,
+      expiresIn: response.data.expires_in,
       issued: currentTime,
-      expires: new Date(currentTime.getTime() + data.expires_in * 1000)
+      expires: new Date(currentTime.getTime() + response.data.expires_in * 1000)
     };
     this.connection.token = token;
+    // Sensitive data will be handled by helper method in the future
+    this.settings.sensitiveData.push(`content.carConnector.connections[${this.settings.carConnector.connections.indexOf(this.connection)}].token.accessToken`);
     await SettingStorage.saveCarConnectorSettings(this.tenant, this.settings);
     return token;
   }
