@@ -499,6 +499,12 @@ export default class CarStorage {
         type: carToSave.converter.type
       }
     };
+    if (carToSave.carConnectorData) {
+      carMDB.carConnectorData = {
+        carConnectorID: carToSave.carConnectorData?.carConnectorID ?? null,
+        carConnectorMeterID: carToSave.carConnectorData?.carConnectorMeterID ?? null,
+      };
+    }
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(carMDB, carToSave);
     // Modify

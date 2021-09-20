@@ -1,0 +1,12 @@
+{
+  "title": "Get a Company",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "company.json#/definitions/id"
+    }
+  },
+  "required": [
+    "ID"
+  ]
+}

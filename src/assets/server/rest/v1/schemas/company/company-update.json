@@ -1,0 +1,22 @@
+{
+  "title": "Update a Company",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "company.json#/definitions/id"
+    },
+    "name": {
+      "$ref": "company.json#/definitions/name"
+    },
+    "address": {
+      "$ref": "company.json#/definitions/address"
+    },
+    "logo": {
+      "$ref": "common.json#/definitions/logo"
+    }
+  },
+  "required": [
+    "id",
+    "name"
+  ]
+}

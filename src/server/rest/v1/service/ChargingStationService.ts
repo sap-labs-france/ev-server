@@ -920,8 +920,8 @@ export default class ChargingStationService {
     // Check and Get Charging Station
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
       req.tenant, req.user, filteredRequest.ID, action, null, {
-        withSiteArea: true,
-        withLogo: true
+        withSite: filteredRequest.WithSite,
+        withSiteArea: filteredRequest.WithSiteArea,
       }, true);
     res.json(chargingStation);
     next();
@@ -935,6 +935,7 @@ export default class ChargingStationService {
   public static async handleExportChargingStationsOCPPParams(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Always with site
     req.query.WithSite = 'true';
+    req.query.WithSiteArea = 'true';
     // Get Charging Stations
     const chargingStations = await ChargingStationService.getChargingStations(req);
     for (const chargingStation of chargingStations.result) {
@@ -1167,6 +1168,12 @@ export default class ChargingStationService {
     }
     let result: any;
     switch (command) {
+      // Clear Cache
+      case Command.CLEAR_CACHE:
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionClearCacheReq(req.body);
+        result = await ChargingStationService.executeChargingStationCommand(
+          req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
+        break;
       // Remote Stop Transaction / Unlock Connector
       case Command.REMOTE_STOP_TRANSACTION:
         filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionStopTransactionReq(req.body);
@@ -1184,12 +1191,38 @@ export default class ChargingStationService {
         break;
       // Get diagnostic
       case Command.GET_DIAGNOSTICS:
-        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationGetDiagnostics(req.body);
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationGetDiagnosticsReq(req.body);
+        result = await ChargingStationService.executeChargingStationCommand(
+          req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
+        break;
+      // Update Firmware
+      case Command.UPDATE_FIRMWARE:
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionUpdateFirmwareReq(req.body);
+        result = await ChargingStationService.executeChargingStationCommand(
+          req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
+        break;
+      // Reset
+      case Command.RESET:
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionResetReq(req.body);
         result = await ChargingStationService.executeChargingStationCommand(
           req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
         break;
       // Other commands
       default:
+        // Log Specific Schema has not been verified yet:
+        await Logging.logWarning({
+          tenantID: req.tenant.id,
+          siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          companyID: chargingStation.companyID,
+          chargingStationID: chargingStation.id,
+          source: chargingStation.id,
+          user: req.user,
+          action: action,
+          module: MODULE_NAME, method: 'handleAction',
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+          message: `Command '${command}' has not yet its own validation schema.`
+        });
         // Execute it
         result = await ChargingStationService.executeChargingStationCommand(
           req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
