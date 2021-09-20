@@ -1,0 +1,32 @@
+{
+  "title": "Change Charging Station availability (endpoint)",
+  "type": "object",
+  "properties": {
+    "chargingStationID": {
+      "$ref": "chargingstation.json#/definitions/id"
+    },
+    "args": {
+      "type": "object",
+      "properties": {
+        "connectorId": {
+          "$ref": "chargingstation.json#/definitions/connector/properties/connectorId"
+        },
+        "type": {
+          "type": "string",
+          "sanitize": "mongo",
+          "enum": [
+            "Inoperative",
+            "Operative"
+          ]
+        }
+      },
+      "required": [
+        "connectorId",
+        "type"
+      ]
+    }
+  },
+  "required": [
+    "chargingStationID"
+  ]
+}

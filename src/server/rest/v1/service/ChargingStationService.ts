@@ -1174,6 +1174,12 @@ export default class ChargingStationService {
         result = await ChargingStationService.executeChargingStationCommand(
           req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
         break;
+      // Change Availability
+      case Command.CHANGE_AVAILABILITY:
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionChangeAvailabilityReq(req.body);
+        result = await ChargingStationService.executeChargingStationCommand(
+          req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
+        break;
       // Remote Stop Transaction / Unlock Connector
       case Command.REMOTE_STOP_TRANSACTION:
         filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionStopTransactionReq(req.body);
