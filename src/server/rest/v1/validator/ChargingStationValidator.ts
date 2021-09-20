@@ -1,4 +1,4 @@
-import { HttpChargingProfilesRequest, HttpChargingStationCommandRequest, HttpChargingStationConnectorRequest, HttpChargingStationGetCompositeScheduleRequest, HttpChargingStationGetDiagnosticsRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationOcppParametersRequest, HttpChargingStationOcppRequest, HttpChargingStationParamsUpdateRequest, HttpChargingStationRequest, HttpChargingStationResetRequest, HttpChargingStationStartTransactionRequest, HttpChargingStationStopTransactionRequest, HttpChargingStationUpdateFirmwareRequest, HttpChargingStationsInErrorRequest, HttpChargingStationsRequest, HttpDownloadQrCodeRequest, HttpTriggerSmartChargingRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpChargingProfilesRequest, HttpChargingStationResetRequest, HttpChargingStationClearCacheRequest, HttpChargingStationCommandRequest, HttpChargingStationConnectorRequest, HttpChargingStationGetCompositeScheduleRequest, HttpChargingStationGetDiagnosticsRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationOcppParametersRequest, HttpChargingStationOcppRequest, HttpChargingStationParamsUpdateRequest, HttpChargingStationRequest, HttpChargingStationStartTransactionRequest, HttpChargingStationStopTransactionRequest, HttpChargingStationUpdateFirmwareRequest, HttpChargingStationsInErrorRequest, HttpChargingStationsRequest, HttpDownloadQrCodeRequest, HttpTriggerSmartChargingRequest } from '../../../../types/requests/HttpChargingStationRequest';
 
 import { ChargingProfile } from '../../../../types/ChargingProfile';
 import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
@@ -13,6 +13,7 @@ export default class ChargingStationValidator extends SchemaValidator {
   private chargingStationGet: Schema;
   private chargingStationDelete: Schema;
   private chargingStationAction: Schema;
+  private chargingStationActionClearCache: Schema;
   private chargingStationActionStartTransaction: Schema;
   private chargingStationActionStopTransaction: Schema;
   private chargingStationActionGetCompositeSchedule: Schema;
@@ -40,6 +41,7 @@ export default class ChargingStationValidator extends SchemaValidator {
     this.chargingStationGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-get.json`, 'utf8'));
     this.chargingStationDelete = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-delete.json`, 'utf8'));
     this.chargingStationAction = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action.json`, 'utf8'));
+    this.chargingStationActionClearCache = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action-start-clear-cache.json`, 'utf8'));
     this.chargingStationActionStartTransaction = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action-start-transaction.json`, 'utf8'));
     this.chargingStationActionStopTransaction = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action-stop-transaction.json`, 'utf8'));
     this.chargingStationActionGetCompositeSchedule = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action-get-composite-schedule.json`, 'utf8'));
@@ -90,6 +92,12 @@ export default class ChargingStationValidator extends SchemaValidator {
   public validateChargingStationActionReq(data: any): HttpChargingStationCommandRequest {
     // Validate schema
     this.validate(this.chargingStationAction, data);
+    return data;
+  }
+
+  public validateChargingStationActionClearCacheReq(data: any): HttpChargingStationClearCacheRequest {
+    // Validate schema for ClearCache
+    this.validate(this.chargingStationActionClearCache, data);
     return data;
   }
 
@@ -165,7 +173,7 @@ export default class ChargingStationValidator extends SchemaValidator {
     return data;
   }
 
-  public validateChargingStationGetDiagnostics(data: any): HttpChargingStationGetDiagnosticsRequest {
+  public validateChargingStationGetDiagnosticsReq(data: any): HttpChargingStationGetDiagnosticsRequest {
     // Validate schema
     this.validate(this.chargingStationGetDiagnostics, data);
     return data;

@@ -113,6 +113,10 @@ export interface HttpChargingStationCommandRequest {
   args?: any;
 }
 
+export interface HttpChargingStationClearCacheRequest {
+  chargingStationID: string
+}
+
 export interface HttpChargingStationStartTransactionRequest {
   chargingStationID: string,
   args: {
