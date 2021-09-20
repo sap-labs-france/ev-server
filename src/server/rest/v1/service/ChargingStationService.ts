@@ -1195,6 +1195,12 @@ export default class ChargingStationService {
         result = await ChargingStationService.executeChargingStationCommand(
           req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
         break;
+      // Reset
+      case Command.RESET:
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionResetReq(req.body);
+        result = await ChargingStationService.executeChargingStationCommand(
+          req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
+        break;
       // Other commands
       default:
         // Log Specific Schema has not been verified yet:
