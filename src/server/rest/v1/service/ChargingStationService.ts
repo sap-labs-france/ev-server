@@ -1168,6 +1168,12 @@ export default class ChargingStationService {
     }
     let result: any;
     switch (command) {
+      // Clear Cache
+      case Command.CLEAR_CACHE:
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionClearCacheReq(req.body);
+        result = await ChargingStationService.executeChargingStationCommand(
+          req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
+        break;
       // Remote Stop Transaction / Unlock Connector
       case Command.REMOTE_STOP_TRANSACTION:
         filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionStopTransactionReq(req.body);
@@ -1185,13 +1191,19 @@ export default class ChargingStationService {
         break;
       // Get diagnostic
       case Command.GET_DIAGNOSTICS:
-        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationGetDiagnostics(req.body);
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationGetDiagnosticsReq(req.body);
         result = await ChargingStationService.executeChargingStationCommand(
           req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
         break;
       // Update Firmware
       case Command.UPDATE_FIRMWARE:
         filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionUpdateFirmwareReq(req.body);
+        result = await ChargingStationService.executeChargingStationCommand(
+          req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
+        break;
+      // Reset
+      case Command.RESET:
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionResetReq(req.body);
         result = await ChargingStationService.executeChargingStationCommand(
           req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
         break;
