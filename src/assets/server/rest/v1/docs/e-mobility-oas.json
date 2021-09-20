@@ -9142,6 +9142,162 @@
           }
         }
       }
+    },
+    "/api/ocpi/endpoints/{id}/sessions/check": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Check OCPI Endpoint's sessions",
+        "tags": [
+          "OCPI"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OCPIEndpointID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OCPI Endpoint's sessions checked",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/ocpi/endpoints/{id}/cdr/pull": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Pull OCPI Endpoint's CDRs",
+        "tags": [
+          "OCPI"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OCPIEndpointID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OCPI Endpoint's cdrs pulled",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/ocpi/endpoints/{id}/locations/pull": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Pull OCPI Endpoint's locations",
+        "tags": [
+          "OCPI"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OCPIEndpointID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OCPI Endpoint's locations pulled",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/ocpi/endpoints/{id}/sessions/pull": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Pull OCPI Endpoint's sessions",
+        "tags": [
+          "OCPI"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OCPIEndpointID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OCPI Endpoint's sessions pulled",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
     }
   },
   "components": {

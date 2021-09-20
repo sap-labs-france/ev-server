@@ -15,8 +15,12 @@ export default class OCPIEndpointRouter {
   public buildRoutes(): express.Router {
     this.buildRouteOcpiEndpointCreate();
     this.buildRouteOcpiEndpointPing();
-    this.buildRouteOcpiEndpointCheckCDRS();
+    this.buildRouteOcpiEndpointCheckCDRs();
     this.buildRouteOcpiEndpointCheckLocations();
+    this.buildRouteOcpiEndpointCheckSessions();
+    this.buildRouteOcpiEndpointPullCDRs();
+    this.buildRouteOcpiEndpointPullLocations();
+    this.buildRouteOcpiEndpointPullSessions();
     return this.router;
   }
 
@@ -32,7 +36,7 @@ export default class OCPIEndpointRouter {
     });
   }
 
-  protected buildRouteOcpiEndpointCheckCDRS(): void {
+  protected buildRouteOcpiEndpointCheckCDRs(): void {
     this.router.put(`/${ServerRoute.REST_OCPI_ENDPOINT_CHECK_CDRS}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(OCPIEndpointService.handleCheckCdrsEndpoint.bind(this), ServerAction.OCPI_ENDPOINT_CHECK_CDRS, req, res, next);
     });
@@ -41,6 +45,30 @@ export default class OCPIEndpointRouter {
   protected buildRouteOcpiEndpointCheckLocations(): void {
     this.router.put(`/${ServerRoute.REST_OCPI_ENDPOINT_CHECK_LOCATIONS}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(OCPIEndpointService.handleCheckLocationsEndpoint.bind(this), ServerAction.OCPI_ENDPOINT_CHECK_LOCATIONS, req, res, next);
+    });
+  }
+
+  protected buildRouteOcpiEndpointCheckSessions(): void {
+    this.router.put(`/${ServerRoute.REST_OCPI_ENDPOINT_CHECK_SESSIONS}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(OCPIEndpointService.handleCheckSessionsEndpoint.bind(this), ServerAction.OCPI_ENDPOINT_CHECK_SESSIONS, req, res, next);
+    });
+  }
+
+  protected buildRouteOcpiEndpointPullCDRs(): void {
+    this.router.put(`/${ServerRoute.REST_OCPI_ENDPOINT_PULL_CDRS}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(OCPIEndpointService.handlePullCdrsEndpoint.bind(this), ServerAction.OCPI_PULL_CDRS, req, res, next);
+    });
+  }
+
+  protected buildRouteOcpiEndpointPullLocations(): void {
+    this.router.put(`/${ServerRoute.REST_OCPI_ENDPOINT_PULL_LOCATIONS}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(OCPIEndpointService.handlePullLocationsEndpoint.bind(this), ServerAction.OCPI_PULL_LOCATIONS, req, res, next);
+    });
+  }
+
+  protected buildRouteOcpiEndpointPullSessions(): void {
+    this.router.put(`/${ServerRoute.REST_OCPI_ENDPOINT_PULL_SESSIONS}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(OCPIEndpointService.handlePullSessionsEndpoint.bind(this), ServerAction.OCPI_PULL_SESSIONS, req, res, next);
     });
   }
 }
