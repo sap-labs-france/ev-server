@@ -113,6 +113,10 @@ export interface HttpChargingStationCommandRequest {
   args?: any;
 }
 
+export interface HttpChargingStationClearCacheRequest {
+  chargingStationID: string
+}
+
 export interface HttpChargingStationStartTransactionRequest {
   chargingStationID: string,
   args: {
@@ -145,6 +149,13 @@ export interface HttpChargingStationUpdateFirmwareRequest {
     retries?: number,
     retryInterval?: number,
     retrieveDate: Date
+  }
+}
+
+export interface HttpChargingStationResetRequest {
+  chargingStationID: string,
+  args: {
+    type: 'Soft' | 'Hard';
   }
 }
 

@@ -1,5 +1,6 @@
 import AuthenticatedBaseApi from './utils/AuthenticatedBaseApi';
 import CrudApi from './utils/CrudApi';
+import { ServerRoute } from '../../../src/types/Server';
 import TestConstants from './utils/TestConstants';
 
 export default class OCPIEndpointApi extends CrudApi {
@@ -16,7 +17,7 @@ export default class OCPIEndpointApi extends CrudApi {
   }
 
   public async create(data) {
-    return super.create(data, '/client/api/OcpiEndpointCreate');
+    return super.create(data, this.buildRestEndpointUrl(ServerRoute.REST_OCPI_ENDPOINT_CREATE));
   }
 
   public async update(data) {
