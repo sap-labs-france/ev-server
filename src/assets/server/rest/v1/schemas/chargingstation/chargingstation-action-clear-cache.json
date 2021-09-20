@@ -1,0 +1,12 @@
+{
+  "title": "Clear Cache",
+  "type": "object",
+  "properties": {
+    "chargingStationID": {
+      "$ref": "chargingstation.json#/definitions/id"
+    }
+  },
+  "required": [
+    "chargingStationID"
+  ]
+}
