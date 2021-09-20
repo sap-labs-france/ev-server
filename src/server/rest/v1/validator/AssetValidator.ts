@@ -1,4 +1,4 @@
-import { HttpAssetConsumptionRequest, HttpAssetRequest, HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
+import { HttpAssetCheckConnection, HttpAssetConsumptionRequest, HttpAssetRequest, HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
 
 import Asset from '../../../../types/Asset';
 import Consumption from '../../../../types/Consumption';
@@ -15,6 +15,7 @@ export default class AssetValidator extends SchemaValidator {
   private assetCreate: Schema;
   private assetUpdate: Schema;
   private assetGetConsumptions: Schema;
+  private assetCheckConnection: Schema;
 
   private constructor() {
     super('AssetValidator');
@@ -24,6 +25,7 @@ export default class AssetValidator extends SchemaValidator {
     this.assetCreate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/asset/asset-create.json`, 'utf8'));
     this.assetUpdate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/asset/asset-update.json`, 'utf8'));
     this.assetGetConsumptions = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/asset/asset-get-consumptions.json`, 'utf8'));
+    this.assetCheckConnection = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/asset/asset-check-connection.json`, 'utf8'));
   }
 
   public static getInstance(): AssetValidator {
@@ -66,6 +68,12 @@ export default class AssetValidator extends SchemaValidator {
   public validateAssetGetConsumptionsReq(data: any): HttpAssetConsumptionRequest {
     // Validate schema
     this.validate(this.assetGetConsumptions, data);
+    return data;
+  }
+
+  public validateAssetCheckConnectionReq(data: any): HttpAssetCheckConnection {
+    // Validate schema
+    this.validate(this.assetCheckConnection, data);
     return data;
   }
 }

@@ -196,7 +196,7 @@ export default class AssetService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.CHECK_CONNECTION, Entity.ASSET, MODULE_NAME, 'handleCheckAssetConnection');
     // Filter request
-    const filteredRequest = AssetValidator.getInstance().validateAssetGetReq(req.query);
+    const filteredRequest = AssetValidator.getInstance().validateAssetCheckConnectionReq(req.query);
     // Get asset connection type
     const assetImpl = await AssetFactory.getAssetImpl(req.tenant, filteredRequest.ID);
     // Asset has unknown connection type
