@@ -227,14 +227,14 @@ export default class UserService {
         await UserStorage.saveUserRole(req.tenant, user.id, filteredRequest.role);
       }
       // Save Admin Data
-      if (Utils.objectHasProperty(filteredRequest, 'plateID')) {
-        const adminData: { plateID?: string; } = {};
-        adminData.plateID = filteredRequest.plateID || null;
-        await UserStorage.saveUserAdminData(req.tenant, user.id, adminData);
-      }
-      if (Utils.objectHasProperty(filteredRequest, 'technical')) {
-        const adminData: { technical?: boolean; } = {};
-        adminData.technical = filteredRequest.technical || null;
+      if (Utils.objectHasProperty(filteredRequest, 'plateID') || Utils.objectHasProperty(filteredRequest, 'technical')) {
+        const adminData: { plateID?: string; technical?: boolean; } = {};
+        if (Utils.objectHasProperty(filteredRequest, 'plateID')) {
+          adminData.plateID = filteredRequest.plateID || null;
+        }
+        if (Utils.objectHasProperty(filteredRequest, 'technical')) {
+          adminData.technical = filteredRequest.technical;
+        }
         await UserStorage.saveUserAdminData(req.tenant, user.id, adminData);
       }
     }
