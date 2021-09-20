@@ -918,10 +918,16 @@ export default class ChargingStationService {
       });
     }
     // Check and Get Charging Station
+    // To uncomment when the mobile app will be released with the handling of these params
+    // const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
+    //   req.tenant, req.user, filteredRequest.ID, action, null, {
+    //     withSite: filteredRequest.WithSite,
+    //     withSiteArea: filteredRequest.WithSiteArea,
+    //   }, true);
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
       req.tenant, req.user, filteredRequest.ID, action, null, {
-        withSite: filteredRequest.WithSite,
-        withSiteArea: filteredRequest.WithSiteArea,
+        withSite: true,
+        withSiteArea: true,
       }, true);
     res.json(chargingStation);
     next();
