@@ -80,7 +80,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'createdOn', 'lastChangedOn', 'errorCodeDetails', 'errorCode'
         ]
       },
-      { resource: Entity.USER, action: [Action.CREATE, Action.UPDATE, Action.SYNCHRONIZE_BILLING_USER] },
+      { resource: Entity.USER, action: Action.SYNCHRONIZE_BILLING_USER },
       {
         resource: Entity.USER, action: Action.DELETE,
         condition: {
@@ -89,7 +89,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         }
       },
       {
-        resource: Entity.USER, action: Action.READ,
+        resource: Entity.USER, action: [Action.READ, Action.CREATE, Action.UPDATE],
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
           'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address', 'technical'
