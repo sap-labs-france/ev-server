@@ -1,7 +1,7 @@
 {
   "title": "Assign sites to a User",
   "type": "object",
-  "definitions": {
+  "properties": {
     "userID": {
       "$ref": "user.json#/definitions/id"
     },
