@@ -119,28 +119,26 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSettings>
     );
     const data = response.data;
     const expireTime = moment().add(data.expires_in, 'seconds').toDate();
-    const token : AssetConnectionTokenSetting = {
-      accessToken: data.access_token,
+    this.connection.token = {
+      accessToken: await Cypher.encrypt(this.tenant, data.access_token),
       tokenType: data.token_type,
       expiresIn: data.expires_in,
       issued: now,
       expires: expireTime,
     };
-    this.connection.token = token;
     await SettingStorage.saveAssetSettings(this.tenant, this.settings);
-    return token;
   }
 
   private async connect(): Promise<string> {
     if (!this.checkIfTokenExpired(this.connection.token)) {
-      return this.connection.token.accessToken;
+      return Cypher.decrypt(this.tenant, this.connection.token.accessToken);
     }
     // Check if connection is initialized
     this.checkConnectionIsProvided();
     // Get credential params
     const credentials = await this.getCredentialURLParams();
-    const response = await this.fetchNewToken(credentials);
-    return response.accessToken;
+    await this.fetchNewToken(credentials);
+    return Cypher.decrypt(this.tenant, this.connection.token.accessToken);
   }
 
   private async getCredentialURLParams(): Promise<URLSearchParams> {

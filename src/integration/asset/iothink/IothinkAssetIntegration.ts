@@ -160,7 +160,7 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
     );
     const data = response.data;
     const token : AssetConnectionTokenSetting = {
-      accessToken: data.access_token,
+      accessToken: await Cypher.encrypt(this.tenant, data.access_token),
       tokenType: data.token_type,
       expiresIn: data.expires_in,
       userName: data.userName,
@@ -174,14 +174,14 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
 
   private async connect(): Promise<string> {
     if (!this.checkIfTokenExpired(this.connection.token)) {
-      return this.connection.token.accessToken;
+      return Cypher.decrypt(this.tenant, this.connection.token.accessToken);
     }
     // Check if connection is initialized
     this.checkConnectionIsProvided();
     // Get credential params
     const credentials = await this.getCredentialURLParams();
-    const response = await this.fetchNewToken(credentials);
-    return response.accessToken;
+    await this.fetchNewToken(credentials);
+    return Cypher.decrypt(this.tenant, this.connection.token.accessToken);
   }
 
   private async getCredentialURLParams(): Promise<URLSearchParams> {

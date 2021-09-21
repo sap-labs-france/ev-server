@@ -443,6 +443,21 @@ export default class SettingStorage {
     await SettingStorage.saveSettings(tenant, settingsToSave);
   }
 
+  public static async saveAssetSettings(tenant: Tenant, assetSettingsToSave: AssetSettings): Promise<void> {
+    const settingsToSave = {
+      id: assetSettingsToSave.id,
+      sensitiveData: assetSettingsToSave.sensitiveData,
+      backupSensitiveData: assetSettingsToSave.backupSensitiveData,
+      identifier: TechnicalSettings.ASSET,
+      content: {
+        type: assetSettingsToSave.type,
+        asset: assetSettingsToSave.asset,
+      },
+    } as SettingDB;
+    // Save
+    await SettingStorage.saveSettings(tenant, settingsToSave);
+  }
+
   public static async getBillingSetting(tenant: Tenant): Promise<BillingSettings> {
     // Get BILLING Settings by Identifier
     const setting = await SettingStorage.getSettingByIdentifier(tenant, TenantComponents.BILLING);
@@ -504,15 +519,4 @@ export default class SettingStorage {
     return SettingStorage.saveSettings(tenant, setting);
   }
 
-  public static async saveAssetSettings(tenant: Tenant, assetSettings: AssetSettings): Promise<string> {
-    const { id, identifier, backupSensitiveData, sensitiveData } = assetSettings;
-    const setting: SettingDB = {
-      id, identifier, sensitiveData, backupSensitiveData,
-      content: {
-        type: assetSettings.type,
-        asset: assetSettings.asset,
-      },
-    };
-    return SettingStorage.saveSettings(tenant, setting);
-  }
 }

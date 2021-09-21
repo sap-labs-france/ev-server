@@ -3,7 +3,8 @@ import { TenantComponents } from './Tenant';
 
 export enum TechnicalSettings {
   USER = 'user',
-  CRYPTO = 'crypto'
+  CRYPTO = 'crypto',
+  ASSET = 'asset',
 }
 
 export interface Setting extends CreatedUpdatedProps {
