@@ -1,5 +1,5 @@
 {
-  "title": "Change Charging Station availability (endpoint)",
+  "title": "Change Availability",
   "type": "object",
   "properties": {
     "chargingStationID": {

@@ -117,7 +117,7 @@ export interface HttpChargingStationChangeAvailabilityRequest {
   chargingStationID: string,
   args: {
     connectorId: string,
-    type: string
+    type: 'Inoperative' | 'Operative';
   }
 }
 
