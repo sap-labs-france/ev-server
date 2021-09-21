@@ -1,0 +1,9 @@
+{
+  "title": "Get all the Car Makers Request",
+  "type": "object",
+  "properties": {
+    "Search": {
+      "$ref": "common.json#/definitions/search"
+    }
+  }
+}
