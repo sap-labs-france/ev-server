@@ -298,7 +298,7 @@ export default class OCPPUtils {
   }
 
   public static async processTransactionBilling(tenant: Tenant, transaction: Transaction, action: TransactionAction): Promise<void> {
-    if (transaction.user && !transaction.user.issuer) {
+    if (!transaction.user || !transaction.user.issuer) {
       return;
     }
     const billingImpl = await BillingFactory.getBillingImpl(tenant);

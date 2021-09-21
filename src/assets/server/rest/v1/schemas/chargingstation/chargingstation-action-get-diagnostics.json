@@ -1,5 +1,5 @@
 {
-  "title": "Get Charging Station diagnostics (endpoint)",
+  "title": "Get Diagnostics",
   "type": "object",
   "properties": {
     "chargingStationID": {
