@@ -881,12 +881,12 @@ export default class OCPPService {
           type: ConnectorType.UNKNOWN
         };
         chargingStation.connectors.push(foundConnector);
-        // Enrich Charging Station's Connector
-        const chargingStationTemplate = await OCPPUtils.getChargingStationTemplate(chargingStation);
-        if (chargingStationTemplate) {
-          await OCPPUtils.enrichChargingStationConnectorWithTemplate(
-            tenant, chargingStation, statusNotification.connectorId, chargingStationTemplate);
-        }
+      }
+      // Enrich Charging Station's Connector
+      const chargingStationTemplate = await OCPPUtils.getChargingStationTemplate(chargingStation);
+      if (chargingStationTemplate) {
+        await OCPPUtils.enrichChargingStationConnectorWithTemplate(
+          tenant, chargingStation, statusNotification.connectorId, chargingStationTemplate);
       }
     }
     return foundConnector;
