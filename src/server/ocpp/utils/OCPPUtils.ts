@@ -1160,7 +1160,7 @@ export default class OCPPUtils {
       tenant: Tenant, chargingStation: ChargingStation, connectorID: number,
       chargingStationTemplate: ChargingStationTemplate): Promise<boolean> {
     // Copy from template
-    if (chargingStationTemplate) {
+    if (chargingStationTemplate && !chargingStation.manualConfiguration) {
       // Handle connector
       if (Utils.objectHasProperty(chargingStationTemplate.technical, 'connectors')) {
         // Find the connector in the template
@@ -1241,6 +1241,20 @@ export default class OCPPUtils {
         detailedMessages: { chargingStationTemplate }
       });
       return true;
+    } else if (chargingStationTemplate && chargingStation.manualConfiguration) {
+      await Logging.logWarning({
+        tenantID: tenant.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
+        chargingStationID: chargingStation.id,
+        source: chargingStation.id,
+        action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
+        module: MODULE_NAME, method: 'enrichChargingStationConnectorWithTemplate',
+        message: `Template for Connector ID '${connectorID}' has been found but manual configuration is enabled so it will not be applied`,
+        detailedMessages: { chargingStation }
+      });
+      return false;
     }
     await Logging.logWarning({
       tenantID: tenant.id,
@@ -2311,7 +2325,7 @@ export default class OCPPUtils {
         source: chargingStation.id,
         action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
-        message: 'Template matching the charging station has been found but manual configuration is enabled. If that\'s not intentional, disable it',
+        message: 'Template matching the charging station has been found but manual configuration is enabled so it will not be applied',
         detailedMessages: { chargingStation }
       });
       return templateUpdateResult;
