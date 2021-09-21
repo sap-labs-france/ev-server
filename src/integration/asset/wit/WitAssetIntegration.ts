@@ -117,12 +117,11 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSettings>
         }),
       `Time out error (5s) when getting the token with the connection URL '${this.connection.witConnection.authenticationUrl}/token'`
     );
-    const data = response.data;
-    const expireTime = moment().add(data.expires_in, 'seconds').toDate();
+    const expireTime = moment().add(response.data.expires_in, 'seconds').toDate();
     this.connection.token = {
-      accessToken: await Cypher.encrypt(this.tenant, data.access_token),
-      tokenType: data.token_type,
-      expiresIn: data.expires_in,
+      accessToken: await Cypher.encrypt(this.tenant, response.data.access_token),
+      tokenType: response.data.token_type,
+      expiresIn: response.data.expires_in,
       issued: now,
       expires: expireTime,
     };
