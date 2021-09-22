@@ -7,6 +7,8 @@ import AssignedSitesDynamicAuthorizationFilter from './dynamic-filters/AssignedS
 import DynamicAuthorizationAssert from './DynamicAuthorizationAssert';
 import DynamicAuthorizationDataSource from './DynamicAuthorizationDataSource';
 import DynamicAuthorizationFilter from './DynamicAuthorizationFilter';
+import ExcludeActionDynamicAuthorizationDataSource from './dynamic-data-source/ExcludeActionDynamicAuthorizationDataSource';
+import ExcludeActionDynamicAuthorizationFilter from './dynamic-filters/ExcludeActionDynamicAuthorizationFilter';
 import LocalIssuerDynamicAuthorizationFilter from './dynamic-filters/LocalIssuerDynamicAuthorizationFilter';
 import OwnUserDynamicAuthorizationAssert from './dynamic-assert/OwnUserDynamicAuthorizationAssert';
 import OwnUserDynamicAuthorizationDataSource from './dynamic-data-source/OwnUserDynamicAuthorizationDataSource';
@@ -47,6 +49,9 @@ export default class DynamicAuthorizationFactory {
         break;
       case DynamicAuthorizationFilterName.OWN_USER:
         dynamicFilter = new OwnUserDynamicAuthorizationFilter(tenant, userToken, negateFilter);
+        break;
+      case DynamicAuthorizationFilterName.EXCLUDE_ACTION:
+        dynamicFilter = new ExcludeActionDynamicAuthorizationFilter(tenant, userToken, negateFilter);
         break;
       case DynamicAuthorizationFilterName.LOCAL_ISSUER:
         dynamicFilter = new LocalIssuerDynamicAuthorizationFilter(tenant, userToken, negateFilter);
@@ -113,6 +118,8 @@ export default class DynamicAuthorizationFactory {
         return new AssignedSitesDynamicAuthorizationDataSource(tenant, user);
       case DynamicAuthorizationDataSourceName.OWN_USER:
         return new OwnUserDynamicAuthorizationDataSource(tenant, user);
+      case DynamicAuthorizationDataSourceName.EXCLUDE_ACTION:
+        return new ExcludeActionDynamicAuthorizationDataSource(tenant, user);
     }
   }
 }

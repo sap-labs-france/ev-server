@@ -1,0 +1,16 @@
+{
+  "title": "Unassign several Tags",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "visualIDs": {
+      "type": "array",
+      "items": {
+        "$ref": "tag.json#/definitions/visualID"
+      }
+    }
+  },
+  "required": [
+    "visualIDs"
+  ]
+}
