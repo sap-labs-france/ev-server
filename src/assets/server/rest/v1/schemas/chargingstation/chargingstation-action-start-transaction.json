@@ -1,5 +1,5 @@
 {
-  "title": "Charging Station Action Request for Start Transaction (endpoint)",
+  "title": "Remote Start Transaction",
   "type": "object",
   "properties": {
     "chargingStationID": {

@@ -6207,10 +6207,15 @@
         "description": "Import users from file",
         "requestBody": {
           "content": {
-            "text/csv": {
+            "multipart/form-data": {
               "schema": {
-                "type": "string",
-                "format": "binary"
+                "type": "object",
+                "properties": {
+                  "filename": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
               }
             }
           }
@@ -6709,11 +6714,15 @@
         "description": "Import a Tag file",
         "requestBody": {
           "content": {
-            "text/csv": {
+            "multipart/form-data": {
               "schema": {
-                "type": "string",
-                "format": "binary",
-                "example": "id,visualID,description,firstName,name,email\n\"###\",\"###\",\"###\",\"###\",\"###\",\"###\""
+                "type": "object",
+                "properties": {
+                  "filename": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
               }
             }
           }
@@ -8514,7 +8523,7 @@
         }
       }
     },
-    "/api/assets/{id}/connection/check": {
+    "/api/assets/connectors/:id/connection/check": {
       "get": {
         "security": [
           {
@@ -8524,7 +8533,13 @@
         "description": "Check the asset connection",
         "parameters": [
           {
-            "$ref": "#/components/parameters/assetID"
+            "in": "query",
+            "name": "ID",
+            "description": "Asset connection ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "tags": [

@@ -103,7 +103,14 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       });
       return this.buildOCPIResponse(OCPICommandResponseType.REJECTED);
     }
-    if (!Utils.isNullOrUndefined(localToken.user) || localToken.user?.issuer) {
+    if (Utils.isNullOrUndefined(localToken.user) || localToken.user?.issuer) {
+      await Logging.logError({
+        tenantID: tenant.id,
+        action: ServerAction.OCPI_START_SESSION,
+        message: `Invalid user associated to Token ID '${startSession.token.uid}'`,
+        module: MODULE_NAME, method: 'remoteStartSession',
+        detailedMessages: { localToken, startSession }
+      });
       return this.buildOCPIResponse(OCPICommandResponseType.REJECTED);
     }
     // Get the Charging Station

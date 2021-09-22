@@ -1,5 +1,5 @@
 {
-  "title": "Remote Stop Transaction",
+  "title": "Reset",
   "type": "object",
   "properties": {
     "chargingStationID": {
@@ -8,12 +8,14 @@
     "args": {
       "type": "object",
       "properties": {
-        "transactionId": {
-          "$ref": "transaction.json#/definitions/id"
+        "type": {
+          "type": "string",
+          "sanitize": "mongo",
+          "enum": ["Soft", "Hard"]
         }
       },
       "required": [
-        "transactionId"
+        "type"
       ]
     }
   },
