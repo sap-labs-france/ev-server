@@ -9,7 +9,7 @@ export default class OCPIEndpointApi extends CrudApi {
     super(authenticatedApi);
   }
 
-  public async readById(id) {
+  public async readById(id: string) {
     return super.readById(id, this.buildRestEndpointUrl(ServerRoute.REST_OCPI_ENDPOINT, { id }));
   }
 
@@ -25,7 +25,7 @@ export default class OCPIEndpointApi extends CrudApi {
     return super.update(data, this.buildRestEndpointUrl(ServerRoute.REST_OCPI_ENDPOINT, { id: data.id }));
   }
 
-  public async delete(id) {
-    return super.delete(id, '/client/api/OcpiEndpointDelete');
+  public async delete(id: string) {
+    return super.delete(id, this.buildRestEndpointUrl(ServerRoute.REST_OCPI_ENDPOINT, { id }));
   }
 }
