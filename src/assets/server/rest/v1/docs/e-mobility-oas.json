@@ -9096,7 +9096,7 @@
             "bearerAuth": []
           }
         ],
-        "description": "Retrieve an OCPI Endpoints",
+        "description": "Retrieve an OCPI Endpoint",
         "parameters": [
           {
             "$ref": "#/components/parameters/OCPIEndpointID"
