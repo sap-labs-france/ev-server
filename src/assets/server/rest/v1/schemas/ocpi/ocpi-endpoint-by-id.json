@@ -6,5 +6,8 @@
     "id": {
       "$ref": "ocpi-endpoint.json#/definitions/id"
     }
-  }
+  },
+  "required": [
+    "id"
+  ]
 }

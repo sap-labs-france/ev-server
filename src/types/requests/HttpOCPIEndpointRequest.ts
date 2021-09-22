@@ -8,3 +8,7 @@ export interface HttpOCPIEndpointsRequest extends HttpDatabaseRequest{
 export interface HttpOCPIEndpointByIdRequest {
   id: string;
 }
+
+export interface HttpOCPIEndpointGenerateLocalTokenRequest extends HttpOCPIEndpointByIdRequest {
+  name: string;
+}

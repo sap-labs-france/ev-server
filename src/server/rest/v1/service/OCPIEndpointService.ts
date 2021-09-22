@@ -838,17 +838,13 @@ export default class OCPIEndpointService {
       });
     }
     // Filter
-    const filteredRequest = OCPIEndpointValidator.getInstance().validateOCPIEndpointById(req.body);
-    // Get OcpiEndpoint
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
-    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
-      MODULE_NAME, 'handleGenerateLocalTokenOcpiEndpoint', req.user);
+    const filteredRequest = OCPIEndpointValidator.getInstance().validateOCPIEndpointGenerateLocalToken(req.body);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     const localToken = OCPIUtils.generateLocalToken(tenant.subdomain);
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleGenerateLocalTokenOcpiEndpoint',
-      message: `Local Token for Ocpi Endpoint '${ocpiEndpoint.name}' has been generated successfully`,
+      message: `Local Token for Ocpi Endpoint '${filteredRequest.name}' has been generated successfully`,
       action,
       detailedMessages: { token: filteredRequest }
     });
