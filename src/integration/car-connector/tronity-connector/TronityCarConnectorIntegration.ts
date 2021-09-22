@@ -105,7 +105,10 @@ export default class TronityCarConnectorIntegration extends CarConnectorIntegrat
     };
     this.connection.token = token;
     // Sensitive data will be handled by helper method in the future
-    this.settings.sensitiveData.push(`content.carConnector.connections[${this.settings.carConnector.connections.indexOf(this.connection)}].token.accessToken`);
+    const sensitiveData = `content.carConnector.connections[${this.settings.carConnector.connections.indexOf(this.connection)}].token.accessToken`;
+    if (this.settings.sensitiveData.indexOf(sensitiveData) === -1) {
+      this.settings.sensitiveData.push(sensitiveData);
+    }
     await SettingStorage.saveCarConnectorSettings(this.tenant, this.settings);
     return token;
   }
