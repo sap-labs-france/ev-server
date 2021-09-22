@@ -121,6 +121,14 @@ export interface HttpChargingStationChangeAvailabilityRequest {
   }
 }
 
+export interface HttpChargingStationChangeConfigurationRequest {
+  chargingStationID: string,
+  args: {
+    key: string,
+    value: string;
+  }
+}
+
 export interface HttpChargingStationClearCacheRequest {
   chargingStationID: string
 }
