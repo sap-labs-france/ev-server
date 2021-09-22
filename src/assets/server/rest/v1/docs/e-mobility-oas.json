@@ -10483,7 +10483,7 @@
           "meterID": {
             "type": "string"
           },
-          "usePushAPI": {
+          "usesPushAPI": {
             "type": "boolean"
           },
           "coordinates": {
