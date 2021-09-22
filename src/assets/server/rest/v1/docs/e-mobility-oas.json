@@ -9659,7 +9659,13 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/OCPIEndpoint"
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "OCPI Endpoint name"
+                  }
+                }
               }
             }
           }

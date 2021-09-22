@@ -1,0 +1,17 @@
+{
+  "title": "Generate OCPI Endpoint local token Request",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "ocpi-endpoint.json#/definitions/id"
+    },
+    "name": {
+      "$ref": "ocpi-endpoint.json#/definitions/name"
+    }
+  },
+  "required": [
+    "id",
+    "name"
+  ]
+}
