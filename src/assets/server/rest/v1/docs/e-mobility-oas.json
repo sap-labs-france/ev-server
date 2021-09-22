@@ -9655,6 +9655,21 @@
             "$ref": "#/components/parameters/OCPIEndpointID"
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "OCPI Endpoint name"
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "OCPI Endpoint's local tokens generated",
