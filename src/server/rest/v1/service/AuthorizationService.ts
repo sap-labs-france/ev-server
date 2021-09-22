@@ -1,4 +1,4 @@
-import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity, SiteAreaAuthorizationActions } from '../../../../types/Authorization';
+import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity, SiteAreaAuthorizationActions, TagAuthorizationActions } from '../../../../types/Authorization';
 import { Car, CarCatalog } from '../../../../types/Car';
 import { CarCatalogDataResult, CarDataResult, CompanyDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, UserDataResult } from '../../../../types/DataResult';
 import { HttpAssignAssetsToSiteAreaRequest, HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
@@ -34,7 +34,7 @@ import _ from 'lodash';
 const MODULE_NAME = 'AuthorizationService';
 
 export default class AuthorizationService {
-  public static canPerformAction(authActions: AuthorizationActions | SiteAreaAuthorizationActions, action: Action): boolean {
+  public static canPerformAction(authActions: AuthorizationActions | SiteAreaAuthorizationActions | TagAuthorizationActions, action: Action): boolean {
     switch (action) {
       case Action.READ:
         return authActions.canRead;
@@ -45,11 +45,11 @@ export default class AuthorizationService {
       case Action.DELETE:
         return authActions.canDelete;
       case Action.UNASSIGN:
-        return authActions.canUnassign;
+        return (authActions as TagAuthorizationActions).canUnassign;
       case Action.ASSIGN:
-        return authActions.canAssign;
+        return (authActions as TagAuthorizationActions).canAssign;
       case Action.UPDATE_BY_VISUAL_ID:
-        return authActions.canUpdateByVisualID;
+        return (authActions as TagAuthorizationActions).canUpdateByVisualID;
       case Action.ASSIGN_CHARGING_STATIONS_TO_SITE_AREA:
         return (authActions as SiteAreaAuthorizationActions).canAssignChargingStations;
       case Action.UNASSIGN_CHARGING_STATIONS_TO_SITE_AREA:
@@ -124,7 +124,7 @@ export default class AuthorizationService {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
-      projectFields: [ ],
+      projectFields: [],
       authorized: false,
     };
     // Check static & dynamic authorization
@@ -281,7 +281,7 @@ export default class AuthorizationService {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
-      projectFields: [ ],
+      projectFields: [],
       authorized: false,
     };
     // Check static & dynamic authorization
@@ -462,7 +462,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetChargingStationAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Partial<HttpChargingStationRequest>, entityData?: EntityDataType):Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpChargingStationRequest>, entityData?: EntityDataType): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -492,7 +492,7 @@ export default class AuthorizationService {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
-      projectFields: [ ],
+      projectFields: [],
       authorized: false
     };
     // Check static & dynamic authorization
@@ -517,7 +517,7 @@ export default class AuthorizationService {
   }
 
   public static async addCarAuthorizations(tenant: Tenant, userToken: UserToken, car: Car, authorizationFilter: AuthorizationFilter): Promise<void> {
-  // Enrich
+    // Enrich
     if (!car) {
       car.canRead = true;
       car.canUpdate = false;
@@ -537,7 +537,7 @@ export default class AuthorizationService {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
-      projectFields: [ ],
+      projectFields: [],
       authorized: false
     };
     // Check static & dynamic authorization
@@ -823,7 +823,7 @@ export default class AuthorizationService {
   }
 
   private static async checkAndGetEntityAuthorizations(tenant: Tenant, entity: Entity, userToken: UserToken,
-      filteredRequest: Record<string, any>, entityID: Record<string, any>,authAction: Action, entityData?: EntityDataType): Promise<AuthorizationFilter> {
+      filteredRequest: Record<string, any>, entityID: Record<string, any>, authAction: Action, entityData?: EntityDataType): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),

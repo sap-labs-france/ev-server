@@ -184,18 +184,22 @@ export interface AuthorizationActions {
   canRead?: boolean;
   canCreate?: boolean;
   canUpdate?: boolean;
-  canUpdateByVisualID?: boolean;
   canDelete?: boolean;
+}
+
+export interface TagAuthorizationActions extends AuthorizationActions {
   canUnassign?: boolean;
   canAssign?: boolean;
+  canUpdateByVisualID?: boolean;
 }
+
 export interface SiteAreaAuthorizationActions extends AuthorizationActions {
   canAssignAssets?: boolean;
   canUnassignAssets?: boolean;
   canAssignChargingStations?: boolean;
   canUnassignChargingStations?: boolean;
   canExportOCPPParams?: boolean;
-  canGenerateQrCode?:boolean;
+  canGenerateQrCode?: boolean;
 }
 
 export interface SiteAuthorizationActions extends AuthorizationActions {
@@ -229,7 +233,7 @@ export enum DynamicAuthorizationDataSourceName {
   EXCLUDE_ACTION = 'ExcludeAction',
 }
 
-export interface DynamicAuthorizationDataSourceData {}
+export interface DynamicAuthorizationDataSourceData { }
 
 export interface AssignedSitesCompaniesDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
   companyIDs?: string[];
