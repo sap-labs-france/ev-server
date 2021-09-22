@@ -1,4 +1,5 @@
-import { AssetConnectionType, AssetSetting } from '../../types/Setting';
+import { AssetConnectionType, AssetSettings } from '../../types/Setting';
+import Tenant, { TenantComponents } from '../../types/Tenant';
 
 import AssetIntegration from './AssetIntegration';
 import GreencomAssetIntegration from './greencom/GreencomAssetIntegration';
@@ -8,15 +9,13 @@ import Logging from '../../utils/Logging';
 import SchneiderAssetIntegration from './schneider/SchneiderAssetIntegration';
 import { ServerAction } from '../../types/Server';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
-import Tenant from '../../types/Tenant';
-import { TenantComponents } from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 import WitAssetIntegration from './wit/WitAssetIntegration';
 
 const MODULE_NAME = 'AssetFactory';
 
 export default class AssetFactory {
-  static async getAssetImpl(tenant: Tenant, connectionID: string): Promise<AssetIntegration<AssetSetting>> {
+  static async getAssetImpl(tenant: Tenant, connectionID: string): Promise<AssetIntegration<AssetSettings>> {
     // Check if component is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.ASSET)) {
       // Get the Asset's settings
@@ -25,22 +24,22 @@ export default class AssetFactory {
         // Find connection
         const foundConnection = settings.asset.connections.find((connection) => connection.id === connectionID);
         if (foundConnection) {
-          let assetIntegrationImpl: AssetIntegration<AssetSetting> = null;
+          let assetIntegrationImpl: AssetIntegration<AssetSettings> = null;
           switch (foundConnection.type) {
             case AssetConnectionType.SCHNEIDER:
-              assetIntegrationImpl = new SchneiderAssetIntegration(tenant, settings.asset, foundConnection);
+              assetIntegrationImpl = new SchneiderAssetIntegration(tenant, settings, foundConnection);
               break;
             case AssetConnectionType.GREENCOM:
-              assetIntegrationImpl = new GreencomAssetIntegration(tenant, settings.asset, foundConnection);
+              assetIntegrationImpl = new GreencomAssetIntegration(tenant, settings, foundConnection);
               break;
             case AssetConnectionType.IOTHINK:
-              assetIntegrationImpl = new IothinkAssetIntegration(tenant, settings.asset, foundConnection);
+              assetIntegrationImpl = new IothinkAssetIntegration(tenant, settings, foundConnection);
               break;
             case AssetConnectionType.WIT:
-              assetIntegrationImpl = new WitAssetIntegration(tenant, settings.asset, foundConnection);
+              assetIntegrationImpl = new WitAssetIntegration(tenant, settings, foundConnection);
               break;
             case AssetConnectionType.LACROIX:
-              assetIntegrationImpl = new LacroixAssetIntegration(tenant, settings.asset, foundConnection);
+              assetIntegrationImpl = new LacroixAssetIntegration(tenant, settings, foundConnection);
               break;
           }
           return assetIntegrationImpl;

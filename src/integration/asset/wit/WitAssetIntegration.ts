@@ -1,5 +1,5 @@
 import Asset, { AssetType, WitDataSet } from '../../../types/Asset';
-import { AssetConnectionSetting, AssetSetting } from '../../../types/Setting';
+import { AssetConnectionSetting, AssetConnectionTokenSetting, AssetSettings } from '../../../types/Setting';
 
 import { AbstractCurrentConsumption } from '../../../types/Consumption';
 import AssetIntegration from '../AssetIntegration';
@@ -10,16 +10,17 @@ import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
+import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import Tenant from '../../../types/Tenant';
 import Utils from '../../../utils/Utils';
 import moment from 'moment';
 
 const MODULE_NAME = 'WitAssetIntegration';
 
-export default class WitAssetIntegration extends AssetIntegration<AssetSetting> {
+export default class WitAssetIntegration extends AssetIntegration<AssetSettings> {
   private axiosInstance: AxiosInstance;
 
-  public constructor(tenant: Tenant, settings: AssetSetting, connection: AssetConnectionSetting) {
+  public constructor(tenant: Tenant, settings: AssetSettings, connection: AssetConnectionSetting) {
     super(tenant, settings, connection);
     this.axiosInstance = AxiosFactory.getAxiosInstance(tenant.id);
   }
@@ -103,12 +104,8 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSetting> 
     return consumptions;
   }
 
-  private async connect(): Promise<string> {
-    // Check if connection is initialized
-    this.checkConnectionIsProvided();
-    // Get credential params
-    const credentials = await this.getCredentialURLParams();
-    // Send credentials to get the token
+  private async fetchNewToken(credentials: URLSearchParams) {
+    const now = new Date();
     const response = await Utils.executePromiseWithTimeout(5000,
       this.axiosInstance.post(`${this.connection.witConnection.authenticationUrl}/token`,
         credentials,
@@ -120,8 +117,27 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSetting> 
         }),
       `Time out error (5s) when getting the token with the connection URL '${this.connection.witConnection.authenticationUrl}/token'`
     );
-    // Return the Token
-    return response.data.access_token;
+    const expireTime = moment().add(response.data.expires_in, 'seconds').toDate();
+    this.connection.token = {
+      accessToken: await Cypher.encrypt(this.tenant, response.data.access_token),
+      tokenType: response.data.token_type,
+      expiresIn: response.data.expires_in,
+      issued: now,
+      expires: expireTime,
+    };
+    await SettingStorage.saveAssetSettings(this.tenant, this.settings);
+  }
+
+  private async connect(): Promise<string> {
+    if (!this.checkIfTokenExpired(this.connection.token)) {
+      return Cypher.decrypt(this.tenant, this.connection.token.accessToken);
+    }
+    // Check if connection is initialized
+    this.checkConnectionIsProvided();
+    // Get credential params
+    const credentials = await this.getCredentialURLParams();
+    await this.fetchNewToken(credentials);
+    return Cypher.decrypt(this.tenant, this.connection.token.accessToken);
   }
 
   private async getCredentialURLParams(): Promise<URLSearchParams> {
