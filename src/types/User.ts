@@ -41,6 +41,8 @@ export default interface User extends CreatedUpdatedProps, AuthorizationActions 
   importedData?: {
     autoActivateUserAtImport: boolean;
   };
+  technical: boolean;
+  projectedFields: string[];
 }
 
 export interface UserSite {

@@ -6131,7 +6131,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"name\": \"Updated asset\",\n    \"siteAreaID\": \"{{siteAreaID}}\",\n    \"assetType\": \"CO\",\n    \"excludeFromSmartCharging\": true,\n    \"variationThresholdPercent\": 100,\n    \"fluctuationPercent\": null,\n    \"staticValueWatt\": 2000,\n    \"image\": \"\",\n    \"dynamicAsset\": false,\n    \"connectionID\": \"\",\n    \"meterID\": \"\",\n    \"usePushAPI\": false,\n    \"coordinates\": [0, 0]\n}",
+					"raw": "{\n    \"name\": \"Updated asset\",\n    \"siteAreaID\": \"{{siteAreaID}}\",\n    \"assetType\": \"CO\",\n    \"excludeFromSmartCharging\": true,\n    \"variationThresholdPercent\": 100,\n    \"fluctuationPercent\": null,\n    \"staticValueWatt\": 2000,\n    \"image\": \"\",\n    \"dynamicAsset\": false,\n    \"connectionID\": \"\",\n    \"meterID\": \"\",\n    \"usesPushAPI\": false,\n    \"coordinates\": [0, 0]\n}",
 					"options": {
 						"raw": {
 							"language": "json"

@@ -42,7 +42,7 @@
       "type": "boolean",
       "sanitize": "mongo"
     },
-    "usePushAPI": {
+    "usesPushAPI": {
       "type": "boolean",
       "sanitize": "mongo"
     },

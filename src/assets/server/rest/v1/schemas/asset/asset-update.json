@@ -32,8 +32,8 @@
     "dynamicAsset": {
       "$ref": "asset.json#/definitions/dynamicAsset"
     },
-    "usePushAPI": {
-      "$ref": "asset.json#/definitions/usePushAPI"
+    "usesPushAPI": {
+      "$ref": "asset.json#/definitions/usesPushAPI"
     },
     "coordinates": {
       "$ref": "asset.json#/definitions/coordinates"
