@@ -918,10 +918,16 @@ export default class ChargingStationService {
       });
     }
     // Check and Get Charging Station
+    // To uncomment when the mobile app will be released with the handling of these params
+    // const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
+    //   req.tenant, req.user, filteredRequest.ID, action, null, {
+    //     withSite: filteredRequest.WithSite,
+    //     withSiteArea: filteredRequest.WithSiteArea,
+    //   }, true);
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
       req.tenant, req.user, filteredRequest.ID, action, null, {
-        withSite: filteredRequest.WithSite,
-        withSiteArea: filteredRequest.WithSiteArea,
+        withSite: true,
+        withSiteArea: true,
       }, true);
     res.json(chargingStation);
     next();
@@ -1171,6 +1177,18 @@ export default class ChargingStationService {
       // Clear Cache
       case Command.CLEAR_CACHE:
         filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionClearCacheReq(req.body);
+        result = await ChargingStationService.executeChargingStationCommand(
+          req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
+        break;
+      // Change Availability
+      case Command.CHANGE_AVAILABILITY:
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionChangeAvailabilityReq(req.body);
+        result = await ChargingStationService.executeChargingStationCommand(
+          req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
+        break;
+      // Change Configuration
+      case Command.CHANGE_CONFIGURATION:
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionChangeConfigurationReq(req.body);
         result = await ChargingStationService.executeChargingStationCommand(
           req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
         break;

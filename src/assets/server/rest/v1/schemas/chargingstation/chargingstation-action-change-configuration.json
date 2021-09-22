@@ -1,5 +1,5 @@
 {
-  "title": "Get Composite Schedule",
+  "title": "Change Configuration",
   "type": "object",
   "properties": {
     "chargingStationID": {
@@ -8,22 +8,18 @@
     "args": {
       "type": "object",
       "properties": {
-        "connectorId": {
-          "$ref": "chargingstation.json#/definitions/connector/properties/connectorId"
-        },
-        "duration": {
-          "type": "number",
+        "key": {
+          "type": "string",
           "sanitize": "mongo"
         },
-        "chargingRateUnit": {
+        "value": {
           "type": "string",
-          "sanitize": "mongo",
-          "enum": ["A", "W"]
+          "sanitize": "mongo"
         }
       },
       "required": [
-        "connectorId",
-        "duration"
+        "key",
+        "value"
       ]
     }
   },

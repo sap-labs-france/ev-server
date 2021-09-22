@@ -1,5 +1,5 @@
 {
-  "title": "Reset (endpoint)",
+  "title": "Reset",
   "type": "object",
   "properties": {
     "chargingStationID": {

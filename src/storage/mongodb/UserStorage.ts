@@ -1,5 +1,6 @@
 import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
 import Site, { SiteUser } from '../../types/Site';
+import Tenant, { TenantComponents } from '../../types/Tenant';
 import User, { ImportedUser, UserRole, UserStatus } from '../../types/User';
 import { UserInError, UserInErrorType } from '../../types/InError';
 import global, { FilterParams, Image, ImportStatus } from '../../types/GlobalType';
@@ -17,8 +18,6 @@ import Logging from '../../utils/Logging';
 import Mustache from 'mustache';
 import { ObjectId } from 'mongodb';
 import TagStorage from './TagStorage';
-import Tenant from '../../types/Tenant';
-import { TenantComponents } from '../../types/Tenant';
 import TenantStorage from './TenantStorage';
 import UserNotifications from '../../types/UserNotifications';
 import Utils from '../../utils/Utils';
@@ -484,7 +483,7 @@ export default class UserStorage {
   }
 
   public static async saveUserAdminData(tenant: Tenant, userID: string,
-      params: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications }): Promise<void> {
+      params: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications, technical?: boolean }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'saveUserAdminData');
     // Check Tenant
@@ -500,6 +499,9 @@ export default class UserStorage {
     }
     if (Utils.objectHasProperty(params, 'notifications')) {
       updatedUserMDB.notifications = params.notifications;
+    }
+    if (Utils.objectHasProperty(params, 'technical')) {
+      updatedUserMDB.technical = params.technical;
     }
     // Modify and return the modified document
     await global.database.getCollection<any>(tenant.id, 'users').findOneAndUpdate(

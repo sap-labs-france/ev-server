@@ -40,6 +40,7 @@
     "userTokenKey": "YourSecretKey",
     "userTokenLifetimeHours": 12,
     "userDemoTokenLifetimeDays": 365,
+    "userTechnicalTokenLifetimeDays": 365,
     "socketIO": false,
     "socketIOListNotificationIntervalSecs": 5,
     "socketIOSingleNotificationIntervalSecs": 1,

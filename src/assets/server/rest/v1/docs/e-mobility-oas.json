@@ -6207,10 +6207,15 @@
         "description": "Import users from file",
         "requestBody": {
           "content": {
-            "text/csv": {
+            "multipart/form-data": {
               "schema": {
-                "type": "string",
-                "format": "binary"
+                "type": "object",
+                "properties": {
+                  "filename": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
               }
             }
           }
@@ -6709,11 +6714,15 @@
         "description": "Import a Tag file",
         "requestBody": {
           "content": {
-            "text/csv": {
+            "multipart/form-data": {
               "schema": {
-                "type": "string",
-                "format": "binary",
-                "example": "id,visualID,description,firstName,name,email\n\"###\",\"###\",\"###\",\"###\",\"###\",\"###\""
+                "type": "object",
+                "properties": {
+                  "filename": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
               }
             }
           }
@@ -9701,7 +9710,7 @@
         },
         "responses": {
           "200": {
-            "description": "OCPI Endpoint's local tokens generated",
+            "description": "OCPI Endpoint registered",
             "content": {
               "application/json": {
                 "example": {
@@ -10788,7 +10797,7 @@
           "meterID": {
             "type": "string"
           },
-          "usePushAPI": {
+          "usesPushAPI": {
             "type": "boolean"
           },
           "coordinates": {
