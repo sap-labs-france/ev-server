@@ -89,7 +89,7 @@ export default class JsonChargingStationClient extends ChargingStationClient {
   }
 
   public async dataTransfer(params: OCPPDataTransferCommandParam): Promise<OCPPDataTransferCommandResult> {
-    return this.sendMessage(params, Command.TRIGGER_DATA_TRANSFER);
+    return this.sendMessage(params, Command.DATA_TRANSFER);
   }
 
   private async sendMessage(params: any, command: Command): Promise<any> {

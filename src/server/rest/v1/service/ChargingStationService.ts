@@ -1192,6 +1192,12 @@ export default class ChargingStationService {
         result = await ChargingStationService.executeChargingStationCommand(
           req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
         break;
+      // Data Transfer
+      case Command.DATA_TRANSFER:
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionDataTransferReq(req.body);
+        result = await ChargingStationService.executeChargingStationCommand(
+          req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
+        break;
       // Remote Stop Transaction / Unlock Connector
       case Command.REMOTE_STOP_TRANSACTION:
         filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionStopTransactionReq(req.body);
@@ -1660,7 +1666,7 @@ export default class ChargingStationService {
             retryInterval: params.retryInterval
           });
           break;
-        case Command.TRIGGER_DATA_TRANSFER:
+        case Command.DATA_TRANSFER:
           result = await chargingStationClient.dataTransfer(params);
           break;
       }
