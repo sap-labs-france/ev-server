@@ -15,7 +15,7 @@ import WitAssetIntegration from './wit/WitAssetIntegration';
 const MODULE_NAME = 'AssetFactory';
 
 export default class AssetFactory {
-  static async getAssetImpl(tenant: Tenant, connectionID: string): Promise<AssetIntegration<AssetSettings>> {
+  static async getAssetImpl(tenant: Tenant, connectionID: string): Promise<AssetIntegration> {
     // Check if component is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.ASSET)) {
       // Get the Asset's settings
@@ -24,7 +24,7 @@ export default class AssetFactory {
         // Find connection
         const foundConnection = settings.asset.connections.find((connection) => connection.id === connectionID);
         if (foundConnection) {
-          let assetIntegrationImpl: AssetIntegration<AssetSettings> = null;
+          let assetIntegrationImpl: AssetIntegration = null;
           switch (foundConnection.type) {
             case AssetConnectionType.SCHNEIDER:
               assetIntegrationImpl = new SchneiderAssetIntegration(tenant, settings, foundConnection);

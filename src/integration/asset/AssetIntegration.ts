@@ -1,4 +1,4 @@
-import { AssetConnectionSetting, AssetConnectionTokenSetting } from '../../types/Setting';
+import { AssetConnectionSetting, AssetConnectionTokenSetting, AssetSettings } from '../../types/Setting';
 
 import { AbstractCurrentConsumption } from '../../types/Consumption';
 import Asset from '../../types/Asset';
@@ -6,7 +6,7 @@ import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
 
-export default abstract class AssetIntegration<AssetSettings> {
+export default abstract class AssetIntegration {
   protected readonly tenant: Tenant;
   protected settings: AssetSettings;
   protected connection: AssetConnectionSetting;
@@ -31,6 +31,13 @@ export default abstract class AssetIntegration<AssetSettings> {
     }
     // return true by default if token is not valid
     return true;
+  }
+
+  public addConnectionToSensitiveData(): void {
+    const connectionIndex = this.settings.asset.connections.findIndex((connection) => connection.id === this.connection.id);
+    const currentSensitiveData = new Set(this.settings.sensitiveData);
+    currentSensitiveData.add(`content.asset.connections[${connectionIndex}].token.accessToken`);
+    this.settings.sensitiveData = Array.from(currentSensitiveData);
   }
 
   abstract checkConnection(): Promise<void>;

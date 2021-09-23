@@ -16,7 +16,7 @@ import moment from 'moment';
 
 const MODULE_NAME = 'GreencomAssetIntegration';
 
-export default class GreencomAssetIntegration extends AssetIntegration<AssetSettings> {
+export default class GreencomAssetIntegration extends AssetIntegration {
   private axiosInstance: AxiosInstance;
 
   public constructor(tenant: Tenant, settings: AssetSettings, connection: AssetConnectionSetting) {

@@ -18,7 +18,7 @@ import moment from 'moment';
 
 const MODULE_NAME = 'LacroixAssetIntegration';
 
-export default class LacroixAssetIntegration extends AssetIntegration<AssetSettings> {
+export default class LacroixAssetIntegration extends AssetIntegration {
   private axiosInstance: AxiosInstance;
 
   public constructor(tenant: Tenant, settings: AssetSettings, connection: AssetConnectionSetting) {

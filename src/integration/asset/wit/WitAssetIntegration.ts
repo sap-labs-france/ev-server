@@ -17,7 +17,7 @@ import moment from 'moment';
 
 const MODULE_NAME = 'WitAssetIntegration';
 
-export default class WitAssetIntegration extends AssetIntegration<AssetSettings> {
+export default class WitAssetIntegration extends AssetIntegration {
   private axiosInstance: AxiosInstance;
 
   public constructor(tenant: Tenant, settings: AssetSettings, connection: AssetConnectionSetting) {
@@ -125,6 +125,7 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSettings>
       issued: now,
       expires: expireTime,
     };
+    this.addConnectionToSensitiveData();
     await SettingStorage.saveAssetSettings(this.tenant, this.settings);
   }
 

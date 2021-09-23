@@ -17,7 +17,7 @@ import moment from 'moment';
 
 const MODULE_NAME = 'IothinkAssetIntegration';
 
-export default class IothinkAssetIntegration extends AssetIntegration<AssetSettings> {
+export default class IothinkAssetIntegration extends AssetIntegration {
   private axiosInstance: AxiosInstance;
   private timestampReference = moment.utc('20000101 00:00:00', 'YYYYMMDD HH:mm:ss');
 
@@ -168,6 +168,7 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
       expires: data['.expires']
     };
     this.connection.token = token;
+    this.addConnectionToSensitiveData();
     await SettingStorage.saveAssetSettings(this.tenant, this.settings);
     return token;
   }

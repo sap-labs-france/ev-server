@@ -15,7 +15,7 @@ import Utils from '../../../utils/Utils';
 
 const MODULE_NAME = 'SchneiderAssetIntegration';
 
-export default class SchneiderAssetIntegration extends AssetIntegration<AssetSettings> {
+export default class SchneiderAssetIntegration extends AssetIntegration {
   private axiosInstance: AxiosInstance;
 
   public constructor(tenant: Tenant, settings: AssetSettings, connection: AssetConnectionSetting) {
