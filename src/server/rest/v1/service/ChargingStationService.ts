@@ -1231,6 +1231,12 @@ export default class ChargingStationService {
         result = await ChargingStationService.executeChargingStationCommand(
           req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
         break;
+      // Reserve Now
+      case Command.RESERVE_NOW:
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionReserveNowReq(req.body);
+        result = await ChargingStationService.executeChargingStationCommand(
+          req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
+        break;
       // Reset
       case Command.RESET:
         filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionResetReq(req.body);
@@ -1674,6 +1680,9 @@ export default class ChargingStationService {
           break;
         case Command.DATA_TRANSFER:
           result = await chargingStationClient.dataTransfer(params);
+          break;
+        case Command.RESERVE_NOW:
+          // TBC result = await ?
           break;
       }
       if (result) {
