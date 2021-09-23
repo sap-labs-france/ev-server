@@ -1208,6 +1208,12 @@ export default class ChargingStationService {
         filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionStartTransactionReq(req.body);
         result = await ChargingStationService.executeChargingStationStartTransaction(action, chargingStation, command, filteredRequest, req, res, next);
         break;
+      // Get Configuration
+      case Command.GET_CONFIGURATION:
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionGetConfigurationReq(req.body);
+        result = await ChargingStationService.executeChargingStationCommand(
+          req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
+        break;
       // Get the Charging Plans
       case Command.GET_COMPOSITE_SCHEDULE:
         filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionGetCompositeScheduleReq(req.body);
@@ -1240,7 +1246,7 @@ export default class ChargingStationService {
       // Other commands
       default:
         // Log Specific Schema has not been verified yet:
-        await Logging.logWarning({
+        await Logging.logError({
           tenantID: req.tenant.id,
           siteID: chargingStation.siteID,
           siteAreaID: chargingStation.siteAreaID,
@@ -1253,10 +1259,13 @@ export default class ChargingStationService {
           // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           message: `Command '${command}' has not yet its own validation schema.`
         });
-        // Execute it
-        result = await ChargingStationService.executeChargingStationCommand(
-          req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
-        break;
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: `Command '${command}' has not yet its own validation schema.`,
+          module: MODULE_NAME,
+          method: 'handleAction'
+        });
     }
     res.json(result);
     next();

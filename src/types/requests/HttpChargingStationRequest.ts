@@ -158,6 +158,13 @@ export interface HttpChargingStationStopTransactionRequest {
   }
 }
 
+export interface HttpChargingStationCommandGetConfigurationRequest {
+  chargingStationID: string,
+  args: {
+    key: string[]
+  }
+}
+
 export interface HttpChargingStationGetCompositeScheduleRequest {
   chargingStationID: string,
   args: {
