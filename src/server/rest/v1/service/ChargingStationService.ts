@@ -1245,7 +1245,7 @@ export default class ChargingStationService {
         break;
       // Other commands
       default:
-        // Log Specific Schema has not been verified yet:
+        // Log Specific Schema has not been verified:
         await Logging.logError({
           tenantID: req.tenant.id,
           siteID: chargingStation.siteID,
@@ -1257,12 +1257,12 @@ export default class ChargingStationService {
           action: action,
           module: MODULE_NAME, method: 'handleAction',
           // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-          message: `Command '${command}' has not yet its own validation schema.`
+          message: `Command '${command}' has not its own validation schema.`
         });
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `Command '${command}' has not yet its own validation schema.`,
+          message: `Command '${command}' has not its own validation schema.`,
           module: MODULE_NAME,
           method: 'handleAction'
         });
