@@ -42,7 +42,6 @@ export default interface User extends CreatedUpdatedProps, AuthorizationActions 
     autoActivateUserAtImport: boolean;
   };
   technical: boolean;
-  projectedFields: string[];
 }
 
 export interface UserSite {

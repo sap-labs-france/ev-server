@@ -185,6 +185,7 @@ export interface AuthorizationActions {
   canCreate?: boolean;
   canUpdate?: boolean;
   canDelete?: boolean;
+  projectedFields?: string[];
 }
 
 export interface TagAuthorizationActions extends AuthorizationActions {

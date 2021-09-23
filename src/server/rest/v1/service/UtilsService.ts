@@ -181,9 +181,6 @@ export default class UtilsService {
       },
       applyProjectFields ? authorizationFilter.projectFields : null
     );
-    if (authorizationFilter.projectFields) {
-      user.projectedFields = authorizationFilter.projectFields;
-    }
     UtilsService.assertObjectExists(action, user, `User ID '${userID}' does not exist`,
       MODULE_NAME, 'checkAndGetUserAuthorization', userToken);
     // External User
