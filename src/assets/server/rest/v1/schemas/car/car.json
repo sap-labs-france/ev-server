@@ -76,11 +76,11 @@
       ],
       "properties": {
         "carConnectorID": {
-          "type": "string",
+          "type": ["string", "null"],
           "sanitize": "mongo"
         },
         "carConnectorMeterID": {
-          "type": "string",
+          "type": ["string", "null"],
           "sanitize": "mongo"
         }
       }
