@@ -1,0 +1,29 @@
+{
+  "title": "Change Configuration",
+  "type": "object",
+  "properties": {
+    "chargingStationID": {
+      "$ref": "chargingstation.json#/definitions/id"
+    },
+    "args": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "sanitize": "mongo"
+        },
+        "value": {
+          "type": "string",
+          "sanitize": "mongo"
+        }
+      },
+      "required": [
+        "key",
+        "value"
+      ]
+    }
+  },
+  "required": [
+    "chargingStationID"
+  ]
+}

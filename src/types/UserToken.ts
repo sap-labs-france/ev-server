@@ -24,4 +24,5 @@ export default interface UserToken {
   sitesOwner?: string[];
   activeComponents?: string[];
   user?: User;
+  technical?: boolean;
 }
