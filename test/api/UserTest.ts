@@ -310,6 +310,20 @@ describe('User', function() {
             testData.newUser
           );
         });
+
+        it('Should be able to set the technical flag', async () => {
+          // Check the technical flag can be set
+          const response = await testData.userService.userApi.exportUsers({});
+          const users = await testData.userService.userApi.readAll({}, { limit: 1000, skip: 0 });
+          expect(response.status).eq(StatusCodes.OK);
+          expect(response.data).not.null;
+          expect(users.data.result.length).to.be.greaterThan(1);
+          const user1 = users.data.result[0];
+          console.log(user1.technical);
+          expect(user1.technical).not.undefined;
+          console.log(user1);
+          user1.technical = true;
+        });
       });
       describe('Using function "readAllInError"', () => {
 
