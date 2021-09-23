@@ -167,6 +167,13 @@ export interface HttpChargingStationGetCompositeScheduleRequest {
   }
 }
 
+export interface HttpChargingStationCommandUnlockConnectorRequest {
+  chargingStationID: string,
+  args: {
+    connectorId: string
+  }
+}
+
 export interface HttpChargingStationUpdateFirmwareRequest {
   chargingStationID: string,
   args: {
