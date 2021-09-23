@@ -1219,6 +1219,12 @@ export default class ChargingStationService {
         result = await ChargingStationService.executeChargingStationCommand(
           req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
         break;
+      // Unlock Connector
+      case Command.UNLOCK_CONNECTOR:
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionUnlockConnectorReq(req.body);
+        result = await ChargingStationService.executeChargingStationCommand(
+          req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
+        break;
       // Update Firmware
       case Command.UPDATE_FIRMWARE:
         filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionUpdateFirmwareReq(req.body);
