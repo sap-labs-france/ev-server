@@ -1,4 +1,4 @@
-import { HttpChargingProfilesRequest, HttpChargingStationChangeAvailabilityRequest, HttpChargingStationChangeConfigurationRequest, HttpChargingStationClearCacheRequest, HttpChargingStationCommandRequest, HttpChargingStationConnectorRequest, HttpChargingStationGetCompositeScheduleRequest, HttpChargingStationGetDiagnosticsRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationOcppParametersRequest, HttpChargingStationOcppRequest, HttpChargingStationParamsUpdateRequest, HttpChargingStationRequest, HttpChargingStationResetRequest, HttpChargingStationStartTransactionRequest, HttpChargingStationStopTransactionRequest, HttpChargingStationUpdateFirmwareRequest, HttpChargingStationsInErrorRequest, HttpChargingStationsRequest, HttpDownloadQrCodeRequest, HttpTriggerSmartChargingRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpChargingProfilesRequest, HttpChargingStationChangeAvailabilityRequest, HttpChargingStationChangeConfigurationRequest, HttpChargingStationClearCacheRequest, HttpChargingStationCommandDataTransferRequest, HttpChargingStationCommandRequest, HttpChargingStationCommandUnlockConnectorRequest, HttpChargingStationConnectorRequest, HttpChargingStationGetCompositeScheduleRequest, HttpChargingStationGetDiagnosticsRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationOcppParametersRequest, HttpChargingStationOcppRequest, HttpChargingStationParamsUpdateRequest, HttpChargingStationRequest, HttpChargingStationResetRequest, HttpChargingStationStartTransactionRequest, HttpChargingStationStopTransactionRequest, HttpChargingStationUpdateFirmwareRequest, HttpChargingStationsInErrorRequest, HttpChargingStationsRequest, HttpDownloadQrCodeRequest, HttpTriggerSmartChargingRequest } from '../../../../types/requests/HttpChargingStationRequest';
 
 import { ChargingProfile } from '../../../../types/ChargingProfile';
 import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
@@ -16,9 +16,11 @@ export default class ChargingStationValidator extends SchemaValidator {
   private chargingStationActionChangeAvailability: Schema;
   private chargingStationActionChangeConfiguration: Schema;
   private chargingStationActionClearCache: Schema;
+  private chargingStationActionDataTransfer: Schema;
   private chargingStationActionStartTransaction: Schema;
   private chargingStationActionStopTransaction: Schema;
   private chargingStationActionGetCompositeSchedule: Schema;
+  private chargingStationActionUnlockConnector: Schema;
   private chargingStationActionUpdateFirmware: Schema;
   private chargingStationActionReset: Schema;
   private chargingStationQRCodeGenerate: Schema;
@@ -46,9 +48,11 @@ export default class ChargingStationValidator extends SchemaValidator {
     this.chargingStationActionChangeAvailability = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action-change-availability.json`, 'utf8'));
     this.chargingStationActionChangeConfiguration = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action-change-configuration.json`, 'utf8'));
     this.chargingStationActionClearCache = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action-clear-cache.json`, 'utf8'));
+    this.chargingStationActionDataTransfer = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action-data-transfer.json`, 'utf8'));
     this.chargingStationActionStartTransaction = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action-start-transaction.json`, 'utf8'));
     this.chargingStationActionStopTransaction = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action-stop-transaction.json`, 'utf8'));
     this.chargingStationActionGetCompositeSchedule = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action-get-composite-schedule.json`, 'utf8'));
+    this.chargingStationActionUnlockConnector = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action-unlock-connector.json`, 'utf8'));
     this.chargingStationActionUpdateFirmware = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action-update-firmware.json`, 'utf8'));
     this.chargingStationActionReset = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action-reset.json`, 'utf8'));
     this.chargingStationQRCodeGenerate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-qrcode-generate.json`, 'utf8'));
@@ -111,6 +115,12 @@ export default class ChargingStationValidator extends SchemaValidator {
     return data;
   }
 
+  public validateChargingStationActionDataTransferReq(data: any): HttpChargingStationCommandDataTransferRequest {
+    // Validate schema for DataTransfer
+    this.validate(this.chargingStationActionDataTransfer, data);
+    return data;
+  }
+
   public validateChargingStationActionClearCacheReq(data: any): HttpChargingStationClearCacheRequest {
     // Validate schema for ClearCache
     this.validate(this.chargingStationActionClearCache, data);
@@ -132,6 +142,12 @@ export default class ChargingStationValidator extends SchemaValidator {
   public validateChargingStationActionGetCompositeScheduleReq(data: any): HttpChargingStationGetCompositeScheduleRequest {
     // Validate schema for Get Composite Schedule
     this.validate(this.chargingStationActionGetCompositeSchedule, data);
+    return data;
+  }
+
+  public validateChargingStationActionUnlockConnectorReq(data: any): HttpChargingStationCommandUnlockConnectorRequest {
+    // Validate schema for Unlock Connector
+    this.validate(this.chargingStationActionUnlockConnector, data);
     return data;
   }
 

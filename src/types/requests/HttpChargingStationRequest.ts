@@ -133,6 +133,15 @@ export interface HttpChargingStationClearCacheRequest {
   chargingStationID: string
 }
 
+export interface HttpChargingStationCommandDataTransferRequest {
+  chargingStationID: string,
+  args: {
+    vendorId: string,
+    messageId?: string,
+    data?: string
+  }
+}
+
 export interface HttpChargingStationStartTransactionRequest {
   chargingStationID: string,
   args: {
@@ -155,6 +164,13 @@ export interface HttpChargingStationGetCompositeScheduleRequest {
     connectorId: string,
     duration: number,
     chargingRateUnit?: string
+  }
+}
+
+export interface HttpChargingStationCommandUnlockConnectorRequest {
+  chargingStationID: string,
+  args: {
+    connectorId: string
   }
 }
 
