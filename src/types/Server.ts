@@ -567,7 +567,6 @@ export enum ServerRoute {
   REST_NOTIFICATIONS_END_USER_REPORT_ERROR = 'notifications/action/end-user/report-error',
 
 
-  REST_OCPI_ENDPOINT_CREATE = 'ocpi/endpoints',
   REST_OCPI_ENDPOINT_PING = 'ocpi/endpoints/:id/ping',
   REST_OCPI_ENDPOINT_CHECK_CDRS = 'ocpi/endpoints/:id/cdrs/check',
   REST_OCPI_ENDPOINT_CHECK_LOCATIONS = 'ocpi/endpoints/:id/locations/check',
@@ -581,10 +580,8 @@ export enum ServerRoute {
   REST_OCPI_ENDPOINT_GENERATE_LOCAL_TOKEN = 'ocpi/endpoints/:id/tokens/generate',
   REST_OCPI_ENDPOINTS = 'ocpi/endpoints',
   REST_OCPI_ENDPOINT = 'ocpi/endpoints/:id',
-  REST_OCPI_ENDPOINT_UPDATE = 'ocpi/endpoints/:id',
   REST_OCPI_ENDPOINT_REGISTER = 'ocpi/endpoints/:id/register',
   REST_OCPI_ENDPOINT_UNREGISTER = 'ocpi/endpoints/:id/unregister',
-  REST_OCPI_ENDPOINT_DELETE = 'ocpi/endpoints/:id',
 
   // BILLING URLs for CRUD operations on PAYMENT METHODS
   REST_BILLING_PAYMENT_METHODS = 'users/:userID/payment-methods',
