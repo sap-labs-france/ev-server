@@ -7,6 +7,14 @@
     },
     "ProjectFields": {
       "$ref": "common.json#/definitions/projectFields"
+    },
+    "WithSite": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "WithSiteArea": {
+      "type": "boolean",
+      "sanitize": "mongo"
     }
   },
   "required": [

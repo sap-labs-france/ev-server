@@ -15,9 +15,6 @@
     "active": {
       "$ref": "tag.json#/definitions/active"
     },
-    "issuer": {
-      "$ref": "tag.json#/definitions/issuer"
-    },
     "default": {
       "$ref": "tag.json#/definitions/default"
     },
@@ -27,7 +24,6 @@
   },
   "required": [
     "id",
-    "visualID",
-    "userID"
+    "visualID"
   ]
 }

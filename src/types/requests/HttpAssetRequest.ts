@@ -27,3 +27,7 @@ export interface HttpAssetImageRequest extends HttpByIDRequest {
   ID: string;
   TenantID: string;
 }
+
+export interface HttpAssetCheckConnection extends HttpByIDRequest {
+  ID: string;
+}

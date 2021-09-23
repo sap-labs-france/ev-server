@@ -27,7 +27,6 @@
   },
   "required": [
     "id",
-    "visualID",
-    "userID"
+    "visualID"
   ]
 }

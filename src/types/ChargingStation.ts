@@ -122,7 +122,6 @@ export enum Command {
   GET_COMPOSITE_SCHEDULE = 'GetCompositeSchedule',
   CHANGE_AVAILABILITY = 'ChangeAvailability',
   UPDATE_FIRMWARE = 'UpdateFirmware',
-  TRIGGER_DATA_TRANSFER = 'DataTransfer',
   BOOT_NOTIFICATION = 'BootNotification',
   AUTHORIZE = 'Authorize',
   HEARTBEAT = 'Heartbeat',

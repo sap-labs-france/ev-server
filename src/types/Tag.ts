@@ -1,10 +1,10 @@
-import { AuthorizationActions } from './Authorization';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import { ImportStatus } from './GlobalType';
 import { OCPIToken } from './ocpi/OCPIToken';
+import { TagAuthorizationActions } from './Authorization';
 import User from './User';
 
-export default interface Tag extends CreatedUpdatedProps, AuthorizationActions {
+export default interface Tag extends CreatedUpdatedProps, TagAuthorizationActions {
   id: string;
   description?: string;
   visualID?: string;

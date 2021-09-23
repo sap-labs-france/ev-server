@@ -1,0 +1,18 @@
+{
+  "title": "Create a Company",
+  "type": "object",
+  "properties": {
+    "name": {
+      "$ref": "company.json#/definitions/name"
+    },
+    "address": {
+      "$ref": "company.json#/definitions/address"
+    },
+    "logo": {
+      "$ref": "common.json#/definitions/logo"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

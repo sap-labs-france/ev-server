@@ -1,0 +1,16 @@
+{
+  "title": "Get a Company logo",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "company.json#/definitions/id"
+    },
+    "TenantID": {
+      "$ref": "common.json#/definitions/id"
+    }
+  },
+  "required": [
+    "ID",
+    "TenantID"
+  ]
+}

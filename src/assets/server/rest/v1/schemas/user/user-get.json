@@ -1,9 +1,9 @@
 {
   "title": "Get a User by id",
   "type": "object",
-  "definitions": {
+  "properties": {
     "ID": {
-      "$ref": "common.json#/definitions/id"
+      "$ref": "user.json#/definitions/id"
     },
     "ProjectFields": {
       "$ref": "common.json#/definitions/projectFields"

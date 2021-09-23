@@ -1,5 +1,5 @@
 {
-  "title": "Get Charging Station Composite Schedule (endpoint)",
+  "title": "Get Composite Schedule",
   "type": "object",
   "properties": {
     "chargingStationID": {

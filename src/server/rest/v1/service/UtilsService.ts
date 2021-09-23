@@ -1,5 +1,5 @@
 import { Action, Entity } from '../../../../types/Authorization';
-import { Car, CarCatalog, CarType } from '../../../../types/Car';
+import { Car, CarCatalog } from '../../../../types/Car';
 import ChargingStation, { ChargePoint, Voltage } from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
@@ -21,7 +21,6 @@ import Constants from '../../../../utils/Constants';
 import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
 import { EntityDataType } from '../../../../types/GlobalType';
-import { HttpEndUserReportErrorRequest } from '../../../../types/requests/HttpNotificationRequest';
 import Logging from '../../../../utils/Logging';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import OICPEndpoint from '../../../../types/oicp/OICPEndpoint';
@@ -226,6 +225,9 @@ export default class UtilsService {
       },
       applyProjectFields ? authorizationFilter.projectFields : null
     );
+    if (authorizationFilter.projectFields) {
+      user.projectedFields = authorizationFilter.projectFields;
+    }
     UtilsService.assertObjectExists(action, user, `User ID '${userID}' does not exist`,
       MODULE_NAME, 'checkAndGetUserAuthorization', userToken);
     // External User
@@ -1308,6 +1310,7 @@ export default class UtilsService {
     }
   }
 
+<<<<<<< HEAD
   public static checkIfCompanyValid(company: Partial<Company>, req: Request): void {
     if (req.method !== 'POST' && !company.id) {
       throw new AppError({
@@ -1350,6 +1353,8 @@ export default class UtilsService {
     }
   }
 
+=======
+>>>>>>> master-qa
   public static checkIfAssetValid(asset: Partial<Asset>, req: Request): void {
     if (req.method !== 'POST' && !asset.id) {
       throw new AppError({
@@ -1453,16 +1458,6 @@ export default class UtilsService {
     // Check description
     if (!tag.description) {
       tag.description = `Tag ID '${tag.id}'`;
-    }
-    // Check user ID
-    if (!tag.userID) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'User ID is mandatory',
-        module: MODULE_NAME, method: 'checkIfUserTagIsValid',
-        user: req.user.id
-      });
     }
     // Check user activation
     if (!Utils.objectHasProperty(tag, 'active')) {
@@ -1738,36 +1733,6 @@ export default class UtilsService {
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Car Converter type is mandatory',
         module: MODULE_NAME, method: 'checkIfCarValid',
-        user: req.user.id
-      });
-    }
-  }
-
-  public static checkIfEndUserErrorNotificationValid(endUserErrorNotificationValid: HttpEndUserReportErrorRequest, req: Request): void {
-    if (!endUserErrorNotificationValid.subject) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Subject is mandatory.',
-        module: MODULE_NAME, method: 'checkIfEndUserErrorNotificationValid',
-        user: req.user.id
-      });
-    }
-    if (!endUserErrorNotificationValid.description) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Description is mandatory.',
-        module: MODULE_NAME, method: 'checkIfEndUserErrorNotificationValid',
-        user: req.user.id
-      });
-    }
-    if (endUserErrorNotificationValid.mobile && !Utils.isPhoneValid(endUserErrorNotificationValid.mobile)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Phone is invalid',
-        module: MODULE_NAME, method: 'checkIfEndUserErrorNotificationValid',
         user: req.user.id
       });
     }

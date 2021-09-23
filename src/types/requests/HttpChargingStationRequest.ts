@@ -83,6 +83,8 @@ export interface HttpChargingStationParamsUpdateRequest {
 
 export interface HttpChargingStationRequest extends HttpByIDRequest {
   ID: string;
+  WithSite?: boolean,
+  WithSiteArea?: boolean;
 }
 
 export interface HttpChargingStationOcppRequest {
@@ -111,6 +113,35 @@ export interface HttpChargingStationCommandRequest {
   args?: any;
 }
 
+export interface HttpChargingStationChangeAvailabilityRequest {
+  chargingStationID: string,
+  args: {
+    connectorId: string,
+    type: 'Inoperative' | 'Operative';
+  }
+}
+
+export interface HttpChargingStationChangeConfigurationRequest {
+  chargingStationID: string,
+  args: {
+    key: string,
+    value: string;
+  }
+}
+
+export interface HttpChargingStationClearCacheRequest {
+  chargingStationID: string
+}
+
+export interface HttpChargingStationCommandDataTransferRequest {
+  chargingStationID: string,
+  args: {
+    vendorId: string,
+    messageId?: string,
+    data?: string
+  }
+}
+
 export interface HttpChargingStationStartTransactionRequest {
   chargingStationID: string,
   args: {
@@ -133,6 +164,30 @@ export interface HttpChargingStationGetCompositeScheduleRequest {
     connectorId: string,
     duration: number,
     chargingRateUnit?: string
+  }
+}
+
+export interface HttpChargingStationCommandUnlockConnectorRequest {
+  chargingStationID: string,
+  args: {
+    connectorId: string
+  }
+}
+
+export interface HttpChargingStationUpdateFirmwareRequest {
+  chargingStationID: string,
+  args: {
+    location: string,
+    retries?: number,
+    retryInterval?: number,
+    retrieveDate: Date
+  }
+}
+
+export interface HttpChargingStationResetRequest {
+  chargingStationID: string,
+  args: {
+    type: 'Soft' | 'Hard';
   }
 }
 

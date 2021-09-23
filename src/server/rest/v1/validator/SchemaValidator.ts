@@ -4,6 +4,7 @@ import Constants from '../../../../utils/Constants';
 import { HTTPError } from '../../../../types/HTTPError';
 import Schema from '../../../../types/validator/Schema';
 import ajvSanitizer from 'ajv-sanitizer';
+import countries from 'i18n-iso-countries';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 import sanitize from 'mongo-sanitize';
@@ -21,6 +22,10 @@ export default class SchemaValidator {
   private tagSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tag/tag.json`, 'utf8'));
   private transactionSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transaction.json`, 'utf8'));
   private userSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user.json`, 'utf8'));
+  private carSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/car/car.json`, 'utf8'));
+  private assetSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/asset/asset.json`, 'utf8'));
+  private companySchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/company/company.json`, 'utf8'));
+  private ocpiEndpointSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/ocpi/ocpi-endpoint.json`, 'utf8'));
 
   constructor(readonly moduleName: string,
       config: {
@@ -41,6 +46,10 @@ export default class SchemaValidator {
       type: 'number',
       validate: (c) => Constants.REGEX_VALIDATION_LONGITUDE.test(c.toString())
     });
+    this.ajv.addFormat('country', {
+      type: 'string',
+      validate: (c) => countries.isValid(c)
+    });
     this.ajv.addSchema(this.commonSchema);
     this.ajv.addSchema(this.tenantSchema);
     this.ajv.addSchema(this.tenantComponentSchema);
@@ -48,9 +57,13 @@ export default class SchemaValidator {
     this.ajv.addSchema(this.tagSchema);
     this.ajv.addSchema(this.transactionSchema);
     this.ajv.addSchema(this.userSchema);
+    this.ajv.addSchema(this.carSchema);
+    this.ajv.addSchema(this.assetSchema);
+    this.ajv.addSchema(this.companySchema);
+    this.ajv.addSchema(this.ocpiEndpointSchema);
   }
 
-  public validate(schema: Schema, content: any): void {
+  protected validate(schema: Schema, content: any): void {
     const fnValidate = this.ajv.compile(schema);
     if (!fnValidate(content)) {
       if (!fnValidate.errors) {

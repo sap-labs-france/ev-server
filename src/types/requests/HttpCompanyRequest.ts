@@ -8,9 +8,11 @@ export interface HttpCompanyRequest extends HttpByIDRequest {
 export interface HttpCompaniesRequest extends HttpDatabaseRequest {
   Search?: string;
   Issuer?: boolean;
-  WithSites?: boolean;
+  WithSite?: boolean;
   WithLogo?: boolean;
   LocCoordinates?: number[];
+  LocLongitude?: number;
+  LocLatitude?: number;
   LocMaxDistanceMeters?: number;
 }
 

@@ -1,9 +1,9 @@
 {
   "title": "Assign sites to a User",
   "type": "object",
-  "definitions": {
+  "properties": {
     "userID": {
-      "$ref": "common.json#/definitions/id"
+      "$ref": "user.json#/definitions/id"
     },
     "siteIDs": {
       "type": "array",

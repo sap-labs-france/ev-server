@@ -1,9 +1,9 @@
 {
   "title": "Get user default tag and car",
   "type": "object",
-  "definitions": {
+  "properties": {
     "UserID": {
-      "$ref": "common.json#/definitions/id"
+      "$ref": "user.json#/definitions/id"
     },
     "ProjectFields": {
       "$ref": "common.json#/definitions/projectFields"

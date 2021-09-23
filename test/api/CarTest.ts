@@ -14,10 +14,8 @@ import config from '../config';
 
 chai.use(chaiSubset);
 class TestData {
-  public data: any;
   public superCentralService: CentralServerService;
   public centralService: CentralServerService;
-  public credentials: any = {};
   public newCar: Car;
   public createdCars: Car[] = [];
   public tenantContext: TenantContext;
@@ -160,7 +158,6 @@ describe('Car', function() {
             }), false
           );
           expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
-          expect(response.data.message).to.equal('Car type is mandatory');
         });
 
         it('Should not be able to create a new car without a car catalog ID', async () => {
@@ -224,7 +221,7 @@ describe('Car', function() {
         });
       });
       describe('Where basic user', () => {
-        before(async function() {
+        before(function() {
           testData.centralService = new CentralServerService(ContextDefinition.TENANT_CONTEXTS.TENANT_CAR, testData.userContext);
         });
 
@@ -348,7 +345,7 @@ describe('Car', function() {
       });
 
       it('Should not be able to get car from super tenant', async () => {
-        const response = await testData.centralService.carApiSuperTenant.readCar({});
+        const response = await testData.centralService.carApiSuperTenant.readCar('');
         expect(response.status).to.equal(StatusCodes.FORBIDDEN);
       });
 

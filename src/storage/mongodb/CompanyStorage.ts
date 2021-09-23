@@ -83,7 +83,7 @@ export default class CompanyStorage {
   }
 
   public static async getCompanies(tenant: Tenant,
-      params: { search?: string; issuer?: boolean; companyIDs?: string[]; withSites?: boolean; withLogo?: boolean;
+      params: { search?: string; issuer?: boolean; companyIDs?: string[]; withSite?: boolean; withLogo?: boolean;
         locCoordinates?: number[]; locMaxDistanceMeters?: number; } = {},
       dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Company>> {
     // Debug
@@ -181,7 +181,7 @@ export default class CompanyStorage {
       $limit: (dbParams.limit > 0 && dbParams.limit < Constants.DB_RECORD_COUNT_CEIL) ? dbParams.limit : Constants.DB_RECORD_COUNT_CEIL
     });
     // Site
-    if (params.withSites) {
+    if (params.withSite) {
       DatabaseUtils.pushSiteLookupInAggregation(
         { tenantID: tenant.id, aggregation, localField: '_id', foreignField: 'companyID', asField: 'sites' });
     }

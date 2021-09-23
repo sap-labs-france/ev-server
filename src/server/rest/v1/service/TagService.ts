@@ -5,6 +5,7 @@ import { DataResult, TagDataResult } from '../../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import Tag, { ImportedTag, TagRequiredImportProperties } from '../../../../types/Tag';
+import Tenant, { TenantComponents } from '../../../../types/Tenant';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
@@ -28,8 +29,6 @@ import { ServerAction } from '../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import TagValidator from '../validator/TagValidator';
-import Tenant from '../../../../types/Tenant';
-import { TenantComponents } from '../../../../types/Tenant';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import UserToken from '../../../../types/UserToken';
 import UserValidator from '../validator/UserValidator';
@@ -66,11 +65,58 @@ export default class TagService {
     next();
   }
 
+  public static async handleUnassignTags(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const filteredRequest = TagValidator.getInstance().validateTagsUnassign(req.body);
+    // Delete
+    const result = await TagService.unassignTags(req.tenant, action, req.user, filteredRequest.visualIDs);
+    res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
+    next();
+  }
+
+  public static async handleUnassignTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const filteredRequest = TagValidator.getInstance().validateTagUnassign(req.body);
+    // Delete
+    const response = await TagService.unassignTags(req.tenant, action, req.user, [filteredRequest.visualID]);
+    if (response.inSuccess === 0) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.TAG_UNASSIGN,
+        module: MODULE_NAME, method: 'handleUnassignTag',
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Unable to unassign the Tag visualID '${filteredRequest.visualID}'`
+      });
+    }
+    // Return
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
+  }
+
+  public static async handleGetTagByVisualID(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter request
+    const filteredRequest = TagValidator.getInstance().validateTagGetByVisualID(req.query);
+    // Check and Get Tag
+    const tag = await UtilsService.checkAndGetTagByVisualIDAuthorization(
+      req.tenant, req.user, filteredRequest.VisualID, Action.READ, action, null, { withUser: filteredRequest.WithUser }, true);
+    res.json(tag);
+    next();
+  }
+
   public static async handleDeleteTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = TagValidator.getInstance().validateTagGetByID(req.query);
     // Delete
-    await TagService.deleteTags(req.tenant, action, req.user, [filteredRequest.ID]);
+    const response = await TagService.deleteTags(req.tenant, action, req.user, [filteredRequest.ID]);
+    if (response.inSuccess === 0) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.TAG_DELETE,
+        module: MODULE_NAME, method: 'handleDeleteTag',
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Unable to delete the Tag ID '${filteredRequest.ID}'`
+      });
+    }
     // Return
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
@@ -129,21 +175,23 @@ export default class TagService {
         action: action
       });
     }
-    // Get User
-    const user = await UtilsService.checkAndGetUserAuthorization(req.tenant, req.user, filteredRequest.userID,
-      Action.READ, ServerAction.TAG_CREATE);
-    // Default tag?
-    if (filteredRequest.default) {
-      // Clear
-      await TagStorage.clearDefaultUserTag(req.tenant, filteredRequest.userID);
-    // Check if another one is the default
-    } else {
-      const defaultTag = await TagStorage.getDefaultUserTag(req.tenant, filteredRequest.userID, {
-        issuer: true,
-      });
-      // No default tag: Force default
-      if (!defaultTag) {
-        filteredRequest.default = true;
+    if (filteredRequest.userID) {
+      // Get User
+      await UtilsService.checkAndGetUserAuthorization(req.tenant, req.user, filteredRequest.userID,
+        Action.READ, ServerAction.TAG_CREATE);
+      // Default tag?
+      if (filteredRequest.default) {
+        // Clear
+        await TagStorage.clearDefaultUserTag(req.tenant, filteredRequest.userID);
+        // Check if another one is the default
+      } else {
+        const defaultTag = await TagStorage.getDefaultUserTag(req.tenant, filteredRequest.userID, {
+          issuer: true,
+        });
+        // No default tag: Force default
+        if (!defaultTag) {
+          filteredRequest.default = true;
+        }
       }
     }
     // Create
@@ -165,12 +213,141 @@ export default class TagService {
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       action: action,
-      user: req.user, actionOnUser: user,
+      user: req.user,
       module: MODULE_NAME, method: 'handleCreateTag',
       message: `Tag with ID '${newTag.id}'has been created successfully`,
       detailedMessages: { tag: newTag }
     });
     res.status(StatusCodes.CREATED).json(Object.assign({ id: newTag.id }, Constants.REST_RESPONSE_SUCCESS));
+    next();
+  }
+
+  public static async handleAssignTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    const filteredRequest = TagValidator.getInstance().validateTagAssign(req.body);
+    // Check and Get Tag
+    const tag = await UtilsService.checkAndGetTagByVisualIDAuthorization(req.tenant, req.user, filteredRequest.visualID, Action.ASSIGN, action,
+      filteredRequest, { withNbrTransactions: true, withUser: true });
+    // Check Tag with Visual ID
+    if (!tag) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.TAG_VISUAL_ID_DOES_NOT_MATCH_TAG_ERROR,
+        message: `Tag with visual ID '${filteredRequest.visualID}' does not match any badge`,
+        module: MODULE_NAME, method: 'handleAssignTag',
+        user: req.user,
+        action: action
+      });
+    }
+    // Check if tag is active
+    if (!tag.active) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.TAG_INACTIVE,
+        message: `Tag with visual ID '${filteredRequest.visualID}' is not active and cannot be assigned`,
+        module: MODULE_NAME, method: 'handleAssignTag',
+        user: req.user,
+        action: action
+      });
+    }
+    if (tag.user) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.TAG_ALREADY_EXIST_ERROR,
+        message: `Tag with ID '${filteredRequest.id}' already exists and assigned to another user`,
+        module: MODULE_NAME, method: 'handleAssignTag',
+        user: req.user,
+        action: action
+      });
+    }
+    // Check if Tag has been already used
+    const transactions = await TransactionStorage.getTransactions(req.tenant,
+      { tagIDs: [tag.id.toUpperCase()] }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);
+    if (!Utils.isEmptyArray(transactions.result)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.TAG_HAS_TRANSACTIONS,
+        message: `Tag with ID '${filteredRequest.id}' has been used in previous transactions`,
+        module: MODULE_NAME, method: 'handleAssignTag',
+        user: req.user,
+        action: action
+      });
+    }
+    // Get User
+    const user = await UtilsService.checkAndGetUserAuthorization(req.tenant, req.user, filteredRequest.userID,
+      Action.READ, ServerAction.TAG_ASSIGN);
+    // Default tag?
+    if (filteredRequest.default) {
+      // Clear
+      await TagStorage.clearDefaultUserTag(req.tenant, filteredRequest.userID);
+      // Check if another one is the default
+    } else {
+      const defaultTag = await TagStorage.getDefaultUserTag(req.tenant, filteredRequest.userID, {
+        issuer: true,
+      });
+      // No default tag: Force default
+      if (!defaultTag) {
+        filteredRequest.default = true;
+      }
+    }
+    tag.default = filteredRequest.default;
+    tag.userID = filteredRequest.userID;
+    tag.description = filteredRequest.description;
+    tag.lastChangedBy = { id: req.user.id };
+    tag.lastChangedOn = new Date();
+    // Assign
+    await TagStorage.saveTag(req.tenant, tag);
+    // OCPI
+    await TagService.updateTagOCPI(action, req.tenant, req.user, tag);
+    await Logging.logSecurityInfo({
+      tenantID: req.user.tenantID,
+      action: action,
+      user: req.user, actionOnUser: user,
+      module: MODULE_NAME, method: 'handleAssignTag',
+      message: `Tag with ID '${tag.id}'has been created successfully`,
+      detailedMessages: { tag: tag }
+    });
+    res.status(StatusCodes.CREATED).json(Object.assign({ id: tag.id }, Constants.REST_RESPONSE_SUCCESS));
+    next();
+  }
+
+  public static async handleUpdateTagByVisualID(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const filteredRequest = TagValidator.getInstance().validateTagUpdateByVisualID({ ...req.params, ...req.body });
+    // Check and Get Tag
+    const tag = await UtilsService.checkAndGetTagByVisualIDAuthorization(req.tenant, req.user, filteredRequest.visualID, Action.UPDATE_BY_VISUAL_ID, action,
+      filteredRequest, { withNbrTransactions: true, withUser: true });
+    // Clear User's default Tag
+    if (filteredRequest.default && (tag.default !== filteredRequest.default)) {
+      await TagStorage.clearDefaultUserTag(req.tenant, filteredRequest.userID);
+    }
+    // Check default Tag existence
+    if (!filteredRequest.default) {
+      // Check if another one is the default
+      const defaultTag = await TagStorage.getDefaultUserTag(req.tenant, filteredRequest.userID, {
+        issuer: true,
+      });
+      // Force default Tag
+      if (!defaultTag) {
+        filteredRequest.default = true;
+      }
+    }
+    // Update
+    tag.description = filteredRequest.description;
+    tag.default = filteredRequest.default;
+    tag.lastChangedBy = { id: req.user.id };
+    tag.lastChangedOn = new Date();
+    // Save
+    await TagStorage.saveTag(req.tenant, tag);
+    await TagService.updateTagOCPI(action, req.tenant, req.user, tag);
+    await Logging.logSecurityInfo({
+      tenantID: req.user.tenantID,
+      action: action,
+      module: MODULE_NAME, method: 'handleUpdateTagByVisualID',
+      message: `Tag with ID '${tag.id}' has been updated successfully`,
+      user: req.user, actionOnUser: tag.user,
+      detailedMessages: { tag: tag }
+    });
+    res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
@@ -182,9 +359,10 @@ export default class TagService {
     // Check and Get Tag
     const tag = await UtilsService.checkAndGetTagAuthorization(req.tenant, req.user, filteredRequest.id, Action.UPDATE, action,
       filteredRequest, { withNbrTransactions: true, withUser: true }, true);
-    // Get User
-    const user = await UtilsService.checkAndGetUserAuthorization(req.tenant, req.user, filteredRequest.userID,
-      Action.READ, ServerAction.TAG_UPDATE);
+    if (filteredRequest.userID) {
+      await UtilsService.checkAndGetUserAuthorization(req.tenant, req.user, filteredRequest.userID,
+        Action.READ, ServerAction.TAG_UPDATE);
+    }
     // Check visualID uniqueness
     if (tag.visualID !== filteredRequest.visualID) {
       const tagVisualID = await TagStorage.getTagByVisualID(req.tenant, filteredRequest.visualID);
@@ -216,19 +394,20 @@ export default class TagService {
       formerTagUserID = tag.userID;
       formerTagDefault = tag.default;
     }
-    // Clear User's default Tag
-    if (filteredRequest.default && !formerTagUserID && (tag.default !== filteredRequest.default)) {
-      await TagStorage.clearDefaultUserTag(req.tenant, filteredRequest.userID);
-    }
-    // Check default Tag existence
-    if (!filteredRequest.default) {
-      // Check if another one is the default
-      const defaultTag = await TagStorage.getDefaultUserTag(req.tenant, filteredRequest.userID, {
-        issuer: true,
-      });
-      // Force default Tag
-      if (!defaultTag) {
-        filteredRequest.default = true;
+    if (filteredRequest.userID) {
+      // Clear User's default Tag
+      if (filteredRequest.default) {
+        await TagStorage.clearDefaultUserTag(req.tenant, filteredRequest.userID);
+        // Check default Tag existence
+      } else {
+        // Check if another one is the default
+        const defaultTag = await TagStorage.getDefaultUserTag(req.tenant, filteredRequest.userID, {
+          issuer: true,
+        });
+        // Force default Tag
+        if (!defaultTag) {
+          filteredRequest.default = true;
+        }
       }
     }
     // Update
@@ -236,7 +415,7 @@ export default class TagService {
     tag.description = filteredRequest.description;
     tag.active = filteredRequest.active;
     tag.userID = filteredRequest.userID;
-    tag.default = filteredRequest.default;
+    tag.default = filteredRequest.userID ? filteredRequest.default : false;
     tag.lastChangedBy = { id: req.user.id };
     tag.lastChangedOn = new Date();
     // Save
@@ -252,12 +431,13 @@ export default class TagService {
       action: action,
       module: MODULE_NAME, method: 'handleUpdateTag',
       message: `Tag with ID '${tag.id}' has been updated successfully`,
-      user: req.user, actionOnUser: user,
+      user: req.user,
       detailedMessages: { tag: tag }
     });
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
+
 
   // eslint-disable-next-line @typescript-eslint/require-await
   public static async handleImportTags(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -338,8 +518,8 @@ export default class TagService {
               tag.importedBy = importedBy;
               tag.importedOn = importedOn;
               tag.importedData = {
-                'autoActivateUserAtImport' : UtilsSecurity.filterBoolean(req.headers.autoactivateuseratimport),
-                'autoActivateTagAtImport' :  UtilsSecurity.filterBoolean(req.headers.autoactivatetagatimport)
+                'autoActivateUserAtImport': UtilsSecurity.filterBoolean(req.headers.autoactivateuseratimport),
+                'autoActivateTagAtImport': UtilsSecurity.filterBoolean(req.headers.autoactivatetagatimport)
               };
               // Import
               const importSuccess = await TagService.processTag(action, req, tag, tagsToBeImported);
@@ -515,7 +695,7 @@ export default class TagService {
       try {
         // Check and Get Tag
         const tag = await UtilsService.checkAndGetTagAuthorization(
-          tenant, loggedUser, tagID, Action.DELETE, action, null, { }, true);
+          tenant, loggedUser, tagID, Action.DELETE, action, null, {}, true);
         // Delete OCPI
         await TagService.checkAndDeleteTagOCPI(tenant, loggedUser, tag);
         // Delete the Tag
@@ -542,6 +722,51 @@ export default class TagService {
       '{{inSuccess}} tag(s) were successfully deleted',
       '{{inError}} tag(s) failed to be deleted',
       '{{inSuccess}} tag(s) were successfully deleted and {{inError}} failed to be deleted',
+      'No tags have been deleted', loggedUser
+    );
+    return result;
+  }
+
+  private static async unassignTags(tenant: Tenant, action: ServerAction, loggedUser: UserToken, visualIDs: string[]): Promise<ActionsResponse> {
+    const result: ActionsResponse = {
+      inSuccess: 0,
+      inError: 0
+    };
+    // Delete Tags
+    for (const visualID of visualIDs) {
+      try {
+        // Check and Get Tag
+        const tag = await UtilsService.checkAndGetTagByVisualIDAuthorization(
+          tenant, loggedUser, visualID, Action.UNASSIGN, action, null, {});
+        // Delete OCPI
+        await TagService.checkAndDeleteTagOCPI(tenant, loggedUser, tag);
+        // Unassign the Tag
+        const userID = tag.userID;
+        tag.userID = null;
+        tag.active = false;
+        await TagStorage.saveTag(tenant, tag);
+        result.inSuccess++;
+        // Ensure User has a default Tag
+        if (tag.default) {
+          await TagService.setDefaultTagForUser(tenant, userID);
+        }
+      } catch (error) {
+        result.inError++;
+        await Logging.logError({
+          tenantID: tenant.id,
+          module: MODULE_NAME, method: 'unassignTags',
+          action: ServerAction.TAG_DELETE,
+          message: `Unable to unassign the Tag with visual ID '${visualID}'`,
+          detailedMessages: { error: error.stack }
+        });
+      }
+    }
+    await Logging.logActionsResponse(loggedUser.tenantID,
+      ServerAction.TAGS_DELETE,
+      MODULE_NAME, 'unassignTags', result,
+      '{{inSuccess}} tag(s) were successfully unassigned',
+      '{{inError}} tag(s) failed to be unassigned',
+      '{{inSuccess}} tag(s) were successfully unassigned and {{inError}} failed to be unassigned',
       'No tags have been deleted', loggedUser
     );
     return result;

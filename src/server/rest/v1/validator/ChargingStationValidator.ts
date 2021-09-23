@@ -1,4 +1,4 @@
-import { HttpChargingProfilesRequest, HttpChargingStationCommandRequest, HttpChargingStationConnectorRequest, HttpChargingStationGetCompositeScheduleRequest, HttpChargingStationGetDiagnosticsRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationOcppParametersRequest, HttpChargingStationOcppRequest, HttpChargingStationParamsUpdateRequest, HttpChargingStationRequest, HttpChargingStationStartTransactionRequest, HttpChargingStationStopTransactionRequest, HttpChargingStationsInErrorRequest, HttpChargingStationsRequest, HttpDownloadQrCodeRequest, HttpTriggerSmartChargingRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpChargingProfilesRequest, HttpChargingStationChangeAvailabilityRequest, HttpChargingStationChangeConfigurationRequest, HttpChargingStationClearCacheRequest, HttpChargingStationCommandDataTransferRequest, HttpChargingStationCommandRequest, HttpChargingStationCommandUnlockConnectorRequest, HttpChargingStationConnectorRequest, HttpChargingStationGetCompositeScheduleRequest, HttpChargingStationGetDiagnosticsRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationOcppParametersRequest, HttpChargingStationOcppRequest, HttpChargingStationParamsUpdateRequest, HttpChargingStationRequest, HttpChargingStationResetRequest, HttpChargingStationStartTransactionRequest, HttpChargingStationStopTransactionRequest, HttpChargingStationUpdateFirmwareRequest, HttpChargingStationsInErrorRequest, HttpChargingStationsRequest, HttpDownloadQrCodeRequest, HttpTriggerSmartChargingRequest } from '../../../../types/requests/HttpChargingStationRequest';
 
 import { ChargingProfile } from '../../../../types/ChargingProfile';
 import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
@@ -13,9 +13,16 @@ export default class ChargingStationValidator extends SchemaValidator {
   private chargingStationGet: Schema;
   private chargingStationDelete: Schema;
   private chargingStationAction: Schema;
+  private chargingStationActionChangeAvailability: Schema;
+  private chargingStationActionChangeConfiguration: Schema;
+  private chargingStationActionClearCache: Schema;
+  private chargingStationActionDataTransfer: Schema;
   private chargingStationActionStartTransaction: Schema;
   private chargingStationActionStopTransaction: Schema;
   private chargingStationActionGetCompositeSchedule: Schema;
+  private chargingStationActionUnlockConnector: Schema;
+  private chargingStationActionUpdateFirmware: Schema;
+  private chargingStationActionReset: Schema;
   private chargingStationQRCodeGenerate: Schema;
   private chargingStationQRCodeDownload: Schema;
   private chargingStationOcppParametersGet: Schema;
@@ -38,9 +45,16 @@ export default class ChargingStationValidator extends SchemaValidator {
     this.chargingStationGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-get.json`, 'utf8'));
     this.chargingStationDelete = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-delete.json`, 'utf8'));
     this.chargingStationAction = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action.json`, 'utf8'));
+    this.chargingStationActionChangeAvailability = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action-change-availability.json`, 'utf8'));
+    this.chargingStationActionChangeConfiguration = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action-change-configuration.json`, 'utf8'));
+    this.chargingStationActionClearCache = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action-clear-cache.json`, 'utf8'));
+    this.chargingStationActionDataTransfer = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action-data-transfer.json`, 'utf8'));
     this.chargingStationActionStartTransaction = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action-start-transaction.json`, 'utf8'));
     this.chargingStationActionStopTransaction = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action-stop-transaction.json`, 'utf8'));
     this.chargingStationActionGetCompositeSchedule = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action-get-composite-schedule.json`, 'utf8'));
+    this.chargingStationActionUnlockConnector = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action-unlock-connector.json`, 'utf8'));
+    this.chargingStationActionUpdateFirmware = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action-update-firmware.json`, 'utf8'));
+    this.chargingStationActionReset = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action-reset.json`, 'utf8'));
     this.chargingStationQRCodeGenerate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-qrcode-generate.json`, 'utf8'));
     this.chargingStationQRCodeDownload = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-qrcode-download.json`, 'utf8'));
     this.chargingStationOcppParametersGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-ocpp-parameters-get.json`, 'utf8'));
@@ -89,6 +103,30 @@ export default class ChargingStationValidator extends SchemaValidator {
     return data;
   }
 
+  public validateChargingStationActionChangeAvailabilityReq(data: any): HttpChargingStationChangeAvailabilityRequest {
+    // Validate schema for ChangeAvailability
+    this.validate(this.chargingStationActionChangeAvailability, data);
+    return data;
+  }
+
+  public validateChargingStationActionChangeConfigurationReq(data: any): HttpChargingStationChangeConfigurationRequest {
+    // Validate schema for ChangeConfiguration
+    this.validate(this.chargingStationActionChangeConfiguration, data);
+    return data;
+  }
+
+  public validateChargingStationActionDataTransferReq(data: any): HttpChargingStationCommandDataTransferRequest {
+    // Validate schema for DataTransfer
+    this.validate(this.chargingStationActionDataTransfer, data);
+    return data;
+  }
+
+  public validateChargingStationActionClearCacheReq(data: any): HttpChargingStationClearCacheRequest {
+    // Validate schema for ClearCache
+    this.validate(this.chargingStationActionClearCache, data);
+    return data;
+  }
+
   public validateChargingStationActionStartTransactionReq(data: any): HttpChargingStationStartTransactionRequest {
     // Validate schema for StartTransaction
     this.validate(this.chargingStationActionStartTransaction, data);
@@ -104,6 +142,24 @@ export default class ChargingStationValidator extends SchemaValidator {
   public validateChargingStationActionGetCompositeScheduleReq(data: any): HttpChargingStationGetCompositeScheduleRequest {
     // Validate schema for Get Composite Schedule
     this.validate(this.chargingStationActionGetCompositeSchedule, data);
+    return data;
+  }
+
+  public validateChargingStationActionUnlockConnectorReq(data: any): HttpChargingStationCommandUnlockConnectorRequest {
+    // Validate schema for Unlock Connector
+    this.validate(this.chargingStationActionUnlockConnector, data);
+    return data;
+  }
+
+  public validateChargingStationActionUpdateFirmwareReq(data: any): HttpChargingStationUpdateFirmwareRequest {
+    // Validate schema for Update Firmware
+    this.validate(this.chargingStationActionUpdateFirmware, data);
+    return data;
+  }
+
+  public validateChargingStationActionResetReq(data: any): HttpChargingStationResetRequest {
+    // Validate schema for Reset
+    this.validate(this.chargingStationActionReset, data);
     return data;
   }
 
@@ -149,7 +205,7 @@ export default class ChargingStationValidator extends SchemaValidator {
     return data;
   }
 
-  public validateChargingStationGetDiagnostics(data: any): HttpChargingStationGetDiagnosticsRequest {
+  public validateChargingStationGetDiagnosticsReq(data: any): HttpChargingStationGetDiagnosticsRequest {
     // Validate schema
     this.validate(this.chargingStationGetDiagnostics, data);
     return data;

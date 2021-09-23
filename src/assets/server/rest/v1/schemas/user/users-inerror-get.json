@@ -1,7 +1,7 @@
 {
   "title": "Get Users in error",
   "type": "object",
-  "definitions": {
+  "properties": {
     "Roles": {
       "type": "string",
       "sanitize": "mongo",
