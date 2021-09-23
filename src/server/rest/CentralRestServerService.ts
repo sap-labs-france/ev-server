@@ -120,6 +120,7 @@ class RequestMapper {
           [ServerAction.NOTIFICATIONS]: NotificationService.handleGetNotifications.bind(this),
           [ServerAction.TAGS]: TagService.handleGetTags.bind(this),
           [ServerAction.TAG]: TagService.handleGetTag.bind(this),
+          [ServerAction.TAG_BY_VISUAL_ID]: TagService.handleGetTagByVisualID.bind(this),
           [ServerAction.TAGS_EXPORT]: TagService.handleExportTags.bind(this),
           [ServerAction.TRANSACTIONS_COMPLETED]: TransactionService.handleGetTransactionsCompleted.bind(this),
           [ServerAction.TRANSACTIONS_TO_REFUND]: TransactionService.handleGetTransactionsToRefund.bind(this),
@@ -189,6 +190,10 @@ class RequestMapper {
           [ServerAction.SYNCHRONIZE_CAR_CATALOGS]: CarService.handleSynchronizeCarCatalogs.bind(this),
           [ServerAction.CAR_UPDATE]: CarService.handleUpdateCar.bind(this),
           [ServerAction.TAG_UPDATE]: TagService.handleUpdateTag.bind(this),
+          [ServerAction.TAG_UPDATE_BY_VISUAL_ID]: TagService.handleUpdateTagByVisualID.bind(this),
+          [ServerAction.TAGS_UNASSIGN]: TagService.handleUnassignTags.bind(this),
+          [ServerAction.TAG_UNASSIGN]: TagService.handleUnassignTag.bind(this),
+          [ServerAction.TAG_ASSIGN]: TagService.handleAssignTag.bind(this),
           [ServerAction.REGISTRATION_TOKEN_UPDATE]: RegistrationTokenService.handleUpdateRegistrationToken.bind(this),
         });
         break;

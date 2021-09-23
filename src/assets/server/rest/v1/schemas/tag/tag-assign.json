@@ -1,22 +1,13 @@
 {
-  "title": "Tag creation",
+  "title": "Tag assignment",
   "description": "",
   "type": "object",
   "properties": {
-    "id": {
-      "$ref": "tag.json#/definitions/id"
-    },
     "visualID": {
       "$ref": "tag.json#/definitions/visualID"
     },
     "description": {
       "$ref": "tag.json#/definitions/description"
-    },
-    "active": {
-      "$ref": "tag.json#/definitions/active"
-    },
-    "issuer": {
-      "$ref": "tag.json#/definitions/issuer"
     },
     "default": {
       "$ref": "tag.json#/definitions/default"
@@ -26,7 +17,7 @@
     }
   },
   "required": [
-    "id",
-    "visualID"
+    "visualID",
+    "userID"
   ]
 }

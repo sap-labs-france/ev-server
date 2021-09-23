@@ -1,5 +1,5 @@
 {
-  "title": "Tag creation",
+  "title": "Update a Tag",
   "description": "",
   "type": "object",
   "properties": {
@@ -26,7 +26,6 @@
     }
   },
   "required": [
-    "id",
     "visualID"
   ]
 }
