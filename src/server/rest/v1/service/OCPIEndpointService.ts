@@ -13,7 +13,6 @@ import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
 import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
-import OCPIEndpointSecurity from './security/OCPIEndpointSecurity';
 import OCPIEndpointStorage from '../../../../storage/mongodb/OCPIEndpointStorage';
 import OCPIEndpointValidator from '../validator/OCPIEndpointValidator';
 import { OCPIRegistrationStatus } from '../../../../types/ocpi/OCPIRegistrationStatus';
@@ -32,8 +31,7 @@ export default class OCPIEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.DELETE, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleDeleteOcpiEndpoint');
     // Filter
-    const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointDeleteRequest(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleDeleteOcpiEndpoint', req.user);
+    const filteredRequest = OCPIEndpointValidator.getInstance().validateOCPIEndpointGet(req.query);
     // Check auth
     if (!await Authorizations.canDeleteOcpiEndpoint(req.user)) {
       throw new AppAuthError({
@@ -66,8 +64,7 @@ export default class OCPIEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleGetOcpiEndpoint');
     // Filter
-    const endpointID = OCPIEndpointSecurity.filterOcpiEndpointRequestByID(req.query);
-    UtilsService.assertIdIsProvided(action, endpointID, MODULE_NAME, 'handleGetOcpiEndpoint', req.user);
+    const endpointID = OCPIEndpointValidator.getInstance().validateOCPIEndpointGet(req.query).ID;
     // Check auth
     if (!await Authorizations.canReadOcpiEndpoint(req.user)) {
       throw new AppAuthError({
@@ -109,7 +106,7 @@ export default class OCPIEndpointService {
       userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName' ];
     }
     // Filter
-    const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointsRequest(req.query);
+    const filteredRequest = OCPIEndpointValidator.getInstance().validateOCPIEndpointsGet(req.query);
     // Get all ocpiendpoints
     const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(req.tenant,
       {
@@ -117,7 +114,7 @@ export default class OCPIEndpointService {
       }, {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.SortFields,
+        sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       [
@@ -168,9 +165,7 @@ export default class OCPIEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.UPDATE, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleUpdateOcpiEndpoint');
     // Filter
-    const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointUpdateRequest(req.body);
-    // Check Mandatory fields
-    UtilsService.checkIfOCPIEndpointValid(filteredRequest, req);
+    const filteredRequest = OCPIEndpointValidator.getInstance().validateOCPIEndpointUpdate(req.body);
     // Check auth
     if (!await Authorizations.canUpdateOcpiEndpoint(req.user)) {
       throw new AppAuthError({
@@ -464,8 +459,7 @@ export default class OCPIEndpointService {
       });
     }
     // Filter
-    const filteredRequest = OCPIEndpointSecurity.filterOcpiCheckCdrsRequest(req.body);
-    UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleCheckCdrsEndpoint', req.user);
+    const filteredRequest = OCPIEndpointValidator.getInstance().validateOCPIEndpointById(req.body);
     // Get ocpiEndpoint
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
@@ -725,8 +719,7 @@ export default class OCPIEndpointService {
       });
     }
     // Filter
-    const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointRegisterRequest(req.body);
-    UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleUnregisterOcpiEndpoint', req.user);
+    const filteredRequest = OCPIEndpointValidator.getInstance().validateOCPIEndpointById(req.body);
     // Get OcpiEndpoint
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
@@ -782,8 +775,7 @@ export default class OCPIEndpointService {
       });
     }
     // Filter
-    const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointRegisterRequest(req.body);
-    UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleRegisterOcpiEndpoint', req.user);
+    const filteredRequest = OCPIEndpointValidator.getInstance().validateOCPIEndpointById(req.body);
     // Get OcpiEndpoint
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
