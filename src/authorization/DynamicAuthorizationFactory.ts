@@ -4,6 +4,7 @@ import AssignedSitesCompaniesDynamicAuthorizationDataSource from './dynamic-data
 import AssignedSitesCompaniesDynamicAuthorizationFilter from './dynamic-filters/AssignedSitesCompaniesDynamicAuthorizationFilter';
 import AssignedSitesDynamicAuthorizationDataSource from './dynamic-data-source/AssignedSitesDynamicAuthorizationDataSource';
 import AssignedSitesDynamicAuthorizationFilter from './dynamic-filters/AssignedSitesDynamicAuthorizationFilter';
+import BasicUserDynamicAuthorizationAssert from './dynamic-assert/BasicUserDynamicAuthorizationAssert';
 import DynamicAuthorizationAssert from './DynamicAuthorizationAssert';
 import DynamicAuthorizationDataSource from './DynamicAuthorizationDataSource';
 import DynamicAuthorizationFilter from './DynamicAuthorizationFilter';
@@ -79,6 +80,9 @@ export default class DynamicAuthorizationFactory {
         break;
       case DynamicAuthorizationAssertName.OWN_USER:
         dynamicAssert = new OwnUserDynamicAuthorizationAssert(tenant, userToken, negateAssert);
+        break;
+      case DynamicAuthorizationAssertName.BASIC_USER:
+        dynamicAssert = new BasicUserDynamicAuthorizationAssert(tenant, userToken, negateAssert);
         break;
     }
     return dynamicAssert;

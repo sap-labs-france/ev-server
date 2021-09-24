@@ -774,7 +774,16 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address', 'technical'
         ],
       },
-      { resource: Entity.USER, action: [Action.CREATE, Action.UPDATE, Action.SYNCHRONIZE_BILLING_USER] },
+      {
+        resource: Entity.USER, action: [Action.CREATE, Action.UPDATE],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: ['BasicUser']
+          }
+        }
+      },
+      { resource: Entity.USER, action: Action.SYNCHRONIZE_BILLING_USER },
       {
         resource: Entity.USER, action: Action.DELETE,
         condition: {
