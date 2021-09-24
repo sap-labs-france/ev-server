@@ -1,5 +1,5 @@
 {
-  "title": "Change Configuration",
+  "title": "Get Configuration",
   "type": "object",
   "properties": {
     "chargingStationID": {
@@ -9,20 +9,14 @@
       "type": "object",
       "properties": {
         "key": {
-          "type": "string",
+          "type": "array",
           "sanitize": "mongo",
-          "maxLength": 50
-        },
-        "value": {
-          "type": "string",
-          "sanitize": "mongo",
-          "maxLength": 500
+          "items": {
+            "type": "string",
+            "maxLength": 50
+          }
         }
-      },
-      "required": [
-        "key",
-        "value"
-      ]
+      }
     }
   },
   "required": [
