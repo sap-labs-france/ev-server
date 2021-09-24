@@ -80,7 +80,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'createdOn', 'lastChangedOn', 'errorCodeDetails', 'errorCode'
         ]
       },
-      { resource: Entity.USER, action: [Action.CREATE, Action.UPDATE, Action.SYNCHRONIZE_BILLING_USER] },
+      { resource: Entity.USER, action: Action.SYNCHRONIZE_BILLING_USER },
       {
         resource: Entity.USER, action: Action.DELETE,
         condition: {
@@ -89,10 +89,10 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         }
       },
       {
-        resource: Entity.USER, action: Action.READ,
+        resource: Entity.USER, action: [Action.READ, Action.CREATE, Action.UPDATE],
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
-          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
+          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address', 'technical'
         ]
       },
       {
@@ -131,7 +131,8 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.COMPANY,
         action: [
           Action.CREATE, Action.UPDATE, Action.DELETE
-        ] },
+        ]
+      },
       {
         resource: Entity.SITES, action: Action.LIST,
         attributes: [
@@ -521,7 +522,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           args: { filters: ['OwnUser'] }
         },
         attributes: [
-          'id', 'userID', 'active', 'ocpiToken', 'description', 'visualID', 'issuer', 'default',
+          'userID', 'active', 'description', 'visualID', 'issuer', 'default',
           'createdOn', 'lastChangedOn'
         ],
       },
@@ -532,16 +533,46 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           args: { filters: ['OwnUser'] }
         },
         attributes: [
-          'id', 'userID', 'issuer', 'active', 'description', 'visualID', 'default',
+          'userID', 'issuer', 'active', 'description', 'visualID', 'default',
           'user.id', 'user.name', 'user.firstName', 'user.email', 'user.issuer'
         ],
       },
       {
-        resource: Entity.TAG, action: [Action.DELETE, Action.UPDATE],
+        resource: Entity.TAGS, action: Action.UNASSIGN,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
-          args: { filters: ['OwnUser'] }
+          args: {
+            filters: ['OwnUser'],
+            asserts: ['OwnUser']
+          }
         }
+      },
+      {
+        resource: Entity.TAG, action: Action.UNASSIGN,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            filters: ['OwnUser'],
+            asserts: ['OwnUser']
+          }
+        }
+      },
+      {
+        resource: Entity.TAG, action: Action.UPDATE_BY_VISUAL_ID,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            filters: ['OwnUser'],
+            asserts: ['OwnUser']
+          }
+        }
+      },
+      {
+        resource: Entity.TAG, action: Action.ASSIGN,
+        attributes: [
+          'userID', 'description', 'visualID', 'default',
+          'user.name', 'user.firstName', 'user.email', 'createdOn', 'lastChangedOn'
+        ]
       },
       {
         resource: Entity.CHARGING_STATION,
@@ -707,6 +738,20 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
     },
     grants: [
       {
+        resource: Entity.TAG, action: [Action.ASSIGN, Action.UNASSIGN, Action.UPDATE_BY_VISUAL_ID],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: { filters: ['ExcludeAction'] }
+        }
+      },
+      {
+        resource: Entity.TAGS, action: [Action.UNASSIGN],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: { filters: ['ExcludeAction'] }
+        }
+      },
+      {
         resource: Entity.USERS, action: Action.LIST,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
@@ -726,8 +771,25 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
-          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
+          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address', 'technical'
         ],
+      },
+      {
+        resource: Entity.USER, action: [Action.CREATE, Action.UPDATE],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: ['BasicUser']
+          }
+        }
+      },
+      { resource: Entity.USER, action: Action.SYNCHRONIZE_BILLING_USER },
+      {
+        resource: Entity.USER, action: Action.DELETE,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: { filters: ['-OwnUser'] }
+        }
       },
       {
         resource: Entity.USERS_SITES, action: [Action.LIST, Action.UNASSIGN],

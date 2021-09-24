@@ -113,8 +113,33 @@ export interface HttpChargingStationCommandRequest {
   args?: any;
 }
 
+export interface HttpChargingStationChangeAvailabilityRequest {
+  chargingStationID: string,
+  args: {
+    connectorId: string,
+    type: 'Inoperative' | 'Operative';
+  }
+}
+
+export interface HttpChargingStationChangeConfigurationRequest {
+  chargingStationID: string,
+  args: {
+    key: string,
+    value: string;
+  }
+}
+
 export interface HttpChargingStationClearCacheRequest {
   chargingStationID: string
+}
+
+export interface HttpChargingStationCommandDataTransferRequest {
+  chargingStationID: string,
+  args: {
+    vendorId: string,
+    messageId?: string,
+    data?: string
+  }
 }
 
 export interface HttpChargingStationStartTransactionRequest {
@@ -133,12 +158,26 @@ export interface HttpChargingStationStopTransactionRequest {
   }
 }
 
+export interface HttpChargingStationCommandGetConfigurationRequest {
+  chargingStationID: string,
+  args: {
+    key: string[]
+  }
+}
+
 export interface HttpChargingStationGetCompositeScheduleRequest {
   chargingStationID: string,
   args: {
     connectorId: string,
     duration: number,
     chargingRateUnit?: string
+  }
+}
+
+export interface HttpChargingStationCommandUnlockConnectorRequest {
+  chargingStationID: string,
+  args: {
+    connectorId: string
   }
 }
 
@@ -149,6 +188,17 @@ export interface HttpChargingStationUpdateFirmwareRequest {
     retries?: number,
     retryInterval?: number,
     retrieveDate: Date
+  }
+}
+
+export interface HttpChargingStationReserveNowRequest {
+  chargingStationID: string,
+  args: {
+    connectorId: string;
+    expiryDate: Date;
+    idTag: string;
+    parentIdTag?: string;
+    reservationId: string;
   }
 }
 

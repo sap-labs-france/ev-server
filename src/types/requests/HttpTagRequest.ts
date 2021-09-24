@@ -6,6 +6,11 @@ export interface HttpTagRequest extends HttpByIDRequest {
   WithUser: boolean;
 }
 
+export interface HttpTagByVisualIDRequest {
+  VisualID: string;
+  WithUser: boolean;
+}
+
 export interface HttpTagsRequest extends HttpDatabaseRequest {
   Search: string;
   UserID?: string;

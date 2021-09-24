@@ -227,9 +227,14 @@ export default class UserService {
         await UserStorage.saveUserRole(req.tenant, user.id, filteredRequest.role);
       }
       // Save Admin Data
-      if (Utils.objectHasProperty(filteredRequest, 'plateID')) {
-        const adminData: { plateID?: string; } = {};
-        adminData.plateID = filteredRequest.plateID || null;
+      if (user.projectedFields.includes('plateID') || user.projectedFields.includes('technical')) {
+        const adminData: { plateID?: string; technical?: boolean; } = {};
+        if (user.projectedFields.includes('plateID')) {
+          adminData.plateID = filteredRequest.plateID || null;
+        }
+        if (user.projectedFields.includes('technical')) {
+          adminData.technical = filteredRequest.technical;
+        }
         await UserStorage.saveUserAdminData(req.tenant, user.id, adminData);
       }
     }
@@ -678,8 +683,8 @@ export default class UserService {
         await UserStorage.saveUserRole(req.tenant, newUser.id, newUser.role);
       }
       // Save Admin Data
-      if (newUser.plateID || Utils.objectHasProperty(newUser, 'notificationsActive')) {
-        const adminData: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications } = {};
+      if (newUser.plateID || Utils.objectHasProperty(newUser, 'notificationsActive') || Utils.objectHasProperty(newUser, 'technical')) {
+        const adminData: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications, technical?: boolean } = {};
         if (newUser.plateID) {
           adminData.plateID = newUser.plateID;
         }
@@ -688,6 +693,9 @@ export default class UserService {
           if (newUser.notifications) {
             adminData.notifications = newUser.notifications;
           }
+        }
+        if (authorizationFilter.projectFields.includes('technical')) {
+          adminData.technical = newUser.technical;
         }
         // Save User Admin data
         await UserStorage.saveUserAdminData(req.tenant, newUser.id, adminData);

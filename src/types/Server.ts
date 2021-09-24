@@ -34,6 +34,8 @@ export enum ServerAction {
   CHARGING_STATION_UPDATE_PARAMS = 'RestChargingStationUpdateParams',
   CHARGING_STATION_LIMIT_POWER = 'RestChargingStationLimitPower',
   CHARGING_STATION_DELETE = 'RestChargingStationDelete',
+  CHARGING_STATION_RESERVE_NOW = 'RestChargingStationReserveNpw',
+
 
   CHECK_SMART_CHARGING_CONNECTION = 'RestCheckSmartChargingConnection',
   TRIGGER_SMART_CHARGING = 'RestTriggerSmartCharging',
@@ -395,10 +397,15 @@ export enum ServerAction {
   USER_IMAGE = 'RestUserImage',
   TAGS = 'Tags',
   TAG = 'Tag',
+  TAG_BY_VISUAL_ID= 'TagByVisualID',
   USER_DEFAULT_TAG_CAR = 'RestUserDefaultTagCar',
   TAG_CREATE = 'TagCreate',
   TAG_UPDATE = 'TagUpdate',
+  TAG_UPDATE_BY_VISUAL_ID = 'TagUpdateByVisualID',
   TAG_DELETE = 'TagDelete',
+  TAGS_UNASSIGN = 'TagsUnassign',
+  TAG_UNASSIGN = 'TagUnassign',
+  TAG_ASSIGN = 'TagAssign',
   TAGS_DELETE = 'TagsDelete',
   TAGS_IMPORT = 'TagsImport',
   TAGS_EXPORT = 'TagsExport',
@@ -468,6 +475,7 @@ export enum ServerRoute {
   REST_CHARGING_STATIONS_GET_DIAGNOSTICS = 'charging-stations/:id/diagnostics',
   REST_CHARGING_STATIONS_FIRMWARE_UPDATE = 'charging-stations/:id/firmware/update',
   REST_CHARGING_STATIONS_CHANGE_AVAILABILITY = 'charging-stations/:id/availability/change',
+  REST_CHARGING_STATIONS_RESERVE_NOW = 'charging-stations/:id/reserve/now',
 
   REST_CHARGING_STATIONS_DOWNLOAD_FIRMWARE = 'charging-stations/firmware/download',
   REST_CHARGING_STATIONS_QRCODE_GENERATE = 'charging-stations/:id/connectors/:connectorId/qrcode/generate',
@@ -562,7 +570,6 @@ export enum ServerRoute {
   REST_NOTIFICATIONS_END_USER_REPORT_ERROR = 'notifications/action/end-user/report-error',
 
 
-  REST_OCPI_ENDPOINT_CREATE = 'ocpi/endpoints',
   REST_OCPI_ENDPOINT_PING = 'ocpi/endpoints/:id/ping',
   REST_OCPI_ENDPOINT_CHECK_CDRS = 'ocpi/endpoints/:id/cdrs/check',
   REST_OCPI_ENDPOINT_CHECK_LOCATIONS = 'ocpi/endpoints/:id/locations/check',
@@ -576,10 +583,8 @@ export enum ServerRoute {
   REST_OCPI_ENDPOINT_GENERATE_LOCAL_TOKEN = 'ocpi/endpoints/:id/tokens/generate',
   REST_OCPI_ENDPOINTS = 'ocpi/endpoints',
   REST_OCPI_ENDPOINT = 'ocpi/endpoints/:id',
-  REST_OCPI_ENDPOINT_UPDATE = 'ocpi/endpoints/:id',
   REST_OCPI_ENDPOINT_REGISTER = 'ocpi/endpoints/:id/register',
   REST_OCPI_ENDPOINT_UNREGISTER = 'ocpi/endpoints/:id/unregister',
-  REST_OCPI_ENDPOINT_DELETE = 'ocpi/endpoints/:id',
 
   // BILLING URLs for CRUD operations on PAYMENT METHODS
   REST_BILLING_PAYMENT_METHODS = 'users/:userID/payment-methods',

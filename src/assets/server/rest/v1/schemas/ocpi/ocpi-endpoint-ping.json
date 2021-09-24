@@ -1,0 +1,38 @@
+{
+  "title": "OCPI Endpoint ping Request",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "name": {
+      "$ref": "ocpi-endpoint.json#/definitions/name"
+    },
+    "role": {
+      "$ref": "ocpi-endpoint.json#/definitions/role"
+    },
+    "baseUrl": {
+      "$ref": "ocpi-endpoint.json#/definitions/baseUrl"
+    },
+    "countryCode": {
+      "$ref": "ocpi-endpoint.json#/definitions/countryCode"
+    },
+    "partyId": {
+      "$ref": "ocpi-endpoint.json#/definitions/partyId"
+    },
+    "localToken": {
+      "$ref": "ocpi-endpoint.json#/definitions/localToken"
+    },
+    "token": {
+      "$ref": "ocpi-endpoint.json#/definitions/token"
+    },
+    "backgroundPatchJob": {
+      "$ref": "ocpi-endpoint.json#/definitions/name"
+    }
+  },
+  "required": [
+    "name",
+    "role",
+    "baseUrl",
+    "localToken",
+    "token"
+  ]
+}

@@ -208,3 +208,23 @@ export interface OCPPUpdateFirmwareCommandParam extends OCPPCommandParam {
   retrieveDate: Date;
   retryInterval?: number;
 }
+
+export interface OCPPReserveNowCommandParam extends OCPPCommandParam {
+  connectorId: string;
+  expiryDate: Date;
+  idTag: string;
+  parentIdTag?: string;
+  reservationId: string;
+}
+
+export enum OCPPReserveNowStatus {
+  ACCEPTED = 'Accepted',
+  FAULTED = 'Faulted',
+  OCCUPIED = 'Occupied',
+  REJECTED = 'Rejected',
+  UNAVAILABLE = 'Unavailable'
+}
+
+export interface OCPPReserveNowCommandResult {
+  status: OCPPReserveNowStatus;
+}
