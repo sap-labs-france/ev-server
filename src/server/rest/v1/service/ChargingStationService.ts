@@ -1081,6 +1081,23 @@ export default class ChargingStationService {
     next();
   }
 
+  public static async handleReserveNow(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check auth
+    if (!await Authorizations.canListChargingStations(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.LIST, entity: Entity.CHARGING_STATIONS,
+        module: MODULE_NAME, method: 'handleReserveNow'
+      });
+    }
+    // Filter
+    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionReserveNowReq(req.query);
+
+
+    next();
+  }
+
   public static async handleGetBootNotifications(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!await Authorizations.canListChargingStations(req.user)) {
