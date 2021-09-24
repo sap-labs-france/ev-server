@@ -1091,10 +1091,26 @@ export default class ChargingStationService {
         module: MODULE_NAME, method: 'handleReserveNow'
       });
     }
+    // Request assembly
+    req.body.chargingStationID = req.params.id;
     // Filter
-    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionReserveNowReq(req.query);
+    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionReserveNowReq(req.body);
+    // Get the Charging station
+    const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
+      req.tenant, req.user, filteredRequest.chargingStationID, action, null, { withSite: true, withSiteArea: true });
+    // Get the OCPP Client
+    const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(req.tenant, chargingStation);
+    if (!chargingStationClient) {
+      throw new BackendError({
+        source: req.params.id,
+        action: action,
+        module: MODULE_NAME, method: 'handleReserveNow',
+        message: 'Charging Station is not connected to the backend',
+      });
+    }
 
-
+    const result = await chargingStationClient.reserveNow(filteredRequest.args);
+    res.json(result);
     next();
   }
 
@@ -1697,9 +1713,6 @@ export default class ChargingStationService {
           break;
         case Command.DATA_TRANSFER:
           result = await chargingStationClient.dataTransfer(params);
-          break;
-        case Command.RESERVE_NOW:
-          // TBC result = await ?
           break;
       }
       if (result) {

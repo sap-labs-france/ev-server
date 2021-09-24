@@ -12,7 +12,8 @@
           "$ref": "chargingstation.json#/definitions/connector/properties/connectorId"
         },
         "expiryDate": {
-          "type": "date",
+          "type": "string",
+          "format": "date-time",
           "sanitize": "mongo"
         },
         "idTag": {
