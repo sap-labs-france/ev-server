@@ -48,6 +48,7 @@ export default class ChargingStationRouter {
     this.buildRouteChargingStationTriggerSmartCharging();
     this.buildRouteChargingStationGetBootNotifications();
     this.buildRouteChargingStationGetStatusNotifications();
+    this.buildRouteChargingStationReserveNow();
     return this.router;
   }
 
@@ -277,6 +278,12 @@ export default class ChargingStationRouter {
   protected buildRouteChargingStationGetStatusNotifications(): void {
     this.router.get(`/${ServerRoute.REST_CHARGING_STATIONS_STATUS_NOTIFICATIONS}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(ChargingStationService.handleGetStatusNotifications.bind(this), ServerAction.STATUS_NOTIFICATIONS, req, res, next);
+    });
+  }
+
+  protected buildRouteChargingStationReserveNow(): void {
+    this.router.put(`/${ServerRoute.REST_CHARGING_STATIONS_RESERVE_NOW}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(ChargingStationService.handleReserveNow.bind(this), ServerAction.CHARGING_STATION_RESERVE_NOW, req, res, next);
     });
   }
 }

@@ -191,6 +191,17 @@ export interface HttpChargingStationUpdateFirmwareRequest {
   }
 }
 
+export interface HttpChargingStationReserveNowRequest {
+  chargingStationID: string,
+  args: {
+    connectorId: string;
+    expiryDate: Date;
+    idTag: string;
+    parentIdTag?: string;
+    reservationId: string;
+  }
+}
+
 export interface HttpChargingStationResetRequest {
   chargingStationID: string,
   args: {

@@ -185,6 +185,7 @@ export interface AuthorizationActions {
   canCreate?: boolean;
   canUpdate?: boolean;
   canDelete?: boolean;
+  projectedFields?: string[];
 }
 
 export interface TagAuthorizationActions extends AuthorizationActions {
@@ -222,6 +223,7 @@ export enum DynamicAuthorizationFilterName {
 export enum DynamicAuthorizationAssertName {
   POOL_CAR = 'PoolCar',
   OWN_USER = 'OwnUser',
+  BASIC_USER = 'BasicUser'
 }
 
 export enum DynamicAuthorizationDataSourceName {

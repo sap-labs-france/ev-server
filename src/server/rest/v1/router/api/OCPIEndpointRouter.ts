@@ -35,7 +35,7 @@ export default class OCPIEndpointRouter {
   }
 
   protected buildRouteOcpiEndpointCreate(): void {
-    this.router.post(`/${ServerRoute.REST_OCPI_ENDPOINT_CREATE}`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.post(`/${ServerRoute.REST_OCPI_ENDPOINTS}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(OCPIEndpointService.handleCreateOcpiEndpoint.bind(this), ServerAction.OCPI_ENDPOINT_CREATE, req, res, next);
     });
   }

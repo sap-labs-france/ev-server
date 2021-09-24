@@ -18,7 +18,6 @@ import Logging from '../../utils/Logging';
 import Mustache from 'mustache';
 import { ObjectId } from 'mongodb';
 import TagStorage from './TagStorage';
-import TenantStorage from './TenantStorage';
 import UserNotifications from '../../types/UserNotifications';
 import Utils from '../../utils/Utils';
 import fs from 'fs';

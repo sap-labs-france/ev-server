@@ -80,6 +80,10 @@ export default class AuthorizationService {
   }
 
   public static async addSiteAuthorizations(tenant: Tenant, userToken: UserToken, site: Site, authorizationFilter: AuthorizationFilter): Promise<void> {
+    // Assign projected fields
+    if (authorizationFilter.projectFields) {
+      site.projectedFields = authorizationFilter.projectFields;
+    }
     // Enrich
     if (!site.issuer) {
       site.canRead = true;
@@ -247,6 +251,10 @@ export default class AuthorizationService {
   }
 
   public static async addUserAuthorizations(tenant: Tenant, userToken: UserToken, user: User, authorizationFilter: AuthorizationFilter): Promise<void> {
+    // Assign projected fields
+    if (authorizationFilter.projectFields) {
+      user.projectedFields = authorizationFilter.projectFields;
+    }
     // Enrich
     if (!user.issuer) {
       user.canRead = true;
@@ -331,6 +339,10 @@ export default class AuthorizationService {
   }
 
   public static async addTagAuthorizations(tenant: Tenant, userToken: UserToken, tag: Tag, authorizationFilter: AuthorizationFilter): Promise<void> {
+    // Assign projected fields
+    if (authorizationFilter.projectFields) {
+      tag.projectedFields = authorizationFilter.projectFields;
+    }
     // Enrich
     if (!tag.issuer) {
       tag.canRead = true;
@@ -377,6 +389,10 @@ export default class AuthorizationService {
   }
 
   public static async addCompanyAuthorizations(tenant: Tenant, userToken: UserToken, company: Company, authorizationFilter: AuthorizationFilter): Promise<void> {
+    // Assign projected fields
+    if (authorizationFilter.projectFields) {
+      company.projectedFields = authorizationFilter.projectFields;
+    }
     // Enrich
     if (!company.issuer) {
       company.canRead = true;
@@ -429,6 +445,10 @@ export default class AuthorizationService {
   }
 
   public static async addSiteAreaAuthorizations(tenant: Tenant, userToken: UserToken, siteArea: SiteArea, authorizationFilter: AuthorizationFilter): Promise<void> {
+    // Assign projected fields
+    if (authorizationFilter.projectFields) {
+      siteArea.projectedFields = authorizationFilter.projectFields;
+    }
     // Enrich
     if (!siteArea.issuer) {
       siteArea.canRead = true;
@@ -517,19 +537,17 @@ export default class AuthorizationService {
   }
 
   public static async addCarAuthorizations(tenant: Tenant, userToken: UserToken, car: Car, authorizationFilter: AuthorizationFilter): Promise<void> {
-    // Enrich
-    if (!car) {
-      car.canRead = true;
-      car.canUpdate = false;
-      car.canDelete = false;
-    } else {
-      car.canRead = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.CAR, Action.READ, authorizationFilter, { CarID: car.id }, car);
-      car.canDelete = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.CAR, Action.DELETE, authorizationFilter, { CarID: car.id }, car);
-      car.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.CAR, Action.UPDATE, authorizationFilter, { CarID: car.id }, car);
+    // Assign projected fields
+    if (authorizationFilter.projectFields) {
+      car.projectedFields = authorizationFilter.projectFields;
     }
+    // Enrich
+    car.canRead = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CAR, Action.READ, authorizationFilter, { CarID: car.id }, car);
+    car.canDelete = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CAR, Action.DELETE, authorizationFilter, { CarID: car.id }, car);
+    car.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CAR, Action.UPDATE, authorizationFilter, { CarID: car.id }, car);
   }
 
   public static async checkAndGetCarCatalogsAuthorizations(tenant: Tenant, userToken: UserToken,
@@ -563,19 +581,17 @@ export default class AuthorizationService {
   }
 
   public static async addCarCatalogAuthorizations(tenant: Tenant, userToken: UserToken, carCatalog: CarCatalog, authorizationFilter: AuthorizationFilter): Promise<void> {
-    // Enrich
-    if (!carCatalog) {
-      carCatalog.canRead = true;
-      carCatalog.canUpdate = false;
-      carCatalog.canDelete = false;
-    } else {
-      carCatalog.canRead = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.CAR_CATALOG, Action.READ, authorizationFilter, { CarCatalogID: carCatalog.id }, carCatalog);
-      carCatalog.canDelete = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.CAR_CATALOG, Action.DELETE, authorizationFilter, { CarCatalogID: carCatalog.id }, carCatalog);
-      carCatalog.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.CAR_CATALOG, Action.UPDATE, authorizationFilter, { CarCatalogID: carCatalog.id }, carCatalog);
+    // Assign projected fields
+    if (authorizationFilter.projectFields) {
+      carCatalog.projectedFields = authorizationFilter.projectFields;
     }
+    // Enrich
+    carCatalog.canRead = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CAR_CATALOG, Action.READ, authorizationFilter, { CarCatalogID: carCatalog.id }, carCatalog);
+    carCatalog.canDelete = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CAR_CATALOG, Action.DELETE, authorizationFilter, { CarCatalogID: carCatalog.id }, carCatalog);
+    carCatalog.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CAR_CATALOG, Action.UPDATE, authorizationFilter, { CarCatalogID: carCatalog.id }, carCatalog);
   }
 
 
