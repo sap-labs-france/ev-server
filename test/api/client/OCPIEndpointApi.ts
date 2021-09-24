@@ -18,7 +18,7 @@ export default class OCPIEndpointApi extends CrudApi {
   }
 
   public async create(data: OCPIEndpoint) {
-    return super.create(data, this.buildRestEndpointUrl(ServerRoute.REST_OCPI_ENDPOINT_CREATE));
+    return super.create(data, this.buildRestEndpointUrl(ServerRoute.REST_OCPI_ENDPOINTS));
   }
 
   public async update(data: OCPIEndpoint) {
