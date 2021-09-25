@@ -773,7 +773,7 @@ export default class BillingService {
       });
     }
     // Check
-    const newBillingProperties = BillingValidator.getInstance().validateUpdateBillingSetting({ ...req.params, ...req.body });
+    const newBillingProperties = BillingValidator.getInstance().validateBillingSettingUpdateReq({ ...req.params, ...req.body });
     // Load previous settings
     const billingSettings = await SettingStorage.getBillingSetting(req.tenant);
     UtilsService.assertObjectExists(action, billingSettings, 'Failed to load billing settings', MODULE_NAME, 'handleUpdateBillingSetting', req.user);

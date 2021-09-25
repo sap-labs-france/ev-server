@@ -1,37 +1,37 @@
 import { HttpUserAssignSitesRequest, HttpUserDefaultTagCar, HttpUserMobileTokenRequest, HttpUserSitesRequest, HttpUsersInErrorRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
-import User, { ImportedUser } from '../../../../types/User';
 
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from './SchemaValidator';
+import User from '../../../../types/User';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
 export default class UserValidator extends SchemaValidator {
   private static instance: UserValidator | null = null;
-  private importedUserCreation: Schema;
+  private userImportCreate: Schema;
   private userCreate: Schema;
-  private userAssignSites: Schema;
-  private userGetByID: Schema;
+  private userSitesAssign: Schema;
+  private userByIDGet: Schema;
   private usersGet: Schema;
-  private usersGetInError: Schema;
-  private userGetSites: Schema;
+  private usersInErrorGet: Schema;
+  private userSitesGet: Schema;
   private userUpdate: Schema;
-  private userUpdateMobileToken: Schema;
-  private userGetDefaultTagCar: Schema;
+  private userMobileTokenUpdate: Schema;
+  private userDefaultTagCarGet: Schema;
 
   private constructor() {
     super('UserValidator');
-    this.importedUserCreation = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/imported-user-create-req.json`, 'utf8'));
+    this.userImportCreate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-import-create.json`, 'utf8'));
     this.userCreate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-create.json`, 'utf8'));
-    this.userAssignSites = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-assign-sites.json`, 'utf8'));
-    this.userGetByID = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-get.json`, 'utf8'));
+    this.userSitesAssign = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-sites-assign.json`, 'utf8'));
+    this.userByIDGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-get.json`, 'utf8'));
     this.usersGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/users-get.json`, 'utf8'));
-    this.usersGetInError = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/users-inerror-get.json`, 'utf8'));
-    this.userGetSites = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-get-sites.json`, 'utf8'));
+    this.usersInErrorGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/users-inerror-get.json`, 'utf8'));
+    this.userSitesGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-sites-get.json`, 'utf8'));
     this.userUpdate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-update.json`, 'utf8'));
-    this.userUpdateMobileToken = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-update-mobile-token.json`, 'utf8'));
-    this.userGetDefaultTagCar = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-get-default-tag-car.json`, 'utf8'));
+    this.userMobileTokenUpdate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-mobile-token-update.json`, 'utf8'));
+    this.userDefaultTagCarGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-default-tag-car-get.json`, 'utf8'));
   }
 
   public static getInstance(): UserValidator {
@@ -41,52 +41,43 @@ export default class UserValidator extends SchemaValidator {
     return UserValidator.instance;
   }
 
-  validateImportedUserCreation(importedUser: ImportedUser): void {
-    this.validate(this.importedUserCreation, importedUser);
+  validateUserImportCreateReq(data: unknown): void {
+    this.validate(this.userImportCreate, data);
   }
 
-  validateUserCreate(user: any): User {
-    this.validate(this.userCreate, user);
-    return user;
+  validateUserCreateReq(data: unknown): User {
+    return this.validate(this.userCreate, data);
   }
 
-  validateUserAssignToSites(data: HttpUserAssignSitesRequest): HttpUserAssignSitesRequest {
-    this.validate(this.userAssignSites, data);
-    return data;
+  validateUserToSitesAssignReq(data: unknown): HttpUserAssignSitesRequest {
+    return this.validate(this.userSitesAssign, data);
   }
 
-  validateUserGetByID(data: any): HttpByIDRequest {
-    this.validate(this.userGetByID, data);
-    return data;
+  validateUserByIDGetReq(data: unknown): HttpByIDRequest {
+    return this.validate(this.userByIDGet, data);
   }
 
-  validateUsersGet(data: any): HttpUsersRequest {
-    this.validate(this.usersGet, data);
-    return data;
+  validateUsersGetReq(data: unknown): HttpUsersRequest {
+    return this.validate(this.usersGet, data);
   }
 
-  validateUsersGetInError(data: any): HttpUsersInErrorRequest {
-    this.validate(this.usersGetInError, data);
-    return data;
+  validateUsersInErrorGetReq(data: unknown): HttpUsersInErrorRequest {
+    return this.validate(this.usersInErrorGet, data);
   }
 
-  validateUserGetSites(data: any): HttpUserSitesRequest {
-    this.validate(this.userGetSites, data);
-    return data;
+  validateUserSitesGetReq(data: unknown): HttpUserSitesRequest {
+    return this.validate(this.userSitesGet, data);
   }
 
-  validateUserUpdate(data: any): User {
-    this.validate(this.userUpdate, data);
-    return data;
+  validateUserUpdateReq(data: unknown): User {
+    return this.validate(this.userUpdate, data);
   }
 
-  validateUserUpdateMobileToken(data: any): HttpUserMobileTokenRequest {
-    this.validate(this.userUpdateMobileToken, data);
-    return data;
+  validateUserMobileTokenUpdateReq(data: unknown): HttpUserMobileTokenRequest {
+    return this.validate(this.userMobileTokenUpdate, data);
   }
 
-  validateUserDefaultTagCar(data: any): HttpUserDefaultTagCar {
-    this.validate(this.userGetDefaultTagCar, data);
-    return data;
+  validateUserDefaultTagCarGetReq(data: unknown): HttpUserDefaultTagCar {
+    return this.validate(this.userDefaultTagCarGet, data);
   }
 }

@@ -22,7 +22,7 @@ const MODULE_NAME = 'ConnectionService';
 export default class ConnectionService {
   public static async handleGetConnection(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const connectionID = ConnectionValidator.getInstance().validateConnectionGet(req.query).ID;
+    const connectionID = ConnectionValidator.getInstance().validateConnectionGetReq(req.query).ID;
     // Charge Box is mandatory
     if (!connectionID) {
       throw new AppError({
@@ -68,7 +68,7 @@ export default class ConnectionService {
       });
     }
     // Filter
-    const filteredRequest = ConnectionValidator.getInstance().validateConnectionsGet(req.query);
+    const filteredRequest = ConnectionValidator.getInstance().validateConnectionsGetReq(req.query);
     // Check Users
     let userProject: string[] = [];
     if ((await Authorizations.canListUsers(req.user)).authorized) {
@@ -92,7 +92,7 @@ export default class ConnectionService {
       });
     }
     // Filter
-    const filteredRequest = ConnectionValidator.getInstance().validateConnectionCreation(req.body);
+    const filteredRequest = ConnectionValidator.getInstance().validateConnectionCreateReq(req.body);
     let integrationConnector = null;
     switch (filteredRequest.connectorId) {
       case ConnectionType.MERCEDES:
@@ -127,7 +127,7 @@ export default class ConnectionService {
 
   public static async handleDeleteConnection(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const connectionID = ConnectionValidator.getInstance().validateConnectionGet(req.query).ID;
+    const connectionID = ConnectionValidator.getInstance().validateConnectionGetReq(req.query).ID;
     if (!connectionID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,

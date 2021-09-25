@@ -52,7 +52,7 @@ const MODULE_NAME = 'ChargingStationService';
 export default class ChargingStationService {
   public static async handleUpdateChargingStationParams(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationUpdateParametersReq({ ...req.params, ...req.body });
+    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationParametersUpdateReq({ ...req.params, ...req.body });
     // Check the Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${filteredRequest.id}' does not exist.`,
@@ -750,7 +750,7 @@ export default class ChargingStationService {
 
   public static async handleRequestChargingStationOcppParameters(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationRequestOCPPParametersReq(req.body);
+    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationOcppParametersRequestReq(req.body);
     UtilsService.assertIdIsProvided(action, filteredRequest.chargingStationID, MODULE_NAME, 'handleRequestChargingStationOcppParameters', req.user);
     // Check auth
     if (!await Authorizations.canReadChargingStation(req.user)) {
@@ -1209,19 +1209,19 @@ export default class ChargingStationService {
     switch (command) {
       // Clear Cache
       case Command.CLEAR_CACHE:
-        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionClearCacheReq(req.body);
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionCacheClearReq(req.body);
         result = await ChargingStationService.executeChargingStationCommand(
           req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
         break;
       // Change Availability
       case Command.CHANGE_AVAILABILITY:
-        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionChangeAvailabilityReq(req.body);
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionAvailabilityChangeReq(req.body);
         result = await ChargingStationService.executeChargingStationCommand(
           req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
         break;
       // Change Configuration
       case Command.CHANGE_CONFIGURATION:
-        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionChangeConfigurationReq(req.body);
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionConfigurationChangeReq(req.body);
         result = await ChargingStationService.executeChargingStationCommand(
           req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
         break;
@@ -1233,40 +1233,40 @@ export default class ChargingStationService {
         break;
       // Remote Stop Transaction / Unlock Connector
       case Command.REMOTE_STOP_TRANSACTION:
-        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionStopTransactionReq(req.body);
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionTransactionStopReq(req.body);
         result = await ChargingStationService.executeChargingStationStopTransaction(action, chargingStation, command, filteredRequest, req, res, next);
         break;
       // Remote Start Transaction
       case Command.REMOTE_START_TRANSACTION:
-        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionStartTransactionReq(req.body);
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionTransactionStartReq(req.body);
         result = await ChargingStationService.executeChargingStationStartTransaction(action, chargingStation, command, filteredRequest, req, res, next);
         break;
       // Get Configuration
       case Command.GET_CONFIGURATION:
-        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionGetConfigurationReq(req.body);
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionConfigurationGetReq(req.body);
         result = await ChargingStationService.executeChargingStationCommand(
           req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
         break;
       // Get the Charging Plans
       case Command.GET_COMPOSITE_SCHEDULE:
-        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionGetCompositeScheduleReq(req.body);
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionCompositeScheduleGetReq(req.body);
         result = await ChargingStationService.executeChargingStationGetCompositeSchedule(action, chargingStation, command, filteredRequest, req, res, next);
         break;
       // Get diagnostic
       case Command.GET_DIAGNOSTICS:
-        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationGetDiagnosticsReq(req.body);
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationDiagnosticsGetReq(req.body);
         result = await ChargingStationService.executeChargingStationCommand(
           req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
         break;
       // Unlock Connector
       case Command.UNLOCK_CONNECTOR:
-        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionUnlockConnectorReq(req.body);
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionConnectorUnlockReq(req.body);
         result = await ChargingStationService.executeChargingStationCommand(
           req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
         break;
       // Update Firmware
       case Command.UPDATE_FIRMWARE:
-        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionUpdateFirmwareReq(req.body);
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionFirmwareUpdateReq(req.body);
         result = await ChargingStationService.executeChargingStationCommand(
           req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
         break;

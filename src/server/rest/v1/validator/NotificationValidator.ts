@@ -8,12 +8,12 @@ import global from '../../../../types/GlobalType';
 export default class NotificationValidator extends SchemaValidator {
   private static instance: NotificationValidator|null = null;
   private notificationsGet: Schema;
-  private notificationsEndUserReportError: Schema;
+  private notificationsEndUserErrorReport: Schema;
 
   private constructor() {
     super('NotificationValidator');
     this.notificationsGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/notification/notifications-get.json`, 'utf8'));
-    this.notificationsEndUserReportError = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/notification/notifications-end-user-report-error.json`, 'utf8'));
+    this.notificationsEndUserErrorReport = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/notification/notifications-end-user-error-report.json`, 'utf8'));
   }
 
   public static getInstance(): NotificationValidator {
@@ -23,15 +23,11 @@ export default class NotificationValidator extends SchemaValidator {
     return NotificationValidator.instance;
   }
 
-  public validateGetNotificationsReq(data: any): HttpNotificationRequest {
-    // Validate schema
-    this.validate(this.notificationsGet, data);
-    return data;
+  public validateNotificationsGetReq(data: unknown): HttpNotificationRequest {
+    return this.validate(this.notificationsGet, data);
   }
 
-  public validateEndUserReportErrorReq(data: any): HttpEndUserReportErrorRequest {
-    // Validate schema
-    this.validate(this.notificationsEndUserReportError, data);
-    return data;
+  public validateEndUserErrorReportReq(data: unknown): HttpEndUserReportErrorRequest {
+    return this.validate(this.notificationsEndUserErrorReport, data);
   }
 }

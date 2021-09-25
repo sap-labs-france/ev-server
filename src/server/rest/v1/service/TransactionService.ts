@@ -84,7 +84,7 @@ export default class TransactionService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.REFUND,
       Action.REFUND_TRANSACTION, Entity.TRANSACTION, MODULE_NAME, 'handleRefundTransactions');
     // Filter
-    const filteredRequest = TransactionValidator.getInstance().validateTransactionsGetByIDsReq(req.body);
+    const filteredRequest = TransactionValidator.getInstance().validateTransactionsByIDsGetReq(req.body);
     if (!filteredRequest.transactionsIDs) {
       // Not Found!
       throw new AppError({
@@ -176,7 +176,7 @@ export default class TransactionService {
 
   public static async handlePushTransactionCdr(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = TransactionValidator.getInstance().validateTransactionPushCDRReq(req.body);
+    const filteredRequest = TransactionValidator.getInstance().validateTransactionCdrPushReq(req.body);
     // Check Mandatory fields
     UtilsService.assertIdIsProvided(action, filteredRequest.transactionId, MODULE_NAME, 'handlePushTransactionCdr', req.user);
     // Check auth
@@ -350,7 +350,7 @@ export default class TransactionService {
       });
     }
     // Filter
-    const filteredRequest = TransactionValidator.getInstance().validateTransactionsAssignUserReq(req.query);
+    const filteredRequest = TransactionValidator.getInstance().validateTransactionsUserAssignReq(req.query);
     // Check
     if (!filteredRequest.TagID) {
       throw new AppError({
@@ -427,7 +427,7 @@ export default class TransactionService {
 
   public static async handleDeleteTransactions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const transactionsIds = TransactionValidator.getInstance().validateTransactionsGetByIDsReq(req.body).transactionsIDs;
+    const transactionsIds = TransactionValidator.getInstance().validateTransactionsByIDsGetReq(req.body).transactionsIDs;
     // Check auth
     if (!await Authorizations.canDeleteTransaction(req.user)) {
       throw new AppAuthError({
@@ -525,7 +525,7 @@ export default class TransactionService {
 
   public static async handleGetTransactionConsumption(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = TransactionValidator.getInstance().validateTransactionGetConsumptionsReq(req.query);
+    const filteredRequest = TransactionValidator.getInstance().validateTransactionConsumptionsGetReq(req.query);
     // Transaction Id is mandatory
     UtilsService.assertIdIsProvided(action, filteredRequest.TransactionId, MODULE_NAME,
       'handleGetConsumptionFromTransaction', req.user);
