@@ -1,0 +1,269 @@
+{
+  "title": "Validate the Charging Station's template",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "chargePointVendor": {
+      "type": "string"
+    },
+    "extraFilters": {
+      "type": "object",
+      "properties": {
+        "chargePointModel": {
+          "type": "string"
+        },
+        "chargeBoxSerialNumber": {
+          "type": "string"
+        }
+      }
+    },
+    "technical": {
+      "type": "object",
+      "properties": {
+        "maximumPower": {
+          "type": "integer"
+        },
+        "voltage": {
+          "type": "integer"
+        },
+        "powerLimitUnit": {
+          "type": "string"
+        },
+        "chargePoints": {
+          "type": "array",
+          "items": [
+            {
+              "type": "object",
+              "properties": {
+                "chargePointID": {
+                  "type": "integer"
+                },
+                "currentType": {
+                  "type": "string",
+                  "enum": ["AC", "DC"]
+                },
+                "amperage": {
+                  "type": "integer"
+                },
+                "numberOfConnectedPhase": {
+                  "type": "integer",
+                  "enum": [1, 3]
+                },
+                "cannotChargeInParallel": {
+                  "type": "boolean"
+                },
+                "sharePowerToAllConnectors": {
+                  "type": "boolean"
+                },
+                "excludeFromPowerLimitation": {
+                  "type": "boolean"
+                },
+                "ocppParamForPowerLimitation": {
+                  "type": "string"
+                },
+                "power": {
+                  "type": "integer"
+                },
+                "connectorIDs": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                }
+              },
+              "required": [
+                "chargePointID",
+                "currentType",
+                "amperage",
+                "numberOfConnectedPhase",
+                "cannotChargeInParallel",
+                "sharePowerToAllConnectors",
+                "excludeFromPowerLimitation",
+                "ocppParamForPowerLimitation",
+                "power",
+                "connectorIDs"
+              ]
+            }
+          ]
+        },
+        "connectors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "connectorId": {
+                "type": "integer"
+              },
+              "type": {
+                "type": "string",
+                "enum": ["T2", "CCS", "C", "D"]
+              },
+              "power": {
+                "type": "integer"
+              },
+              "amperage": {
+                "type": "integer"
+              },
+              "chargePointID": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "connectorId",
+              "type",
+              "power",
+              "amperage",
+              "chargePointID"
+            ]
+          }
+        }
+      },
+      "required": [
+        "maximumPower",
+        "voltage",
+        "powerLimitUnit",
+        "chargePoints",
+        "connectors"
+      ]
+    },
+    "capabilities": {
+      "type": "array",
+      "items": [
+        {
+          "type": "object",
+          "properties": {
+            "supportedFirmwareVersions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "supportedOcppVersions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "capabilities": {
+              "type": "object",
+              "properties": {
+                "supportStaticLimitation": {
+                  "type": "boolean"
+                },
+                "supportChargingProfiles": {
+                  "type": "boolean"
+                },
+                "supportRemoteStartStopTransaction": {
+                  "type": "boolean"
+                },
+                "supportUnlockConnector": {
+                  "type": "boolean"
+                },
+                "supportReservation": {
+                  "type": "boolean"
+                },
+                "supportCreditCard": {
+                  "type": "boolean"
+                },
+                "supportRFIDCard": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "supportStaticLimitation",
+                "supportChargingProfiles",
+                "supportRemoteStartStopTransaction",
+                "supportUnlockConnector",
+                "supportReservation",
+                "supportCreditCard",
+                "supportRFIDCard"
+              ]
+            }
+          },
+          "required": [
+            "supportedFirmwareVersions",
+            "supportedOcppVersions",
+            "capabilities"
+          ]
+        }
+      ]
+    },
+    "ocppStandardParameters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "supportedFirmwareVersions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "supportedOcppVersions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "AllowOfflineTxForUnknownId": {
+                "type": "string"
+              },
+              "AuthorizationCacheEnabled": {
+                "type": "string"
+              },
+              "StopTransactionOnInvalidId": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "required": [
+          "supportedFirmwareVersions",
+          "supportedOcppVersions",
+          "parameters"
+        ]
+      }
+    },
+    "ocppVendorParameters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "supportedFirmwareVersions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "supportedOcppVersions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "parameters": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "supportedFirmwareVersions",
+          "supportedOcppVersions",
+          "parameters"
+        ]
+      }
+    }
+  },
+  "required": [
+    "id",
+    "chargePointVendor",
+    "technical",
+    "capabilities",
+    "ocppStandardParameters",
+    "ocppVendorParameters"
+  ]
+}

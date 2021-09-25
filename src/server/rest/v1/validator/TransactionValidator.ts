@@ -9,10 +9,10 @@ export default class TransactionValidator extends SchemaValidator {
   private static instance: TransactionValidator | undefined;
   private transactionsGet: Schema;
   private transactionGet: Schema;
-  private transactionsGetByIDs: Schema;
-  private transactionPushCDR: Schema;
-  private transactionGetConsumptions: Schema;
-  private transactionsAssignUser: Schema;
+  private transactionsByIDsGet: Schema;
+  private transactionCdrPush: Schema;
+  private transactionConsumptionsGet: Schema;
+  private transactionsUserAssign: Schema;
   private transactionsUnassignedCountGet: Schema;
   private transactionsInErrorGet: Schema;
 
@@ -21,10 +21,10 @@ export default class TransactionValidator extends SchemaValidator {
     super('TransactionValidator');
     this.transactionsGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transactions-get.json`, 'utf8'));
     this.transactionGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transaction-get.json`, 'utf8'));
-    this.transactionsGetByIDs = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transactions-get-by-ids.json`, 'utf8'));
-    this.transactionPushCDR = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transaction-push-cdr.json`, 'utf8'));
-    this.transactionGetConsumptions = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transaction-get-consumptions.json`, 'utf8'));
-    this.transactionsAssignUser = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transactions-assign-user.json`, 'utf8'));
+    this.transactionsByIDsGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transactions-by-ids-get.json`, 'utf8'));
+    this.transactionCdrPush = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transaction-cdr-push.json`, 'utf8'));
+    this.transactionConsumptionsGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transaction-consumptions-get.json`, 'utf8'));
+    this.transactionsUserAssign = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transactions-user-assign.json`, 'utf8'));
     this.transactionsUnassignedCountGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transactions-unassigned-count-get.json`, 'utf8'));
     this.transactionsInErrorGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transactions-inerror-get.json`, 'utf8'));
   }
@@ -36,51 +36,35 @@ export default class TransactionValidator extends SchemaValidator {
     return TransactionValidator.instance;
   }
 
-  public validateTransactionsGetReq(data: any): HttpTransactionsRequest {
-    // Validate schema
-    this.validate(this.transactionsGet, data);
-    return data;
+  public validateTransactionsGetReq(data: unknown): HttpTransactionsRequest {
+    return this.validate(this.transactionsGet, data);
   }
 
-  public validateTransactionGetReq(data: any): HttpTransactionRequest {
-    // Validate schema
-    this.validate(this.transactionGet, data);
-    return data;
+  public validateTransactionGetReq(data: unknown): HttpTransactionRequest {
+    return this.validate(this.transactionGet, data);
   }
 
-  public validateTransactionsGetByIDsReq(data: any): { transactionsIDs: number[] } {
-    // Validate schema
-    this.validate(this.transactionsGetByIDs, data);
-    return data;
+  public validateTransactionsByIDsGetReq(data: unknown): { transactionsIDs: number[] } {
+    return this.validate(this.transactionsByIDsGet, data);
   }
 
-  public validateTransactionPushCDRReq(data: any): HttpPushTransactionCdrRequest {
-    // Validate schema
-    this.validate(this.transactionPushCDR, data);
-    return data;
+  public validateTransactionCdrPushReq(data: unknown): HttpPushTransactionCdrRequest {
+    return this.validate(this.transactionCdrPush, data);
   }
 
-  public validateTransactionGetConsumptionsReq(data: any): HttpConsumptionFromTransactionRequest {
-    // Validate schema
-    this.validate(this.transactionGetConsumptions, data);
-    return data;
+  public validateTransactionConsumptionsGetReq(data: unknown): HttpConsumptionFromTransactionRequest {
+    return this.validate(this.transactionConsumptionsGet, data);
   }
 
-  public validateTransactionsAssignUserReq(data: any): HttpAssignTransactionsToUserRequest {
-    // Validate schema
-    this.validate(this.transactionsAssignUser, data);
-    return data;
+  public validateTransactionsUserAssignReq(data: unknown): HttpAssignTransactionsToUserRequest {
+    return this.validate(this.transactionsUserAssign, data);
   }
 
-  public validateTransactionsUnassignedCountReq(data: any): HttpUnassignTransactionsToUserRequest {
-    // Validate schema
-    this.validate(this.transactionsUnassignedCountGet, data);
-    return data;
+  public validateTransactionsUnassignedCountReq(data: unknown): HttpUnassignTransactionsToUserRequest {
+    return this.validate(this.transactionsUnassignedCountGet, data);
   }
 
-  public validateTransactionsInErrorGetReq(data: any): HttpTransactionsRequest {
-    // Validate schema
-    this.validate(this.transactionsInErrorGet, data);
-    return data;
+  public validateTransactionsInErrorGetReq(data: unknown): HttpTransactionsRequest {
+    return this.validate(this.transactionsInErrorGet, data);
   }
 }

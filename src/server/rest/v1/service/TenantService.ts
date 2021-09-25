@@ -1,8 +1,8 @@
 import { Action, Entity } from '../../../../types/Authorization';
-import { CryptoSettings, CryptoSettingsType, SettingDB, SettingDBContent, TechnicalSettings, UserSettings, UserSettingsType } from '../../../../types/Setting';
+import { CryptoSettings, CryptoSettingsType, SettingDB, TechnicalSettings, UserSettings, UserSettingsType } from '../../../../types/Setting';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-import Tenant, { TenantComponents , TenantLogo } from '../../../../types/Tenant';
+import Tenant, { TenantComponents, TenantLogo } from '../../../../types/Tenant';
 import User, { UserRole } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -21,13 +21,11 @@ import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import { StatusCodes } from 'http-status-codes';
-
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import TenantValidator from '../validator/TenantValidator';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
-import { filter } from 'lodash';
 
 const MODULE_NAME = 'TenantService';
 
@@ -35,8 +33,8 @@ export default class TenantService {
 
   public static async handleDeleteTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Validate
-    const tenantID = TenantValidator.getInstance().validateTenantDeleteRequestSuperAdmin(req.query);
-    UtilsService.assertIdIsProvided(action, tenantID, MODULE_NAME, 'handleDeleteTenant', req.user);
+    const filteredRequest = TenantValidator.getInstance().validateTenantGetReq(req.query);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleDeleteTenant', req.user);
     // Check auth
     if (!await Authorizations.canDeleteTenant(req.user)) {
       throw new AppAuthError({
@@ -44,12 +42,12 @@ export default class TenantService {
         user: req.user,
         action: Action.DELETE, entity: Entity.TENANT,
         module: MODULE_NAME, method: 'handleDeleteTenant',
-        value: tenantID
+        value: filteredRequest.ID
       });
     }
     // Get
-    const tenant = await TenantStorage.getTenant(tenantID);
-    UtilsService.assertObjectExists(action, tenant, `Tenant ID '${tenantID}' does not exist`,
+    const tenant = await TenantStorage.getTenant(filteredRequest.ID);
+    UtilsService.assertObjectExists(action, tenant, `Tenant ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleDeleteTenant', req.user);
     // Check if current tenant
     if (tenant.id === req.user.tenantID) {
@@ -81,7 +79,7 @@ export default class TenantService {
 
   public static async handleGetTenantLogo(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Validate
-    const filteredRequest = TenantValidator.getInstance().validateGetLogoReqSuperAdmin(req.query);
+    const filteredRequest = TenantValidator.getInstance().validateLogoGetReq(req.query);
     // Get Logo
     let tenantLogo: TenantLogo;
     // Get the logo using ID
@@ -116,7 +114,7 @@ export default class TenantService {
 
   public static async handleGetTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Validate
-    const filteredRequest = TenantValidator.getInstance().validateTenantGetReqSuperAdmin(req.query);
+    const filteredRequest = TenantValidator.getInstance().validateTenantGetReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetTenant', req.user);
     // Check auth
     if (!await Authorizations.canReadTenant(req.user)) {
@@ -150,7 +148,7 @@ export default class TenantService {
 
   public static async handleGetTenants(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Validate
-    const filteredRequest = TenantValidator.getInstance().validateTenantsGetReqSuperAdmin(req.query);
+    const filteredRequest = TenantValidator.getInstance().validateTenantsGetReq(req.query);
     // Check auth
     if (!await Authorizations.canListTenants(req.user)) {
       throw new AppAuthError({
@@ -227,7 +225,7 @@ export default class TenantService {
 
   public static async handleCreateTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Validate
-    const filteredRequest = TenantValidator.getInstance().validateTenantCreateRequestSuperAdmin(req.body);
+    const filteredRequest = TenantValidator.getInstance().validateTenantCreateReq(req.body);
     // Check auth
     if (!await Authorizations.canCreateTenant(req.user)) {
       throw new AppAuthError({
@@ -321,7 +319,7 @@ export default class TenantService {
 
   public static async handleUpdateTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check
-    const filteredRequest = TenantValidator.getInstance().validateTenantUpdateRequestSuperAdmin(req.body);
+    const filteredRequest = TenantValidator.getInstance().validateTenantUpdateReq(req.body);
     // Check auth
     if (!await Authorizations.canUpdateTenant(req.user)) {
       throw new AppAuthError({

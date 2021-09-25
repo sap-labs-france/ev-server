@@ -63,9 +63,9 @@ export default class SchemaValidator {
     this.ajv.addSchema(this.ocpiEndpointSchema);
   }
 
-  protected validate(schema: Schema, content: any): void {
+  protected validate(schema: Schema, data: any): any {
     const fnValidate = this.ajv.compile(schema);
-    if (!fnValidate(content)) {
+    if (!fnValidate(data)) {
       if (!fnValidate.errors) {
         fnValidate.errors = [];
       }
@@ -87,8 +87,9 @@ export default class SchemaValidator {
         message: concatenatedErrors.join(', '),
         module: this.moduleName,
         method: 'validate',
-        detailedMessages: { errors, content, schema }
+        detailedMessages: { errors, content: data, schema }
       });
     }
+    return data;
   }
 }

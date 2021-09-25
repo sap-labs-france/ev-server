@@ -25,7 +25,7 @@ export default class CompanyService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.DELETE, Entity.COMPANY, MODULE_NAME, 'handleDeleteCompany');
     // Filter
-    const companyID = CompanyValidator.getInstance().validateCompanyGet(req.query).ID;
+    const companyID = CompanyValidator.getInstance().validateCompanyGetReq(req.query).ID;
     UtilsService.assertIdIsProvided(action, companyID, MODULE_NAME, 'handleDeleteCompany', req.user);
     // Check and Get Company
     const company = await UtilsService.checkAndGetCompanyAuthorization(
@@ -50,7 +50,7 @@ export default class CompanyService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.READ, Entity.COMPANY, MODULE_NAME, 'handleGetCompany');
     // Filter
-    const filteredRequest = CompanyValidator.getInstance().validateCompanyGet(req.query);
+    const filteredRequest = CompanyValidator.getInstance().validateCompanyGetReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCompany', req.user);
     // Check and Get Company
     const company = await UtilsService.checkAndGetCompanyAuthorization(
@@ -63,7 +63,7 @@ export default class CompanyService {
 
   public static async handleGetCompanyLogo(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = CompanyValidator.getInstance().validateCompanyGetLogo(req.query);
+    const filteredRequest = CompanyValidator.getInstance().validateCompanyLogoGetReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCompanyLogo', req.user);
     // Fetch Tenant Object by Tenant ID
     const tenant = await TenantStorage.getTenant(filteredRequest.TenantID);
@@ -98,7 +98,7 @@ export default class CompanyService {
       req.query.WithSite = req.query.WithSites;
     }
     // Filter
-    const filteredRequest = CompanyValidator.getInstance().validateCompaniesGet(req.query);
+    const filteredRequest = CompanyValidator.getInstance().validateCompaniesGetReq(req.query);
     // Create GPS Coordinates
     if (filteredRequest.LocLongitude && filteredRequest.LocLatitude) {
       filteredRequest.LocCoordinates = [
@@ -144,7 +144,7 @@ export default class CompanyService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.CREATE, Entity.COMPANY, MODULE_NAME, 'handleCreateCompany');
     // Filter
-    const filteredRequest = CompanyValidator.getInstance().validateCompanyCreate(req.body);
+    const filteredRequest = CompanyValidator.getInstance().validateCompanyCreateReq(req.body);
     // Get dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetCompanyAuthorizations(
       req.tenant, req.user, {}, Action.CREATE, filteredRequest);
@@ -183,7 +183,7 @@ export default class CompanyService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.COMPANY, MODULE_NAME, 'handleUpdateCompany');
     // Filter
-    const filteredRequest = CompanyValidator.getInstance().validateCompanyUpdate(req.body);
+    const filteredRequest = CompanyValidator.getInstance().validateCompanyUpdateReq(req.body);
     // Check and Get Company
     const company = await UtilsService.checkAndGetCompanyAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest);
