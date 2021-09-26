@@ -1909,8 +1909,6 @@ export default class ChargingStationService {
       req.tenant, filteredRequest.args.transactionID, { withUser: true });
     UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.args.transactionID }' does not exist`,
       MODULE_NAME, 'handleAction', req.user);
-    // Add connector ID
-    filteredRequest.args.connectorID = transaction.connectorId;
     // Get default Tag
     const tags = await TagStorage.getTags(req.tenant, { userIDs: [req.user.id], active: true }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);
     if (!Utils.isEmptyArray(tags)) {

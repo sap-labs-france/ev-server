@@ -1,5 +1,6 @@
 import { ChargePoint, ConnectorType, CurrentType, PhaseAssignmentToGrid, Voltage } from '../ChargingStation';
 
+import { ChargingRateUnitType } from '../ChargingProfile';
 import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 
@@ -150,14 +151,14 @@ export interface HttpChargingStationStartTransactionRequest {
   args: {
     tagID?: string,
     visualTagID?: string,
-    connectorId: string
+    connectorId: number
   }
 }
 
 export interface HttpChargingStationStopTransactionRequest {
   chargingStationID: string,
   args: {
-    transactionID: string
+    transactionID: number
   }
 }
 
@@ -171,9 +172,9 @@ export interface HttpChargingStationCommandGetConfigurationRequest {
 export interface HttpChargingStationGetCompositeScheduleRequest {
   chargingStationID: string,
   args: {
-    connectorId: string,
+    connectorId: number,
     duration: number,
-    chargingRateUnit?: string
+    chargingRateUnit?: ChargingRateUnitType
   }
 }
 
