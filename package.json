@@ -252,7 +252,7 @@
     "webpack-cli": "^3.3.12",
     "webpack-merge": "^5.7.3",
     "webpack-node-externals": "^2.5.2",
-    "webpack-shell-plugin-next": "^1.2.0",
+    "webpack-shell-plugin-next": "^2.0.1",
     "xml2json": "^0.12.0"
   }
 }
