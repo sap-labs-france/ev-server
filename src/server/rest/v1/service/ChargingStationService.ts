@@ -1,6 +1,7 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import ChargingStation, { ChargingStationOcppParameters, ChargingStationQRCode, Command, OCPPParams, StaticLimitAmps } from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
+import { HttpChargingStationGetCompositeScheduleRequest, HttpChargingStationStartTransactionRequest, HttpChargingStationStopTransactionRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { NextFunction, Request, Response } from 'express';
 import { OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPStatus, OCPPUnlockStatus } from '../../../../types/ocpp/OCPPClient';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
@@ -19,7 +20,6 @@ import Constants from '../../../../utils/Constants';
 import CpoOCPIClient from '../../../../client/ocpi/CpoOCPIClient';
 import CpoOICPClient from '../../../../client/oicp/CpoOICPClient';
 import { DataResult } from '../../../../types/DataResult';
-import { HttpChargingStationCommandRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import I18nManager from '../../../../utils/I18nManager';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
@@ -1762,7 +1762,7 @@ export default class ChargingStationService {
   }
 
   private static async executeChargingStationGetCompositeSchedule(action: ServerAction, chargingStation: ChargingStation, command: Command,
-      filteredRequest: HttpChargingStationCommandRequest, req: Request, res: Response, next: NextFunction): Promise<any> {
+      filteredRequest: HttpChargingStationGetCompositeScheduleRequest, req: Request, res: Response, next: NextFunction): Promise<any> {
     // Check auth
     if (!await Authorizations.canPerformActionOnChargingStation(req.user, command as unknown as Action, chargingStation)) {
       throw new AppAuthError({
@@ -1807,7 +1807,7 @@ export default class ChargingStationService {
   }
 
   private static async executeChargingStationStartTransaction(action: ServerAction, chargingStation: ChargingStation, command: Command,
-      filteredRequest: HttpChargingStationCommandRequest, req: Request, res: Response, next: NextFunction): Promise<any> {
+      filteredRequest: HttpChargingStationStartTransactionRequest, req: Request, res: Response, next: NextFunction): Promise<any> {
     // Check Tag ID
     if (!filteredRequest.args || (!filteredRequest.args.visualTagID && !filteredRequest.args.tagID)) {
       throw new AppError({
@@ -1891,9 +1891,9 @@ export default class ChargingStationService {
   }
 
   private static async executeChargingStationStopTransaction(action: ServerAction, chargingStation: ChargingStation, command: Command,
-      filteredRequest: HttpChargingStationCommandRequest, req: Request, res: Response, next: NextFunction): Promise<any> {
+      filteredRequest: HttpChargingStationStopTransactionRequest, req: Request, res: Response, next: NextFunction): Promise<any> {
     // Check Transaction ID
-    if (!filteredRequest.args || !filteredRequest.args.transactionId) {
+    if (!filteredRequest.args || !filteredRequest.args.transactionID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -1906,11 +1906,11 @@ export default class ChargingStationService {
     }
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(
-      req.tenant, filteredRequest.args.transactionId, { withUser: true });
-    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.args.transactionId as string}' does not exist`,
+      req.tenant, filteredRequest.args.transactionID, { withUser: true });
+    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.args.transactionID }' does not exist`,
       MODULE_NAME, 'handleAction', req.user);
     // Add connector ID
-    filteredRequest.args.connectorId = transaction.connectorId;
+    filteredRequest.args.connectorID = transaction.connectorId;
     // Get default Tag
     const tags = await TagStorage.getTags(req.tenant, { userIDs: [req.user.id], active: true }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);
     if (!Utils.isEmptyArray(tags)) {
@@ -1949,7 +1949,7 @@ export default class ChargingStationService {
     await TransactionStorage.saveTransaction(req.tenant, transaction);
     // Ok: Execute it
     return await chargingStationClient.remoteStopTransaction({
-      transactionId: filteredRequest.args.transactionId
+      transactionId: filteredRequest.args.transactionID
     });
   }
 }

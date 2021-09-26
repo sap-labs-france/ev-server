@@ -101,17 +101,20 @@ export interface HttpChargingStationOcppParametersRequest {
   forceUpdateOCPPParamsFromTemplate: boolean;
 }
 
-export interface HttpChargingStationSetMaxIntensitySocketRequest extends HttpChargingStationCommandRequest {
+export interface HttpChargingStationSetMaxIntensitySocketRequest {
+  chargingStationID: string;
+  carID?: string;
+  userID?: string;
   maxIntensity?: number;
   args?: {maxIntensity: number};
 }
 
-export interface HttpChargingStationCommandRequest {
+/* export interface HttpChargingStationCommandRequest {
   chargingStationID: string;
   carID?: string;
   userID?: string;
   args?: any;
-}
+} */
 
 export interface HttpChargingStationChangeAvailabilityRequest {
   chargingStationID: string,
