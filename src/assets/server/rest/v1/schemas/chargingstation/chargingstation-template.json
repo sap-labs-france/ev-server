@@ -36,6 +36,7 @@
         },
         "chargePoints": {
           "type": "array",
+          "minItems": 1,
           "items": [
             {
               "type": "object",
@@ -82,7 +83,6 @@
               "required": [
                 "chargePointID",
                 "currentType",
-                "amperage",
                 "numberOfConnectedPhase",
                 "cannotChargeInParallel",
                 "sharePowerToAllConnectors",
@@ -138,6 +138,7 @@
     },
     "capabilities": {
       "type": "array",
+      "minItems": 1,
       "items": [
         {
           "type": "object",
@@ -217,6 +218,7 @@
           },
           "parameters": {
             "type": "object",
+            "additionalProperties": false,
             "properties": {
               "AllowOfflineTxForUnknownId": {
                 "type": "string"
@@ -375,7 +377,8 @@
             }
           },
           "parameters": {
-            "type": "object"
+            "type": "object",
+            "patternRequired": [".*"]
           }
         },
         "required": [
@@ -390,8 +393,6 @@
     "id",
     "chargePointVendor",
     "technical",
-    "capabilities",
-    "ocppStandardParameters",
-    "ocppVendorParameters"
+    "capabilities"
   ]
 }

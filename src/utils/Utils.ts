@@ -69,8 +69,9 @@ export default class Utils {
         // Save
         await ChargingStationStorage.saveChargingStationTemplate(chargingStationTemplate);
       } catch (error) {
+        error.message = `Charging Station Template ID '${chargingStationTemplate.id}' is not valid: ${error.message as string}`;
         await Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, ServerAction.UPDATE_CHARGING_STATION_TEMPLATES, error);
-        Utils.isDevelopmentEnv() && console.error(chalk.red(`Charging Station Template ID '${chargingStationTemplate.id}' is not valid: ${error.message}`));
+        Utils.isDevelopmentEnv() && console.error(chalk.red(error.message));
       }
     }
   }
