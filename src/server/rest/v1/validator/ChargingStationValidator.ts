@@ -13,7 +13,6 @@ export default class ChargingStationValidator extends SchemaValidator {
   private chargingStationsGet: Schema;
   private chargingStationGet: Schema;
   private chargingStationDelete: Schema;
-  private chargingStationAction: Schema;
   private chargingStationActionAvailabilityChange: Schema;
   private chargingStationActionChangeConfiguration: Schema;
   private chargingStationActionCacheClear: Schema;
@@ -49,7 +48,6 @@ export default class ChargingStationValidator extends SchemaValidator {
     this.chargingStationsGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstations-get.json`, 'utf8'));
     this.chargingStationGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-get.json`, 'utf8'));
     this.chargingStationDelete = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-delete.json`, 'utf8'));
-    this.chargingStationAction = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action.json`, 'utf8'));
     this.chargingStationActionAvailabilityChange = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action-availability-change.json`, 'utf8'));
     this.chargingStationActionChangeConfiguration = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action-configuration-change.json`, 'utf8'));
     this.chargingStationActionCacheClear = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action-cache-clear.json`, 'utf8'));
@@ -100,10 +98,6 @@ export default class ChargingStationValidator extends SchemaValidator {
 
   public validateChargingStationDeleteReq(data: unknown): HttpChargingStationRequest {
     return this.validate('validateChargingStationDeleteReq', this.chargingStationDelete, data);
-  }
-
-  public validateChargingStationActionReq(data: unknown): HttpChargingStationCommandRequest {
-    return this.validate('validateChargingStationActionReq', this.chargingStationAction, data);
   }
 
   public validateChargingStationActionAvailabilityChangeReq(data: unknown): HttpChargingStationChangeAvailabilityRequest {
