@@ -1885,7 +1885,7 @@ export default class ChargingStationService {
     // Execute it
     const result = await chargingStationClient.remoteStartTransaction({
       connectorId: filteredRequest.args.connectorId,
-      idTag: filteredRequest.args.tagID
+      idTag: tag.id
     });
     return result;
   }
