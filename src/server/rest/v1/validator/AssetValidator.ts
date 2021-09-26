@@ -36,30 +36,30 @@ export default class AssetValidator extends SchemaValidator {
   }
 
   public validateAssetConsumptionCreateReq(data: unknown): Consumption {
-    return this.validate(this.assetConsumptionCreate, data);
+    return this.validate('validateAssetConsumptionCreateReq', this.assetConsumptionCreate, data);
   }
 
   public validateAssetGetReq(data: unknown): HttpAssetRequest {
-    return this.validate(this.assetGet, data);
+    return this.validate('validateAssetGetReq', this.assetGet, data);
   }
 
   public validateAssetsGetReq(data: unknown): HttpAssetsRequest {
-    return this.validate(this.assetsGet, data);
+    return this.validate('validateAssetsGetReq', this.assetsGet, data);
   }
 
   public validateAssetCreateReq(data: unknown): Asset {
-    return this.validate(this.assetCreate, data);
+    return this.validate('validateAssetCreateReq', this.assetCreate, data);
   }
 
   public validateAssetUpdateReq(data: unknown): Asset {
-    return this.validate(this.assetUpdate, data);
+    return this.validate('validateAssetUpdateReq', this.assetUpdate, data);
   }
 
   public validateAssetGetConsumptionsReq(data: unknown): HttpAssetConsumptionRequest {
-    return this.validate(this.assetConsumptionsGet, data);
+    return this.validate('validateAssetGetConsumptionsReq', this.assetConsumptionsGet, data);
   }
 
   public validateAssetCheckConnectionReq(data: unknown): HttpAssetCheckConnection {
-    return this.validate(this.assetConnectionCheck, data);
+    return this.validate('validateAssetCheckConnectionReq', this.assetConnectionCheck, data);
   }
 }

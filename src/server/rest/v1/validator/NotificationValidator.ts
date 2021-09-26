@@ -24,10 +24,10 @@ export default class NotificationValidator extends SchemaValidator {
   }
 
   public validateNotificationsGetReq(data: unknown): HttpNotificationRequest {
-    return this.validate(this.notificationsGet, data);
+    return this.validate('validateNotificationsGetReq', this.notificationsGet, data);
   }
 
   public validateEndUserErrorReportReq(data: unknown): HttpEndUserReportErrorRequest {
-    return this.validate(this.notificationsEndUserErrorReport, data);
+    return this.validate('validateEndUserErrorReportReq', this.notificationsEndUserErrorReport, data);
   }
 }

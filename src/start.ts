@@ -4,7 +4,6 @@ import AsyncTaskManager from './async-task/AsyncTaskManager';
 import CentralRestServer from './server/rest/CentralRestServer';
 import CentralSystemRestServiceConfiguration from './types/configuration/CentralSystemRestServiceConfiguration';
 import ChargingStationConfiguration from './types/configuration/ChargingStationConfiguration';
-import ChargingStationStorage from './storage/mongodb/ChargingStationStorage';
 import Configuration from './utils/Configuration';
 import Constants from './utils/Constants';
 import I18nManager from './utils/I18nManager';
@@ -147,7 +146,7 @@ export default class Bootstrap {
         // Populate at startup the DB with shared data
         // -------------------------------------------------------------------------
         // 1 - Charging station templates
-        await ChargingStationStorage.updateChargingStationTemplatesFromFile();
+        await Utils.updateChargingStationTemplatesFromFile();
       }
     } catch (error) {
       // Log

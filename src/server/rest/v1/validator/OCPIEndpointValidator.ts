@@ -36,30 +36,30 @@ export default class OCPIEndpointValidator extends SchemaValidator {
   }
 
   public validateOCPIEndpointCreateReq(data: unknown): OCPIEndpoint {
-    return this.validate(this.ocpiEndpointCreate, data);
+    return this.validate('validateOCPIEndpointCreateReq', this.ocpiEndpointCreate, data);
   }
 
   public validateOCPIEndpointPingReq(data: unknown): OCPIEndpoint {
-    return this.validate(this.ocpiEndpointPing, data);
+    return this.validate('validateOCPIEndpointPingReq', this.ocpiEndpointPing, data);
   }
 
   public validateOCPIEndpointByIdReq(data: unknown): HttpOCPIEndpointByIdRequest {
-    return this.validate(this.ocpiEndpointById, data);
+    return this.validate('validateOCPIEndpointByIdReq', this.ocpiEndpointById, data);
   }
 
   public validateOCPIEndpointLocalTokenGenerateGetReq(data: unknown): HttpOCPIEndpointGenerateLocalTokenRequest {
-    return this.validate(this.ocpiEndpointLocalTokenGenerate, data);
+    return this.validate('validateOCPIEndpointLocalTokenGenerateGetReq', this.ocpiEndpointLocalTokenGenerate, data);
   }
 
   public validateOCPIEndpointGetReq(data: unknown): HttpOCPIEndpointRequest {
-    return this.validate(this.ocpiEndpointGet, data);
+    return this.validate('validateOCPIEndpointGetReq', this.ocpiEndpointGet, data);
   }
 
   public validateOCPIEndpointsGetReq(data: unknown): HttpOCPIEndpointsRequest {
-    return this.validate(this.ocpiEndpointsGet, data);
+    return this.validate('validateOCPIEndpointsGetReq', this.ocpiEndpointsGet, data);
   }
 
   public validateOCPIEndpointUpdateReq(data: unknown): OCPIEndpoint {
-    return this.validate(this.ocpiEndpointUpdate, data);
+    return this.validate('validateOCPIEndpointUpdateReq', this.ocpiEndpointUpdate, data);
   }
 }

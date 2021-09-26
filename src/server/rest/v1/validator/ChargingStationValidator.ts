@@ -86,131 +86,131 @@ export default class ChargingStationValidator extends SchemaValidator {
     return ChargingStationValidator.instance;
   }
 
-  public validateChargingStationTemplateReq(data: unknown): ChargingStationTemplate {
-    return this.validate(this.chargingStationTemplate, data);
+  public validateChargingStationTemplate(data: unknown): ChargingStationTemplate {
+    return this.validate('validateChargingStationTemplate', this.chargingStationTemplate, data);
   }
 
   public validateChargingStationsGetReq(data: unknown): HttpChargingStationsRequest {
-    return this.validate(this.chargingStationsGet, data);
+    return this.validate('validateChargingStationsGetReq', this.chargingStationsGet, data);
   }
 
   public validateChargingStationGetReq(data: unknown): HttpChargingStationRequest {
-    return this.validate(this.chargingStationGet, data);
+    return this.validate('validateChargingStationGetReq', this.chargingStationGet, data);
   }
 
   public validateChargingStationDeleteReq(data: unknown): HttpChargingStationRequest {
-    return this.validate(this.chargingStationDelete, data);
+    return this.validate('validateChargingStationDeleteReq', this.chargingStationDelete, data);
   }
 
   public validateChargingStationActionReq(data: unknown): HttpChargingStationCommandRequest {
-    return this.validate(this.chargingStationAction, data);
+    return this.validate('validateChargingStationActionReq', this.chargingStationAction, data);
   }
 
   public validateChargingStationActionAvailabilityChangeReq(data: unknown): HttpChargingStationChangeAvailabilityRequest {
-    return this.validate(this.chargingStationActionAvailabilityChange, data);
+    return this.validate('validateChargingStationActionAvailabilityChangeReq', this.chargingStationActionAvailabilityChange, data);
   }
 
   public validateChargingStationActionConfigurationChangeReq(data: unknown): HttpChargingStationChangeConfigurationRequest {
-    return this.validate(this.chargingStationActionChangeConfiguration, data);
+    return this.validate('validateChargingStationActionConfigurationChangeReq', this.chargingStationActionChangeConfiguration, data);
   }
 
   public validateChargingStationActionDataTransferReq(data: unknown): HttpChargingStationCommandDataTransferRequest {
-    return this.validate(this.chargingStationActionDataTransfer, data);
+    return this.validate('validateChargingStationActionDataTransferReq', this.chargingStationActionDataTransfer, data);
   }
 
   public validateChargingStationActionCacheClearReq(data: unknown): HttpChargingStationClearCacheRequest {
-    return this.validate(this.chargingStationActionCacheClear, data);
+    return this.validate('validateChargingStationActionCacheClearReq', this.chargingStationActionCacheClear, data);
   }
 
   public validateChargingStationActionTransactionStartReq(data: unknown): HttpChargingStationStartTransactionRequest {
-    return this.validate(this.chargingStationActionTransactionStart, data);
+    return this.validate('validateChargingStationActionTransactionStartReq', this.chargingStationActionTransactionStart, data);
   }
 
   public validateChargingStationActionTransactionStopReq(data: unknown): HttpChargingStationStopTransactionRequest {
-    return this.validate(this.chargingStationActionTransactionStop, data);
+    return this.validate('validateChargingStationActionTransactionStopReq', this.chargingStationActionTransactionStop, data);
   }
 
   public validateChargingStationActionConfigurationGetReq(data: unknown): HttpChargingStationCommandGetConfigurationRequest {
-    return this.validate(this.chargingStationActionConfigurationGet, data);
+    return this.validate('validateChargingStationActionConfigurationGetReq', this.chargingStationActionConfigurationGet, data);
   }
 
   public validateChargingStationActionCompositeScheduleGetReq(data: unknown): HttpChargingStationGetCompositeScheduleRequest {
-    return this.validate(this.chargingStationActionCompositeScheduleGet, data);
+    return this.validate('validateChargingStationActionCompositeScheduleGetReq', this.chargingStationActionCompositeScheduleGet, data);
   }
 
   public validateChargingStationActionConnectorUnlockReq(data: unknown): HttpChargingStationCommandUnlockConnectorRequest {
-    return this.validate(this.chargingStationActionConnectorUnlock, data);
+    return this.validate('validateChargingStationActionConnectorUnlockReq', this.chargingStationActionConnectorUnlock, data);
   }
 
   public validateChargingStationActionFirmwareUpdateReq(data: unknown): HttpChargingStationUpdateFirmwareRequest {
-    return this.validate(this.chargingStationActionFirmwareUpdate, data);
+    return this.validate('validateChargingStationActionFirmwareUpdateReq', this.chargingStationActionFirmwareUpdate, data);
   }
 
   public validateChargingStationActionReserveNowReq(data: unknown): HttpChargingStationReserveNowRequest {
-    return this.validate(this.chargingStationActionReserveNow, data);
+    return this.validate('validateChargingStationActionReserveNowReq', this.chargingStationActionReserveNow, data);
   }
 
   public validateChargingStationActionResetReq(data: unknown): HttpChargingStationResetRequest {
-    return this.validate(this.chargingStationActionReset, data);
+    return this.validate('validateChargingStationActionResetReq', this.chargingStationActionReset, data);
   }
 
   public validateChargingStationQRCodeGenerateReq(data: unknown): HttpChargingStationConnectorRequest {
-    return this.validate(this.chargingStationQRCodeGenerate, data);
+    return this.validate('validateChargingStationQRCodeGenerateReq', this.chargingStationQRCodeGenerate, data);
   }
 
   public validateChargingStationQRCodeDownloadReq(data: unknown): HttpDownloadQrCodeRequest {
-    return this.validate(this.chargingStationQRCodeDownload, data);
+    return this.validate('validateChargingStationQRCodeDownloadReq', this.chargingStationQRCodeDownload, data);
   }
 
   public validateChargingStationOcppParametersGetReq(data: unknown): HttpChargingStationOcppRequest {
-    return this.validate(this.chargingStationOcppParametersGet, data);
+    return this.validate('validateChargingStationOcppParametersGetReq', this.chargingStationOcppParametersGet, data);
   }
 
   public validateChargingStationOcppParametersRequestReq(data: unknown): HttpChargingStationOcppParametersRequest {
-    return this.validate(this.chargingStationOcppParametersRequest, data);
+    return this.validate('validateChargingStationOcppParametersRequestReq', this.chargingStationOcppParametersRequest, data);
   }
 
   public validateChargingStationParametersUpdateReq(data: unknown): HttpChargingStationParamsUpdateRequest {
-    return this.validate(this.chargingStationParametersUpdate, data);
+    return this.validate('validateChargingStationParametersUpdateReq', this.chargingStationParametersUpdate, data);
   }
 
   public validateChargingStationLimitPowerReq(data: unknown): HttpChargingStationLimitPowerRequest {
-    return this.validate(this.chargingStationPowerLimit, data);
+    return this.validate('validateChargingStationLimitPowerReq', this.chargingStationPowerLimit, data);
   }
 
   public validateChargingStationFirmwareDownloadReq(data: unknown): HttpChargingStationGetFirmwareRequest {
-    return this.validate(this.chargingStationFirmwareDownload, data);
+    return this.validate('validateChargingStationFirmwareDownloadReq', this.chargingStationFirmwareDownload, data);
   }
 
   public validateChargingStationDiagnosticsGetReq(data: unknown): HttpChargingStationGetDiagnosticsRequest {
-    return this.validate(this.chargingStationDiagnosticsGet, data);
+    return this.validate('validateChargingStationDiagnosticsGetReq', this.chargingStationDiagnosticsGet, data);
   }
 
   public validateSmartChargingTriggerReq(data: unknown): HttpTriggerSmartChargingRequest {
-    return this.validate(this.smartChargingTrigger, data);
+    return this.validate('validateSmartChargingTriggerReq', this.smartChargingTrigger, data);
   }
 
   public validateChargingStationInErrorReq(data: unknown): HttpChargingStationsInErrorRequest {
-    return this.validate(this.chargingStationInErrorGet, data);
+    return this.validate('validateChargingStationInErrorReq', this.chargingStationInErrorGet, data);
   }
 
   public validateChargingStationNotificationsGetReq(data: unknown): HttpDatabaseRequest {
-    return this.validate(this.chargingStationNotificationsGet, data);
+    return this.validate('validateChargingStationNotificationsGetReq', this.chargingStationNotificationsGet, data);
   }
 
   public validateChargingProfilesGetReq(data: unknown): HttpChargingProfilesRequest {
-    return this.validate(this.chargingProfilesGet, data);
+    return this.validate('validateChargingProfilesGetReq', this.chargingProfilesGet, data);
   }
 
   public validateChargingProfileCreateReq(data: ChargingProfile): ChargingProfile {
-    return this.validate(this.chargingProfileCreate, data);
+    return this.validate('validateChargingProfileCreateReq', this.chargingProfileCreate, data);
   }
 
   public validateChargingProfileDeleteReq(data: unknown): HttpChargingStationRequest {
-    return this.validate(this.chargingProfileDelete, data);
+    return this.validate('validateChargingProfileDeleteReq', this.chargingProfileDelete, data);
   }
 
   public validateChargingProfileUpdateReq(data: unknown): ChargingProfile {
-    return this.validate(this.chargingProfileUpdate, data);
+    return this.validate('validateChargingProfileUpdateReq', this.chargingProfileUpdate, data);
   }
 }

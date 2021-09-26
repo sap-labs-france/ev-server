@@ -1,4 +1,6 @@
 export enum ServerAction {
+  UNKNOWN_ACTION = 'Unknown',
+
   LOGIN = 'RestLogin',
   LOGOUT = 'RestLogout',
   PASSWORD_RESET = 'RestReset',
