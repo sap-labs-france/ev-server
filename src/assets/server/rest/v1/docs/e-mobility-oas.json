@@ -2933,7 +2933,8 @@
                         "example": 1
                       },
                       "expiryDate": {
-                        "type": "date-time",
+                        "type": "string",
+                        "format": "date-time",
                         "description": "Required. This contains the date and time when the reservation ends."
                       },
                       "idTag": {
@@ -2946,7 +2947,8 @@
                       },
                       "reservationId": {
                         "type": "number",
-                        "description": "Required. Unique id for this reservation."
+                        "description": "Required. Unique id for this reservation.",
+                        "example": 12
                       }
                     },
                     "required": [
@@ -2969,7 +2971,33 @@
         ],
         "responses": {
           "200": {
-            "description": "Charging Station has been successfully reset"
+            "description": "Charging Station has been successfully reserved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "accepted": {
+                    "summary": "Accepted",
+                    "value": {
+                      "status": "Accepted"
+                    }
+                  },
+                  "rejected": {
+                    "summary": "Rejected",
+                    "value": {
+                      "status": "Rejected"
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
