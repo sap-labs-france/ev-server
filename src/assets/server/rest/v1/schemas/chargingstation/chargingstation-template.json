@@ -83,6 +83,7 @@
               "required": [
                 "chargePointID",
                 "currentType",
+                "amperage",
                 "numberOfConnectedPhase",
                 "cannotChargeInParallel",
                 "sharePowerToAllConnectors",
