@@ -198,7 +198,7 @@
     "@types/lodash": "^4.14.170",
     "@types/mocha": "^8.2.2",
     "@types/mochawesome": "^6.2.0",
-    "@types/moment-duration-format": "^2.2.2",
+    "@types/moment-duration-format": "^2.2.3",
     "@types/moment-timezone": "^0.5.30",
     "@types/mongo-sanitize": "^1.0.1",
     "@types/mustache": "^4.1.1",
