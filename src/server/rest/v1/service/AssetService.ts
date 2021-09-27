@@ -94,7 +94,7 @@ export default class AssetService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.CREATE_CONSUMPTION, Entity.ASSETS, MODULE_NAME, 'handleCreateAssetConsumption');
     // Validate request
-    const filteredRequest = AssetValidator.getInstance().validateCreateAssetConsumption({ ...req.params, ...req.body });
+    const filteredRequest = AssetValidator.getInstance().validateAssetConsumptionCreateReq({ ...req.params, ...req.body });
     UtilsService.assertIdIsProvided(action, filteredRequest.assetID, MODULE_NAME,
       'handleCreateAssetConsumption', req.user);
     // Check auth
@@ -196,7 +196,7 @@ export default class AssetService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.CHECK_CONNECTION, Entity.ASSET, MODULE_NAME, 'handleCheckAssetConnection');
     // Filter request
-    const filteredRequest = AssetValidator.getInstance().validateAssetGetReq(req.query);
+    const filteredRequest = AssetValidator.getInstance().validateAssetCheckConnectionReq(req.query);
     // Get asset connection type
     const assetImpl = await AssetFactory.getAssetImpl(req.tenant, filteredRequest.ID);
     // Asset has unknown connection type

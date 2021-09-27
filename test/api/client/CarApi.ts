@@ -1,4 +1,5 @@
 import AuthenticatedBaseApi from './utils/AuthenticatedBaseApi';
+import { Car } from '../../../src/types/Car';
 import CrudApi from './utils/CrudApi';
 import { ServerRoute } from '../../../src/types/Server';
 import TestConstants from './utils/TestConstants';
@@ -8,11 +9,7 @@ export default class CarApi extends CrudApi {
     super(authenticatedApi);
   }
 
-  public async readById(id): Promise<any> {
-    return super.readById(id, '/client/api/Car');
-  }
-
-  public async readCarCatalog(id) {
+  public async readCarCatalog(id: number) {
     return super.read({ ID: id }, this.buildRestEndpointUrl(ServerRoute.REST_CAR_CATALOG, { id }));
   }
 
@@ -21,30 +18,30 @@ export default class CarApi extends CrudApi {
   }
 
   public async readCarMakers(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, '/client/api/CarMakers');
+    return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(ServerRoute.REST_CAR_MAKERS));
   }
 
-  public async readCarImages(id) {
+  public async readCarImages(id: number) {
     return super.read({ ID: id }, this.buildRestEndpointUrl(ServerRoute.REST_CAR_CATALOG_IMAGES, { id }));
   }
 
-  public async readCar(id) {
-    return super.read({ ID: id }, '/client/api/Car');
+  public async readCar(id: string) {
+    return super.read({ ID: id }, this.buildRestEndpointUrl(ServerRoute.REST_CAR, { id }));
   }
 
   public async readCars(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, '/client/api/Cars');
+    return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(ServerRoute.REST_CARS));
   }
 
-  public async update(data) {
-    return super.update(data, '/client/api/CarUpdate');
+  public async update(data: Car) {
+    return super.update(data, this.buildRestEndpointUrl(ServerRoute.REST_CAR, { id: data.id }));
   }
 
-  public async create(data) {
-    return super.create(data, '/client/api/CarCreate');
+  public async create(data: Car) {
+    return super.create(data, this.buildRestEndpointUrl(ServerRoute.REST_CARS));
   }
 
-  public async delete(id) {
-    return super.delete(id, '/client/api/CarDelete');
+  public async delete(id: string) {
+    return super.delete(id, this.buildRestEndpointUrl(ServerRoute.REST_CAR, { id }));
   }
 }

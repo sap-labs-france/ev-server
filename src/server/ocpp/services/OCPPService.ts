@@ -881,12 +881,12 @@ export default class OCPPService {
           type: ConnectorType.UNKNOWN
         };
         chargingStation.connectors.push(foundConnector);
-        // Enrich Charging Station's Connector
-        const chargingStationTemplate = await OCPPUtils.getChargingStationTemplate(chargingStation);
-        if (chargingStationTemplate) {
-          await OCPPUtils.enrichChargingStationConnectorWithTemplate(
-            tenant, chargingStation, statusNotification.connectorId, chargingStationTemplate);
-        }
+      }
+      // Enrich Charging Station's Connector
+      const chargingStationTemplate = await OCPPUtils.getChargingStationTemplate(chargingStation);
+      if (chargingStationTemplate) {
+        await OCPPUtils.enrichChargingStationConnectorWithTemplate(
+          tenant, chargingStation, statusNotification.connectorId, chargingStationTemplate);
       }
     }
     return foundConnector;
@@ -1789,7 +1789,7 @@ export default class OCPPService {
             transaction.carID = user.lastSelectedCarID;
           } else {
             // Get default car if any
-            const defaultCar = await CarStorage.getDefaultUserCar(tenant, user.id, {}, ['id', 'carCatalogID', 'vin', 'carCatalog.vehicleMake']);
+            const defaultCar = await CarStorage.getDefaultUserCar(tenant, user.id, {}, ['id', 'carCatalogID', 'vin', 'carConnectorData.carConnectorID', 'carConnectorData.carConnectorMeterID']);
             if (defaultCar) {
               transaction.carID = defaultCar.id;
               transaction.carCatalogID = defaultCar.carCatalogID;
@@ -1798,7 +1798,7 @@ export default class OCPPService {
           }
           // Set Car Catalog ID
           if (transaction.carID && !transaction.carCatalogID) {
-            const car = await CarStorage.getCar(tenant, transaction.carID, {}, ['id', 'carCatalogID', 'vin', 'carCatalog.vehicleMake']);
+            const car = await CarStorage.getCar(tenant, transaction.carID, {}, ['id', 'carCatalogID', 'vin', 'carConnectorData.carConnectorID', 'carConnectorData.carConnectorMeterID']);
             transaction.carCatalogID = car?.carCatalogID;
             transaction.car = car;
           }
@@ -1828,11 +1828,12 @@ export default class OCPPService {
 
   private async getCurrentSoc(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation): Promise<number> {
     if (Utils.isTenantComponentActive(tenant, TenantComponents.CAR_CONNECTOR) && !Utils.isNullOrUndefined(transaction.car) &&
-          Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId) === CurrentType.AC) {
-      const carImplementation = await CarConnectorFactory.getCarConnectorImpl(tenant, transaction.car?.carCatalog?.vehicleMake?.toLowerCase());
+    !Utils.isNullOrUndefined(transaction.car.carConnectorData?.carConnectorID) &&
+    Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId) === CurrentType.AC) {
+      const carImplementation = await CarConnectorFactory.getCarConnectorImpl(tenant, transaction.car.carConnectorData.carConnectorID);
       if (carImplementation) {
         try {
-          return await carImplementation.getCurrentSoC(transaction.userID, transaction.car);
+          return await carImplementation.getCurrentSoC(transaction.car, transaction.userID);
         } catch {
           return null;
         }
@@ -2183,56 +2184,9 @@ export default class OCPPService {
     }
     const transaction = await TransactionStorage.getTransaction(tenant, meterValues.transactionId, { withUser: true, withTag: true, withCar: true });
     if (!transaction) {
-      // Try a Remote Stop the Transaction
+      // Abort the ongoing Transaction
       if (meterValues.transactionId) {
-        // Get the OCPP Client
-        const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant, chargingStation);
-        if (!chargingStationClient) {
-          await Logging.logWarning({
-            tenantID: tenant.id,
-            siteID: chargingStation.siteID,
-            siteAreaID: chargingStation.siteAreaID,
-            companyID: chargingStation.companyID,
-            chargingStationID: chargingStation.id,
-            source: chargingStation.id,
-            module: MODULE_NAME, method: 'getTransactionFromMeterValues',
-            action: ServerAction.OCPP_STOP_TRANSACTION,
-            message: `${Utils.buildConnectorInfo(meterValues.connectorId, meterValues.transactionId)} Charging Station is not connected to the backend, cannot send a Remote Stop Transaction on an unknown ongoing Transaction`,
-            detailedMessages: { headers, meterValues }
-          });
-        } else {
-          // Send Remote Stop
-          const result = await chargingStationClient.remoteStopTransaction({
-            transactionId: meterValues.transactionId
-          });
-          if (result.status === OCPPRemoteStartStopStatus.ACCEPTED) {
-            await Logging.logInfo({
-              tenantID: tenant.id,
-              siteID: chargingStation.siteID,
-              siteAreaID: chargingStation.siteAreaID,
-              companyID: chargingStation.companyID,
-              chargingStationID: chargingStation.id,
-              source: chargingStation.id,
-              module: MODULE_NAME, method: 'getTransactionFromMeterValues',
-              action: ServerAction.OCPP_STOP_TRANSACTION,
-              message: `${Utils.buildConnectorInfo(meterValues.connectorId, meterValues.transactionId)} Transaction with unknown ID has been automatically remotely stopped`,
-              detailedMessages: { headers, meterValues }
-            });
-          } else {
-            await Logging.logWarning({
-              tenantID: tenant.id,
-              siteID: chargingStation.siteID,
-              siteAreaID: chargingStation.siteAreaID,
-              companyID: chargingStation.companyID,
-              chargingStationID: chargingStation.id,
-              source: chargingStation.id,
-              module: MODULE_NAME, method: 'getTransactionFromMeterValues',
-              action: ServerAction.OCPP_STOP_TRANSACTION,
-              message: `${Utils.buildConnectorInfo(meterValues.connectorId, meterValues.transactionId)} Cannot send a Remote Stop Transaction on an unknown ongoing Transaction`,
-              detailedMessages: { headers, meterValues }
-            });
-          }
-        }
+        await this.abortOngoingTransactionInMeterValues(tenant, chargingStation, headers, meterValues);
       }
       // Unkown Transaction
       throw new BackendError({
@@ -2241,6 +2195,18 @@ export default class OCPPService {
         message: `${Utils.buildConnectorInfo(meterValues.connectorId, meterValues.transactionId)} Transaction does not exist`,
         action: ServerAction.OCPP_METER_VALUES,
         detailedMessages: { headers, meterValues }
+      });
+    }
+    // Transaction finished
+    if (transaction?.stop) {
+      // Abort the ongoing Transaction
+      await this.abortOngoingTransactionInMeterValues(tenant, chargingStation, headers, meterValues);
+      throw new BackendError({
+        source: chargingStation.id,
+        module: MODULE_NAME, method: 'getTransactionFromMeterValues',
+        message: `${Utils.buildConnectorInfo(meterValues.connectorId, meterValues.transactionId)} Transaction has already been stopped`,
+        action: ServerAction.OCPP_METER_VALUES,
+        detailedMessages: { headers, transaction, meterValues }
       });
     }
     // Received Meter Values after the Transaction End Meter Value
@@ -2259,6 +2225,57 @@ export default class OCPPService {
       });
     }
     return transaction;
+  }
+
+  private async abortOngoingTransactionInMeterValues(tenant: Tenant, chargingStation: ChargingStation, headers: OCPPHeader, meterValues: OCPPMeterValuesRequest) {
+    // Get the OCPP Client
+    const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant, chargingStation);
+    if (!chargingStationClient) {
+      await Logging.logError({
+        tenantID: tenant.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
+        chargingStationID: chargingStation.id,
+        source: chargingStation.id,
+        module: MODULE_NAME, method: 'abortOngoingTransactionInMeterValues',
+        action: ServerAction.OCPP_METER_VALUES,
+        message: `${Utils.buildConnectorInfo(meterValues.connectorId, meterValues.transactionId)} Charging Station is not connected to the backend, cannot send a Remote Stop Transaction on an ongoing Transaction`,
+        detailedMessages: { headers, meterValues }
+      });
+    } else {
+      // Send Remote Stop
+      const result = await chargingStationClient.remoteStopTransaction({
+        transactionId: meterValues.transactionId
+      });
+      if (result.status === OCPPRemoteStartStopStatus.ACCEPTED) {
+        await Logging.logWarning({
+          tenantID: tenant.id,
+          siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          companyID: chargingStation.companyID,
+          chargingStationID: chargingStation.id,
+          source: chargingStation.id,
+          module: MODULE_NAME, method: 'abortOngoingTransactionInMeterValues',
+          action: ServerAction.OCPP_METER_VALUES,
+          message: `${Utils.buildConnectorInfo(meterValues.connectorId, meterValues.transactionId)} Transaction has been automatically remotely stopped`,
+          detailedMessages: { headers, meterValues }
+        });
+      } else {
+        await Logging.logError({
+          tenantID: tenant.id,
+          siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          companyID: chargingStation.companyID,
+          chargingStationID: chargingStation.id,
+          source: chargingStation.id,
+          module: MODULE_NAME, method: 'abortOngoingTransactionInMeterValues',
+          action: ServerAction.OCPP_METER_VALUES,
+          message: `${Utils.buildConnectorInfo(meterValues.connectorId, meterValues.transactionId)} Cannot send a Remote Stop Transaction on an unknown ongoing Transaction`,
+          detailedMessages: { headers, meterValues }
+        });
+      }
+    }
   }
 
   private async getTransactionFromStopTransaction(tenant: Tenant, chargingStation: ChargingStation,

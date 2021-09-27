@@ -52,7 +52,7 @@ const MODULE_NAME = 'ChargingStationService';
 export default class ChargingStationService {
   public static async handleUpdateChargingStationParams(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationUpdateParametersReq({ ...req.params, ...req.body });
+    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationParametersUpdateReq({ ...req.params, ...req.body });
     // Check the Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${filteredRequest.id}' does not exist.`,
@@ -750,7 +750,7 @@ export default class ChargingStationService {
 
   public static async handleRequestChargingStationOcppParameters(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationRequestOCPPParametersReq(req.body);
+    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationOcppParametersRequestReq(req.body);
     UtilsService.assertIdIsProvided(action, filteredRequest.chargingStationID, MODULE_NAME, 'handleRequestChargingStationOcppParameters', req.user);
     // Check auth
     if (!await Authorizations.canReadChargingStation(req.user)) {
@@ -918,10 +918,16 @@ export default class ChargingStationService {
       });
     }
     // Check and Get Charging Station
+    // To uncomment when the mobile app will be released with the handling of these params
+    // const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
+    //   req.tenant, req.user, filteredRequest.ID, action, null, {
+    //     withSite: filteredRequest.WithSite,
+    //     withSiteArea: filteredRequest.WithSiteArea,
+    //   }, true);
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
       req.tenant, req.user, filteredRequest.ID, action, null, {
+        withSite: true,
         withSiteArea: true,
-        withLogo: true
       }, true);
     res.json(chargingStation);
     next();
@@ -935,6 +941,7 @@ export default class ChargingStationService {
   public static async handleExportChargingStationsOCPPParams(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Always with site
     req.query.WithSite = 'true';
+    req.query.WithSiteArea = 'true';
     // Get Charging Stations
     const chargingStations = await ChargingStationService.getChargingStations(req);
     for (const chargingStation of chargingStations.result) {
@@ -1074,6 +1081,39 @@ export default class ChargingStationService {
     next();
   }
 
+  public static async handleReserveNow(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check auth
+    if (!await Authorizations.canListChargingStations(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.LIST, entity: Entity.CHARGING_STATIONS,
+        module: MODULE_NAME, method: 'handleReserveNow'
+      });
+    }
+    // Request assembly
+    req.body.chargingStationID = req.params.id;
+    // Filter
+    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionReserveNowReq(req.body);
+    // Get the Charging station
+    const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
+      req.tenant, req.user, filteredRequest.chargingStationID, action, null, { withSite: true, withSiteArea: true });
+    // Get the OCPP Client
+    const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(req.tenant, chargingStation);
+    if (!chargingStationClient) {
+      throw new BackendError({
+        source: req.params.id,
+        action: action,
+        module: MODULE_NAME, method: 'handleReserveNow',
+        message: 'Charging Station is not connected to the backend',
+      });
+    }
+
+    const result = await chargingStationClient.reserveNow(filteredRequest.args);
+    res.json(result);
+    next();
+  }
+
   public static async handleGetBootNotifications(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!await Authorizations.canListChargingStations(req.user)) {
@@ -1167,33 +1207,104 @@ export default class ChargingStationService {
     }
     let result: any;
     switch (command) {
+      // Clear Cache
+      case Command.CLEAR_CACHE:
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionCacheClearReq(req.body);
+        result = await ChargingStationService.executeChargingStationCommand(
+          req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
+        break;
+      // Change Availability
+      case Command.CHANGE_AVAILABILITY:
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionAvailabilityChangeReq(req.body);
+        result = await ChargingStationService.executeChargingStationCommand(
+          req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
+        break;
+      // Change Configuration
+      case Command.CHANGE_CONFIGURATION:
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionConfigurationChangeReq(req.body);
+        result = await ChargingStationService.executeChargingStationCommand(
+          req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
+        break;
+      // Data Transfer
+      case Command.DATA_TRANSFER:
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionDataTransferReq(req.body);
+        result = await ChargingStationService.executeChargingStationCommand(
+          req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
+        break;
       // Remote Stop Transaction / Unlock Connector
       case Command.REMOTE_STOP_TRANSACTION:
-        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionStopTransactionReq(req.body);
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionTransactionStopReq(req.body);
         result = await ChargingStationService.executeChargingStationStopTransaction(action, chargingStation, command, filteredRequest, req, res, next);
         break;
       // Remote Start Transaction
       case Command.REMOTE_START_TRANSACTION:
-        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionStartTransactionReq(req.body);
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionTransactionStartReq(req.body);
         result = await ChargingStationService.executeChargingStationStartTransaction(action, chargingStation, command, filteredRequest, req, res, next);
+        break;
+      // Get Configuration
+      case Command.GET_CONFIGURATION:
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionConfigurationGetReq(req.body);
+        result = await ChargingStationService.executeChargingStationCommand(
+          req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
         break;
       // Get the Charging Plans
       case Command.GET_COMPOSITE_SCHEDULE:
-        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionGetCompositeScheduleReq(req.body);
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionCompositeScheduleGetReq(req.body);
         result = await ChargingStationService.executeChargingStationGetCompositeSchedule(action, chargingStation, command, filteredRequest, req, res, next);
         break;
       // Get diagnostic
       case Command.GET_DIAGNOSTICS:
-        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationGetDiagnostics(req.body);
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationDiagnosticsGetReq(req.body);
+        result = await ChargingStationService.executeChargingStationCommand(
+          req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
+        break;
+      // Unlock Connector
+      case Command.UNLOCK_CONNECTOR:
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionConnectorUnlockReq(req.body);
+        result = await ChargingStationService.executeChargingStationCommand(
+          req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
+        break;
+      // Update Firmware
+      case Command.UPDATE_FIRMWARE:
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionFirmwareUpdateReq(req.body);
+        result = await ChargingStationService.executeChargingStationCommand(
+          req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
+        break;
+      // Reserve Now
+      case Command.RESERVE_NOW:
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionReserveNowReq(req.body);
+        result = await ChargingStationService.executeChargingStationCommand(
+          req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
+        break;
+      // Reset
+      case Command.RESET:
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionResetReq(req.body);
         result = await ChargingStationService.executeChargingStationCommand(
           req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
         break;
       // Other commands
       default:
-        // Execute it
-        result = await ChargingStationService.executeChargingStationCommand(
-          req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
-        break;
+        // Log Specific Schema has not been verified:
+        await Logging.logError({
+          tenantID: req.tenant.id,
+          siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          companyID: chargingStation.companyID,
+          chargingStationID: chargingStation.id,
+          source: chargingStation.id,
+          user: req.user,
+          action: action,
+          module: MODULE_NAME, method: 'handleAction',
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+          message: `Command '${command}' has not its own validation schema.`
+        });
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: `Command '${command}' has not its own validation schema.`,
+          module: MODULE_NAME,
+          method: 'handleAction'
+        });
     }
     res.json(result);
     next();
@@ -1609,7 +1720,7 @@ export default class ChargingStationService {
             retryInterval: params.retryInterval
           });
           break;
-        case Command.TRIGGER_DATA_TRANSFER:
+        case Command.DATA_TRANSFER:
           result = await chargingStationClient.dataTransfer(params);
           break;
       }

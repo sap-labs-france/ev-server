@@ -108,6 +108,7 @@ export enum Action {
   READ = 'Read',
   CREATE = 'Create',
   UPDATE = 'Update',
+  UPDATE_BY_VISUAL_ID = 'UpdateByVisualID',
   REPLACE = 'Replace',
   DELETE = 'Delete',
   LOGOUT = 'Logout',
@@ -186,14 +187,22 @@ export interface AuthorizationActions {
   canCreate?: boolean;
   canUpdate?: boolean;
   canDelete?: boolean;
+  projectedFields?: string[];
 }
+
+export interface TagAuthorizationActions extends AuthorizationActions {
+  canUnassign?: boolean;
+  canAssign?: boolean;
+  canUpdateByVisualID?: boolean;
+}
+
 export interface SiteAreaAuthorizationActions extends AuthorizationActions {
   canAssignAssets?: boolean;
   canUnassignAssets?: boolean;
   canAssignChargingStations?: boolean;
   canUnassignChargingStations?: boolean;
   canExportOCPPParams?: boolean;
-  canGenerateQrCode?:boolean;
+  canGenerateQrCode?: boolean;
 }
 
 export interface SiteAuthorizationActions extends AuthorizationActions {
@@ -210,11 +219,13 @@ export enum DynamicAuthorizationFilterName {
   ASSIGNED_SITES = 'AssignedSites',
   OWN_USER = 'OwnUser',
   LOCAL_ISSUER = 'LocalIssuer',
+  EXCLUDE_ACTION = 'ExcludeAction',
 }
 
 export enum DynamicAuthorizationAssertName {
   POOL_CAR = 'PoolCar',
   OWN_USER = 'OwnUser',
+  BASIC_USER = 'BasicUser'
 }
 
 export enum DynamicAuthorizationDataSourceName {
@@ -223,9 +234,10 @@ export enum DynamicAuthorizationDataSourceName {
   SITES_OWNER = 'SitesOwner',
   ASSIGNED_SITES = 'AssignedSites',
   OWN_USER = 'OwnUser',
+  EXCLUDE_ACTION = 'ExcludeAction',
 }
 
-export interface DynamicAuthorizationDataSourceData {}
+export interface DynamicAuthorizationDataSourceData { }
 
 export interface AssignedSitesCompaniesDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
   companyIDs?: string[];

@@ -1,6 +1,6 @@
 {
   "name": "ev-server",
-  "version": "2.4.90",
+  "version": "2.5.1",
   "engines": {
     "node": "14.x.x",
     "npm": "6.x.x"
@@ -101,8 +101,9 @@
   },
   "dependencies": {
     "JSONStream": "^1.3.5",
-    "ajv": "^6.12.6",
-    "ajv-sanitizer": "^1.1.4",
+    "ajv": "^8.6.3",
+    "ajv-formats": "^2.1.1",
+    "ajv-keywords": "^5.0.0",
     "axios": "^0.21.1",
     "axios-retry": "^3.1.9",
     "basic-auth": "^2.0.1",
@@ -167,7 +168,7 @@
     "ws": "^7.4.6"
   },
   "optionalDependencies": {
-    "bufferutil": "^4.0.3",
+    "bufferutil": "^4.0.4",
     "utf-8-validate": "^5.0.5"
   },
   "devDependencies": {
@@ -187,7 +188,7 @@
     "@types/convict": "^6.0.2",
     "@types/cors": "^2.8.10",
     "@types/ejs": "^3.0.6",
-    "@types/express": "^4.17.11",
+    "@types/express": "^4.17.13",
     "@types/faker": "^5.5.5",
     "@types/hpp": "^0.2.1",
     "@types/i18n-js": "^3.8.1",
@@ -243,15 +244,15 @@
     "querystring": "^0.2.1",
     "rimraf": "^3.0.2",
     "rosie": "^2.1.0",
-    "ts-loader": "^8.3.0",
+    "ts-loader": "^9.2.1",
     "ts-node": "^10.0.0",
-    "ts-node-dev": "^1.1.6",
+    "ts-node-dev": "^1.1.8",
     "typescript": "^4.3.2",
     "webpack": "^4.46.0",
     "webpack-cli": "^3.3.12",
     "webpack-merge": "^5.7.3",
     "webpack-node-externals": "^2.5.2",
-    "webpack-shell-plugin-next": "^1.2.0",
+    "webpack-shell-plugin-next": "^2.0.1",
     "xml2json": "^0.12.0"
   }
 }

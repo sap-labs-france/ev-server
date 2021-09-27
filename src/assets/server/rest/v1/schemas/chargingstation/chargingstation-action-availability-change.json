@@ -1,5 +1,5 @@
 {
-  "title": "Get Charging Station Composite Schedule (endpoint)",
+  "title": "Change Availability",
   "type": "object",
   "properties": {
     "chargingStationID": {
@@ -11,19 +11,18 @@
         "connectorId": {
           "$ref": "chargingstation.json#/definitions/connector/properties/connectorId"
         },
-        "duration": {
-          "type": "number",
-          "sanitize": "mongo"
-        },
-        "chargingRateUnit": {
+        "type": {
           "type": "string",
           "sanitize": "mongo",
-          "enum": ["A", "W"]
+          "enum": [
+            "Inoperative",
+            "Operative"
+          ]
         }
       },
       "required": [
         "connectorId",
-        "duration"
+        "type"
       ]
     }
   },

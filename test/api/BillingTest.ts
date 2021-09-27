@@ -1032,6 +1032,15 @@ describe('Billing Service', function() {
           expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
         });
 
+        it('Should not delete a user', async () => {
+          const response = await testData.userService.deleteEntity(
+            testData.userService.userApi,
+            { id: new ObjectId().toHexString() },
+            false
+          );
+          expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
+        });
+
         it('Should not create a user', async () => {
           const fakeUser = {
             ...Factory.user.build(),

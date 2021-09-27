@@ -9,20 +9,20 @@ export default class AuthValidator extends SchemaValidator {
   private static instance: AuthValidator|null = null;
   private authSignIn: Schema;
   private authSignOn: Schema;
-  private authResetPassword: Schema;
-  private authCheckEula: Schema;
-  private authVerifyEmail: Schema;
-  private authResendVerificationEmail: Schema;
+  private authPasswordReset: Schema;
+  private authEulaCheck: Schema;
+  private authEmailVerify: Schema;
+  private authVerificationEmailResend: Schema;
   private authEula: Schema;
 
   private constructor() {
     super('AuthValidator');
     this.authSignIn = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-signin.json`, 'utf8'));
     this.authSignOn = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-signon.json`, 'utf8'));
-    this.authResetPassword = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-reset-password.json`, 'utf8'));
-    this.authCheckEula = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-check-eula.json`, 'utf8'));
-    this.authVerifyEmail = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-verify-email.json`, 'utf8'));
-    this.authResendVerificationEmail = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-resend-verification-email.json`, 'utf8'));
+    this.authPasswordReset = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-password-reset.json`, 'utf8'));
+    this.authEulaCheck = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-eula-check.json`, 'utf8'));
+    this.authEmailVerify = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-email-verify.json`, 'utf8'));
+    this.authVerificationEmailResend = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-verification-email-resend.json`, 'utf8'));
     this.authEula = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-eula.json`, 'utf8'));
   }
 
@@ -33,45 +33,31 @@ export default class AuthValidator extends SchemaValidator {
     return AuthValidator.instance;
   }
 
-  public validateAuthSignIn(data: any): HttpLoginRequest {
-    // Validate schema
-    this.validate(this.authSignIn, data);
-    return data;
+  public validateAuthSignInReq(data: unknown): HttpLoginRequest {
+    return this.validate('validateAuthSignInReq', this.authSignIn, data);
   }
 
-  public validateAuthSignOn(data: any): Partial<HttpRegisterUserRequest> {
-    // Validate schema
-    this.validate(this.authSignOn, data);
-    return data;
+  public validateAuthSignOnReq(data: unknown): Partial<HttpRegisterUserRequest> {
+    return this.validate('validateAuthSignOnReq', this.authSignOn, data);
   }
 
-  public validateAuthResetPassword(data: any): Partial<HttpResetPasswordRequest> {
-    // Validate schema
-    this.validate(this.authResetPassword, data);
-    return data;
+  public validateAuthPasswordResetReq(data: unknown): Partial<HttpResetPasswordRequest> {
+    return this.validate('validateAuthPasswordResetReq', this.authPasswordReset, data);
   }
 
-  public validateAuthCheckEula(data: any): Partial<HttpCheckEulaRequest> {
-    // Validate schema
-    this.validate(this.authCheckEula, data);
-    return data;
+  public validateAuthEulaCheckReq(data: unknown): Partial<HttpCheckEulaRequest> {
+    return this.validate('validateAuthEulaCheckReq', this.authEulaCheck, data);
   }
 
-  public validateAuthVerifyEmail(data: any): Partial<HttpVerifyEmailRequest> {
-    // Validate schema
-    this.validate(this.authVerifyEmail, data);
-    return data;
+  public validateAuthEmailVerifyReq(data: unknown): Partial<HttpVerifyEmailRequest> {
+    return this.validate('validateAuthEmailVerifyReq', this.authEmailVerify, data);
   }
 
-  public validateAuthResendVerificationEmail(data: any): Partial<HttpResendVerificationMailRequest> {
-    // Validate schema
-    this.validate(this.authResendVerificationEmail, data);
-    return data;
+  public validateAuthVerificationEmailResendReq(data: unknown): Partial<HttpResendVerificationMailRequest> {
+    return this.validate('validateAuthVerificationEmailResendReq', this.authVerificationEmailResend, data);
   }
 
-  public validateAuthEula(data: any): Partial<HttpEulaRequest> {
-    // Validate schema
-    this.validate(this.authEula, data);
-    return data;
+  public validateAuthEulaReq(data: unknown): Partial<HttpEulaRequest> {
+    return this.validate('validateAuthEulaReq', this.authEula, data);
   }
 }

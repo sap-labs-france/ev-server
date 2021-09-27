@@ -9,7 +9,7 @@
             <tr height="90">
               <td width="180" style="padding: 10px;" align="center">
                 <img height="<%- body.header.image.left.height %>"
-                  alt="Logo"
+                  alt="Logo" style="height: 100%; max-height: <%- body.header.image.left.height %>px;"
                   src="<%- body.header.image.left.url %>">
               </td>
               <td align="center" style="padding: 10px;border-color:white;border-width: 2px;border-left-style: solid;border-right-style: solid;">

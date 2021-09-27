@@ -1,5 +1,5 @@
 import { AxiosInstance, AxiosResponse } from 'axios';
-import { CarConnectorConnectionSetting, CarConnectorConnectionType, CarConnectorSetting } from '../../../types/Setting';
+import { CarConnectorConnectionSetting, CarConnectorConnectionType, CarConnectorSettings } from '../../../types/Setting';
 import axiosRetry, { IAxiosRetryConfig } from 'axios-retry';
 
 import AxiosFactory from '../../../utils/AxiosFactory';
@@ -19,7 +19,7 @@ import querystring from 'querystring';
 
 const MODULE_NAME = 'MercedesCarConnectorIntegration';
 
-export default class MercedesCarConnectorIntegration extends CarConnectorIntegration<CarConnectorSetting> {
+export default class MercedesCarConnectorIntegration extends CarConnectorIntegration<CarConnectorSettings> {
   private axiosInstance: AxiosInstance;
   private readonly axiosRetryConfiguration: IAxiosRetryConfig = {
     retries: 3,
@@ -69,7 +69,7 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
     shouldResetTimeout: true
   };
 
-  constructor(tenant: Tenant, settings: CarConnectorSetting, connection: CarConnectorConnectionSetting) {
+  constructor(tenant: Tenant, settings: CarConnectorSettings, connection: CarConnectorConnectionSetting) {
     super(tenant, settings, connection);
     // Get Axios
     this.axiosInstance = AxiosFactory.getAxiosInstance(this.tenant.id,
@@ -138,7 +138,7 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
     }
   }
 
-  public async getCurrentSoC(userID: string, car: Car): Promise<number> {
+  public async getCurrentSoC(car: Car, userID: string): Promise<number> {
     const connection = await this.getRefreshedConnection(userID);
     const request = `${this.connection.mercedesConnection.apiUrl}/vehicledata/v2/vehicles/${car.vin}/resources/soc`;
     try {

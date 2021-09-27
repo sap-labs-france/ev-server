@@ -1,5 +1,5 @@
 {
-  "title": "Charging Station Action Request for Stop Transaction (endpoint)",
+  "title": "Change Configuration",
   "type": "object",
   "properties": {
     "chargingStationID": {
@@ -8,12 +8,20 @@
     "args": {
       "type": "object",
       "properties": {
-        "transactionId": {
-          "$ref": "transaction.json#/definitions/id"
+        "key": {
+          "type": "string",
+          "sanitize": "mongo",
+          "maxLength": 50
+        },
+        "value": {
+          "type": "string",
+          "sanitize": "mongo",
+          "maxLength": 500
         }
       },
       "required": [
-        "transactionId"
+        "key",
+        "value"
       ]
     }
   },

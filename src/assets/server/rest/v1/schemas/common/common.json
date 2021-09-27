@@ -23,7 +23,6 @@
     },
     "number-id": {
       "type": "number",
-      "pattern": "^(\\d)*$",
       "sanitize": "mongo"
     },
     "number-ids": {

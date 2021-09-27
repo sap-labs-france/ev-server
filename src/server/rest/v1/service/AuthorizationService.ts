@@ -1,4 +1,4 @@
-import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity, SiteAreaAuthorizationActions } from '../../../../types/Authorization';
+import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity, SiteAreaAuthorizationActions, TagAuthorizationActions } from '../../../../types/Authorization';
 import { Car, CarCatalog } from '../../../../types/Car';
 import { CarCatalogDataResult, CarDataResult, CompanyDataResult, PricingDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, UserDataResult } from '../../../../types/DataResult';
 import { HttpAssignAssetsToSiteAreaRequest, HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
@@ -36,7 +36,7 @@ import _ from 'lodash';
 const MODULE_NAME = 'AuthorizationService';
 
 export default class AuthorizationService {
-  public static canPerformAction(authActions: AuthorizationActions | SiteAreaAuthorizationActions, action: Action): boolean {
+  public static canPerformAction(authActions: AuthorizationActions | SiteAreaAuthorizationActions | TagAuthorizationActions, action: Action): boolean {
     switch (action) {
       case Action.READ:
         return authActions.canRead;
@@ -46,6 +46,12 @@ export default class AuthorizationService {
         return authActions.canCreate;
       case Action.DELETE:
         return authActions.canDelete;
+      case Action.UNASSIGN:
+        return (authActions as TagAuthorizationActions).canUnassign;
+      case Action.ASSIGN:
+        return (authActions as TagAuthorizationActions).canAssign;
+      case Action.UPDATE_BY_VISUAL_ID:
+        return (authActions as TagAuthorizationActions).canUpdateByVisualID;
       case Action.ASSIGN_CHARGING_STATIONS_TO_SITE_AREA:
         return (authActions as SiteAreaAuthorizationActions).canAssignChargingStations;
       case Action.UNASSIGN_CHARGING_STATIONS_TO_SITE_AREA:
@@ -76,6 +82,10 @@ export default class AuthorizationService {
   }
 
   public static async addSiteAuthorizations(tenant: Tenant, userToken: UserToken, site: Site, authorizationFilter: AuthorizationFilter): Promise<void> {
+    // Assign projected fields
+    if (authorizationFilter.projectFields) {
+      site.projectedFields = authorizationFilter.projectFields;
+    }
     // Enrich
     if (!site.issuer) {
       site.canRead = true;
@@ -120,7 +130,7 @@ export default class AuthorizationService {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
-      projectFields: [ ],
+      projectFields: [],
       authorized: false,
     };
     // Check static & dynamic authorization
@@ -243,6 +253,10 @@ export default class AuthorizationService {
   }
 
   public static async addUserAuthorizations(tenant: Tenant, userToken: UserToken, user: User, authorizationFilter: AuthorizationFilter): Promise<void> {
+    // Assign projected fields
+    if (authorizationFilter.projectFields) {
+      user.projectedFields = authorizationFilter.projectFields;
+    }
     // Enrich
     if (!user.issuer) {
       user.canRead = true;
@@ -277,7 +291,7 @@ export default class AuthorizationService {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
-      projectFields: [ ],
+      projectFields: [],
       authorized: false,
     };
     // Check static & dynamic authorization
@@ -315,9 +329,11 @@ export default class AuthorizationService {
   public static async addTagsAuthorizations(tenant: Tenant, userToken: UserToken, tags: TagDataResult, authorizationFilter: AuthorizationFilter): Promise<void> {
     // Add canCreate flag to root
     tags.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAG, Action.CREATE, authorizationFilter);
+    tags.canAssign = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAG, Action.ASSIGN, authorizationFilter);
     tags.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAG, Action.DELETE, authorizationFilter);
     tags.canImport = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAGS, Action.IMPORT, authorizationFilter);
     tags.canExport = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAGS, Action.EXPORT, authorizationFilter);
+    tags.canUnassign = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAGS, Action.UNASSIGN, authorizationFilter);
     // Enrich
     for (const tag of tags.result) {
       await AuthorizationService.addTagAuthorizations(tenant, userToken, tag, authorizationFilter);
@@ -325,6 +341,10 @@ export default class AuthorizationService {
   }
 
   public static async addTagAuthorizations(tenant: Tenant, userToken: UserToken, tag: Tag, authorizationFilter: AuthorizationFilter): Promise<void> {
+    // Assign projected fields
+    if (authorizationFilter.projectFields) {
+      tag.projectedFields = authorizationFilter.projectFields;
+    }
     // Enrich
     if (!tag.issuer) {
       tag.canRead = true;
@@ -337,6 +357,12 @@ export default class AuthorizationService {
         tenant, userToken, Entity.TAG, Action.DELETE, authorizationFilter, { TagID: tag.id }, tag);
       tag.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.TAG, Action.UPDATE, authorizationFilter, { TagID: tag.id }, tag);
+      tag.canUpdateByVisualID = await AuthorizationService.canPerformAuthorizationAction(
+        tenant, userToken, Entity.TAG, Action.UPDATE_BY_VISUAL_ID, authorizationFilter, { TagID: tag.id }, tag);
+      tag.canUnassign = await AuthorizationService.canPerformAuthorizationAction(
+        tenant, userToken, Entity.TAG, Action.UNASSIGN, authorizationFilter, { TagID: tag.id }, tag);
+      tag.canAssign = await AuthorizationService.canPerformAuthorizationAction(
+        tenant, userToken, Entity.TAG, Action.ASSIGN, authorizationFilter, { TagID: tag.id }, tag);
     }
   }
 
@@ -365,6 +391,10 @@ export default class AuthorizationService {
   }
 
   public static async addCompanyAuthorizations(tenant: Tenant, userToken: UserToken, company: Company, authorizationFilter: AuthorizationFilter): Promise<void> {
+    // Assign projected fields
+    if (authorizationFilter.projectFields) {
+      company.projectedFields = authorizationFilter.projectFields;
+    }
     // Enrich
     if (!company.issuer) {
       company.canRead = true;
@@ -457,6 +487,10 @@ export default class AuthorizationService {
   }
 
   public static async addSiteAreaAuthorizations(tenant: Tenant, userToken: UserToken, siteArea: SiteArea, authorizationFilter: AuthorizationFilter): Promise<void> {
+    // Assign projected fields
+    if (authorizationFilter.projectFields) {
+      siteArea.projectedFields = authorizationFilter.projectFields;
+    }
     // Enrich
     if (!siteArea.issuer) {
       siteArea.canRead = true;
@@ -490,7 +524,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetChargingStationAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Partial<HttpChargingStationRequest>, entityData?: EntityDataType):Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpChargingStationRequest>, entityData?: EntityDataType): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -520,7 +554,7 @@ export default class AuthorizationService {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
-      projectFields: [ ],
+      projectFields: [],
       authorized: false
     };
     // Check static & dynamic authorization
@@ -545,19 +579,17 @@ export default class AuthorizationService {
   }
 
   public static async addCarAuthorizations(tenant: Tenant, userToken: UserToken, car: Car, authorizationFilter: AuthorizationFilter): Promise<void> {
-  // Enrich
-    if (!car) {
-      car.canRead = true;
-      car.canUpdate = false;
-      car.canDelete = false;
-    } else {
-      car.canRead = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.CAR, Action.READ, authorizationFilter, { CarID: car.id }, car);
-      car.canDelete = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.CAR, Action.DELETE, authorizationFilter, { CarID: car.id }, car);
-      car.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.CAR, Action.UPDATE, authorizationFilter, { CarID: car.id }, car);
+    // Assign projected fields
+    if (authorizationFilter.projectFields) {
+      car.projectedFields = authorizationFilter.projectFields;
     }
+    // Enrich
+    car.canRead = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CAR, Action.READ, authorizationFilter, { CarID: car.id }, car);
+    car.canDelete = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CAR, Action.DELETE, authorizationFilter, { CarID: car.id }, car);
+    car.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CAR, Action.UPDATE, authorizationFilter, { CarID: car.id }, car);
   }
 
   public static async checkAndGetCarCatalogsAuthorizations(tenant: Tenant, userToken: UserToken,
@@ -565,7 +597,7 @@ export default class AuthorizationService {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
-      projectFields: [ ],
+      projectFields: [],
       authorized: false
     };
     // Check static & dynamic authorization
@@ -591,19 +623,17 @@ export default class AuthorizationService {
   }
 
   public static async addCarCatalogAuthorizations(tenant: Tenant, userToken: UserToken, carCatalog: CarCatalog, authorizationFilter: AuthorizationFilter): Promise<void> {
-    // Enrich
-    if (!carCatalog) {
-      carCatalog.canRead = true;
-      carCatalog.canUpdate = false;
-      carCatalog.canDelete = false;
-    } else {
-      carCatalog.canRead = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.CAR_CATALOG, Action.READ, authorizationFilter, { CarCatalogID: carCatalog.id }, carCatalog);
-      carCatalog.canDelete = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.CAR_CATALOG, Action.DELETE, authorizationFilter, { CarCatalogID: carCatalog.id }, carCatalog);
-      carCatalog.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.CAR_CATALOG, Action.UPDATE, authorizationFilter, { CarCatalogID: carCatalog.id }, carCatalog);
+    // Assign projected fields
+    if (authorizationFilter.projectFields) {
+      carCatalog.projectedFields = authorizationFilter.projectFields;
     }
+    // Enrich
+    carCatalog.canRead = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CAR_CATALOG, Action.READ, authorizationFilter, { CarCatalogID: carCatalog.id }, carCatalog);
+    carCatalog.canDelete = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CAR_CATALOG, Action.DELETE, authorizationFilter, { CarCatalogID: carCatalog.id }, carCatalog);
+    carCatalog.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CAR_CATALOG, Action.UPDATE, authorizationFilter, { CarCatalogID: carCatalog.id }, carCatalog);
   }
 
 
@@ -851,7 +881,7 @@ export default class AuthorizationService {
   }
 
   private static async checkAndGetEntityAuthorizations(tenant: Tenant, entity: Entity, userToken: UserToken,
-      filteredRequest: Record<string, any>, entityID: Record<string, any>,authAction: Action, entityData?: EntityDataType): Promise<AuthorizationFilter> {
+      filteredRequest: Record<string, any>, entityID: Record<string, any>, authAction: Action, entityData?: EntityDataType): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),

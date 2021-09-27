@@ -1,9 +1,10 @@
 {
-  "title": "Delete one Tenants",
+  "title": "Get a Car Catalog Request",
   "type": "object",
   "properties": {
     "ID": {
-      "$ref": "tenant.json#/definitions/id"
+      "type": "number",
+      "sanitize": "mongo"
     }
   },
   "required": [

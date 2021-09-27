@@ -5,8 +5,10 @@ import Company from '../../src/types/Company';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
+import Site from '../../src/types/Site';
 import { StatusCodes } from 'http-status-codes';
 import TenantContext from './context/TenantContext';
+import User from '../../src/types/User';
 import chaiSubset from 'chai-subset';
 
 chai.use(chaiSubset);
@@ -17,13 +19,13 @@ class TestData {
   public centralUserService: CentralServerService;
   public userContext: any;
   public userService: CentralServerService;
-  public newCompany: any;
+  public newCompany: Company;
   public companyWithSite: Company;
   public companyWithNoSite: Company;
-  public newSite: any;
-  public createdCompanies: any[] = [];
-  public createdUsers: any[] = [];
-  public createdSites: any[] =[];
+  public newSite: Site;
+  public createdCompanies: Company[] = [];
+  public createdUsers: User[] = [];
+  public createdSites: Site[] =[];
 }
 
 const testData = new TestData();

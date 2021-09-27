@@ -50,7 +50,7 @@ export default class UserService {
 
   public static async handleGetUserDefaultTagCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = UserValidator.getInstance().validateUserDefaultTagCar(req.query);
+    const filteredRequest = UserValidator.getInstance().validateUserDefaultTagCarGetReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.UserID, MODULE_NAME, 'handleGetUserDefaultTagCar', req.user);
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
@@ -93,7 +93,7 @@ export default class UserService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITES, 'SiteService', 'handleAssignSitesToUser');
     // Filter request
-    const filteredRequest = UserValidator.getInstance().validateUserAssignToSites(req.body);
+    const filteredRequest = UserValidator.getInstance().validateUserToSitesAssignReq(req.body);
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, filteredRequest.userID, Action.READ, action);
@@ -120,7 +120,7 @@ export default class UserService {
 
   public static async handleDeleteUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const userID = UserValidator.getInstance().validateUserGetByID(req.query).ID.toString();
+    const userID = UserValidator.getInstance().validateUserByIDGetReq(req.query).ID.toString();
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, userID, Action.DELETE, action, null, {}, false, false);
@@ -162,7 +162,7 @@ export default class UserService {
   public static async handleUpdateUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     let statusHasChanged = false;
     // Filter
-    const filteredRequest = UserValidator.getInstance().validateUserUpdate({ ...req.params, ...req.body });
+    const filteredRequest = UserValidator.getInstance().validateUserUpdateReq({ ...req.params, ...req.body });
     // Check and Get User
     let user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest);
@@ -227,9 +227,14 @@ export default class UserService {
         await UserStorage.saveUserRole(req.tenant, user.id, filteredRequest.role);
       }
       // Save Admin Data
-      if (Utils.objectHasProperty(filteredRequest, 'plateID')) {
-        const adminData: { plateID?: string; } = {};
-        adminData.plateID = filteredRequest.plateID || null;
+      if (user.projectedFields.includes('plateID') || user.projectedFields.includes('technical')) {
+        const adminData: { plateID?: string; technical?: boolean; } = {};
+        if (user.projectedFields.includes('plateID')) {
+          adminData.plateID = filteredRequest.plateID || null;
+        }
+        if (user.projectedFields.includes('technical')) {
+          adminData.technical = filteredRequest.technical;
+        }
         await UserStorage.saveUserAdminData(req.tenant, user.id, adminData);
       }
     }
@@ -262,7 +267,7 @@ export default class UserService {
 
   public static async handleUpdateUserMobileToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = UserValidator.getInstance().validateUserUpdateMobileToken({ ...req.params, ...req.body });
+    const filteredRequest = UserValidator.getInstance().validateUserMobileTokenUpdateReq({ ...req.params, ...req.body });
     // Check Mandatory fields
     if (!filteredRequest.mobileToken) {
       throw new AppError({
@@ -300,7 +305,7 @@ export default class UserService {
 
   public static async handleGetUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = UserValidator.getInstance().validateUserGetByID(req.query);
+    const filteredRequest = UserValidator.getInstance().validateUserByIDGetReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetUser', req.user);
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
@@ -313,7 +318,7 @@ export default class UserService {
 
   public static async handleGetUserImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const userID = UserValidator.getInstance().validateUserGetByID(req.query).ID.toString();
+    const userID = UserValidator.getInstance().validateUserByIDGetReq(req.query).ID.toString();
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, userID, Action.READ, action, null, null, null, false);
@@ -333,7 +338,7 @@ export default class UserService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.USER, MODULE_NAME, 'handleGetSites');
     // Filter
-    const filteredRequest = UserValidator.getInstance().validateUserGetSites(req.query);
+    const filteredRequest = UserValidator.getInstance().validateUserSitesGetReq(req.query);
     // Check User
     try {
       await UtilsService.checkAndGetUserAuthorization(
@@ -383,7 +388,7 @@ export default class UserService {
 
   public static async handleGetUsersInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = UserValidator.getInstance().validateUsersGetInError(req.query);
+    const filteredRequest = UserValidator.getInstance().validateUsersInErrorGetReq(req.query);
     // Get authorization filters
     const authorizationUserInErrorFilters = await AuthorizationService.checkAndGetUsersInErrorAuthorizations(
       req.tenant, req.user, filteredRequest);
@@ -619,7 +624,7 @@ export default class UserService {
 
   public static async handleCreateUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = UserValidator.getInstance().validateUserCreate(req.body);
+    const filteredRequest = UserValidator.getInstance().validateUserCreateReq(req.body);
     // Check Mandatory fields
     UtilsService.checkIfUserValid(filteredRequest, null, req);
     // Get dynamic auth
@@ -678,8 +683,8 @@ export default class UserService {
         await UserStorage.saveUserRole(req.tenant, newUser.id, newUser.role);
       }
       // Save Admin Data
-      if (newUser.plateID || Utils.objectHasProperty(newUser, 'notificationsActive')) {
-        const adminData: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications } = {};
+      if (newUser.plateID || Utils.objectHasProperty(newUser, 'notificationsActive') || Utils.objectHasProperty(newUser, 'technical')) {
+        const adminData: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications, technical?: boolean } = {};
         if (newUser.plateID) {
           adminData.plateID = newUser.plateID;
         }
@@ -688,6 +693,9 @@ export default class UserService {
           if (newUser.notifications) {
             adminData.notifications = newUser.notifications;
           }
+        }
+        if (authorizationFilter.projectFields.includes('technical')) {
+          adminData.technical = newUser.technical;
         }
         // Save User Admin data
         await UserStorage.saveUserAdminData(req.tenant, newUser.id, adminData);
@@ -776,7 +784,7 @@ export default class UserService {
 
   private static async getUsers(req: Request): Promise<DataResult<User>> {
     // Filter
-    const filteredRequest = UserValidator.getInstance().validateUsersGet(req.query);
+    const filteredRequest = UserValidator.getInstance().validateUsersGetReq(req.query);
     // Get authorization filters
     const authorizationUsersFilters = await AuthorizationService.checkAndGetUsersAuthorizations(
       req.tenant, req.user, filteredRequest);
@@ -827,7 +835,7 @@ export default class UserService {
         siteIDs: importedUser.siteIDs
       };
       // Validate User data
-      UserValidator.getInstance().validateImportedUserCreation(newImportedUser);
+      UserValidator.getInstance().validateUserImportCreateReq(newImportedUser);
       // Set properties
       newImportedUser.importedBy = importedUser.importedBy;
       newImportedUser.importedOn = importedUser.importedOn;

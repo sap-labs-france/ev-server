@@ -1,4 +1,6 @@
 export enum ServerAction {
+  UNKNOWN_ACTION = 'Unknown',
+
   LOGIN = 'RestLogin',
   LOGOUT = 'RestLogout',
   PASSWORD_RESET = 'RestReset',
@@ -34,6 +36,8 @@ export enum ServerAction {
   CHARGING_STATION_UPDATE_PARAMS = 'RestChargingStationUpdateParams',
   CHARGING_STATION_LIMIT_POWER = 'RestChargingStationLimitPower',
   CHARGING_STATION_DELETE = 'RestChargingStationDelete',
+  CHARGING_STATION_RESERVE_NOW = 'RestChargingStationReserveNpw',
+
 
   CHECK_SMART_CHARGING_CONNECTION = 'RestCheckSmartChargingConnection',
   TRIGGER_SMART_CHARGING = 'RestTriggerSmartCharging',
@@ -395,10 +399,15 @@ export enum ServerAction {
   USER_IMAGE = 'RestUserImage',
   TAGS = 'Tags',
   TAG = 'Tag',
+  TAG_BY_VISUAL_ID= 'TagByVisualID',
   USER_DEFAULT_TAG_CAR = 'RestUserDefaultTagCar',
   TAG_CREATE = 'TagCreate',
   TAG_UPDATE = 'TagUpdate',
+  TAG_UPDATE_BY_VISUAL_ID = 'TagUpdateByVisualID',
   TAG_DELETE = 'TagDelete',
+  TAGS_UNASSIGN = 'TagsUnassign',
+  TAG_UNASSIGN = 'TagUnassign',
+  TAG_ASSIGN = 'TagAssign',
   TAGS_DELETE = 'TagsDelete',
   TAGS_IMPORT = 'TagsImport',
   TAGS_EXPORT = 'TagsExport',
@@ -474,6 +483,7 @@ export enum ServerRoute {
   REST_CHARGING_STATIONS_GET_DIAGNOSTICS = 'charging-stations/:id/diagnostics',
   REST_CHARGING_STATIONS_FIRMWARE_UPDATE = 'charging-stations/:id/firmware/update',
   REST_CHARGING_STATIONS_CHANGE_AVAILABILITY = 'charging-stations/:id/availability/change',
+  REST_CHARGING_STATIONS_RESERVE_NOW = 'charging-stations/:id/reserve/now',
 
   REST_CHARGING_STATIONS_DOWNLOAD_FIRMWARE = 'charging-stations/firmware/download',
   REST_CHARGING_STATIONS_QRCODE_GENERATE = 'charging-stations/:id/connectors/:connectorId/qrcode/generate',
@@ -534,7 +544,7 @@ export enum ServerRoute {
   REST_ASSETS = 'assets',
   REST_ASSET = 'assets/:id',
   REST_ASSETS_IN_ERROR = 'assets/status/in-error',
-  REST_ASSET_CHECK_CONNECTION = 'assets/:id/connector/connection/check',
+  REST_ASSET_CHECK_CONNECTION = 'assets/connectors/:id/connection/check',
   REST_ASSET_RETRIEVE_CONSUMPTION = 'assets/:id/connector/consumption/retrieve-last',
   REST_ASSET_CONSUMPTIONS = 'assets/:id/consumptions',
   REST_ASSET_IMAGE = 'assets/:id/image',
@@ -546,12 +556,16 @@ export enum ServerRoute {
   REST_CAR_CATALOG_IMAGES = 'car-catalogs/:id/images',
   REST_CAR_CATALOG_IMAGE = 'car-catalogs/:id/image',
   REST_CAR_CATALOG_SYNCHRONIZE = 'car-catalogs/action/synchronize',
-  REST_CAR_MAKERS = 'car-makes',
+  REST_CAR_MAKERS = 'car-makers',
 
   REST_PING = 'ping',
 
   REST_TENANTS = 'tenants',
   REST_TENANT = 'tenants/:id',
+
+  REST_COMPANIES = 'companies',
+  REST_COMPANY = 'companies/:id',
+  REST_COMPANY_LOGO = 'companies/:id/logo',
 
   REST_CONNECTIONS = 'connections',
   REST_CONNECTION = 'connections/:id',
@@ -559,6 +573,26 @@ export enum ServerRoute {
   REST_LOGGINGS = 'loggings',
   REST_LOGGING = 'loggings/:id',
   REST_LOGGINGS_EXPORT = 'loggings/action/export',
+
+  REST_NOTIFICATIONS = 'notifications',
+  REST_NOTIFICATIONS_END_USER_REPORT_ERROR = 'notifications/action/end-user/report-error',
+
+
+  REST_OCPI_ENDPOINT_PING = 'ocpi/endpoints/:id/ping',
+  REST_OCPI_ENDPOINT_CHECK_CDRS = 'ocpi/endpoints/:id/cdrs/check',
+  REST_OCPI_ENDPOINT_CHECK_LOCATIONS = 'ocpi/endpoints/:id/locations/check',
+  REST_OCPI_ENDPOINT_CHECK_SESSIONS = 'ocpi/endpoints/:id/sessions/check',
+  REST_OCPI_ENDPOINT_PULL_CDRS = 'ocpi/endpoints/:id/cdrs/pull',
+  REST_OCPI_ENDPOINT_PULL_LOCATIONS = 'ocpi/endpoints/:id/locations/pull',
+  REST_OCPI_ENDPOINT_PULL_SESSIONS = 'ocpi/endpoints/:id/sessions/pull',
+  REST_OCPI_ENDPOINT_PULL_TOKENS = 'ocpi/endpoints/:id/tokens/pull',
+  REST_OCPI_ENDPOINT_SEND_EVSE_STATUSES = 'ocpi/endpoints/:id/evses/statuses/send',
+  REST_OCPI_ENDPOINT_SEND_TOKENS = 'ocpi/endpoints/:id/tokens/send',
+  REST_OCPI_ENDPOINT_GENERATE_LOCAL_TOKEN = 'ocpi/endpoints/:id/tokens/generate',
+  REST_OCPI_ENDPOINTS = 'ocpi/endpoints',
+  REST_OCPI_ENDPOINT = 'ocpi/endpoints/:id',
+  REST_OCPI_ENDPOINT_REGISTER = 'ocpi/endpoints/:id/register',
+  REST_OCPI_ENDPOINT_UNREGISTER = 'ocpi/endpoints/:id/unregister',
 
   // BILLING URLs for CRUD operations on PAYMENT METHODS
   REST_BILLING_PAYMENT_METHODS = 'users/:userID/payment-methods',
