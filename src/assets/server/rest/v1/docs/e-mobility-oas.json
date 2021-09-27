@@ -2905,6 +2905,84 @@
         }
       }
     },
+    "/api/charging-stations/{id}/reserve/now": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Reserve a Charging Station",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "args": {
+                    "type": "object",
+                    "properties": {
+                      "connectorId": {
+                        "type": "number",
+                        "description": "Required. This contains the id of the connector to be reserved. A value of 0 means that the reservation is not for a specific connector.",
+                        "example": 1
+                      },
+                      "expiryDate": {
+                        "type": "date-time",
+                        "description": "Required. This contains the date and time when the reservation ends."
+                      },
+                      "idTag": {
+                        "type": "string",
+                        "description": "Required. The identifier for which the Charge Point has to reserve a connector."
+                      },
+                      "parentIdTag": {
+                        "type": "string",
+                        "description": "Optional. The parent idTag."
+                      },
+                      "reservationId": {
+                        "type": "number",
+                        "description": "Required. Unique id for this reservation."
+                      }
+                    },
+                    "required": [
+                      "connectorId",
+                      "expiryDate",
+                      "idTag",
+                      "reservationId"
+                    ]
+                  }
+                },
+                "required": [
+                  "args"
+                ]
+              }
+            }
+          }
+        },
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Charging Station has been successfully reset"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
     "/api/charging-stations/{id}/reset": {
       "put": {
         "security": [
