@@ -37,7 +37,7 @@ export enum ServerAction {
   CHARGING_STATION_LIMIT_POWER = 'RestChargingStationLimitPower',
   CHARGING_STATION_DELETE = 'RestChargingStationDelete',
   CHARGING_STATION_RESERVE_NOW = 'RestChargingStationReserveNpw',
-
+  CHARGING_STATION_CANCEL_RESERVATION = 'RestChargingStationCancelReservation',
 
   CHECK_SMART_CHARGING_CONNECTION = 'RestCheckSmartChargingConnection',
   TRIGGER_SMART_CHARGING = 'RestTriggerSmartCharging',
@@ -478,6 +478,7 @@ export enum ServerRoute {
   REST_CHARGING_STATIONS_FIRMWARE_UPDATE = 'charging-stations/:id/firmware/update',
   REST_CHARGING_STATIONS_CHANGE_AVAILABILITY = 'charging-stations/:id/availability/change',
   REST_CHARGING_STATIONS_RESERVE_NOW = 'charging-stations/:id/reserve/now',
+  REST_CHARGING_STATIONS_CANCEL_RESERVATION = 'charging-stations/:id/cancel/reservation',
 
   REST_CHARGING_STATIONS_DOWNLOAD_FIRMWARE = 'charging-stations/firmware/download',
   REST_CHARGING_STATIONS_QRCODE_GENERATE = 'charging-stations/:id/connectors/:connectorId/qrcode/generate',

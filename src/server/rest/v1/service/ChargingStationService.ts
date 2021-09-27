@@ -1108,8 +1108,39 @@ export default class ChargingStationService {
         message: 'Charging Station is not connected to the backend',
       });
     }
-
     const result = await chargingStationClient.reserveNow(filteredRequest.args);
+    res.json(result);
+    next();
+  }
+
+  public static async handleCancelReservation(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check auth
+    if (!await Authorizations.canListChargingStations(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.LIST, entity: Entity.CHARGING_STATIONS,
+        module: MODULE_NAME, method: 'handleCancelReservation'
+      });
+    }
+    // Request assembly
+    req.body.chargingStationID = req.params.id;
+    // Filter
+    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionCancelReservationReq(req.body);
+    // Get the Charging station
+    const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
+      req.tenant, req.user, filteredRequest.chargingStationID, action, null, { withSite: true, withSiteArea: true });
+    // Get the OCPP Client
+    const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(req.tenant, chargingStation);
+    if (!chargingStationClient) {
+      throw new BackendError({
+        source: req.params.id,
+        action: action,
+        module: MODULE_NAME, method: 'handleCancelReservation',
+        message: 'Charging Station is not connected to the backend',
+      });
+    }
+    const result = await chargingStationClient.cancelReservation(filteredRequest.args);
     res.json(result);
     next();
   }
