@@ -148,6 +148,8 @@ export interface HttpChargingStationCommandDataTransferRequest {
 
 export interface HttpChargingStationStartTransactionRequest {
   chargingStationID: string,
+  carID?: string,
+  userID?: string,
   args: {
     tagID?: string,
     visualTagID?: string,
