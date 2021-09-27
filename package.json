@@ -217,7 +217,7 @@
     "@types/validator": "^13.1.3",
     "@types/ws": "^7.4.4",
     "@typescript-eslint/eslint-plugin": "^4.25.0",
-    "@typescript-eslint/parser": "^4.25.0",
+    "@typescript-eslint/parser": "^4.32.0",
     "autocannon": "^7.3.0",
     "chai": "^4.3.4",
     "chai-datetime": "^1.8.0",
