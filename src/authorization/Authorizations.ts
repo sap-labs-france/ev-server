@@ -899,7 +899,7 @@ export default class Authorizations {
       for (let i = chargingStation.remoteAuthorizations.length; i >= 0; i--) {
         const remoteAuthorization = chargingStation.remoteAuthorizations[i];
         // Check validity
-        if (OCPIUtils.isAuthorizationValid(remoteAuthorization.timestamp)) {
+        if (remoteAuthorization && OCPIUtils.isAuthorizationValid(remoteAuthorization.timestamp)) {
           // Check Tag ID
           if (remoteAuthorization.tagId === tag.ocpiToken?.uid) {
             await Logging.logDebug({
