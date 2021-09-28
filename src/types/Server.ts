@@ -36,8 +36,8 @@ export enum ServerAction {
   CHARGING_STATION_UPDATE_PARAMS = 'RestChargingStationUpdateParams',
   CHARGING_STATION_LIMIT_POWER = 'RestChargingStationLimitPower',
   CHARGING_STATION_DELETE = 'RestChargingStationDelete',
-  CHARGING_STATION_RESERVE_NOW = 'RestChargingStationReserveNpw',
-  CHARGING_STATION_CANCEL_RESERVATION = 'RestChargingStationCancelReservation',
+  CHARGING_STATION_RESERVE_NOW = 'RestChargingStationReserveNow',
+  CHARGING_STATION_CANCEL_RESERVATION = 'RestChargingStationReservationCancel',
 
   CHECK_SMART_CHARGING_CONNECTION = 'RestCheckSmartChargingConnection',
   TRIGGER_SMART_CHARGING = 'RestTriggerSmartCharging',

@@ -133,7 +133,7 @@ export interface HttpChargingStationClearCacheRequest {
   chargingStationID: string
 }
 
-export interface HttpChargingStationCancelReservationRequest {
+export interface HttpChargingStationReservationCancelRequest {
   chargingStationID: string,
   args: {
     reservationId: number;
