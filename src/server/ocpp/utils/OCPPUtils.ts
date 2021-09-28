@@ -1629,7 +1629,7 @@ export default class OCPPUtils {
         source: ocppHeader.chargeBoxIdentity,
         module: MODULE_NAME,
         method: 'checkAndGetTenantAndChargingStation',
-        message: 'Cannot aquire a lock on the Charging Station'
+        message: 'Cannot acquire a lock on the Charging Station'
       });
     }
     // Get the Charging Station

@@ -1,5 +1,5 @@
 import { Action, Entity } from '../../../../types/Authorization';
-import ChargingStation, { ChargingStationOcppParameters, ChargingStationQRCode, Command, OCPPParams, StaticLimitAmps } from '../../../../types/ChargingStation';
+import ChargingStation, { ChargingStationOcppParameters, ChargingStationQRCode, Command, OCPPParams, OcppParameter, StaticLimitAmps } from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { HttpChargingStationChangeConfigurationRequest, HttpChargingStationGetCompositeScheduleRequest, HttpChargingStationStartTransactionRequest, HttpChargingStationStopTransactionRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { NextFunction, Request, Response } from 'express';
@@ -1865,7 +1865,7 @@ export default class ChargingStationService {
     });
     // Check
     if (result.status === OCPPConfigurationStatus.ACCEPTED ||
-      result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
+        result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
       // Reboot?
       if (result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
         await Logging.logWarning({
@@ -1908,7 +1908,7 @@ export default class ChargingStationService {
           }
         } else {
           // Add custom param
-          chargingStationOcppParameters.configuration.push(filteredRequest.args);
+          chargingStationOcppParameters.configuration.push(filteredRequest.args as OcppParameter);
           // Save
           await ChargingStationStorage.saveOcppParameters(req.tenant, chargingStationOcppParameters);
         }
