@@ -9,6 +9,7 @@ import addFormats from 'ajv-formats';
 import countries from 'i18n-iso-countries';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
+import keywords from 'ajv-keywords';
 import sanitize from 'mongo-sanitize';
 
 // AJV Format in JSon Schema: https://github.com/ajv-validator/ajv-formats
@@ -39,6 +40,8 @@ export default class SchemaValidator {
       }) {
     // Create AJV
     this.ajv = new Ajv(config);
+    // Add keywords
+    keywords(this.ajv);
     // Add MongoDB sanitizer
     this.ajv.addKeyword({
       keyword: 'sanitize',
