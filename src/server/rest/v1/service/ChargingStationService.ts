@@ -4,8 +4,6 @@ import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { HttpChargingStationChangeConfigurationRequest, HttpChargingStationGetCompositeScheduleRequest, HttpChargingStationStartTransactionRequest, HttpChargingStationStopTransactionRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { NextFunction, Request, Response } from 'express';
 import { OCPPChangeConfigurationCommandResult, OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPStatus, OCPPUnlockStatus } from '../../../../types/ocpp/OCPPClient';
-import Tenant, { TenantComponents } from '../../../../types/Tenant';
-import { filter, result } from 'lodash';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
@@ -42,6 +40,7 @@ import SmartChargingFactory from '../../../../integration/smart-charging/SmartCh
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
+import { TenantComponents } from '../../../../types/Tenant';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import User from '../../../../types/User';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
@@ -463,15 +462,15 @@ export default class ChargingStationService {
       }
     }
     // Call the limitation
-    const result1 = await chargingStationVendor.setStaticPowerLimitation(req.tenant, chargingStation,
+    const result = await chargingStationVendor.setStaticPowerLimitation(req.tenant, chargingStation,
       chargePoint, filteredRequest.ampLimitValue);
-    if (result1.status !== OCPPConfigurationStatus.ACCEPTED && result1.status !== OCPPConfigurationStatus.REBOOT_REQUIRED) {
+    if (result.status !== OCPPConfigurationStatus.ACCEPTED && result.status !== OCPPConfigurationStatus.REBOOT_REQUIRED) {
       throw new AppError({
         source: chargingStation.id,
         action: action,
         errorCode: HTTPError.LIMIT_POWER_ERROR,
         module: MODULE_NAME, method: 'handleChargingStationLimitPower',
-        message: `Cannot limit the charger's power to ${filteredRequest.ampLimitValue}A: '${result1.status}'`,
+        message: `Cannot limit the charger's power to ${filteredRequest.ampLimitValue}A: '${result.status}'`,
         detailedMessages: { result },
         user: req.user
       });
@@ -489,7 +488,7 @@ export default class ChargingStationService {
       message: `The charger's power limit has been successfully set to ${filteredRequest.ampLimitValue}A`,
       detailedMessages: { result }
     });
-    res.json({ status: result1.status });
+    res.json({ status: result.status });
     next();
   }
 
@@ -770,11 +769,11 @@ export default class ChargingStationService {
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${filteredRequest.chargingStationID}' does not exist`,
       MODULE_NAME, 'handleRequestChargingStationOcppParameters', req.user);
     // Get the configuration
-    let result2 = await OCPPUtils.requestAndSaveChargingStationOcppParameters(req.tenant, chargingStation);
+    let result = await OCPPUtils.requestAndSaveChargingStationOcppParameters(req.tenant, chargingStation);
     if (filteredRequest.forceUpdateOCPPParamsFromTemplate) {
-      result2 = await OCPPUtils.updateChargingStationOcppParametersWithTemplate(req.tenant, chargingStation);
+      result = await OCPPUtils.updateChargingStationOcppParametersWithTemplate(req.tenant, chargingStation);
     }
-    res.json(result2);
+    res.json(result);
     next();
   }
 
@@ -1221,7 +1220,7 @@ export default class ChargingStationService {
         // Clear Cache
         case Command.CLEAR_CACHE:
           filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionCacheClearReq(req.body);
-          result = result = await chargingStationClient.clearCache();
+          result = await chargingStationClient.clearCache();
           break;
         // Change Availability
         case Command.CHANGE_AVAILABILITY:
@@ -1713,23 +1712,23 @@ export default class ChargingStationService {
       });
     }
     // Get composite schedule
-    let result3: any;
+    let result: any;
     if (filteredRequest.args.connectorId === 0) {
-      result3 = [] as OCPPGetCompositeScheduleCommandResult[];
+      result = [] as OCPPGetCompositeScheduleCommandResult[];
       for (const connector of chargingStation.connectors) {
         // Connector ID > 0
         const chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
-        result3.push(await chargingStationVendor.getCompositeSchedule(
+        result.push(await chargingStationVendor.getCompositeSchedule(
           req.tenant, chargingStation, chargePoint, connector.connectorId, filteredRequest.args.duration, filteredRequest.args.chargingRateUnit));
       }
     } else {
       // Connector ID > 0
       const connector = Utils.getConnectorFromID(chargingStation, filteredRequest.args.connectorId);
       const chargePoint = Utils.getChargePointFromID(chargingStation, connector?.chargePointID);
-      result3 = await chargingStationVendor.getCompositeSchedule(
+      result = await chargingStationVendor.getCompositeSchedule(
         req.tenant, chargingStation, chargePoint, filteredRequest.args.connectorId, filteredRequest.args.duration, filteredRequest.args.chargingRateUnit);
     }
-    return result3;
+    return result;
   }
 
   private static async executeChargingStationStartTransaction(action: ServerAction, chargingStation: ChargingStation, command: Command,
@@ -1860,15 +1859,15 @@ export default class ChargingStationService {
       filteredRequest: HttpChargingStationChangeConfigurationRequest, req: Request, res: Response, next: NextFunction,
       chargingStationClient: ChargingStationClient): Promise<OCPPChangeConfigurationCommandResult> {
     // Change the config
-    const result4 = await chargingStationClient.changeConfiguration({
+    const result = await chargingStationClient.changeConfiguration({
       key: filteredRequest.args.key,
       value: filteredRequest.args.value
     });
     // Check
-    if (result4.status === OCPPConfigurationStatus.ACCEPTED ||
-      result4.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
+    if (result.status === OCPPConfigurationStatus.ACCEPTED ||
+      result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
       // Reboot?
-      if (result4.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
+      if (result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
         await Logging.logWarning({
           tenantID: req.tenant.id,
           siteID: chargingStation.siteID,
@@ -1881,7 +1880,7 @@ export default class ChargingStationService {
           module: MODULE_NAME, method: 'handleChargingStationCommand',
           // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           message: `Reboot is required due to change of OCPP Parameter '${filteredRequest.args.key}' to '${filteredRequest.args.value}'`,
-          detailedMessages: { result4 }
+          detailedMessages: { result }
         });
       }
       // Custom param?
@@ -1923,6 +1922,6 @@ export default class ChargingStationService {
         await chargingStationVendor.checkUpdateOfOCPPParams(req.tenant, chargingStation, filteredRequest.args.key, filteredRequest.args.value);
       }
     }
-    return result4;
+    return result;
   }
 }
