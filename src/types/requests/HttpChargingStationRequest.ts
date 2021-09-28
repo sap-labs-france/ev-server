@@ -123,7 +123,7 @@ export interface HttpChargingStationChangeAvailabilityRequest extends HttpChargi
 export interface HttpChargingStationChangeConfigurationRequest extends HttpChargingStationCommandRequest {
   args: {
     key: string,
-    value: string;
+    value: string,
   }
 }
 
