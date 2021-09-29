@@ -138,6 +138,13 @@ export interface HttpChargingStationCommandDataTransferRequest extends HttpCharg
   }
 }
 
+export interface HttpChargingStationReservationCancelRequest {
+  chargingStationID: string,
+  args: {
+    reservationId: number;
+  }
+}
+
 export interface HttpChargingStationStartTransactionRequest extends HttpChargingStationCommandRequest {
   carID?: string,
   userID?: string,
@@ -189,7 +196,7 @@ export interface HttpChargingStationReserveNowRequest extends HttpChargingStatio
     expiryDate: Date;
     idTag: string;
     parentIdTag?: string;
-    reservationId: string;
+    reservationId: number;
   }
 }
 

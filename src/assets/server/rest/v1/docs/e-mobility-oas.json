@@ -3132,6 +3132,85 @@
         }
       }
     },
+    "/api/charging-stations/{id}/reservation/cancel": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Cancel Reservation",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "args": {
+                    "type": "object",
+                    "properties": {
+                      "reservationId": {
+                        "type": "number",
+                        "description": "Required. Id of the reservation to cancel.",
+                        "example": 12
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Reservation has been successfully cancelled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "accepted": {
+                    "summary": "Accepted",
+                    "value": {
+                      "status": "Accepted"
+                    }
+                  },
+                  "rejected": {
+                    "summary": "Rejected",
+                    "value": {
+                      "status": "Rejected"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
     "/api/charging-stations/{id}/data/transfer": {
       "put": {
         "security": [

@@ -10,7 +10,6 @@ import CentralSystemRestServiceConfiguration from '../types/configuration/Centra
 import CentralSystemServerConfiguration from '../types/configuration/CentralSystemServerConfiguration';
 import ChargingStationConfiguration from '../types/configuration/ChargingStationConfiguration';
 import ChargingStationTemplatesConfiguration from '../types/configuration/ChargingStationTemplatesConfiguration';
-import ClusterConfiguration from '../types/configuration/ClusterConfiguration';
 import { Configuration as ConfigurationData } from '../types/configuration/Configuration';
 import Constants from './Constants';
 import CryptoConfiguration from '../types/configuration/CryptoConfiguration';
@@ -35,7 +34,6 @@ import WSDLEndpointConfiguration from '../types/configuration/WSDLEndpointConfig
 import chalk from 'chalk';
 import fs from 'fs';
 import global from './../types/GlobalType';
-import os from 'os';
 
 export default class Configuration {
   private static config: ConfigurationData;
@@ -75,30 +73,6 @@ export default class Configuration {
       firebaseConfig.privateKey = Configuration.getUserProvidedCredentialsValue(CloudCredentialsKey.FIREBASE_PRIVATE_KEY);
     }
     return firebaseConfig;
-  }
-
-  // Cluster config
-  public static getClusterConfig(): ClusterConfiguration {
-    // Read conf and set defaults values
-    let clusterConfig: ClusterConfiguration = Configuration.getConfig().Cluster;
-    const nbCpus = os.cpus().length;
-    if (Configuration.isUndefined(clusterConfig)) {
-      clusterConfig = {} as ClusterConfiguration;
-    }
-    if (Configuration.isUndefined(clusterConfig.enabled)) {
-      clusterConfig.enabled = false;
-    }
-    // Check number of workers
-    if (clusterConfig.numWorkers) {
-      if (clusterConfig.numWorkers < 2) {
-        clusterConfig.numWorkers = 2;
-      } else if (clusterConfig.numWorkers > nbCpus) {
-        clusterConfig.numWorkers = nbCpus;
-      }
-    } else {
-      clusterConfig.numWorkers = nbCpus;
-    }
-    return clusterConfig;
   }
 
   // Central System config

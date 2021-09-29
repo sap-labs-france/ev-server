@@ -49,7 +49,9 @@
     },
     "limit": {
       "type": "integer",
-      "sanitize": "mongo"
+      "sanitize": "mongo",
+      "minimum": 1,
+      "maximum": 500
     },
     "sortFields": {
       "type": "string",
