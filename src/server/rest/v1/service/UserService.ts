@@ -672,44 +672,46 @@ export default class UserService {
           passwordBlockedUntil: null
         });
     }
-    // Only Admin can save these data
-    if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
-      // Save User Status
-      if (newUser.status) {
-        await UserStorage.saveUserStatus(req.tenant, newUser.id, newUser.status);
+    // Save User Status
+    if (newUser.status) {
+      await UserStorage.saveUserStatus(req.tenant, newUser.id, newUser.status);
+    }
+    // Save User Role
+    if (newUser.role) {
+      await UserStorage.saveUserRole(req.tenant, newUser.id, newUser.role);
+    }
+    // Save Admin Data
+    if (newUser.plateID || Utils.objectHasProperty(newUser, 'notificationsActive') || Utils.objectHasProperty(newUser, 'technical')) {
+      const adminData: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications, technical?: boolean } = {};
+      if (newUser.plateID) {
+        adminData.plateID = newUser.plateID;
       }
-      // Save User Role
-      if (newUser.role) {
-        await UserStorage.saveUserRole(req.tenant, newUser.id, newUser.role);
+      if (Utils.objectHasProperty(newUser, 'notificationsActive')) {
+        adminData.notificationsActive = newUser.notificationsActive;
+        if (newUser.notifications) {
+          adminData.notifications = newUser.notifications;
+        }
       }
-      // Save Admin Data
-      if (newUser.plateID || Utils.objectHasProperty(newUser, 'notificationsActive') || Utils.objectHasProperty(newUser, 'technical')) {
-        const adminData: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications, technical?: boolean } = {};
-        if (newUser.plateID) {
-          adminData.plateID = newUser.plateID;
-        }
-        if (Utils.objectHasProperty(newUser, 'notificationsActive')) {
-          adminData.notificationsActive = newUser.notificationsActive;
-          if (newUser.notifications) {
-            adminData.notifications = newUser.notifications;
-          }
-        }
-        if (authorizationFilter.projectFields.includes('technical')) {
-          adminData.technical = newUser.technical;
-        }
-        // Save User Admin data
-        await UserStorage.saveUserAdminData(req.tenant, newUser.id, adminData);
+      if (authorizationFilter.projectFields.includes('technical')) {
+        adminData.technical = newUser.technical;
+      }
+      // Save User Admin data
+      await UserStorage.saveUserAdminData(req.tenant, newUser.id, adminData);
+    }
+    let siteIDs = [];
+    if (!Utils.isEmptyArray(req.user.sitesAdmin)) {
+      siteIDs = req.user.sitesAdmin;
+    } else {
+      // Assign user to all sites with auto-assign flag set
+      const sites = await SiteStorage.getSites(req.tenant,
+        { withAutoUserAssignment: true },
+        Constants.DB_PARAMS_MAX_LIMIT
+      );
+      if (!Utils.isEmptyArray(sites.result)) {
+        siteIDs = sites.result.map((site) => site.id);
       }
     }
-    // Assign user to all sites with auto-assign flag set
-    const sites = await SiteStorage.getSites(req.tenant,
-      { withAutoUserAssignment: true },
-      Constants.DB_PARAMS_MAX_LIMIT
-    );
-    if (!Utils.isEmptyArray(sites.result)) {
-      const siteIDs = sites.result.map((site) => site.id);
-      await UserStorage.addSitesToUser(req.tenant, newUser.id, siteIDs);
-    }
+    await UserStorage.addSitesToUser(req.tenant, newUser.id, siteIDs);
     // Update Billing
     await UserService.updateUserBilling(ServerAction.USER_CREATE, req.tenant, req.user, newUser);
     // Log
