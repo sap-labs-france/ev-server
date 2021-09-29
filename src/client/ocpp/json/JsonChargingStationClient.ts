@@ -1,4 +1,4 @@
-import { OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPClearCacheCommandResult, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPDataTransferCommandParam, OCPPDataTransferCommandResult, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPReserveNowCommandParam, OCPPReserveNowCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUpdateFirmwareCommandParam } from '../../../types/ocpp/OCPPClient';
+import { OCPPCancelReservationCommandParam, OCPPCancelReservationCommandResult, OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPClearCacheCommandResult, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPDataTransferCommandParam, OCPPDataTransferCommandResult, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPReserveNowCommandParam, OCPPReserveNowCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUpdateFirmwareCommandParam } from '../../../types/ocpp/OCPPClient';
 
 import ChargingStationClient from '../../ocpp/ChargingStationClient';
 import { Command } from '../../../types/ChargingStation';
@@ -94,6 +94,10 @@ export default class JsonChargingStationClient extends ChargingStationClient {
 
   public async reserveNow(params: OCPPReserveNowCommandParam): Promise<OCPPReserveNowCommandResult> {
     return this.sendMessage(params, Command.RESERVE_NOW);
+  }
+
+  public async cancelReservation(params: OCPPCancelReservationCommandParam): Promise<OCPPCancelReservationCommandResult> {
+    return this.sendMessage(params, Command.CANCEL_RESERVATION);
   }
 
   private async sendMessage(params: any, command: Command): Promise<any> {

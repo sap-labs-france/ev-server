@@ -1,5 +1,5 @@
 import ChargingStation, { Command } from '../../../types/ChargingStation';
-import { OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPClearCacheCommandResult, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPDataTransferCommandParam, OCPPDataTransferCommandResult, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPReserveNowCommandParam, OCPPReserveNowCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUpdateFirmwareCommandParam } from '../../../types/ocpp/OCPPClient';
+import { OCPPCancelReservationCommandParam, OCPPCancelReservationCommandResult, OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPClearCacheCommandResult, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPDataTransferCommandParam, OCPPDataTransferCommandResult, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPReserveNowCommandParam, OCPPReserveNowCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUpdateFirmwareCommandParam } from '../../../types/ocpp/OCPPClient';
 
 import ChargingStationClient from '../ChargingStationClient';
 import Configuration from '../../../utils/Configuration';
@@ -434,6 +434,11 @@ export default class SoapChargingStationClient extends ChargingStationClient {
 
   // eslint-disable-next-line @typescript-eslint/require-await
   public async reserveNow(params: OCPPReserveNowCommandParam): Promise<OCPPReserveNowCommandResult> {
+    throw new Error('Method not implemented.');
+  }
+
+  // eslint-disable-next-line @typescript-eslint/require-await
+  public async cancelReservation(params: OCPPCancelReservationCommandParam): Promise<OCPPCancelReservationCommandResult> {
     throw new Error('Method not implemented.');
   }
   /* eslint-enable @typescript-eslint/no-unused-vars */

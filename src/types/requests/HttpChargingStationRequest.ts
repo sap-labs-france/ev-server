@@ -133,6 +133,13 @@ export interface HttpChargingStationClearCacheRequest {
   chargingStationID: string
 }
 
+export interface HttpChargingStationReservationCancelRequest {
+  chargingStationID: string,
+  args: {
+    reservationId: number;
+  }
+}
+
 export interface HttpChargingStationCommandDataTransferRequest {
   chargingStationID: string,
   args: {
@@ -198,7 +205,7 @@ export interface HttpChargingStationReserveNowRequest {
     expiryDate: Date;
     idTag: string;
     parentIdTag?: string;
-    reservationId: string;
+    reservationId: number;
   }
 }
 

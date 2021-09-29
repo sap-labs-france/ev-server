@@ -49,6 +49,7 @@ export default class ChargingStationRouter {
     this.buildRouteChargingStationGetBootNotifications();
     this.buildRouteChargingStationGetStatusNotifications();
     this.buildRouteChargingStationReserveNow();
+    this.buildRouteChargingStationCancelReservation();
     return this.router;
   }
 
@@ -284,6 +285,12 @@ export default class ChargingStationRouter {
   protected buildRouteChargingStationReserveNow(): void {
     this.router.put(`/${ServerRoute.REST_CHARGING_STATIONS_RESERVE_NOW}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(ChargingStationService.handleReserveNow.bind(this), ServerAction.CHARGING_STATION_RESERVE_NOW, req, res, next);
+    });
+  }
+
+  protected buildRouteChargingStationCancelReservation(): void {
+    this.router.put(`/${ServerRoute.REST_CHARGING_STATIONS_CANCEL_RESERVATION}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(ChargingStationService.handleCancelReservation.bind(this), ServerAction.CHARGING_STATION_CANCEL_RESERVATION, req, res, next);
     });
   }
 }

@@ -134,6 +134,7 @@ export enum Command {
   METER_VALUES = 'MeterValues',
   DATA_TRANSFER = 'DataTransfer',
   RESERVE_NOW = 'ReserveNow',
+  CANCEL_RESERVATION = 'CancelReservation',
 }
 
 export enum StaticLimitAmps {
