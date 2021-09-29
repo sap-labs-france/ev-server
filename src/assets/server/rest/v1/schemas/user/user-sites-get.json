@@ -25,6 +25,7 @@
     }
   },
   "required": [
-    "UserID"
+    "UserID",
+    "Limit"
   ]
 }
