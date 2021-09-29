@@ -150,7 +150,7 @@ export interface HttpChargingStationStartTransactionRequest extends HttpCharging
 
 export interface HttpChargingStationStopTransactionRequest extends HttpChargingStationCommandRequest {
   args: {
-    transactionID: number
+    transactionId: number
   }
 }
 

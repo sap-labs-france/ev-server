@@ -1806,22 +1806,10 @@ export default class ChargingStationService {
 
   private static async executeChargingStationStopTransaction(action: ServerAction, chargingStation: ChargingStation, command: Command,
       filteredRequest: HttpChargingStationStopTransactionRequest, req: Request, res: Response, next: NextFunction, chargingStationClient: ChargingStationClient): Promise<any> {
-    // Check Transaction ID
-    if (!filteredRequest.args || !filteredRequest.args.transactionID) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Transaction ID is mandatory',
-        module: MODULE_NAME,
-        method: 'handleAction',
-        user: req.user,
-        action: action,
-      });
-    }
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(
-      req.tenant, filteredRequest.args.transactionID, { withUser: true });
-    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.args.transactionID }' does not exist`,
+      req.tenant, filteredRequest.args.transactionId, { withUser: true });
+    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.args.transactionId }' does not exist`,
       MODULE_NAME, 'handleAction', req.user);
     // Get default Tag
     const tags = await TagStorage.getTags(req.tenant, { userIDs: [req.user.id], active: true }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);
@@ -1851,7 +1839,7 @@ export default class ChargingStationService {
     await TransactionStorage.saveTransaction(req.tenant, transaction);
     // Ok: Execute it
     return await chargingStationClient.remoteStopTransaction({
-      transactionId: filteredRequest.args.transactionID
+      transactionId: filteredRequest.args.transactionId
     });
   }
 
