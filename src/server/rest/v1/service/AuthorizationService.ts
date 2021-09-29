@@ -94,8 +94,7 @@ export default class AuthorizationService {
       site.canAssignUsers = false;
       site.canUnassignUsers = false;
     } else {
-      site.canRead = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.SITE, Action.READ, authorizationFilter, { SiteID: site.id }, site);
+      site.canRead = true; // Always true as it should be filtered upfront
       site.canDelete = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.SITE, Action.DELETE, authorizationFilter, { SiteID: site.id }, site);
       site.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
@@ -263,8 +262,7 @@ export default class AuthorizationService {
       user.canUpdate = false;
       user.canDelete = false;
     } else {
-      user.canRead = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.USER, Action.READ, authorizationFilter, { UserID: user.id }, user);
+      user.canRead = true; // Always true as it should be filtered upfront
       user.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.USER, Action.UPDATE, authorizationFilter, { UserID: user.id }, user);
       user.canDelete = await AuthorizationService.canPerformAuthorizationAction(
@@ -348,11 +346,10 @@ export default class AuthorizationService {
     // Enrich
     if (!tag.issuer) {
       tag.canRead = true;
-      // tag.canUpdate = false;
+      tag.canUpdate = false;
       tag.canDelete = false;
     } else {
-      tag.canRead = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.TAG, Action.READ, authorizationFilter, { TagID: tag.id }, tag);
+      tag.canRead = true; // Always true as it should be filtered upfront
       tag.canDelete = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.TAG, Action.DELETE, authorizationFilter, { TagID: tag.id }, tag);
       tag.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
@@ -401,8 +398,7 @@ export default class AuthorizationService {
       company.canUpdate = false;
       company.canDelete = false;
     } else {
-      company.canRead = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.COMPANY, Action.READ, authorizationFilter, { CompanyID: company.id }, company);
+      company.canRead = true; // Always true as it should be filtered upfront
       company.canDelete = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.COMPANY, Action.DELETE, authorizationFilter, { CompanyID: company.id }, company);
       company.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
@@ -502,8 +498,7 @@ export default class AuthorizationService {
       siteArea.canUnassignChargingStations = false;
     } else {
       // Downcast & enhance filters with values needed in dynamic filters
-      siteArea.canRead = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.SITE_AREA, Action.READ, authorizationFilter, { SiteAreaID: siteArea.id, SiteID: siteArea.siteID }, siteArea);
+      siteArea.canRead = true; // Always true as it should be filtered upfront
       siteArea.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.SITE_AREA, Action.DELETE, authorizationFilter, { SiteAreaID: siteArea.id, SiteID: siteArea.siteID }, siteArea);
       siteArea.canDelete = await AuthorizationService.canPerformAuthorizationAction(
@@ -584,8 +579,7 @@ export default class AuthorizationService {
       car.projectedFields = authorizationFilter.projectFields;
     }
     // Enrich
-    car.canRead = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.CAR, Action.READ, authorizationFilter, { CarID: car.id }, car);
+    car.canRead = true; // Always true as it should be filtered upfront
     car.canDelete = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CAR, Action.DELETE, authorizationFilter, { CarID: car.id }, car);
     car.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
@@ -628,8 +622,7 @@ export default class AuthorizationService {
       carCatalog.projectedFields = authorizationFilter.projectFields;
     }
     // Enrich
-    carCatalog.canRead = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.CAR_CATALOG, Action.READ, authorizationFilter, { CarCatalogID: carCatalog.id }, carCatalog);
+    carCatalog.canRead = true; // Always true as it should be filtered upfront
     carCatalog.canDelete = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CAR_CATALOG, Action.DELETE, authorizationFilter, { CarCatalogID: carCatalog.id }, carCatalog);
     carCatalog.canUpdate = await AuthorizationService.canPerformAuthorizationAction(

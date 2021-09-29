@@ -1,10 +1,12 @@
-import { AccessControl, IDictionary, IFunctionCondition } from 'role-acl';
+import { AccessControl, IDictionary, IFunctionCondition, Permission } from 'role-acl';
 import { Action, AuthorizationContext, AuthorizationDefinition, AuthorizationResult, Entity } from '../types/Authorization';
 
 import BackendError from '../exception/BackendError';
 import Constants from '../utils/Constants';
+import LockingHelper from '../locking/LockingHelper';
+import LockingManager from '../locking/LockingManager';
 import Utils from '../utils/Utils';
-import _ from 'lodash';
+import { authorize } from 'passport';
 
 const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   superAdmin: {
@@ -1003,6 +1005,7 @@ const MODULE_NAME = 'AuthorizationsDefinition';
 
 export default class AuthorizationsDefinition {
   private static instance: AuthorizationsDefinition;
+  private static authorizationCache: Map<string, AuthorizationResult> = new Map();
   private accessControl: AccessControl;
 
   private constructor() {
@@ -1060,13 +1063,27 @@ export default class AuthorizationsDefinition {
     }
   }
 
-  public async canPerformAction(roles: string[], resource: string, action: string, context?: any): Promise<AuthorizationResult> {
+  public async canPerformAction(roles: string[], resource: string, action: string, context: AuthorizationContext = {}): Promise<AuthorizationResult> {
     try {
-      const permission = await this.accessControl.can(roles).execute(action).with(context).on(resource);
-      return {
-        authorized: permission.granted,
-        fields: permission.attributes,
-      };
+      const authID = `${roles.toString()}~${resource}~${action}~${JSON.stringify(context)}}`;
+      // Check in cache
+      let authResult = AuthorizationsDefinition.authorizationCache.get(authID);
+      if (!authResult) {
+        // Not found: Compute & Store in cache
+        const permission = await this.accessControl.can(roles).execute(action).with(context).on(resource);
+        authResult = {
+          authorized: permission.granted,
+          fields: permission.attributes,
+          context: context,
+        };
+        AuthorizationsDefinition.authorizationCache.set(authID, Object.freeze(authResult));
+      } else {
+        // Enrich the current context
+        for (const contextKey in authResult.context) {
+          context[contextKey] = authResult.context[contextKey];
+        }
+      }
+      return authResult;
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,

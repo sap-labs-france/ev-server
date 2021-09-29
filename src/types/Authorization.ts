@@ -30,6 +30,7 @@ export interface AuthorizationDefinition {
 export interface AuthorizationResult {
   authorized: boolean;
   fields: string[];
+  context: AuthorizationContext;
 }
 
 export interface AuthorizationFilter {
