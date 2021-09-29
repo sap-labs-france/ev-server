@@ -42,7 +42,8 @@ const MODULE_NAME = 'TransactionService';
 export default class TransactionService {
 
   public static async handleGetTransactions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    res.json(await TransactionService.getTransactions(req, action, {}, [
+    // Get transactions
+    const transactions = await TransactionService.getTransactions(req, action, {}, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
       'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
       'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit',
@@ -50,7 +51,8 @@ export default class TransactionService {
       'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.meterStop',
       'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID', 'tag.visualID', 'stop.tag.visualID',
       'site.name', 'siteArea.name', 'company.name'
-    ]));
+    ]);
+    res.json(transactions);
     next();
   }
 

@@ -37,34 +37,34 @@ export default class TransactionValidator extends SchemaValidator {
   }
 
   public validateTransactionsGetReq(data: unknown): HttpTransactionsRequest {
-    return this.validate(this.transactionsGet, data);
+    return this.validate('validateTransactionsGetReq', this.transactionsGet, data);
   }
 
   public validateTransactionGetReq(data: unknown): HttpTransactionRequest {
-    return this.validate(this.transactionGet, data);
+    return this.validate('validateTransactionGetReq', this.transactionGet, data);
   }
 
   public validateTransactionsByIDsGetReq(data: unknown): { transactionsIDs: number[] } {
-    return this.validate(this.transactionsByIDsGet, data);
+    return this.validate('validateTransactionsByIDsGetReq', this.transactionsByIDsGet, data);
   }
 
   public validateTransactionCdrPushReq(data: unknown): HttpPushTransactionCdrRequest {
-    return this.validate(this.transactionCdrPush, data);
+    return this.validate('validateTransactionCdrPushReq', this.transactionCdrPush, data);
   }
 
   public validateTransactionConsumptionsGetReq(data: unknown): HttpConsumptionFromTransactionRequest {
-    return this.validate(this.transactionConsumptionsGet, data);
+    return this.validate('validateTransactionConsumptionsGetReq', this.transactionConsumptionsGet, data);
   }
 
   public validateTransactionsUserAssignReq(data: unknown): HttpAssignTransactionsToUserRequest {
-    return this.validate(this.transactionsUserAssign, data);
+    return this.validate('validateTransactionsUserAssignReq', this.transactionsUserAssign, data);
   }
 
   public validateTransactionsUnassignedCountReq(data: unknown): HttpUnassignTransactionsToUserRequest {
-    return this.validate(this.transactionsUnassignedCountGet, data);
+    return this.validate('validateTransactionsUnassignedCountReq', this.transactionsUnassignedCountGet, data);
   }
 
   public validateTransactionsInErrorGetReq(data: unknown): HttpTransactionsRequest {
-    return this.validate(this.transactionsInErrorGet, data);
+    return this.validate('validateTransactionsInErrorGetReq', this.transactionsInErrorGet, data);
   }
 }

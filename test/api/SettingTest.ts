@@ -42,10 +42,7 @@ let initialTenant: Tenant;
  * Update pricing setting to have sensitive data to test on it
  */
 async function updatePricingWithSensitiveDataAndCheckResultSuccessful():Promise<any> {
-  const crtPricingData = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, {
-    limit: TestConstants.UNLIMITED,
-    skip: 0
-  });
+  const crtPricingData = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, TestConstants.DEFAULT_PAGING);
   expect(crtPricingData.status).to.equal(StatusCodes.OK);
   expect(crtPricingData.data.count).to.equal(1);
   const clientSecret = 'a8242e0ed0fa70aee7c802e41e1c7c3b';
@@ -106,10 +103,7 @@ function getCryptoTestSettings(originalCryptoObject, newKeyProperties:CryptoKeyP
  *
  */
 async function getCurrentCryptoDataAndCheckResultSuccessful() {
-  const crtCryptoData = await testData.centralService.settingApi.readAll({ 'Identifier': 'crypto' }, {
-    limit: TestConstants.UNLIMITED,
-    skip: 0
-  });
+  const crtCryptoData = await testData.centralService.settingApi.readAll({ 'Identifier': 'crypto' }, TestConstants.DEFAULT_PAGING);
   expect(crtCryptoData.status).to.equal(StatusCodes.OK);
   expect(crtCryptoData.data.count).to.equal(1);
   return crtCryptoData;
@@ -149,7 +143,7 @@ describe('Setting', function() {
     testData.centralService = new CentralServerService(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS, { email: config.get('admin.username'), password: config.get('admin.password') });
     testData.credentials.email = config.get('admin.username');
     // Retrieve the tenant id from the name
-    const response = await testData.superCentralService.tenantApi.readAll({ 'Search' : ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS }, { limit: TestConstants.UNLIMITED, skip: 0 });
+    const response = await testData.superCentralService.tenantApi.readAll({ 'Search' : ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS }, TestConstants.DEFAULT_PAGING);
     testData.credentials.tenantId = response ? response.data.result[0].id : '';
     initialTenant = (await testData.superCentralService.tenantApi.readById(testData.credentials.tenantId)).data;
 
@@ -172,58 +166,55 @@ describe('Setting', function() {
   describe('Success cases (utall)', () => {
     it('Check that retrieving refund settings filtered by identifier returns just one result', async () => {
       // Retrieve the setting id
-      const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'refund' }, { limit: TestConstants.UNLIMITED, skip: 0 });
+      const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'refund' }, TestConstants.DEFAULT_PAGING);
       expect(read.status).to.equal(StatusCodes.OK);
       expect(read.data.count).to.equal(1);
     });
     it('Check that retrieving pricing settings filtered by identifier returns just one result', async () => {
       // Retrieve the setting id
-      const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'pricing' }, { limit: TestConstants.UNLIMITED, skip: 0 });
+      const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'pricing' }, TestConstants.DEFAULT_PAGING);
       expect(read.status).to.equal(StatusCodes.OK);
       expect(read.data.count).to.equal(1);
     });
     it('Check that retrieving organization settings filtered by identifier returns just one result', async () => {
       // Retrieve the setting id
-      const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'organization' }, { limit: TestConstants.UNLIMITED, skip: 0 });
+      const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'organization' }, TestConstants.DEFAULT_PAGING);
       expect(read.status).to.equal(StatusCodes.OK);
       expect(read.data.count).to.equal(1);
     });
     it('Check that retrieving analytics settings filtered by identifier returns just one result', async () => {
       // Retrieve the setting id
-      const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'analytics' }, { limit: TestConstants.UNLIMITED, skip: 0 });
+      const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'analytics' }, TestConstants.DEFAULT_PAGING);
       expect(read.status).to.equal(StatusCodes.OK);
       expect(read.data.count).to.equal(1);
     });
     it('Check that retrieving ocpi settings filtered by identifier returns just one result', async () => {
       // Retrieve the setting id
-      const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'ocpi' }, { limit: TestConstants.UNLIMITED, skip: 0 });
+      const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'ocpi' }, TestConstants.DEFAULT_PAGING);
       expect(read.status).to.equal(StatusCodes.OK);
       expect(read.data.count).to.equal(1);
     });
     it('Check that retrieving statistics settings filtered by identifier returns just one result', async () => {
       // Retrieve the setting id
-      const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'statistics' }, { limit: TestConstants.UNLIMITED, skip: 0 });
+      const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'statistics' }, TestConstants.DEFAULT_PAGING);
       expect(read.status).to.equal(StatusCodes.OK);
       expect(read.data.count).to.equal(1);
     });
     it('Check that retrieving crypto settings filtered by identifier returns one result', async () => {
-      const read = await testData.centralService.settingApi.readAll({ 'Identifier': 'crypto' }, { limit: TestConstants.UNLIMITED, skip: 0 });
+      const read = await testData.centralService.settingApi.readAll({ 'Identifier': 'crypto' }, TestConstants.DEFAULT_PAGING);
       expect(read.status).to.equal(StatusCodes.OK);
       expect(read.data.count).to.equal(1);
     });
     it('Check that retrieving setting by id is working', async () => {
       // Retrieve the setting id
-      const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'pricing' }, { limit: TestConstants.UNLIMITED, skip: 0 });
+      const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'pricing' }, TestConstants.DEFAULT_PAGING);
       expect(read.status).to.equal(StatusCodes.OK);
       const response = await testData.centralService.settingApi.readById(read.data.result[0].id);
       expect(response.status).to.equal(StatusCodes.OK);
     });
     it('Check that changing the pricing component from simple to convergent charging back and forth works', async () => {
       // Retrieve the setting id
-      const read = await testData.centralService.settingApi.readAll({ 'Identifier': 'pricing' }, {
-        limit: TestConstants.UNLIMITED,
-        skip: 0
-      });
+      const read = await testData.centralService.settingApi.readAll({ 'Identifier': 'pricing' }, TestConstants.DEFAULT_PAGING);
       expect(read.status).to.equal(StatusCodes.OK);
       expect(read.data.count).to.equal(1);
       // Store the old setting
@@ -276,10 +267,7 @@ describe('Setting', function() {
           crtCryptoData.data.result[0].content.crypto.keyProperties.blockSize, crtCryptoData.data.result[0].content.crypto.keyProperties.operationMode);
 
         // Get setting with sensitive data after crypto setting update
-        const readSettingAfter = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, {
-          limit: TestConstants.UNLIMITED,
-          skip: 0
-        });
+        const readSettingAfter = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, TestConstants.DEFAULT_PAGING);
         expect(readSettingAfter.status).to.equal(StatusCodes.OK);
         expect(readSettingAfter.data.count).to.equal(1);
 
@@ -549,15 +537,15 @@ describe('Setting', function() {
   describe('Settings authorization tests', () => {
     describe('With admin user', () => {
       it('Should be able to read all settings', async () => {
-        const read = await testData.centralService.settingApi.readAll({}, { limit: TestConstants.UNLIMITED, skip: 0 });
+        const read = await testData.centralService.settingApi.readAll({}, TestConstants.DEFAULT_PAGING);
         expect(read.status).to.equal(StatusCodes.OK);
       });
       it('Should be able to read setting by identifier', async () => {
-        const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'pricing' }, { limit: TestConstants.UNLIMITED, skip: 0 });
+        const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'pricing' }, TestConstants.DEFAULT_PAGING);
         expect(read.status).to.equal(StatusCodes.OK);
       });
       it('Should be able to read setting by id', async () => {
-        const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'pricing' }, { limit: TestConstants.UNLIMITED, skip: 0 });
+        const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'pricing' }, TestConstants.DEFAULT_PAGING);
         expect(read.status).to.equal(StatusCodes.OK);
         const response = await testData.centralService.settingApi.readById(read.data.result[0].id);
         expect(response.status).to.equal(StatusCodes.OK);
@@ -573,15 +561,15 @@ describe('Setting', function() {
         expect(create.status).to.equal(StatusCodes.OK);
       });
       it('Should be able to update a setting', async () => {
-        const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'test' }, { limit: TestConstants.UNLIMITED, skip: 0 });
+        const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'test' }, TestConstants.DEFAULT_PAGING);
         read.data.result[0].content.type = 'updated';
         const update = await testData.centralService.settingApi.update(read.data.result[0]);
         expect(update.status).to.equal(StatusCodes.OK);
-        const readUpdated = await testData.centralService.settingApi.readAll({ 'Identifier' : 'test' }, { limit: TestConstants.UNLIMITED, skip: 0 });
+        const readUpdated = await testData.centralService.settingApi.readAll({ 'Identifier' : 'test' }, TestConstants.DEFAULT_PAGING);
         expect(readUpdated.data.result[0].content.type).to.equal('updated');
       });
       it('Should be able to delete the created setting', async () => {
-        const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'test' }, { limit: TestConstants.UNLIMITED, skip: 0 });
+        const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'test' }, TestConstants.DEFAULT_PAGING);
         const create = await testData.centralService.settingApi.delete(read.data.result[0].id);
         expect(create.status).to.equal(StatusCodes.OK);
       });
@@ -602,7 +590,7 @@ describe('Setting', function() {
 
       it('Should not be able to read all settings', async () => {
         try {
-          const read = await testData.userService.settingApi.readAll({}, { limit: TestConstants.UNLIMITED, skip: 0 });
+          const read = await testData.userService.settingApi.readAll({}, TestConstants.DEFAULT_PAGING);
           expect(read.status).to.not.equal(StatusCodes.OK);
         } catch (error) {
           expect(error.actual).to.equal(StatusCodes.FORBIDDEN);
@@ -610,7 +598,7 @@ describe('Setting', function() {
       });
       it('Should not be able to read setting by identifier', async () => {
         try {
-          const read = await testData.userService.settingApi.readAll({ 'Identifier' : 'pricing' }, { limit: TestConstants.UNLIMITED, skip: 0 });
+          const read = await testData.userService.settingApi.readAll({ 'Identifier' : 'pricing' }, TestConstants.DEFAULT_PAGING);
           expect(read.status).to.not.equal(StatusCodes.OK);
         } catch (error) {
           expect(error.actual).to.equal(StatusCodes.FORBIDDEN);

@@ -214,7 +214,7 @@ export interface OCPPReserveNowCommandParam extends OCPPCommandParam {
   expiryDate: Date;
   idTag: string;
   parentIdTag?: string;
-  reservationId: string;
+  reservationId: number;
 }
 
 export enum OCPPReserveNowStatus {
@@ -227,4 +227,17 @@ export enum OCPPReserveNowStatus {
 
 export interface OCPPReserveNowCommandResult {
   status: OCPPReserveNowStatus;
+}
+
+export interface OCPPCancelReservationCommandParam extends OCPPCommandParam {
+  reservationId: number;
+}
+
+export enum OCPPCancelReservationStatus {
+  ACCEPTED = 'Accepted',
+  REJECTED = 'Rejected'
+}
+
+export interface OCPPCancelReservationCommandResult {
+  status: OCPPCancelReservationStatus;
 }

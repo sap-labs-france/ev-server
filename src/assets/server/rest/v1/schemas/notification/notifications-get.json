@@ -29,5 +29,7 @@
       "$ref": "common.json#/definitions/skip"
     }
   },
-  "required": []
+  "required": [
+    "Limit"
+  ]
 }

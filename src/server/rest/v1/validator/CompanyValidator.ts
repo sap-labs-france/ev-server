@@ -31,22 +31,22 @@ export default class CompanyValidator extends SchemaValidator {
   }
 
   public validateCompaniesGetReq(data: unknown): HttpCompaniesRequest {
-    return this.validate(this.companiesGet, data);
+    return this.validate('validateCompaniesGetReq', this.companiesGet, data);
   }
 
   public validateCompanyGetReq(data: unknown): HttpCompanyRequest {
-    return this.validate(this.companyGet, data);
+    return this.validate('validateCompanyGetReq', this.companyGet, data);
   }
 
   public validateCompanyCreateReq(data: unknown): Company {
-    return this.validate(this.companyCreate, data);
+    return this.validate('validateCompanyCreateReq', this.companyCreate, data);
   }
 
   public validateCompanyUpdateReq(data: unknown): Company {
-    return this.validate(this.companyUpdate, data);
+    return this.validate('validateCompanyUpdateReq', this.companyUpdate, data);
   }
 
   public validateCompanyLogoGetReq(data: unknown): HttpCompanyLogoRequest {
-    return this.validate(this.companyLogoGet, data);
+    return this.validate('validateCompanyLogoGetReq', this.companyLogoGet, data);
   }
 }
