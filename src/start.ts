@@ -227,7 +227,7 @@ export default class Bootstrap {
         Bootstrap.oDataServer = new ODataServer(Bootstrap.oDataServerConfig);
         // Start server instance
         await Bootstrap.oDataServer.start();
-        serverStarted.push('ODATA');
+        serverStarted.push('OData');
       }
     } catch (error) {
       console.error(chalk.red(error));
@@ -238,6 +238,10 @@ export default class Bootstrap {
         message: `Unexpected exception in ${serverStarted.join(', ')}: ${error.toString()}`,
         detailedMessages: { error: error.stack }
       });
+    }
+    // Batch server only
+    if (Utils.isEmptyArray(serverStarted)) {
+      serverStarted.push('Batch');
     }
     return serverStarted;
   }
