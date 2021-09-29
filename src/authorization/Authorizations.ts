@@ -25,8 +25,6 @@ import { PricingSettingsType } from '../types/Setting';
 import { ServerAction } from '../types/Server';
 import SessionHashService from '../server/rest/v1/service/SessionHashService';
 import SettingStorage from '../storage/mongodb/SettingStorage';
-import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
-import SiteStorage from '../storage/mongodb/SiteStorage';
 import Tag from '../types/Tag';
 import TagStorage from '../storage/mongodb/TagStorage';
 import Transaction from '../types/Transaction';
@@ -896,7 +894,7 @@ export default class Authorizations {
     let authorizationID: string;
     if (!Utils.isEmptyArray(chargingStation.remoteAuthorizations)) {
       let remoteAuthorizationsUpdated = false;
-      for (let i = chargingStation.remoteAuthorizations.length; i >= 0; i--) {
+      for (let i = chargingStation.remoteAuthorizations.length - 1; i >= 0; i--) {
         const remoteAuthorization = chargingStation.remoteAuthorizations[i];
         // Check validity
         if (remoteAuthorization && OCPIUtils.isAuthorizationValid(remoteAuthorization.timestamp)) {
