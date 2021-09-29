@@ -195,7 +195,7 @@
     "@types/intl": "^1.2.0",
     "@types/jsonstream": "^0.8.30",
     "@types/jsonwebtoken": "^8.5.1",
-    "@types/lodash": "^4.14.170",
+    "@types/lodash": "^4.14.175",
     "@types/mocha": "^8.2.2",
     "@types/mochawesome": "^6.2.0",
     "@types/moment-duration-format": "^2.2.3",
