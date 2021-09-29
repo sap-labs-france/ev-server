@@ -5,7 +5,6 @@ import AssetStorage from '../../../src/storage/mongodb/AssetStorage';
 import CentralServerService from '../client/CentralServerService';
 import ChargingStation from '../../../src/types/ChargingStation';
 import CompanyStorage from '../../../src/storage/mongodb/CompanyStorage';
-import Constants from '../../../src/utils/Constants';
 import Factory from '../../factories/Factory';
 import MongoDBStorage from '../../../src/storage/mongodb/MongoDBStorage';
 import OCPIEndpoint from '../../../src/types/ocpi/OCPIEndpoint';
@@ -25,6 +24,7 @@ import { TenantComponents } from '../../../src/types/Tenant';
 import TenantContext from './TenantContext';
 import TenantFactory from '../../factories/TenantFactory';
 import TenantStorage from '../../../src/storage/mongodb/TenantStorage';
+import TestConstants from '../client/utils/TestConstants';
 import User from '../../../src/types/User';
 import UserFactory from '../../factories/UserFactory';
 import UserStorage from '../../../src/storage/mongodb/UserStorage';
@@ -163,7 +163,7 @@ export default class ContextBuilder {
     // Create Tenant component settings
     if (tenantContextDef.componentSettings) {
       console.log(`Settings in tenant ${buildTenant.name} as ${JSON.stringify(tenantContextDef.componentSettings, null, ' ')}`);
-      const allSettings: any = await localCentralServiceService.settingApi.readAll({}, Constants.DB_PARAMS_MAX_LIMIT);
+      const allSettings: any = await localCentralServiceService.settingApi.readAll({}, TestConstants.DEFAULT_PAGING);
       expect(allSettings.status).to.equal(StatusCodes.OK);
       for (const componentSettingKey in tenantContextDef.componentSettings) {
         let foundSetting: any = null;
@@ -257,7 +257,7 @@ export default class ContextBuilder {
     const newTenantContext = new TenantContext(tenantContextDef.tenantName, buildTenant, '', localCentralServiceService, null);
     this.tenantsContexts.push(newTenantContext);
     newTenantContext.addUsers(userList);
-    tagList = (await TagStorage.getTags(buildTenant, {}, Constants.DB_PARAMS_MAX_LIMIT)).result;
+    tagList = (await TagStorage.getTags(buildTenant, {}, TestConstants.DEFAULT_PAGING)).result;
     newTenantContext.addTags(tagList);
     // Check if Organization is active
     if (buildTenant.components && Utils.objectHasProperty(buildTenant.components, TenantComponents.ORGANIZATION) &&
