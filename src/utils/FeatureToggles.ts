@@ -5,6 +5,8 @@ export enum Feature {
   BILLING_CHECK_THRESHOLD_ON_STOP,
   BILLING_PREVENT_CUSTOMER_DELETION,
   PRICING_NEW_MODEL,
+  BILLING_SHOW_PRICING_DETAIL,
+  BILLING_SHOW_SESSION_HEADER,
 }
 
 export default class FeatureToggles {
@@ -14,6 +16,8 @@ export default class FeatureToggles {
     Feature.BILLING_CHECK_THRESHOLD_ON_STOP,
     Feature.BILLING_PREVENT_CUSTOMER_DELETION,
     Feature.PRICING_NEW_MODEL,
+    // Feature.BILLING_SHOW_PRICING_DETAIL,
+    Feature.BILLING_SHOW_SESSION_HEADER,
   ];
 
   // Check whether the feature is active or not!

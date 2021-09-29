@@ -85,6 +85,7 @@ export interface BillingInvoiceItem {
   transactionID: number;
   currency: string;
   pricingData: PricedConsumptionData[]
+  headerDescription?: string,
   metadata?: {
     // Just a flat list of key/value pairs!
     [name: string]: string | number | null;

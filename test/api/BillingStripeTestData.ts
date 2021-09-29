@@ -198,7 +198,7 @@ export default class StripeIntegrationTestData {
     const dynamicInvoice = await this.billInvoiceItem({
       energyConsumptionkWh: 4, // kWh
       energyAmount: 1, // EUR
-      partingTime: 10, // Minutes
+      parkingTime: 10, // Minutes
       parkingAmount: 5, // EUR
       taxId
     });
@@ -207,7 +207,7 @@ export default class StripeIntegrationTestData {
     const updatedInvoice = await this.billInvoiceItem({
       energyConsumptionkWh: 8, // kWh
       energyAmount: 2, // EUR
-      partingTime: 10, // Minutes
+      parkingTime: 10, // Minutes
       parkingAmount: 5, // EUR
       taxId
     });
@@ -242,7 +242,7 @@ export default class StripeIntegrationTestData {
     const dynamicInvoice = await this.billInvoiceItem({
       energyConsumptionkWh: 16, // kWh
       energyAmount: 4, // EUR
-      partingTime: 10, // Minutes
+      parkingTime: 10, // Minutes
       parkingAmount: 5, // EUR
       taxId
     });
@@ -268,7 +268,7 @@ export default class StripeIntegrationTestData {
   public async billInvoiceItem(consumptionTestData: {
     energyConsumptionkWh: number, // kWh
     energyAmount: number, // EUR
-    partingTime: number, // Minutes
+    parkingTime: number, // Minutes
     parkingAmount: number // EUR
     taxId: string
   }) : Promise<BillingInvoice> {
@@ -282,15 +282,15 @@ export default class StripeIntegrationTestData {
         unitPrice: Utils.createDecimal(consumptionTestData.energyAmount).div(consumptionTestData.energyConsumptionkWh).toNumber(),
         amount: consumptionTestData.energyAmount, // total amount to bill -  not yet in cents
         roundedAmount: Utils.truncTo(consumptionTestData.energyAmount, 2),
-        quantity: consumptionTestData.energyConsumptionkWh, // kW.h
+        quantity: Utils.createDecimal(consumptionTestData.energyConsumptionkWh).div(1000).toNumber(), // Wh
         taxes // Array of taxes - cannot be null
       },
       parkingTime: {
-        itemDescription: `Parking time - ${consumptionTestData.partingTime} minutes`,
-        unitPrice: Utils.createDecimal(consumptionTestData.parkingAmount).div(consumptionTestData.partingTime).toNumber(),
+        itemDescription: `Parking time - ${consumptionTestData.parkingTime} minutes`,
+        unitPrice: Utils.createDecimal(consumptionTestData.parkingAmount).div(consumptionTestData.parkingTime).toNumber(),
         amount: consumptionTestData.parkingAmount, // Euros
         roundedAmount: Utils.truncTo(consumptionTestData.parkingAmount, 2),
-        quantity: consumptionTestData.partingTime, // minutes
+        quantity: Utils.createDecimal(consumptionTestData.parkingTime).div(60).toNumber(), // seconds
         taxes // Array of taxes - cannot be null
       }
     };

@@ -112,7 +112,7 @@ class TestData {
     this.siteAreaContext = this.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED);
     this.chargingStationContext = this.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16 + '-' + ContextDefinition.SITE_CONTEXTS.SITE_BASIC + '-' + ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED + '-singlePhased');
     assert(!!this.chargingStationContext, 'Charging station context should not be null');
-    await this.createTariff4ChargingStation('test CT', this.chargingStationContext.getChargingStation(), {
+    await this.createTariff4ChargingStation('FF+CT', this.chargingStationContext.getChargingStation(), {
       flatFee: {
         price: 1,
         active: true
@@ -159,7 +159,7 @@ class TestData {
         }
       };
     }
-    await this.createTariff4ChargingStation('test FF+E', this.chargingStationContext.getChargingStation(), dimensions);
+    await this.createTariff4ChargingStation(testMode, this.chargingStationContext.getChargingStation(), dimensions);
     return this.chargingStationContext;
   }
 
@@ -186,7 +186,7 @@ class TestData {
           active: true
         }
       };
-    } else if (testMode === 'CT+PT+STEP') {
+    } else if (testMode === 'CT(STEP)+PT(STEP)') {
       dimensions = {
         chargingTime: {
           price: 12, // Euro per hour
@@ -199,7 +199,7 @@ class TestData {
           active: true
         }
       };
-    } else if (testMode === 'E+PT+STEP') {
+    } else if (testMode === 'E+PT(STEP)') {
       dimensions = {
         energy: {
           price: 0.50,
@@ -618,8 +618,8 @@ class TestData {
     const tariff: Partial<PricingDefinition> = {
       entityID: chargingStation.id, // a pricing model for the site
       entityType: PricingEntity.CHARGING_STATION,
-      name: 'CS Tariff - ' + testMode + ' - ' + chargingStation.id,
-      description: 'Tariff for CS - ' + testMode + ' - ' + connectorType,
+      name: testMode,
+      description: 'Tariff for CS ' + chargingStation.id + ' - ' + testMode + ' - ' + connectorType,
       staticRestrictions: {
         connectorType,
         validFrom: new Date(),
@@ -1365,7 +1365,7 @@ describe('Billing Service', function() {
         });
 
         it('should bill the CT(STEP)+PT(STEP) on COMBO CCS - DC', async () => {
-          await testData.initChargingStationContext2TestFastCharger('CT+PT+STEP');
+          await testData.initChargingStationContext2TestFastCharger('CT(STEP)+PT(STEP)');
           await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
           const userWithBillingData = await testData.billingImpl.getUser(testData.userContext);
           await testData.assignPaymentMethod(userWithBillingData, 'tok_fr');
@@ -1376,7 +1376,7 @@ describe('Billing Service', function() {
         });
 
         it('should bill the ENERGY + PT(STEP) on COMBO CCS - DC', async () => {
-          await testData.initChargingStationContext2TestFastCharger('E+PT+STEP');
+          await testData.initChargingStationContext2TestFastCharger('E+PT(STEP)');
           await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
           const userWithBillingData = await testData.billingImpl.getUser(testData.userContext);
           await testData.assignPaymentMethod(userWithBillingData, 'tok_fr');

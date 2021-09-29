@@ -116,6 +116,7 @@ export interface PricedDimensionData {
   amount: number;
   roundedAmount: number;
   quantity: number;
+  stepSize?: number;
   // Name of the tariff this dimension belongs to - mainly for troubleshooting purposes
   sourceName?: string
   // The item description is generated while billing the transaction

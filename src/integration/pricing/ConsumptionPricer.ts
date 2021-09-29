@@ -98,7 +98,7 @@ export default class ConsumptionPricer {
   }
 
   private priceFlatFeeConsumption(): PricedDimensionData {
-    // Flat fee must not be priced only once
+    // Flat fee must be priced only once
     if (!this.pricingModel.pricerContext.flatFeeAlreadyPriced) {
       const activePricingDefinition = this.getActiveDefinition4Dimension(this.actualPricingDefinitions, DimensionType.FLAT_FEE);
       if (activePricingDefinition) {
@@ -239,7 +239,7 @@ export default class ConsumptionPricer {
         unitPrice: 0,
         amount: 0,
         roundedAmount: 0,
-        quantity: 0
+        quantity: 0 // Session
       };
     }
     // First call for this dimension
@@ -247,20 +247,22 @@ export default class ConsumptionPricer {
       unitPrice: unitPrice,
       amount: unitPrice,
       roundedAmount: Utils.truncTo(unitPrice, 2),
-      quantity: 1
+      quantity: 1 // Session
     };
     return pricingDimension.pricedData;
   }
 
   private priceConsumptionStep(pricingDimension: PricingDimension, steps: number): PricedDimensionData {
-    const unitPrice = pricingDimension.price || 0;
-    const amount = Utils.createDecimal(unitPrice).times(steps).times(pricingDimension.stepSize).div(1000).toNumber();
+    const unitPrice = pricingDimension.price || 0; // Eur/wWh
+    const quantity = Utils.createDecimal(steps).times(pricingDimension.stepSize).toNumber(); // Wh
+    const amount = Utils.createDecimal(unitPrice).times(quantity).div(1000).toNumber(); // Eur
     // Price the consumption
     const pricedData: PricedDimensionData = {
       unitPrice: unitPrice,
       amount,
       roundedAmount: Utils.truncTo(amount, 2),
-      quantity: steps
+      quantity,
+      stepSize: pricingDimension.stepSize,
     };
     // Add the consumption to the previous data (if any) - for the billing
     this.addPricedData(pricingDimension, pricedData);
@@ -269,15 +271,16 @@ export default class ConsumptionPricer {
   }
 
   private priceConsumptionWh(pricingDimension: PricingDimension, consumptionWh: number): PricedDimensionData {
-    const unitPrice = pricingDimension.price || 0;
-    const amount = Utils.createDecimal(unitPrice).times(consumptionWh).div(1000).toNumber();
-    const consumptionkWh = Utils.createDecimal(consumptionWh).div(1000).toNumber();
+    const unitPrice = pricingDimension.price || 0; // Eur/kWh
+    const quantity = Utils.createDecimal(consumptionWh).toNumber(); // Wh
+    const amount = Utils.createDecimal(unitPrice).times(consumptionWh).div(1000).toNumber(); // Eur
+    // const consumptionkWh = Utils.createDecimal(consumptionWh).div(1000).toNumber();
     // Price the consumption
     const pricedData: PricedDimensionData = {
       unitPrice: unitPrice,
       amount,
       roundedAmount: Utils.truncTo(amount, 2),
-      quantity: consumptionkWh
+      quantity
     };
     // Add the consumption to the previous data (if any) - for the billing
     this.addPricedData(pricingDimension, pricedData);
@@ -304,14 +307,16 @@ export default class ConsumptionPricer {
   }
 
   private priceTimeSteps(pricingDimension: PricingDimension, steps: number): PricedDimensionData {
-    const unitPrice = pricingDimension.price || 0;
-    const amount = Utils.createDecimal(unitPrice).times(steps).times(pricingDimension.stepSize).div(3600).toNumber();
+    const unitPrice = pricingDimension.price || 0; // Eur/hour
+    const quantity = Utils.createDecimal(steps).times(pricingDimension.stepSize).toNumber(); // seconds
+    const amount = Utils.createDecimal(unitPrice).times(quantity).div(3600).toNumber(); // Eur
     // Price the consumption
     const pricedData: PricedDimensionData = {
       unitPrice: unitPrice,
       amount,
       roundedAmount: Utils.truncTo(amount, 2),
-      quantity: steps
+      quantity,
+      stepSize: pricingDimension.stepSize
     };
     // Add the consumption to the previous data (if any) - for the billing
     this.addPricedData(pricingDimension, pricedData);
@@ -320,15 +325,14 @@ export default class ConsumptionPricer {
   }
 
   private priceTimeSpent(pricingDimension: PricingDimension, seconds: number): PricedDimensionData {
-    const unitPrice = pricingDimension.price || 0;
-    const amount = Utils.createDecimal(unitPrice).times(seconds).div(3600).toNumber();
-    const hours = Utils.createDecimal(seconds).div(3600).toNumber();
+    const unitPrice = pricingDimension.price || 0; // Eur/hour
+    const amount = Utils.createDecimal(unitPrice).times(seconds).div(3600).toNumber(); // Eur
     // Price the consumption
     const pricedData: PricedDimensionData = {
       unitPrice: unitPrice,
       amount,
       roundedAmount: Utils.truncTo(amount, 2),
-      quantity: hours
+      quantity: seconds
     };
     // Add the consumption to the previous data (if any) - for the billing
     this.addPricedData(pricingDimension, pricedData);

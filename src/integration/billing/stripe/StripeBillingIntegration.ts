@@ -855,25 +855,41 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // session on friday night and keeps charging during the week-end, the two tariffs are used.
     // The invoice will show the detail for each tariff and for each billed dimension
     // ---------------------------------------------------------------------------------------------------------
+    await this._createStripeInvoiceItemHeader(customerID, billingInvoiceItem, invoiceID);
+    // Generate an invoice item for each tariff and each dimension!
     let counter = 0;
     for (const pricingConsumptionData of billingInvoiceItem.pricingData) {
       await this._createStripeInvoiceItems4PricingConsumptionData(customerID, billingInvoiceItem, pricingConsumptionData, ++counter, invoiceID);
     }
   }
 
+  private async _createStripeInvoiceItemHeader(customerID: string,
+      billingInvoiceItem: BillingInvoiceItem, invoiceID?: string): Promise<void> {
+    if (!billingInvoiceItem.headerDescription) {
+      return;
+    }
+    const currency = billingInvoiceItem.currency.toLowerCase();
+    // Build stripe parameters for the parking time
+    const parameters: Stripe.InvoiceItemCreateParams = {
+      invoice: invoiceID,
+      customer: customerID,
+      currency,
+      description: billingInvoiceItem.headerDescription,
+      tax_rates: [],
+      // quantity: 1, //Cannot be set separately
+      amount: 0,
+      metadata: { ...billingInvoiceItem?.metadata }
+    };
+    if (!parameters.invoice) {
+      // STRIPE throws an exception when invoice is set to null.
+      delete parameters.invoice;
+    }
+    // Make sure to generate a unique idem potency key per pricing definition and dimension
+    await this._createStripeInvoiceItem(parameters, this.buildIdemPotencyKey(billingInvoiceItem.transactionID, 'invoice', 'items-header'));
+  }
+
   private async _createStripeInvoiceItems4PricingConsumptionData(customerID: string,
       billingInvoiceItem: BillingInvoiceItem, pricedData: PricedConsumptionData, counter: number, invoiceID?: string): Promise<void> {
-    /* --------------------------------------------------------------------------------
-     Convert pricing information to STRIPE expected data
-    -----------------------------------------------------------------------------------
-    Example:
-      Consumption 1000 Kw.h - total amount: 4 euros
-      Unit price should be (4 / 1000) ==> 0.004
-    Stripe expects 'unit_amount' as an Integer, in Cents
-      unit_amount: 0.4 ==> Not an integer - throws an exception
-    Stripe alternative - 'unit_amount_decimal' in Cents, with 2 decimals, as a string!
-      unit_amount_decimal: '004.00' (in Cents, with 2 decimals, as a string)
-    ----------------------------------------------------------------------------------- */
     // A stripe invoice item per dimension
     await this._createStripeInvoiceItem4Dimension(customerID, DimensionType.FLAT_FEE, billingInvoiceItem, pricedData, counter, invoiceID);
     await this._createStripeInvoiceItem4Dimension(customerID, DimensionType.CHARGING_TIME, billingInvoiceItem, pricedData, counter, invoiceID);
@@ -891,7 +907,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
     const currency = billingInvoiceItem.currency.toLowerCase();
     // Tax rates
-    const tax_rates = pricedData[dimension].taxes || [];
+    const tax_rates = dimensionData.taxes || [];
     // Build stripe parameters for the parking time
     const parameters: Stripe.InvoiceItemCreateParams = {
       invoice: invoiceID,
@@ -900,7 +916,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       description: dimensionData.itemDescription,
       tax_rates,
       // quantity: 1, //Cannot be set separately
-      amount: Utils.createDecimal(pricedData[dimension].roundedAmount).times(100).toNumber(),
+      amount: Utils.createDecimal(dimensionData.roundedAmount).times(100).toNumber(),
       metadata: { ...billingInvoiceItem?.metadata }
     };
     if (!parameters.invoice) {
@@ -1055,7 +1071,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     const billingInvoiceItem: BillingInvoiceItem = {
       transactionID,
       currency,
-      pricingData: pricingData,
+      pricingData,
       metadata: {
         // Let's keep track of the initial data for troubleshooting purposes
         tenantID: this.tenant.id,
@@ -1064,6 +1080,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
         begin: transaction.timestamp?.valueOf(),
       }
     };
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_SHOW_SESSION_HEADER)) {
+      // To be clarified - do we put general information on top
+      billingInvoiceItem.headerDescription = this.buildLineItemDescription(transaction, true);
+    }
     // Returns a item representing the complete charging session (energy + parking information)
     return billingInvoiceItem ;
   }
@@ -1071,6 +1091,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
   private _extractTransactionPricingData(transaction: Transaction) : PricedConsumptionData[] {
     const pricingModel = Object.freeze(transaction.pricingModel);
     let pricingData: PricedConsumptionData[] = PricingEngine.extractFinalPricingData(pricingModel);
+    if (!FeatureToggles.isFeatureActive(Feature.BILLING_SHOW_PRICING_DETAIL)) {
+      // Accumulate data per dimensions = less details, less disputes
+      pricingData = [ this._accumulatePricingDimensions(pricingData) ] ;
+    }
     pricingData = pricingData.map((pricingConsumptionData) => this._enrichTransactionPricingData(transaction, pricingConsumptionData));
     return pricingData;
   }
@@ -1085,25 +1109,54 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // -------------------------------------------------------------------------------
     const flatFee = pricingConsumptionData.flatFee;
     if (flatFee) {
-      flatFee.itemDescription = flatFee.sourceName + ' - Flat Fee'; // TODO! - generate proper description
+      flatFee.itemDescription = this.buildLineItemDescription4PricedDimension(transaction, DimensionType.FLAT_FEE, flatFee);
       flatFee.taxes = taxes;
     }
     const energy = pricingConsumptionData.energy;
     if (energy) {
-      energy.itemDescription = this.buildLineItemDescription4PricedDimension(transaction, energy);
+      energy.itemDescription = this.buildLineItemDescription4PricedDimension(transaction, DimensionType.ENERGY, energy);
       energy.taxes = taxes;
     }
     const chargingTime = pricingConsumptionData.chargingTime;
     if (chargingTime) {
-      chargingTime.itemDescription = chargingTime.sourceName + ' - Charging Time'; // TODO! - generate proper description
+      chargingTime.itemDescription = this.buildLineItemDescription4PricedDimension(transaction, DimensionType.CHARGING_TIME, chargingTime);
       chargingTime.taxes = taxes;
     }
     const parkingTime = pricingConsumptionData.parkingTime;
     if (parkingTime) {
-      parkingTime.itemDescription = parkingTime.sourceName + ' - Parking Time'; // TODO! - generate proper description
+      parkingTime.itemDescription = this.buildLineItemDescription4PricedDimension(transaction, DimensionType.PARKING_TIME, parkingTime);
       parkingTime.taxes = taxes;
     }
     return pricingConsumptionData;
+  }
+
+
+  private _accumulatePricingDimensions(pricingData: PricedConsumptionData[]): PricedConsumptionData {
+    const accumulatedConsumptionData: PricedConsumptionData = {};
+    for (const pricingConsumptionData of pricingData) {
+      this._accumulatePricingDimension(accumulatedConsumptionData, pricingConsumptionData, DimensionType.FLAT_FEE);
+      this._accumulatePricingDimension(accumulatedConsumptionData, pricingConsumptionData, DimensionType.ENERGY);
+      this._accumulatePricingDimension(accumulatedConsumptionData, pricingConsumptionData, DimensionType.CHARGING_TIME);
+      this._accumulatePricingDimension(accumulatedConsumptionData, pricingConsumptionData, DimensionType.PARKING_TIME);
+    }
+    return accumulatedConsumptionData;
+  }
+
+  private _accumulatePricingDimension(accumulatedConsumptionData: PricedConsumptionData, pricingConsumptionData: PricedConsumptionData, dimensionType: DimensionType): void {
+    if (pricingConsumptionData[dimensionType]) {
+      if (!accumulatedConsumptionData[dimensionType]) {
+        const emptyDimensionData: PricedDimensionData = {
+          unitPrice: 0,
+          quantity:0,
+          amount: 0,
+          roundedAmount: 0
+        };
+        accumulatedConsumptionData[dimensionType] = emptyDimensionData;
+      }
+      accumulatedConsumptionData[dimensionType].quantity += pricingConsumptionData[dimensionType].quantity;
+      accumulatedConsumptionData[dimensionType].amount += pricingConsumptionData[dimensionType].amount;
+      accumulatedConsumptionData[dimensionType].roundedAmount += pricingConsumptionData[dimensionType].roundedAmount;
+    }
   }
 
   private _convertToBillingInvoiceItem(transaction: Transaction) : BillingInvoiceItem {
@@ -1111,7 +1164,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     const { price: unitPrice, priceUnit: currency, roundedPrice, totalConsumptionWh, timestamp } = transaction.stop;
     const transactionID = transaction.id;
     const itemDescription = this.buildLineItemDescription(transaction);
-    const quantity = Utils.createDecimal(transaction.stop.totalConsumptionWh).dividedBy(1000).toNumber(); // Total consumption in kW.h
+    const quantity = Utils.createDecimal(transaction.stop.totalConsumptionWh).toNumber(); // Wh
     const amount = roundedPrice; // Total amount for the line item
     // -------------------------------------------------------------------------------
     const taxes = this.getTaxRateIds();
@@ -1217,27 +1270,51 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return null;
   }
 
-  private buildLineItemDescription4PricedDimension(transaction: Transaction, pricedData: PricedDimensionData) {
-    const chargeBox = transaction.chargeBox;
+  private buildLineItemDescription4PricedDimension(transaction: Transaction, dimensionType: DimensionType, pricedData: PricedDimensionData) {
     const i18nManager = I18nManager.getInstanceForLocale(transaction.user.locale);
+    const userLocale = this.getUserLocale(transaction);
+    const chargeBox = transaction.chargeBox;
     const sessionID = String(transaction?.id);
     const startDate = i18nManager.formatDateTime(transaction.timestamp, 'LL', transaction.timezone);
     const startTime = i18nManager.formatDateTime(transaction.timestamp, 'LT', transaction.timezone);
-    const formattedConsumptionkWh = Utils.createDecimal(pricedData.quantity).toNumber().toLocaleString(this.getUserLocale(transaction));
-    const descriptionPattern = (chargeBox?.siteArea?.name) ? 'billing.chargingAtSiteArea' : 'billing.chargingAtChargeBox';
+    // const currency = transaction.priceUnit;
+    // const tariffName = pricedData.sourceName;
+    // const unitPrice = Utils.createDecimal(pricedData.unitPrice).toNumber().toLocaleString(userLocale);
+    // const stepSize = pricedData.stepSize ?? 1;
+    let quantity: string, duration: string;
+    if (dimensionType === DimensionType.ENERGY) {
+      quantity = Utils.createDecimal(pricedData.quantity).div(1000).toNumber().toLocaleString(userLocale); // kWh
+      duration = '';
+    } else if (dimensionType === DimensionType.PARKING_TIME || dimensionType === DimensionType.CHARGING_TIME) {
+      quantity = Utils.createDecimal(pricedData.quantity).toNumber().toLocaleString(userLocale); // seconds
+      duration = moment.duration(pricedData.quantity, 's').humanize();
+      // duration = moment.duration(quantity, 's').format('HH:mm:ss');
+    } else {
+      quantity = Utils.createDecimal(pricedData.quantity).toNumber().toLocaleString(userLocale); // Sessions
+      duration = '';
+    }
     // Get the translated line item description
+    let descriptionPattern = `billing.${dimensionType}-shortItemDescription`;
+    if (!FeatureToggles.isFeatureActive(Feature.BILLING_SHOW_SESSION_HEADER)) {
+      descriptionPattern = `billing.${dimensionType}-itemDescription`;
+    }
     const description = i18nManager.translate(descriptionPattern, {
       sessionID,
       startDate,
       startTime,
-      totalConsumption: formattedConsumptionkWh,
+      quantity,
+      duration,
       siteAreaName: chargeBox?.siteArea?.name,
-      chargeBoxID: transaction?.chargeBoxID
+      chargeBoxID: transaction?.chargeBoxID,
+      // unitPrice,
+      // currency,
+      // stepSize,
+      // tariffName,
     });
     return description;
   }
 
-  private buildLineItemDescription(transaction: Transaction) {
+  private buildLineItemDescription(transaction: Transaction, headerMode = false) {
     const chargeBox = transaction.chargeBox;
     const i18nManager = I18nManager.getInstanceForLocale(transaction.user.locale);
     const sessionID = String(transaction?.id);
@@ -1246,7 +1323,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
     const stopTime = i18nManager.formatDateTime(transaction.stop.timestamp, 'LT', transaction.timezone);
     const formattedConsumptionkWh = this.formatConsumptionToKWh(transaction);
     const timeSpent = this.convertTimeSpentToString(transaction);
-    const descriptionPattern = (chargeBox?.siteArea?.name) ? 'billing.chargingAtSiteArea' : 'billing.chargingAtChargeBox';
+    let descriptionPattern = (chargeBox?.siteArea?.name) ? 'billing.chargingAtSiteArea' : 'billing.chargingAtChargeBox';
+    if (headerMode) {
+      descriptionPattern = 'billing.header-itemDescription';
+    }
     // Get the translated line item description
     const description = i18nManager.translate(descriptionPattern, {
       sessionID,
