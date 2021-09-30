@@ -3429,6 +3429,11 @@
                         "type": "string",
                         "description": "Required. Value to set",
                         "example": ""
+                      },
+                      "custom": {
+                        "type": "boolean",
+                        "description": "Custom OCPP parameter",
+                        "example": true
                       }
                     }
                   }
