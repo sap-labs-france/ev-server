@@ -99,9 +99,9 @@ export default class Bootstrap {
         console.log('Unhandled Rejection: ', p, ' reason: ', reason);
         void Logging.logError({
           tenantID: Constants.DEFAULT_TENANT,
-          action: ServerAction.BOOTSTRAP_STARTUP,
+          action: ServerAction.UNKNOWN_ACTION,
           module: MODULE_NAME, method: 'start',
-          message: `Reason: ${(reason ? reason.message : 'Not provided')}`,
+          message: `Unhandled Rejection: ${(reason ? (reason.message ?? reason) : 'Not provided')}`,
           detailedMessages: (reason ? reason.stack : null)
         });
       });
@@ -227,17 +227,21 @@ export default class Bootstrap {
         Bootstrap.oDataServer = new ODataServer(Bootstrap.oDataServerConfig);
         // Start server instance
         await Bootstrap.oDataServer.start();
-        serverStarted.push('ODATA');
+        serverStarted.push('OData');
       }
     } catch (error) {
       console.error(chalk.red(error));
       await Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
-        action: ServerAction.BOOTSTRAP_STARTUP,
+        action: ServerAction.STARTUP,
         module: MODULE_NAME, method: 'startServersListening',
         message: `Unexpected exception in ${serverStarted.join(', ')}: ${error.toString()}`,
         detailedMessages: { error: error.stack }
       });
+    }
+    // Batch server only
+    if (Utils.isEmptyArray(serverStarted)) {
+      serverStarted.push('Batch');
     }
     return serverStarted;
   }
