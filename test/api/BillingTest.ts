@@ -195,7 +195,7 @@ class TestData {
         },
         parkingTime: {
           price: 20, // Euro per hour
-          stepSize: 120, // 120 seconds == 2 minutes
+          stepSize: 3 * 60, // 3 minutes
           active: true
         }
       };
@@ -234,7 +234,7 @@ class TestData {
         },
         energy: {
           price: 1, // 25 cents per kWh
-          stepSize: 2000, // Step Size - 2kWh
+          stepSize: 3000, // Step Size - 3kWh
           active: true
         }
       };
