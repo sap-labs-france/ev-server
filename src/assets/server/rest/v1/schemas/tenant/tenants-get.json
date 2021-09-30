@@ -16,6 +16,9 @@
     "Limit": {
       "$ref": "common.json#/definitions/limit"
     },
+    "Skip": {
+      "$ref": "common.json#/definitions/skip"
+    },
     "SortFields": {
       "$ref": "common.json#/definitions/sortFields"
     },
