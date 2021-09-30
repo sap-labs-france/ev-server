@@ -47,5 +47,7 @@
       "$ref": "common.json#/definitions/projectFields"
     }
   },
-  "required": []
+  "required": [
+    "Limit"
+  ]
 }

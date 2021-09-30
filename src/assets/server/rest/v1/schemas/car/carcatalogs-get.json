@@ -24,5 +24,8 @@
     "ProjectFields": {
       "$ref": "common.json#/definitions/projectFields"
     }
-  }
+  },
+  "required": [
+    "Limit"
+  ]
 }

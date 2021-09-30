@@ -16,7 +16,6 @@ import DbParams from '../../types/database/DbParams';
 import { InactivityStatus } from '../../types/Transaction';
 import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
-import TenantStorage from './TenantStorage';
 import Utils from '../../utils/Utils';
 import fs from 'fs';
 import moment from 'moment';
@@ -52,38 +51,6 @@ export interface ConnectorMDB {
 }
 
 export default class ChargingStationStorage {
-
-  public static async updateChargingStationTemplatesFromFile(): Promise<void> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'updateChargingStationTemplatesFromFile');
-    // Read File
-    let chargingStationTemplates: ChargingStationTemplate[];
-    try {
-      chargingStationTemplates = JSON.parse(fs.readFileSync(Configuration.getChargingStationTemplatesConfig().templatesFilePath, 'utf8'));
-    } catch (error) {
-      await Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, ServerAction.UPDATE_CHARGING_STATION_TEMPLATES, error);
-      return;
-    }
-    // Delete all previous templates
-    await ChargingStationStorage.deleteChargingStationTemplates();
-    // Update Templates
-    for (const chargingStationTemplate of chargingStationTemplates) {
-      try {
-        // Set the hashes
-        chargingStationTemplate.hash = Cypher.hash(JSON.stringify(chargingStationTemplate));
-        chargingStationTemplate.hashTechnical = Cypher.hash(JSON.stringify(chargingStationTemplate.technical));
-        chargingStationTemplate.hashCapabilities = Cypher.hash(JSON.stringify(chargingStationTemplate.capabilities));
-        chargingStationTemplate.hashOcppStandard = Cypher.hash(JSON.stringify(chargingStationTemplate.ocppStandardParameters));
-        chargingStationTemplate.hashOcppVendor = Cypher.hash(JSON.stringify(chargingStationTemplate.ocppVendorParameters));
-        // Save
-        await ChargingStationStorage.saveChargingStationTemplate(chargingStationTemplate);
-      } catch (error) {
-        await Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, ServerAction.UPDATE_CHARGING_STATION_TEMPLATES, error);
-      }
-    }
-    // Debug
-    await Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'updateChargingStationTemplatesFromFile', uniqueTimerID, chargingStationTemplates);
-  }
 
   public static async getChargingStationTemplates(chargePointVendor?: string): Promise<ChargingStationTemplate[]> {
     // Debug

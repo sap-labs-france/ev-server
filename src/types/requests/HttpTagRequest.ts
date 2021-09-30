@@ -18,3 +18,15 @@ export interface HttpTagsRequest extends HttpDatabaseRequest {
   Active?: boolean;
   WithUser: boolean;
 }
+
+export interface HttpTagsDeleteByIDsRequest {
+  tagsIDs: string[];
+}
+
+export interface HttpTagsDeleteByVisualIDsRequest {
+  visualIDs: string[];
+}
+
+export interface HttpTagsDeleteByVisualIDRequest {
+  visualID: string;
+}

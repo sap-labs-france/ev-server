@@ -43,7 +43,7 @@ export default class TagService {
 
   public static async handleGetTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter request
-    const filteredRequest = TagValidator.getInstance().validateTagGetByID(req.query);
+    const filteredRequest = TagValidator.getInstance().validateTagByIDGetReq(req.query);
     // Check and Get Tag
     const tag = await UtilsService.checkAndGetTagAuthorization(
       req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, { withUser: filteredRequest.WithUser }, true);
@@ -58,7 +58,7 @@ export default class TagService {
 
   public static async handleDeleteTags(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const tagsIDs = TagValidator.getInstance().validateTagsDelete(req.body).tagsIDs;
+    const tagsIDs = TagValidator.getInstance().validateTagsDeleteReq(req.body).tagsIDs;
     // Delete
     const result = await TagService.deleteTags(req.tenant, action, req.user, tagsIDs);
     res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
@@ -67,7 +67,7 @@ export default class TagService {
 
   public static async handleUnassignTags(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = TagValidator.getInstance().validateTagsUnassign(req.body);
+    const filteredRequest = TagValidator.getInstance().validateTagsUnassignReq(req.body);
     // Delete
     const result = await TagService.unassignTags(req.tenant, action, req.user, filteredRequest.visualIDs);
     res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
@@ -76,7 +76,7 @@ export default class TagService {
 
   public static async handleUnassignTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = TagValidator.getInstance().validateTagUnassign(req.body);
+    const filteredRequest = TagValidator.getInstance().validateTagUnassignReq(req.body);
     // Delete
     const response = await TagService.unassignTags(req.tenant, action, req.user, [filteredRequest.visualID]);
     if (response.inSuccess === 0) {
@@ -95,7 +95,7 @@ export default class TagService {
 
   public static async handleGetTagByVisualID(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter request
-    const filteredRequest = TagValidator.getInstance().validateTagGetByVisualID(req.query);
+    const filteredRequest = TagValidator.getInstance().validateTagVisualIDGetReq(req.query);
     // Check and Get Tag
     const tag = await UtilsService.checkAndGetTagByVisualIDAuthorization(
       req.tenant, req.user, filteredRequest.VisualID, Action.READ, action, null, { withUser: filteredRequest.WithUser }, true);
@@ -105,7 +105,7 @@ export default class TagService {
 
   public static async handleDeleteTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = TagValidator.getInstance().validateTagGetByID(req.query);
+    const filteredRequest = TagValidator.getInstance().validateTagByIDGetReq(req.query);
     // Delete
     const response = await TagService.deleteTags(req.tenant, action, req.user, [filteredRequest.ID]);
     if (response.inSuccess === 0) {
@@ -124,7 +124,7 @@ export default class TagService {
 
   public static async handleCreateTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = TagValidator.getInstance().validateTagCreate(req.body);
+    const filteredRequest = TagValidator.getInstance().validateTagCreateReq(req.body);
     // Check
     UtilsService.checkIfUserTagIsValid(filteredRequest, req);
     // Get dynamic auth
@@ -223,7 +223,7 @@ export default class TagService {
   }
 
   public static async handleAssignTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    const filteredRequest = TagValidator.getInstance().validateTagAssign(req.body);
+    const filteredRequest = TagValidator.getInstance().validateTagAssignReq(req.body);
     // Check and Get Tag
     const tag = await UtilsService.checkAndGetTagByVisualIDAuthorization(req.tenant, req.user, filteredRequest.visualID, Action.ASSIGN, action,
       filteredRequest, { withNbrTransactions: true, withUser: true });
@@ -312,7 +312,7 @@ export default class TagService {
 
   public static async handleUpdateTagByVisualID(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = TagValidator.getInstance().validateTagUpdateByVisualID({ ...req.params, ...req.body });
+    const filteredRequest = TagValidator.getInstance().validateTagVisualIDUpdateReq({ ...req.params, ...req.body });
     // Check and Get Tag
     const tag = await UtilsService.checkAndGetTagByVisualIDAuthorization(req.tenant, req.user, filteredRequest.visualID, Action.UPDATE_BY_VISUAL_ID, action,
       filteredRequest, { withNbrTransactions: true, withUser: true });
@@ -353,7 +353,7 @@ export default class TagService {
 
   public static async handleUpdateTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = TagValidator.getInstance().validateTagUpdate({ ...req.params, ...req.body });
+    const filteredRequest = TagValidator.getInstance().validateTagUpdateReq({ ...req.params, ...req.body });
     // Check
     UtilsService.checkIfUserTagIsValid(filteredRequest, req);
     // Check and Get Tag
@@ -816,7 +816,7 @@ export default class TagService {
 
   private static async getTags(req: Request): Promise<DataResult<Tag>> {
     // Filter
-    const filteredRequest = TagValidator.getInstance().validateTagsGet(req.query);
+    const filteredRequest = TagValidator.getInstance().validateTagsGetReq(req.query);
     // Get authorization filters
     const authorizationTagsFilters = await AuthorizationService.checkAndGetTagsAuthorizations(
       req.tenant, req.user, filteredRequest);
@@ -856,7 +856,7 @@ export default class TagService {
         importedData: importedTag.importedData
       };
       // Validate Tag data
-      TagValidator.getInstance().validateImportedTagCreation(newImportedTag);
+      TagValidator.getInstance().validateImportedTagCreateReq(newImportedTag);
       // Set properties
       newImportedTag.importedBy = importedTag.importedBy;
       newImportedTag.importedOn = importedTag.importedOn;
@@ -871,7 +871,7 @@ export default class TagService {
           siteIDs: importedTag.siteIDs
         };
         try {
-          UserValidator.getInstance().validateImportedUserCreation(newImportedUser);
+          UserValidator.getInstance().validateUserImportCreateReq(newImportedUser);
           tagToImport = { ...tagToImport, ...newImportedUser as ImportedTag };
         } catch (error) {
           await Logging.logWarning({

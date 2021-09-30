@@ -50,9 +50,10 @@ const MODULE_NAME = 'OCPPUtils';
 
 export default class OCPPUtils {
   public static getServerActionFromOcppCommand(command: Command): ServerAction {
-    if (command) {
+    if (command && typeof command === 'string') {
       return `Ocpp${command}` as ServerAction;
     }
+    return ServerAction.UNKNOWN_ACTION;
   }
 
   public static async checkChargingStationConnectionToken(action: ServerAction, tenant: Tenant, chargingStationID: string,
@@ -1628,7 +1629,7 @@ export default class OCPPUtils {
         source: ocppHeader.chargeBoxIdentity,
         module: MODULE_NAME,
         method: 'checkAndGetTenantAndChargingStation',
-        message: 'Cannot aquire a lock on the Charging Station'
+        message: 'Cannot acquire a lock on the Charging Station'
       });
     }
     // Get the Charging Station
