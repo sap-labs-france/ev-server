@@ -568,7 +568,7 @@ export default class UserStorage {
         notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
         userIDs?: string[]; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
         statuses?: string[]; withImage?: boolean; billingUserID?: string; notSynchronizedBillingData?: boolean;
-        withTestBillingData?: boolean; notifications?: any; noLoginSince?: Date;
+        withTestBillingData?: boolean; notifications?: any; noLoginSince?: Date; technical?: string[];
       },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
     // Debug
@@ -651,6 +651,14 @@ export default class UserStorage {
         { 'billingData': { '$exists': true } },
         { 'billingData.liveMode': { $eq: expectedLiveMode } }
       ];
+    }
+    // Select (non) technical users
+    if (!Utils.isEmptyArray(params.technical)) {
+      const tValues = [];
+      params.technical.forEach((val: string) => {
+        tValues.push(val === 'true');
+      });
+      filters.technical = { $in: tValues };
     }
     // Add filters
     aggregation.push({

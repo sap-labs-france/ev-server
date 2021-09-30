@@ -72,14 +72,14 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn', 'createdBy',
           'lastChangedOn', 'lastChangedBy', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
-          'billingData.customerID', 'billingData.lastChangedOn'
+          'billingData.customerID', 'billingData.lastChangedOn', 'technical'
         ]
       },
       {
         resource: Entity.USERS, action: Action.IN_ERROR,
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer',
-          'createdOn', 'lastChangedOn', 'errorCodeDetails', 'errorCode'
+          'createdOn', 'lastChangedOn', 'errorCodeDetails', 'errorCode', 'technical'
         ]
       },
       { resource: Entity.USER, action: Action.SYNCHRONIZE_BILLING_USER },
@@ -762,7 +762,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn',
           'lastChangedOn', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
-          'billingData.customerID', 'billingData.lastChangedOn'
+          'billingData.customerID', 'billingData.lastChangedOn', 'technical'
         ],
       },
       {

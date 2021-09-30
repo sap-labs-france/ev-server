@@ -808,6 +808,7 @@ export default class UserService {
         userIDs: (filteredRequest.UserID ? filteredRequest.UserID.split('|') : null),
         roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
         statuses: (filteredRequest.Status ? filteredRequest.Status.split('|') : null),
+        technical: (filteredRequest.Technical ? filteredRequest.Technical.split('|') : null),
         excludeSiteID: filteredRequest.ExcludeSiteID,
         ...authorizationUsersFilters.filters
       },
