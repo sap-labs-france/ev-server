@@ -779,7 +779,8 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
-            asserts: ['BasicUser']
+            asserts: ['BasicUser'],
+            filters: ['SitesAdmin']
           }
         }
       },

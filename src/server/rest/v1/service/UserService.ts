@@ -699,8 +699,8 @@ export default class UserService {
       await UserStorage.saveUserAdminData(req.tenant, newUser.id, adminData);
     }
     let siteIDs = [];
-    if (!Utils.isEmptyArray(req.user.sitesAdmin)) {
-      siteIDs = req.user.sitesAdmin;
+    if (!Utils.isEmptyArray(authorizationFilter.filters.siteIDs)) {
+      siteIDs = authorizationFilter.filters.siteIDs;
     } else {
       // Assign user to all sites with auto-assign flag set
       const sites = await SiteStorage.getSites(req.tenant,
