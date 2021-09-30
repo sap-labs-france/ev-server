@@ -1142,20 +1142,20 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return accumulatedConsumptionData;
   }
 
-  private _accumulatePricingDimension(accumulatedConsumptionData: PricedConsumptionData, pricingConsumptionData: PricedConsumptionData, dimensionType: DimensionType): void {
-    if (pricingConsumptionData[dimensionType]) {
-      if (!accumulatedConsumptionData[dimensionType]) {
+  private _accumulatePricingDimension(accumulatedData: PricedConsumptionData, pricedData: PricedConsumptionData, dimensionType: DimensionType): void {
+    if (pricedData[dimensionType]) {
+      if (!accumulatedData[dimensionType]) {
         const emptyDimensionData: PricedDimensionData = {
           unitPrice: 0,
           quantity:0,
           amount: 0,
           roundedAmount: 0
         };
-        accumulatedConsumptionData[dimensionType] = emptyDimensionData;
+        accumulatedData[dimensionType] = emptyDimensionData;
       }
-      accumulatedConsumptionData[dimensionType].quantity += pricingConsumptionData[dimensionType].quantity;
-      accumulatedConsumptionData[dimensionType].amount += pricingConsumptionData[dimensionType].amount;
-      accumulatedConsumptionData[dimensionType].roundedAmount += pricingConsumptionData[dimensionType].roundedAmount;
+      accumulatedData[dimensionType].quantity = Utils.createDecimal(accumulatedData[dimensionType].quantity).plus(pricedData[dimensionType].quantity).toNumber();
+      accumulatedData[dimensionType].amount = Utils.createDecimal(accumulatedData[dimensionType].amount).plus(pricedData[dimensionType].amount).toNumber();
+      accumulatedData[dimensionType].roundedAmount = Utils.createDecimal(accumulatedData[dimensionType].roundedAmount).plus(pricedData[dimensionType].roundedAmount).toNumber();
     }
   }
 
@@ -1177,7 +1177,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
           unitPrice,
           itemDescription,
           amount,
-          roundedAmount: Utils.truncTo(amount, 2),
+          roundedAmount: Utils.createDecimal(amount).times(100).trunc().div(100).toNumber(),
           quantity,
           taxes
         }

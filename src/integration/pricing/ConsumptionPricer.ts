@@ -246,7 +246,7 @@ export default class ConsumptionPricer {
     pricingDimension.pricedData = {
       unitPrice: unitPrice,
       amount: unitPrice,
-      roundedAmount: Utils.truncTo(unitPrice, 2),
+      roundedAmount: this.truncTo(unitPrice, 2),
       quantity: 1 // Session
     };
     return pricingDimension.pricedData;
@@ -260,7 +260,7 @@ export default class ConsumptionPricer {
     const pricedData: PricedDimensionData = {
       unitPrice: unitPrice,
       amount,
-      roundedAmount: Utils.truncTo(amount, 2),
+      roundedAmount: this.truncTo(amount, 2),
       quantity,
       stepSize: pricingDimension.stepSize,
     };
@@ -279,7 +279,7 @@ export default class ConsumptionPricer {
     const pricedData: PricedDimensionData = {
       unitPrice: unitPrice,
       amount,
-      roundedAmount: Utils.truncTo(amount, 2),
+      roundedAmount: this.truncTo(amount, 2),
       quantity
     };
     // Add the consumption to the previous data (if any) - for the billing
@@ -314,7 +314,7 @@ export default class ConsumptionPricer {
     const pricedData: PricedDimensionData = {
       unitPrice: unitPrice,
       amount,
-      roundedAmount: Utils.truncTo(amount, 2),
+      roundedAmount: this.truncTo(amount, 2),
       quantity,
       stepSize: pricingDimension.stepSize
     };
@@ -331,7 +331,7 @@ export default class ConsumptionPricer {
     const pricedData: PricedDimensionData = {
       unitPrice: unitPrice,
       amount,
-      roundedAmount: Utils.truncTo(amount, 2),
+      roundedAmount: this.truncTo(amount, 2),
       quantity: seconds
     };
     // Add the consumption to the previous data (if any) - for the billing
@@ -346,9 +346,14 @@ export default class ConsumptionPricer {
     if (previousData) {
       previousData.amount += pricedData.amount;
       previousData.quantity += pricedData.quantity;
-      previousData.roundedAmount = Utils.truncTo(previousData.amount, 2);
+      previousData.roundedAmount = this.truncTo(previousData.amount, 2);
     } else {
       pricingDimension.pricedData = pricedData;
     }
+  }
+
+  private truncTo(value: number, scale: number): number {
+    const truncPower = Math.pow(10, scale);
+    return Utils.createDecimal(value).times(truncPower).trunc().div(truncPower).toNumber();
   }
 }
