@@ -235,7 +235,7 @@
     "faker": "^5.5.3",
     "json-schema-faker": "^0.5.0-rcv.34",
     "maildev": "^1.1.0",
-    "mocha": "^8.4.0",
+    "mocha": "^9.1.2",
     "mochawesome": "^6.2.2",
     "ncp": "^2.0.0",
     "nodemon": "^2.0.13",
