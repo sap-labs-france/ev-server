@@ -568,7 +568,7 @@ export default class UserStorage {
         notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
         userIDs?: string[]; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
         statuses?: string[]; withImage?: boolean; billingUserID?: string; notSynchronizedBillingData?: boolean;
-        withTestBillingData?: boolean; notifications?: any; noLoginSince?: Date; technical?: string[];
+        withTestBillingData?: boolean; notifications?: any; noLoginSince?: Date; technical?: boolean;
       },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
     // Debug
@@ -653,12 +653,8 @@ export default class UserStorage {
       ];
     }
     // Select (non) technical users
-    if (!Utils.isEmptyArray(params.technical)) {
-      const tValues = [];
-      params.technical.forEach((val: string) => {
-        tValues.push(val === 'true');
-      });
-      filters.technical = { $in: tValues };
+    if (Utils.isBoolean(params.technical)) {
+      filters.technical = { $eq: params.technical };
     }
     // Add filters
     aggregation.push({
