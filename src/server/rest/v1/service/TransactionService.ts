@@ -314,30 +314,6 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleRebuildTransactionConsumptions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check Auth
-    if (!await Authorizations.canUpdateTransaction(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.UPDATE, entity: Entity.TRANSACTION,
-        module: MODULE_NAME, method: 'handleRebuildTransactionConsumptions'
-      });
-    }
-    // Filter
-    const filteredRequest = TransactionValidator.getInstance().validateTransactionGetReq(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID.toString(), MODULE_NAME, 'handleRebuildTransactionConsumptions', req.user);
-    // Get Transaction
-    const transaction = await TransactionStorage.getTransaction(req.tenant, filteredRequest.ID, { withUser: true });
-    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.ID}' does not exist`,
-      MODULE_NAME, 'handleRebuildTransactionConsumptions', req.user);
-    // Get unassigned transactions
-    const nbrOfConsumptions = await OCPPUtils.rebuildTransactionConsumptions(req.tenant, transaction);
-    // Return
-    res.json({ nbrOfConsumptions, ...Constants.REST_RESPONSE_SUCCESS });
-    next();
-  }
-
   public static async handleAssignTransactionsToUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auths
     if (!await Authorizations.canUpdateTransaction(req.user)) {
