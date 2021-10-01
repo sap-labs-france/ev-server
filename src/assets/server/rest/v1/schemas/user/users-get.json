@@ -1,7 +1,7 @@
 {
   "title": "Get Users",
   "type": "object",
-  "definitions": {
+  "properties": {
     "Issuer": {
       "type": "boolean",
       "sanitize": "mongo"
