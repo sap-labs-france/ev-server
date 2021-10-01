@@ -390,6 +390,8 @@ export default class Utils {
       return 'pt_PT';
     } else if (language === 'it') {
       return 'it_IT';
+    } else if (language === 'cz') {
+      return 'cz_CZ';
     }
     return Constants.DEFAULT_LOCALE;
   }
