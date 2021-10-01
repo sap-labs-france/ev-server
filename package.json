@@ -155,7 +155,7 @@
     "simple-odata-server": "^1.1.1",
     "socket.io": "^3.1.2",
     "socketio-jwt-auth": "^0.2.1",
-    "source-map-support": "^0.5.19",
+    "source-map-support": "^0.5.20",
     "stripe": "^8.149.0",
     "strong-soap": "^3.2.1",
     "swagger-ui-express": "^4.1.6",
