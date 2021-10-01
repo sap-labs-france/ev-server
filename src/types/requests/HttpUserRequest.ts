@@ -38,7 +38,7 @@ export interface HttpUsersRequest extends HttpDatabaseRequest {
   UserID: string;
   Role: string;
   Status: string;
-  Technical?: string;
+  Technical?: boolean;
   ErrorType?: string;
   VisualTagID?: string;
   ExcludeSiteID: string;
