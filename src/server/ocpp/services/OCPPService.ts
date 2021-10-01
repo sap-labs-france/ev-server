@@ -898,7 +898,7 @@ export default class OCPPService {
     if (statusNotification.status === ChargePointStatus.AVAILABLE) {
       // Get the last transaction
       const lastTransaction = await TransactionStorage.getLastTransactionFromChargingStation(
-        tenant, chargingStation.id, connector.connectorId);
+        tenant, chargingStation.id, connector.connectorId, { withUser: true });
       // Transaction completed
       if (lastTransaction?.stop) {
         // Check Inactivity
@@ -913,7 +913,7 @@ export default class OCPPService {
               const currentStatusNotifTimestamp = Utils.convertToDate(statusNotification.timestamp);
               // Diff
               lastTransaction.stop.extraInactivitySecs =
-                Math.floor((currentStatusNotifTimestamp.getTime() - transactionStopTimestamp.getTime()) / 1000);
+                Utils.createDecimal(currentStatusNotifTimestamp.getTime()).minus(transactionStopTimestamp.getTime()).div(1000).floor().toNumber();
               // Negative inactivity
               if (lastTransaction.stop.extraInactivitySecs < 0) {
                 await Logging.logWarning({
