@@ -1,8 +1,8 @@
+import http, { IncomingMessage } from 'http';
+
 import CentralSystemServerConfiguration from '../../../types/configuration/CentralSystemServerConfiguration';
 import { ServerUtils } from '../../ServerUtils';
-import { WSServerProtocol } from '../../../types/Server';
 import WebSocket from 'ws';
-import http from 'http';
 
 const MODULE_NAME = 'WSServer';
 
@@ -13,7 +13,7 @@ export default class WSServer extends WebSocket.Server {
 
   public constructor(serverConfig: CentralSystemServerConfiguration, serverName: string,
       verifyClientCb: WebSocket.VerifyClientCallbackAsync | WebSocket.VerifyClientCallbackSync = (): void => { },
-      handleProtocolsCb: (protocols: WSServerProtocol | WSServerProtocol[], request: http.IncomingMessage) => boolean | string = (protocols, request) => '') {
+      handleProtocolsCb: (protocols: Set<string>, request: IncomingMessage) => string | false = (protocols, request) => '') {
     const httpServer = ServerUtils.createHttpServer(serverConfig);
     // Create the WebSocket Server
     super({
