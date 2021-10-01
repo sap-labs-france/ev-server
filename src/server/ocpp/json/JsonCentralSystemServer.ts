@@ -1,4 +1,5 @@
 import { ServerAction, WSServerProtocol } from '../../../types/Server';
+import http, { IncomingMessage } from 'http';
 
 import CentralSystemConfiguration from '../../../types/configuration/CentralSystemConfiguration';
 import CentralSystemServer from '../CentralSystemServer';
@@ -15,7 +16,6 @@ import WSServer from './WSServer';
 import WebSocket from 'ws';
 import { WebSocketCloseEventStatusCode } from '../../../types/WebSocket';
 import global from '../../../types/GlobalType';
-import http from 'http';
 
 const MODULE_NAME = 'JsonCentralSystemServer';
 
@@ -119,19 +119,13 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       return false;
     };
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const handleProtocols = (protocols: WSServerProtocol | WSServerProtocol[], request: http.IncomingMessage): boolean | WSServerProtocol => {
+    const handleProtocols = (protocols: Set<string>, request: IncomingMessage): string | false => {
       // Check the protocols and ensure protocol used as ocpp1.6 or nothing (should create an error)
-      if (!Utils.isEmptyArray(protocols)) {
-        if (protocols.includes(WSServerProtocol.OCPP16)) {
-          return WSServerProtocol.OCPP16;
-        }
-        if (protocols.includes(WSServerProtocol.REST)) {
-          return WSServerProtocol.REST;
-        }
-      } else if (protocols === WSServerProtocol.OCPP16) {
-        return protocols;
-      } else if (protocols === WSServerProtocol.REST) {
-        return protocols;
+      if (protocols?.has(WSServerProtocol.OCPP16)) {
+        return WSServerProtocol.OCPP16;
+      }
+      if (protocols?.has(WSServerProtocol.REST)) {
+        return WSServerProtocol.REST;
       }
       void Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,

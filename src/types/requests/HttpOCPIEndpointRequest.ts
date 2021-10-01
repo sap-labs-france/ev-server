@@ -10,10 +10,6 @@ export interface HttpOCPIEndpointByIdRequest {
   id: string;
 }
 
-export interface HttpOCPIEndpointGenerateLocalTokenRequest extends HttpOCPIEndpointByIdRequest {
-  name: string;
-}
-
 export interface HttpOCPIEndpointRequest extends HttpByIDRequest {
   ID: string;
 }
