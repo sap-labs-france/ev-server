@@ -66,11 +66,8 @@ export default class TransactionService {
           module: MODULE_NAME, method: 'handleSynchronizeRefundedTransactions'
         });
       }
-
-      const tenant = await TenantStorage.getTenant(req.user.tenantID);
       const task = new SynchronizeRefundTransactionsTask();
-      await task.processTenant(tenant, null);
-
+      await task.processTenant(req.tenant, null);
       const response: any = {
         ...Constants.REST_RESPONSE_SUCCESS,
       };
@@ -314,30 +311,6 @@ export default class TransactionService {
     const count = await TransactionStorage.getUnassignedTransactionsCount(req.tenant, tag.id);
     // Return
     res.json(count);
-    next();
-  }
-
-  public static async handleRebuildTransactionConsumptions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check Auth
-    if (!await Authorizations.canUpdateTransaction(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.UPDATE, entity: Entity.TRANSACTION,
-        module: MODULE_NAME, method: 'handleRebuildTransactionConsumptions'
-      });
-    }
-    // Filter
-    const filteredRequest = TransactionValidator.getInstance().validateTransactionGetReq(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID.toString(), MODULE_NAME, 'handleRebuildTransactionConsumptions', req.user);
-    // Get Transaction
-    const transaction = await TransactionStorage.getTransaction(req.tenant, filteredRequest.ID, { withUser: true });
-    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.ID}' does not exist`,
-      MODULE_NAME, 'handleRebuildTransactionConsumptions', req.user);
-    // Get unassigned transactions
-    const nbrOfConsumptions = await OCPPUtils.rebuildTransactionConsumptions(req.tenant, transaction);
-    // Return
-    res.json({ nbrOfConsumptions, ...Constants.REST_RESPONSE_SUCCESS });
     next();
   }
 
@@ -1002,7 +975,7 @@ export default class TransactionService {
     const billingImpl = await BillingFactory.getBillingImpl(tenant);
     for (const transactionID of transactionsIDs) {
       // Get
-      const transaction = await TransactionStorage.getTransaction(await TenantStorage.getTenant(loggedUser.tenantID), transactionID);
+      const transaction = await TransactionStorage.getTransaction(tenant, transactionID);
       // Not Found
       if (!transaction) {
         result.inError++;
@@ -1045,7 +1018,7 @@ export default class TransactionService {
           const foundConnector = Utils.getConnectorFromID(transaction.chargeBox, transaction.connectorId);
           if (foundConnector && transaction.id === foundConnector.currentTransactionID) {
             OCPPUtils.clearChargingStationConnectorRuntimeData(transaction.chargeBox, transaction.connectorId);
-            await ChargingStationStorage.saveChargingStationConnectors(await TenantStorage.getTenant(loggedUser.tenantID),
+            await ChargingStationStorage.saveChargingStationConnectors(tenant,
               transaction.chargeBox.id, transaction.chargeBox.connectors);
           }
           // To Delete
@@ -1057,7 +1030,7 @@ export default class TransactionService {
       }
     }
     // Delete All Transactions
-    result.inSuccess = await TransactionStorage.deleteTransactions(await TenantStorage.getTenant(loggedUser.tenantID), transactionsIDsToDelete);
+    result.inSuccess = await TransactionStorage.deleteTransactions(tenant, transactionsIDsToDelete);
     // Log
     await Logging.logActionsResponse(loggedUser.tenantID,
       ServerAction.TRANSACTIONS_DELETE,

@@ -308,9 +308,8 @@ export default class OCPIEndpointService {
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handlePullSessionsEndpoint', req.user);
-    const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Get the lock
-    const pullSessionsLock = await LockingHelper.createOCPIPullSessionsLock(tenant.id, ocpiEndpoint);
+    const pullSessionsLock = await LockingHelper.createOCPIPullSessionsLock(req.tenant.id, ocpiEndpoint);
     if (!pullSessionsLock) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -360,9 +359,8 @@ export default class OCPIEndpointService {
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handlePullTokensEndpoint', req.user);
-    const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Get the lock
-    const pullTokensLock = await LockingHelper.createOCPIPullTokensLock(tenant.id, ocpiEndpoint, false);
+    const pullTokensLock = await LockingHelper.createOCPIPullTokensLock(req.tenant.id, ocpiEndpoint, false);
     if (!pullTokensLock) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -412,9 +410,8 @@ export default class OCPIEndpointService {
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handlePullCdrsEndpoint', req.user);
-    const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Get the lock
-    const pullCdrsLock = await LockingHelper.createOCPIPullCdrsLock(tenant.id, ocpiEndpoint);
+    const pullCdrsLock = await LockingHelper.createOCPIPullCdrsLock(req.tenant.id, ocpiEndpoint);
     if (!pullCdrsLock) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -464,9 +461,8 @@ export default class OCPIEndpointService {
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleCheckCdrsEndpoint', req.user);
-    const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Get the lock
-    const checkCdrsLock = await LockingHelper.createOCPICheckCdrsLock(tenant.id, ocpiEndpoint);
+    const checkCdrsLock = await LockingHelper.createOCPICheckCdrsLock(req.tenant.id, ocpiEndpoint);
     if (!checkCdrsLock) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -516,9 +512,8 @@ export default class OCPIEndpointService {
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleCheckSessionsEndpoint', req.user);
-    const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Get the lock
-    const checkSessionsLock = await LockingHelper.createOCPICheckSessionsLock(tenant.id, ocpiEndpoint);
+    const checkSessionsLock = await LockingHelper.createOCPICheckSessionsLock(req.tenant.id, ocpiEndpoint);
     if (!checkSessionsLock) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -568,9 +563,8 @@ export default class OCPIEndpointService {
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleCheckLocationsEndpoint', req.user);
-    const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Get the lock
-    const checkLocationsLock = await LockingHelper.createOCPICheckLocationsLock(tenant.id, ocpiEndpoint);
+    const checkLocationsLock = await LockingHelper.createOCPICheckLocationsLock(req.tenant.id, ocpiEndpoint);
     if (!checkLocationsLock) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -620,9 +614,8 @@ export default class OCPIEndpointService {
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handlePushEVSEStatusesOcpiEndpoint', req.user);
-    const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Get the lock
-    const patchStatusesLock = await LockingHelper.createOCPIPatchEVSEStatusesLock(tenant.id, ocpiEndpoint);
+    const patchStatusesLock = await LockingHelper.createOCPIPatchEVSEStatusesLock(req.tenant.id, ocpiEndpoint);
     if (!patchStatusesLock) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -724,9 +717,8 @@ export default class OCPIEndpointService {
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUnregisterOcpiEndpoint', req.user);
-    const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Build OCPI Client
-    const ocpiClient = await OCPIClientFactory.getOcpiClient(tenant, ocpiEndpoint);
+    const ocpiClient = await OCPIClientFactory.getOcpiClient(req.tenant, ocpiEndpoint);
     // Try to register
     const result = await ocpiClient.unregister();
     // Check ping result
@@ -829,19 +821,16 @@ export default class OCPIEndpointService {
         module: MODULE_NAME, method: 'handleGenerateLocalTokenOcpiEndpoint'
       });
     }
-    // Filter
-    const filteredRequest = OCPIEndpointValidator.getInstance().validateOCPIEndpointLocalTokenGenerateGetReq(req.body);
-    const tenant = await TenantStorage.getTenant(req.user.tenantID);
-    const localToken = OCPIUtils.generateLocalToken(tenant.subdomain);
+    // Generate endpoint
+    const localToken = OCPIUtils.generateLocalToken(req.tenant.subdomain);
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleGenerateLocalTokenOcpiEndpoint',
-      message: `Local Token for Ocpi Endpoint '${filteredRequest.name}' has been generated successfully`,
+      message: 'Local Token for Ocpi Endpoint has been generated successfully',
       action,
-      detailedMessages: { token: filteredRequest }
+      detailedMessages: { token: localToken }
     });
     res.json(Object.assign({
-      id: filteredRequest.id,
       localToken: localToken
     }, Constants.REST_RESPONSE_SUCCESS));
     next();
