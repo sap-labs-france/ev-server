@@ -311,22 +311,28 @@ describe('User', function() {
           );
         });
 
-        it('Should be able to set the technical flag', async () => {
+        it('Should be able to set/unset the technical flag', async () => {
           // Check the technical flag can be set
           const response = await testData.userService.userApi.exportUsers({});
-          const users = await testData.userService.userApi.readAll({}, { limit: 1000, skip: 0 });
+          let users = await testData.userService.userApi.readAll({}, { limit: 1000, skip: 0 });
           expect(response.status).eq(StatusCodes.OK);
           expect(response.data).not.null;
           expect(users.data.result.length).to.be.greaterThan(1);
           const user1 = users.data.result[0];
-          console.log(user1.technical);
-          expect(user1.technical).not.undefined;
-          console.log(user1);
           user1.technical = true;
+          await testData.userService.userApi.update(user1);
+          users = await testData.userService.userApi.readAll({}, { limit: 1000, skip: 0 });
+          const user2 = users.data.result[0];
+          expect(user2.technical).eq(true);
+          // Unset technical flag.
+          user2.technical = false;
+          await testData.userService.userApi.update(user2);
+          users = await testData.userService.userApi.readAll({}, { limit: 1000, skip: 0 });
+          expect(user2.technical).eq(false);
         });
       });
-      describe('Using function "readAllInError"', () => {
 
+      describe('Using function "readAllInError"', () => {
         it('Should not find an active user in error', async () => {
           const user = await testData.userService.createEntity(
             testData.userService.userApi,
