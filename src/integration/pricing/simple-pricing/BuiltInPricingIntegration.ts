@@ -1,10 +1,11 @@
 /* eslint-disable max-len */
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
-import PricingDefinition, { PricedConsumption, PricingSource, ResolvedPricingModel } from '../../../types/Pricing';
+import PricingDefinition, { PricedConsumption, PricingDimensions, PricingSource, ResolvedPricingModel } from '../../../types/Pricing';
 
 import ChargingStation from '../../../types/ChargingStation';
 import Consumption from '../../../types/Consumption';
 import PricingEngine from '../PricingEngine';
+import PricingHelper from '../PricingHelper';
 import PricingIntegration from '../PricingIntegration';
 import { SimplePricingSetting } from '../../../types/Setting';
 import Tenant from '../../../types/Tenant';
@@ -49,9 +50,27 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
       amount: amount,
       roundedAmount: roundedAmount,
       currencyCode: this.settings.currency,
-      cumulatedAmount: transaction.currentCumulatedPrice ? Utils.createDecimal(transaction.currentCumulatedPrice).plus(amount).toNumber() : amount
+      cumulatedAmount: 0,
     };
+
+    if (!FeatureToggles.isFeatureActive(Feature.PRICING_NEW_MODEL)) {
+      // TODO - Old way of doing it - to be removed
+      pricedConsumption.cumulatedAmount = transaction.currentCumulatedPrice ? Utils.createDecimal(transaction.currentCumulatedPrice).plus(amount).toNumber() : amount;
+    } else {
+      // New logic - get the amount from the priced data to avoid rounding issues
+      pricedConsumption.cumulatedAmount = this.computeCumulatedAmount(pricingModel);
+    }
     return Promise.resolve(pricedConsumption);
+  }
+
+  private computeCumulatedAmount(pricingModel: ResolvedPricingModel): number {
+    const allDimensions: PricingDimensions[] = [];
+    pricingModel.pricingDefinitions.forEach((pricingDefinition) => {
+      if (pricingDefinition.dimensions) {
+        allDimensions.push(pricingDefinition.dimensions);
+      }
+    });
+    return PricingHelper.accumulatePricingDimensions(allDimensions);
   }
 
   private async resolvePricingContext(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation): Promise<ResolvedPricingModel> {

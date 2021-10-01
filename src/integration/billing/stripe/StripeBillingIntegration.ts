@@ -18,6 +18,7 @@ import Cypher from '../../../utils/Cypher';
 import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
 import PricingEngine from '../../pricing/PricingEngine';
+import PricingHelper from '../../pricing/PricingHelper';
 import { Request } from 'express';
 import { ServerAction } from '../../../types/Server';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
@@ -1093,7 +1094,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     let pricingData: PricedConsumptionData[] = PricingEngine.extractFinalPricingData(pricingModel);
     if (!FeatureToggles.isFeatureActive(Feature.BILLING_SHOW_PRICING_DETAIL)) {
       // Accumulate data per dimensions = less details, less disputes
-      pricingData = [ this._accumulatePricingDimensions(pricingData) ] ;
+      pricingData = [ PricingHelper.accumulatePricedConsumption(pricingData) ] ;
     }
     pricingData = pricingData.map((pricingConsumptionData) => this._enrichTransactionPricingData(transaction, pricingConsumptionData));
     return pricingData;
@@ -1128,35 +1129,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
       parkingTime.taxes = taxes;
     }
     return pricingConsumptionData;
-  }
-
-
-  private _accumulatePricingDimensions(pricingData: PricedConsumptionData[]): PricedConsumptionData {
-    const accumulatedConsumptionData: PricedConsumptionData = {};
-    for (const pricingConsumptionData of pricingData) {
-      this._accumulatePricingDimension(accumulatedConsumptionData, pricingConsumptionData, DimensionType.FLAT_FEE);
-      this._accumulatePricingDimension(accumulatedConsumptionData, pricingConsumptionData, DimensionType.ENERGY);
-      this._accumulatePricingDimension(accumulatedConsumptionData, pricingConsumptionData, DimensionType.CHARGING_TIME);
-      this._accumulatePricingDimension(accumulatedConsumptionData, pricingConsumptionData, DimensionType.PARKING_TIME);
-    }
-    return accumulatedConsumptionData;
-  }
-
-  private _accumulatePricingDimension(accumulatedData: PricedConsumptionData, pricedData: PricedConsumptionData, dimensionType: DimensionType): void {
-    if (pricedData[dimensionType]) {
-      if (!accumulatedData[dimensionType]) {
-        const emptyDimensionData: PricedDimensionData = {
-          unitPrice: 0,
-          quantity:0,
-          amount: 0,
-          roundedAmount: 0
-        };
-        accumulatedData[dimensionType] = emptyDimensionData;
-      }
-      accumulatedData[dimensionType].quantity = Utils.createDecimal(accumulatedData[dimensionType].quantity).plus(pricedData[dimensionType].quantity).toNumber();
-      accumulatedData[dimensionType].amount = Utils.createDecimal(accumulatedData[dimensionType].amount).plus(pricedData[dimensionType].amount).toNumber();
-      accumulatedData[dimensionType].roundedAmount = Utils.createDecimal(accumulatedData[dimensionType].roundedAmount).plus(pricedData[dimensionType].roundedAmount).toNumber();
-    }
   }
 
   private _convertToBillingInvoiceItem(transaction: Transaction) : BillingInvoiceItem {

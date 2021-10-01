@@ -1086,8 +1086,10 @@ export default class Utils {
   }
 
   public static truncTo(value: number, scale: number): number {
+    // const truncPower = Math.pow(10, scale);
+    // return Math.trunc(value * truncPower) / truncPower;
     const truncPower = Math.pow(10, scale);
-    return Math.trunc(value * truncPower) / truncPower;
+    return Utils.createDecimal(value).times(truncPower).trunc().div(truncPower).toNumber();
   }
 
   public static firstLetterInUpperCase(value: string): string {

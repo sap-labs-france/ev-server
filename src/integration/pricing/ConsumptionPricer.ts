@@ -1,6 +1,7 @@
 import PricingDefinition, { DimensionType, PricedConsumptionData, PricedDimensionData, PricingDimension, PricingRestriction, ResolvedPricingModel } from '../../types/Pricing';
 
 import Consumption from '../../types/Consumption';
+import PricingHelper from './PricingHelper';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
@@ -246,7 +247,7 @@ export default class ConsumptionPricer {
     pricingDimension.pricedData = {
       unitPrice: unitPrice,
       amount: unitPrice,
-      roundedAmount: this.truncTo(unitPrice, 2),
+      roundedAmount: PricingHelper.truncTo(unitPrice, 2),
       quantity: 1 // Session
     };
     return pricingDimension.pricedData;
@@ -260,7 +261,7 @@ export default class ConsumptionPricer {
     const pricedData: PricedDimensionData = {
       unitPrice: unitPrice,
       amount,
-      roundedAmount: this.truncTo(amount, 2),
+      roundedAmount: PricingHelper.truncTo(amount, 2),
       quantity,
       stepSize: pricingDimension.stepSize,
     };
@@ -279,7 +280,7 @@ export default class ConsumptionPricer {
     const pricedData: PricedDimensionData = {
       unitPrice: unitPrice,
       amount,
-      roundedAmount: this.truncTo(amount, 2),
+      roundedAmount: PricingHelper.truncTo(amount, 2),
       quantity
     };
     // Add the consumption to the previous data (if any) - for the billing
@@ -314,7 +315,7 @@ export default class ConsumptionPricer {
     const pricedData: PricedDimensionData = {
       unitPrice: unitPrice,
       amount,
-      roundedAmount: this.truncTo(amount, 2),
+      roundedAmount: PricingHelper.truncTo(amount, 2),
       quantity,
       stepSize: pricingDimension.stepSize
     };
@@ -331,7 +332,7 @@ export default class ConsumptionPricer {
     const pricedData: PricedDimensionData = {
       unitPrice: unitPrice,
       amount,
-      roundedAmount: this.truncTo(amount, 2),
+      roundedAmount: PricingHelper.truncTo(amount, 2),
       quantity: seconds
     };
     // Add the consumption to the previous data (if any) - for the billing
@@ -346,14 +347,9 @@ export default class ConsumptionPricer {
     if (previousData) {
       previousData.amount += pricedData.amount;
       previousData.quantity += pricedData.quantity;
-      previousData.roundedAmount = this.truncTo(previousData.amount, 2);
+      previousData.roundedAmount = PricingHelper.truncTo(previousData.amount, 2);
     } else {
       pricingDimension.pricedData = pricedData;
     }
-  }
-
-  private truncTo(value: number, scale: number): number {
-    const truncPower = Math.pow(10, scale);
-    return Utils.createDecimal(value).times(truncPower).trunc().div(truncPower).toNumber();
   }
 }
