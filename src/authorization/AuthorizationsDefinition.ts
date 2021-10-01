@@ -79,7 +79,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.USERS, action: Action.IN_ERROR,
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer',
-          'createdOn', 'lastChangedOn', 'errorCodeDetails', 'errorCode', 'technical'
+          'createdOn', 'lastChangedOn', 'errorCodeDetails', 'errorCode'
         ]
       },
       { resource: Entity.USER, action: Action.SYNCHRONIZE_BILLING_USER },
