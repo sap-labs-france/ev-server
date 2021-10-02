@@ -749,11 +749,12 @@ export default class UserService {
     const users = await UserStorage.getUsers(req.tenant,
       {
         search: filteredRequest.Search,
-        issuer: Utils.isBoolean(filteredRequest.Issuer) || filteredRequest.Issuer ? Utils.convertToBoolean(filteredRequest.Issuer) : null,
+        issuer: Utils.isBoolean(filteredRequest.Issuer) ? filteredRequest.Issuer : null,
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         userIDs: (filteredRequest.UserID ? filteredRequest.UserID.split('|') : null),
         roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
         statuses: (filteredRequest.Status ? filteredRequest.Status.split('|') : null),
+        technical: Utils.isBoolean(filteredRequest.Technical) ? filteredRequest.Technical : null,
         excludeSiteID: filteredRequest.ExcludeSiteID,
         ...authorizationUsersFilters.filters
       },

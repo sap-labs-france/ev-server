@@ -17,6 +17,10 @@
       "sanitize": "mongo",
       "pattern": "^[SABD](\\|[SABD])*$"
     },
+    "Technical": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
     "Status": {
       "type": "string",
       "sanitize": "mongo",
