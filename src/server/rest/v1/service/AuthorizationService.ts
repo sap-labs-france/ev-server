@@ -82,7 +82,7 @@ export default class AuthorizationService {
   public static async addSiteAuthorizations(tenant: Tenant, userToken: UserToken, site: Site, authorizationFilter: AuthorizationFilter): Promise<void> {
     // Assign projected fields
     if (authorizationFilter.projectFields) {
-      site.projectedFields = authorizationFilter.projectFields;
+      site.projectFields = authorizationFilter.projectFields;
     }
     // Enrich
     if (!site.issuer) {
@@ -252,7 +252,7 @@ export default class AuthorizationService {
   public static async addUserAuthorizations(tenant: Tenant, userToken: UserToken, user: User, authorizationFilter: AuthorizationFilter): Promise<void> {
     // Assign projected fields
     if (authorizationFilter.projectFields) {
-      user.projectedFields = authorizationFilter.projectFields;
+      user.projectFields = authorizationFilter.projectFields;
     }
     // Enrich
     if (!user.issuer) {
@@ -339,7 +339,7 @@ export default class AuthorizationService {
   public static async addTagAuthorizations(tenant: Tenant, userToken: UserToken, tag: Tag, authorizationFilter: AuthorizationFilter): Promise<void> {
     // Assign projected fields
     if (authorizationFilter.projectFields) {
-      tag.projectedFields = authorizationFilter.projectFields;
+      tag.projectFields = authorizationFilter.projectFields;
     }
     // Enrich
     if (!tag.issuer) {
@@ -388,7 +388,7 @@ export default class AuthorizationService {
   public static async addCompanyAuthorizations(tenant: Tenant, userToken: UserToken, company: Company, authorizationFilter: AuthorizationFilter): Promise<void> {
     // Assign projected fields
     if (authorizationFilter.projectFields) {
-      company.projectedFields = authorizationFilter.projectFields;
+      company.projectFields = authorizationFilter.projectFields;
     }
     // Enrich
     if (!company.issuer) {
@@ -443,7 +443,7 @@ export default class AuthorizationService {
   public static async addSiteAreaAuthorizations(tenant: Tenant, userToken: UserToken, siteArea: SiteArea, authorizationFilter: AuthorizationFilter): Promise<void> {
     // Assign projected fields
     if (authorizationFilter.projectFields) {
-      siteArea.projectedFields = authorizationFilter.projectFields;
+      siteArea.projectFields = authorizationFilter.projectFields;
     }
     // Enrich
     if (!siteArea.issuer) {
@@ -534,7 +534,7 @@ export default class AuthorizationService {
   public static async addCarAuthorizations(tenant: Tenant, userToken: UserToken, car: Car, authorizationFilter: AuthorizationFilter): Promise<void> {
     // Assign projected fields
     if (authorizationFilter.projectFields) {
-      car.projectedFields = authorizationFilter.projectFields;
+      car.projectFields = authorizationFilter.projectFields;
     }
     // Enrich
     car.canRead = true; // Always true as it should be filtered upfront
@@ -577,7 +577,7 @@ export default class AuthorizationService {
   public static async addCarCatalogAuthorizations(tenant: Tenant, userToken: UserToken, carCatalog: CarCatalog, authorizationFilter: AuthorizationFilter): Promise<void> {
     // Assign projected fields
     if (authorizationFilter.projectFields) {
-      carCatalog.projectedFields = authorizationFilter.projectFields;
+      carCatalog.projectFields = authorizationFilter.projectFields;
     }
     // Enrich
     carCatalog.canRead = true; // Always true as it should be filtered upfront
