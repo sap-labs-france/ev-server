@@ -7,6 +7,7 @@ import Tenant, { TenantComponents } from '../../types/Tenant';
 import global, { FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
+import ChargingStationValidatorStorage from './validator/ChargingStationValidatorStorage';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
@@ -15,9 +16,7 @@ import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import { InactivityStatus } from '../../types/Transaction';
 import Logging from '../../utils/Logging';
-import { ServerAction } from '../../types/Server';
 import Utils from '../../utils/Utils';
-import fs from 'fs';
 import moment from 'moment';
 
 const MODULE_NAME = 'ChargingStationStorage';
@@ -90,6 +89,8 @@ export default class ChargingStationStorage {
   public static async saveChargingStationTemplate(chargingStationTemplate: ChargingStationTemplate): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveChargingStationTemplate');
+    // Validate
+    chargingStationTemplate = ChargingStationValidatorStorage.getInstance().validateChargingStationStorageTemplate(chargingStationTemplate);
     // Modify and return the modified document
     await global.database.getCollection<ChargingStationTemplate>(Constants.DEFAULT_TENANT, 'chargingstationtemplates').findOneAndReplace(
       { '_id': chargingStationTemplate.id },

@@ -2,7 +2,7 @@ import { HttpConnectionRequest, HttpConnectionsRequest } from '../../../../types
 
 import Connection from '../../../../types/Connection';
 import Schema from '../../../../types/validator/Schema';
-import SchemaValidator from './SchemaValidator';
+import SchemaValidator from '../../../../validator/SchemaValidator';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 

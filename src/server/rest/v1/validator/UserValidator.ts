@@ -2,7 +2,7 @@ import { HttpUserAssignSitesRequest, HttpUserDefaultTagCar, HttpUserMobileTokenR
 
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import Schema from '../../../../types/validator/Schema';
-import SchemaValidator from './SchemaValidator';
+import SchemaValidator from '../../../../validator/SchemaValidator';
 import User from '../../../../types/User';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';

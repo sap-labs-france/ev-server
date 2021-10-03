@@ -94,7 +94,7 @@ export default class AssetService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.CREATE_CONSUMPTION, Entity.ASSETS, MODULE_NAME, 'handleCreateAssetConsumption');
     // Validate request
-    const filteredRequest = AssetValidator.getInstance().validateAssetConsumptionCreateReq({ ...req.params, ...req.body });
+    const filteredRequest = AssetValidator.getInstance().validateAssetConsumptionCreateReq({ ...req.query, ...req.body });
     UtilsService.assertIdIsProvided(action, filteredRequest.assetID, MODULE_NAME,
       'handleCreateAssetConsumption', req.user);
     // Check auth

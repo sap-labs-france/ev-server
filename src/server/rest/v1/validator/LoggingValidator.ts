@@ -1,7 +1,7 @@
 import { HttpLogRequest, HttpLogsRequest } from '../../../../types/requests/HttpLoggingRequest';
 
 import Schema from '../../../../types/validator/Schema';
-import SchemaValidator from './SchemaValidator';
+import SchemaValidator from '../../../../validator/SchemaValidator';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 

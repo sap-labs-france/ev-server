@@ -1,12 +1,9 @@
-import { AccessControl, IDictionary, IFunctionCondition, Permission } from 'role-acl';
+import { AccessControl, IDictionary, IFunctionCondition } from 'role-acl';
 import { Action, AuthorizationContext, AuthorizationDefinition, AuthorizationResult, Entity } from '../types/Authorization';
 
 import BackendError from '../exception/BackendError';
 import Constants from '../utils/Constants';
-import LockingHelper from '../locking/LockingHelper';
-import LockingManager from '../locking/LockingManager';
 import Utils from '../utils/Utils';
-import { authorize } from 'passport';
 
 const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   superAdmin: {
@@ -19,7 +16,6 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'billingData.customerID', 'billingData.lastChangedOn'
         ]
       },
-      { resource: Entity.USER, action: [Action.CREATE, Action.UPDATE] },
       {
         resource: Entity.USER, action: Action.DELETE,
         condition: {
@@ -28,7 +24,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         }
       },
       {
-        resource: Entity.USER, action: Action.READ,
+        resource: Entity.USER, action: [Action.READ, Action.CREATE, Action.UPDATE],
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
           'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
@@ -65,14 +61,17 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   admin: {
     grants: [
       {
+        resource: Entity.USERS, action: Action.SYNCHRONIZE_BILLING_USERS,
+      },
+      {
         resource: Entity.USERS,
         action: [
-          Action.LIST, Action.SYNCHRONIZE_BILLING_USERS, Action.EXPORT, Action.IMPORT
+          Action.LIST, Action.EXPORT, Action.IMPORT
         ],
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn', 'createdBy',
           'lastChangedOn', 'lastChangedBy', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
-          'billingData.customerID', 'billingData.lastChangedOn'
+          'billingData.customerID', 'billingData.lastChangedOn', 'technical'
         ]
       },
       {
@@ -314,22 +313,19 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   basic: {
     grants: [
       {
-        resource: Entity.USER, action: Action.READ,
+        resource: Entity.USER, action: [Action.READ, Action.UPDATE],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
-          args: { filters: ['OwnUser'] }
+          args: {
+            filters: ['OwnUser'],
+            asserts: ['BasicUser']
+          }
         },
         attributes: [
-          'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
-          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
+          'id', 'name', 'firstName', 'email', 'role', 'issuer', 'locale',
+          'notificationsActive', 'notifications', 'phone', 'mobile',
+          'iNumber', 'costCenter', 'address'
         ]
-      },
-      {
-        resource: Entity.USER, action: Action.UPDATE,
-        condition: {
-          Fn: 'custom:dynamicAuthorizations',
-          args: { filters: ['OwnUser'] }
-        }
       },
       { resource: Entity.SETTING, action: Action.READ },
       {
@@ -624,8 +620,8 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           args: { filters: ['OwnUser'] }
         },
         attributes: [
-          'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
-          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
+          'id', 'name', 'firstName', 'email', 'issuer', 'locale', 'notificationsActive',
+          'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
         ],
       },
       {
@@ -762,14 +758,16 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn',
           'lastChangedOn', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
-          'billingData.customerID', 'billingData.lastChangedOn'
+          'billingData.customerID', 'billingData.lastChangedOn', 'technical'
         ],
       },
       {
         resource: Entity.USER, action: Action.READ,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
-          args: { filters: ['SitesAdmin', 'LocalIssuer'] }
+          args: {
+            filters: ['SitesAdmin', 'LocalIssuer']
+          }
         },
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
@@ -781,16 +779,24 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
-            asserts: ['BasicUser']
+            asserts: ['BasicUser'],
+            filters: ['SitesAdmin']
           }
-        }
+        },
+        attributes: [
+          'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
+          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address', 'technical'
+        ],
       },
       { resource: Entity.USER, action: Action.SYNCHRONIZE_BILLING_USER },
       {
         resource: Entity.USER, action: Action.DELETE,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
-          args: { filters: ['-OwnUser'] }
+          args: {
+            asserts: ['BasicUser'],
+            filters: ['-OwnUser', 'SitesAdmin']
+          }
         }
       },
       {
@@ -958,11 +964,13 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.USER, action: Action.READ,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
-          args: { filters: ['SitesOwner', 'LocalIssuer'] }
+          args: {
+            filters: ['SitesOwner', 'LocalIssuer']
+          }
         },
         attributes: [
-          'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
-          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
+          'id', 'name', 'firstName', 'email', 'issuer', 'locale', 'notificationsActive', 'notifications',
+          'phone', 'mobile', 'iNumber', 'costCenter', 'address'
         ],
       },
       {
