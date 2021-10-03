@@ -1,14 +1,14 @@
 import Ajv, { Options, SchemaObjCxt, ValidateFunction } from 'ajv';
 import { AnySchemaObject, DataValidateFunction, DataValidationCxt } from 'ajv/dist/types';
 
-import AppError from '../../../../exception/AppError';
-import Constants from '../../../../utils/Constants';
-import { HTTPError } from '../../../../types/HTTPError';
-import Schema from '../../../../types/validator/Schema';
+import AppError from '../exception/AppError';
+import Constants from '../utils/Constants';
+import { HTTPError } from '../types/HTTPError';
+import Schema from '../types/validator/Schema';
 import addFormats from 'ajv-formats';
 import countries from 'i18n-iso-countries';
 import fs from 'fs';
-import global from '../../../../types/GlobalType';
+import global from '../types/GlobalType';
 import keywords from 'ajv-keywords';
 import sanitize from 'mongo-sanitize';
 
@@ -18,17 +18,17 @@ import sanitize from 'mongo-sanitize';
 export default class SchemaValidator {
   private static compiledSchemas = new Map<string, ValidateFunction<unknown>>();
   private readonly ajv: Ajv;
-  private commonSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/common/common.json`, 'utf8'));
-  private tenantSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant.json`, 'utf8'));
-  private tenantComponentSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-components.json`, 'utf8'));
-  private chargingStationSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation.json`, 'utf8'));
-  private tagSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tag/tag.json`, 'utf8'));
-  private transactionSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transaction.json`, 'utf8'));
-  private userSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user.json`, 'utf8'));
-  private carSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/car/car.json`, 'utf8'));
-  private assetSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/asset/asset.json`, 'utf8'));
-  private companySchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/company/company.json`, 'utf8'));
-  private ocpiEndpointSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/ocpi/ocpi-endpoint.json`, 'utf8'));
+  private commonSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/common/common.json`, 'utf8'));
+  private tenantSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/tenant/tenant.json`, 'utf8'));
+  private tenantComponentSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/tenant/tenant-components.json`, 'utf8'));
+  private chargingStationSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/chargingstation/chargingstation.json`, 'utf8'));
+  private tagSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/tag/tag.json`, 'utf8'));
+  private transactionSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/transaction/transaction.json`, 'utf8'));
+  private userSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/user/user.json`, 'utf8'));
+  private carSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/car/car.json`, 'utf8'));
+  private assetSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/asset/asset.json`, 'utf8'));
+  private companySchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/company/company.json`, 'utf8'));
+  private ocpiEndpointSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/ocpi/ocpi-endpoint.json`, 'utf8'));
 
   constructor(readonly moduleName: string,
       config: Options = {

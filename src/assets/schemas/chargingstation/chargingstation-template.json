@@ -19,6 +19,21 @@
         }
       }
     },
+    "hash": {
+      "type": "string"
+    },
+    "hashTechnical": {
+      "type": "string"
+    },
+    "hashCapabilities": {
+      "type": "string"
+    },
+    "hashOcppStandard": {
+      "type": "string"
+    },
+    "hashOcppVendor": {
+      "type": "string"
+    },
     "technical": {
       "type": "object",
       "properties": {

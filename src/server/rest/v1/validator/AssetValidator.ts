@@ -3,7 +3,7 @@ import { HttpAssetCheckConnection, HttpAssetConsumptionRequest, HttpAssetRequest
 import Asset from '../../../../types/Asset';
 import Consumption from '../../../../types/Consumption';
 import Schema from '../../../../types/validator/Schema';
-import SchemaValidator from './SchemaValidator';
+import SchemaValidator from '../../../../validator/SchemaValidator';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
