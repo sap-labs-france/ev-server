@@ -307,6 +307,9 @@ export default class Constants {
   public static readonly REGEX_URL_PATTERN = /^(?:https?|wss?):\/\/((?:[\w-]+)(?:\.[\w-]+)*)(?:[\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?$/;
   public static readonly MAX_GPS_DISTANCE_METERS = 40000000; // Earth
 
+  public static readonly CSV_CHARACTERS_TO_ESCAPE = /^[+\-@=].*$/;
+  public static readonly CSV_ESCAPING_CHARACTER = '\'';
+
   public static readonly EXCEPTION_JSON_KEYS_IN_SENSITIVE_DATA = Object.freeze([
     'stack'
   ]);

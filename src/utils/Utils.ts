@@ -872,6 +872,10 @@ export default class Utils {
     return !Object.keys(obj).length;
   }
 
+  public static isEmptyString(str: string): boolean {
+    return str ? str.length === 0 : true;
+  }
+
   public static findDuplicatesInArray(arr: any[]): any[] {
     const sorted_arr = arr.slice().sort();
     const results: any[] = [];
@@ -1555,5 +1559,30 @@ export default class Utils {
   // when importing values
   public static unescapeCsvValue(value: any): void {
     // double quotes are handle by csvToJson
+  }
+
+  public static sanitizeCSVExport(data: any): any {
+    if (!data || typeof data === 'number' || typeof data === 'bigint' || typeof data === 'symbol' || Utils.isBoolean(data) || typeof data === 'function') {
+      return data;
+    } else if (typeof data === 'string') {
+      // If the data is a string and starts with the csv characters initiating the formula parsing, then escape
+      if (!Utils.isEmptyString(data)) {
+        data = data.replace(Constants.CSV_CHARACTERS_TO_ESCAPE, Constants.CSV_ESCAPING_CHARACTER + data);
+      }
+      return data;
+    } else if (Array.isArray(data)) {
+      // If the data is an array, apply the sanitizeCSVExport function for each item
+      const sanitizedData = [];
+      for (const item of data) {
+        sanitizedData.push(Utils.sanitizeCSVExport(item));
+      }
+      return sanitizedData;
+    } else if (typeof data === 'object') {
+      // If the data is an object, apply the sanitizeCSVExport function for each attribute
+      for (const key of Object.keys(data)) {
+        data[key] = Utils.sanitizeCSVExport(data[key]);
+      }
+      return data;
+    }
   }
 }
