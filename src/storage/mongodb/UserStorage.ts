@@ -637,12 +637,19 @@ export default class UserStorage {
     }
     // Select non-synchronized billing data
     if (params.notSynchronizedBillingData) {
-      filters.$or = [
+      const billingFilter = [
         { 'billingData': { '$exists': false } },
         { 'billingData.lastChangedOn': { '$exists': false } },
         { 'billingData.lastChangedOn': null },
         { $expr: { $gt: ['$lastChangedOn', '$billingData.lastChangedOn'] } }
       ];
+      if (filters.$or) {
+        filters.$or.push(
+          ...billingFilter
+        );
+      } else {
+        filters.$or = billingFilter;
+      }
     }
     // Select users with test billing data
     if (params.withTestBillingData) {
@@ -653,8 +660,22 @@ export default class UserStorage {
       ];
     }
     // Select (non) technical users
-    if (Utils.isBoolean(params.technical)) {
-      filters.technical = { $eq: params.technical };
+    if (Utils.objectHasProperty(params, 'technical') && Utils.isBoolean(params.technical)) {
+      if (params.technical) {
+        filters.technical = true;
+      } else {
+        const technicalFilter = [
+          { technical: { $in: [false, null] } },
+          { technical: { $exists: false } }
+        ];
+        if (filters.$or) {
+          filters.$or.push(
+            ...technicalFilter
+          );
+        } else {
+          filters.$or = technicalFilter;
+        }
+      }
     }
     // Add filters
     aggregation.push({
