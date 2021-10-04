@@ -1,10 +1,10 @@
 import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity, SiteAreaAuthorizationActions, TagAuthorizationActions } from '../../../../types/Authorization';
 import { Car, CarCatalog } from '../../../../types/Car';
 import { CarCatalogDataResult, CarDataResult, CompanyDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, UserDataResult } from '../../../../types/DataResult';
-import { HttpAssignAssetsToSiteAreaRequest, HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
 import { HttpCarCatalogRequest, HttpCarCatalogsRequest, HttpCarRequest, HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
 import { HttpChargingStationRequest, HttpChargingStationsRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
+import { HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
 import { HttpSiteAssignUsersRequest, HttpSiteRequest, HttpSiteUsersRequest } from '../../../../types/requests/HttpSiteRequest';
 import { HttpTagRequest, HttpTagsRequest } from '../../../../types/requests/HttpTagRequest';
 import { HttpUserAssignSitesRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
@@ -161,49 +161,6 @@ export default class AuthorizationService {
     const authAction = action === ServerAction.ADD_USERS_TO_SITE ? Action.ASSIGN : Action.UNASSIGN;
     await this.canPerformAuthorizationAction(tenant, userToken, Entity.USERS_SITES, authAction,
       authorizationFilters, filteredRequest);
-    return authorizationFilters;
-  }
-
-  public static async checkAssignSiteAreaAssetsAuthorizations(tenant: Tenant, action: ServerAction, userToken: UserToken,
-      siteArea: SiteArea, filteredRequest: Partial<HttpAssignAssetsToSiteAreaRequest>): Promise<AuthorizationFilter> {
-    const authorizationFilters: AuthorizationFilter = {
-      filters: {},
-      dataSources: new Map(),
-      projectFields: [],
-      authorized: userToken.role === UserRole.ADMIN,
-    };
-    // Not an Admin?
-    if (userToken.role !== UserRole.ADMIN) {
-      // Get Site IDs for which user is admin from db
-      const siteAdminSiteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant, userToken);
-      // Check Site
-      if (!Utils.isEmptyArray(siteAdminSiteIDs) && siteAdminSiteIDs.includes(siteArea.siteID)) {
-        // Site Authorized, now check Assets
-        if (!Utils.isEmptyArray(filteredRequest.assetIDs)) {
-          let foundInvalidAssetID = false;
-          // Get Asset IDs already assigned to the site
-          const assetIDs = await AuthorizationService.getAssignedAssetIDs(tenant, siteArea.siteID);
-          // Check if any of the Assets we want to unassign are missing
-          for (const assetID of filteredRequest.assetIDs) {
-            switch (action) {
-              case ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA:
-                if (assetIDs.includes(assetID)) {
-                  foundInvalidAssetID = true;
-                }
-                break;
-              case ServerAction.REMOVE_CHARGING_STATIONS_FROM_SITE_AREA:
-                if (!assetIDs.includes(assetID)) {
-                  foundInvalidAssetID = true;
-                }
-                break;
-            }
-          }
-          if (!foundInvalidAssetID) {
-            authorizationFilters.authorized = true;
-          }
-        }
-      }
-    }
     return authorizationFilters;
   }
 
