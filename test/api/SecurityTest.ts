@@ -29,7 +29,7 @@ function checkSensitiveDataIsObfuscated(message: any): void {
     // WS URL with registration token?
     const matchingURLParts = wsRegex.exec(message);
     if (matchingURLParts && matchingURLParts.length > 0) {
-      // Split message by /
+      // Split matching part by /
       const urlParts = matchingURLParts[1].split('/');
       expect(urlParts.length).to.greaterThan(4);
       expect(urlParts[3]).to.equal(Constants.ANONYMIZED_VALUE);
