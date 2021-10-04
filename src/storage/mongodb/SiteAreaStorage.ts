@@ -328,7 +328,7 @@ export default class SiteAreaStorage {
     await Logging.traceEnd(tenant.id, MODULE_NAME, 'getSiteAreas', uniqueTimerID, siteAreasMDB);
     // Ok
     return {
-      projectedFields: projectFields,
+      projectFields: projectFields,
       count: (siteAreasCountMDB.length > 0 ?
         (siteAreasCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : siteAreasCountMDB[0].count) : 0),
       result: siteAreas

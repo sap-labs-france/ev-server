@@ -121,8 +121,12 @@ export default class Bootstrap {
       // Update Charging Station Templates
       // -------------------------------------------------------------------------
       await Utils.updateChargingStationTemplatesFromFile();
+      // Keep server names
+      if (serverStarted.length === 1) {
+        global.serverName = serverStarted[0];
+      }
       // Log
-      const successMsg = `${serverStarted.join(', ')} server(s) has(ve) been started successfuly`;
+      const successMsg = `${serverStarted.join(', ')} server has been started successfuly`;
       await Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.BOOTSTRAP_STARTUP,
@@ -159,7 +163,7 @@ export default class Bootstrap {
           // Start database Socket IO notifications
           await this.centralRestServer.startSocketIO();
         }
-        serverStarted.push('REST');
+        serverStarted.push('Rest');
       }
       // -------------------------------------------------------------------------
       // Listen to DB changes
@@ -183,14 +187,14 @@ export default class Bootstrap {
               Bootstrap.SoapCentralSystemServer = new SoapCentralSystemServer(centralSystemConfig, Bootstrap.chargingStationConfig);
               // Start
               await Bootstrap.SoapCentralSystemServer.start();
-              serverStarted.push('OCPP/Soap');
+              serverStarted.push('Soap');
               break;
             case CentralSystemImplementation.JSON:
               // Create implementation
               Bootstrap.JsonCentralSystemServer = new JsonCentralSystemServer(centralSystemConfig, Bootstrap.chargingStationConfig);
               // Start
               await Bootstrap.JsonCentralSystemServer.start();
-              serverStarted.push('OCPP/Json');
+              serverStarted.push('Json');
               break;
             // Not Found
             default:
@@ -207,7 +211,7 @@ export default class Bootstrap {
         Bootstrap.ocpiServer = new OCPIServer(Bootstrap.ocpiConfig);
         // Start server instance
         await Bootstrap.ocpiServer.start();
-        serverStarted.push('OCPI');
+        serverStarted.push('Ocpi');
       }
       // -------------------------------------------------------------------------
       // OICP Server
@@ -217,7 +221,7 @@ export default class Bootstrap {
         Bootstrap.oicpServer = new OICPServer(Bootstrap.oicpConfig);
         // Start server instance
         await Bootstrap.oicpServer.start();
-        serverStarted.push('OICP');
+        serverStarted.push('Oicp');
       }
       // -------------------------------------------------------------------------
       // OData Server

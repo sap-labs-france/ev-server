@@ -2055,7 +2055,7 @@ export default class OCPPService {
     setTimeout(async () => {
       let result: OCPPChangeConfigurationCommandResult;
       // Synchronize heartbeat interval OCPP parameter for charging stations that do not take into account its value in the boot notification response
-      let heartbeatIntervalOcppParamSet = false;
+      let setHeartbeatIntervalOcppParam = false;
       // Change one of the key
       for (const heartbeatOcppKey of Constants.OCPP_HEARTBEAT_KEYS) {
         result = await OCPPUtils.requestChangeChargingStationOcppParameter(tenant, chargingStation, {
@@ -2064,11 +2064,11 @@ export default class OCPPService {
         }, false);
         if (result.status === OCPPConfigurationStatus.ACCEPTED ||
             result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
-          heartbeatIntervalOcppParamSet = true;
+          setHeartbeatIntervalOcppParam = true;
           break;
         }
       }
-      if (!heartbeatIntervalOcppParamSet) {
+      if (!setHeartbeatIntervalOcppParam) {
         await Logging.logError({
           tenantID: tenant.id,
           action: ServerAction.OCPP_BOOT_NOTIFICATION,

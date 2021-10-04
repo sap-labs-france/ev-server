@@ -80,10 +80,6 @@ export default class AuthorizationService {
   }
 
   public static async addSiteAuthorizations(tenant: Tenant, userToken: UserToken, site: Site, authorizationFilter: AuthorizationFilter): Promise<void> {
-    // Assign projected fields
-    if (authorizationFilter.projectFields) {
-      site.projectFields = authorizationFilter.projectFields;
-    }
     // Enrich
     if (!site.issuer) {
       site.canRead = true;
@@ -250,10 +246,6 @@ export default class AuthorizationService {
   }
 
   public static async addUserAuthorizations(tenant: Tenant, userToken: UserToken, user: User, authorizationFilter: AuthorizationFilter): Promise<void> {
-    // Assign projected fields
-    if (authorizationFilter.projectFields) {
-      user.projectFields = authorizationFilter.projectFields;
-    }
     // Enrich
     if (!user.issuer) {
       user.canRead = true;
@@ -337,10 +329,6 @@ export default class AuthorizationService {
   }
 
   public static async addTagAuthorizations(tenant: Tenant, userToken: UserToken, tag: Tag, authorizationFilter: AuthorizationFilter): Promise<void> {
-    // Assign projected fields
-    if (authorizationFilter.projectFields) {
-      tag.projectFields = authorizationFilter.projectFields;
-    }
     // Enrich
     if (!tag.issuer) {
       tag.canRead = true;
@@ -386,10 +374,6 @@ export default class AuthorizationService {
   }
 
   public static async addCompanyAuthorizations(tenant: Tenant, userToken: UserToken, company: Company, authorizationFilter: AuthorizationFilter): Promise<void> {
-    // Assign projected fields
-    if (authorizationFilter.projectFields) {
-      company.projectFields = authorizationFilter.projectFields;
-    }
     // Enrich
     if (!company.issuer) {
       company.canRead = true;
@@ -441,10 +425,6 @@ export default class AuthorizationService {
   }
 
   public static async addSiteAreaAuthorizations(tenant: Tenant, userToken: UserToken, siteArea: SiteArea, authorizationFilter: AuthorizationFilter): Promise<void> {
-    // Assign projected fields
-    if (authorizationFilter.projectFields) {
-      siteArea.projectFields = authorizationFilter.projectFields;
-    }
     // Enrich
     if (!siteArea.issuer) {
       siteArea.canRead = true;
@@ -532,10 +512,6 @@ export default class AuthorizationService {
   }
 
   public static async addCarAuthorizations(tenant: Tenant, userToken: UserToken, car: Car, authorizationFilter: AuthorizationFilter): Promise<void> {
-    // Assign projected fields
-    if (authorizationFilter.projectFields) {
-      car.projectFields = authorizationFilter.projectFields;
-    }
     // Enrich
     car.canRead = true; // Always true as it should be filtered upfront
     car.canDelete = await AuthorizationService.canPerformAuthorizationAction(
@@ -575,10 +551,6 @@ export default class AuthorizationService {
   }
 
   public static async addCarCatalogAuthorizations(tenant: Tenant, userToken: UserToken, carCatalog: CarCatalog, authorizationFilter: AuthorizationFilter): Promise<void> {
-    // Assign projected fields
-    if (authorizationFilter.projectFields) {
-      carCatalog.projectFields = authorizationFilter.projectFields;
-    }
     // Enrich
     carCatalog.canRead = true; // Always true as it should be filtered upfront
     carCatalog.canDelete = await AuthorizationService.canPerformAuthorizationAction(
@@ -851,6 +823,8 @@ export default class AuthorizationService {
         module: MODULE_NAME, method: 'checkAndGetEntityAuthorizations',
       });
     }
+    // Set Metadata
+    authorizationFilters.metadata = authResult.context.metadata;
     // Process Dynamic Filters
     await AuthorizationService.processDynamicFilters(tenant, userToken, authAction, entity,
       authorizationFilters, authorizationContext, entityID);

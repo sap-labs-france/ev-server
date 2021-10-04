@@ -132,6 +132,10 @@ export default class CompanyService {
       },
       authorizationCompaniesFilter.projectFields
     );
+    // Assign projected fields
+    if (authorizationCompaniesFilter.projectFields) {
+      companies.projectFields = authorizationCompaniesFilter.projectFields;
+    }
     // Add Auth flags
     await AuthorizationService.addCompaniesAuthorizations(req.tenant, req.user, companies as CompanyDataResult, authorizationCompaniesFilter);
     // Return
