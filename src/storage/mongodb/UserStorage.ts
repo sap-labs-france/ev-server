@@ -664,16 +664,16 @@ export default class UserStorage {
       if (params.technical) {
         filters.technical = true;
       } else {
-        const technicalFilter = [
-          { technical: { $in: [false, null] } },
-          { technical: { $exists: false } }
-        ];
-        if (filters.$or) {
-          filters.$or.push(
-            ...technicalFilter
-          );
+        const technicalFilter = {
+          $or: [
+            { technical: { $in: [false, null] } },
+            { technical: { $exists: false } }
+          ]
+        };
+        if (filters.$and) {
+          filters.$and.push(technicalFilter);
         } else {
-          filters.$or = technicalFilter;
+          filters.$and = [ technicalFilter ];
         }
       }
     }
