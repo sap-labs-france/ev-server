@@ -637,18 +637,18 @@ export default class UserStorage {
     }
     // Select non-synchronized billing data
     if (params.notSynchronizedBillingData) {
-      const billingFilter = [
-        { 'billingData': { '$exists': false } },
-        { 'billingData.lastChangedOn': { '$exists': false } },
-        { 'billingData.lastChangedOn': null },
-        { $expr: { $gt: ['$lastChangedOn', '$billingData.lastChangedOn'] } }
-      ];
-      if (filters.$or) {
-        filters.$or.push(
-          ...billingFilter
-        );
+      const billingFilter = {
+        $or: [
+          { 'billingData': { '$exists': false } },
+          { 'billingData.lastChangedOn': { '$exists': false } },
+          { 'billingData.lastChangedOn': null },
+          { $expr: { $gt: ['$lastChangedOn', '$billingData.lastChangedOn'] } }
+        ]
+      };
+      if (filters.$and) {
+        filters.$and.push(billingFilter);
       } else {
-        filters.$or = billingFilter;
+        filters.$and = [ billingFilter ];
       }
     }
     // Select users with test billing data
