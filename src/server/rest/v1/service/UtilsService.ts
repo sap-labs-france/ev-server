@@ -1694,6 +1694,52 @@ export default class UtilsService {
   }
 
   // eslint-disable-next-line @typescript-eslint/ban-types
+  // public static async ecryptSensitiveData(tenant: Tenant, currentProperties: object): Promise<void> {
+  //   const sensitivePropertyNames: string [] = _.get(currentProperties, 'sensitiveData');
+  //   if (sensitivePropertyNames) {
+  //     if (!Array.isArray(sensitivePropertyNames)) {
+  //       throw new AppError({
+  //         source: Constants.CENTRAL_SERVER,
+  //         errorCode: HTTPError.CYPHER_INVALID_SENSITIVE_DATA_ERROR,
+  //         message: 'Unexpected situation - sensitiveData is not an array',
+  //         module: MODULE_NAME,
+  //         method: 'processSensitiveData'
+  //       });
+  //     }
+  //     for (const property of sensitivePropertyNames) {
+  //       // Get the sensitive property from the Object
+  //       const valueInRequest = _.get(currentProperties, property);
+  //       if (valueInRequest && valueInRequest.length > 0) {
+  //         _.set(currentProperties, property, await Cypher.encrypt(tenant, valueInRequest));
+  //       }
+  //     }
+  //   }
+  // }
+
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  // public static async decryptSensitiveData(tenant: Tenant, currentProperties: object): Promise<void> {
+  //   const sensitivePropertyNames: string [] = _.get(currentProperties, 'sensitiveData');
+  //   if (sensitivePropertyNames) {
+  //     if (!Array.isArray(sensitivePropertyNames)) {
+  //       throw new AppError({
+  //         source: Constants.CENTRAL_SERVER,
+  //         errorCode: HTTPError.CYPHER_INVALID_SENSITIVE_DATA_ERROR,
+  //         message: 'Unexpected situation - sensitiveData is not an array',
+  //         module: MODULE_NAME,
+  //         method: 'processSensitiveData'
+  //       });
+  //     }
+  //     for (const property of sensitivePropertyNames) {
+  //       // Get the sensitive property from the Object
+  //       const valueInRequest = _.get(currentProperties, property);
+  //       if (valueInRequest && valueInRequest.length > 0) {
+  //         _.set(currentProperties, property, await Cypher.encrypt(tenant, valueInRequest));
+  //       }
+  //     }
+  //   }
+  // }
+
+  // eslint-disable-next-line @typescript-eslint/ban-types
   public static hashSensitiveData(tenantID: string, properties: object): unknown {
     const sensitivePropertyNames: string [] = _.get(properties, 'sensitiveData');
     if (sensitivePropertyNames) {

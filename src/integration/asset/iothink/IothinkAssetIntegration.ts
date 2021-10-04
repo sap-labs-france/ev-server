@@ -7,7 +7,6 @@ import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
 import BackendError from '../../../exception/BackendError';
 import Constants from '../../../utils/Constants';
-import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
@@ -160,7 +159,7 @@ export default class IothinkAssetIntegration extends AssetIntegration {
     );
     const data = response.data;
     const token : AssetConnectionTokenSetting = {
-      accessToken: await Cypher.encrypt(this.tenant, data.access_token),
+      accessToken: data.access_token,
       tokenType: data.token_type,
       expiresIn: data.expires_in,
       userName: data.userName,
@@ -175,21 +174,21 @@ export default class IothinkAssetIntegration extends AssetIntegration {
 
   private async connect(): Promise<string> {
     if (!this.checkIfTokenExpired(this.connection.token)) {
-      return Cypher.decrypt(this.tenant, this.connection.token.accessToken);
+      return this.connection.token.accessToken;
     }
     // Check if connection is initialized
     this.checkConnectionIsProvided();
     // Get credential params
-    const credentials = await this.getCredentialURLParams();
+    const credentials = this.getCredentialURLParams();
     await this.fetchNewToken(credentials);
-    return Cypher.decrypt(this.tenant, this.connection.token.accessToken);
+    return this.connection.token.accessToken;
   }
 
-  private async getCredentialURLParams(): Promise<URLSearchParams> {
+  private getCredentialURLParams(): URLSearchParams {
     const params = new URLSearchParams();
     params.append('grant_type', 'password');
     params.append('username', this.connection.iothinkConnection.user);
-    params.append('password', await Cypher.decrypt(this.tenant, this.connection.iothinkConnection.password));
+    params.append('password', this.connection.iothinkConnection.password);
     return params;
   }
 

@@ -7,7 +7,6 @@ import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
 import BackendError from '../../../exception/BackendError';
 import Constants from '../../../utils/Constants';
-import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import Tenant from '../../../types/Tenant';
@@ -159,7 +158,7 @@ export default class GreencomAssetIntegration extends AssetIntegration {
     // Check if connection is initialized
     this.checkConnectionIsProvided();
     // Get Authentication
-    const credentials = await this.getAuthentication();
+    const credentials = this.getAuthentication();
     // Send credentials to get the token
     const response = await Utils.executePromiseWithTimeout(5000,
       this.axiosInstance.post(`${this.connection.url}/authentication-api/tokens`,
@@ -176,11 +175,11 @@ export default class GreencomAssetIntegration extends AssetIntegration {
     return response.data.access_token;
   }
 
-  private async getAuthentication(): Promise<{grant_type: string; client_id: string; client_secret: string;}> {
+  private getAuthentication(): {grant_type: string; client_id: string; client_secret: string;} {
     return {
       'grant_type': 'client_credentials',
       'client_id': this.connection.greencomConnection.clientId,
-      'client_secret': await Cypher.decrypt(this.tenant, this.connection.greencomConnection.clientSecret)
+      'client_secret': this.connection.greencomConnection.clientSecret
     };
   }
 

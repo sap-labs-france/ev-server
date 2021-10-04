@@ -4,12 +4,14 @@ import global, { FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
+import Cypher from '../../utils/Cypher';
 import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { ObjectId } from 'mongodb';
 import Utils from '../../utils/Utils';
+import _ from 'lodash';
 
 const MODULE_NAME = 'SettingStorage';
 
@@ -58,6 +60,8 @@ export default class SettingStorage {
       sensitiveData: settingToSave.sensitiveData,
       backupSensitiveData: settingToSave.backupSensitiveData
     };
+    // Encrypt sensitive data before storing
+    await this.encryptSensitiveData(tenant, settingMDB);
     DatabaseUtils.addLastChangedCreatedProps(settingMDB, settingToSave);
     // Modify
     await global.database.getCollection<SettingDB>(tenant.id, 'settings').findOneAndUpdate(
@@ -408,6 +412,8 @@ export default class SettingStorage {
         allowDiskUse: true
       })
       .toArray();
+    // Decrypt sensitive data before accessing
+    await this.decryptSensitiveData(tenant, settingsMDB);
     // Debug
     await Logging.traceEnd(tenant.id, MODULE_NAME, 'getSettings', uniqueTimerID, settingsMDB);
     // Ok
@@ -534,5 +540,32 @@ export default class SettingStorage {
     }
     return SettingStorage.saveSettings(tenant, setting);
   }
+
+  private static async encryptSensitiveData(tenant: Tenant, settings: SettingDB): Promise<SettingDB> {
+    for (const property of settings.sensitiveData) {
+      // Get the sensitive property from the Object
+      const valueInRequest = _.get(settings, property);
+      if (valueInRequest && valueInRequest.length > 0) {
+        _.set(settings, property, await Cypher.encrypt(tenant, valueInRequest));
+      }
+    }
+    return settings;
+  }
+
+  private static async decryptSensitiveData(tenant: Tenant, settings: SettingDB[]): Promise<SettingDB[]> {
+    for (const setting of settings) {
+      if (setting.sensitiveData) {
+        for (const property of setting.sensitiveData) {
+          // Get the sensitive property from the Object
+          const valueInRequest = _.get(setting, property);
+          if (valueInRequest && valueInRequest.length > 0) {
+            _.set(setting, property, await Cypher.decrypt(tenant, valueInRequest));
+          }
+        }
+      }
+    }
+    return settings;
+  }
+
 
 }
