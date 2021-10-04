@@ -23,6 +23,7 @@ export default class Constants {
   public static readonly AMPERAGE_DETECTION_THRESHOLD = 0.5;
 
   public static readonly DB_RECORD_COUNT_DEFAULT = 100;
+  public static readonly DB_RECORD_COUNT_MAX_PAGE_LIMIT = 1000;
   public static readonly DB_RECORD_COUNT_CEIL = 500;
   public static readonly DB_RECORD_COUNT_NO_LIMIT = Number.MAX_SAFE_INTEGER;
   public static readonly DB_UNDETERMINED_NBR_OF_RECORDS = -1;
@@ -240,16 +241,15 @@ export default class Constants {
 
   public static readonly CHARGING_STATION_CONFIGURATION = 'Configuration';
 
-  public static readonly CENTRAL_SERVER = 'Central Server';
+  public static readonly CENTRAL_SERVER = 'CentralServer';
 
-  public static readonly OCPI_SERVER = 'OCPI Server';
+  public static readonly OCPI_SERVER = 'OCPIServer';
   public static readonly OCPI_SEPARATOR = '*';
   public static readonly OCPI_RECORDS_LIMIT = 25;
   public static readonly OCPI_MAX_PARALLEL_REQUESTS = 2;
 
   public static readonly ROAMING_AUTHORIZATION_TIMEOUT_MINS = 2;
 
-  public static readonly OICP_SERVER = 'OICP Server';
 
   public static readonly MODULE_AXIOS = 'Axios';
   public static readonly MODULE_JSON_OCPP_SERVER_16 = 'OcppJ-16';
@@ -257,13 +257,14 @@ export default class Constants {
   public static readonly MODULE_SOAP_OCPP_SERVER_15 = 'OcppS-15';
   public static readonly MODULE_SOAP_OCPP_SERVER_16 = 'OcppS-16';
 
-  // OICP constants
+  public static readonly OICP_SERVER = 'OICPServer';
   public static readonly OICP_PROGRESS_NOTIFICATION_MAX_INTERVAL = 300; // Hubject restriction: "Progress Notification can be sent only at interval of at least 300 seconds." (5 Minutes)
   public static readonly OICP_VIRTUAL_USER_EMAIL = 'virtual@oicp.com';
-  public static readonly OCPP_SERVER = 'OCPP Server';
-  public static readonly DATABASE_SERVER = 'Database Server';
-  public static readonly REST_SERVER = 'REST Server';
-  public static readonly AXIOS_CLIENT = 'Axios Client';
+
+  public static readonly OCPP_SERVER = 'OCPPServer';
+  public static readonly DATABASE_SERVER = 'DatabaseServer';
+  public static readonly REST_SERVER = 'RestServer';
+  public static readonly AXIOS_CLIENT = 'AxiosClient';
 
   public static readonly WITH_CHARGING_STATIONS = true; // Not used
   public static readonly WITHOUT_CHARGING_STATIONS = false; // Not used

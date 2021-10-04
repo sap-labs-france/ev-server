@@ -7,15 +7,6 @@ export default interface PerformanceRecord {
   durationMs?: number;
   sizeKb?: number;
   host: string;
-  process: string;
-  processMemoryUsage: NodeJS.MemoryUsage;
-  processCPUUsage: NodeJS.CpuUsage;
-  numberOfCPU: number;
-  modelOfCPU: string;
-  memoryTotalGb: number;
-  memoryFreeGb: number;
-  loadAverageLastMin: number;
-  numberOfChargingStations?: number;
   source: string;
   module: string;
   method: string;
