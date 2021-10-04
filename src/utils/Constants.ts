@@ -23,6 +23,7 @@ export default class Constants {
   public static readonly AMPERAGE_DETECTION_THRESHOLD = 0.5;
 
   public static readonly DB_RECORD_COUNT_DEFAULT = 100;
+  public static readonly DB_RECORD_COUNT_MAX_PAGE_LIMIT = 1000;
   public static readonly DB_RECORD_COUNT_CEIL = 500;
   public static readonly DB_RECORD_COUNT_NO_LIMIT = Number.MAX_SAFE_INTEGER;
   public static readonly DB_UNDETERMINED_NBR_OF_RECORDS = -1;
