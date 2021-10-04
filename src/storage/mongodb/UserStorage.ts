@@ -654,10 +654,15 @@ export default class UserStorage {
     // Select users with test billing data
     if (params.withTestBillingData) {
       const expectedLiveMode = !params.withTestBillingData;
-      filters.$and = [
+      const billingDataAndFilter = [
         { 'billingData': { '$exists': true } },
         { 'billingData.liveMode': { $eq: expectedLiveMode } }
       ];
+      if (filters.$and) {
+        filters.$and.push(billingDataAndFilter);
+      } else {
+        filters.$and = billingDataAndFilter;
+      }
     }
     // Select (non) technical users
     if (Utils.objectHasProperty(params, 'technical') && Utils.isBoolean(params.technical)) {
