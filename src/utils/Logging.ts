@@ -865,8 +865,9 @@ export default class Logging {
           queryParamKey = queryParamKeyParts.length > 1 ? queryParamKeyParts[1] : queryParamKeyParts[0];
           for (const sensitiveData of Constants.SENSITIVE_DATA) {
             if (queryParamKey.toLowerCase().startsWith(sensitiveData.toLocaleLowerCase())) {
+              // Find position of sensitive data
+              const posSensitiveData = dataPart.toLowerCase().search(sensitiveData.toLowerCase());
               // Anonymize each query string part
-              const posSensitiveData = dataPart.search(sensitiveData);
               dataParts[i] = dataPart.substring(0, posSensitiveData + sensitiveData.length + 1) + Constants.ANONYMIZED_VALUE;
             }
           }
