@@ -1,7 +1,7 @@
 import { HttpTagByVisualIDRequest, HttpTagRequest, HttpTagsDeleteByIDsRequest, HttpTagsDeleteByVisualIDRequest, HttpTagsDeleteByVisualIDsRequest, HttpTagsRequest } from '../../../../types/requests/HttpTagRequest';
 
 import Schema from '../../../../types/validator/Schema';
-import SchemaValidator from './SchemaValidator';
+import SchemaValidator from '../../../../validator/SchemaValidator';
 import Tag from '../../../../types/Tag';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';

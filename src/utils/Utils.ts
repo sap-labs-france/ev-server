@@ -12,7 +12,6 @@ import Address from '../types/Address';
 import { AxiosError } from 'axios';
 import BackendError from '../exception/BackendError';
 import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
-import ChargingStationValidator from '../server/rest/v1/validator/ChargingStationValidator';
 import Configuration from './Configuration';
 import ConnectorStats from '../types/ConnectorStats';
 import Constants from './Constants';
@@ -56,10 +55,8 @@ export default class Utils {
     // Delete all previous templates
     await ChargingStationStorage.deleteChargingStationTemplates();
     // Update Templates
-    for (let chargingStationTemplate of chargingStationTemplates) {
+    for (const chargingStationTemplate of chargingStationTemplates) {
       try {
-        // Validate
-        chargingStationTemplate = ChargingStationValidator.getInstance().validateChargingStationTemplate(chargingStationTemplate);
         // Set the hashes
         chargingStationTemplate.hash = Cypher.hash(JSON.stringify(chargingStationTemplate));
         chargingStationTemplate.hashTechnical = Cypher.hash(JSON.stringify(chargingStationTemplate.technical));
@@ -390,6 +387,8 @@ export default class Utils {
       return 'pt_PT';
     } else if (language === 'it') {
       return 'it_IT';
+    } else if (language === 'cz') {
+      return 'cz_CZ';
     }
     return Constants.DEFAULT_LOCALE;
   }

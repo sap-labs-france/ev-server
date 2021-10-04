@@ -1,10 +1,9 @@
 import { HttpChargingProfilesRequest, HttpChargingStationCacheClearCommandRequest, HttpChargingStationChangeAvailabilityRequest, HttpChargingStationChangeConfigurationRequest, HttpChargingStationCommandDataTransferRequest, HttpChargingStationCommandGetConfigurationRequest, HttpChargingStationCommandUnlockConnectorRequest, HttpChargingStationConnectorRequest, HttpChargingStationGetCompositeScheduleRequest, HttpChargingStationGetDiagnosticsRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationOcppParametersRequest, HttpChargingStationOcppRequest, HttpChargingStationParamsUpdateRequest, HttpChargingStationRequest, HttpChargingStationReservationCancelRequest, HttpChargingStationReserveNowRequest, HttpChargingStationResetRequest, HttpChargingStationStartTransactionRequest, HttpChargingStationStopTransactionRequest, HttpChargingStationUpdateFirmwareRequest, HttpChargingStationsInErrorRequest, HttpChargingStationsRequest, HttpDownloadQrCodeRequest, HttpTriggerSmartChargingRequest } from '../../../../types/requests/HttpChargingStationRequest';
 
 import { ChargingProfile } from '../../../../types/ChargingProfile';
-import { ChargingStationTemplate } from '../../../../types/ChargingStation';
 import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
 import Schema from '../../../../types/validator/Schema';
-import SchemaValidator from './SchemaValidator';
+import SchemaValidator from '../../../../validator/SchemaValidator';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
@@ -41,11 +40,9 @@ export default class ChargingStationValidator extends SchemaValidator {
   private chargingProfileDelete: Schema;
   private chargingProfileUpdate: Schema;
   private chargingStationNotificationsGet: Schema;
-  private chargingStationTemplate: Schema;
 
   private constructor() {
     super('ChargingStationValidator');
-    this.chargingStationTemplate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-template.json`, 'utf8'));
     this.chargingStationsGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstations-get.json`, 'utf8'));
     this.chargingStationGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-get.json`, 'utf8'));
     this.chargingStationDelete = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-delete.json`, 'utf8'));
@@ -84,10 +81,6 @@ export default class ChargingStationValidator extends SchemaValidator {
       ChargingStationValidator.instance = new ChargingStationValidator();
     }
     return ChargingStationValidator.instance;
-  }
-
-  public validateChargingStationTemplate(data: unknown): ChargingStationTemplate {
-    return this.validate('validateChargingStationTemplate', this.chargingStationTemplate, data);
   }
 
   public validateChargingStationsGetReq(data: unknown): HttpChargingStationsRequest {
