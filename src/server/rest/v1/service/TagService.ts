@@ -841,6 +841,10 @@ export default class TagService {
       },
       authorizationTagsFilters.projectFields,
     );
+    // Assign projected fields
+    if (authorizationTagsFilters.projectFields) {
+      tags.projectFields = authorizationTagsFilters.projectFields;
+    }
     // Add Auth flags
     await AuthorizationService.addTagsAuthorizations(req.tenant, req.user, tags as TagDataResult, authorizationTagsFilters);
     // Return

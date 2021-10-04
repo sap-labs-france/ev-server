@@ -751,7 +751,7 @@ export default class UserStorage {
       count: (!Utils.isEmptyArray(usersCountMDB) ?
         (usersCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : usersCountMDB[0].count) : 0),
       result: usersMDB,
-      projectedFields: projectFields
+      projectFields: projectFields
     };
   }
 
@@ -1083,7 +1083,7 @@ export default class UserStorage {
       count: (!Utils.isEmptyArray(sitesCountMDB) ?
         (sitesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : sitesCountMDB[0].count) : 0),
       result: siteUsersMDB,
-      projectedFields: projectFields
+      projectFields: projectFields
     };
   }
 

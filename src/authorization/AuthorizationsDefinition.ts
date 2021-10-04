@@ -739,21 +739,29 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.TAG, action: [Action.ASSIGN, Action.UNASSIGN, Action.UPDATE_BY_VISUAL_ID],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
-          args: { filters: ['ExcludeAction'] }
+          args: {
+            filters: ['ExcludeAction'],
+          }
         }
       },
       {
         resource: Entity.TAGS, action: [Action.UNASSIGN],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
-          args: { filters: ['ExcludeAction'] }
+          args: {
+            asserts: [],
+            filters: ['ExcludeAction']
+          }
         }
       },
       {
         resource: Entity.USERS, action: Action.LIST,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
-          args: { filters: ['SitesAdmin', 'LocalIssuer'] }
+          args: {
+            asserts: [],
+            filters: ['SitesAdmin', 'LocalIssuer']
+          }
         },
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn',
@@ -766,6 +774,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
+            asserts: [],
             filters: ['SitesAdmin', 'LocalIssuer']
           }
         },
@@ -780,7 +789,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: ['BasicUser'],
-            filters: ['SitesAdmin']
+            filters: ['SitesAdmin'],
           }
         },
         attributes: [
@@ -803,7 +812,10 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.USERS_SITES, action: [Action.LIST, Action.UNASSIGN],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
-          args: { filters: ['SitesAdmin', 'LocalIssuer'] }
+          args: {
+            asserts: [],
+            filters: ['SitesAdmin', 'LocalIssuer']
+          }
         },
         attributes: [
           'user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteAdmin', 'siteOwner', 'siteID'
@@ -813,7 +825,10 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.SITE, action: [Action.UPDATE],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
-          args: { filters: ['SitesAdmin', 'LocalIssuer'] }
+          args: {
+            asserts: [],
+            filters: ['SitesAdmin', 'LocalIssuer']
+          }
         },
       },
       { resource: Entity.SITE_AREA, action: Action.CREATE },
@@ -824,14 +839,20 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
-          args: { filters: ['SitesAdmin', 'LocalIssuer'] }
+          args: {
+            asserts: [],
+            filters: ['SitesAdmin', 'LocalIssuer']
+          }
         },
       },
       {
         resource: Entity.ASSETS, action: Action.LIST,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
-          args: { filters: ['AssignedSites', 'LocalIssuer'] }
+          args: {
+            asserts: [],
+            filters: ['AssignedSites', 'LocalIssuer']
+          }
         },
         attributes: [
           'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteID', 'assetType', 'coordinates',
@@ -842,7 +863,10 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.ASSET, action: Action.READ,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
-          args: { filters: ['AssignedSites', 'LocalIssuer'] }
+          args: {
+            asserts: [],
+            filters: ['AssignedSites', 'LocalIssuer']
+          }
         },
         attributes: [
           'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteID', 'assetType', 'coordinates',
@@ -853,7 +877,10 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.CARS, action: Action.LIST,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
-          args: { filters: ['SitesAdmin'] }
+          args: {
+            asserts: [],
+            filters: ['SitesAdmin']
+          }
         },
         attributes: [
           'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'createdOn', 'lastChangedOn',
@@ -868,7 +895,10 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.CAR, action: Action.READ,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
-          args: { filters: ['SitesAdmin'] }
+          args: {
+            asserts: [],
+            filters: ['SitesAdmin']
+          }
         },
         attributes: [
           'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'createdOn', 'lastChangedOn', 'user.id', 'user.name', 'user.firstName',
@@ -882,7 +912,10 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.CAR, action: [Action.UPDATE, Action.DELETE],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
-          args: { filters: ['SitesAdmin'] }
+          args: {
+            asserts: [],
+            filters: ['SitesAdmin']
+          }
         }
       },
       {
@@ -915,7 +948,10 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.TAGS, action: [Action.LIST, Action.EXPORT],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
-          args: { filters: ['SitesAdmin', 'LocalIssuer'] }
+          args: {
+            asserts: [],
+            filters: ['SitesAdmin', 'LocalIssuer']
+          }
         },
         attributes: [
           'id', 'userID', 'active', 'ocpiToken', 'description', 'visualID', 'issuer', 'default',
@@ -927,7 +963,19 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.TAG, action: Action.READ,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
-          args: { filters: ['SitesAdmin', 'LocalIssuer'] }
+          args: {
+            asserts: [],
+            filters: ['SitesAdmin', 'LocalIssuer'],
+            metadata: {
+              userID: {
+                visible: true,
+                enabled: true,
+                mandatory: true,
+                values: [],
+                defaultValue: null,
+              }
+            },
+          }
         },
         attributes: [
           'id', 'userID', 'issuer', 'active', 'description', 'visualID', 'default', 'user.id',
@@ -938,7 +986,10 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.TAG, action: [Action.UPDATE, Action.DELETE],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
-          args: { filters: ['SitesAdmin', 'LocalIssuer'] }
+          args: {
+            asserts: [],
+            filters: ['SitesAdmin', 'LocalIssuer']
+          }
         }
       },
     ]
@@ -952,7 +1003,10 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.USERS, action: Action.LIST,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
-          args: { filters: ['SitesOwner', 'LocalIssuer'] }
+          args: {
+            asserts: [],
+            filters: ['SitesOwner', 'LocalIssuer']
+          }
         },
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn',
@@ -965,6 +1019,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
+            asserts: [],
             filters: ['SitesOwner', 'LocalIssuer']
           }
         },
@@ -975,7 +1030,9 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       {
         resource: Entity.TRANSACTION, action: [Action.READ, Action.REFUND_TRANSACTION],
-        condition: { Fn: 'LIST_CONTAINS', args: { 'sitesOwner': '$.site' } }
+        condition: {
+          Fn: 'LIST_CONTAINS', args: { 'sitesOwner': '$.site' }
+        }
       },
       { resource: Entity.REPORT, action: [Action.READ] },
     ]
@@ -987,20 +1044,33 @@ const AUTHORIZATION_CONDITIONS: IDictionary<IFunctionCondition> = {
     // Pass the dynamic filters to the context
     // Used by the caller to execute dynamic filters
     if (context) {
-      // Already populated?
-      // Take always the low level filters
-      // For Site Admin role it's called twice: one with the Site Admin role and one with the Basic role to check the READ on USER
-      // The first call is on Site Admin and the second on the Basic
-      if (!context.filters && !Utils.isEmptyArray(args.filters)) {
+      // Filters
+      if (!context.filters) {
+        context.filters = [];
+      }
+      if (!context.filtersSet && args.filters) {
         context.filters = [
           ...args.filters
         ];
+        context.filtersSet = true;
       }
       // Assertions
-      if (!context.asserts && !Utils.isEmptyArray(args.asserts)) {
+      if (!context.asserts) {
+        context.asserts = [];
+      }
+      if (!context.assertsSet && args.asserts) {
         context.asserts = [
           ...args.asserts
         ];
+        context.assertsSet = true;
+      }
+      // Metadata
+      if (!context.metadata) {
+        context.metadata = {};
+      }
+      if (!context.metadataSet && args.metadata) {
+        context.metadata = args.metadata;
+        context.metadataSet = true;
       }
     }
     return true;

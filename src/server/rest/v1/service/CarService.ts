@@ -53,6 +53,10 @@ export default class CarService {
       },
       authorizationCarCatalogsFilter.projectFields
     );
+    // Assign projected fields
+    if (authorizationCarCatalogsFilter.projectFields) {
+      carCatalogs.projectFields = authorizationCarCatalogsFilter.projectFields;
+    }
     // Add Auth flags
     await AuthorizationService.addCarCatalogsAuthorizationActions(req.tenant, req.user, carCatalogs as CarCatalogDataResult,
       authorizationCarCatalogsFilter);
@@ -393,6 +397,10 @@ export default class CarService {
       },
       authorizationCarsFilter.projectFields
     );
+    // Assign projected fields
+    if (authorizationCarsFilter.projectFields) {
+      cars.projectFields = authorizationCarsFilter.projectFields;
+    }
     // Add Auth flags
     await AuthorizationService.addCarsAuthorizations(
       req.tenant, req.user, cars as CarDataResult, authorizationCarsFilter);
