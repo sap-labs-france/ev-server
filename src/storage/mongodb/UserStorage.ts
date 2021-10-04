@@ -637,43 +637,48 @@ export default class UserStorage {
     }
     // Select non-synchronized billing data
     if (params.notSynchronizedBillingData) {
-      const billingFilter = [
-        { 'billingData': { '$exists': false } },
-        { 'billingData.lastChangedOn': { '$exists': false } },
-        { 'billingData.lastChangedOn': null },
-        { $expr: { $gt: ['$lastChangedOn', '$billingData.lastChangedOn'] } }
-      ];
-      if (filters.$or) {
-        filters.$or.push(
-          ...billingFilter
-        );
+      const billingFilter = {
+        $or: [
+          { 'billingData': { '$exists': false } },
+          { 'billingData.lastChangedOn': { '$exists': false } },
+          { 'billingData.lastChangedOn': null },
+          { $expr: { $gt: ['$lastChangedOn', '$billingData.lastChangedOn'] } }
+        ]
+      };
+      if (filters.$and) {
+        filters.$and.push(billingFilter);
       } else {
-        filters.$or = billingFilter;
+        filters.$and = [ billingFilter ];
       }
     }
     // Select users with test billing data
     if (params.withTestBillingData) {
       const expectedLiveMode = !params.withTestBillingData;
-      filters.$and = [
+      const billingDataAndFilter = [
         { 'billingData': { '$exists': true } },
         { 'billingData.liveMode': { $eq: expectedLiveMode } }
       ];
+      if (filters.$and) {
+        filters.$and.push(billingDataAndFilter);
+      } else {
+        filters.$and = billingDataAndFilter;
+      }
     }
     // Select (non) technical users
     if (Utils.objectHasProperty(params, 'technical') && Utils.isBoolean(params.technical)) {
       if (params.technical) {
         filters.technical = true;
       } else {
-        const technicalFilter = [
-          { technical: { $in: [false, null] } },
-          { technical: { $exists: false } }
-        ];
-        if (filters.$or) {
-          filters.$or.push(
-            ...technicalFilter
-          );
+        const technicalFilter = {
+          $or: [
+            { technical: { $in: [false, null] } },
+            { technical: { $exists: false } }
+          ]
+        };
+        if (filters.$and) {
+          filters.$and.push(technicalFilter);
         } else {
-          filters.$or = technicalFilter;
+          filters.$and = [ technicalFilter ];
         }
       }
     }
