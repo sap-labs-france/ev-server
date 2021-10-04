@@ -845,16 +845,24 @@ export default class Logging {
   }
 
   private static async anonymizeSensitiveData(message: any): Promise<any> {
-    if (!message || typeof message === 'number' || Utils.isBoolean(message) || typeof message === 'function') {
+    if (!message || typeof message === 'number' || typeof message === 'bigint' || typeof message === 'symbol' || Utils.isBoolean(message) || typeof message === 'function') {
       return message;
     } else if (typeof message === 'string') { // If the message is a string
+      // Check if message is matching a WS connection URL having a registration token
+      const matchingURLParts = Constants.WS_CONNECTION_URL_RE.exec(message);
+      if (!Utils.isEmptyArray(matchingURLParts)) {
+        return message.replace(matchingURLParts[1], Constants.ANONYMIZED_VALUE);
+      }
       // Check if it is a query string
       const dataParts: string[] = message.split('&');
       if (dataParts.length > 1) {
         for (let i = 0; i < dataParts.length; i++) {
           const dataPart = dataParts[i];
+          let queryParamKey = dataPart.split('=')[0];
+          const queryParamKeyParts = queryParamKey.split('?');
+          queryParamKey = queryParamKeyParts.length > 1 ? queryParamKeyParts[1] : queryParamKeyParts[0];
           for (const sensitiveData of Constants.SENSITIVE_DATA) {
-            if (dataPart.toLowerCase().startsWith(sensitiveData.toLocaleLowerCase())) {
+            if (queryParamKey.toLowerCase() === sensitiveData.toLowerCase()) {
               // Anonymize each query string part
               dataParts[i] = dataPart.substring(0, sensitiveData.length + 1) + Constants.ANONYMIZED_VALUE;
             }
@@ -863,10 +871,10 @@ export default class Logging {
         message = dataParts.join('&');
         return message;
       }
-      // Check if the message is a string which contains sensitive data
+      // Check if the message is a string classified as sensitive data
       for (const sensitiveData of Constants.SENSITIVE_DATA) {
-        if (message.toLowerCase().indexOf(sensitiveData.toLowerCase()) !== -1) {
-          // Anonymize the whole message
+        if (message.toLowerCase() === sensitiveData.toLowerCase()) {
+          // Anonymize the message
           return Constants.ANONYMIZED_VALUE;
         }
       }
@@ -883,10 +891,8 @@ export default class Logging {
         if (Constants.EXCEPTION_JSON_KEYS_IN_SENSITIVE_DATA.includes(key)) {
           continue;
         }
-        // Check Type
-        if (typeof message[key] === 'string' &&
-            Constants.SENSITIVE_DATA.filter((sensitiveData) => key.toLocaleLowerCase() === sensitiveData.toLocaleLowerCase()).length > 0) {
-          // If the key indicates sensitive data and the value is a string, Anonymize the value
+        if (Constants.SENSITIVE_DATA.filter((sensitiveData) => key.toLowerCase() === sensitiveData.toLowerCase()).length > 0) {
+          // If the key indicates sensitive data, anonymize the value independently of the type to guarantee that the whole object is protected
           message[key] = Constants.ANONYMIZED_VALUE;
         } else { // Otherwise, apply the anonymizeSensitiveData function
           message[key] = await Logging.anonymizeSensitiveData(message[key]);
@@ -902,7 +908,7 @@ export default class Logging {
       method: 'anonymizeSensitiveData',
       action: ServerAction.LOGGING,
       message: 'No matching object type for log message anonymisation',
-      detailedMessages: { message: message }
+      detailedMessages: { message }
     });
   }
 
