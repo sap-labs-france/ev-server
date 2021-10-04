@@ -864,7 +864,7 @@ export default class Logging {
           const queryParamKeyParts = queryParamKey.split('?');
           queryParamKey = queryParamKeyParts.length > 1 ? queryParamKeyParts[1] : queryParamKeyParts[0];
           for (const sensitiveData of Constants.SENSITIVE_DATA) {
-            if (queryParamKey.toLowerCase() === sensitiveData.toLowerCase()) {
+            if (queryParamKey.toLowerCase().startsWith(sensitiveData.toLocaleLowerCase())) {
               // Anonymize each query string part
               dataParts[i] = dataPart.substring(0, sensitiveData.length + 1) + Constants.ANONYMIZED_VALUE;
             }
@@ -873,9 +873,9 @@ export default class Logging {
         message = dataParts.join('&');
         return message;
       }
-      // Check if the message is a string classified as sensitive data
+      // Check if the message is a string which contains sensitive data
       for (const sensitiveData of Constants.SENSITIVE_DATA) {
-        if (message.toLowerCase() === sensitiveData.toLowerCase()) {
+        if (message.toLowerCase().indexOf(sensitiveData.toLowerCase()) !== -1) {
           // Anonymize the message
           return Constants.ANONYMIZED_VALUE;
         }
