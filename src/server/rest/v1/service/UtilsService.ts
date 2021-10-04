@@ -1367,16 +1367,6 @@ export default class UtilsService {
     if (!tag.description) {
       tag.description = `Tag ID '${tag.id}'`;
     }
-    // Check user ID
-    if (!tag.userID) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'User ID is mandatory',
-        module: MODULE_NAME, method: 'checkIfUserTagIsValid',
-        user: req.user.id
-      });
-    }
     // Check user activation
     if (!Utils.objectHasProperty(tag, 'active')) {
       throw new AppError({

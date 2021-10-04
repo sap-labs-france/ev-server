@@ -4,7 +4,6 @@ import { Action, AuthorizationContext, AuthorizationDefinition, AuthorizationRes
 import BackendError from '../exception/BackendError';
 import Constants from '../utils/Constants';
 import Utils from '../utils/Utils';
-import _ from 'lodash';
 
 const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   superAdmin: {
@@ -17,7 +16,6 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'billingData.customerID', 'billingData.lastChangedOn'
         ]
       },
-      { resource: Entity.USER, action: [Action.CREATE, Action.UPDATE] },
       {
         resource: Entity.USER, action: Action.DELETE,
         condition: {
@@ -26,7 +24,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         }
       },
       {
-        resource: Entity.USER, action: Action.READ,
+        resource: Entity.USER, action: [Action.READ, Action.CREATE, Action.UPDATE],
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
           'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
@@ -63,14 +61,17 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   admin: {
     grants: [
       {
+        resource: Entity.USERS, action: Action.SYNCHRONIZE_BILLING_USERS,
+      },
+      {
         resource: Entity.USERS,
         action: [
-          Action.LIST, Action.SYNCHRONIZE_BILLING_USERS, Action.EXPORT, Action.IMPORT
+          Action.LIST, Action.EXPORT, Action.IMPORT
         ],
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn', 'createdBy',
           'lastChangedOn', 'lastChangedBy', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
-          'billingData.customerID', 'billingData.lastChangedOn'
+          'billingData.customerID', 'billingData.lastChangedOn', 'technical'
         ]
       },
       {
@@ -80,7 +81,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'createdOn', 'lastChangedOn', 'errorCodeDetails', 'errorCode'
         ]
       },
-      { resource: Entity.USER, action: [Action.CREATE, Action.UPDATE, Action.SYNCHRONIZE_BILLING_USER] },
+      { resource: Entity.USER, action: Action.SYNCHRONIZE_BILLING_USER },
       {
         resource: Entity.USER, action: Action.DELETE,
         condition: {
@@ -89,10 +90,10 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         }
       },
       {
-        resource: Entity.USER, action: Action.READ,
+        resource: Entity.USER, action: [Action.READ, Action.CREATE, Action.UPDATE],
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
-          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
+          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address', 'technical'
         ]
       },
       {
@@ -131,7 +132,8 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.COMPANY,
         action: [
           Action.CREATE, Action.UPDATE, Action.DELETE
-        ] },
+        ]
+      },
       {
         resource: Entity.SITES, action: Action.LIST,
         attributes: [
@@ -311,22 +313,19 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   basic: {
     grants: [
       {
-        resource: Entity.USER, action: Action.READ,
+        resource: Entity.USER, action: [Action.READ, Action.UPDATE],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
-          args: { filters: ['OwnUser'] }
+          args: {
+            filters: ['OwnUser'],
+            asserts: ['BasicUser']
+          }
         },
         attributes: [
-          'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
-          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
+          'id', 'name', 'firstName', 'email', 'role', 'issuer', 'locale',
+          'notificationsActive', 'notifications', 'phone', 'mobile',
+          'iNumber', 'costCenter', 'address'
         ]
-      },
-      {
-        resource: Entity.USER, action: Action.UPDATE,
-        condition: {
-          Fn: 'custom:dynamicAuthorizations',
-          args: { filters: ['OwnUser'] }
-        }
       },
       { resource: Entity.SETTING, action: Action.READ },
       {
@@ -521,7 +520,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           args: { filters: ['OwnUser'] }
         },
         attributes: [
-          'id', 'userID', 'active', 'ocpiToken', 'description', 'visualID', 'issuer', 'default',
+          'userID', 'active', 'description', 'visualID', 'issuer', 'default',
           'createdOn', 'lastChangedOn'
         ],
       },
@@ -532,16 +531,46 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           args: { filters: ['OwnUser'] }
         },
         attributes: [
-          'id', 'userID', 'issuer', 'active', 'description', 'visualID', 'default',
+          'userID', 'issuer', 'active', 'description', 'visualID', 'default',
           'user.id', 'user.name', 'user.firstName', 'user.email', 'user.issuer'
         ],
       },
       {
-        resource: Entity.TAG, action: [Action.DELETE, Action.UPDATE],
+        resource: Entity.TAGS, action: Action.UNASSIGN,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
-          args: { filters: ['OwnUser'] }
+          args: {
+            filters: ['OwnUser'],
+            asserts: ['OwnUser']
+          }
         }
+      },
+      {
+        resource: Entity.TAG, action: Action.UNASSIGN,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            filters: ['OwnUser'],
+            asserts: ['OwnUser']
+          }
+        }
+      },
+      {
+        resource: Entity.TAG, action: Action.UPDATE_BY_VISUAL_ID,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            filters: ['OwnUser'],
+            asserts: ['OwnUser']
+          }
+        }
+      },
+      {
+        resource: Entity.TAG, action: Action.ASSIGN,
+        attributes: [
+          'userID', 'description', 'visualID', 'default',
+          'user.name', 'user.firstName', 'user.email', 'createdOn', 'lastChangedOn'
+        ]
       },
       {
         resource: Entity.CHARGING_STATION,
@@ -591,8 +620,8 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           args: { filters: ['OwnUser'] }
         },
         attributes: [
-          'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
-          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
+          'id', 'name', 'firstName', 'email', 'issuer', 'locale', 'notificationsActive',
+          'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
         ],
       },
       {
@@ -707,6 +736,20 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
     },
     grants: [
       {
+        resource: Entity.TAG, action: [Action.ASSIGN, Action.UNASSIGN, Action.UPDATE_BY_VISUAL_ID],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: { filters: ['ExcludeAction'] }
+        }
+      },
+      {
+        resource: Entity.TAGS, action: [Action.UNASSIGN],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: { filters: ['ExcludeAction'] }
+        }
+      },
+      {
         resource: Entity.USERS, action: Action.LIST,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
@@ -715,19 +758,46 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn',
           'lastChangedOn', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
-          'billingData.customerID', 'billingData.lastChangedOn'
+          'billingData.customerID', 'billingData.lastChangedOn', 'technical'
         ],
       },
       {
         resource: Entity.USER, action: Action.READ,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
-          args: { filters: ['SitesAdmin', 'LocalIssuer'] }
+          args: {
+            filters: ['SitesAdmin', 'LocalIssuer']
+          }
         },
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
-          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
+          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address', 'technical'
         ],
+      },
+      {
+        resource: Entity.USER, action: [Action.CREATE, Action.UPDATE],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: ['BasicUser'],
+            filters: ['SitesAdmin']
+          }
+        },
+        attributes: [
+          'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
+          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address', 'technical'
+        ],
+      },
+      { resource: Entity.USER, action: Action.SYNCHRONIZE_BILLING_USER },
+      {
+        resource: Entity.USER, action: Action.DELETE,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: ['BasicUser'],
+            filters: ['-OwnUser', 'SitesAdmin']
+          }
+        }
       },
       {
         resource: Entity.USERS_SITES, action: [Action.LIST, Action.UNASSIGN],
@@ -894,11 +964,13 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.USER, action: Action.READ,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
-          args: { filters: ['SitesOwner', 'LocalIssuer'] }
+          args: {
+            filters: ['SitesOwner', 'LocalIssuer']
+          }
         },
         attributes: [
-          'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
-          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
+          'id', 'name', 'firstName', 'email', 'issuer', 'locale', 'notificationsActive', 'notifications',
+          'phone', 'mobile', 'iNumber', 'costCenter', 'address'
         ],
       },
       {
@@ -939,6 +1011,7 @@ const MODULE_NAME = 'AuthorizationsDefinition';
 
 export default class AuthorizationsDefinition {
   private static instance: AuthorizationsDefinition;
+  private static authorizationCache: Map<string, AuthorizationResult> = new Map();
   private accessControl: AccessControl;
 
   private constructor() {
@@ -996,13 +1069,27 @@ export default class AuthorizationsDefinition {
     }
   }
 
-  public async canPerformAction(roles: string[], resource: string, action: string, context?: any): Promise<AuthorizationResult> {
+  public async canPerformAction(roles: string[], resource: string, action: string, context: AuthorizationContext = {}): Promise<AuthorizationResult> {
     try {
-      const permission = await this.accessControl.can(roles).execute(action).with(context).on(resource);
-      return {
-        authorized: permission.granted,
-        fields: permission.attributes,
-      };
+      const authID = `${roles.toString()}~${resource}~${action}~${JSON.stringify(context)}}`;
+      // Check in cache
+      let authResult = AuthorizationsDefinition.authorizationCache.get(authID);
+      if (!authResult) {
+        // Not found: Compute & Store in cache
+        const permission = await this.accessControl.can(roles).execute(action).with(context).on(resource);
+        authResult = {
+          authorized: permission.granted,
+          fields: permission.attributes,
+          context: context,
+        };
+        AuthorizationsDefinition.authorizationCache.set(authID, Object.freeze(authResult));
+      } else {
+        // Enrich the current context
+        for (const contextKey in authResult.context) {
+          context[contextKey] = authResult.context[contextKey];
+        }
+      }
+      return authResult;
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,

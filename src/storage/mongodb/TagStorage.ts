@@ -22,7 +22,7 @@ export default class TagStorage {
     DatabaseUtils.checkTenantObject(tenant);
     const tagMDB = {
       _id: tag.id,
-      userID: DatabaseUtils.convertToObjectID(tag.userID),
+      userID: tag.userID ? DatabaseUtils.convertToObjectID(tag.userID) : null,
       issuer: Utils.convertToBoolean(tag.issuer),
       active: Utils.convertToBoolean(tag.active),
       default: Utils.convertToBoolean(tag.default),
@@ -296,7 +296,7 @@ export default class TagStorage {
       issuer: params.issuer,
       active: true,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
-    return tagMDB.count === 1 ? tagMDB.result[0] : null;
+    return tagMDB.count > 0 ? tagMDB.result[0] : null;
   }
 
   public static async getDefaultUserTag(tenant: Tenant, userID: string,
@@ -330,14 +330,8 @@ export default class TagStorage {
     const filters: FilterParams = {};
     // Filter by other properties
     if (params.search) {
-      filters.$or = [
-        { '_id': { $regex: params.search, $options: 'i' } },
-        { 'description': { $regex: params.search, $options: 'i' } },
-        { 'visualID': { $regex: params.search, $options: 'i' } }
-      ];
+      filters.$text = { $search: `"${params.search}"` };
     }
-    // Remove deleted
-    filters.deleted = { '$ne': true };
     // Tag IDs
     if (!Utils.isEmptyArray(params.tagIDs)) {
       filters._id = { $in: params.tagIDs };

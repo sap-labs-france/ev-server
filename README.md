@@ -1,8 +1,8 @@
-# Electric Vehicle Charging Station (EVSE) - Application Server
+# Open e-Mobility NodeJs Server
 
 ## Summary
 
-This application server (NodeJs) collects and stores the data (MongoDB) received from the Charging Stations via the OCPP protocol and exposes a REST service to an Angular front-end dashboard application ([EVSE-Dashboard](https://github.com/sap-labs-france/ev-dashboard)).
+This application server (NodeJs) collects and stores the data (MongoDB) received from the Charging Stations via the OCPP protocol and exposes a REST service to an Angular front-end dashboard application ([Open e-Mobility Angular Dashboard](https://github.com/sap-labs-france/ev-dashboard)).
 
 The application features:
 
@@ -255,6 +255,7 @@ To set the end point, fill the following information in the **config.json** file
     "userTokenKey": "MySecureKeyToEncodeTokenAuth",
     "userTokenLifetimeHours": 12,
     "userDemoTokenLifetimeDays": 365,
+    "userTechnicalTokenLifetimeDays": 365,
     "socketIO": true,
     "socketIOListNotificationIntervalSecs": 5,
     "socketIOSingleNotificationIntervalSecs": 1,
@@ -272,6 +273,7 @@ To set the end point, fill the following information in the **config.json** file
     "userTokenKey": "YourSecureKeyToEncodeTokenAuth",
     "userTokenLifetimeHours": 12,
     "userDemoTokenLifetimeDays": 365,
+    "userTechnicalTokenLifetimeDays": 365,
     "socketIO": true,
     "socketIOListNotificationIntervalSecs": 5,
     "socketIOSingleNotificationIntervalSecs": 1,
@@ -359,6 +361,7 @@ The token key is provided is the **config.json** file:
     "userTokenKey": "MySecureKeyToEncodeTokenAuth",
     "userTokenLifetimeHours": 12,
     "userDemoTokenLifetimeDays": 365,
+    "userTechnicalTokenLifetimeDays": 365,
     ...
   }
 ```

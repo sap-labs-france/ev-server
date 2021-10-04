@@ -1,0 +1,13 @@
+{
+  "title": "Get OCPI Endpoint Request",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "ocpi-endpoint.json#/definitions/id"
+    }
+  },
+  "required": [
+    "ID"
+  ]
+}

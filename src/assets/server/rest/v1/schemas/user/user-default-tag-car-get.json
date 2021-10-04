@@ -1,0 +1,15 @@
+{
+  "title": "Get user default tag and car",
+  "type": "object",
+  "properties": {
+    "UserID": {
+      "$ref": "user.json#/definitions/id"
+    },
+    "ProjectFields": {
+      "$ref": "common.json#/definitions/projectFields"
+    }
+  },
+  "required": [
+    "UserID"
+  ]
+}

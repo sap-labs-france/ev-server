@@ -1,0 +1,39 @@
+{
+  "title": "Remote Start Transaction",
+  "type": "object",
+  "properties": {
+    "chargingStationID": {
+      "$ref": "chargingstation.json#/definitions/id"
+    },
+    "carID": {
+      "$ref": "common.json#/definitions/id"
+    },
+    "userID": {
+      "$ref": "common.json#/definitions/id"
+    },
+    "args": {
+      "type": "object",
+      "properties": {
+        "connectorId": {
+          "$ref": "chargingstation.json#/definitions/connector/properties/connectorId"
+        },
+        "tagID": {
+          "$ref": "tag.json#/definitions/id"
+        },
+        "visualTagID": {
+          "$ref": "tag.json#/definitions/visualID"
+        }
+      },
+      "anyOf": [
+        { "required": ["tagID"] },
+        { "required": ["visualTagID"] }
+      ]
+    },
+    "chargePointID": {
+      "$ref": "common.json#/definitions/id"
+    }
+  },
+  "required": [
+    "chargingStationID"
+  ]
+}

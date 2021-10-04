@@ -1,5 +1,6 @@
 import { Action, AuthorizationContext, AuthorizationResult, Entity } from '../types/Authorization';
 import ChargingStation, { Connector } from '../types/ChargingStation';
+import Tenant, { TenantComponents } from '../types/Tenant';
 import User, { UserRole, UserStatus } from '../types/User';
 
 import AuthorizationConfiguration from '../types/configuration/AuthorizationConfiguration';
@@ -24,12 +25,8 @@ import { PricingSettingsType } from '../types/Setting';
 import { ServerAction } from '../types/Server';
 import SessionHashService from '../server/rest/v1/service/SessionHashService';
 import SettingStorage from '../storage/mongodb/SettingStorage';
-import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
-import SiteStorage from '../storage/mongodb/SiteStorage';
 import Tag from '../types/Tag';
 import TagStorage from '../storage/mongodb/TagStorage';
-import Tenant, { TenantComponents } from '../types/Tenant';
-
 import Transaction from '../types/Transaction';
 import TransactionStorage from '../storage/mongodb/TransactionStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
@@ -897,10 +894,10 @@ export default class Authorizations {
     let authorizationID: string;
     if (!Utils.isEmptyArray(chargingStation.remoteAuthorizations)) {
       let remoteAuthorizationsUpdated = false;
-      for (let i = chargingStation.remoteAuthorizations.length; i >= 0; i--) {
+      for (let i = chargingStation.remoteAuthorizations.length - 1; i >= 0; i--) {
         const remoteAuthorization = chargingStation.remoteAuthorizations[i];
         // Check validity
-        if (OCPIUtils.isAuthorizationValid(remoteAuthorization.timestamp)) {
+        if (remoteAuthorization && OCPIUtils.isAuthorizationValid(remoteAuthorization.timestamp)) {
           // Check Tag ID
           if (remoteAuthorization.tagId === tag.ocpiToken?.uid) {
             await Logging.logDebug({

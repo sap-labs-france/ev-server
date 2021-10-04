@@ -1,4 +1,4 @@
-import { OCPPAvailabilityStatus, OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPClearCacheCommandResult, OCPPClearCacheStatus, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPDataTransferCommandParam, OCPPDataTransferCommandResult, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetCompositeScheduleStatus, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPRemoteStartStopStatus, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPResetStatus, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUnlockStatus, OCPPUpdateFirmwareCommandParam } from '../../types/ocpp/OCPPClient';
+import { OCPPAvailabilityStatus, OCPPCancelReservationCommandParam, OCPPCancelReservationCommandResult, OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPClearCacheCommandResult, OCPPClearCacheStatus, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPDataTransferCommandParam, OCPPDataTransferCommandResult, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetCompositeScheduleStatus, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPRemoteStartStopStatus, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPReserveNowCommandParam, OCPPReserveNowCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPResetStatus, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUnlockStatus, OCPPUpdateFirmwareCommandParam } from '../../types/ocpp/OCPPClient';
 
 import ChargingStation from '../../types/ChargingStation';
 import ChargingStationClient from '../ocpp/ChargingStationClient';
@@ -97,8 +97,20 @@ export default class OCPIChargingStationClient extends ChargingStationClient {
 
   async updateFirmware(params: OCPPUpdateFirmwareCommandParam): Promise<void> { }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   // eslint-disable-next-line @typescript-eslint/require-await
   public async dataTransfer(params: OCPPDataTransferCommandParam): Promise<OCPPDataTransferCommandResult> {
     throw new Error('Method not implemented.');
   }
+
+  // eslint-disable-next-line @typescript-eslint/require-await
+  public async reserveNow(params: OCPPReserveNowCommandParam): Promise<OCPPReserveNowCommandResult> {
+    throw new Error('Method not implemented.');
+  }
+
+  // eslint-disable-next-line @typescript-eslint/require-await
+  public async cancelReservation(params: OCPPCancelReservationCommandParam): Promise<OCPPCancelReservationCommandResult> {
+    throw new Error('Method not implemented.');
+  }
+
 }

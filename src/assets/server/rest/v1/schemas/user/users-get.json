@@ -1,7 +1,7 @@
 {
   "title": "Get Users",
   "type": "object",
-  "definitions": {
+  "properties": {
     "Issuer": {
       "type": "boolean",
       "sanitize": "mongo"
@@ -16,6 +16,10 @@
       "type": "string",
       "sanitize": "mongo",
       "pattern": "^[SABD](\\|[SABD])*$"
+    },
+    "Technical": {
+      "type": "boolean",
+      "sanitize": "mongo"
     },
     "Status": {
       "type": "string",
@@ -48,5 +52,7 @@
       "$ref": "common.json#/definitions/projectFields"
     }
   },
-  "required": []
+  "required": [
+    "Limit"
+  ]
 }

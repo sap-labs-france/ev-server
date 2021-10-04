@@ -283,8 +283,8 @@ export default class Constants {
   public static readonly PWD_NUMBER_RE = /([\d])/g; // Cannot store regex in enum
   public static readonly PWD_SPECIAL_CHAR_RE = /([!#$%^&*.?-])/g; // Cannot store regex in enum
 
-  public static readonly SUPPORTED_LOCALES = Object.freeze(['en_US', 'fr_FR', 'es_ES', 'de_DE', 'pt_PT', 'it_IT']);
-  public static readonly SUPPORTED_LANGUAGES = Object.freeze(['en', 'fr', 'es', 'de', 'pt', 'it']);
+  public static readonly SUPPORTED_LOCALES = Object.freeze(['en_US', 'fr_FR', 'es_ES', 'de_DE', 'pt_PT', 'it_IT', 'cz_CZ']);
+  public static readonly SUPPORTED_LANGUAGES = Object.freeze(['en', 'fr', 'es', 'de', 'pt', 'it', 'cz']);
   public static readonly DEFAULT_LOCALE = 'en_US';
   public static readonly DEFAULT_LANGUAGE = 'en';
 
@@ -295,6 +295,10 @@ export default class Constants {
   public static readonly WS_RECONNECT_UNLIMITED = -1;
   public static readonly WS_DEFAULT_RECONNECT_MAX_RETRIES = -1;
   public static readonly WS_DEFAULT_RECONNECT_TIMEOUT = 30; // Seconds
+  public static readonly WS_CONNECTION_URL_RE = new RegExp(['^(?:(?:ws|wss)://)(?:\\S+)\\/(?:\\S+)\\/',
+    '(?:[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\\/',
+    '([0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\\/',
+    '(?:\\S+)$'].join(''), 'ig');
 
   public static readonly OCPP_SOCKET_TIMEOUT = 30000; // 30 sec
   public static readonly OCPP_HEARTBEAT_KEYS = Object.freeze(['HeartbeatInterval', 'HeartBeatInterval']);
@@ -313,7 +317,7 @@ export default class Constants {
 
   public static readonly SENSITIVE_DATA = Object.freeze([
     'firstName', 'name', 'repeatPassword', 'password', 'plainPassword','captcha', 'email', 'coordinates', 'latitude', 'longitude',
-    'Authorization', 'authorization', 'client_id', 'client_secret', 'refresh_token', 'localToken', 'Bearer',
+    'Authorization', 'authorization', 'client_id', 'client_secret', 'refresh_token', 'localToken', 'Bearer', 'auth_token', 'token'
   ]);
 
   public static readonly MONGO_USER_MASK = Object.freeze({

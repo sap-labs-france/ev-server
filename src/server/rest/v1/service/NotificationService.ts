@@ -19,7 +19,7 @@ const MODULE_NAME = 'NotificationService';
 export default class NotificationService {
   static async handleGetNotifications(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = NotificationValidator.getInstance().validateGetNotificationsReq(req.query);
+    const filteredRequest = NotificationValidator.getInstance().validateNotificationsGetReq(req.query);
     // Check User
     let userProject: string[] = [];
     if ((await Authorizations.canListUsers(req.user)).authorized) {
@@ -60,7 +60,7 @@ export default class NotificationService {
       });
     }
     // Filter
-    const filteredRequest = NotificationValidator.getInstance().validateEndUserReportErrorReq(req.body);
+    const filteredRequest = NotificationValidator.getInstance().validateEndUserErrorReportReq(req.body);
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, req.user.id, Action.READ, action);

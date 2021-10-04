@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "921c46ee-6f2b-4428-b362-7a5db6c70921",
+		"_postman_id": "3b2367e7-a132-4d54-8e03-9ccaacac38a4",
 		"name": "EVSE",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -1053,7 +1053,7 @@
 						},
 						{
 							"key": "WithLogo",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
@@ -2196,12 +2196,12 @@
 						},
 						{
 							"key": "Status",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "ErrorType",
-							"value": null,
+							"value": "",
 							"disabled": true
 						}
 					]
@@ -2638,37 +2638,37 @@
 						},
 						{
 							"key": "Search",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "SiteID",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "SiteAreaID",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Skip",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "SortFields",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "OnlyRecordCount",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "ProjectFields",
-							"value": null,
+							"value": "",
 							"disabled": true
 						}
 					]
@@ -2917,27 +2917,30 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/client/api/Notifications?DateFrom=2019-01-15T19:21:00&UserID=596c84497787fc5370a9df52&Channel=email",
+					"raw": "{{base_url}}/v1/api/notifications",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
-						"client",
+						"v1",
 						"api",
-						"Notifications"
+						"notifications"
 					],
 					"query": [
 						{
 							"key": "DateFrom",
-							"value": "2019-01-15T19:21:00"
+							"value": "",
+							"disabled": true
 						},
 						{
 							"key": "UserID",
-							"value": "596c84497787fc5370a9df52"
+							"value": "",
+							"disabled": true
 						},
 						{
 							"key": "Channel",
-							"value": "email"
+							"value": "",
+							"disabled": true
 						}
 					]
 				}
@@ -4066,17 +4069,17 @@
 					"query": [
 						{
 							"key": "WithCar",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "WithUser",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "WithTag",
-							"value": null,
+							"value": "",
 							"disabled": true
 						}
 					]
@@ -4194,17 +4197,17 @@
 					"query": [
 						{
 							"key": "WithUser",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "WithCar",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "WithTag",
-							"value": null,
+							"value": "",
 							"disabled": true
 						}
 					]
@@ -4249,22 +4252,22 @@
 					"query": [
 						{
 							"key": "LoadAllConsumptions",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "WithCar",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "WithUser",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "WithTag",
-							"value": null,
+							"value": "",
 							"disabled": true
 						}
 					]
@@ -4638,32 +4641,32 @@
 					"query": [
 						{
 							"key": "SiteAreaID",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "SiteID",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Limit",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Skip",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "SortFields",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "OnlyRecordCount",
-							"value": null,
+							"value": "",
 							"disabled": true
 						}
 					]
@@ -4701,12 +4704,12 @@
 					"query": [
 						{
 							"key": "TagID",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "UserID",
-							"value": null,
+							"value": "",
 							"disabled": true
 						}
 					]
@@ -6131,7 +6134,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"name\": \"Updated asset\",\n    \"siteAreaID\": \"{{siteAreaID}}\",\n    \"assetType\": \"CO\",\n    \"excludeFromSmartCharging\": true,\n    \"variationThresholdPercent\": 100,\n    \"fluctuationPercent\": null,\n    \"staticValueWatt\": 2000,\n    \"image\": \"\",\n    \"dynamicAsset\": false,\n    \"connectionID\": \"\",\n    \"meterID\": \"\",\n    \"usePushAPI\": false,\n    \"coordinates\": [0, 0]\n}",
+					"raw": "{\n    \"name\": \"Updated asset\",\n    \"siteAreaID\": \"{{siteAreaID}}\",\n    \"assetType\": \"CO\",\n    \"excludeFromSmartCharging\": true,\n    \"variationThresholdPercent\": 100,\n    \"fluctuationPercent\": null,\n    \"staticValueWatt\": 2000,\n    \"image\": \"\",\n    \"dynamicAsset\": false,\n    \"connectionID\": \"\",\n    \"meterID\": \"\",\n    \"usesPushAPI\": false,\n    \"coordinates\": [0, 0]\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -6199,7 +6202,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/assets/601b2a5e52f1d8000e8dd95b/consumptions?StartDate&EndDate",
+					"raw": "{{base_url}}/v1/api/assets/601b2a5e52f1d8000e8dd95b/consumptions",
 					"host": [
 						"{{base_url}}"
 					],
@@ -6213,11 +6216,13 @@
 					"query": [
 						{
 							"key": "StartDate",
-							"value": null
+							"value": "",
+							"disabled": true
 						},
 						{
 							"key": "EndDate",
-							"value": null
+							"value": "",
+							"disabled": true
 						}
 					]
 				}
@@ -6412,12 +6417,12 @@
 					"query": [
 						{
 							"key": "Skip",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Limit",
-							"value": null,
+							"value": "",
 							"disabled": true
 						}
 					]
@@ -6518,42 +6523,42 @@
 						},
 						{
 							"key": "CarMaker",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "UserID",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Search",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Limit",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Skip",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "SortFields",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "OnlyRecordCount",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "ProjectFields",
-							"value": null,
+							"value": "",
 							"disabled": true
 						}
 					]
@@ -6595,42 +6600,42 @@
 						},
 						{
 							"key": "CarMaker",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "UserID",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Search",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Limit",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Skip",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "SortFields",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "OnlyRecordCount",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "ProjectFields",
-							"value": null,
+							"value": "",
 							"disabled": true
 						}
 					]
@@ -6709,57 +6714,57 @@
 						},
 						{
 							"key": "EndDateTime",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Level",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Source",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Host",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Type",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Action",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "UserID",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Search",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "SortFields",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Limit",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Skip",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
@@ -6769,7 +6774,7 @@
 						},
 						{
 							"key": "ProjectFields",
-							"value": null,
+							"value": "",
 							"disabled": true
 						}
 					]
@@ -7038,6 +7043,612 @@
 							"value": "",
 							"disabled": true
 						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OCPIEndpoints",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"ocpi",
+						"endpoints"
+					],
+					"query": [
+						{
+							"key": "Search",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "SortFields",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Limit",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Skip",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "OnlyRecordCount",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ProjectFields",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OCPIEndpoint",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/5c823acfab55f900083fead0",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"ocpi",
+						"endpoints",
+						"5c823acfab55f900083fead0"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OCPIEndpointDelete",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c399fb1be2e11af30c052",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"ocpi",
+						"endpoints",
+						"614c399fb1be2e11af30c052"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OCPIEndpointCreate",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"OCPI Endpoint name\",\n  \"role\": \"CPO\",\n  \"baseUrl\": \"https://xxxxxxx.xx\",\n  \"countryCode\": \"FR\",\n  \"partyId\": \"ABC\",\n  \"localToken\": \"string\",\n  \"token\": \"string\",\n  \"backgroundPatchJob\": true\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"ocpi",
+						"endpoints"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OCPIEndpointUpdate",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"OCPI Endpoint name\",\n  \"role\": \"CPO\",\n  \"baseUrl\": \"https://xxxxxxx.xx\",\n  \"countryCode\": \"FR\",\n  \"partyId\": \"ABC\",\n  \"localToken\": \"string\",\n  \"token\": \"string\",\n  \"backgroundPatchJob\": true\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"ocpi",
+						"endpoints",
+						"614c3e32b1ef6620c9dfcdc7"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OCPIEndpointPing",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"OCPI Endpoint name\",\n  \"role\": \"CPO\",\n  \"baseUrl\": \"https://xxxxxxx.xx\",\n  \"countryCode\": \"FR\",\n  \"partyId\": \"ABC\",\n  \"localToken\": \"string\",\n  \"token\": \"string\",\n  \"backgroundPatchJob\": true\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7/ping",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"ocpi",
+						"endpoints",
+						"614c3e32b1ef6620c9dfcdc7",
+						"ping"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OCPIEndpointCheckCDRs",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7/cdrs/check",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"ocpi",
+						"endpoints",
+						"614c3e32b1ef6620c9dfcdc7",
+						"cdrs",
+						"check"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OCPIEndpointCheckLocations",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7/locations/check",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"ocpi",
+						"endpoints",
+						"614c3e32b1ef6620c9dfcdc7",
+						"locations",
+						"check"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OCPIEndpointCheckLocations Copy",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7/sessions/check",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"ocpi",
+						"endpoints",
+						"614c3e32b1ef6620c9dfcdc7",
+						"sessions",
+						"check"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OCPIEndpointPullCDRs",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7/cdrs/pull",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"ocpi",
+						"endpoints",
+						"614c3e32b1ef6620c9dfcdc7",
+						"cdrs",
+						"pull"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OCPIEndpointPullLocations",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7/locations/pull",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"ocpi",
+						"endpoints",
+						"614c3e32b1ef6620c9dfcdc7",
+						"locations",
+						"pull"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OCPIEndpointPullSessions",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7/sessions/pull",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"ocpi",
+						"endpoints",
+						"614c3e32b1ef6620c9dfcdc7",
+						"sessions",
+						"pull"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OCPIEndpointPullTokens",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7/tokens/pull",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"ocpi",
+						"endpoints",
+						"614c3e32b1ef6620c9dfcdc7",
+						"tokens",
+						"pull"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OCPIEndpointPushEvsesStatuses",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7/evses/statuses/send",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"ocpi",
+						"endpoints",
+						"614c3e32b1ef6620c9dfcdc7",
+						"evses",
+						"statuses",
+						"send"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OCPIEndpointPushTokens",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7/tokens/send",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"ocpi",
+						"endpoints",
+						"614c3e32b1ef6620c9dfcdc7",
+						"tokens",
+						"send"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OCPIEndpointRegister",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7/register",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"ocpi",
+						"endpoints",
+						"614c3e32b1ef6620c9dfcdc7",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OCPIEndpointUnregister",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7/unregister",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"ocpi",
+						"endpoints",
+						"614c3e32b1ef6620c9dfcdc7",
+						"unregister"
 					]
 				}
 			},

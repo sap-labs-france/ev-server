@@ -1,4 +1,4 @@
-import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSetting, BillingSettings, BillingSettingsType, CarConnectorSettings, CarConnectorSettingsType, CryptoSetting, CryptoSettings, CryptoSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType, TechnicalSettings, UserSettings, UserSettingsType } from '../../types/Setting';
+import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSetting, BillingSettings, BillingSettingsType, CarConnectorSetting, CarConnectorSettings, CarConnectorSettingsType, CryptoSetting, CryptoSettings, CryptoSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType, TechnicalSettings, UserSettings, UserSettingsType } from '../../types/Setting';
 import Tenant, { TenantComponents } from '../../types/Tenant';
 import global, { FilterParams } from '../../types/GlobalType';
 
@@ -212,6 +212,22 @@ export default class SettingStorage {
       }
     }
     return carConnectorSettings;
+  }
+
+  public static async saveCarConnectorSettings(tenant: Tenant, carConnectorSettingToSave: CarConnectorSettings): Promise<void> {
+    // Build internal structure
+    const settingsToSave = {
+      id: carConnectorSettingToSave.id,
+      identifier: carConnectorSettingToSave.identifier,
+      lastChangedOn: new Date(),
+      sensitiveData: carConnectorSettingToSave.sensitiveData,
+      content: {
+        type: carConnectorSettingToSave.type,
+        carConnector: carConnectorSettingToSave.carConnector
+      },
+    } as SettingDB;
+    // Save
+    await SettingStorage.saveSettings(tenant, settingsToSave);
   }
 
   public static async getPricingSettings(tenant: Tenant, limit?: number, skip?: number, dateFrom?: Date, dateTo?: Date): Promise<PricingSettings> {

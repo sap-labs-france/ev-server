@@ -1,5 +1,6 @@
 import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
 import Site, { SiteUser } from '../../types/Site';
+import Tenant, { TenantComponents } from '../../types/Tenant';
 import User, { ImportedUser, UserRole, UserStatus } from '../../types/User';
 import { UserInError, UserInErrorType } from '../../types/InError';
 import global, { FilterParams, Image, ImportStatus } from '../../types/GlobalType';
@@ -17,9 +18,6 @@ import Logging from '../../utils/Logging';
 import Mustache from 'mustache';
 import { ObjectId } from 'mongodb';
 import TagStorage from './TagStorage';
-import Tenant from '../../types/Tenant';
-import { TenantComponents } from '../../types/Tenant';
-import TenantStorage from './TenantStorage';
 import UserNotifications from '../../types/UserNotifications';
 import Utils from '../../utils/Utils';
 import fs from 'fs';
@@ -484,7 +482,7 @@ export default class UserStorage {
   }
 
   public static async saveUserAdminData(tenant: Tenant, userID: string,
-      params: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications }): Promise<void> {
+      params: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications, technical?: boolean }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'saveUserAdminData');
     // Check Tenant
@@ -500,6 +498,9 @@ export default class UserStorage {
     }
     if (Utils.objectHasProperty(params, 'notifications')) {
       updatedUserMDB.notifications = params.notifications;
+    }
+    if (Utils.objectHasProperty(params, 'technical')) {
+      updatedUserMDB.technical = params.technical;
     }
     // Modify and return the modified document
     await global.database.getCollection<any>(tenant.id, 'users').findOneAndUpdate(
@@ -567,7 +568,7 @@ export default class UserStorage {
         notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
         userIDs?: string[]; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
         statuses?: string[]; withImage?: boolean; billingUserID?: string; notSynchronizedBillingData?: boolean;
-        withTestBillingData?: boolean; notifications?: any; noLoginSince?: Date;
+        withTestBillingData?: boolean; notifications?: any; noLoginSince?: Date; technical?: boolean;
       },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
     // Debug
@@ -636,12 +637,19 @@ export default class UserStorage {
     }
     // Select non-synchronized billing data
     if (params.notSynchronizedBillingData) {
-      filters.$or = [
+      const billingFilter = [
         { 'billingData': { '$exists': false } },
         { 'billingData.lastChangedOn': { '$exists': false } },
         { 'billingData.lastChangedOn': null },
         { $expr: { $gt: ['$lastChangedOn', '$billingData.lastChangedOn'] } }
       ];
+      if (filters.$or) {
+        filters.$or.push(
+          ...billingFilter
+        );
+      } else {
+        filters.$or = billingFilter;
+      }
     }
     // Select users with test billing data
     if (params.withTestBillingData) {
@@ -650,6 +658,24 @@ export default class UserStorage {
         { 'billingData': { '$exists': true } },
         { 'billingData.liveMode': { $eq: expectedLiveMode } }
       ];
+    }
+    // Select (non) technical users
+    if (Utils.objectHasProperty(params, 'technical') && Utils.isBoolean(params.technical)) {
+      if (params.technical) {
+        filters.technical = true;
+      } else {
+        const technicalFilter = [
+          { technical: { $in: [false, null] } },
+          { technical: { $exists: false } }
+        ];
+        if (filters.$or) {
+          filters.$or.push(
+            ...technicalFilter
+          );
+        } else {
+          filters.$or = technicalFilter;
+        }
+      }
     }
     // Add filters
     aggregation.push({

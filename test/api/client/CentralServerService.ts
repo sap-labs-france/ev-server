@@ -186,10 +186,7 @@ export default class CentralServerService {
     // Check
     expect(entity).to.not.be.null;
     // Retrieve from the backend
-    const response = await entityApi.readAll({}, {
-      limit: TestConstants.UNLIMITED,
-      skip: 0
-    });
+    const response = await entityApi.readAll({}, TestConstants.DEFAULT_PAGING);
     // Check
     if (performCheck) {
       // Check
@@ -212,10 +209,7 @@ export default class CentralServerService {
     // Check
     expect(entity).to.not.be.null;
     // Retrieve from the backend
-    const response = await entityApi.readAll(params, {
-      limit: TestConstants.UNLIMITED,
-      skip: 0
-    });
+    const response = await entityApi.readAll(params, TestConstants.DEFAULT_PAGING);
     // Check
     if (performCheck) {
       // Check

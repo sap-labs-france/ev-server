@@ -1,11 +1,9 @@
 import { OICPAuthorizeRemoteStartCpoReceive, OICPAuthorizeRemoteStopCpoReceive } from '../../../types/oicp/OICPAuthorize';
 
 import Schema from '../../../types/validator/Schema';
-import SchemaValidator from '../../rest/v1/validator/SchemaValidator';
+import SchemaValidator from '../../../validator/SchemaValidator';
 import fs from 'fs';
 import global from '../../../types/GlobalType';
-
-const MODULE_NAME = 'OICPValidation';
 
 export default class OICPValidation extends SchemaValidator {
   private static instance: OICPValidation|null = null;
@@ -27,11 +25,11 @@ export default class OICPValidation extends SchemaValidator {
   }
 
   public validateRemoteStart(remoteStart: OICPAuthorizeRemoteStartCpoReceive): void {
-    this.validate(this.remoteStartRequest, remoteStart);
+    this.validate('validateRemoteStart', this.remoteStartRequest, remoteStart);
   }
 
   public validateRemoteStop(remoteStop: OICPAuthorizeRemoteStopCpoReceive): void {
-    this.validate(this.remoteStopRequest, remoteStop);
+    this.validate('validateRemoteStop', this.remoteStopRequest, remoteStop);
   }
 }
 
