@@ -872,6 +872,10 @@ export default class Utils {
     return !Object.keys(obj).length;
   }
 
+  public static isNullOrEmptyString(str: string): boolean {
+    return str ? str.length === 0 : true;
+  }
+
   public static findDuplicatesInArray(arr: any[]): any[] {
     const sorted_arr = arr.slice().sort();
     const results: any[] = [];
@@ -1546,5 +1550,43 @@ export default class Utils {
   // when importing values
   public static unescapeCsvValue(value: any): void {
     // double quotes are handle by csvToJson
+  }
+
+  public static async sanitizeCSVExport(data: any, tenantID: string): Promise<any> {
+    if (!data || typeof data === 'number' || typeof data === 'bigint' || typeof data === 'symbol' || Utils.isBoolean(data) || typeof data === 'function') {
+      return data;
+    }
+    // If the data is a string and starts with the csv characters initiating the formula parsing, then escape
+    if (typeof data === 'string') {
+      if (!Utils.isNullOrEmptyString(data)) {
+        data = data.replace(Constants.CSV_CHARACTERS_TO_ESCAPE, Constants.CSV_ESCAPING_CHARACTER + data);
+      }
+      return data;
+    }
+    // If the data is an array, apply the sanitizeCSVExport function for each item
+    if (Array.isArray(data)) {
+      const sanitizedData = [];
+      for (const item of data) {
+        sanitizedData.push(await Utils.sanitizeCSVExport(item, tenantID));
+      }
+      return sanitizedData;
+    }
+    // If the data is an object, apply the sanitizeCSVExport function for each attribute
+    if (typeof data === 'object') {
+      for (const key of Object.keys(data)) {
+        data[key] = await Utils.sanitizeCSVExport(data[key], tenantID);
+      }
+      return data;
+    }
+    // Log
+    await Logging.logSecurityError({
+      tenantID,
+      module: MODULE_NAME,
+      method: 'sanitizeCSVExport',
+      action: ServerAction.EXPORT_TO_CSV,
+      message: 'No matching object type for CSV data sanitization',
+      detailedMessages: { data }
+    });
+    return null;
   }
 }
