@@ -2,7 +2,7 @@ import { HttpCompaniesRequest, HttpCompanyLogoRequest, HttpCompanyRequest } from
 
 import Company from '../../../../types/Company';
 import Schema from '../../../../types/validator/Schema';
-import SchemaValidator from './SchemaValidator';
+import SchemaValidator from '../../../../validator/SchemaValidator';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 

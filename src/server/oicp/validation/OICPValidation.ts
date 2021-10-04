@@ -1,11 +1,9 @@
 import { OICPAuthorizeRemoteStartCpoReceive, OICPAuthorizeRemoteStopCpoReceive } from '../../../types/oicp/OICPAuthorize';
 
 import Schema from '../../../types/validator/Schema';
-import SchemaValidator from '../../rest/v1/validator/SchemaValidator';
+import SchemaValidator from '../../../validator/SchemaValidator';
 import fs from 'fs';
 import global from '../../../types/GlobalType';
-
-const MODULE_NAME = 'OICPValidation';
 
 export default class OICPValidation extends SchemaValidator {
   private static instance: OICPValidation|null = null;

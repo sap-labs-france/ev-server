@@ -568,7 +568,7 @@ export default class UserStorage {
         notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
         userIDs?: string[]; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
         statuses?: string[]; withImage?: boolean; billingUserID?: string; notSynchronizedBillingData?: boolean;
-        withTestBillingData?: boolean; notifications?: any; noLoginSince?: Date;
+        withTestBillingData?: boolean; notifications?: any; noLoginSince?: Date; technical?: boolean;
       },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
     // Debug
@@ -637,12 +637,19 @@ export default class UserStorage {
     }
     // Select non-synchronized billing data
     if (params.notSynchronizedBillingData) {
-      filters.$or = [
+      const billingFilter = [
         { 'billingData': { '$exists': false } },
         { 'billingData.lastChangedOn': { '$exists': false } },
         { 'billingData.lastChangedOn': null },
         { $expr: { $gt: ['$lastChangedOn', '$billingData.lastChangedOn'] } }
       ];
+      if (filters.$or) {
+        filters.$or.push(
+          ...billingFilter
+        );
+      } else {
+        filters.$or = billingFilter;
+      }
     }
     // Select users with test billing data
     if (params.withTestBillingData) {
@@ -651,6 +658,24 @@ export default class UserStorage {
         { 'billingData': { '$exists': true } },
         { 'billingData.liveMode': { $eq: expectedLiveMode } }
       ];
+    }
+    // Select (non) technical users
+    if (Utils.objectHasProperty(params, 'technical') && Utils.isBoolean(params.technical)) {
+      if (params.technical) {
+        filters.technical = true;
+      } else {
+        const technicalFilter = [
+          { technical: { $in: [false, null] } },
+          { technical: { $exists: false } }
+        ];
+        if (filters.$or) {
+          filters.$or.push(
+            ...technicalFilter
+          );
+        } else {
+          filters.$or = technicalFilter;
+        }
+      }
     }
     // Add filters
     aggregation.push({

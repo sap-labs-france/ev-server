@@ -2,7 +2,7 @@ import { HttpOCPIEndpointByIdRequest, HttpOCPIEndpointRequest, HttpOCPIEndpoints
 
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import Schema from '../../../../types/validator/Schema';
-import SchemaValidator from './SchemaValidator';
+import SchemaValidator from '../../../../validator/SchemaValidator';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
