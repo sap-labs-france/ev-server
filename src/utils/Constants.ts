@@ -297,8 +297,8 @@ export default class Constants {
   public static readonly WS_DEFAULT_RECONNECT_MAX_RETRIES = -1;
   public static readonly WS_DEFAULT_RECONNECT_TIMEOUT = 30; // Seconds
   public static readonly WS_CONNECTION_URL_RE = new RegExp(['^(?:(?:ws|wss)://)(?:\\S+)\\/(?:\\S+)\\/',
-    '(?:[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\\/',
-    '([0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\\/',
+    '(?:[0-9a-f]{24})\\/',
+    '([0-9a-f]{24})\\/',
     '(?:\\S+)$'].join(''), 'ig');
 
   public static readonly OCPP_SOCKET_TIMEOUT = 30000; // 30 sec
