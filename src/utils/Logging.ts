@@ -1,8 +1,8 @@
 import { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { Log, LogLevel, LogType } from '../types/Log';
 import { NextFunction, Request, Response } from 'express';
+import global, { ActionsResponse } from '../types/GlobalType';
 
-import { ActionsResponse } from '../types/GlobalType';
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
 import BackendError from '../exception/BackendError';
@@ -95,7 +95,7 @@ export default class Logging {
         console.warn(chalk.yellow('===================================='));
       }
     }
-    await PerformanceStorage.savePerformanceRecord(
+    Utils.isDevelopmentEnv() && await PerformanceStorage.savePerformanceRecord(
       Utils.buildPerformanceRecord({
         tenantID,
         group: PerformanceRecordGroup.MONGO_DB,
@@ -366,7 +366,7 @@ export default class Logging {
             headers: res.getHeaders(),
           }
         });
-        void PerformanceStorage.savePerformanceRecord(
+        Utils.isDevelopmentEnv() && void PerformanceStorage.savePerformanceRecord(
           Utils.buildPerformanceRecord({
             tenantID,
             group: Utils.getPerformanceRecordGroupFromURL(req.url),
@@ -467,7 +467,7 @@ export default class Logging {
           response: Utils.cloneObject(response.data)
         }
       });
-      await PerformanceStorage.savePerformanceRecord(
+      Utils.isDevelopmentEnv() && await PerformanceStorage.savePerformanceRecord(
         Utils.buildPerformanceRecord({
           tenantID,
           group: Utils.getPerformanceRecordGroupFromURL(response.config.url),
@@ -835,6 +835,11 @@ export default class Logging {
     if (!log.tenantID || log.tenantID === '') {
       log.tenantID = Constants.DEFAULT_TENANT;
     }
+    if (global.serverName &&
+        global.serverName !== Constants.CENTRAL_SERVER &&
+        log.source === Constants.CENTRAL_SERVER) {
+      log.source = `${global.serverName}Server`;
+    }
     // Log in Cloud Foundry
     if (Configuration.isCloudFoundry()) {
       // Bind to express app
@@ -1009,7 +1014,7 @@ export default class Logging {
         message, detailedMessages
       });
     }
-    await PerformanceStorage.savePerformanceRecord(
+    Utils.isDevelopmentEnv() && await PerformanceStorage.savePerformanceRecord(
       Utils.buildPerformanceRecord({
         tenantID, chargingStationID,
         group: PerformanceRecordGroup.OCPP,
