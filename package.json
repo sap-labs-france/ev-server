@@ -148,7 +148,7 @@
     "passport": "^0.5.0",
     "passport-jwt": "^4.0.0",
     "password-generator": "^2.3.2",
-    "pdfkit": "^0.12.1",
+    "pdfkit": "^0.12.3",
     "qrcode": "^1.4.4",
     "rfc2047": "^3.0.1",
     "role-acl": "^4.5.4",
