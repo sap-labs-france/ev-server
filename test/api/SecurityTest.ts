@@ -18,6 +18,7 @@ import global from '../../src/types/GlobalType';
 
 const testData: TestData = new TestData();
 let initialTenant: Tenant;
+const wsRegex = /^(?:(?:ws|wss):\/\/)(.*)$/ig;
 
 /**
  * @param message
@@ -25,17 +26,27 @@ let initialTenant: Tenant;
 function checkSensitiveDataIsObfuscated(message: any): void {
   // If the message is a string
   if (typeof message === 'string') {
+    // WS URL with registration token?
+    const matchingURLParts = wsRegex.exec(message);
+    if (matchingURLParts && matchingURLParts.length > 0) {
+      // Split message by /
+      const urlParts = matchingURLParts[1].split('/');
+      expect(urlParts.length).to.greaterThan(4);
+      expect(urlParts[3]).to.equal(Constants.ANONYMIZED_VALUE);
+      return;
+    }
     const dataParts: string[] = message.split('&');
     // Check if it is a query string
     if (dataParts.length > 1) {
       for (const dataPart of dataParts) {
         let queryParamKey = dataPart.split('=')[0];
-          const queryParamKeyParts = queryParamKey.split('?');
-          queryParamKey = queryParamKeyParts.length > 1 ? queryParamKeyParts[1] : queryParamKeyParts[0];
+        const queryParamKeyParts = queryParamKey.split('?');
+        queryParamKey = queryParamKeyParts.length > 1 ? queryParamKeyParts[1] : queryParamKeyParts[0];
         for (const sensitiveData of Constants.SENSITIVE_DATA) {
           if (queryParamKey.toLowerCase().startsWith(sensitiveData.toLocaleLowerCase())) {
             // Check each query string part anonymized
-            expect(dataPart).to.equal(dataPart.substring(0, sensitiveData.length + 1) + Constants.ANONYMIZED_VALUE);
+            const posSensitiveData = dataPart.search(sensitiveData);
+            expect(dataPart).to.equal(dataPart.substring(0, posSensitiveData + sensitiveData.length + 1) + Constants.ANONYMIZED_VALUE);
             break;
           }
         }
@@ -67,10 +78,10 @@ function checkSensitiveDataIsObfuscated(message: any): void {
   }
 }
 
-describe('Security', function () {
+describe('Security', function() {
   this.timeout(120000);
 
-  before(async function () {
+  before(async function() {
     global.database = new MongoDBStorage(config.get('storage'));
     await global.database.start();
     // Init values
@@ -83,7 +94,7 @@ describe('Security', function () {
     initialTenant = (await testData.superCentralService.tenantApi.readById(testData.credentials.tenantId)).data;
   });
 
-  after(async function () {
+  after(async function() {
     // Housekeeping
     // Reset components before leaving
     const res = await testData.superCentralService.updateEntity(
@@ -204,6 +215,20 @@ describe('Security', function () {
       expect(read.status).to.equal(StatusCodes.OK);
       checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
     });
+    it('Check that sensitive data string matching a ws url with registration token is anonymized', async () => {
+      const logId: string = await Logging.logDebug({
+        source: 'test',
+        tenantID: testData.credentials.tenantId,
+        action: ServerAction.HTTP_REQUEST,
+        message: 'Just a test',
+        module: 'test',
+        method: 'test',
+        detailedMessages: 'ws://localhost:8010/OCPP16/0be7fb271014d90008992f19/015b4c8ffaeb8d44e2a98315/CS-TEST'
+      });
+      const read = await testData.centralService.logsApi.readById(logId.toString());
+      expect(read.status).to.equal(StatusCodes.OK);
+      checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
+    });
     it('Check that sensitive data query string is anonymized', async () => {
       const logId: string = await Logging.logDebug({
         source: 'test',
@@ -286,7 +311,9 @@ describe('Security', function () {
           'client_secret': 'test',
           'refresh_token': 'test',
           'localToken': 'test',
-          'token': 'test'
+          'Bearer': 'test',
+          'auth_token': 'test',
+          'token': 'test',
         }
       });
       const read = await testData.centralService.logsApi.readById(logId.toString());
@@ -304,7 +331,8 @@ describe('Security', function () {
         detailedMessages: {
           'message1': 'name=test&firstName=testtest',
           'message2': 'text that is ok',
-          'password': 'password=testtesttest'
+          'password': 'password=testtesttest',
+          'message3': 'text?auth_token=test&id=text is ok'
         }
       });
       const read = await testData.centralService.logsApi.readById(logId.toString());
