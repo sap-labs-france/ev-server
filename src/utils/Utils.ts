@@ -1561,7 +1561,7 @@ export default class Utils {
     // double quotes are handle by csvToJson
   }
 
-  public static sanitizeCSVExport(data: unknown): unknown {
+  public static async sanitizeCSVExport(data: any, tenantID: string): Promise<any> {
     if (!data || typeof data === 'number' || typeof data === 'bigint' || typeof data === 'symbol' || Utils.isBoolean(data) || typeof data === 'function') {
       return data;
     }
@@ -1576,17 +1576,26 @@ export default class Utils {
     if (Array.isArray(data)) {
       const sanitizedData = [];
       for (const item of data) {
-        sanitizedData.push(Utils.sanitizeCSVExport(item));
+        sanitizedData.push(await Utils.sanitizeCSVExport(item, tenantID));
       }
       return sanitizedData;
     }
     // If the data is an object, apply the sanitizeCSVExport function for each attribute
     if (typeof data === 'object') {
       for (const key of Object.keys(data)) {
-        data[key] = Utils.sanitizeCSVExport(data[key]);
+        data[key] = await Utils.sanitizeCSVExport(data[key], tenantID);
       }
       return data;
     }
+    // Log
+    await Logging.logSecurityError({
+      tenantID,
+      module: MODULE_NAME,
+      method: 'sanitizeCSVExport',
+      action: ServerAction.EXPORT_TO_CSV,
+      message: 'No matching object type for CSV data sanitization',
+      detailedMessages: { data }
+    });
     return null;
   }
 }
