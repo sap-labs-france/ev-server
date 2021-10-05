@@ -264,7 +264,7 @@ export enum ChargePointStatus {
   AVAILABLE = 'Available',
   PREPARING = 'Preparing',
   CHARGING = 'Charging',
-  OCCUPIED = 'Occupied',
+  OCCUPIED = 'Occupied', // OBSOLETE
   SUSPENDED_EVSE = 'SuspendedEVSE',
   SUSPENDED_EV = 'SuspendedEV',
   FINISHING = 'Finishing',
