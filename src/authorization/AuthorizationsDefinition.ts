@@ -3,7 +3,6 @@ import { Action, AuthorizationContext, AuthorizationDefinition, AuthorizationRes
 
 import BackendError from '../exception/BackendError';
 import Constants from '../utils/Constants';
-import Utils from '../utils/Utils';
 
 const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   superAdmin: {
