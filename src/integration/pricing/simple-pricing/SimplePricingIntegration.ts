@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import { PricedConsumption, PricingSource } from '../../../types/Pricing';
 
 import Consumption from '../../../types/Consumption';
@@ -40,7 +41,8 @@ export default class SimplePricingIntegration extends PricingIntegration<SimpleP
       amount: amount,
       roundedAmount: roundedAmount,
       currencyCode: this.settings.currency,
-      cumulatedAmount: transaction.currentCumulatedPrice ? Utils.createDecimal(transaction.currentCumulatedPrice).plus(amount).toNumber() : amount
+      cumulatedAmount: transaction.currentCumulatedPrice ? Utils.createDecimal(transaction.currentCumulatedPrice).plus(amount).toNumber() : amount,
+      cumulatedRoundedAmount: transaction.currentCumulatedRoundedPrice ? Utils.createDecimal(transaction.currentCumulatedRoundedPrice).plus(roundedAmount).toNumber() : roundedAmount
     };
     return pricedConsumption;
   }

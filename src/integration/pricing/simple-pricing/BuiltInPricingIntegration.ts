@@ -51,19 +51,24 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
       roundedAmount: roundedAmount,
       currencyCode: this.settings.currency,
       cumulatedAmount: 0,
+      cumulatedRoundedAmount: 0,
     };
 
     if (!FeatureToggles.isFeatureActive(Feature.PRICING_NEW_MODEL)) {
       // TODO - Old way of doing it - to be removed
       pricedConsumption.cumulatedAmount = transaction.currentCumulatedPrice ? Utils.createDecimal(transaction.currentCumulatedPrice).plus(amount).toNumber() : amount;
+      pricedConsumption.cumulatedRoundedAmount = transaction.currentCumulatedRoundedPrice ? Utils.createDecimal(transaction.currentCumulatedRoundedPrice).plus(roundedAmount).toNumber() : amount;
     } else {
       // New logic - get the amount from the priced data to avoid rounding issues
-      pricedConsumption.cumulatedAmount = this.computeCumulatedAmount(pricingModel);
+      const { cumulatedAmount, cumulatedRoundedAmount } = this.computeCumulatedAmount(pricingModel);
+      pricedConsumption.cumulatedAmount = cumulatedAmount;
+      pricedConsumption.cumulatedRoundedAmount = cumulatedRoundedAmount;
+
     }
     return Promise.resolve(pricedConsumption);
   }
 
-  private computeCumulatedAmount(pricingModel: ResolvedPricingModel): number {
+  private computeCumulatedAmount(pricingModel: ResolvedPricingModel): { cumulatedAmount: number, cumulatedRoundedAmount: number } {
     const allDimensions: PricingDimensions[] = [];
     pricingModel.pricingDefinitions.forEach((pricingDefinition) => {
       if (pricingDefinition.dimensions) {

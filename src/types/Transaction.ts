@@ -92,6 +92,7 @@ export default interface Transaction extends AbstractCurrentConsumption {
   currentTotalDurationSecs?: number;
   transactionEndReceived?: boolean;
   currentCumulatedPrice?: number;
+  currentCumulatedRoundedPrice?: number; // added to address rounding issues on multiple pricing dimension
   currentSignedData?: string;
   status?: ChargePointStatus;
   numberOfMeterValues: number;

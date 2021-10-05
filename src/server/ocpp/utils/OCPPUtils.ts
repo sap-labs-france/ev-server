@@ -264,6 +264,7 @@ export default class OCPPUtils {
             transaction.priceUnit = pricedConsumption.currencyCode;
             transaction.pricingSource = pricedConsumption.pricingSource;
             transaction.currentCumulatedPrice = pricedConsumption.amount;
+            transaction.currentCumulatedRoundedPrice = pricedConsumption.roundedAmount;
             if (FeatureToggles.isFeatureActive(Feature.PRICING_NEW_MODEL)) {
               // TODO - To be clarified - check for the PricingSource instead?
               transaction.pricingModel = pricedConsumption.pricingModel;
@@ -282,6 +283,7 @@ export default class OCPPUtils {
             consumption.pricingSource = pricedConsumption.pricingSource;
             consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
             transaction.currentCumulatedPrice = consumption.cumulatedAmount;
+            transaction.currentCumulatedRoundedPrice = pricedConsumption.cumulatedRoundedAmount;
           }
           break;
         // Stop Transaction
@@ -296,6 +298,7 @@ export default class OCPPUtils {
             consumption.pricingSource = pricedConsumption.pricingSource;
             consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
             transaction.currentCumulatedPrice = consumption.cumulatedAmount;
+            transaction.currentCumulatedRoundedPrice = pricedConsumption.cumulatedRoundedAmount;
           }
           break;
       }
@@ -564,7 +567,8 @@ export default class OCPPUtils {
     // Update transaction
     transaction.roundedPrice = Utils.truncTo(transaction.price, 2);
     transaction.stop.price = transaction.currentCumulatedPrice;
-    transaction.stop.roundedPrice = Utils.truncTo(transaction.currentCumulatedPrice, 2);
+    // transaction.stop.roundedPrice = Utils.truncTo(transaction.currentCumulatedPrice, 2);
+    transaction.stop.roundedPrice = transaction.currentCumulatedRoundedPrice;
     await TransactionStorage.saveTransaction(tenant, transaction);
   }
 
@@ -584,7 +588,8 @@ export default class OCPPUtils {
       totalDurationSecs: transaction.currentTotalDurationSecs,
       inactivityStatus: Utils.getInactivityStatusLevel(chargingStation, transaction.connectorId, transaction.currentTotalInactivitySecs),
       price: transaction.currentCumulatedPrice,
-      roundedPrice: Utils.truncTo(transaction.currentCumulatedPrice, 2),
+      // roundedPrice: Utils.truncTo(transaction.currentCumulatedPrice, 2),
+      roundedPrice: transaction.currentCumulatedRoundedPrice,
       priceUnit: transaction.priceUnit,
       pricingSource: transaction.pricingSource,
     };

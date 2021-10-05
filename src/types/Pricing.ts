@@ -92,6 +92,7 @@ export interface PricedConsumption {
   amount: number;
   cumulatedAmount: number;
   roundedAmount: number;
+  cumulatedRoundedAmount: number;
   currencyCode: string;
   pricingSource: PricingSource;
   pricingModel?: ResolvedPricingModel
