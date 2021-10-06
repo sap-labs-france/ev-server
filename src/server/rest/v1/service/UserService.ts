@@ -969,8 +969,9 @@ export default class UserService {
     // Save Admin Data
     if (projectFields.includes('plateID') ||
         projectFields.includes('technical') ||
-        projectFields.includes('notificationsActive')) {
-      const adminData: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications, technical?: boolean } = {};
+        projectFields.includes('notificationsActive') ||
+        projectFields.includes('billable')) {
+      const adminData: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications, technical?: boolean, billable?: boolean } = {};
       if (Utils.objectHasProperty(user, 'plateID') &&
           projectFields.includes('plateID')) {
         adminData.plateID = user.plateID || null;
@@ -978,6 +979,10 @@ export default class UserService {
       if (Utils.objectHasProperty(user, 'technical') &&
           projectFields.includes('technical')) {
         adminData.technical = user.technical;
+      }
+      if (Utils.objectHasProperty(user, 'billable') &&
+          projectFields.includes('billable')) {
+        adminData.billable = user.billable;
       }
       if (Utils.objectHasProperty(user, 'notificationsActive') &&
           projectFields.includes('notificationsActive')) {
