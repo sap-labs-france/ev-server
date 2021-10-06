@@ -57,7 +57,12 @@
       "$ref": "user.json#/definitions/role"
     },
     "technical": {
-      "type": "boolean"
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "billable": {
+      "type": "boolean",
+      "sanitize": "mongo"
     }
   },
   "required": [

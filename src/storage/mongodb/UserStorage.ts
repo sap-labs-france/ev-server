@@ -482,7 +482,7 @@ export default class UserStorage {
   }
 
   public static async saveUserAdminData(tenant: Tenant, userID: string,
-      params: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications, technical?: boolean }): Promise<void> {
+      params: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications, technical?: boolean, billable?: boolean }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'saveUserAdminData');
     // Check Tenant
@@ -501,6 +501,9 @@ export default class UserStorage {
     }
     if (Utils.objectHasProperty(params, 'technical')) {
       updatedUserMDB.technical = params.technical;
+    }
+    if (Utils.objectHasProperty(params, 'billable')) {
+      updatedUserMDB.billable = params.billable;
     }
     // Modify and return the modified document
     await global.database.getCollection<any>(tenant.id, 'users').findOneAndUpdate(

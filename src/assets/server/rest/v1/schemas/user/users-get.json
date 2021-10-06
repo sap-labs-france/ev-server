@@ -21,6 +21,10 @@
       "type": "boolean",
       "sanitize": "mongo"
     },
+    "Billable": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
     "Status": {
       "type": "string",
       "sanitize": "mongo",

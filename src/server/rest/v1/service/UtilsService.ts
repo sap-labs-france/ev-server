@@ -204,6 +204,11 @@ export default class UtilsService {
     }
     // Assign projected fields
     if (authorizationFilter.projectFields) {
+      // Remove Billable if Billing is inactive
+      if (authorizationFilter.projectFields.includes('billable') &&
+        !Utils.isTenantComponentActive(tenant, TenantComponents.BILLING)) {
+        authorizationFilter.projectFields.splice(authorizationFilter.projectFields.indexOf('billable'), 1);
+      }
       user.projectFields = authorizationFilter.projectFields;
     }
     // Assign Metadata
