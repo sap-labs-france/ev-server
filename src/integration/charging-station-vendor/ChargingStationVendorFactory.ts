@@ -52,6 +52,9 @@ export default class ChargingStationVendorFactory {
       case ChargerVendor.GREEN_MOTION:
       case ChargerVendor.NEXANS:
       case ChargerVendor.G2_MOBILITY:
+      case ChargerVendor.MEAECN:
+      case ChargerVendor.KOSTAD:
+      case ChargerVendor.KEMPOWER:
         chargingStationVendorImpl = new DefaultChargingStationVendorIntegration(chargingStation);
         break;
     }

@@ -353,5 +353,8 @@ export enum ChargerVendor {
   LAFON_TECHNOLOGIES = 'LAFON TECHNOLOGIES',
   TRITIUM = 'Tritium',
   GREEN_MOTION = 'Green Motion',
-  G2_MOBILITY = 'com.g2mobility'
+  G2_MOBILITY = 'com.g2mobility',
+  MEAECN = 'MEAECN',
+  KOSTAD = 'Kostad',
+  KEMPOWER = 'Kempower'
 }
