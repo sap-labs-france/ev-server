@@ -571,7 +571,7 @@ export default class UserStorage {
         notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
         userIDs?: string[]; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
         statuses?: string[]; withImage?: boolean; billingUserID?: string; notSynchronizedBillingData?: boolean;
-        withTestBillingData?: boolean; notifications?: any; noLoginSince?: Date; technical?: boolean;
+        withTestBillingData?: boolean; notifications?: any; noLoginSince?: Date; technical?: boolean; billable?: boolean;
       },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
     // Debug
@@ -682,6 +682,24 @@ export default class UserStorage {
           filters.$and.push(technicalFilter);
         } else {
           filters.$and = [ technicalFilter ];
+        }
+      }
+    }
+    // Select (non) billable users
+    if (Utils.objectHasProperty(params, 'billable') && Utils.isBoolean(params.billable)) {
+      if (params.billable) {
+        filters.billable = true;
+      } else {
+        const billableFilter = {
+          $or: [
+            { billable: { $in: [false, null] } },
+            { billable: { $exists: false } }
+          ]
+        };
+        if (filters.$and) {
+          filters.$and.push(billableFilter);
+        } else {
+          filters.$and = [ billableFilter ];
         }
       }
     }

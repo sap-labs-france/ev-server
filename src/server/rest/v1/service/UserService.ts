@@ -755,6 +755,7 @@ export default class UserService {
         roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
         statuses: (filteredRequest.Status ? filteredRequest.Status.split('|') : null),
         technical: Utils.isBoolean(filteredRequest.Technical) ? filteredRequest.Technical : null,
+        billable: Utils.isBoolean(filteredRequest.Billable) ? filteredRequest.Billable : null,
         excludeSiteID: filteredRequest.ExcludeSiteID,
         ...authorizationUsersFilters.filters
       },
