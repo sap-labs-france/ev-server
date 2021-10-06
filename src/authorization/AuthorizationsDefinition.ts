@@ -26,7 +26,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.USER, action: [Action.READ, Action.CREATE, Action.UPDATE],
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
-          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address', 'technical'
+          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
         ]
       },
       { resource: Entity.LOGGINGS, action: Action.LIST },
