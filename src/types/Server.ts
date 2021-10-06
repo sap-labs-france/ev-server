@@ -54,7 +54,6 @@ export enum ServerAction {
   TRANSACTION_SOFT_STOP = 'TransactionSoftStop',
   TRANSACTION_DELETE = 'TransactionDelete',
   TRANSACTIONS_DELETE = 'TransactionsDelete',
-  ASSIGN_TRANSACTIONS_TO_USER = 'AssignTransactionsToUser',
   UPDATE_TRANSACTION = 'UpdateTransaction',
 
   LOGGINGS = 'Loggings',
@@ -302,7 +301,6 @@ export enum ServerAction {
   TRANSACTIONS_ACTIVE = 'TransactionsActive',
   TRANSACTIONS_IN_ERROR = 'TransactionsInError',
   TRANSACTION_YEARS = 'TransactionYears',
-  UNASSIGNED_TRANSACTIONS_COUNT = 'UnassignedTransactionsCount',
   TRANSACTION = 'Transaction',
   TRANSACTIONS = 'Transactions',
   TRANSACTION_CONSUMPTION = 'TransactionConsumption',
@@ -510,7 +508,6 @@ export enum ServerRoute {
   REST_TRANSACTIONS_IN_ERROR = 'transactions/status/in-error',
   REST_TRANSACTIONS_ACTIVE = 'transactions/status/active',
   REST_TRANSACTIONS_COMPLETED = 'transactions/status/completed',
-  REST_TRANSACTIONS_UNASSIGNED_COUNT = 'transactions/status/unassigned/count',
   REST_TRANSACTION = 'transactions/:id',
   REST_TRANSACTIONS_EXPORT = 'transactions/action/export',
   REST_TRANSACTION_CDR = 'transactions/:id/ocpi/cdr',
@@ -520,7 +517,6 @@ export enum ServerRoute {
   REST_TRANSACTIONS_REFUND_ACTION = 'transactions/action/refund',
   REST_TRANSACTIONS_REFUND = 'transactions/status/refund',
   REST_TRANSACTIONS_REFUND_EXPORT = 'transactions/status/refund/export',
-  REST_TRANSACTIONS_ASSIGN_USER = 'transactions/action/assign-user',
   REST_TRANSACTIONS_SYNCHRONIZE_REFUNDED = 'transactions/status/refund/synchronize',
   REST_TRANSACTIONS_REFUND_REPORTS = 'transactions/status/refund/reports',
 

@@ -288,39 +288,6 @@ export default class TransactionStorage {
     await Logging.traceEnd(tenant.id, MODULE_NAME, 'saveTransactionRefundData', uniqueTimerID, refundData);
   }
 
-  public static async assignTransactionsToUser(tenant: Tenant, userID: string, tagID: string): Promise<void> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'assignTransactionsToUser');
-    // Assign transactions
-    await global.database.getCollection(tenant.id, 'transactions').updateMany({
-      $and: [
-        { 'userID': null },
-        { 'tagID': tagID }
-      ]
-    }, {
-      $set: {
-        userID: DatabaseUtils.convertToObjectID(userID)
-      }
-    });
-    // Debug
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'assignTransactionsToUser', uniqueTimerID);
-  }
-
-  public static async getUnassignedTransactionsCount(tenant: Tenant, tagID: string): Promise<number> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'getUnassignedTransactionsCount');
-    // Get the number of unassigned transactions
-    const unassignedCount = await global.database.getCollection<Transaction>(tenant.id, 'transactions').find({
-      $and: [
-        { 'userID': null },
-        { 'tagID': tagID }
-      ]
-    }).count();
-    // Debug
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'getUnassignedTransactionsCount', uniqueTimerID);
-    return unassignedCount;
-  }
-
   public static async getTransactionYears(tenant: Tenant): Promise<Date[]> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'getTransactionYears');
