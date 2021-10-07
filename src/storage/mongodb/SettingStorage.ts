@@ -542,14 +542,16 @@ export default class SettingStorage {
   }
 
   private static async encryptSensitiveData(tenant: Tenant, settings: SettingDB): Promise<SettingDB> {
-    for (const property of settings.sensitiveData) {
-      // Get the sensitive property from the Object
-      const valueInRequest = _.get(settings, property);
-      if (valueInRequest && valueInRequest.length > 0) {
-        _.set(settings, property, await Cypher.encrypt(tenant, valueInRequest));
+    if (settings.sensitiveData) {
+      for (const property of settings.sensitiveData) {
+        // Get the sensitive property from the Object
+        const valueInRequest = _.get(settings, property);
+        if (valueInRequest && valueInRequest.length > 0) {
+          _.set(settings, property, await Cypher.encrypt(tenant, valueInRequest));
+        }
       }
+      return settings;
     }
-    return settings;
   }
 
   private static async decryptSensitiveData(tenant: Tenant, settings: SettingDB[]): Promise<SettingDB[]> {
@@ -566,6 +568,5 @@ export default class SettingStorage {
     }
     return settings;
   }
-
 
 }
