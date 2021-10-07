@@ -37,6 +37,7 @@ export default class ChargingStationVendorFactory {
       case ChargerVendor.ATESS:
       case ChargerVendor.SAP_LABS_FRANCE:
       case ChargerVendor.CIRCONTROL:
+      case ChargerVendor.CIRCONTROL_BIS:
       case ChargerVendor.JOINON:
       case ChargerVendor.LAFON_TECHNOLOGIES:
       case ChargerVendor.ALFEN:
