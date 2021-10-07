@@ -116,6 +116,7 @@ export enum BillingInvoiceStatus {
   VOID = 'void',
   UNCOLLECTIBLE = 'uncollectible',
   DELETED = 'deleted',
+  NOT_BILLED = 'unbilled',
 }
 
 export interface BillingOperationResult {

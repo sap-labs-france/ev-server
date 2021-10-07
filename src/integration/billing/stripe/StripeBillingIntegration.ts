@@ -748,14 +748,18 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
   }
 
-  private isTransactionUserInternal(transaction: Transaction): boolean {
-    return this.isUserInternal(transaction?.user);
+  private async isTransactionUserInternal(transaction: Transaction): Promise<boolean> {
+    return await this.isUserInternal(transaction?.user);
   }
 
-  private isUserInternal(user: User): boolean {
-    // Check user's flag 'billable'
-    if (Utils.isBoolean(user.billable)) {
+  private async isUserInternal(user: User): Promise<boolean> {
+    // Get billable flag from Mongo
+    const u = await UserStorage.getUser(this.tenant, user.id, { }, ['billable']);
+    if (Utils.isBoolean(u.billable)) {
       return !user.billable;
+    }
+    if (!u.billable) {
+      return true; // Do not bill users without the billing flag.
     }
     // slf
     if (this.tenant.id === '5be7fb271014d90008992f06') {
@@ -784,7 +788,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       };
     }
     // Temporary solution - Check for internal users
-    if (this.isTransactionUserInternal(transaction)) {
+    if (await this.isTransactionUserInternal(transaction)) {
       return {
         // Do not bill internal users
         withBillingActive: false

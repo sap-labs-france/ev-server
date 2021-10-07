@@ -27,6 +27,7 @@ import User from '../../src/types/User';
 import { UserInErrorType } from '../../src/types/InError';
 import chaiSubset from 'chai-subset';
 import config from '../config';
+import exp from 'constants';
 import global from '../../src/types/GlobalType';
 import moment from 'moment';
 import responseHelper from '../helpers/responseHelper';
@@ -629,7 +630,6 @@ describe('Billing Service', function() {
       before(async () => {
         testData.billingImpl = await testData.setBillingSystemValidCredentials();
         testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
-        assert(!!testData.userService, 'User service cannot be null');
         testData.userService = new CentralServerService(
           testData.tenantContext.getTenant().subdomain,
           testData.userContext
@@ -908,6 +908,32 @@ describe('Billing Service', function() {
       });
 
     });
+
+    describe('Where basic user', () => {
+      // eslint-disable-next-line @typescript-eslint/require-await
+      before(async () => {
+        testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
+        assert(testData.userContext, 'User context cannot be null');
+        testData.userService = new CentralServerService(
+          testData.tenantContext.getTenant().subdomain,
+          testData.userContext
+        );
+        assert(!!testData.userService, 'User service cannot be null');
+      });
+
+      it('should NOT add an item to a DRAFT invoice after a transaction', async () => {
+        await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
+        // const userWithBillingData = await testData.billingImpl.getUser(testData.userContext);
+        // await testData.assignPaymentMethod(userWithBillingData, 'tok_fr');
+        const itemsBefore = await testData.getNumberOfSessions(testData.userContext.id);
+        const transactionID = await testData.generateTransaction(testData.userContext);
+        assert(transactionID, 'transactionID should not be null');
+        // await testData.userService.billingApi.synchronizeInvoices({});
+        const itemsAfter = await testData.getNumberOfSessions(testData.userContext.id);
+        expect(itemsAfter).to.be.eq(itemsBefore);
+      });
+
+    });
   });
 
 
@@ -949,6 +975,47 @@ describe('Billing Service', function() {
         await testData.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID);
       });
 
+    });
+
+    describe('Where non-billable basic user', () => {
+      // eslint-disable-next-line @typescript-eslint/require-await
+      before(async () => {
+        testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
+        assert(testData.userContext, 'User context cannot be null');
+        testData.userService = new CentralServerService(
+          testData.tenantContext.getTenant().subdomain,
+          testData.userContext
+        );
+        assert(!!testData.userService, 'User service cannot be null');
+      });
+
+      it('should NOT create bill after a transaction', async () => {
+        await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
+        const userWithBillingData = await testData.billingImpl.getUser(testData.userContext);
+        await testData.assignPaymentMethod(userWithBillingData, 'tok_fr');
+        const transactionID = await testData.generateTransaction(testData.userContext);
+        assert(transactionID, 'transactionID should not be null');
+        // Check that we have a new invoice with an invoiceID and an invoiceNumber
+        await testData.checkTransactionBillingData(transactionID, BillingInvoiceStatus.NOT_BILLED);
+      });
+    });
+
+    describe('Where billable basic user', () => {
+      // eslint-disable-next-line @typescript-eslint/require-await
+      before(async () => {
+        testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
+        assert(testData.userContext, 'User context cannot be null');
+        testData.userService = new CentralServerService(
+          testData.tenantContext.getTenant().subdomain,
+          testData.userContext
+        );
+        assert(!!testData.userService, 'User service cannot be null');
+      });
+
+      it('should NOT start a transaction', async () => {
+        const transactionID = await testData.generateTransaction(testData.userContext, 'Invalid');
+        expect(transactionID).eq(0);
+      });
     });
   });
 

@@ -157,6 +157,9 @@ export default class ContextBuilder {
         await TagStorage.saveTag(buildTenant, tag);
       }
     }
+    if (Utils.isBoolean(ContextDefinition.TENANT_USER_LIST[0].billable)) {
+      await UserStorage.saveUserAdminData(buildTenant, userId, { billable: ContextDefinition.TENANT_USER_LIST[0].billable });
+    }
     const defaultAdminUser = await UserStorage.getUser(buildTenant, ContextDefinition.TENANT_USER_LIST[0].id);
     // Create Central Server Service
     const localCentralServiceService: CentralServerService = new CentralServerService(buildTenant.subdomain);
@@ -248,6 +251,9 @@ export default class ContextBuilder {
       const userModel = await UserStorage.getUser(buildTenant, user.id);
       if (userDef.assignedToSite) {
         userListToAssign.push(userModel);
+      }
+      if (userDef.billable) {
+        await UserStorage.saveUserAdminData(buildTenant, user.id, { billable: userDef.billable });
       }
       // Set back password to clear value for login/logout
       (userModel as any).passwordClear = config.get('admin.password');

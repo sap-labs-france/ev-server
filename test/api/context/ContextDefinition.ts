@@ -386,7 +386,8 @@ export default class ContextDefinition {
         visualID: new ObjectId().toString(),
         issuer: false,
         active: true
-      }] : null)
+      }] : null),
+      billable: true,
     },
     { // Admin not assigned
       id: '5ce249a1a39ae1c056c123ef',
@@ -406,7 +407,8 @@ export default class ContextDefinition {
         visualID: new ObjectId().toString(),
         issuer: false,
         active: true
-      }] : null)
+      }] : null),
+      billable: true,
     },
     { // Basic user
       id: '5ce249a1a39ae1c056c123ab',
@@ -423,6 +425,27 @@ export default class ContextDefinition {
       emailPrefix: 'basic-',
       tags: (ContextDefinition.USER_CONTEXTS.BASIC_USER.withTags ? [{
         id: 'A12342',
+        visualID: new ObjectId().toString(),
+        issuer: false,
+        active: true
+      }] : null),
+      billable: true,
+    },
+    { // Basic user NON BILLABLE
+      id: '5ce249a1a39ae1c056c123ff',
+      name: 'DOES NOT PAY',
+      firstName: 'User',
+      locale: 'en-US',
+      phone: '66666666666',
+      mobile: '66666666666',
+      plateID: '666-FB-69',
+      issuer: ContextDefinition.USER_CONTEXTS.BASIC_USER.issuer,
+      role: ContextDefinition.USER_CONTEXTS.BASIC_USER.role,
+      status: ContextDefinition.USER_CONTEXTS.BASIC_USER.status,
+      assignedToSite: ContextDefinition.USER_CONTEXTS.BASIC_USER.assignedToSite,
+      emailPrefix: 'basic2-',
+      tags: (ContextDefinition.USER_CONTEXTS.BASIC_USER.withTags ? [{
+        id: 'A1234999',
         visualID: new ObjectId().toString(),
         issuer: false,
         active: true
@@ -446,7 +469,8 @@ export default class ContextDefinition {
         visualID: new ObjectId().toString(),
         issuer: false,
         active: true
-      }] : null)
+      }] : null),
+      billable: true,
     },
     { // Basic user unassigned
       id: '5ce249a1a39ae1c056c456ad',
@@ -466,7 +490,8 @@ export default class ContextDefinition {
         visualID: new ObjectId().toString(),
         issuer: false,
         active: true
-      }] : null)
+      }] : null),
+      billable: true,
     },
     { // Basic user pending
       id: '5ce249a1a39ae1c056c456ab',
@@ -506,7 +531,8 @@ export default class ContextDefinition {
         visualID: new ObjectId().toString(),
         issuer: false,
         active: true
-      }] : null)
+      }] : null),
+      billable: true,
     },
     { // Basic user No Tags
       id: '5ce249a1a39ae1c056c567ab',
@@ -526,7 +552,8 @@ export default class ContextDefinition {
         visualID: new ObjectId().toString(),
         issuer: false,
         active: true
-      }] : null)
+      }] : null),
+      billable: true,
     },
     { // External User
       id: '5ce249a1a39ae1c056c456ae',
@@ -546,7 +573,8 @@ export default class ContextDefinition {
         visualID: new ObjectId().toString(),
         issuer: false,
         active: true
-      }] : null)
+      }] : null),
+      billable: true,
     }
   ];
 
