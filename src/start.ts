@@ -49,6 +49,7 @@ export default class Bootstrap {
 
   public static async start(): Promise<void> {
     let serverStarted: string[] = [];
+    const timeStartMillis = Date.now();
     try {
       // Setup i18n
       await I18nManager.initialize();
@@ -126,7 +127,8 @@ export default class Bootstrap {
         global.serverName = serverStarted[0];
       }
       // Log
-      const successMsg = `${serverStarted.join(', ')} server has been started successfuly`;
+      const startDurationSecs = Utils.createDecimal(Date.now() - timeStartMillis).div(1000).toNumber();
+      const successMsg = `${serverStarted.join(', ')} server has been started successfuly in ${startDurationSecs}secs`;
       await Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.BOOTSTRAP_STARTUP,

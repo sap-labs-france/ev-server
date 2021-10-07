@@ -1138,10 +1138,10 @@ export default class AuthorizationsDefinition {
   private constructor() {
     try {
       // Validate each role
-      for (const roleName in AUTHORIZATION_DEFINITION) {
-        const role = AUTHORIZATION_DEFINITION[roleName];
-        AUTHORIZATION_DEFINITION[roleName] = AuthorizationValidatorStorage.getInstance().validateAuthorizationDefinitionRole(role);
-      }
+      // for (const roleName in AUTHORIZATION_DEFINITION) {
+      //   const role = AUTHORIZATION_DEFINITION[roleName];
+      //   AUTHORIZATION_DEFINITION[roleName] = AuthorizationValidatorStorage.getInstance().validateAuthorizationDefinitionRole(role);
+      // }
       // Instantiate the ACLs
       this.accessControl = new AccessControl(AUTHORIZATION_DEFINITION, AUTHORIZATION_CONDITIONS);
     } catch (error) {
