@@ -525,6 +525,40 @@ describe('Billing Service', function() {
         testData.createdUsers.shift();
       });
 
+      it('Should be able to set billable flag on basic user', async () => {
+        const fakeUser = {
+          ...Factory.user.build(),
+        } as User;
+        fakeUser.issuer = true;
+        // Let's create a user
+        await testData.userService.createEntity(
+          testData.userService.userApi,
+          fakeUser
+        );
+        testData.createdUsers.push(fakeUser);
+        // Let's check that user exists with no billable flag
+        const myUser = await testData.userService.userApi.readById(fakeUser.id);
+        expect(myUser).to.be.not.null;
+        expect(myUser.data.billable).to.undefined;
+        // Let's update the new user
+        fakeUser.billable = true;
+        await testData.userService.updateEntity(
+          testData.userService.userApi,
+          fakeUser,
+          false
+        );
+        // Let's check that user exists with billable flag
+        const myUser2 = await testData.userService.userApi.readById(fakeUser.id);
+        expect(myUser2).to.be.not.null;
+        expect(myUser2.data.billable).to.be.eq(true);
+        // Let's delete the user
+        await testData.userService.deleteEntity(
+          testData.userService.userApi,
+          { id: testData.createdUsers[0].id }
+        );
+        testData.createdUsers.shift();
+      });
+
       it('should add an item to the existing invoice after a transaction', async () => {
         await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
         const itemsBefore = await testData.getNumberOfSessions(testData.userContext.id);
