@@ -753,6 +753,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   private isUserInternal(user: User): boolean {
+    // Check user's flag 'billable'
+    if (Utils.isBoolean(user.billable)) {
+      return !user.billable;
+    }
     // slf
     if (this.tenant.id === '5be7fb271014d90008992f06') {
       const email = user?.email?.toLocaleLowerCase();
