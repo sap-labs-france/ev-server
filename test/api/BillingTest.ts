@@ -656,10 +656,6 @@ class TestData {
       dimensions
     };
 
-    if (!tariff.restrictions) {
-      delete tariff.restrictions;
-    }
-
     let response = await this.adminUserService.pricingApi.createPricingDefinition(tariff);
     assert(response?.data?.status === 'Success', 'The operation should succeed');
     assert(response?.data?.id, 'The ID should not be null');
