@@ -87,12 +87,12 @@ export default class SchemaValidator {
   protected validate(schemaID: string, schema: Schema, data: any): any {
     // Get schema from cache
     let fnValidate = SchemaValidator.compiledSchemas.get(schemaID);
-    // if (!fnValidate) {
-    // Compile schema
-    fnValidate = this.ajv.compile(schema);
-    // Add it to cache
-    // SchemaValidator.compiledSchemas.set(schemaID, fnValidate);
-    // }
+    if (!fnValidate) {
+      // Compile schema
+      fnValidate = this.ajv.compile(schema);
+      // Add it to cache
+      SchemaValidator.compiledSchemas.set(schemaID, fnValidate);
+    }
     if (!fnValidate(data)) {
       if (!fnValidate.errors) {
         fnValidate.errors = [];

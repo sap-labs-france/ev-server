@@ -456,7 +456,9 @@ export enum ServerAction {
 
   HTTP_REQUEST = 'HttpRequest',
   HTTP_RESPONSE = 'HttpResponse',
-  HTTP_ERROR = 'HttpError'
+  HTTP_ERROR = 'HttpError',
+
+  EXPORT_TO_CSV = 'ExportToCSV'
 }
 
 // RESTful API

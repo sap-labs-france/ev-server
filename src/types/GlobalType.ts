@@ -56,6 +56,7 @@ interface TSGlobal extends Global {
   appRoot: string;
   centralSystemJsonServer: JsonCentralSystemServer;
   centralSystemSoapServer: SoapCentralSystemServer;
+  serverName: string;
 }
 
 
