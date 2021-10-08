@@ -1,0 +1,67 @@
+{
+  "$id": "pricing-definition.json",
+  "definitions": {
+    "pricingDimension": {
+      "type": "object",
+      "properties": {
+        "active" : {
+          "type": "boolean",
+          "sanitize": "mongo"
+        },
+        "price" : {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "stepSize" : {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "pricedData" : {
+          "type": "object",
+          "properties": {
+            "unitPrice": {
+              "type": "number",
+              "sanitize": "mongo"
+            },
+            "amount": {
+              "type": "number",
+              "sanitize": "mongo"
+            },
+            "roundedAmount": {
+              "type": "number",
+              "sanitize": "mongo"
+            },
+            "quantity": {
+              "type": "number",
+              "sanitize": "mongo"
+            },
+            "sourceName": {
+              "type": "string",
+              "sanitize": "mongo"
+            },
+            "itemDescription" : {
+              "type": "string",
+              "sanitize": "mongo"
+            },
+            "taxes" : {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "sanitize": "mongo"
+              }
+            }
+          },
+          "required" : [
+            "unitPrice",
+            "amount",
+            "roundedAmount",
+            "quantity"
+          ]
+        }
+      },
+      "required" : [
+        "active"
+      ]
+    }
+  }
+}

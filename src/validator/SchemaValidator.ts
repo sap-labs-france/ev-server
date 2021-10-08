@@ -29,6 +29,7 @@ export default class SchemaValidator {
   private assetSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/asset/asset.json`, 'utf8'));
   private companySchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/company/company.json`, 'utf8'));
   private ocpiEndpointSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/ocpi/ocpi-endpoint.json`, 'utf8'));
+  private pricingDefinitionSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/pricing/pricing-definition.json`, 'utf8'));
 
   constructor(readonly moduleName: string,
       config: Options = {
@@ -82,6 +83,7 @@ export default class SchemaValidator {
     this.ajv.addSchema(this.assetSchema);
     this.ajv.addSchema(this.companySchema);
     this.ajv.addSchema(this.ocpiEndpointSchema);
+    this.ajv.addSchema(this.pricingDefinitionSchema);
   }
 
   protected validate(schemaID: string, schema: Schema, data: any): any {
