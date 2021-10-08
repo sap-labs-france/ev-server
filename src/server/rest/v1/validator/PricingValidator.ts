@@ -1,7 +1,7 @@
 import { HttpPricingDefinitionsRequest } from '../../../../types/requests/HttpPricingRequest';
 import PricingDefinition from '../../../../types/Pricing';
 import Schema from '../../../../types/validator/Schema';
-import SchemaValidator from './SchemaValidator';
+import SchemaValidator from '../../../../validator/SchemaValidator';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
@@ -28,24 +28,22 @@ export default class PricingValidator extends SchemaValidator {
   }
 
   public validatePricingGet(data: any): Partial<HttpPricingDefinitionsRequest> {
-    // Validate schema
-    this.validate(this.pricingGet, data);
+    this.validate('validatePricingGet', this.pricingGet, data);
     return data;
   }
 
   public validatePricingsGet(data: any): Partial<HttpPricingDefinitionsRequest> {
-    // Validate schema
-    this.validate(this.pricingsGet, data);
+    this.validate('validatePricingsGet', this.pricingsGet, data);
     return data;
   }
 
   public validatePricingCreate(data: any): Partial<PricingDefinition> {
-    this.validate(this.princingCreate, data);
+    this.validate('validatePricingCreate', this.princingCreate, data);
     return data;
   }
 
   public validatePricingUpdate(data: any): Partial<PricingDefinition> {
-    this.validate(this.princingUpdate, data);
+    this.validate('validatePricingUpdate', this.princingUpdate, data);
     return data;
   }
 }
