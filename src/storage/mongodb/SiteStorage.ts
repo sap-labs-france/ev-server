@@ -491,7 +491,7 @@ export default class SiteStorage {
     // Debug
     await Logging.traceEnd(tenant.id, MODULE_NAME, 'getSites', uniqueTimerID, sites);
     return {
-      projectedFields: projectFields,
+      projectFields: projectFields,
       count: (sitesCountMDB.length > 0 ?
         (sitesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : sitesCountMDB[0].count) : 0),
       result: sites

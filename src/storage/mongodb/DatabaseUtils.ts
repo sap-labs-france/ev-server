@@ -187,7 +187,7 @@ export default class DatabaseUtils {
       }
     }
     // Add Projected fields
-    DatabaseUtils.projectFields(pipeline, lookupParams.projectedFields);
+    DatabaseUtils.projectFields(pipeline, lookupParams.projectFields);
     // Create Lookup
     lookupParams.aggregation.push({
       $lookup: {
@@ -240,12 +240,12 @@ export default class DatabaseUtils {
     aggregation.push(DatabaseUtils.buildChargingStationInactiveFlagQuery());
   }
 
-  public static projectFields(aggregation: any[], projectedFields: string[], removedFields: string[] = []): void {
-    if (!Utils.isEmptyArray(projectedFields)) {
+  public static projectFields(aggregation: any[], projectFields: string[], removedFields: string[] = []): void {
+    if (!Utils.isEmptyArray(projectFields)) {
       const project = {
         $project: {}
       };
-      for (const projectedField of projectedFields) {
+      for (const projectedField of projectFields) {
         project.$project[projectedField] = 1;
       }
       for (const removedField of removedFields) {

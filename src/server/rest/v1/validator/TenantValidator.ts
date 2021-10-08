@@ -4,28 +4,26 @@ import AppError from '../../../../exception/AppError';
 import Constants from '../../../../utils/Constants';
 import { HTTPError } from '../../../../types/HTTPError';
 import Schema from '../../../../types/validator/Schema';
-import SchemaValidator from './SchemaValidator';
+import SchemaValidator from '../../../../validator/SchemaValidator';
 import Tenant from '../../../../types/Tenant';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
 export default class TenantValidator extends SchemaValidator {
   private static instance: TenantValidator|null = null;
-  private tenantCreateReqSuperAdmin: Schema;
-  private tenantUpdateReqSuperAdmin: Schema;
-  private tenantDeleteReqSuperAdmin: Schema;
-  private tenantGetLogoReqSuperAdmin: Schema;
-  private tenantGetReqSuperAdmin: Schema;
-  private tenantsGetReqSuperAdmin: Schema;
+  private tenantCreate: Schema;
+  private tenantUpdate: Schema;
+  private tenantLogoGet: Schema;
+  private tenantGet: Schema;
+  private tenantsGet: Schema;
 
   private constructor() {
     super('TenantValidator');
-    this.tenantCreateReqSuperAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-create.json`, 'utf8'));
-    this.tenantUpdateReqSuperAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-update.json`, 'utf8'));
-    this.tenantDeleteReqSuperAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-delete.json`, 'utf8'));
-    this.tenantGetReqSuperAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-get.json`, 'utf8'));
-    this.tenantsGetReqSuperAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenants-get.json`, 'utf8'));
-    this.tenantGetLogoReqSuperAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-get-logo.json`, 'utf8'));
+    this.tenantCreate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-create.json`, 'utf8'));
+    this.tenantUpdate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-update.json`, 'utf8'));
+    this.tenantGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-get.json`, 'utf8'));
+    this.tenantsGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenants-get.json`, 'utf8'));
+    this.tenantLogoGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-logo-get.json`, 'utf8'));
   }
 
   public static getInstance(): TenantValidator {
@@ -35,44 +33,28 @@ export default class TenantValidator extends SchemaValidator {
     return TenantValidator.instance;
   }
 
-  public validateTenantCreateRequestSuperAdmin(tenant: any): Tenant {
-    // Validate schema
-    this.validate(this.tenantCreateReqSuperAdmin, tenant);
-    // Validate deps between components
+  public validateTenantCreateReq(data: unknown): Tenant {
+    const tenant: Tenant = this.validate('validateTenantCreateReq', this.tenantCreate, data);
     this.validateComponentDependencies(tenant);
     return tenant;
   }
 
-  public validateTenantUpdateRequestSuperAdmin(tenant: any): Tenant {
-    // Validate schema
-    this.validate(this.tenantUpdateReqSuperAdmin, tenant);
-    // Validate deps between components
+  public validateTenantUpdateReq(data: unknown): Tenant {
+    const tenant: Tenant = this.validate('validateTenantUpdateReq', this.tenantUpdate, data);
     this.validateComponentDependencies(tenant);
     return tenant;
   }
 
-  public validateTenantDeleteRequestSuperAdmin(data: any): string {
-    // Validate schema
-    this.validate(this.tenantDeleteReqSuperAdmin, data);
-    return data.ID;
+  public validateLogoGetReq(data: unknown): HttpTenantLogoRequest {
+    return this.validate('validateLogoGetReq', this.tenantLogoGet, data);
   }
 
-  public validateGetLogoReqSuperAdmin(data: any): HttpTenantLogoRequest {
-    // Validate schema
-    this.validate(this.tenantGetLogoReqSuperAdmin, data);
-    return data;
+  public validateTenantGetReq(data: unknown): HttpTenantRequest {
+    return this.validate('validateTenantGetReq', this.tenantGet, data);
   }
 
-  public validateTenantGetReqSuperAdmin(data: any): HttpTenantRequest {
-    // Validate schema
-    this.validate(this.tenantGetReqSuperAdmin, data);
-    return data;
-  }
-
-  public validateTenantsGetReqSuperAdmin(data: any): HttpTenantsRequest {
-    // Validate schema
-    this.validate(this.tenantsGetReqSuperAdmin, data);
-    return data;
+  public validateTenantsGetReq(data: unknown): HttpTenantsRequest {
+    return this.validate('validateTenantsGetReq', this.tenantsGet, data);
   }
 
   private validateComponentDependencies(tenant: Tenant): void {

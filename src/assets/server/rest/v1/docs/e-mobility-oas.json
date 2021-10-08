@@ -1690,7 +1690,7 @@
         }
       }
     },
-    "/api/transactions/{id}/ocpi/cdr": {
+    "/api/transactions/{id}/ocpi/cdrs": {
       "post": {
         "security": [
           {
@@ -1738,7 +1738,7 @@
         }
       }
     },
-    "/api/transactions/{id}/ocpi/cdr/export": {
+    "/api/transactions/{id}/ocpi/cdrs/export": {
       "get": {
         "security": [
           {
@@ -1964,46 +1964,6 @@
                       "limitWatts": 22080
                     }
                   ]
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          },
-          "403": {
-            "$ref": "#/components/responses/ForbiddenError"
-          },
-          "500": {
-            "$ref": "#/components/responses/BackendError"
-          }
-        }
-      }
-    },
-    "/api/transactions/{id}/consumptions/rebuild": {
-      "post": {
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "description": "Rebuild a Transaction consumptions",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/transactionID"
-          }
-        ],
-        "tags": [
-          "Transactions"
-        ],
-        "responses": {
-          "200": {
-            "description": "Consumptions rebuild result",
-            "content": {
-              "application/json": {
-                "example": {
-                  "status": "Success",
-                  "nbrOfConsumptions": 1
                 }
               }
             }
@@ -2905,6 +2865,112 @@
         }
       }
     },
+    "/api/charging-stations/{id}/reserve/now": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Reserve a Charging Station",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "args": {
+                    "type": "object",
+                    "properties": {
+                      "connectorId": {
+                        "type": "number",
+                        "description": "Required. This contains the id of the connector to be reserved. A value of 0 means that the reservation is not for a specific connector.",
+                        "example": 1
+                      },
+                      "expiryDate": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Required. This contains the date and time when the reservation ends."
+                      },
+                      "idTag": {
+                        "type": "string",
+                        "description": "Required. The identifier for which the Charge Point has to reserve a connector."
+                      },
+                      "parentIdTag": {
+                        "type": "string",
+                        "description": "Optional. The parent idTag."
+                      },
+                      "reservationId": {
+                        "type": "number",
+                        "description": "Required. Unique id for this reservation.",
+                        "example": 12
+                      }
+                    },
+                    "required": [
+                      "connectorId",
+                      "expiryDate",
+                      "idTag",
+                      "reservationId"
+                    ]
+                  }
+                },
+                "required": [
+                  "args"
+                ]
+              }
+            }
+          }
+        },
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Charging Station has been successfully reserved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "accepted": {
+                    "summary": "Accepted",
+                    "value": {
+                      "status": "Accepted"
+                    }
+                  },
+                  "rejected": {
+                    "summary": "Rejected",
+                    "value": {
+                      "status": "Rejected"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
     "/api/charging-stations/{id}/reset": {
       "put": {
         "security": [
@@ -2987,6 +3053,85 @@
         "responses": {
           "200": {
             "description": "Charging Station cache has been successfully cleared",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "accepted": {
+                    "summary": "Accepted",
+                    "value": {
+                      "status": "Accepted"
+                    }
+                  },
+                  "rejected": {
+                    "summary": "Rejected",
+                    "value": {
+                      "status": "Rejected"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/charging-stations/{id}/reservation/cancel": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Cancel Reservation",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "args": {
+                    "type": "object",
+                    "properties": {
+                      "reservationId": {
+                        "type": "number",
+                        "description": "Required. Id of the reservation to cancel.",
+                        "example": 12
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Reservation has been successfully cancelled",
             "content": {
               "application/json": {
                 "schema": {
@@ -3244,6 +3389,11 @@
                         "type": "string",
                         "description": "Required. Value to set",
                         "example": ""
+                      },
+                      "custom": {
+                        "type": "boolean",
+                        "description": "Custom OCPP parameter",
+                        "example": true
                       }
                     }
                   }
@@ -4959,7 +5109,7 @@
         }
       }
     },
-    "/api/assets/{id}/consumption": {
+    "/api/assets/{id}/consumptions": {
       "post": {
         "security": [
           {
@@ -9387,7 +9537,7 @@
         }
       }
     },
-    "/api/ocpi/endpoints/{id}/cdr/pull": {
+    "/api/ocpi/endpoints/{id}/cdrs/pull": {
       "put": {
         "security": [
           {

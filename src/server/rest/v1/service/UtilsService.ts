@@ -185,6 +185,14 @@ export default class UtilsService {
         action: action,
       });
     }
+    // Assign projected fields
+    if (authorizationFilter.projectFields) {
+      company.projectFields = authorizationFilter.projectFields;
+    }
+    // Assign Metadata
+    if (authorizationFilter.metadata) {
+      company.metadata = authorizationFilter.metadata;
+    }
     // Add actions
     await AuthorizationService.addCompanyAuthorizations(tenant, userToken, company, authorizationFilter);
     // Check
@@ -225,9 +233,6 @@ export default class UtilsService {
       },
       applyProjectFields ? authorizationFilter.projectFields : null
     );
-    if (authorizationFilter.projectFields) {
-      user.projectedFields = authorizationFilter.projectFields;
-    }
     UtilsService.assertObjectExists(action, user, `User ID '${userID}' does not exist`,
       MODULE_NAME, 'checkAndGetUserAuthorization', userToken);
     // External User
@@ -240,6 +245,14 @@ export default class UtilsService {
         user: userToken,
         action: action
       });
+    }
+    // Assign projected fields
+    if (authorizationFilter.projectFields) {
+      user.projectFields = authorizationFilter.projectFields;
+    }
+    // Assign Metadata
+    if (authorizationFilter.metadata) {
+      user.metadata = authorizationFilter.metadata;
     }
     // Add actions
     await AuthorizationService.addUserAuthorizations(tenant, userToken, user, authorizationFilter);
@@ -293,6 +306,14 @@ export default class UtilsService {
         user: userToken,
         action: action
       });
+    }
+    // Assign projected fields
+    if (authorizationFilter.projectFields) {
+      site.projectFields = authorizationFilter.projectFields;
+    }
+    // Assign Metadata
+    if (authorizationFilter.metadata) {
+      site.metadata = authorizationFilter.metadata;
     }
     // Add actions
     await AuthorizationService.addSiteAuthorizations(tenant, userToken, site, authorizationFilter);
@@ -595,6 +616,14 @@ export default class UtilsService {
         action: action
       });
     }
+    // Assign projected fields
+    if (authorizationFilter.projectFields) {
+      siteArea.projectFields = authorizationFilter.projectFields;
+    }
+    // Assign Metadata
+    if (authorizationFilter.metadata) {
+      siteArea.metadata = authorizationFilter.metadata;
+    }
     // Add actions
     await AuthorizationService.addSiteAreaAuthorizations(tenant, userToken, siteArea, authorizationFilter);
     // Check
@@ -637,6 +666,14 @@ export default class UtilsService {
     );
     UtilsService.assertObjectExists(action, car, `Car ID '${carID}' does not exist`,
       MODULE_NAME, 'checkAndGetCarAuthorization', userToken);
+    // Assign projected fields
+    if (authorizationFilter.projectFields) {
+      car.projectFields = authorizationFilter.projectFields;
+    }
+    // Assign Metadata
+    if (authorizationFilter.metadata) {
+      car.metadata = authorizationFilter.metadata;
+    }
     // Add Actions
     await AuthorizationService.addCarAuthorizations(tenant, userToken, car, authorizationFilter);
     // Check
@@ -680,6 +717,14 @@ export default class UtilsService {
     // Check it exists
     UtilsService.assertObjectExists(action, carCatalog, `Car Catalog ID '${carCatalogID}' does not exist`,
       MODULE_NAME, 'checkAndGetCarCatalogAuthorization', userToken);
+    // Assign projected fields
+    if (authorizationFilter.projectFields) {
+      carCatalog.projectFields = authorizationFilter.projectFields;
+    }
+    // Assign Metadata
+    if (authorizationFilter.metadata) {
+      carCatalog.metadata = authorizationFilter.metadata;
+    }
     // Add actions
     await AuthorizationService.addCarCatalogAuthorizations(tenant, userToken, carCatalog, authorizationFilter);
     // Check
@@ -967,6 +1012,8 @@ export default class UtilsService {
       // Get the data
       req.query.Skip = skip.toString();
       data = await handleGetData(req);
+      // Sanitize against csv formula injection
+      data.result = await Utils.sanitizeCSVExport(data.result, req.tenant?.id);
       // Get CSV data
       const csvData = handleConvertToCSV(req, data.result, (skip === 0));
       // Send Transactions
@@ -1848,6 +1895,14 @@ export default class UtilsService {
         action: action,
         detailedMessages: { tag }
       });
+    }
+    // Assign projected fields
+    if (authorizationFilter.projectFields) {
+      tag.projectFields = authorizationFilter.projectFields;
+    }
+    // Assign Metadata
+    if (authorizationFilter.metadata) {
+      tag.metadata = authorizationFilter.metadata;
     }
     // Add actions
     await AuthorizationService.addTagAuthorizations(tenant, userToken, tag, authorizationFilter);

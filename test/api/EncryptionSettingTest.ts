@@ -39,10 +39,7 @@ describe('Encryption Setting', function() {
   describe('Success cases (utall)', () => {
     it('Check that updating the refund/concur setting works with sensitive data encryption', async () => {
       // Retrieve the setting id
-      let read = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, {
-        limit: TestConstants.UNLIMITED,
-        skip: 0
-      });
+      let read = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, TestConstants.DEFAULT_PAGING);
       expect(read.status).to.equal(StatusCodes.OK);
       expect(read.data.count).to.equal(1);
       // Store the old setting
@@ -69,10 +66,7 @@ describe('Encryption Setting', function() {
       const update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
       expect(update.status).to.equal(StatusCodes.OK);
       // Retrieve the updated setting and check
-      read = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, {
-        limit: TestConstants.UNLIMITED,
-        skip: 0
-      });
+      read = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, TestConstants.DEFAULT_PAGING);
       expect(read.status).to.equal(StatusCodes.OK);
       expect(read.data.count).to.equal(1);
       expect(read.data.result[0].sensitiveData[0]).to.equal('content.concur.clientSecret');
@@ -81,10 +75,7 @@ describe('Encryption Setting', function() {
 
     it('Check that updating the pricing/convergent charging setting works with sensitive data encryption', async () => {
       // Retrieve the setting id
-      let read = await testData.centralService.settingApi.readAll({ 'Identifier': 'pricing' }, {
-        limit: TestConstants.UNLIMITED,
-        skip: 0
-      });
+      let read = await testData.centralService.settingApi.readAll({ 'Identifier': 'pricing' }, TestConstants.DEFAULT_PAGING);
       expect(read.status).to.equal(StatusCodes.OK);
       expect(read.data.count).to.equal(1);
       // Store the old setting
@@ -107,10 +98,7 @@ describe('Encryption Setting', function() {
       const update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
       expect(update.status).to.equal(StatusCodes.OK);
       // Retrieve the updated setting and check
-      read = await testData.centralService.settingApi.readAll({ 'Identifier': 'pricing' }, {
-        limit: TestConstants.UNLIMITED,
-        skip: 0
-      });
+      read = await testData.centralService.settingApi.readAll({ 'Identifier': 'pricing' }, TestConstants.DEFAULT_PAGING);
       expect(read.status).to.equal(StatusCodes.OK);
       expect(read.data.count).to.equal(1);
       expect(read.data.result[0].sensitiveData[0]).to.equal('content.convergentCharging.password');

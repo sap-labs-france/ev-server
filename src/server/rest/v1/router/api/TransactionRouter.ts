@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-misused-promises */
 import { ServerAction, ServerRoute } from '../../../../../types/Server';
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import express, { NextFunction, Request, Response } from 'express';
 
 import RouterUtils from '../RouterUtils';
@@ -25,7 +25,6 @@ export default class TransactionRouter {
     this.buildRouteDeleteTransactions();
     this.buildRoutePushTransactionCDR();
     this.buildRouteExportTransactionCDR();
-    this.buildRouteRebuildTransactionConsumption();
     this.buildRouteTransactionSoftStop();
     this.buildRouteTransactionsRefund();
     this.buildRouteTransactionsAssignUser();
@@ -110,13 +109,6 @@ export default class TransactionRouter {
     this.router.get(`/${ServerRoute.REST_TRANSACTION_CONSUMPTIONS}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.TransactionId = req.params.id;
       await RouterUtils.handleServerAction(TransactionService.handleGetTransactionConsumption.bind(this), ServerAction.TRANSACTION_CONSUMPTION, req, res, next);
-    });
-  }
-
-  protected buildRouteRebuildTransactionConsumption(): void {
-    this.router.post(`/${ServerRoute.REST_TRANSACTION_CONSUMPTIONS_REBUILD}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.query.ID = req.params.id;
-      await RouterUtils.handleServerAction(TransactionService.handleRebuildTransactionConsumptions.bind(this), ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS, req, res, next);
     });
   }
 

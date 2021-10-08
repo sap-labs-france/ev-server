@@ -1,5 +1,6 @@
 import { ChargePointStatus, OCPPFirmwareStatus, OCPPPhase, OCPPProtocol, OCPPVersion, RegistrationStatus } from './ocpp/OCPPServer';
 
+import { AuthorizationActions } from './Authorization';
 import { ChargingRateUnitType } from './ChargingProfile';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import { InactivityStatus } from './Transaction';
@@ -11,7 +12,7 @@ import Site from './Site';
 import SiteArea from './SiteArea';
 import User from './User';
 
-export default interface ChargingStation extends CreatedUpdatedProps {
+export default interface ChargingStation extends CreatedUpdatedProps, AuthorizationActions {
   id?: string;
   templateHash?: string;
   templateHashCapabilities?: string;
@@ -132,6 +133,8 @@ export enum Command {
   STOP_TRANSACTION = 'StopTransaction',
   METER_VALUES = 'MeterValues',
   DATA_TRANSFER = 'DataTransfer',
+  RESERVE_NOW = 'ReserveNow',
+  CANCEL_RESERVATION = 'CancelReservation',
 }
 
 export enum StaticLimitAmps {

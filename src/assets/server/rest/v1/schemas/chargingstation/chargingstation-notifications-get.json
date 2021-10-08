@@ -11,5 +11,8 @@
     "Skip": {
       "$ref": "common.json#/definitions/skip"
     }
-  }
+  },
+  "required": [
+    "Limit"
+  ]
 }

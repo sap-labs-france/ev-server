@@ -568,7 +568,7 @@ export default class UserStorage {
         notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
         userIDs?: string[]; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
         statuses?: string[]; withImage?: boolean; billingUserID?: string; notSynchronizedBillingData?: boolean;
-        withTestBillingData?: boolean; notifications?: any; noLoginSince?: Date;
+        withTestBillingData?: boolean; notifications?: any; noLoginSince?: Date; technical?: boolean;
       },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
     // Debug
@@ -637,20 +637,50 @@ export default class UserStorage {
     }
     // Select non-synchronized billing data
     if (params.notSynchronizedBillingData) {
-      filters.$or = [
-        { 'billingData': { '$exists': false } },
-        { 'billingData.lastChangedOn': { '$exists': false } },
-        { 'billingData.lastChangedOn': null },
-        { $expr: { $gt: ['$lastChangedOn', '$billingData.lastChangedOn'] } }
-      ];
+      const billingFilter = {
+        $or: [
+          { 'billingData': { '$exists': false } },
+          { 'billingData.lastChangedOn': { '$exists': false } },
+          { 'billingData.lastChangedOn': null },
+          { $expr: { $gt: ['$lastChangedOn', '$billingData.lastChangedOn'] } }
+        ]
+      };
+      if (filters.$and) {
+        filters.$and.push(billingFilter);
+      } else {
+        filters.$and = [ billingFilter ];
+      }
     }
     // Select users with test billing data
     if (params.withTestBillingData) {
       const expectedLiveMode = !params.withTestBillingData;
-      filters.$and = [
+      const billingDataAndFilter = [
         { 'billingData': { '$exists': true } },
         { 'billingData.liveMode': { $eq: expectedLiveMode } }
       ];
+      if (filters.$and) {
+        filters.$and.push(billingDataAndFilter);
+      } else {
+        filters.$and = billingDataAndFilter;
+      }
+    }
+    // Select (non) technical users
+    if (Utils.objectHasProperty(params, 'technical') && Utils.isBoolean(params.technical)) {
+      if (params.technical) {
+        filters.technical = true;
+      } else {
+        const technicalFilter = {
+          $or: [
+            { technical: { $in: [false, null] } },
+            { technical: { $exists: false } }
+          ]
+        };
+        if (filters.$and) {
+          filters.$and.push(technicalFilter);
+        } else {
+          filters.$and = [ technicalFilter ];
+        }
+      }
     }
     // Add filters
     aggregation.push({
@@ -726,7 +756,7 @@ export default class UserStorage {
       count: (!Utils.isEmptyArray(usersCountMDB) ?
         (usersCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : usersCountMDB[0].count) : 0),
       result: usersMDB,
-      projectedFields: projectFields
+      projectFields: projectFields
     };
   }
 
@@ -1058,7 +1088,7 @@ export default class UserStorage {
       count: (!Utils.isEmptyArray(sitesCountMDB) ?
         (sitesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : sitesCountMDB[0].count) : 0),
       result: siteUsersMDB,
-      projectedFields: projectFields
+      projectFields: projectFields
     };
   }
 

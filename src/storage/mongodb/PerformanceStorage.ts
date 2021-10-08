@@ -14,14 +14,6 @@ export default class PerformanceStorage {
         DatabaseUtils.convertToObjectID(performanceRecord.tenantID) : Constants.DEFAULT_TENANT,
       timestamp: Utils.convertToDate(performanceRecord.timestamp),
       host: performanceRecord.host,
-      numberOfCPU: performanceRecord.numberOfCPU,
-      modelOfCPU: performanceRecord.modelOfCPU,
-      memoryTotalGb: performanceRecord.memoryTotalGb,
-      memoryFreeGb: performanceRecord.memoryFreeGb,
-      loadAverageLastMin: performanceRecord.loadAverageLastMin,
-      process: performanceRecord.process,
-      processMemoryUsage: performanceRecord.processMemoryUsage,
-      processCPUUsage: performanceRecord.processCPUUsage,
       source: performanceRecord.source,
       module: performanceRecord.module,
       method: performanceRecord.method,
@@ -35,10 +27,6 @@ export default class PerformanceStorage {
     // Add parent only if provided
     if (performanceRecord.parentID) {
       performanceRecordMDB.parentID = DatabaseUtils.convertToObjectID(performanceRecord.parentID);
-    }
-    // Add nbr charging stations only if provided
-    if (Utils.convertToInt(performanceRecord.numberOfChargingStations) > 0) {
-      performanceRecordMDB.numberOfChargingStations = Utils.convertToInt(performanceRecord.numberOfChargingStations);
     }
     // Add duration only if provided
     if (Utils.convertToInt(performanceRecord.durationMs) > 0) {

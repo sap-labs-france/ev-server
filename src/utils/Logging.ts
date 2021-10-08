@@ -1,8 +1,8 @@
 import { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { Log, LogLevel, LogType } from '../types/Log';
 import { NextFunction, Request, Response } from 'express';
+import global, { ActionsResponse } from '../types/GlobalType';
 
-import { ActionsResponse } from '../types/GlobalType';
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
 import BackendError from '../exception/BackendError';
@@ -95,7 +95,7 @@ export default class Logging {
         console.warn(chalk.yellow('===================================='));
       }
     }
-    await PerformanceStorage.savePerformanceRecord(
+    Utils.isDevelopmentEnv() && await PerformanceStorage.savePerformanceRecord(
       Utils.buildPerformanceRecord({
         tenantID,
         group: PerformanceRecordGroup.MONGO_DB,
@@ -366,7 +366,7 @@ export default class Logging {
             headers: res.getHeaders(),
           }
         });
-        void PerformanceStorage.savePerformanceRecord(
+        Utils.isDevelopmentEnv() && void PerformanceStorage.savePerformanceRecord(
           Utils.buildPerformanceRecord({
             tenantID,
             group: Utils.getPerformanceRecordGroupFromURL(req.url),
@@ -467,7 +467,7 @@ export default class Logging {
           response: Utils.cloneObject(response.data)
         }
       });
-      await PerformanceStorage.savePerformanceRecord(
+      Utils.isDevelopmentEnv() && await PerformanceStorage.savePerformanceRecord(
         Utils.buildPerformanceRecord({
           tenantID,
           group: Utils.getPerformanceRecordGroupFromURL(response.config.url),
@@ -835,6 +835,11 @@ export default class Logging {
     if (!log.tenantID || log.tenantID === '') {
       log.tenantID = Constants.DEFAULT_TENANT;
     }
+    if (global.serverName &&
+        global.serverName !== Constants.CENTRAL_SERVER &&
+        log.source === Constants.CENTRAL_SERVER) {
+      log.source = `${global.serverName}Server`;
+    }
     // Log in Cloud Foundry
     if (Configuration.isCloudFoundry()) {
       // Bind to express app
@@ -845,18 +850,30 @@ export default class Logging {
   }
 
   private static async anonymizeSensitiveData(message: any): Promise<any> {
-    if (!message || typeof message === 'number' || Utils.isBoolean(message) || typeof message === 'function') {
+    if (!message || typeof message === 'number' || typeof message === 'bigint' || typeof message === 'symbol' || Utils.isBoolean(message) || typeof message === 'function') {
       return message;
-    } else if (typeof message === 'string') { // If the message is a string
+    }
+    // If the message is a string
+    if (typeof message === 'string') {
+      // Check if message is matching a WS connection URL having a registration token
+      const matchingURLParts = Constants.WS_CONNECTION_URL_RE.exec(message);
+      if (!Utils.isEmptyArray(matchingURLParts)) {
+        return message.replace(matchingURLParts[1], Constants.ANONYMIZED_VALUE);
+      }
       // Check if it is a query string
       const dataParts: string[] = message.split('&');
       if (dataParts.length > 1) {
         for (let i = 0; i < dataParts.length; i++) {
           const dataPart = dataParts[i];
+          let queryParamKey = dataPart.split('=')[0];
+          const queryParamKeyParts = queryParamKey.split('?');
+          queryParamKey = queryParamKeyParts.length > 1 ? queryParamKeyParts[1] : queryParamKeyParts[0];
           for (const sensitiveData of Constants.SENSITIVE_DATA) {
-            if (dataPart.toLowerCase().startsWith(sensitiveData.toLocaleLowerCase())) {
+            if (queryParamKey.toLowerCase().startsWith(sensitiveData.toLocaleLowerCase())) {
+              // Find position of sensitive data
+              const posSensitiveData = dataPart.toLowerCase().search(sensitiveData.toLowerCase());
               // Anonymize each query string part
-              dataParts[i] = dataPart.substring(0, sensitiveData.length + 1) + Constants.ANONYMIZED_VALUE;
+              dataParts[i] = dataPart.substring(0, posSensitiveData + sensitiveData.length + 1) + Constants.ANONYMIZED_VALUE;
             }
           }
         }
@@ -866,27 +883,29 @@ export default class Logging {
       // Check if the message is a string which contains sensitive data
       for (const sensitiveData of Constants.SENSITIVE_DATA) {
         if (message.toLowerCase().indexOf(sensitiveData.toLowerCase()) !== -1) {
-          // Anonymize the whole message
+          // Anonymize the message
           return Constants.ANONYMIZED_VALUE;
         }
       }
       return message;
-    } else if (Array.isArray(message)) { // If the message is an array, apply the anonymizeSensitiveData function for each item
+    }
+    // If the message is an array, apply the anonymizeSensitiveData function for each item
+    if (Array.isArray(message)) {
       const anonymizedMessage = [];
       for (const item of message) {
         anonymizedMessage.push(await Logging.anonymizeSensitiveData(item));
       }
       return anonymizedMessage;
-    } else if (typeof message === 'object') { // If the message is an object
+    }
+    // If the message is an object
+    if (typeof message === 'object') {
       for (const key of Object.keys(message)) {
         // Ignore
         if (Constants.EXCEPTION_JSON_KEYS_IN_SENSITIVE_DATA.includes(key)) {
           continue;
         }
-        // Check Type
-        if (typeof message[key] === 'string' &&
-            Constants.SENSITIVE_DATA.filter((sensitiveData) => key.toLocaleLowerCase() === sensitiveData.toLocaleLowerCase()).length > 0) {
-          // If the key indicates sensitive data and the value is a string, Anonymize the value
+        if (Constants.SENSITIVE_DATA.filter((sensitiveData) => key.toLowerCase() === sensitiveData.toLowerCase()).length > 0) {
+          // If the key indicates sensitive data, anonymize the value independently of the type to guarantee that the whole object is protected
           message[key] = Constants.ANONYMIZED_VALUE;
         } else { // Otherwise, apply the anonymizeSensitiveData function
           message[key] = await Logging.anonymizeSensitiveData(message[key]);
@@ -902,8 +921,9 @@ export default class Logging {
       method: 'anonymizeSensitiveData',
       action: ServerAction.LOGGING,
       message: 'No matching object type for log message anonymisation',
-      detailedMessages: { message: message }
+      detailedMessages: { message }
     });
+    return null;
   }
 
   // Log
@@ -1003,7 +1023,7 @@ export default class Logging {
         message, detailedMessages
       });
     }
-    await PerformanceStorage.savePerformanceRecord(
+    Utils.isDevelopmentEnv() && await PerformanceStorage.savePerformanceRecord(
       Utils.buildPerformanceRecord({
         tenantID, chargingStationID,
         group: PerformanceRecordGroup.OCPP,

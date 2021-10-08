@@ -1,42 +1,49 @@
 import DynamicAuthorizationDataSource from '../authorization/DynamicAuthorizationDataSource';
 
 export interface AuthorizationDefinition {
-  superAdmin: {
-    grants: Grant[];
-    $extend?: any;
-  };
-  admin: {
-    grants: Grant[];
-    $extend?: any;
-  };
-  basic: {
-    grants: Grant[];
-    $extend?: any;
-  };
-  demo: {
-    grants: Grant[];
-    $extend?: any;
-  };
-  siteAdmin: {
-    grants: Grant[];
-    $extend?: any;
-  };
-  siteOwner: {
-    grants: Grant[];
-    $extend?: any;
-  };
+  superAdmin: AuthorizationDefinitionRole;
+  admin: AuthorizationDefinitionRole;
+  basic: AuthorizationDefinitionRole;
+  demo: AuthorizationDefinitionRole;
+  siteAdmin: AuthorizationDefinitionRole;
+  siteOwner: AuthorizationDefinitionRole;
+}
+export interface AuthorizationDefinitionRole {
+  grants: AuthorizationDefinitionGrant[];
+  $extend?: Record<string, unknown>;
+}
+
+export interface AuthorizationDefinitionGrant {
+  resource: Entity;
+  action: Action | Action[];
+  args?: Record<string, unknown>;
+  condition?: AuthorizationDefinitionCondition;
+  attributes?: string[];
+}
+
+export interface AuthorizationDefinitionCondition {
+  Fn: string;
+  args: AuthorizationDefinitionConditionArgs|AuthorizationDefinitionConditionArgs[]|AuthorizationDefinitionCondition[]|Record<string, unknown>;
+}
+
+export interface AuthorizationDefinitionConditionArgs {
+  filters: string[];
+  asserts: string[];
+  metadata?: Record<string, unknown>;
 }
 
 export interface AuthorizationResult {
   authorized: boolean;
   fields: string[];
+  context: AuthorizationContext;
 }
 
 export interface AuthorizationFilter {
   filters: Record<string, any>;
-  projectFields: string[];
   authorized: boolean;
   dataSources: Map<DynamicAuthorizationDataSourceName, DynamicAuthorizationDataSource<DynamicAuthorizationDataSourceData>>;
+  projectFields: string[];
+  metadata?: Record<string, unknown>;
 }
 
 export interface Grant {
@@ -180,6 +187,7 @@ export interface AuthorizationContext {
   assets?: string[];
   filters?: DynamicAuthorizationFilterName[] | [DynamicAuthorizationFilterName[]];
   asserts?: DynamicAuthorizationAssertName[] | [DynamicAuthorizationAssertName[]];
+  metadata?: Record<string, unknown>;
 }
 
 export interface AuthorizationActions {
@@ -187,6 +195,8 @@ export interface AuthorizationActions {
   canCreate?: boolean;
   canUpdate?: boolean;
   canDelete?: boolean;
+  projectFields?: string[];
+  metadata?: Record<string, unknown>;
 }
 
 export interface TagAuthorizationActions extends AuthorizationActions {
@@ -224,6 +234,7 @@ export enum DynamicAuthorizationFilterName {
 export enum DynamicAuthorizationAssertName {
   POOL_CAR = 'PoolCar',
   OWN_USER = 'OwnUser',
+  BASIC_USER = 'BasicUser'
 }
 
 export enum DynamicAuthorizationDataSourceName {

@@ -219,7 +219,7 @@ export default class CompanyStorage {
       count: (companiesCountMDB.length > 0 ?
         (companiesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : companiesCountMDB[0].count) : 0),
       result: companiesMDB,
-      projectedFields: projectFields
+      projectFields: projectFields
     };
   }
 

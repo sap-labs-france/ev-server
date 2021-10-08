@@ -1,7 +1,7 @@
 import { HttpCarCatalogImagesRequest, HttpCarCatalogRequest, HttpCarCatalogsRequest, HttpCarCreateRequest, HttpCarMakersRequest, HttpCarRequest, HttpCarUpdateRequest, HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
 
 import Schema from '../../../../types/validator/Schema';
-import SchemaValidator from './SchemaValidator';
+import SchemaValidator from '../../../../validator/SchemaValidator';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
@@ -35,51 +35,35 @@ export default class CarValidator extends SchemaValidator {
     return CarValidator.instance;
   }
 
-  public validateGetCarMakersReq(data: any): HttpCarMakersRequest {
-    // Validate schema
-    this.validate(this.carMakersGet, data);
-    return data;
+  public validateCarMakersGetReq(data: unknown): HttpCarMakersRequest {
+    return this.validate('validateCarMakersGetReq', this.carMakersGet, data);
   }
 
-  public validateGetCarCatalogsReq(data: any): HttpCarCatalogsRequest {
-    // Validate schema
-    this.validate(this.carCatalogsGet, data);
-    return data;
+  public validateCarCatalogsGetReq(data: unknown): HttpCarCatalogsRequest {
+    return this.validate('validateCarCatalogsGetReq', this.carCatalogsGet, data);
   }
 
-  public validateGetCarCatalogImagesReq(data: any): HttpCarCatalogImagesRequest {
-    // Validate schema
-    this.validate(this.carCatalogImagesGet, data);
-    return data;
+  public validateCarCatalogImagesGetReq(data: unknown): HttpCarCatalogImagesRequest {
+    return this.validate('validateCarCatalogImagesGetReq', this.carCatalogImagesGet, data);
   }
 
-  public validateGetCarCatalogReq(data: any): HttpCarCatalogRequest {
-    // Validate schema
-    this.validate(this.carCatalogGet, data);
-    return data;
+  public validateCarCatalogGetReq(data: unknown): HttpCarCatalogRequest {
+    return this.validate('validateCarCatalogGetReq', this.carCatalogGet, data);
   }
 
-  public validateCreateCarReq(data: any): HttpCarCreateRequest {
-    // Validate schema
-    this.validate(this.carCreate, data);
-    return data;
+  public validateCarCreateReq(data: unknown): HttpCarCreateRequest {
+    return this.validate('validateCarCreateReq', this.carCreate, data);
   }
 
-  public validateUpdateCarReq(data: any): HttpCarUpdateRequest {
-    // Validate schema
-    this.validate(this.carUpdate, data);
-    return data;
+  public validateCarUpdateReq(data: unknown): HttpCarUpdateRequest {
+    return this.validate('validateCarUpdateReq', this.carUpdate, data);
   }
 
-  public validateGetCarsReq(data: any): HttpCarsRequest {
-    // Validate schema
-    this.validate(this.carsGet, data);
-    return data;
+  public validateCarsGetReq(data: unknown): HttpCarsRequest {
+    return this.validate('validateCarsGetReq', this.carsGet, data);
   }
 
-  public validateGetCarReq(data: any): HttpCarRequest {
-    // Validate schema
-    this.validate(this.carGet, data);
-    return data;
+  public validateCarGetReq(data: unknown): HttpCarRequest {
+    return this.validate('validateCarGetReq', this.carGet, data);
   }
 }

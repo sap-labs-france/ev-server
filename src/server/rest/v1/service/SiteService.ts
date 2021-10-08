@@ -287,6 +287,10 @@ export default class SiteService {
       },
       authorizationSitesFilter.projectFields
     );
+    // Assign projected fields
+    if (authorizationSitesFilter.projectFields) {
+      sites.projectFields = authorizationSitesFilter.projectFields;
+    }
     // Add Auth flags
     await AuthorizationService.addSitesAuthorizations(req.tenant, req.user, sites as SiteDataResult, authorizationSitesFilter);
     // Return

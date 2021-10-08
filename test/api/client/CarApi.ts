@@ -22,7 +22,7 @@ export default class CarApi extends CrudApi {
   }
 
   public async readCarImages(id: number) {
-    return super.read({ ID: id }, this.buildRestEndpointUrl(ServerRoute.REST_CAR_CATALOG_IMAGES, { id }));
+    return super.readAll({ ID: id }, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, this.buildRestEndpointUrl(ServerRoute.REST_CAR_CATALOG_IMAGES, { id }));
   }
 
   public async readCar(id: string) {

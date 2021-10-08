@@ -15,7 +15,7 @@ export interface DeletedResult {
 export interface DataResult<T> {
   count: number;
   result: T[];
-  projectedFields?: string[];
+  projectFields?: string[];
 }
 
 export interface PricingDataResult extends DataResult<PricingDefinition>{

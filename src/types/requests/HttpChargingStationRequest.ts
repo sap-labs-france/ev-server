@@ -1,5 +1,6 @@
 import { ChargePoint, ConnectorType, CurrentType, PhaseAssignmentToGrid, Voltage } from '../ChargingStation';
 
+import { ChargingRateUnitType } from '../ChargingProfile';
 import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 
@@ -102,39 +103,34 @@ export interface HttpChargingStationOcppParametersRequest {
 }
 
 export interface HttpChargingStationSetMaxIntensitySocketRequest extends HttpChargingStationCommandRequest {
+  carID?: string;
+  userID?: string;
   maxIntensity?: number;
   args?: {maxIntensity: number};
 }
 
 export interface HttpChargingStationCommandRequest {
   chargingStationID: string;
-  carID?: string;
-  userID?: string;
-  args?: any;
 }
 
-export interface HttpChargingStationChangeAvailabilityRequest {
-  chargingStationID: string,
+export type HttpChargingStationCacheClearCommandRequest = HttpChargingStationCommandRequest;
+
+export interface HttpChargingStationChangeAvailabilityRequest extends HttpChargingStationCommandRequest {
   args: {
     connectorId: string,
     type: 'Inoperative' | 'Operative';
   }
 }
 
-export interface HttpChargingStationChangeConfigurationRequest {
-  chargingStationID: string,
+export interface HttpChargingStationChangeConfigurationRequest extends HttpChargingStationCommandRequest {
   args: {
     key: string,
-    value: string;
+    value: string,
+    custom?: boolean,
   }
 }
 
-export interface HttpChargingStationClearCacheRequest {
-  chargingStationID: string
-}
-
-export interface HttpChargingStationCommandDataTransferRequest {
-  chargingStationID: string,
+export interface HttpChargingStationCommandDataTransferRequest extends HttpChargingStationCommandRequest {
   args: {
     vendorId: string,
     messageId?: string,
@@ -142,40 +138,50 @@ export interface HttpChargingStationCommandDataTransferRequest {
   }
 }
 
-export interface HttpChargingStationStartTransactionRequest {
+export interface HttpChargingStationReservationCancelRequest {
   chargingStationID: string,
+  args: {
+    reservationId: number;
+  }
+}
+
+export interface HttpChargingStationStartTransactionRequest extends HttpChargingStationCommandRequest {
+  carID?: string,
+  userID?: string,
   args: {
     tagID?: string,
     visualTagID?: string,
-    connectorId: string
+    connectorId: number
   }
 }
 
-export interface HttpChargingStationStopTransactionRequest {
-  chargingStationID: string,
+export interface HttpChargingStationStopTransactionRequest extends HttpChargingStationCommandRequest {
   args: {
-    transactionID: string
+    transactionId: number
   }
 }
 
-export interface HttpChargingStationGetCompositeScheduleRequest {
-  chargingStationID: string,
+export interface HttpChargingStationCommandGetConfigurationRequest extends HttpChargingStationCommandRequest {
   args: {
-    connectorId: string,
+    key: string[]
+  }
+}
+
+export interface HttpChargingStationGetCompositeScheduleRequest extends HttpChargingStationCommandRequest {
+  args: {
+    connectorId: number,
     duration: number,
-    chargingRateUnit?: string
+    chargingRateUnit?: ChargingRateUnitType
   }
 }
 
-export interface HttpChargingStationCommandUnlockConnectorRequest {
-  chargingStationID: string,
+export interface HttpChargingStationCommandUnlockConnectorRequest extends HttpChargingStationCommandRequest {
   args: {
     connectorId: string
   }
 }
 
-export interface HttpChargingStationUpdateFirmwareRequest {
-  chargingStationID: string,
+export interface HttpChargingStationUpdateFirmwareRequest extends HttpChargingStationCommandRequest {
   args: {
     location: string,
     retries?: number,
@@ -184,8 +190,17 @@ export interface HttpChargingStationUpdateFirmwareRequest {
   }
 }
 
-export interface HttpChargingStationResetRequest {
-  chargingStationID: string,
+export interface HttpChargingStationReserveNowRequest extends HttpChargingStationCommandRequest {
+  args: {
+    connectorId: string;
+    expiryDate: Date;
+    idTag: string;
+    parentIdTag?: string;
+    reservationId: number;
+  }
+}
+
+export interface HttpChargingStationResetRequest extends HttpChargingStationCommandRequest {
   args: {
     type: 'Soft' | 'Hard';
   }
@@ -202,8 +217,7 @@ export interface HttpChargingStationGetFirmwareRequest {
   FileName: string;
 }
 
-export interface HttpChargingStationGetDiagnosticsRequest {
-  chargingStationID: string,
+export interface HttpChargingStationGetDiagnosticsRequest extends HttpChargingStationCommandRequest {
   args: {
     location: string,
     retries?: number,
