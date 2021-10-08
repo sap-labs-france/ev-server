@@ -1005,7 +1005,7 @@ describe('Billing Service', function() {
     describe('Where NON-billable basic user', () => {
       // eslint-disable-next-line @typescript-eslint/require-await
       before(async () => {
-        testData.userContext = testData.tenantContext.getUserContext({ id: ContextDefinition.USER_CONTEXTS.BASIC_NON_BILLABLE_USER.id });
+        testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
         assert(testData.userContext, 'User context cannot be null');
         testData.userService = new CentralServerService(
           testData.tenantContext.getTenant().subdomain,

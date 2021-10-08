@@ -75,10 +75,7 @@ export default class ContextDefinition {
       role: 'A', status: 'A', assignedToSite: false, withTags: true, issuer: true
     },
     BASIC_USER: {
-      role: 'B', status: 'A', assignedToSite: true, withTags: true, issuer: true, id: '5ce249a1a39ae1c056c123ab'
-    },
-    BASIC_NON_BILLABLE_USER: {
-      role: 'B', status: 'A', assignedToSite: true, withTags: true, issuer: true, id: '5ce249a1a39ae1c056c123ff'
+      role: 'B', status: 'A', assignedToSite: true, withTags: true, issuer: true
     },
     BASIC_USER_UNASSIGNED: {
       role: 'B', status: 'A', assignedToSite: false, withTags: true, issuer: true
