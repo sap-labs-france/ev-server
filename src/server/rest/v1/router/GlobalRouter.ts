@@ -9,12 +9,9 @@ import ChargingStationRouter from './api/ChargingStationRouter';
 import CompanyRouter from './api/CompanyRouter';
 import ConnectionRouter from './api/ConnectionRouter';
 import LoggingRouter from './api/LoggingRouter';
-<<<<<<< HEAD
-import PricingRouter from './api/PricingRouter';
-=======
 import NotificationRouter from './api/NotificationRouter';
 import OCPIEndpointRouter from './api/OCPIEndpointRouter';
->>>>>>> master-qa
+import PricingRouter from './api/PricingRouter';
 import { StatusCodes } from 'http-status-codes';
 import SwaggerRouter from './doc/SwaggerRouter';
 import TagRouter from './api/TagRouter';
@@ -49,11 +46,8 @@ export default class GlobalRouter {
       AuthService.checkSessionHash.bind(this),
       [
         new AssetRouter().buildRoutes(),
-<<<<<<< HEAD
-=======
         new BillingRouter().buildRoutes(),
         new CarRouter().buildRoutes(),
->>>>>>> master-qa
         new ChargingStationRouter().buildRoutes(),
         new CompanyRouter().buildRoutes(),
         new ConnectionRouter().buildRoutes(),

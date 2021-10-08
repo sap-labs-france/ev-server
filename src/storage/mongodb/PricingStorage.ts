@@ -49,7 +49,7 @@ export default class PricingStorage {
     // Delete
     await global.database.getCollection<any>(tenant.id, 'pricingdefinitions').deleteOne(
       {
-        '_id': pricingDefinitionID,
+        '_id': DatabaseUtils.convertToObjectID(pricingDefinitionID),
       }
     );
     // Debug

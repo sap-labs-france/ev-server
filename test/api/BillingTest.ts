@@ -924,21 +924,18 @@ describe('Billing Service', function() {
           expect(testData.userService).to.not.be.null;
         });
 
-<<<<<<< HEAD
         it('Should not be able to test connection to Billing Provider', async () => {
           const response = await testData.userService.billingApi.testConnection({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING);
           expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
         });
-=======
-      it('Should not delete a user', async () => {
-        const response = await testData.userService.deleteEntity(
-          testData.userService.userApi,
-          { id: new ObjectId().toHexString() },
-          false
-        );
-        expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
-      });
->>>>>>> master-qa
+        it('Should not delete a user', async () => {
+          const response = await testData.userService.deleteEntity(
+            testData.userService.userApi,
+            { id: new ObjectId().toHexString() },
+            false
+          );
+          expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
+        });
 
         it('Should not create a user', async () => {
           const fakeUser = {

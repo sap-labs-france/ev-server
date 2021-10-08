@@ -1,0 +1,10 @@
+{
+  "title": "Get Pricings Request",
+  "type": "object",
+  "properties": {
+    "EntityID": {
+      "type": "string",
+      "sanitize": "mongo"
+    }
+  }
+}

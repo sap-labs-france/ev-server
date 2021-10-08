@@ -10,6 +10,7 @@ import { PricingDataResult } from '../../../../types/DataResult';
 import PricingDefinition from '../../../../types/Pricing';
 import PricingSecurity from './security/PricingSecurity';
 import PricingStorage from '../../../../storage/mongodb/PricingStorage';
+import PricingValidator from '../validator/PricingValidator';
 import { ServerAction } from '../../../../types/Server';
 import { TenantComponents } from '../../../../types/Tenant';
 import UtilsService from './UtilsService';
@@ -21,7 +22,7 @@ export default class PricingService {
   public static async handleDeletePricingDefinition(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
-      Action.DELETE, Entity.COMPANY, MODULE_NAME, 'handleDeletePricingDefinition');
+      Action.DELETE, Entity.PRICING_DEFINITION, MODULE_NAME, 'handleDeletePricingDefinition');
     // Filter
     const pricingModelID = PricingSecurity.filterPricingDefinitionRequestByID(req.query);
     UtilsService.assertIdIsProvided(action, pricingModelID, MODULE_NAME, 'handleDeletePricingDefinition', req.user);
@@ -49,13 +50,12 @@ export default class PricingService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
       Action.READ, Entity.COMPANY, MODULE_NAME, 'handleGetPricingDefinition');
     // Filter
-    const filteredRequest = PricingSecurity.filterPricingDefinitionRequest(req.query);
+    const filteredRequest = PricingValidator.getInstance().validatePricingGet(req.query);
+    // TODO : do we keep this id check as it's already checked in utils.checkandget ????
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetPricingDefinition', req.user);
-    // Check and Get Pricing
+    // Check and get pricing
     const pricing = await UtilsService.checkAndGetPricingDefinitionAuthorization(
-      req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {
-        withLogo: true
-      }, true);
+      req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {}, true);
     res.json(pricing);
     next();
   }
@@ -65,7 +65,7 @@ export default class PricingService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
       Action.LIST, Entity.PRICING_DEFINITIONS, MODULE_NAME, 'handleGetPricingDefinitions');
     // Filter
-    const filteredRequest = PricingSecurity.filterPricingDefinitionsRequest(req.query);
+    const filteredRequest = PricingValidator.getInstance().validatePricingsGet(req.query);
     // Check dynamic auth
     const authorizationPricingDefinitionsFilter = await AuthorizationService.checkAndGetPricingDefinitionsAuthorizations(
       req.tenant, req.user, filteredRequest);
@@ -73,10 +73,9 @@ export default class PricingService {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
-    // Get the companies
+    // Get the pricings
     const pricingDefinitions = await PricingStorage.getPricingDefinitions(req.tenant,
       {
-        // search: filteredRequest.Search,
         ...authorizationPricingDefinitionsFilter.filters
       },
       {
@@ -99,7 +98,8 @@ export default class PricingService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
       Action.CREATE, Entity.COMPANY, MODULE_NAME, 'handleCreatePricingDefinition');
     // Filter
-    const filteredRequest = PricingSecurity.filterPricingDefinitionCreateRequest(req.body);
+    const filteredRequest = PricingValidator.getInstance().validatePricingCreate(req.body);
+    // const filteredRequest = PricingSecurity.filterPricingDefinitionCreateRequest(req.body);
     // Check
     UtilsService.checkIfPricingDefinitionValid(filteredRequest, req);
     // Get dynamic auth
@@ -140,7 +140,8 @@ export default class PricingService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
       Action.UPDATE, Entity.COMPANY, MODULE_NAME, 'handleUpdatePricingDefinition');
     // Filter
-    const filteredRequest = PricingSecurity.filterPricingDefinitionUpdateRequest(req.body);
+    // const filteredRequest = PricingSecurity.filterPricingDefinitionUpdateRequest(req.body);
+    const filteredRequest = PricingValidator.getInstance().validatePricingUpdate(req.body);
     // Check Mandatory fields
     UtilsService.checkIfPricingDefinitionValid(filteredRequest, req);
     // Check and Get Pricing

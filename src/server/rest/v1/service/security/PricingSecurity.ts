@@ -19,6 +19,7 @@ export default class PricingSecurity {
   public static filterPricingDefinitionsRequest(request: any): HttpPricingDefinitionsRequest {
     const filteredRequest: HttpPricingDefinitionsRequest = {
       Search: sanitize(request.Search),
+      EntityID: sanitize(request.entityID)
     } as HttpPricingDefinitionsRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);

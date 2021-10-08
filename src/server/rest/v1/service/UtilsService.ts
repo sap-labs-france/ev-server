@@ -1310,7 +1310,6 @@ export default class UtilsService {
     }
   }
 
-<<<<<<< HEAD
   public static checkIfCompanyValid(company: Partial<Company>, req: Request): void {
     if (req.method !== 'POST' && !company.id) {
       throw new AppError({
@@ -1353,8 +1352,6 @@ export default class UtilsService {
     }
   }
 
-=======
->>>>>>> master-qa
   public static checkIfAssetValid(asset: Partial<Asset>, req: Request): void {
     if (req.method !== 'POST' && !asset.id) {
       throw new AppError({
