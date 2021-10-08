@@ -977,29 +977,6 @@ describe('Billing Service', function() {
 
     });
 
-    describe('Where non-billable basic user', () => {
-      // eslint-disable-next-line @typescript-eslint/require-await
-      before(async () => {
-        testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
-        assert(testData.userContext, 'User context cannot be null');
-        testData.userService = new CentralServerService(
-          testData.tenantContext.getTenant().subdomain,
-          testData.userContext
-        );
-        assert(!!testData.userService, 'User service cannot be null');
-      });
-
-      it('should NOT create bill after a transaction', async () => {
-        await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
-        const userWithBillingData = await testData.billingImpl.getUser(testData.userContext);
-        await testData.assignPaymentMethod(userWithBillingData, 'tok_fr');
-        const transactionID = await testData.generateTransaction(testData.userContext);
-        assert(transactionID, 'transactionID should not be null');
-        // Check that we have a new invoice with an invoiceID and an invoiceNumber
-        await testData.checkTransactionBillingData(transactionID, BillingInvoiceStatus.NOT_BILLED);
-      });
-    });
-
     describe('Where billable basic user', () => {
       // eslint-disable-next-line @typescript-eslint/require-await
       before(async () => {
@@ -1012,9 +989,34 @@ describe('Billing Service', function() {
         assert(!!testData.userService, 'User service cannot be null');
       });
 
-      it('should NOT start a transaction', async () => {
-        const transactionID = await testData.generateTransaction(testData.userContext, 'Invalid');
+      it('should NOT start a transaction without payment method', async () => {
+        let transactionID = await testData.generateTransaction(testData.userContext, 'Invalid');
         expect(transactionID).eq(0);
+        // Add payment method
+        await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
+        const userWithBillingData = await testData.billingImpl.getUser(testData.userContext);
+        await testData.assignPaymentMethod(userWithBillingData, 'tok_fr');
+        transactionID = await testData.generateTransaction(testData.userContext);
+        expect(transactionID).gt(0);
+        // TODO: Should generate immediately a paid invoice?
+      });
+    });
+
+    describe('Where NON-billable basic user', () => {
+      // eslint-disable-next-line @typescript-eslint/require-await
+      before(async () => {
+        testData.userContext = testData.tenantContext.getUserContext({ id: ContextDefinition.USER_CONTEXTS.BASIC_NON_BILLABLE_USER.id });
+        assert(testData.userContext, 'User context cannot be null');
+        testData.userService = new CentralServerService(
+          testData.tenantContext.getTenant().subdomain,
+          testData.userContext
+        );
+        assert(!!testData.userService, 'User service cannot be null');
+      });
+
+      it('should start a transaction', async () => {
+        const transactionID = await testData.generateTransaction(testData.userContext, 'Invalid');
+        expect(transactionID).gt(0);
       });
     });
   });

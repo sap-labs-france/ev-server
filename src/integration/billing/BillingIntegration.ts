@@ -331,6 +331,14 @@ export default abstract class BillingIntegration {
     }
   }
 
+  protected isTransactionUserInternal(transaction: Transaction): boolean {
+    return this.isUserInternal(transaction?.user);
+  }
+
+  protected isUserInternal(user: User): boolean {
+    return !user.billable;
+  }
+
   private async _getUsersWithNoBillingData(): Promise<User[]> {
     const newUsers = await UserStorage.getUsers(this.tenant,
       {

@@ -748,14 +748,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
   }
 
-  private isTransactionUserInternal(transaction: Transaction): boolean {
-    return this.isUserInternal(transaction?.user);
-  }
-
-  private isUserInternal(user: User): boolean {
-    return !user.billable;
-  }
-
   public async startTransaction(transaction: Transaction): Promise<BillingDataTransactionStart> {
 
     if (!this.settings.billing.isTransactionBillingActivated) {

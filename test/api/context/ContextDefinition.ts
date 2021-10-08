@@ -75,7 +75,10 @@ export default class ContextDefinition {
       role: 'A', status: 'A', assignedToSite: false, withTags: true, issuer: true
     },
     BASIC_USER: {
-      role: 'B', status: 'A', assignedToSite: true, withTags: true, issuer: true
+      role: 'B', status: 'A', assignedToSite: true, withTags: true, issuer: true, id: '5ce249a1a39ae1c056c123ab'
+    },
+    BASIC_NON_BILLABLE_USER: {
+      role: 'B', status: 'A', assignedToSite: true, withTags: true, issuer: true, id: '5ce249a1a39ae1c056c123ff'
     },
     BASIC_USER_UNASSIGNED: {
       role: 'B', status: 'A', assignedToSite: false, withTags: true, issuer: true
@@ -449,7 +452,8 @@ export default class ContextDefinition {
         visualID: new ObjectId().toString(),
         issuer: false,
         active: true
-      }] : null)
+      }] : null),
+      billable: false
     },
     { // Demo user
       id: '5ce249a1a39ae1c056c123cd',
