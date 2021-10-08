@@ -156,7 +156,7 @@ export default class PricingStorage {
       count: (pricingDefinitionsCountMDB.length > 0 ?
         (pricingDefinitionsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : pricingDefinitionsCountMDB[0].count) : 0),
       result: pricingDefinitionsMDB,
-      projectedFields: projectFields
+      projectFields
     };
   }
 }
