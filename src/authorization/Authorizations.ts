@@ -4,7 +4,7 @@ import Tenant, { TenantComponents } from '../types/Tenant';
 import User, { UserRole, UserStatus } from '../types/User';
 
 import AuthorizationConfiguration from '../types/configuration/AuthorizationConfiguration';
-import AuthorizationsDefinition from './AuthorizationsDefinition';
+import AuthorizationsManager from './AuthorizationsManager';
 import BackendError from '../exception/BackendError';
 import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
 import Configuration from '../utils/Configuration';
@@ -155,7 +155,7 @@ export default class Authorizations {
     if (pricing && pricing.type === PricingSettingsType.SIMPLE) {
       currency = pricing.simple.currency;
     }
-    const authDefinition = AuthorizationsDefinition.getInstance();
+    const authDefinition = AuthorizationsManager.getInstance();
     const rolesACL = Authorizations.getAuthGroupsFromUser(user.role, siteAdminIDs.length, siteOwnerIDs.length);
     return {
       id: user.id,
@@ -724,7 +724,7 @@ export default class Authorizations {
 
   public static async can(loggedUser: UserToken, entity: Entity, action: Action, context?: AuthorizationContext): Promise<AuthorizationResult> {
     // Check
-    const authDefinition = AuthorizationsDefinition.getInstance();
+    const authDefinition = AuthorizationsManager.getInstance();
     const result = await authDefinition.canPerformAction(loggedUser.rolesACL, entity, action, context);
     if (!result.authorized && Authorizations.getConfiguration().debug) {
       void Logging.logSecurityInfo({
@@ -1097,7 +1097,7 @@ export default class Authorizations {
 
   private static async canPerformAction(loggedUser: UserToken, entity: Entity, action: Action, context?: AuthorizationContext): Promise<boolean> {
     // Check
-    const authDefinition = AuthorizationsDefinition.getInstance();
+    const authDefinition = AuthorizationsManager.getInstance();
     const authorized = await authDefinition.can(loggedUser.rolesACL, entity, action, context);
     if (!authorized && Authorizations.getConfiguration().debug) {
       void Logging.logSecurityInfo({
