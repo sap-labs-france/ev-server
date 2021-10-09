@@ -89,3 +89,4 @@ export const UserRequiredImportProperties = [
   'name'
 ];
 
+export const USER_BILLABLE_DEFAULT = false;

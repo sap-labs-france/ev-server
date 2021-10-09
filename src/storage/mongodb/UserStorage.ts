@@ -1,7 +1,7 @@
 import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
 import Site, { SiteUser } from '../../types/Site';
 import Tenant, { TenantComponents } from '../../types/Tenant';
-import User, { ImportedUser, UserRole, UserStatus } from '../../types/User';
+import User, { ImportedUser, USER_BILLABLE_DEFAULT, UserRole, UserStatus } from '../../types/User';
 import { UserInError, UserInErrorType } from '../../types/InError';
 import global, { FilterParams, Image, ImportStatus } from '../../types/GlobalType';
 
@@ -1154,7 +1154,8 @@ export default class UserStorage {
         sendAdminAccountVerificationNotification: false,
       },
       role: UserRole.BASIC,
-      status: UserStatus.PENDING
+      status: UserStatus.PENDING,
+      billable: USER_BILLABLE_DEFAULT
     };
   }
 

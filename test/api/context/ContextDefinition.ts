@@ -512,7 +512,8 @@ export default class ContextDefinition {
         visualID: new ObjectId().toString(),
         issuer: false,
         active: true
-      }] : null)
+      }] : null),
+      billable: false,
     },
     { // Basic user Locked
       id: '5ce249a1a39ae1c056c789ef',
