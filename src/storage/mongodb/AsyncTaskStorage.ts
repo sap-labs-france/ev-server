@@ -22,7 +22,7 @@ export default class AsyncTaskStorage {
 
   public static async saveAsyncTask(asyncTaskToSave: AsyncTask): Promise<string> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveAsyncTask');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveAsyncTask');
     // Set
     const asyncTaskMDB: any = {
       _id: asyncTaskToSave.id ? DatabaseUtils.convertToObjectID(asyncTaskToSave.id) : new ObjectId(),
@@ -49,14 +49,14 @@ export default class AsyncTaskStorage {
       { upsert: true }
     );
     // Debug
-    await Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveAsyncTask', uniqueTimerID, asyncTaskMDB);
+    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveAsyncTask', uniqueTimerID, asyncTaskMDB);
     return asyncTaskMDB._id;
   }
 
   public static async getAsyncTasks(params: { status?: AsyncTaskStatus, asyncTaskIDs?: string[] } = {},
       dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<AsyncTask>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'getAsyncTasks');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'getAsyncTasks');
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit
@@ -93,7 +93,7 @@ export default class AsyncTaskStorage {
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
-      await Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getAsyncTasks', uniqueTimerID, asyncTasksCountMDB);
+      await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getAsyncTasks', uniqueTimerID, asyncTasksCountMDB);
       return {
         count: (asyncTasksCountMDB.length > 0 ? asyncTasksCountMDB[0].count : 0),
         result: []
@@ -129,7 +129,7 @@ export default class AsyncTaskStorage {
       })
       .toArray();
     // Debug
-    await Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getAsyncTasks', uniqueTimerID, asyncTasksMDB);
+    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getAsyncTasks', uniqueTimerID, asyncTasksMDB);
     return {
       count: (asyncTasksCountMDB.length > 0 ?
         (asyncTasksCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : asyncTasksCountMDB[0].count) : 0),
@@ -139,24 +139,24 @@ export default class AsyncTaskStorage {
 
   public static async updateRunningAsyncTaskToPending(): Promise<number> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'updateRunningAsyncTaskToPending');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'updateRunningAsyncTaskToPending');
     // Delete the AsyncTask
     const result = await global.database.getCollection<AsyncTask>(Constants.DEFAULT_TENANT, 'asynctasks').updateMany(
       { 'status': AsyncTaskStatus.RUNNING },
       { '$set': { 'status': AsyncTaskStatus.PENDING } }
     );
     // Debug
-    await Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'updateRunningAsyncTaskToPending', uniqueTimerID);
+    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'updateRunningAsyncTaskToPending', uniqueTimerID);
     return result.modifiedCount;
   }
 
   public static async deleteAsyncTask(id: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'deleteAsyncTask');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'deleteAsyncTask');
     // Delete the AsyncTask
     await global.database.getCollection<AsyncTask>(Constants.DEFAULT_TENANT, 'asynctasks')
       .findOneAndDelete({ '_id': id });
     // Debug
-    await Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'deleteAsyncTask', uniqueTimerID, { id });
+    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'deleteAsyncTask', uniqueTimerID, { id });
   }
 }

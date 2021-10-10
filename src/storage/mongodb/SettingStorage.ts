@@ -30,7 +30,7 @@ export default class SettingStorage {
 
   public static async saveSettings(tenant: Tenant, settingToSave: Partial<SettingDB>): Promise<string> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'saveSetting');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'saveSetting');
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Check if ID is provided
@@ -65,7 +65,7 @@ export default class SettingStorage {
       { $set: settingMDB },
       { upsert: true, returnDocument: 'after' });
     // Debug
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'saveSetting', uniqueTimerID, settingMDB);
+    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveSetting', uniqueTimerID, settingMDB);
     // Create
     return settingFilter._id.toString();
   }
@@ -350,7 +350,7 @@ export default class SettingStorage {
       params: {identifier?: string; settingID?: string, dateFrom?: Date, dateTo?: Date},
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SettingDB>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'getSettings');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'getSettings');
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -409,7 +409,7 @@ export default class SettingStorage {
       })
       .toArray();
     // Debug
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'getSettings', uniqueTimerID, settingsMDB);
+    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getSettings', uniqueTimerID, settingsMDB);
     // Ok
     return {
       count: (settingsCountMDB.length > 0 ? settingsCountMDB[0].count : 0),
@@ -419,14 +419,14 @@ export default class SettingStorage {
 
   public static async deleteSetting(tenant: Tenant, id: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'deleteSetting');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'deleteSetting');
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete Component
     await global.database.getCollection<any>(tenant.id, 'settings')
       .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
     // Debug
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'deleteSetting', uniqueTimerID, { id });
+    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'deleteSetting', uniqueTimerID, { id });
   }
 
   public static async saveUserSettings(tenant: Tenant, userSettingToSave: UserSettings): Promise<void> {

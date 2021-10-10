@@ -15,7 +15,7 @@ const MODULE_NAME = 'RegistrationTokenStorage';
 export default class RegistrationTokenStorage {
   static async saveRegistrationToken(tenant: Tenant, registrationToken: RegistrationToken): Promise<string> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'saveRegistrationToken');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'saveRegistrationToken');
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Set
@@ -35,7 +35,7 @@ export default class RegistrationTokenStorage {
       { upsert: true, returnDocument: 'after' }
     );
     // Debug
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'saveRegistrationToken', uniqueTimerID, registrationTokenMDB);
+    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveRegistrationToken', uniqueTimerID, registrationTokenMDB);
     return registrationTokenMDB._id.toString();
   }
 
@@ -43,7 +43,7 @@ export default class RegistrationTokenStorage {
       params: { tokenIDs?: string[]; siteIDs?: string[]; siteAreaID?: string } = {}, dbParams: DbParams, projectFields?: string[]):
       Promise<DataResult<RegistrationToken>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'getRegistrationTokens');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'getRegistrationTokens');
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -95,7 +95,7 @@ export default class RegistrationTokenStorage {
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
-      await Logging.traceEnd(tenant.id, MODULE_NAME, 'getRegistrationTokens', uniqueTimerID, registrationTokensCountMDB);
+      await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getRegistrationTokens', uniqueTimerID, registrationTokensCountMDB);
       return {
         count: (registrationTokensCountMDB.length > 0 ? registrationTokensCountMDB[0].count : 0),
         result: []
@@ -131,7 +131,7 @@ export default class RegistrationTokenStorage {
       })
       .toArray();
     // Debug
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'getRegistrationTokens', uniqueTimerID, registrationTokens);
+    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getRegistrationTokens', uniqueTimerID, registrationTokens);
     // Ok
     return {
       count: (registrationTokensCountMDB.length > 0 ?
@@ -150,10 +150,10 @@ export default class RegistrationTokenStorage {
 
   static async deleteRegistrationToken(tenant: Tenant, id: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'deleteRegistrationToken');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'deleteRegistrationToken');
     await global.database.getCollection<any>(tenant.id, 'registrationtokens')
       .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
     // Debug
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'deleteRegistrationToken', uniqueTimerID, { id });
+    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'deleteRegistrationToken', uniqueTimerID, { id });
   }
 }

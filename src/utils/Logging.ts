@@ -39,14 +39,14 @@ export default class Logging {
   }
 
   // Debug DB
-  public static traceStart(tenantID: string, module: string, method: string): string {
+  public static traceDatabaseRequestStart(tenantID: string, module: string, method: string): string {
     const key = `${tenantID}~${module}~${method}~${Utils.generateUUID()}`;
     Logging.traceCalls[key] = new Date().getTime();
     return key;
   }
 
   // Debug DB
-  public static async traceEnd(tenantID: string, module: string, method: string, key: string, data: any = {}): Promise<void> {
+  public static async traceDatabaseRequestEnd(tenantID: string, module: string, method: string, key: string, data: any = {}): Promise<void> {
     // Compute duration if provided
     let executionDurationMillis: number;
     let found = false;
