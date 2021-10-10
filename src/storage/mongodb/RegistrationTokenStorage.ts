@@ -1,4 +1,4 @@
-import global, { FilterParams } from '../../types/GlobalType';
+import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
@@ -89,8 +89,8 @@ export default class RegistrationTokenStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const registrationTokensCountMDB = await global.database.getCollection<DataResult<RegistrationToken>>(tenant.id, 'registrationtokens')
-      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
+    const registrationTokensCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'registrationtokens')
+      .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
@@ -125,10 +125,8 @@ export default class RegistrationTokenStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const registrationTokens = await global.database.getCollection<any>(tenant.id, 'registrationtokens')
-      .aggregate(aggregation, {
-        allowDiskUse: true
-      })
+    const registrationTokens = await global.database.getCollection<RegistrationToken>(tenant.id, 'registrationtokens')
+      .aggregate<RegistrationToken>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getRegistrationTokens', uniqueTimerID, registrationTokens);

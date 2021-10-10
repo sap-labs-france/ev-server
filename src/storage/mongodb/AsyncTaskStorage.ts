@@ -1,5 +1,5 @@
 import AsyncTask, { AsyncTaskStatus } from '../../types/AsyncTask';
-import global, { FilterParams } from '../../types/GlobalType';
+import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
@@ -87,8 +87,8 @@ export default class AsyncTaskStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const asyncTasksCountMDB = await global.database.getCollection<DataResult<AsyncTask>>(Constants.DEFAULT_TENANT, 'asynctasks')
-      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
+    const asyncTasksCountMDB = await global.database.getCollection<DatabaseCount>(Constants.DEFAULT_TENANT, 'asynctasks')
+      .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
@@ -123,10 +123,8 @@ export default class AsyncTaskStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const asyncTasksMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'asynctasks')
-      .aggregate(aggregation, {
-        allowDiskUse: true
-      })
+    const asyncTasksMDB = await global.database.getCollection<AsyncTask>(Constants.DEFAULT_TENANT, 'asynctasks')
+      .aggregate<AsyncTask>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getAsyncTasks', uniqueTimerID, asyncTasksMDB);

@@ -1,4 +1,4 @@
-import global, { FilterParams } from '../../types/GlobalType';
+import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
 import Asset from '../../types/Asset';
 import { AssetInErrorType } from '../../types/InError';
@@ -165,8 +165,8 @@ export default class AssetStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const assetsCountMDB = await global.database.getCollection<DataResult<Asset>>(tenant.id, 'assets')
-      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
+    const assetsCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'assets')
+      .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
@@ -210,10 +210,8 @@ export default class AssetStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const assetsMDB = await global.database.getCollection<any>(tenant.id, 'assets')
-      .aggregate(aggregation, {
-        allowDiskUse: true
-      })
+    const assetsMDB = await global.database.getCollection<Asset>(tenant.id, 'assets')
+      .aggregate<Asset>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getAssets', uniqueTimerID, assetsMDB);
@@ -299,10 +297,8 @@ export default class AssetStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const assetsMDB = await global.database.getCollection<any>(tenant.id, 'assets')
-      .aggregate(aggregation, {
-        allowDiskUse: true
-      })
+    const assetsMDB = await global.database.getCollection<Asset>(tenant.id, 'assets')
+      .aggregate<Asset>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getAssetsInError', uniqueTimerID, assetsMDB);

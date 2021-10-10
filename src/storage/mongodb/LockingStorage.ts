@@ -1,4 +1,4 @@
-import global, { FilterParams } from '../../types/GlobalType';
+import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
@@ -37,8 +37,8 @@ export default class LockingStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const locksCountMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
-      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
+    const locksCountMDB = await global.database.getCollection<DatabaseCount>(Constants.DEFAULT_TENANT, 'locks')
+      .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
@@ -64,7 +64,7 @@ export default class LockingStorage {
     });
     // Read DB
     const locksMDB = await global.database.getCollection<Lock>(Constants.DEFAULT_TENANT, 'locks')
-      .aggregate(aggregation)
+      .aggregate<Lock>(aggregation)
       .toArray();
     // Debug
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getLocks', uniqueTimerID, locksMDB);

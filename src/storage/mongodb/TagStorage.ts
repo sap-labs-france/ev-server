@@ -1,5 +1,5 @@
 import Tag, { ImportedTag } from '../../types/Tag';
-import global, { FilterParams, ImportStatus } from '../../types/GlobalType';
+import global, { DatabaseCount, FilterParams, ImportStatus } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
@@ -168,8 +168,8 @@ export default class TagStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const tagsImportCountMDB = await global.database.getCollection<any>(tenant.id, 'importedtags')
-      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
+    const tagsImportCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'importedtags')
+      .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
@@ -206,10 +206,8 @@ export default class TagStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const tagsImportMDB = await global.database.getCollection<any>(tenant.id, 'importedtags')
-      .aggregate(aggregation, {
-        allowDiskUse: true
-      })
+    const tagsImportMDB = await global.database.getCollection<ImportedTag>(tenant.id, 'importedtags')
+      .aggregate<ImportedTag>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getTagsImport', uniqueTimerID, tagsImportMDB);
@@ -385,8 +383,8 @@ export default class TagStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const tagsCountMDB = await global.database.getCollection<any>(tenant.id, 'tags')
-      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
+    const tagsCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'tags')
+      .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
@@ -444,9 +442,7 @@ export default class TagStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const tagsMDB = await global.database.getCollection<Tag>(tenant.id, 'tags')
-      .aggregate(aggregation, {
-        allowDiskUse: true
-      })
+      .aggregate<Tag>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getTags', uniqueTimerID, tagsMDB);

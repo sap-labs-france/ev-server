@@ -1,4 +1,4 @@
-import global, { FilterParams } from '../../types/GlobalType';
+import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
 import Company from '../../types/Company';
 import Constants from '../../utils/Constants';
@@ -147,8 +147,8 @@ export default class CompanyStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const companiesCountMDB = await global.database.getCollection<DataResult<Company>>(tenant.id, 'companies')
-      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
+    const companiesCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'companies')
+      .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
@@ -207,10 +207,8 @@ export default class CompanyStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const companiesMDB = await global.database.getCollection<any>(tenant.id, 'companies')
-      .aggregate(aggregation, {
-        allowDiskUse: true
-      })
+    const companiesMDB = await global.database.getCollection<Company>(tenant.id, 'companies')
+      .aggregate<Company>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getCompanies', uniqueTimerID, companiesMDB);

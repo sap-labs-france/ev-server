@@ -1,5 +1,5 @@
 import Tenant, { TenantLogo } from '../../types/Tenant';
-import global, { FilterParams } from '../../types/GlobalType';
+import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
@@ -152,8 +152,8 @@ export default class TenantStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const tenantsCountMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenants')
-      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
+    const tenantsCountMDB = await global.database.getCollection<DatabaseCount>(Constants.DEFAULT_TENANT, 'tenants')
+      .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
@@ -204,9 +204,7 @@ export default class TenantStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const tenantsMDB = await global.database.getCollection<Tenant>(Constants.DEFAULT_TENANT, 'tenants')
-      .aggregate(aggregation, {
-        allowDiskUse: true
-      }).toArray();
+      .aggregate<Tenant>(aggregation, DatabaseUtils.buildAggregateOptions()).toArray();
     // Debug
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getTenants', uniqueTimerID, tenantsMDB);
     // Ok

@@ -48,11 +48,11 @@ export default class ConnectionStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Exec
-    const connections = await global.database.getCollection<any>(tenant.id, 'connections')
-      .aggregate(aggregation)
+    const connections = await global.database.getCollection<Connection>(tenant.id, 'connections')
+      .aggregate<Connection>(aggregation)
       .toArray();
     let connection: Connection;
-    if (connections && connections.length > 0) {
+    if (!Utils.isEmptyArray(connections)) {
       connection = connections[0];
     }
     await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getConnectionByConnectorIdAndUserId', uniqueTimerID, connections);
@@ -74,9 +74,7 @@ export default class ConnectionStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Get connections
     const connectionsMDB = await global.database.getCollection<Connection>(tenant.id, 'connections')
-      .aggregate(aggregation, {
-        allowDiskUse: true
-      })
+      .aggregate<Connection>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getConnectionByUserId', uniqueTimerID, connectionsMDB);
     return {
@@ -101,10 +99,10 @@ export default class ConnectionStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Exec
     const connections = await global.database.getCollection<Connection>(tenant.id, 'connections')
-      .aggregate(aggregation)
+      .aggregate<Connection>(aggregation)
       .toArray();
     let connection: Connection;
-    if (connections && connections.length > 0) {
+    if (!Utils.isEmptyArray(connections)) {
       connection = connections[0];
     }
     await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getConnection', uniqueTimerID, connections);

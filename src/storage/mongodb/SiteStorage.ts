@@ -1,6 +1,6 @@
 import Site, { SiteUser } from '../../types/Site';
 import User, { UserSite } from '../../types/User';
-import global, { FilterParams, Image } from '../../types/GlobalType';
+import global, { DatabaseCount, FilterParams, Image } from '../../types/GlobalType';
 
 import ChargingStationStorage from './ChargingStationStorage';
 import Constants from '../../utils/Constants';
@@ -152,8 +152,8 @@ export default class SiteStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const usersCountMDB = await global.database.getCollection<DataResult<SiteUser>>(tenant.id, 'siteusers')
-      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
+    const usersCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'siteusers')
+      .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
@@ -188,10 +188,8 @@ export default class SiteStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const siteUsersMDB = await global.database.getCollection<{ user: User; siteID: string; siteAdmin: boolean; siteOwner: boolean }>(tenant.id, 'siteusers')
-      .aggregate(aggregation, {
-        allowDiskUse: true
-      })
+    const siteUsersMDB = await global.database.getCollection<UserSite>(tenant.id, 'siteusers')
+      .aggregate<UserSite>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getSitesUsers', uniqueTimerID, siteUsersMDB);
@@ -394,8 +392,8 @@ export default class SiteStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const sitesCountMDB = await global.database.getCollection<any>(tenant.id, 'sites')
-      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
+    const sitesCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'sites')
+      .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
@@ -458,9 +456,7 @@ export default class SiteStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const sitesMDB = await global.database.getCollection<Site>(tenant.id, 'sites')
-      .aggregate(aggregation, {
-        allowDiskUse: true
-      })
+      .aggregate(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     const sites = [];
     // TODO: Handle this coding into the MongoDB request

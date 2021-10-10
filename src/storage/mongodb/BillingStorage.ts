@@ -1,5 +1,5 @@
 import { BillingAdditionalData, BillingInvoice, BillingInvoiceStatus, BillingSessionData } from '../../types/Billing';
-import global, { FilterParams } from '../../types/GlobalType';
+import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
@@ -99,8 +99,8 @@ export default class BillingStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const invoicesCountMDB = await global.database.getCollection<any>(tenant.id, 'invoices')
-      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
+    const invoicesCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'invoices')
+      .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
@@ -142,9 +142,7 @@ export default class BillingStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const invoicesMDB = await global.database.getCollection<BillingInvoice>(tenant.id, 'invoices')
-      .aggregate(aggregation, {
-        allowDiskUse: true
-      })
+      .aggregate<BillingInvoice>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getInvoices', uniqueTimerID, invoicesMDB);

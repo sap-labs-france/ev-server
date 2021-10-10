@@ -1,5 +1,5 @@
 import { Car, CarCatalog, CarCatalogChargeAlternativeTable, CarCatalogChargeOptionTable, CarCatalogConverter, CarMaker, CarType } from '../../types/Car';
-import global, { FilterParams, Image } from '../../types/GlobalType';
+import global, { DatabaseCount, FilterParams, Image } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
@@ -72,8 +72,8 @@ export default class CarStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const carCatalogsCountMDB = await global.database.getCollection<DataResult<CarCatalog>>(Constants.DEFAULT_TENANT, 'carcatalogs')
-      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
+    const carCatalogsCountMDB = await global.database.getCollection<DatabaseCount>(Constants.DEFAULT_TENANT, 'carcatalogs')
+      .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
@@ -128,10 +128,8 @@ export default class CarStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const carCatalogs = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogs')
-      .aggregate(aggregation, {
-        allowDiskUse: true
-      })
+    const carCatalogs = await global.database.getCollection<CarCatalog>(Constants.DEFAULT_TENANT, 'carcatalogs')
+      .aggregate<CarCatalog>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getCarCatalogs', uniqueTimerID, carCatalogs);
@@ -379,8 +377,8 @@ export default class CarStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const carCatalogImagesCountMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogimages')
-      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
+    const carCatalogImagesCountMDB = await global.database.getCollection<DatabaseCount>(Constants.DEFAULT_TENANT, 'carcatalogimages')
+      .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
@@ -405,10 +403,8 @@ export default class CarStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, ['image']);
     // Read DB
-    const carCatalogImages = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogimages')
-      .aggregate(aggregation, {
-        allowDiskUse: true
-      })
+    const carCatalogImages = await global.database.getCollection<Image>(Constants.DEFAULT_TENANT, 'carcatalogimages')
+      .aggregate<Image>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getCarCatalogImages', uniqueTimerID, carCatalogImages);
@@ -465,10 +461,8 @@ export default class CarStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Execute
-    const carMakersMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogs')
-      .aggregate(aggregation, {
-        allowDiskUse: true
-      })
+    const carMakersMDB = await global.database.getCollection<CarMaker>(Constants.DEFAULT_TENANT, 'carcatalogs')
+      .aggregate<CarMaker>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getCarMakers', uniqueTimerID, carMakersMDB);
@@ -639,8 +633,8 @@ export default class CarStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const carsCountMDB = await global.database.getCollection<DataResult<Car>>(tenant.id, 'cars')
-      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
+    const carsCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'cars')
+      .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
@@ -715,9 +709,7 @@ export default class CarStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const cars = await global.database.getCollection<Car>(tenant.id, 'cars')
-      .aggregate(aggregation, {
-        allowDiskUse: true
-      })
+      .aggregate<Car>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getCars', uniqueTimerID, cars);

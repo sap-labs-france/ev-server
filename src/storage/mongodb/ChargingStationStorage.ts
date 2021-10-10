@@ -4,7 +4,7 @@ import ChargingStation, { ChargePoint, ChargingStationOcpiData, ChargingStationO
 import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
 import { GridFSBucket, GridFSBucketReadStream, GridFSBucketWriteStream, ObjectId } from 'mongodb';
 import Tenant, { TenantComponents } from '../../types/Tenant';
-import global, { FilterParams } from '../../types/GlobalType';
+import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
 import ChargingStationValidatorStorage from './validator/ChargingStationValidatorStorage';
@@ -59,9 +59,9 @@ export default class ChargingStationStorage {
     // Change ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Query Templates
-    const chargingStationTemplatesMDB: ChargingStationTemplate[] =
-      await global.database.getCollection<ChargingStationTemplate>(Constants.DEFAULT_TENANT, 'chargingstationtemplates')
-        .aggregate(aggregation).toArray();
+    const chargingStationTemplatesMDB = await global.database.getCollection<ChargingStationTemplate>(Constants.DEFAULT_TENANT, 'chargingstationtemplates')
+      .aggregate<ChargingStationTemplate>(aggregation)
+      .toArray();
     const chargingStationTemplates: ChargingStationTemplate[] = [];
     // Reverse match the regexp in JSON template records against the charging station vendor string
     for (const chargingStationTemplateMDB of chargingStationTemplatesMDB) {
@@ -305,7 +305,7 @@ export default class ChargingStationStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const chargingStationsCountMDB = await global.database.getCollection<any>(tenant.id, 'chargingstations')
+    const chargingStationsCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'chargingstations')
       .aggregate([...aggregation, { $count: 'count' }])
       .toArray();
     // Check if only the total count is requested
@@ -377,9 +377,7 @@ export default class ChargingStationStorage {
     }
     // Read DB
     const chargingStationsMDB = await global.database.getCollection<ChargingStation>(tenant.id, 'chargingstations')
-      .aggregate(aggregation, {
-        allowDiskUse: true
-      })
+      .aggregate<ChargingStation>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getChargingStations', uniqueTimerID, chargingStationsMDB);
@@ -502,9 +500,7 @@ export default class ChargingStationStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const chargingStationsMDB = await global.database.getCollection<ChargingStation>(tenant.id, 'chargingstations')
-      .aggregate(aggregation, {
-        allowDiskUse: true
-      })
+      .aggregate<ChargingStation>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getChargingStations', uniqueTimerID, chargingStationsMDB);
@@ -900,8 +896,8 @@ export default class ChargingStationStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const chargingProfilesCountMDB = await global.database.getCollection<DataResult<ChargingProfile>>(tenant.id, 'chargingprofiles')
-      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
+    const chargingProfilesCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'chargingprofiles')
+      .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
@@ -941,9 +937,7 @@ export default class ChargingStationStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const chargingProfilesMDB = await global.database.getCollection<ChargingProfile>(tenant.id, 'chargingprofiles')
-      .aggregate(aggregation, {
-        allowDiskUse: true
-      })
+      .aggregate<ChargingProfile>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getChargingProfiles', uniqueTimerID, chargingProfilesMDB);

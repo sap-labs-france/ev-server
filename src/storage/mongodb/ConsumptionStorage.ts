@@ -137,7 +137,7 @@ export default class ConsumptionStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const consumptionsMDB = await global.database.getCollection<Consumption>(tenant.id, 'consumptions')
-      .aggregate(aggregation, { allowDiskUse: true })
+      .aggregate<Consumption>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getAssetConsumptions', uniqueTimerID, consumptionsMDB);
@@ -173,9 +173,9 @@ export default class ConsumptionStorage {
     let consumption: Consumption = null;
     // Read DB
     const consumptionsMDB = await global.database.getCollection<Consumption>(tenant.id, 'consumptions')
-      .aggregate(aggregation, { allowDiskUse: true })
+      .aggregate<Consumption>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
-    if (consumptionsMDB && consumptionsMDB.length > 0) {
+    if (!Utils.isEmptyArray(consumptionsMDB)) {
       consumption = consumptionsMDB[0];
     }
     // Debug
@@ -355,7 +355,7 @@ export default class ConsumptionStorage {
     });
     // Read DB
     const consumptionsMDB = await global.database.getCollection<Consumption>(tenant.id, 'consumptions')
-      .aggregate(aggregation, { allowDiskUse: true })
+      .aggregate<Consumption>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getSiteAreaConsumptions', uniqueTimerID, consumptionsMDB);
@@ -449,7 +449,7 @@ export default class ConsumptionStorage {
     DatabaseUtils.projectFields(aggregation, projectFields, ['_id']);
     // Read DB
     const consumptionsMDB = await global.database.getCollection<Consumption>(tenant.id, 'consumptions')
-      .aggregate(aggregation, { allowDiskUse: true })
+      .aggregate<Consumption>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getSiteAreaChargingStationConsumptions', uniqueTimerID, consumptionsMDB);
@@ -502,7 +502,7 @@ export default class ConsumptionStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const consumptionsMDB = await global.database.getCollection<Consumption>(tenant.id, 'consumptions')
-      .aggregate(aggregation, { allowDiskUse: true })
+      .aggregate<Consumption>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getTransactionConsumptions', uniqueTimerID, consumptionsMDB);
@@ -541,9 +541,9 @@ export default class ConsumptionStorage {
     let consumption: Consumption = null;
     // Read DB
     const consumptionsMDB = await global.database.getCollection<Consumption>(tenant.id, 'consumptions')
-      .aggregate(aggregation, { allowDiskUse: true })
+      .aggregate<Consumption>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
-    if (consumptionsMDB && consumptionsMDB.length > 0) {
+    if (!Utils.isEmptyArray(consumptionsMDB)) {
       consumption = consumptionsMDB[0];
     }
     // Debug
@@ -588,7 +588,7 @@ export default class ConsumptionStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const consumptionsMDB = await global.database.getCollection<any>(tenant.id, 'consumptions')
-      .aggregate(aggregation, { allowDiskUse: true })
+      .aggregate(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // TODO: Handle this coding into MongoDB request
     const consumptions: Consumption[] = [];

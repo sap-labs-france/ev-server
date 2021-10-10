@@ -123,8 +123,8 @@ export default class StatisticsStorage {
       $sort: { 'month': 1, 'unit': 1, 'chargeBox': 1 }
     });
     // Read DB
-    const chargingStationStatsMDB = await global.database.getCollection<any>(tenant.id, 'transactions')
-      .aggregate(aggregation, { allowDiskUse: true })
+    const chargingStationStatsMDB = await global.database.getCollection<ChargingStationStats>(tenant.id, 'transactions')
+      .aggregate<ChargingStationStats>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getChargingStationStats', uniqueTimerID, chargingStationStatsMDB);
@@ -253,8 +253,8 @@ export default class StatisticsStorage {
       $sort: { 'month': 1, 'unit': 1, 'userID': 1 } // Instead of chargeBox userID ?
     });
     // Read DB
-    const userStatsMDB = await global.database.getCollection<any>(tenant.id, 'transactions')
-      .aggregate(aggregation, { allowDiskUse: true })
+    const userStatsMDB = await global.database.getCollection<UserStats>(tenant.id, 'transactions')
+      .aggregate<UserStats>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getUserStats', uniqueTimerID, userStatsMDB);

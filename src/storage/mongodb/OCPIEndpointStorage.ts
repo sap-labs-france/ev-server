@@ -1,4 +1,4 @@
-import global, { FilterParams } from '../../types/GlobalType';
+import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
@@ -126,7 +126,7 @@ export default class OCPIEndpointStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const ocpiEndpointsCountMDB = await global.database.getCollection<any>(tenant.id, 'ocpiendpoints')
+    const ocpiEndpointsCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'ocpiendpoints')
       .aggregate([...aggregation, { $count: 'count' }])
       .toArray();
     // Check if only the total count is requested
@@ -162,9 +162,7 @@ export default class OCPIEndpointStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const ocpiEndpointsMDB = await global.database.getCollection<OCPIEndpoint>(tenant.id, 'ocpiendpoints')
-      .aggregate(aggregation, {
-        allowDiskUse: true
-      })
+      .aggregate<OCPIEndpoint>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getOcpiEndpoints', uniqueTimerID, ocpiEndpointsMDB);

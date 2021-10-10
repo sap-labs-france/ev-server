@@ -16,7 +16,7 @@ export default class MigrationStorage {
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Read DB
     const migrationsMDB = await global.database.getCollection<Migration>(Constants.DEFAULT_TENANT, 'migrations')
-      .aggregate(aggregation)
+      .aggregate<Migration>(aggregation)
       .toArray();
     // Debug
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getMigrations', uniqueTimerID, migrationsMDB);

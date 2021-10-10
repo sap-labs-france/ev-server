@@ -51,16 +51,18 @@ export default class Logging {
     let executionDurationMillis: number;
     let found = false;
     if (Logging.traceCalls[key]) {
-      executionDurationMillis = (new Date().getTime() - Logging.traceCalls[key]);
+      executionDurationMillis = new Date().getTime() - Logging.traceCalls[key];
       delete Logging.traceCalls[key];
       found = true;
+    } else {
+      console.warn(chalk.yellow(`DB Trace key '${key}' not found`));
     }
     const sizeOfDataKB = Utils.truncTo(sizeof(data) / 1024, 2);
     const numberOfRecords = Array.isArray(data) ? data.length : 0;
     const message = `${module}.${method} ${found ? '- ' + executionDurationMillis.toString() + 'ms' : ''} ${!Utils.isEmptyJSon(data) ? '- ' + sizeOfDataKB.toString() + 'KB' : ''} ${Array.isArray(data) ? '- ' + numberOfRecords.toString() + ' rec(s)' : ''}`;
     Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
     if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
-      const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}KB, got ${sizeOfDataKB}KB`);
+      const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}KB, got ${sizeOfDataKB}KB (${Object.keys(Logging.traceCalls).length} keys)`);
       await Logging.logWarning({
         tenantID,
         source: Constants.CENTRAL_SERVER,
@@ -71,14 +73,14 @@ export default class Logging {
       });
       if (Utils.isDevelopmentEnv()) {
         console.warn(chalk.yellow('===================================='));
-        console.warn(chalk.yellow(`Tenant ID '${tenantID}'`));
+        console.warn(chalk.yellow(`Tenant ID '${tenantID}' (${Object.keys(Logging.traceCalls).length} keys)`));
         console.warn(chalk.yellow(error));
         console.warn(chalk.yellow(message));
         console.warn(chalk.yellow('===================================='));
       }
     }
     if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
-      const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms, got ${executionDurationMillis} ms`);
+      const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms, got ${executionDurationMillis} ms (${Object.keys(Logging.traceCalls).length} keys)`);
       await Logging.logWarning({
         tenantID,
         source: Constants.CENTRAL_SERVER,
@@ -89,7 +91,7 @@ export default class Logging {
       });
       if (Utils.isDevelopmentEnv()) {
         console.warn(chalk.yellow('===================================='));
-        console.warn(chalk.yellow(`Tenant ID '${tenantID}'`));
+        console.warn(chalk.yellow(`Tenant ID '${tenantID}' (${Object.keys(Logging.traceCalls).length} keys)`));
         console.warn(chalk.yellow(error));
         console.warn(chalk.yellow(message));
         console.warn(chalk.yellow('===================================='));
@@ -983,7 +985,7 @@ export default class Logging {
     const message = `${direction} OCPP Request '${action}' on '${chargingStationID}' has been processed ${found ? 'in ' + executionDurationMillis.toString() + 'ms' : ''}`;
     Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
     if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
-      const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms, got ${executionDurationMillis} ms`);
+      const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms, got ${executionDurationMillis} ms (${Object.keys(Logging.traceCalls).length} keys)`);
       await Logging.logWarning({
         tenantID,
         source: Constants.CENTRAL_SERVER,
@@ -1000,7 +1002,7 @@ export default class Logging {
         console.warn(chalk.yellow('===================================='));
       }
     }
-    if (detailedMessages && detailedMessages['status'] && detailedMessages['status'] === OCPPStatus.REJECTED) {
+    if (detailedMessages && detailedMessages['status'] === OCPPStatus.REJECTED) {
       await Logging.logError({
         tenantID,
         source: chargingStationID,

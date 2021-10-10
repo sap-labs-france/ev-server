@@ -1,4 +1,4 @@
-import global, { FilterParams } from '../../types/GlobalType';
+import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
@@ -71,8 +71,8 @@ export default class NotificationStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const notificationsCountMDB = await global.database.getCollection<any>(tenant.id, 'notifications')
-      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
+    const notificationsCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'notifications')
+      .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
@@ -112,10 +112,8 @@ export default class NotificationStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const notificationsMDB = await global.database.getCollection<any>(tenant.id, 'notifications')
-      .aggregate(aggregation, {
-        allowDiskUse: true
-      })
+    const notificationsMDB = await global.database.getCollection<Notification>(tenant.id, 'notifications')
+      .aggregate<Notification>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getNotifications', uniqueTimerID, notificationsMDB);

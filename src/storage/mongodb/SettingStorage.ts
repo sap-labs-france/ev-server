@@ -1,6 +1,6 @@
 import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSetting, BillingSettings, BillingSettingsType, CarConnectorSetting, CarConnectorSettings, CarConnectorSettingsType, CryptoSetting, CryptoSettings, CryptoSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType, TechnicalSettings, UserSettings, UserSettingsType } from '../../types/Setting';
 import Tenant, { TenantComponents } from '../../types/Tenant';
-import global, { FilterParams } from '../../types/GlobalType';
+import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
@@ -378,8 +378,8 @@ export default class SettingStorage {
       });
     }
     // Count Records
-    const settingsCountMDB = await global.database.getCollection<any>(tenant.id, 'settings')
-      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
+    const settingsCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'settings')
+      .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenant.id, aggregation);
@@ -404,9 +404,7 @@ export default class SettingStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const settingsMDB = await global.database.getCollection<SettingDB>(tenant.id, 'settings')
-      .aggregate(aggregation, {
-        allowDiskUse: true
-      })
+      .aggregate<SettingDB>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getSettings', uniqueTimerID, settingsMDB);

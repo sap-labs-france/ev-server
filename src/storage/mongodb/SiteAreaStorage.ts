@@ -1,4 +1,4 @@
-import global, { FilterParams, Image } from '../../types/GlobalType';
+import global, { DatabaseCount, FilterParams, Image } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
@@ -220,8 +220,8 @@ export default class SiteAreaStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const siteAreasCountMDB = await global.database.getCollection<DataResult<SiteArea>>(tenant.id, 'siteareas')
-      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
+    const siteAreasCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'siteareas')
+      .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
@@ -296,9 +296,7 @@ export default class SiteAreaStorage {
     }
     // Read DB
     const siteAreasMDB = await global.database.getCollection<SiteArea>(tenant.id, 'siteareas')
-      .aggregate(aggregation, {
-        allowDiskUse: true
-      })
+      .aggregate<SiteArea>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     const siteAreas: SiteArea[] = [];
     // TODO: Handle this coding into the MongoDB request

@@ -1,4 +1,4 @@
-import global, { FilterParams } from '../../types/GlobalType';
+import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
@@ -116,7 +116,7 @@ export default class OICPEndpointStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const oicpEndpointsCountMDB = await global.database.getCollection<any>(tenant.id, 'oicpendpoints')
+    const oicpEndpointsCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'oicpendpoints')
       .aggregate([...aggregation, { $count: 'count' }])
       .toArray();
     // Check if only the total count is requested
@@ -151,10 +151,8 @@ export default class OICPEndpointStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const oicpEndpointsMDB = await global.database.getCollection<any>(tenant.id, 'oicpendpoints')
-      .aggregate(aggregation, {
-        allowDiskUse: true
-      })
+    const oicpEndpointsMDB = await global.database.getCollection<OICPEndpoint>(tenant.id, 'oicpendpoints')
+      .aggregate<OICPEndpoint>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getOicpEndpoints', uniqueTimerID, oicpEndpointsMDB);
