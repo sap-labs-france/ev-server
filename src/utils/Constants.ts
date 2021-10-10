@@ -23,6 +23,7 @@ export default class Constants {
   public static readonly AMPERAGE_DETECTION_THRESHOLD = 0.5;
 
   public static readonly DB_RECORD_COUNT_DEFAULT = 100;
+  public static readonly DB_RECORD_COUNT_MAX_PAGE_LIMIT = 1000;
   public static readonly DB_RECORD_COUNT_CEIL = 500;
   public static readonly DB_RECORD_COUNT_NO_LIMIT = Number.MAX_SAFE_INTEGER;
   public static readonly DB_UNDETERMINED_NBR_OF_RECORDS = -1;
@@ -296,8 +297,8 @@ export default class Constants {
   public static readonly WS_DEFAULT_RECONNECT_MAX_RETRIES = -1;
   public static readonly WS_DEFAULT_RECONNECT_TIMEOUT = 30; // Seconds
   public static readonly WS_CONNECTION_URL_RE = new RegExp(['^(?:(?:ws|wss)://)(?:\\S+)\\/(?:\\S+)\\/',
-    '(?:[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\\/',
-    '([0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\\/',
+    '(?:[0-9a-f]{24})\\/',
+    '([0-9a-f]{24})\\/',
     '(?:\\S+)$'].join(''), 'ig');
 
   public static readonly OCPP_SOCKET_TIMEOUT = 30000; // 30 sec
@@ -310,6 +311,9 @@ export default class Constants {
   public static readonly REGEX_VALIDATION_LONGITUDE = /^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/;
   public static readonly REGEX_URL_PATTERN = /^(?:https?|wss?):\/\/((?:[\w-]+)(?:\.[\w-]+)*)(?:[\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?$/;
   public static readonly MAX_GPS_DISTANCE_METERS = 40000000; // Earth
+
+  public static readonly CSV_CHARACTERS_TO_ESCAPE = /^[+\-@=].*$/;
+  public static readonly CSV_ESCAPING_CHARACTER = '\'';
 
   public static readonly EXCEPTION_JSON_KEYS_IN_SENSITIVE_DATA = Object.freeze([
     'stack'

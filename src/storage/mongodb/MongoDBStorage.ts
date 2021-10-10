@@ -113,6 +113,10 @@ export default class MongoDBStorage {
       { fields: { userID: 1, issuer: 1 } },
       { fields: { _id: 'text', description: 'text', visualID: 'text' } },
     ]);
+    // Tags Import
+    await this.handleIndexesInCollection(tenantID, 'importedtags', [
+      { fields: { visualID: 1 }, options: { unique: true } }
+    ]);
     // Sites/Users
     await this.handleIndexesInCollection(tenantID, 'siteusers', [
       { fields: { siteID: 1, userID: 1 }, options: { unique: true } },

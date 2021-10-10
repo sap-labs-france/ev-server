@@ -28,7 +28,6 @@ import sizeof from 'object-sizeof';
 const MODULE_NAME = 'Logging';
 
 export default class Logging {
-  private static traceCalls: { [key: string]: number } = {};
   private static loggingConfig: LoggingConfiguration;
 
   public static getConfiguration(): LoggingConfiguration {
@@ -38,26 +37,16 @@ export default class Logging {
     return this.loggingConfig;
   }
 
-  // Debug DB
-  public static traceStart(tenantID: string, module: string, method: string): string {
-    const key = `${tenantID}~${module}~${method}~${Utils.generateUUID()}`;
-    Logging.traceCalls[key] = new Date().getTime();
-    return key;
+  public static traceDatabaseRequestStart(): number {
+    return Date.now();
   }
 
-  // Debug DB
-  public static async traceEnd(tenantID: string, module: string, method: string, key: string, data: any = {}): Promise<void> {
+  public static async traceDatabaseRequestEnd(tenantID: string, module: string, method: string, timeStartMillis: number, data: any = {}): Promise<void> {
     // Compute duration if provided
-    let executionDurationMillis: number;
-    let found = false;
-    if (Logging.traceCalls[key]) {
-      executionDurationMillis = (new Date().getTime() - Logging.traceCalls[key]);
-      delete Logging.traceCalls[key];
-      found = true;
-    }
+    const executionDurationMillis = new Date().getTime() - timeStartMillis;
     const sizeOfDataKB = Utils.truncTo(sizeof(data) / 1024, 2);
     const numberOfRecords = Array.isArray(data) ? data.length : 0;
-    const message = `${module}.${method} ${found ? '- ' + executionDurationMillis.toString() + 'ms' : ''} ${!Utils.isEmptyJSon(data) ? '- ' + sizeOfDataKB.toString() + 'KB' : ''} ${Array.isArray(data) ? '- ' + numberOfRecords.toString() + ' rec(s)' : ''}`;
+    const message = `${module}.${method} - ${executionDurationMillis.toString()} ms - ${sizeOfDataKB.toString()} KB - ${numberOfRecords.toString()} rec(s)`;
     Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
     if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
       const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}KB, got ${sizeOfDataKB}KB`);
@@ -103,7 +92,7 @@ export default class Logging {
         sizeKb: sizeOfDataKB,
         source: Constants.DATABASE_SERVER,
         module, method,
-        action: key,
+        action: `${module}.${method}`
       })
     );
   }
@@ -514,45 +503,6 @@ export default class Logging {
     });
   }
 
-  public static async logChargingStationClientSendAction(module: string, tenantID: string, chargeBoxID: string,
-      chargingStationDetails: {
-        siteID: string,
-        siteAreaID: string,
-        companyID: string,
-      },action: ServerAction, args: any): Promise<void> {
-    await this.traceChargingStationActionStart(module, tenantID, chargeBoxID, action, args, '<<', chargingStationDetails);
-  }
-
-  public static async logChargingStationClientReceiveAction(module: string, tenantID: string, chargeBoxID: string,
-      chargingStationDetails: {
-        siteID: string,
-        siteAreaID: string,
-        companyID: string,
-      },
-      action: ServerAction, detailedMessages: any): Promise<void> {
-    await this.traceChargingStationActionEnd(module, tenantID, chargeBoxID, action, detailedMessages, '>>', chargingStationDetails);
-  }
-
-  public static async logChargingStationServerReceiveAction(module: string, tenantID: string, chargeBoxID: string,
-      chargingStationDetails: {
-        siteID: string,
-        siteAreaID: string,
-        companyID: string,
-      },
-      action: ServerAction, payload: any): Promise<void> {
-    await this.traceChargingStationActionStart(module, tenantID, chargeBoxID, action, payload, '>>', chargingStationDetails);
-  }
-
-  public static async logChargingStationServerRespondAction(module: string, tenantID: string, chargeBoxID: string,
-      chargingStationDetails: {
-        siteID: string,
-        siteAreaID: string,
-        companyID: string,
-      },
-      action: ServerAction, detailedMessages: any): Promise<void> {
-    await this.traceChargingStationActionEnd(module, tenantID, chargeBoxID, action, detailedMessages, '<<', chargingStationDetails);
-  }
-
   // Used to log exception in catch(...) only
   public static async logException(error: Error, action: ServerAction, source: string,
       module: string, method: string, tenantID: string, user?: UserToken | User | string): Promise<void> {
@@ -615,6 +565,91 @@ export default class Logging {
       'message': Utils.hideShowMessage(exception.message)
     });
     next();
+  }
+
+  public static async traceChargingStationActionStart(module: string, tenantID: string, chargeBoxID: string,
+      action: ServerAction, args: any, direction: '<<' | '>>', chargingStationDetails: {
+        siteID: string,
+        siteAreaID: string,
+        companyID: string,
+      }): Promise<number> {
+    const message = `${direction} OCPP Request '${action}' ${direction === '>>' ? 'received' : 'sent'}`;
+    Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
+    await Logging.logDebug({
+      tenantID: tenantID,
+      source: chargeBoxID,
+      chargingStationID: chargeBoxID,
+      siteAreaID: chargingStationDetails.siteAreaID,
+      siteID: chargingStationDetails.siteID,
+      companyID: chargingStationDetails.companyID,
+      module: module, method: action, action,
+      message,
+      detailedMessages: { args }
+    });
+    return Date.now();
+  }
+
+  public static async traceChargingStationActionEnd(module: string, tenantID: string, chargingStationID: string,
+      action: ServerAction, detailedMessages: any, direction: '<<' | '>>', chargingStationDetails: {
+        siteID: string,
+        siteAreaID: string,
+        companyID: string,
+      }, startTimestamp: number): Promise<void> {
+    // Compute duration if provided
+    const executionDurationMillis = startTimestamp ? Date.now() - startTimestamp : 0;
+    const message = `${direction} OCPP Request '${action}' on '${chargingStationID}' has been processed ${executionDurationMillis ? 'in ' + executionDurationMillis.toString() + ' ms' : ''}`;
+    Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
+    if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
+      const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms, got ${executionDurationMillis} ms`);
+      await Logging.logWarning({
+        tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.PERFORMANCES,
+        module, method: 'traceChargingStationActionEnd',
+        message: `${message}: ${error.message}`,
+        detailedMessages: { error: error.stack }
+      });
+      if (Utils.isDevelopmentEnv()) {
+        console.warn(chalk.yellow('===================================='));
+        console.warn(chalk.yellow(`Tenant ID '${tenantID}'`));
+        console.warn(chalk.yellow(error));
+        console.warn(chalk.yellow(message));
+        console.warn(chalk.yellow('===================================='));
+      }
+    }
+    if (detailedMessages && detailedMessages['status'] === OCPPStatus.REJECTED) {
+      await Logging.logError({
+        tenantID,
+        source: chargingStationID,
+        chargingStationID: chargingStationID,
+        siteID: chargingStationDetails.siteID,
+        siteAreaID: chargingStationDetails.siteAreaID,
+        companyID: chargingStationDetails.companyID,
+        module, method: action, action,
+        message, detailedMessages
+      });
+    } else {
+      await Logging.logDebug({
+        tenantID,
+        source: chargingStationID,
+        chargingStationID: chargingStationID,
+        siteID: chargingStationDetails.siteID,
+        siteAreaID: chargingStationDetails.siteAreaID,
+        companyID: chargingStationDetails.companyID,
+        module, method: action, action,
+        message, detailedMessages
+      });
+    }
+    Utils.isDevelopmentEnv() && await PerformanceStorage.savePerformanceRecord(
+      Utils.buildPerformanceRecord({
+        tenantID, chargingStationID,
+        group: PerformanceRecordGroup.OCPP,
+        durationMs: executionDurationMillis,
+        source: Constants.OCPP_SERVER,
+        module: module, method: 'traceChargingStationActionEnd',
+        action,
+      })
+    );
   }
 
   private static async _logActionExceptionMessage(tenantID: string, action: ServerAction, exception: any, detailedMessages = {}): Promise<void> {
@@ -852,7 +887,9 @@ export default class Logging {
   private static async anonymizeSensitiveData(message: any): Promise<any> {
     if (!message || typeof message === 'number' || typeof message === 'bigint' || typeof message === 'symbol' || Utils.isBoolean(message) || typeof message === 'function') {
       return message;
-    } else if (typeof message === 'string') { // If the message is a string
+    }
+    // If the message is a string
+    if (typeof message === 'string') {
       // Check if message is matching a WS connection URL having a registration token
       const matchingURLParts = Constants.WS_CONNECTION_URL_RE.exec(message);
       if (!Utils.isEmptyArray(matchingURLParts)) {
@@ -867,30 +904,36 @@ export default class Logging {
           const queryParamKeyParts = queryParamKey.split('?');
           queryParamKey = queryParamKeyParts.length > 1 ? queryParamKeyParts[1] : queryParamKeyParts[0];
           for (const sensitiveData of Constants.SENSITIVE_DATA) {
-            if (queryParamKey.toLowerCase() === sensitiveData.toLowerCase()) {
+            if (queryParamKey.toLowerCase().startsWith(sensitiveData.toLocaleLowerCase())) {
+              // Find position of sensitive data
+              const posSensitiveData = dataPart.toLowerCase().search(sensitiveData.toLowerCase());
               // Anonymize each query string part
-              dataParts[i] = dataPart.substring(0, sensitiveData.length + 1) + Constants.ANONYMIZED_VALUE;
+              dataParts[i] = dataPart.substring(0, posSensitiveData + sensitiveData.length + 1) + Constants.ANONYMIZED_VALUE;
             }
           }
         }
         message = dataParts.join('&');
         return message;
       }
-      // Check if the message is a string classified as sensitive data
+      // Check if the message is a string which contains sensitive data
       for (const sensitiveData of Constants.SENSITIVE_DATA) {
-        if (message.toLowerCase() === sensitiveData.toLowerCase()) {
+        if (message.toLowerCase().indexOf(sensitiveData.toLowerCase()) !== -1) {
           // Anonymize the message
           return Constants.ANONYMIZED_VALUE;
         }
       }
       return message;
-    } else if (Array.isArray(message)) { // If the message is an array, apply the anonymizeSensitiveData function for each item
+    }
+    // If the message is an array, apply the anonymizeSensitiveData function for each item
+    if (Array.isArray(message)) {
       const anonymizedMessage = [];
       for (const item of message) {
         anonymizedMessage.push(await Logging.anonymizeSensitiveData(item));
       }
       return anonymizedMessage;
-    } else if (typeof message === 'object') { // If the message is an object
+    }
+    // If the message is an object
+    if (typeof message === 'object') {
       for (const key of Object.keys(message)) {
         // Ignore
         if (Constants.EXCEPTION_JSON_KEYS_IN_SENSITIVE_DATA.includes(key)) {
@@ -915,6 +958,7 @@ export default class Logging {
       message: 'No matching object type for log message anonymisation',
       detailedMessages: { message }
     });
+    return null;
   }
 
   // Log
@@ -930,99 +974,5 @@ export default class Logging {
       case LogLevel.ERROR:
         return 'error';
     }
-  }
-
-  private static async traceChargingStationActionStart(module: string, tenantID: string, chargeBoxID: string,
-      action: ServerAction, args: any, direction: '<<' | '>>', chargingStationDetails: {
-        siteID: string,
-        siteAreaID: string,
-        companyID: string,
-      }): Promise<void> {
-    // Keep duration (only for one Action per Charging Station)
-    // If 2 Actions for the same Charging Station arrive at the same time, the second one will not have response time measured
-    Logging.traceCalls[`${chargeBoxID}~${action}`] = new Date().getTime();
-    const message = `${direction} OCPP Request '${action}' ${direction === '>>' ? 'received' : 'sent'}`;
-    Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
-    await Logging.logDebug({
-      tenantID: tenantID,
-      source: chargeBoxID,
-      chargingStationID: chargeBoxID,
-      siteAreaID: chargingStationDetails.siteAreaID,
-      siteID: chargingStationDetails.siteID,
-      companyID: chargingStationDetails.companyID,
-      module: module, method: action, action,
-      message,
-      detailedMessages: { args }
-    });
-  }
-
-  private static async traceChargingStationActionEnd(module: string, tenantID: string, chargingStationID: string,
-      action: ServerAction, detailedMessages: any, direction: '<<' | '>>', chargingStationDetails: {
-        siteID: string,
-        siteAreaID: string,
-        companyID: string,
-      }): Promise<void> {
-    // Compute duration if provided
-    let executionDurationMillis: number;
-    let found = false;
-    // Get the response time
-    if (Logging.traceCalls[`${chargingStationID}~${action}`]) {
-      executionDurationMillis = (new Date().getTime() - Logging.traceCalls[`${chargingStationID}~${action}`]);
-      delete Logging.traceCalls[`${chargingStationID}~${action}`];
-      found = true;
-    }
-    const message = `${direction} OCPP Request '${action}' on '${chargingStationID}' has been processed ${found ? 'in ' + executionDurationMillis.toString() + 'ms' : ''}`;
-    Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
-    if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
-      const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms, got ${executionDurationMillis} ms`);
-      await Logging.logWarning({
-        tenantID,
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.PERFORMANCES,
-        module, method: 'traceChargingStationActionEnd',
-        message: `${message}: ${error.message}`,
-        detailedMessages: { error: error.stack }
-      });
-      if (Utils.isDevelopmentEnv()) {
-        console.warn(chalk.yellow('===================================='));
-        console.warn(chalk.yellow(`Tenant ID '${tenantID}'`));
-        console.warn(chalk.yellow(error));
-        console.warn(chalk.yellow(message));
-        console.warn(chalk.yellow('===================================='));
-      }
-    }
-    if (detailedMessages && detailedMessages['status'] && detailedMessages['status'] === OCPPStatus.REJECTED) {
-      await Logging.logError({
-        tenantID,
-        source: chargingStationID,
-        chargingStationID: chargingStationID,
-        siteID: chargingStationDetails.siteID,
-        siteAreaID: chargingStationDetails.siteAreaID,
-        companyID: chargingStationDetails.companyID,
-        module, method: action, action,
-        message, detailedMessages
-      });
-    } else {
-      await Logging.logDebug({
-        tenantID,
-        source: chargingStationID,
-        chargingStationID: chargingStationID,
-        siteID: chargingStationDetails.siteID,
-        siteAreaID: chargingStationDetails.siteAreaID,
-        companyID: chargingStationDetails.companyID,
-        module, method: action, action,
-        message, detailedMessages
-      });
-    }
-    Utils.isDevelopmentEnv() && await PerformanceStorage.savePerformanceRecord(
-      Utils.buildPerformanceRecord({
-        tenantID, chargingStationID,
-        group: PerformanceRecordGroup.OCPP,
-        durationMs: executionDurationMillis,
-        source: Constants.OCPP_SERVER,
-        module: module, method: 'traceChargingStationActionEnd',
-        action,
-      })
-    );
   }
 }

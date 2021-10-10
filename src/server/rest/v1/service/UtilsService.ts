@@ -968,6 +968,8 @@ export default class UtilsService {
       // Get the data
       req.query.Skip = skip.toString();
       data = await handleGetData(req);
+      // Sanitize against csv formula injection
+      data.result = await Utils.sanitizeCSVExport(data.result, req.tenant?.id);
       // Get CSV data
       const csvData = handleConvertToCSV(req, data.result, (skip === 0));
       // Send Transactions

@@ -28,9 +28,7 @@ import _ from 'lodash';
 import bcrypt from 'bcryptjs';
 import cfenv from 'cfenv';
 import chalk from 'chalk';
-import cluster from 'cluster';
 import fs from 'fs';
-import global from '../types/GlobalType';
 import http from 'http';
 import moment from 'moment';
 import os from 'os';
@@ -872,6 +870,10 @@ export default class Utils {
     return !Object.keys(obj).length;
   }
 
+  public static isNullOrEmptyString(str: string): boolean {
+    return str ? str.length === 0 : true;
+  }
+
   public static findDuplicatesInArray(arr: any[]): any[] {
     const sorted_arr = arr.slice().sort();
     const results: any[] = [];
@@ -1508,12 +1510,29 @@ export default class Utils {
     return PerformanceRecordGroup.UNKNOWN;
   }
 
+  public static serializeOriginalSchema(originalSchema: Record<string, unknown>): string {
+    // Check for schema missing vars
+    if (Utils.isDevelopmentEnv()) {
+      return JSON.stringify(originalSchema);
+    }
+  }
+
+  public static checkOriginalSchema(originalSchema: string, validatedSchema: Record<string, unknown>): void {
+    const validatedSchemaStr = JSON.stringify(validatedSchema);
+    if (Utils.isDevelopmentEnv() && originalSchema !== validatedSchemaStr) {
+      console.error(chalk.red('Data changed after schema validation'));
+      console.error(chalk.red('Original Data:'));
+      console.error(chalk.red(originalSchema));
+      console.error(chalk.red('Validated Data:'));
+      console.error(chalk.red(validatedSchemaStr));
+    }
+  }
+
   public static buildPerformanceRecord(params: {
     tenantID: string; durationMs: number; sizeKb?: number; source?: string;
     module: string; method: string; action: ServerAction|string; group?: PerformanceRecordGroup;
     httpUrl?: string; httpMethod?: string; httpCode?: number; chargingStationID?: string,
   }): PerformanceRecord {
-    const cpuInfo = os.cpus();
     return {
       tenantID: params.tenantID,
       timestamp: new Date(),
@@ -1546,5 +1565,43 @@ export default class Utils {
   // when importing values
   public static unescapeCsvValue(value: any): void {
     // double quotes are handle by csvToJson
+  }
+
+  public static async sanitizeCSVExport(data: any, tenantID: string): Promise<any> {
+    if (!data || typeof data === 'number' || typeof data === 'bigint' || typeof data === 'symbol' || Utils.isBoolean(data) || typeof data === 'function') {
+      return data;
+    }
+    // If the data is a string and starts with the csv characters initiating the formula parsing, then escape
+    if (typeof data === 'string') {
+      if (!Utils.isNullOrEmptyString(data)) {
+        data = data.replace(Constants.CSV_CHARACTERS_TO_ESCAPE, Constants.CSV_ESCAPING_CHARACTER + data);
+      }
+      return data;
+    }
+    // If the data is an array, apply the sanitizeCSVExport function for each item
+    if (Array.isArray(data)) {
+      const sanitizedData = [];
+      for (const item of data) {
+        sanitizedData.push(await Utils.sanitizeCSVExport(item, tenantID));
+      }
+      return sanitizedData;
+    }
+    // If the data is an object, apply the sanitizeCSVExport function for each attribute
+    if (typeof data === 'object') {
+      for (const key of Object.keys(data)) {
+        data[key] = await Utils.sanitizeCSVExport(data[key], tenantID);
+      }
+      return data;
+    }
+    // Log
+    await Logging.logSecurityError({
+      tenantID,
+      module: MODULE_NAME,
+      method: 'sanitizeCSVExport',
+      action: ServerAction.EXPORT_TO_CSV,
+      message: 'No matching object type for CSV data sanitization',
+      detailedMessages: { data }
+    });
+    return null;
   }
 }
