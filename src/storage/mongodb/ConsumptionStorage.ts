@@ -16,7 +16,7 @@ const MODULE_NAME = 'ConsumptionStorage';
 export default class ConsumptionStorage {
   static async saveConsumption(tenant: Tenant, consumptionToSave: Consumption): Promise<string> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'saveConsumption');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check
     DatabaseUtils.checkTenantObject(tenant);
     // Build
@@ -34,7 +34,7 @@ export default class ConsumptionStorage {
 
   static async saveConsumptions(tenant: Tenant, consumptionsToSave: Consumption[]): Promise<string[]> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'saveConsumptions');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check
     DatabaseUtils.checkTenantObject(tenant);
     const consumptionsMDB = [];
@@ -54,7 +54,7 @@ export default class ConsumptionStorage {
 
   static async deleteConsumptions(tenant: Tenant, transactionIDs: number[]): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'deleteConsumptions');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check
     DatabaseUtils.checkTenantObject(tenant);
     // DeleFte
@@ -66,7 +66,7 @@ export default class ConsumptionStorage {
 
   static async getAssetConsumptions(tenant: Tenant, params: { assetID: string; startDate: Date; endDate: Date }, projectFields?: string[]): Promise<Consumption[]> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'getAssetConsumptions');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check
     DatabaseUtils.checkTenantObject(tenant);
     // Create filters
@@ -146,7 +146,7 @@ export default class ConsumptionStorage {
 
   static async getLastAssetConsumption(tenant: Tenant, params: { assetID: string }): Promise<Consumption> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'getLastAssetConsumption');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check
     DatabaseUtils.checkTenantObject(tenant);
     // Create Aggregation
@@ -186,7 +186,7 @@ export default class ConsumptionStorage {
   static async getSiteAreaConsumptions(tenant: Tenant,
       params: { siteAreaID: string; startDate: Date; endDate: Date }): Promise<Consumption[]> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'getSiteAreaConsumptions');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check
     DatabaseUtils.checkTenantObject(tenant);
     // Create filters
@@ -366,7 +366,7 @@ export default class ConsumptionStorage {
       params: { siteAreaID: string; startDate: Date; endDate: Date }, dbParams: DbParams = Constants.DB_PARAMS_MAX_LIMIT,
       projectFields?: string[]): Promise<DataResult<Consumption>> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'getSiteAreaChargingStationConsumptions');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -462,7 +462,7 @@ export default class ConsumptionStorage {
   static async getTransactionConsumptions(tenant: Tenant, params: { transactionId: number },
       dbParams: DbParams = Constants.DB_PARAMS_MAX_LIMIT, projectFields?: string[]): Promise<DataResult<Consumption>> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'getTransactionConsumptions');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -514,7 +514,7 @@ export default class ConsumptionStorage {
 
   static async getLastTransactionConsumption(tenant: Tenant, params: { transactionId: number }): Promise<Consumption> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'getLastTransactionConsumption');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check
     DatabaseUtils.checkTenantObject(tenant);
     // Create Aggregation
@@ -553,7 +553,7 @@ export default class ConsumptionStorage {
 
   static async getOptimizedTransactionConsumptions(tenant: Tenant, params: { transactionId: number }, projectFields?: string[]): Promise<Consumption[]> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'getOptimizedTransactionConsumptions');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check
     DatabaseUtils.checkTenantObject(tenant);
     // Create Aggregation

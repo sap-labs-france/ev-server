@@ -13,7 +13,7 @@ const MODULE_NAME = 'ConnectionStorage';
 export default class ConnectionStorage {
 
   static async saveConnection(tenant: Tenant, connectionToSave: Connection): Promise<string> {
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'saveConnection');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Create
     const connectionMDB: any = {
@@ -35,7 +35,7 @@ export default class ConnectionStorage {
   }
 
   static async getConnectionByConnectorIdAndUserId(tenant: Tenant, connectorId: string, userId: string, projectFields?: string[]): Promise<Connection> {
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'getConnectionByConnectorIdAndUserId');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     const aggregation = [];
     aggregation.push({
@@ -60,7 +60,7 @@ export default class ConnectionStorage {
   }
 
   static async getConnectionsByUserId(tenant: Tenant, userID: string, projectFields?: string[]): Promise<DataResult<Connection>> {
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'getConnectionsByUserId');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     const aggregation = [];
     aggregation.push({
@@ -84,7 +84,7 @@ export default class ConnectionStorage {
   }
 
   static async getConnection(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID, projectFields?: string[]): Promise<Connection> {
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'getConnection');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     const aggregation = [];
     // Filters
@@ -111,25 +111,25 @@ export default class ConnectionStorage {
 
   static async deleteConnectionById(tenant: Tenant, id: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'deleteConnection');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check
     DatabaseUtils.checkTenantObject(tenant);
     // Delete
     await global.database.getCollection<Connection>(tenant.id, 'connections')
       .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'deleteConnection', uniqueTimerID, { id });
+    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'deleteConnectionById', uniqueTimerID, { id });
   }
 
   static async deleteConnectionByUserId(tenant: Tenant, userID: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'deleteConnectionByUser');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check
     DatabaseUtils.checkTenantObject(tenant);
     // Delete
     await global.database.getCollection<any>(tenant.id, 'connections')
       .deleteMany({ 'userId': DatabaseUtils.convertToObjectID(userID) });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'deleteConnectionByUser', uniqueTimerID, { userID });
+    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'deleteConnectionByUserId', uniqueTimerID, { userID });
   }
 }

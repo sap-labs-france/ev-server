@@ -15,7 +15,7 @@ const MODULE_NAME = 'RegistrationTokenStorage';
 export default class RegistrationTokenStorage {
   static async saveRegistrationToken(tenant: Tenant, registrationToken: RegistrationToken): Promise<string> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'saveRegistrationToken');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Set
@@ -43,7 +43,7 @@ export default class RegistrationTokenStorage {
       params: { tokenIDs?: string[]; siteIDs?: string[]; siteAreaID?: string } = {}, dbParams: DbParams, projectFields?: string[]):
       Promise<DataResult<RegistrationToken>> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'getRegistrationTokens');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -148,7 +148,7 @@ export default class RegistrationTokenStorage {
 
   static async deleteRegistrationToken(tenant: Tenant, id: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'deleteRegistrationToken');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     await global.database.getCollection<any>(tenant.id, 'registrationtokens')
       .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
     // Debug

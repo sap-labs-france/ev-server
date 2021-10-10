@@ -30,7 +30,7 @@ export default class SettingStorage {
 
   public static async saveSettings(tenant: Tenant, settingToSave: Partial<SettingDB>): Promise<string> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'saveSetting');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Check if ID is provided
@@ -65,7 +65,7 @@ export default class SettingStorage {
       { $set: settingMDB },
       { upsert: true, returnDocument: 'after' });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveSetting', uniqueTimerID, settingMDB);
+    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveSettings', uniqueTimerID, settingMDB);
     // Create
     return settingFilter._id.toString();
   }
@@ -350,7 +350,7 @@ export default class SettingStorage {
       params: {identifier?: string; settingID?: string, dateFrom?: Date, dateTo?: Date},
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SettingDB>> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'getSettings');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -417,7 +417,7 @@ export default class SettingStorage {
 
   public static async deleteSetting(tenant: Tenant, id: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'deleteSetting');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete Component

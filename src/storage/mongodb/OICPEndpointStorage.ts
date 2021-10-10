@@ -22,7 +22,7 @@ export default class OICPEndpointStorage {
 
   static async saveOicpEndpoint(tenant: Tenant, oicpEndpointToSave: OICPEndpoint): Promise<string> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'saveOicpEndpoint');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Check if name is provided
@@ -75,7 +75,7 @@ export default class OICPEndpointStorage {
       params: { search?: string; role?: string; oicpEndpointIDs?: string[]; localToken?: string },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<OICPEndpoint>> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'getOicpEndpoints');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -165,7 +165,7 @@ export default class OICPEndpointStorage {
 
   static async deleteOicpEndpoint(tenant: Tenant, id: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'deleteOicpEndpoint');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete OicpEndpoint
@@ -177,7 +177,7 @@ export default class OICPEndpointStorage {
 
   static async deleteOicpEndpoints(tenant: Tenant): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'deleteOicpEndpoints');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete OicpEndpoint

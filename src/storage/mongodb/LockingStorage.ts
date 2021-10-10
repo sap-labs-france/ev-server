@@ -13,7 +13,7 @@ const MODULE_NAME = 'LockingStorage';
 export default class LockingStorage {
   public static async getLocks(params: { lockIDs?: string[]; }, dbParams: DbParams): Promise<DataResult<Lock>> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'getLocks');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit
@@ -86,7 +86,7 @@ export default class LockingStorage {
 
   public static async insertLock(lockToSave: Lock): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'insertLock');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Transfer
     const lockMDB = {
       _id: lockToSave.id,
@@ -107,7 +107,7 @@ export default class LockingStorage {
 
   public static async deleteLock(lockToDelete: Lock): Promise<boolean> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'deleteLock');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Delete
     const result = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
       .findOneAndDelete({ '_id': lockToDelete.id });
@@ -118,7 +118,7 @@ export default class LockingStorage {
 
   public static async deleteLockByHostname(hostname:string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'deleteLockByHostname');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Delete
     const result = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
       .deleteMany({ 'hostname': hostname });

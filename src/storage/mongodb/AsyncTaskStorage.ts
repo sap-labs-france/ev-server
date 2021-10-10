@@ -22,7 +22,7 @@ export default class AsyncTaskStorage {
 
   public static async saveAsyncTask(asyncTaskToSave: AsyncTask): Promise<string> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveAsyncTask');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Set
     const asyncTaskMDB: any = {
       _id: asyncTaskToSave.id ? DatabaseUtils.convertToObjectID(asyncTaskToSave.id) : new ObjectId(),
@@ -56,7 +56,7 @@ export default class AsyncTaskStorage {
   public static async getAsyncTasks(params: { status?: AsyncTaskStatus, asyncTaskIDs?: string[] } = {},
       dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<AsyncTask>> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'getAsyncTasks');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit
@@ -137,7 +137,7 @@ export default class AsyncTaskStorage {
 
   public static async updateRunningAsyncTaskToPending(): Promise<number> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'updateRunningAsyncTaskToPending');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Delete the AsyncTask
     const result = await global.database.getCollection<AsyncTask>(Constants.DEFAULT_TENANT, 'asynctasks').updateMany(
       { 'status': AsyncTaskStatus.RUNNING },
@@ -150,7 +150,7 @@ export default class AsyncTaskStorage {
 
   public static async deleteAsyncTask(id: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'deleteAsyncTask');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Delete the AsyncTask
     await global.database.getCollection<AsyncTask>(Constants.DEFAULT_TENANT, 'asynctasks')
       .findOneAndDelete({ '_id': id });

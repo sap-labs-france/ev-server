@@ -28,7 +28,7 @@ export default class CarStorage {
       params: { search?: string; carCatalogIDs?: number[]; carMaker?: string[], withImage?: boolean; } = {},
       dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<CarCatalog>> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'getCarCatalogs');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit
@@ -143,7 +143,7 @@ export default class CarStorage {
 
   public static async saveCarCatalog(carToSave: CarCatalog): Promise<number> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveCarCatalog');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Build Request
     // Properties to save
     const carMDB: any = {
@@ -317,7 +317,7 @@ export default class CarStorage {
 
   public static async saveCarImage(carID: number, carImageToSave: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveCarImage');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Save new image
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogimages').findOneAndReplace(
       { _id: Cypher.hash(`${carImageToSave}~${carID}`), },
@@ -330,7 +330,7 @@ export default class CarStorage {
 
   public static async deleteCarImages(carID: number): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'deleteCarImages');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Delete car catalogs images
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogimages').deleteMany(
       { carID: Utils.convertToInt(carID) }
@@ -341,7 +341,7 @@ export default class CarStorage {
 
   public static async getCarCatalogImage(id: number): Promise<{ id: number; image: string }> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'getCarCatalogImage');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Read DB
     const carCatalogImageMDB = await global.database.getCollection<{ _id: number; image: string }>(Constants.DEFAULT_TENANT, 'carcatalogs')
       .findOne({ _id: id });
@@ -355,7 +355,7 @@ export default class CarStorage {
 
   public static async getCarCatalogImages(id: number = Constants.UNKNOWN_NUMBER_ID, dbParams?: DbParams): Promise<DataResult<Image>> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'getCarCatalogImages');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit
@@ -417,7 +417,7 @@ export default class CarStorage {
 
   public static async getCarMakers(params: { search?: string } = {}, projectFields?: string[]): Promise<DataResult<CarMaker>> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'getCarMakers');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Set the filters
     const filters: ({ $or?: any[] } | undefined) = {};
     if (params.search) {
@@ -474,7 +474,7 @@ export default class CarStorage {
 
   public static async saveCar(tenant: Tenant, carToSave: Car): Promise<string> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'saveCar');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Set
@@ -560,7 +560,7 @@ export default class CarStorage {
       dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Car>> {
     let withCarCatalog = true;
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'getCars');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit
@@ -721,7 +721,7 @@ export default class CarStorage {
   }
 
   public static async clearDefaultUserCar(tenant: Tenant, userID: string): Promise<void> {
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'clearDefaultUserCar');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     await global.database.getCollection<any>(tenant.id, 'cars').updateMany(
       {
@@ -736,7 +736,7 @@ export default class CarStorage {
 
   public static async deleteCar(tenant: Tenant, carID: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'deleteCar');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Delete singular site area
     await global.database.getCollection(tenant.id, 'cars')
       .deleteOne({ '_id': DatabaseUtils.convertToObjectID(carID) });

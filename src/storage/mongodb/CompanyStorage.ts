@@ -27,7 +27,7 @@ export default class CompanyStorage {
 
   public static async getCompanyLogo(tenant: Tenant, id: string): Promise<{ id: string; logo: string }> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'getCompanyLogo');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Read DB
@@ -43,7 +43,7 @@ export default class CompanyStorage {
 
   public static async saveCompany(tenant: Tenant, companyToSave: Company, saveLogo = true): Promise<string> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'saveCompany');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Set
@@ -87,7 +87,7 @@ export default class CompanyStorage {
         locCoordinates?: number[]; locMaxDistanceMeters?: number; } = {},
       dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Company>> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'getCompanies');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -223,7 +223,7 @@ export default class CompanyStorage {
 
   public static async deleteCompany(tenant: Tenant, id: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'deleteCompany');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete sites associated with Company
@@ -240,7 +240,7 @@ export default class CompanyStorage {
 
   private static async saveCompanyLogo(tenant: Tenant, companyID: string, companyLogoToSave: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'saveCompanyLogo');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Modify

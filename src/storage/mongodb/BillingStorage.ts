@@ -34,7 +34,7 @@ export default class BillingStorage {
       } = {},
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<BillingInvoice>> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'getInvoices');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -155,7 +155,7 @@ export default class BillingStorage {
 
   public static async saveInvoice(tenant: Tenant, invoiceToSave: BillingInvoice): Promise<string> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'saveInvoice');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Build Request
     // Properties to save
     const invoiceMDB: any = {
@@ -188,7 +188,7 @@ export default class BillingStorage {
 
   public static async updateInvoiceAdditionalData(tenant: Tenant, invoiceToUpdate: BillingInvoice, additionalData: BillingAdditionalData): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'saveInvoiceAdditionalData');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Preserve the previous list of sessions
@@ -210,7 +210,7 @@ export default class BillingStorage {
 
   public static async deleteInvoice(tenant: Tenant, id: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'deleteInvoice');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete the Invoice
@@ -222,13 +222,13 @@ export default class BillingStorage {
 
   public static async deleteInvoiceByInvoiceID(tenant: Tenant, id: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'deleteInvoice');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete the Invoice
     await global.database.getCollection<BillingInvoice>(tenant.id, 'invoices')
       .findOneAndDelete({ 'invoiceID': id });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'deleteInvoice', uniqueTimerID, { id });
+    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'deleteInvoiceByInvoiceID', uniqueTimerID, { id });
   }
 }

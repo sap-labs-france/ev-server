@@ -15,7 +15,7 @@ const MODULE_NAME = 'OCPPStorage';
 export default class OCPPStorage {
   public static async saveAuthorize(tenant: Tenant, authorize: OCPPAuthorizeRequestExtended): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'saveAuthorize');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     const timestamp = Utils.convertToDate(authorize.timestamp);
@@ -37,7 +37,7 @@ export default class OCPPStorage {
   public static async getAuthorizes(tenant: Tenant, params: {dateFrom?: Date; chargeBoxID?: string; tagID?: string},
       dbParams: DbParams): Promise<DataResult<OCPPAuthorizeRequestExtended>> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'getAuthorizes');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -104,7 +104,7 @@ export default class OCPPStorage {
 
   public static async saveHeartbeat(tenant: Tenant, heartbeat: OCPPHeartbeatRequestExtended): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'saveHeartbeat');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     const timestamp = Utils.convertToDate(heartbeat.timestamp);
@@ -124,7 +124,7 @@ export default class OCPPStorage {
       params: { dateFrom?: Date; chargeBoxID?: string; connectorId?: number; status?: string },
       dbParams: DbParams): Promise<DataResult<OCPPStatusNotificationRequestExtended>> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'getStatusNotifications');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -196,7 +196,7 @@ export default class OCPPStorage {
       params: { dateBefore?: string; chargeBoxID?: string; connectorId?: number; status?: string }):
       Promise<OCPPStatusNotificationRequestExtended[]> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'getLastStatusNotifications');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Set the filters
@@ -244,7 +244,7 @@ export default class OCPPStorage {
 
   public static async saveStatusNotification(tenant: Tenant, statusNotificationToSave: OCPPStatusNotificationRequestExtended): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'saveStatusNotification');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Set
     const timestamp = Utils.convertToDate(statusNotificationToSave.timestamp);
     // Check Tenant
@@ -270,7 +270,7 @@ export default class OCPPStorage {
 
   public static async saveDataTransfer(tenant: Tenant, dataTransfer: OCPPDataTransferRequestExtended): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'saveDataTransfer');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Set the ID
@@ -292,7 +292,7 @@ export default class OCPPStorage {
 
   public static async saveBootNotification(tenant: Tenant, bootNotification: OCPPBootNotificationRequestExtended): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'saveBootNotification');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Insert
@@ -318,7 +318,7 @@ export default class OCPPStorage {
   public static async getBootNotifications(tenant: Tenant, params: {chargeBoxID?: string},
       dbParams: DbParams): Promise<DataResult<OCPPBootNotificationRequestExtended>> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'getBootNotifications');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -377,7 +377,7 @@ export default class OCPPStorage {
 
   public static async saveDiagnosticsStatusNotification(tenant: Tenant, diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequestExtended): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'saveDiagnosticsStatusNotification');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     const timestamp = Utils.convertToDate(diagnosticsStatusNotification.timestamp);
@@ -396,7 +396,7 @@ export default class OCPPStorage {
 
   public static async saveFirmwareStatusNotification(tenant: Tenant, firmwareStatusNotification: OCPPFirmwareStatusNotificationRequestExtended): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'saveFirmwareStatusNotification');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Set the ID
@@ -416,7 +416,7 @@ export default class OCPPStorage {
 
   public static async saveMeterValues(tenant: Tenant, meterValuesToSave: OCPPNormalizedMeterValues): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'saveMeterValues');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check
     DatabaseUtils.checkTenantObject(tenant);
     // Save all
@@ -456,7 +456,7 @@ export default class OCPPStorage {
   public static async getMeterValues(tenant: Tenant, params: { transactionId: number },
       dbParams: DbParams): Promise<DataResult<OCPPNormalizedMeterValue>> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'getMeterValues');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values

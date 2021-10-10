@@ -18,7 +18,7 @@ export default class NotificationStorage {
         sourceDescr?: string; additionalFilters?: any; chargeBoxID?: string },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Notification>> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'getNotifications');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -126,7 +126,7 @@ export default class NotificationStorage {
 
   static async saveNotification(tenant: Tenant, notificationToSave: Partial<Notification>): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'saveNotification');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     const ocpiEndpointMDB: any = {

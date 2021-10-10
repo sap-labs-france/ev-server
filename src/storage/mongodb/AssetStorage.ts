@@ -25,7 +25,7 @@ export default class AssetStorage {
 
   public static async getAssetImage(tenant: Tenant, id: string): Promise<{ id: string; image: string }> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'getAssetImage');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Read DB
@@ -41,7 +41,7 @@ export default class AssetStorage {
 
   public static async saveAsset(tenant: Tenant, assetToSave: Asset, saveImage = true): Promise<string> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'saveAsset');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Set
@@ -106,7 +106,7 @@ export default class AssetStorage {
         withNoSiteArea?: boolean; dynamicOnly?: boolean; issuer?: boolean; } = {},
       dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Asset>> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'getAssets');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -226,7 +226,7 @@ export default class AssetStorage {
       params: { search?: string; siteAreaIDs?: string[]; siteIDs?: string[]; errorType?: string[]; issuer?: boolean } = {},
       dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Asset>> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'getAssetsInError');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -311,7 +311,7 @@ export default class AssetStorage {
 
   public static async deleteAsset(tenant: Tenant, id: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'deleteAsset');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete the Asset
@@ -326,7 +326,7 @@ export default class AssetStorage {
 
   private static async saveAssetImage(tenant: Tenant, assetID: string, assetImageToSave: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart(tenant.id, MODULE_NAME, 'saveAssetImage');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Modify
