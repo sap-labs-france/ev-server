@@ -36,35 +36,35 @@ export default class TransactionValidator extends SchemaValidator {
     return TransactionValidator.instance;
   }
 
-  public validateTransactionsGetReq(data: unknown): HttpTransactionsRequest {
+  public validateTransactionsGetReq(data: Record<string, unknown>): HttpTransactionsRequest {
     return this.validate('validateTransactionsGetReq', this.transactionsGet, data);
   }
 
-  public validateTransactionGetReq(data: unknown): HttpTransactionRequest {
+  public validateTransactionGetReq(data: Record<string, unknown>): HttpTransactionRequest {
     return this.validate('validateTransactionGetReq', this.transactionGet, data);
   }
 
-  public validateTransactionsByIDsGetReq(data: unknown): { transactionsIDs: number[] } {
+  public validateTransactionsByIDsGetReq(data: Record<string, unknown>): { transactionsIDs: number[] } {
     return this.validate('validateTransactionsByIDsGetReq', this.transactionsByIDsGet, data);
   }
 
-  public validateTransactionCdrPushReq(data: unknown): HttpPushTransactionCdrRequest {
+  public validateTransactionCdrPushReq(data: Record<string, unknown>): HttpPushTransactionCdrRequest {
     return this.validate('validateTransactionCdrPushReq', this.transactionCdrPush, data);
   }
 
-  public validateTransactionConsumptionsGetReq(data: unknown): HttpConsumptionFromTransactionRequest {
+  public validateTransactionConsumptionsGetReq(data: Record<string, unknown>): HttpConsumptionFromTransactionRequest {
     return this.validate('validateTransactionConsumptionsGetReq', this.transactionConsumptionsGet, data);
   }
 
-  public validateTransactionsUserAssignReq(data: unknown): HttpAssignTransactionsToUserRequest {
+  public validateTransactionsUserAssignReq(data: Record<string, unknown>): HttpAssignTransactionsToUserRequest {
     return this.validate('validateTransactionsUserAssignReq', this.transactionsUserAssign, data);
   }
 
-  public validateTransactionsUnassignedCountReq(data: unknown): HttpUnassignTransactionsToUserRequest {
+  public validateTransactionsUnassignedCountReq(data: Record<string, unknown>): HttpUnassignTransactionsToUserRequest {
     return this.validate('validateTransactionsUnassignedCountReq', this.transactionsUnassignedCountGet, data);
   }
 
-  public validateTransactionsInErrorGetReq(data: unknown): HttpTransactionsRequest {
+  public validateTransactionsInErrorGetReq(data: Record<string, unknown>): HttpTransactionsRequest {
     return this.validate('validateTransactionsInErrorGetReq', this.transactionsInErrorGet, data);
   }
 }
