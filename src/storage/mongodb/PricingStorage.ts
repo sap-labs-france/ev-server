@@ -16,7 +16,7 @@ export default class PricingStorage {
 
   public static async savePricingDefinition(tenant: Tenant, pricingDefinition: PricingDefinition): Promise<string> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'savePricingDefinition');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     const pricingDefinitionMDB = {
@@ -37,13 +37,13 @@ export default class PricingStorage {
       { $set: pricingDefinitionMDB },
       { upsert: true, returnDocument: 'after' });
     // Debug
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'savePricingDefinition', uniqueTimerID, pricingDefinitionMDB);
+    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'savePricingDefinition', uniqueTimerID, pricingDefinitionMDB);
     return pricingDefinitionMDB._id.toString();
   }
 
   public static async deletePricingDefinition(tenant: Tenant, pricingDefinitionID: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'deletePricing');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete
@@ -53,7 +53,7 @@ export default class PricingStorage {
       }
     );
     // Debug
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'deletePricingDefinition', uniqueTimerID, { id: pricingDefinitionID });
+    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'deletePricingDefinition', uniqueTimerID, { id: pricingDefinitionID });
   }
 
   public static async getPricingDefinition(tenant: Tenant, id: string,
@@ -71,7 +71,7 @@ export default class PricingStorage {
         entityIDs?: string[];
       },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<PricingDefinition>> {
-    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'getPricingDefinitions');
+    const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -113,7 +113,7 @@ export default class PricingStorage {
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
-      await Logging.traceEnd(tenant.id, MODULE_NAME, 'getPricingDefinitions', uniqueTimerID, pricingDefinitionsCountMDB);
+      await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getPricingDefinitions', uniqueTimerID, pricingDefinitionsCountMDB);
       return {
         count: (pricingDefinitionsCountMDB.length > 0 ? pricingDefinitionsCountMDB[0].count : 0),
         result: []
@@ -144,18 +144,18 @@ export default class PricingStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const pricingDefinitionsMDB = await global.database.getCollection<PricingDefinition>(tenant.id, 'pricingdefinitions')
-      .aggregate(aggregation, {
-        allowDiskUse: true
-      })
+    const pricingDefinitions = await global.database.getCollection<PricingDefinition>(tenant.id, 'pricingdefinitions')
+      .aggregate<PricingDefinition>(aggregation, {
+      allowDiskUse: true
+    })
       .toArray();
     // Debug
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'getPricingDefinitions', uniqueTimerID, pricingDefinitionsMDB);
+    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getPricingDefinitions', uniqueTimerID, pricingDefinitions);
     // Ok
     return {
       count: (pricingDefinitionsCountMDB.length > 0 ?
         (pricingDefinitionsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : pricingDefinitionsCountMDB[0].count) : 0),
-      result: pricingDefinitionsMDB,
+      result: pricingDefinitions,
       projectFields
     };
   }
