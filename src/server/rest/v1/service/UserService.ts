@@ -755,7 +755,7 @@ export default class UserService {
         roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
         statuses: (filteredRequest.Status ? filteredRequest.Status.split('|') : null),
         technical: Utils.isBoolean(filteredRequest.Technical) ? filteredRequest.Technical : null,
-        billable: Utils.isBoolean(filteredRequest.Billable) ? filteredRequest.Billable : null,
+        freeAccess: Utils.isBoolean(filteredRequest.FreeAccess) ? filteredRequest.FreeAccess : null,
         excludeSiteID: filteredRequest.ExcludeSiteID,
         ...authorizationUsersFilters.filters
       },
@@ -971,8 +971,8 @@ export default class UserService {
     if (projectFields.includes('plateID') ||
         projectFields.includes('technical') ||
         projectFields.includes('notificationsActive') ||
-        projectFields.includes('billable')) {
-      const adminData: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications, technical?: boolean, billable?: boolean } = {};
+        projectFields.includes('freeAccess')) {
+      const adminData: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications, technical?: boolean, freeAccess?: boolean } = {};
       if (Utils.objectHasProperty(user, 'plateID') &&
           projectFields.includes('plateID')) {
         adminData.plateID = user.plateID || null;
@@ -981,9 +981,9 @@ export default class UserService {
           projectFields.includes('technical')) {
         adminData.technical = user.technical;
       }
-      if (Utils.objectHasProperty(user, 'billable') &&
-          projectFields.includes('billable')) {
-        adminData.billable = user.billable;
+      if (Utils.objectHasProperty(user, 'freeAccess') &&
+          projectFields.includes('freeAccess')) {
+        adminData.freeAccess = user.freeAccess;
       }
       if (Utils.objectHasProperty(user, 'notificationsActive') &&
           projectFields.includes('notificationsActive')) {

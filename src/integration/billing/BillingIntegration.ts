@@ -336,7 +336,7 @@ export default abstract class BillingIntegration {
   }
 
   protected isUserInternal(user: User): boolean {
-    return !user.billable;
+    return !!user.freeAccess;
   }
 
   private async _getUsersWithNoBillingData(): Promise<User[]> {

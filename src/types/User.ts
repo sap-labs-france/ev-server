@@ -42,7 +42,7 @@ export default interface User extends CreatedUpdatedProps, AuthorizationActions 
     autoActivateUserAtImport: boolean;
   };
   technical?: boolean;
-  billable?: boolean;
+  freeAccess?: boolean;
 }
 
 export interface UserSite {
@@ -89,4 +89,4 @@ export const UserRequiredImportProperties = [
   'name'
 ];
 
-export const USER_BILLABLE_DEFAULT = false;
+export const USER_FREE_ACCESS_DEFAULT = false;

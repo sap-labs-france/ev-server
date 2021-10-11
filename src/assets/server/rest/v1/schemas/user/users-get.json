@@ -21,7 +21,7 @@
       "type": "boolean",
       "sanitize": "mongo"
     },
-    "Billable": {
+    "FreeAccess": {
       "type": "boolean",
       "sanitize": "mongo"
     },

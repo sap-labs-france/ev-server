@@ -331,19 +331,19 @@ describe('User', function() {
           expect(user2.technical).eq(false);
         });
 
-        it('Should not be able to set billable flag when billing is inactive', async () => {
-          // Check the billable flag can be set
+        it('Should not be able to set freeAccess flag when billing is inactive', async () => {
+          // Check the freeAccess flag canNOT be set
           const response = await testData.userService.userApi.exportUsers({});
           let users = await testData.userService.userApi.readAll({}, { limit: Constants.DB_RECORD_COUNT_MAX_PAGE_LIMIT, skip: 0 });
           expect(response.status).eq(StatusCodes.OK);
           expect(response.data).not.null;
           expect(users.data.result.length).to.be.greaterThan(1);
           const user1 = users.data.result[0];
-          user1.billable = true;
+          user1.freeAccess = true;
           await testData.userService.userApi.update(user1);
           users = await testData.userService.userApi.readAll({}, { limit: Constants.DB_RECORD_COUNT_MAX_PAGE_LIMIT, skip: 0 });
           const user2 = users.data.result[0];
-          expect(user2.billable).undefined;
+          expect(user2.freeAccess).undefined;
         });
       });
 

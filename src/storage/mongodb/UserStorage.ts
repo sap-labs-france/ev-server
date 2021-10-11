@@ -482,7 +482,7 @@ export default class UserStorage {
   }
 
   public static async saveUserAdminData(tenant: Tenant, userID: string,
-      params: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications, technical?: boolean, billable?: boolean }): Promise<void> {
+      params: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications, technical?: boolean, freeAccess?: boolean }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
@@ -502,8 +502,8 @@ export default class UserStorage {
     if (Utils.objectHasProperty(params, 'technical')) {
       updatedUserMDB.technical = params.technical;
     }
-    if (Utils.objectHasProperty(params, 'billable')) {
-      updatedUserMDB.billable = params.billable;
+    if (Utils.objectHasProperty(params, 'freeAccess')) {
+      updatedUserMDB.freeAccess = params.freeAccess;
     }
     // Modify and return the modified document
     await global.database.getCollection<any>(tenant.id, 'users').findOneAndUpdate(
@@ -571,7 +571,7 @@ export default class UserStorage {
         notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
         userIDs?: string[]; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
         statuses?: string[]; withImage?: boolean; billingUserID?: string; notSynchronizedBillingData?: boolean;
-        withTestBillingData?: boolean; notifications?: any; noLoginSince?: Date; technical?: boolean; billable?: boolean;
+        withTestBillingData?: boolean; notifications?: any; noLoginSince?: Date; technical?: boolean; freeAccess?: boolean;
       },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
     // Debug
@@ -685,21 +685,21 @@ export default class UserStorage {
         }
       }
     }
-    // Select (non) billable users
-    if (Utils.objectHasProperty(params, 'billable') && Utils.isBoolean(params.billable)) {
-      if (params.billable) {
-        filters.billable = true;
+    // Select (non) Free users
+    if (Utils.isBoolean(params.freeAccess)) {
+      if (params.freeAccess) {
+        filters.freeAccess = true;
       } else {
-        const billableFilter = {
+        const freeAccessFilter = {
           $or: [
-            { billable: { $in: [false, null] } },
-            { billable: { $exists: false } }
+            { freeAccess: { $in: [false, null] } },
+            { freeAccess: { $exists: false } }
           ]
         };
         if (filters.$and) {
-          filters.$and.push(billableFilter);
+          filters.$and.push(freeAccessFilter);
         } else {
-          filters.$and = [ billableFilter ];
+          filters.$and = [ freeAccessFilter ];
         }
       }
     }

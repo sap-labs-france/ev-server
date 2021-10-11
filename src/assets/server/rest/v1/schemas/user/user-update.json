@@ -60,7 +60,7 @@
       "type": "boolean",
       "sanitize": "mongo"
     },
-    "billable": {
+    "freeAccess": {
       "type": "boolean",
       "sanitize": "mongo"
     }

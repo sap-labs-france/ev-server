@@ -27,7 +27,6 @@ import User from '../../src/types/User';
 import { UserInErrorType } from '../../src/types/InError';
 import chaiSubset from 'chai-subset';
 import config from '../config';
-import exp from 'constants';
 import global from '../../src/types/GlobalType';
 import moment from 'moment';
 import responseHelper from '../helpers/responseHelper';
@@ -526,7 +525,7 @@ describe('Billing Service', function() {
         testData.createdUsers.shift();
       });
 
-      it('Should be able to set billable flag on basic user', async () => {
+      it('Should be able to set freeAccess flag on basic user', async () => {
         const fakeUser = {
           ...Factory.user.build(),
         } as User;
@@ -537,21 +536,21 @@ describe('Billing Service', function() {
           fakeUser
         );
         testData.createdUsers.push(fakeUser);
-        // Let's check that user exists with no billable flag
+        // Let's check that user exists with no freeAccess flag
         const myUser = await testData.userService.userApi.readById(fakeUser.id);
         expect(myUser).to.be.not.null;
-        expect(myUser.data.billable).to.undefined;
+        expect(myUser.data.freeAccess).to.undefined;
         // Let's update the new user
-        fakeUser.billable = true;
+        fakeUser.freeAccess = true;
         await testData.userService.updateEntity(
           testData.userService.userApi,
           fakeUser,
           false
         );
-        // Let's check that user exists with billable flag
+        // Let's check that user exists with freeAccess flag
         const myUser2 = await testData.userService.userApi.readById(fakeUser.id);
         expect(myUser2).to.be.not.null;
-        expect(myUser2.data.billable).to.be.eq(true);
+        expect(myUser2.data.freeAccess).to.be.eq(true);
         // Let's delete the user
         await testData.userService.deleteEntity(
           testData.userService.userApi,
@@ -977,7 +976,7 @@ describe('Billing Service', function() {
 
     });
 
-    describe('Where billable basic user', () => {
+    describe('Where freeAccess basic user', () => {
       // eslint-disable-next-line @typescript-eslint/require-await
       before(async () => {
         testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
@@ -1002,7 +1001,7 @@ describe('Billing Service', function() {
       });
     });
 
-    describe('Where NON-billable basic user', () => {
+    describe('Where billable basic user', () => {
       // eslint-disable-next-line @typescript-eslint/require-await
       before(async () => {
         testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);

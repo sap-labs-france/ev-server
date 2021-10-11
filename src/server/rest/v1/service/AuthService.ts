@@ -1,7 +1,7 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Handler, NextFunction, Request, RequestHandler, Response } from 'express';
 import { HttpLoginRequest, HttpResetPasswordRequest } from '../../../../types/requests/HttpUserRequest';
-import User, { USER_BILLABLE_DEFAULT, UserRole, UserStatus } from '../../../../types/User';
+import User, { USER_FREE_ACCESS_DEFAULT, UserRole, UserStatus } from '../../../../types/User';
 
 import AppError from '../../../../exception/AppError';
 import AuthValidator from '../validator/AuthValidator';
@@ -245,7 +245,7 @@ export default class AuthService {
       }
     }
     // Set new user default billable value
-    await UserStorage.saveUserAdminData(tenant, newUser.id, { billable: USER_BILLABLE_DEFAULT });
+    await UserStorage.saveUserAdminData(tenant, newUser.id, { freeAccess: USER_FREE_ACCESS_DEFAULT });
     // Log
     await Logging.logSecurityInfo({
       tenantID: tenant.id,
