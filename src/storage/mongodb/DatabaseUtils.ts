@@ -397,7 +397,8 @@ export default class DatabaseUtils {
     return userID;
   }
 
-  public static async checkTenant(tenantID: string): Promise<void> {
+  public static async checkTenant(tenantID: string): Promise<Tenant> {
+    let tenant;
     if (!tenantID) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -417,7 +418,7 @@ export default class DatabaseUtils {
         });
       }
       // Get the Tenant
-      const tenant = await TenantStorage.getTenant(tenantID);
+      tenant = await TenantStorage.getTenant(tenantID);
       if (!tenant) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
@@ -427,6 +428,7 @@ export default class DatabaseUtils {
         });
       }
     }
+    return tenant;
   }
 
   public static checkTenantObject(tenant: Tenant): void {

@@ -243,7 +243,6 @@ export default class Constants {
 
   public static readonly CENTRAL_SERVER = 'CentralServer';
 
-  public static readonly OCPI_SERVER = 'OCPIServer';
   public static readonly OCPI_SEPARATOR = '*';
   public static readonly OCPI_RECORDS_LIMIT = 25;
   public static readonly OCPI_MAX_PARALLEL_REQUESTS = 2;
@@ -257,14 +256,8 @@ export default class Constants {
   public static readonly MODULE_SOAP_OCPP_SERVER_15 = 'OcppS-15';
   public static readonly MODULE_SOAP_OCPP_SERVER_16 = 'OcppS-16';
 
-  public static readonly OICP_SERVER = 'OICPServer';
   public static readonly OICP_PROGRESS_NOTIFICATION_MAX_INTERVAL = 300; // Hubject restriction: "Progress Notification can be sent only at interval of at least 300 seconds." (5 Minutes)
   public static readonly OICP_VIRTUAL_USER_EMAIL = 'virtual@oicp.com';
-
-  public static readonly OCPP_SERVER = 'OCPPServer';
-  public static readonly DATABASE_SERVER = 'DatabaseServer';
-  public static readonly REST_SERVER = 'RestServer';
-  public static readonly AXIOS_CLIENT = 'AxiosClient';
 
   public static readonly WITH_CHARGING_STATIONS = true; // Not used
   public static readonly WITHOUT_CHARGING_STATIONS = false; // Not used

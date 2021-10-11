@@ -1,23 +1,19 @@
 import { ServerAction } from './Server';
 
 export default interface PerformanceRecord {
-  id?: string;
-  tenantID: string;
-  timestamp?: Date;
-  durationMs?: number;
-  sizeKb?: number;
+  tenantSubdomain: string;
+  timestamp: Date;
   host: string;
-  source: string;
-  module: string;
-  method: string;
   action: ServerAction|string;
+  group: PerformanceRecordGroup;
+  durationMs?: number;
+  reqSizeKb?: number;
+  resSizeKb?: number;
   httpUrl?: string;
   httpMethod?: string;
-  httpCode?: number;
+  httpResponseCode?: number;
   chargingStationID?: string;
   userID?: string;
-  parentID?: string;
-  group?: PerformanceRecordGroup;
 }
 
 export enum PerformanceRecordGroup {
