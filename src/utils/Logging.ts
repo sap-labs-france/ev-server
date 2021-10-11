@@ -87,7 +87,7 @@ export default class Logging {
     }
     Utils.isDevelopmentEnv() && await PerformanceStorage.savePerformanceRecord(
       Utils.buildPerformanceRecord({
-        tenantSubdomain: tenant.id,
+        tenantSubdomain: tenant.subdomain,
         group: PerformanceRecordGroup.MONGO_DB,
         durationMs: executionDurationMillis,
         resSizeKb: sizeOfDataKB,
@@ -407,13 +407,19 @@ export default class Logging {
       executionDurationMillis = (new Date().getTime() - response.config['timestamp'].getTime());
     }
     // Compute Length
-    let sizeOfDataKB = 0;
+    const sizeOfRequestDataKB = Utils.truncTo(Utils.createDecimal(
+      sizeof(response.config)).div(1000).toNumber(), 2);
+    let sizeOfResponseDataKB = 0;
     if (response.config.headers['Content-Length']) {
-      sizeOfDataKB = Utils.truncTo(response.config.headers['Content-Length'] / 1024, 2);
+      sizeOfResponseDataKB = Utils.truncTo(
+        Utils.createDecimal(response.config.headers['Content-Length']).div(1024).toNumber(), 2);
+    } else if (response.data) {
+      sizeOfResponseDataKB = Utils.truncTo(
+        Utils.createDecimal(sizeof(response.data)).div(1024).toNumber(), 2);
     }
-    const message = `Axios HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'} KB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`;
+    const message = `Axios HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms - Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`;
     Utils.isDevelopmentEnv() && console.log(chalk.green(message));
-    if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
+    if (sizeOfResponseDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
       const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}`);
       await Logging.logWarning({
         tenantID: tenant.id,
@@ -471,7 +477,8 @@ export default class Logging {
           httpResponseCode: response.status,
           httpMethod: response.config.method.toLocaleUpperCase(),
           durationMs: executionDurationMillis,
-          resSizeKb: sizeOfDataKB,
+          reqSizeKb: sizeOfRequestDataKB,
+          resSizeKb: sizeOfResponseDataKB,
           action: ServerAction.HTTP_RESPONSE,
         })
       );
@@ -479,7 +486,7 @@ export default class Logging {
       await Logging.logSecurityDebug({
         tenantID: tenant.id,
         action: ServerAction.HTTP_RESPONSE,
-        message: `Axios HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'} KB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`,
+        message: `Axios HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms - Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`,
         module: Constants.MODULE_AXIOS, method: 'logAxiosResponse',
         detailedMessages: {
           status: response.status,

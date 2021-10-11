@@ -8,6 +8,10 @@ import Utils from '../../utils/Utils';
 
 export default class PerformanceStorage {
   public static async savePerformanceRecord(performanceRecord: PerformanceRecord): Promise<void> {
+    // Remove default Tenant
+    if (!performanceRecord.tenantSubdomain || performanceRecord.tenantSubdomain === Constants.DEFAULT_TENANT) {
+      delete performanceRecord.tenantSubdomain;
+    }
     // Validate
     performanceRecord = PerformanceValidatorStorage.getInstance().validatePerformance(
       performanceRecord as unknown as Record<string, unknown>);
