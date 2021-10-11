@@ -1,5 +1,5 @@
 {
-  "title": "Get Pricings Request",
+  "title": "Get Pricing Definitions Request",
   "type": "object",
   "properties": {
     "EntityID": {

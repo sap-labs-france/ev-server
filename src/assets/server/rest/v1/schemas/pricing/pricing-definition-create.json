@@ -1,5 +1,5 @@
 {
-  "title": "Create a Pricing",
+  "title": "Create a Pricing Definition",
   "type": "object",
   "properties": {
     "id": {

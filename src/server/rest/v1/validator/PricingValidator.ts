@@ -14,10 +14,10 @@ export default class PricingValidator extends SchemaValidator {
 
   private constructor() {
     super('PricingValidator');
-    this.pricingGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/pricing/pricing-get.json`, 'utf8'));
-    this.pricingsGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/pricing/pricings-get.json`, 'utf8'));
-    this.princingCreate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/pricing/pricing-create.json`, 'utf8'));
-    this.princingUpdate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/pricing/pricing-update.json`, 'utf8'));
+    this.pricingGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/pricing/pricing-definition-get.json`, 'utf8'));
+    this.pricingsGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/pricing/pricing-definitions-get.json`, 'utf8'));
+    this.princingCreate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/pricing/pricing-definition-create.json`, 'utf8'));
+    this.princingUpdate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/pricing/pricing-definition-update.json`, 'utf8'));
   }
 
   public static getInstance(): PricingValidator {
