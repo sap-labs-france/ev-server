@@ -1,11 +1,7 @@
-import { AccessControl, IDictionary, IFunctionCondition } from 'role-acl';
-import { Action, AuthorizationContext, AuthorizationDefinition, AuthorizationResult, Entity } from '../types/Authorization';
+import { Action, AuthorizationContext, AuthorizationDefinition, Entity } from '../types/Authorization';
+import { IDictionary, IFunctionCondition } from 'role-acl';
 
-import AuthorizationValidatorStorage from '../storage/mongodb/validator/AuthorizationValidatorStorage';
-import BackendError from '../exception/BackendError';
-import Constants from '../utils/Constants';
-
-const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
+export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   superAdmin: {
     grants: [
       {
@@ -985,20 +981,33 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Action.CHANGE_CONFIGURATION, Action.SET_CHARGING_PROFILE, Action.GET_COMPOSITE_SCHEDULE,
           Action.CLEAR_CHARGING_PROFILE, Action.GET_DIAGNOSTICS, Action.UPDATE_FIRMWARE, Action.REMOTE_STOP_TRANSACTION,
           Action.STOP_TRANSACTION, Action.EXPORT, Action.CHANGE_AVAILABILITY],
-        condition: { Fn: 'LIST_CONTAINS', args: { 'sitesAdmin': '$.site' } },
+        condition: {
+          Fn: 'LIST_CONTAINS',
+          args: { 'sitesAdmin': '$.site' }
+        },
       },
       { resource: Entity.CHARGING_PROFILES, action: Action.LIST },
       {
         resource: Entity.CHARGING_PROFILE, action: [Action.READ],
-        condition: { Fn: 'LIST_CONTAINS', args: { 'sitesAdmin': '$.site' } },
+        condition: {
+          Fn: 'LIST_CONTAINS',
+          args: { 'sitesAdmin': '$.site' }
+        },
       },
       {
         resource: Entity.TRANSACTION, action: [Action.READ],
-        condition: { Fn: 'LIST_CONTAINS', args: { 'sitesAdmin': '$.site' } },
+        condition: {
+          Fn: 'LIST_CONTAINS',
+          args: { 'sitesAdmin': '$.site' }
+        },
       },
       { resource: Entity.REPORT, action: [Action.READ] },
       { resource: Entity.LOGGINGS, action: Action.LIST },
-      { resource: Entity.LOGGING, action: Action.READ, args: { 'sites': '$.site' } },
+      {
+        resource: Entity.LOGGING,
+        action: Action.READ,
+        args: { 'sites': '$.site' }
+      },
       { resource: Entity.TOKENS, action: Action.LIST },
       {
         resource: Entity.TOKEN,
@@ -1092,7 +1101,8 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.TRANSACTION, action: [Action.READ, Action.REFUND_TRANSACTION],
         condition: {
-          Fn: 'LIST_CONTAINS', args: { 'sitesOwner': '$.site' }
+          Fn: 'LIST_CONTAINS',
+          args: { 'sitesOwner': '$.site' }
         }
       },
       { resource: Entity.REPORT, action: [Action.READ] },
@@ -1100,7 +1110,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   },
 };
 
-const AUTHORIZATION_CONDITIONS: IDictionary<IFunctionCondition> = {
+export const AUTHORIZATION_CONDITIONS: IDictionary<IFunctionCondition> = {
   dynamicAuthorizations: (context: Record<string, any>, args: AuthorizationContext): boolean => {
     // Pass the dynamic filters to the context
     // Used by the caller to execute dynamic filters
@@ -1137,104 +1147,3 @@ const AUTHORIZATION_CONDITIONS: IDictionary<IFunctionCondition> = {
     return true;
   }
 };
-
-const MODULE_NAME = 'AuthorizationsDefinition';
-
-export default class AuthorizationsDefinition {
-  private static instance: AuthorizationsDefinition;
-  private static authorizationCache: Map<string, AuthorizationResult> = new Map();
-  private accessControl: AccessControl;
-
-  private constructor() {
-    try {
-      // Validate each role
-      // for (const roleName in AUTHORIZATION_DEFINITION) {
-      //   const role = AUTHORIZATION_DEFINITION[roleName];
-      //   AUTHORIZATION_DEFINITION[roleName] = AuthorizationValidatorStorage.getInstance().validateAuthorizationDefinitionRole(role);
-      // }
-      // Instantiate the ACLs
-      this.accessControl = new AccessControl(AUTHORIZATION_DEFINITION, AUTHORIZATION_CONDITIONS);
-    } catch (error) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'constructor',
-        message: 'Unable to init authorization definition',
-        detailedMessages: { error: error.stack }
-      });
-    }
-  }
-
-  public static getInstance(): AuthorizationsDefinition {
-    if (!AuthorizationsDefinition.instance) {
-      AuthorizationsDefinition.instance = new AuthorizationsDefinition();
-    }
-    return AuthorizationsDefinition.instance;
-  }
-
-  public async getScopes(roles: string[]): Promise<string[]> {
-    const scopes: string[] = [];
-    try {
-      for (const resource of await this.accessControl.allowedResources({ role: roles })) {
-        for (const action of await this.accessControl.allowedActions({ role: roles, resource })) {
-          scopes.push(`${resource}:${action}`);
-        }
-      }
-    } catch (error) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME,
-        method: 'getScopes',
-        message: 'Unable to load available scopes',
-        detailedMessages: { error: error.stack }
-      });
-    }
-    return scopes;
-  }
-
-  public async can(roles: string[], resource: string, action: string, context?: any): Promise<boolean> {
-    try {
-      const permission = await this.accessControl.can(roles).execute(action).with(context).on(resource);
-      return permission.granted;
-    } catch (error) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME,
-        method: 'can',
-        message: 'Unable to check authorization',
-        detailedMessages: { error: error.stack }
-      });
-    }
-  }
-
-  public async canPerformAction(roles: string[], resource: string, action: string, context: AuthorizationContext = {}): Promise<AuthorizationResult> {
-    try {
-      const authID = `${roles.toString()}~${resource}~${action}~${JSON.stringify(context)}}`;
-      // Check in cache
-      let authResult = AuthorizationsDefinition.authorizationCache.get(authID);
-      if (!authResult) {
-        // Not found: Compute & Store in cache
-        const permission = await this.accessControl.can(roles).execute(action).with(context).on(resource);
-        authResult = {
-          authorized: permission.granted,
-          fields: permission.attributes,
-          context: context,
-        };
-        AuthorizationsDefinition.authorizationCache.set(authID, Object.freeze(authResult));
-      } else {
-        // Enrich the current context
-        for (const contextKey in authResult.context) {
-          context[contextKey] = authResult.context[contextKey];
-        }
-      }
-      return authResult;
-    } catch (error) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME,
-        method: 'canPerformAction',
-        message: 'Unable to check authorization',
-        detailedMessages: { error: error.stack }
-      });
-    }
-  }
-}

@@ -28,9 +28,7 @@ import _ from 'lodash';
 import bcrypt from 'bcryptjs';
 import cfenv from 'cfenv';
 import chalk from 'chalk';
-import cluster from 'cluster';
 import fs from 'fs';
-import global from '../types/GlobalType';
 import http from 'http';
 import moment from 'moment';
 import os from 'os';
@@ -1514,12 +1512,28 @@ export default class Utils {
     return PerformanceRecordGroup.UNKNOWN;
   }
 
+  public static serializeOriginalSchema(originalSchema: Record<string, unknown>): string {
+    // Check for schema missing vars
+    if (Utils.isDevelopmentEnv()) {
+      return JSON.stringify(originalSchema);
+    }
+  }
+
+  public static checkOriginalSchema(originalSchema: string, validatedSchema: Record<string, unknown>): void {
+    if (Utils.isDevelopmentEnv() && originalSchema !== JSON.stringify(validatedSchema)) {
+      console.error(chalk.red('Data changed after schema validation'));
+      console.error(chalk.red('Original Data:'));
+      console.error(chalk.red(originalSchema));
+      console.error(chalk.red('Validated Data:'));
+      console.error(chalk.red(JSON.stringify(validatedSchema)));
+    }
+  }
+
   public static buildPerformanceRecord(params: {
     tenantID: string; durationMs: number; sizeKb?: number; source?: string;
     module: string; method: string; action: ServerAction|string; group?: PerformanceRecordGroup;
     httpUrl?: string; httpMethod?: string; httpCode?: number; chargingStationID?: string,
   }): PerformanceRecord {
-    const cpuInfo = os.cpus();
     return {
       tenantID: params.tenantID,
       timestamp: new Date(),

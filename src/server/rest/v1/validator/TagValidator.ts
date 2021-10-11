@@ -1,8 +1,8 @@
 import { HttpTagByVisualIDRequest, HttpTagRequest, HttpTagsDeleteByIDsRequest, HttpTagsDeleteByVisualIDRequest, HttpTagsDeleteByVisualIDsRequest, HttpTagsRequest } from '../../../../types/requests/HttpTagRequest';
+import Tag, { ImportedTag } from '../../../../types/Tag';
 
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from '../../../../validator/SchemaValidator';
-import Tag from '../../../../types/Tag';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
@@ -42,47 +42,47 @@ export default class TagValidator extends SchemaValidator {
     return TagValidator.instance;
   }
 
-  public validateImportedTagCreateReq(data: unknown): void {
-    return this.validate('validateImportedTagCreateReq', this.tagImportCreate, data);
+  public validateImportedTagCreateReq(data: ImportedTag): void {
+    return this.validate('validateImportedTagCreateReq', this.tagImportCreate, data as unknown as Record<string, unknown>);
   }
 
-  public validateTagCreateReq(data: unknown): Tag {
+  public validateTagCreateReq(data: Record<string, unknown>): Tag {
     return this.validate('validateTagCreateReq', this.tagCreate, data);
   }
 
-  public validateTagAssignReq(data: unknown): Tag {
+  public validateTagAssignReq(data: Record<string, unknown>): Tag {
     return this.validate('validateTagAssignReq', this.tagAssign, data);
   }
 
-  public validateTagUpdateReq(data: unknown): Tag {
+  public validateTagUpdateReq(data: Record<string, unknown>): Tag {
     return this.validate('validateTagUpdateReq', this.tagUpdate, data);
   }
 
-  public validateTagVisualIDUpdateReq(data: unknown): Tag {
+  public validateTagVisualIDUpdateReq(data: Record<string, unknown>): Tag {
     return this.validate('validateTagVisualIDUpdateReq', this.tagVisualIDUpdate, data);
   }
 
-  public validateTagsGetReq(data: unknown): HttpTagsRequest {
+  public validateTagsGetReq(data: Record<string, unknown>): HttpTagsRequest {
     return this.validate('validateTagsGetReq', this.tagsGet, data);
   }
 
-  public validateTagByIDGetReq(data: unknown): HttpTagRequest {
+  public validateTagByIDGetReq(data: Record<string, unknown>): HttpTagRequest {
     return this.validate('validateTagByIDGetReq', this.tagGet, data);
   }
 
-  public validateTagVisualIDGetReq(data: unknown): HttpTagByVisualIDRequest {
+  public validateTagVisualIDGetReq(data: Record<string, unknown>): HttpTagByVisualIDRequest {
     return this.validate('validateTagVisualIDGetReq', this.tagVisualIDGet, data);
   }
 
-  public validateTagsDeleteReq(data: unknown): HttpTagsDeleteByIDsRequest {
+  public validateTagsDeleteReq(data: Record<string, unknown>): HttpTagsDeleteByIDsRequest {
     return this.validate('validateTagsDeleteReq', this.tagsDelete, data);
   }
 
-  public validateTagsUnassignReq(data: unknown): HttpTagsDeleteByVisualIDsRequest {
+  public validateTagsUnassignReq(data: Record<string, unknown>): HttpTagsDeleteByVisualIDsRequest {
     return this.validate('validateTagsUnassignReq', this.tagsUnassign, data);
   }
 
-  public validateTagUnassignReq(data: unknown): HttpTagsDeleteByVisualIDRequest {
+  public validateTagUnassignReq(data: Record<string, unknown>): HttpTagsDeleteByVisualIDRequest {
     return this.validate('validateTagUnassignReq', this.tagUnassign, data);
   }
 }

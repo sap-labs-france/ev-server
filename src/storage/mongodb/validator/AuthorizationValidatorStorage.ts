@@ -9,7 +9,14 @@ export default class AuthorizationValidatorStorage extends SchemaValidator {
   private authorizationRole: Schema;
 
   private constructor() {
-    super('AuthorizationValidatorStorage');
+    super('AuthorizationValidatorStorage', {
+      strict: false, // When 'true', it fails with anyOf required fields: https://github.com/ajv-validator/ajv/issues/1571
+      allErrors: true,
+      removeAdditional: false, // 'all' fails with anyOf documents: Manually added 'additionalProperties: false' in schema due filtering of data in anyOf/oneOf/allOf array (it's standard): https://github.com/ajv-validator/ajv/issues/1784
+      allowUnionTypes: true,
+      coerceTypes: true,
+      verbose: true,
+    });
     this.authorizationRole = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/authorization/authorization-role.json`, 'utf8'));
   }
 
@@ -20,7 +27,7 @@ export default class AuthorizationValidatorStorage extends SchemaValidator {
     return AuthorizationValidatorStorage.instance;
   }
 
-  public validateAuthorizationDefinitionRole(data: unknown): AuthorizationDefinitionRole {
+  public validateAuthorizationDefinitionRole(data: Record<string, unknown>): AuthorizationDefinitionRole {
     return this.validate('validateAuthorizationDefinitionRole', this.authorizationRole, data);
   }
 }

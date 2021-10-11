@@ -5,6 +5,7 @@ import AppError from '../exception/AppError';
 import Constants from '../utils/Constants';
 import { HTTPError } from '../types/HTTPError';
 import Schema from '../types/validator/Schema';
+import Utils from '../utils/Utils';
 import addFormats from 'ajv-formats';
 import countries from 'i18n-iso-countries';
 import fs from 'fs';
@@ -33,11 +34,13 @@ export default class SchemaValidator {
 
   constructor(readonly moduleName: string,
       config: Options = {
+        strict: false, // When 'true', it fails with anyOf required fields: https://github.com/ajv-validator/ajv/issues/1571
         allErrors: true,
-        removeAdditional: 'all',
+        removeAdditional: 'all', // Careful with 'All' and usage of anyOf/oneOf/allOf: https://github.com/ajv-validator/ajv/issues/1784
+        allowUnionTypes: true,
         useDefaults: true,
         coerceTypes: true,
-        strict: 'log',
+        verbose: true,
       }) {
     // Create AJV
     this.ajv = new Ajv(config);
@@ -86,7 +89,7 @@ export default class SchemaValidator {
     this.ajv.addSchema(this.pricingDefinitionSchema);
   }
 
-  protected validate(schemaID: string, schema: Schema, data: any): any {
+  protected validate(schemaID: string, schema: Schema, data: Record<string, unknown>): any {
     // Get schema from cache
     let fnValidate = SchemaValidator.compiledSchemas.get(schemaID);
     if (!fnValidate) {
@@ -95,6 +98,9 @@ export default class SchemaValidator {
       // Add it to cache
       SchemaValidator.compiledSchemas.set(schemaID, fnValidate);
     }
+    // Keep the original version for checking missing props after
+    const originalSchema = Utils.serializeOriginalSchema(data);
+    // Run validation
     if (!fnValidate(data)) {
       if (!fnValidate.errors) {
         fnValidate.errors = [];
@@ -116,6 +122,8 @@ export default class SchemaValidator {
         detailedMessages: { errors: fnValidate.errors, data, schema }
       });
     }
+    // Check for missing fields in Authorization Definition (not possible to make AJV failing on missing fields)
+    Utils.checkOriginalSchema(originalSchema, data);
     return data;
   }
 }
