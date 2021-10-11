@@ -244,7 +244,7 @@ export default class AuthService {
         await UserStorage.addSitesToUser(tenant, newUser.id, siteIDs);
       }
     }
-    // Set new user default billable value
+    // Set new user default freeAccess value
     await UserStorage.saveUserAdminData(tenant, newUser.id, { freeAccess: USER_FREE_ACCESS_DEFAULT });
     // Log
     await Logging.logSecurityInfo({

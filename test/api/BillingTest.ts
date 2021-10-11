@@ -976,7 +976,7 @@ describe('Billing Service', function() {
 
     });
 
-    describe('Where freeAccess basic user', () => {
+    describe('When freeAccess basic user', () => {
       // eslint-disable-next-line @typescript-eslint/require-await
       before(async () => {
         testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
@@ -1001,7 +1001,7 @@ describe('Billing Service', function() {
       });
     });
 
-    describe('Where billable basic user', () => {
+    describe('When billable basic user', () => {
       // eslint-disable-next-line @typescript-eslint/require-await
       before(async () => {
         testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
