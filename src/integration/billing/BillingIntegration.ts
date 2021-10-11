@@ -267,6 +267,7 @@ export default abstract class BillingIntegration {
         tenantID: this.tenant.id,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_TRANSACTION,
+        actionOnUser: billingInvoice.user,
         module: MODULE_NAME, method: 'sendInvoiceNotification',
         message: `Failed to send notification for invoice '${billingInvoice.id}'`,
         detailedMessages: { error: error.stack }
