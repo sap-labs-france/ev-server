@@ -1518,13 +1518,12 @@ export default class Utils {
   }
 
   public static checkOriginalSchema(originalSchema: string, validatedSchema: Record<string, unknown>): void {
-    const validatedSchemaStr = JSON.stringify(validatedSchema);
-    if (Utils.isDevelopmentEnv() && originalSchema !== validatedSchemaStr) {
+    if (Utils.isDevelopmentEnv() && originalSchema !== JSON.stringify(validatedSchema)) {
       console.error(chalk.red('Data changed after schema validation'));
       console.error(chalk.red('Original Data:'));
       console.error(chalk.red(originalSchema));
       console.error(chalk.red('Validated Data:'));
-      console.error(chalk.red(validatedSchemaStr));
+      console.error(chalk.red(JSON.stringify(validatedSchema)));
     }
   }
 
