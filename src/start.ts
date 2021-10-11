@@ -49,6 +49,8 @@ export default class Bootstrap {
 
   public static async start(): Promise<void> {
     let serverStarted: string[] = [];
+    let startTimeMillis: number;
+    const startTimeGlobalMillis = await this.logAndGetStartTimeMillis('e-Mobility Server is starting...');
     try {
       // Setup i18n
       await I18nManager.initialize();
@@ -62,10 +64,12 @@ export default class Bootstrap {
       Bootstrap.oicpConfig = Configuration.getOICPServiceConfig();
       Bootstrap.oDataServerConfig = Configuration.getODataServiceConfig();
       Bootstrap.migrationConfig = Configuration.getMigrationConfig();
+
       // -------------------------------------------------------------------------
       // Connect to the DB
       // -------------------------------------------------------------------------
       // Check database implementation
+      startTimeMillis = await this.logAndGetStartTimeMillis('Connecting to the Database...');
       switch (Bootstrap.storageConfig.implementation) {
         // MongoDB?
         case 'mongodb':
@@ -75,28 +79,27 @@ export default class Bootstrap {
           global.database = Bootstrap.database;
           break;
         default:
-          console.log(`Storage Server implementation '${Bootstrap.storageConfig.implementation}' not supported!`);
+          console.error(chalk.red(`Storage Server implementation '${Bootstrap.storageConfig.implementation}' not supported!`));
       }
       // Connect to the Database
       await Bootstrap.database.start();
       // Log
-      await Logging.logInfo({
-        tenantID: Constants.DEFAULT_TENANT,
-        action: ServerAction.STARTUP,
-        module: MODULE_NAME, method: 'start',
-        message: `Server has connected to '${Bootstrap.storageConfig.implementation}' successfully`
-      });
+      await this.logDuration(startTimeMillis, 'Connected to the Database successfully');
+
       // -------------------------------------------------------------------------
       // Start DB Migration
       // -------------------------------------------------------------------------
       if (Bootstrap.migrationConfig.active) {
+        startTimeMillis = await this.logAndGetStartTimeMillis('Migration is starting...');
         // Check and trigger migration (only master process can run the migration)
         await MigrationHandler.migrate();
+        // Log
+        await this.logDuration(startTimeMillis, 'Migration has been run successfully');
       }
       // Listen to promise failure
-      process.on('unhandledRejection', (reason: any, p): void => {
+      process.on('unhandledRejection', (reason: any, p: any): void => {
         // eslint-disable-next-line no-console
-        console.log('Unhandled Rejection: ', p, ' reason: ', reason);
+        console.error(chalk.red(`Unhandled Rejection: ${p?.toString()}, reason: ${reason as string}`));
         void Logging.logError({
           tenantID: Constants.DEFAULT_TENANT,
           action: ServerAction.UNKNOWN_ACTION,
@@ -105,35 +108,48 @@ export default class Bootstrap {
           detailedMessages: (reason ? reason.stack : null)
         });
       });
+
       // -------------------------------------------------------------------------
       // Start all the Servers
       // -------------------------------------------------------------------------
+      startTimeMillis = await this.logAndGetStartTimeMillis('Server is starting...');
+      // Start the Servers
       serverStarted = await Bootstrap.startServersListening();
+      // Log
+      await this.logDuration(startTimeMillis, `Server ${serverStarted.join(', ')} has been started successfully`);
+
       // -------------------------------------------------------------------------
       // Init the Scheduler
       // -------------------------------------------------------------------------
+      startTimeMillis = await this.logAndGetStartTimeMillis('Scheduler is starting...');
+      // Start the Scheduler
       await SchedulerManager.init();
+      // Log
+      await this.logDuration(startTimeMillis, 'Scheduler has been started successfully');
+
       // -------------------------------------------------------------------------
       // Init the Async Task
       // -------------------------------------------------------------------------
+      startTimeMillis = await this.logAndGetStartTimeMillis('Async Task manager is starting...');
+      // Start the Async Manager
       await AsyncTaskManager.init();
+      // Log
+      await this.logDuration(startTimeMillis, 'Async Task manager has been started successfully');
+
       // -------------------------------------------------------------------------
       // Update Charging Station Templates
       // -------------------------------------------------------------------------
+      startTimeMillis = await this.logAndGetStartTimeMillis('Update Charging Station templates...');
       await Utils.updateChargingStationTemplatesFromFile();
-      // Keep server names
+      // Log
+      await this.logDuration(startTimeMillis, 'Charging Station templates have been updated successfully');
+
+      // Keep the server names globally
       if (serverStarted.length === 1) {
         global.serverName = serverStarted[0];
       }
       // Log
-      const successMsg = `${serverStarted.join(', ')} server has been started successfuly`;
-      await Logging.logInfo({
-        tenantID: Constants.DEFAULT_TENANT,
-        action: ServerAction.BOOTSTRAP_STARTUP,
-        module: MODULE_NAME, method: 'start',
-        message: successMsg
-      });
-      console.log(chalk.green(successMsg));
+      await this.logDuration(startTimeGlobalMillis, `${serverStarted.join(', ')} e-Mobility server has been started successfuly`);
     } catch (error) {
       console.error(chalk.red(error));
       await Logging.logError({
@@ -142,6 +158,34 @@ export default class Bootstrap {
         module: MODULE_NAME, method: 'start',
         message: `Unexpected exception in ${serverStarted.join(', ')}`,
         detailedMessages: { error: error.stack }
+      });
+    }
+  }
+
+  private static async logAndGetStartTimeMillis(logMessage: string): Promise<number> {
+    const timeStartMillis = Date.now();
+    console.log(chalk.green(logMessage));
+    if (global.database) {
+      await Logging.logInfo({
+        tenantID: Constants.DEFAULT_TENANT,
+        action: ServerAction.STARTUP,
+        module: MODULE_NAME, method: 'start',
+        message: logMessage
+      });
+    }
+    return timeStartMillis;
+  }
+
+  private static async logDuration(timeStartMillis: number, logMessage: string): Promise<void> {
+    const timeDurationSecs = Utils.createDecimal(Date.now() - timeStartMillis).div(1000).toNumber();
+    logMessage = `${logMessage} in ${timeDurationSecs} secs`;
+    console.log(chalk.green(logMessage));
+    if (global.database) {
+      await Logging.logInfo({
+        tenantID: Constants.DEFAULT_TENANT,
+        action: ServerAction.BOOTSTRAP_STARTUP,
+        module: MODULE_NAME, method: 'start',
+        message: logMessage
       });
     }
   }

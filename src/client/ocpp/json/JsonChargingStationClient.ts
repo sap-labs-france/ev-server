@@ -101,20 +101,20 @@ export default class JsonChargingStationClient extends ChargingStationClient {
   }
 
   private async sendMessage(params: any, command: Command): Promise<any> {
-    // Log
-    await Logging.logChargingStationClientSendAction(MODULE_NAME, this.tenantID, this.chargingStationID, {
+    // Trace
+    const startTimestamp = await Logging.traceChargingStationActionStart(MODULE_NAME, this.tenantID, this.chargingStationID, `ChargingStation${command}` as ServerAction, params, '<<', {
       siteAreaID: this.siteAreaID,
       siteID: this.siteID,
       companyID: this.companyID,
-    }, `ChargingStation${command}` as ServerAction, params);
+    });
     // Execute
     const result = await this.wsConnection.sendMessage(Utils.generateUUID(), params, OCPPMessageType.CALL_MESSAGE, command);
-    // Log
-    await Logging.logChargingStationClientReceiveAction(MODULE_NAME, this.tenantID, this.chargingStationID, {
+    // Trace
+    await Logging.traceChargingStationActionEnd(MODULE_NAME, this.tenantID, this.chargingStationID, `ChargingStation${command}` as ServerAction, result, '>>', {
       siteAreaID: this.siteAreaID,
       siteID: this.siteID,
       companyID: this.companyID,
-    },`ChargingStation${command}` as ServerAction, result);
+    }, startTimestamp);
     return result;
   }
 }
