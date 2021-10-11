@@ -33,31 +33,31 @@ export default class AuthValidator extends SchemaValidator {
     return AuthValidator.instance;
   }
 
-  public validateAuthSignInReq(data: unknown): HttpLoginRequest {
+  public validateAuthSignInReq(data: Record<string, unknown>): HttpLoginRequest {
     return this.validate('validateAuthSignInReq', this.authSignIn, data);
   }
 
-  public validateAuthSignOnReq(data: unknown): Partial<HttpRegisterUserRequest> {
+  public validateAuthSignOnReq(data: Record<string, unknown>): Partial<HttpRegisterUserRequest> {
     return this.validate('validateAuthSignOnReq', this.authSignOn, data);
   }
 
-  public validateAuthPasswordResetReq(data: unknown): Partial<HttpResetPasswordRequest> {
+  public validateAuthPasswordResetReq(data: Record<string, unknown>): Partial<HttpResetPasswordRequest> {
     return this.validate('validateAuthPasswordResetReq', this.authPasswordReset, data);
   }
 
-  public validateAuthEulaCheckReq(data: unknown): Partial<HttpCheckEulaRequest> {
+  public validateAuthEulaCheckReq(data: Record<string, unknown>): Partial<HttpCheckEulaRequest> {
     return this.validate('validateAuthEulaCheckReq', this.authEulaCheck, data);
   }
 
-  public validateAuthEmailVerifyReq(data: unknown): Partial<HttpVerifyEmailRequest> {
+  public validateAuthEmailVerifyReq(data: Record<string, unknown>): Partial<HttpVerifyEmailRequest> {
     return this.validate('validateAuthEmailVerifyReq', this.authEmailVerify, data);
   }
 
-  public validateAuthVerificationEmailResendReq(data: unknown): Partial<HttpResendVerificationMailRequest> {
+  public validateAuthVerificationEmailResendReq(data: Record<string, unknown>): Partial<HttpResendVerificationMailRequest> {
     return this.validate('validateAuthVerificationEmailResendReq', this.authVerificationEmailResend, data);
   }
 
-  public validateAuthEulaReq(data: unknown): Partial<HttpEulaRequest> {
+  public validateAuthEulaReq(data: Record<string, unknown>): Partial<HttpEulaRequest> {
     return this.validate('validateAuthEulaReq', this.authEula, data);
   }
 }

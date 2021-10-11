@@ -30,23 +30,23 @@ export default class CompanyValidator extends SchemaValidator {
     return CompanyValidator.instance;
   }
 
-  public validateCompaniesGetReq(data: unknown): HttpCompaniesRequest {
+  public validateCompaniesGetReq(data: Record<string, unknown>): HttpCompaniesRequest {
     return this.validate('validateCompaniesGetReq', this.companiesGet, data);
   }
 
-  public validateCompanyGetReq(data: unknown): HttpCompanyRequest {
+  public validateCompanyGetReq(data: Record<string, unknown>): HttpCompanyRequest {
     return this.validate('validateCompanyGetReq', this.companyGet, data);
   }
 
-  public validateCompanyCreateReq(data: unknown): Company {
+  public validateCompanyCreateReq(data: Record<string, unknown>): Company {
     return this.validate('validateCompanyCreateReq', this.companyCreate, data);
   }
 
-  public validateCompanyUpdateReq(data: unknown): Company {
+  public validateCompanyUpdateReq(data: Record<string, unknown>): Company {
     return this.validate('validateCompanyUpdateReq', this.companyUpdate, data);
   }
 
-  public validateCompanyLogoGetReq(data: unknown): HttpCompanyLogoRequest {
+  public validateCompanyLogoGetReq(data: Record<string, unknown>): HttpCompanyLogoRequest {
     return this.validate('validateCompanyLogoGetReq', this.companyLogoGet, data);
   }
 }

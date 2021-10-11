@@ -49,7 +49,6 @@ export default class StatisticsContext {
     const startYear = new Date().getFullYear();
     for (let yr = 0; yr < StatisticsContext.CONSTANTS.TRANSACTION_YEARS; yr++) {
       firstYear = startYear - yr;
-
       let startTime = moment().year(firstYear).startOf('year').add({ hours: 12 });
       for (const chargingStation of this.chargingStations) {
         for (const user of users) {
@@ -59,9 +58,7 @@ export default class StatisticsContext {
           // eslint-disable-next-line @typescript-eslint/unbound-method
           expect(startTransactionResponse).to.be.transactionValid;
           const transactionId = startTransactionResponse.transactionId;
-
           for (let m = 1; m < StatisticsContext.CONSTANTS.CHARGING_MINUTES + StatisticsContext.CONSTANTS.IDLE_MINUTES; m++) {
-
             if (m % StatisticsContext.CONSTANTS.INTERVAL_METER_VALUES === 0) {
               const meterTime = startTime.clone().add(m, 'minutes');
               if (m > StatisticsContext.CONSTANTS.CHARGING_MINUTES) {
@@ -77,7 +74,6 @@ export default class StatisticsContext {
           const stopTransactionResponse = await chargingStation.stopTransaction(transactionId, user.tags[0].id,
             StatisticsContext.CONSTANTS.ENERGY_PER_MINUTE * StatisticsContext.CONSTANTS.CHARGING_MINUTES, endTime.toDate());
           expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
-
           // Add a fake refund data to transaction
           await this.generateStaticRefundData(transactionId);
           await this.generateStaticRefundData(transactionId);

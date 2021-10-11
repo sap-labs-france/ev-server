@@ -15,41 +15,53 @@ export default { /* Services */
       Authorize: function(args, callback, headers, req): void {
         // Check SOAP params
         OCPPUtils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
-          // Log
-          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
-            siteID: headers.siteID,
-            siteAreaID: headers.siteAreaID,
-            companyID: headers.companyID,
-          }, ServerAction.OCPP_AUTHORIZE, [ headers, args ]);
+          // Trace
+          const startTimestamp = await Logging.traceChargingStationActionStart(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity,
+            ServerAction.OCPP_AUTHORIZE, [headers, args], '>>', {
+              siteID: headers.siteID,
+              siteAreaID: headers.siteAreaID,
+              companyID: headers.companyID,
+            }
+          );
           // Handle
           const result = await global.centralSystemSoapServer.getChargingStationService(OCPPVersion.VERSION_16).handleAuthorize(headers, args);
-          // Log
-          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
-            siteID: headers.siteID,
-            siteAreaID: headers.siteAreaID,
-            companyID: headers.companyID,
-          }, ServerAction.OCPP_AUTHORIZE, {
-            'result': result
-          });
-          // Answer
-          callback({
+          const response = {
             'authorizeResponse': {
               'idTagInfo': {
                 'status': result.idTagInfo.status
               }
             }
-          });
+          };
+          // Trace
+          await Logging.traceChargingStationActionEnd(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity,
+            ServerAction.OCPP_AUTHORIZE, response, '<<', {
+              siteID: headers.siteID,
+              siteAreaID: headers.siteAreaID,
+              companyID: headers.companyID,
+            }, startTimestamp
+          );
+          // Answer
+          callback(response);
         }).catch(async (error) => {
           // Log
           await Logging.logException(error, ServerAction.OCPP_AUTHORIZE, headers.chargeBoxIdentity,
             MODULE_NAME, 'Authorize', headers.tenantID ?? Constants.DEFAULT_TENANT);
-          callback({
+          const response = {
             'authorizeResponse': {
               'idTagInfo': {
                 'status': 'Invalid'
               }
             }
-          });
+          };
+          // Trace
+          await Logging.traceChargingStationActionEnd(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity,
+            ServerAction.OCPP_AUTHORIZE, response, '<<', {
+              siteID: headers.siteID,
+              siteAreaID: headers.siteAreaID,
+              companyID: headers.companyID,
+            }, 0
+          );
+          callback(response);
         });
       },
 
@@ -63,140 +75,188 @@ export default { /* Services */
           headers.ocppProtocol = OCPPProtocol.SOAP;
           // Add current IPs to charging station properties
           headers.currentIPAddress = Utils.getRequestIP(req);
-          // Log
-          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
-            siteID: headers.siteID,
-            siteAreaID: headers.siteAreaID,
-            companyID: headers.companyID,
-          }, ServerAction.OCPP_BOOT_NOTIFICATION, [ headers, args ]);
+          // Trace
+          const startTimestamp = await Logging.traceChargingStationActionStart(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity,
+            ServerAction.OCPP_BOOT_NOTIFICATION, [headers, args], '>>', {
+              siteID: headers.siteID,
+              siteAreaID: headers.siteAreaID,
+              companyID: headers.companyID,
+            }
+          );
           // Handle
           const result = await global.centralSystemSoapServer.getChargingStationService(OCPPVersion.VERSION_16).handleBootNotification(headers, args);
-          // Log
-          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
-            siteID: headers.siteID,
-            siteAreaID: headers.siteAreaID,
-            companyID: headers.companyID,
-          }, ServerAction.OCPP_BOOT_NOTIFICATION, {
-            'result': result
-          });
-          callback({
+          const response = {
             'bootNotificationResponse': {
               'currentTime': result.currentTime,
               'status': result.status,
               'interval': result.interval
             }
-          });
+          };
+          // Trace
+          await Logging.traceChargingStationActionEnd(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity,
+            ServerAction.OCPP_BOOT_NOTIFICATION, response, '<<', {
+              siteID: headers.siteID,
+              siteAreaID: headers.siteAreaID,
+              companyID: headers.companyID,
+            }, startTimestamp
+          );
+          callback(response);
         }).catch(async (error) => {
           // Log
           await Logging.logException(error, ServerAction.OCPP_BOOT_NOTIFICATION, headers.chargeBoxIdentity,
             MODULE_NAME, 'BootNotification', headers.tenantID ?? Constants.DEFAULT_TENANT);
-          callback({
+          const response = {
             'bootNotificationResponse': {
               'status': 'Rejected',
               'currentTime': new Date().toISOString(),
               'interval': Constants.BOOT_NOTIFICATION_WAIT_TIME
             }
-          });
+          };
+          // Trace
+          await Logging.traceChargingStationActionEnd(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity,
+            ServerAction.OCPP_BOOT_NOTIFICATION, response, '<<', {
+              siteID: headers.siteID,
+              siteAreaID: headers.siteAreaID,
+              companyID: headers.companyID,
+            }, 0
+          );
+          callback(response);
         });
       },
 
       DataTransfer: function(args, callback, headers, req): void {
         // Check SOAP params
         OCPPUtils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
-          // Log
-          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
-            siteID: headers.siteID,
-            siteAreaID: headers.siteAreaID,
-            companyID: headers.companyID,
-          }, ServerAction.CHARGING_STATION_DATA_TRANSFER, [ headers, args ]);
+          // Trace
+          const startTimestamp = await Logging.traceChargingStationActionStart(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity,
+            ServerAction.CHARGING_STATION_DATA_TRANSFER, [headers, args], '>>', {
+              siteID: headers.siteID,
+              siteAreaID: headers.siteAreaID,
+              companyID: headers.companyID,
+            }
+          );
           // Handle
           const result = await global.centralSystemSoapServer.getChargingStationService(OCPPVersion.VERSION_16).handleDataTransfer(headers, args);
-          // Log
-          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
-            siteID: headers.siteID,
-            siteAreaID: headers.siteAreaID,
-            companyID: headers.companyID,
-          }, ServerAction.CHARGING_STATION_DATA_TRANSFER, {
-            'result': result
-          });
-          callback({
+          const response = {
             'dataTransferResponse': {
               'status': result.status
             }
-          });
+          };
+          // Trace
+          await Logging.traceChargingStationActionEnd(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity,
+            ServerAction.CHARGING_STATION_DATA_TRANSFER, response, '<<', {
+              siteID: headers.siteID,
+              siteAreaID: headers.siteAreaID,
+              companyID: headers.companyID,
+            }, startTimestamp
+          );
+          callback(response);
         }).catch(async (error) => {
           // Log
           await Logging.logException(error, ServerAction.CHARGING_STATION_DATA_TRANSFER, headers.chargeBoxIdentity,
             MODULE_NAME, 'DataTransfer', headers.tenantID ?? Constants.DEFAULT_TENANT);
-          callback({
+          const response = {
             'dataTransferResponse': {
               'status': 'Rejected'
             }
-          });
+          };
+          // Trace
+          await Logging.traceChargingStationActionEnd(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity,
+            ServerAction.CHARGING_STATION_DATA_TRANSFER, response, '<<', {
+              siteID: headers.siteID,
+              siteAreaID: headers.siteAreaID,
+              companyID: headers.companyID,
+            }, 0
+          );
+          callback(response);
         });
       },
 
       DiagnosticsStatusNotification: function(args, callback, headers, req): void {
         // Check SOAP params
         OCPPUtils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
-          // Log
-          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
-            siteID: headers.siteID,
-            siteAreaID: headers.siteAreaID,
-            companyID: headers.companyID,
-          }, ServerAction.OCPP_DIAGNOSTICS_STATUS_NOTIFICATION, [ headers, args ]);
+          // Trace
+          const startTimestamp = await Logging.traceChargingStationActionStart(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity,
+            ServerAction.OCPP_DIAGNOSTICS_STATUS_NOTIFICATION, [headers, args], '>>', {
+              siteID: headers.siteID,
+              siteAreaID: headers.siteAreaID,
+              companyID: headers.companyID,
+            }
+          );
           // Handle
-          const result = await global.centralSystemSoapServer.getChargingStationService(OCPPVersion.VERSION_16).handleDiagnosticsStatusNotification(headers, args);
-          // Log
-          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
-            siteID: headers.siteID,
-            siteAreaID: headers.siteAreaID,
-            companyID: headers.companyID,
-          }, ServerAction.OCPP_DIAGNOSTICS_STATUS_NOTIFICATION, {
-            'result': result
-          });
-          callback({
+          await global.centralSystemSoapServer.getChargingStationService(OCPPVersion.VERSION_16).handleDiagnosticsStatusNotification(headers, args);
+          const response = {
             'diagnosticsStatusNotificationResponse': {}
-          });
+          };
+          // Trace
+          await Logging.traceChargingStationActionEnd(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity,
+            ServerAction.OCPP_DIAGNOSTICS_STATUS_NOTIFICATION, response, '<<', {
+              siteID: headers.siteID,
+              siteAreaID: headers.siteAreaID,
+              companyID: headers.companyID,
+            }, startTimestamp
+          );
+          callback(response);
         }).catch(async (error) => {
           // Log
           await Logging.logException(error, ServerAction.OCPP_DIAGNOSTICS_STATUS_NOTIFICATION, headers.chargeBoxIdentity,
             MODULE_NAME, 'DiagnosticsStatusNotification', headers.tenantID ?? Constants.DEFAULT_TENANT);
-          callback({
+          const response = {
             'diagnosticsStatusNotificationResponse': {}
-          });
+          };
+          // Trace
+          await Logging.traceChargingStationActionEnd(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity,
+            ServerAction.OCPP_DIAGNOSTICS_STATUS_NOTIFICATION, response, '<<', {
+              siteID: headers.siteID,
+              siteAreaID: headers.siteAreaID,
+              companyID: headers.companyID,
+            }, 0
+          );
+          callback(response);
         });
       },
 
       FirmwareStatusNotification: function(args, callback, headers, req): void {
         // Check SOAP params
         OCPPUtils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
-          // Log
-          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
-            siteID: headers.siteID,
-            siteAreaID: headers.siteAreaID,
-            companyID: headers.companyID,
-          }, ServerAction.OCPP_FIRMWARE_STATUS_NOTIFICATION, [ headers, args ]);
+          // Trace
+          const startTimestamp = await Logging.traceChargingStationActionStart(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity,
+            ServerAction.OCPP_FIRMWARE_STATUS_NOTIFICATION, [headers, args], '>>', {
+              siteID: headers.siteID,
+              siteAreaID: headers.siteAreaID,
+              companyID: headers.companyID,
+            }
+          );
           // Handle
-          const result = await global.centralSystemSoapServer.getChargingStationService(OCPPVersion.VERSION_16).handleFirmwareStatusNotification(headers, args);
-          // Log
-          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
-            siteID: headers.siteID,
-            siteAreaID: headers.siteAreaID,
-            companyID: headers.companyID,
-          }, ServerAction.OCPP_FIRMWARE_STATUS_NOTIFICATION, {
-            'result': result
-          });
-          callback({
+          await global.centralSystemSoapServer.getChargingStationService(OCPPVersion.VERSION_16).handleFirmwareStatusNotification(headers, args);
+          const response = {
             'firmwareStatusNotificationResponse': {}
-          });
+          };
+          // Trace
+          await Logging.traceChargingStationActionEnd(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity,
+            ServerAction.OCPP_FIRMWARE_STATUS_NOTIFICATION, response, '<<', {
+              siteID: headers.siteID,
+              siteAreaID: headers.siteAreaID,
+              companyID: headers.companyID,
+            }, startTimestamp
+          );
+          callback(response);
         }).catch(async (error) => {
           // Log
           await Logging.logException(error, ServerAction.OCPP_FIRMWARE_STATUS_NOTIFICATION, headers.chargeBoxIdentity,
             MODULE_NAME, 'FirmwareStatusNotification', headers.tenantID ?? Constants.DEFAULT_TENANT);
-          callback({
+          const response = {
             'firmwareStatusNotificationResponse': {}
-          });
+          };
+          // Trace
+          await Logging.traceChargingStationActionEnd(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity,
+            ServerAction.OCPP_FIRMWARE_STATUS_NOTIFICATION, response, '<<', {
+              siteID: headers.siteID,
+              siteAreaID: headers.siteAreaID,
+              companyID: headers.companyID,
+            }, 0
+          );
+          callback(response);
         });
       },
 
@@ -205,183 +265,242 @@ export default { /* Services */
         OCPPUtils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Add current IPs to charging station properties
           headers.currentIPAddress = Utils.getRequestIP(req);
-          // Log
-          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
-            siteID: headers.siteID,
-            siteAreaID: headers.siteAreaID,
-            companyID: headers.companyID,
-          }, ServerAction.OCPP_HEARTBEAT, [ headers, args ]);
+          // Trace
+          const startTimestamp = await Logging.traceChargingStationActionStart(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity,
+            ServerAction.OCPP_HEARTBEAT, [headers, args], '>>', {
+              siteID: headers.siteID,
+              siteAreaID: headers.siteAreaID,
+              companyID: headers.companyID,
+            }
+          );
           // Handle
           const result = await global.centralSystemSoapServer.getChargingStationService(OCPPVersion.VERSION_16).handleHeartbeat(headers, args);
-          // Log
-          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
-            siteID: headers.siteID,
-            siteAreaID: headers.siteAreaID,
-            companyID: headers.companyID,
-          }, ServerAction.OCPP_HEARTBEAT, {
-            'result': result
-          });
-          callback({
+          const response = {
             'heartbeatResponse': {
               'currentTime': result.currentTime
             }
-          });
+          };
+          // Trace
+          await Logging.traceChargingStationActionEnd(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity,
+            ServerAction.OCPP_HEARTBEAT, response, '<<', {
+              siteID: headers.siteID,
+              siteAreaID: headers.siteAreaID,
+              companyID: headers.companyID,
+            }, startTimestamp
+          );
+          callback(response);
         }).catch(async (error) => {
           // Log
           await Logging.logException(error, ServerAction.OCPP_HEARTBEAT, headers.chargeBoxIdentity,
             MODULE_NAME, 'Heartbeat', headers.tenantID ?? Constants.DEFAULT_TENANT);
-          callback({
+          const response = {
             'heartbeatResponse': {
               'currentTime': new Date().toISOString()
             }
-          });
+          };
+          // Trace
+          await Logging.traceChargingStationActionEnd(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity,
+            ServerAction.OCPP_HEARTBEAT, response, '<<', {
+              siteID: headers.siteID,
+              siteAreaID: headers.siteAreaID,
+              companyID: headers.companyID,
+            }, 0
+          );
+          callback(response);
         });
       },
 
       MeterValues: function(args, callback, headers, req): void {
         // Check SOAP params
         OCPPUtils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
-          // Log
-          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
-            siteID: headers.siteID,
-            siteAreaID: headers.siteAreaID,
-            companyID: headers.companyID,
-          }, ServerAction.OCPP_METER_VALUES, [ headers, args ]);
+          // Trace
+          const startTimestamp = await Logging.traceChargingStationActionStart(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity,
+            ServerAction.OCPP_METER_VALUES, [headers, args], '>>', {
+              siteID: headers.siteID,
+              siteAreaID: headers.siteAreaID,
+              companyID: headers.companyID,
+            }
+          );
           // Handle
           const result = await global.centralSystemSoapServer.getChargingStationService(OCPPVersion.VERSION_16).handleMeterValues(headers, args);
-          // Return the result async
-          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
-            siteID: headers.siteID,
-            siteAreaID: headers.siteAreaID,
-            companyID: headers.companyID,
-          }, ServerAction.OCPP_METER_VALUES, {
-            'result': result
-          });
-          callback({
+          const response = {
             'meterValuesResponse': {}
-          });
+          };
+          // Trace
+          await Logging.traceChargingStationActionEnd(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity,
+            ServerAction.OCPP_METER_VALUES, response, '<<', {
+              siteID: headers.siteID,
+              siteAreaID: headers.siteAreaID,
+              companyID: headers.companyID,
+            }, startTimestamp
+          );
+          callback(response);
         }).catch(async (error) => {
           // Log
           await Logging.logException(error, ServerAction.OCPP_METER_VALUES, headers.chargeBoxIdentity,
             MODULE_NAME, 'MeterValues', headers.tenantID ?? Constants.DEFAULT_TENANT);
-          callback({
+          const response = {
             'meterValuesResponse': {}
-          });
+          };
+          // Trace
+          await Logging.traceChargingStationActionEnd(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity,
+            ServerAction.OCPP_METER_VALUES, response, '<<', {
+              siteID: headers.siteID,
+              siteAreaID: headers.siteAreaID,
+              companyID: headers.companyID,
+            }, 0
+          );
+          callback(response);
         });
       },
 
       StartTransaction: function(args, callback, headers, req): void {
         // Check SOAP params
         OCPPUtils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
-          // Log
-          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
-            siteID: headers.siteID,
-            siteAreaID: headers.siteAreaID,
-            companyID: headers.companyID,
-          }, ServerAction.OCPP_START_TRANSACTION, [ headers, args ]);
+          // Trace
+          const startTimestamp = await Logging.traceChargingStationActionStart(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity,
+            ServerAction.OCPP_START_TRANSACTION, [headers, args], '>>', {
+              siteID: headers.siteID,
+              siteAreaID: headers.siteAreaID,
+              companyID: headers.companyID,
+            }
+          );
           // Handle
           const result = await global.centralSystemSoapServer.getChargingStationService(OCPPVersion.VERSION_16).handleStartTransaction(headers, args);
-          // Log
-          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
-            siteID: headers.siteID,
-            siteAreaID: headers.siteAreaID,
-            companyID: headers.companyID,
-          }, ServerAction.OCPP_START_TRANSACTION, {
-            'result': result
-          });
-          callback({
+          const response = {
             'startTransactionResponse': {
               'transactionId': result.transactionId,
               'idTagInfo': {
                 'status': result.idTagInfo.status
               }
             }
-          });
+          };
+          // Trace
+          await Logging.traceChargingStationActionEnd(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity,
+            ServerAction.OCPP_START_TRANSACTION, response, '<<', {
+              siteID: headers.siteID,
+              siteAreaID: headers.siteAreaID,
+              companyID: headers.companyID,
+            }, startTimestamp
+          );
+          callback(response);
         }).catch(async (error) => {
           // Log
           await Logging.logException(error, ServerAction.OCPP_START_TRANSACTION, headers.chargeBoxIdentity,
             MODULE_NAME, 'StartTransaction', headers.tenantID ?? Constants.DEFAULT_TENANT);
-          callback({
+          const response = {
             'startTransactionResponse': {
               'transactionId': 0,
               'idTagInfo': {
                 'status': 'Invalid'
               }
             }
-          });
+          };
+          // Trace
+          await Logging.traceChargingStationActionEnd(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity,
+            ServerAction.OCPP_START_TRANSACTION, response, '<<', {
+              siteID: headers.siteID,
+              siteAreaID: headers.siteAreaID,
+              companyID: headers.companyID,
+            }, 0
+          );
+          callback(response);
         });
       },
 
       StatusNotification: function(args, callback, headers, req): void {
         // Check SOAP params
         OCPPUtils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
-          // Log
-          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
-            siteID: headers.siteID,
-            siteAreaID: headers.siteAreaID,
-            companyID: headers.companyID,
-          }, ServerAction.OCPP_STATUS_NOTIFICATION, [ headers, args ]);
+          // Trace
+          const startTimestamp = await Logging.traceChargingStationActionStart(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity,
+            ServerAction.OCPP_STATUS_NOTIFICATION, [headers, args], '>>', {
+              siteID: headers.siteID,
+              siteAreaID: headers.siteAreaID,
+              companyID: headers.companyID,
+            }
+          );
           // Handle
-          const result = await global.centralSystemSoapServer.getChargingStationService(OCPPVersion.VERSION_16).handleStatusNotification(headers, args);
-          // Log
-          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
-            siteID: headers.siteID,
-            siteAreaID: headers.siteAreaID,
-            companyID: headers.companyID,
-          }, ServerAction.OCPP_STATUS_NOTIFICATION, {
-            'result': result
-          });
-          callback({
+          await global.centralSystemSoapServer.getChargingStationService(OCPPVersion.VERSION_16).handleStatusNotification(headers, args);
+          const response = {
             'statusNotificationResponse': {}
-          });
+          };
+          // Trace
+          await Logging.traceChargingStationActionEnd(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity,
+            ServerAction.OCPP_STATUS_NOTIFICATION, response, '<<', {
+              siteID: headers.siteID,
+              siteAreaID: headers.siteAreaID,
+              companyID: headers.companyID,
+            }, startTimestamp
+          );
+          callback(response);
         }).catch(async (error) => {
           // Log
           await Logging.logException(error, ServerAction.OCPP_STATUS_NOTIFICATION, headers.chargeBoxIdentity,
             MODULE_NAME, 'StatusNotification', headers.tenantID ?? Constants.DEFAULT_TENANT);
-          // Default
-          callback({
+          const response = {
             'statusNotificationResponse': {}
-          });
+          };
+          // Trace
+          await Logging.traceChargingStationActionEnd(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity,
+            ServerAction.OCPP_STATUS_NOTIFICATION, response, '<<', {
+              siteID: headers.siteID,
+              siteAreaID: headers.siteAreaID,
+              companyID: headers.companyID,
+            }, 0
+          );
+          callback(response);
         });
       },
 
       StopTransaction: function(args, callback, headers, req): void {
         // Check SOAP params
         OCPPUtils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
-          // Log
-          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
-            siteID: headers.siteID,
-            siteAreaID: headers.siteAreaID,
-            companyID: headers.companyID,
-          }, ServerAction.OCPP_STOP_TRANSACTION, [ headers, args ]);
+          // Trace
+          const startTimestamp = await Logging.traceChargingStationActionStart(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity,
+            ServerAction.OCPP_STOP_TRANSACTION, [headers, args], '>>', {
+              siteID: headers.siteID,
+              siteAreaID: headers.siteAreaID,
+              companyID: headers.companyID,
+            }
+          );
           // Handle
           const result = await global.centralSystemSoapServer.getChargingStationService(OCPPVersion.VERSION_16).handleStopTransaction(headers, args);
-          // Log
-          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
-            siteID: headers.siteID,
-            siteAreaID: headers.siteAreaID,
-            companyID: headers.companyID,
-          }, ServerAction.OCPP_STOP_TRANSACTION, {
-            'result': result
-          });
-          callback({
+          const response = {
             'stopTransactionResponse': {
               'idTagInfo': {
                 'status': result.idTagInfo.status
               }
             }
-          });
+          };
+          // Trace
+          await Logging.traceChargingStationActionEnd(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity,
+            ServerAction.OCPP_STOP_TRANSACTION, response, '<<', {
+              siteID: headers.siteID,
+              siteAreaID: headers.siteAreaID,
+              companyID: headers.companyID,
+            }, startTimestamp
+          );
+          callback(response);
         }).catch(async (error) => {
           // Log
           await Logging.logException(error, ServerAction.OCPP_STOP_TRANSACTION, headers.chargeBoxIdentity,
             MODULE_NAME, 'StopTransaction', headers.tenantID ?? Constants.DEFAULT_TENANT);
-          callback({
+          const response = {
             'stopTransactionResponse': {
               'idTagInfo': {
                 'status': 'Invalid'
               }
             }
-          });
+          };
+          // Trace
+          await Logging.traceChargingStationActionEnd(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity,
+            ServerAction.OCPP_STOP_TRANSACTION, response, '<<', {
+              siteID: headers.siteID,
+              siteAreaID: headers.siteAreaID,
+              companyID: headers.companyID,
+            }, 0
+          );
+          callback(response);
         });
       }
     }

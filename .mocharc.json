@@ -9,7 +9,7 @@
   "package": "./package.json",
   "reporter": "mochawesome",
   "reporter-options": "reportDir=outputs/mochawesome-report,json=false",
-  "slow": 75,
+  "slow": 1000,
   "timeout": 2000,
   "ui": "bdd",
   "full-trace": true,

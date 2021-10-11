@@ -23,11 +23,11 @@ export default class LoggingValidator extends SchemaValidator {
     return LoggingValidator.instance;
   }
 
-  public validateLoggingsGetReq(data: unknown): HttpLogsRequest {
+  public validateLoggingsGetReq(data: Record<string, unknown>): HttpLogsRequest {
     return this.validate('validateLoggingsGetReq', this.loggingsGet, data);
   }
 
-  public validateLoggingGetReq(data: unknown): HttpLogRequest {
+  public validateLoggingGetReq(data: Record<string, unknown>): HttpLogRequest {
     return this.validate('validateLoggingGetReq', this.loggingGet, data);
   }
 }
