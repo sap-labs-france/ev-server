@@ -446,32 +446,43 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
     // Let's replicate some information on our side
     billingInvoice = await this.synchronizeAsBillingInvoice(stripeInvoice, false);
+    if (!billingInvoice) {
+      // This should not happen - but it happened once!
+      throw new Error(`Unexpected situation - failed to synchronize ${stripeInvoice.id} - the invoice is null`);
+    }
     await StripeHelpers.updateInvoiceAdditionalData(this.tenant, billingInvoice, operationResult);
     // Send a notification to the user
     void this.sendInvoiceNotification(billingInvoice);
-    await this._updateTransactionsBillingData(billingInvoice);
+    await this.updateTransactionsBillingData(billingInvoice);
     return billingInvoice;
   }
 
   // TODO - move this method to the billing abstraction to make it common to all billing implementation
-  private async _updateTransactionsBillingData(billingInvoice: BillingInvoice): Promise<void> {
+  private async updateTransactionsBillingData(billingInvoice: BillingInvoice): Promise<void> {
+    if (!billingInvoice.sessions) {
+      // This should not happen - but it happened once!
+      throw new Error(`Unexpected situation - Invoice ${billingInvoice.id} has no sessions attached to it`);
+    }
     await Promise.all(billingInvoice.sessions.map(async (session) => {
       const transactionID = session.transactionID;
       try {
         const transaction = await TransactionStorage.getTransaction(this.tenant, Number(transactionID));
         // Update Billing Data
-        transaction.billingData.stop.invoiceStatus = billingInvoice.status;
-        transaction.billingData.stop.invoiceNumber = billingInvoice.number;
-        transaction.billingData.lastUpdate = new Date();
-        // Save
-        await TransactionStorage.saveTransactionBillingData(this.tenant, transaction.id, transaction.billingData);
+        if (transaction?.billingData?.stop) {
+          transaction.billingData.stop.invoiceStatus = billingInvoice.status;
+          transaction.billingData.stop.invoiceNumber = billingInvoice.number;
+          transaction.billingData.lastUpdate = new Date();
+          // Save
+          await TransactionStorage.saveTransactionBillingData(this.tenant, transaction.id, transaction.billingData);
+        }
       } catch (error) {
         // Catch stripe errors and send the information back to the client
         await Logging.logError({
           tenantID: this.tenant.id,
-          action: ServerAction.BILLING_PERFORM_OPERATIONS,
-          module: MODULE_NAME, method: '_updateTransactionsBillingData',
-          message: 'Failed to update transaction billing data',
+          action: ServerAction.BILLING_CHARGE_INVOICE,
+          actionOnUser: billingInvoice.user,
+          module: MODULE_NAME, method: 'updateTransactionsBillingData',
+          message: `Failed to update transaction billing data - transaction: ${transactionID}`,
           detailedMessages: { error: error.stack }
         });
       }
