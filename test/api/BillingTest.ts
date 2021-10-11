@@ -1059,53 +1059,6 @@ describe('Billing Service', function() {
           expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
         });
 
-        it('Should not delete a user', async () => {
-          const response = await testData.userService.deleteEntity(
-            testData.userService.userApi,
-            { id: new ObjectId().toHexString() },
-            false
-          );
-          expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
-        });
-
-        it('Should not create a user', async () => {
-          const fakeUser = {
-            ...Factory.user.build(),
-          } as User;
-
-          const response = await testData.userService.createEntity(
-            testData.userService.userApi,
-            fakeUser,
-            false
-          );
-          testData.createdUsers.push(fakeUser);
-          expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
-        });
-
-        it('Should not update a user', async () => {
-          const fakeUser = {
-            id: new ObjectId(),
-            ...Factory.user.build(),
-          } as User;
-          fakeUser.firstName = 'Test';
-          fakeUser.name = 'Name';
-          const response = await testData.userService.updateEntity(
-            testData.userService.userApi,
-            fakeUser,
-            false
-          );
-          expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
-        });
-
-        it('Should not delete a user', async () => {
-          const response = await testData.userService.deleteEntity(
-            testData.userService.userApi,
-            { id: 0 },
-            false
-          );
-          expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
-        });
-
         it('Should not synchronize a user', async () => {
           const fakeUser = {
             ...Factory.user.build(),
@@ -1122,19 +1075,7 @@ describe('Billing Service', function() {
           expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
         });
 
-        xit('Should list invoices', async () => {
-          const basicUser: User = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
-
-          // Set back userContext to BASIC to consult invoices
-          testData.userService = new CentralServerService(
-            testData.tenantContext.getTenant().subdomain,
-            basicUser
-          );
-          const response = await testData.userService.billingApi.readInvoices({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING);
-          expect(response.data.result.length).to.be.eq(2);
-        });
-
-        it('should create an invoice after a transaction', async () => {
+        it('Should create an invoice after a transaction', async () => {
           const adminUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
           const basicUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
           // Connect as Admin to Force synchronize basic user

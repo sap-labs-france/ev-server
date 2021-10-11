@@ -48,8 +48,8 @@ export default class StripeIntegrationTestData {
     // Create a new user for testing stripe scenarios - BILLING-TEST
     const user = {
       ...Factory.user.build(),
-      name: 'BILLING-TEST',
-      firstName: 'Billing Integration Tests',
+      name: 'BILLING',
+      firstName: 'UT',
       issuer: true,
       locale: 'fr_FR'
     } as User;
