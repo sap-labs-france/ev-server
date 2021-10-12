@@ -1,4 +1,4 @@
-import User, { UserRole } from '../../src/types/User';
+import User, { USER_FREE_ACCESS_DEFAULT, UserRole } from '../../src/types/User';
 import chai, { assert, expect } from 'chai';
 
 import CentralServerService from '../api/client/CentralServerService';
@@ -91,7 +91,7 @@ describe('User', function() {
       testData.createdTags = [];
     });
 
-    describe('Where admin user', () => {
+    describe('When admin user', () => {
       before(() => {
         testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
         assert(testData.userContext, 'User context cannot be null');
@@ -450,6 +450,76 @@ describe('User', function() {
 
     });
 
+  });
+
+  describe('With component Organization (utbilling)', () => {
+    before(async () => {
+      testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING);
+      testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+      testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT);
+      testData.centralUserService = new CentralServerService(
+        testData.tenantContext.getTenant().subdomain,
+        testData.centralUserContext
+      );
+      testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
+      testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
+    });
+
+    describe('Using various basic APIs', () => {
+
+
+      describe('When admin user', () => {
+        before(() => {
+          testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+          assert(testData.userContext, 'User context cannot be null');
+          if (testData.userContext === testData.centralUserContext) {
+            // Reuse the central user service (to avoid double login)
+            testData.userService = testData.centralUserService;
+          } else {
+            testData.userService = new CentralServerService(
+              testData.tenantContext.getTenant().subdomain,
+              testData.userContext
+            );
+          }
+          assert(!!testData.userService, 'User service cannot be null');
+        });
+
+        it('Should be able to set freeAccess flag on basic user', async () => {
+          const fakeUser = {
+            ...Factory.user.build(),
+          } as User;
+          fakeUser.issuer = true;
+          // Let's create a user
+          await testData.userService.createEntity(
+            testData.userService.userApi,
+            fakeUser
+          );
+          testData.createdUsers.push(fakeUser);
+          // Let's check that user exists with default freeAccess flag
+          const myUser = await testData.userService.userApi.readById(fakeUser.id);
+          expect(myUser).to.be.not.null;
+          expect(myUser.data.freeAccess).eq(USER_FREE_ACCESS_DEFAULT);
+          // Let's update the new user
+          fakeUser.freeAccess = true;
+          await testData.userService.updateEntity(
+            testData.userService.userApi,
+            fakeUser,
+            false
+          );
+          // Let's check that user exists with freeAccess flag
+          const myUser2 = await testData.userService.userApi.readById(fakeUser.id);
+          expect(myUser2).to.be.not.null;
+          expect(myUser2.data.freeAccess).to.be.eq(true);
+          // Let's delete the user
+          await testData.userService.deleteEntity(
+            testData.userService.userApi,
+            { id: testData.createdUsers[0].id }
+          );
+          testData.createdUsers.shift();
+        });
+
+      });
+    });
   });
 
 });
