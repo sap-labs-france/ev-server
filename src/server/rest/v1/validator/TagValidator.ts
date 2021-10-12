@@ -43,46 +43,46 @@ export default class TagValidator extends SchemaValidator {
   }
 
   public validateImportedTagCreateReq(data: ImportedTag): void {
-    return this.validate('validateImportedTagCreateReq', this.tagImportCreate, data as unknown as Record<string, unknown>);
+    return this.validate(this.tagImportCreate, data as unknown as Record<string, unknown>);
   }
 
   public validateTagCreateReq(data: Record<string, unknown>): Tag {
-    return this.validate('validateTagCreateReq', this.tagCreate, data);
+    return this.validate(this.tagCreate, data);
   }
 
   public validateTagAssignReq(data: Record<string, unknown>): Tag {
-    return this.validate('validateTagAssignReq', this.tagAssign, data);
+    return this.validate(this.tagAssign, data);
   }
 
   public validateTagUpdateReq(data: Record<string, unknown>): Tag {
-    return this.validate('validateTagUpdateReq', this.tagUpdate, data);
+    return this.validate(this.tagUpdate, data);
   }
 
   public validateTagVisualIDUpdateReq(data: Record<string, unknown>): Tag {
-    return this.validate('validateTagVisualIDUpdateReq', this.tagVisualIDUpdate, data);
+    return this.validate(this.tagVisualIDUpdate, data);
   }
 
   public validateTagsGetReq(data: Record<string, unknown>): HttpTagsRequest {
-    return this.validate('validateTagsGetReq', this.tagsGet, data);
+    return this.validate(this.tagsGet, data);
   }
 
   public validateTagByIDGetReq(data: Record<string, unknown>): HttpTagRequest {
-    return this.validate('validateTagByIDGetReq', this.tagGet, data);
+    return this.validate(this.tagGet, data);
   }
 
   public validateTagVisualIDGetReq(data: Record<string, unknown>): HttpTagByVisualIDRequest {
-    return this.validate('validateTagVisualIDGetReq', this.tagVisualIDGet, data);
+    return this.validate(this.tagVisualIDGet, data);
   }
 
   public validateTagsDeleteReq(data: Record<string, unknown>): HttpTagsDeleteByIDsRequest {
-    return this.validate('validateTagsDeleteReq', this.tagsDelete, data);
+    return this.validate(this.tagsDelete, data);
   }
 
   public validateTagsUnassignReq(data: Record<string, unknown>): HttpTagsDeleteByVisualIDsRequest {
-    return this.validate('validateTagsUnassignReq', this.tagsUnassign, data);
+    return this.validate(this.tagsUnassign, data);
   }
 
   public validateTagUnassignReq(data: Record<string, unknown>): HttpTagsDeleteByVisualIDRequest {
-    return this.validate('validateTagUnassignReq', this.tagUnassign, data);
+    return this.validate(this.tagUnassign, data);
   }
 }

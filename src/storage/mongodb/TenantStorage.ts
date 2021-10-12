@@ -91,7 +91,7 @@ export default class TenantStorage {
       await TenantStorage._saveTenantLogo(tenantMDB._id.toString(), tenantToSave.logo);
     }
     // Debug
-    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveTenant', uniqueTimerID, tenantMDB);
+    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'saveTenant', uniqueTimerID, tenantMDB);
     return tenantFilter._id.toString();
   }
 
@@ -101,7 +101,7 @@ export default class TenantStorage {
     // Create tenant collections
     await global.database.checkAndCreateTenantDatabase(tenantID);
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenantID, MODULE_NAME, 'createTenantDB', uniqueTimerID, { tenantID });
+    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'createTenantDB', uniqueTimerID, { tenantID });
   }
 
   // Delegate
@@ -158,7 +158,7 @@ export default class TenantStorage {
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
-      await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getTenants', uniqueTimerID, tenantsCountMDB);
+      await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'getTenants', uniqueTimerID, tenantsCountMDB);
       return {
         count: (tenantsCountMDB.length > 0 ? tenantsCountMDB[0].count : 0),
         result: []
@@ -206,7 +206,7 @@ export default class TenantStorage {
     const tenantsMDB = await global.database.getCollection<Tenant>(Constants.DEFAULT_TENANT, 'tenants')
       .aggregate<Tenant>(aggregation, DatabaseUtils.buildAggregateOptions()).toArray();
     // Debug
-    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getTenants', uniqueTimerID, tenantsMDB);
+    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'getTenants', uniqueTimerID, tenantsMDB);
     // Ok
     return {
       count: (tenantsCountMDB.length > 0 ?
@@ -224,7 +224,7 @@ export default class TenantStorage {
         '_id': DatabaseUtils.convertToObjectID(id)
       });
     // Debug
-    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'deleteTenant', uniqueTimerID, { id });
+    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'deleteTenant', uniqueTimerID, { id });
   }
 
   public static async deleteTenantDB(id: string): Promise<void> {
@@ -233,7 +233,7 @@ export default class TenantStorage {
     // Delete
     await global.database.deleteTenantDatabase(id);
     // Debug
-    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'deleteTenantDB', uniqueTimerID, { id });
+    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'deleteTenantDB', uniqueTimerID, { id });
   }
 
   public static async getTenantLogo(tenant: Tenant): Promise<TenantLogo> {
@@ -245,7 +245,7 @@ export default class TenantStorage {
     const tenantLogoMDB = await global.database.getCollection<{ _id: ObjectId; logo: string }>(Constants.DEFAULT_TENANT, 'tenantlogos')
       .findOne({ _id: DatabaseUtils.convertToObjectID(tenant.id) });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getTenantLogo', uniqueTimerID, tenantLogoMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getTenantLogo', uniqueTimerID, tenantLogoMDB);
     return {
       id: tenant.id,
       logo: tenantLogoMDB ? tenantLogoMDB.logo : null
@@ -261,6 +261,6 @@ export default class TenantStorage {
       { $set: { logo: tenantLogoToSave } },
       { upsert: true });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenantID, MODULE_NAME, 'saveTenantLogo', uniqueTimerID, tenantLogoToSave);
+    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'saveTenantLogo', uniqueTimerID, tenantLogoToSave);
   }
 }

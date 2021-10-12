@@ -1,5 +1,5 @@
 {
-    "title": "authorize-request",
+    "$id": "authorize-request",
     "description": "Defines the Authorize.req PDU",
     "type": "object",
     "properties": {

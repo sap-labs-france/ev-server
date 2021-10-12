@@ -28,6 +28,6 @@ export default class AuthorizationValidatorStorage extends SchemaValidator {
   }
 
   public validateAuthorizationDefinitionRole(data: Record<string, unknown>): AuthorizationDefinitionRole {
-    return this.validate('validateAuthorizationDefinitionRole', this.authorizationRole, data);
+    return this.validate(this.authorizationRole, data);
   }
 }

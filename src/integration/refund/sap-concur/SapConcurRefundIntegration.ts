@@ -90,7 +90,7 @@ export default class SapConcurRefundIntegration extends RefundIntegration<Concur
   constructor(tenant: Tenant, setting: ConcurRefundSetting) {
     super(tenant, setting);
     // Get Axios
-    this.axiosInstance = AxiosFactory.getAxiosInstance(this.tenant.id,
+    this.axiosInstance = AxiosFactory.getAxiosInstance(this.tenant,
       {
         axiosRetryConfig: this.axiosRetryConfiguration,
       });

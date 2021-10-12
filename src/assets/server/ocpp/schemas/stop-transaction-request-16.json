@@ -1,5 +1,5 @@
 {
-    "title": "stop-transaction-request",
+    "$id": "stop-transaction-request",
     "description": "Defines the StopTransaction.req PDU for OCPP 1.6",
     "type": "object",
     "properties": {

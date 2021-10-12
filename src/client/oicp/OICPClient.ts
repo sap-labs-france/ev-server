@@ -35,7 +35,7 @@ export default abstract class OICPClient {
     this.settings = settings;
     this.oicpEndpoint = oicpEndpoint;
     this.role = role.toLowerCase();
-    this.axiosInstance = AxiosFactory.getAxiosInstance(tenant.id, { axiosConfig: this.getAxiosConfig() }); // FIXME: 'Converting circular structure to JSON' Error
+    this.axiosInstance = AxiosFactory.getAxiosInstance(tenant, { axiosConfig: this.getAxiosConfig() }); // FIXME: 'Converting circular structure to JSON' Error
   }
 
   public getLocalCountryCode(action: ServerAction): string {

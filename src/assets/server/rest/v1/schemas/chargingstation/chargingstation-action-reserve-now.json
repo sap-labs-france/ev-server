@@ -1,15 +1,16 @@
 {
+  "$id": "chargingstation-action-reserve-now",
   "title": "Reserve Now",
   "type": "object",
   "properties": {
     "chargingStationID": {
-      "$ref": "chargingstation.json#/definitions/id"
+      "$ref": "chargingstation#/definitions/id"
     },
     "args": {
       "type": "object",
       "properties": {
         "connectorId": {
-          "$ref": "chargingstation.json#/definitions/connector/properties/connectorId"
+          "$ref": "chargingstation#/definitions/connector/properties/connectorId"
         },
         "expiryDate": {
           "type": "string",
@@ -17,10 +18,10 @@
           "sanitize": "mongo"
         },
         "idTag": {
-          "$ref": "tag.json#/definitions/id"
+          "$ref": "tag#/definitions/id"
         },
         "parentIdTag": {
-          "$ref": "tag.json#/definitions/id"
+          "$ref": "tag#/definitions/id"
         },
         "reservationId": {
           "type": "number",

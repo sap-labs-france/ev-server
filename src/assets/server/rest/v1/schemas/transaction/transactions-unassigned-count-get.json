@@ -1,9 +1,10 @@
 {
+  "$id": "transactions-unassigned-count-get",
   "title": "Get unassigned Transaction count Request",
   "type": "object",
   "properties": {
     "TagID": {
-      "$ref": "tag.json#/definitions/id"
+      "$ref": "tag#/definitions/id"
     }
   },
   "required": [

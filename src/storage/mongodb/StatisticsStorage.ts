@@ -127,7 +127,7 @@ export default class StatisticsStorage {
       .aggregate<ChargingStationStats>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getChargingStationStats', uniqueTimerID, chargingStationStatsMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getChargingStationStats', uniqueTimerID, chargingStationStatsMDB);
     return chargingStationStatsMDB;
   }
 
@@ -257,7 +257,7 @@ export default class StatisticsStorage {
       .aggregate<UserStats>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getUserStats', uniqueTimerID, userStatsMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getUserStats', uniqueTimerID, userStatsMDB);
     return userStatsMDB;
   }
 }

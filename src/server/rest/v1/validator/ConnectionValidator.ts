@@ -27,15 +27,15 @@ export default class ConnectionValidator extends SchemaValidator {
   }
 
   validateConnectionCreateReq(data: Record<string, unknown>): Connection {
-    return this.validate('validateConnectionCreateReq', this.connectionCreate, data);
+    return this.validate(this.connectionCreate, data);
   }
 
   validateConnectionsGetReq(data: Record<string, unknown>): HttpConnectionsRequest {
-    return this.validate('validateConnectionsGetReq', this.connectionsGet, data);
+    return this.validate(this.connectionsGet, data);
   }
 
   validateConnectionGetReq(data: Record<string, unknown>): HttpConnectionRequest {
-    return this.validate('validateConnectionGetReq', this.connectionGet, data);
+    return this.validate(this.connectionGet, data);
   }
 }
 

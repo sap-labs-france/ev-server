@@ -1,5 +1,5 @@
 {
-    "title": "boot-notification-request",
+    "$id": "boot-notification-request",
     "description": "Defines the BootNotification.req PDU",
     "type": "object",
     "properties": {

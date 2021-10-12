@@ -1,4 +1,5 @@
 {
+  "$id": "chargingstation-template",
   "title": "Validate the Charging Station's template",
   "type": "object",
   "properties": {
