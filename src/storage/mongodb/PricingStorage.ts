@@ -37,7 +37,7 @@ export default class PricingStorage {
       { $set: pricingDefinitionMDB },
       { upsert: true, returnDocument: 'after' });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'savePricingDefinition', uniqueTimerID, pricingDefinitionMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'savePricingDefinition', uniqueTimerID, pricingDefinitionMDB);
     return pricingDefinitionMDB._id.toString();
   }
 
@@ -53,7 +53,7 @@ export default class PricingStorage {
       }
     );
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'deletePricingDefinition', uniqueTimerID, { id: pricingDefinitionID });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deletePricingDefinition', uniqueTimerID, { id: pricingDefinitionID });
   }
 
   public static async getPricingDefinition(tenant: Tenant, id: string,
@@ -113,7 +113,7 @@ export default class PricingStorage {
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
-      await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getPricingDefinitions', uniqueTimerID, pricingDefinitionsCountMDB);
+      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getPricingDefinitions', uniqueTimerID, pricingDefinitionsCountMDB);
       return {
         count: (pricingDefinitionsCountMDB.length > 0 ? pricingDefinitionsCountMDB[0].count : 0),
         result: []
@@ -150,7 +150,7 @@ export default class PricingStorage {
     })
       .toArray();
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getPricingDefinitions', uniqueTimerID, pricingDefinitions);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getPricingDefinitions', uniqueTimerID, pricingDefinitions);
     // Ok
     return {
       count: (pricingDefinitionsCountMDB.length > 0 ?
