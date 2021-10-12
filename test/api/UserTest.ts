@@ -1,4 +1,4 @@
-import User, { USER_FREE_ACCESS_DEFAULT, UserRole } from '../../src/types/User';
+import User, { UserRole } from '../../src/types/User';
 import chai, { assert, expect } from 'chai';
 
 import CentralServerService from '../api/client/CentralServerService';
@@ -10,7 +10,6 @@ import Factory from '../factories/Factory';
 import { HTTPError } from '../../src/types/HTTPError';
 import { ServerRoute } from '../../src/types/Server';
 import SiteContext from './context/SiteContext';
-import { StartTransactionErrorCode } from '../../src/types/Transaction';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../src/types/Tag';
 import TenantContext from './context/TenantContext';
@@ -330,21 +329,6 @@ describe('User', function() {
           users = await testData.userService.userApi.readAll({}, { limit: Constants.DB_RECORD_COUNT_MAX_PAGE_LIMIT, skip: 0 });
           expect(user2.technical).eq(false);
         });
-
-        it('Should not be able to set freeAccess flag when billing is inactive', async () => {
-          // Check the freeAccess flag canNOT be set
-          const response = await testData.userService.userApi.exportUsers({});
-          let users = await testData.userService.userApi.readAll({}, { limit: Constants.DB_RECORD_COUNT_MAX_PAGE_LIMIT, skip: 0 });
-          expect(response.status).eq(StatusCodes.OK);
-          expect(response.data).not.null;
-          expect(users.data.result.length).to.be.greaterThan(1);
-          const user1 = users.data.result[0];
-          user1.freeAccess = true;
-          await testData.userService.userApi.update(user1);
-          users = await testData.userService.userApi.readAll({}, { limit: Constants.DB_RECORD_COUNT_MAX_PAGE_LIMIT, skip: 0 });
-          const user2 = users.data.result[0];
-          expect(user2.freeAccess).undefined;
-        });
       });
 
       describe('Using function "readAllInError"', () => {
@@ -498,7 +482,7 @@ describe('User', function() {
           // Let's check that user exists with default freeAccess flag
           const myUser = await testData.userService.userApi.readById(fakeUser.id);
           expect(myUser).to.be.not.null;
-          expect(myUser.data.freeAccess).eq(USER_FREE_ACCESS_DEFAULT);
+          expect(!!myUser.data.freeAccess).eq(false);
           // Let's update the new user
           fakeUser.freeAccess = true;
           await testData.userService.updateEntity(

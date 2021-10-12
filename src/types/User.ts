@@ -88,5 +88,3 @@ export const UserRequiredImportProperties = [
   'firstName',
   'name'
 ];
-
-export const USER_FREE_ACCESS_DEFAULT = false;

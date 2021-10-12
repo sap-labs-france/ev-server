@@ -46,20 +46,25 @@ export default class ContextProvider {
   }
 
   async prepareContexts(tenantContextNames?: string[]): Promise<void> {
-    await this._init();
-    // Prepare list of tenants to create
-    let tenantContexts = ContextDefinition.TENANT_CONTEXT_LIST;
-    if (tenantContextNames) {
-      if (!Array.isArray(tenantContextNames)) {
-        tenantContextNames = [tenantContextNames];
+    try {
+      await this._init();
+      // Prepare list of tenants to create
+      let tenantContexts = ContextDefinition.TENANT_CONTEXT_LIST;
+      if (tenantContextNames) {
+        if (!Array.isArray(tenantContextNames)) {
+          tenantContextNames = [tenantContextNames];
+        }
+        tenantContexts = tenantContextNames.map((tenantName) => ContextDefinition.TENANT_CONTEXT_LIST.find((tenantContext) => {
+          tenantContext.tenantName === tenantName;
+        }));
       }
-      tenantContexts = tenantContextNames.map((tenantName) => ContextDefinition.TENANT_CONTEXT_LIST.find((tenantContext) => {
-        tenantContext.tenantName === tenantName;
-      }));
-    }
-    // Build each tenant context
-    for (const tenantContextDef of tenantContexts) {
-      await this._tenantEntityContext(tenantContextDef);
+      // Build each tenant context
+      for (const tenantContextDef of tenantContexts) {
+        await this._tenantEntityContext(tenantContextDef);
+      }
+    } catch (error) {
+      console.error(error);
+      throw error;
     }
   }
 
