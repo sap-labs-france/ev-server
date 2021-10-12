@@ -26,6 +26,7 @@ export default abstract class WSConnection {
   private companyID: string;
   private chargingStationID: string;
   private tenantID: string;
+  private tenantSubdomain: string;
   private token: string;
   private url: string;
   private clientIP: string | string[];
@@ -124,7 +125,8 @@ export default abstract class WSConnection {
   public async initialize(): Promise<void> {
     // Check Tenant
     try {
-      await DatabaseUtils.checkTenant(this.tenantID);
+      const tenant = await DatabaseUtils.checkTenant(this.tenantID);
+      this.tenantSubdomain = tenant?.subdomain;
     } catch (error) {
       // Custom Error
       await Logging.logException(error, ServerAction.WS_CONNECTION, this.getChargingStationID(), 'WSConnection', 'initialize', this.tenantID);
@@ -363,7 +365,10 @@ export default abstract class WSConnection {
   }
 
   public getTenant(): Tenant {
-    return { id: this.tenantID } as Tenant;
+    return {
+      id: this.tenantID,
+      subdomain: this.tenantSubdomain
+    } as Tenant;
   }
 
   public getToken(): string {

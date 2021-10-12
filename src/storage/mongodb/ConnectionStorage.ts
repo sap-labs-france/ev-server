@@ -30,7 +30,7 @@ export default class ConnectionStorage {
       { _id: connectionMDB._id },
       { $set: connectionMDB },
       { upsert: true, returnDocument: 'after' });
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveConnection', uniqueTimerID, connectionMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveConnection', uniqueTimerID, connectionMDB);
     return result.value._id.toString();
   }
 
@@ -55,7 +55,7 @@ export default class ConnectionStorage {
     if (!Utils.isEmptyArray(connections)) {
       connection = connections[0];
     }
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getConnectionByConnectorIdAndUserId', uniqueTimerID, connections);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getConnectionByConnectorIdAndUserId', uniqueTimerID, connections);
     return connection;
   }
 
@@ -76,7 +76,7 @@ export default class ConnectionStorage {
     const connectionsMDB = await global.database.getCollection<Connection>(tenant.id, 'connections')
       .aggregate<Connection>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getConnectionByUserId', uniqueTimerID, connectionsMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getConnectionByUserId', uniqueTimerID, connectionsMDB);
     return {
       count: connectionsMDB.length,
       result: connectionsMDB
@@ -105,7 +105,7 @@ export default class ConnectionStorage {
     if (!Utils.isEmptyArray(connections)) {
       connection = connections[0];
     }
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getConnection', uniqueTimerID, connections);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getConnection', uniqueTimerID, connections);
     return connection;
   }
 
@@ -118,7 +118,7 @@ export default class ConnectionStorage {
     await global.database.getCollection<Connection>(tenant.id, 'connections')
       .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'deleteConnectionById', uniqueTimerID, { id });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteConnectionById', uniqueTimerID, { id });
   }
 
   static async deleteConnectionByUserId(tenant: Tenant, userID: string): Promise<void> {
@@ -130,6 +130,6 @@ export default class ConnectionStorage {
     await global.database.getCollection<any>(tenant.id, 'connections')
       .deleteMany({ 'userId': DatabaseUtils.convertToObjectID(userID) });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'deleteConnectionByUserId', uniqueTimerID, { userID });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteConnectionByUserId', uniqueTimerID, { userID });
   }
 }

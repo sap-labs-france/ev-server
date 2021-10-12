@@ -149,7 +149,7 @@ export default class Bootstrap {
         global.serverName = serverStarted[0];
       }
       // Log
-      await this.logDuration(startTimeGlobalMillis, `${serverStarted.join(', ')} e-Mobility server has been started successfuly`);
+      await this.logDuration(startTimeGlobalMillis, `> ${serverStarted.join(', ')} > Server has been started successfuly`);
     } catch (error) {
       console.error(chalk.red(error));
       await Logging.logError({

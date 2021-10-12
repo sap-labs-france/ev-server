@@ -31,7 +31,7 @@ export default class OCPPStorage {
         timezone: authorize.timezone
       });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveAuthorize', uniqueTimerID, authorize);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveAuthorize', uniqueTimerID, authorize);
   }
 
   public static async getAuthorizes(tenant: Tenant, params: {dateFrom?: Date; chargeBoxID?: string; tagID?: string},
@@ -94,7 +94,7 @@ export default class OCPPStorage {
       .aggregate<OCPPAuthorizeRequestExtended>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getAuthorizes', uniqueTimerID, authorizesMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getAuthorizes', uniqueTimerID, authorizesMDB);
     // Ok
     return {
       count: (authorizesCountMDB.length > 0 ? authorizesCountMDB[0].count : 0),
@@ -117,7 +117,7 @@ export default class OCPPStorage {
         timezone: heartbeat.timezone
       });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveHeartbeat', uniqueTimerID, heartbeat);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveHeartbeat', uniqueTimerID, heartbeat);
   }
 
   public static async getStatusNotifications(tenant: Tenant,
@@ -184,7 +184,7 @@ export default class OCPPStorage {
       .aggregate<OCPPStatusNotificationRequestExtended>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getStatusNotifications', uniqueTimerID, statusNotificationsMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getStatusNotifications', uniqueTimerID, statusNotificationsMDB);
     // Ok
     return {
       count: (statusNotificationsCountMDB.length > 0 ? statusNotificationsCountMDB[0].count : 0),
@@ -237,7 +237,7 @@ export default class OCPPStorage {
       .aggregate<OCPPStatusNotificationRequestExtended>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getLastStatusNotifications', uniqueTimerID, statusNotificationsMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getLastStatusNotifications', uniqueTimerID, statusNotificationsMDB);
     // Ok
     return statusNotificationsMDB;
   }
@@ -265,7 +265,7 @@ export default class OCPPStorage {
     await global.database.getCollection<any>(tenant.id, 'statusnotifications')
       .insertOne(statusNotificationMDB);
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveStatusNotification', uniqueTimerID, statusNotificationMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveStatusNotification', uniqueTimerID, statusNotificationMDB);
   }
 
   public static async saveDataTransfer(tenant: Tenant, dataTransfer: OCPPDataTransferRequestExtended): Promise<void> {
@@ -287,7 +287,7 @@ export default class OCPPStorage {
         timezone: dataTransfer.timezone
       });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveDataTransfer', uniqueTimerID, dataTransfer);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveDataTransfer', uniqueTimerID, dataTransfer);
   }
 
   public static async saveBootNotification(tenant: Tenant, bootNotification: OCPPBootNotificationRequestExtended): Promise<void> {
@@ -312,7 +312,7 @@ export default class OCPPStorage {
         timestamp: timestamp
       });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveBootNotification', uniqueTimerID, bootNotification);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveBootNotification', uniqueTimerID, bootNotification);
   }
 
   public static async getBootNotifications(tenant: Tenant, params: {chargeBoxID?: string},
@@ -367,7 +367,7 @@ export default class OCPPStorage {
       .aggregate<OCPPBootNotificationRequestExtended>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getBootNotifications', uniqueTimerID, bootNotificationsMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getBootNotifications', uniqueTimerID, bootNotificationsMDB);
     // Ok
     return {
       count: (bootNotificationsCountMDB.length > 0 ? bootNotificationsCountMDB[0].count : 0),
@@ -391,7 +391,7 @@ export default class OCPPStorage {
         timezone: diagnosticsStatusNotification.timezone
       });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveDiagnosticsStatusNotification', uniqueTimerID, diagnosticsStatusNotification);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveDiagnosticsStatusNotification', uniqueTimerID, diagnosticsStatusNotification);
   }
 
   public static async saveFirmwareStatusNotification(tenant: Tenant, firmwareStatusNotification: OCPPFirmwareStatusNotificationRequestExtended): Promise<void> {
@@ -411,7 +411,7 @@ export default class OCPPStorage {
         timezone: firmwareStatusNotification.timezone
       });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveFirmwareStatusNotification', uniqueTimerID, firmwareStatusNotification);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveFirmwareStatusNotification', uniqueTimerID, firmwareStatusNotification);
   }
 
   public static async saveMeterValues(tenant: Tenant, meterValuesToSave: OCPPNormalizedMeterValues): Promise<void> {
@@ -450,7 +450,7 @@ export default class OCPPStorage {
       }
     }
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveMeterValues', uniqueTimerID, meterValuesToSave);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveMeterValues', uniqueTimerID, meterValuesToSave);
   }
 
   public static async getMeterValues(tenant: Tenant, params: { transactionId: number },
@@ -500,7 +500,7 @@ export default class OCPPStorage {
       .aggregate<OCPPNormalizedMeterValue>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getMeterValues', uniqueTimerID, meterValuesMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getMeterValues', uniqueTimerID, meterValuesMDB);
     // Ok
     return {
       count: (meterValuesCountMDB.length > 0 ? meterValuesCountMDB[0].count : 0),

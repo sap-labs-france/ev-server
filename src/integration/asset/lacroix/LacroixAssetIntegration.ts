@@ -23,7 +23,7 @@ export default class LacroixAssetIntegration extends AssetIntegration<AssetSetti
 
   public constructor(tenant: Tenant, settings: AssetSetting, connection: AssetConnectionSetting) {
     super(tenant, settings, connection);
-    this.axiosInstance = AxiosFactory.getAxiosInstance(tenant.id);
+    this.axiosInstance = AxiosFactory.getAxiosInstance(tenant);
   }
 
   public async checkConnection(): Promise<void> {

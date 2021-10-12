@@ -64,11 +64,11 @@ export default class UserStorage {
         await global.database.getCollection<Eula>(tenant.id, 'eulas')
           .insertOne(eula);
         // Debug
-        await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getEndUserLicenseAgreement', uniqueTimerID, eula);
+        await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getEndUserLicenseAgreement', uniqueTimerID, eula);
         return eula;
       }
       // Debug
-      await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getEndUserLicenseAgreement', uniqueTimerID, eulaMDB);
+      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getEndUserLicenseAgreement', uniqueTimerID, eulaMDB);
       return eulaMDB;
     }
     // Create default
@@ -82,7 +82,7 @@ export default class UserStorage {
     // Create
     await global.database.getCollection<Eula>(tenant.id, 'eulas').insertOne(eula);
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getEndUserLicenseAgreement', uniqueTimerID, eula);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getEndUserLicenseAgreement', uniqueTimerID, eula);
     // Return
     return eula;
   }
@@ -132,7 +132,7 @@ export default class UserStorage {
     const userImageMDB = await global.database.getCollection<{ _id: ObjectId; image: string }>(tenant.id, 'userimages')
       .findOne({ _id: DatabaseUtils.convertToObjectID(id) });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getUserImage', uniqueTimerID, userImageMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getUserImage', uniqueTimerID, userImageMDB);
     return {
       id: id, image: (userImageMDB ? userImageMDB.image : null)
     };
@@ -155,7 +155,7 @@ export default class UserStorage {
       }
     }
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'removeSitesFromUser', uniqueTimerID, siteIDs);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'removeSitesFromUser', uniqueTimerID, siteIDs);
   }
 
   public static async addSitesToUser(tenant: Tenant, userID: string, siteIDs: string[]): Promise<void> {
@@ -179,7 +179,7 @@ export default class UserStorage {
       await global.database.getCollection<User>(tenant.id, 'siteusers').insertMany(siteUsersMDB);
     }
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'addSitesToUser', uniqueTimerID, siteIDs);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'addSitesToUser', uniqueTimerID, siteIDs);
   }
 
   public static async addSiteToUser(tenant: Tenant, userID: string, siteID: string): Promise<string> {
@@ -200,7 +200,7 @@ export default class UserStorage {
       { upsert: true }
     );
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'addSiteToUser', uniqueTimerID, siteID);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'addSiteToUser', uniqueTimerID, siteID);
     return siteUserMDB._id;
   }
 
@@ -292,7 +292,7 @@ export default class UserStorage {
       await UserStorage.saveUserImage(tenant, userMDB._id.toString(), userToSave.image);
     }
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveUser', uniqueTimerID, userMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveUser', uniqueTimerID, userMDB);
     return userMDB._id.toString();
   }
 
@@ -316,7 +316,7 @@ export default class UserStorage {
       { upsert: true, returnDocument: 'after' }
     );
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveImportedUser', uniqueTimerID, userMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveImportedUser', uniqueTimerID, userMDB);
     return userMDB._id.toString();
   }
 
@@ -340,7 +340,7 @@ export default class UserStorage {
       { ordered: false }
     );
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveImportedUsers', uniqueTimerID, importedUsersToSave);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveImportedUsers', uniqueTimerID, importedUsersToSave);
     return result.insertedCount;
   }
 
@@ -355,7 +355,7 @@ export default class UserStorage {
         '_id': DatabaseUtils.convertToObjectID(importedUserID),
       });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'deleteImportedUser', uniqueTimerID, { id: importedUserID });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteImportedUser', uniqueTimerID, { id: importedUserID });
   }
 
   public static async deleteImportedUsers(tenant: Tenant): Promise<void> {
@@ -366,7 +366,7 @@ export default class UserStorage {
     // Delete
     await global.database.getCollection<any>(tenant.id, 'importedusers').deleteMany({});
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'deleteImportedUsers', uniqueTimerID);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteImportedUsers', uniqueTimerID);
   }
 
   public static async saveUserPassword(tenant: Tenant, userID: string,
@@ -383,7 +383,7 @@ export default class UserStorage {
       { '_id': DatabaseUtils.convertToObjectID(userID) },
       { $set: params });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveUserPassword', uniqueTimerID);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveUserPassword', uniqueTimerID);
   }
 
   public static async saveUserStatus(tenant: Tenant, userID: string, status: UserStatus): Promise<void> {
@@ -396,7 +396,7 @@ export default class UserStorage {
       { '_id': DatabaseUtils.convertToObjectID(userID) },
       { $set: { status } });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveUserStatus', uniqueTimerID);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveUserStatus', uniqueTimerID);
   }
 
   public static async saveUserLastSelectedCarID(tenant: Tenant, userID: string, lastSelectedCarID: string): Promise<void> {
@@ -409,7 +409,7 @@ export default class UserStorage {
       { '_id': DatabaseUtils.convertToObjectID(userID) },
       { $set: { lastSelectedCarID } });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveUserLastSelectedCarID', uniqueTimerID);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveUserLastSelectedCarID', uniqueTimerID);
   }
 
   public static async saveUserMobileToken(tenant: Tenant, userID: string,
@@ -423,7 +423,7 @@ export default class UserStorage {
       { '_id': DatabaseUtils.convertToObjectID(userID) },
       { $set: params });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveUserMobileToken', uniqueTimerID);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveUserMobileToken', uniqueTimerID);
   }
 
   public static async saveUserMobilePhone(tenant: Tenant, userID: string,
@@ -437,7 +437,7 @@ export default class UserStorage {
       { '_id': DatabaseUtils.convertToObjectID(userID) },
       { $set: params });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveUserMobilePhone', uniqueTimerID);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveUserMobilePhone', uniqueTimerID);
   }
 
   public static async saveUserRole(tenant: Tenant, userID: string, role: string): Promise<void> {
@@ -450,7 +450,7 @@ export default class UserStorage {
       { '_id': DatabaseUtils.convertToObjectID(userID) },
       { $set: { role } });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveUserRole', uniqueTimerID);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveUserRole', uniqueTimerID);
   }
 
   public static async saveUserEULA(tenant: Tenant, userID: string,
@@ -464,7 +464,7 @@ export default class UserStorage {
       { '_id': DatabaseUtils.convertToObjectID(userID) },
       { $set: params });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveUserEULA', uniqueTimerID, params);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveUserEULA', uniqueTimerID, params);
   }
 
   public static async saveUserAccountVerification(tenant: Tenant, userID: string,
@@ -478,7 +478,7 @@ export default class UserStorage {
       { '_id': DatabaseUtils.convertToObjectID(userID) },
       { $set: params });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveUserAccountVerification', uniqueTimerID, params);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveUserAccountVerification', uniqueTimerID, params);
   }
 
   public static async saveUserAdminData(tenant: Tenant, userID: string,
@@ -507,7 +507,7 @@ export default class UserStorage {
       { '_id': DatabaseUtils.convertToObjectID(userID) },
       { $set: updatedUserMDB });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveUserAdminData', uniqueTimerID, params);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveUserAdminData', uniqueTimerID, params);
   }
 
   public static async saveUserBillingData(tenant: Tenant, userID: string, billingData: BillingUserData): Promise<void> {
@@ -536,7 +536,7 @@ export default class UserStorage {
         { $unset: { billingData: '' } }); // This removes the field from the document
     }
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveUserBillingData', uniqueTimerID, billingData);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveUserBillingData', uniqueTimerID, billingData);
   }
 
   public static async saveUserImage(tenant: Tenant, userID: string, userImageToSave: string): Promise<void> {
@@ -560,7 +560,7 @@ export default class UserStorage {
       { $set: { image: userImageToSave } },
       { upsert: true, returnDocument: 'after' });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveUserImage', uniqueTimerID, userImageToSave);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveUserImage', uniqueTimerID, userImageToSave);
   }
 
   public static async getUsers(tenant: Tenant,
@@ -714,7 +714,7 @@ export default class UserStorage {
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
-      await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getUsers', uniqueTimerID, usersCountMDB);
+      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getUsers', uniqueTimerID, usersCountMDB);
       return {
         count: (!Utils.isEmptyArray(usersCountMDB) ? usersCountMDB[0].count : 0),
         result: []
@@ -748,7 +748,7 @@ export default class UserStorage {
       .aggregate<User>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getUsers', uniqueTimerID, usersMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getUsers', uniqueTimerID, usersMDB);
     // Ok
     return {
       count: (!Utils.isEmptyArray(usersCountMDB) ?
@@ -766,7 +766,7 @@ export default class UserStorage {
     // Count documents
     const nbrOfDocuments = await global.database.getCollection<any>(tenant.id, 'importedusers').countDocuments();
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getImportedUsersCount', uniqueTimerID);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getImportedUsersCount', uniqueTimerID);
     return nbrOfDocuments;
   }
 
@@ -814,7 +814,7 @@ export default class UserStorage {
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
-      await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getImportedUsers', uniqueTimerID, usersImportCountMDB);
+      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getImportedUsers', uniqueTimerID, usersImportCountMDB);
       return {
         count: (!Utils.isEmptyArray(usersImportCountMDB) ? usersImportCountMDB[0].count : 0),
         result: []
@@ -850,7 +850,7 @@ export default class UserStorage {
       .aggregate<ImportedUser>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getImportedUsers', uniqueTimerID, usersImportMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getImportedUsers', uniqueTimerID, usersImportMDB);
     // Ok
     return {
       count: (!Utils.isEmptyArray(usersImportCountMDB) ?
@@ -951,7 +951,7 @@ export default class UserStorage {
       .aggregate<User>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getUsersInError', uniqueTimerID, usersMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getUsersInError', uniqueTimerID, usersMDB);
     // Ok
     return {
       count: usersMDB.length,
@@ -980,7 +980,7 @@ export default class UserStorage {
     await global.database.getCollection<any>(tenant.id, 'users')
       .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'deleteUser', uniqueTimerID, { id });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteUser', uniqueTimerID, { id });
   }
 
   public static async getUserSites(tenant: Tenant,
@@ -1040,7 +1040,7 @@ export default class UserStorage {
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
-      await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getUserSites', uniqueTimerID, sitesCountMDB);
+      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getUserSites', uniqueTimerID, sitesCountMDB);
       return {
         count: (!Utils.isEmptyArray(sitesCountMDB) ? sitesCountMDB[0].count : 0),
         result: []
@@ -1075,7 +1075,7 @@ export default class UserStorage {
       .aggregate<SiteUser>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getUserSites', uniqueTimerID, siteUsersMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getUserSites', uniqueTimerID, siteUsersMDB);
     // Ok
     return {
       count: (!Utils.isEmptyArray(sitesCountMDB) ?
@@ -1206,7 +1206,7 @@ export default class UserStorage {
       }
     );
     // Debug
-    void Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getEndUserLicenseAgreementFromFile', uniqueTimerID, eulaText);
+    void Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'getEndUserLicenseAgreementFromFile', uniqueTimerID, eulaText);
     return eulaText;
   }
 }

@@ -35,7 +35,7 @@ export default class RegistrationTokenStorage {
       { upsert: true, returnDocument: 'after' }
     );
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveRegistrationToken', uniqueTimerID, registrationTokenMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveRegistrationToken', uniqueTimerID, registrationTokenMDB);
     return registrationTokenMDB._id.toString();
   }
 
@@ -95,7 +95,7 @@ export default class RegistrationTokenStorage {
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
-      await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getRegistrationTokens', uniqueTimerID, registrationTokensCountMDB);
+      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getRegistrationTokens', uniqueTimerID, registrationTokensCountMDB);
       return {
         count: (registrationTokensCountMDB.length > 0 ? registrationTokensCountMDB[0].count : 0),
         result: []
@@ -129,7 +129,7 @@ export default class RegistrationTokenStorage {
       .aggregate<RegistrationToken>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getRegistrationTokens', uniqueTimerID, registrationTokens);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getRegistrationTokens', uniqueTimerID, registrationTokens);
     // Ok
     return {
       count: (registrationTokensCountMDB.length > 0 ?
@@ -152,6 +152,6 @@ export default class RegistrationTokenStorage {
     await global.database.getCollection<any>(tenant.id, 'registrationtokens')
       .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'deleteRegistrationToken', uniqueTimerID, { id });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteRegistrationToken', uniqueTimerID, { id });
   }
 }

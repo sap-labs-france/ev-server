@@ -34,7 +34,7 @@ export default class CompanyStorage {
     const companyLogoMDB = await global.database.getCollection<{ _id: ObjectId; logo: string }>(tenant.id, 'companylogos')
       .findOne({ _id: DatabaseUtils.convertToObjectID(id) });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getCompanyLogo', uniqueTimerID, companyLogoMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getCompanyLogo', uniqueTimerID, companyLogoMDB);
     return {
       id: id,
       logo: companyLogoMDB ? companyLogoMDB.logo : null
@@ -78,7 +78,7 @@ export default class CompanyStorage {
       await CompanyStorage.saveCompanyLogo(tenant, companyMDB._id.toString(), companyToSave.logo);
     }
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveCompany', uniqueTimerID, companyMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveCompany', uniqueTimerID, companyMDB);
     return companyMDB._id.toString();
   }
 
@@ -153,7 +153,7 @@ export default class CompanyStorage {
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
-      await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getCompanies', uniqueTimerID, companiesCountMDB);
+      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getCompanies', uniqueTimerID, companiesCountMDB);
       return {
         count: (companiesCountMDB.length > 0 ? companiesCountMDB[0].count : 0),
         result: []
@@ -211,7 +211,7 @@ export default class CompanyStorage {
       .aggregate<Company>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getCompanies', uniqueTimerID, companiesMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getCompanies', uniqueTimerID, companiesMDB);
     // Ok
     return {
       count: (companiesCountMDB.length > 0 ?
@@ -235,7 +235,7 @@ export default class CompanyStorage {
     await global.database.getCollection<any>(tenant.id, 'companylogos')
       .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'deleteCompany', uniqueTimerID, { id });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteCompany', uniqueTimerID, { id });
   }
 
   private static async saveCompanyLogo(tenant: Tenant, companyID: string, companyLogoToSave: string): Promise<void> {
@@ -249,6 +249,6 @@ export default class CompanyStorage {
       { $set: { logo: companyLogoToSave } },
       { upsert: true });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveCompanyLogo', uniqueTimerID, companyLogoToSave);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveCompanyLogo', uniqueTimerID, companyLogoToSave);
   }
 }
