@@ -1,4 +1,5 @@
 {
+  "$id": "chargingprofile-update",
   "title": "Update a Charging Profile",
-  "$ref": "chargingstation.json#/definitions/chargingProfile"
+  "$ref": "chargingstation#/definitions/chargingProfile"
 }

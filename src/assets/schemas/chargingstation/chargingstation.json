@@ -1,8 +1,8 @@
 {
-  "$id": "chargingstation.json",
+  "$id": "chargingstation",
   "definitions": {
     "id": {
-      "$ref": "common.json#/definitions/string-id"
+      "$ref": "common#/definitions/string-id"
     },
     "chargingProfile": {
       "type": "object",
@@ -13,7 +13,7 @@
           "pattern": "^[a-f0-9]{64}$"
         },
         "chargingStationID": {
-          "$ref": "chargingstation.json#/definitions/id"
+          "$ref": "chargingstation#/definitions/id"
         },
         "connectorID": {
           "$ref": "#/definitions/connector/properties/connectorId"
@@ -29,7 +29,7 @@
               "sanitize": "mongo"
             },
             "transactionId": {
-              "$ref": "transaction.json#/definitions/id"
+              "$ref": "transaction#/definitions/id"
             },
             "stackLevel": {
               "type": "number",

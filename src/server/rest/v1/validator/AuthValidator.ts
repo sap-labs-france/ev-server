@@ -34,30 +34,30 @@ export default class AuthValidator extends SchemaValidator {
   }
 
   public validateAuthSignInReq(data: Record<string, unknown>): HttpLoginRequest {
-    return this.validate('validateAuthSignInReq', this.authSignIn, data);
+    return this.validate(this.authSignIn, data);
   }
 
   public validateAuthSignOnReq(data: Record<string, unknown>): Partial<HttpRegisterUserRequest> {
-    return this.validate('validateAuthSignOnReq', this.authSignOn, data);
+    return this.validate(this.authSignOn, data);
   }
 
   public validateAuthPasswordResetReq(data: Record<string, unknown>): Partial<HttpResetPasswordRequest> {
-    return this.validate('validateAuthPasswordResetReq', this.authPasswordReset, data);
+    return this.validate(this.authPasswordReset, data);
   }
 
   public validateAuthEulaCheckReq(data: Record<string, unknown>): Partial<HttpCheckEulaRequest> {
-    return this.validate('validateAuthEulaCheckReq', this.authEulaCheck, data);
+    return this.validate(this.authEulaCheck, data);
   }
 
   public validateAuthEmailVerifyReq(data: Record<string, unknown>): Partial<HttpVerifyEmailRequest> {
-    return this.validate('validateAuthEmailVerifyReq', this.authEmailVerify, data);
+    return this.validate(this.authEmailVerify, data);
   }
 
   public validateAuthVerificationEmailResendReq(data: Record<string, unknown>): Partial<HttpResendVerificationMailRequest> {
-    return this.validate('validateAuthVerificationEmailResendReq', this.authVerificationEmailResend, data);
+    return this.validate(this.authVerificationEmailResend, data);
   }
 
   public validateAuthEulaReq(data: Record<string, unknown>): Partial<HttpEulaRequest> {
-    return this.validate('validateAuthEulaReq', this.authEula, data);
+    return this.validate(this.authEula, data);
   }
 }

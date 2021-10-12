@@ -21,6 +21,6 @@ export default class BillingValidator extends SchemaValidator {
   }
 
   public validateBillingSettingUpdateReq(data: Record<string, unknown>): BillingSettings {
-    return this.validate('validateBillingSettingUpdateReq', this.billingSettingUpdate, data);
+    return this.validate(this.billingSettingUpdate, data);
   }
 }

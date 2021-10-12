@@ -1,33 +1,34 @@
 {
+  "$id": "car-create",
   "title": "Create a Car Request",
   "type": "object",
   "properties": {
     "vin": {
-      "$ref": "car.json#/definitions/vin"
+      "$ref": "car#/definitions/vin"
     },
     "licensePlate": {
-      "$ref": "car.json#/definitions/licensePlate"
+      "$ref": "car#/definitions/licensePlate"
     },
     "carCatalogID": {
-      "$ref": "car.json#/definitions/carCatalogID"
+      "$ref": "car#/definitions/carCatalogID"
     },
     "forced": {
-      "$ref": "car.json#/definitions/forced"
+      "$ref": "car#/definitions/forced"
     },
     "type": {
-      "$ref": "car.json#/definitions/type"
+      "$ref": "car#/definitions/type"
     },
     "userID": {
-      "$ref": "user.json#/definitions/id"
+      "$ref": "user#/definitions/id"
     },
     "default": {
-      "$ref": "car.json#/definitions/default"
+      "$ref": "car#/definitions/default"
     },
     "converter": {
-      "$ref": "car.json#/definitions/converter"
+      "$ref": "car#/definitions/converter"
     },
     "carConnectorData": {
-      "$ref": "car.json#/definitions/carConnectorData"
+      "$ref": "car#/definitions/carConnectorData"
     }
   },
   "required": [

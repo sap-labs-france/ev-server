@@ -8,6 +8,7 @@ import { ObjectId } from 'mongodb';
 import Schema from '../types/validator/Schema';
 import Utils from '../utils/Utils';
 import addFormats from 'ajv-formats';
+import chalk from 'chalk';
 import countries from 'i18n-iso-countries';
 import fs from 'fs';
 import global from '../types/GlobalType';
@@ -18,7 +19,6 @@ import sanitize from 'mongo-sanitize';
 // AJV Custom Keywords: https://github.com/ajv-validator/ajv-keywords
 
 export default class SchemaValidator {
-  private static compiledSchemas = new Map<string, ValidateFunction<unknown>>();
   private readonly ajv: Ajv;
   private commonSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/common/common.json`, 'utf8'));
   private tenantSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/tenant/tenant.json`, 'utf8'));
@@ -66,14 +66,24 @@ export default class SchemaValidator {
     this.ajv.addSchema(this.ocpiEndpointSchema);
   }
 
-  protected validate(schemaID: string, schema: Schema, data: Record<string, unknown>): any {
-    // Get schema from cache
-    let fnValidate = SchemaValidator.compiledSchemas.get(schemaID);
-    if (!fnValidate) {
-      // Compile schema
+  protected validate(schema: Schema, data: Record<string, unknown>): any {
+    let fnValidate: ValidateFunction<unknown>;
+    if (!schema.$id) {
+      console.error(chalk.red('===================================='));
+      console.error(chalk.red('Missing schema ID:'));
+      console.error(chalk.red(JSON.stringify(schema)));
+      console.error(chalk.red('===================================='));
+      // Not cached: Compile schema
       fnValidate = this.ajv.compile(schema);
-      // Add it to cache
-      SchemaValidator.compiledSchemas.set(schemaID, fnValidate);
+    } else {
+      // Get schema from cache
+      fnValidate = this.ajv.getSchema(schema['$id'] as string);
+      if (!fnValidate) {
+        // Add it to cache
+        this.ajv.addSchema(schema);
+        // Get compile schema
+        fnValidate = this.ajv.getSchema(schema['$id'] as string);
+      }
     }
     // Keep the original version for checking missing props after
     const originalSchema = Utils.serializeOriginalSchema(data);

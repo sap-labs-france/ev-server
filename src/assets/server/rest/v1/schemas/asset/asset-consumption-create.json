@@ -1,9 +1,10 @@
 {
+  "$id": "asset-consumption-create",
   "title": "Create Asset Consumptions",
   "type": "object",
   "properties": {
     "assetID": {
-      "$ref": "common.json#/definitions/id"
+      "$ref": "common#/definitions/id"
     },
     "startedAt": {
       "type": "string",
