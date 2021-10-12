@@ -346,6 +346,7 @@ export enum ChargerVendor {
   KEBA = 'Keba AG',
   SAP_LABS_FRANCE = 'SAP Labs France Caen',
   CIRCONTROL = 'CIRCONTROL',
+  CIRCONTROL_BIS = 'Circontrol',
   JOINON = 'JOINON',
   JOINT = 'Joint',
   NEXANS = 'Nexans',
@@ -353,5 +354,8 @@ export enum ChargerVendor {
   LAFON_TECHNOLOGIES = 'LAFON TECHNOLOGIES',
   TRITIUM = 'Tritium',
   GREEN_MOTION = 'Green Motion',
-  G2_MOBILITY = 'com.g2mobility'
+  G2_MOBILITY = 'com.g2mobility',
+  MEAECN = 'MEAECN',
+  KOSTAD = 'Kostad',
+  KEMPOWER = 'Kempower'
 }
