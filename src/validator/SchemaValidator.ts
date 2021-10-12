@@ -19,18 +19,18 @@ import sanitize from 'mongo-sanitize';
 // AJV Custom Keywords: https://github.com/ajv-validator/ajv-keywords
 
 export default class SchemaValidator {
+  private static commonSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/common/common.json`, 'utf8'));
+  private static tenantSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/tenant/tenant.json`, 'utf8'));
+  private static tenantComponentSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/tenant/tenant-components.json`, 'utf8'));
+  private static chargingStationSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/chargingstation/chargingstation.json`, 'utf8'));
+  private static tagSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/tag/tag.json`, 'utf8'));
+  private static transactionSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/transaction/transaction.json`, 'utf8'));
+  private static userSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/user/user.json`, 'utf8'));
+  private static carSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/car/car.json`, 'utf8'));
+  private static assetSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/asset/asset.json`, 'utf8'));
+  private static companySchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/company/company.json`, 'utf8'));
+  private static ocpiEndpointSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/ocpi/ocpi-endpoint.json`, 'utf8'));
   private readonly ajv: Ajv;
-  private commonSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/common/common.json`, 'utf8'));
-  private tenantSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/tenant/tenant.json`, 'utf8'));
-  private tenantComponentSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/tenant/tenant-components.json`, 'utf8'));
-  private chargingStationSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/chargingstation/chargingstation.json`, 'utf8'));
-  private tagSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/tag/tag.json`, 'utf8'));
-  private transactionSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/transaction/transaction.json`, 'utf8'));
-  private userSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/user/user.json`, 'utf8'));
-  private carSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/car/car.json`, 'utf8'));
-  private assetSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/asset/asset.json`, 'utf8'));
-  private companySchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/company/company.json`, 'utf8'));
-  private ocpiEndpointSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/ocpi/ocpi-endpoint.json`, 'utf8'));
 
   constructor(readonly moduleName: string,
       config: Options = {
@@ -53,17 +53,17 @@ export default class SchemaValidator {
     // Add custom Formatter
     this.addCustomFormatters();
     // Add common schema
-    this.ajv.addSchema(this.commonSchema);
-    this.ajv.addSchema(this.tenantSchema);
-    this.ajv.addSchema(this.tenantComponentSchema);
-    this.ajv.addSchema(this.chargingStationSchema);
-    this.ajv.addSchema(this.tagSchema);
-    this.ajv.addSchema(this.transactionSchema);
-    this.ajv.addSchema(this.userSchema);
-    this.ajv.addSchema(this.carSchema);
-    this.ajv.addSchema(this.assetSchema);
-    this.ajv.addSchema(this.companySchema);
-    this.ajv.addSchema(this.ocpiEndpointSchema);
+    this.ajv.addSchema(SchemaValidator.commonSchema);
+    this.ajv.addSchema(SchemaValidator.tenantSchema);
+    this.ajv.addSchema(SchemaValidator.tenantComponentSchema);
+    this.ajv.addSchema(SchemaValidator.chargingStationSchema);
+    this.ajv.addSchema(SchemaValidator.tagSchema);
+    this.ajv.addSchema(SchemaValidator.transactionSchema);
+    this.ajv.addSchema(SchemaValidator.userSchema);
+    this.ajv.addSchema(SchemaValidator.carSchema);
+    this.ajv.addSchema(SchemaValidator.assetSchema);
+    this.ajv.addSchema(SchemaValidator.companySchema);
+    this.ajv.addSchema(SchemaValidator.ocpiEndpointSchema);
   }
 
   protected validate(schema: Schema, data: Record<string, unknown>): any {
