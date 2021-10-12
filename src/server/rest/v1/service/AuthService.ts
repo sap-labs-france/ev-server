@@ -151,7 +151,7 @@ export default class AuthService {
     req.user = { tenantID: tenant.id };
     // Check Captcha
     const recaptchaURL = `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`;
-    const response = await AxiosFactory.getAxiosInstance(tenant.id).get(recaptchaURL);
+    const response = await AxiosFactory.getAxiosInstance(tenant).get(recaptchaURL);
     if (!response.data.success) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -290,7 +290,7 @@ export default class AuthService {
     }
     // Check captcha
     const recaptchaURL = `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`;
-    const response = await AxiosFactory.getAxiosInstance(tenant.id).get(recaptchaURL);
+    const response = await AxiosFactory.getAxiosInstance(tenant).get(recaptchaURL);
     // Check
     if (!response.data.success) {
       throw new AppError({
@@ -596,7 +596,7 @@ export default class AuthService {
 
     // Is valid captcha?
     const recaptchaURL = `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`;
-    const response = await AxiosFactory.getAxiosInstance(tenant.id).get(recaptchaURL);
+    const response = await AxiosFactory.getAxiosInstance(tenant).get(recaptchaURL);
     if (!response.data.success) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,

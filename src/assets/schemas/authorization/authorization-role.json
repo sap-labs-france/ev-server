@@ -1,4 +1,5 @@
 {
+  "$id": "authorization-role.json",
   "type": "object",
   "properties": {
     "$extend": {

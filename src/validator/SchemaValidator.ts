@@ -4,6 +4,7 @@ import { AnySchemaObject, DataValidateFunction, DataValidationCxt } from 'ajv/di
 import AppError from '../exception/AppError';
 import Constants from '../utils/Constants';
 import { HTTPError } from '../types/HTTPError';
+import { ObjectId } from 'mongodb';
 import Schema from '../types/validator/Schema';
 import Utils from '../utils/Utils';
 import addFormats from 'ajv-formats';
@@ -45,34 +46,12 @@ export default class SchemaValidator {
     this.ajv = new Ajv(config);
     // Add keywords
     keywords(this.ajv);
-    // Add MongoDB sanitizer
-    this.ajv.addKeyword({
-      keyword: 'sanitize',
-      compile(schema: any, parentSchema: AnySchemaObject, it: SchemaObjCxt): DataValidateFunction {
-        return (data: string, dataValidationCxt: DataValidationCxt): boolean => {
-          // Sanitize Mongo
-          if (schema === 'mongo') {
-            dataValidationCxt.parentData[dataValidationCxt.parentDataProperty] = sanitize(data);
-          }
-          return true;
-        };
-      },
-    });
-    // Add format check
+    // Add format keywords
     addFormats(this.ajv);
-    // Add custom formats
-    this.ajv.addFormat('latitude', {
-      type: 'number',
-      validate: (c) => Constants.REGEX_VALIDATION_LATITUDE.test(c.toString())
-    });
-    this.ajv.addFormat('longitude', {
-      type: 'number',
-      validate: (c) => Constants.REGEX_VALIDATION_LONGITUDE.test(c.toString())
-    });
-    this.ajv.addFormat('country', {
-      type: 'string',
-      validate: (c) => countries.isValid(c)
-    });
+    // Add custom keywords
+    this.addCustomKeywords();
+    // Add custom Formatter
+    this.addCustomFormatters();
     // Add common schema
     this.ajv.addSchema(this.commonSchema);
     this.ajv.addSchema(this.tenantSchema);
@@ -123,5 +102,50 @@ export default class SchemaValidator {
     // Check for missing fields in Authorization Definition (not possible to make AJV failing on missing fields)
     Utils.checkOriginalSchema(originalSchema, data);
     return data;
+  }
+
+  private addCustomKeywords(): void {
+    // Add MongoDB sanitizer keyword
+    this.ajv.addKeyword({
+      keyword: 'sanitize',
+      compile(schema: any, parentSchema: AnySchemaObject, it: SchemaObjCxt): DataValidateFunction {
+        return (data: string, dataValidationCxt: DataValidationCxt): boolean => {
+          // Sanitize Mongo
+          if (schema === 'mongo') {
+            dataValidationCxt.parentData[dataValidationCxt.parentDataProperty] = sanitize(data);
+          }
+          return true;
+        };
+      },
+    });
+    // Add MongoDB sanitizer
+    this.ajv.addKeyword({
+      keyword: 'customType',
+      compile(schema: any, parentSchema: AnySchemaObject, it: SchemaObjCxt): DataValidateFunction {
+        return (data: string, dataValidationCxt: DataValidationCxt): boolean => {
+          // Convert to Mongo ObjectID
+          if (data && schema === 'objectId') {
+            dataValidationCxt.parentData[dataValidationCxt.parentDataProperty] = new ObjectId(data);
+          }
+          return true;
+        };
+      },
+    });
+  }
+
+  private addCustomFormatters() {
+    // Add custom formats
+    this.ajv.addFormat('latitude', {
+      type: 'number',
+      validate: (c) => Constants.REGEX_VALIDATION_LATITUDE.test(c.toString())
+    });
+    this.ajv.addFormat('longitude', {
+      type: 'number',
+      validate: (c) => Constants.REGEX_VALIDATION_LONGITUDE.test(c.toString())
+    });
+    this.ajv.addFormat('country', {
+      type: 'string',
+      validate: (c) => countries.isValid(c)
+    });
   }
 }

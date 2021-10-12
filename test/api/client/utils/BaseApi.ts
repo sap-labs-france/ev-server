@@ -20,7 +20,7 @@ export default class BaseApi {
     };
     axiosInstanceConfiguration.axiosConfig.timeout = config.get('axios.timeout');
     axiosInstanceConfiguration.axiosRetryConfig.retries = config.get('axios.retries');
-    this.axiosInstance = AxiosFactory.getAxiosInstance(Constants.DEFAULT_TENANT, axiosInstanceConfiguration);
+    this.axiosInstance = AxiosFactory.getAxiosInstance(Constants.DEFAULT_TENANT_OBJECT, axiosInstanceConfiguration);
   }
 
   public async send(httpRequest: AxiosRequestConfig): Promise<any> {

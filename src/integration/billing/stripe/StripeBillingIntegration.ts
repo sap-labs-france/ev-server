@@ -36,7 +36,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
 
   constructor(tenant: Tenant, settings: BillingSettings) {
     super(tenant, settings);
-    this.axiosInstance = AxiosFactory.getAxiosInstance(this.tenant.id);
+    this.axiosInstance = AxiosFactory.getAxiosInstance(this.tenant);
   }
 
   public static getInstance(tenant: Tenant, settings: BillingSettings): StripeBillingIntegration {

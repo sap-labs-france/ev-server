@@ -1530,6 +1530,9 @@ export default class OCPPUtils {
       // Rethrow the error
       throw error;
     }
+    // Stick it to the headers
+    ocppHeader.tenant = tenant;
+    ocppHeader.chargingStation = chargingStation;
     return {
       tenant,
       chargingStation,

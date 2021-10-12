@@ -104,7 +104,7 @@ export default class BillingStorage {
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
-      await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getInvoices', uniqueTimerID, invoicesCountMDB);
+      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getInvoices', uniqueTimerID, invoicesCountMDB);
       return {
         count: (invoicesCountMDB.length > 0 ? invoicesCountMDB[0].count : 0),
         result: []
@@ -145,7 +145,7 @@ export default class BillingStorage {
       .aggregate<BillingInvoice>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getInvoices', uniqueTimerID, invoicesMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getInvoices', uniqueTimerID, invoicesMDB);
     return {
       count: (invoicesCountMDB.length > 0 ?
         (invoicesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : invoicesCountMDB[0].count) : 0),
@@ -182,7 +182,7 @@ export default class BillingStorage {
       { upsert: true, returnDocument: 'after' }
     );
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveInvoice', uniqueTimerID, invoiceMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveInvoice', uniqueTimerID, invoiceMDB);
     return invoiceMDB._id.toString();
   }
 
@@ -205,7 +205,7 @@ export default class BillingStorage {
       { '_id': DatabaseUtils.convertToObjectID(invoiceToUpdate.id) },
       { $set: updatedInvoiceMDB });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveInvoiceAdditionalData', uniqueTimerID, updatedInvoiceMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveInvoiceAdditionalData', uniqueTimerID, updatedInvoiceMDB);
   }
 
   public static async deleteInvoice(tenant: Tenant, id: string): Promise<void> {
@@ -217,7 +217,7 @@ export default class BillingStorage {
     await global.database.getCollection<BillingInvoice>(tenant.id, 'invoices')
       .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'deleteInvoice', uniqueTimerID, { id });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteInvoice', uniqueTimerID, { id });
   }
 
   public static async deleteInvoiceByInvoiceID(tenant: Tenant, id: string): Promise<void> {
@@ -229,6 +229,6 @@ export default class BillingStorage {
     await global.database.getCollection<BillingInvoice>(tenant.id, 'invoices')
       .findOneAndDelete({ 'invoiceID': id });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'deleteInvoiceByInvoiceID', uniqueTimerID, { id });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteInvoiceByInvoiceID', uniqueTimerID, { id });
   }
 }
