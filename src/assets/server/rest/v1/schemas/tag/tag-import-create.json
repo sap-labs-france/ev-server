@@ -1,16 +1,16 @@
 {
+  "$id": "tag-import-create",
   "title": "Tag importation",
-  "description": "",
   "type": "object",
   "properties": {
     "id": {
-      "$ref": "tag.json#/definitions/id"
+      "$ref": "tag#/definitions/id"
     },
     "description": {
-      "$ref": "tag.json#/definitions/description"
+      "$ref": "tag#/definitions/description"
     },
     "visualID": {
-      "$ref": "tag.json#/definitions/visualID"
+      "$ref": "tag#/definitions/visualID"
     },
     "siteIDs": {
       "type": "string",
@@ -30,13 +30,13 @@
       }
     },
     "email": {
-      "$ref": "user.json#/definitions/email"
+      "$ref": "user#/definitions/email"
     },
     "name": {
-      "$ref": "user.json#/definitions/name"
+      "$ref": "user#/definitions/name"
     },
     "firstName": {
-      "$ref": "user.json#/definitions/firstName"
+      "$ref": "user#/definitions/firstName"
     }
   },
   "required": [

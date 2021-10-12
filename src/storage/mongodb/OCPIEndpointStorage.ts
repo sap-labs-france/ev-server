@@ -75,7 +75,7 @@ export default class OCPIEndpointStorage {
       { $set: ocpiEndpointMDB },
       { upsert: true, returnDocument: 'after' });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveOcpiEndpoint', uniqueTimerID, ocpiEndpointMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveOcpiEndpoint', uniqueTimerID, ocpiEndpointMDB);
     // Create
     return ocpiEndpointFilter._id.toString();
   }
@@ -131,7 +131,7 @@ export default class OCPIEndpointStorage {
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
-      await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getOcpiEndpoints', uniqueTimerID, ocpiEndpointsCountMDB);
+      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getOcpiEndpoints', uniqueTimerID, ocpiEndpointsCountMDB);
       return {
         count: (ocpiEndpointsCountMDB.length > 0 ? ocpiEndpointsCountMDB[0].count : 0),
         result: []
@@ -165,7 +165,7 @@ export default class OCPIEndpointStorage {
       .aggregate<OCPIEndpoint>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getOcpiEndpoints', uniqueTimerID, ocpiEndpointsMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getOcpiEndpoints', uniqueTimerID, ocpiEndpointsMDB);
     // Ok
     return {
       count: (ocpiEndpointsCountMDB.length > 0 ? ocpiEndpointsCountMDB[0].count : 0),
@@ -182,7 +182,7 @@ export default class OCPIEndpointStorage {
     await global.database.getCollection<OCPIEndpoint>(tenant.id, 'ocpiendpoints')
       .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'deleteOcpiEndpoint', uniqueTimerID, { id });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteOcpiEndpoint', uniqueTimerID, { id });
   }
 
   static async deleteOcpiEndpoints(tenant: Tenant): Promise<void> {
@@ -193,6 +193,6 @@ export default class OCPIEndpointStorage {
     // Delete OcpiEndpoint
     await global.database.getCollection<OCPIEndpoint>(tenant.id, 'ocpiendpoints').deleteMany({});
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'deleteOcpiEndpoints', uniqueTimerID);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteOcpiEndpoints', uniqueTimerID);
   }
 }

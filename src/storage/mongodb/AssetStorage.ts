@@ -32,7 +32,7 @@ export default class AssetStorage {
     const assetImageMDB = await global.database.getCollection<{ _id: ObjectId; image: string }>(tenant.id, 'assetimages')
       .findOne({ _id: DatabaseUtils.convertToObjectID(id) });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getAssetImage', uniqueTimerID, assetImageMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getAssetImage', uniqueTimerID, assetImageMDB);
     return {
       id: id,
       image: assetImageMDB ? assetImageMDB.image : null
@@ -97,7 +97,7 @@ export default class AssetStorage {
       await AssetStorage.saveAssetImage(tenant, assetMDB._id.toString(), assetToSave.image);
     }
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveAsset', uniqueTimerID, assetMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveAsset', uniqueTimerID, assetMDB);
     return assetMDB._id.toString();
   }
 
@@ -171,7 +171,7 @@ export default class AssetStorage {
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
-      await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getAssets', uniqueTimerID, assetsCountMDB);
+      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getAssets', uniqueTimerID, assetsCountMDB);
       return {
         count: (assetsCountMDB.length > 0 ? assetsCountMDB[0].count : 0),
         result: []
@@ -214,7 +214,7 @@ export default class AssetStorage {
       .aggregate<Asset>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getAssets', uniqueTimerID, assetsMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getAssets', uniqueTimerID, assetsMDB);
     return {
       count: (assetsCountMDB.length > 0 ?
         (assetsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : assetsCountMDB[0].count) : 0),
@@ -301,7 +301,7 @@ export default class AssetStorage {
       .aggregate<Asset>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getAssetsInError', uniqueTimerID, assetsMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getAssetsInError', uniqueTimerID, assetsMDB);
     // Ok
     return {
       count: assetsMDB.length,
@@ -321,7 +321,7 @@ export default class AssetStorage {
     await global.database.getCollection<any>(tenant.id, 'assetimages')
       .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'deleteAsset', uniqueTimerID, { id });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteAsset', uniqueTimerID, { id });
   }
 
   private static async saveAssetImage(tenant: Tenant, assetID: string, assetImageToSave: string): Promise<void> {
@@ -335,7 +335,7 @@ export default class AssetStorage {
       { $set: { image: assetImageToSave } },
       { upsert: true });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveAssetImage', uniqueTimerID, assetImageToSave);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveAssetImage', uniqueTimerID, assetImageToSave);
   }
 
   private static getAssetInErrorFacet(errorType: string) {

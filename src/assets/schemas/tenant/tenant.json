@@ -1,8 +1,8 @@
 {
-  "$id": "tenant.json",
+  "$id": "tenant",
   "definitions": {
     "id": {
-      "$ref": "common.json#/definitions/id"
+      "$ref": "common#/definitions/id"
     },
     "name": {
       "type": "string",

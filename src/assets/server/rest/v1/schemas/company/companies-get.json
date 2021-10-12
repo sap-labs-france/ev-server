@@ -1,9 +1,10 @@
 {
+  "$id": "companies-get",
   "title": "Get all the Companies",
   "type": "object",
   "properties": {
     "Search": {
-      "$ref": "common.json#/definitions/search"
+      "$ref": "common#/definitions/search"
     },
     "WithSite": {
       "type": "boolean",
@@ -33,19 +34,19 @@
       "exclusiveMinimum": 0
     },
     "Limit": {
-      "$ref": "common.json#/definitions/limit"
+      "$ref": "common#/definitions/limit"
     },
     "Skip": {
-      "$ref": "common.json#/definitions/skip"
+      "$ref": "common#/definitions/skip"
     },
     "SortFields": {
-      "$ref": "common.json#/definitions/sortFields"
+      "$ref": "common#/definitions/sortFields"
     },
     "ProjectFields": {
-      "$ref": "common.json#/definitions/projectFields"
+      "$ref": "common#/definitions/projectFields"
     },
     "OnlyRecordCount": {
-      "$ref": "common.json#/definitions/onlyRecordCount"
+      "$ref": "common#/definitions/onlyRecordCount"
     }
   },
   "required": [

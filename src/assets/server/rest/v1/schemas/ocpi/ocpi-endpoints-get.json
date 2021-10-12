@@ -1,25 +1,25 @@
 {
+  "$id": "ocpi-endpoints-get",
   "title": "Get OCPI Endpoints list Request",
-  "description": "",
   "type": "object",
   "properties": {
     "Search": {
-      "$ref": "ocpi-endpoint.json#/definitions/id"
+      "$ref": "ocpi-endpoint#/definitions/id"
     },
     "Limit": {
-      "$ref": "common.json#/definitions/limit"
+      "$ref": "common#/definitions/limit"
     },
     "SortFields": {
-      "$ref": "common.json#/definitions/sortFields"
+      "$ref": "common#/definitions/sortFields"
     },
     "Skip": {
-      "$ref": "common.json#/definitions/skip"
+      "$ref": "common#/definitions/skip"
     },
     "OnlyRecordCount": {
-      "$ref": "common.json#/definitions/onlyRecordCount"
+      "$ref": "common#/definitions/onlyRecordCount"
     },
     "ProjectFields": {
-      "$ref": "common.json#/definitions/projectFields"
+      "$ref": "common#/definitions/projectFields"
     }
   },
   "required": [

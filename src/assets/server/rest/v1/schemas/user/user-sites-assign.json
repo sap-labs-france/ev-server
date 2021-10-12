@@ -1,14 +1,15 @@
 {
+  "$id": "user-sites-assign",
   "title": "Assign sites to a User",
   "type": "object",
   "properties": {
     "userID": {
-      "$ref": "user.json#/definitions/id"
+      "$ref": "user#/definitions/id"
     },
     "siteIDs": {
       "type": "array",
       "items": {
-        "$ref": "common.json#/definitions/id"
+        "$ref": "common#/definitions/id"
       }
     }
   },

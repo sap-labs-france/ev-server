@@ -1,5 +1,5 @@
 {
-  "$id": "common.json",
+  "$id": "common",
   "definitions": {
     "id": {
       "type": "string",

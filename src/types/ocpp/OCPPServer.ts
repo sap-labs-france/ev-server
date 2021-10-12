@@ -36,14 +36,12 @@ export enum OCPPProtocol {
 }
 
 export enum OCPPVersion {
-  VERSION_12 = '1.2',
   VERSION_15 = '1.5',
   VERSION_16 = '1.6',
   VERSION_20 = '2.0',
 }
 
 export const OCPPVersionURLPath: Record<OCPPVersion, string> = Object.freeze({
-  '1.2': 'OCPP12',
   '1.5': 'OCPP15',
   '1.6': 'OCPP16',
   '2.0': 'OCPP20'
