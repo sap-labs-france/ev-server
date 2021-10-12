@@ -29,6 +29,7 @@ import bcrypt from 'bcryptjs';
 import cfenv from 'cfenv';
 import chalk from 'chalk';
 import fs from 'fs';
+import global from '../types/GlobalType';
 import http from 'http';
 import moment from 'moment';
 import os from 'os';
@@ -1561,6 +1562,9 @@ export default class Utils {
     }
     if (params.httpResponseCode) {
       performanceRecord.httpResponseCode = params.httpResponseCode;
+    }
+    if (global.serverName) {
+      performanceRecord.server = global.serverName;
     }
     return performanceRecord;
   }

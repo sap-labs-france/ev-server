@@ -6,6 +6,7 @@ export default interface PerformanceRecord {
   host: string;
   action: ServerAction|string;
   group: PerformanceRecordGroup;
+  server?: string;
   durationMs?: number;
   reqSizeKb?: number;
   resSizeKb?: number;
