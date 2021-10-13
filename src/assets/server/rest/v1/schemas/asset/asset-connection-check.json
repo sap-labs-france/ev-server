@@ -1,4 +1,5 @@
 {
+  "$id": "asset-connection-check",
   "title": "Check an Asset Connection Request",
   "type": "object",
   "properties": {

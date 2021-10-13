@@ -29,6 +29,7 @@ import bcrypt from 'bcryptjs';
 import cfenv from 'cfenv';
 import chalk from 'chalk';
 import fs from 'fs';
+import global from '../types/GlobalType';
 import http from 'http';
 import moment from 'moment';
 import os from 'os';
@@ -944,7 +945,7 @@ export default class Utils {
   // Save the users in file
   public static saveFile(filename: string, content: string): void {
     // Save
-    fs.writeFileSync(path.join(__dirname, filename), content, 'UTF-8');
+    fs.writeFileSync(path.join(__dirname, filename), content, 'utf8');
   }
 
   public static getRandomInt(max: number, min = 0): number {
@@ -1083,12 +1084,12 @@ export default class Utils {
 
   public static roundTo(value: number, scale: number): number {
     const roundPower = Math.pow(10, scale);
-    return Math.round(value * roundPower) / roundPower;
+    return Utils.createDecimal(value).mul(roundPower).round().div(roundPower).toNumber();
   }
 
   public static truncTo(value: number, scale: number): number {
     const truncPower = Math.pow(10, scale);
-    return Math.trunc(value * truncPower) / truncPower;
+    return Utils.createDecimal(value).mul(truncPower).trunc().div(truncPower).toNumber();
   }
 
   public static firstLetterInUpperCase(value: string): string {
@@ -1103,7 +1104,7 @@ export default class Utils {
     if (Utils.isNullOrUndefined(object)) {
       return object;
     }
-    let cloneObject: T;
+    let cloneObject: T = object;
     try {
       cloneObject = _.cloneDeep(object);
     } catch (error) {
@@ -1518,37 +1519,54 @@ export default class Utils {
   }
 
   public static checkOriginalSchema(originalSchema: string, validatedSchema: Record<string, unknown>): void {
-    const validatedSchemaStr = JSON.stringify(validatedSchema);
-    if (Utils.isDevelopmentEnv() && originalSchema !== validatedSchemaStr) {
+    if (Utils.isDevelopmentEnv() && originalSchema !== JSON.stringify(validatedSchema)) {
+      console.error(chalk.red('===================================='));
       console.error(chalk.red('Data changed after schema validation'));
       console.error(chalk.red('Original Data:'));
       console.error(chalk.red(originalSchema));
       console.error(chalk.red('Validated Data:'));
-      console.error(chalk.red(validatedSchemaStr));
+      console.error(chalk.red(JSON.stringify(validatedSchema)));
+      console.error(chalk.red('===================================='));
     }
   }
 
   public static buildPerformanceRecord(params: {
-    tenantID: string; durationMs: number; sizeKb?: number; source?: string;
-    module: string; method: string; action: ServerAction|string; group?: PerformanceRecordGroup;
-    httpUrl?: string; httpMethod?: string; httpCode?: number; chargingStationID?: string,
+    tenantSubdomain: string; durationMs: number; resSizeKb?: number;
+    reqSizeKb?: number; action: ServerAction|string; group?: PerformanceRecordGroup;
+    httpUrl?: string; httpMethod?: string; httpResponseCode?: number; chargingStationID?: string,
   }): PerformanceRecord {
-    return {
-      tenantID: params.tenantID,
+    const performanceRecord: PerformanceRecord = {
+      tenantSubdomain: params.tenantSubdomain,
       timestamp: new Date(),
-      durationMs: params.durationMs,
-      sizeKb: params.sizeKb,
       host: Utils.getHostname(),
-      source: params.source,
-      module: params.module,
-      method: params.method,
       action: params.action,
-      chargingStationID: params.chargingStationID,
-      httpUrl: params.httpUrl,
-      httpMethod: params.httpMethod,
-      httpCode: params.httpCode,
-      group: params.group,
+      group: params.group
     };
+    if (params.durationMs) {
+      performanceRecord.durationMs = params.durationMs;
+    }
+    if (params.resSizeKb) {
+      performanceRecord.resSizeKb = params.resSizeKb;
+    }
+    if (params.reqSizeKb) {
+      performanceRecord.reqSizeKb = params.reqSizeKb;
+    }
+    if (params.chargingStationID) {
+      performanceRecord.chargingStationID = params.chargingStationID;
+    }
+    if (params.httpUrl) {
+      performanceRecord.httpUrl = params.httpUrl;
+    }
+    if (params.httpMethod) {
+      performanceRecord.httpMethod = params.httpMethod;
+    }
+    if (params.httpResponseCode) {
+      performanceRecord.httpResponseCode = params.httpResponseCode;
+    }
+    if (global.serverName) {
+      performanceRecord.server = global.serverName;
+    }
+    return performanceRecord;
   }
 
   public static getHostname(): string {

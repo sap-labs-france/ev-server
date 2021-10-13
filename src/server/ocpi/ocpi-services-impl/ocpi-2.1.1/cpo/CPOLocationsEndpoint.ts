@@ -48,7 +48,7 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
     const ocpiClient = await OCPIClientFactory.getOcpiClient(tenant, ocpiEndpoint);
     // Define get option
     const options: OCPILocationOptions = {
-      addChargeBoxID: true,
+      addChargeBoxAndOrgIDs: false,
       countryID: ocpiClient.getLocalCountryCode(ServerAction.OCPI_GET_LOCATIONS),
       partyID: ocpiClient.getLocalPartyID(ServerAction.OCPI_GET_LOCATIONS)
     };

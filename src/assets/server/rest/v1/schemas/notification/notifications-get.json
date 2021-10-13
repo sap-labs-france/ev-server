@@ -1,10 +1,10 @@
 {
+  "$id": "notifications-get",
   "title": "Get Notifications",
-  "description": "",
   "type": "object",
   "properties": {
     "UserID": {
-      "$ref": "user.json#/definitions/id"
+      "$ref": "user#/definitions/id"
     },
     "DateFrom": {
       "type": "string",
@@ -20,13 +20,13 @@
       ]
     },
     "SortFields": {
-      "$ref": "common.json#/definitions/sortFields"
+      "$ref": "common#/definitions/sortFields"
     },
     "Limit": {
-      "$ref": "common.json#/definitions/limit"
+      "$ref": "common#/definitions/limit"
     },
     "Skip": {
-      "$ref": "common.json#/definitions/skip"
+      "$ref": "common#/definitions/skip"
     }
   },
   "required": [

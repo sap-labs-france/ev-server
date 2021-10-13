@@ -1,12 +1,12 @@
 {
+  "$id": "tags-unassign",
   "title": "Unassign several Tags",
-  "description": "",
   "type": "object",
   "properties": {
     "visualIDs": {
       "type": "array",
       "items": {
-        "$ref": "tag.json#/definitions/visualID"
+        "$ref": "tag#/definitions/visualID"
       }
     }
   },

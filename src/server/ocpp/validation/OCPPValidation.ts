@@ -47,15 +47,15 @@ export default class OCPPValidation extends SchemaValidator {
     if (!statusNotification.timestamp || new Date(statusNotification.timestamp).getFullYear() === new Date(0).getFullYear()) {
       statusNotification.timestamp = new Date().toISOString();
     }
-    this.validate('validateStatusNotification', this.statusNotificationRequest, statusNotification as unknown as Record<string, unknown>);
+    this.validate(this.statusNotificationRequest, statusNotification as unknown as Record<string, unknown>);
   }
 
   public validateAuthorize(authorize: OCPPAuthorizeRequestExtended): void {
-    this.validate('validateAuthorize', this.authorizeRequest, authorize as unknown as Record<string, unknown>);
+    this.validate(this.authorizeRequest, authorize as unknown as Record<string, unknown>);
   }
 
   public validateBootNotification(bootNotification: OCPPBootNotificationRequestExtended): void {
-    this.validate('validateBootNotification', this.bootNotificationRequest, bootNotification as unknown as Record<string, unknown>);
+    this.validate(this.bootNotificationRequest, bootNotification as unknown as Record<string, unknown>);
   }
 
   public validateDiagnosticsStatusNotification(chargingStation: ChargingStation,
@@ -67,7 +67,7 @@ export default class OCPPValidation extends SchemaValidator {
   }
 
   public validateStartTransaction(chargingStation: ChargingStation, startTransaction: OCPPStartTransactionRequestExtended): void {
-    this.validate('validateStartTransaction', this.startTransactionRequest, startTransaction as unknown as Record<string, unknown>);
+    this.validate(this.startTransactionRequest, startTransaction as unknown as Record<string, unknown>);
     // Check Connector ID
     if (!Utils.getConnectorFromID(chargingStation, startTransaction.connectorId)) {
       throw new BackendError({
@@ -84,9 +84,9 @@ export default class OCPPValidation extends SchemaValidator {
 
   public validateStopTransaction(chargingStation: ChargingStation, stopTransaction: OCPPStopTransactionRequestExtended): void {
     if (chargingStation.ocppVersion === OCPPVersion.VERSION_16) {
-      this.validate('validateStopTransaction16', this.stopTransactionRequest16, stopTransaction as unknown as Record<string, unknown>);
+      this.validate(this.stopTransactionRequest16, stopTransaction as unknown as Record<string, unknown>);
     } else {
-      this.validate('validateStopTransaction15', this.stopTransactionRequest15, stopTransaction as unknown as Record<string, unknown>);
+      this.validate(this.stopTransactionRequest15, stopTransaction as unknown as Record<string, unknown>);
     }
   }
 

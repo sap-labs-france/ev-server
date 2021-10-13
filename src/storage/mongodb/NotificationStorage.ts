@@ -116,7 +116,7 @@ export default class NotificationStorage {
       .aggregate<Notification>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getNotifications', uniqueTimerID, notificationsMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getNotifications', uniqueTimerID, notificationsMDB);
     // Ok
     return {
       count: (notificationsCountMDB.length > 0 ? notificationsCountMDB[0].count : 0),
@@ -143,6 +143,6 @@ export default class NotificationStorage {
     await global.database.getCollection<Notification>(tenant.id, 'notifications')
       .insertOne(ocpiEndpointMDB);
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveNotification', uniqueTimerID, ocpiEndpointMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveNotification', uniqueTimerID, ocpiEndpointMDB);
   }
 }

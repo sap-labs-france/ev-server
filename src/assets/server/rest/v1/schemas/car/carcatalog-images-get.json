@@ -1,4 +1,5 @@
 {
+  "$id": "carcatalog-images-get",
   "title": "Get all the Car Catalog Images Request",
   "type": "object",
   "properties": {
@@ -7,10 +8,10 @@
       "sanitize": "mongo"
     },
     "Limit": {
-      "$ref": "common.json#/definitions/limit"
+      "$ref": "common#/definitions/limit"
     },
     "Skip": {
-      "$ref": "common.json#/definitions/skip"
+      "$ref": "common#/definitions/skip"
     }
   },
   "required": [

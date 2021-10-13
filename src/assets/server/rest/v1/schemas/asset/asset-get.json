@@ -1,9 +1,10 @@
 {
+  "$id": "asset-get",
   "title": "Get Asset by ID Request",
   "type": "object",
   "properties": {
     "ID": {
-      "$ref": "asset.json#/definitions/id"
+      "$ref": "asset#/definitions/id"
     },
     "WithSiteArea": {
       "type": "boolean",
