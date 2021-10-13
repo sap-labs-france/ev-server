@@ -133,7 +133,7 @@ export default class UtilsService {
     UtilsService.assertObjectExists(action, pricingDefinition, `Pricing Model ID '${pricingDefinitionID}' does not exist`,
       MODULE_NAME, 'checkAndGetPricingDefinitionAuthorization', userToken);
     // Add actions
-    await AuthorizationService.addPricingAuthorizations(tenant, userToken, pricingDefinition, authorizationFilter);
+    await AuthorizationService.addPricingDefinitionAuthorizations(tenant, userToken, pricingDefinition, authorizationFilter);
     // Check
     const authorized = AuthorizationService.canPerformAction(pricingDefinition, authAction);
     if (!authorized) {

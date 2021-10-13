@@ -15,7 +15,7 @@ export default class PricingApi extends CrudApi {
   }
 
   public async readPricingDefinition(id: string) {
-    return super.read({ ID: id }, this.buildRestEndpointUrl(ServerRoute.REST_PRICING_DEFINITION, { id }));
+    return super.readById(id, this.buildRestEndpointUrl(ServerRoute.REST_PRICING_DEFINITION, { id }));
   }
 
   public async updatePricingDefinition(data: PricingDefinition) {
