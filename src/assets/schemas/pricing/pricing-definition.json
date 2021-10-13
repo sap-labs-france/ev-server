@@ -1,6 +1,9 @@
 {
   "$id": "pricing-definition",
   "definitions": {
+    "id": {
+      "$ref": "common#/definitions/string-id"
+    },
     "pricingDimension": {
       "type": "object",
       "properties": {
