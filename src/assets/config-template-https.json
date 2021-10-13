@@ -7,10 +7,6 @@
     "key": "",
     "algorithm": ""
   },
-  "Cluster": {
-    "enabled": false,
-    "numWorkers": 2
-  },
   "CentralSystems": [
     {
       "type": "ocpp",
