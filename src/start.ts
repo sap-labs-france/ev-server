@@ -139,7 +139,7 @@ export default class Bootstrap {
       // -------------------------------------------------------------------------
       // Update Charging Station Templates
       // -------------------------------------------------------------------------
-      startTimeMillis = await this.logAndGetStartTimeMillis('Update Charging Station templates...');
+      startTimeMillis = await this.logAndGetStartTimeMillis('Charging Station templates is being updated...');
       await Utils.updateChargingStationTemplatesFromFile();
       // Log
       await this.logDuration(startTimeMillis, 'Charging Station templates have been updated successfully');
@@ -149,7 +149,7 @@ export default class Bootstrap {
         global.serverName = serverStarted[0];
       }
       // Log
-      await this.logDuration(startTimeGlobalMillis, `> ${serverStarted.join(', ')} > Server has been started successfuly`);
+      await this.logDuration(startTimeGlobalMillis, `${serverStarted.join(', ')} server has been started successfuly`, ServerAction.BOOTSTRAP_STARTUP);
     } catch (error) {
       console.error(chalk.red(error));
       await Logging.logError({
@@ -176,14 +176,14 @@ export default class Bootstrap {
     return timeStartMillis;
   }
 
-  private static async logDuration(timeStartMillis: number, logMessage: string): Promise<void> {
+  private static async logDuration(timeStartMillis: number, logMessage: string, action: ServerAction = ServerAction.STARTUP): Promise<void> {
     const timeDurationSecs = Utils.createDecimal(Date.now() - timeStartMillis).div(1000).toNumber();
     logMessage = `${logMessage} in ${timeDurationSecs} secs`;
     console.log(chalk.green(logMessage));
     if (global.database) {
       await Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        action: ServerAction.BOOTSTRAP_STARTUP,
+        action,
         module: MODULE_NAME, method: 'start',
         message: logMessage
       });
