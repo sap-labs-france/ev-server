@@ -1,5 +1,5 @@
 {
-  "$id": "pricing-definition.json",
+  "$id": "pricing-definition",
   "definitions": {
     "pricingDimension": {
       "type": "object",

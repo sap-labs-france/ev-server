@@ -43,7 +43,7 @@
           "type": "string",
           "format": "date-time",
           "sanitize": "mongo"
-        }, 
+        },
         "connectorType": {
           "type": "string",
           "sanitize": "mongo",
@@ -90,16 +90,16 @@
       "type": "object",
       "properties": {
         "flatFee": {
-          "$ref": "pricing-definition.json#/definitions/pricingDimension"
+          "$ref": "pricing-definition#/definitions/pricingDimension"
         },
         "energy": {
-          "$ref": "pricing-definition.json#/definitions/pricingDimension"
+          "$ref": "pricing-definition#/definitions/pricingDimension"
         },
         "chargingTime": {
-          "$ref": "pricing-definition.json#/definitions/pricingDimension"
+          "$ref": "pricing-definition#/definitions/pricingDimension"
         },
         "parkingTime": {
-          "$ref": "pricing-definition.json#/definitions/pricingDimension"
+          "$ref": "pricing-definition#/definitions/pricingDimension"
         }
       }
     }

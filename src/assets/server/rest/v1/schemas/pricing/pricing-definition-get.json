@@ -3,7 +3,7 @@
   "type": "object",
   "properties": {
     "ID": {
-      "$ref": "user#/definitions/id"
+      "$ref": "pricing-definition#/definitions/id"
     }
   },
   "required": [

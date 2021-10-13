@@ -30,7 +30,7 @@ export default class SchemaValidator {
   private static assetSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/asset/asset.json`, 'utf8'));
   private static companySchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/company/company.json`, 'utf8'));
   private static ocpiEndpointSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/ocpi/ocpi-endpoint.json`, 'utf8'));
-  private static pricingDefinitionSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/pricing/pricing-definition.json`, 'utf8'));
+  private static pricingDefinitionSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/pricing/pricing-definition.json`, 'utf8'));
   private readonly ajv: Ajv;
 
   constructor(readonly moduleName: string,
