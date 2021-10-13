@@ -801,7 +801,24 @@ export default class OCPIUtilsService {
   }
 
   private static async getOperatorBusinessDetails(tenant: Tenant): Promise<OCPIBusinessDetails> {
-    return (await SettingStorage.getOCPISettings(tenant)).ocpi.businessDetails;
+    const businessDetails = (await SettingStorage.getOCPISettings(tenant)).ocpi.businessDetails;
+    if (businessDetails) {
+      for (const key in businessDetails.logo) {
+        const data = businessDetails.logo[key];
+        if (!data) {
+          delete businessDetails.logo[key];
+        }
+      }
+      if (!businessDetails.logo?.url &&
+          !businessDetails.logo?.thumbnail &&
+          !businessDetails.logo?.category &&
+          !businessDetails.logo?.type &&
+          !businessDetails.logo?.width &&
+          !businessDetails.logo?.height) {
+        delete businessDetails.logo;
+      }
+    }
+    return businessDetails;
   }
 
   private static convertChargingStation2MultipleEvses(tenant: Tenant, chargingStation: ChargingStation,
@@ -829,8 +846,8 @@ export default class OCPIUtilsService {
         }
       };
       // Check addChargeBoxID flag
-      if (options?.addChargeBoxID) {
-        evse.chargeBoxId = chargingStation.id;
+      if (options?.addChargeBoxAndOrgIDs) {
+        evse.chargingStationID = chargingStation.id;
         evse.siteID = chargingStation.siteID;
         evse.siteAreaID = chargingStation.siteAreaID;
         evse.companyID = chargingStation.companyID;
@@ -870,8 +887,8 @@ export default class OCPIUtilsService {
       }
     };
     // Check addChargeBoxID flag
-    if (options?.addChargeBoxID) {
-      evse.chargeBoxId = chargingStation.id;
+    if (options?.addChargeBoxAndOrgIDs) {
+      evse.chargingStationID = chargingStation.id;
       evse.siteID = chargingStation.siteID;
       evse.siteAreaID = chargingStation.siteAreaID;
       evse.companyID = chargingStation.companyID;
