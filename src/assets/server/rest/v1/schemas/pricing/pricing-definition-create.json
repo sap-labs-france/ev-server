@@ -3,88 +3,25 @@
   "type": "object",
   "properties": {
     "id": {
-      "type": "string",
-      "pattern": "^$|^[0-9a-fA-F]{24}$",
-      "sanitize": "mongo"
+      "$ref": "pricing-definition#/definitions/id"
     },
     "entityID": {
-      "type": "string",
-      "sanitize": "mongo"
+      "$ref": "pricing-definition#/definitions/entityID"
     },
     "entityType": {
-      "type": "string",
-      "sanitize": "mongo",
-      "enum": [
-        "Tenant",
-        "Company",
-        "Site",
-        "SiteArea",
-        "ChargingStation"
-      ]
+      "$ref": "pricing-definition#/definitions/entityType"
     },
     "name": {
-      "type": "string",
-      "sanitize": "mongo"
+      "$ref": "pricing-definition#/definitions/name"
     },
     "description": {
-      "type": "string",
-      "sanitize": "mongo"
+      "$ref": "pricing-definition#/definitions/description"
     },
     "staticRestrictions": {
-      "type": "object",
-      "nullable": true,
-      "properties": {
-        "validFrom": {
-          "type": "string",
-          "format": "date-time",
-          "sanitize": "mongo"
-        },
-        "validTo": {
-          "type": "string",
-          "format": "date-time",
-          "sanitize": "mongo"
-        },
-        "connectorType": {
-          "type": "string",
-          "sanitize": "mongo",
-          "enum": [
-            "T2",
-            "CCS",
-            "C",
-            "T1",
-            "T3C",
-            "T1CCS",
-            "D",
-            "U"
-          ]
-        },
-        "connectorPowerkW": {
-          "type": "number",
-          "sanitize": "mongo"
-        }
-      }
+      "$ref": "pricing-definition#/definitions/staticRestrictions"
     },
     "restrictions": {
-      "type": "object",
-      "nullable": true,
-      "properties": {
-        "minEnergyKWh": {
-          "type": "number",
-          "sanitize": "mongo"
-        },
-        "maxEnergyKWh": {
-          "type": "number",
-          "sanitize": "mongo"
-        },
-        "minDurationSecs": {
-          "type": "number",
-          "sanitize": "mongo"
-        },
-        "maxDurationSecs": {
-          "type": "number",
-          "sanitize": "mongo"
-        }
-      }
+      "$ref": "pricing-definition#/definitions/restrictions"
     },
     "dimensions": {
       "type": "object",
