@@ -1,6 +1,6 @@
 {
+  "$id": "notifications-end-user-error-report",
   "title": "End User Report Error",
-  "description": "",
   "type": "object",
   "properties": {
     "subject": {

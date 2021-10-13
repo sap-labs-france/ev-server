@@ -1,5 +1,5 @@
 {
-    "title": "start-transaction-request",
+    "$id": "start-transaction-request",
     "description": "Defines the StartTransaction.req PDU",
     "type": "object",
     "properties": {

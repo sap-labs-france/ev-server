@@ -1,9 +1,9 @@
 import { HttpUserAssignSitesRequest, HttpUserDefaultTagCar, HttpUserMobileTokenRequest, HttpUserSitesRequest, HttpUsersInErrorRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
+import User, { ImportedUser } from '../../../../types/User';
 
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from '../../../../validator/SchemaValidator';
-import User from '../../../../types/User';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
@@ -41,43 +41,43 @@ export default class UserValidator extends SchemaValidator {
     return UserValidator.instance;
   }
 
-  public validateUserImportCreateReq(data: unknown): void {
-    this.validate('validateUserImportCreateReq', this.userImportCreate, data);
+  public validateUserImportCreateReq(data: ImportedUser): void {
+    this.validate(this.userImportCreate, data as unknown as Record<string, unknown>);
   }
 
-  public validateUserCreateReq(data: unknown): User {
-    return this.validate('validateUserCreateReq', this.userCreate, data);
+  public validateUserCreateReq(data: Record<string, unknown>): User {
+    return this.validate(this.userCreate, data);
   }
 
-  public validateUserToSitesAssignReq(data: unknown): HttpUserAssignSitesRequest {
-    return this.validate('validateUserToSitesAssignReq', this.userSitesAssign, data);
+  public validateUserToSitesAssignReq(data: Record<string, unknown>): HttpUserAssignSitesRequest {
+    return this.validate(this.userSitesAssign, data);
   }
 
-  public validateUserByIDGetReq(data: unknown): HttpByIDRequest {
-    return this.validate('validateUserByIDGetReq', this.userByIDGet, data);
+  public validateUserByIDGetReq(data: Record<string, unknown>): HttpByIDRequest {
+    return this.validate(this.userByIDGet, data);
   }
 
-  public validateUsersGetReq(data: unknown): HttpUsersRequest {
-    return this.validate('validateUsersGetReq', this.usersGet, data);
+  public validateUsersGetReq(data: Record<string, unknown>): HttpUsersRequest {
+    return this.validate(this.usersGet, data);
   }
 
-  public validateUsersInErrorGetReq(data: unknown): HttpUsersInErrorRequest {
-    return this.validate('validateUsersInErrorGetReq', this.usersInErrorGet, data);
+  public validateUsersInErrorGetReq(data: Record<string, unknown>): HttpUsersInErrorRequest {
+    return this.validate(this.usersInErrorGet, data);
   }
 
-  public validateUserSitesGetReq(data: unknown): HttpUserSitesRequest {
-    return this.validate('validateUserSitesGetReq', this.userSitesGet, data);
+  public validateUserSitesGetReq(data: Record<string, unknown>): HttpUserSitesRequest {
+    return this.validate(this.userSitesGet, data);
   }
 
-  public validateUserUpdateReq(data: unknown): User {
-    return this.validate('validateUserUpdateReq', this.userUpdate, data);
+  public validateUserUpdateReq(data: Record<string, unknown>): User {
+    return this.validate(this.userUpdate, data);
   }
 
-  public validateUserMobileTokenUpdateReq(data: unknown): HttpUserMobileTokenRequest {
-    return this.validate('validateUserMobileTokenUpdateReq', this.userMobileTokenUpdate, data);
+  public validateUserMobileTokenUpdateReq(data: Record<string, unknown>): HttpUserMobileTokenRequest {
+    return this.validate(this.userMobileTokenUpdate, data);
   }
 
-  public validateUserDefaultTagCarGetReq(data: unknown): HttpUserDefaultTagCar {
-    return this.validate('validateUserDefaultTagCarGetReq', this.userDefaultTagCarGet, data);
+  public validateUserDefaultTagCarGetReq(data: Record<string, unknown>): HttpUserDefaultTagCar {
+    return this.validate(this.userDefaultTagCarGet, data);
   }
 }

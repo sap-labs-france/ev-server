@@ -1,9 +1,10 @@
+import { AggregateOptions, ObjectId } from 'mongodb';
+
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import DbLookup from '../../types/database/DbLookup';
 import { OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
-import { ObjectId } from 'mongodb';
 import Tenant from '../../types/Tenant';
 import TenantStorage from './TenantStorage';
 import User from '../../types/User';
@@ -15,6 +16,9 @@ const FIXED_COLLECTIONS: string[] = ['tenants', 'migrations'];
 const MODULE_NAME = 'DatabaseUtils';
 
 export default class DatabaseUtils {
+  public static buildAggregateOptions(): AggregateOptions {
+    return { allowDiskUse: true };
+  }
 
   public static getFixedCollections(): string[] {
     return FIXED_COLLECTIONS;
@@ -393,7 +397,8 @@ export default class DatabaseUtils {
     return userID;
   }
 
-  public static async checkTenant(tenantID: string): Promise<void> {
+  public static async checkTenant(tenantID: string): Promise<Tenant> {
+    let tenant;
     if (!tenantID) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -413,7 +418,7 @@ export default class DatabaseUtils {
         });
       }
       // Get the Tenant
-      const tenant = await TenantStorage.getTenant(tenantID);
+      tenant = await TenantStorage.getTenant(tenantID);
       if (!tenant) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
@@ -423,6 +428,7 @@ export default class DatabaseUtils {
         });
       }
     }
+    return tenant;
   }
 
   public static checkTenantObject(tenant: Tenant): void {

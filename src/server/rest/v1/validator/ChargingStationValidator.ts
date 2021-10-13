@@ -83,127 +83,127 @@ export default class ChargingStationValidator extends SchemaValidator {
     return ChargingStationValidator.instance;
   }
 
-  public validateChargingStationsGetReq(data: unknown): HttpChargingStationsRequest {
-    return this.validate('validateChargingStationsGetReq', this.chargingStationsGet, data);
+  public validateChargingStationsGetReq(data: Record<string, unknown>): HttpChargingStationsRequest {
+    return this.validate(this.chargingStationsGet, data);
   }
 
-  public validateChargingStationGetReq(data: unknown): HttpChargingStationRequest {
-    return this.validate('validateChargingStationGetReq', this.chargingStationGet, data);
+  public validateChargingStationGetReq(data: Record<string, unknown>): HttpChargingStationRequest {
+    return this.validate(this.chargingStationGet, data);
   }
 
-  public validateChargingStationDeleteReq(data: unknown): HttpChargingStationRequest {
-    return this.validate('validateChargingStationDeleteReq', this.chargingStationDelete, data);
+  public validateChargingStationDeleteReq(data: Record<string, unknown>): HttpChargingStationRequest {
+    return this.validate(this.chargingStationDelete, data);
   }
 
-  public validateChargingStationActionAvailabilityChangeReq(data: unknown): HttpChargingStationChangeAvailabilityRequest {
-    return this.validate('validateChargingStationActionAvailabilityChangeReq', this.chargingStationActionAvailabilityChange, data);
+  public validateChargingStationActionAvailabilityChangeReq(data: Record<string, unknown>): HttpChargingStationChangeAvailabilityRequest {
+    return this.validate(this.chargingStationActionAvailabilityChange, data);
   }
 
-  public validateChargingStationActionConfigurationChangeReq(data: unknown): HttpChargingStationChangeConfigurationRequest {
-    return this.validate('validateChargingStationActionConfigurationChangeReq', this.chargingStationActionChangeConfiguration, data);
+  public validateChargingStationActionConfigurationChangeReq(data: Record<string, unknown>): HttpChargingStationChangeConfigurationRequest {
+    return this.validate(this.chargingStationActionChangeConfiguration, data);
   }
 
-  public validateChargingStationActionDataTransferReq(data: unknown): HttpChargingStationCommandDataTransferRequest {
-    return this.validate('validateChargingStationActionDataTransferReq', this.chargingStationActionDataTransfer, data);
+  public validateChargingStationActionDataTransferReq(data: Record<string, unknown>): HttpChargingStationCommandDataTransferRequest {
+    return this.validate(this.chargingStationActionDataTransfer, data);
   }
 
-  public validateChargingStationActionCacheClearReq(data: unknown): HttpChargingStationCacheClearCommandRequest {
-    return this.validate('validateChargingStationActionCacheClearReq', this.chargingStationActionCacheClear, data);
+  public validateChargingStationActionCacheClearReq(data: Record<string, unknown>): HttpChargingStationCacheClearCommandRequest {
+    return this.validate(this.chargingStationActionCacheClear, data);
   }
 
-  public validateChargingStationActionReservationCancelReq(data: unknown): HttpChargingStationReservationCancelRequest {
-    return this.validate('validateChargingStationActionReservationCancelReq', this.chargingStationActionReservationCancel, data);
+  public validateChargingStationActionReservationCancelReq(data: Record<string, unknown>): HttpChargingStationReservationCancelRequest {
+    return this.validate(this.chargingStationActionReservationCancel, data);
   }
 
-  public validateChargingStationActionTransactionStartReq(data: unknown): HttpChargingStationStartTransactionRequest {
-    return this.validate('validateChargingStationActionTransactionStartReq', this.chargingStationActionTransactionStart, data);
+  public validateChargingStationActionTransactionStartReq(data: Record<string, unknown>): HttpChargingStationStartTransactionRequest {
+    return this.validate(this.chargingStationActionTransactionStart, data);
   }
 
-  public validateChargingStationActionTransactionStopReq(data: unknown): HttpChargingStationStopTransactionRequest {
-    return this.validate('validateChargingStationActionTransactionStopReq', this.chargingStationActionTransactionStop, data);
+  public validateChargingStationActionTransactionStopReq(data: Record<string, unknown>): HttpChargingStationStopTransactionRequest {
+    return this.validate(this.chargingStationActionTransactionStop, data);
   }
 
-  public validateChargingStationActionConfigurationGetReq(data: unknown): HttpChargingStationCommandGetConfigurationRequest {
-    return this.validate('validateChargingStationActionConfigurationGetReq', this.chargingStationActionConfigurationGet, data);
+  public validateChargingStationActionConfigurationGetReq(data: Record<string, unknown>): HttpChargingStationCommandGetConfigurationRequest {
+    return this.validate(this.chargingStationActionConfigurationGet, data);
   }
 
-  public validateChargingStationActionCompositeScheduleGetReq(data: unknown): HttpChargingStationGetCompositeScheduleRequest {
-    return this.validate('validateChargingStationActionCompositeScheduleGetReq', this.chargingStationActionCompositeScheduleGet, data);
+  public validateChargingStationActionCompositeScheduleGetReq(data: Record<string, unknown>): HttpChargingStationGetCompositeScheduleRequest {
+    return this.validate(this.chargingStationActionCompositeScheduleGet, data);
   }
 
-  public validateChargingStationActionConnectorUnlockReq(data: unknown): HttpChargingStationCommandUnlockConnectorRequest {
-    return this.validate('validateChargingStationActionConnectorUnlockReq', this.chargingStationActionConnectorUnlock, data);
+  public validateChargingStationActionConnectorUnlockReq(data: Record<string, unknown>): HttpChargingStationCommandUnlockConnectorRequest {
+    return this.validate(this.chargingStationActionConnectorUnlock, data);
   }
 
-  public validateChargingStationActionFirmwareUpdateReq(data: unknown): HttpChargingStationUpdateFirmwareRequest {
-    return this.validate('validateChargingStationActionFirmwareUpdateReq', this.chargingStationActionFirmwareUpdate, data);
+  public validateChargingStationActionFirmwareUpdateReq(data: Record<string, unknown>): HttpChargingStationUpdateFirmwareRequest {
+    return this.validate(this.chargingStationActionFirmwareUpdate, data);
   }
 
-  public validateChargingStationActionReserveNowReq(data: unknown): HttpChargingStationReserveNowRequest {
-    return this.validate('validateChargingStationActionReserveNowReq', this.chargingStationActionReserveNow, data);
+  public validateChargingStationActionReserveNowReq(data: Record<string, unknown>): HttpChargingStationReserveNowRequest {
+    return this.validate(this.chargingStationActionReserveNow, data);
   }
 
-  public validateChargingStationActionResetReq(data: unknown): HttpChargingStationResetRequest {
-    return this.validate('validateChargingStationActionResetReq', this.chargingStationActionReset, data);
+  public validateChargingStationActionResetReq(data: Record<string, unknown>): HttpChargingStationResetRequest {
+    return this.validate(this.chargingStationActionReset, data);
   }
 
-  public validateChargingStationQRCodeGenerateReq(data: unknown): HttpChargingStationConnectorRequest {
-    return this.validate('validateChargingStationQRCodeGenerateReq', this.chargingStationQRCodeGenerate, data);
+  public validateChargingStationQRCodeGenerateReq(data: Record<string, unknown>): HttpChargingStationConnectorRequest {
+    return this.validate(this.chargingStationQRCodeGenerate, data);
   }
 
-  public validateChargingStationQRCodeDownloadReq(data: unknown): HttpDownloadQrCodeRequest {
-    return this.validate('validateChargingStationQRCodeDownloadReq', this.chargingStationQRCodeDownload, data);
+  public validateChargingStationQRCodeDownloadReq(data: Record<string, unknown>): HttpDownloadQrCodeRequest {
+    return this.validate(this.chargingStationQRCodeDownload, data);
   }
 
-  public validateChargingStationOcppParametersGetReq(data: unknown): HttpChargingStationOcppRequest {
-    return this.validate('validateChargingStationOcppParametersGetReq', this.chargingStationOcppParametersGet, data);
+  public validateChargingStationOcppParametersGetReq(data: Record<string, unknown>): HttpChargingStationOcppRequest {
+    return this.validate(this.chargingStationOcppParametersGet, data);
   }
 
-  public validateChargingStationOcppParametersRequestReq(data: unknown): HttpChargingStationOcppParametersRequest {
-    return this.validate('validateChargingStationOcppParametersRequestReq', this.chargingStationOcppParametersRequest, data);
+  public validateChargingStationOcppParametersRequestReq(data: Record<string, unknown>): HttpChargingStationOcppParametersRequest {
+    return this.validate(this.chargingStationOcppParametersRequest, data);
   }
 
-  public validateChargingStationParametersUpdateReq(data: unknown): HttpChargingStationParamsUpdateRequest {
-    return this.validate('validateChargingStationParametersUpdateReq', this.chargingStationParametersUpdate, data);
+  public validateChargingStationParametersUpdateReq(data: Record<string, unknown>): HttpChargingStationParamsUpdateRequest {
+    return this.validate(this.chargingStationParametersUpdate, data);
   }
 
-  public validateChargingStationLimitPowerReq(data: unknown): HttpChargingStationLimitPowerRequest {
-    return this.validate('validateChargingStationLimitPowerReq', this.chargingStationPowerLimit, data);
+  public validateChargingStationLimitPowerReq(data: Record<string, unknown>): HttpChargingStationLimitPowerRequest {
+    return this.validate(this.chargingStationPowerLimit, data);
   }
 
-  public validateChargingStationFirmwareDownloadReq(data: unknown): HttpChargingStationGetFirmwareRequest {
-    return this.validate('validateChargingStationFirmwareDownloadReq', this.chargingStationFirmwareDownload, data);
+  public validateChargingStationFirmwareDownloadReq(data: Record<string, unknown>): HttpChargingStationGetFirmwareRequest {
+    return this.validate(this.chargingStationFirmwareDownload, data);
   }
 
-  public validateChargingStationDiagnosticsGetReq(data: unknown): HttpChargingStationGetDiagnosticsRequest {
-    return this.validate('validateChargingStationDiagnosticsGetReq', this.chargingStationDiagnosticsGet, data);
+  public validateChargingStationDiagnosticsGetReq(data: Record<string, unknown>): HttpChargingStationGetDiagnosticsRequest {
+    return this.validate(this.chargingStationDiagnosticsGet, data);
   }
 
-  public validateSmartChargingTriggerReq(data: unknown): HttpTriggerSmartChargingRequest {
-    return this.validate('validateSmartChargingTriggerReq', this.smartChargingTrigger, data);
+  public validateSmartChargingTriggerReq(data: Record<string, unknown>): HttpTriggerSmartChargingRequest {
+    return this.validate(this.smartChargingTrigger, data);
   }
 
-  public validateChargingStationInErrorReq(data: unknown): HttpChargingStationsInErrorRequest {
-    return this.validate('validateChargingStationInErrorReq', this.chargingStationInErrorGet, data);
+  public validateChargingStationInErrorReq(data: Record<string, unknown>): HttpChargingStationsInErrorRequest {
+    return this.validate(this.chargingStationInErrorGet, data);
   }
 
-  public validateChargingStationNotificationsGetReq(data: unknown): HttpDatabaseRequest {
-    return this.validate('validateChargingStationNotificationsGetReq', this.chargingStationNotificationsGet, data);
+  public validateChargingStationNotificationsGetReq(data: Record<string, unknown>): HttpDatabaseRequest {
+    return this.validate(this.chargingStationNotificationsGet, data);
   }
 
-  public validateChargingProfilesGetReq(data: unknown): HttpChargingProfilesRequest {
-    return this.validate('validateChargingProfilesGetReq', this.chargingProfilesGet, data);
+  public validateChargingProfilesGetReq(data: Record<string, unknown>): HttpChargingProfilesRequest {
+    return this.validate(this.chargingProfilesGet, data);
   }
 
   public validateChargingProfileCreateReq(data: ChargingProfile): ChargingProfile {
-    return this.validate('validateChargingProfileCreateReq', this.chargingProfileCreate, data);
+    return this.validate(this.chargingProfileCreate, data as unknown as Record<string, unknown>);
   }
 
-  public validateChargingProfileDeleteReq(data: unknown): HttpChargingStationRequest {
-    return this.validate('validateChargingProfileDeleteReq', this.chargingProfileDelete, data);
+  public validateChargingProfileDeleteReq(data: Record<string, unknown>): HttpChargingStationRequest {
+    return this.validate(this.chargingProfileDelete, data);
   }
 
-  public validateChargingProfileUpdateReq(data: unknown): ChargingProfile {
-    return this.validate('validateChargingProfileUpdateReq', this.chargingProfileUpdate, data);
+  public validateChargingProfileUpdateReq(data: Record<string, unknown>): ChargingProfile {
+    return this.validate(this.chargingProfileUpdate, data);
   }
 }

@@ -18,6 +18,10 @@ export interface Data {
   id: string;
 }
 
+export interface DatabaseCount {
+  count?: number;
+}
+
 export interface KeyValue {
   key: string;
   value: string;
@@ -56,6 +60,7 @@ interface TSGlobal extends Global {
   centralSystemJsonServer: JsonCentralSystemServer;
   centralSystemSoapServer: SoapCentralSystemServer;
   serverName: string;
+  Promise: any;
 }
 
 

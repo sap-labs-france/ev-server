@@ -1,10 +1,10 @@
 import { Car, CarCatalog } from './Car';
+import Transaction, { TransactionStats } from './Transaction';
 
 import Company from './Company';
 import Site from './Site';
 import SiteArea from './SiteArea';
 import Tag from './Tag';
-import { Transaction } from '@google-cloud/firestore';
 import User from './User';
 
 export interface DeletedResult {
@@ -36,10 +36,10 @@ export interface CarDataResult extends DataResult<Car> {
 export interface UserDataResult extends DataResult<User> {
   canCreate: boolean;
 }
-export interface CarCatalogDataResult extends DataResult<CarCatalog>{
+export interface CarCatalogDataResult extends DataResult<CarCatalog> {
   canSync: boolean;
 }
-export interface TagDataResult extends DataResult<Tag>{
+export interface TagDataResult extends DataResult<Tag> {
   canCreate: boolean;
   canDelete: boolean;
   canImport: boolean;
@@ -48,19 +48,8 @@ export interface TagDataResult extends DataResult<Tag>{
   canAssign: boolean;
 }
 
-export interface TransactionDataResult {
-  count: number;
-  result: Transaction[];
-  stats: {
-    count: number;
-    firstTimestamp?: Date;
-    lastTimestamp?: Date;
-    totalConsumptionWattHours: number;
-    totalDurationSecs: number;
-    totalInactivitySecs: number;
-    totalPrice: number;
-    currency: string;
-  };
+export interface TransactionDataResult extends DataResult<Transaction> {
+  stats: TransactionStats;
 }
 
 export interface TransactionRefundDataResult {

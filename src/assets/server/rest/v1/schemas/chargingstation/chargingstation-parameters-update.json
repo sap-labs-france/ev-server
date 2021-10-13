@@ -1,9 +1,10 @@
 {
+  "$id": "chargingstation-parameters-update",
   "title": "Update Charging Station paramaters",
   "type": "object",
   "properties": {
     "id": {
-      "$ref": "chargingstation.json#/definitions/id"
+      "$ref": "chargingstation#/definitions/id"
     },
     "chargingStationUrl": {
       "type": "string",
@@ -30,21 +31,21 @@
       "sanitize": "mongo"
     },
     "siteAreaID": {
-      "$ref": "common.json#/definitions/id"
+      "$ref": "common#/definitions/id"
     },
     "coordinates": {
-      "$ref": "common.json#/definitions/address/properties/coordinates"
+      "$ref": "common#/definitions/address/properties/coordinates"
     },
     "connectors": {
       "type": "array",
       "items": {
-        "$ref": "chargingstation.json#/definitions/connector"
+        "$ref": "chargingstation#/definitions/connector"
       }
     },
     "chargePoints": {
       "type": "array",
       "items": {
-        "$ref": "chargingstation.json#/definitions/chargePoint"
+        "$ref": "chargingstation#/definitions/chargePoint"
       }
     }
   },

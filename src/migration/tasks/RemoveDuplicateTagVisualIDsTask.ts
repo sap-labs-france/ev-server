@@ -1,4 +1,5 @@
 import Constants from '../../utils/Constants';
+import DatabaseUtils from '../../storage/mongodb/DatabaseUtils';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
 import { ObjectId } from 'mongodb';
@@ -35,9 +36,7 @@ export default class RemoveDuplicateTagVisualIDsTask extends MigrationTask {
             'count': { $gt: 1 }
           }
         }
-      ], {
-        allowDiskUse: true
-      })
+      ], DatabaseUtils.buildAggregateOptions())
       .toArray();
     if (!Utils.isEmptyArray(tags)) {
       // Make the Tag IDs unique
