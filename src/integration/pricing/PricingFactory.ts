@@ -25,10 +25,11 @@ export default class PricingFactory {
             break;
           // Simple Pricing
           case PricingSettingsType.SIMPLE:
-            // Simple Pricing implementation
             if (FeatureToggles.isFeatureActive(Feature.PRICING_NEW_MODEL)) {
+              // Simple Pricing implementation
               pricingIntegrationImpl = new BuiltInPricingIntegration(tenant, pricingSetting.simple);
             } else {
+              // Built-in Pricing implementation
               pricingIntegrationImpl = new SimplePricingIntegration(tenant, pricingSetting.simple);
             }
             break;

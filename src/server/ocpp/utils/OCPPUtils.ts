@@ -266,7 +266,6 @@ export default class OCPPUtils {
             transaction.currentCumulatedPrice = pricedConsumption.amount;
             transaction.currentCumulatedRoundedPrice = pricedConsumption.roundedAmount;
             if (FeatureToggles.isFeatureActive(Feature.PRICING_NEW_MODEL)) {
-              // TODO - To be clarified - check for the PricingSource instead?
               transaction.pricingModel = pricedConsumption.pricingModel;
             }
           }
