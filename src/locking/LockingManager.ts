@@ -70,7 +70,7 @@ export default class LockingManager {
 
   public static async release(lock: Lock): Promise<boolean> {
     // Delete
-    const result = await LockingStorage.deleteLock(lock);
+    const result = await LockingStorage.deleteLock(lock.id);
     if (!result) {
       await Logging.logWarning({
         tenantID: lock.tenantID,

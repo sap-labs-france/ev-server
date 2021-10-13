@@ -34,6 +34,11 @@ export interface Image {
   image: string;
 }
 
+export interface Logo {
+  id: string;
+  logo: string;
+}
+
 export interface GroupParams {
   [param: string]: any | string[];
 }
