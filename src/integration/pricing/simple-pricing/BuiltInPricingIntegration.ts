@@ -55,9 +55,7 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
     };
 
     if (!FeatureToggles.isFeatureActive(Feature.PRICING_NEW_MODEL)) {
-      // TODO - Old way of doing it - to be removed
-      pricedConsumption.cumulatedAmount = transaction.currentCumulatedPrice ? Utils.createDecimal(transaction.currentCumulatedPrice).plus(amount).toNumber() : amount;
-      pricedConsumption.cumulatedRoundedAmount = transaction.currentCumulatedRoundedPrice ? Utils.createDecimal(transaction.currentCumulatedRoundedPrice).plus(roundedAmount).toNumber() : amount;
+      throw new Error('Unexpected situation - this layer should not be called in that context');
     } else {
       // New logic - get the amount from the priced data to avoid rounding issues
       const { cumulatedAmount, cumulatedRoundedAmount } = this.computeCumulatedAmount(pricingModel);

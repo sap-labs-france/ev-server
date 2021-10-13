@@ -351,6 +351,9 @@ class TestData {
       assert(billingDataStop?.invoiceNumber === null, `Invoice Number should not yet been set - Invoice Number is: ${billingDataStop?.invoiceNumber}`);
     }
     if (expectedPrice) {
+      if (!FeatureToggles.isFeatureActive(Feature.PRICING_NEW_MODEL)) {
+        expectedPrice = 32.32; // Expected price when using the Simple Pricing logic!
+      }
       // --------------------------------
       // Check transaction rounded price
       // --------------------------------
