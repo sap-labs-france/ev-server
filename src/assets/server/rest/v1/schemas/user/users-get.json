@@ -12,7 +12,7 @@
     "UserID": {
       "$ref": "common.json#/definitions/ids"
     },
-    "Roles": {
+    "Role": {
       "type": "string",
       "sanitize": "mongo",
       "pattern": "^[SABD](\\|[SABD])*$"

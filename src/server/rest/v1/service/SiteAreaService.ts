@@ -219,6 +219,10 @@ export default class SiteAreaService {
       },
       authorizationSiteAreasFilter.projectFields
     );
+    // Assign projected fields
+    if (authorizationSiteAreasFilter.projectFields) {
+      siteAreas.projectFields = authorizationSiteAreasFilter.projectFields;
+    }
     // Add Auth flags
     await AuthorizationService.addSiteAreasAuthorizations(req.tenant, req.user, siteAreas as SiteAreaDataResult,
       authorizationSiteAreasFilter);

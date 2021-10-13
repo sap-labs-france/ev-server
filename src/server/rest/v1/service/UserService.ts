@@ -766,6 +766,10 @@ export default class UserService {
       },
       authorizationUsersFilters.projectFields
     );
+    // Assign projected fields
+    if (authorizationUsersFilters.projectFields) {
+      users.projectFields = authorizationUsersFilters.projectFields;
+    }
     // Add Auth flags
     await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users as UserDataResult, authorizationUsersFilters);
     // Return

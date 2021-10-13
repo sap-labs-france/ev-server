@@ -35,9 +35,10 @@ export interface AuthorizationResult {
 
 export interface AuthorizationFilter {
   filters: Record<string, any>;
-  projectFields: string[];
   authorized: boolean;
   dataSources: Map<DynamicAuthorizationDataSourceName, DynamicAuthorizationDataSource<DynamicAuthorizationDataSourceData>>;
+  projectFields: string[];
+  metadata?: Record<string, unknown>;
 }
 
 export interface Grant {
@@ -179,6 +180,7 @@ export interface AuthorizationContext {
   assets?: string[];
   filters?: DynamicAuthorizationFilterName[] | [DynamicAuthorizationFilterName[]];
   asserts?: DynamicAuthorizationAssertName[] | [DynamicAuthorizationAssertName[]];
+  metadata?: Record<string, unknown>;
 }
 
 export interface AuthorizationActions {
@@ -187,6 +189,7 @@ export interface AuthorizationActions {
   canUpdate?: boolean;
   canDelete?: boolean;
   projectFields?: string[];
+  metadata?: Record<string, unknown>;
 }
 
 export interface TagAuthorizationActions extends AuthorizationActions {

@@ -202,81 +202,82 @@ describe('Company', function() {
         );
       });
     });
-  });
-  describe('Where basic user', () => {
 
-    before(async () => {
-      await loginAsAdminAndCreateTestData();
-      login(ContextDefinition.USER_CONTEXTS.BASIC_USER);
-    });
+    describe('Where basic user', () => {
 
-    it('Should be able to read company with site he is assigned to ', async () => {
-      await testData.userService.getEntityById(
-        testData.userService.companyApi,
-        testData.companyWithSite
-      );
-    });
+      before(async () => {
+        await loginAsAdminAndCreateTestData();
+        login(ContextDefinition.USER_CONTEXTS.BASIC_USER);
+      });
 
-    it('Should not be able to read company if he is not assigned to a site of that company', async () => {
-      try {
-        await testData.userService.getEntityById(
-          testData.userService.companyApi,
-          testData.companyWithNoSite
-        );
-      } catch (error) {
-        expect(error.actual).to.eq(403);
-      }
-    });
-
-    it('Should not be able to read company after he was removed from the site assigned to that company', async () => {
-      await loginAsAdminAndRemoveUsersFromSite();
-      login(ContextDefinition.USER_CONTEXTS.BASIC_USER);
-
-      try {
+      it('Should be able to read company with site he is assigned to ', async () => {
         await testData.userService.getEntityById(
           testData.userService.companyApi,
           testData.companyWithSite
         );
-      } catch (error) {
-        expect(error.actual).to.eq(403);
-      }
-    });
+      });
 
-    it('Should not be able to create a new company', async () => {
-      try {
-        await testData.userService.createEntity(
-          testData.userService.companyApi,
-          Factory.company.build()
-        );
-      } catch (error) {
-        expect(error.actual).to.eq(403);
-      }
-    });
+      it('Should not be able to read company if he is not assigned to a site of that company', async () => {
+        try {
+          await testData.userService.getEntityById(
+            testData.userService.companyApi,
+            testData.companyWithNoSite
+          );
+        } catch (error) {
+          expect(error.actual).to.eq(403);
+        }
+      });
 
-    it('Should not be able to update a company', async () => {
-      try {
-      // Change entity
-        testData.newCompany.name = 'New Name';
-        // Try to update
-        await testData.userService.updateEntity(
-          testData.userService.companyApi,
-          testData.companyWithNoSite
-        );
-      } catch (error) {
-        expect(error.actual).to.eq(403);
-      }
-    });
+      it('Should not be able to read company after he was removed from the site assigned to that company', async () => {
+        await loginAsAdminAndRemoveUsersFromSite();
+        login(ContextDefinition.USER_CONTEXTS.BASIC_USER);
 
-    it('Should not be able to delete a company', async () => {
-      try {
-      // Try to delete
-        await testData.userService.deleteEntity(
-          testData.userService.companyApi,
-          testData.companyWithNoSite
-        );
-      } catch (error) {
-        expect(error.actual).to.equal(StatusCodes.FORBIDDEN);
-      }
+        try {
+          await testData.userService.getEntityById(
+            testData.userService.companyApi,
+            testData.companyWithSite
+          );
+        } catch (error) {
+          expect(error.actual).to.eq(403);
+        }
+      });
+
+      it('Should not be able to create a new company', async () => {
+        try {
+          await testData.userService.createEntity(
+            testData.userService.companyApi,
+            Factory.company.build()
+          );
+        } catch (error) {
+          expect(error.actual).to.eq(403);
+        }
+      });
+
+      it('Should not be able to update a company', async () => {
+        try {
+        // Change entity
+          testData.newCompany.name = 'New Name';
+          // Try to update
+          await testData.userService.updateEntity(
+            testData.userService.companyApi,
+            testData.companyWithNoSite
+          );
+        } catch (error) {
+          expect(error.actual).to.eq(403);
+        }
+      });
+
+      it('Should not be able to delete a company', async () => {
+        try {
+        // Try to delete
+          await testData.userService.deleteEntity(
+            testData.userService.companyApi,
+            testData.companyWithNoSite
+          );
+        } catch (error) {
+          expect(error.actual).to.equal(StatusCodes.FORBIDDEN);
+        }
+      });
     });
   });
 });
