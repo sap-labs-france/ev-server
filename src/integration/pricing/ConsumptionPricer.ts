@@ -128,7 +128,7 @@ export default class ConsumptionPricer {
           const nbSteps = delta.divToInt(dimensionToPrice.stepSize).toNumber();
           if (nbSteps > 0) {
             pricedData = this.priceConsumptionStep(dimensionToPrice, nbSteps);
-            this.absorbConsumption();
+            this.absorbStepConsumption(pricedData);
           }
         }
       } else if (consumptionWh > 0) {
@@ -157,6 +157,13 @@ export default class ConsumptionPricer {
     // Mark the consumed energy as already priced - to avoid pricing it twice
     // This may happen when combining several tariffs in a single session
     this.pricingModel.pricerContext.lastAbsorbedConsumption = this.consumptionData.cumulatedConsumptionWh;
+  }
+
+  private absorbStepConsumption(pricedData?: PricedDimensionData) {
+    // Mark the consumed energy as already priced - to avoid pricing it twice
+    // Make sure to consider the stepSize to avoid absorbing something not yet priced
+    const consumption = Utils.createDecimal(this.consumptionData.cumulatedConsumptionWh).div(pricedData.stepSize).trunc().mul(pricedData.stepSize).toNumber();
+    this.pricingModel.pricerContext.lastAbsorbedConsumption = consumption;
   }
 
   private priceChargingTimeConsumption(): PricedDimensionData {

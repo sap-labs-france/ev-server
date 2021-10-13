@@ -1250,7 +1250,7 @@ describe('Billing Service', function() {
           const transactionID = await testData.generateTransaction(testData.userContext);
           assert(transactionID, 'transactionID should not be null');
           // Check that we have a new invoice with an invoiceID and an invoiceNumber
-          await testData.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 22);
+          await testData.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 25);
         });
 
         it('should bill the FF+E+E(STEP) with 2 tariffs on COMBO CCS - DC', async () => {
@@ -1265,7 +1265,7 @@ describe('Billing Service', function() {
           const transactionID = await testData.generateTransaction(testData.userContext);
           assert(transactionID, 'transactionID should not be null');
           // Check that we have a new invoice with an invoiceID and an invoiceNumber
-          await testData.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 15.37);
+          await testData.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 17.37);
         });
 
       });
