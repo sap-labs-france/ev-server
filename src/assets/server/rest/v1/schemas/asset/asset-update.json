@@ -1,48 +1,49 @@
 {
+  "$id": "asset-update",
   "title": "Update Asset Request",
   "type": "object",
   "properties": {
     "id": {
-      "$ref": "asset.json#/definitions/id"
+      "$ref": "asset#/definitions/id"
     },
     "name": {
-      "$ref": "asset.json#/definitions/name"
+      "$ref": "asset#/definitions/name"
     },
     "siteAreaID": {
-      "$ref": "asset.json#/definitions/siteAreaID"
+      "$ref": "asset#/definitions/siteAreaID"
     },
     "assetType": {
-      "$ref": "asset.json#/definitions/assetType"
+      "$ref": "asset#/definitions/assetType"
     },
     "excludeFromSmartCharging": {
-      "$ref": "asset.json#/definitions/excludeFromSmartCharging"
+      "$ref": "asset#/definitions/excludeFromSmartCharging"
     },
     "variationThresholdPercent": {
-      "$ref": "asset.json#/definitions/variationThresholdPercent"
+      "$ref": "asset#/definitions/variationThresholdPercent"
     },
     "fluctuationPercent": {
-      "$ref": "asset.json#/definitions/fluctuationPercent"
+      "$ref": "asset#/definitions/fluctuationPercent"
     },
     "staticValueWatt": {
-      "$ref": "asset.json#/definitions/staticValueWatt"
+      "$ref": "asset#/definitions/staticValueWatt"
     },
     "image": {
-      "$ref": "asset.json#/definitions/image"
+      "$ref": "asset#/definitions/image"
     },
     "dynamicAsset": {
-      "$ref": "asset.json#/definitions/dynamicAsset"
+      "$ref": "asset#/definitions/dynamicAsset"
     },
     "usesPushAPI": {
-      "$ref": "asset.json#/definitions/usesPushAPI"
+      "$ref": "asset#/definitions/usesPushAPI"
     },
     "coordinates": {
-      "$ref": "asset.json#/definitions/coordinates"
+      "$ref": "asset#/definitions/coordinates"
     },
     "connectionID": {
-      "$ref": "asset.json#/definitions/connectionID"
+      "$ref": "asset#/definitions/connectionID"
     },
     "meterID": {
-      "$ref": "asset.json#/definitions/meterID"
+      "$ref": "asset#/definitions/meterID"
     }
   },
   "required": [

@@ -1,12 +1,13 @@
 {
+  "$id": "auth-email-verify",
   "title": "Verify email",
   "type": "object",
   "properties": {
     "Email": {
-      "$ref": "user.json#/definitions/email"
+      "$ref": "user#/definitions/email"
     },
     "Tenant": {
-      "$ref": "common.json#/definitions/authSubdomain"
+      "$ref": "common#/definitions/authSubdomain"
     },
     "VerificationToken": {
       "type": "string",

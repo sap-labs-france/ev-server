@@ -1,9 +1,10 @@
 {
+  "$id": "chargingstation-action-reset",
   "title": "Reset",
   "type": "object",
   "properties": {
     "chargingStationID": {
-      "$ref": "chargingstation.json#/definitions/id"
+      "$ref": "chargingstation#/definitions/id"
     },
     "args": {
       "type": "object",

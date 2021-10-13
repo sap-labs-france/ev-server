@@ -1,9 +1,10 @@
 {
+  "$id": "chargingstation-action-configuration-change",
   "title": "Change Configuration",
   "type": "object",
   "properties": {
     "chargingStationID": {
-      "$ref": "chargingstation.json#/definitions/id"
+      "$ref": "chargingstation#/definitions/id"
     },
     "args": {
       "type": "object",

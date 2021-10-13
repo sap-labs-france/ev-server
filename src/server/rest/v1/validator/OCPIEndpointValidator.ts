@@ -34,26 +34,26 @@ export default class OCPIEndpointValidator extends SchemaValidator {
   }
 
   public validateOCPIEndpointCreateReq(data: Record<string, unknown>): OCPIEndpoint {
-    return this.validate('validateOCPIEndpointCreateReq', this.ocpiEndpointCreate, data);
+    return this.validate(this.ocpiEndpointCreate, data);
   }
 
   public validateOCPIEndpointPingReq(data: Record<string, unknown>): OCPIEndpoint {
-    return this.validate('validateOCPIEndpointPingReq', this.ocpiEndpointPing, data);
+    return this.validate(this.ocpiEndpointPing, data);
   }
 
   public validateOCPIEndpointByIdReq(data: Record<string, unknown>): HttpOCPIEndpointByIdRequest {
-    return this.validate('validateOCPIEndpointByIdReq', this.ocpiEndpointById, data);
+    return this.validate(this.ocpiEndpointById, data);
   }
 
   public validateOCPIEndpointGetReq(data: Record<string, unknown>): HttpOCPIEndpointRequest {
-    return this.validate('validateOCPIEndpointGetReq', this.ocpiEndpointGet, data);
+    return this.validate(this.ocpiEndpointGet, data);
   }
 
   public validateOCPIEndpointsGetReq(data: Record<string, unknown>): HttpOCPIEndpointsRequest {
-    return this.validate('validateOCPIEndpointsGetReq', this.ocpiEndpointsGet, data);
+    return this.validate(this.ocpiEndpointsGet, data);
   }
 
   public validateOCPIEndpointUpdateReq(data: Record<string, unknown>): OCPIEndpoint {
-    return this.validate('validateOCPIEndpointUpdateReq', this.ocpiEndpointUpdate, data);
+    return this.validate(this.ocpiEndpointUpdate, data);
   }
 }

@@ -1,8 +1,8 @@
 {
-  "$id": "tag.json",
+  "$id": "tag",
   "definitions": {
     "id": {
-      "$ref": "common.json#/definitions/string-id"
+      "$ref": "common#/definitions/string-id"
     },
     "visualID": {
       "type": "string",
@@ -25,7 +25,7 @@
       "sanitize": "mongo"
     },
     "userID": {
-      "$ref": "user.json#/definitions/id"
+      "$ref": "user#/definitions/id"
     }
   }
 }
