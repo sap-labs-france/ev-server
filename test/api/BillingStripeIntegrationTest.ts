@@ -23,18 +23,6 @@ describe('Billing Stripe Service', function() {
       await testData.initialize();
     });
 
-    xdescribe('Initialization Pricing Model', () => {
-      before(async () => {
-      });
-
-      after(async () => {
-      });
-
-      xit('check CRUD operations on a Pricing Model', async () => {
-        await testData.checkPricingDefinitionEndpoints();
-      });
-    });
-
     describe('immediate billing OFF', () => {
       before(async () => {
         const immediateBilling = false;
