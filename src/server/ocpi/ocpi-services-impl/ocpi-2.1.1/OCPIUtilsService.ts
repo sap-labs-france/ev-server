@@ -947,6 +947,21 @@ export default class OCPIUtilsService {
   private static buildTariffID(tenant: Tenant, chargingStation: ChargingStation): string {
     const defaultTariff = 'Default';
     switch (tenant?.id) {
+      // Station-e
+      case '60633bb1834fed0016310189':
+        // Check Site Area
+        switch (chargingStation?.siteAreaID) {
+          // ShowRoom Marcel Pagnol II
+          case '60d5a20c9deee6001419cabb':
+            switch (chargingStation?.id) {
+              case 'IES-Marcel-Pagnol-Boussy-Saint-Antoine':
+                return 'STE-DC_25k';
+              case 'P91800RMRCLPGNL22AC':
+                return 'STE-AC_22k';
+            }
+            return defaultTariff;
+        }
+        return defaultTariff;
       // SLF
       case '5be7fb271014d90008992f06':
         // Check Site Area
