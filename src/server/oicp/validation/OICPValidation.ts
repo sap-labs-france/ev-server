@@ -13,8 +13,8 @@ export default class OICPValidation extends SchemaValidator {
 
   private constructor() {
     super('OICPValidation');
-    this.remoteStartRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/oicp/schemas/OICPAuthorizeRemoteStartCpoReceive.json`, 'utf8'));
-    this.remoteStopRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/oicp/schemas/OICPAuthorizeRemoteStopCpoReceive.json`, 'utf8'));
+    this.remoteStartRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/oicp/schemas/oicp-authorize-remote-start-cpo-receive.json`, 'utf8'));
+    this.remoteStopRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/oicp/schemas/oicp-authorize-remote-stop-cpo-receive.json`, 'utf8'));
   }
 
   public static getInstance(): OICPValidation {
@@ -25,10 +25,10 @@ export default class OICPValidation extends SchemaValidator {
   }
 
   public validateRemoteStart(remoteStart: OICPAuthorizeRemoteStartCpoReceive): void {
-    this.validate('validateRemoteStart', this.remoteStartRequest, remoteStart as unknown as Record<string, unknown>);
+    this.validate(this.remoteStartRequest, remoteStart as unknown as Record<string, unknown>);
   }
 
   public validateRemoteStop(remoteStop: OICPAuthorizeRemoteStopCpoReceive): void {
-    this.validate('validateRemoteStop', this.remoteStopRequest, remoteStop as unknown as Record<string, unknown>);
+    this.validate(this.remoteStopRequest, remoteStop as unknown as Record<string, unknown>);
   }
 }

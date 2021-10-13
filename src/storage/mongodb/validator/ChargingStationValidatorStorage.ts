@@ -28,6 +28,6 @@ export default class ChargingStationValidatorStorage extends SchemaValidator {
   }
 
   public validateChargingStationStorageTemplate(data: Record<string, unknown>): ChargingStationTemplate {
-    return this.validate('validateChargingStationStorageTemplate', this.chargingStationTemplate, data);
+    return this.validate(this.chargingStationTemplate, data);
   }
 }

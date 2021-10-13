@@ -34,27 +34,27 @@ export default class TenantValidator extends SchemaValidator {
   }
 
   public validateTenantCreateReq(data: Record<string, unknown>): Tenant {
-    const tenant: Tenant = this.validate('validateTenantCreateReq', this.tenantCreate, data);
+    const tenant: Tenant = this.validate(this.tenantCreate, data);
     this.validateComponentDependencies(tenant);
     return tenant;
   }
 
   public validateTenantUpdateReq(data: Record<string, unknown>): Tenant {
-    const tenant: Tenant = this.validate('validateTenantUpdateReq', this.tenantUpdate, data);
+    const tenant: Tenant = this.validate(this.tenantUpdate, data);
     this.validateComponentDependencies(tenant);
     return tenant;
   }
 
   public validateLogoGetReq(data: Record<string, unknown>): HttpTenantLogoRequest {
-    return this.validate('validateLogoGetReq', this.tenantLogoGet, data);
+    return this.validate(this.tenantLogoGet, data);
   }
 
   public validateTenantGetReq(data: Record<string, unknown>): HttpTenantRequest {
-    return this.validate('validateTenantGetReq', this.tenantGet, data);
+    return this.validate(this.tenantGet, data);
   }
 
   public validateTenantsGetReq(data: Record<string, unknown>): HttpTenantsRequest {
-    return this.validate('validateTenantsGetReq', this.tenantsGet, data);
+    return this.validate(this.tenantsGet, data);
   }
 
   private validateComponentDependencies(tenant: Tenant): void {

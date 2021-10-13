@@ -2107,7 +2107,7 @@ export default class OCPPService {
     // Enrich
     this.enrichOCPPRequest(chargingStation, authorize);
     // Roaming User
-    if (user && !user.issuer) {
+    if (user && !user.issuer && chargingStation.siteArea.accessControl) {
       // Authorization ID provided?
       if (user.authorizationID) {
         // Public Charging Station

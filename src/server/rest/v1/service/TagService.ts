@@ -162,19 +162,6 @@ export default class TagService {
         action: action
       });
     }
-    // Check if Tag has been already used
-    const transactions = await TransactionStorage.getTransactions(req.tenant,
-      { tagIDs: [filteredRequest.id.toUpperCase()], hasUserID: true }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);
-    if (!Utils.isEmptyArray(transactions.result)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.TAG_HAS_TRANSACTIONS,
-        message: `Tag with ID '${filteredRequest.id}' has been used in previous transactions`,
-        module: MODULE_NAME, method: 'handleCreateTag',
-        user: req.user,
-        action: action
-      });
-    }
     if (filteredRequest.userID) {
       // Get User
       await UtilsService.checkAndGetUserAuthorization(req.tenant, req.user, filteredRequest.userID,
@@ -254,19 +241,6 @@ export default class TagService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.TAG_ALREADY_EXIST_ERROR,
         message: `Tag with ID '${filteredRequest.id}' already exists and assigned to another user`,
-        module: MODULE_NAME, method: 'handleAssignTag',
-        user: req.user,
-        action: action
-      });
-    }
-    // Check if Tag has been already used
-    const transactions = await TransactionStorage.getTransactions(req.tenant,
-      { tagIDs: [tag.id.toUpperCase()] }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);
-    if (!Utils.isEmptyArray(transactions.result)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.TAG_HAS_TRANSACTIONS,
-        message: `Tag with ID '${filteredRequest.id}' has been used in previous transactions`,
         module: MODULE_NAME, method: 'handleAssignTag',
         user: req.user,
         action: action
@@ -358,7 +332,7 @@ export default class TagService {
     UtilsService.checkIfUserTagIsValid(filteredRequest, req);
     // Check and Get Tag
     const tag = await UtilsService.checkAndGetTagAuthorization(req.tenant, req.user, filteredRequest.id, Action.UPDATE, action,
-      filteredRequest, { withNbrTransactions: true, withUser: true }, true);
+      filteredRequest, { withUser: true }, true);
     if (filteredRequest.userID) {
       await UtilsService.checkAndGetUserAuthorization(req.tenant, req.user, filteredRequest.userID,
         Action.READ, ServerAction.TAG_UPDATE);
@@ -381,16 +355,6 @@ export default class TagService {
     let formerTagDefault: boolean;
     // Cannot change the User of a Badge that has already some transactions
     if (tag.userID !== filteredRequest.userID) {
-      if (tag.transactionsCount > 0) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.TAG_HAS_TRANSACTIONS,
-          message: `Cannot change the User of the Tag ID '${tag.id}' which has '${tag.transactionsCount}' transaction(s)`,
-          module: MODULE_NAME, method: 'handleUpdateTag',
-          user: req.user,
-          action: action
-        });
-      }
       formerTagUserID = tag.userID;
       formerTagDefault = tag.default;
     }

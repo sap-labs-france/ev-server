@@ -85,7 +85,7 @@ export default class Logging {
         console.warn(chalk.yellow('===================================='));
       }
     }
-    Utils.isDevelopmentEnv() && await PerformanceStorage.savePerformanceRecord(
+    await PerformanceStorage.savePerformanceRecord(
       Utils.buildPerformanceRecord({
         tenantSubdomain: tenant.subdomain,
         group: PerformanceRecordGroup.MONGO_DB,
@@ -363,7 +363,7 @@ export default class Logging {
             headers: res.getHeaders(),
           }
         });
-        Utils.isDevelopmentEnv() && void PerformanceStorage.savePerformanceRecord(
+        void PerformanceStorage.savePerformanceRecord(
           Utils.buildPerformanceRecord({
             tenantSubdomain,
             group: Utils.getPerformanceRecordGroupFromURL(req.url),
@@ -469,7 +469,7 @@ export default class Logging {
           response: Utils.cloneObject(response.data)
         }
       });
-      Utils.isDevelopmentEnv() && await PerformanceStorage.savePerformanceRecord(
+      await PerformanceStorage.savePerformanceRecord(
         Utils.buildPerformanceRecord({
           tenantSubdomain: tenant.subdomain,
           group: Utils.getPerformanceRecordGroupFromURL(response.config.url),
@@ -656,7 +656,7 @@ export default class Logging {
         message, detailedMessages: response
       });
     }
-    Utils.isDevelopmentEnv() && await PerformanceStorage.savePerformanceRecord(
+    await PerformanceStorage.savePerformanceRecord(
       Utils.buildPerformanceRecord({
         tenantSubdomain: tenant.subdomain,
         chargingStationID,

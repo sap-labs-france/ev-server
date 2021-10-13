@@ -1,27 +1,28 @@
 {
+  "$id": "auth-signon",
   "title": "Sign On",
   "type": "object",
   "properties": {
     "email": {
-      "$ref": "user.json#/definitions/email"
+      "$ref": "user#/definitions/email"
     },
     "name": {
-      "$ref": "user.json#/definitions/name"
+      "$ref": "user#/definitions/name"
     },
     "firstName": {
-      "$ref": "user.json#/definitions/firstName"
+      "$ref": "user#/definitions/firstName"
     },
     "password": {
-      "$ref": "user.json#/definitions/password"
+      "$ref": "user#/definitions/password"
     },
     "acceptEula": {
-      "$ref": "common.json#/definitions/acceptEula"
+      "$ref": "common#/definitions/acceptEula"
     },
     "tenant": {
-      "$ref": "common.json#/definitions/authSubdomain"
+      "$ref": "common#/definitions/authSubdomain"
     },
     "captcha": {
-      "$ref": "common.json#/definitions/captcha"
+      "$ref": "common#/definitions/captcha"
     },
     "locale": {
       "type": "string",

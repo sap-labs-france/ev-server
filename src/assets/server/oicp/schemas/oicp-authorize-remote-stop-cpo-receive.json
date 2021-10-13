@@ -1,4 +1,5 @@
 {
+    "$id": "oicp-authorize-remote-stop-cpo-receive",
     "properties": {
         "CPOPartnerSessionID": {
             "type": "string"

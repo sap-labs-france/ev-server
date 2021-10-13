@@ -1,9 +1,10 @@
 {
+  "$id": "transaction-consumptions-get",
   "title": "Get Transaction Consumptions Request",
   "type": "object",
   "properties": {
     "TransactionId": {
-      "$ref": "transaction.json#/definitions/id"
+      "$ref": "transaction#/definitions/id"
     },
     "WithTag": {
       "type": "boolean",

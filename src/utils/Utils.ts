@@ -945,7 +945,7 @@ export default class Utils {
   // Save the users in file
   public static saveFile(filename: string, content: string): void {
     // Save
-    fs.writeFileSync(path.join(__dirname, filename), content, 'UTF-8');
+    fs.writeFileSync(path.join(__dirname, filename), content, 'utf8');
   }
 
   public static getRandomInt(max: number, min = 0): number {
