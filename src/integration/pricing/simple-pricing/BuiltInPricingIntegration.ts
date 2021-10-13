@@ -12,10 +12,6 @@ import Tenant from '../../../types/Tenant';
 import Transaction from '../../../types/Transaction';
 import Utils from '../../../utils/Utils';
 
-// --------------------------------------------------------------------------------------------------
-// TODO - POC - BuiltInPricingIntegration is hidden behind a feature toggle
-// This concrete implementation of the PricingIntegration still relies on the SimplePricingSettings
-// --------------------------------------------------------------------------------------------------
 export default class BuiltInPricingIntegration extends PricingIntegration<SimplePricingSetting> {
   constructor(tenant: Tenant, readonly settings: SimplePricingSetting) {
     super(tenant, settings);

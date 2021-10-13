@@ -1357,27 +1357,6 @@ export default class UtilsService {
     }
   }
 
-  public static checkIfCompanyValid(company: Partial<Company>, req: Request): void {
-    if (req.method !== 'POST' && !company.id) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Company ID is mandatory',
-        module: MODULE_NAME, method: 'checkIfCompanyValid',
-        user: req.user.id
-      });
-    }
-    if (!company.name) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Company Name is mandatory',
-        module: MODULE_NAME, method: 'checkIfCompanyValid',
-        user: req.user.id
-      });
-    }
-  }
-
   public static checkIfPricingDefinitionValid(pricing: Partial<PricingDefinition>, req: Request): void {
     if (req.method !== 'POST' && !pricing.id) {
       throw new AppError({

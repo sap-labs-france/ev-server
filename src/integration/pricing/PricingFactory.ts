@@ -27,8 +27,6 @@ export default class PricingFactory {
           case PricingSettingsType.SIMPLE:
             // Simple Pricing implementation
             if (FeatureToggles.isFeatureActive(Feature.PRICING_NEW_MODEL)) {
-              // TODO - to be clarified - feature hidden behind a feature toggle for now!
-              // Do we need a dedicated PricingSettingsType?
               pricingIntegrationImpl = new BuiltInPricingIntegration(tenant, pricingSetting.simple);
             } else {
               pricingIntegrationImpl = new SimplePricingIntegration(tenant, pricingSetting.simple);

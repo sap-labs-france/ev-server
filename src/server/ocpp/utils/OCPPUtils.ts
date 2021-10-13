@@ -567,7 +567,6 @@ export default class OCPPUtils {
     // Update transaction
     transaction.roundedPrice = Utils.truncTo(transaction.price, 2);
     transaction.stop.price = transaction.currentCumulatedPrice;
-    // transaction.stop.roundedPrice = Utils.truncTo(transaction.currentCumulatedPrice, 2);
     transaction.stop.roundedPrice = transaction.currentCumulatedRoundedPrice;
     await TransactionStorage.saveTransaction(tenant, transaction);
   }
@@ -588,7 +587,6 @@ export default class OCPPUtils {
       totalDurationSecs: transaction.currentTotalDurationSecs,
       inactivityStatus: Utils.getInactivityStatusLevel(chargingStation, transaction.connectorId, transaction.currentTotalInactivitySecs),
       price: transaction.currentCumulatedPrice,
-      // roundedPrice: Utils.truncTo(transaction.currentCumulatedPrice, 2),
       roundedPrice: transaction.currentCumulatedRoundedPrice,
       priceUnit: transaction.priceUnit,
       pricingSource: transaction.pricingSource,
