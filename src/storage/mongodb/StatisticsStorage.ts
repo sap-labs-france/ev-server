@@ -12,7 +12,7 @@ export default class StatisticsStorage {
 
   static async getChargingStationStats(tenant: Tenant, params: StatisticFilter, groupBy: string): Promise<ChargingStationStats[]> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Build filter
@@ -127,13 +127,13 @@ export default class StatisticsStorage {
       .aggregate<ChargingStationStats>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getChargingStationStats', uniqueTimerID, chargingStationStatsMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getChargingStationStats', startTime, aggregation, chargingStationStatsMDB);
     return chargingStationStatsMDB;
   }
 
   static async getUserStats(tenant: Tenant, params: StatisticFilter, groupBy: string): Promise<UserStats[]> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Build filter
@@ -257,7 +257,7 @@ export default class StatisticsStorage {
       .aggregate<UserStats>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getUserStats', uniqueTimerID, userStatsMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getUserStats', startTime, aggregation, userStatsMDB);
     return userStatsMDB;
   }
 }

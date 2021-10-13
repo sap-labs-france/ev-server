@@ -42,15 +42,18 @@ export default class Logging {
     return Date.now();
   }
 
-  public static async traceDatabaseRequestEnd(tenant: Tenant, module: string, method: string, timeStartMillis: number, data: any = {}): Promise<void> {
+  public static async traceDatabaseRequestEnd(tenant: Tenant, module: string, method: string, timeStartMillis: number, request: any, response: any = {}): Promise<void> {
     // Compute duration if provided
     const executionDurationMillis = new Date().getTime() - timeStartMillis;
-    const sizeOfDataKB = Utils.truncTo(sizeof(data) / 1024, 2);
-    const numberOfRecords = Array.isArray(data) ? data.length : 0;
-    const message = `${module}.${method} - ${executionDurationMillis.toString()} ms - ${sizeOfDataKB.toString()} KB - ${numberOfRecords.toString()} rec(s)`;
+    const sizeOfRequestDataKB = Utils.truncTo(Utils.createDecimal(
+      sizeof(request)).div(1024).toNumber(), 2);
+    const sizeOfResponseDataKB = Utils.truncTo(Utils.createDecimal(
+      sizeof(response)).div(1024).toNumber(), 2);
+    const numberOfRecords = Array.isArray(response) ? response.length : 0;
+    const message = `${module}.${method} - ${executionDurationMillis.toString()} ms - Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB - ${numberOfRecords.toString()} rec(s)`;
     Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
-    if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
-      const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}KB, got ${sizeOfDataKB}KB`);
+    if (sizeOfResponseDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
+      const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}KB, got ${sizeOfResponseDataKB}KB`);
       await Logging.logWarning({
         tenantID: tenant.id,
         source: Constants.CENTRAL_SERVER,
@@ -90,7 +93,8 @@ export default class Logging {
         tenantSubdomain: tenant.subdomain,
         group: PerformanceRecordGroup.MONGO_DB,
         durationMs: executionDurationMillis,
-        resSizeKb: sizeOfDataKB,
+        reqSizeKb: sizeOfRequestDataKB,
+        resSizeKb: sizeOfResponseDataKB,
         action: `${module}.${method}`
       })
     );
@@ -306,7 +310,7 @@ export default class Logging {
         // Compute Length
         const sizeOfRequestDataKB = Utils.truncTo(Utils.createDecimal(
           sizeof({ headers: req.headers, query: req.query, body: req.body })
-        ).div(1000).toNumber(), 2);
+        ).div(1024).toNumber(), 2);
         let sizeOfResponseDataKB = 0;
         if (res.getHeader('content-length')) {
           sizeOfResponseDataKB = Utils.truncTo(
@@ -408,7 +412,7 @@ export default class Logging {
     }
     // Compute Length
     const sizeOfRequestDataKB = Utils.truncTo(Utils.createDecimal(
-      sizeof(response.config)).div(1000).toNumber(), 2);
+      sizeof(response.config)).div(1024).toNumber(), 2);
     let sizeOfResponseDataKB = 0;
     if (response.config.headers['Content-Length']) {
       sizeOfResponseDataKB = Utils.truncTo(
@@ -610,9 +614,9 @@ export default class Logging {
     const executionDurationMillis = startTimestamp ? Date.now() - startTimestamp : 0;
     // Compute size
     const sizeOfRequestDataKB = Utils.truncTo(Utils.createDecimal(
-      sizeof(request)).div(1000).toNumber(), 2);
+      sizeof(request)).div(1024).toNumber(), 2);
     const sizeOfResponseDataKB = Utils.truncTo(Utils.createDecimal(
-      sizeof(response)).div(1000).toNumber(), 2);
+      sizeof(response)).div(1024).toNumber(), 2);
     const message = `${direction} OCPP Request '${action}' on '${chargingStationID}' has been processed ${executionDurationMillis ? 'in ' + executionDurationMillis.toString() + ' ms' : ''} - Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB`;
     Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
     if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
