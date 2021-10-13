@@ -1,4 +1,5 @@
 {
+  "$id": "users-get",
   "title": "Get Users",
   "type": "object",
   "properties": {
@@ -7,10 +8,10 @@
       "sanitize": "mongo"
     },
     "SiteID": {
-      "$ref": "common.json#/definitions/ids"
+      "$ref": "common#/definitions/ids"
     },
     "UserID": {
-      "$ref": "common.json#/definitions/ids"
+      "$ref": "common#/definitions/ids"
     },
     "Role": {
       "type": "string",
@@ -27,29 +28,29 @@
       "pattern": "^[PAIBL](\\|[PAIBL])*$"
     },
     "ExcludeSiteID": {
-      "$ref": "common.json#/definitions/ids"
+      "$ref": "common#/definitions/ids"
     },
     "VisualTagID": {
       "type": "string",
       "sanitize": "mongo"
     },
     "Search": {
-      "$ref": "common.json#/definitions/search"
+      "$ref": "common#/definitions/search"
     },
     "SortFields": {
-      "$ref": "common.json#/definitions/sortFields"
+      "$ref": "common#/definitions/sortFields"
     },
     "Limit": {
-      "$ref": "common.json#/definitions/limit"
+      "$ref": "common#/definitions/limit"
     },
     "Skip": {
-      "$ref": "common.json#/definitions/skip"
+      "$ref": "common#/definitions/skip"
     },
     "OnlyRecordCount": {
-      "$ref": "common.json#/definitions/onlyRecordCount"
+      "$ref": "common#/definitions/onlyRecordCount"
     },
     "ProjectFields": {
-      "$ref": "common.json#/definitions/projectFields"
+      "$ref": "common#/definitions/projectFields"
     }
   },
   "required": [

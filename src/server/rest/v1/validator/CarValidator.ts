@@ -35,35 +35,35 @@ export default class CarValidator extends SchemaValidator {
     return CarValidator.instance;
   }
 
-  public validateCarMakersGetReq(data: unknown): HttpCarMakersRequest {
-    return this.validate('validateCarMakersGetReq', this.carMakersGet, data);
+  public validateCarMakersGetReq(data: Record<string, unknown>): HttpCarMakersRequest {
+    return this.validate(this.carMakersGet, data);
   }
 
-  public validateCarCatalogsGetReq(data: unknown): HttpCarCatalogsRequest {
-    return this.validate('validateCarCatalogsGetReq', this.carCatalogsGet, data);
+  public validateCarCatalogsGetReq(data: Record<string, unknown>): HttpCarCatalogsRequest {
+    return this.validate(this.carCatalogsGet, data);
   }
 
-  public validateCarCatalogImagesGetReq(data: unknown): HttpCarCatalogImagesRequest {
-    return this.validate('validateCarCatalogImagesGetReq', this.carCatalogImagesGet, data);
+  public validateCarCatalogImagesGetReq(data: Record<string, unknown>): HttpCarCatalogImagesRequest {
+    return this.validate(this.carCatalogImagesGet, data);
   }
 
-  public validateCarCatalogGetReq(data: unknown): HttpCarCatalogRequest {
-    return this.validate('validateCarCatalogGetReq', this.carCatalogGet, data);
+  public validateCarCatalogGetReq(data: Record<string, unknown>): HttpCarCatalogRequest {
+    return this.validate(this.carCatalogGet, data);
   }
 
-  public validateCarCreateReq(data: unknown): HttpCarCreateRequest {
-    return this.validate('validateCarCreateReq', this.carCreate, data);
+  public validateCarCreateReq(data: Record<string, unknown>): HttpCarCreateRequest {
+    return this.validate(this.carCreate, data);
   }
 
-  public validateCarUpdateReq(data: unknown): HttpCarUpdateRequest {
-    return this.validate('validateCarUpdateReq', this.carUpdate, data);
+  public validateCarUpdateReq(data: Record<string, unknown>): HttpCarUpdateRequest {
+    return this.validate(this.carUpdate, data);
   }
 
-  public validateCarsGetReq(data: unknown): HttpCarsRequest {
-    return this.validate('validateCarsGetReq', this.carsGet, data);
+  public validateCarsGetReq(data: Record<string, unknown>): HttpCarsRequest {
+    return this.validate(this.carsGet, data);
   }
 
-  public validateCarGetReq(data: unknown): HttpCarRequest {
-    return this.validate('validateCarGetReq', this.carGet, data);
+  public validateCarGetReq(data: Record<string, unknown>): HttpCarRequest {
+    return this.validate(this.carGet, data);
   }
 }

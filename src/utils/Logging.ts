@@ -18,6 +18,7 @@ import { OICPResult } from '../types/oicp/OICPResult';
 import { PerformanceRecordGroup } from '../types/Performance';
 import PerformanceStorage from '../storage/mongodb/PerformanceStorage';
 import { ServerAction } from '../types/Server';
+import Tenant from '../types/Tenant';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
 import Utils from './Utils';
@@ -28,7 +29,6 @@ import sizeof from 'object-sizeof';
 const MODULE_NAME = 'Logging';
 
 export default class Logging {
-  private static traceCalls: { [key: string]: number } = {};
   private static loggingConfig: LoggingConfiguration;
 
   public static getConfiguration(): LoggingConfiguration {
@@ -38,31 +38,21 @@ export default class Logging {
     return this.loggingConfig;
   }
 
-  // Debug DB
-  public static traceStart(tenantID: string, module: string, method: string): string {
-    const key = `${tenantID}~${module}~${method}~${Utils.generateUUID()}`;
-    Logging.traceCalls[key] = new Date().getTime();
-    return key;
+  public static traceDatabaseRequestStart(): number {
+    return Date.now();
   }
 
-  // Debug DB
-  public static async traceEnd(tenantID: string, module: string, method: string, key: string, data: any = {}): Promise<void> {
+  public static async traceDatabaseRequestEnd(tenant: Tenant, module: string, method: string, timeStartMillis: number, data: any = {}): Promise<void> {
     // Compute duration if provided
-    let executionDurationMillis: number;
-    let found = false;
-    if (Logging.traceCalls[key]) {
-      executionDurationMillis = (new Date().getTime() - Logging.traceCalls[key]);
-      delete Logging.traceCalls[key];
-      found = true;
-    }
+    const executionDurationMillis = new Date().getTime() - timeStartMillis;
     const sizeOfDataKB = Utils.truncTo(sizeof(data) / 1024, 2);
     const numberOfRecords = Array.isArray(data) ? data.length : 0;
-    const message = `${module}.${method} ${found ? '- ' + executionDurationMillis.toString() + 'ms' : ''} ${!Utils.isEmptyJSon(data) ? '- ' + sizeOfDataKB.toString() + 'KB' : ''} ${Array.isArray(data) ? '- ' + numberOfRecords.toString() + ' rec(s)' : ''}`;
+    const message = `${module}.${method} - ${executionDurationMillis.toString()} ms - ${sizeOfDataKB.toString()} KB - ${numberOfRecords.toString()} rec(s)`;
     Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
     if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
       const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}KB, got ${sizeOfDataKB}KB`);
       await Logging.logWarning({
-        tenantID,
+        tenantID: tenant.id,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.PERFORMANCES,
         module, method,
@@ -71,7 +61,7 @@ export default class Logging {
       });
       if (Utils.isDevelopmentEnv()) {
         console.warn(chalk.yellow('===================================='));
-        console.warn(chalk.yellow(`Tenant ID '${tenantID}'`));
+        console.warn(chalk.yellow(`Tenant ID '${tenant.id}'`));
         console.warn(chalk.yellow(error));
         console.warn(chalk.yellow(message));
         console.warn(chalk.yellow('===================================='));
@@ -80,7 +70,7 @@ export default class Logging {
     if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
       const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms, got ${executionDurationMillis} ms`);
       await Logging.logWarning({
-        tenantID,
+        tenantID: tenant.id,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.PERFORMANCES,
         module, method,
@@ -89,21 +79,19 @@ export default class Logging {
       });
       if (Utils.isDevelopmentEnv()) {
         console.warn(chalk.yellow('===================================='));
-        console.warn(chalk.yellow(`Tenant ID '${tenantID}'`));
+        console.warn(chalk.yellow(`Tenant ID '${tenant.id}'`));
         console.warn(chalk.yellow(error));
         console.warn(chalk.yellow(message));
         console.warn(chalk.yellow('===================================='));
       }
     }
-    Utils.isDevelopmentEnv() && await PerformanceStorage.savePerformanceRecord(
+    await PerformanceStorage.savePerformanceRecord(
       Utils.buildPerformanceRecord({
-        tenantID,
+        tenantSubdomain: tenant.subdomain,
         group: PerformanceRecordGroup.MONGO_DB,
         durationMs: executionDurationMillis,
-        sizeKb: sizeOfDataKB,
-        source: Constants.DATABASE_SERVER,
-        module, method,
-        action: key,
+        resSizeKb: sizeOfDataKB,
+        action: `${module}.${method}`
       })
     );
   }
@@ -160,7 +148,7 @@ export default class Logging {
     return Logging.logError(log);
   }
 
-  public static async logExpressRequest(tenantID: string, decodedToken, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async traceExpressRequest(tenantID: string, decodedToken, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       // Check perfs
       req['timestamp'] = new Date();
@@ -296,14 +284,19 @@ export default class Logging {
       messageSuccess, messageError, messageSuccessAndError, messageNoSuccessNoError);
   }
 
-  public static logExpressResponse(req: Request, res: Response, next: NextFunction): void {
+  public static traceExpressResponse(req: Request, res: Response, next: NextFunction): void {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     res.on('finish', async () => {
       try {
         // Retrieve Tenant ID if available
         let tenantID: string;
+        let tenantSubdomain: string;
         if (req['tenantID']) {
           tenantID = req['tenantID'];
+        }
+        if (req['tenant']) {
+          tenantID = req.tenant.id;
+          tenantSubdomain = req.tenant.subdomain;
         }
         // Compute duration
         let executionDurationMillis = 0;
@@ -311,14 +304,18 @@ export default class Logging {
           executionDurationMillis = (new Date().getTime() - req['timestamp'].getTime());
         }
         // Compute Length
-        let sizeOfDataKB = 0;
+        const sizeOfRequestDataKB = Utils.truncTo(Utils.createDecimal(
+          sizeof({ headers: req.headers, query: req.query, body: req.body })
+        ).div(1000).toNumber(), 2);
+        let sizeOfResponseDataKB = 0;
         if (res.getHeader('content-length')) {
-          sizeOfDataKB = Utils.truncTo(res.getHeader('content-length') as number / 1024, 2);
+          sizeOfResponseDataKB = Utils.truncTo(
+            Utils.createDecimal(res.getHeader('content-length') as number).div(1024).toNumber(), 2);
         }
-        const message = `Express HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'} KB >> ${req.method}/${res.statusCode} '${req.url}'`;
+        const message = `Express HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms - Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB >> ${req.method}/${res.statusCode} '${req.url}'`;
         Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
-        if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
-          const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB} KB, got ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'} KB`);
+        if (sizeOfResponseDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
+          const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB} KB, got ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB`);
           await Logging.logWarning({
             tenantID,
             source: Constants.CENTRAL_SERVER,
@@ -366,17 +363,16 @@ export default class Logging {
             headers: res.getHeaders(),
           }
         });
-        Utils.isDevelopmentEnv() && void PerformanceStorage.savePerformanceRecord(
+        void PerformanceStorage.savePerformanceRecord(
           Utils.buildPerformanceRecord({
-            tenantID,
+            tenantSubdomain,
             group: Utils.getPerformanceRecordGroupFromURL(req.url),
             httpUrl: req.url,
-            httpCode: res.statusCode,
+            httpResponseCode: res.statusCode,
             httpMethod: req.method,
             durationMs: executionDurationMillis,
-            sizeKb: sizeOfDataKB,
-            source: Constants.REST_SERVER,
-            module: MODULE_NAME, method: 'logExpressResponse',
+            resSizeKb: sizeOfResponseDataKB,
+            reqSizeKb: sizeOfRequestDataKB,
             action: ServerAction.HTTP_RESPONSE,
           })
         );
@@ -386,15 +382,15 @@ export default class Logging {
     });
   }
 
-  public static async logExpressError(error: Error, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async traceExpressError(error: Error, req: Request, res: Response, next: NextFunction): Promise<void> {
     await Logging.logActionExceptionMessageAndSendResponse(
       error['params'] && error['params']['action'] ? error['params']['action'] : ServerAction.HTTP_ERROR, error, req, res, next);
   }
 
-  public static async logAxiosRequest(tenantID: string, request: AxiosRequestConfig): Promise<void> {
+  public static async traceAxiosRequest(tenant: Tenant, request: AxiosRequestConfig): Promise<void> {
     request['timestamp'] = new Date();
     await Logging.logSecurityDebug({
-      tenantID: tenantID,
+      tenantID: tenant.id,
       action: ServerAction.HTTP_REQUEST,
       message: `Axios HTTP Request >> ${request.method.toLocaleUpperCase()} '${request.url}'`,
       module: Constants.MODULE_AXIOS, method: 'interceptor',
@@ -404,23 +400,29 @@ export default class Logging {
     });
   }
 
-  public static async logAxiosResponse(tenantID: string, response: AxiosResponse): Promise<void> {
+  public static async traceAxiosResponse(tenant: Tenant, response: AxiosResponse): Promise<void> {
     // Compute duration
     let executionDurationMillis: number;
     if (response.config['timestamp']) {
       executionDurationMillis = (new Date().getTime() - response.config['timestamp'].getTime());
     }
     // Compute Length
-    let sizeOfDataKB = 0;
+    const sizeOfRequestDataKB = Utils.truncTo(Utils.createDecimal(
+      sizeof(response.config)).div(1000).toNumber(), 2);
+    let sizeOfResponseDataKB = 0;
     if (response.config.headers['Content-Length']) {
-      sizeOfDataKB = Utils.truncTo(response.config.headers['Content-Length'] / 1024, 2);
+      sizeOfResponseDataKB = Utils.truncTo(
+        Utils.createDecimal(response.config.headers['Content-Length']).div(1024).toNumber(), 2);
+    } else if (response.data) {
+      sizeOfResponseDataKB = Utils.truncTo(
+        Utils.createDecimal(sizeof(response.data)).div(1024).toNumber(), 2);
     }
-    const message = `Axios HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'} KB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`;
+    const message = `Axios HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms - Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`;
     Utils.isDevelopmentEnv() && console.log(chalk.green(message));
-    if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
+    if (sizeOfResponseDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
       const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}`);
       await Logging.logWarning({
-        tenantID,
+        tenantID: tenant.id,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.PERFORMANCES,
         module: Constants.MODULE_AXIOS, method: 'logAxiosResponse',
@@ -429,7 +431,7 @@ export default class Logging {
       });
       if (Utils.isDevelopmentEnv()) {
         console.warn(chalk.yellow('===================================='));
-        console.warn(chalk.yellow(`Tenant ID '${tenantID}'`));
+        console.warn(chalk.yellow(`Tenant ID '${tenant.id}'`));
         console.warn(chalk.yellow(error));
         console.warn(chalk.yellow(message));
         console.warn(chalk.yellow('===================================='));
@@ -438,7 +440,7 @@ export default class Logging {
     if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
       const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms, got ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms`);
       await Logging.logWarning({
-        tenantID,
+        tenantID: tenant.id,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.PERFORMANCES,
         module: Constants.MODULE_AXIOS, method: 'logAxiosResponse',
@@ -447,7 +449,7 @@ export default class Logging {
       });
       if (Utils.isDevelopmentEnv()) {
         console.warn(chalk.yellow('===================================='));
-        console.warn(chalk.yellow(`Tenant ID '${tenantID}'`));
+        console.warn(chalk.yellow(`Tenant ID '${tenant.id}'`));
         console.warn(chalk.yellow(error));
         console.warn(chalk.yellow(message));
         console.warn(chalk.yellow('===================================='));
@@ -455,7 +457,7 @@ export default class Logging {
     }
     try {
       await Logging.logSecurityDebug({
-        tenantID: tenantID,
+        tenantID: tenant.id,
         action: ServerAction.HTTP_RESPONSE,
         message,
         module: Constants.MODULE_AXIOS, method: 'logAxiosResponse',
@@ -467,26 +469,24 @@ export default class Logging {
           response: Utils.cloneObject(response.data)
         }
       });
-      Utils.isDevelopmentEnv() && await PerformanceStorage.savePerformanceRecord(
+      await PerformanceStorage.savePerformanceRecord(
         Utils.buildPerformanceRecord({
-          tenantID,
+          tenantSubdomain: tenant.subdomain,
           group: Utils.getPerformanceRecordGroupFromURL(response.config.url),
           httpUrl: response.config.url,
-          httpCode: response.status,
+          httpResponseCode: response.status,
           httpMethod: response.config.method.toLocaleUpperCase(),
           durationMs: executionDurationMillis,
-          sizeKb: sizeOfDataKB,
-          source: Constants.AXIOS_CLIENT,
-          module: Constants.MODULE_AXIOS, method: 'logAxiosResponse',
+          reqSizeKb: sizeOfRequestDataKB,
+          resSizeKb: sizeOfResponseDataKB,
           action: ServerAction.HTTP_RESPONSE,
         })
       );
     } catch (error) {
-      // FIXME: Error Message: Converting circular structure to JSON
       await Logging.logSecurityDebug({
-        tenantID: tenantID,
+        tenantID: tenant.id,
         action: ServerAction.HTTP_RESPONSE,
-        message: `Axios HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'} KB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`,
+        message: `Axios HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms - Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`,
         module: Constants.MODULE_AXIOS, method: 'logAxiosResponse',
         detailedMessages: {
           status: response.status,
@@ -496,10 +496,10 @@ export default class Logging {
     }
   }
 
-  public static async logAxiosError(tenantID: string, error: AxiosError): Promise<void> {
+  public static async traceAxiosError(tenant: Tenant, error: AxiosError): Promise<void> {
     // Error handling is done outside to get the proper module information
     await Logging.logSecurityError({
-      tenantID: tenantID,
+      tenantID: tenant.id,
       action: ServerAction.HTTP_ERROR,
       message: `Axios HTTP Error >> ${error.config?.method?.toLocaleUpperCase()}/${error.response?.status} '${error.config?.url}' - ${error.message}`,
       module: Constants.MODULE_AXIOS, method: 'interceptor',
@@ -512,45 +512,6 @@ export default class Logging {
         axiosError: Utils.objectHasProperty(error, 'toJSON') ? error.toJSON() : null,
       }
     });
-  }
-
-  public static async logChargingStationClientSendAction(module: string, tenantID: string, chargeBoxID: string,
-      chargingStationDetails: {
-        siteID: string,
-        siteAreaID: string,
-        companyID: string,
-      },action: ServerAction, args: any): Promise<void> {
-    await this.traceChargingStationActionStart(module, tenantID, chargeBoxID, action, args, '<<', chargingStationDetails);
-  }
-
-  public static async logChargingStationClientReceiveAction(module: string, tenantID: string, chargeBoxID: string,
-      chargingStationDetails: {
-        siteID: string,
-        siteAreaID: string,
-        companyID: string,
-      },
-      action: ServerAction, detailedMessages: any): Promise<void> {
-    await this.traceChargingStationActionEnd(module, tenantID, chargeBoxID, action, detailedMessages, '>>', chargingStationDetails);
-  }
-
-  public static async logChargingStationServerReceiveAction(module: string, tenantID: string, chargeBoxID: string,
-      chargingStationDetails: {
-        siteID: string,
-        siteAreaID: string,
-        companyID: string,
-      },
-      action: ServerAction, payload: any): Promise<void> {
-    await this.traceChargingStationActionStart(module, tenantID, chargeBoxID, action, payload, '>>', chargingStationDetails);
-  }
-
-  public static async logChargingStationServerRespondAction(module: string, tenantID: string, chargeBoxID: string,
-      chargingStationDetails: {
-        siteID: string,
-        siteAreaID: string,
-        companyID: string,
-      },
-      action: ServerAction, detailedMessages: any): Promise<void> {
-    await this.traceChargingStationActionEnd(module, tenantID, chargeBoxID, action, detailedMessages, '<<', chargingStationDetails);
   }
 
   // Used to log exception in catch(...) only
@@ -615,6 +576,97 @@ export default class Logging {
       'message': Utils.hideShowMessage(exception.message)
     });
     next();
+  }
+
+  public static async traceOcppMessageRequest(module: string, tenantID: string, chargeBoxID: string,
+      action: ServerAction, request: any, direction: '<<' | '>>', chargingStationDetails: {
+        siteID: string,
+        siteAreaID: string,
+        companyID: string,
+      }): Promise<number> {
+    const message = `${direction} OCPP Request '${action}' ${direction === '>>' ? 'received' : 'sent'}`;
+    Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
+    await Logging.logDebug({
+      tenantID: tenantID,
+      source: chargeBoxID,
+      chargingStationID: chargeBoxID,
+      siteAreaID: chargingStationDetails.siteAreaID,
+      siteID: chargingStationDetails.siteID,
+      companyID: chargingStationDetails.companyID,
+      module: module, method: action, action,
+      message,
+      detailedMessages: { request }
+    });
+    return Date.now();
+  }
+
+  public static async traceOcppMessageResponse(module: string, tenant: Tenant, chargingStationID: string,
+      action: ServerAction, request: any, response: any, direction: '<<' | '>>', chargingStationDetails: {
+        siteID: string,
+        siteAreaID: string,
+        companyID: string,
+      }, startTimestamp: number): Promise<void> {
+    // Compute duration if provided
+    const executionDurationMillis = startTimestamp ? Date.now() - startTimestamp : 0;
+    // Compute size
+    const sizeOfRequestDataKB = Utils.truncTo(Utils.createDecimal(
+      sizeof(request)).div(1000).toNumber(), 2);
+    const sizeOfResponseDataKB = Utils.truncTo(Utils.createDecimal(
+      sizeof(response)).div(1000).toNumber(), 2);
+    const message = `${direction} OCPP Request '${action}' on '${chargingStationID}' has been processed ${executionDurationMillis ? 'in ' + executionDurationMillis.toString() + ' ms' : ''} - Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB`;
+    Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
+    if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
+      const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms, got ${executionDurationMillis} ms`);
+      await Logging.logWarning({
+        tenantID: tenant.id,
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.PERFORMANCES,
+        module, method: 'traceChargingStationActionEnd',
+        message: `${message}: ${error.message}`,
+        detailedMessages: { error: error.stack }
+      });
+      if (Utils.isDevelopmentEnv()) {
+        console.warn(chalk.yellow('===================================='));
+        console.warn(chalk.yellow(`Tenant ID '${tenant.id}'`));
+        console.warn(chalk.yellow(error));
+        console.warn(chalk.yellow(message));
+        console.warn(chalk.yellow('===================================='));
+      }
+    }
+    if (response && response['status'] === OCPPStatus.REJECTED) {
+      await Logging.logError({
+        tenantID: tenant.id,
+        source: chargingStationID,
+        chargingStationID: chargingStationID,
+        siteID: chargingStationDetails.siteID,
+        siteAreaID: chargingStationDetails.siteAreaID,
+        companyID: chargingStationDetails.companyID,
+        module, method: action, action,
+        message, detailedMessages: response
+      });
+    } else {
+      await Logging.logDebug({
+        tenantID: tenant.id,
+        source: chargingStationID,
+        chargingStationID: chargingStationID,
+        siteID: chargingStationDetails.siteID,
+        siteAreaID: chargingStationDetails.siteAreaID,
+        companyID: chargingStationDetails.companyID,
+        module, method: action, action,
+        message, detailedMessages: response
+      });
+    }
+    await PerformanceStorage.savePerformanceRecord(
+      Utils.buildPerformanceRecord({
+        tenantSubdomain: tenant.subdomain,
+        chargingStationID,
+        resSizeKb: sizeOfResponseDataKB,
+        reqSizeKb: sizeOfRequestDataKB,
+        group: PerformanceRecordGroup.OCPP,
+        durationMs: executionDurationMillis,
+        action,
+      })
+    );
   }
 
   private static async _logActionExceptionMessage(tenantID: string, action: ServerAction, exception: any, detailedMessages = {}): Promise<void> {
@@ -939,99 +991,5 @@ export default class Logging {
       case LogLevel.ERROR:
         return 'error';
     }
-  }
-
-  private static async traceChargingStationActionStart(module: string, tenantID: string, chargeBoxID: string,
-      action: ServerAction, args: any, direction: '<<' | '>>', chargingStationDetails: {
-        siteID: string,
-        siteAreaID: string,
-        companyID: string,
-      }): Promise<void> {
-    // Keep duration (only for one Action per Charging Station)
-    // If 2 Actions for the same Charging Station arrive at the same time, the second one will not have response time measured
-    Logging.traceCalls[`${chargeBoxID}~${action}`] = new Date().getTime();
-    const message = `${direction} OCPP Request '${action}' ${direction === '>>' ? 'received' : 'sent'}`;
-    Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
-    await Logging.logDebug({
-      tenantID: tenantID,
-      source: chargeBoxID,
-      chargingStationID: chargeBoxID,
-      siteAreaID: chargingStationDetails.siteAreaID,
-      siteID: chargingStationDetails.siteID,
-      companyID: chargingStationDetails.companyID,
-      module: module, method: action, action,
-      message,
-      detailedMessages: { args }
-    });
-  }
-
-  private static async traceChargingStationActionEnd(module: string, tenantID: string, chargingStationID: string,
-      action: ServerAction, detailedMessages: any, direction: '<<' | '>>', chargingStationDetails: {
-        siteID: string,
-        siteAreaID: string,
-        companyID: string,
-      }): Promise<void> {
-    // Compute duration if provided
-    let executionDurationMillis: number;
-    let found = false;
-    // Get the response time
-    if (Logging.traceCalls[`${chargingStationID}~${action}`]) {
-      executionDurationMillis = (new Date().getTime() - Logging.traceCalls[`${chargingStationID}~${action}`]);
-      delete Logging.traceCalls[`${chargingStationID}~${action}`];
-      found = true;
-    }
-    const message = `${direction} OCPP Request '${action}' on '${chargingStationID}' has been processed ${found ? 'in ' + executionDurationMillis.toString() + 'ms' : ''}`;
-    Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
-    if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
-      const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms, got ${executionDurationMillis} ms`);
-      await Logging.logWarning({
-        tenantID,
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.PERFORMANCES,
-        module, method: 'traceChargingStationActionEnd',
-        message: `${message}: ${error.message}`,
-        detailedMessages: { error: error.stack }
-      });
-      if (Utils.isDevelopmentEnv()) {
-        console.warn(chalk.yellow('===================================='));
-        console.warn(chalk.yellow(`Tenant ID '${tenantID}'`));
-        console.warn(chalk.yellow(error));
-        console.warn(chalk.yellow(message));
-        console.warn(chalk.yellow('===================================='));
-      }
-    }
-    if (detailedMessages && detailedMessages['status'] && detailedMessages['status'] === OCPPStatus.REJECTED) {
-      await Logging.logError({
-        tenantID,
-        source: chargingStationID,
-        chargingStationID: chargingStationID,
-        siteID: chargingStationDetails.siteID,
-        siteAreaID: chargingStationDetails.siteAreaID,
-        companyID: chargingStationDetails.companyID,
-        module, method: action, action,
-        message, detailedMessages
-      });
-    } else {
-      await Logging.logDebug({
-        tenantID,
-        source: chargingStationID,
-        chargingStationID: chargingStationID,
-        siteID: chargingStationDetails.siteID,
-        siteAreaID: chargingStationDetails.siteAreaID,
-        companyID: chargingStationDetails.companyID,
-        module, method: action, action,
-        message, detailedMessages
-      });
-    }
-    Utils.isDevelopmentEnv() && await PerformanceStorage.savePerformanceRecord(
-      Utils.buildPerformanceRecord({
-        tenantID, chargingStationID,
-        group: PerformanceRecordGroup.OCPP,
-        durationMs: executionDurationMillis,
-        source: Constants.OCPP_SERVER,
-        module: module, method: 'traceChargingStationActionEnd',
-        action,
-      })
-    );
   }
 }

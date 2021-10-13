@@ -1,9 +1,10 @@
 {
+  "$id": "chargingstation-action-diagnostics-get",
   "title": "Get Diagnostics",
   "type": "object",
   "properties": {
     "chargingStationID": {
-      "$ref": "chargingstation.json#/definitions/id"
+      "$ref": "chargingstation#/definitions/id"
     },
     "args": {
       "type": "object",

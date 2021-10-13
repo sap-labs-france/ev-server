@@ -1,5 +1,5 @@
 {
-    "title": "status-notification-request",
+    "$id": "status-notification-request",
     "description": "Defines the StatusNotification.req PDU",
     "type": "object",
     "properties": {

@@ -38,7 +38,7 @@ export default class ChargingStationClientFactory {
         case OCPPProtocol.SOAP:
         default:
           // Init client
-          chargingClient = await SoapChargingStationClient.getChargingStationClient(tenant.id, chargingStation);
+          chargingClient = await SoapChargingStationClient.getChargingStationClient(tenant, chargingStation);
           break;
       }
     } else {

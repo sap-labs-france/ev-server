@@ -33,27 +33,27 @@ export default class OCPIEndpointValidator extends SchemaValidator {
     return OCPIEndpointValidator.instance;
   }
 
-  public validateOCPIEndpointCreateReq(data: unknown): OCPIEndpoint {
-    return this.validate('validateOCPIEndpointCreateReq', this.ocpiEndpointCreate, data);
+  public validateOCPIEndpointCreateReq(data: Record<string, unknown>): OCPIEndpoint {
+    return this.validate(this.ocpiEndpointCreate, data);
   }
 
-  public validateOCPIEndpointPingReq(data: unknown): OCPIEndpoint {
-    return this.validate('validateOCPIEndpointPingReq', this.ocpiEndpointPing, data);
+  public validateOCPIEndpointPingReq(data: Record<string, unknown>): OCPIEndpoint {
+    return this.validate(this.ocpiEndpointPing, data);
   }
 
-  public validateOCPIEndpointByIdReq(data: unknown): HttpOCPIEndpointByIdRequest {
-    return this.validate('validateOCPIEndpointByIdReq', this.ocpiEndpointById, data);
+  public validateOCPIEndpointByIdReq(data: Record<string, unknown>): HttpOCPIEndpointByIdRequest {
+    return this.validate(this.ocpiEndpointById, data);
   }
 
-  public validateOCPIEndpointGetReq(data: unknown): HttpOCPIEndpointRequest {
-    return this.validate('validateOCPIEndpointGetReq', this.ocpiEndpointGet, data);
+  public validateOCPIEndpointGetReq(data: Record<string, unknown>): HttpOCPIEndpointRequest {
+    return this.validate(this.ocpiEndpointGet, data);
   }
 
-  public validateOCPIEndpointsGetReq(data: unknown): HttpOCPIEndpointsRequest {
-    return this.validate('validateOCPIEndpointsGetReq', this.ocpiEndpointsGet, data);
+  public validateOCPIEndpointsGetReq(data: Record<string, unknown>): HttpOCPIEndpointsRequest {
+    return this.validate(this.ocpiEndpointsGet, data);
   }
 
-  public validateOCPIEndpointUpdateReq(data: unknown): OCPIEndpoint {
-    return this.validate('validateOCPIEndpointUpdateReq', this.ocpiEndpointUpdate, data);
+  public validateOCPIEndpointUpdateReq(data: Record<string, unknown>): OCPIEndpoint {
+    return this.validate(this.ocpiEndpointUpdate, data);
   }
 }

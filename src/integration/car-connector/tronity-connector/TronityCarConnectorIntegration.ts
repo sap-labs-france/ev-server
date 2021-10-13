@@ -21,7 +21,7 @@ export default class TronityCarConnectorIntegration extends CarConnectorIntegrat
   constructor(tenant: Tenant, settings: CarConnectorSettings, connection: CarConnectorConnectionSetting) {
     super(tenant, settings, connection);
     // Get Axios
-    this.axiosInstance = AxiosFactory.getAxiosInstance(this.tenant.id);
+    this.axiosInstance = AxiosFactory.getAxiosInstance(this.tenant);
   }
 
   public async connect(): Promise<string> {

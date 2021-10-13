@@ -1,9 +1,10 @@
 {
+  "$id": "user-mobile-token-update",
   "title": "Update User mobile token",
   "type": "object",
   "properties": {
     "id": {
-      "$ref": "user.json#/definitions/id"
+      "$ref": "user#/definitions/id"
     },
     "mobileToken": {
       "type": "string",

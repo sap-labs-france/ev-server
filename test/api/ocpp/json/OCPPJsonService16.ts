@@ -1,12 +1,12 @@
 import { OCPP15MeterValuesRequest, OCPPAuthorizeRequest, OCPPAuthorizeResponse, OCPPBootNotificationRequest, OCPPBootNotificationResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPDiagnosticsStatusNotificationRequest, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequest, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequest, OCPPHeartbeatResponse, OCPPMeterValuesRequest, OCPPMeterValuesResponse, OCPPStartTransactionRequest, OCPPStartTransactionResponse, OCPPStatusNotificationRequest, OCPPStatusNotificationResponse, OCPPStopTransactionRequest, OCPPStopTransactionResponse, OCPPVersion } from '../../../../src/types/ocpp/OCPPServer';
 import { OCPPIncomingRequest, OCPPMessageType } from '../../../../src/types/ocpp/OCPPCommon';
-import { ServerAction, WSServerProtocol } from '../../../../src/types/Server';
 
 import { Command } from '../../../types/ChargingStation';
 import OCPPService from '../OCPPService';
 import Utils from '../../../../src/utils/Utils';
 import WSClient from '../../../../src/client/websocket/WSClient';
 import { WSClientOptions } from '../../../../src/types/WebSocket';
+import { WSServerProtocol } from '../../../../src/types/Server';
 import config from '../../../config';
 import { performance } from 'perf_hooks';
 

@@ -1,10 +1,10 @@
 {
+  "$id": "tag-unassign",
   "title": "Unassign Tag",
-  "description": "",
   "type": "object",
   "properties": {
     "visualID": {
-      "$ref": "tag.json#/definitions/visualID"
+      "$ref": "tag#/definitions/visualID"
     }
   },
   "required": [

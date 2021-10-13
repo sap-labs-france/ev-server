@@ -1,18 +1,19 @@
 {
+  "$id": "chargingstation-qrcode-download",
   "title": "Download QRCode of Charging Stations",
   "type": "object",
   "properties": {
     "ChargingStationID": {
-      "$ref": "chargingstation.json#/definitions/id"
+      "$ref": "chargingstation#/definitions/id"
     },
     "ConnectorID": {
-      "$ref": "chargingstation.json#/definitions/connector/properties/connectorId"
+      "$ref": "chargingstation#/definitions/connector/properties/connectorId"
     },
     "SiteAreaID": {
-      "$ref": "common.json#/definitions/ids"
+      "$ref": "common#/definitions/ids"
     },
     "SiteID": {
-      "$ref": "common.json#/definitions/ids"
+      "$ref": "common#/definitions/ids"
     }
   },
   "anyOf": [
