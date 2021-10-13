@@ -357,5 +357,6 @@ export enum ChargerVendor {
   G2_MOBILITY = 'com.g2mobility',
   MEAECN = 'MEAECN',
   KOSTAD = 'Kostad',
-  KEMPOWER = 'Kempower'
+  KEMPOWER = 'Kempower',
+  SETEC = 'SETEC-POWER'
 }
