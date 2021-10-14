@@ -1,7 +1,13 @@
+/* eslint-disable @typescript-eslint/member-ordering */
 /* eslint-disable max-len */
 import { DimensionType, PricedConsumptionData, PricedDimensionData, PricingDimensions } from '../../types/Pricing';
 
 import Decimal from 'decimal.js';
+import { Log } from '../../types/Log';
+import Logging from '../../utils/Logging';
+import { ServerAction } from '../../types/Server';
+import Tenant from '../../types/Tenant';
+import Transaction from '../../types/Transaction';
 import Utils from '../../utils/Utils';
 
 export default class PricingHelper {
@@ -61,4 +67,34 @@ export default class PricingHelper {
       accumulatedData[dimensionType].roundedAmount = Utils.createDecimal(accumulatedData[dimensionType].roundedAmount).plus(pricedData[dimensionType].roundedAmount).toNumber();
     }
   }
+
+  public static async logInfo(tenant: Tenant, transaction: Transaction, params: Partial<Log>): Promise<void> {
+    const commonProperties = PricingHelper.getLogCommonProperties(tenant, transaction);
+    await Logging.logInfo({
+      ...commonProperties,
+      ...params,
+    } as Log);
+  }
+
+  public static async logWarning(tenant: Tenant, transaction: Transaction, params: Partial<Log>): Promise<void> {
+    const commonProperties = PricingHelper.getLogCommonProperties(tenant, transaction);
+    await Logging.logWarning({
+      ...commonProperties,
+      ...params,
+    } as Log);
+  }
+
+  public static getLogCommonProperties(tenant: Tenant, transaction: Transaction): Partial<Log> {
+    return {
+      tenantID: tenant.id,
+      siteID: transaction.siteID,
+      siteAreaID: transaction.siteAreaID,
+      companyID: transaction.companyID,
+      chargingStationID: transaction.chargeBoxID,
+      source: transaction.chargeBoxID,
+      actionOnUser: transaction.user,
+      action: ServerAction.PRICING,
+    };
+  }
+
 }

@@ -18,15 +18,27 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
   }
 
   public async startSession(transaction: Transaction, consumptionData: Consumption, chargingStation: ChargingStation): Promise<PricedConsumption> {
-    return this.computePrice(transaction, consumptionData, chargingStation);
+    const pricedConsumption = await this.computePrice(transaction, consumptionData, chargingStation);
+    await PricingHelper.logInfo(this.tenant, transaction, {
+      message: `Session START - Transaction: ${transaction.id} - Accumulated amount: ${pricedConsumption.cumulatedRoundedAmount} ${pricedConsumption.currencyCode}`,
+    });
+    return pricedConsumption;
   }
 
   public async updateSession(transaction: Transaction, consumptionData: Consumption, chargingStation: ChargingStation): Promise<PricedConsumption> {
-    return this.computePrice(transaction, consumptionData, chargingStation);
+    const pricedConsumption = await this.computePrice(transaction, consumptionData, chargingStation);
+    // await PricingHelper.logInfo(this.tenant, transaction, {
+    //   message: `Session UPDATE - Transaction: ${transaction.id} - Accumulated amount: ${pricedConsumption.cumulatedRoundedAmount} ${pricedConsumption.currencyCode}`,
+    // });
+    return pricedConsumption;
   }
 
   public async stopSession(transaction: Transaction, consumptionData: Consumption, chargingStation: ChargingStation): Promise<PricedConsumption> {
-    return this.computePrice(transaction, consumptionData, chargingStation);
+    const pricedConsumption = await this.computePrice(transaction, consumptionData, chargingStation);
+    await PricingHelper.logInfo(this.tenant, transaction, {
+      message: `Session STOP - Transaction: ${transaction.id} - Accumulated amount: ${pricedConsumption.cumulatedRoundedAmount} ${pricedConsumption.currencyCode}`,
+    });
+    return pricedConsumption;
   }
 
   private async computePrice(transaction: Transaction, consumptionData: Consumption, chargingStation: ChargingStation): Promise<PricedConsumption> {
@@ -37,19 +49,19 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
     }
     const pricingConsumptionData = PricingEngine.priceConsumption(this.tenant, pricingModel, consumptionData);
     const { flatFee, energy, chargingTime, parkingTime } = pricingConsumptionData;
+    const currencyCode = this.settings.currency;
     const amount = Utils.createDecimal(flatFee?.amount || 0).plus(energy?.amount || 0).plus(chargingTime?.amount || 0).plus(parkingTime?.amount || 0).toNumber();
     const roundedAmount = Utils.createDecimal(flatFee?.roundedAmount || 0).plus(energy?.roundedAmount || 0).plus(chargingTime?.roundedAmount || 0).plus(parkingTime?.roundedAmount || 0).toNumber();
     // Sum all dimensions
     const pricedConsumption: PricedConsumption = {
       pricingSource: PricingSource.SIMPLE,
       pricingModel,
-      amount: amount,
-      roundedAmount: roundedAmount,
-      currencyCode: this.settings.currency,
+      amount,
+      roundedAmount,
+      currencyCode,
       cumulatedAmount: 0,
       cumulatedRoundedAmount: 0,
     };
-
     if (!FeatureToggles.isFeatureActive(Feature.PRICING_NEW_MODEL)) {
       throw new Error('Unexpected situation - this layer should not be called in that context');
     } else {
@@ -57,7 +69,6 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
       const { cumulatedAmount, cumulatedRoundedAmount } = this.computeCumulatedAmount(pricingModel);
       pricedConsumption.cumulatedAmount = cumulatedAmount;
       pricedConsumption.cumulatedRoundedAmount = cumulatedRoundedAmount;
-
     }
     return Promise.resolve(pricedConsumption);
   }
@@ -76,6 +87,10 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
     const resolvedPricingModel: ResolvedPricingModel = await PricingEngine.resolvePricingContext(tenant, transaction, chargingStation);
     if (!resolvedPricingModel.pricingDefinitions?.length) {
       resolvedPricingModel.pricingDefinitions = [ this.getDefaultPricingDefinition() ];
+      await PricingHelper.logWarning(tenant, transaction, {
+        message: 'No pricing definition found - Simple Pricing logic will be used as a fallback',
+        detailedMessages: { resolvedPricingModel }
+      });
     }
     return resolvedPricingModel;
   }

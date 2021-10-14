@@ -5,6 +5,7 @@ import ChargingStation from '../../types/ChargingStation';
 import Constants from '../../utils/Constants';
 import Consumption from '../../types/Consumption';
 import ConsumptionPricer from './ConsumptionPricer';
+import PricingHelper from './PricingHelper';
 import PricingStorage from '../../storage/mongodb/PricingStorage';
 import Tenant from '../../types/Tenant';
 import Transaction from '../../types/Transaction';
@@ -33,6 +34,10 @@ export default class PricingEngine {
       },
       pricingDefinitions
     };
+    await PricingHelper.logInfo(tenant, transaction, {
+      message: `Pricing context has been resolved - ${pricingDefinitions.length} pricing definitions have been found`,
+      detailedMessages: { resolvedPricingModel }
+    });
     return Promise.resolve(resolvedPricingModel);
   }
 
@@ -56,6 +61,10 @@ export default class PricingEngine {
     const actualPricingDefinitions = pricingDefinitions.filter((pricingDefinition) =>
       PricingEngine.checkStaticRestrictions(pricingDefinition, transaction, chargingStation)
     );
+    await PricingHelper.logInfo(tenant, transaction, {
+      method: 'getPricingDefinitions4Entity',
+      message: `Pricing context resolution - ${actualPricingDefinitions.length || 0} pricing definitions found for entity '${entityID}'`
+    });
     return actualPricingDefinitions || [];
   }
 
