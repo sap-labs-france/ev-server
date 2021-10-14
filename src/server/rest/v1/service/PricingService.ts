@@ -78,7 +78,7 @@ export default class PricingService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.CREATE, entity: Entity.COMPANY,
+        action: Action.CREATE, entity: Entity.PRICING_DEFINITION,
         module: MODULE_NAME, method: 'handleCreatePricingDefinition'
       });
     }
@@ -107,7 +107,7 @@ export default class PricingService {
   public static async handleUpdatePricingDefinition(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
-      Action.UPDATE, Entity.COMPANY, MODULE_NAME, 'handleUpdatePricingDefinition');
+      Action.UPDATE, Entity.PRICING_DEFINITION, MODULE_NAME, 'handleUpdatePricingDefinition');
     // Filter
     const filteredRequest = PricingValidator.getInstance().validatePricingDefinitionUpdate(req.body);
     // Check Mandatory fields
