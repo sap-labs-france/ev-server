@@ -104,6 +104,9 @@ export default class SettingSecurity {
           if (Utils.objectHasProperty(request.content.ocpi, 'currency')) {
             settings.content.ocpi.currency = request.content.ocpi.currency;
           }
+          if (Utils.objectHasProperty(request.content.ocpi, 'tariffID')) {
+            settings.content.ocpi.tariffID = request.content.ocpi.tariffID;
+          }
           break;
         case RoamingSettingsType.OICP:
           settings.content.oicp = {} as OicpSetting;

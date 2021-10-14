@@ -107,6 +107,7 @@ export interface OcpiSetting {
   emsp: OcpiIdentifier;
   currency: string;
   businessDetails: OcpiBusinessDetails;
+  tariffID?: string;
 }
 
 export interface OicpSetting {
