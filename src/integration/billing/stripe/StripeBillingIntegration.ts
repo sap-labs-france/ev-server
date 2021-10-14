@@ -1109,7 +1109,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
     pricingData = pricingData.map((pricingConsumptionData) => this.enrichTransactionPricingData(transaction, pricingConsumptionData));
     void PricingHelper.logInfo(this.tenant, transaction, {
-      message: `Final pricing data extraction for transaction: ${transaction.id}`,
+      message: `Final pricing - Transaction: ${transaction.id}`,
       detailedMessages: pricingData,
     });
     return pricingData;

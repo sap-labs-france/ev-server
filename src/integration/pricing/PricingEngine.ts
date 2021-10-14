@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
-import PricingDefinition, { PricedConsumptionData, PricingStaticRestriction, ResolvedPricingDefinition, ResolvedPricingModel } from '../../types/Pricing';
+import PricingDefinition, { PricedConsumptionData, PricingEntity, PricingStaticRestriction, ResolvedPricingDefinition, ResolvedPricingModel } from '../../types/Pricing';
 
 import ChargingStation from '../../types/ChargingStation';
 import Constants from '../../utils/Constants';
@@ -22,10 +22,10 @@ export default class PricingEngine {
       // Do nothing - this should trigger a fallback to the simple pricing logic
     } else {
       // pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction.userID));
-      pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, transaction.chargeBoxID.toString()));
-      pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, transaction.siteAreaID.toString()));
-      pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, transaction.siteID.toString()));
-      pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, transaction.companyID.toString()));
+      pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.CHARGING_STATION, transaction.chargeBoxID.toString()));
+      pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.SITE_AREA, transaction.siteAreaID.toString()));
+      pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.SITE, transaction.siteID.toString()));
+      pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.COMPANY, transaction.companyID.toString()));
     }
     // Return the resolution result as a resolved pricing model
     const resolvedPricingModel: ResolvedPricingModel = {
@@ -56,17 +56,19 @@ export default class PricingEngine {
     return pricedData.filter((pricingConsumptionData) => !!pricingConsumptionData);
   }
 
-  private static async getPricingDefinitions4Entity(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, entityID: string): Promise<ResolvedPricingDefinition[]> {
+  private static async getPricingDefinitions4Entity(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, entityType: PricingEntity, entityID: string): Promise<ResolvedPricingDefinition[]> {
     let pricingDefinitions = await PricingEngine._getPricingDefinitions4Entity(tenant, entityID);
     pricingDefinitions = pricingDefinitions || [];
     const actualPricingDefinitions = pricingDefinitions.filter((pricingDefinition) =>
+      PricingEngine.checkEntityType(pricingDefinition, entityType)
+    ).filter((pricingDefinition) =>
       PricingEngine.checkStaticRestrictions(pricingDefinition, transaction, chargingStation)
     ).map((pricingDefinition) =>
       PricingEngine.shrinkPricingDefinition(pricingDefinition)
     );
     await PricingHelper.logInfo(tenant, transaction, {
       method: 'getPricingDefinitions4Entity',
-      message: `Pricing context resolution - ${actualPricingDefinitions.length || 0} pricing definitions found for entity '${entityID}'`
+      message: `Pricing context resolution - ${actualPricingDefinitions.length || 0} pricing definitions found for ${entityType}: '${entityID}'`
     });
     return actualPricingDefinitions || [];
   }
@@ -82,6 +84,10 @@ export default class PricingEngine {
       }
     }
     return null;
+  }
+
+  private static checkEntityType(pricingDefinition: PricingDefinition, entityType: PricingEntity) : PricingDefinition {
+    return (pricingDefinition.entityType === entityType) ? pricingDefinition : null;
   }
 
   private static checkStaticRestrictions(pricingDefinition: PricingDefinition, transaction: Transaction, chargingStation: ChargingStation) : PricingDefinition {
