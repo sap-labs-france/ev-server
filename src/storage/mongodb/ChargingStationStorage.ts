@@ -234,7 +234,7 @@ export default class ChargingStationStorage {
       filters.issuer = params.issuer;
     }
     // Add Charging Station inactive flag
-    DatabaseUtils.pushChargingStationInactiveFlag(aggregation);
+    aggregation.push(DatabaseUtils.buildChargingStationInactiveFlagQuery());
     // Add in aggregation
     aggregation.push({
       $match: filters
@@ -403,7 +403,7 @@ export default class ChargingStationStorage {
     // Create Aggregation
     const aggregation = [];
     // Add Charging Station inactive flag
-    DatabaseUtils.pushChargingStationInactiveFlag(aggregation);
+    aggregation.push(DatabaseUtils.buildChargingStationInactiveFlagQuery());
     // Set the filters
     const filters: FilterParams = {};
     // Search filters

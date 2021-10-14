@@ -239,11 +239,6 @@ export default class DatabaseUtils {
     }
   }
 
-  public static pushChargingStationInactiveFlag(aggregation: any[]): void {
-    // Add inactive field
-    aggregation.push(DatabaseUtils.buildChargingStationInactiveFlagQuery());
-  }
-
   public static projectFields(aggregation: any[], projectFields: string[], removedFields: string[] = []): void {
     if (!Utils.isEmptyArray(projectFields)) {
       const project = {
@@ -442,7 +437,7 @@ export default class DatabaseUtils {
     }
   }
 
-  private static buildChargingStationInactiveFlagQuery(): Record<string, any> {
+  public static buildChargingStationInactiveFlagQuery(): Record<string, any> {
     // Add inactive field
     return {
       $addFields: {
