@@ -39,7 +39,8 @@
         "validTo": {
           "type": "string",
           "format": "date-time",
-          "sanitize": "mongo"
+          "sanitize": "mongo",
+          "nullable": true
         },
         "connectorType": {
           "type": "string",
