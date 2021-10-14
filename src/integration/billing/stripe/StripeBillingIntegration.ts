@@ -1070,16 +1070,16 @@ export default class StripeBillingIntegration extends BillingIntegration {
   private convertToBillingInvoiceItem(transaction: Transaction) : BillingInvoiceItem {
     if (FeatureToggles.isFeatureActive(Feature.PRICING_NEW_MODEL) && transaction.pricingModel) {
       // Built-in Pricing
-      return this._convertPricingDataToBillingInvoiceItem(transaction);
+      return this.convertPricingDataToBillingInvoiceItem(transaction);
     }
     // Simple Pricing - Do it the old way!
     return this._convertToBillingInvoiceItem(transaction);
   }
 
-  private _convertPricingDataToBillingInvoiceItem(transaction: Transaction) : BillingInvoiceItem {
+  private convertPricingDataToBillingInvoiceItem(transaction: Transaction) : BillingInvoiceItem {
     const transactionID = transaction.id;
     const currency = transaction.stop.priceUnit;
-    const pricingData: PricedConsumptionData[] = this._extractTransactionPricingData(transaction);
+    const pricingData: PricedConsumptionData[] = this.extractTransactionPricingData(transaction);
     const billingInvoiceItem: BillingInvoiceItem = {
       transactionID,
       currency,
@@ -1100,18 +1100,22 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return billingInvoiceItem ;
   }
 
-  private _extractTransactionPricingData(transaction: Transaction) : PricedConsumptionData[] {
+  private extractTransactionPricingData(transaction: Transaction) : PricedConsumptionData[] {
     const pricingModel = Object.freeze(transaction.pricingModel);
     let pricingData: PricedConsumptionData[] = PricingEngine.extractFinalPricingData(pricingModel);
     if (!FeatureToggles.isFeatureActive(Feature.BILLING_SHOW_PRICING_DETAIL)) {
       // Accumulate data per dimensions = less details, less disputes
       pricingData = [ PricingHelper.accumulatePricedConsumption(pricingData) ] ;
     }
-    pricingData = pricingData.map((pricingConsumptionData) => this._enrichTransactionPricingData(transaction, pricingConsumptionData));
+    pricingData = pricingData.map((pricingConsumptionData) => this.enrichTransactionPricingData(transaction, pricingConsumptionData));
+    void PricingHelper.logInfo(this.tenant, transaction, {
+      message: `Final pricing data extraction for transaction: ${transaction.id}`,
+      detailedMessages: pricingData,
+    });
     return pricingData;
   }
 
-  private _enrichTransactionPricingData(transaction: Transaction, pricingConsumptionData: PricedConsumptionData) : PricedConsumptionData {
+  private enrichTransactionPricingData(transaction: Transaction, pricingConsumptionData: PricedConsumptionData) : PricedConsumptionData {
     // -------------------------------------------------------------------------------
     // TODO - so far we use the same tax rates for all invoice items!
     // -------------------------------------------------------------------------------

@@ -1,5 +1,6 @@
+/* eslint-disable max-len */
 import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
-import PricingDefinition, { PricedConsumptionData, PricingStaticRestriction, ResolvedPricingModel } from '../../types/Pricing';
+import PricingDefinition, { PricedConsumptionData, PricingStaticRestriction, ResolvedPricingDefinition, ResolvedPricingModel } from '../../types/Pricing';
 
 import ChargingStation from '../../types/ChargingStation';
 import Constants from '../../utils/Constants';
@@ -16,7 +17,7 @@ export default class PricingEngine {
 
   public static async resolvePricingContext(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation): Promise<ResolvedPricingModel> {
     // Merge the pricing definitions from the different contexts
-    const pricingDefinitions: PricingDefinition[] = [];
+    const pricingDefinitions: ResolvedPricingDefinition[] = [];
     if (FeatureToggles.isFeatureActive(Feature.PRICING_CHECK_BACKWARD_COMPATIBILITY)) {
       // Do nothing - this should trigger a fallback to the simple pricing logic
     } else {
@@ -55,11 +56,13 @@ export default class PricingEngine {
     return pricedData.filter((pricingConsumptionData) => !!pricingConsumptionData);
   }
 
-  private static async getPricingDefinitions4Entity(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, entityID: string): Promise<PricingDefinition[]> {
+  private static async getPricingDefinitions4Entity(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, entityID: string): Promise<ResolvedPricingDefinition[]> {
     let pricingDefinitions = await PricingEngine._getPricingDefinitions4Entity(tenant, entityID);
     pricingDefinitions = pricingDefinitions || [];
     const actualPricingDefinitions = pricingDefinitions.filter((pricingDefinition) =>
       PricingEngine.checkStaticRestrictions(pricingDefinition, transaction, chargingStation)
+    ).map((pricingDefinition) =>
+      PricingEngine.shrinkPricingDefinition(pricingDefinition)
     );
     await PricingHelper.logInfo(tenant, transaction, {
       method: 'getPricingDefinitions4Entity',
@@ -93,6 +96,20 @@ export default class PricingEngine {
     }
     // a definition matching the restrictions has been found
     return pricingDefinition;
+  }
+
+  private static shrinkPricingDefinition(pricingDefinition: PricingDefinition): ResolvedPricingDefinition {
+    const resolvedPricingDefinition: ResolvedPricingDefinition = {
+      id: pricingDefinition.id,
+      entityID: pricingDefinition.entityID,
+      entityType: pricingDefinition.entityType,
+      name: pricingDefinition.name,
+      description: pricingDefinition.name,
+      staticRestrictions: pricingDefinition.staticRestrictions,
+      restrictions: pricingDefinition.restrictions,
+      dimensions: pricingDefinition.dimensions,
+    };
+    return resolvedPricingDefinition;
   }
 
   private static checkDateValidity(staticRestrictions: PricingStaticRestriction, transaction: Transaction): boolean {
@@ -129,7 +146,7 @@ export default class PricingEngine {
     return true;
   }
 
-  private static extractFinalPricedConsumptionData(pricingDefinition: PricingDefinition): PricedConsumptionData {
+  private static extractFinalPricedConsumptionData(pricingDefinition: ResolvedPricingDefinition): PricedConsumptionData {
     const flatFee = pricingDefinition.dimensions.flatFee?.pricedData;
     const energy = pricingDefinition.dimensions.energy?.pricedData;
     const chargingTime = pricingDefinition.dimensions.chargingTime?.pricedData;

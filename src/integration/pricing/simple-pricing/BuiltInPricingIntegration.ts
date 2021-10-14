@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
-import PricingDefinition, { PricedConsumption, PricingDimensions, PricingSource, ResolvedPricingModel } from '../../../types/Pricing';
+import { PricedConsumption, PricingDimensions, PricingSource, ResolvedPricingDefinition, ResolvedPricingModel } from '../../../types/Pricing';
 
 import ChargingStation from '../../../types/ChargingStation';
 import Consumption from '../../../types/Consumption';
@@ -37,6 +37,7 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
     const pricedConsumption = await this.computePrice(transaction, consumptionData, chargingStation);
     await PricingHelper.logInfo(this.tenant, transaction, {
       message: `Session STOP - Transaction: ${transaction.id} - Accumulated amount: ${pricedConsumption.cumulatedRoundedAmount} ${pricedConsumption.currencyCode}`,
+      detailedMessages: { pricedConsumption }
     });
     return pricedConsumption;
   }
@@ -95,9 +96,9 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
     return resolvedPricingModel;
   }
 
-  private getDefaultPricingDefinition(): PricingDefinition {
+  private getDefaultPricingDefinition(): ResolvedPricingDefinition {
     // Defaults to the simple pricing settings
-    return {
+    const simplePricingDefinition: ResolvedPricingDefinition = {
       // TODO - translate default tariff name
       name: 'Default Tariff',
       description: 'Tariff based on simple pricing settings',
@@ -107,7 +108,8 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
           price: this.setting.price,
         }
       }
-    } as PricingDefinition;
+    };
+    return simplePricingDefinition;
   }
 
 }

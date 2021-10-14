@@ -1,4 +1,4 @@
-import PricingDefinition, { DimensionType, PricedConsumptionData, PricedDimensionData, PricingDimension, PricingRestriction, ResolvedPricingModel } from '../../types/Pricing';
+import { DimensionType, PricedConsumptionData, PricedDimensionData, PricingDimension, PricingRestriction, ResolvedPricingDefinition, ResolvedPricingModel } from '../../types/Pricing';
 
 import Consumption from '../../types/Consumption';
 import Tenant from '../../types/Tenant';
@@ -10,7 +10,7 @@ export default class ConsumptionPricer {
   tenant: Tenant;
   pricingModel: ResolvedPricingModel;
   consumptionData: Consumption;
-  actualPricingDefinitions: PricingDefinition[];
+  actualPricingDefinitions: ResolvedPricingDefinition[];
 
   constructor(tenant: Tenant, pricingModel: ResolvedPricingModel, consumptionData: Consumption) {
     this.tenant = tenant;
@@ -39,7 +39,7 @@ export default class ConsumptionPricer {
     return pricingConsumptionData;
   }
 
-  private checkPricingDefinitionRestrictions(pricingDefinition: PricingDefinition) : PricingDefinition {
+  private checkPricingDefinitionRestrictions(pricingDefinition: ResolvedPricingDefinition) : ResolvedPricingDefinition {
     if (pricingDefinition.restrictions) {
       if (!this.checkMinEnergy(pricingDefinition.restrictions)
         || !this.checkMaxEnergy(pricingDefinition.restrictions)
@@ -142,7 +142,7 @@ export default class ConsumptionPricer {
     this.absorbConsumption();
   }
 
-  private enrichPricedData(pricedData: PricedDimensionData, activePricingDefinition: PricingDefinition) : PricedDimensionData {
+  private enrichPricedData(pricedData: PricedDimensionData, activePricingDefinition: ResolvedPricingDefinition) : PricedDimensionData {
     if (pricedData) {
       pricedData.sourceName = activePricingDefinition.name;
     }
@@ -225,14 +225,14 @@ export default class ConsumptionPricer {
     this.pricingModel.pricerContext.lastAbsorbedParkingTime = this.consumptionData.endedAt;
   }
 
-  private getActiveDefinition4Dimension(actualPricingDefinitions: PricingDefinition[], dimensionType: string): PricingDefinition {
+  private getActiveDefinition4Dimension(actualPricingDefinitions: ResolvedPricingDefinition[], dimensionType: string): ResolvedPricingDefinition {
     // Search for the first pricing definition matching the current dimension type
     return actualPricingDefinitions.find((pricingDefinition) =>
       this.checkPricingDimensionRestrictions(pricingDefinition, dimensionType)
     );
   }
 
-  private checkPricingDimensionRestrictions(pricingDefinition: PricingDefinition, dimensionType: string) : PricingDefinition {
+  private checkPricingDimensionRestrictions(pricingDefinition: ResolvedPricingDefinition, dimensionType: string) : ResolvedPricingDefinition {
     const pricingDimension: PricingDimension = pricingDefinition.dimensions[dimensionType];
     if (pricingDimension?.active) {
       return pricingDefinition;

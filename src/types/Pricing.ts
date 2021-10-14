@@ -21,7 +21,7 @@ export enum DimensionType {
 
 export interface ResolvedPricingModel {
   // Put there only the information that is to be kept with the Transaction
-  pricingDefinitions: PricingDefinition[];
+  pricingDefinitions: ResolvedPricingDefinition[];
   pricerContext: ConsumptionPricerContext;
 }
 
@@ -33,15 +33,25 @@ export interface ConsumptionPricerContext {
   lastAbsorbedParkingTime?: Date, // IMPORTANT - used to price PT when stepSize is set!
 }
 
-export default interface PricingDefinition extends CreatedUpdatedProps, AuthorizationActions {
-  id: string;
-  entityID: string; // id of the entity the pricing definition belongs to
-  entityType: PricingEntity; // Type of the entity this model belongs to
+interface PricingDefinitionInternal {
+  id?: string;
+  entityID?: string; // id of the entity the pricing definition belongs to
+  entityType?: PricingEntity; // Type of the entity this model belongs to
   name: string; // Short marketing name - e.g.: BLUE Tariff,
   description: string; // A long description to explain it, e.g.: Time-based pricing for low charging stations
   staticRestrictions?: PricingStaticRestriction;
   restrictions?: PricingRestriction;
   dimensions: PricingDimensions;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface ResolvedPricingDefinition extends PricingDefinitionInternal {
+}
+
+export default interface PricingDefinition extends PricingDefinitionInternal, CreatedUpdatedProps, AuthorizationActions {
+  id: string;
+  entityID: string;
+  entityType: PricingEntity;
 }
 
 export interface PricingDimensions {
