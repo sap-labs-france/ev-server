@@ -756,8 +756,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
         withBillingActive: false
       };
     }
-    // Temporary solution - Check for internal users
-    if (this.isTransactionUserInternal(transaction)) {
+    // User with free access are not billed
+    if (transaction.user?.freeAccess) {
       return {
         // Do not bill internal users
         withBillingActive: false
@@ -1439,8 +1439,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
       // Nothing to check - billing of transactions is not yet ON
       return errorCodes;
     }
-    if (this.isUserInternal(user)) {
-      // Nothing to check - we do not bill internal user's transactions
+    if (user.freeAccess) {
+      // Nothing to check - we do not bill user having a free access
       return errorCodes;
     }
     // Make sure the STRIPE connection is ok
