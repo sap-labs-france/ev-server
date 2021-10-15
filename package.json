@@ -169,7 +169,7 @@
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.4",
-    "utf-8-validate": "^5.0.5"
+    "utf-8-validate": "^5.0.7"
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "^1.0.1",
@@ -202,7 +202,7 @@
     "@types/moment-timezone": "^0.5.30",
     "@types/mongo-sanitize": "^1.0.1",
     "@types/mustache": "^4.1.2",
-    "@types/node": "^16.10.3",
+    "@types/node": "^16.11.0",
     "@types/node-cron": "^2.0.3",
     "@types/passport": "^1.0.7",
     "@types/passport-jwt": "^3.0.6",
