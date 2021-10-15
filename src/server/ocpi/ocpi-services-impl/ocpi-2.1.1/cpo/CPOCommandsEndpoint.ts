@@ -82,7 +82,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     const startSession = req.body as OCPIStartSession;
     if (!this.validateStartSession(startSession)) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
+        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'remoteStartSession',
         action: ServerAction.OCPI_START_SESSION,
         errorCode: StatusCodes.BAD_REQUEST,
@@ -103,7 +103,14 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       });
       return this.buildOCPIResponse(OCPICommandResponseType.REJECTED);
     }
-    if (!Utils.isNullOrUndefined(localToken.user) || localToken.user?.issuer) {
+    if (Utils.isNullOrUndefined(localToken.user) || localToken.user?.issuer) {
+      await Logging.logError({
+        tenantID: tenant.id,
+        action: ServerAction.OCPI_START_SESSION,
+        message: `Invalid user associated to Token ID '${startSession.token.uid}'`,
+        module: MODULE_NAME, method: 'remoteStartSession',
+        detailedMessages: { localToken, startSession }
+      });
       return this.buildOCPIResponse(OCPICommandResponseType.REJECTED);
     }
     // Get the Charging Station
@@ -215,7 +222,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     const stopSession = req.body as OCPIStopSession;
     if (!this.validateStopSession(stopSession)) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
+        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'remoteStopSession',
         action: ServerAction.OCPI_START_SESSION,
         errorCode: StatusCodes.BAD_REQUEST,
@@ -381,7 +388,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       detailedMessages: { payload }
     });
     // Call IOP
-    await AxiosFactory.getAxiosInstance(tenant.id).post(responseUrl, payload,
+    await AxiosFactory.getAxiosInstance(tenant).post(responseUrl, payload,
       {
         headers: {
           Authorization: `Token ${ocpiEndpoint.token}`,

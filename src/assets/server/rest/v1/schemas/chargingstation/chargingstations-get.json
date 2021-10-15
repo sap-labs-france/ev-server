@@ -1,4 +1,5 @@
 {
+  "$id": "chargingstations-get",
   "title": "Get Charging Stations Request",
   "type": "object",
   "properties": {
@@ -7,17 +8,17 @@
       "sanitize": "mongo"
     },
     "Search": {
-      "$ref": "common.json#/definitions/search"
+      "$ref": "common#/definitions/search"
     },
     "WithNoSiteArea": {
       "type": "boolean",
       "sanitize": "mongo"
     },
     "SiteID": {
-      "$ref": "common.json#/definitions/IDs"
+      "$ref": "common#/definitions/ids"
     },
     "CompanyID": {
-      "$ref": "common.json#/definitions/IDs"
+      "$ref": "common#/definitions/ids"
     },
     "WithSite": {
       "type": "boolean",
@@ -28,7 +29,7 @@
       "sanitize": "mongo"
     },
     "SiteAreaID": {
-      "$ref": "common.json#/definitions/IDs"
+      "$ref": "common#/definitions/ids"
     },
     "ConnectorStatus": {
       "type": "string",
@@ -41,7 +42,7 @@
       "sanitize": "mongo"
     },
     "ChargingStationID": {
-      "$ref": "chargingstation.json#/definitions/IDs"
+      "$ref": "common#/definitions/string-ids"
     },
     "IncludeDeleted": {
       "type": "boolean",
@@ -63,20 +64,22 @@
       "exclusiveMinimum": 0
     },
     "Limit": {
-      "$ref": "common.json#/definitions/limit"
+      "$ref": "common#/definitions/limit"
     },
     "SortFields": {
-      "$ref": "common.json#/definitions/sortFields"
+      "$ref": "common#/definitions/sortFields"
     },
     "Skip": {
-      "$ref": "common.json#/definitions/skip"
+      "$ref": "common#/definitions/skip"
     },
     "OnlyRecordCount": {
-      "$ref": "common.json#/definitions/onlyRecordCount"
+      "$ref": "common#/definitions/onlyRecordCount"
     },
     "ProjectFields": {
-      "$ref": "common.json#/definitions/projectFields"
+      "$ref": "common#/definitions/projectFields"
     }
   },
-  "required": []
+  "required": [
+    "Limit"
+  ]
 }

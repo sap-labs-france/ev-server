@@ -1,9 +1,0 @@
-{
-  "$id": "transaction.json",
-  "definitions": {
-    "id": {
-      "type": "number",
-      "sanitize": "mongo"
-    }
-  }
-}

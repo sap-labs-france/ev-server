@@ -1,0 +1,55 @@
+{
+  "$id": "companies-get",
+  "title": "Get all the Companies",
+  "type": "object",
+  "properties": {
+    "Search": {
+      "$ref": "common#/definitions/search"
+    },
+    "WithSite": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "WithLogo": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "Issuer": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "LocLongitude": {
+      "type": "number",
+      "format": "longitude",
+      "sanitize": "mongo"
+    },
+    "LocLatitude": {
+      "type": "number",
+      "format": "latitude",
+      "sanitize": "mongo"
+    },
+    "LocMaxDistanceMeters": {
+      "type": "number",
+      "sanitize": "mongo",
+      "exclusiveMinimum": 0
+    },
+    "Limit": {
+      "$ref": "common#/definitions/limit"
+    },
+    "Skip": {
+      "$ref": "common#/definitions/skip"
+    },
+    "SortFields": {
+      "$ref": "common#/definitions/sortFields"
+    },
+    "ProjectFields": {
+      "$ref": "common#/definitions/projectFields"
+    },
+    "OnlyRecordCount": {
+      "$ref": "common#/definitions/onlyRecordCount"
+    }
+  },
+  "required": [
+    "Limit"
+  ]
+}

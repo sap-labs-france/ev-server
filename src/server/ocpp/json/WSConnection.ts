@@ -26,7 +26,7 @@ export default abstract class WSConnection {
   private companyID: string;
   private chargingStationID: string;
   private tenantID: string;
-  private tenant: Tenant;
+  private tenantSubdomain: string;
   private token: string;
   private url: string;
   private clientIP: string | string[];
@@ -123,9 +123,10 @@ export default abstract class WSConnection {
   }
 
   public async initialize(): Promise<void> {
+    // Check Tenant
     try {
-      // Check Tenant?
-      this.tenant = await DatabaseUtils.checkTenant(this.tenantID);
+      const tenant = await DatabaseUtils.checkTenant(this.tenantID);
+      this.tenantSubdomain = tenant?.subdomain;
     } catch (error) {
       // Custom Error
       await Logging.logException(error, ServerAction.WS_CONNECTION, this.getChargingStationID(), 'WSConnection', 'initialize', this.tenantID);
@@ -236,9 +237,18 @@ export default abstract class WSConnection {
           });
       }
     } catch (error) {
-      // Log
-      await Logging.logException(error, OCPPUtils.getServerActionFromOcppCommand(command), this.getChargingStationID(), MODULE_NAME, 'onMessage', this.getTenantID());
-      // Send error
+      await Logging.logError({
+        tenantID: this.tenantID,
+        siteID: this.siteID,
+        siteAreaID: this.siteAreaID,
+        companyID: this.companyID,
+        chargingStationID: this.chargingStationID,
+        source: this.chargingStationID,
+        action: OCPPUtils.getServerActionFromOcppCommand(command),
+        message: `Unexpected OCPP Error: ${error.message as string}`,
+        module: MODULE_NAME, method: 'onMessage',
+        detailedMessages: { messageEvent, error: error.stack }
+      });
       await this.sendError(messageId, error);
     }
   }
@@ -355,7 +365,10 @@ export default abstract class WSConnection {
   }
 
   public getTenant(): Tenant {
-    return this.tenant;
+    return {
+      id: this.tenantID,
+      subdomain: this.tenantSubdomain
+    } as Tenant;
   }
 
   public getToken(): string {

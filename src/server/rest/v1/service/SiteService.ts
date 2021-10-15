@@ -5,6 +5,7 @@ import { NextFunction, Request, Response } from 'express';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
+import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../../utils/Constants';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
@@ -286,6 +287,10 @@ export default class SiteService {
       },
       authorizationSitesFilter.projectFields
     );
+    // Assign projected fields
+    if (authorizationSitesFilter.projectFields) {
+      sites.projectFields = authorizationSitesFilter.projectFields;
+    }
     // Add Auth flags
     await AuthorizationService.addSitesAuthorizations(req.tenant, req.user, sites as SiteDataResult, authorizationSitesFilter);
     // Return
@@ -392,6 +397,21 @@ export default class SiteService {
     site.name = filteredRequest.name;
     site.companyID = filteredRequest.companyID;
     if (Utils.objectHasProperty(filteredRequest, 'public')) {
+      if (!filteredRequest.public) {
+        const publicChargingStations = await ChargingStationStorage.getChargingStations(req.tenant, {
+          siteIDs: [site.id],
+          public: true,
+        }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);
+        if (publicChargingStations.count > 0) {
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
+            message: `Cannot set site ${site.name} to private as charging station ${publicChargingStations.result[0].id} under site is public`,
+            module: MODULE_NAME, method: 'handleUpdateSite',
+            user: req.user,
+          });
+        }
+      }
       site.public = filteredRequest.public;
     }
     if (Utils.objectHasProperty(filteredRequest, 'autoUserSiteAssignment')) {

@@ -69,7 +69,6 @@ export default class MongoDBStorage {
     });
     // Users
     await this.handleIndexesInCollection(tenantID, 'users', [
-      { fields: { deleted: 1, name: 1 } },
       { fields: { issuer: 1, name: 1 } },
       { fields: { email: 1 }, options: { unique: true } },
       { fields: { 'address.coordinates': '2dsphere' } },
@@ -109,9 +108,14 @@ export default class MongoDBStorage {
     // Tags
     await this.handleIndexesInCollection(tenantID, 'tags', [
       { fields: { visualID: 1 }, options: { unique: true } },
-      { fields: { deleted: 1, createdOn: 1 } },
       { fields: { issuer: 1, createdOn: 1 } },
+      { fields: { createdOn: 1 } },
       { fields: { userID: 1, issuer: 1 } },
+      { fields: { _id: 'text', description: 'text', visualID: 'text' } },
+    ]);
+    // Tags Import
+    await this.handleIndexesInCollection(tenantID, 'importedtags', [
+      { fields: { visualID: 1 }, options: { unique: true } }
     ]);
     // Sites/Users
     await this.handleIndexesInCollection(tenantID, 'siteusers', [
@@ -275,7 +279,7 @@ export default class MongoDBStorage {
         ]);
         // Performances
         await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'performances', [
-          { fields: { timestamp: 1, group: 1, tenantID: 1 } },
+          { fields: { timestamp: 1, group: 1, tenantSubdomain: 1 } },
         ]);
         // Users
         await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'users', [
@@ -293,7 +297,7 @@ export default class MongoDBStorage {
           { fields: { level: 1, timestamp: 1 } },
           { fields: { source: 1, timestamp: 1 } },
           { fields: { host: 1, timestamp: 1 } },
-          { fields: { message: 'text', source: 'text', host: 'text', action: 'text' } },
+          { fields: { message: 'text' } },
         ]);
       } finally {
         // Release the database creation Lock

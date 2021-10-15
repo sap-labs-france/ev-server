@@ -1,6 +1,6 @@
-import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSetting, BillingSettings, BillingSettingsType, CarConnectorSettings, CarConnectorSettingsType, CryptoSetting, CryptoSettings, CryptoSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType, TechnicalSettings, UserSettings, UserSettingsType } from '../../types/Setting';
+import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSetting, BillingSettings, BillingSettingsType, CarConnectorSetting, CarConnectorSettings, CarConnectorSettingsType, CryptoSetting, CryptoSettings, CryptoSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType, TechnicalSettings, UserSettings, UserSettingsType } from '../../types/Setting';
 import Tenant, { TenantComponents } from '../../types/Tenant';
-import global, { FilterParams } from '../../types/GlobalType';
+import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
@@ -30,7 +30,7 @@ export default class SettingStorage {
 
   public static async saveSettings(tenant: Tenant, settingToSave: Partial<SettingDB>): Promise<string> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'saveSetting');
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Check if ID is provided
@@ -65,7 +65,7 @@ export default class SettingStorage {
       { $set: settingMDB },
       { upsert: true, returnDocument: 'after' });
     // Debug
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'saveSetting', uniqueTimerID, settingMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveSettings', startTime, settingMDB);
     // Create
     return settingFilter._id.toString();
   }
@@ -214,6 +214,22 @@ export default class SettingStorage {
     return carConnectorSettings;
   }
 
+  public static async saveCarConnectorSettings(tenant: Tenant, carConnectorSettingToSave: CarConnectorSettings): Promise<void> {
+    // Build internal structure
+    const settingsToSave = {
+      id: carConnectorSettingToSave.id,
+      identifier: carConnectorSettingToSave.identifier,
+      lastChangedOn: new Date(),
+      sensitiveData: carConnectorSettingToSave.sensitiveData,
+      content: {
+        type: carConnectorSettingToSave.type,
+        carConnector: carConnectorSettingToSave.carConnector
+      },
+    } as SettingDB;
+    // Save
+    await SettingStorage.saveSettings(tenant, settingsToSave);
+  }
+
   public static async getPricingSettings(tenant: Tenant, limit?: number, skip?: number, dateFrom?: Date, dateTo?: Date): Promise<PricingSettings> {
     const pricingSettings = {
       identifier: TenantComponents.PRICING,
@@ -334,7 +350,7 @@ export default class SettingStorage {
       params: {identifier?: string; settingID?: string, dateFrom?: Date, dateTo?: Date},
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SettingDB>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'getSettings');
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -362,8 +378,8 @@ export default class SettingStorage {
       });
     }
     // Count Records
-    const settingsCountMDB = await global.database.getCollection<any>(tenant.id, 'settings')
-      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
+    const settingsCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'settings')
+      .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenant.id, aggregation);
@@ -388,12 +404,10 @@ export default class SettingStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const settingsMDB = await global.database.getCollection<SettingDB>(tenant.id, 'settings')
-      .aggregate(aggregation, {
-        allowDiskUse: true
-      })
+      .aggregate<SettingDB>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'getSettings', uniqueTimerID, settingsMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSettings', startTime, aggregation, settingsMDB);
     // Ok
     return {
       count: (settingsCountMDB.length > 0 ? settingsCountMDB[0].count : 0),
@@ -403,14 +417,14 @@ export default class SettingStorage {
 
   public static async deleteSetting(tenant: Tenant, id: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'deleteSetting');
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete Component
     await global.database.getCollection<any>(tenant.id, 'settings')
       .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
     // Debug
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'deleteSetting', uniqueTimerID, { id });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteSetting', startTime, { id });
   }
 
   public static async saveUserSettings(tenant: Tenant, userSettingToSave: UserSettings): Promise<void> {

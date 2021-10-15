@@ -1,0 +1,62 @@
+{
+  "$id": "user-import-create",
+  "title": "User Creation",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "email": {
+      "$ref": "user#/definitions/email"
+    },
+    "name": {
+      "$ref": "user#/definitions/name"
+    },
+    "firstName": {
+      "$ref": "user#/definitions/firstName"
+    },
+    "password": {
+      "$ref": "user#/definitions/password"
+    },
+    "locale": {
+      "$ref": "user#/definitions/locale"
+    },
+    "issuer": {
+      "$ref": "user#/definitions/issuer"
+    },
+    "deleted": {
+      "$ref": "user#/definitions/deleted"
+    },
+    "role": {
+      "$ref": "user#/definitions/role"
+    },
+    "status": {
+      "$ref": "user#/definitions/status"
+    },
+    "passwordWrongNbrTrials": {
+      "$ref": "user#/definitions/passwordWrongNbrTrials"
+    },
+    "notificationsActive": {
+      "type": "boolean"
+    },
+    "notifications": {
+      "$ref": "user#/definitions/notifications"
+    },
+    "siteIDs": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "importedData": {
+      "type": "object",
+      "properties": {
+        "autoActivateUserAtImport": {
+          "type": "boolean",
+          "sanitize": "mongo"
+        }
+      }
+    }
+  },
+  "required": [
+    "email",
+    "firstName",
+    "name"
+  ]
+}

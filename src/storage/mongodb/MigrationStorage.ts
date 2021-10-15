@@ -10,22 +10,22 @@ const MODULE_NAME = 'MigrationStorage';
 export default class MigrationStorage {
   static async getMigrations(): Promise<Migration[]> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'getMigrations');
+    const startTime = Logging.traceDatabaseRequestStart();
     const aggregation = [];
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Read DB
     const migrationsMDB = await global.database.getCollection<Migration>(Constants.DEFAULT_TENANT, 'migrations')
-      .aggregate(aggregation)
+      .aggregate<Migration>(aggregation)
       .toArray();
     // Debug
-    await Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getMigrations', uniqueTimerID, migrationsMDB);
+    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'getMigrations', startTime, aggregation, migrationsMDB);
     return migrationsMDB;
   }
 
   static async saveMigration(migrationToSave: Migration): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveMigration');
+    const startTime = Logging.traceDatabaseRequestStart();
     // Transfer
     const migrationMDB = {
       // FIXME: Use a hash like in other collections
@@ -39,6 +39,6 @@ export default class MigrationStorage {
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'migrations')
       .insertOne(migrationMDB);
     // Debug
-    await Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveMigration', uniqueTimerID, migrationMDB);
+    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'saveMigration', startTime, migrationMDB);
   }
 }

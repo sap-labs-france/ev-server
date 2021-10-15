@@ -25,7 +25,6 @@ import Logging from '../../../utils/Logging';
 import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
 import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
-import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import OICPClientFactory from '../../../client/oicp/OICPClientFactory';
 import { OICPRole } from '../../../types/oicp/OICPRole';
 import OICPUtils from '../../oicp/OICPUtils';
@@ -50,7 +49,10 @@ const MODULE_NAME = 'OCPPUtils';
 
 export default class OCPPUtils {
   public static getServerActionFromOcppCommand(command: Command): ServerAction {
-    return `Ocpp${command}` as ServerAction;
+    if (command && typeof command === 'string') {
+      return `Ocpp${command}` as ServerAction;
+    }
+    return ServerAction.UNKNOWN_ACTION;
   }
 
   public static async checkChargingStationConnectionToken(action: ServerAction, tenant: Tenant, chargingStationID: string,
@@ -296,7 +298,7 @@ export default class OCPPUtils {
   }
 
   public static async processTransactionBilling(tenant: Tenant, transaction: Transaction, action: TransactionAction): Promise<void> {
-    if (transaction.user && !transaction.user.issuer) {
+    if (!transaction.user || !transaction.user.issuer) {
       return;
     }
     const billingImpl = await BillingFactory.getBillingImpl(tenant);
@@ -559,135 +561,6 @@ export default class OCPPUtils {
     transaction.stop.price = transaction.currentCumulatedPrice;
     transaction.stop.roundedPrice = Utils.truncTo(transaction.currentCumulatedPrice, 2);
     await TransactionStorage.saveTransaction(tenant, transaction);
-  }
-
-  public static async rebuildTransactionConsumptions(tenant: Tenant, transaction: Transaction): Promise<number> {
-    let consumptions: Consumption[] = [];
-    let transactionSimplePricePerkWh: number;
-    if (!transaction) {
-      throw new BackendError({
-        source: transaction.chargeBoxID,
-        action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
-        module: MODULE_NAME, method: 'rebuildTransactionConsumptions',
-        message: 'Session does not exist',
-      });
-    }
-    if (!transaction.stop) {
-      throw new BackendError({
-        source: transaction.chargeBoxID,
-        action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
-        module: MODULE_NAME, method: 'rebuildTransactionConsumptions',
-        message: `Session ID '${transaction.id}' is in progress`,
-      });
-    }
-    // Check Simple Pricing
-    if (transaction.pricingSource === PricingSettingsType.SIMPLE) {
-      transactionSimplePricePerkWh = Utils.roundTo(transaction.stop.price / (transaction.stop.totalConsumptionWh / 1000), 2);
-    }
-    // Get the Charging Station
-    const chargingStation = await ChargingStationStorage.getChargingStation(tenant,
-      transaction.chargeBoxID, { includeDeleted: true });
-    if (!chargingStation) {
-      throw new BackendError({
-        source: transaction.chargeBoxID,
-        action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
-        module: MODULE_NAME, method: 'rebuildTransactionConsumptions',
-        message: `Charging Station ID '${transaction.chargeBoxID}' does not exist`,
-      });
-    }
-    // Get the Meter Values
-    const meterValues = await OCPPStorage.getMeterValues(tenant, { transactionId: transaction.id }, Constants.DB_PARAMS_MAX_LIMIT);
-    if (meterValues.count > 0) {
-      // Build all Consumptions
-      consumptions = await OCPPUtils.createConsumptionsFromMeterValues(tenant, chargingStation, transaction, meterValues.result);
-      // Push last dummy consumption for Stop Transaction
-      consumptions.push({} as Consumption);
-      for (let i = 0; i < consumptions.length; i++) {
-        // Last consumption is a Stop Transaction
-        if (i === consumptions.length - 1) {
-          // Create OCPP Stop Transaction
-          const stopTransaction: OCPPStopTransactionRequestExtended = {
-            idTag: transaction.stop.tagID,
-            meterStop: transaction.stop.meterStop,
-            timestamp: transaction.stop.timestamp.toISOString(),
-            transactionId: transaction.id,
-            chargeBoxID: transaction.chargeBoxID,
-          };
-          // Create last meter values based on history of transaction/stopTransaction
-          const stopMeterValues = OCPPUtils.createTransactionStopMeterValues(chargingStation, transaction, stopTransaction);
-          // Create last consumption
-          const lastConsumptions = await OCPPUtils.createConsumptionsFromMeterValues(tenant, chargingStation, transaction, stopMeterValues);
-          const lastConsumption = lastConsumptions[0];
-          // No consumption or no duration, skip it
-          if (!lastConsumption || lastConsumption.startedAt.getTime() === lastConsumption.endedAt.getTime()) {
-            // Not a consumption: Remove last record and quit the loop
-            consumptions.splice(consumptions.length - 1, 1);
-            break;
-          }
-          consumptions.splice(consumptions.length - 1, 1, lastConsumption);
-        }
-        const consumption = consumptions[i];
-        // Update Transaction with Consumption
-        OCPPUtils.updateTransactionWithConsumption(chargingStation, transaction, consumption);
-        if (consumption.toPrice) {
-          // Pricing
-          await OCPPUtils.processTransactionPricing(tenant, transaction, chargingStation, consumption, TransactionAction.UPDATE);
-          // Billing
-          await OCPPUtils.processTransactionBilling(tenant, transaction, TransactionAction.UPDATE);
-        }
-        // Override the price if simple pricing only
-        if (transactionSimplePricePerkWh > 0) {
-          consumption.amount = Utils.computeSimplePrice(transactionSimplePricePerkWh, consumption.consumptionWh);
-          consumption.roundedAmount = Utils.truncTo(consumption.amount, 2);
-          consumption.pricingSource = PricingSettingsType.SIMPLE;
-        }
-        // Cumulated props
-        const currentDurationSecs = Math.trunc((new Date(consumption.endedAt).getTime() - new Date(consumption.startedAt).getTime()) / 1000);
-        if (i === 0) {
-          // Initial values
-          consumption.cumulatedConsumptionWh = consumption.consumptionWh;
-          consumption.cumulatedConsumptionAmps = Utils.convertWattToAmp(
-            chargingStation, null, transaction.connectorId, consumption.cumulatedConsumptionWh);
-          consumption.cumulatedAmount = consumption.amount;
-          if (!consumption.consumptionWh) {
-            consumption.totalInactivitySecs = currentDurationSecs;
-          }
-          consumption.totalDurationSecs = currentDurationSecs;
-        } else {
-          // Take total from previous consumption
-          consumption.cumulatedConsumptionWh = Utils.createDecimal(consumptions[i - 1].cumulatedConsumptionWh).plus(
-            Utils.convertToFloat(consumption.consumptionWh)).toNumber();
-          consumption.cumulatedConsumptionAmps = Utils.convertWattToAmp(
-            chargingStation, null, transaction.connectorId, consumption.cumulatedConsumptionWh);
-          consumption.cumulatedAmount = Utils.createDecimal(consumptions[i - 1].cumulatedAmount).plus(consumption.amount).toNumber();
-          if (!consumption.consumptionWh) {
-            consumption.totalInactivitySecs = Utils.createDecimal(consumptions[i - 1].totalInactivitySecs).plus(currentDurationSecs).toNumber();
-          }
-          consumption.totalDurationSecs = Utils.createDecimal(consumptions[i - 1].totalDurationSecs).plus(currentDurationSecs).toNumber();
-        }
-      }
-      // Delete first all transaction's consumptions
-      await ConsumptionStorage.deleteConsumptions(tenant, [transaction.id]);
-      // Save all
-      await ConsumptionStorage.saveConsumptions(tenant, consumptions);
-      // Update the Transaction
-      if (!transaction.refundData) {
-        transaction.roundedPrice = Utils.truncTo(transaction.price, 2);
-        transaction.stop.price = transaction.currentCumulatedPrice;
-        transaction.stop.roundedPrice = Utils.truncTo(transaction.currentCumulatedPrice, 2);
-        transaction.stop.stateOfCharge = transaction.currentStateOfCharge;
-        transaction.stop.totalConsumptionWh = transaction.currentTotalConsumptionWh;
-        transaction.stop.totalInactivitySecs = transaction.currentTotalInactivitySecs;
-        transaction.stop.totalDurationSecs = transaction.currentTotalDurationSecs;
-        transaction.stop.inactivityStatus = Utils.getInactivityStatusLevel(
-          transaction.chargeBox, transaction.connectorId, transaction.currentTotalInactivitySecs);
-      }
-    }
-    // Build extra inactivity consumption
-    const consumptionCreated = await OCPPUtils.buildExtraConsumptionInactivity(tenant, transaction);
-    // Save
-    await TransactionStorage.saveTransaction(tenant, transaction);
-    return consumptions.length + (consumptionCreated ? 1 : 0);
   }
 
   public static updateTransactionWithStopTransaction(transaction: Transaction, chargingStation: ChargingStation,
@@ -1158,7 +1031,7 @@ export default class OCPPUtils {
       tenant: Tenant, chargingStation: ChargingStation, connectorID: number,
       chargingStationTemplate: ChargingStationTemplate): Promise<boolean> {
     // Copy from template
-    if (chargingStationTemplate) {
+    if (chargingStationTemplate && !chargingStation.manualConfiguration) {
       // Handle connector
       if (Utils.objectHasProperty(chargingStationTemplate.technical, 'connectors')) {
         // Find the connector in the template
@@ -1239,6 +1112,20 @@ export default class OCPPUtils {
         detailedMessages: { chargingStationTemplate }
       });
       return true;
+    } else if (chargingStationTemplate && chargingStation.manualConfiguration) {
+      await Logging.logWarning({
+        tenantID: tenant.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
+        chargingStationID: chargingStation.id,
+        source: chargingStation.id,
+        action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
+        module: MODULE_NAME, method: 'enrichChargingStationConnectorWithTemplate',
+        message: `Template for Connector ID '${connectorID}' has been found but manual configuration is enabled so it will not be applied`,
+        detailedMessages: { chargingStation }
+      });
+      return false;
     }
     await Logging.logWarning({
       tenantID: tenant.id,
@@ -1535,7 +1422,7 @@ export default class OCPPUtils {
     return chargingProfileID;
   }
 
-  static isValidMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
+  public static isValidMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
     return OCPPUtils.isSocMeterValue(meterValue) ||
       OCPPUtils.isEnergyActiveImportMeterValue(meterValue) ||
       OCPPUtils.isPowerActiveImportMeterValue(meterValue) ||
@@ -1543,14 +1430,14 @@ export default class OCPPUtils {
       OCPPUtils.isVoltageMeterValue(meterValue);
   }
 
-  static isSocMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
+  public static isSocMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
     return !meterValue.attribute ||
       (meterValue.attribute.measurand === OCPPMeasurand.STATE_OF_CHARGE &&
        (meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC ||
         meterValue.attribute.context === OCPPReadingContext.TRANSACTION_END));
   }
 
-  static isEnergyActiveImportMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
+  public static isEnergyActiveImportMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
     return !meterValue.attribute ||
       (meterValue.attribute.measurand === OCPPMeasurand.ENERGY_ACTIVE_IMPORT_REGISTER &&
         (meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC ||
@@ -1558,25 +1445,25 @@ export default class OCPPUtils {
          meterValue.attribute.context === OCPPReadingContext.SAMPLE_CLOCK));
   }
 
-  static isPowerActiveImportMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
+  public static isPowerActiveImportMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
     return !meterValue.attribute ||
       (meterValue.attribute.measurand === OCPPMeasurand.POWER_ACTIVE_IMPORT &&
         meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC);
   }
 
-  static isCurrentImportMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
+  public static isCurrentImportMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
     return !meterValue.attribute ||
       (meterValue.attribute.measurand === OCPPMeasurand.CURRENT_IMPORT &&
         meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC);
   }
 
-  static isVoltageMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
+  public static isVoltageMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
     return !meterValue.attribute ||
       (meterValue.attribute.measurand === OCPPMeasurand.VOLTAGE &&
         meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC);
   }
 
-  static async checkAndGetTenantAndChargingStation(
+  public static async checkAndGetTenantAndChargingStation(
       ocppHeader: OCPPHeader):Promise<{ chargingStation: ChargingStation, tenant: Tenant, chargingStationLock: Lock}> {
     // Check
     if (!ocppHeader.chargeBoxIdentity) {
@@ -1612,7 +1499,7 @@ export default class OCPPUtils {
         source: ocppHeader.chargeBoxIdentity,
         module: MODULE_NAME,
         method: 'checkAndGetTenantAndChargingStation',
-        message: 'Cannot aquire a lock on the Charging Station'
+        message: 'Cannot acquire a lock on the Charging Station'
       });
     }
     // Get the Charging Station
@@ -1643,6 +1530,9 @@ export default class OCPPUtils {
       // Rethrow the error
       throw error;
     }
+    // Stick it to the headers
+    ocppHeader.tenant = tenant;
+    ocppHeader.chargingStation = chargingStation;
     return {
       tenant,
       chargingStation,
@@ -2309,7 +2199,7 @@ export default class OCPPUtils {
         source: chargingStation.id,
         action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
-        message: 'Template matching the charging station has been found but manual configuration is enabled. If that\'s not intentional, disable it',
+        message: 'Template matching the charging station has been found but manual configuration is enabled so it will not be applied',
         detailedMessages: { chargingStation }
       });
       return templateUpdateResult;

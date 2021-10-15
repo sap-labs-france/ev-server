@@ -1,32 +1,20 @@
 import { ServerAction } from './Server';
 
 export default interface PerformanceRecord {
-  id?: string;
-  tenantID: string;
-  timestamp?: Date;
-  durationMs?: number;
-  sizeKb?: number;
+  tenantSubdomain: string;
+  timestamp: Date;
   host: string;
-  process: string;
-  processMemoryUsage: NodeJS.MemoryUsage;
-  processCPUUsage: NodeJS.CpuUsage;
-  numberOfCPU: number;
-  modelOfCPU: string;
-  memoryTotalGb: number;
-  memoryFreeGb: number;
-  loadAverageLastMin: number;
-  numberOfChargingStations?: number;
-  source: string;
-  module: string;
-  method: string;
   action: ServerAction|string;
+  group: PerformanceRecordGroup;
+  server?: string;
+  durationMs?: number;
+  reqSizeKb?: number;
+  resSizeKb?: number;
   httpUrl?: string;
   httpMethod?: string;
-  httpCode?: number;
+  httpResponseCode?: number;
   chargingStationID?: string;
   userID?: string;
-  parentID?: string;
-  group?: PerformanceRecordGroup;
 }
 
 export enum PerformanceRecordGroup {

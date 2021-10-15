@@ -1,0 +1,14 @@
+{
+  "$id": "tenant",
+  "definitions": {
+    "id": {
+      "$ref": "common#/definitions/id"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "sanitize": "mongo"
+    }
+  }
+}

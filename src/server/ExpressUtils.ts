@@ -67,9 +67,9 @@ export default class ExpressUtils {
 
   public static postInitApplication(app: express.Application): void {
     // Log Express Response
-    app.use(Logging.logExpressResponse.bind(this));
+    app.use(Logging.traceExpressResponse.bind(this));
     // Error Handling
-    app.use(Logging.logExpressError.bind(this));
+    app.use(Logging.traceExpressError.bind(this));
   }
 
   private static async logExpressRequest(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -78,7 +78,7 @@ export default class ExpressUtils {
     // Get the Tenant
     const tenantID = await this.retrieveTenantFromHttpRequest(req, decodedToken);
     req['tenantID'] = tenantID;
-    await Logging.logExpressRequest(tenantID, decodedToken, req, res, next);
+    await Logging.traceExpressRequest(tenantID, decodedToken, req, res, next);
   }
 
   private static healthCheckService(req: Request, res: Response, next: NextFunction): void {

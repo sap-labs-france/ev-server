@@ -38,7 +38,7 @@ export default class JsonWSConnection extends WSConnection {
       // OCPP 1.6?
       case WSServerProtocol.OCPP16:
         // Create the Json Client
-        this.chargingStationClient = new JsonChargingStationClient(this, this.getTenantID(), this.getChargingStationID(), {
+        this.chargingStationClient = new JsonChargingStationClient(this, this.getTenant(), this.getChargingStationID(), {
           siteID: this.getSiteID(),
           siteAreaID: this.getSiteAreaID(),
           companyID: this.getCompanyID(),
@@ -168,11 +168,15 @@ export default class JsonWSConnection extends WSConnection {
   }
 
   public async handleRequest(messageId: string, command: Command, commandPayload: Record<string, unknown> | string): Promise<void> {
-    await Logging.logChargingStationServerReceiveAction(Constants.MODULE_JSON_OCPP_SERVER_16, this.getTenantID(), this.getChargingStationID(), {
-      siteAreaID: this.getSiteAreaID(),
-      siteID: this.getSiteID(),
-      companyID: this.getCompanyID(),
-    }, OCPPUtils.getServerActionFromOcppCommand(command), commandPayload);
+    // Trace
+    const startTimestamp = await Logging.traceOcppMessageRequest(Constants.MODULE_JSON_OCPP_SERVER_16,
+      this.getTenantID(), this.getChargingStationID(),
+      OCPPUtils.getServerActionFromOcppCommand(command), commandPayload, '>>', {
+        siteAreaID: this.getSiteAreaID(),
+        siteID: this.getSiteID(),
+        companyID: this.getCompanyID(),
+      }
+    );
     const methodName = `handle${command}`;
     // Check if method exist in the service
     if (typeof this.chargingStationService[methodName] === 'function') {
@@ -181,12 +185,14 @@ export default class JsonWSConnection extends WSConnection {
       }
       // Call it
       const result = await this.chargingStationService[methodName](this.headers, commandPayload);
-      // Log
-      await Logging.logChargingStationServerRespondAction(Constants.MODULE_JSON_OCPP_SERVER_16, this.getTenantID(), this.getChargingStationID(), {
-        siteAreaID: this.getSiteAreaID(),
-        siteID: this.getSiteID(),
-        companyID: this.getCompanyID(),
-      }, OCPPUtils.getServerActionFromOcppCommand(command), result);
+      // Trace
+      await Logging.traceOcppMessageResponse(Constants.MODULE_JSON_OCPP_SERVER_16, this.getTenant(), this.getChargingStationID(),
+        OCPPUtils.getServerActionFromOcppCommand(command), commandPayload, result, '<<', {
+          siteAreaID: this.getSiteAreaID(),
+          siteID: this.getSiteID(),
+          companyID: this.getCompanyID(),
+        }, startTimestamp
+      );
       // Send Response
       await this.sendMessage(messageId, result, OCPPMessageType.CALL_RESULT_MESSAGE, command);
     } else {
@@ -196,7 +202,7 @@ export default class JsonWSConnection extends WSConnection {
         module: MODULE_NAME,
         method: 'handleRequest',
         code: OCPPErrorType.NOT_IMPLEMENTED,
-        message: `The OCPP method 'handle${typeof command === 'string' ? command : JSON.stringify(command)}' has not been implemented`
+        message: (typeof command === 'string') ? `OCPP method 'handle${command}()' has not been implemented` : `Unknown OCPP command: ${JSON.stringify(command)}`
       });
     }
   }

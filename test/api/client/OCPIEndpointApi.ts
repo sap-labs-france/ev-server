@@ -1,5 +1,7 @@
 import AuthenticatedBaseApi from './utils/AuthenticatedBaseApi';
 import CrudApi from './utils/CrudApi';
+import OCPIEndpoint from '../../../src/types/ocpi/OCPIEndpoint';
+import { ServerRoute } from '../../../src/types/Server';
 import TestConstants from './utils/TestConstants';
 
 export default class OCPIEndpointApi extends CrudApi {
@@ -7,23 +9,23 @@ export default class OCPIEndpointApi extends CrudApi {
     super(authenticatedApi);
   }
 
-  public async readById(id) {
-    return super.readById(id, '/client/api/OcpiEndpoint');
+  public async readById(id: string) {
+    return super.readById(id, this.buildRestEndpointUrl(ServerRoute.REST_OCPI_ENDPOINT, { id }));
   }
 
   public async readAll(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, '/client/api/OcpiEndpoints');
+    return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(ServerRoute.REST_OCPI_ENDPOINTS));
   }
 
-  public async create(data) {
-    return super.create(data, '/client/api/OcpiEndpointCreate');
+  public async create(data: OCPIEndpoint) {
+    return super.create(data, this.buildRestEndpointUrl(ServerRoute.REST_OCPI_ENDPOINTS));
   }
 
-  public async update(data) {
-    return super.update(data, '/client/api/OcpiEndpointUpdate');
+  public async update(data: OCPIEndpoint) {
+    return super.update(data, this.buildRestEndpointUrl(ServerRoute.REST_OCPI_ENDPOINT, { id: data.id }));
   }
 
-  public async delete(id) {
-    return super.delete(id, '/client/api/OcpiEndpointDelete');
+  public async delete(id: string) {
+    return super.delete(id, this.buildRestEndpointUrl(ServerRoute.REST_OCPI_ENDPOINT, { id }));
   }
 }

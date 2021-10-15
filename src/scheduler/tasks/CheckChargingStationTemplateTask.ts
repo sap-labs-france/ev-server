@@ -87,7 +87,7 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
 
   private updateChargingStationTemplates() {
     // Update current Chargers
-    ChargingStationStorage.updateChargingStationTemplatesFromFile().catch(
+    Utils.updateChargingStationTemplatesFromFile().catch(
       (error) => {
         void Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, ServerAction.UPDATE_CHARGING_STATION_TEMPLATES, error);
       });

@@ -640,7 +640,7 @@ describe('Billing Service', function() {
       it('Should not delete a user', async () => {
         const response = await testData.userService.deleteEntity(
           testData.userService.userApi,
-          { id: 0 },
+          { id: new ObjectId().toHexString() },
           false
         );
         expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);

@@ -1,0 +1,86 @@
+{
+  "$id": "asset-consumption-create",
+  "title": "Create Asset Consumptions",
+  "type": "object",
+  "properties": {
+    "assetID": {
+      "$ref": "common#/definitions/id"
+    },
+    "startedAt": {
+      "type": "string",
+      "format":"date-time",
+      "sanitize": "mongo"
+    },
+    "endedAt": {
+      "type": "string",
+      "format":"date-time",
+      "sanitize": "mongo"
+    },
+    "instantWatts": {
+      "type": "number",
+      "sanitize": "mongo"
+    },
+    "instantWattsL1": {
+      "type": "number",
+      "sanitize": "mongo"
+    },
+    "instantWattsL2": {
+      "type": "number",
+      "sanitize": "mongo"
+    },
+    "instantWattsL3": {
+      "type": "number",
+      "sanitize": "mongo"
+    },
+    "instantAmps": {
+      "type": "number",
+      "sanitize": "mongo"
+    },
+    "instantAmpsL1": {
+      "type": "number",
+      "sanitize": "mongo"
+    },
+    "instantAmpsL2": {
+      "type": "number",
+      "sanitize": "mongo"
+    },
+    "instantAmpsL3": {
+      "type": "number",
+      "sanitize": "mongo"
+    },
+    "instantVolts": {
+      "type": "number",
+      "sanitize": "mongo"
+    },
+    "instantVoltsL1": {
+      "type": "number",
+      "sanitize": "mongo"
+    },
+    "instantVoltsL2": {
+      "type": "number",
+      "sanitize": "mongo"
+    },
+    "instantVoltsL3": {
+      "type": "number",
+      "sanitize": "mongo"
+    },
+    "consumptionWh": {
+      "type": "number",
+      "sanitize": "mongo"
+    },
+    "consumptionAmps": {
+      "type": "number",
+      "sanitize": "mongo"
+    },
+    "stateOfCharge": {
+      "type": "number",
+      "sanitize": "mongo"
+    }
+  },
+  "required": [
+    "assetID",
+    "startedAt",
+    "endedAt",
+    "instantWatts"
+  ]
+}

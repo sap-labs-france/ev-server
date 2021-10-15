@@ -5,8 +5,8 @@ import AppAuthError from '../../../../exception/AppAuthError';
 import AuthorizationService from './AuthorizationService';
 import Company from '../../../../types/Company';
 import { CompanyDataResult } from '../../../../types/DataResult';
-import CompanySecurity from './security/CompanySecurity';
 import CompanyStorage from '../../../../storage/mongodb/CompanyStorage';
+import CompanyValidator from '../validator/CompanyValidator';
 import Constants from '../../../../utils/Constants';
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
@@ -25,7 +25,7 @@ export default class CompanyService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.DELETE, Entity.COMPANY, MODULE_NAME, 'handleDeleteCompany');
     // Filter
-    const companyID = CompanySecurity.filterCompanyRequestByID(req.query);
+    const companyID = CompanyValidator.getInstance().validateCompanyGetReq(req.query).ID;
     UtilsService.assertIdIsProvided(action, companyID, MODULE_NAME, 'handleDeleteCompany', req.user);
     // Check and Get Company
     const company = await UtilsService.checkAndGetCompanyAuthorization(
@@ -50,7 +50,7 @@ export default class CompanyService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.READ, Entity.COMPANY, MODULE_NAME, 'handleGetCompany');
     // Filter
-    const filteredRequest = CompanySecurity.filterCompanyRequest(req.query);
+    const filteredRequest = CompanyValidator.getInstance().validateCompanyGetReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCompany', req.user);
     // Check and Get Company
     const company = await UtilsService.checkAndGetCompanyAuthorization(
@@ -63,7 +63,7 @@ export default class CompanyService {
 
   public static async handleGetCompanyLogo(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = CompanySecurity.filterCompanyLogoRequest(req.query);
+    const filteredRequest = CompanyValidator.getInstance().validateCompanyLogoGetReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCompanyLogo', req.user);
     // Fetch Tenant Object by Tenant ID
     const tenant = await TenantStorage.getTenant(filteredRequest.TenantID);
@@ -93,8 +93,19 @@ export default class CompanyService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.LIST, Entity.COMPANIES, MODULE_NAME, 'handleGetCompanies');
+    // Maintain retro-compatibility
+    if (req.query.WithSites) {
+      req.query.WithSite = req.query.WithSites;
+    }
     // Filter
-    const filteredRequest = CompanySecurity.filterCompaniesRequest(req.query);
+    const filteredRequest = CompanyValidator.getInstance().validateCompaniesGetReq(req.query);
+    // Create GPS Coordinates
+    if (filteredRequest.LocLongitude && filteredRequest.LocLatitude) {
+      filteredRequest.LocCoordinates = [
+        Utils.convertToFloat(filteredRequest.LocLongitude),
+        Utils.convertToFloat(filteredRequest.LocLatitude)
+      ];
+    }
     // Check dynamic auth
     const authorizationCompaniesFilter = await AuthorizationService.checkAndGetCompaniesAuthorizations(
       req.tenant, req.user, filteredRequest);
@@ -107,7 +118,7 @@ export default class CompanyService {
       {
         search: filteredRequest.Search,
         issuer: filteredRequest.Issuer,
-        withSites: filteredRequest.WithSites,
+        withSite: filteredRequest.WithSite,
         withLogo: filteredRequest.WithLogo,
         locCoordinates: filteredRequest.LocCoordinates,
         locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,
@@ -116,11 +127,15 @@ export default class CompanyService {
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.SortFields,
+        sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       authorizationCompaniesFilter.projectFields
     );
+    // Assign projected fields
+    if (authorizationCompaniesFilter.projectFields) {
+      companies.projectFields = authorizationCompaniesFilter.projectFields;
+    }
     // Add Auth flags
     await AuthorizationService.addCompaniesAuthorizations(req.tenant, req.user, companies as CompanyDataResult, authorizationCompaniesFilter);
     // Return
@@ -133,12 +148,10 @@ export default class CompanyService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.CREATE, Entity.COMPANY, MODULE_NAME, 'handleCreateCompany');
     // Filter
-    const filteredRequest = CompanySecurity.filterCompanyCreateRequest(req.body);
-    // Check
-    UtilsService.checkIfCompanyValid(filteredRequest, req);
+    const filteredRequest = CompanyValidator.getInstance().validateCompanyCreateReq(req.body);
     // Get dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetCompanyAuthorizations(
-      req.tenant, req.user, {}, Action.CREATE, filteredRequest as Company);
+      req.tenant, req.user, {}, Action.CREATE, filteredRequest);
     if (!authorizationFilter.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -174,12 +187,10 @@ export default class CompanyService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.COMPANY, MODULE_NAME, 'handleUpdateCompany');
     // Filter
-    const filteredRequest = CompanySecurity.filterCompanyUpdateRequest(req.body);
-    // Check Mandatory fields
-    UtilsService.checkIfCompanyValid(filteredRequest, req);
+    const filteredRequest = CompanyValidator.getInstance().validateCompanyUpdateReq(req.body);
     // Check and Get Company
     const company = await UtilsService.checkAndGetCompanyAuthorization(
-      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest as Company);
+      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest);
     // Update
     company.name = filteredRequest.name;
     company.address = filteredRequest.address;

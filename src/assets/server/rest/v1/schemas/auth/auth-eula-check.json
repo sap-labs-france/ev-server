@@ -1,0 +1,17 @@
+{
+  "$id": "auth-eula-check",
+  "title": "Check Eula",
+  "type": "object",
+  "properties": {
+    "Email": {
+      "$ref": "user#/definitions/email"
+    },
+    "Tenant": {
+      "$ref": "common#/definitions/authSubdomain"
+    }
+  },
+  "required": [
+    "Email",
+    "Tenant"
+  ]
+}

@@ -4,12 +4,10 @@ import AsyncTaskManager from './async-task/AsyncTaskManager';
 import CentralRestServer from './server/rest/CentralRestServer';
 import CentralSystemRestServiceConfiguration from './types/configuration/CentralSystemRestServiceConfiguration';
 import ChargingStationConfiguration from './types/configuration/ChargingStationConfiguration';
-import ChargingStationStorage from './storage/mongodb/ChargingStationStorage';
 import Configuration from './utils/Configuration';
 import Constants from './utils/Constants';
 import I18nManager from './utils/I18nManager';
 import JsonCentralSystemServer from './server/ocpp/json/JsonCentralSystemServer';
-import LockingManager from './locking/LockingManager';
 import Logging from './utils/Logging';
 import MigrationConfiguration from './types/configuration/MigrationConfiguration';
 import MigrationHandler from './migration/MigrationHandler';
@@ -27,18 +25,14 @@ import SoapCentralSystemServer from './server/ocpp/soap/SoapCentralSystemServer'
 import StorageConfiguration from './types/configuration/StorageConfiguration';
 import Utils from './utils/Utils';
 import chalk from 'chalk';
-import cluster from 'cluster';
 import global from './types/GlobalType';
 
 const MODULE_NAME = 'Bootstrap';
 
 export default class Bootstrap {
-  private static numWorkers: number;
-  private static isClusterEnabled: boolean;
   private static centralSystemRestConfig: CentralSystemRestServiceConfiguration;
   private static centralRestServer: CentralRestServer;
   private static chargingStationConfig: ChargingStationConfiguration;
-  // FIXME: Add a database agnostic storage notification type definition
   private static storageNotification: MongoDBStorageNotification;
   private static storageConfig: StorageConfiguration;
   private static centralSystemsConfig: CentralSystemConfiguration[];
@@ -50,21 +44,17 @@ export default class Bootstrap {
   private static oicpServer: OICPServer;
   private static oDataServerConfig: ODataServiceConfiguration;
   private static oDataServer: ODataServer;
-  private static databaseDone: boolean;
   private static database: MongoDBStorage;
   private static migrationConfig: MigrationConfiguration;
-  private static migrationDone: boolean;
 
   public static async start(): Promise<void> {
+    let serverStarted: string[] = [];
+    let startTimeMillis: number;
+    const startTimeGlobalMillis = await this.logAndGetStartTimeMillis('e-Mobility Server is starting...');
     try {
       // Setup i18n
       await I18nManager.initialize();
-      // Master?
-      if (cluster.isMaster) {
-        const nodejsEnv = process.env.NODE_ENV || 'development';
-        // eslint-disable-next-line no-console
-        console.log(`NodeJS is started in '${nodejsEnv}' mode`);
-      }
+      console.log(`NodeJS is started in '${process.env.NODE_ENV || 'development'}' mode`);
       // Get all configs
       Bootstrap.storageConfig = Configuration.getStorageConfig();
       Bootstrap.centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
@@ -73,174 +63,135 @@ export default class Bootstrap {
       Bootstrap.ocpiConfig = Configuration.getOCPIServiceConfig();
       Bootstrap.oicpConfig = Configuration.getOICPServiceConfig();
       Bootstrap.oDataServerConfig = Configuration.getODataServiceConfig();
-      Bootstrap.isClusterEnabled = Configuration.getClusterConfig().enabled;
       Bootstrap.migrationConfig = Configuration.getMigrationConfig();
-      // Start the connection to the Database
-      if (!Bootstrap.databaseDone) {
-        // Check database implementation
-        switch (Bootstrap.storageConfig.implementation) {
-          // MongoDB?
-          case 'mongodb':
-            // Create MongoDB
-            Bootstrap.database = new MongoDBStorage(Bootstrap.storageConfig);
-            // Keep a global reference
-            global.database = Bootstrap.database;
-            break;
-          default:
-            // eslint-disable-next-line no-console
-            console.log(`Storage Server implementation '${Bootstrap.storageConfig.implementation}' not supported!`);
-        }
-        // Connect to the Database
-        await Bootstrap.database.start();
-        let logMsg: string;
-        if (cluster.isMaster) {
-          logMsg = `Database connected to '${Bootstrap.storageConfig.implementation}' successfully in master`;
-        } else {
-          logMsg = `Database connected to '${Bootstrap.storageConfig.implementation}' successfully in worker ${cluster.worker.id}`;
-        }
-        // Log
-        await Logging.logInfo({
-          tenantID: Constants.DEFAULT_TENANT,
-          action: ServerAction.STARTUP,
-          module: MODULE_NAME, method: 'start',
-          message: logMsg
-        });
-        Bootstrap.databaseDone = true;
+
+      // -------------------------------------------------------------------------
+      // Connect to the DB
+      // -------------------------------------------------------------------------
+      // Check database implementation
+      startTimeMillis = await this.logAndGetStartTimeMillis('Connecting to the Database...');
+      switch (Bootstrap.storageConfig.implementation) {
+        // MongoDB?
+        case 'mongodb':
+          // Create MongoDB
+          Bootstrap.database = new MongoDBStorage(Bootstrap.storageConfig);
+          // Keep a global reference
+          global.database = Bootstrap.database;
+          break;
+        default:
+          console.error(chalk.red(`Storage Server implementation '${Bootstrap.storageConfig.implementation}' not supported!`));
       }
-      if (cluster.isMaster && !Bootstrap.migrationDone && Bootstrap.migrationConfig.active) {
+      // Connect to the Database
+      await Bootstrap.database.start();
+      // Log
+      await this.logDuration(startTimeMillis, 'Connected to the Database successfully');
+
+      // -------------------------------------------------------------------------
+      // Start DB Migration
+      // -------------------------------------------------------------------------
+      if (Bootstrap.migrationConfig.active) {
+        startTimeMillis = await this.logAndGetStartTimeMillis('Migration is starting...');
         // Check and trigger migration (only master process can run the migration)
         await MigrationHandler.migrate();
-        Bootstrap.migrationDone = true;
+        // Log
+        await this.logDuration(startTimeMillis, 'Migration has been run successfully');
       }
       // Listen to promise failure
-      process.on('unhandledRejection', (reason: any, p): void => {
+      process.on('unhandledRejection', (reason: any, p: any): void => {
         // eslint-disable-next-line no-console
-        console.log('Unhandled Rejection: ', p, ' reason: ', reason);
+        console.error(chalk.red(`Unhandled Rejection: ${p?.toString()}, reason: ${reason as string}`));
         void Logging.logError({
           tenantID: Constants.DEFAULT_TENANT,
-          action: ServerAction.STARTUP,
+          action: ServerAction.UNKNOWN_ACTION,
           module: MODULE_NAME, method: 'start',
-          message: `Reason: ${(reason ? reason.message : 'Not provided')}`,
+          message: `Unhandled Rejection: ${(reason ? (reason.message ?? reason) : 'Not provided')}`,
           detailedMessages: (reason ? reason.stack : null)
         });
       });
-      if (cluster.isMaster && Bootstrap.isClusterEnabled) {
-        Bootstrap.startMaster();
-      } else {
-        await Bootstrap.startServersListening();
-      }
-      if (cluster.isMaster) {
-        // -------------------------------------------------------------------------
-        // Init the Scheduler
-        // -------------------------------------------------------------------------
-        await SchedulerManager.init();
-        // -------------------------------------------------------------------------
-        // Init the Async Task
-        // -------------------------------------------------------------------------
-        await AsyncTaskManager.init();
-        // -------------------------------------------------------------------------
-        // Locks remain in storage if server crashes
-        // Delete acquired database locks with same hostname
-        // -------------------------------------------------------------------------
-        await LockingManager.cleanupLocks(Configuration.isCloudFoundry() || Utils.isDevelopmentEnv());
-        // -------------------------------------------------------------------------
-        // Populate at startup the DB with shared data
-        // -------------------------------------------------------------------------
-        // 1 - Charging station templates
-        await ChargingStationStorage.updateChargingStationTemplatesFromFile();
-      }
-    } catch (error) {
+
+      // -------------------------------------------------------------------------
+      // Start all the Servers
+      // -------------------------------------------------------------------------
+      startTimeMillis = await this.logAndGetStartTimeMillis('Server is starting...');
+      // Start the Servers
+      serverStarted = await Bootstrap.startServersListening();
       // Log
-      // eslint-disable-next-line no-console
+      await this.logDuration(startTimeMillis, `Server ${serverStarted.join(', ')} has been started successfully`);
+
+      // -------------------------------------------------------------------------
+      // Init the Scheduler
+      // -------------------------------------------------------------------------
+      startTimeMillis = await this.logAndGetStartTimeMillis('Scheduler is starting...');
+      // Start the Scheduler
+      await SchedulerManager.init();
+      // Log
+      await this.logDuration(startTimeMillis, 'Scheduler has been started successfully');
+
+      // -------------------------------------------------------------------------
+      // Init the Async Task
+      // -------------------------------------------------------------------------
+      startTimeMillis = await this.logAndGetStartTimeMillis('Async Task manager is starting...');
+      // Start the Async Manager
+      await AsyncTaskManager.init();
+      // Log
+      await this.logDuration(startTimeMillis, 'Async Task manager has been started successfully');
+
+      // -------------------------------------------------------------------------
+      // Update Charging Station Templates
+      // -------------------------------------------------------------------------
+      startTimeMillis = await this.logAndGetStartTimeMillis('Charging Station templates is being updated...');
+      await Utils.updateChargingStationTemplatesFromFile();
+      // Log
+      await this.logDuration(startTimeMillis, 'Charging Station templates have been updated successfully');
+
+      // Keep the server names globally
+      if (serverStarted.length === 1) {
+        global.serverName = serverStarted[0];
+      }
+      // Log
+      await this.logDuration(startTimeGlobalMillis, `${serverStarted.join(', ')} server has been started successfuly`, ServerAction.BOOTSTRAP_STARTUP);
+    } catch (error) {
       console.error(chalk.red(error));
       await Logging.logError({
+        tenantID: Constants.DEFAULT_TENANT,
+        action: ServerAction.BOOTSTRAP_STARTUP,
+        module: MODULE_NAME, method: 'start',
+        message: `Unexpected exception in ${serverStarted.join(', ')}`,
+        detailedMessages: { error: error.stack }
+      });
+    }
+  }
+
+  private static async logAndGetStartTimeMillis(logMessage: string): Promise<number> {
+    const timeStartMillis = Date.now();
+    console.log(chalk.green(logMessage));
+    if (global.database) {
+      await Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.STARTUP,
         module: MODULE_NAME, method: 'start',
-        message: 'Unexpected exception',
-        detailedMessages: { error: error.stack }
+        message: logMessage
+      });
+    }
+    return timeStartMillis;
+  }
+
+  private static async logDuration(timeStartMillis: number, logMessage: string, action: ServerAction = ServerAction.STARTUP): Promise<void> {
+    const timeDurationSecs = Utils.createDecimal(Date.now() - timeStartMillis).div(1000).toNumber();
+    logMessage = `${logMessage} in ${timeDurationSecs} secs`;
+    console.log(chalk.green(logMessage));
+    if (global.database) {
+      await Logging.logInfo({
+        tenantID: Constants.DEFAULT_TENANT,
+        action,
+        module: MODULE_NAME, method: 'start',
+        message: logMessage
       });
     }
   }
 
-  private static startServerWorkers(serverName: string): void {
-    Bootstrap.numWorkers = Configuration.getClusterConfig().numWorkers;
-    /**
-     * @param worker
-     */
-    function onlineCb(worker: cluster.Worker): void {
-      // Log
-      const logMsg = `${serverName} server worker ${worker.id} is online`;
-      void Logging.logInfo({
-        tenantID: Constants.DEFAULT_TENANT,
-        action: ServerAction.STARTUP,
-        module: MODULE_NAME, method: 'startServerWorkers',
-        message: logMsg
-      });
-      // eslint-disable-next-line no-console
-      console.log(logMsg);
-    }
-    /**
-     * @param worker
-     * @param code
-     * @param signal
-     */
-    function exitCb(worker: cluster.Worker, code, signal?): void {
-      // Log
-      const logMsg = serverName + ' server worker ' + worker.id.toString() + ' died with code: ' + code + ', and signal: ' + signal +
-        '.\n Starting new ' + serverName + ' server worker';
-      void Logging.logInfo({
-        tenantID: Constants.DEFAULT_TENANT,
-        action: ServerAction.STARTUP,
-        module: MODULE_NAME, method: 'startServerWorkers',
-        message: logMsg
-      });
-      // eslint-disable-next-line no-console
-      console.log(logMsg);
-      cluster.fork();
-    }
-    // Log
-    // eslint-disable-next-line no-console
-    console.log(`Starting ${serverName} server master process: setting up ${Bootstrap.numWorkers} workers...`);
-    // Create cluster worker processes
-    for (let i = 1; i <= Bootstrap.numWorkers; i++) {
-      // Invoke cluster fork method to create a cluster worker
-      cluster.fork();
-      // Log
-      const logMsg = `Starting ${serverName} server worker ${i} of ${Bootstrap.numWorkers}...`;
-      void Logging.logInfo({
-        tenantID: Constants.DEFAULT_TENANT,
-        action: ServerAction.STARTUP,
-        module: MODULE_NAME, method: 'startServerWorkers',
-        message: logMsg
-      });
-      // eslint-disable-next-line no-console
-      console.log(logMsg);
-    }
-    cluster.on('online', onlineCb);
-    cluster.on('exit', exitCb);
-  }
-
-  private static async startMaster(): Promise<void> {
-    try {
-      if (Bootstrap.isClusterEnabled && Utils.isEmptyObject(cluster.workers)) {
-        Bootstrap.startServerWorkers('Main');
-      }
-    } catch (error) {
-      // Log
-      // eslint-disable-next-line no-console
-      console.error(chalk.red(error));
-      await Logging.logError({
-        tenantID: Constants.DEFAULT_TENANT,
-        action: ServerAction.STARTUP,
-        module: MODULE_NAME, method: 'startMasters',
-        message: `Unexpected exception ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}: ${error.toString()}`,
-        detailedMessages: { error: error.stack }
-      });
-    }
-  }
-
-  private static async startServersListening(): Promise<void> {
+  private static async startServersListening(): Promise<string[]> {
+    const serverStarted = [];
     try {
       // -------------------------------------------------------------------------
       // REST Server (Front-End)
@@ -256,6 +207,7 @@ export default class Bootstrap {
           // Start database Socket IO notifications
           await this.centralRestServer.startSocketIO();
         }
+        serverStarted.push('Rest');
       }
       // -------------------------------------------------------------------------
       // Listen to DB changes
@@ -279,13 +231,14 @@ export default class Bootstrap {
               Bootstrap.SoapCentralSystemServer = new SoapCentralSystemServer(centralSystemConfig, Bootstrap.chargingStationConfig);
               // Start
               await Bootstrap.SoapCentralSystemServer.start();
+              serverStarted.push('Soap');
               break;
             case CentralSystemImplementation.JSON:
               // Create implementation
               Bootstrap.JsonCentralSystemServer = new JsonCentralSystemServer(centralSystemConfig, Bootstrap.chargingStationConfig);
               // Start
-              // FIXME: Issue with cluster, see https://github.com/sap-labs-france/ev-server/issues/1097
               await Bootstrap.JsonCentralSystemServer.start();
+              serverStarted.push('Json');
               break;
             // Not Found
             default:
@@ -302,6 +255,7 @@ export default class Bootstrap {
         Bootstrap.ocpiServer = new OCPIServer(Bootstrap.ocpiConfig);
         // Start server instance
         await Bootstrap.ocpiServer.start();
+        serverStarted.push('Ocpi');
       }
       // -------------------------------------------------------------------------
       // OICP Server
@@ -311,6 +265,7 @@ export default class Bootstrap {
         Bootstrap.oicpServer = new OICPServer(Bootstrap.oicpConfig);
         // Start server instance
         await Bootstrap.oicpServer.start();
+        serverStarted.push('Oicp');
       }
       // -------------------------------------------------------------------------
       // OData Server
@@ -320,19 +275,23 @@ export default class Bootstrap {
         Bootstrap.oDataServer = new ODataServer(Bootstrap.oDataServerConfig);
         // Start server instance
         await Bootstrap.oDataServer.start();
+        serverStarted.push('OData');
       }
     } catch (error) {
-      // Log
-      // eslint-disable-next-line no-console
       console.error(chalk.red(error));
       await Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.STARTUP,
         module: MODULE_NAME, method: 'startServersListening',
-        message: `Unexpected exception ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}: ${error.toString()}`,
+        message: `Unexpected exception in ${serverStarted.join(', ')}: ${error.toString()}`,
         detailedMessages: { error: error.stack }
       });
     }
+    // Batch server only
+    if (Utils.isEmptyArray(serverStarted)) {
+      serverStarted.push('Batch');
+    }
+    return serverStarted;
   }
 }
 

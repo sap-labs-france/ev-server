@@ -1,0 +1,31 @@
+{
+  "$id": "tag-visual-id-update",
+  "title": "Update a Tag",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "tag#/definitions/id"
+    },
+    "visualID": {
+      "$ref": "tag#/definitions/visualID"
+    },
+    "description": {
+      "$ref": "tag#/definitions/description"
+    },
+    "active": {
+      "$ref": "tag#/definitions/active"
+    },
+    "issuer": {
+      "$ref": "tag#/definitions/issuer"
+    },
+    "default": {
+      "$ref": "tag#/definitions/default"
+    },
+    "userID": {
+      "$ref": "tag#/definitions/userID"
+    }
+  },
+  "required": [
+    "visualID"
+  ]
+}

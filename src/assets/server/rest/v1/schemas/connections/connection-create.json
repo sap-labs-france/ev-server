@@ -1,4 +1,5 @@
 {
+  "$id": "connection-create",
   "title": "Connector connection creation",
   "description": "Describes properties required to create a connection to a connector",
   "type": "object",
@@ -8,7 +9,7 @@
       "sanitize": "mongo"
     },
     "userId": {
-      "$ref": "user.json#/definitions/id"
+      "$ref": "user#/definitions/id"
     },
     "data": {
       "type": "object",

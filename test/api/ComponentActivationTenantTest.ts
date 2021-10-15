@@ -44,10 +44,10 @@ describe('Tenant Settings', function() {
     testData.connectUser();
     testData.credentials.email = config.get('admin.username');
     // Retrieve the tenant id from the name
-    const response = await testData.superAdminCentralService.tenantApi.readAll({ 'Search': ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS }, {
-      limit: TestConstants.UNLIMITED,
-      skip: 0
-    });
+    const response = await testData.superAdminCentralService.tenantApi.readAll(
+      { 'Search': ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS },
+      TestConstants.DEFAULT_PAGING
+    );
     testData.credentials.tenantId = response ? response.data.result[0].id : '';
   });
 

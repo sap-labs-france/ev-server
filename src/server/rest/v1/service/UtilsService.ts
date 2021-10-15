@@ -1,8 +1,9 @@
 import { Action, Entity } from '../../../../types/Authorization';
-import { Car, CarCatalog, CarType } from '../../../../types/Car';
+import { Car, CarCatalog } from '../../../../types/Car';
 import ChargingStation, { ChargePoint, Voltage } from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
+import Tenant, { TenantComponents } from '../../../../types/Tenant';
 import User, { UserRole, UserStatus } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -20,7 +21,6 @@ import Constants from '../../../../utils/Constants';
 import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
 import { EntityDataType } from '../../../../types/GlobalType';
-import { HttpEndUserReportErrorRequest } from '../../../../types/requests/HttpNotificationRequest';
 import Logging from '../../../../utils/Logging';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import OICPEndpoint from '../../../../types/oicp/OICPEndpoint';
@@ -32,8 +32,6 @@ import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
-import Tenant, { TenantComponents } from '../../../../types/Tenant';
-
 import { TransactionInErrorType } from '../../../../types/InError';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
@@ -143,6 +141,14 @@ export default class UtilsService {
         action: action,
       });
     }
+    // Assign projected fields
+    if (authorizationFilter.projectFields) {
+      company.projectFields = authorizationFilter.projectFields;
+    }
+    // Assign Metadata
+    if (authorizationFilter.metadata) {
+      company.metadata = authorizationFilter.metadata;
+    }
     // Add actions
     await AuthorizationService.addCompanyAuthorizations(tenant, userToken, company, authorizationFilter);
     // Check
@@ -196,6 +202,14 @@ export default class UtilsService {
         action: action
       });
     }
+    // Assign projected fields
+    if (authorizationFilter.projectFields) {
+      user.projectFields = authorizationFilter.projectFields;
+    }
+    // Assign Metadata
+    if (authorizationFilter.metadata) {
+      user.metadata = authorizationFilter.metadata;
+    }
     // Add actions
     await AuthorizationService.addUserAuthorizations(tenant, userToken, user, authorizationFilter);
     // Check
@@ -248,6 +262,14 @@ export default class UtilsService {
         user: userToken,
         action: action
       });
+    }
+    // Assign projected fields
+    if (authorizationFilter.projectFields) {
+      site.projectFields = authorizationFilter.projectFields;
+    }
+    // Assign Metadata
+    if (authorizationFilter.metadata) {
+      site.metadata = authorizationFilter.metadata;
     }
     // Add actions
     await AuthorizationService.addSiteAuthorizations(tenant, userToken, site, authorizationFilter);
@@ -550,6 +572,14 @@ export default class UtilsService {
         action: action
       });
     }
+    // Assign projected fields
+    if (authorizationFilter.projectFields) {
+      siteArea.projectFields = authorizationFilter.projectFields;
+    }
+    // Assign Metadata
+    if (authorizationFilter.metadata) {
+      siteArea.metadata = authorizationFilter.metadata;
+    }
     // Add actions
     await AuthorizationService.addSiteAreaAuthorizations(tenant, userToken, siteArea, authorizationFilter);
     // Check
@@ -592,6 +622,14 @@ export default class UtilsService {
     );
     UtilsService.assertObjectExists(action, car, `Car ID '${carID}' does not exist`,
       MODULE_NAME, 'checkAndGetCarAuthorization', userToken);
+    // Assign projected fields
+    if (authorizationFilter.projectFields) {
+      car.projectFields = authorizationFilter.projectFields;
+    }
+    // Assign Metadata
+    if (authorizationFilter.metadata) {
+      car.metadata = authorizationFilter.metadata;
+    }
     // Add Actions
     await AuthorizationService.addCarAuthorizations(tenant, userToken, car, authorizationFilter);
     // Check
@@ -635,6 +673,14 @@ export default class UtilsService {
     // Check it exists
     UtilsService.assertObjectExists(action, carCatalog, `Car Catalog ID '${carCatalogID}' does not exist`,
       MODULE_NAME, 'checkAndGetCarCatalogAuthorization', userToken);
+    // Assign projected fields
+    if (authorizationFilter.projectFields) {
+      carCatalog.projectFields = authorizationFilter.projectFields;
+    }
+    // Assign Metadata
+    if (authorizationFilter.metadata) {
+      carCatalog.metadata = authorizationFilter.metadata;
+    }
     // Add actions
     await AuthorizationService.addCarCatalogAuthorizations(tenant, userToken, carCatalog, authorizationFilter);
     // Check
@@ -922,6 +968,8 @@ export default class UtilsService {
       // Get the data
       req.query.Skip = skip.toString();
       data = await handleGetData(req);
+      // Sanitize against csv formula injection
+      data.result = await Utils.sanitizeCSVExport(data.result, req.tenant?.id);
       // Get CSV data
       const csvData = handleConvertToCSV(req, data.result, (skip === 0));
       // Send Transactions
@@ -1265,27 +1313,6 @@ export default class UtilsService {
     }
   }
 
-  public static checkIfCompanyValid(company: Partial<Company>, req: Request): void {
-    if (req.method !== 'POST' && !company.id) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Company ID is mandatory',
-        module: MODULE_NAME, method: 'checkIfCompanyValid',
-        user: req.user.id
-      });
-    }
-    if (!company.name) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Company Name is mandatory',
-        module: MODULE_NAME, method: 'checkIfCompanyValid',
-        user: req.user.id
-      });
-    }
-  }
-
   public static checkIfAssetValid(asset: Partial<Asset>, req: Request): void {
     if (req.method !== 'POST' && !asset.id) {
       throw new AppError({
@@ -1389,16 +1416,6 @@ export default class UtilsService {
     // Check description
     if (!tag.description) {
       tag.description = `Tag ID '${tag.id}'`;
-    }
-    // Check user ID
-    if (!tag.userID) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'User ID is mandatory',
-        module: MODULE_NAME, method: 'checkIfUserTagIsValid',
-        user: req.user.id
-      });
     }
     // Check user activation
     if (!Utils.objectHasProperty(tag, 'active')) {
@@ -1679,36 +1696,6 @@ export default class UtilsService {
     }
   }
 
-  public static checkIfEndUserErrorNotificationValid(endUserErrorNotificationValid: HttpEndUserReportErrorRequest, req: Request): void {
-    if (!endUserErrorNotificationValid.subject) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Subject is mandatory.',
-        module: MODULE_NAME, method: 'checkIfEndUserErrorNotificationValid',
-        user: req.user.id
-      });
-    }
-    if (!endUserErrorNotificationValid.description) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Description is mandatory.',
-        module: MODULE_NAME, method: 'checkIfEndUserErrorNotificationValid',
-        user: req.user.id
-      });
-    }
-    if (endUserErrorNotificationValid.mobile && !Utils.isPhoneValid(endUserErrorNotificationValid.mobile)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Phone is invalid',
-        module: MODULE_NAME, method: 'checkIfEndUserErrorNotificationValid',
-        user: req.user.id
-      });
-    }
-  }
-
   // eslint-disable-next-line @typescript-eslint/ban-types
   public static async processSensitiveData(tenant: Tenant, currentProperties: object, newProperties: object): Promise<void> {
     // Process the sensitive data (if any)
@@ -1822,6 +1809,14 @@ export default class UtilsService {
         action: action,
         detailedMessages: { tag }
       });
+    }
+    // Assign projected fields
+    if (authorizationFilter.projectFields) {
+      tag.projectFields = authorizationFilter.projectFields;
+    }
+    // Assign Metadata
+    if (authorizationFilter.metadata) {
+      tag.metadata = authorizationFilter.metadata;
     }
     // Add actions
     await AuthorizationService.addTagAuthorizations(tenant, userToken, tag, authorizationFilter);

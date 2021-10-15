@@ -67,7 +67,7 @@ export default class AuthService {
 
   public static async handleLogIn(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = AuthValidator.getInstance().validateAuthSignIn(req.body);
+    const filteredRequest = AuthValidator.getInstance().validateAuthSignInReq(req.body);
     // Get Tenant
     const tenant = await AuthService.getTenant(filteredRequest.tenant);
     if (!tenant) {
@@ -131,7 +131,7 @@ export default class AuthService {
 
   public static async handleRegisterUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = AuthValidator.getInstance().validateAuthSignOn(req.body);
+    const filteredRequest = AuthValidator.getInstance().validateAuthSignOnReq(req.body);
     // Override
     filteredRequest.status = UserStatus.PENDING;
     if (!filteredRequest.locale) {
@@ -151,7 +151,7 @@ export default class AuthService {
     req.user = { tenantID: tenant.id };
     // Check Captcha
     const recaptchaURL = `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`;
-    const response = await AxiosFactory.getAxiosInstance(tenant.id).get(recaptchaURL);
+    const response = await AxiosFactory.getAxiosInstance(tenant).get(recaptchaURL);
     if (!response.data.success) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -288,7 +288,7 @@ export default class AuthService {
     }
     // Check captcha
     const recaptchaURL = `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`;
-    const response = await AxiosFactory.getAxiosInstance(tenant.id).get(recaptchaURL);
+    const response = await AxiosFactory.getAxiosInstance(tenant).get(recaptchaURL);
     // Check
     if (!response.data.success) {
       throw new AppError({
@@ -375,7 +375,7 @@ export default class AuthService {
   }
 
   public static async handleUserPasswordReset(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    const filteredRequest = AuthValidator.getInstance().validateAuthResetPassword(req.body);
+    const filteredRequest = AuthValidator.getInstance().validateAuthPasswordResetReq(req.body);
     // Get Tenant
     const tenant = await AuthService.getTenant(filteredRequest.tenant);
     if (!tenant) {
@@ -400,7 +400,7 @@ export default class AuthService {
 
   public static async handleCheckEndUserLicenseAgreement(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = AuthValidator.getInstance().validateAuthCheckEula(req.query);
+    const filteredRequest = AuthValidator.getInstance().validateAuthEulaCheckReq(req.query);
     // Get Tenant
     const tenant = await AuthService.getTenant(filteredRequest.Tenant);
     if (!tenant) {
@@ -435,7 +435,7 @@ export default class AuthService {
 
   public static async handleGetEndUserLicenseAgreement(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = AuthValidator.getInstance().validateAuthEula(req.query);
+    const filteredRequest = AuthValidator.getInstance().validateAuthEulaReq(req.query);
     // Get it
     const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(Constants.DEFAULT_TENANT_OBJECT, filteredRequest.Language);
     res.json(endUserLicenseAgreement);
@@ -444,7 +444,7 @@ export default class AuthService {
 
   public static async handleVerifyEmail(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = AuthValidator.getInstance().validateAuthVerifyEmail(req.query);
+    const filteredRequest = AuthValidator.getInstance().validateAuthEmailVerifyReq(req.query);
     // Get Tenant
     const tenant = await AuthService.getTenant(filteredRequest.Tenant);
     if (!tenant) {
@@ -567,7 +567,7 @@ export default class AuthService {
   }
 
   public static async handleResendVerificationEmail(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    const filteredRequest = AuthValidator.getInstance().validateAuthResendVerificationEmail(req.body);
+    const filteredRequest = AuthValidator.getInstance().validateAuthVerificationEmailResendReq(req.body);
     // Get the tenant
     const tenant = await AuthService.getTenant(filteredRequest.tenant);
     if (!tenant) {
@@ -594,7 +594,7 @@ export default class AuthService {
 
     // Is valid captcha?
     const recaptchaURL = `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`;
-    const response = await AxiosFactory.getAxiosInstance(tenant.id).get(recaptchaURL);
+    const response = await AxiosFactory.getAxiosInstance(tenant).get(recaptchaURL);
     if (!response.data.success) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -754,6 +754,10 @@ export default class AuthService {
     if (Authorizations.isDemo(user)) {
       token = jwt.sign(payload, jwtOptions.secretOrKey, {
         expiresIn: _centralSystemRestConfig.userDemoTokenLifetimeDays * 24 * 3600
+      });
+    } else if (user.technical) {
+      token = jwt.sign(payload, jwtOptions.secretOrKey, {
+        expiresIn: _centralSystemRestConfig.userTechnicalTokenLifetimeDays * 24 * 3600
       });
     } else {
       token = jwt.sign(payload, jwtOptions.secretOrKey, {
