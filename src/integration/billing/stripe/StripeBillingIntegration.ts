@@ -1114,7 +1114,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       tenantID: this.tenant.id,
       module: MODULE_NAME,
       action: ServerAction.PRICING,
-      method: 'resolvePricingContext',
+      method: 'extractTransactionPricingData',
       message: `Final pricing - Transaction: ${transaction.id}`,
       detailedMessages: pricingData,
       ...LoggingHelper.getSessionProperties(transaction)
