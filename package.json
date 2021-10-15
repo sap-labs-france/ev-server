@@ -210,7 +210,7 @@
     "@types/qrcode": "^1.4.1",
     "@types/rfc2047": "^2.0.1",
     "@types/rosie": "0.0.40",
-    "@types/socketio-jwt-auth": "0.0.1",
+    "@types/socketio-jwt-auth": "0.0.2",
     "@types/tz-lookup": "^6.1.0",
     "@types/urlencode": "^1.1.2",
     "@types/uuid": "^8.3.1",
