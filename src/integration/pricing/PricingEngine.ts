@@ -6,12 +6,16 @@ import ChargingStation from '../../types/ChargingStation';
 import Constants from '../../utils/Constants';
 import Consumption from '../../types/Consumption';
 import ConsumptionPricer from './ConsumptionPricer';
-import PricingHelper from './PricingHelper';
+import Logging from '../../utils/Logging';
+import LoggingHelper from '../../utils/LoggingHelper';
 import PricingStorage from '../../storage/mongodb/PricingStorage';
+import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import Transaction from '../../types/Transaction';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
+
+const MODULE_NAME = 'PricingEngine';
 
 export default class PricingEngine {
 
@@ -35,9 +39,14 @@ export default class PricingEngine {
       },
       pricingDefinitions
     };
-    await PricingHelper.logInfo(tenant, transaction, {
+    await Logging.logInfo({
+      tenantID: tenant.id,
+      module: MODULE_NAME,
+      action: ServerAction.PRICING,
+      method: 'resolvePricingContext',
       message: `Pricing context has been resolved - ${pricingDefinitions.length} pricing definitions have been found`,
-      detailedMessages: { resolvedPricingModel }
+      detailedMessages: { resolvedPricingModel },
+      ...LoggingHelper.getSessionProperties(transaction)
     });
     return Promise.resolve(resolvedPricingModel);
   }
@@ -66,9 +75,13 @@ export default class PricingEngine {
     ).map((pricingDefinition) =>
       PricingEngine.shrinkPricingDefinition(pricingDefinition)
     );
-    await PricingHelper.logInfo(tenant, transaction, {
+    await Logging.logInfo({
+      tenantID: tenant.id,
+      module: MODULE_NAME,
+      action: ServerAction.PRICING,
       method: 'getPricingDefinitions4Entity',
-      message: `Pricing context resolution - ${actualPricingDefinitions.length || 0} pricing definitions found for ${entityType}: '${entityID}'`
+      message: `Pricing context resolution - ${actualPricingDefinitions.length || 0} pricing definitions found for ${entityType}: '${entityID}'`,
+      ...LoggingHelper.getSessionProperties(transaction)
     });
     return actualPricingDefinitions || [];
   }

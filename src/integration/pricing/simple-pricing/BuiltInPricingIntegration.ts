@@ -4,13 +4,18 @@ import { PricedConsumption, PricingDimensions, PricingSource, ResolvedPricingDef
 
 import ChargingStation from '../../../types/ChargingStation';
 import Consumption from '../../../types/Consumption';
+import Logging from '../../../utils/Logging';
+import LoggingHelper from '../../../utils/LoggingHelper';
 import PricingEngine from '../PricingEngine';
 import PricingHelper from '../PricingHelper';
 import PricingIntegration from '../PricingIntegration';
+import { ServerAction } from '../../../types/Server';
 import { SimplePricingSetting } from '../../../types/Setting';
 import Tenant from '../../../types/Tenant';
 import Transaction from '../../../types/Transaction';
 import Utils from '../../../utils/Utils';
+
+const MODULE_NAME = 'BuiltInPricingIntegration';
 
 export default class BuiltInPricingIntegration extends PricingIntegration<SimplePricingSetting> {
   constructor(tenant: Tenant, readonly settings: SimplePricingSetting) {
@@ -19,25 +24,32 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
 
   public async startSession(transaction: Transaction, consumptionData: Consumption, chargingStation: ChargingStation): Promise<PricedConsumption> {
     const pricedConsumption = await this.computePrice(transaction, consumptionData, chargingStation);
-    await PricingHelper.logInfo(this.tenant, transaction, {
+    await Logging.logInfo({
+      tenantID: this.tenant.id,
+      module: MODULE_NAME,
+      action: ServerAction.PRICING,
+      method: 'startSession',
       message: `Session START - Transaction: ${transaction.id} - Accumulated amount: ${pricedConsumption.cumulatedRoundedAmount} ${pricedConsumption.currencyCode}`,
+      ...LoggingHelper.getSessionProperties(transaction)
     });
     return pricedConsumption;
   }
 
   public async updateSession(transaction: Transaction, consumptionData: Consumption, chargingStation: ChargingStation): Promise<PricedConsumption> {
     const pricedConsumption = await this.computePrice(transaction, consumptionData, chargingStation);
-    // await PricingHelper.logInfo(this.tenant, transaction, {
-    //   message: `Session UPDATE - Transaction: ${transaction.id} - Accumulated amount: ${pricedConsumption.cumulatedRoundedAmount} ${pricedConsumption.currencyCode}`,
-    // });
     return pricedConsumption;
   }
 
   public async stopSession(transaction: Transaction, consumptionData: Consumption, chargingStation: ChargingStation): Promise<PricedConsumption> {
     const pricedConsumption = await this.computePrice(transaction, consumptionData, chargingStation);
-    await PricingHelper.logInfo(this.tenant, transaction, {
+    await Logging.logInfo({
+      tenantID: this.tenant.id,
+      module: MODULE_NAME,
+      action: ServerAction.PRICING,
+      method: 'stopSession',
       message: `Session STOP - Transaction: ${transaction.id} - Accumulated amount: ${pricedConsumption.cumulatedRoundedAmount} ${pricedConsumption.currencyCode}`,
-      detailedMessages: { pricedConsumption }
+      detailedMessages: { pricedConsumption },
+      ...LoggingHelper.getSessionProperties(transaction)
     });
     return pricedConsumption;
   }
@@ -88,9 +100,14 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
     const resolvedPricingModel: ResolvedPricingModel = await PricingEngine.resolvePricingContext(tenant, transaction, chargingStation);
     if (!resolvedPricingModel.pricingDefinitions?.length) {
       resolvedPricingModel.pricingDefinitions = [ this.getDefaultPricingDefinition() ];
-      await PricingHelper.logWarning(tenant, transaction, {
+      await Logging.logWarning({
+        tenantID: this.tenant.id,
+        module: MODULE_NAME,
+        action: ServerAction.PRICING,
+        method: 'resolvePricingContext',
         message: 'No pricing definition found - Simple Pricing logic will be used as a fallback',
-        detailedMessages: { resolvedPricingModel }
+        detailedMessages: { resolvedPricingModel },
+        ...LoggingHelper.getSessionProperties(transaction)
       });
     }
     return resolvedPricingModel;

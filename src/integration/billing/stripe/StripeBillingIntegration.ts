@@ -17,6 +17,7 @@ import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
+import LoggingHelper from '../../../utils/LoggingHelper';
 import PricingEngine from '../../pricing/PricingEngine';
 import PricingHelper from '../../pricing/PricingHelper';
 import { Request } from 'express';
@@ -31,6 +32,7 @@ import Utils from '../../../utils/Utils';
 import moment from 'moment';
 
 const MODULE_NAME = 'StripeBillingIntegration';
+
 export default class StripeBillingIntegration extends BillingIntegration {
 
   private static readonly STRIPE_MAX_LIST = 100;
@@ -1108,9 +1110,14 @@ export default class StripeBillingIntegration extends BillingIntegration {
       pricingData = [ PricingHelper.accumulatePricedConsumption(pricingData) ] ;
     }
     pricingData = pricingData.map((pricingConsumptionData) => this.enrichTransactionPricingData(transaction, pricingConsumptionData));
-    void PricingHelper.logInfo(this.tenant, transaction, {
+    void Logging.logInfo({
+      tenantID: this.tenant.id,
+      module: MODULE_NAME,
+      action: ServerAction.PRICING,
+      method: 'resolvePricingContext',
       message: `Final pricing - Transaction: ${transaction.id}`,
       detailedMessages: pricingData,
+      ...LoggingHelper.getSessionProperties(transaction)
     });
     return pricingData;
   }
