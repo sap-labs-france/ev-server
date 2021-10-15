@@ -958,10 +958,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
         await Logging.logWarning({
           tenantID: this.tenant.id,
           user: transaction.userID,
-          source: Constants.CENTRAL_SERVER,
           action: ServerAction.BILLING_TRANSACTION,
           module: MODULE_NAME, method: 'stopTransaction',
-          message: `Transaction data is suspicious - billing operation has been aborted - transaction ID: ${transaction.id}`
+          message: `Transaction data is suspicious - billing operation has been aborted - transaction ID: ${transaction.id}`,
+          ...LoggingHelper.getSessionProperties(transaction)
         });
         return {
           status: BillingStatus.UNBILLED
@@ -1000,10 +1000,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
         await Logging.logInfo({
           tenantID: this.tenant.id,
           user: transaction.userID,
-          source: Constants.CENTRAL_SERVER,
           action: ServerAction.BILLING_TRANSACTION,
           module: MODULE_NAME, method: 'billTransaction',
-          message: `Billing process is about to start - transaction ID: ${transaction.id}`
+          message: `Billing process is about to start - transaction ID: ${transaction.id}`,
+          ...LoggingHelper.getSessionProperties(transaction)
         });
         const billingDataTransactionStop: BillingDataTransactionStop = await this._billTransaction(transaction);
         return billingDataTransactionStop;
@@ -1012,11 +1012,11 @@ export default class StripeBillingIntegration extends BillingIntegration {
       await Logging.logError({
         tenantID: this.tenant.id,
         user: transaction.userID,
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_TRANSACTION,
         module: MODULE_NAME, method: 'billTransaction',
         message: `Failed to bill the transaction - Transaction ID '${transaction.id}'`,
-        detailedMessages: { error: error.stack }
+        detailedMessages: { error: error.stack },
+        ...LoggingHelper.getSessionProperties(transaction)
       });
     }
     return {
