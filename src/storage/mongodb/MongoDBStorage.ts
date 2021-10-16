@@ -283,6 +283,7 @@ export default class MongoDBStorage {
           { fields: { group: 1 } },
           { fields: { tenantSubdomain: 1 } },
           { fields: { host: 1 } },
+          { fields: { chargingStationID: 1 } },
         ]);
         // Users
         await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'users', [
