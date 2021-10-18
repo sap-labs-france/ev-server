@@ -12,7 +12,7 @@ import cluster from 'cluster';
 import https from 'https';
 
 export class ServerUtils {
-  static async defaultListenCb(serverModuleName: string, methodName: string, serverName: string, protocol: ServerProtocol, hostname: string, port: number): Promise<void> {
+  public static async defaultListenCb(serverModuleName: string, methodName: string, serverName: string, protocol: ServerProtocol, hostname: string, port: number): Promise<void> {
     const logMsg = `${serverName} Server listening on '${protocol}://${hostname}:${port}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}`;
     // Log
     await Logging.logInfo({

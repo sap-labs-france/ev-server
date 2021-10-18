@@ -1,4 +1,4 @@
-import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
+import global, { DatabaseCount, FilterParams, Image } from '../../types/GlobalType';
 
 import Asset from '../../types/Asset';
 import { AssetInErrorType } from '../../types/InError';
@@ -25,14 +25,14 @@ export default class AssetStorage {
 
   public static async getAssetImage(tenant: Tenant, id: string): Promise<{ id: string; image: string }> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Read DB
-    const assetImageMDB = await global.database.getCollection<{ _id: ObjectId; image: string }>(tenant.id, 'assetimages')
+    const assetImageMDB = await global.database.getCollection<Image>(tenant.id, 'assetimages')
       .findOne({ _id: DatabaseUtils.convertToObjectID(id) });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getAssetImage', uniqueTimerID, assetImageMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getAssetImage', startTime, { id }, assetImageMDB);
     return {
       id: id,
       image: assetImageMDB ? assetImageMDB.image : null
@@ -41,7 +41,7 @@ export default class AssetStorage {
 
   public static async saveAsset(tenant: Tenant, assetToSave: Asset, saveImage = true): Promise<string> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Set
@@ -97,7 +97,7 @@ export default class AssetStorage {
       await AssetStorage.saveAssetImage(tenant, assetMDB._id.toString(), assetToSave.image);
     }
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveAsset', uniqueTimerID, assetMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveAsset', startTime, assetMDB);
     return assetMDB._id.toString();
   }
 
@@ -106,7 +106,7 @@ export default class AssetStorage {
         withNoSiteArea?: boolean; dynamicOnly?: boolean; issuer?: boolean; } = {},
       dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Asset>> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -171,7 +171,7 @@ export default class AssetStorage {
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
-      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getAssets', uniqueTimerID, assetsCountMDB);
+      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getAssets', startTime, aggregation, assetsCountMDB);
       return {
         count: (assetsCountMDB.length > 0 ? assetsCountMDB[0].count : 0),
         result: []
@@ -214,7 +214,7 @@ export default class AssetStorage {
       .aggregate<Asset>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getAssets', uniqueTimerID, assetsMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getAssets', startTime, aggregation, assetsMDB);
     return {
       count: (assetsCountMDB.length > 0 ?
         (assetsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : assetsCountMDB[0].count) : 0),
@@ -226,7 +226,7 @@ export default class AssetStorage {
       params: { search?: string; siteAreaIDs?: string[]; siteIDs?: string[]; errorType?: string[]; issuer?: boolean } = {},
       dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Asset>> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -301,7 +301,7 @@ export default class AssetStorage {
       .aggregate<Asset>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getAssetsInError', uniqueTimerID, assetsMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getAssetsInError', startTime, aggregation, assetsMDB);
     // Ok
     return {
       count: assetsMDB.length,
@@ -311,7 +311,7 @@ export default class AssetStorage {
 
   public static async deleteAsset(tenant: Tenant, id: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete the Asset
@@ -321,12 +321,12 @@ export default class AssetStorage {
     await global.database.getCollection<any>(tenant.id, 'assetimages')
       .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteAsset', uniqueTimerID, { id });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteAsset', startTime, { id });
   }
 
   private static async saveAssetImage(tenant: Tenant, assetID: string, assetImageToSave: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Modify
@@ -335,7 +335,7 @@ export default class AssetStorage {
       { $set: { image: assetImageToSave } },
       { upsert: true });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveAssetImage', uniqueTimerID, assetImageToSave);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveAssetImage', startTime, assetImageToSave);
   }
 
   private static getAssetInErrorFacet(errorType: string) {

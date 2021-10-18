@@ -1422,7 +1422,7 @@ export default class OCPPUtils {
     return chargingProfileID;
   }
 
-  static isValidMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
+  public static isValidMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
     return OCPPUtils.isSocMeterValue(meterValue) ||
       OCPPUtils.isEnergyActiveImportMeterValue(meterValue) ||
       OCPPUtils.isPowerActiveImportMeterValue(meterValue) ||
@@ -1430,14 +1430,14 @@ export default class OCPPUtils {
       OCPPUtils.isVoltageMeterValue(meterValue);
   }
 
-  static isSocMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
+  public static isSocMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
     return !meterValue.attribute ||
       (meterValue.attribute.measurand === OCPPMeasurand.STATE_OF_CHARGE &&
        (meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC ||
         meterValue.attribute.context === OCPPReadingContext.TRANSACTION_END));
   }
 
-  static isEnergyActiveImportMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
+  public static isEnergyActiveImportMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
     return !meterValue.attribute ||
       (meterValue.attribute.measurand === OCPPMeasurand.ENERGY_ACTIVE_IMPORT_REGISTER &&
         (meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC ||
@@ -1445,25 +1445,25 @@ export default class OCPPUtils {
          meterValue.attribute.context === OCPPReadingContext.SAMPLE_CLOCK));
   }
 
-  static isPowerActiveImportMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
+  public static isPowerActiveImportMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
     return !meterValue.attribute ||
       (meterValue.attribute.measurand === OCPPMeasurand.POWER_ACTIVE_IMPORT &&
         meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC);
   }
 
-  static isCurrentImportMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
+  public static isCurrentImportMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
     return !meterValue.attribute ||
       (meterValue.attribute.measurand === OCPPMeasurand.CURRENT_IMPORT &&
         meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC);
   }
 
-  static isVoltageMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
+  public static isVoltageMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
     return !meterValue.attribute ||
       (meterValue.attribute.measurand === OCPPMeasurand.VOLTAGE &&
         meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC);
   }
 
-  static async checkAndGetTenantAndChargingStation(
+  public static async checkAndGetTenantAndChargingStation(
       ocppHeader: OCPPHeader):Promise<{ chargingStation: ChargingStation, tenant: Tenant, chargingStationLock: Lock}> {
     // Check
     if (!ocppHeader.chargeBoxIdentity) {
