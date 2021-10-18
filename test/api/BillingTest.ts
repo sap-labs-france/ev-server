@@ -958,15 +958,11 @@ describe('Billing Service', function() {
           testData.adminUserContext
         );
         expect(testData.userService).to.not.be.null;
-        const fakeUser = {
-          ...Factory.user.build(),
-          freeAccess: true,
-        } as User;
-        await testData.adminUserService.createEntity(
-          testData.userService.userApi,
-          fakeUser,
-          false
-        );
+        // Update the freeAccess flag for the basic user:
+        await testData.adminUserService.userApi.update({
+          id: '5ce249a1a39ae1c056c123ab',
+          freeAccess: true
+        });
       });
 
       it('should NOT add an item to a DRAFT invoice after a transaction', async () => {
@@ -999,15 +995,11 @@ describe('Billing Service', function() {
           testData.adminUserContext
         );
         expect(testData.userService).to.not.be.null;
-        const fakeUser = {
-          ...Factory.user.build(),
-          freeAccess: false,
-        } as User;
-        await testData.adminUserService.createEntity(
-          testData.userService.userApi,
-          fakeUser,
-          false
-        );
+        // Update the freeAccess flag for the basic user:
+        await testData.adminUserService.userApi.update({
+          id: '5ce249a1a39ae1c056c123ab',
+          freeAccess: false
+        });
       });
 
       it('should add an item to a DRAFT invoice after a transaction', async () => {
