@@ -178,6 +178,7 @@ export default class SettingService {
 
   public static async handleUpdateSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     let filteredRequest: any;
+    const settingUpdate = SettingSecurity.filterSettingUpdateRequest(req.body);
     UtilsService.assertIdIsProvided(action, req.body.id, MODULE_NAME, 'handleUpdateSetting', req.user);
     switch (req.body.identifier) {
       // Filter
@@ -200,17 +201,16 @@ export default class SettingService {
         filteredRequest = SettingValidator.getInstance().validateSettingPricingSetReq(req.body);
         break;
       default:
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.NOT_IMPLEMENTED_ERROR,
-          message: `The property 'identifier' with value '${req.body.identifier as string}' for Setting with ID '${req.body.id as string}' is not implemented`,
-          module: MODULE_NAME,
-          method: 'handleUpdateSetting',
-          user: req.user
+        filteredRequest = settingUpdate;
+        // TODO : Check for each Setting Type that we do have equivalent results
+        await Logging.logDebug({
+          tenantID: req.user.tenantID,
+          user: req.user, module: MODULE_NAME, method: 'handleUpdateSetting',
+          message: `The property 'identifier' with value '${req.body.identifier as string}' for Setting with ID '${req.body.id as string}' has no dedicated schema (yet)`,
+          action: action,
+          detailedMessages: { filteredRequest }
         });
     }
-    // TODO : Check for each Setting Type that we do have equivalent results
-    const settingUpdate = SettingSecurity.filterSettingUpdateRequest(req.body);
     // Check auth
     if (!await Authorizations.canUpdateSetting(req.user)) {
       throw new AppAuthError({
