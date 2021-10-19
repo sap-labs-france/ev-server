@@ -630,18 +630,18 @@ export default class Logging {
     next();
   }
 
-  public static async traceOcppMessageRequest(module: string, tenantID: string, chargeBoxID: string,
-      action: ServerAction, request: any, direction: '<<' | '>>', chargingStationDetails: {
-        siteID: string,
-        siteAreaID: string,
-        companyID: string,
-      }): Promise<number> {
-    const message = `${direction} OCPP Request '${action}' ${direction === '>>' ? 'received' : 'sent'}`;
+  public static async traceOcppMessageRequest(module: string, tenant: Tenant, chargingStationID: string,
+      action: ServerAction, request: any, direction: '<<' | '>>',
+      chargingStationDetails: { siteID: string; siteAreaID: string; companyID: string; }): Promise<number> {
+    // Compute size
+    const sizeOfRequestDataKB = Utils.truncTo(Utils.createDecimal(
+      sizeof(request)).div(1024).toNumber(), 2);
+    const message = `${direction} OCPP Request '${action}' - Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB - ${direction === '>>' ? 'Received' : 'Sent'}`;
     Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
     await Logging.logDebug({
-      tenantID: tenantID,
-      source: chargeBoxID,
-      chargingStationID: chargeBoxID,
+      tenantID: tenant.id,
+      source: chargingStationID,
+      chargingStationID: chargingStationID,
       siteAreaID: chargingStationDetails.siteAreaID,
       siteID: chargingStationDetails.siteID,
       companyID: chargingStationDetails.companyID,
@@ -649,6 +649,16 @@ export default class Logging {
       message,
       detailedMessages: { request }
     });
+    const performanceID = await PerformanceStorage.savePerformanceRecord(
+      Utils.buildPerformanceRecord({
+        tenantSubdomain: tenant.subdomain,
+        chargingStationID,
+        group: PerformanceRecordGroup.OCPP,
+        reqSizeKb: sizeOfRequestDataKB,
+        action
+      })
+    );
+    request['performanceID'] = performanceID;
     return Date.now();
   }
 
@@ -660,12 +670,9 @@ export default class Logging {
       }, startTimestamp: number): Promise<void> {
     // Compute duration if provided
     const executionDurationMillis = startTimestamp ? Date.now() - startTimestamp : 0;
-    // Compute size
-    const sizeOfRequestDataKB = Utils.truncTo(Utils.createDecimal(
-      sizeof(request)).div(1024).toNumber(), 2);
     const sizeOfResponseDataKB = Utils.truncTo(Utils.createDecimal(
       sizeof(response)).div(1024).toNumber(), 2);
-    const message = `${direction} OCPP Request '${action}' on '${chargingStationID}' has been processed ${executionDurationMillis ? 'in ' + executionDurationMillis.toString() + ' ms' : ''} - Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB`;
+    const message = `${direction} OCPP Request '${action}' on '${chargingStationID}' has been processed ${executionDurationMillis ? 'in ' + executionDurationMillis.toString() + ' ms' : ''} - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB`;
     Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
     if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
       const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms, got ${executionDurationMillis} ms`);
@@ -708,17 +715,14 @@ export default class Logging {
         message, detailedMessages: response
       });
     }
-    await PerformanceStorage.savePerformanceRecord(
-      Utils.buildPerformanceRecord({
-        tenantSubdomain: tenant.subdomain,
-        chargingStationID,
-        resSizeKb: sizeOfResponseDataKB,
-        reqSizeKb: sizeOfRequestDataKB,
-        group: PerformanceRecordGroup.OCPP,
+    if (request['performanceID']) {
+      const performanceRecord = {
+        id: request['performanceID'],
         durationMs: executionDurationMillis,
-        action,
-      })
-    );
+        resSizeKb: sizeOfResponseDataKB,
+      } as PerformanceRecord;
+      await PerformanceStorage.updatePerformanceRecord(performanceRecord);
+    }
   }
 
   private static async _logActionExceptionMessage(tenantID: string, action: ServerAction, exception: any, detailedMessages = {}): Promise<void> {
