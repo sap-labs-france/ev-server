@@ -27,6 +27,8 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
     super(centralSystemConfig, chargingStationConfig);
     // Initialize express app
     this.expressApplication = ExpressUtils.initApplication(null, centralSystemConfig.debug);
+    // Log Express Request
+    this.expressApplication.use(Logging.traceExpressRequest.bind(this));
     // Initialize the HTTP server
     this.httpServer = ServerUtils.createHttpServer(this.centralSystemConfig, this.expressApplication);
   }
