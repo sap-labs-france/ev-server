@@ -1,6 +1,7 @@
 import { ServerAction } from './Server';
 
 export default interface PerformanceRecord {
+  id?: string;
   tenantSubdomain: string;
   timestamp: Date;
   host: string;

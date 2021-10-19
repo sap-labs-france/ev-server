@@ -8,6 +8,7 @@ import CarRouter from './api/CarRouter';
 import ChargingStationRouter from './api/ChargingStationRouter';
 import CompanyRouter from './api/CompanyRouter';
 import ConnectionRouter from './api/ConnectionRouter';
+import Logging from '../../../../utils/Logging';
 import LoggingRouter from './api/LoggingRouter';
 import NotificationRouter from './api/NotificationRouter';
 import OCPIEndpointRouter from './api/OCPIEndpointRouter';
@@ -44,6 +45,7 @@ export default class GlobalRouter {
     this.router.use('/api',
       AuthService.authenticate(),
       AuthService.checkSessionHash.bind(this),
+      Logging.traceExpressRequest.bind(this),
       [
         new AssetRouter().buildRoutes(),
         new CarRouter().buildRoutes(),

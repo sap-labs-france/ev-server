@@ -241,6 +241,15 @@ export default class Utils {
     return InactivityStatus.ERROR;
   }
 
+  public static areObjectPropertiesEqual(objCmp1: any = {}, objCmp2: any = {}, key: string): boolean {
+    // Check DB expireAfterSeconds index
+    if ((Utils.objectHasProperty(objCmp1, key) !== Utils.objectHasProperty(objCmp2, key)) ||
+        (objCmp1[key] !== objCmp2[key])) {
+      return false;
+    }
+    return true;
+  }
+
   public static objectHasProperty(obj: any, key: string): boolean {
     return _.has(obj, key);
   }
@@ -1531,7 +1540,7 @@ export default class Utils {
   }
 
   public static buildPerformanceRecord(params: {
-    tenantSubdomain: string; durationMs: number; resSizeKb?: number;
+    tenantSubdomain: string; durationMs?: number; resSizeKb?: number;
     reqSizeKb?: number; action: ServerAction|string; group?: PerformanceRecordGroup;
     httpUrl?: string; httpMethod?: string; httpResponseCode?: number; chargingStationID?: string,
   }): PerformanceRecord {
