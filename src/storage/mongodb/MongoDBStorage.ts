@@ -279,6 +279,7 @@ export default class MongoDBStorage {
           ]);
           // Performances
           await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'performances', [
+            { fields: { timestamp: 1 }, options: { expireAfterSeconds: 14 * 24 * 3600 } },
             { fields: { timestamp: 1, group: 1, tenantSubdomain: 1 } },
           ]);
           // Users

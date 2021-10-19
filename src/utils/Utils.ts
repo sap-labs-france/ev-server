@@ -1540,7 +1540,7 @@ export default class Utils {
   }
 
   public static buildPerformanceRecord(params: {
-    tenantSubdomain: string; durationMs: number; resSizeKb?: number;
+    tenantSubdomain: string; durationMs?: number; resSizeKb?: number;
     reqSizeKb?: number; action: ServerAction|string; group?: PerformanceRecordGroup;
     httpUrl?: string; httpMethod?: string; httpResponseCode?: number; chargingStationID?: string,
   }): PerformanceRecord {

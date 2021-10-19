@@ -1,6 +1,7 @@
 import { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { Log, LogLevel, LogType } from '../types/Log';
 import { NextFunction, Request, Response } from 'express';
+import PerformanceRecord, { PerformanceRecordGroup } from '../types/Performance';
 import global, { ActionsResponse } from '../types/GlobalType';
 
 import AppAuthError from '../exception/AppAuthError';
@@ -15,10 +16,10 @@ import LoggingStorage from '../storage/mongodb/LoggingStorage';
 import { OCPIResult } from '../types/ocpi/OCPIResult';
 import { OCPPStatus } from '../types/ocpp/OCPPClient';
 import { OICPResult } from '../types/oicp/OICPResult';
-import { PerformanceRecordGroup } from '../types/Performance';
 import PerformanceStorage from '../storage/mongodb/PerformanceStorage';
 import { ServerAction } from '../types/Server';
 import Tenant from '../types/Tenant';
+import TenantStorage from '../storage/mongodb/TenantStorage';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
 import Utils from './Utils';
@@ -152,35 +153,6 @@ export default class Logging {
     return Logging.logError(log);
   }
 
-  public static async traceExpressRequest(tenantID: string, decodedToken, req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      // Check perfs
-      req['timestamp'] = new Date();
-      // Log
-      await Logging.logSecurityDebug({
-        tenantID,
-        action: ServerAction.HTTP_REQUEST,
-        user: (Utils.objectHasProperty(decodedToken, 'id') ? decodedToken as UserToken : null),
-        message: `Express HTTP Request << ${req.method} '${req.url}'`,
-        module: MODULE_NAME, method: 'logExpressRequest',
-        detailedMessages: {
-          url: req.url,
-          method: req.method,
-          query: Utils.cloneObject(req.query),
-          body: Utils.cloneObject(req.body),
-          locale: req.locale,
-          xhr: req.xhr,
-          ip: req.ip,
-          ips: req.ips,
-          httpVersion: req.httpVersion,
-          headers: req.headers,
-        }
-      });
-    } finally {
-      next();
-    }
-  }
-
   public static async logActionsResponse(
       tenantID: string, action: ServerAction, module: string, method: string, actionsResponse: ActionsResponse,
       messageSuccess: string, messageError: string, messageSuccessAndError: string,
@@ -288,35 +260,115 @@ export default class Logging {
       messageSuccess, messageError, messageSuccessAndError, messageNoSuccessNoError);
   }
 
+  public static async traceExpressRequest(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      // Get Tenant info
+      let userID: string;
+      let tenantID: string;
+      let tenantSubdomain: string;
+      // Keep date/time
+      req['timestamp'] = new Date();
+      // Check Tenant
+      if (req['tenant']) {
+        const tenant = req['tenant'] as Tenant;
+        tenantID = tenant.id;
+        tenantSubdomain = tenant.subdomain;
+      // Check OCPI
+      } else if (req.headers?.authorization.startsWith('Token')) {
+        let token: string;
+        try {
+          if (req.headers?.authorization.startsWith('Token')) {
+            token = req.headers.authorization.slice(6);
+          }
+          if (req.headers?.authorization.startsWith('Bearer')) {
+            token = req.headers.authorization.slice(7);
+          }
+          // Try Base 64 decoding (OCPI)
+          if (token) {
+            const decodedToken = JSON.parse(Buffer.from(token, 'base64').toString());
+            if (Utils.objectHasProperty(decodedToken, 'tid')) {
+              tenantSubdomain = decodedToken['tid'];
+              const tenant = await TenantStorage.getTenantBySubdomain(tenantSubdomain);
+              if (tenant) {
+                tenantID = tenant.id;
+              }
+            }
+          }
+        } catch (error) {
+          // Ignore
+        }
+      }
+      // Check User
+      if (req['user']) {
+        const user = req['user'] as User;
+        userID = user.id;
+      }
+      // Clear Default Tenant
+      if (tenantID === Constants.DEFAULT_TENANT) {
+        tenantID = null;
+      }
+      // Keep Tenant in request
+      req['tenantID'] = tenantID;
+      req['tenantSubdomain'] = tenantSubdomain;
+      // Compute Length
+      const sizeOfRequestDataKB = Utils.truncTo(Utils.createDecimal(
+        sizeof({ headers: req.headers, query: req.query, body: req.body })
+      ).div(1024).toNumber(), 2);
+      // Log
+      const message = `Express HTTP Request << Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB << ${req.method} '${req.url}'`;
+      Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
+      await Logging.logSecurityDebug({
+        tenantID,
+        action: ServerAction.HTTP_REQUEST,
+        user: userID,
+        message,
+        module: MODULE_NAME, method: 'logExpressRequest',
+        detailedMessages: {
+          url: req.url,
+          method: req.method,
+          query: Utils.cloneObject(req.query),
+          body: Utils.cloneObject(req.body),
+          locale: req.locale,
+          xhr: req.xhr,
+          ip: req.ip,
+          ips: req.ips,
+          httpVersion: req.httpVersion,
+          headers: req.headers,
+        }
+      });
+      const performanceID = await PerformanceStorage.savePerformanceRecord(
+        Utils.buildPerformanceRecord({
+          tenantSubdomain,
+          group: Utils.getPerformanceRecordGroupFromURL(req.url),
+          httpUrl: req.url,
+          httpMethod: req.method,
+          reqSizeKb: sizeOfRequestDataKB,
+          action: ServerAction.HTTP_REQUEST,
+        })
+      );
+      req['performanceID'] = performanceID;
+    } finally {
+      next();
+    }
+  }
+
   public static traceExpressResponse(req: Request, res: Response, next: NextFunction): void {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     res.on('finish', async () => {
       try {
-        // Retrieve Tenant ID if available
-        let tenantID: string;
-        let tenantSubdomain: string;
-        if (req['tenantID']) {
-          tenantID = req['tenantID'];
-        }
-        if (req['tenant']) {
-          tenantID = req.tenant.id;
-          tenantSubdomain = req.tenant.subdomain;
-        }
+        // Get Tenant info
+        const tenantID = req['tenantID'] as string;
         // Compute duration
         let executionDurationMillis = 0;
         if (req['timestamp']) {
           executionDurationMillis = (new Date().getTime() - req['timestamp'].getTime());
         }
-        // Compute Length
-        const sizeOfRequestDataKB = Utils.truncTo(Utils.createDecimal(
-          sizeof({ headers: req.headers, query: req.query, body: req.body })
-        ).div(1024).toNumber(), 2);
         let sizeOfResponseDataKB = 0;
         if (res.getHeader('content-length')) {
           sizeOfResponseDataKB = Utils.truncTo(
             Utils.createDecimal(res.getHeader('content-length') as number).div(1024).toNumber(), 2);
         }
-        const message = `Express HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms - Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB >> ${req.method}/${res.statusCode} '${req.url}'`;
+        const message = `Express HTTP Response >> ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB >> ${req.method}/${res.statusCode} '${req.url}'`;
         Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
         if (sizeOfResponseDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
           const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB} KB, got ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB`);
@@ -367,19 +419,15 @@ export default class Logging {
             headers: res.getHeaders(),
           }
         });
-        void PerformanceStorage.savePerformanceRecord(
-          Utils.buildPerformanceRecord({
-            tenantSubdomain,
-            group: Utils.getPerformanceRecordGroupFromURL(req.url),
-            httpUrl: req.url,
+        if (req['performanceID']) {
+          const performanceRecord = {
+            id: req['performanceID'],
             httpResponseCode: res.statusCode,
-            httpMethod: req.method,
             durationMs: executionDurationMillis,
             resSizeKb: sizeOfResponseDataKB,
-            reqSizeKb: sizeOfRequestDataKB,
-            action: ServerAction.HTTP_RESPONSE,
-          })
-        );
+          } as PerformanceRecord;
+          await PerformanceStorage.updatePerformanceRecord(performanceRecord);
+        }
       } finally {
         next();
       }

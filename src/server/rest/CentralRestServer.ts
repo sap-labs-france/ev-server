@@ -50,14 +50,9 @@ export default class CentralRestServer {
       AuthService.authenticate(),
       CentralRestServerService.restServiceSecured.bind(this));
     // Util API
-    this.expressApplication.all('/client/util/:action', CentralRestServerService.restServiceUtil.bind(this));
-    // Workaround URL encoding issue
-    this.expressApplication.all('/client%2Futil%2FFirmwareDownload%3FFileName%3Dr7_update_3.3.0.12_d4.epk', async (req: Request, res: Response, next: NextFunction) => {
-      req.url = decodeURIComponent(req.originalUrl);
-      req.params.action = 'FirmwareDownload';
-      req.query.FileName = 'r7_update_3.3.0.12_d4.epk';
-      await CentralRestServerService.restServiceUtil(req, res, next);
-    });
+    this.expressApplication.all('/client/util/:action',
+      Logging.traceExpressRequest.bind(this),
+      CentralRestServerService.restServiceUtil.bind(this));
     // Post init
     ExpressUtils.postInitApplication(this.expressApplication);
     // Create HTTP server to serve the express app
