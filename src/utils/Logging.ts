@@ -274,7 +274,7 @@ export default class Logging {
         tenantID = tenant.id;
         tenantSubdomain = tenant.subdomain;
       // Check OCPI
-      } else if (req.headers?.authorization.startsWith('Token')) {
+      } else if (req.headers?.authorization?.startsWith('Token')) {
         let token: string;
         try {
           if (req.headers?.authorization.startsWith('Token')) {
