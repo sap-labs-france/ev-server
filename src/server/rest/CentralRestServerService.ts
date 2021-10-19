@@ -322,6 +322,7 @@ export default class CentralRestServerService {
       return;
     }
     try {
+      await Logging.traceExpressRequest(req, res, next);
       // Get the action
       const handleRequest = RequestMapper.getInstanceFromHTTPVerb(req.method).getActionFromPath(action);
       // Execute

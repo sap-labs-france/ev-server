@@ -4,6 +4,7 @@ import { Application, NextFunction, Request, Response } from 'express';
 import CPOService211 from './ocpi-services-impl/ocpi-2.1.1/CPOService';
 import EMSPService211 from './ocpi-services-impl/ocpi-2.1.1/EMSPService';
 import ExpressUtils from '../ExpressUtils';
+import Logging from '../../utils/Logging';
 import OCPIServiceConfiguration from '../../types/configuration/OCPIServiceConfiguration';
 import OCPIServices from './OCPIServices';
 import { ServerUtils } from '../ServerUtils';
@@ -20,6 +21,8 @@ export default class OCPIServer {
     this.ocpiRestConfig = ocpiRestConfig;
     // Initialize express app
     this.expressApplication = ExpressUtils.initApplication(null, ocpiRestConfig.debug);
+    // Log Express Request
+    this.expressApplication.use(Logging.traceExpressRequest.bind(this));
     // New OCPI Services Instances
     const ocpiServices = new OCPIServices(this.ocpiRestConfig);
     // OCPI versions
