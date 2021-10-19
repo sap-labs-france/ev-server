@@ -185,13 +185,19 @@ export default class SettingService {
         filteredRequest = SettingValidator.getInstance().validateSettingOCPISetReq(req.body);
         break;
       case TechnicalSettings.CRYPTO:
-        // filteredRequest = SettingValidator.getInstance().validateSettingCryptoSetReq(req.body);
+        filteredRequest = SettingValidator.getInstance().validateSettingCryptoSetReq(req.body);
         break;
       case TechnicalSettings.USER:
         filteredRequest = SettingValidator.getInstance().validateSettingUserSetReq(req.body);
         break;
       case TechnicalSettings.SMART_CHARGING:
         filteredRequest = SettingValidator.getInstance().validateSettingSmartChargingSetReq(req.body);
+        break;
+      case TechnicalSettings.REFUND:
+        filteredRequest = SettingValidator.getInstance().validateSettingRefundSetReq(req.body);
+        break;
+      case TechnicalSettings.PRICING:
+        filteredRequest = SettingValidator.getInstance().validateSettingPricingSetReq(req.body);
         break;
       default:
         throw new AppError({

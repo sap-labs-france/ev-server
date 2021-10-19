@@ -1,5 +1,6 @@
 import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
+import { NumberFormatPartTypes } from 'intl';
 
 export interface HttpSettingRequest extends HttpByIDRequest {
   ContentFilter: boolean;
@@ -65,6 +66,46 @@ export interface HttpSettingSmartChargingSetRequest extends HttpSettingSetReques
       password: string,
       stickyLimitation: boolean,
       user: string
+    }
+  }
+}
+
+export interface HttpSettingRefundSetRequest extends HttpSettingSetRequest {
+  content: {
+    type: string,
+    concur: {
+      apiUrl: string,
+      appUrl: string,
+      authentificationUrl: string,
+      clientId: string,
+      clientSecret: string,
+      expenseTypeId: string,
+      policyId: string,
+      reportName: string
+    }
+  }
+}
+
+export interface HttpSettingPricingSetRequest extends HttpSettingSetRequest {
+  content: {
+    type: string,
+    simple?: {
+      price: number,
+      currency: string
+    }
+  }
+}
+
+export interface HttpSettingCryptoSetRequest extends HttpSettingSetRequest {
+  content: {
+    type: string,
+    crypto: {
+      key: string,
+      keyProperties: {
+        blockCypher: string,
+        blockSize: number,
+        operationMode: string
+      }
     }
   }
 }

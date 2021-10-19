@@ -5,7 +5,9 @@ export enum TechnicalSettings {
   USER = 'user',
   CRYPTO = 'crypto',
   OCPI = 'ocpi',
-  SMART_CHARGING = 'smartCharging'
+  SMART_CHARGING = 'smartCharging',
+  REFUND = 'refund',
+  PRICING = 'pricing',
 }
 
 export interface Setting extends CreatedUpdatedProps {
