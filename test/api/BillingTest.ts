@@ -960,7 +960,7 @@ describe('Billing Service', function() {
         expect(testData.userService).to.not.be.null;
         // Update the freeAccess flag for the basic user:
         await testData.adminUserService.userApi.update({
-          id: '5ce249a1a39ae1c056c123ab',
+          id: ContextDefinition.TENANT_USER_LIST[2].id,
           freeAccess: true
         });
       });
@@ -997,7 +997,7 @@ describe('Billing Service', function() {
         expect(testData.userService).to.not.be.null;
         // Update the freeAccess flag for the basic user:
         await testData.adminUserService.userApi.update({
-          id: '5ce249a1a39ae1c056c123ab',
+          id: ContextDefinition.TENANT_USER_LIST[2].id,
           freeAccess: false
         });
       });
