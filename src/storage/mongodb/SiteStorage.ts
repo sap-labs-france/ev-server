@@ -271,6 +271,9 @@ export default class SiteStorage {
           (coordinate) => Utils.convertToFloat(coordinate)) : [],
       };
     }
+    if (siteToSave.tariffID) {
+      siteMDB.tariffID = siteToSave.tariffID;
+    }
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(siteMDB, siteToSave);
     // Modify and return the modified document
