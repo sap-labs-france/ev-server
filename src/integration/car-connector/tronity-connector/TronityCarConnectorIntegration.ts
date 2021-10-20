@@ -97,8 +97,7 @@ export default class TronityCarConnectorIntegration extends CarConnectorIntegrat
     );
     const currentTime = new Date();
     const token : CarConnectorConnectionToken = {
-      // accessToken: await Cypher.encrypt(this.tenant, response.data.access_token),
-      accessToken: response.data.access_token,
+      accessToken: await Cypher.encrypt(this.tenant, response.data.access_token),
       tokenType: response.data.token_type,
       expiresIn: response.data.expires_in,
       issued: currentTime,
