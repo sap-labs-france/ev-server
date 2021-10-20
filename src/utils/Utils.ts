@@ -1470,12 +1470,14 @@ export default class Utils {
     }
     // REST API
     if (url.startsWith('/client/api/') ||
-        url.startsWith('/client/util/') ||
+        url.startsWith('/v1/api/')) {
+      return PerformanceRecordGroup.REST_SECURED;
+    }
+    if (url.startsWith('/client/util/') ||
         url.startsWith('/client/auth/') ||
-        url.startsWith('/v1/api/') ||
         url.startsWith('/v1/util/') ||
         url.startsWith('/v1/auth/')) {
-      return PerformanceRecordGroup.REST;
+      return PerformanceRecordGroup.REST_PUBLIC;
     }
     // OCPI
     if (url.includes('ocpi')) {
@@ -1506,7 +1508,7 @@ export default class Utils {
       return PerformanceRecordGroup.IOTHINK;
     }
     // Lacroix
-    if (url.includes('esoftlink')) {
+    if (url.includes('esoftlink ')) {
       return PerformanceRecordGroup.LACROIX;
     }
     // EV Database
