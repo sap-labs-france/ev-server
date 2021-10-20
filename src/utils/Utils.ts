@@ -1506,12 +1506,16 @@ export default class Utils {
       return PerformanceRecordGroup.IOTHINK;
     }
     // Lacroix
-    if (url.includes('esoflink')) {
+    if (url.includes('esoftlink')) {
       return PerformanceRecordGroup.LACROIX;
     }
     // EV Database
     if (url.includes('ev-database')) {
       return PerformanceRecordGroup.EV_DATABASE;
+    }
+    // WIT
+    if (url.includes('wit-datacenter')) {
+      return PerformanceRecordGroup.WIT;
     }
     // SAP Smart Charging
     if (url.includes('smart-charging')) {
