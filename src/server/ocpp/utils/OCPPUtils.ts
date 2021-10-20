@@ -1353,6 +1353,12 @@ export default class OCPPUtils {
     const token = urlParts.query.token;
     // Set the Tenant ID
     headers.tenantID = tenantID;
+    if (tenantID) {
+      const tenant = await TenantStorage.getTenant(tenantID);
+      if (tenant) {
+        headers.tenant = tenant;
+      }
+    }
     headers.token = token;
     if (!Utils.isChargingStationIDValid(headers.chargeBoxIdentity)) {
       throw new BackendError({
