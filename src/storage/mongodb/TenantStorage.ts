@@ -88,10 +88,14 @@ export default class TenantStorage {
       { upsert: true, returnDocument: 'after' });
     // Save Logo
     if (saveLogo) {
-      await TenantStorage.saveTenantLogo(tenantMDB._id.toString(), tenantToSave.logo);
+      // Modify
+      await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenantlogos').findOneAndUpdate(
+        { '_id': tenantMDB._id },
+        { $set: { logo: tenantToSave.logo } },
+        { upsert: true });
     }
     // Debug
-    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'saveTenant', startTime, tenantMDB);
+    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'saveTenant', startTime, { tenant: tenantMDB, logo: tenantToSave.logo });
     return tenantFilter._id.toString();
   }
 
@@ -250,17 +254,5 @@ export default class TenantStorage {
       id: tenant.id,
       logo: tenantLogoMDB ? tenantLogoMDB.logo : null
     };
-  }
-
-  private static async saveTenantLogo(tenantID: string, tenantLogoToSave: string): Promise<void> {
-    // Debug
-    const startTime = Logging.traceDatabaseRequestStart();
-    // Modify
-    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenantlogos').findOneAndUpdate(
-      { '_id': DatabaseUtils.convertToObjectID(tenantID) },
-      { $set: { logo: tenantLogoToSave } },
-      { upsert: true });
-    // Debug
-    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'saveTenantLogo', startTime, tenantLogoToSave);
   }
 }

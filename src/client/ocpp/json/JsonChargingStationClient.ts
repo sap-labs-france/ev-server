@@ -103,7 +103,7 @@ export default class JsonChargingStationClient extends ChargingStationClient {
 
   private async sendMessage(params: any, command: Command): Promise<any> {
     // Trace
-    const startTimestamp = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant.id, this.chargingStationID,
+    const startTimestamp = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant, this.chargingStationID,
       `ChargingStation${command}` as ServerAction, params, '<<', {
         siteAreaID: this.siteAreaID,
         siteID: this.siteID,

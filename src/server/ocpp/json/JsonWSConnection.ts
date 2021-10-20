@@ -170,7 +170,7 @@ export default class JsonWSConnection extends WSConnection {
   public async handleRequest(messageId: string, command: Command, commandPayload: Record<string, unknown> | string): Promise<void> {
     // Trace
     const startTimestamp = await Logging.traceOcppMessageRequest(Constants.MODULE_JSON_OCPP_SERVER_16,
-      this.getTenantID(), this.getChargingStationID(),
+      this.getTenant(), this.getChargingStationID(),
       OCPPUtils.getServerActionFromOcppCommand(command), commandPayload, '>>', {
         siteAreaID: this.getSiteAreaID(),
         siteID: this.getSiteID(),
