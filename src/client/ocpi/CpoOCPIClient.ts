@@ -589,7 +589,7 @@ export default class CpoOCPIClient extends OCPIClient {
     const startTime = new Date().getTime();
     // Define get option
     const options: OCPILocationOptions = {
-      addChargeBoxID: true,
+      addChargeBoxAndOrgIDs: true,
       countryID: this.getLocalCountryCode(ServerAction.OCPI_CHECK_LOCATIONS),
       partyID: this.getLocalPartyID(ServerAction.OCPI_CHECK_LOCATIONS)
     };
@@ -687,7 +687,7 @@ export default class CpoOCPIClient extends OCPIClient {
     const startTime = new Date().getTime();
     // Define get option
     const options: OCPILocationOptions = {
-      addChargeBoxID: true,
+      addChargeBoxAndOrgIDs: true,
       countryID: this.getLocalCountryCode(ServerAction.OCPI_PATCH_STATUS),
       partyID: this.getLocalPartyID(ServerAction.OCPI_PATCH_STATUS)
     };
@@ -730,7 +730,7 @@ export default class CpoOCPIClient extends OCPIClient {
               if (location.id && evse?.uid) {
                 try {
                   const chargingStationDetails : any = {
-                    id: evse.chargeBoxId,
+                    id: evse.chargingStationID,
                     siteID: evse.siteID,
                     siteAreaID: evse.siteAreaID,
                     companyID: evse.companyID,
@@ -739,7 +739,7 @@ export default class CpoOCPIClient extends OCPIClient {
                   result.success++;
                 } catch (error) {
                   result.failure++;
-                  result.objectIDsInFailure.push(evse.chargeBoxId);
+                  result.objectIDsInFailure.push(evse.chargingStationID);
                   result.logs.push(
                     `Update status failed on Location '${location.name}' with ID '${location.id}', Charging Station ID '${evse.evse_id}': ${error.message}`
                   );

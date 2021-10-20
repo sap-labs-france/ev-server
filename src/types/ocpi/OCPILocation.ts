@@ -55,7 +55,7 @@ export enum OCPILocationType {
 export interface OCPILocationOptions {
   countryID: string;
   partyID: string;
-  addChargeBoxID?: boolean;
+  addChargeBoxAndOrgIDs?: boolean;
 }
 
 export interface OCPILocationReference {

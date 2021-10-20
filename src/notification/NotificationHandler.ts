@@ -345,7 +345,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendAccountVerification(tenant: Tenant, notificationID: string, user: User, sourceData: AccountVerificationNotification): Promise<void> {
+  public static async sendAccountVerification(tenant: Tenant, notificationID: string, user: User, sourceData: AccountVerificationNotification): Promise<void> {
     if (tenant.id !== Constants.DEFAULT_TENANT) {
       // Get the Tenant logo
       if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
@@ -383,7 +383,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendAdminAccountVerification(tenant: Tenant, notificationID: string, user: User, adminSourceData: AdminAccountVerificationNotification): Promise<void> {
+  public static async sendAdminAccountVerification(tenant: Tenant, notificationID: string, user: User, adminSourceData: AdminAccountVerificationNotification): Promise<void> {
     if (tenant.id !== Constants.DEFAULT_TENANT) {
       // Get the Tenant logo
       if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
@@ -415,7 +415,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendVerificationEmail(tenant: Tenant, notificationID: string, user: User,
+  public static async sendVerificationEmail(tenant: Tenant, notificationID: string, user: User,
       sourceData: VerificationEmailNotification): Promise<void> {
     if (tenant.id !== Constants.DEFAULT_TENANT) {
       // Get the Tenant logo
@@ -443,7 +443,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendVerificationEmailUserImport(tenantID: string, notificationID: string, user: User,
+  public static async sendVerificationEmailUserImport(tenantID: string, notificationID: string, user: User,
       sourceData: VerificationEmailNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant

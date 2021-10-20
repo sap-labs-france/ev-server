@@ -88,7 +88,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders(Command.REMOTE_STOP_TRANSACTION);
     // Trace
-    const startTimestamp = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant.id,
+    const startTimestamp = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant,
       this.chargingStation.id, ServerAction.CHARGING_STATION_REMOTE_STOP_TRANSACTION,
       [params, { headers: this.client.getSoapHeaders() }], '<<', {
         siteID: this.chargingStation.siteID,
@@ -130,7 +130,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders(Command.REMOTE_START_TRANSACTION);
     // Trace
-    const startTimestamp = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant.id, this.chargingStation.id, ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION,
+    const startTimestamp = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant, this.chargingStation.id, ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION,
       [params, { headers: this.client.getSoapHeaders() }], '<<', {
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
@@ -169,7 +169,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders(Command.UNLOCK_CONNECTOR);
     // Trace
-    const startTimestamp = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant.id, this.chargingStation.id, ServerAction.CHARGING_STATION_UNLOCK_CONNECTOR,
+    const startTimestamp = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant, this.chargingStation.id, ServerAction.CHARGING_STATION_UNLOCK_CONNECTOR,
       [params, { headers: this.client.getSoapHeaders() }], '<<', {
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
@@ -210,7 +210,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders(Command.RESET);
     // Trace
-    const startTimestamp = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant.id, this.chargingStation.id, ServerAction.CHARGING_STATION_RESET,
+    const startTimestamp = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant, this.chargingStation.id, ServerAction.CHARGING_STATION_RESET,
       [params, { headers: this.client.getSoapHeaders() }], '<<', {
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
@@ -251,7 +251,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders(Command.CLEAR_CACHE);
     // Trace
-    const startTimestamp = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant.id, this.chargingStation.id, ServerAction.CHARGING_STATION_CLEAR_CACHE,
+    const startTimestamp = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant, this.chargingStation.id, ServerAction.CHARGING_STATION_CLEAR_CACHE,
       [{ headers: this.client.getSoapHeaders() }], '<<', {
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
@@ -290,7 +290,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders(Command.GET_CONFIGURATION);
     // Trace
-    const startTimestamp = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant.id, this.chargingStation.id, ServerAction.CHARGING_STATION_GET_CONFIGURATION,
+    const startTimestamp = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant, this.chargingStation.id, ServerAction.CHARGING_STATION_GET_CONFIGURATION,
       [params, { headers: this.client.getSoapHeaders() }], '<<', {
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
@@ -339,7 +339,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders(Command.CHANGE_CONFIGURATION);
     // Trace
-    const startTimestamp = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant.id, this.chargingStation.id, ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
+    const startTimestamp = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant, this.chargingStation.id, ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
       [params, { headers: this.client.getSoapHeaders() }], '<<', {
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
