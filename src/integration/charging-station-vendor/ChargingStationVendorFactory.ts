@@ -23,6 +23,7 @@ export default class ChargingStationVendorFactory {
       case ChargerVendor.EVMETER:
       case ChargerVendor.INNOGY:
       case ChargerVendor.INGETEAM:
+      case ChargerVendor.INGETEAM_ENERGY:
       case ChargerVendor.IES:
       case ChargerVendor.WALLBOX_CHARGERS:
       case ChargerVendor.ENPLUS:

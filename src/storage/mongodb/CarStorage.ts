@@ -667,24 +667,6 @@ export default class CarStorage {
     aggregation.push({
       $limit: (dbParams.limit > 0 && dbParams.limit < Constants.DB_RECORD_COUNT_CEIL) ? dbParams.limit : Constants.DB_RECORD_COUNT_CEIL
     });
-    // Car Image
-    aggregation.push({
-      $addFields: {
-        'carCatalog.image': {
-          $cond: {
-            if: { $gt: ['$carCatalog.image', null] }, then: {
-              $concat: [
-                `${Utils.buildRestServerURL()}/client/util/CarCatalogImage?ID=`,
-                '$carCatalog.id',
-                '&LastChangedOn=',
-                { $toString: '$carCatalog.lastChangedOn' }
-              ]
-            }, else: null
-          }
-
-        }
-      }
-    });
     // Users
     if (params.withUser) {
       DatabaseUtils.pushUserLookupInAggregation({
@@ -697,6 +679,24 @@ export default class CarStorage {
       DatabaseUtils.pushCarCatalogLookupInAggregation({
         tenantID: Constants.DEFAULT_TENANT, aggregation, localField: 'carCatalogID', foreignField: '_id',
         asField: 'carCatalog', oneToOneCardinality: true
+      });
+      // Car Image
+      aggregation.push({
+        $addFields: {
+          'carCatalog.image': {
+            $cond: {
+              if: { $gt: ['$carCatalog.image', null] }, then: {
+                $concat: [
+                  `${Utils.buildRestServerURL()}/client/util/CarCatalogImage?ID=`,
+                  '$carCatalog.id',
+                  '&LastChangedOn=',
+                  { $toString: '$carCatalog.lastChangedOn' }
+                ]
+              }, else: null
+            }
+
+          }
+        }
       });
     }
     // Add Created By / Last Changed By
