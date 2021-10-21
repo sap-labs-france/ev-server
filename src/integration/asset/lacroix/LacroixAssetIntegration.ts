@@ -59,7 +59,7 @@ export default class LacroixAssetIntegration extends AssetIntegration {
         {
           auth: {
             username: this.connection.lacroixConnection.user,
-            password: this.connection.lacroixConnection.password
+            password: await Cypher.decrypt(this.tenant, this.connection.lacroixConnection.password)
           }
         }
       );
