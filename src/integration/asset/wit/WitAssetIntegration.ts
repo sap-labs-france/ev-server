@@ -7,6 +7,7 @@ import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
 import BackendError from '../../../exception/BackendError';
 import Constants from '../../../utils/Constants';
+import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
@@ -118,7 +119,7 @@ export default class WitAssetIntegration extends AssetIntegration {
     );
     const expireTime = moment().add(response.data.expires_in, 'seconds').toDate();
     this.connection.token = {
-      accessToken: response.data.access_token,
+      accessToken: await Cypher.encrypt(this.tenant, response.data.access_token),
       tokenType: response.data.token_type,
       expiresIn: response.data.expires_in,
       issued: now,
@@ -129,15 +130,14 @@ export default class WitAssetIntegration extends AssetIntegration {
   }
 
   private async connect(): Promise<string> {
-    if (!this.checkIfTokenExpired(this.connection.token)) {
-      return this.connection.token.accessToken;
+    if (this.checkIfTokenExpired(this.connection.token)) {
+      // Check if connection is initialized
+      this.checkConnectionIsProvided();
+      // Get credential params
+      const credentials = this.getCredentialURLParams();
+      await this.fetchNewToken(credentials);
     }
-    // Check if connection is initialized
-    this.checkConnectionIsProvided();
-    // Get credential params
-    const credentials = this.getCredentialURLParams();
-    await this.fetchNewToken(credentials);
-    return this.connection.token.accessToken;
+    return await Cypher.decrypt(this.tenant, this.connection.token.accessToken);
   }
 
   private getCredentialURLParams(): URLSearchParams {

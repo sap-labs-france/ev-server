@@ -174,15 +174,14 @@ export default class IothinkAssetIntegration extends AssetIntegration {
   }
 
   private async connect(): Promise<string> {
-    if (!this.checkIfTokenExpired(this.connection.token)) {
-      return this.connection.token.accessToken;
+    if (this.checkIfTokenExpired(this.connection.token)) {
+      // Check if connection is initialized
+      this.checkConnectionIsProvided();
+      // Get credential params
+      const credentials = await this.getCredentialURLParams();
+      await this.fetchNewToken(credentials);
     }
-    // Check if connection is initialized
-    this.checkConnectionIsProvided();
-    // Get credential params
-    const credentials = await this.getCredentialURLParams();
-    await this.fetchNewToken(credentials);
-    return this.connection.token.accessToken;
+    return await Cypher.decrypt(this.tenant, this.connection.token.accessToken);
   }
 
   private async getCredentialURLParams(): Promise<URLSearchParams> {
