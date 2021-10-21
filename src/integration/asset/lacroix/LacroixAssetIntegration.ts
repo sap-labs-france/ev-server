@@ -8,6 +8,7 @@ import { AxiosInstance } from 'axios';
 import BackendError from '../../../exception/BackendError';
 import Constants from '../../../utils/Constants';
 import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
+import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import Tenant from '../../../types/Tenant';
@@ -154,7 +155,7 @@ export default class LacroixAssetIntegration extends AssetIntegration {
     // Check if connection is initialized
     this.checkConnectionIsProvided();
     // Get credential params
-    const credentials = this.getCredentialParams();
+    const credentials = await this.getCredentialParams();
     // Send request to check if credentials are valid
     await Utils.executePromiseWithTimeout(5000,
       this.axiosInstance.post(`${this.connection.url}/login`,
@@ -190,10 +191,10 @@ export default class LacroixAssetIntegration extends AssetIntegration {
     };
   }
 
-  private getCredentialParams(): URLSearchParams {
+  private async getCredentialParams(): Promise<URLSearchParams> {
     const params = new URLSearchParams();
     params.append('email', this.connection.lacroixConnection.user);
-    params.append('plainPassword', this.connection.lacroixConnection.password);
+    params.append('plainPassword', await Cypher.decrypt(this.tenant, this.connection.lacroixConnection.password));
     return params;
   }
 }

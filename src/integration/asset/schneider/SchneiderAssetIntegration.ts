@@ -7,6 +7,7 @@ import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
 import BackendError from '../../../exception/BackendError';
 import Constants from '../../../utils/Constants';
+import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import Tenant from '../../../types/Tenant';
@@ -107,7 +108,7 @@ export default class SchneiderAssetIntegration extends AssetIntegration {
     // Check if connection is initialized
     this.checkConnectionIsProvided();
     // Get credential params
-    const credentials = this.getCredentialURLParams();
+    const credentials = await this.getCredentialURLParams();
     // Send credentials to get the token
     const response = await Utils.executePromiseWithTimeout(5000,
       this.axiosInstance.post(`${this.connection.url}/GetToken`,
@@ -124,11 +125,11 @@ export default class SchneiderAssetIntegration extends AssetIntegration {
     return response.data.access_token;
   }
 
-  private getCredentialURLParams(): URLSearchParams {
+  private async getCredentialURLParams(): Promise<URLSearchParams> {
     const params = new URLSearchParams();
     params.append('grant_type', 'password');
     params.append('username', this.connection.schneiderConnection.user);
-    params.append('password', this.connection.schneiderConnection.password);
+    params.append('password', await Cypher.decrypt(this.tenant, this.connection.schneiderConnection.password));
     return params;
   }
 

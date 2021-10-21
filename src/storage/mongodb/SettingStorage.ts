@@ -533,5 +533,4 @@ export default class SettingStorage {
     }
     return SettingStorage.saveSettings(tenant, setting);
   }
-
 }

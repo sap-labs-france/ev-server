@@ -134,19 +134,19 @@ export default class WitAssetIntegration extends AssetIntegration {
       // Check if connection is initialized
       this.checkConnectionIsProvided();
       // Get credential params
-      const credentials = this.getCredentialURLParams();
+      const credentials = await this.getCredentialURLParams();
       await this.fetchNewToken(credentials);
     }
     return await Cypher.decrypt(this.tenant, this.connection.token.accessToken);
   }
 
-  private getCredentialURLParams(): URLSearchParams {
+  private async getCredentialURLParams(): Promise<URLSearchParams> {
     const params = new URLSearchParams();
     params.append('client_id', this.connection.witConnection.clientId);
-    params.append('client_secret', this.connection.witConnection.clientSecret);
+    params.append('client_secret', await Cypher.decrypt(this.tenant, this.connection.witConnection.clientSecret));
     params.append('grant_type', 'password');
     params.append('username', this.connection.witConnection.user);
-    params.append('password', this.connection.witConnection.password);
+    params.append('password', await Cypher.decrypt(this.tenant, this.connection.witConnection.password));
     params.append('scope', 'https://api.wit-datacenter.com');
     return params;
   }
