@@ -57,10 +57,11 @@ export default class PricingStorage {
   }
 
   public static async getPricingDefinition(tenant: Tenant, id: string,
-      params: { entityIDs?: string[]; } = {}, projectFields?: string[]): Promise<PricingDefinition> {
+      params: { entityIDs?: string[]; entityTypes?: string[]; } = {}, projectFields?: string[]): Promise<PricingDefinition> {
     const pricingDefinitionMDB = await PricingStorage.getPricingDefinitions(tenant, {
       pricingDefinitionIDs: [id],
       entityIDs: params.entityIDs,
+      entityTypes: params.entityTypes
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return pricingDefinitionMDB.count === 1 ? pricingDefinitionMDB.result[0] : null;
   }
@@ -69,6 +70,7 @@ export default class PricingStorage {
       params: {
         pricingDefinitionIDs?: string[],
         entityIDs?: string[];
+        entityTypes?: string[];
       },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<PricingDefinition>> {
     const uniqueTimerID = Logging.traceDatabaseRequestStart();

@@ -4,6 +4,12 @@
   "properties": {
     "ID": {
       "$ref": "pricing-definition#/definitions/id"
+    },
+    "entityID": {
+      "$ref": "pricing-definition#/definitions/entityID"
+    },
+    "entityType": {
+      "$ref": "pricing-definition#/definitions/entityType"
     }
   },
   "required": [

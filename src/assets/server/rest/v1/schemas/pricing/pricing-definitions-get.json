@@ -2,9 +2,14 @@
   "title": "Get Pricing Definitions Request",
   "type": "object",
   "properties": {
-    "EntityID": {
-      "type": "string",
-      "sanitize": "mongo"
+    "entityID": {
+      "$ref": "pricing-definition#/definitions/entityID"
+    },
+    "entityType": {
+      "$ref": "pricing-definition#/definitions/entityType"
+    },
+    "Limit": {
+      "$ref": "common#/definitions/limit"
     }
   }
 }
