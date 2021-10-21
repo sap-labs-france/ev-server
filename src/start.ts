@@ -12,7 +12,6 @@ import Logging from './utils/Logging';
 import MigrationConfiguration from './types/configuration/MigrationConfiguration';
 import MigrationHandler from './migration/MigrationHandler';
 import MongoDBStorage from './storage/mongodb/MongoDBStorage';
-import MongoDBStorageNotification from './storage/mongodb/MongoDBStorageNotification';
 import OCPIServer from './server/ocpi/OCPIServer';
 import OCPIServiceConfiguration from './types/configuration/OCPIServiceConfiguration';
 import ODataServer from './server/odata/ODataServer';
@@ -33,7 +32,6 @@ export default class Bootstrap {
   private static centralSystemRestConfig: CentralSystemRestServiceConfiguration;
   private static centralRestServer: CentralRestServer;
   private static chargingStationConfig: ChargingStationConfiguration;
-  private static storageNotification: MongoDBStorageNotification;
   private static storageConfig: StorageConfiguration;
   private static centralSystemsConfig: CentralSystemConfiguration[];
   private static SoapCentralSystemServer: SoapCentralSystemServer;
@@ -203,20 +201,8 @@ export default class Bootstrap {
         }
         // Start it
         await Bootstrap.centralRestServer.start();
-        if (this.centralSystemRestConfig.socketIO) {
-          // Start database Socket IO notifications
-          await this.centralRestServer.startSocketIO();
-        }
         serverStarted.push('Rest');
       }
-      // -------------------------------------------------------------------------
-      // Listen to DB changes
-      // -------------------------------------------------------------------------
-      // Create database notifications
-      if (!Bootstrap.storageNotification) {
-        Bootstrap.storageNotification = new MongoDBStorageNotification(Bootstrap.storageConfig, Bootstrap.centralRestServer);
-      }
-      await Bootstrap.storageNotification.start();
       // -------------------------------------------------------------------------
       // Central Server (Charging Stations)
       // -------------------------------------------------------------------------

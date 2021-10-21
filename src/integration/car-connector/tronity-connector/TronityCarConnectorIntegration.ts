@@ -11,6 +11,7 @@ import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import Tenant from '../../../types/Tenant';
+import { URLSearchParams } from 'url';
 import Utils from '../../../utils/Utils';
 
 const MODULE_NAME = 'TronityCarConnectorIntegration';
