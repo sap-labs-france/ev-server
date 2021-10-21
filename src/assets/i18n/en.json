@@ -109,7 +109,7 @@
     },
     "unknownUserBadged": {
       "title": "Unknown User",
-      "body": "An unknown user has just badged on '{{chargeBoxID}}' with the badge ID '{{badgeID}}' in organization '{{tenantName}}'"
+      "body": "An unknown user has just badged on '{{chargeBoxID}}' with the RFID card ID '{{badgeID}}' in organization '{{tenantName}}'"
     },
     "chargingStationRegistered": {
       "title": "Charging Station Connected",
@@ -175,9 +175,9 @@
     "usage": "Usage (Hours)"
   },
   "tags": {
-    "id": "Badge ID",
-    "description": "Badge Description",
-    "virtualBadge": "Virtual Badge"
+    "id": "RFID Card ID",
+    "description": "RFID Card Description",
+    "virtualBadge": "Virtual RFID Card"
   },
   "transactions": {
     "totalConsumption": "Total Consumption (kW.h)",

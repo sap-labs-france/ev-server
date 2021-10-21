@@ -36,3 +36,8 @@ export enum PerformanceRecordGroup {
   SAP_CONCUR = 'sap-concur',
   UNKNOWN = 'unknown',
 }
+
+export interface PerformanceTracingData {
+  startTimestamp: number;
+  performanceID: string;
+}
