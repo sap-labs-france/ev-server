@@ -1,4 +1,4 @@
-import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSetting, BillingSettings, BillingSettingsType, CarConnectorSetting, CarConnectorSettings, CarConnectorSettingsType, CryptoSetting, CryptoSettings, CryptoSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType, TechnicalSettings, UserSettings, UserSettingsType } from '../../types/Setting';
+import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSetting, BillingSettings, BillingSettingsType, CarConnectorSetting, CarConnectorSettings, CarConnectorSettingsType, CryptoSetting, CryptoSettings, CryptoSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, Setting, SettingDB, SmartChargingSettings, SmartChargingSettingsType, TechnicalSettings, UserSettings, UserSettingsType } from '../../types/Setting';
 import Tenant, { TenantComponents } from '../../types/Tenant';
 import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
@@ -11,7 +11,6 @@ import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { ObjectId } from 'mongodb';
 import Utils from '../../utils/Utils';
-import _ from 'lodash';
 
 const MODULE_NAME = 'SettingStorage';
 
@@ -61,7 +60,7 @@ export default class SettingStorage {
       backupSensitiveData: settingToSave.backupSensitiveData
     };
     // Encrypt sensitive data before storing
-    await this.encryptSensitiveData(tenant, settingMDB);
+    // await this.encryptSensitiveData(tenant, settingMDB);
     DatabaseUtils.addLastChangedCreatedProps(settingMDB, settingToSave);
     // Modify
     await global.database.getCollection<SettingDB>(tenant.id, 'settings').findOneAndUpdate(
@@ -161,6 +160,7 @@ export default class SettingStorage {
         };
       }
     }
+    // await this.decryptSensitiveData(tenant, assetSettings);
     return assetSettings;
   }
 
@@ -411,7 +411,7 @@ export default class SettingStorage {
       .aggregate<SettingDB>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Decrypt sensitive data before accessing
-    await this.decryptSensitiveData(tenant, settingsMDB);
+    // await this.decryptSensitiveData(tenant, settingsMDB);
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSettings', startTime, aggregation, settingsMDB);
     // Ok
@@ -475,6 +475,7 @@ export default class SettingStorage {
       },
     } as SettingDB;
     // Save
+    // await this.encryptSensitiveData(tenant, settingsToSave);
     await SettingStorage.saveSettings(tenant, settingsToSave);
   }
 
@@ -552,19 +553,17 @@ export default class SettingStorage {
     }
   }
 
-  private static async decryptSensitiveData(tenant: Tenant, settings: SettingDB[]): Promise<SettingDB[]> {
-    for (const setting of settings) {
-      if (setting.sensitiveData) {
-        for (const property of setting.sensitiveData) {
-          // Get the sensitive property from the Object
-          const valueInRequest = _.get(setting, property);
-          if (valueInRequest && valueInRequest.length > 0) {
-            _.set(setting, property, await Cypher.decrypt(tenant, valueInRequest));
-          }
+  private static async decryptSensitiveData<T extends Setting>(tenant: Tenant, setting: T): Promise<T> {
+    if (setting.sensitiveData) {
+      for (const property of setting.sensitiveData) {
+        // Get the sensitive property from the Object
+        const valueInRequest = _.get(setting, property);
+        if (valueInRequest && valueInRequest.length > 0) {
+          _.set(setting, property, await Cypher.decrypt(tenant, valueInRequest));
         }
       }
     }
-    return settings;
+    return setting;
   }
 
 }

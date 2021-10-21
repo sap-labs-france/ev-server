@@ -7,7 +7,6 @@ import AppError from '../../../../exception/AppError';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
 import Cypher from '../../../../utils/Cypher';
-import DatabaseUtils from '../../../../storage/mongodb/DatabaseUtils';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
 import SettingSecurity from './security/SettingSecurity';
@@ -207,7 +206,28 @@ export default class SettingService {
           user: req.user
         });
       }
-      DatabaseUtils.updateNewSensitiveData(settingUpdate, setting);
+      // Process sensitive properties
+      for (const property of settingUpdate.sensitiveData) {
+        // Get the sensitive property from the request
+        const valueInRequest = _.get(settingUpdate, property);
+        if (valueInRequest && valueInRequest.length > 0) {
+          // Get the sensitive property from the DB
+          const valueInDb = _.get(setting, property);
+          if (valueInDb && valueInDb.length > 0) {
+            const hashedValueInDB = Cypher.hash(valueInDb);
+            if (valueInRequest !== hashedValueInDB) {
+              // Yes: Encrypt
+              _.set(settingUpdate, property, await Cypher.encrypt(req.tenant, valueInRequest));
+            } else {
+              // No: Put back the encrypted value
+              _.set(settingUpdate, property, valueInDb);
+            }
+          } else {
+            // Value in db is empty then encrypt
+            _.set(settingUpdate, property, await Cypher.encrypt(req.tenant, valueInRequest));
+          }
+        }
+      }
     } else {
       settingUpdate.sensitiveData = [];
     }

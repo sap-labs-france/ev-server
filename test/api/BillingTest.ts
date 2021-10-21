@@ -91,7 +91,6 @@ class TestData {
     const billingSettings = this.getLocalSettings(false);
     const tenant = this.tenantContext?.getTenant();
     assert(!!tenant, 'Tenant cannot be null');
-    billingSettings.stripe.secretKey = 'sk_test_' + 'invalid_credentials';
     billingSettings.stripe.secretKey = await Cypher.encrypt(tenant, 'sk_test_' + 'invalid_credentials');
     await this.saveBillingSettings(billingSettings);
     const billingImpl = StripeBillingIntegration.getInstance(tenant, billingSettings);

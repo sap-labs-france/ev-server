@@ -3,16 +3,13 @@ import { AggregateOptions, ObjectId } from 'mongodb';
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
-import Cypher from '../../utils/Cypher';
 import DbLookup from '../../types/database/DbLookup';
 import { OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
-import { SettingDB } from '../../types/Setting';
 import Tenant from '../../types/Tenant';
 import TenantStorage from './TenantStorage';
 import User from '../../types/User';
 import UserToken from '../../types/UserToken';
 import Utils from '../../utils/Utils';
-import _ from 'lodash';
 
 const FIXED_COLLECTIONS: string[] = ['tenants', 'migrations'];
 
@@ -443,32 +440,6 @@ export default class DatabaseUtils {
         message: 'Invalid Tenant'
       });
     }
-  }
-
-  public static updateNewSensitiveData(request: Partial<SettingDB>, stored: SettingDB): Partial<SettingDB> {
-    // Process sensitive properties
-    for (const property of request.sensitiveData) {
-      // Get the sensitive property from the request
-      const requestValue = _.get(request, property);
-      if (requestValue && requestValue.length > 0) {
-        // Get the sensitive property from the DB
-        const storedValue = _.get(stored, property);
-        if (storedValue && storedValue.length > 0) {
-          const hashedValueInDB = Cypher.hash(storedValue);
-          if (requestValue !== hashedValueInDB) {
-            // Yes: Store new request value to be encrypted
-            _.set(request, property, requestValue);
-          } else {
-            // No: Put back the encrypted value
-            _.set(request, property, storedValue);
-          }
-        } else {
-          // Value in db is empty then pass new request value to encrypt
-          _.set(request, property, requestValue);
-        }
-      }
-    }
-    return request;
   }
 
   private static buildChargingStationInactiveFlagQuery(): Record<string, any> {

@@ -7,6 +7,7 @@ import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
 import BackendError from '../../../exception/BackendError';
 import Constants from '../../../utils/Constants';
+import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
@@ -159,7 +160,7 @@ export default class IothinkAssetIntegration extends AssetIntegration {
     );
     const data = response.data;
     const token : AssetConnectionTokenSetting = {
-      accessToken: data.access_token,
+      accessToken: await Cypher.encrypt(this.tenant, data.access_token),
       tokenType: data.token_type,
       expiresIn: data.expires_in,
       userName: data.userName,
@@ -179,16 +180,16 @@ export default class IothinkAssetIntegration extends AssetIntegration {
     // Check if connection is initialized
     this.checkConnectionIsProvided();
     // Get credential params
-    const credentials = this.getCredentialURLParams();
+    const credentials = await this.getCredentialURLParams();
     await this.fetchNewToken(credentials);
     return this.connection.token.accessToken;
   }
 
-  private getCredentialURLParams(): URLSearchParams {
+  private async getCredentialURLParams(): Promise<URLSearchParams> {
     const params = new URLSearchParams();
     params.append('grant_type', 'password');
     params.append('username', this.connection.iothinkConnection.user);
-    params.append('password', this.connection.iothinkConnection.password);
+    params.append('password', await Cypher.decrypt(this.tenant, this.connection.iothinkConnection.password));
     return params;
   }
 
