@@ -51,7 +51,7 @@ export interface AuthorizationFilter {
   authorized: boolean;
   dataSources: Map<DynamicAuthorizationDataSourceName, DynamicAuthorizationDataSource<DynamicAuthorizationDataSourceData>>;
   projectFields: string[];
-  metadata?: Record<string, unknown>;
+  metadata?: Record<string, AuthorizationDefinitionFieldMetadata>;
 }
 
 export interface Grant {
@@ -193,7 +193,7 @@ export interface AuthorizationContext {
   assets?: string[];
   filters?: DynamicAuthorizationFilterName[] | [DynamicAuthorizationFilterName[]];
   asserts?: DynamicAuthorizationAssertName[] | [DynamicAuthorizationAssertName[]];
-  metadata?: Record<string, unknown>;
+  metadata?: Record<string, AuthorizationDefinitionFieldMetadata>;
 }
 
 export interface AuthorizationActions {
