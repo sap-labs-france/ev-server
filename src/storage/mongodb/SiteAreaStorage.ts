@@ -77,11 +77,12 @@ export default class SiteAreaStorage {
   }
 
   public static async getSiteArea(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID,
-      params: { withSite?: boolean; withChargingStations?: boolean, withAvailableChargingStations?: boolean; withImage?: boolean } = {},
+      params: { withSite?: boolean; withSiteAreaParent?: boolean; withChargingStations?: boolean, withAvailableChargingStations?: boolean; withImage?: boolean } = {},
       projectFields?: string[]): Promise<SiteArea> {
     const siteAreasMDB = await SiteAreaStorage.getSiteAreas(tenant, {
       siteAreaIDs: [id],
       withSite: params.withSite,
+      withSiteAreaParent: params.withSiteAreaParent,
       withChargingStations: params.withChargingStations,
       withAvailableChargingStations: params.withAvailableChargingStations,
       withImage: params.withImage,
@@ -102,6 +103,7 @@ export default class SiteAreaStorage {
       accessControl: Utils.convertToBoolean(siteAreaToSave.accessControl),
       smartCharging: Utils.convertToBoolean(siteAreaToSave.smartCharging),
       siteID: DatabaseUtils.convertToObjectID(siteAreaToSave.siteID),
+      siteAreaParentID: DatabaseUtils.convertToObjectID(siteAreaToSave.siteAreaParentID),
       maximumPower: Utils.convertToFloat(siteAreaToSave.maximumPower),
       voltage: Utils.convertToInt(siteAreaToSave.voltage),
       numberOfPhases: Utils.convertToInt(siteAreaToSave.numberOfPhases),
@@ -137,7 +139,7 @@ export default class SiteAreaStorage {
 
   public static async getSiteAreas(tenant: Tenant,
       params: {
-        siteAreaIDs?: string[]; search?: string; siteIDs?: string[]; companyIDs?: string[]; withSite?: boolean; issuer?: boolean; name?: string;
+        siteAreaIDs?: string[]; search?: string; siteIDs?: string[]; companyIDs?: string[]; withSite?: boolean, withSiteAreaParent?: boolean; issuer?: boolean; name?: string;
         withChargingStations?: boolean; withOnlyChargingStations?: boolean; withAvailableChargingStations?: boolean;
         locCoordinates?: number[]; locMaxDistanceMeters?: number; smartCharging?: boolean; withImage?: boolean;
       } = {},
@@ -260,6 +262,13 @@ export default class SiteAreaStorage {
         asField: 'site', oneToOneCardinality: true
       });
     }
+    // Site Area Parent
+    if (params.withSiteAreaParent) {
+      DatabaseUtils.pushSiteAreaLookupInAggregation({
+        tenantID: tenant.id, aggregation, localField: 'siteAreaParentID', foreignField: '_id',
+        asField: 'siteAreaParent', oneToOneCardinality: true
+      });
+    }
     // Charging Stations
     if (params.withChargingStations || params.withOnlyChargingStations || params.withAvailableChargingStations) {
       DatabaseUtils.pushChargingStationLookupInAggregation({
@@ -284,6 +293,7 @@ export default class SiteAreaStorage {
     }
     // Convert Object ID to string
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaParentID');
     // Add Last Changed / Created
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenant.id, aggregation);
     // Handle the ID

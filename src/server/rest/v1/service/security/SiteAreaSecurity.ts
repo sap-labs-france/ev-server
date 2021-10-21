@@ -37,7 +37,8 @@ export default class SiteAreaSecurity {
     return {
       ID: sanitize(request.ID),
       WithChargingStations: !request.WithChargeBoxes ? false : sanitize(request.WithChargingStations),
-      WithSite: !request.WithSite ? false : sanitize(request.WithSite)
+      WithSite: !request.WithSite ? false : sanitize(request.WithSite),
+      WithSiteAreaParent: !request.WithSiteAreaParent ? false : UtilsSecurity.filterBoolean(request.WithSiteAreaParent),
     } as HttpSiteAreaRequest;
   }
 
@@ -45,6 +46,7 @@ export default class SiteAreaSecurity {
     const filteredRequest: HttpSiteAreasRequest = {
       Search: sanitize(request.Search),
       WithSite: !request.WithSite ? false : UtilsSecurity.filterBoolean(request.WithSite),
+      WithSiteAreaParent: !request.WithSiteAreaParent ? false : UtilsSecurity.filterBoolean(request.WithSiteAreaParent),
       WithChargeBoxes: !request.WithChargeBoxes ? false : UtilsSecurity.filterBoolean(request.WithChargeBoxes),
       WithAvailableChargers: !request.WithAvailableChargers ? false : UtilsSecurity.filterBoolean(request.WithAvailableChargers),
       SiteID: sanitize(request.SiteID),
@@ -98,7 +100,8 @@ export default class SiteAreaSecurity {
       voltage: sanitize(request.voltage),
       smartCharging: UtilsSecurity.filterBoolean(request.smartCharging),
       accessControl: UtilsSecurity.filterBoolean(request.accessControl),
-      siteID: sanitize(request.siteID)
+      siteID: sanitize(request.siteID),
+      siteAreaParentID: !request.siteAreaParentID ? null : sanitize(request.siteAreaParentID)
     } as Partial<SiteArea>;
     if (Utils.objectHasProperty(request, 'image')) {
       filteredRequest.image = sanitize(request.image);

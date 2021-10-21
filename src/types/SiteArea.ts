@@ -39,6 +39,7 @@ export default interface SiteArea extends CreatedUpdatedProps, SiteAreaAuthoriza
   chargingStations: ChargingStation[];
   connectorStats: ConnectorStats;
   values: Consumption[];
+  siteAreaParentID?: string;
   distanceMeters?: number;
   openingTimes?: OpeningTimes;
 }

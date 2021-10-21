@@ -4,6 +4,7 @@ import HttpDatabaseRequest from './HttpDatabaseRequest';
 export interface HttpSiteAreaRequest extends HttpByIDRequest {
   ID: string;
   WithSite?: boolean;
+  WithSiteAreaParent?: boolean;
   WithChargingStations?: boolean;
 }
 
@@ -13,6 +14,7 @@ export interface HttpSiteAreasRequest extends HttpDatabaseRequest {
   SiteID?: string;
   CompanyID?: string;
   WithSite?: boolean;
+  WithSiteAreaParent?: boolean;
   WithChargeBoxes?: boolean;
   WithAvailableChargers: boolean;
   LocCoordinates?: number[];
