@@ -22,6 +22,7 @@ export interface HttpBillingWebHookRequest {
 export interface HttpSetupPaymentMethod {
   userID: string;
   paymentMethodId?: string;
+  keepDefaultUnchanged?: boolean
 }
 
 export interface HttpSetupPaymentIntent {

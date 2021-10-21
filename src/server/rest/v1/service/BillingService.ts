@@ -540,12 +540,19 @@ export default class BillingService {
     const user: User = await UserStorage.getUser(req.tenant, filteredRequest.userID);
     UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.userID}' does not exist`,
       MODULE_NAME, 'handleSetupPaymentMethod', req.user);
+    const paymentMethodId = filteredRequest.paymentMethodId;
+    // Make sure to be backward compatible - setItAsDefault is true when when keepDefaultUnchanged is not set!
+    const setItAsDefault = (filteredRequest.keepDefaultUnchanged === true) ? false : true;
     // Invoke the billing implementation
-    const paymentMethodId: string = filteredRequest.paymentMethodId;
-    const operationResult: BillingOperationResult = await billingImpl.setupPaymentMethod(user, paymentMethodId);
-    if (operationResult) {
-      console.log(operationResult);
-    }
+    const operationResult: BillingOperationResult = await billingImpl.setupPaymentMethod(user, paymentMethodId, setItAsDefault);
+    await Logging.logInfo({
+      tenantID: req.user.tenantID,
+      source: Constants.CENTRAL_SERVER,
+      actionOnUser: user,
+      action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
+      module: MODULE_NAME, method: 'handleBillingSetupPaymentMethod',
+      message: `Payment method setup - ID: '${paymentMethodId}''`
+    });
     res.json(operationResult);
     next();
   }
@@ -580,16 +587,31 @@ export default class BillingService {
     const billingInvoice: BillingInvoice = await BillingStorage.getInvoice(req.tenant, filteredRequest.invoiceID);
     UtilsService.assertObjectExists(action, billingInvoice, `Invoice ID '${filteredRequest.invoiceID}' does not exist`,
       MODULE_NAME, 'handleBillingInvoicePayment', req.user);
-    const user: User = await UserStorage.getUser(req.tenant, filteredRequest.userID);
-    UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.userID}' does not exist`,
+    const user: User = await UserStorage.getUser(req.tenant, billingInvoice.userID);
+    UtilsService.assertObjectExists(action, user, `User ID '${billingInvoice.userID}' does not exist`,
       MODULE_NAME, 'handleBillingInvoicePayment', req.user);
-    // Invoke the billing implementation
-    const paymentMethodID: string = filteredRequest.paymentMethodID;
-    // setup payment intent
-    const operationResult = await billingImpl.attemptInvoicePayment(user, billingInvoice, paymentMethodID);
-    if (operationResult) {
-      console.log(operationResult);
+    if (filteredRequest.userID !== billingInvoice.userID) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Unexpected situation - user ID does not match the invoice information',
+        module: MODULE_NAME, method: 'handleBillingInvoicePayment',
+        action: action,
+        user: req.user
+      });
     }
+    // Invoke the billing implementation
+    const paymentMethodId: string = filteredRequest.paymentMethodID;
+    // setup payment intent
+    const operationResult = await billingImpl.attemptInvoicePayment(billingInvoice, paymentMethodId);
+    await Logging.logInfo({
+      tenantID: req.user.tenantID,
+      source: Constants.CENTRAL_SERVER,
+      actionOnUser: user,
+      action: ServerAction.BILLING_INVOICE_PAYMENT,
+      module: MODULE_NAME, method: 'handleBillingSetupPaymentMethod',
+      message: `Payment attempt - Invoice number: '${billingInvoice.number}' - ID: '${paymentMethodId}''`
+    });
     res.json(operationResult);
     next();
   }
@@ -631,7 +653,7 @@ export default class BillingService {
       user,
       source: Constants.CENTRAL_SERVER,
       action: ServerAction.BILLING_PAYMENT_METHODS,
-      module: MODULE_NAME, method: 'getPaymentMethods',
+      module: MODULE_NAME, method: 'handleBillingGetPaymentMethods',
       message: `Number of payment methods: ${paymentMethods?.length}`
     });
     const dataResult: DataResult<BillingPaymentMethod> = {

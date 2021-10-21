@@ -73,6 +73,7 @@ export default class BillingSecurity {
     return {
       userID: sanitize(requestBody.userID),
       paymentMethodId: sanitize(requestBody.paymentMethodId),
+      keepDefaultUnchanged: sanitize(requestBody.keepDefaultUnchanged),
     };
   }
 

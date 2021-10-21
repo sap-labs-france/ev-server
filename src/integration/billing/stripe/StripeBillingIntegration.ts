@@ -457,18 +457,20 @@ export default class StripeBillingIntegration extends BillingIntegration {
       try {
         const transaction = await TransactionStorage.getTransaction(this.tenant, Number(transactionID));
         // Update Billing Data
-        transaction.billingData.stop.invoiceStatus = billingInvoice.status;
-        transaction.billingData.stop.invoiceNumber = billingInvoice.number;
-        transaction.billingData.lastUpdate = new Date();
-        // Save
-        await TransactionStorage.saveTransactionBillingData(this.tenant, transaction.id, transaction.billingData);
+        if (transaction?.billingData?.stop) {
+          transaction.billingData.stop.invoiceStatus = billingInvoice.status;
+          transaction.billingData.stop.invoiceNumber = billingInvoice.number;
+          transaction.billingData.lastUpdate = new Date();
+          // Save
+          await TransactionStorage.saveTransactionBillingData(this.tenant, transaction.id, transaction.billingData);
+        }
       } catch (error) {
         // Catch stripe errors and send the information back to the client
         await Logging.logError({
           tenantID: this.tenant.id,
           action: ServerAction.BILLING_PERFORM_OPERATIONS,
           module: MODULE_NAME, method: '_updateTransactionsBillingData',
-          message: 'Failed to update transaction billing data',
+          message: `Failed to update transaction billing data - transaction ID: ${transactionID}`,
           detailedMessages: { error: error.stack }
         });
       }
@@ -511,60 +513,47 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
   }
 
-  public async attemptInvoicePayment(user: User, billingInvoice: BillingInvoice, paymentMethodId: string): Promise<BillingOperationResult> {
+  public async attemptInvoicePayment(billingInvoice: BillingInvoice, paymentMethodId: string): Promise<BillingOperationResult> {
     // Check Stripe
     await this.checkConnection();
-    // Check billing data consistency
-    let customerID = user?.billingData?.customerID;
-    if (!customerID) {
-      // User Sync is now made implicitly - LAZY mode
-      const billingUser = await this.synchronizeUser(user);
-      customerID = billingUser?.billingData?.customerID;
-    }
-    // User should now exist
-    if (!customerID) {
+    // Let's do it!
+    if (!paymentMethodId) {
       throw new BackendError({
-        message: `User is not known in Stripe: '${user.id}' - (${user.email})`,
+        message: 'Payment Method ID is mandatory',
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
-        method: 'setupPaymentMethod',
+        method: 'attemptInvoicePayment',
+        actionOnUser: billingInvoice.user,
         action: ServerAction.BILLING_INVOICE_PAYMENT
       });
     }
-    // Let's do it!
-    let billingOperationResult: BillingOperationResult;
-    if (!paymentMethodId) {
-      // Let's create a payment method (for a on-shot usage)
-      billingOperationResult = await this._createPaymentIntent(user, customerID, billingInvoice);
-    } else {
-      // Let's attempt to pay the invoice with a different payment method (not the default one!)
-      billingInvoice = await this.chargeInvoice(billingInvoice, paymentMethodId);
-      // TODO - provide a better feedback
-      billingOperationResult = {
-        succeeded: (billingInvoice.status === BillingInvoiceStatus.PAID)
-      };
-    }
+    // Let's attempt to pay the invoice with a payment method specified
+    billingInvoice = await this.chargeInvoice(billingInvoice, paymentMethodId);
+    const billingOperationResult = {
+      succeeded: (billingInvoice.status === BillingInvoiceStatus.PAID)
+    };
     return billingOperationResult;
   }
 
-  public async setupPaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult> {
+  public async setupPaymentMethod(user: User, paymentMethodId: string, setItAsDefault: boolean): Promise<BillingOperationResult> {
     // Check Stripe
     await this.checkConnection();
     // Check billing data consistency
     let customerID = user?.billingData?.customerID;
     if (!customerID) {
-      // User Sync is now made implicitly - LAZY mode
+      // Sync User
       const billingUser = await this.synchronizeUser(user);
       customerID = billingUser?.billingData?.customerID;
     }
     // User should now exist
     if (!customerID) {
       throw new BackendError({
-        message: `User is not known in Stripe: '${user.id}' - (${user.email})`,
+        message: 'User is not known in Stripe',
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'setupPaymentMethod',
-        action: ServerAction.BILLING_SETUP_PAYMENT_METHOD
+        action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
+        actionOnUser: user
       });
     }
     // Let's do it!
@@ -574,7 +563,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       billingOperationResult = await this._createSetupIntent(user, customerID);
     } else {
       // Attach payment method to the stripe customer
-      billingOperationResult = await this._attachPaymentMethod(user, customerID, paymentMethodId);
+      billingOperationResult = await this._attachPaymentMethod(user, customerID, paymentMethodId, setItAsDefault);
     }
     return billingOperationResult;
   }
@@ -585,14 +574,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Check billing data consistency
     const customerID = user?.billingData?.customerID;
     const paymentMethods: BillingPaymentMethod[] = await this._getPaymentMethods(user, customerID);
-    await Logging.logInfo({
-      tenantID: this.tenant.id,
-      user,
-      source: Constants.CENTRAL_SERVER,
-      action: ServerAction.BILLING_PAYMENT_METHODS,
-      module: MODULE_NAME, method: 'getPaymentMethods',
-      message: `Number of payment methods: ${paymentMethods?.length}`
-    });
     return paymentMethods;
   }
 
@@ -603,11 +584,12 @@ export default class StripeBillingIntegration extends BillingIntegration {
     const customerID = user?.billingData?.customerID;
     if (!customerID) {
       throw new BackendError({
-        message: `User is not known in Stripe: '${user.id}' - (${user.email})`,
+        message: 'User is not known in Stripe',
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'deletePaymentMethod',
-        action: ServerAction.BILLING_DELETE_PAYMENT_METHOD
+        action: ServerAction.BILLING_DELETE_PAYMENT_METHOD,
+        actionOnUser: user
       });
     }
     // Let's do it!
@@ -624,9 +606,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
       await Logging.logInfo({
         tenantID: this.tenant.id,
         source: Constants.CENTRAL_SERVER,
+        actionOnUser: user,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
         module: MODULE_NAME, method: '_createSetupIntent',
-        message: `Setup intent has been created - customer '${customerID}' - (${user.email})`
+        message: `Setup intent has been created - customer '${customerID}'`
       });
       // Send some feedback
       return {
@@ -637,8 +620,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
       // catch stripe errors and send the information back to the client
       await Logging.logError({
         tenantID: this.tenant.id,
-        action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
         actionOnUser: user,
+        action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
         module: MODULE_NAME, method: '_createSetupIntent',
         message: `Stripe operation failed - ${error?.message as string}`
       });
@@ -649,7 +632,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
   }
 
-  private async _attachPaymentMethod(user: User, customerID: string, paymentMethodId: string): Promise<BillingOperationResult> {
+  private async _attachPaymentMethod(user: User, customerID: string, paymentMethodId: string, setItAsDefault): Promise<BillingOperationResult> {
     try {
       // Attach payment method to the stripe customer
       const paymentMethod: Stripe.PaymentMethod = await this.stripe.paymentMethods.attach(paymentMethodId, {
@@ -667,20 +650,24 @@ export default class StripeBillingIntegration extends BillingIntegration {
       await Logging.logInfo({
         tenantID: this.tenant.id,
         source: Constants.CENTRAL_SERVER,
+        actionOnUser: user,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
         module: MODULE_NAME, method: '_attachPaymentMethod',
-        message: `Payment method ${paymentMethodId} has been attached - customer '${customerID}' - (${user.email})`
+        message: `Payment method ${paymentMethodId} has been attached - customer '${customerID}'`
       });
-      // Set this payment method as the default
-      await this.stripe.customers.update(customerID, {
-        invoice_settings: { default_payment_method: paymentMethodId }
-      });
+      if (setItAsDefault) {
+        // Set this payment method as the default
+        await this.stripe.customers.update(customerID, {
+          invoice_settings: { default_payment_method: paymentMethodId }
+        });
+      }
       await Logging.logInfo({
         tenantID: this.tenant.id,
         source: Constants.CENTRAL_SERVER,
+        actionOnUser: user,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
         module: MODULE_NAME, method: '_attachPaymentMethod',
-        message: `Default payment method has been set ${paymentMethodId} - customer '${customerID}' - (${user.email})`
+        message: `Default payment method has been set ${paymentMethodId} - customer '${customerID}'`
       });
       // Send some feedback
       return {
@@ -694,47 +681,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
         actionOnUser: user,
         module: MODULE_NAME, method: '_attachPaymentMethod',
-        message: `Stripe operation failed - ${error?.message as string}`
-      });
-      return {
-        succeeded: false,
-        error
-      };
-    }
-  }
-
-  private async _createPaymentIntent(user: User, customerID: string, invoice: BillingInvoice): Promise<BillingOperationResult> {
-    try {
-      // Let's create a paymentIntent for the stripe customer
-      const paymentIntent: Stripe.PaymentIntent = await this.stripe.paymentIntents.create({
-        amount: invoice.amount,
-        currency: invoice.currency,
-        payment_method_types: ['card'],
-        customer: customerID,
-        setup_future_usage: 'off_session', // TODO - we should get rid of it!
-        // confirm: true,
-        // payment_method: paymentMethodID,
-      });
-      await Logging.logInfo({
-        tenantID: this.tenant.id,
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.BILLING_INVOICE_PAYMENT,
-        module: MODULE_NAME, method: '_createPaymentIntent',
-        message: `Setup intent has been created - customer '${customerID}' - (${user.email})`
-      });
-      // Send some feedback
-      return {
-        succeeded: true,
-        // internalData: paymentIntent.id
-        internalData: paymentIntent
-      };
-    } catch (error) {
-      // catch stripe errors and send the information back to the client
-      await Logging.logError({
-        tenantID: this.tenant.id,
-        action: ServerAction.BILLING_INVOICE_PAYMENT,
-        actionOnUser: user,
-        module: MODULE_NAME, method: '_createPaymentIntent',
         message: `Stripe operation failed - ${error?.message as string}`
       });
       return {
@@ -1490,7 +1436,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
     // Check Stripe
     await this.checkConnection();
-    // const customer = await this.getCustomerByEmail(user.email);
     const customerID = user.billingData?.customerID;
     const customer = await this.getStripeCustomer(customerID);
     if (customer && customer.id) {
