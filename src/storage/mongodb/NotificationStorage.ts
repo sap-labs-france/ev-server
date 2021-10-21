@@ -18,7 +18,7 @@ export default class NotificationStorage {
         sourceDescr?: string; additionalFilters?: any; chargeBoxID?: string },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Notification>> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -116,7 +116,7 @@ export default class NotificationStorage {
       .aggregate<Notification>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getNotifications', uniqueTimerID, notificationsMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getNotifications', startTime, aggregation, notificationsMDB);
     // Ok
     return {
       count: (notificationsCountMDB.length > 0 ? notificationsCountMDB[0].count : 0),
@@ -126,7 +126,7 @@ export default class NotificationStorage {
 
   static async saveNotification(tenant: Tenant, notificationToSave: Partial<Notification>): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     const ocpiEndpointMDB: any = {
@@ -143,6 +143,6 @@ export default class NotificationStorage {
     await global.database.getCollection<Notification>(tenant.id, 'notifications')
       .insertOne(ocpiEndpointMDB);
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveNotification', uniqueTimerID, ocpiEndpointMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveNotification', startTime, ocpiEndpointMDB);
   }
 }

@@ -291,92 +291,6 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleGetUnassignedTransactionsCount(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check Auth
-    if (!await Authorizations.canUpdateTransaction(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.UPDATE, entity: Entity.TRANSACTION,
-        module: MODULE_NAME, method: 'handleGetUnassignedTransactionsCount'
-      });
-    }
-    // Filter
-    const filteredRequest = TransactionValidator.getInstance().validateTransactionsUnassignedCountReq(req.query);
-    // Get the user
-    const tag = await TagStorage.getTag(req.tenant, filteredRequest.TagID);
-    UtilsService.assertObjectExists(action, tag, `Tag ID '${filteredRequest.TagID}' does not exist`,
-      MODULE_NAME, 'handleAssignTransactionsToUser', req.user);
-    // Get unassigned transactions
-    const count = await TransactionStorage.getUnassignedTransactionsCount(req.tenant, tag.id);
-    // Return
-    res.json(count);
-    next();
-  }
-
-  public static async handleAssignTransactionsToUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check auths
-    if (!await Authorizations.canUpdateTransaction(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.UPDATE, entity: Entity.TRANSACTION,
-        module: MODULE_NAME, method: 'handleAssignTransactionsToUser'
-      });
-    }
-    // Filter
-    const filteredRequest = TransactionValidator.getInstance().validateTransactionsUserAssignReq(req.query);
-    // Check
-    if (!filteredRequest.TagID) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Tag ID must be provided',
-        module: MODULE_NAME, method: 'handleAssignTransactionsToUser',
-        user: req.user, action: action
-      });
-    }
-    if (!filteredRequest.UserID) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'User ID must be provided',
-        module: MODULE_NAME, method: 'handleAssignTransactionsToUser',
-        user: req.user, action: action
-      });
-    }
-    // Get the user
-    const user: User = await UserStorage.getUser(req.tenant, filteredRequest.UserID);
-    UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.UserID}' does not exist`,
-      MODULE_NAME, 'handleAssignTransactionsToUser', req.user);
-    // Get the tag
-    const tag = await TagStorage.getTag(req.tenant, filteredRequest.TagID);
-    UtilsService.assertObjectExists(action, tag, `Tag ID '${filteredRequest.TagID}' does not exist`,
-      MODULE_NAME, 'handleAssignTransactionsToUser', req.user);
-    if (!user.issuer) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'User not issued by the organization',
-        module: MODULE_NAME, method: 'handleAssignTransactionsToUser',
-        user: req.user, action: action
-      });
-    }
-    if (!tag.issuer) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Tag not issued by the organization',
-        module: MODULE_NAME, method: 'handleAssignTransactionsToUser',
-        user: req.user, action: action
-      });
-    }
-    // Assign
-    await TransactionStorage.assignTransactionsToUser(req.tenant, user.id, tag.id);
-    res.json(Constants.REST_RESPONSE_SUCCESS);
-    next();
-  }
-
   public static async handleDeleteTransaction(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const transactionId = TransactionValidator.getInstance().validateTransactionGetReq(req.query).ID;
@@ -517,7 +431,7 @@ export default class TransactionService {
         projectFields = [
           ...projectFields,
           'carID' ,'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel',
-          'carCatalog.vehicleModelVersion', 'carCatalog.image',
+          'carCatalog.vehicleModelVersion',
         ];
       }
       if (await Authorizations.canUpdateCar(req.user)) {
@@ -619,7 +533,7 @@ export default class TransactionService {
         'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.pricingSource', 'stop.signedData',
         'stop.tagID', 'stop.tag.visualID', 'stop.tag.description', 'billingData.stop.status', 'billingData.stop.invoiceID',
         'billingData.stop.invoiceStatus', 'billingData.stop.invoiceNumber',
-        'carID' ,'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+        'carID' ,'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion'
       ]
     );
     UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.ID}' does not exist`,

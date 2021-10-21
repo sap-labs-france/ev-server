@@ -6,6 +6,7 @@ import Configuration from '../../../utils/Configuration';
 import Logging from '../../../utils/Logging';
 import { OCPPVersion } from '../../../types/ocpp/OCPPServer';
 import { ServerAction } from '../../../types/Server';
+import Tenant from '../../../types/Tenant';
 import global from '../../../types/GlobalType';
 import { soap } from 'strong-soap';
 
@@ -14,27 +15,23 @@ const MODULE_NAME = 'SoapChargingStationClient';
 
 export default class SoapChargingStationClient extends ChargingStationClient {
   private chargingStation: ChargingStation;
-  private tenantID: string;
+  private tenant: Tenant;
   private client: any;
   private readonly wsdlEndpointConfig = Configuration.getWSDLEndpointConfig();
 
-  private constructor(tenantID: string, chargingStation: ChargingStation) {
+  private constructor(tenant: Tenant, chargingStation: ChargingStation) {
     super();
     // Keep the Charging Station
     this.chargingStation = chargingStation;
-    this.tenantID = tenantID;
+    this.tenant = tenant;
   }
 
-  static async getChargingStationClient(tenantID: string, chargingStation: ChargingStation): Promise<SoapChargingStationClient> {
-    const scsc = new SoapChargingStationClient(tenantID, chargingStation);
+  static async getChargingStationClient(tenant: Tenant, chargingStation: ChargingStation): Promise<SoapChargingStationClient> {
+    const scsc = new SoapChargingStationClient(tenant, chargingStation);
     return await new Promise((fulfill, reject) => {
       let chargingStationWdsl = null;
       // Read the WSDL client files
       switch (scsc.chargingStation.ocppVersion) {
-        // OCPP V1.2
-        case OCPPVersion.VERSION_12:
-          chargingStationWdsl = `${global.appRoot}/assets/server/ocpp/wsdl/OCPPChargePointService12.wsdl`;
-          break;
         case OCPPVersion.VERSION_15:
           chargingStationWdsl = `${global.appRoot}/assets/server/ocpp/wsdl/OCPPChargePointService15.wsdl`;
           break;
@@ -44,7 +41,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
         default:
           // Log
           void Logging.logError({
-            tenantID: scsc.tenantID,
+            tenantID: scsc.tenant.id,
             action: ServerAction.CHARGING_STATION_CLIENT_INITIALIZATION,
             siteID: scsc.chargingStation.siteID,
             siteAreaID: scsc.chargingStation.siteAreaID,
@@ -63,7 +60,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
         if (error) {
           // Log
           await Logging.logError({
-            tenantID: scsc.tenantID,
+            tenantID: scsc.tenant.id,
             action: ServerAction.CHARGING_STATION_CLIENT_INITIALIZATION,
             siteID: scsc.chargingStation.siteID,
             siteAreaID: scsc.chargingStation.siteAreaID,
@@ -91,7 +88,8 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders(Command.REMOTE_STOP_TRANSACTION);
     // Trace
-    const startTimestamp = await Logging.traceChargingStationActionStart(MODULE_NAME, this.tenantID, this.chargingStation.id, ServerAction.CHARGING_STATION_REMOTE_STOP_TRANSACTION,
+    const performanceTracingData = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant,
+      this.chargingStation.id, ServerAction.CHARGING_STATION_REMOTE_STOP_TRANSACTION,
       [params, { headers: this.client.getSoapHeaders() }], '<<', {
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
@@ -104,7 +102,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     });
     if (error) {
       await Logging.logError({
-        tenantID: this.tenantID,
+        tenantID: this.tenant.id,
         action: ServerAction.CHARGING_STATION_REMOTE_STOP_TRANSACTION,
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
@@ -118,12 +116,13 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       throw error;
     }
     // Trace
-    await Logging.traceChargingStationActionEnd(MODULE_NAME, this.tenantID, this.chargingStation.id, ServerAction.CHARGING_STATION_REMOTE_STOP_TRANSACTION,
-      [{ result }, { envelope }], '>>', {
+    await Logging.traceOcppMessageResponse(MODULE_NAME, this.tenant, this.chargingStation.id,
+      ServerAction.CHARGING_STATION_REMOTE_STOP_TRANSACTION,
+      [params, { headers: this.client.getSoapHeaders() }], [{ result }, { envelope }], '>>', {
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
         companyID: this.chargingStation.companyID,
-      }, startTimestamp);
+      }, performanceTracingData);
     return result;
   }
 
@@ -131,7 +130,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders(Command.REMOTE_START_TRANSACTION);
     // Trace
-    const startTimestamp = await Logging.traceChargingStationActionStart(MODULE_NAME, this.tenantID, this.chargingStation.id, ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION,
+    const performanceTracingData = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant, this.chargingStation.id, ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION,
       [params, { headers: this.client.getSoapHeaders() }], '<<', {
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
@@ -143,7 +142,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     if (error) {
       // Log
       await Logging.logError({
-        tenantID: this.tenantID,
+        tenantID: this.tenant.id,
         action: ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION,
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
@@ -157,12 +156,12 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       throw error;
     }
     // Trace
-    await Logging.traceChargingStationActionEnd(MODULE_NAME, this.tenantID, this.chargingStation.id, ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION,
-      [{ result }, { envelope }], '>>', {
+    await Logging.traceOcppMessageResponse(MODULE_NAME, this.tenant, this.chargingStation.id, ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION,
+      [params, { headers: this.client.getSoapHeaders() }], [{ result }, { envelope }], '>>', {
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
         companyID: this.chargingStation.companyID,
-      }, startTimestamp);
+      }, performanceTracingData);
     return result;
   }
 
@@ -170,7 +169,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders(Command.UNLOCK_CONNECTOR);
     // Trace
-    const startTimestamp = await Logging.traceChargingStationActionStart(MODULE_NAME, this.tenantID, this.chargingStation.id, ServerAction.CHARGING_STATION_UNLOCK_CONNECTOR,
+    const performanceTracingData = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant, this.chargingStation.id, ServerAction.CHARGING_STATION_UNLOCK_CONNECTOR,
       [params, { headers: this.client.getSoapHeaders() }], '<<', {
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
@@ -184,7 +183,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     if (error) {
       // Log
       await Logging.logError({
-        tenantID: this.tenantID,
+        tenantID: this.tenant.id,
         action: ServerAction.CHARGING_STATION_UNLOCK_CONNECTOR,
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
@@ -198,12 +197,12 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       throw error;
     }
     // Trace
-    await Logging.traceChargingStationActionEnd(MODULE_NAME, this.tenantID, this.chargingStation.id, ServerAction.CHARGING_STATION_UNLOCK_CONNECTOR,
-      [{ result }, { envelope }], '>>', {
+    await Logging.traceOcppMessageResponse(MODULE_NAME, this.tenant, this.chargingStation.id, ServerAction.CHARGING_STATION_UNLOCK_CONNECTOR,
+      [params, { headers: this.client.getSoapHeaders() }], [{ result }, { envelope }], '>>', {
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
         companyID: this.chargingStation.companyID,
-      }, startTimestamp);
+      }, performanceTracingData);
     return result;
   }
 
@@ -211,7 +210,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders(Command.RESET);
     // Trace
-    const startTimestamp = await Logging.traceChargingStationActionStart(MODULE_NAME, this.tenantID, this.chargingStation.id, ServerAction.CHARGING_STATION_RESET,
+    const performanceTracingData = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant, this.chargingStation.id, ServerAction.CHARGING_STATION_RESET,
       [params, { headers: this.client.getSoapHeaders() }], '<<', {
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
@@ -225,7 +224,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     if (error) {
       // Log
       await Logging.logError({
-        tenantID: this.tenantID,
+        tenantID: this.tenant.id,
         action: ServerAction.CHARGING_STATION_RESET,
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
@@ -239,12 +238,12 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       return error;
     }
     // Trace
-    await Logging.traceChargingStationActionEnd(MODULE_NAME, this.tenantID, this.chargingStation.id, ServerAction.CHARGING_STATION_RESET,
-      [{ result }, { envelope }], '>>', {
+    await Logging.traceOcppMessageResponse(MODULE_NAME, this.tenant, this.chargingStation.id, ServerAction.CHARGING_STATION_RESET,
+      [params, { headers: this.client.getSoapHeaders() }], [{ result }, { envelope }], '>>', {
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
         companyID: this.chargingStation.companyID,
-      }, startTimestamp);
+      }, performanceTracingData);
     return result;
   }
 
@@ -252,7 +251,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders(Command.CLEAR_CACHE);
     // Trace
-    const startTimestamp = await Logging.traceChargingStationActionStart(MODULE_NAME, this.tenantID, this.chargingStation.id, ServerAction.CHARGING_STATION_CLEAR_CACHE,
+    const performanceTracingData = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant, this.chargingStation.id, ServerAction.CHARGING_STATION_CLEAR_CACHE,
       [{ headers: this.client.getSoapHeaders() }], '<<', {
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
@@ -264,7 +263,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     if (error) {
       // Log
       await Logging.logError({
-        tenantID: this.tenantID,
+        tenantID: this.tenant.id,
         action: ServerAction.CHARGING_STATION_CLEAR_CACHE,
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
@@ -278,12 +277,12 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       throw error;
     }
     // Trace
-    await Logging.traceChargingStationActionEnd(MODULE_NAME, this.tenantID, this.chargingStation.id, ServerAction.CHARGING_STATION_CLEAR_CACHE,
-      [{ result }, { envelope }], '>>', {
+    await Logging.traceOcppMessageResponse(MODULE_NAME, this.tenant, this.chargingStation.id, ServerAction.CHARGING_STATION_CLEAR_CACHE,
+      [{}, { headers: this.client.getSoapHeaders() }], [{ result }, { envelope }], '>>', {
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
         companyID: this.chargingStation.companyID,
-      }, startTimestamp);
+      }, performanceTracingData);
     return result;
   }
 
@@ -291,7 +290,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders(Command.GET_CONFIGURATION);
     // Trace
-    const startTimestamp = await Logging.traceChargingStationActionStart(MODULE_NAME, this.tenantID, this.chargingStation.id, ServerAction.CHARGING_STATION_GET_CONFIGURATION,
+    const performanceTracingData = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant, this.chargingStation.id, ServerAction.CHARGING_STATION_GET_CONFIGURATION,
       [params, { headers: this.client.getSoapHeaders() }], '<<', {
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
@@ -312,7 +311,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     if (error) {
       // Log
       await Logging.logError({
-        tenantID: this.tenantID,
+        tenantID: this.tenant.id,
         action: ServerAction.CHARGING_STATION_GET_CONFIGURATION,
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
@@ -326,12 +325,12 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       throw error;
     }
     // Trace
-    await Logging.traceChargingStationActionEnd(MODULE_NAME, this.tenantID, this.chargingStation.id, ServerAction.CHARGING_STATION_GET_CONFIGURATION,
-      [{ result }, { envelope }], '>>', {
+    await Logging.traceOcppMessageResponse(MODULE_NAME, this.tenant, this.chargingStation.id, ServerAction.CHARGING_STATION_GET_CONFIGURATION,
+      [params, { headers: this.client.getSoapHeaders() }], [{ result }, { envelope }], '>>', {
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
         companyID: this.chargingStation.companyID,
-      }, startTimestamp);
+      }, performanceTracingData);
     return result;
   }
 
@@ -340,7 +339,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders(Command.CHANGE_CONFIGURATION);
     // Trace
-    const startTimestamp = await Logging.traceChargingStationActionStart(MODULE_NAME, this.tenantID, this.chargingStation.id, ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
+    const performanceTracingData = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant, this.chargingStation.id, ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
       [params, { headers: this.client.getSoapHeaders() }], '<<', {
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
@@ -357,7 +356,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     if (error) {
       // Log
       await Logging.logError({
-        tenantID: this.tenantID,
+        tenantID: this.tenant.id,
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
         companyID: this.chargingStation.companyID,
@@ -371,12 +370,12 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       throw error;
     }
     // Trace
-    await Logging.traceChargingStationActionEnd(MODULE_NAME, this.tenantID, this.chargingStation.id, ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
-      [{ result }, { envelope }], '>>', {
+    await Logging.traceOcppMessageResponse(MODULE_NAME, this.tenant, this.chargingStation.id, ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
+      [params, { headers: this.client.getSoapHeaders() }], [{ result }, { envelope }], '>>', {
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
         companyID: this.chargingStation.companyID,
-      }, startTimestamp);
+      }, performanceTracingData);
     return result;
   }
 

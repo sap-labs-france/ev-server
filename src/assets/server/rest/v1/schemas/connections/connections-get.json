@@ -1,9 +1,10 @@
 {
+  "$id": "connections-get",
   "title": "Get Connections Request",
   "type": "object",
   "properties": {
     "UserID": {
-      "$ref": "user.json#/definitions/id"
+      "$ref": "user#/definitions/id"
     }
   },
   "required": [

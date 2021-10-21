@@ -38,7 +38,7 @@ export default class JsonWSConnection extends WSConnection {
       // OCPP 1.6?
       case WSServerProtocol.OCPP16:
         // Create the Json Client
-        this.chargingStationClient = new JsonChargingStationClient(this, this.getTenantID(), this.getChargingStationID(), {
+        this.chargingStationClient = new JsonChargingStationClient(this, this.getTenant(), this.getChargingStationID(), {
           siteID: this.getSiteID(),
           siteAreaID: this.getSiteAreaID(),
           companyID: this.getCompanyID(),
@@ -169,7 +169,8 @@ export default class JsonWSConnection extends WSConnection {
 
   public async handleRequest(messageId: string, command: Command, commandPayload: Record<string, unknown> | string): Promise<void> {
     // Trace
-    const startTimestamp = await Logging.traceChargingStationActionStart(Constants.MODULE_JSON_OCPP_SERVER_16, this.getTenantID(), this.getChargingStationID(),
+    const performanceTracingData = await Logging.traceOcppMessageRequest(Constants.MODULE_JSON_OCPP_SERVER_16,
+      this.getTenant(), this.getChargingStationID(),
       OCPPUtils.getServerActionFromOcppCommand(command), commandPayload, '>>', {
         siteAreaID: this.getSiteAreaID(),
         siteID: this.getSiteID(),
@@ -185,12 +186,12 @@ export default class JsonWSConnection extends WSConnection {
       // Call it
       const result = await this.chargingStationService[methodName](this.headers, commandPayload);
       // Trace
-      await Logging.traceChargingStationActionEnd(Constants.MODULE_JSON_OCPP_SERVER_16, this.getTenantID(), this.getChargingStationID(),
-        OCPPUtils.getServerActionFromOcppCommand(command), result, '<<', {
+      await Logging.traceOcppMessageResponse(Constants.MODULE_JSON_OCPP_SERVER_16, this.getTenant(), this.getChargingStationID(),
+        OCPPUtils.getServerActionFromOcppCommand(command), commandPayload, result, '<<', {
           siteAreaID: this.getSiteAreaID(),
           siteID: this.getSiteID(),
           companyID: this.getCompanyID(),
-        }, startTimestamp
+        }, performanceTracingData
       );
       // Send Response
       await this.sendMessage(messageId, result, OCPPMessageType.CALL_RESULT_MESSAGE, command);

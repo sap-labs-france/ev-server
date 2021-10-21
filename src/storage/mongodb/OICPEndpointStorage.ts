@@ -22,7 +22,7 @@ export default class OICPEndpointStorage {
 
   static async saveOicpEndpoint(tenant: Tenant, oicpEndpointToSave: OICPEndpoint): Promise<string> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Check if name is provided
@@ -65,7 +65,7 @@ export default class OICPEndpointStorage {
       { $set: oicpEndpointMDB },
       { upsert: true, returnDocument: 'after' });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveOicpEndpoint', uniqueTimerID, { oicpEndpointToSave: oicpEndpointToSave });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveOicpEndpoint', startTime, { oicpEndpointToSave });
     // Create
     return oicpEndpointFilter._id.toString();
   }
@@ -75,7 +75,7 @@ export default class OICPEndpointStorage {
       params: { search?: string; role?: string; oicpEndpointIDs?: string[]; localToken?: string },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<OICPEndpoint>> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -121,7 +121,7 @@ export default class OICPEndpointStorage {
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
-      await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getOicpEndpoints', uniqueTimerID, oicpEndpointsCountMDB);
+      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getOicpEndpoints', startTime, aggregation, oicpEndpointsCountMDB);
       return {
         count: (oicpEndpointsCountMDB.length > 0 ? oicpEndpointsCountMDB[0].count : 0),
         result: []
@@ -155,7 +155,7 @@ export default class OICPEndpointStorage {
       .aggregate<OICPEndpoint>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getOicpEndpoints', uniqueTimerID, oicpEndpointsMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getOicpEndpoints', startTime, aggregation, oicpEndpointsMDB);
     // Ok
     return {
       count: (oicpEndpointsCountMDB.length > 0 ? oicpEndpointsCountMDB[0].count : 0),
@@ -165,24 +165,24 @@ export default class OICPEndpointStorage {
 
   static async deleteOicpEndpoint(tenant: Tenant, id: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete OicpEndpoint
     await global.database.getCollection<any>(tenant.id, 'oicpendpoints')
       .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'deleteOicpEndpoint', uniqueTimerID, { id });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteOicpEndpoint', startTime, { id });
   }
 
   static async deleteOicpEndpoints(tenant: Tenant): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete OicpEndpoint
     await global.database.getCollection<any>(tenant.id, 'oicpendpoints').deleteMany({});
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'deleteOicpEndpoints', uniqueTimerID);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteOicpEndpoints', startTime, {});
   }
 }

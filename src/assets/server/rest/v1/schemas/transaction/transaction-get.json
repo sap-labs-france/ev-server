@@ -1,9 +1,10 @@
 {
+  "$id": "transaction-get",
   "title": "Get Transaction Request",
   "type": "object",
   "properties": {
     "ID": {
-      "$ref": "transaction.json#/definitions/id"
+      "$ref": "transaction#/definitions/id"
     },
     "WithTag": {
       "type": "boolean",

@@ -1,18 +1,19 @@
 {
+  "$id": "chargingprofile-create",
   "title": "Create a Charging Profile",
   "type": "object",
   "properties": {
     "chargingStationID": {
-      "$ref": "chargingstation.json#/definitions/id"
+      "$ref": "chargingstation#/definitions/id"
     },
     "connectorID": {
-      "$ref": "chargingstation.json#/definitions/connector/properties/connectorId"
+      "$ref": "chargingstation#/definitions/connector/properties/connectorId"
     },
     "chargePointID": {
-      "$ref": "chargingstation.json#/definitions/chargePoint/properties/chargePointID"
+      "$ref": "chargingstation#/definitions/chargePoint/properties/chargePointID"
     },
     "profile": {
-      "$ref": "chargingstation.json#/definitions/chargingProfile/properties/profile"
+      "$ref": "chargingstation#/definitions/chargingProfile/properties/profile"
     }
   },
   "required": [

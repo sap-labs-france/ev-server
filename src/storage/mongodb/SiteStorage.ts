@@ -29,14 +29,14 @@ export default class SiteStorage {
 
   public static async getSiteImage(tenant: Tenant, id: string): Promise<Image> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Read DB
     const siteImageMDB = await global.database.getCollection<{ _id: ObjectId; image: string }>(tenant.id, 'siteimages')
       .findOne({ _id: DatabaseUtils.convertToObjectID(id) });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getSiteImage', uniqueTimerID, siteImageMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSiteImage', startTime, { id }, siteImageMDB);
     return {
       id: id,
       image: siteImageMDB ? siteImageMDB.image : null
@@ -45,7 +45,7 @@ export default class SiteStorage {
 
   public static async removeUsersFromSite(tenant: Tenant, siteID: string, userIDs: string[]): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Site provided?
@@ -60,12 +60,12 @@ export default class SiteStorage {
       }
     }
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'removeUsersFromSite', uniqueTimerID, userIDs);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'removeUsersFromSite', startTime, userIDs);
   }
 
   public static async addUsersToSite(tenant: Tenant, siteID: string, userIDs: string[]): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Site provided?
@@ -88,14 +88,14 @@ export default class SiteStorage {
       }
     }
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'addUsersToSite', uniqueTimerID, userIDs);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'addUsersToSite', startTime, userIDs);
   }
 
   public static async getSiteUsers(tenant: Tenant,
       params: { search?: string; siteIDs: string[]; siteOwnerOnly?: boolean },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<UserSite>> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -157,7 +157,7 @@ export default class SiteStorage {
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
-      await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getSitesUsers', uniqueTimerID, usersCountMDB);
+      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSitesUsers', startTime, aggregation, usersCountMDB);
       return {
         count: (usersCountMDB.length > 0 ? usersCountMDB[0].count : 0),
         result: []
@@ -192,7 +192,7 @@ export default class SiteStorage {
       .aggregate<UserSite>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getSitesUsers', uniqueTimerID, siteUsersMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSitesUsers', startTime, aggregation, siteUsersMDB);
     return {
       count: (usersCountMDB.length > 0 ?
         (usersCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : usersCountMDB[0].count) : 0),
@@ -201,7 +201,7 @@ export default class SiteStorage {
   }
 
   public static async updateSiteOwner(tenant: Tenant, siteID: string, userID: string, siteOwner: boolean): Promise<void> {
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     await global.database.getCollection<any>(tenant.id, 'siteusers').updateMany(
       {
@@ -219,11 +219,11 @@ export default class SiteStorage {
       {
         $set: { siteOwner: siteOwner }
       });
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'updateSiteOwner', uniqueTimerID, { siteID, userID });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'updateSiteOwner', startTime, { siteID, userID });
   }
 
   public static async updateSiteUserAdmin(tenant: Tenant, siteID: string, userID: string, siteAdmin: boolean): Promise<void> {
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
 
     await global.database.getCollection<any>(tenant.id, 'siteusers').updateOne(
@@ -234,12 +234,12 @@ export default class SiteStorage {
       {
         $set: { siteAdmin }
       });
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'updateSiteUserAdmin', uniqueTimerID, { siteID, userID, siteAdmin });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'updateSiteUserAdmin', startTime, { siteID, userID, siteAdmin });
   }
 
   public static async saveSite(tenant: Tenant, siteToSave: Site, saveImage = true): Promise<string> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     const siteFilter: any = {};
@@ -283,13 +283,13 @@ export default class SiteStorage {
       await SiteStorage.saveSiteImage(tenant, siteFilter._id.toString(), siteToSave.image);
     }
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveSite', uniqueTimerID, siteMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveSite', startTime, siteMDB);
     return siteFilter._id.toString();
   }
 
   public static async saveSiteImage(tenant: Tenant, siteID: string, siteImageToSave: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Modify
@@ -299,7 +299,7 @@ export default class SiteStorage {
       { upsert: true, returnDocument: 'after' }
     );
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveSiteImage', uniqueTimerID, siteImageToSave);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveSiteImage', startTime, siteImageToSave);
   }
 
   public static async getSites(tenant: Tenant,
@@ -311,7 +311,7 @@ export default class SiteStorage {
       } = {},
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Site>> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -397,7 +397,7 @@ export default class SiteStorage {
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
-      await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getSites', uniqueTimerID, sitesCountMDB);
+      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSites', startTime, aggregation, sitesCountMDB);
       return {
         count: (sitesCountMDB.length > 0 ? sitesCountMDB[0].count : 0),
         result: []
@@ -485,7 +485,7 @@ export default class SiteStorage {
       }
     }
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getSites', uniqueTimerID, sites);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSites', startTime, aggregation, sites);
     return {
       projectFields: projectFields,
       count: (sitesCountMDB.length > 0 ?
@@ -500,7 +500,7 @@ export default class SiteStorage {
 
   public static async deleteSites(tenant: Tenant, ids: string[]): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete all Site Areas
@@ -517,12 +517,12 @@ export default class SiteStorage {
     await global.database.getCollection<any>(tenant.id, 'siteusers')
       .deleteMany({ 'siteID': { $in: cids } });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'deleteSites', uniqueTimerID, { ids });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteSites', startTime, { ids });
   }
 
   public static async deleteCompanySites(tenant: Tenant, companyID: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Get Sites of Company
@@ -536,19 +536,19 @@ export default class SiteStorage {
     // Delete Sites
     await SiteStorage.deleteSites(tenant, siteIDs);
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'deleteCompanySites', uniqueTimerID, { companyID });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteCompanySites', startTime, { companyID });
   }
 
   public static async siteHasUser(tenant: Tenant, siteID: string, userID: string): Promise<boolean> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Exec
     const result = await global.database.getCollection<any>(tenant.id, 'siteusers').findOne(
       { siteID: DatabaseUtils.convertToObjectID(siteID), userID: DatabaseUtils.convertToObjectID(userID) });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'siteHasUser', uniqueTimerID, { siteID });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'siteHasUser', startTime, { siteID });
     // Check
     if (!result) {
       return false;

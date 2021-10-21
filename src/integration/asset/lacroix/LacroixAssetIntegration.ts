@@ -13,6 +13,7 @@ import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import Tenant from '../../../types/Tenant';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
+import { URLSearchParams } from 'url';
 import Utils from '../../../utils/Utils';
 import moment from 'moment';
 
@@ -23,7 +24,7 @@ export default class LacroixAssetIntegration extends AssetIntegration<AssetSetti
 
   public constructor(tenant: Tenant, settings: AssetSetting, connection: AssetConnectionSetting) {
     super(tenant, settings, connection);
-    this.axiosInstance = AxiosFactory.getAxiosInstance(tenant.id);
+    this.axiosInstance = AxiosFactory.getAxiosInstance(tenant);
   }
 
   public async checkConnection(): Promise<void> {

@@ -8,7 +8,6 @@ import { OCPPVersion } from '../../../types/ocpp/OCPPServer';
 import { ServerAction } from '../../../types/Server';
 import { ServerUtils } from '../../ServerUtils';
 import Utils from '../../../utils/Utils';
-import centralSystemService12 from './services/SoapCentralSystemService12';
 import centralSystemService15 from './services/SoapCentralSystemService15';
 import centralSystemService16 from './services/SoapCentralSystemService16';
 import express from 'express';
@@ -28,6 +27,8 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
     super(centralSystemConfig, chargingStationConfig);
     // Initialize express app
     this.expressApplication = ExpressUtils.initApplication(null, centralSystemConfig.debug);
+    // Log Express Request
+    this.expressApplication.use(Logging.traceExpressRequest.bind(this));
     // Initialize the HTTP server
     this.httpServer = ServerUtils.createHttpServer(this.centralSystemConfig, this.expressApplication);
   }
@@ -41,19 +42,6 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
     global.centralSystemSoapServer = this;
     ServerUtils.startHttpServer(this.centralSystemConfig, this.httpServer, MODULE_NAME, 'OCPP-S');
     // Create Soap Servers
-    // OCPP 1.2 -----------------------------------------
-    const soapServer12 = soap.listen(this.httpServer, `/${Utils.getOCPPServerVersionURLPath(OCPPVersion.VERSION_12)}`, centralSystemService12, this.readWsdl('OCPPCentralSystemService12.wsdl'));
-    // Log
-    if (this.centralSystemConfig.debug) {
-      // Listen
-      soapServer12.log = async (type, data) => {
-        await this.handleSoapServerLog(OCPPVersion.VERSION_12, type, data);
-      };
-      // Log Request
-      soapServer12.on('request', async (request, methodName) => {
-        await this.handleSoapServerMessage(OCPPVersion.VERSION_12, request, methodName);
-      });
-    }
     // OCPP 1.5 -----------------------------------------
     const soapServer15 = soap.listen(this.httpServer, `/${Utils.getOCPPServerVersionURLPath(OCPPVersion.VERSION_15)}`, centralSystemService15, this.readWsdl('OCPPCentralSystemService15.wsdl'));
     // Log

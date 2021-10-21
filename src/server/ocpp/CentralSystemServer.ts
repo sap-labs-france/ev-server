@@ -17,7 +17,6 @@ export default abstract class CentralSystemServer {
 
   public getChargingStationService(ocppVersion: OCPPVersion): OCPPService {
     switch (ocppVersion) {
-      case OCPPVersion.VERSION_12:
       case OCPPVersion.VERSION_15:
       case OCPPVersion.VERSION_16:
       default:

@@ -11,6 +11,7 @@ import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import Tenant from '../../../types/Tenant';
+import { URLSearchParams } from 'url';
 import Utils from '../../../utils/Utils';
 import moment from 'moment';
 
@@ -22,7 +23,7 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
 
   public constructor(tenant: Tenant, settings: AssetSetting, connection: AssetConnectionSetting) {
     super(tenant, settings, connection);
-    this.axiosInstance = AxiosFactory.getAxiosInstance(tenant.id);
+    this.axiosInstance = AxiosFactory.getAxiosInstance(tenant);
   }
 
   public async checkConnection(): Promise<void> {

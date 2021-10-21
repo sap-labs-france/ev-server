@@ -1,4 +1,5 @@
 {
+  "$id": "assets-get",
   "title": "Get Assets Request",
   "type": "object",
   "properties": {
@@ -11,10 +12,10 @@
       "sanitize": "mongo"
     },
     "SiteAreaID": {
-      "$ref": "common.json#/definitions/ids"
+      "$ref": "common#/definitions/ids"
     },
     "SiteID": {
-      "$ref": "common.json#/definitions/ids"
+      "$ref": "common#/definitions/ids"
     },
     "DynamicOnly": {
       "type": "boolean",
@@ -29,22 +30,22 @@
       "sanitize": "mongo"
     },
     "Search": {
-      "$ref": "common.json#/definitions/search"
+      "$ref": "common#/definitions/search"
     },
     "Limit": {
-      "$ref": "common.json#/definitions/limit"
+      "$ref": "common#/definitions/limit"
     },
     "SortFields": {
-      "$ref": "common.json#/definitions/sortFields"
+      "$ref": "common#/definitions/sortFields"
     },
     "Skip": {
-      "$ref": "common.json#/definitions/skip"
+      "$ref": "common#/definitions/skip"
     },
     "OnlyRecordCount": {
-      "$ref": "common.json#/definitions/onlyRecordCount"
+      "$ref": "common#/definitions/onlyRecordCount"
     },
     "ProjectFields": {
-      "$ref": "common.json#/definitions/projectFields"
+      "$ref": "common#/definitions/projectFields"
     }
   },
   "required": [

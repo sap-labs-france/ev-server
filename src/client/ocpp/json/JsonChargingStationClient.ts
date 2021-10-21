@@ -6,6 +6,7 @@ import JsonWSConnection from '../../../server/ocpp/json/JsonWSConnection';
 import Logging from '../../../utils/Logging';
 import { OCPPMessageType } from '../../../types/ocpp/OCPPCommon';
 import { ServerAction } from '../../../types/Server';
+import Tenant from '../../../types/Tenant';
 import Utils from '../../../utils/Utils';
 
 const MODULE_NAME = 'JsonChargingStationClient';
@@ -15,17 +16,17 @@ export default class JsonChargingStationClient extends ChargingStationClient {
   private siteID: string;
   private siteAreaID: string;
   private companyID: string;
-  private tenantID: string;
+  private tenant: Tenant;
   private wsConnection: JsonWSConnection;
 
-  constructor(wsConnection: JsonWSConnection, tenantID: string, chargingStationID: string, chargingStationDetails: {
+  constructor(wsConnection: JsonWSConnection, tenant: Tenant, chargingStationID: string, chargingStationDetails: {
     siteAreaID: string,
     siteID: string,
     companyID: string,
   }) {
     super();
     this.wsConnection = wsConnection;
-    this.tenantID = tenantID;
+    this.tenant = tenant;
     this.chargingStationID = chargingStationID;
     this.siteID = chargingStationDetails.siteID;
     this.siteAreaID = chargingStationDetails.siteAreaID;
@@ -102,19 +103,17 @@ export default class JsonChargingStationClient extends ChargingStationClient {
 
   private async sendMessage(params: any, command: Command): Promise<any> {
     // Trace
-    const startTimestamp = await Logging.traceChargingStationActionStart(MODULE_NAME, this.tenantID, this.chargingStationID, `ChargingStation${command}` as ServerAction, params, '<<', {
-      siteAreaID: this.siteAreaID,
-      siteID: this.siteID,
-      companyID: this.companyID,
-    });
+    const performanceTracingData = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant, this.chargingStationID,
+      `ChargingStation${command}` as ServerAction, params, '<<',
+      { siteAreaID: this.siteAreaID, siteID: this.siteID, companyID: this.companyID });
     // Execute
     const result = await this.wsConnection.sendMessage(Utils.generateUUID(), params, OCPPMessageType.CALL_MESSAGE, command);
     // Trace
-    await Logging.traceChargingStationActionEnd(MODULE_NAME, this.tenantID, this.chargingStationID, `ChargingStation${command}` as ServerAction, result, '>>', {
-      siteAreaID: this.siteAreaID,
-      siteID: this.siteID,
-      companyID: this.companyID,
-    }, startTimestamp);
+    await Logging.traceOcppMessageResponse(MODULE_NAME, this.tenant, this.chargingStationID,
+      `ChargingStation${command}` as ServerAction, params, result, '>>',
+      { siteAreaID: this.siteAreaID, siteID: this.siteID, companyID: this.companyID },
+      performanceTracingData
+    );
     return result;
   }
 }

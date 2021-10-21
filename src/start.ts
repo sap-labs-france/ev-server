@@ -12,7 +12,6 @@ import Logging from './utils/Logging';
 import MigrationConfiguration from './types/configuration/MigrationConfiguration';
 import MigrationHandler from './migration/MigrationHandler';
 import MongoDBStorage from './storage/mongodb/MongoDBStorage';
-import MongoDBStorageNotification from './storage/mongodb/MongoDBStorageNotification';
 import OCPIServer from './server/ocpi/OCPIServer';
 import OCPIServiceConfiguration from './types/configuration/OCPIServiceConfiguration';
 import ODataServer from './server/odata/ODataServer';
@@ -33,7 +32,6 @@ export default class Bootstrap {
   private static centralSystemRestConfig: CentralSystemRestServiceConfiguration;
   private static centralRestServer: CentralRestServer;
   private static chargingStationConfig: ChargingStationConfiguration;
-  private static storageNotification: MongoDBStorageNotification;
   private static storageConfig: StorageConfiguration;
   private static centralSystemsConfig: CentralSystemConfiguration[];
   private static SoapCentralSystemServer: SoapCentralSystemServer;
@@ -139,7 +137,7 @@ export default class Bootstrap {
       // -------------------------------------------------------------------------
       // Update Charging Station Templates
       // -------------------------------------------------------------------------
-      startTimeMillis = await this.logAndGetStartTimeMillis('Update Charging Station templates...');
+      startTimeMillis = await this.logAndGetStartTimeMillis('Charging Station templates is being updated...');
       await Utils.updateChargingStationTemplatesFromFile();
       // Log
       await this.logDuration(startTimeMillis, 'Charging Station templates have been updated successfully');
@@ -149,7 +147,7 @@ export default class Bootstrap {
         global.serverName = serverStarted[0];
       }
       // Log
-      await this.logDuration(startTimeGlobalMillis, `${serverStarted.join(', ')} e-Mobility server has been started successfuly`);
+      await this.logDuration(startTimeGlobalMillis, `${serverStarted.join(', ')} server has been started successfuly`, ServerAction.BOOTSTRAP_STARTUP);
     } catch (error) {
       console.error(chalk.red(error));
       await Logging.logError({
@@ -176,14 +174,14 @@ export default class Bootstrap {
     return timeStartMillis;
   }
 
-  private static async logDuration(timeStartMillis: number, logMessage: string): Promise<void> {
+  private static async logDuration(timeStartMillis: number, logMessage: string, action: ServerAction = ServerAction.STARTUP): Promise<void> {
     const timeDurationSecs = Utils.createDecimal(Date.now() - timeStartMillis).div(1000).toNumber();
     logMessage = `${logMessage} in ${timeDurationSecs} secs`;
     console.log(chalk.green(logMessage));
     if (global.database) {
       await Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        action: ServerAction.BOOTSTRAP_STARTUP,
+        action,
         module: MODULE_NAME, method: 'start',
         message: logMessage
       });
@@ -203,20 +201,8 @@ export default class Bootstrap {
         }
         // Start it
         await Bootstrap.centralRestServer.start();
-        if (this.centralSystemRestConfig.socketIO) {
-          // Start database Socket IO notifications
-          await this.centralRestServer.startSocketIO();
-        }
         serverStarted.push('Rest');
       }
-      // -------------------------------------------------------------------------
-      // Listen to DB changes
-      // -------------------------------------------------------------------------
-      // Create database notifications
-      if (!Bootstrap.storageNotification) {
-        Bootstrap.storageNotification = new MongoDBStorageNotification(Bootstrap.storageConfig, Bootstrap.centralRestServer);
-      }
-      await Bootstrap.storageNotification.start();
       // -------------------------------------------------------------------------
       // Central Server (Charging Stations)
       // -------------------------------------------------------------------------

@@ -71,9 +71,6 @@ export default abstract class AbstractOCPIService {
     return `${this.role}/${this.version}/`;
   }
 
-  /**
-   * Return Version of OCPI Service
-   */
   public getVersion(): string {
     return this.version;
   }
@@ -106,13 +103,6 @@ export default abstract class AbstractOCPIService {
     next();
   }
 
-  /**
-   * Send Supported Endpoints
-   *
-   * @param req
-   * @param res
-   * @param next
-   */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public getSupportedEndpoints(req: TenantIdHoldingRequest, res: Response, next: NextFunction): void {
     const fullUrl = this.getServiceUrl(req);
@@ -126,14 +116,6 @@ export default abstract class AbstractOCPIService {
     res.json(OCPIUtils.success({ 'version': this.getVersion(), 'endpoints': supportedEndpoints }));
   }
 
-  /**
-   * Process Endpoint action
-   *
-   * @param action
-   * @param req
-   * @param res
-   * @param next
-   */
   public async processEndpointAction(action: ServerAction, req: TenantIdHoldingRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const registeredEndpoints = this.getRegisteredEndpoints();

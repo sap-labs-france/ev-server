@@ -1,7 +1,5 @@
-import { AxiosInstance, AxiosRequestConfig } from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 
-import AxiosFactory from '../../../../src/utils/AxiosFactory';
-import Constants from '../../../../src/utils/Constants';
 import { IAxiosRetryConfig } from 'axios-retry';
 import config from '../../../config';
 import { performance } from 'perf_hooks';
@@ -20,7 +18,7 @@ export default class BaseApi {
     };
     axiosInstanceConfiguration.axiosConfig.timeout = config.get('axios.timeout');
     axiosInstanceConfiguration.axiosRetryConfig.retries = config.get('axios.retries');
-    this.axiosInstance = AxiosFactory.getAxiosInstance(Constants.DEFAULT_TENANT, axiosInstanceConfiguration);
+    this.axiosInstance = axios.create();
   }
 
   public async send(httpRequest: AxiosRequestConfig): Promise<any> {

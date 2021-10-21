@@ -1,4 +1,5 @@
 {
+  "$id": "chargingstation-firmware-download",
   "title": "Download Charging Station firmware Request",
   "type": "object",
   "properties": {

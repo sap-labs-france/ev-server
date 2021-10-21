@@ -17,7 +17,7 @@ export default class TagStorage {
 
   public static async saveTag(tenant: Tenant, tag: Tag): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     const tagMDB = {
@@ -39,11 +39,11 @@ export default class TagStorage {
       { $set: tagMDB },
       { upsert: true, returnDocument: 'after' });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveTag', uniqueTimerID, tagMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveTag', startTime, tagMDB);
   }
 
   public static async saveImportedTag(tenant: Tenant, importedTagToSave: ImportedTag): Promise<string> {
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     const tagMDB = {
       _id: importedTagToSave.id,
       visualID: importedTagToSave.visualID,
@@ -64,12 +64,12 @@ export default class TagStorage {
       { upsert: true, returnDocument: 'after' }
     );
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveImportedTag', uniqueTimerID, tagMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveImportedTag', startTime, tagMDB);
     return tagMDB._id;
   }
 
   public static async saveImportedTags(tenant: Tenant, importedTagsToSave: ImportedTag[]): Promise<number> {
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     const importedTagsToSaveMDB: any = importedTagsToSave.map((importedTagToSave) => ({
       _id: importedTagToSave.id,
       visualID: importedTagToSave.visualID,
@@ -90,13 +90,13 @@ export default class TagStorage {
       { ordered: false }
     );
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'saveImportedTags', uniqueTimerID, importedTagsToSave);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveImportedTags', startTime, importedTagsToSave);
     return result.insertedCount;
   }
 
   public static async deleteImportedTag(tenant: Tenant, importedTagID: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete
@@ -105,29 +105,29 @@ export default class TagStorage {
         '_id': importedTagID,
       });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'deleteImportedTag', uniqueTimerID, { id: importedTagID });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteImportedTag', startTime, { id: importedTagID });
   }
 
   public static async deleteImportedTags(tenant: Tenant): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete
     await global.database.getCollection<any>(tenant.id, 'importedtags').deleteMany({});
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'deleteImportedTags', uniqueTimerID);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteImportedTags', startTime, {});
   }
 
   public static async getImportedTagsCount(tenant: Tenant): Promise<number> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Count documents
     const nbrOfDocuments = await global.database.getCollection<any>(tenant.id, 'importedtags').countDocuments();
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getImportedTagsCount', uniqueTimerID);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getImportedTagsCount', startTime, {});
     return nbrOfDocuments;
   }
 
@@ -135,7 +135,7 @@ export default class TagStorage {
       params: { status?: ImportStatus; search?: string },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ImportedTag>> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -174,7 +174,7 @@ export default class TagStorage {
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
-      await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getImportedTags', uniqueTimerID, tagsImportCountMDB);
+      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getImportedTags', startTime, aggregation, tagsImportCountMDB);
       return {
         count: (tagsImportCountMDB.length > 0 ? tagsImportCountMDB[0].count : 0),
         result: []
@@ -210,7 +210,7 @@ export default class TagStorage {
       .aggregate<ImportedTag>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getImportedTags', uniqueTimerID, tagsImportMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getImportedTags', startTime, aggregation, tagsImportMDB);
     // Ok
     return {
       count: (tagsImportCountMDB.length > 0 ?
@@ -220,7 +220,7 @@ export default class TagStorage {
   }
 
   public static async clearDefaultUserTag(tenant: Tenant, userID: string): Promise<void> {
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     await global.database.getCollection<any>(tenant.id, 'tags').updateMany(
       {
@@ -230,12 +230,12 @@ export default class TagStorage {
       {
         $set: { default: false }
       });
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'clearDefaultUserTag', uniqueTimerID, { userID });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'clearDefaultUserTag', startTime, { userID });
   }
 
   public static async deleteTag(tenant: Tenant, tagID: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete
@@ -245,12 +245,12 @@ export default class TagStorage {
       }
     );
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'deleteTag', uniqueTimerID, { id: tagID });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteTag', startTime, { id: tagID });
   }
 
   public static async deleteTagsByUser(tenant: Tenant, userID: string): Promise<number> {
     // Debug
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete
@@ -260,7 +260,7 @@ export default class TagStorage {
       }
     );
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'deleteTagsByUser', uniqueTimerID, { id: userID });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteTagsByUser', startTime, { id: userID });
     return result.deletedCount;
   }
 
@@ -314,7 +314,7 @@ export default class TagStorage {
         withUser?: boolean; withUsersOnly?: boolean; withNbrTransactions?: boolean; search?: string, defaultTag?: boolean, active?: boolean;
       },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Tag>> {
-    const uniqueTimerID = Logging.traceDatabaseRequestStart();
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -389,7 +389,7 @@ export default class TagStorage {
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
-      await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getTags', uniqueTimerID, tagsCountMDB);
+      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getTags', startTime, aggregation, tagsCountMDB);
       return {
         count: (tagsCountMDB.length > 0 ? tagsCountMDB[0].count : 0),
         result: []
@@ -445,7 +445,7 @@ export default class TagStorage {
       .aggregate<Tag>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant.id, MODULE_NAME, 'getTags', uniqueTimerID, tagsMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getTags', startTime, aggregation, tagsMDB);
     // Ok
     return {
       count: (tagsCountMDB.length > 0 ?
