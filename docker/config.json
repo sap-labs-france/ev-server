@@ -33,9 +33,6 @@
     "userTokenLifetimeHours": 12,
     "userDemoTokenLifetimeDays": 365,
     "userTechnicalTokenLifetimeDays": 365,
-    "socketIO": true,
-    "socketIOListNotificationIntervalSecs": 5,
-    "socketIOSingleNotificationIntervalSecs": 1,
     "passwordWrongNumberOfTrial": 3,
     "passwordBlockedWaitTimeMin": 5,
     "captchaSecretKey": "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe",
@@ -101,7 +98,6 @@
     "database": "evse",
     "poolSize": 200,
     "replicaSet": "rs0",
-    "monitorDBChange": true,
     "debug": false
   },
   "Email": {
