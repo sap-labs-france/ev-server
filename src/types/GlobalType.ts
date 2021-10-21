@@ -22,6 +22,17 @@ export interface DatabaseCount {
   count?: number;
 }
 
+export enum DatabaseDocumentChange {
+  INSERT = 'insert',
+  UPDATE = 'update',
+  REPLACE = 'replace',
+  DELETE = 'delete',
+  INVALIDATE = 'invalidate',
+  DROP = 'drop',
+  DROP_DATABASE = 'dropDatabase',
+  RENAME = 'rename',
+}
+
 export interface KeyValue {
   key: string;
   value: string;
