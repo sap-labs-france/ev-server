@@ -169,7 +169,7 @@ export default class JsonWSConnection extends WSConnection {
 
   public async handleRequest(messageId: string, command: Command, commandPayload: Record<string, unknown> | string): Promise<void> {
     // Trace
-    const startTimestamp = await Logging.traceOcppMessageRequest(Constants.MODULE_JSON_OCPP_SERVER_16,
+    const performanceTracingData = await Logging.traceOcppMessageRequest(Constants.MODULE_JSON_OCPP_SERVER_16,
       this.getTenant(), this.getChargingStationID(),
       OCPPUtils.getServerActionFromOcppCommand(command), commandPayload, '>>', {
         siteAreaID: this.getSiteAreaID(),
@@ -191,7 +191,7 @@ export default class JsonWSConnection extends WSConnection {
           siteAreaID: this.getSiteAreaID(),
           siteID: this.getSiteID(),
           companyID: this.getCompanyID(),
-        }, startTimestamp
+        }, performanceTracingData
       );
       // Send Response
       await this.sendMessage(messageId, result, OCPPMessageType.CALL_RESULT_MESSAGE, command);

@@ -1,7 +1,7 @@
 import { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { Log, LogLevel, LogType } from '../types/Log';
 import { NextFunction, Request, Response } from 'express';
-import PerformanceRecord, { PerformanceRecordGroup } from '../types/Performance';
+import PerformanceRecord, { PerformanceRecordGroup, PerformanceTracingData } from '../types/Performance';
 import global, { ActionsResponse } from '../types/GlobalType';
 
 import AppAuthError from '../exception/AppAuthError';
@@ -660,7 +660,7 @@ export default class Logging {
 
   public static async traceOcppMessageRequest(module: string, tenant: Tenant, chargingStationID: string,
       action: ServerAction, request: any, direction: '<<' | '>>',
-      chargingStationDetails: { siteID: string; siteAreaID: string; companyID: string; }): Promise<number> {
+      chargingStationDetails: { siteID: string; siteAreaID: string; companyID: string; }): Promise<PerformanceTracingData> {
     // Compute size
     const sizeOfRequestDataKB = Utils.truncTo(Utils.createDecimal(
       sizeof(request)).div(1024).toNumber(), 2);
@@ -686,18 +686,17 @@ export default class Logging {
         action
       })
     );
-    request['performanceID'] = performanceID;
-    return Date.now();
+    return {
+      startTimestamp: Date.now(),
+      performanceID
+    };
   }
 
   public static async traceOcppMessageResponse(module: string, tenant: Tenant, chargingStationID: string,
-      action: ServerAction, request: any, response: any, direction: '<<' | '>>', chargingStationDetails: {
-        siteID: string,
-        siteAreaID: string,
-        companyID: string,
-      }, startTimestamp: number): Promise<void> {
+      action: ServerAction, request: any, response: any, direction: '<<' | '>>',
+      chargingStationDetails: { siteID: string, siteAreaID: string, companyID: string,}, performanceTracingData?: PerformanceTracingData): Promise<void> {
     // Compute duration if provided
-    const executionDurationMillis = startTimestamp ? Date.now() - startTimestamp : 0;
+    const executionDurationMillis = performanceTracingData?.startTimestamp ? Date.now() - performanceTracingData.startTimestamp : 0;
     const sizeOfResponseDataKB = Utils.truncTo(Utils.createDecimal(
       sizeof(response)).div(1024).toNumber(), 2);
     const message = `${direction} OCPP Request '${action}' on '${chargingStationID}' has been processed ${executionDurationMillis ? 'in ' + executionDurationMillis.toString() + ' ms' : ''} - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB`;
@@ -743,9 +742,9 @@ export default class Logging {
         message, detailedMessages: response
       });
     }
-    if (request['performanceID']) {
+    if (performanceTracingData?.performanceID) {
       const performanceRecord = {
-        id: request['performanceID'],
+        id: performanceTracingData.performanceID,
         durationMs: executionDurationMillis,
         resSizeKb: sizeOfResponseDataKB,
       } as PerformanceRecord;

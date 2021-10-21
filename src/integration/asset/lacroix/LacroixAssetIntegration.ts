@@ -13,6 +13,7 @@ import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import Tenant from '../../../types/Tenant';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
+import { URLSearchParams } from 'url';
 import Utils from '../../../utils/Utils';
 import moment from 'moment';
 

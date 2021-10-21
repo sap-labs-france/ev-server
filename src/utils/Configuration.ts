@@ -138,15 +138,6 @@ export default class Configuration {
         centralSystemRestService.userTokenKey = Configuration.getUserProvidedCredentialsValue(CloudCredentialsKey.USER_TOKEN_KEY);
         centralSystemRestService.captchaSecretKey = Configuration.getUserProvidedCredentialsValue(CloudCredentialsKey.CAPTCHA_SECRET_KEY);
       }
-      if (Configuration.isUndefined(centralSystemRestService.socketIO)) {
-        centralSystemRestService.socketIO = true;
-      }
-      if (Configuration.isUndefined(centralSystemRestService.socketIOSingleNotificationIntervalSecs)) {
-        centralSystemRestService.socketIOSingleNotificationIntervalSecs = 1;
-      }
-      if (Configuration.isUndefined(centralSystemRestService.socketIOListNotificationIntervalSecs)) {
-        centralSystemRestService.socketIOListNotificationIntervalSecs = 5;
-      }
     }
     return centralSystemRestService;
   }
