@@ -218,7 +218,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.PRICING_DEFINITION, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE],
         attributes: ['id', 'entityID', 'entityType', 'name', 'description',
           'staticRestrictions.validFrom', 'staticRestrictions.validTo', 'staticRestrictions.connectorType', 'staticRestrictions.connectorPowerkW',
-          'restrictions.minEnergyKWh', 'restrictions.maxEnergyKWh', 'restrictions.minDusrationSecs', 'restrictions.maxDurationSecs',
+          'restrictions.minEnergyKWh', 'restrictions.maxEnergyKWh', 'restrictions.minDurationSecs', 'restrictions.maxDurationSecs',
           'dimensions.flatFee.active', 'dimensions.flatFee.price', 'dimensions.flatFee.stepSize', 'dimensions.flatFee.pricedData',
           'dimensions.energy.active', 'dimensions.energy.price', 'dimensions.energy.stepSize', 'dimensions.energy.pricedData',
           'dimensions.chargingTime.active', 'dimensions.chargingTime.price', 'dimensions.chargingTime.stepSize', 'dimensions.chargingTime.pricedData',
