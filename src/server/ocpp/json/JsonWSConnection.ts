@@ -114,7 +114,8 @@ export default class JsonWSConnection extends WSConnection {
       } else {
         // Check connection Token
         await OCPPUtils.checkChargingStationConnectionToken(
-          ServerAction.OCPP_BOOT_NOTIFICATION, this.getTenant(), this.getChargingStationID(), this.getToken(), { headers: this.headers });
+          ServerAction.OCPP_BOOT_NOTIFICATION, this.getTenant(), this.getChargingStationID(), this.getSiteID(), this.getSiteAreaID(),
+          this.getCompanyID(), this.getToken(), { headers: this.headers });
       }
       this.initialized = true;
       await Logging.logInfo({

@@ -56,12 +56,15 @@ export default class OCPPUtils {
   }
 
   public static async checkChargingStationConnectionToken(action: ServerAction, tenant: Tenant, chargingStationID: string,
-      tokenID: string, detailedMessages?: any): Promise<RegistrationToken> {
+      siteID: string, siteAreaID: string, companyID: string, tokenID: string, detailedMessages?: any): Promise<RegistrationToken> {
     // Check Token
     if (!tokenID) {
       throw new BackendError({
         source: chargingStationID,
         chargingStationID: chargingStationID,
+        siteID: siteID,
+        siteAreaID: siteAreaID,
+        companyID: companyID,
         action: ServerAction.OCPP_BOOT_NOTIFICATION,
         module: MODULE_NAME, method: 'checkChargingStationConnectionToken',
         message: 'Charging Station Token is required, connection refused',
@@ -74,6 +77,9 @@ export default class OCPPUtils {
       throw new BackendError({
         source: chargingStationID,
         chargingStationID: chargingStationID,
+        siteID: siteID,
+        siteAreaID: siteAreaID,
+        companyID: companyID,
         action,
         module: MODULE_NAME, method: 'checkChargingStationConnectionToken',
         message: `Charging Station Token ID '${tokenID}' has not been found, connection refused`,
@@ -84,6 +90,9 @@ export default class OCPPUtils {
       throw new BackendError({
         source: chargingStationID,
         chargingStationID: chargingStationID,
+        siteID: siteID,
+        siteAreaID: siteAreaID,
+        companyID: companyID,
         action,
         module: MODULE_NAME, method: 'checkChargingStationConnectionToken',
         message: `Charging Station Token ID '${tokenID}' is expired, connection refused`,
@@ -1391,6 +1400,10 @@ export default class OCPPUtils {
     if (!Utils.isChargingStationIDValid(headers.chargeBoxIdentity)) {
       throw new BackendError({
         source: headers.chargeBoxIdentity,
+        chargingStationID: headers.chargeBoxIdentity,
+        siteID: headers.siteID,
+        siteAreaID: headers.siteAreaID,
+        companyID: headers.companyID,
         module: MODULE_NAME,
         method: 'normalizeAndCheckSOAPParams',
         message: 'The Charging Station ID is invalid'
@@ -1522,6 +1535,10 @@ export default class OCPPUtils {
     if (!ocppHeader.chargeBoxIdentity) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
+        chargingStationID: ocppHeader.chargeBoxIdentity,
+        siteID: ocppHeader.siteID,
+        siteAreaID: ocppHeader.siteAreaID,
+        companyID: ocppHeader.companyID,
         module: MODULE_NAME,
         method: 'checkAndGetTenantAndChargingStation',
         message: 'Should have the required property \'chargeBoxIdentity\'!'
@@ -1530,6 +1547,10 @@ export default class OCPPUtils {
     if (!ocppHeader.tenantID) {
       throw new BackendError({
         source: ocppHeader.chargeBoxIdentity,
+        chargingStationID: ocppHeader.chargeBoxIdentity,
+        siteID: ocppHeader.siteID,
+        siteAreaID: ocppHeader.siteAreaID,
+        companyID: ocppHeader.companyID,
         module: MODULE_NAME,
         method: 'checkAndGetTenantAndChargingStation',
         message: 'Should have the required property \'tenantID\'!'
@@ -1540,6 +1561,10 @@ export default class OCPPUtils {
     if (!tenant) {
       throw new BackendError({
         source: ocppHeader.chargeBoxIdentity,
+        chargingStationID: ocppHeader.chargeBoxIdentity,
+        siteID: ocppHeader.siteID,
+        siteAreaID: ocppHeader.siteAreaID,
+        companyID: ocppHeader.companyID,
         module: MODULE_NAME,
         method: 'checkAndGetTenantAndChargingStation',
         message: `Tenant ID '${ocppHeader.tenantID}' does not exist!`
@@ -1550,6 +1575,10 @@ export default class OCPPUtils {
     if (!chargingStationLock) {
       throw new BackendError({
         source: ocppHeader.chargeBoxIdentity,
+        chargingStationID: ocppHeader.chargeBoxIdentity,
+        siteID: ocppHeader.siteID,
+        siteAreaID: ocppHeader.siteAreaID,
+        companyID: ocppHeader.companyID,
         module: MODULE_NAME,
         method: 'checkAndGetTenantAndChargingStation',
         message: 'Cannot acquire a lock on the Charging Station'
@@ -1563,6 +1592,10 @@ export default class OCPPUtils {
       if (!chargingStation) {
         throw new BackendError({
           source: ocppHeader.chargeBoxIdentity,
+          chargingStationID: ocppHeader.chargeBoxIdentity,
+          siteID: ocppHeader.siteID,
+          siteAreaID: ocppHeader.siteAreaID,
+          companyID: ocppHeader.companyID,
           module: MODULE_NAME,
           method: 'checkAndGetTenantAndChargingStation',
           message: 'Charging Station does not exist'
@@ -1572,6 +1605,10 @@ export default class OCPPUtils {
       if (chargingStation?.deleted) {
         throw new BackendError({
           source: ocppHeader.chargeBoxIdentity,
+          chargingStationID: ocppHeader.chargeBoxIdentity,
+          siteID: ocppHeader.siteID,
+          siteAreaID: ocppHeader.siteAreaID,
+          companyID: ocppHeader.companyID,
           module: MODULE_NAME,
           method: 'checkAndGetTenantAndChargingStation',
           message: 'Charging Station is deleted'

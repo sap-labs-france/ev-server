@@ -1923,7 +1923,7 @@ export default class OCPPService {
   private async checkAndCreateChargingStation(tenant: Tenant, bootNotification: OCPPBootNotificationRequestExtended, headers: OCPPHeader): Promise<ChargingStation> {
     // Check connection Token
     const token = await OCPPUtils.checkChargingStationConnectionToken(
-      ServerAction.OCPP_BOOT_NOTIFICATION, tenant, headers.chargeBoxIdentity, headers.token, { headers, bootNotification });
+      ServerAction.OCPP_BOOT_NOTIFICATION, tenant, headers.chargeBoxIdentity, headers.siteID, headers.siteAreaID, headers.companyID, headers.token, { headers, bootNotification });
     // New Charging Station: Create
     const newChargingStation = {} as ChargingStation;
     for (const key in bootNotification) {
