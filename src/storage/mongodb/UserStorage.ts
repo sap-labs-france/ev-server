@@ -686,7 +686,7 @@ export default class UserStorage {
       }
     }
     // Select (non) Free users
-    if (Utils.isBoolean(params.freeAccess)) {
+    if (Utils.objectHasProperty(params, 'freeAccess') && Utils.isBoolean(params.freeAccess)) {
       if (params.freeAccess) {
         filters.freeAccess = true;
       } else {
