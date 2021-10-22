@@ -346,6 +346,7 @@ export default class ChargingStationService {
     if (!filteredRequest.chargePointID) {
       throw new AppError({
         source: filteredRequest.chargingStationID,
+        chargingStationID: filteredRequest.chargingStationID,
         action: action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'You must provide a Charge Point ID',
@@ -366,6 +367,10 @@ export default class ChargingStationService {
     if (filteredRequest.ampLimitValue < (StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases * chargePoint.connectorIDs.length)) {
       throw new AppError({
         source: filteredRequest.chargingStationID,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         action: action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Limitation to ${filteredRequest.ampLimitValue}A is too low, min required is ${StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases * chargePoint.connectorIDs.length}A`,
@@ -1396,6 +1401,10 @@ export default class ChargingStationService {
       // Throw error
       throw new AppError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteAreaID: chargingStation.siteAreaID,
+        siteID: chargingStation.siteID,
+        companyID: chargingStation.companyID,
         action: action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Unknown OCPP command '${command}'`,
@@ -1406,6 +1415,10 @@ export default class ChargingStationService {
     } catch (error) {
       throw new AppError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteAreaID: chargingStation.siteAreaID,
+        siteID: chargingStation.siteID,
+        companyID: chargingStation.companyID,
         action: action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `OCPP Command '${command}' has failed`,
