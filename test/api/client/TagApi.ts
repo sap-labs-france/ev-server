@@ -47,9 +47,4 @@ export default class TagApi extends CrudApi {
   public async exportTags(params) {
     return await super.read(params, this.buildRestEndpointUrl(ServerRoute.REST_TAGS_EXPORT));
   }
-
-  public async getDefaultTagCar(userID: string) {
-    const url = this.buildRestEndpointUrl(ServerRoute.REST_USER_DEFAULT_TAG_CAR, {});
-    return await super.read({ UserID: userID }, url);
-  }
 }
