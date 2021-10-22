@@ -281,6 +281,7 @@ export default class AuthorizationService {
     tags.canImport = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAGS, Action.IMPORT, authorizationFilter);
     tags.canExport = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAGS, Action.EXPORT, authorizationFilter);
     tags.canUnassign = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAGS, Action.UNASSIGN, authorizationFilter);
+    tags.metadata = authorizationFilter.metadata;
     // Enrich
     for (const tag of tags.result) {
       await AuthorizationService.addTagAuthorizations(tenant, userToken, tag, authorizationFilter);
@@ -795,6 +796,7 @@ export default class AuthorizationService {
     if (authorizationFilters.authorized) {
       AuthorizationService.processDynamicAsserts(tenant, userToken, authAction, entity,
         authorizationFilters, authorizationContext, entityData);
+      authorizationFilters.metadata = authResult.context.metadata;
     }
     // Filter projected fields
     authorizationFilters.projectFields = AuthorizationService.filterProjectFields(

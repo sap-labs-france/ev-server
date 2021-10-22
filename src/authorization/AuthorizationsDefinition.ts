@@ -1020,7 +1020,16 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['SitesAdmin', 'LocalIssuer']
+            filters: ['SitesAdmin', 'LocalIssuer'],
+            metadata: {
+              userID: {
+                visible: true,
+                enabled: true,
+                mandatory: true,
+                values: [],
+                defaultValue: null,
+              }
+            },
           }
         },
         attributes: [

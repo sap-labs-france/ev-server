@@ -1,6 +1,7 @@
 import { Car, CarCatalog } from './Car';
 import Transaction, { TransactionStats } from './Transaction';
 
+import { AuthorizationDefinitionFieldMetadata } from './Authorization';
 import Company from './Company';
 import PricingDefinition from './Pricing';
 import Site from './Site';
@@ -16,6 +17,7 @@ export interface DataResult<T> {
   count: number;
   result: T[];
   projectFields?: string[];
+  metadata?: Record<string, AuthorizationDefinitionFieldMetadata>;
 }
 
 export interface PricingDataResult extends DataResult<PricingDefinition>{
