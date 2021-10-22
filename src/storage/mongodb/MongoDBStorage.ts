@@ -1,9 +1,10 @@
-import { ChangeStream, ChangeStreamOptions, ClientSession, Collection, Db, GridFSBucket, MongoClient, ReadPreferenceMode } from 'mongodb';
+import { ChangeStreamDocument, Collection, CreateIndexesOptions, Db, GridFSBucket, IndexSpecification, MongoClient, ObjectId, ReadPreferenceMode } from 'mongodb';
 import mongoUriBuilder, { MongoUriConfig } from 'mongo-uri-builder';
 
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
+import { DatabaseDocumentChange } from '../../types/GlobalType';
 import DatabaseUtils from './DatabaseUtils';
 import { LockEntity } from '../../types/Locking';
 import LockingManager from '../../locking/LockingManager';
@@ -11,15 +12,15 @@ import Logging from '../../utils/Logging';
 import MigrationConfiguration from '../../types/configuration/MigrationConfiguration';
 import { ServerAction } from '../../types/Server';
 import StorageConfiguration from '../../types/configuration/StorageConfiguration';
+import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 import chalk from 'chalk';
-import cluster from 'cluster';
 import urlencode from 'urlencode';
 
 const MODULE_NAME = 'MongoDBStorage';
 
 export default class MongoDBStorage {
-  private db: Db;
+  private database: Db;
   private readonly dbConfig: StorageConfiguration;
   private readonly migrationConfig: MigrationConfiguration;
 
@@ -30,11 +31,11 @@ export default class MongoDBStorage {
   }
 
   public getDatabase(): Db {
-    return this.db;
+    return this.database;
   }
 
   public getCollection<T>(tenantID: string, collectionName: string): Collection<T> {
-    if (!this.db) {
+    if (!this.database) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
@@ -43,21 +44,59 @@ export default class MongoDBStorage {
         action: ServerAction.MONGO_DB
       });
     }
-    return this.db.collection<T>(DatabaseUtils.getCollectionName(tenantID, collectionName));
+    return this.database.collection<T>(DatabaseUtils.getCollectionName(tenantID, collectionName));
   }
 
-  public watch(pipeline: Record<string, unknown>[], options: ChangeStreamOptions & { session?: ClientSession; }): ChangeStream {
-    return this.db.watch(pipeline, options);
+  public async watchDatabaseCollection(tenant: Tenant, collectionName: string,
+      callback: (documentID: unknown, documentChange: DatabaseDocumentChange, document: unknown) => void): Promise<void> {
+    if (!this.database) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'watchDatabaseCollection',
+        message: 'Database has not yet started',
+        action: ServerAction.MONGO_DB
+      });
+    }
+    // Get the DB collection
+    const dbCollection = this.getCollection(tenant.id, collectionName);
+    if (!dbCollection) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'watchDatabaseCollection',
+        message: `Database collection '${tenant.id}.${collectionName}' has not been found!`,
+        action: ServerAction.MONGO_DB
+      });
+    }
+    // Watch
+    const changeStream = dbCollection.watch([], { fullDocument: 'updateLookup' });
+    const message = `Database collection '${tenant.id}.${collectionName}' is being watched`;
+    Utils.isDevelopmentEnv() && console.log(chalk.green(message));
+    await Logging.logDebug({
+      tenantID: tenant.id,
+      action: ServerAction.MONGO_DB,
+      message,
+      module: MODULE_NAME, method: 'watchDatabaseCollection'
+    });
+    // Trigger callbacks
+    changeStream.on('change', (changeStreamDocument: ChangeStreamDocument) => {
+      const documentID = changeStreamDocument.documentKey ? changeStreamDocument.documentKey['_id'] : null;
+      const documentChange = changeStreamDocument.operationType;
+      const fullDocument = changeStreamDocument.fullDocument;
+      // Callback
+      callback(documentID, documentChange as DatabaseDocumentChange, fullDocument);
+    });
   }
 
   public async checkAndCreateTenantDatabase(tenantID: string): Promise<void> {
     // Safety check
-    if (!this.db) {
+    if (!this.database) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'checkAndCreateTenantDatabase',
-        message: 'Not supposed to call checkAndCreateTenantDatabase before database start',
+        message: 'Database has not yet started',
         action: ServerAction.MONGO_DB
       });
     }
@@ -69,7 +108,6 @@ export default class MongoDBStorage {
     });
     // Users
     await this.handleIndexesInCollection(tenantID, 'users', [
-      { fields: { deleted: 1, name: 1 } },
       { fields: { issuer: 1, name: 1 } },
       { fields: { email: 1 }, options: { unique: true } },
       { fields: { 'address.coordinates': '2dsphere' } },
@@ -89,7 +127,7 @@ export default class MongoDBStorage {
     ]);
     // Logs
     await this.handleIndexesInCollection(tenantID, 'logs', [
-      { fields: { timestamp: 1 } },
+      { fields: { timestamp: 1 }, options: { expireAfterSeconds: 14 * 24 * 3600 } },
       { fields: { type: 1, timestamp: 1 } },
       { fields: { action: 1, timestamp: 1 } },
       { fields: { level: 1, timestamp: 1 } },
@@ -109,9 +147,14 @@ export default class MongoDBStorage {
     // Tags
     await this.handleIndexesInCollection(tenantID, 'tags', [
       { fields: { visualID: 1 }, options: { unique: true } },
-      { fields: { deleted: 1, createdOn: 1 } },
       { fields: { issuer: 1, createdOn: 1 } },
+      { fields: { createdOn: 1 } },
       { fields: { userID: 1, issuer: 1 } },
+      { fields: { _id: 'text', description: 'text', visualID: 'text' } },
+    ]);
+    // Tags Import
+    await this.handleIndexesInCollection(tenantID, 'importedtags', [
+      { fields: { visualID: 1 }, options: { unique: true } }
     ]);
     // Sites/Users
     await this.handleIndexesInCollection(tenantID, 'siteusers', [
@@ -124,6 +167,7 @@ export default class MongoDBStorage {
     ]);
     // Transactions
     await this.handleIndexesInCollection(tenantID, 'transactions', [
+      { fields: { timestamp: 1 } },
       { fields: { issuer: 1, timestamp: 1 } },
       { fields: { chargeBoxID: 1 } },
       { fields: { tagID: 1 } },
@@ -171,7 +215,7 @@ export default class MongoDBStorage {
     // Not the Default tenant
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Safety check
-      if (!this.db) {
+      if (!this.database) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
@@ -181,24 +225,24 @@ export default class MongoDBStorage {
         });
       }
       // Get all the collections
-      const collections = await this.db.listCollections().toArray();
+      const collections = await this.database.listCollections().toArray();
       // Check and Delete
       for (const collection of collections) {
         // Check
         if (collection.name.startsWith(`${tenantID}.`)) {
           // Delete
-          await this.db.collection(collection.name).drop();
+          await this.database.collection(collection.name).drop();
         }
       }
     }
   }
 
   public getGridFSBucket(name: string): GridFSBucket {
-    return new GridFSBucket(this.db, { bucketName: name });
+    return new GridFSBucket(this.database, { bucketName: name });
   }
 
   public async start(): Promise<void> {
-    console.log(`Connecting to '${this.dbConfig.implementation}'  ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}...`);
+    console.log(`Connecting to '${this.dbConfig.implementation}'...`);
     // Build EVSE URL
     let mongoUrl: string;
     // URI provided?
@@ -236,17 +280,17 @@ export default class MongoDBStorage {
       }
     );
     // Get the EVSE DB
-    this.db = mongoDBClient.db();
+    this.database = mongoDBClient.db();
     // Check Database only when migration is active
     if (this.migrationConfig.active) {
       await this.checkDatabase();
     }
-    console.log(`Connected to '${this.dbConfig.implementation}' successfully ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}`);
+    console.log(`Connected to '${this.dbConfig.implementation}' successfully`);
   }
 
   private async checkDatabase(): Promise<void> {
     // Safety check
-    if (!this.db) {
+    if (!this.database) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
@@ -262,70 +306,95 @@ export default class MongoDBStorage {
   }
 
   private async handleCheckDefaultTenant() {
-    // Database creation Lock
-    const databaseLock = LockingManager.createExclusiveLock(Constants.DEFAULT_TENANT, LockEntity.DATABASE, 'check-database');
-    if (await LockingManager.acquire(databaseLock)) {
-      try {
-        // Check only collections with indexes
-        // Locks
-        await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'locks', []);
-        // Tenants
-        await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'tenants', [
-          { fields: { subdomain: 1 }, options: { unique: true } },
-        ]);
-        // Performances
-        await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'performances', [
-          { fields: { timestamp: 1, group: 1, tenantID: 1 } },
-        ]);
-        // Users
-        await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'users', [
-          { fields: { email: 1 }, options: { unique: true } }
-        ]);
-        // Car Catalogs
-        await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'carcatalogimages', [
-          { fields: { carID: 1 } }
-        ]);
-        // Logs
-        await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'logs', [
-          { fields: { timestamp: 1 } },
-          { fields: { type: 1, timestamp: 1 } },
-          { fields: { action: 1, timestamp: 1 } },
-          { fields: { level: 1, timestamp: 1 } },
-          { fields: { source: 1, timestamp: 1 } },
-          { fields: { host: 1, timestamp: 1 } },
-          { fields: { message: 'text', source: 'text', host: 'text', action: 'text' } },
-        ]);
-      } finally {
-        // Release the database creation Lock
-        await LockingManager.release(databaseLock);
-      }
-    }
-  }
-
-  private async handleCheckTenants() {
-    // Get all the Tenants
-    const tenantsMDB = await this.db.collection(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, 'tenants'))
-      .find({}).toArray();
-    const tenantIds = tenantsMDB.map((t): string => t._id.toString());
-    for (const tenantId of tenantIds) {
+    try {
       // Database creation Lock
-      const databaseLock = LockingManager.createExclusiveLock(tenantId, LockEntity.DATABASE, 'check-database');
+      const databaseLock = LockingManager.createExclusiveLock(Constants.DEFAULT_TENANT, LockEntity.DATABASE, 'check-database');
       if (await LockingManager.acquire(databaseLock)) {
         try {
-          // Create tenant collections
-          await this.checkAndCreateTenantDatabase(tenantId);
+          // Check only collections with indexes
+          // Locks
+          await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'locks', []);
+          // Tenants
+          await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'tenants', [
+            { fields: { subdomain: 1 }, options: { unique: true } },
+          ]);
+          // Performances
+          await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'performances', [
+            { fields: { timestamp: 1 }, options: { expireAfterSeconds: 14 * 24 * 3600 } },
+            { fields: { timestamp: 1, group: 1, tenantSubdomain: 1 } },
+          ]);
+          // Users
+          await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'users', [
+            { fields: { email: 1 }, options: { unique: true } }
+          ]);
+          // Car Catalogs
+          await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'carcatalogimages', [
+            { fields: { carID: 1 } }
+          ]);
+          // Logs
+          await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'logs', [
+            { fields: { timestamp: 1 }, options: { expireAfterSeconds: 14 * 24 * 3600 } },
+            { fields: { type: 1, timestamp: 1 } },
+            { fields: { action: 1, timestamp: 1 } },
+            { fields: { level: 1, timestamp: 1 } },
+            { fields: { source: 1, timestamp: 1 } },
+            { fields: { host: 1, timestamp: 1 } },
+            { fields: { message: 'text' } },
+          ]);
         } finally {
           // Release the database creation Lock
           await LockingManager.release(databaseLock);
         }
       }
+    } catch (error) {
+      const message = 'Error while checking Database in tenant \'default\'';
+      Utils.isDevelopmentEnv() && console.log(chalk.red(message));
+      await Logging.logError({
+        tenantID: Constants.DEFAULT_TENANT,
+        action: ServerAction.MONGO_DB,
+        module: MODULE_NAME, method: 'handleIndexesInCollection',
+        message,
+        detailedMessages: { error: error.stack }
+      });
+    }
+  }
+
+  private async handleCheckTenants() {
+    // Get all the Tenants
+    const tenantsMDB = await this.database.collection(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, 'tenants'))
+      .find({}).toArray();
+    const tenantIds = tenantsMDB.map((t): string => t._id.toString());
+    for (const tenantId of tenantIds) {
+      try {
+        // Database creation Lock
+        const databaseLock = LockingManager.createExclusiveLock(tenantId, LockEntity.DATABASE, 'check-database');
+        if (await LockingManager.acquire(databaseLock)) {
+          try {
+            // Create tenant collections
+            await this.checkAndCreateTenantDatabase(tenantId);
+          } finally {
+            // Release the database creation Lock
+            await LockingManager.release(databaseLock);
+          }
+        }
+      } catch (error) {
+        const message = `Error while checking Database in tenant '${tenantId}'`;
+        Utils.isDevelopmentEnv() && console.log(chalk.red(message));
+        await Logging.logError({
+          tenantID: Constants.DEFAULT_TENANT,
+          action: ServerAction.MONGO_DB,
+          module: MODULE_NAME, method: 'handleIndexesInCollection',
+          message,
+          detailedMessages: { error: error.stack }
+        });
+      }
     }
   }
 
   private async handleIndexesInCollection(tenantID: string,
-      name: string, indexes?: { fields: any; options?: any }[]): Promise<void> {
+      name: string, indexes?: { fields: IndexSpecification; options?: CreateIndexesOptions }[]): Promise<void> {
     // Safety check
-    if (!this.db) {
+    if (!this.database) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
@@ -336,16 +405,16 @@ export default class MongoDBStorage {
     }
     try {
       // Get all the collections
-      const currentCollections = await this.db.listCollections().toArray();
+      const currentCollections = await this.database.listCollections().toArray();
       const tenantCollectionName = DatabaseUtils.getCollectionName(tenantID, name);
       const foundCollection = currentCollections.find((collection) => collection.name === tenantCollectionName);
       // Create
       if (!foundCollection) {
         try {
-          await this.db.createCollection(tenantCollectionName);
+          await this.database.createCollection(tenantCollectionName);
         } catch (error) {
           const message = `Error in creating collection '${tenantID}.${tenantCollectionName}': ${error.message as string}`;
-          console.error(chalk.red(message));
+          Utils.isDevelopmentEnv() && console.error(chalk.red(message));
           await Logging.logError({
             tenantID: Constants.DEFAULT_TENANT,
             action: ServerAction.MONGO_DB,
@@ -358,25 +427,28 @@ export default class MongoDBStorage {
       // Indexes?
       if (indexes) {
         // Get current indexes
-        let databaseIndexes = await this.db.collection(tenantCollectionName).listIndexes().toArray();
+        let databaseIndexes = await this.database.collection(tenantCollectionName).listIndexes().toArray();
         // Drop indexes
         for (const databaseIndex of databaseIndexes) {
           if (databaseIndex.key._id) {
             continue;
           }
           let foundIndex = indexes.find((index) => this.buildIndexName(index.fields) === databaseIndex.name);
-          // Check DB unique index
-          const databaseIndexISUnique = !!databaseIndex?.unique;
-          const indexIsUnique = !!foundIndex?.options?.unique;
-          if (indexIsUnique !== databaseIndexISUnique) {
-            // Delete the index
+          // Check DB 'unique' index option
+          if (!Utils.areObjectPropertiesEqual(databaseIndex, foundIndex?.options, 'unique')) {
+            // Force not found: Create
+            foundIndex = null;
+          }
+          // Check DB 'expireAfterSeconds' index option
+          if (!Utils.areObjectPropertiesEqual(databaseIndex, foundIndex?.options, 'expireAfterSeconds')) {
+            // Force nound: Create
             foundIndex = null;
           }
           // Delete the index
           if (!foundIndex) {
             if (Utils.isDevelopmentEnv()) {
               const message = `Drop index '${databaseIndex.name}' in collection ${tenantCollectionName}`;
-              console.log(message);
+              Utils.isDevelopmentEnv() && console.log(message);
               await Logging.logInfo({
                 tenantID: Constants.DEFAULT_TENANT,
                 action: ServerAction.MONGO_DB,
@@ -386,10 +458,10 @@ export default class MongoDBStorage {
               });
             }
             try {
-              await this.db.collection(tenantCollectionName).dropIndex(databaseIndex.key);
+              await this.database.collection(tenantCollectionName).dropIndex(databaseIndex.key);
             } catch (error) {
               const message = `Error in dropping index '${databaseIndex.name}' in '${tenantCollectionName}': ${error.message}`;
-              console.error(chalk.red(message));
+              Utils.isDevelopmentEnv() && console.error(chalk.red(message));
               await Logging.logError({
                 tenantID: Constants.DEFAULT_TENANT,
                 action: ServerAction.MONGO_DB,
@@ -401,7 +473,7 @@ export default class MongoDBStorage {
           }
         }
         // Get updated indexes
-        databaseIndexes = await this.db.collection(tenantCollectionName).listIndexes().toArray();
+        databaseIndexes = await this.database.collection(tenantCollectionName).listIndexes().toArray();
         // Create indexes
         for (const index of indexes) {
           const foundDatabaseIndex = databaseIndexes.find((databaseIndex) => this.buildIndexName(index.fields) === databaseIndex.name);
@@ -409,7 +481,7 @@ export default class MongoDBStorage {
           if (!foundDatabaseIndex) {
             if (Utils.isDevelopmentEnv()) {
               const message = `Create index ${JSON.stringify(index)} in collection ${tenantCollectionName}`;
-              console.log(message);
+              Utils.isDevelopmentEnv() && console.log(message);
               await Logging.logInfo({
                 tenantID: Constants.DEFAULT_TENANT,
                 action: ServerAction.MONGO_DB,
@@ -419,10 +491,10 @@ export default class MongoDBStorage {
               });
             }
             try {
-              await this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
+              await this.database.collection(tenantCollectionName).createIndex(index.fields, index.options);
             } catch (error) {
               const message = `Error in creating index '${JSON.stringify(index.fields)}' with options '${JSON.stringify(index.options)}' in '${tenantCollectionName}': ${error.message as string}`;
-              console.error(chalk.red(message));
+              Utils.isDevelopmentEnv() && console.error(chalk.red(message));
               await Logging.logError({
                 tenantID: Constants.DEFAULT_TENANT,
                 action: ServerAction.MONGO_DB,
@@ -436,7 +508,7 @@ export default class MongoDBStorage {
       }
     } catch (error) {
       const message = `Unexpected error in handling Collection '${tenantID}.${name}': ${error.message as string}`;
-      console.error(chalk.red(message));
+      Utils.isDevelopmentEnv() && console.error(chalk.red(message));
       await Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MONGO_DB,
@@ -447,9 +519,9 @@ export default class MongoDBStorage {
     }
   }
 
-  private buildIndexName(indexes: { [key: string]: string }): string {
+  private buildIndexName(indexes: IndexSpecification): string {
     const indexNameValues: string[] = [];
-    for (const indexKey in indexes) {
+    for (const indexKey in indexes as any) {
       indexNameValues.push(indexKey);
       indexNameValues.push(indexes[indexKey]);
     }

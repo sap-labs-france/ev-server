@@ -4,7 +4,7 @@ import Tenant, { TenantComponents } from '../types/Tenant';
 import User, { UserRole, UserStatus } from '../types/User';
 
 import AuthorizationConfiguration from '../types/configuration/AuthorizationConfiguration';
-import AuthorizationsDefinition from './AuthorizationsDefinition';
+import AuthorizationsManager from './AuthorizationsManager';
 import BackendError from '../exception/BackendError';
 import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
 import Configuration from '../utils/Configuration';
@@ -25,8 +25,6 @@ import { PricingSettingsType } from '../types/Setting';
 import { ServerAction } from '../types/Server';
 import SessionHashService from '../server/rest/v1/service/SessionHashService';
 import SettingStorage from '../storage/mongodb/SettingStorage';
-import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
-import SiteStorage from '../storage/mongodb/SiteStorage';
 import Tag from '../types/Tag';
 import TagStorage from '../storage/mongodb/TagStorage';
 import Transaction from '../types/Transaction';
@@ -157,7 +155,7 @@ export default class Authorizations {
     if (pricing && pricing.type === PricingSettingsType.SIMPLE) {
       currency = pricing.simple.currency;
     }
-    const authDefinition = AuthorizationsDefinition.getInstance();
+    const authDefinition = AuthorizationsManager.getInstance();
     const rolesACL = Authorizations.getAuthGroupsFromUser(user.role, siteAdminIDs.length, siteOwnerIDs.length);
     return {
       id: user.id,
@@ -726,7 +724,7 @@ export default class Authorizations {
 
   public static async can(loggedUser: UserToken, entity: Entity, action: Action, context?: AuthorizationContext): Promise<AuthorizationResult> {
     // Check
-    const authDefinition = AuthorizationsDefinition.getInstance();
+    const authDefinition = AuthorizationsManager.getInstance();
     const result = await authDefinition.canPerformAction(loggedUser.rolesACL, entity, action, context);
     if (!result.authorized && Authorizations.getConfiguration().debug) {
       void Logging.logSecurityInfo({
@@ -896,10 +894,10 @@ export default class Authorizations {
     let authorizationID: string;
     if (!Utils.isEmptyArray(chargingStation.remoteAuthorizations)) {
       let remoteAuthorizationsUpdated = false;
-      for (let i = chargingStation.remoteAuthorizations.length; i >= 0; i--) {
+      for (let i = chargingStation.remoteAuthorizations.length - 1; i >= 0; i--) {
         const remoteAuthorization = chargingStation.remoteAuthorizations[i];
         // Check validity
-        if (OCPIUtils.isAuthorizationValid(remoteAuthorization.timestamp)) {
+        if (remoteAuthorization && OCPIUtils.isAuthorizationValid(remoteAuthorization.timestamp)) {
           // Check Tag ID
           if (remoteAuthorization.tagId === tag.ocpiToken?.uid) {
             await Logging.logDebug({
@@ -1119,7 +1117,7 @@ export default class Authorizations {
 
   private static async canPerformAction(loggedUser: UserToken, entity: Entity, action: Action, context?: AuthorizationContext): Promise<boolean> {
     // Check
-    const authDefinition = AuthorizationsDefinition.getInstance();
+    const authDefinition = AuthorizationsManager.getInstance();
     const authorized = await authDefinition.can(loggedUser.rolesACL, entity, action, context);
     if (!authorized && Authorizations.getConfiguration().debug) {
       void Logging.logSecurityInfo({

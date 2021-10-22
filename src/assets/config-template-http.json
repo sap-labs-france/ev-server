@@ -7,10 +7,6 @@
     "key": "",
     "algorithm": ""
   },
-  "Cluster": {
-    "enabled": false,
-    "numWorkers": 2
-  },
   "CentralSystems": [
     {
       "type": "ocpp",
@@ -37,9 +33,7 @@
     "userTokenKey": "YourSecretKey",
     "userTokenLifetimeHours": 12,
     "userDemoTokenLifetimeDays": 365,
-    "socketIO": false,
-    "socketIOListNotificationIntervalSecs": 5,
-    "socketIOSingleNotificationIntervalSecs": 1,
+    "userTechnicalTokenLifetimeDays": 365,
     "passwordWrongNumberOfTrial": 3,
     "passwordBlockedWaitTimeMin": 5,
     "captchaSecretKey": "YourCaptchaSecretKey",
@@ -96,7 +90,6 @@
   "Storage": {
     "implementation": "mongodb",
     "uri": "YourConnectionURI",
-    "monitorDBChange": true,
     "debug": false
   },
   "Notification": {

@@ -1,9 +1,10 @@
 {
+  "$id": "transactions-inerror-get",
   "title": "Get Transactions in error Request",
   "type": "object",
   "properties": {
     "ChargingStationID": {
-      "$ref": "common.json#/definitions/string-ids"
+      "$ref": "common#/definitions/string-ids"
     },
     "StartDateTime": {
       "type": "string",
@@ -16,35 +17,38 @@
       "sanitize": "mongo"
     },
     "SiteID": {
-      "$ref": "common.json#/definitions/ids"
+      "$ref": "common#/definitions/ids"
     },
     "SiteAreaID": {
-      "$ref": "common.json#/definitions/ids"
+      "$ref": "common#/definitions/ids"
     },
     "ErrorType": {
       "type": "string",
       "sanitize": "mongo"
     },
     "ConnectorID": {
-      "$ref": "common.json#/definitions/number-ids"
+      "$ref": "common#/definitions/number-ids"
     },
     "UserID": {
-      "$ref": "common.json#/definitions/ids"
+      "$ref": "common#/definitions/ids"
     },
     "Search": {
-      "$ref": "common.json#/definitions/search"
+      "$ref": "common#/definitions/search"
     },
     "Limit": {
-      "$ref": "common.json#/definitions/limit"
+      "$ref": "common#/definitions/limit"
     },
     "SortFields": {
-      "$ref": "common.json#/definitions/sortFields"
+      "$ref": "common#/definitions/sortFields"
     },
     "Skip": {
-      "$ref": "common.json#/definitions/skip"
+      "$ref": "common#/definitions/skip"
     },
     "ProjectFields": {
-      "$ref": "common.json#/definitions/projectFields"
+      "$ref": "common#/definitions/projectFields"
     }
-  }
+  },
+  "required": [
+    "Limit"
+  ]
 }

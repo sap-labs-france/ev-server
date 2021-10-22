@@ -1,0 +1,13 @@
+{
+  "$id": "transaction-cdr-push",
+  "title": "Push Transaction CDR Request",
+  "type": "object",
+  "properties": {
+    "transactionId": {
+      "$ref": "transaction#/definitions/id"
+    }
+  },
+  "required": [
+    "transactionId"
+  ]
+}

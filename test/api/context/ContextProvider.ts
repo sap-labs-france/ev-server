@@ -1,16 +1,16 @@
 import chai, { expect } from 'chai';
-import chaiSubset from 'chai-subset';
-import { ObjectId } from 'mongodb';
-import { OCPPVersion } from '../../../src/types/ocpp/OCPPServer';
-import { TenantComponents } from '../../../src/types/Tenant';
-import Constants from '../../../src/utils/Constants';
-import config from '../../config';
-import Factory from '../../factories/Factory';
+
 import CentralServerService from '../client/CentralServerService';
 import ContextDefinition from './ContextDefinition';
+import Factory from '../../factories/Factory';
+import { OCPPVersion } from '../../../src/types/ocpp/OCPPServer';
+import { ObjectId } from 'mongodb';
 import SiteContext from './SiteContext';
+import { TenantComponents } from '../../../src/types/Tenant';
 import TenantContext from './TenantContext';
-
+import TestConstants from '../client/utils/TestConstants';
+import chaiSubset from 'chai-subset';
+import config from '../../config';
 
 chai.use(chaiSubset);
 
@@ -40,7 +40,7 @@ export default class ContextProvider {
   async _init(): Promise<void> {
     if (!this.initialized) {
       // Read all tenants
-      this.tenantEntities = (await this.superAdminCentralServerService.tenantApi.readAll({ WithComponents: true }, Constants.DB_PARAMS_MAX_LIMIT)).data.result;
+      this.tenantEntities = (await this.superAdminCentralServerService.tenantApi.readAll({ WithComponents: true }, TestConstants.DEFAULT_PAGING)).data.result;
     }
     this.initialized = true;
   }
@@ -66,12 +66,10 @@ export default class ContextProvider {
   async getTenantContext(tenantContextName): Promise<TenantContext> {
     await this._init();
     const tenantContext = this._getTenantContext(tenantContextName);
-
     // Check if already loaded
     if (tenantContext) {
       return tenantContext;
     }
-
     // Not find build context
     return this._tenantEntityContext(this._getTenantContextDef(tenantContextName));
   }
@@ -95,9 +93,9 @@ export default class ContextProvider {
       siteAreaList = (await defaultAdminCentralServiceService.siteAreaApi.readAll({}, { limit: 0, skip: 0 })).data.result;
       siteList = (await defaultAdminCentralServiceService.siteApi.readAll({}, { limit: 0, skip: 0 })).data.result;
       companyList = (await defaultAdminCentralServiceService.companyApi.readAll({}, { limit: 0, skip: 0 })).data.result;
-      chargingStationList = (await defaultAdminCentralServiceService.chargingStationApi.readAll({}, Constants.DB_PARAMS_MAX_LIMIT)).data.result;
+      chargingStationList = (await defaultAdminCentralServiceService.chargingStationApi.readAll({}, TestConstants.DEFAULT_PAGING)).data.result;
     } else {
-      chargingStationList = (await defaultAdminCentralServiceService.chargingStationApi.readAll({ WithNoSiteArea: true }, Constants.DB_PARAMS_MAX_LIMIT)).data.result;
+      chargingStationList = (await defaultAdminCentralServiceService.chargingStationApi.readAll({ WithNoSiteArea: true }, TestConstants.DEFAULT_PAGING)).data.result;
     }
     userList = (await defaultAdminCentralServiceService.userApi.readAll({}, { limit: 0, skip: 0 })).data.result;
     tagList = (await defaultAdminCentralServiceService.userApi.readTags({}, { limit: 0, skip: 0 })).data.result;

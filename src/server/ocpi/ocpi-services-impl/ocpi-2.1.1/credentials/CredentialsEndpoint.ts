@@ -142,7 +142,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     // Any error here should result in a 3001 Ocpi result exception based on the specification
     try {
       // Access versions API
-      let response = await AxiosFactory.getAxiosInstance(tenant.id).get(ocpiEndpoint.baseUrl, {
+      let response = await AxiosFactory.getAxiosInstance(tenant).get(ocpiEndpoint.baseUrl, {
         headers: {
           'Authorization': `Token ${ocpiEndpoint.token}`
         },
@@ -193,7 +193,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
         });
       }
       // Try to read endpoints
-      response = await AxiosFactory.getAxiosInstance(tenant.id).get(ocpiEndpoint.versionUrl, {
+      response = await AxiosFactory.getAxiosInstance(tenant).get(ocpiEndpoint.versionUrl, {
         headers: {
           'Authorization': `Token ${ocpiEndpoint.token}`
         }

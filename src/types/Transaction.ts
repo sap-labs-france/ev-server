@@ -4,6 +4,7 @@ import Consumption, { AbstractCurrentConsumption } from './Consumption';
 
 import ChargingStation from '../types/ChargingStation';
 import Company from './Company';
+import { DatabaseCount } from './GlobalType';
 import { OCPICdr } from './ocpi/OCPICdr';
 import { OCPISession } from './ocpi/OCPISession';
 import { OICPChargeDetailRecord } from './oicp/OICPChargeDetailRecord';
@@ -105,6 +106,19 @@ export default interface Transaction extends AbstractCurrentConsumption {
   refundData?: TransactionRefundData;
   migrationTag?: string;
   authorizationID?: string;
+}
+
+export interface TransactionStats extends DatabaseCount {
+  totalConsumptionWattHours?: number;
+  totalPriceRefund?: number;
+  totalPricePending?: number;
+  countRefundTransactions?: number;
+  countPendingTransactions?: number;
+  countRefundedReports?: number;
+  totalDurationSecs?: number;
+  totalPrice?: number;
+  currency?: string;
+  totalInactivitySecs?: number;
 }
 
 export interface TransactionOcpiData {

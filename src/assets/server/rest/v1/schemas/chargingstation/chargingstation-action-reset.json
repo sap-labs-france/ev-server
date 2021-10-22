@@ -1,0 +1,26 @@
+{
+  "$id": "chargingstation-action-reset",
+  "title": "Reset",
+  "type": "object",
+  "properties": {
+    "chargingStationID": {
+      "$ref": "chargingstation#/definitions/id"
+    },
+    "args": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "sanitize": "mongo",
+          "enum": ["Soft", "Hard"]
+        }
+      },
+      "required": [
+        "type"
+      ]
+    }
+  },
+  "required": [
+    "chargingStationID"
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "$id": "asset-update",
+  "title": "Update Asset Request",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "asset#/definitions/id"
+    },
+    "name": {
+      "$ref": "asset#/definitions/name"
+    },
+    "siteAreaID": {
+      "$ref": "asset#/definitions/siteAreaID"
+    },
+    "assetType": {
+      "$ref": "asset#/definitions/assetType"
+    },
+    "excludeFromSmartCharging": {
+      "$ref": "asset#/definitions/excludeFromSmartCharging"
+    },
+    "variationThresholdPercent": {
+      "$ref": "asset#/definitions/variationThresholdPercent"
+    },
+    "fluctuationPercent": {
+      "$ref": "asset#/definitions/fluctuationPercent"
+    },
+    "staticValueWatt": {
+      "$ref": "asset#/definitions/staticValueWatt"
+    },
+    "image": {
+      "$ref": "asset#/definitions/image"
+    },
+    "dynamicAsset": {
+      "$ref": "asset#/definitions/dynamicAsset"
+    },
+    "usesPushAPI": {
+      "$ref": "asset#/definitions/usesPushAPI"
+    },
+    "coordinates": {
+      "$ref": "asset#/definitions/coordinates"
+    },
+    "connectionID": {
+      "$ref": "asset#/definitions/connectionID"
+    },
+    "meterID": {
+      "$ref": "asset#/definitions/meterID"
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "siteAreaID",
+    "assetType"
+  ]
+}

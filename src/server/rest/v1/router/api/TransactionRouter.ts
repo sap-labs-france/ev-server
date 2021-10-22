@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-misused-promises */
 import { ServerAction, ServerRoute } from '../../../../../types/Server';
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import express, { NextFunction, Request, Response } from 'express';
 
 import RouterUtils from '../RouterUtils';
@@ -17,7 +17,6 @@ export default class TransactionRouter {
     this.buildRouteTransactionsCompleted();
     this.buildRouteTransactionsActive();
     this.buildRouteTransactionsInError();
-    this.buildRouteTransactionsUnassignedCount();
     this.buildRouteTransactionsGetRefund();
     this.buildRouteTransaction();
     this.buildRouteTransactionConsumption();
@@ -25,10 +24,8 @@ export default class TransactionRouter {
     this.buildRouteDeleteTransactions();
     this.buildRoutePushTransactionCDR();
     this.buildRouteExportTransactionCDR();
-    this.buildRouteRebuildTransactionConsumption();
     this.buildRouteTransactionSoftStop();
     this.buildRouteTransactionsRefund();
-    this.buildRouteTransactionsAssignUser();
     this.buildRouteTransactionsExport();
     this.buildRouteSynchronizeRefundedTransactions();
     this.buildRouteTransactionsRefundReports();
@@ -57,12 +54,6 @@ export default class TransactionRouter {
   protected buildRouteTransactionsActive(): void {
     this.router.get(`/${ServerRoute.REST_TRANSACTIONS_ACTIVE}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(TransactionService.handleGetTransactionsActive.bind(this), ServerAction.TRANSACTIONS_ACTIVE, req, res, next);
-    });
-  }
-
-  protected buildRouteTransactionsUnassignedCount(): void {
-    this.router.get(`/${ServerRoute.REST_TRANSACTIONS_UNASSIGNED_COUNT}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(TransactionService.handleGetUnassignedTransactionsCount.bind(this), ServerAction.UNASSIGNED_TRANSACTIONS_COUNT, req, res, next);
     });
   }
 
@@ -113,13 +104,6 @@ export default class TransactionRouter {
     });
   }
 
-  protected buildRouteRebuildTransactionConsumption(): void {
-    this.router.post(`/${ServerRoute.REST_TRANSACTION_CONSUMPTIONS_REBUILD}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.query.ID = req.params.id;
-      await RouterUtils.handleServerAction(TransactionService.handleRebuildTransactionConsumptions.bind(this), ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS, req, res, next);
-    });
-  }
-
   protected buildRouteTransactionSoftStop(): void {
     this.router.put(`/${ServerRoute.REST_TRANSACTION_SOFT_STOP}`, async (req: Request, res: Response, next: NextFunction) => {
       req.body.ID = req.params.id;
@@ -131,12 +115,6 @@ export default class TransactionRouter {
     this.router.post(`/${ServerRoute.REST_TRANSACTIONS_REFUND_ACTION}`, async (req: Request, res: Response, next: NextFunction) => {
       req.body.transactionsIDs = req.body.transactionIds;
       await RouterUtils.handleServerAction(TransactionService.handleRefundTransactions.bind(this), ServerAction.TRANSACTIONS_REFUND, req, res, next);
-    });
-  }
-
-  protected buildRouteTransactionsAssignUser(): void {
-    this.router.put(`/${ServerRoute.REST_TRANSACTIONS_ASSIGN_USER}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(TransactionService.handleAssignTransactionsToUser.bind(this), ServerAction.ASSIGN_TRANSACTIONS_TO_USER, req, res, next);
     });
   }
 

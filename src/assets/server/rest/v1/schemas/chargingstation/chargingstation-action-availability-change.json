@@ -1,0 +1,33 @@
+{
+  "$id": "chargingstation-action-availability-change",
+  "title": "Change Availability",
+  "type": "object",
+  "properties": {
+    "chargingStationID": {
+      "$ref": "chargingstation#/definitions/id"
+    },
+    "args": {
+      "type": "object",
+      "properties": {
+        "connectorId": {
+          "$ref": "chargingstation#/definitions/connector/properties/connectorId"
+        },
+        "type": {
+          "type": "string",
+          "sanitize": "mongo",
+          "enum": [
+            "Inoperative",
+            "Operative"
+          ]
+        }
+      },
+      "required": [
+        "connectorId",
+        "type"
+      ]
+    }
+  },
+  "required": [
+    "chargingStationID"
+  ]
+}

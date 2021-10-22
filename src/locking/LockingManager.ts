@@ -70,7 +70,7 @@ export default class LockingManager {
 
   public static async release(lock: Lock): Promise<boolean> {
     // Delete
-    const result = await LockingStorage.deleteLock(lock);
+    const result = await LockingStorage.deleteLock(lock.id);
     if (!result) {
       await Logging.logWarning({
         tenantID: lock.tenantID,
@@ -90,13 +90,6 @@ export default class LockingManager {
     });
     Utils.isDevelopmentEnv() && console.debug(chalk.green(`Released the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}' in Tenant ID '${lock.tenantID}' after ${Math.round(Date.now() - lock.timestamp.getTime()) / 1000} secs`));
     return true;
-  }
-
-  public static async cleanupLocks(doCleanup = true): Promise<void> {
-    if (doCleanup) {
-      const hostname = Utils.getHostname();
-      await LockingStorage.deleteLockByHostname(hostname);
-    }
   }
 
   private static createLock(tenantID: string, entity: LockEntity, key: string, type: LockType = LockType.EXCLUSIVE, lockValiditySecs?: number): Lock {

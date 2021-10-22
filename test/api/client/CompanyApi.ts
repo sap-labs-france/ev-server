@@ -1,29 +1,31 @@
+import AuthenticatedBaseApi from './utils/AuthenticatedBaseApi';
 import CrudApi from './utils/CrudApi';
+import { ServerRoute } from '../../../src/types/Server';
 import TestConstants from './utils/TestConstants';
 
 export default class CompanyApi extends CrudApi {
-  public constructor(authenticatedApi) {
+  public constructor(authenticatedApi: AuthenticatedBaseApi) {
     super(authenticatedApi);
   }
 
   public async readById(id) {
-    return super.readById(id, '/client/api/Company');
+    return super.readById(id, this.buildRestEndpointUrl(ServerRoute.REST_COMPANY, { id }));
   }
 
   public async readAll(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, '/client/api/Companies');
+    return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(ServerRoute.REST_COMPANIES));
   }
 
   public async create(data) {
-    return super.create(data, '/client/api/CompanyCreate');
+    return super.create(data, this.buildRestEndpointUrl(ServerRoute.REST_COMPANIES));
   }
 
   public async update(data) {
-    return super.update(data, '/client/api/CompanyUpdate');
+    return super.update(data, this.buildRestEndpointUrl(ServerRoute.REST_COMPANY, { id: data.id }));
   }
 
   public async delete(id) {
-    return super.delete(id, '/client/api/CompanyDelete');
+    return super.delete(id, this.buildRestEndpointUrl(ServerRoute.REST_COMPANY, { id }));
   }
 }
 

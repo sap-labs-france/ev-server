@@ -18,6 +18,21 @@ export interface Data {
   id: string;
 }
 
+export interface DatabaseCount {
+  count?: number;
+}
+
+export enum DatabaseDocumentChange {
+  INSERT = 'insert',
+  UPDATE = 'update',
+  REPLACE = 'replace',
+  DELETE = 'delete',
+  INVALIDATE = 'invalidate',
+  DROP = 'drop',
+  DROP_DATABASE = 'dropDatabase',
+  RENAME = 'rename',
+}
+
 export interface KeyValue {
   key: string;
   value: string;
@@ -28,6 +43,11 @@ export interface KeyValue {
 export interface Image {
   id: string;
   image: string;
+}
+
+export interface Logo {
+  id: string;
+  logo: string;
 }
 
 export interface GroupParams {
@@ -55,6 +75,8 @@ interface TSGlobal extends Global {
   appRoot: string;
   centralSystemJsonServer: JsonCentralSystemServer;
   centralSystemSoapServer: SoapCentralSystemServer;
+  serverName: string;
+  Promise: any;
 }
 
 

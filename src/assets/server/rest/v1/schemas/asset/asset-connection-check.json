@@ -1,0 +1,14 @@
+{
+  "$id": "asset-connection-check",
+  "title": "Check an Asset Connection Request",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "type": "string",
+      "sanitize": "mongo"
+    }
+  },
+  "required": [
+    "ID"
+  ]
+}

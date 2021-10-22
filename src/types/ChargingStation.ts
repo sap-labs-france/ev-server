@@ -1,5 +1,6 @@
 import { ChargePointStatus, OCPPFirmwareStatus, OCPPPhase, OCPPProtocol, OCPPVersion, RegistrationStatus } from './ocpp/OCPPServer';
 
+import { AuthorizationActions } from './Authorization';
 import { ChargingRateUnitType } from './ChargingProfile';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import { InactivityStatus } from './Transaction';
@@ -11,7 +12,7 @@ import Site from './Site';
 import SiteArea from './SiteArea';
 import User from './User';
 
-export default interface ChargingStation extends CreatedUpdatedProps {
+export default interface ChargingStation extends CreatedUpdatedProps, AuthorizationActions {
   id?: string;
   templateHash?: string;
   templateHashCapabilities?: string;
@@ -122,7 +123,6 @@ export enum Command {
   GET_COMPOSITE_SCHEDULE = 'GetCompositeSchedule',
   CHANGE_AVAILABILITY = 'ChangeAvailability',
   UPDATE_FIRMWARE = 'UpdateFirmware',
-  TRIGGER_DATA_TRANSFER = 'DataTransfer',
   BOOT_NOTIFICATION = 'BootNotification',
   AUTHORIZE = 'Authorize',
   HEARTBEAT = 'Heartbeat',
@@ -133,6 +133,8 @@ export enum Command {
   STOP_TRANSACTION = 'StopTransaction',
   METER_VALUES = 'MeterValues',
   DATA_TRANSFER = 'DataTransfer',
+  RESERVE_NOW = 'ReserveNow',
+  CANCEL_RESERVATION = 'CancelReservation',
 }
 
 export enum StaticLimitAmps {
@@ -328,6 +330,7 @@ export enum ChargerVendor {
   EVMETER = 'EV Meter',
   INNOGY = 'innogy',
   INGETEAM = 'INGETEAM',
+  INGETEAM_ENERGY = 'INGETEAM ENERGY',
   EFACEC = 'pt.efacec',
   IES = 'IES',
   HDM = 'HDM',
@@ -344,6 +347,7 @@ export enum ChargerVendor {
   KEBA = 'Keba AG',
   SAP_LABS_FRANCE = 'SAP Labs France Caen',
   CIRCONTROL = 'CIRCONTROL',
+  CIRCONTROL_BIS = 'Circontrol',
   JOINON = 'JOINON',
   JOINT = 'Joint',
   NEXANS = 'Nexans',
@@ -351,5 +355,9 @@ export enum ChargerVendor {
   LAFON_TECHNOLOGIES = 'LAFON TECHNOLOGIES',
   TRITIUM = 'Tritium',
   GREEN_MOTION = 'Green Motion',
-  G2_MOBILITY = 'com.g2mobility'
+  G2_MOBILITY = 'com.g2mobility',
+  MEAECN = 'MEAECN',
+  KOSTAD = 'Kostad',
+  KEMPOWER = 'Kempower',
+  SETEC = 'SETEC-POWER'
 }

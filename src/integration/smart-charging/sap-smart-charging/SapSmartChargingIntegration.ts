@@ -32,7 +32,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
 
   public constructor(tenant: Tenant, setting: SapSmartChargingSetting) {
     super(tenant, setting);
-    this.axiosInstance = AxiosFactory.getAxiosInstance(this.tenant.id);
+    this.axiosInstance = AxiosFactory.getAxiosInstance(this.tenant);
   }
 
   public async checkConnection(): Promise<void> {
@@ -695,6 +695,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
       // Build charging profile with charging station id and connector id
       const chargingProfile: ChargingProfile = {
         chargingStationID: chargingStationID,
+        chargingStation: chargingStation,
         connectorID: connectorID,
         chargePointID: chargePoint.chargePointID,
         profile: profile
@@ -795,7 +796,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
             const fluctuation = (asset.staticValueWatt * (asset.fluctuationPercent / 100));
             let consumptionSaveValue = 0;
             // Check if current consumption is up to date
-            if ((moment().diff(moment(asset.lastConsumption.timestamp), 'minutes')) < 2) {
+            if ((moment().diff(moment(asset.lastConsumption?.timestamp), 'minutes')) < 2) {
               if (asset.currentInstantWatts > 0) {
                 // Ensure consumption does not exceed static value
                 consumptionSaveValue = ((asset.currentInstantWatts + fluctuation < asset.staticValueWatt) ? (asset.currentInstantWatts + fluctuation) : asset.staticValueWatt);

@@ -1,8 +1,0 @@
-{
-  "$id": "transaction.json",
-  "definitions": {
-    "id": {
-      "$ref": "common.json#/definitions/number-id"
-    }
-  }
-}

@@ -1,4 +1,5 @@
 import { ServerAction, WSServerProtocol } from '../../../types/Server';
+import http, { IncomingMessage } from 'http';
 
 import CentralSystemConfiguration from '../../../types/configuration/CentralSystemConfiguration';
 import CentralSystemServer from '../CentralSystemServer';
@@ -15,7 +16,6 @@ import WSServer from './WSServer';
 import WebSocket from 'ws';
 import { WebSocketCloseEventStatusCode } from '../../../types/WebSocket';
 import global from '../../../types/GlobalType';
-import http from 'http';
 
 const MODULE_NAME = 'JsonCentralSystemServer';
 
@@ -24,8 +24,6 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
   private wsServer: WSServer;
   private jsonChargingStationClients: Map<string, JsonWSConnection>;
   private jsonRestClients: Map<string, JsonRestWSConnection>;
-  private keepAliveIntervalMillis: number;
-  private keepAliveInterval: NodeJS.Timeout;
 
   constructor(centralSystemConfig: CentralSystemConfiguration, chargingStationConfig: ChargingStationConfiguration) {
     // Call parent
@@ -33,9 +31,6 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     // Keep local
     this.jsonChargingStationClients = new Map<string, JsonWSConnection>();
     this.jsonRestClients = new Map<string, JsonRestWSConnection>();
-    // Disable Ping/Pong
-    // this.keepAliveIntervalMillis = this.centralSystemConfig.keepAliveIntervalMillis ?
-    //   this.centralSystemConfig.keepAliveIntervalMillis : Constants.WS_DEFAULT_KEEP_ALIVE_MILLIS;
   }
 
   public start(): void {
@@ -119,19 +114,13 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       return false;
     };
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const handleProtocols = (protocols: WSServerProtocol | WSServerProtocol[], request: http.IncomingMessage): boolean | WSServerProtocol => {
+    const handleProtocols = (protocols: Set<string>, request: IncomingMessage): string | false => {
       // Check the protocols and ensure protocol used as ocpp1.6 or nothing (should create an error)
-      if (!Utils.isEmptyArray(protocols)) {
-        if (protocols.includes(WSServerProtocol.OCPP16)) {
-          return WSServerProtocol.OCPP16;
-        }
-        if (protocols.includes(WSServerProtocol.REST)) {
-          return WSServerProtocol.REST;
-        }
-      } else if (protocols === WSServerProtocol.OCPP16) {
-        return protocols;
-      } else if (protocols === WSServerProtocol.REST) {
-        return protocols;
+      if (protocols?.has(WSServerProtocol.OCPP16)) {
+        return WSServerProtocol.OCPP16;
+      }
+      if (protocols?.has(WSServerProtocol.REST)) {
+        return WSServerProtocol.REST;
       }
       void Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
@@ -171,42 +160,6 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
           wsConnection?.getTenantID() ? wsConnection.getTenantID() : Constants.DEFAULT_TENANT);
       }
     });
-    // Keep alive WebSocket connection
-    if (this.keepAliveIntervalMillis > 0 && !this.keepAliveInterval) {
-      void Logging.logInfo({
-        tenantID: Constants.DEFAULT_TENANT,
-        module: MODULE_NAME, method: 'createWSServer',
-        action: ServerAction.EXPRESS_SERVER,
-        message: 'Charging Station Web Socket ping/pong is active'
-      });
-      this.keepAliveInterval = setInterval((): void => {
-        for (const jsonWSConnection of this.jsonChargingStationClients.values()) {
-          if (!jsonWSConnection.isConnectionAlive) {
-            void Logging.logError({
-              tenantID: jsonWSConnection.getTenantID(),
-              siteID: jsonWSConnection.getSiteID(),
-              siteAreaID: jsonWSConnection.getSiteAreaID(),
-              companyID: jsonWSConnection.getCompanyID(),
-              chargingStationID: jsonWSConnection.getChargingStationID(),
-              source: jsonWSConnection.getChargingStationID(),
-              action: ServerAction.WS_JSON_CONNECTION_CLOSED,
-              module: MODULE_NAME, method: 'createWSServer',
-              message: `WebSocket does not respond to ping (IP: ${jsonWSConnection.getClientIP().toString()}), terminating`
-            });
-            jsonWSConnection.getWSConnection().terminate();
-          }
-          jsonWSConnection.isConnectionAlive = false;
-          jsonWSConnection.getWSConnection().ping((): void => { });
-        }
-      }, this.keepAliveIntervalMillis);
-    } else {
-      void Logging.logInfo({
-        tenantID: Constants.DEFAULT_TENANT,
-        module: MODULE_NAME, method: 'createWSServer',
-        action: ServerAction.EXPRESS_SERVER,
-        message: 'Charging Station Web Socket ping/pong is disabled'
-      });
-    }
   }
 }
 

@@ -276,6 +276,13 @@ export default class SettingSecurity {
                   clientSecret: sanitize(connection.mercedesConnection.clientSecret),
                 };
                 break;
+              case CarConnectorConnectionType.TRONITY:
+                sanitizedConnection.tronityConnection = {
+                  apiUrl: sanitize(connection.tronityConnection.apiUrl),
+                  clientId: sanitize(connection.tronityConnection.clientId),
+                  clientSecret: sanitize(connection.tronityConnection.clientSecret),
+                };
+                break;
             }
             settings.content.carConnector.connections.push(sanitizedConnection);
           }

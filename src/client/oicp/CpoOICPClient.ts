@@ -55,7 +55,7 @@ export default class CpoOICPClient extends OICPClient {
     const options: OCPILocationOptions = {
       countryID: this.getLocalCountryCode(ServerAction.OICP_PUSH_SESSIONS),
       partyID: this.getLocalPartyID(ServerAction.OICP_PUSH_SESSIONS),
-      addChargeBoxID: true
+      addChargeBoxAndOrgIDs: true
     };
     // Get Site Area
     const siteArea = chargingStation.siteArea;
@@ -215,7 +215,7 @@ export default class CpoOICPClient extends OICPClient {
     const startTime = new Date().getTime();
     // Define get option
     const options: OCPILocationOptions = {
-      addChargeBoxID: true,
+      addChargeBoxAndOrgIDs: true,
       countryID: this.getLocalCountryCode(ServerAction.OICP_PUSH_EVSE_DATA),
       partyID: this.getLocalPartyID(ServerAction.OICP_PUSH_EVSE_DATA)
     };
@@ -363,7 +363,7 @@ export default class CpoOICPClient extends OICPClient {
     const startTime = new Date().getTime();
     // Define get option
     const options: OCPILocationOptions = {
-      addChargeBoxID: true,
+      addChargeBoxAndOrgIDs: true,
       countryID: this.getLocalCountryCode(ServerAction.OICP_PUSH_EVSE_STATUSES),
       partyID: this.getLocalPartyID(ServerAction.OICP_PUSH_EVSE_STATUSES)
     };
@@ -518,7 +518,7 @@ export default class CpoOICPClient extends OICPClient {
     }
     // Define get option
     const options: OCPILocationOptions = {
-      addChargeBoxID: true,
+      addChargeBoxAndOrgIDs: true,
       countryID: this.getLocalCountryCode(ServerAction.OICP_PUSH_EVSE_STATUSES),
       partyID: this.getLocalPartyID(ServerAction.OICP_PUSH_EVSE_STATUSES)
     };

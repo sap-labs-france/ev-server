@@ -120,6 +120,7 @@ class RequestMapper {
           [ServerAction.NOTIFICATIONS]: NotificationService.handleGetNotifications.bind(this),
           [ServerAction.TAGS]: TagService.handleGetTags.bind(this),
           [ServerAction.TAG]: TagService.handleGetTag.bind(this),
+          [ServerAction.TAG_BY_VISUAL_ID]: TagService.handleGetTagByVisualID.bind(this),
           [ServerAction.TAGS_EXPORT]: TagService.handleExportTags.bind(this),
           [ServerAction.TRANSACTIONS_COMPLETED]: TransactionService.handleGetTransactionsCompleted.bind(this),
           [ServerAction.TRANSACTIONS_TO_REFUND]: TransactionService.handleGetTransactionsToRefund.bind(this),
@@ -129,8 +130,6 @@ class RequestMapper {
           [ServerAction.TRANSACTIONS_ACTIVE]: TransactionService.handleGetTransactionsActive.bind(this),
           [ServerAction.TRANSACTIONS_IN_ERROR]: TransactionService.handleGetTransactionsInError.bind(this),
           [ServerAction.TRANSACTION_YEARS]: TransactionService.handleGetTransactionYears.bind(this),
-          [ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS]: TransactionService.handleRebuildTransactionConsumptions.bind(this),
-          [ServerAction.UNASSIGNED_TRANSACTIONS_COUNT]: TransactionService.handleGetUnassignedTransactionsCount.bind(this),
           [ServerAction.TRANSACTION_OCPI_CDR_EXPORT]: TransactionService.handleExportTransactionOcpiCdr.bind(this),
           [ServerAction.CHARGING_STATION_CONSUMPTION_STATISTICS]: StatisticService.handleGetChargingStationConsumptionStatistics.bind(this),
           [ServerAction.CHARGING_STATION_USAGE_STATISTICS]: StatisticService.handleGetChargingStationUsageStatistics.bind(this),
@@ -178,7 +177,6 @@ class RequestMapper {
           [ServerAction.SITE_USER_ADMIN]: SiteService.handleUpdateSiteUserAdmin.bind(this),
           [ServerAction.SITE_OWNER]: SiteService.handleUpdateSiteOwner.bind(this),
           [ServerAction.TRANSACTION_SOFT_STOP]: TransactionService.handleTransactionSoftStop.bind(this),
-          [ServerAction.ASSIGN_TRANSACTIONS_TO_USER]: TransactionService.handleAssignTransactionsToUser.bind(this),
           [ServerAction.SETTING_UPDATE]: SettingService.handleUpdateSetting.bind(this),
           [ServerAction.OCPI_ENDPOINT_UPDATE]: OCPIEndpointService.handleUpdateOcpiEndpoint.bind(this),
           [ServerAction.OCPI_ENDPOINT_REGISTER]: OCPIEndpointService.handleRegisterOcpiEndpoint.bind(this),
@@ -189,6 +187,10 @@ class RequestMapper {
           [ServerAction.SYNCHRONIZE_CAR_CATALOGS]: CarService.handleSynchronizeCarCatalogs.bind(this),
           [ServerAction.CAR_UPDATE]: CarService.handleUpdateCar.bind(this),
           [ServerAction.TAG_UPDATE]: TagService.handleUpdateTag.bind(this),
+          [ServerAction.TAG_UPDATE_BY_VISUAL_ID]: TagService.handleUpdateTagByVisualID.bind(this),
+          [ServerAction.TAGS_UNASSIGN]: TagService.handleUnassignTags.bind(this),
+          [ServerAction.TAG_UNASSIGN]: TagService.handleUnassignTag.bind(this),
+          [ServerAction.TAG_ASSIGN]: TagService.handleAssignTag.bind(this),
           [ServerAction.REGISTRATION_TOKEN_UPDATE]: RegistrationTokenService.handleUpdateRegistrationToken.bind(this),
         });
         break;
@@ -320,6 +322,7 @@ export default class CentralRestServerService {
       return;
     }
     try {
+      await Logging.traceExpressRequest(req, res, next);
       // Get the action
       const handleRequest = RequestMapper.getInstanceFromHTTPVerb(req.method).getActionFromPath(action);
       // Execute

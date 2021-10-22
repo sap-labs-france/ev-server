@@ -442,28 +442,45 @@ export default class CpoOCPIClient extends OCPIClient {
       charging_periods: await this.buildChargingPeriods(this.tenant, transaction),
       last_updated: transaction.stop.timestamp
     };
-    // Call IOP
-    const response = await this.axiosInstance.post(
-      cdrsUrl,
-      transaction.ocpiData.cdr,
-      {
-        headers: {
-          'Authorization': `Token ${this.ocpiEndpoint.token}`,
-          'Content-Type': 'application/json'
-        },
+    // Send CDR only if there is charging periods and consummed energy
+    if (!Utils.isEmptyArray(transaction.ocpiData.cdr.charging_periods) &&
+        transaction.ocpiData.cdr.total_energy > 0) {
+      // Call IOP
+      const response = await this.axiosInstance.post(
+        cdrsUrl,
+        transaction.ocpiData.cdr,
+        {
+          headers: {
+            'Authorization': `Token ${this.ocpiEndpoint.token}`,
+            'Content-Type': 'application/json'
+          },
+        });
+      await Logging.logInfo({
+        tenantID: this.tenant.id,
+        siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
+        chargingStationID: transaction.chargeBoxID,
+        source: transaction.chargeBoxID,
+        action: ServerAction.OCPI_PUSH_CDRS,
+        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OCPI CDR has been sent successfully`,
+        module: MODULE_NAME, method: 'postCdr',
+        detailedMessages: { response: response.data, transaction }
       });
-    await Logging.logInfo({
-      tenantID: this.tenant.id,
-      siteID: transaction.siteID,
-      siteAreaID: transaction.siteAreaID,
-      companyID: transaction.companyID,
-      chargingStationID: transaction.chargeBoxID,
-      source: transaction.chargeBoxID,
-      action: ServerAction.OCPI_PUSH_CDRS,
-      message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OCPI CDR has been sent successfully`,
-      module: MODULE_NAME, method: 'postCdr',
-      detailedMessages: { cdr: transaction.ocpiData.cdr, response: response.data }
-    });
+    } else {
+      await Logging.logWarning({
+        tenantID: this.tenant.id,
+        siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
+        chargingStationID: transaction.chargeBoxID,
+        source: transaction.chargeBoxID,
+        action: ServerAction.OCPI_PUSH_CDRS,
+        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OCPI CDR has no consumption and will be be ignored`,
+        module: MODULE_NAME, method: 'postCdr',
+        detailedMessages: { transaction }
+      });
+    }
   }
 
   public async updateChargingStationStatus(chargingStation: ChargingStation, status?: OCPIEvseStatus): Promise<void> {
@@ -624,7 +641,7 @@ export default class CpoOCPIClient extends OCPIClient {
     const startTime = new Date().getTime();
     // Define get option
     const options: OCPILocationOptions = {
-      addChargeBoxID: true,
+      addChargeBoxAndOrgIDs: true,
       countryID: this.getLocalCountryCode(ServerAction.OCPI_CHECK_LOCATIONS),
       partyID: this.getLocalPartyID(ServerAction.OCPI_CHECK_LOCATIONS)
     };
@@ -722,7 +739,7 @@ export default class CpoOCPIClient extends OCPIClient {
     const startTime = new Date().getTime();
     // Define get option
     const options: OCPILocationOptions = {
-      addChargeBoxID: true,
+      addChargeBoxAndOrgIDs: true,
       countryID: this.getLocalCountryCode(ServerAction.OCPI_PATCH_STATUS),
       partyID: this.getLocalPartyID(ServerAction.OCPI_PATCH_STATUS)
     };
@@ -765,7 +782,7 @@ export default class CpoOCPIClient extends OCPIClient {
               if (location.id && evse?.uid) {
                 try {
                   const chargingStationDetails : any = {
-                    id: evse.chargeBoxId,
+                    id: evse.chargingStationID,
                     siteID: evse.siteID,
                     siteAreaID: evse.siteAreaID,
                     companyID: evse.companyID,
@@ -774,7 +791,7 @@ export default class CpoOCPIClient extends OCPIClient {
                   result.success++;
                 } catch (error) {
                   result.failure++;
-                  result.objectIDsInFailure.push(evse.chargeBoxId);
+                  result.objectIDsInFailure.push(evse.chargingStationID);
                   result.logs.push(
                     `Update status failed on Location '${location.name}' with ID '${location.id}', Charging Station ID '${evse.evse_id}': ${error.message}`
                   );

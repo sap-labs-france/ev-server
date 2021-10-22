@@ -783,7 +783,7 @@ export default class OCPIUtilsService {
       voltage: voltage,
       amperage: amperage,
       power_type: OCPIUtilsService.convertOCPINumberOfConnectedPhases2PowerType(ocpiNumberOfConnectedPhases),
-      tariff_id: OCPIUtilsService.buildTariffID(tenant, chargingStation),
+      tariff_id: OCPIUtilsService.buildTariffID(tenant, chargingStation, connector),
       last_updated: chargingStation.lastSeen
     };
   }
@@ -801,7 +801,24 @@ export default class OCPIUtilsService {
   }
 
   private static async getOperatorBusinessDetails(tenant: Tenant): Promise<OCPIBusinessDetails> {
-    return (await SettingStorage.getOCPISettings(tenant)).ocpi.businessDetails;
+    const businessDetails = (await SettingStorage.getOCPISettings(tenant)).ocpi.businessDetails;
+    if (businessDetails) {
+      for (const key in businessDetails.logo) {
+        const data = businessDetails.logo[key];
+        if (!data) {
+          delete businessDetails.logo[key];
+        }
+      }
+      if (!businessDetails.logo?.url &&
+          !businessDetails.logo?.thumbnail &&
+          !businessDetails.logo?.category &&
+          !businessDetails.logo?.type &&
+          !businessDetails.logo?.width &&
+          !businessDetails.logo?.height) {
+        delete businessDetails.logo;
+      }
+    }
+    return businessDetails;
   }
 
   private static convertChargingStation2MultipleEvses(tenant: Tenant, chargingStation: ChargingStation,
@@ -829,8 +846,8 @@ export default class OCPIUtilsService {
         }
       };
       // Check addChargeBoxID flag
-      if (options?.addChargeBoxID) {
-        evse.chargeBoxId = chargingStation.id;
+      if (options?.addChargeBoxAndOrgIDs) {
+        evse.chargingStationID = chargingStation.id;
         evse.siteID = chargingStation.siteID;
         evse.siteAreaID = chargingStation.siteAreaID;
         evse.companyID = chargingStation.companyID;
@@ -870,8 +887,8 @@ export default class OCPIUtilsService {
       }
     };
     // Check addChargeBoxID flag
-    if (options?.addChargeBoxID) {
-      evse.chargeBoxId = chargingStation.id;
+    if (options?.addChargeBoxAndOrgIDs) {
+      evse.chargingStationID = chargingStation.id;
       evse.siteID = chargingStation.siteID;
       evse.siteAreaID = chargingStation.siteAreaID;
       evse.companyID = chargingStation.companyID;
@@ -927,9 +944,29 @@ export default class OCPIUtilsService {
     }
   }
 
-  private static buildTariffID(tenant: Tenant, chargingStation: ChargingStation): string {
+  private static buildTariffID(tenant: Tenant, chargingStation: ChargingStation, connector: Connector): string {
     const defaultTariff = 'Default';
     switch (tenant?.id) {
+      // Station-e
+      case '60633bb1834fed0016310189':
+        // Check Site Area
+        switch (chargingStation?.siteAreaID) {
+          // ShowRoom Marcel Pagnol II
+          case '60d5a20c9deee6001419cabb':
+            switch (chargingStation?.id) {
+              case 'IES-Marcel-Pagnol-Boussy-Saint-Antoine':
+                // Type 2
+                if (connector.type === ConnectorType.TYPE_2) {
+                  return 'STE-AC_22k';
+                }
+                // DC
+                return 'STE-DC_25k';
+              case 'P91800RMRCLPGNL22AC':
+                return 'STE-AC_22k';
+            }
+            return defaultTariff;
+        }
+        return defaultTariff;
       // SLF
       case '5be7fb271014d90008992f06':
         // Check Site Area

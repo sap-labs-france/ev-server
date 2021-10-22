@@ -1,5 +1,5 @@
 import { DataResult, DeletedResult } from '../../types/DataResult';
-import global, { FilterParams } from './../../types/GlobalType';
+import global, { DatabaseCount, FilterParams } from './../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
@@ -140,7 +140,7 @@ export default class LoggingStorage {
       // Always limit the nbr of record to avoid perfs issues
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
-    const loggingsCountMDB = await global.database.getCollection<any>(tenant.id, 'logs')
+    const loggingsCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'logs')
       .aggregate([...aggregation, { $count: 'count' }])
       .toArray();
     // Check if only the total count is requested
@@ -202,7 +202,7 @@ export default class LoggingStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const loggingsMDB = await global.database.getCollection<Log>(tenant.id, 'logs')
-      .aggregate(aggregation, { allowDiskUse: true })
+      .aggregate<Log>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Ok
     return {
