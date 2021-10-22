@@ -167,6 +167,7 @@ export default class MongoDBStorage {
     ]);
     // Transactions
     await this.handleIndexesInCollection(tenantID, 'transactions', [
+      { fields: { timestamp: 1 } },
       { fields: { issuer: 1, timestamp: 1 } },
       { fields: { chargeBoxID: 1 } },
       { fields: { tagID: 1 } },

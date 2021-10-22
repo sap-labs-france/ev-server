@@ -339,7 +339,7 @@ export default class Logging {
       const performanceID = await PerformanceStorage.savePerformanceRecord(
         Utils.buildPerformanceRecord({
           tenantSubdomain,
-          group: Utils.getPerformanceRecordGroupFromURL(req.url),
+          group: Utils.getPerformanceRecordGroupFromURL(req.originalUrl),
           httpUrl: req.url,
           httpMethod: req.method,
           reqSizeKb: sizeOfRequestDataKB,
