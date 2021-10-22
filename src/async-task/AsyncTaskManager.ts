@@ -1,7 +1,8 @@
 import AsyncTask, { AsyncTaskStatus, AsyncTasks } from '../types/AsyncTask';
+import global, { ActionsResponse, DatabaseDocumentChange } from '../types/GlobalType';
 
 import AbstractAsyncTask from './AsyncTask';
-import { ActionsResponse } from '../types/GlobalType';
+import AsyncTaskConfiguration from '../types/configuration/AsyncTaskConfiguration';
 import AsyncTaskStorage from '../storage/mongodb/AsyncTaskStorage';
 import BillTransactionAsyncTask from './tasks/BillTransactionAsyncTask';
 import Configuration from '../utils/Configuration';
@@ -27,17 +28,29 @@ import Utils from '../utils/Utils';
 const MODULE_NAME = 'AsyncTaskManager';
 
 export default class AsyncTaskManager {
-  private static asyncTaskConfig;
+  private static asyncTaskConfig: AsyncTaskConfiguration;
 
   public static async init(): Promise<void> {
     // Get the conf
     AsyncTaskManager.asyncTaskConfig = Configuration.getAsyncTaskConfig();
-    // Active?
     if (AsyncTaskManager.asyncTaskConfig?.active) {
       // Turn all Running task to Pending
       await AsyncTaskStorage.updateRunningAsyncTaskToPending();
       // Run it
       void AsyncTaskManager.handleAsyncTasks();
+      // Listen to DB events
+      await global.database.watchDatabaseCollection(Constants.DEFAULT_TENANT_OBJECT, 'asynctasks',
+        (documentID: unknown, documentChange: DatabaseDocumentChange, document: unknown) => {
+          if (documentChange === DatabaseDocumentChange.UPDATE ||
+              documentChange === DatabaseDocumentChange.INSERT) {
+            // Check status
+            if (document['status'] === AsyncTaskStatus.PENDING) {
+              // Trigger the Async Framework
+              void AsyncTaskManager.handleAsyncTasks();
+            }
+          }
+        }
+      );
     }
   }
 
