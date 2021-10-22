@@ -672,17 +672,7 @@ export default class UserStorage {
       if (params.technical) {
         filters.technical = true;
       } else {
-        const technicalFilter = {
-          $or: [
-            { technical: { $in: [false, null] } },
-            { technical: { $exists: false } }
-          ]
-        };
-        if (filters.$and) {
-          filters.$and.push(technicalFilter);
-        } else {
-          filters.$and = [ technicalFilter ];
-        }
+        filters.technical = { $ne: true };
       }
     }
     // Select (non) Free users
@@ -690,17 +680,7 @@ export default class UserStorage {
       if (params.freeAccess) {
         filters.freeAccess = true;
       } else {
-        const freeAccessFilter = {
-          $or: [
-            { freeAccess: { $in: [false, null] } },
-            { freeAccess: { $exists: false } }
-          ]
-        };
-        if (filters.$and) {
-          filters.$and.push(freeAccessFilter);
-        } else {
-          filters.$and = [ freeAccessFilter ];
-        }
+        filters.freeAccess = { $ne: true };
       }
     }
     // Add filters
