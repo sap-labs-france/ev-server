@@ -83,6 +83,7 @@
     "mochatest:stripe": "cross-env TS_NODE_FILES=true mocha --no-parallel test/**/BillingStripeIntegrationTest.ts",
     "mochatest:asset": "cross-env TS_NODE_FILES=true mocha --no-parallel test/**/AssetTest.ts",
     "mochatest:car": "cross-env TS_NODE_FILES=true mocha --no-parallel test/**/CarTest.ts",
+    "mochatest:tag": "cross-env TS_NODE_FILES=true mocha --no-parallel test/**/TagTest.ts",
     "mochatest:locking": "cross-env TS_NODE_FILES=true mocha --no-parallel test/**/LockingTest.ts",
     "mochatest:firmwareUpdateStatus": "cross-env TS_NODE_FILES=true mocha --no-parallel test/**/FirmwareUpdateStatusTest.ts",
     "mochatest:smartCharging": "cross-env TS_NODE_FILES=true mocha --no-parallel test/**/SmartChargingTest.ts",
