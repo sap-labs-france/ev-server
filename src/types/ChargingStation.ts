@@ -330,6 +330,7 @@ export enum ChargerVendor {
   EVMETER = 'EV Meter',
   INNOGY = 'innogy',
   INGETEAM = 'INGETEAM',
+  INGETEAM_ENERGY = 'INGETEAM ENERGY',
   EFACEC = 'pt.efacec',
   IES = 'IES',
   HDM = 'HDM',

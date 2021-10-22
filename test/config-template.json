@@ -47,7 +47,6 @@
     "database": "evse",
     "poolSize": 200,
     "replicaSet": "rs0",
-    "monitorDBChange": false,
     "debug": false
   },
   "billing": {

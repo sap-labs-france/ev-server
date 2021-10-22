@@ -1,6 +1,7 @@
 import { ServerAction } from './Server';
 
 export default interface PerformanceRecord {
+  id?: string;
   tenantSubdomain: string;
   timestamp: Date;
   host: string;
@@ -22,7 +23,8 @@ export enum PerformanceRecordGroup {
   OCPP = 'ocpp',
   OCPI = 'ocpi',
   OICP = 'oicp',
-  REST = 'rest',
+  REST_PUBLIC = 'rest-public',
+  REST_SECURED = 'rest-secured',
   GREENCOM = 'greencom',
   STRIPE = 'stripe',
   RECAPTCHA = 'recaptcha',
@@ -33,4 +35,9 @@ export enum PerformanceRecordGroup {
   SAP_SMART_CHARGING = 'sap-smart-charging',
   SAP_CONCUR = 'sap-concur',
   UNKNOWN = 'unknown',
+}
+
+export interface PerformanceTracingData {
+  startTimestamp: number;
+  performanceID: string;
 }
