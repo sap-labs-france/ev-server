@@ -1,20 +1,18 @@
-import User, { UserRole } from '../../src/types/User';
 import chai, { assert, expect } from 'chai';
 
 import CentralServerService from '../api/client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
-import Constants from '../../src/utils/Constants';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
 import { HTTPError } from '../../src/types/HTTPError';
-import { ServerRoute } from '../../src/types/Server';
 import Site from '../../src/types/Site';
 import SiteContext from './context/SiteContext';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../src/types/Tag';
 import TenantContext from './context/TenantContext';
 import TestUtils from './TestUtils';
+import User from '../../src/types/User';
 import chaiSubset from 'chai-subset';
 import moment from 'moment';
 import responseHelper from '../helpers/responseHelper';
@@ -44,7 +42,7 @@ class TestData {
 }
 
 const testData: TestData = new TestData();
-
+// To remove once we remove the site Admin from the token
 function login(userRole) {
   testData.userContext = testData.tenantContext.getUserContext(userRole);
   if (testData.userContext === testData.centralUserContext) {
@@ -101,10 +99,16 @@ describe('Tag', function() {
       testData.createdUsers = [];
       // Delete any created tag
       for (const tag of testData.createdTags) {
-        await testData.centralUserService.userApi.deleteTag(tag.id);
+        await testData.centralUserService.tagApi.deleteTag(tag.id);
 
       }
       testData.createdTags = [];
+      // Delete any created site
+      for (const site of testData.createdSites) {
+        await testData.centralUserService.siteApi.delete(site.id);
+
+      }
+      testData.createdSites = [];
     });
 
     describe('Where admin user', () => {
@@ -153,23 +157,23 @@ describe('Tag', function() {
 
         it('Should be able to create a tag for user', async () => {
           testData.newTag = Factory.tag.build({ userID: testData.newUser.id });
-          const response = await testData.userService.userApi.createTag(testData.newTag);
+          const response = await testData.userService.tagApi.createTag(testData.newTag);
           expect(response.status).to.equal(StatusCodes.CREATED);
           testData.createdTags.push(testData.newTag);
         });
 
         it('Should be able to create a tag without a user', async () => {
           testData.newTagUnassigned = Factory.tag.build();
-          const response = await testData.userService.userApi.createTag(testData.newTagUnassigned);
+          const response = await testData.userService.tagApi.createTag(testData.newTagUnassigned);
           expect(response.status).to.equal(StatusCodes.CREATED);
           testData.createdTags.push(testData.newTagUnassigned);
         });
 
         it('Should be able to deactivate a badge', async () => {
           testData.newTag.active = false;
-          const response = await testData.userService.userApi.updateTag(testData.newTag);
+          const response = await testData.userService.tagApi.updateTag(testData.newTag);
           expect(response.status).to.equal(StatusCodes.OK);
-          const tag = (await testData.userService.userApi.readTag(testData.newTag.id)).data;
+          const tag = (await testData.userService.tagApi.readTag(testData.newTag.id)).data;
           expect(tag.active).to.equal(false);
         });
 
@@ -186,17 +190,17 @@ describe('Tag', function() {
 
         it('Should be able to delete a badge that has not been used', async () => {
           testData.newTag = Factory.tag.build({ userID: testData.newUser.id });
-          let response = await testData.userService.userApi.createTag(testData.newTag);
+          let response = await testData.userService.tagApi.createTag(testData.newTag);
           expect(response.status).to.equal(StatusCodes.CREATED);
-          response = await testData.userService.userApi.deleteTag(testData.newTag.id);
+          response = await testData.userService.tagApi.deleteTag(testData.newTag.id);
           expect(response.status).to.equal(StatusCodes.OK);
-          response = (await testData.userService.userApi.readTag(testData.newTag.id));
+          response = (await testData.userService.tagApi.readTag(testData.newTag.id));
           expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
         });
 
         it('Should be able to export tag list', async () => {
-          const response = await testData.userService.userApi.exportTags({});
-          const tags = await testData.userService.userApi.readTags({});
+          const response = await testData.userService.tagApi.exportTags({});
+          const tags = await testData.userService.tagApi.readTags({});
           const responseFileArray = TestUtils.convertExportFileToObjectArray(response.data);
 
           expect(response.status).eq(StatusCodes.OK);
@@ -221,11 +225,11 @@ describe('Tag', function() {
         it('Should get the user default car tag', async () => {
           // Create a tag
           testData.newTag = Factory.tag.build({ userID: testData.newUser.id });
-          let response = await testData.userService.userApi.createTag(testData.newTag);
+          let response = await testData.userService.tagApi.createTag(testData.newTag);
           expect(response.status).to.equal(StatusCodes.CREATED);
           testData.createdTags.push(testData.newTag);
           // Retrieve it
-          response = await testData.userService.userApi.getDefaultTagCar(testData.newUser.id);
+          response = await testData.userService.tagApi.getDefaultTagCar(testData.newUser.id);
           expect(response.status).to.be.eq(StatusCodes.OK);
           expect(response.data.tag.visualID).to.be.eq(testData.newTag.visualID);
           expect(response.data.car).to.be.undefined;
@@ -303,7 +307,7 @@ describe('Tag', function() {
     // where site admin
 
     describe('Where site admin user', () => {
-      before(() => {
+      before(async () => {
         testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER_NO_TAGS);
         assert(testData.userContext, 'User context cannot be null');
         if (testData.userContext === testData.centralUserContext) {
@@ -316,56 +320,42 @@ describe('Tag', function() {
           );
         }
         assert(!!testData.userService, 'User service cannot be null');
+        login(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+        testData.userContext = await testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
+        await testData.userService.siteApi.addUsersToSite(testData.newSite.id, [testData.userContext.id]);
+        await testData.userService.siteApi.addUsersToSite(testData.newSite.id, [testData.newUser.id]);
+        await testData.userService.siteApi.assignSiteAdmin(testData.newSite.id, testData.userContext.id);
+        login(ContextDefinition.USER_CONTEXTS.BASIC_USER);
       });
 
       describe('Using various basic APIs', () => {
 
-        it('Should not be able to create a badge for user not assigned to his site', async () => {
-          login(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
-          testData.userContext = await testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
-          await testData.userService.siteApi.addUsersToSite(testData.newSite.id, [testData.userContext.id]);
-          await testData.userService.siteApi.assignSiteAdmin(testData.newSite.id, testData.userContext.id);
-          login(ContextDefinition.USER_CONTEXTS.BASIC_USER);
+        it('Should be able to create a badge for a user', async () => {
+          testData.newTag = Factory.tag.build();
+          const response = await testData.userService.tagApi.createTag(testData.newTag);
+          expect(response.status).to.equal(StatusCodes.CREATED);
+          testData.createdTags.push(testData.newTag);
+        });
+
+        it('Should be not be able to read badge of user not assigned to his site', async () => {
+          const response = await testData.userService.tagApi.readTag(testData.newTag.id);
+          expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+        });
+
+        it('Should be able to create a badge for a user assigned to his site', async () => {
           testData.newTag = Factory.tag.build({ userID: testData.newUser.id });
           const response = await testData.userService.tagApi.createTag(testData.newTag);
           expect(response.status).to.equal(StatusCodes.CREATED);
+          testData.createdTags.push(testData.newTag);
         });
 
-        it('Should not be able to create a badge without a user', async () => {
-          testData.newTag = Factory.tag.build();
-          const response = await testData.userService.tagApi.createTag(testData.newTag);
-          expect(response.status).to.equal(StatusCodes.FORBIDDEN);
+        it('Should be able to update a badge of a user assigned to his site', async () => {
+          testData.newTag.description = 'My new description for site admin';
+          const response = await testData.userService.tagApi.updateTag(testData.newTag);
+          expect(response.status).to.equal(StatusCodes.OK);
+          const tag = (await testData.userService.tagApi.readTag(testData.newTag.id)).data;
+          expect(tag.description).to.equal('My new description for site admin');
         });
-
-        // it('Should be able to read his own badge', async () => {
-        //   const response = await testData.userService.tagApi.readTagByVisualID(testData.newTagUnassigned.visualID);
-        //   expect(response.status).to.equal(StatusCodes.OK);
-        //   expect(response.data.visualID).to.equal(testData.newTagUnassigned.visualID);
-        // });
-
-        // it('Should be able to update his own badge', async () => {
-        //   testData.newTagUnassigned.description = 'My new description';
-        //   const response = await testData.userService.tagApi.updateTagByVisualID(testData.newTagUnassigned);
-        //   expect(response.status).to.equal(StatusCodes.OK);
-        //   const tag = (await testData.userService.tagApi.readTagByVisualID(testData.newTagUnassigned.visualID)).data;
-        //   expect(tag.description).to.equal('My new description');
-        // });
-
-        // it('Should get the user default car tag', async () => {
-        //   // Retrieve it
-        //   const response = await testData.userService.userApi.getDefaultTagCar(testData.newTagUnassigned.userID);
-        //   expect(response.status).to.be.eq(StatusCodes.OK);
-        //   expect(response.data.tag.visualID).to.be.eq(testData.newTagUnassigned.visualID);
-        //   expect(response.data.car).to.be.undefined;
-        //   expect(response.data.errorCodes).to.be.not.null;
-        // });
-
-        // it('Should be able to unassign his own badge', async () => {
-        //   let response = await testData.userService.tagApi.unassignTag(testData.newTagUnassigned);
-        //   expect(response.status).to.equal(StatusCodes.OK);
-        //   response = await testData.userService.tagApi.readTagByVisualID(testData.newTagUnassigned.visualID);
-        //   expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
-        // });
       });
 
     });

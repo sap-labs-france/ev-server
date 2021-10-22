@@ -98,7 +98,7 @@ export default class ContextProvider {
       chargingStationList = (await defaultAdminCentralServiceService.chargingStationApi.readAll({ WithNoSiteArea: true }, TestConstants.DEFAULT_PAGING)).data.result;
     }
     userList = (await defaultAdminCentralServiceService.userApi.readAll({}, { limit: 0, skip: 0 })).data.result;
-    tagList = (await defaultAdminCentralServiceService.userApi.readTags({}, { limit: 0, skip: 0 })).data.result;
+    tagList = (await defaultAdminCentralServiceService.tagApi.readTags({}, { limit: 0, skip: 0 })).data.result;
     for (const user of userList) {
       user.password = config.get('admin.password');
       user.centralServerService = new CentralServerService(tenantEntity.subdomain, user);

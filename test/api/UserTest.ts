@@ -7,7 +7,6 @@ import Constants from '../../src/utils/Constants';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
-import { HTTPError } from '../../src/types/HTTPError';
 import { ServerRoute } from '../../src/types/Server';
 import SiteContext from './context/SiteContext';
 import { StatusCodes } from 'http-status-codes';
@@ -15,7 +14,6 @@ import Tag from '../../src/types/Tag';
 import TenantContext from './context/TenantContext';
 import TestUtils from './TestUtils';
 import chaiSubset from 'chai-subset';
-import moment from 'moment';
 import responseHelper from '../helpers/responseHelper';
 
 chai.use(chaiSubset);
@@ -84,7 +82,7 @@ describe('User', function() {
       testData.createdUsers = [];
       // Delete any created tag
       for (const tag of testData.createdTags) {
-        await testData.centralUserService.userApi.deleteTag(tag.id);
+        await testData.centralUserService.tagApi.deleteTag(tag.id);
 
       }
       testData.createdTags = [];
@@ -183,19 +181,6 @@ describe('User', function() {
           )).data;
         });
 
-        // // TODO: Need to verify the real logic, not only if we can import (read create) tags
-        // // Something like this ?
-        // it('Should be able to import tag list', async () => {
-        //   const response = await testData.tagService.insertTags(
-        //     tenantid,
-        //     user,
-        //     action,
-        //     tagsToBeImported,
-        //     result);
-        //   expect(response.status).to.equal(??);
-        //   testData.importedTags.push(tag);
-        // });
-
         it('Should be able to export users list', async () => {
           const response = await testData.userService.userApi.exportUsers({});
           const users = await testData.userService.userApi.readAll({}, { limit: 1000, skip: 0 });
@@ -236,7 +221,7 @@ describe('User', function() {
         it('Should get the user default car tag', async () => {
           // Create a tag
           testData.newTag = Factory.tag.build({ userID: testData.newUser.id });
-          let response = await testData.userService.userApi.createTag(testData.newTag);
+          let response = await testData.userService.tagApi.createTag(testData.newTag);
           expect(response.status).to.equal(StatusCodes.CREATED);
           testData.createdTags.push(testData.newTag);
           // Retrieve it
