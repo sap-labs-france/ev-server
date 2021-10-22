@@ -157,11 +157,6 @@ export default class ConsumptionStorage {
         assetID: DatabaseUtils.convertToObjectID(params.assetID)
       }
     });
-    // Convert Object ID to string
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
-    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Sort
     aggregation.push({
       $sort: { startedAt: -1 }
@@ -170,17 +165,18 @@ export default class ConsumptionStorage {
     aggregation.push({
       $limit: 1
     });
-    let consumption: Consumption = null;
+    // Convert Object ID to string
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Read DB
     const consumptionsMDB = await global.database.getCollection<Consumption>(tenant.id, 'consumptions')
       .aggregate<Consumption>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
-    if (!Utils.isEmptyArray(consumptionsMDB)) {
-      consumption = consumptionsMDB[0];
-    }
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getLastAssetConsumption', startTime, aggregation, consumptionsMDB);
-    return consumption;
+    return !Utils.isEmptyArray(consumptionsMDB) ? consumptionsMDB[0] : null;
   }
 
   static async getSiteAreaConsumptions(tenant: Tenant,
