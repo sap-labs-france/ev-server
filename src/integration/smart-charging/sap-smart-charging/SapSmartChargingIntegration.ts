@@ -652,6 +652,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
       if (!chargingStation) {
         throw new BackendError({
           source: chargingStationID,
+          chargingStationID: chargingStationID,
           action: ServerAction.SMART_CHARGING,
           module: MODULE_NAME, method: 'buildChargingProfilesFromOptimizerResponse',
           message: `${siteArea.name} > Charging Station not found`

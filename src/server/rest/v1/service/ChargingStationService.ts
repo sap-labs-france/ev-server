@@ -83,7 +83,11 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.UPDATE, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
-        value: chargingStation.id
+        value: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
       });
     }
     // Update props
@@ -391,7 +395,11 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.UPDATE, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleChargingStationLimitPower',
-        value: chargingStation.id
+        value: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
       });
     }
     // Get the Vendor instance
@@ -590,7 +598,8 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.UPDATE, entity: Entity.SITE_AREA,
         module: MODULE_NAME, method: 'handleTriggerSmartCharging',
-        value: filteredRequest.SiteAreaID
+        value: filteredRequest.SiteAreaID,
+        siteAreaID: filteredRequest.SiteAreaID,
       });
     }
     // Call Smart Charging
@@ -639,7 +648,8 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.READ, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleGenerateQrCodeForConnector',
-        value: filteredRequest.ChargingStationID
+        value: filteredRequest.ChargingStationID,
+        chargingStationID: filteredRequest.ChargingStationID,
       });
     }
     // Check ChargeBoxID
@@ -724,7 +734,11 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.UPDATE, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleDeleteChargingProfile',
-        value: chargingStation.id
+        value: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
       });
     }
     try {
@@ -764,7 +778,11 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.READ, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleGetChargingStationOcppParameters',
-        value: chargingStation.id
+        value: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
       });
     }
     // Get the Parameters
@@ -785,7 +803,8 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.READ, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleRequestChargingStationOcppParameters',
-        value: filteredRequest.chargingStationID
+        value: filteredRequest.chargingStationID,
+        chargingStationID: filteredRequest.chargingStationID,
       });
     }
     // Get the Charging Station
@@ -836,7 +855,8 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.DELETE, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleDeleteChargingStation',
-        value: chargingStationID
+        value: chargingStationID,
+        chargingStationID: chargingStationID,
       });
     }
     // Deleted
@@ -1248,7 +1268,11 @@ export default class ChargingStationService {
         action: command as unknown as Action,
         entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleAction',
-        value: chargingStation.id
+        value: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
       });
     }
     // Get the OCPP Client
@@ -1256,6 +1280,10 @@ export default class ChargingStationService {
     if (!chargingStationClient) {
       throw new BackendError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         action: action,
         module: MODULE_NAME, method: 'handleChargingStationCommand',
         message: 'Charging Station is not connected to the backend',
@@ -1735,7 +1763,11 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.UPDATE, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'setAndSaveChargingProfile',
-        value: chargingStation.id
+        value: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
       });
     }
     // Check if Charging Profile is supported

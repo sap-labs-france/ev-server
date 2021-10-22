@@ -744,6 +744,10 @@ export default class Authorizations {
       if (!chargingStation.siteAreaID || !chargingStation.siteArea) {
         throw new BackendError({
           source: chargingStation.id,
+          chargingStationID: chargingStation.id,
+          siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          companyID: chargingStation.companyID,
           action: action,
           module: MODULE_NAME, method: 'isTagIDAuthorizedOnChargingStation',
           message: `Charging Station '${chargingStation.id}' is not assigned to a Site Area!`,
@@ -754,6 +758,10 @@ export default class Authorizations {
       if (!chargingStation.siteID) {
         throw new BackendError({
           source: chargingStation.id,
+          chargingStationID: chargingStation.id,
+          siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          companyID: chargingStation.companyID,
           action: action,
           module: MODULE_NAME, method: 'isTagIDAuthorizedOnChargingStation',
           message: `Site Area '${chargingStation.siteArea.name}' is not assigned to a Site!`,

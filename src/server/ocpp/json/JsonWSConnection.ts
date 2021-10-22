@@ -203,6 +203,10 @@ export default class JsonWSConnection extends WSConnection {
       // Throw Exception
       throw new OCPPError({
         source: this.getChargingStationID(),
+        chargingStationID: this.getChargingStationID(),
+        siteID: this.getSiteID(),
+        siteAreaID: this.getSiteAreaID(),
+        companyID: this.getCompanyID(),
         module: MODULE_NAME,
         method: 'handleRequest',
         code: OCPPErrorType.NOT_IMPLEMENTED,

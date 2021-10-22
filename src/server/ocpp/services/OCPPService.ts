@@ -2219,6 +2219,10 @@ export default class OCPPService {
       await this.abortOngoingTransactionInMeterValues(tenant, chargingStation, headers, meterValues);
       throw new BackendError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         module: MODULE_NAME, method: 'getTransactionFromMeterValues',
         message: `${Utils.buildConnectorInfo(meterValues.connectorId, meterValues.transactionId)} Transaction has already been stopped`,
         action: ServerAction.OCPP_METER_VALUES,

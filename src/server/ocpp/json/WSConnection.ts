@@ -242,6 +242,10 @@ export default abstract class WSConnection {
           delete this.requests[messageId];
           rejectCallback(new OCPPError({
             source: this.getChargingStationID(),
+            chargingStationID: this.getChargingStationID(),
+            siteID: this.getSiteID(),
+            siteAreaID: this.getSiteAreaID(),
+            companyID: this.getCompanyID(),
             module: MODULE_NAME,
             method: 'onMessage',
             code: command,

@@ -836,7 +836,8 @@ export default class Logging {
       type: LogType.SECURITY,
       user: exception.params.user,
       actionOnUser: exception.params.actionOnUser,
-      module: exception.params.module, method: exception.params.method,
+      module: exception.params.module,
+      method: exception.params.method,
       action: action,
       message: exception.message,
       detailedMessages: {

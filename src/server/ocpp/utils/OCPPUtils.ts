@@ -61,6 +61,7 @@ export default class OCPPUtils {
     if (!tokenID) {
       throw new BackendError({
         source: chargingStationID,
+        chargingStationID: chargingStationID,
         action: ServerAction.OCPP_BOOT_NOTIFICATION,
         module: MODULE_NAME, method: 'checkChargingStationConnectionToken',
         message: 'Charging Station Token is required, connection refused',
@@ -72,6 +73,7 @@ export default class OCPPUtils {
     if (!token) {
       throw new BackendError({
         source: chargingStationID,
+        chargingStationID: chargingStationID,
         action,
         module: MODULE_NAME, method: 'checkChargingStationConnectionToken',
         message: `Charging Station Token ID '${tokenID}' has not been found, connection refused`,
@@ -81,6 +83,7 @@ export default class OCPPUtils {
     if (!token.expirationDate || moment().isAfter(token.expirationDate)) {
       throw new BackendError({
         source: chargingStationID,
+        chargingStationID: chargingStationID,
         action,
         module: MODULE_NAME, method: 'checkChargingStationConnectionToken',
         message: `Charging Station Token ID '${tokenID}' is expired, connection refused`,
