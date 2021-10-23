@@ -258,7 +258,7 @@ export default class AuthService {
       const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +
         '/verify-email?VerificationToken=' + verificationToken + '&Email=' + newUser.email;
       // Notify (Async)
-      NotificationHandler.sendNewRegisteredUser(
+      await NotificationHandler.sendNewRegisteredUser(
         tenant,
         Utils.generateUUID(),
         newUser,
@@ -326,7 +326,7 @@ export default class AuthService {
     const evseDashboardResetPassURL = Utils.buildEvseURL(filteredRequest.tenant) +
       '/define-password?hash=' + resetHash;
     // Send Request Password (Async)
-    NotificationHandler.sendRequestPassword(
+    await NotificationHandler.sendRequestPassword(
       tenant,
       Utils.generateUUID(),
       user,
@@ -552,7 +552,7 @@ export default class AuthService {
         'User account has been successfully verified but needs an admin to activate it',
       detailedMessages: { params: req.query }
     });
-    NotificationHandler.sendAccountVerification(
+    await NotificationHandler.sendAccountVerification(
       tenant,
       Utils.generateUUID(),
       user,
@@ -659,7 +659,7 @@ export default class AuthService {
       '/verify-email?VerificationToken=' + verificationToken + '&Email=' +
       user.email;
     // Send Verification Email (Async)
-    NotificationHandler.sendVerificationEmail(
+    await NotificationHandler.sendVerificationEmail(
       tenant,
       Utils.generateUUID(),
       user,

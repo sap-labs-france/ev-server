@@ -80,6 +80,10 @@ export default class JsonRestWSConnection extends WSConnection {
     if (!chargingStation) {
       throw new BackendError({
         source: this.getChargingStationID(),
+        chargingStationID: this.getChargingStationID(),
+        siteID: this.getSiteID(),
+        siteAreaID: this.getSiteAreaID(),
+        companyID: this.getCompanyID(),
         module: MODULE_NAME,
         method: 'handleRequest',
         message: 'Charging Station not found',
@@ -95,6 +99,10 @@ export default class JsonRestWSConnection extends WSConnection {
     if (!chargingStationClient) {
       throw new BackendError({
         source: this.getChargingStationID(),
+        chargingStationID: this.getChargingStationID(),
+        siteID: this.getSiteID(),
+        siteAreaID: this.getSiteAreaID(),
+        companyID: this.getCompanyID(),
         module: MODULE_NAME,
         method: 'handleRequest',
         message: 'Charging Station is not connected to the backend',
@@ -113,6 +121,10 @@ export default class JsonRestWSConnection extends WSConnection {
       // Error
       throw new BackendError({
         source: this.getChargingStationID(),
+        chargingStationID: this.getChargingStationID(),
+        siteID: this.getSiteID(),
+        siteAreaID: this.getSiteAreaID(),
+        companyID: this.getCompanyID(),
         module: MODULE_NAME,
         method: 'handleRequest',
         message: `'${actionMethod}' is not implemented`,

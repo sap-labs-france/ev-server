@@ -294,6 +294,15 @@ export default class Utils {
     return obj == null;
   }
 
+  public static objectAllPropertiesAreEqual(doc1: Record<string, any>, doc2: Record<string, any>, properties: string[]): boolean {
+    for (const property of properties) {
+      if ((doc1[property] !== doc2[property] && (!Utils.isNullOrUndefined(doc1[property]) || !Utils.isNullOrUndefined(doc2[property])))) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   public static getConnectorStatusesFromChargingStations(chargingStations: ChargingStation[]): ConnectorStats {
     const connectorStats: ConnectorStats = {
       totalChargers: 0,

@@ -13,6 +13,10 @@ export default class OCPPError extends Error {
     code: string;
     message: string;
     details?: any;
+    chargingStationID?: string;
+    siteID?: string;
+    siteAreaID?: string;
+    companyID?: string;
   }) {
     super(params.message);
     this.code = params.code;

@@ -28,6 +28,10 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     if (!chargingStationURL) {
       throw new BackendError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         module: MODULE_NAME,
         method: 'constructor',
         message: 'Cannot access the Charging Station via a REST call because no URL is provided',

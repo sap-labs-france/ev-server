@@ -58,7 +58,12 @@
       "$ref": "user#/definitions/role"
     },
     "technical": {
-      "type": "boolean"
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "freeAccess": {
+      "type": "boolean",
+      "sanitize": "mongo"
     }
   },
   "required": [

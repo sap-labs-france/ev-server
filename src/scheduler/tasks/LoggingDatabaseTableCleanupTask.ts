@@ -53,7 +53,7 @@ export default class LoggingDatabaseTableCleanupTask extends SchedulerTask {
             tenantID: tenant.id,
             action: ServerAction.LOGS_CLEANUP,
             module: MODULE_NAME, method: 'deleteLogs',
-            message: `${result.deletedCount} Log(s) have been deleted successfully before '${moment(deleteUpToDate).format('DD/MM/YYYY h:mm A')}'`
+            message: `${result.deletedCount} Log(s) have been deleted before '${moment(deleteUpToDate).format('DD/MM/YYYY h:mm A')}'`
           });
         } else {
           await Logging.logError({
@@ -96,7 +96,7 @@ export default class LoggingDatabaseTableCleanupTask extends SchedulerTask {
             tenantID: tenant.id,
             action: ServerAction.PERFORMANCES_CLEANUP,
             module: MODULE_NAME, method: 'deletePerformanceRecords',
-            message: `${result.deletedCount} Performance Record(s) have been deleted successfully before '${moment(deleteUpToDate).format('DD/MM/YYYY h:mm A')}'`
+            message: `${result.deletedCount} Performance Record(s) have been deleted before '${moment(deleteUpToDate).format('DD/MM/YYYY h:mm A')}'`
           });
         } else {
           await Logging.logError({

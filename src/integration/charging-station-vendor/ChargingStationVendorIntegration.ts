@@ -69,6 +69,10 @@ export default abstract class ChargingStationVendorIntegration {
     if (!this.hasStaticLimitationFullSupport(chargingStation, chargePoint)) {
       throw new BackendError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         action: ServerAction.CHARGING_STATION_LIMIT_POWER,
         module: MODULE_NAME, method: 'setStaticPowerLimitation',
         message: 'Charging Station capabilities or configuration does not support power limitation'
@@ -77,6 +81,10 @@ export default abstract class ChargingStationVendorIntegration {
     if (maxAmps < (StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases * numberOfConnectors)) {
       throw new BackendError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         action: ServerAction.CHARGING_STATION_LIMIT_POWER,
         module: MODULE_NAME, method: 'setStaticPowerLimitation',
         message: `Cannot set the minimum power limit to ${maxAmps}A, minimum expected ${StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases * numberOfConnectors}A`,
@@ -85,6 +93,10 @@ export default abstract class ChargingStationVendorIntegration {
     if (Utils.isEmptyArray(chargingStation.connectors)) {
       throw new BackendError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         action: ServerAction.CHARGING_STATION_LIMIT_POWER,
         module: MODULE_NAME, method: 'setStaticPowerLimitation',
         message: 'The Charging Station has no connector',
@@ -174,6 +186,10 @@ export default abstract class ChargingStationVendorIntegration {
     if (!chargingStation.capabilities?.supportChargingProfiles) {
       throw new BackendError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         action: ServerAction.CHARGING_PROFILE_UPDATE,
         module: MODULE_NAME, method: 'setChargingProfile',
         message: 'Charging Station does not support charging profiles'
@@ -184,6 +200,10 @@ export default abstract class ChargingStationVendorIntegration {
     if (!chargingStationClient) {
       throw new BackendError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         action: ServerAction.CHARGING_PROFILE_UPDATE,
         module: MODULE_NAME, method: 'setChargingProfile',
         message: 'Charging Station is not connected to the backend',
@@ -260,6 +280,10 @@ export default abstract class ChargingStationVendorIntegration {
     if (!chargingStation.capabilities?.supportChargingProfiles) {
       throw new BackendError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         action: ServerAction.CHARGING_PROFILE_DELETE,
         module: MODULE_NAME, method: 'clearChargingProfile',
         message: 'Charging Station does not support charging profiles'
@@ -270,6 +294,10 @@ export default abstract class ChargingStationVendorIntegration {
     if (!chargingStationClient) {
       throw new BackendError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         action: ServerAction.CHARGING_PROFILE_DELETE,
         module: MODULE_NAME, method: 'clearChargingProfile',
         message: 'Charging Station is not connected to the backend',
@@ -337,6 +365,10 @@ export default abstract class ChargingStationVendorIntegration {
     if (!chargingStation.capabilities?.supportChargingProfiles) {
       throw new BackendError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         action: ServerAction.CHARGING_STATION_GET_COMPOSITE_SCHEDULE,
         module: MODULE_NAME, method: 'getCompositeSchedule',
         message: 'Charging Station does not support Charging Profiles'
@@ -345,6 +377,10 @@ export default abstract class ChargingStationVendorIntegration {
     if (connectorID === 0) {
       throw new BackendError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
         module: MODULE_NAME, method: 'getCompositeSchedule',
         message: `${Utils.buildConnectorInfo(connectorID)} Cannot get the Charging Profiles`,
@@ -355,6 +391,10 @@ export default abstract class ChargingStationVendorIntegration {
     if (!chargingStationClient) {
       throw new BackendError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         action: ServerAction.CHARGING_STATION_GET_COMPOSITE_SCHEDULE,
         module: MODULE_NAME, method: 'getCompositeSchedule',
         message: 'Charging Station is not connected to the backend',
@@ -401,6 +441,10 @@ export default abstract class ChargingStationVendorIntegration {
       if (connectorID === 0) {
         throw new BackendError({
           source: chargingStation.id,
+          chargingStationID: chargingStation.id,
+          siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          companyID: chargingStation.companyID,
           action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
           module: MODULE_NAME, method: 'getCurrentConnectorLimit',
           message: 'Cannot get the current connector limit on Connector ID 0',

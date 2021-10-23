@@ -18,6 +18,10 @@ export default class AppError extends Error {
     detailedMessages?: any;
     ocpiError?: OCPIStatusCode;
     oicpError?: OICPStatusCode;
+    chargingStationID?: string;
+    siteID?: string;
+    siteAreaID?: string;
+    companyID?: string;
   }) {
     super(params.message);
   }

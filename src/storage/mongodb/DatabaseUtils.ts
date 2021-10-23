@@ -127,8 +127,8 @@ export default class DatabaseUtils {
       JSON.parse(`{
         "$group": {
           "_id": {
-            "ïd": "$id",
-            "_ïd": "$_id"
+            "id": "$id",
+            "_id": "$_id"
           },
           "root": { "$first": "$$ROOT" },
           "${arrayName}": { "$push": "$${arrayName}" }
