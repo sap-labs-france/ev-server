@@ -83,7 +83,11 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.UPDATE, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
-        value: chargingStation.id
+        value: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
       });
     }
     // Update props
@@ -97,6 +101,10 @@ export default class ChargingStationService {
       if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredRequest.public && !siteArea.site?.public) {
         throw new AppError({
           source: chargingStation.id,
+          chargingStationID: chargingStation.id,
+          siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          companyID: chargingStation.companyID,
           action: action,
           errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
           message: `Cannot set charging station ${chargingStation.id} attached to the non public site ${siteArea.site.name} public`,
@@ -342,6 +350,7 @@ export default class ChargingStationService {
     if (!filteredRequest.chargePointID) {
       throw new AppError({
         source: filteredRequest.chargingStationID,
+        chargingStationID: filteredRequest.chargingStationID,
         action: action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'You must provide a Charge Point ID',
@@ -362,6 +371,10 @@ export default class ChargingStationService {
     if (filteredRequest.ampLimitValue < (StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases * chargePoint.connectorIDs.length)) {
       throw new AppError({
         source: filteredRequest.chargingStationID,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         action: action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Limitation to ${filteredRequest.ampLimitValue}A is too low, min required is ${StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases * chargePoint.connectorIDs.length}A`,
@@ -382,7 +395,11 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.UPDATE, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleChargingStationLimitPower',
-        value: chargingStation.id
+        value: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
       });
     }
     // Get the Vendor instance
@@ -390,6 +407,10 @@ export default class ChargingStationService {
     if (!chargingStationVendor) {
       throw new AppError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         action: action,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
         message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for limiting the charge`,
@@ -401,6 +422,10 @@ export default class ChargingStationService {
     if (!chargingStationVendor.hasStaticLimitationSupport(chargingStation)) {
       throw new AppError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         action: action,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
         message: 'Charging Station does not support power limitation',
@@ -434,6 +459,10 @@ export default class ChargingStationService {
         if (!filteredRequest.forceUpdateChargingPlan) {
           throw new AppError({
             source: chargingStation.id,
+            chargingStationID: chargingStation.id,
+            siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            companyID: chargingStation.companyID,
             action: action,
             user: req.user,
             errorCode: HTTPError.GENERAL_ERROR,
@@ -467,6 +496,10 @@ export default class ChargingStationService {
     if (result.status !== OCPPConfigurationStatus.ACCEPTED && result.status !== OCPPConfigurationStatus.REBOOT_REQUIRED) {
       throw new AppError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         action: action,
         errorCode: HTTPError.LIMIT_POWER_ERROR,
         module: MODULE_NAME, method: 'handleChargingStationLimitPower',
@@ -565,7 +598,10 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.UPDATE, entity: Entity.SITE_AREA,
         module: MODULE_NAME, method: 'handleTriggerSmartCharging',
-        value: filteredRequest.SiteAreaID
+        value: filteredRequest.SiteAreaID,
+        companyID: siteArea.site?.companyID,
+        siteAreaID: siteArea.id,
+        siteID: siteArea.siteID,
       });
     }
     // Call Smart Charging
@@ -614,7 +650,8 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.READ, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleGenerateQrCodeForConnector',
-        value: filteredRequest.ChargingStationID
+        value: filteredRequest.ChargingStationID,
+        chargingStationID: filteredRequest.ChargingStationID,
       });
     }
     // Check ChargeBoxID
@@ -699,7 +736,11 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.UPDATE, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleDeleteChargingProfile',
-        value: chargingStation.id
+        value: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
       });
     }
     try {
@@ -739,7 +780,11 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.READ, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleGetChargingStationOcppParameters',
-        value: chargingStation.id
+        value: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
       });
     }
     // Get the Parameters
@@ -760,7 +805,8 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.READ, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleRequestChargingStationOcppParameters',
-        value: filteredRequest.chargingStationID
+        value: filteredRequest.chargingStationID,
+        chargingStationID: filteredRequest.chargingStationID,
       });
     }
     // Get the Charging Station
@@ -811,7 +857,11 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.DELETE, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleDeleteChargingStation',
-        value: chargingStationID
+        value: chargingStationID,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID
       });
     }
     // Deleted
@@ -1223,7 +1273,11 @@ export default class ChargingStationService {
         action: command as unknown as Action,
         entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleAction',
-        value: chargingStation.id
+        value: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
       });
     }
     // Get the OCPP Client
@@ -1231,6 +1285,10 @@ export default class ChargingStationService {
     if (!chargingStationClient) {
       throw new BackendError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         action: action,
         module: MODULE_NAME, method: 'handleChargingStationCommand',
         message: 'Charging Station is not connected to the backend',
@@ -1376,6 +1434,10 @@ export default class ChargingStationService {
       // Throw error
       throw new AppError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteAreaID: chargingStation.siteAreaID,
+        siteID: chargingStation.siteID,
+        companyID: chargingStation.companyID,
         action: action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Unknown OCPP command '${command}'`,
@@ -1386,6 +1448,10 @@ export default class ChargingStationService {
     } catch (error) {
       throw new AppError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteAreaID: chargingStation.siteAreaID,
+        siteID: chargingStation.siteID,
+        companyID: chargingStation.companyID,
         action: action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `OCPP Command '${command}' has failed`,
@@ -1704,13 +1770,21 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.UPDATE, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'setAndSaveChargingProfile',
-        value: chargingStation.id
+        value: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
       });
     }
     // Check if Charging Profile is supported
     if (!chargingStation.capabilities?.supportChargingProfiles) {
       throw new AppError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         action: action,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
         user: req.user,
@@ -1729,6 +1803,10 @@ export default class ChargingStationService {
     if (!chargingStationVendor) {
       throw new AppError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         action: action,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
         message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for limiting the charge`,
@@ -1782,6 +1860,10 @@ export default class ChargingStationService {
     if (!tag.active) {
       throw new BackendError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         action: action,
         message: `Tag ID '${tag.id}' is not active`,
         module: MODULE_NAME, method: 'handleAction',
@@ -1806,6 +1888,10 @@ export default class ChargingStationService {
     if (tag.userID !== user.id) {
       throw new BackendError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         action: action,
         message: `Tag ID '${tag.id}' is not linked to User ID '${user.id}'`,
         module: MODULE_NAME, method: 'handleAction',

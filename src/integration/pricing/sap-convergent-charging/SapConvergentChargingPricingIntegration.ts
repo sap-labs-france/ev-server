@@ -157,6 +157,10 @@ export default class SapConvergentChargingPricingIntegration extends PricingInte
         if (!chargingStationClient) {
           throw new BackendError({
             source: chargingStation.id,
+            chargingStationID: chargingStation.id,
+            siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            companyID: chargingStation.companyID,
             action: action,
             module: MODULE_NAME, method: 'handleError',
             message: 'Charging Station is not connected to the backend',

@@ -53,7 +53,8 @@ export default class UtilsService {
         user: userToken,
         action: Action.READ, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'checkAndGetChargingStationAuthorization',
-        value: chargingStationID
+        value: chargingStationID,
+        chargingStationID: chargingStationID,
       });
     }
     // Check mandatory fields
@@ -117,7 +118,8 @@ export default class UtilsService {
         user: userToken,
         action: authAction, entity: Entity.COMPANY,
         module: MODULE_NAME, method: 'checkAndGetCompanyAuthorization',
-        value: companyID
+        value: companyID,
+        companyID: companyID,
       });
     }
     // Get Company
@@ -159,7 +161,8 @@ export default class UtilsService {
         user: userToken,
         action: authAction, entity: Entity.COMPANY,
         module: MODULE_NAME, method: 'checkAndGetCompanyAuthorization',
-        value: companyID
+        value: companyID,
+        companyID: companyID,
       });
     }
     return company;
@@ -239,7 +242,8 @@ export default class UtilsService {
         user: userToken,
         action: authAction, entity: Entity.SITE,
         module: MODULE_NAME, method: 'checkAndGetSiteAuthorization',
-        value: siteID
+        value: siteID,
+        siteID: siteID,
       });
     }
     // Get Site
@@ -281,7 +285,8 @@ export default class UtilsService {
         user: userToken,
         action: authAction, entity: Entity.SITE,
         module: MODULE_NAME, method: 'checkAndGetSiteAuthorization',
-        value: siteID
+        value: siteID,
+        siteID: siteID,
       });
     }
     return site;
@@ -548,7 +553,8 @@ export default class UtilsService {
         user: userToken,
         action: authAction, entity: Entity.SITE_AREA,
         module: MODULE_NAME, method: 'checkAndGetSiteAreaAuthorization',
-        value: siteAreaID
+        value: siteAreaID,
+        siteAreaID: siteAreaID,
       });
     }
     // Get SiteArea & check it exists
@@ -590,7 +596,8 @@ export default class UtilsService {
         user: userToken,
         action: authAction, entity: Entity.SITE_AREA,
         module: MODULE_NAME, method: 'checkAndGetSiteAreaAuthorization',
-        value: siteAreaID
+        value: siteAreaID,
+        siteAreaID: siteAreaID,
       });
     }
     return siteArea;
