@@ -799,7 +799,7 @@ export default class CpoOCPIClient extends OCPIClient {
                 if (result.failure > 0) {
                   // Send notification to admins
                   // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                  NotificationHandler.sendOCPIPatchChargingStationsStatusesError(
+                  await NotificationHandler.sendOCPIPatchChargingStationsStatusesError(
                     this.tenant,
                     {
                       location: location.name,

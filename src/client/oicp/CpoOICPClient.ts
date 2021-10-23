@@ -303,8 +303,7 @@ export default class CpoOICPClient extends OICPClient {
     } while (!Utils.isEmptyArray(sites));
     // Send notification to admins
     if (result.failure > 0) {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      NotificationHandler.sendOICPPatchChargingStationsError(
+      await NotificationHandler.sendOICPPatchChargingStationsError(
         this.tenant,
         {
           evseDashboardURL: Utils.buildEvseURL(this.tenant.subdomain)
@@ -430,8 +429,7 @@ export default class CpoOICPClient extends OICPClient {
                 }
                 if (result.failure > 0) {
                   // Send notification to admins
-                  // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                  NotificationHandler.sendOICPPatchChargingStationsStatusesError(
+                  await NotificationHandler.sendOICPPatchChargingStationsStatusesError(
                     this.tenant,
                     {
                       evseDashboardURL: Utils.buildEvseURL(this.tenant.subdomain)

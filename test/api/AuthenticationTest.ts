@@ -77,7 +77,7 @@ describe('Authentication Service (utall)', function() {
       expect(response.status).to.be.eql(StatusCodes.OK);
       expect(response.data).to.have.property('count', 1);
       const user: User = response.data.result[0];
-      response = await CentralServerService.defaultInstance.userApi.readTags({ UserID: user.id });
+      response = await CentralServerService.defaultInstance.tagApi.readTags({ UserID: user.id });
       expect(response.status).to.be.eql(StatusCodes.OK);
       expect(response.data).to.have.property('count', 1);
       expect(response.data.result).to.have.lengthOf(1);

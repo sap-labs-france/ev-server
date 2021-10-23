@@ -1523,6 +1523,7 @@ export default class ChargingStationService {
         'chargePointModel', 'chargePointSerialNumber', 'chargeBoxSerialNumber', 'connectors.connectorId', 'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode',
         'connectors.currentTotalConsumptionWh', 'connectors.currentInstantWatts', 'connectors.currentStateOfCharge', 'connectors.info', 'connectors.vendorErrorCode',
         'connectors.currentTransactionID', 'connectors.currentTotalInactivitySecs', 'connectors.currentTagID', 'chargePoints', 'lastReboot', 'createdOn',
+        'connectors.user.name', 'connectors.user.firstName', 'connectors.user.id',
         ...userProject
       ];
     } else {
@@ -1548,6 +1549,7 @@ export default class ChargingStationService {
         withNoSiteArea: filteredRequest.WithNoSiteArea,
         withSite: filteredRequest.WithSite,
         withSiteArea: filteredRequest.WithSiteArea,
+        withUser: filteredRequest.WithUser,
         chargingStationIDs: filteredRequest.ChargingStationID ? filteredRequest.ChargingStationID.split('|') : null,
         connectorStatuses: filteredRequest.ConnectorStatus ? filteredRequest.ConnectorStatus.split('|') : null,
         connectorTypes: filteredRequest.ConnectorType ? filteredRequest.ConnectorType.split('|') : null,

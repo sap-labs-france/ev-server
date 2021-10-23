@@ -95,7 +95,16 @@ export default class OCPPUtils {
         companyID: companyID,
         action,
         module: MODULE_NAME, method: 'checkChargingStationConnectionToken',
-        message: `Charging Station Token ID '${tokenID}' is expired, connection refused`,
+        message: `Charging Station Token ID '${tokenID}' has expired, connection refused`,
+        detailedMessages
+      });
+    }
+    if (token.revocationDate && moment().isAfter(token.revocationDate)) {
+      throw new BackendError({
+        source: chargingStationID,
+        action,
+        module: MODULE_NAME, method: 'checkChargingStationConnectionToken',
+        message: `Charging Station Token ID '${tokenID}' has been revoked, connection refused`,
         detailedMessages
       });
     }
@@ -1611,7 +1620,16 @@ export default class OCPPUtils {
           companyID: ocppHeader.companyID,
           module: MODULE_NAME,
           method: 'checkAndGetTenantAndChargingStation',
-          message: 'Charging Station is deleted'
+          message: 'Charging Station has been deleted'
+        });
+      }
+      // Inactive?
+      if (chargingStation?.forceInactive) {
+        throw new BackendError({
+          source: ocppHeader.chargeBoxIdentity,
+          module: MODULE_NAME,
+          method: 'checkAndGetTenantAndChargingStation',
+          message: 'Charging Station has been forced as inactive'
         });
       }
     } catch (error) {

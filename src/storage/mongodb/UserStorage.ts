@@ -482,7 +482,7 @@ export default class UserStorage {
   }
 
   public static async saveUserAdminData(tenant: Tenant, userID: string,
-      params: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications, technical?: boolean }): Promise<void> {
+      params: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications, technical?: boolean, freeAccess?: boolean }): Promise<void> {
     // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
@@ -501,6 +501,9 @@ export default class UserStorage {
     }
     if (Utils.objectHasProperty(params, 'technical')) {
       updatedUserMDB.technical = params.technical;
+    }
+    if (Utils.objectHasProperty(params, 'freeAccess')) {
+      updatedUserMDB.freeAccess = params.freeAccess;
     }
     // Modify and return the modified document
     await global.database.getCollection<any>(tenant.id, 'users').findOneAndUpdate(
@@ -568,7 +571,7 @@ export default class UserStorage {
         notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
         userIDs?: string[]; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
         statuses?: string[]; withImage?: boolean; billingUserID?: string; notSynchronizedBillingData?: boolean;
-        withTestBillingData?: boolean; notifications?: any; noLoginSince?: Date; technical?: boolean;
+        withTestBillingData?: boolean; notifications?: any; noLoginSince?: Date; technical?: boolean; freeAccess?: boolean;
       },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
     // Debug
@@ -669,17 +672,15 @@ export default class UserStorage {
       if (params.technical) {
         filters.technical = true;
       } else {
-        const technicalFilter = {
-          $or: [
-            { technical: { $in: [false, null] } },
-            { technical: { $exists: false } }
-          ]
-        };
-        if (filters.$and) {
-          filters.$and.push(technicalFilter);
-        } else {
-          filters.$and = [ technicalFilter ];
-        }
+        filters.technical = { $ne: true };
+      }
+    }
+    // Select (non) Free users
+    if (Utils.objectHasProperty(params, 'freeAccess') && Utils.isBoolean(params.freeAccess)) {
+      if (params.freeAccess) {
+        filters.freeAccess = true;
+      } else {
+        filters.freeAccess = { $ne: true };
       }
     }
     // Add filters
