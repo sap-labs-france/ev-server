@@ -856,7 +856,10 @@ export default class ChargingStationService {
         action: Action.DELETE, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleDeleteChargingStation',
         value: chargingStationID,
-        chargingStationID: chargingStationID,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID
       });
     }
     // Deleted
