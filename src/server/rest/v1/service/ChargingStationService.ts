@@ -599,7 +599,9 @@ export default class ChargingStationService {
         action: Action.UPDATE, entity: Entity.SITE_AREA,
         module: MODULE_NAME, method: 'handleTriggerSmartCharging',
         value: filteredRequest.SiteAreaID,
-        siteAreaID: filteredRequest.SiteAreaID,
+        companyID: siteArea.site?.companyID,
+        siteAreaID: siteArea.id,
+        siteID: siteArea.siteID,
       });
     }
     // Call Smart Charging
