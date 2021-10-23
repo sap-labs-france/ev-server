@@ -7,16 +7,13 @@ import Constants from '../../src/utils/Constants';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
-import { HTTPError } from '../../src/types/HTTPError';
 import { ServerRoute } from '../../src/types/Server';
 import SiteContext from './context/SiteContext';
-import { StartTransactionErrorCode } from '../../src/types/Transaction';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../src/types/Tag';
 import TenantContext from './context/TenantContext';
 import TestUtils from './TestUtils';
 import chaiSubset from 'chai-subset';
-import moment from 'moment';
 import responseHelper from '../helpers/responseHelper';
 
 chai.use(chaiSubset);
@@ -85,7 +82,7 @@ describe('User', function() {
       testData.createdUsers = [];
       // Delete any created tag
       for (const tag of testData.createdTags) {
-        await testData.centralUserService.userApi.deleteTag(tag.id);
+        await testData.centralUserService.tagApi.deleteTag(tag.id);
 
       }
       testData.createdTags = [];
@@ -184,66 +181,6 @@ describe('User', function() {
           )).data;
         });
 
-        it('Should be able to create a tag for user', async () => {
-          testData.newTag = Factory.tag.build({ userID: testData.newUser.id });
-          const response = await testData.userService.userApi.createTag(testData.newTag);
-          expect(response.status).to.equal(StatusCodes.CREATED);
-          testData.createdTags.push(testData.newTag);
-        });
-
-        it('Should be able to deactivate a badge', async () => {
-          testData.newTag.active = false;
-          const response = await testData.userService.userApi.updateTag(testData.newTag);
-          expect(response.status).to.equal(StatusCodes.OK);
-          const tag = (await testData.userService.userApi.readTag(testData.newTag.id)).data;
-          expect(tag.active).to.equal(false);
-        });
-
-        it('Should not be able to start a transaction with a deactivated badge', async () => {
-          const connectorId = 1;
-          const tagId = testData.newTag.id;
-          const meterStart = 180;
-          const startDate = moment();
-          const response = await testData.chargingStationContext.startTransaction(
-            connectorId, tagId, meterStart, startDate.toDate());
-          // eslint-disable-next-line @typescript-eslint/unbound-method
-          expect(response).to.be.transactionStatus('Invalid');
-        });
-
-        it('Should be able to delete a badge that has not been used', async () => {
-          testData.newTag = Factory.tag.build({ userID: testData.newUser.id });
-          let response = await testData.userService.userApi.createTag(testData.newTag);
-          expect(response.status).to.equal(StatusCodes.CREATED);
-          response = await testData.userService.userApi.deleteTag(testData.newTag.id);
-          expect(response.status).to.equal(StatusCodes.OK);
-          response = (await testData.userService.userApi.readTag(testData.newTag.id));
-          expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
-        });
-
-        it('Should be able to export tag list', async () => {
-          const response = await testData.userService.userApi.exportTags({});
-          const tags = await testData.userService.userApi.readTags({});
-          const responseFileArray = TestUtils.convertExportFileToObjectArray(response.data);
-
-          expect(response.status).eq(StatusCodes.OK);
-          expect(response.data).not.null;
-          // Verify we have as many tags inserted as tags in the export
-          expect(responseFileArray.length).to.be.eql(tags.data.result.length);
-        });
-
-        // // TODO: Need to verify the real logic, not only if we can import (read create) tags
-        // // Something like this ?
-        // it('Should be able to import tag list', async () => {
-        //   const response = await testData.tagService.insertTags(
-        //     tenantid,
-        //     user,
-        //     action,
-        //     tagsToBeImported,
-        //     result);
-        //   expect(response.status).to.equal(??);
-        //   testData.importedTags.push(tag);
-        // });
-
         it('Should be able to export users list', async () => {
           const response = await testData.userService.userApi.exportUsers({});
           const users = await testData.userService.userApi.readAll({}, { limit: 1000, skip: 0 });
@@ -284,7 +221,7 @@ describe('User', function() {
         it('Should get the user default car tag', async () => {
           // Create a tag
           testData.newTag = Factory.tag.build({ userID: testData.newUser.id });
-          let response = await testData.userService.userApi.createTag(testData.newTag);
+          let response = await testData.userService.tagApi.createTag(testData.newTag);
           expect(response.status).to.equal(StatusCodes.CREATED);
           testData.createdTags.push(testData.newTag);
           // Retrieve it
