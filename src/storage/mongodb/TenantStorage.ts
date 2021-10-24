@@ -249,7 +249,7 @@ export default class TenantStorage {
     const tenantLogoMDB = await global.database.getCollection<{ _id: ObjectId; logo: string }>(Constants.DEFAULT_TENANT, 'tenantlogos')
       .findOne({ _id: DatabaseUtils.convertToObjectID(tenant.id) });
     // Debug
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getTenantLogo', startTime, tenantLogoMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getTenantLogo', startTime, { id: tenant.id }, tenantLogoMDB);
     return {
       id: tenant.id,
       logo: tenantLogoMDB ? tenantLogoMDB.logo : null
