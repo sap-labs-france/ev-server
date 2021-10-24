@@ -1611,7 +1611,7 @@ export default class OCPPUtils {
         });
       }
       // Deleted?
-      if (chargingStation?.deleted) {
+      if (chargingStation.deleted) {
         throw new BackendError({
           source: ocppHeader.chargeBoxIdentity,
           chargingStationID: ocppHeader.chargeBoxIdentity,
@@ -1624,7 +1624,7 @@ export default class OCPPUtils {
         });
       }
       // Inactive?
-      if (chargingStation?.forceInactive) {
+      if (chargingStation.forceInactive) {
         throw new BackendError({
           source: ocppHeader.chargeBoxIdentity,
           module: MODULE_NAME,
