@@ -27,7 +27,7 @@ export default class PricingService {
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetPricingDefinition', req.user);
     // Check and get pricing
     const pricing = await UtilsService.checkAndGetPricingDefinitionAuthorization(
-      req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {}, true);
+      req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, { withEntityInformation: filteredRequest.WithEntityInformation }, true);
     res.json(pricing);
     next();
   }

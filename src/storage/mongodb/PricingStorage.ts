@@ -1,3 +1,4 @@
+import PricingDefinition, { PricingEntity } from '../../types/Pricing';
 import global, { FilterParams } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
@@ -6,7 +7,6 @@ import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { ObjectId } from 'mongodb';
-import PricingDefinition from '../../types/Pricing';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 
@@ -19,9 +19,15 @@ export default class PricingStorage {
     const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
+    let entityID;
+    if (pricingDefinition.entityType === PricingEntity.CHARGING_STATION) {
+      entityID = pricingDefinition.entityID;
+    } else {
+      entityID = DatabaseUtils.convertToObjectID(pricingDefinition.entityID);
+    }
     const pricingDefinitionMDB = {
       _id: pricingDefinition.id ? DatabaseUtils.convertToObjectID(pricingDefinition.id) : new ObjectId(),
-      entityID: pricingDefinition.entityID,
+      entityID,
       entityType: pricingDefinition.entityType,
       name: pricingDefinition.name,
       description: pricingDefinition.description,
@@ -57,11 +63,12 @@ export default class PricingStorage {
   }
 
   public static async getPricingDefinition(tenant: Tenant, id: string,
-      params: { entityIDs?: string[]; entityTypes?: string[]; } = {}, projectFields?: string[]): Promise<PricingDefinition> {
+      params: { entityIDs?: string[]; entityTypes?: string[]; withEntityInformation?: boolean } = {}, projectFields?: string[]): Promise<PricingDefinition> {
     const pricingDefinitionMDB = await PricingStorage.getPricingDefinitions(tenant, {
       pricingDefinitionIDs: [id],
       entityIDs: params.entityIDs,
-      entityTypes: params.entityTypes
+      entityTypes: params.entityTypes,
+      withEntityInformation: params.withEntityInformation
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return pricingDefinitionMDB.count === 1 ? pricingDefinitionMDB.result[0] : null;
   }
@@ -71,6 +78,7 @@ export default class PricingStorage {
         pricingDefinitionIDs?: string[],
         entityIDs?: string[];
         entityTypes?: string[];
+        withEntityInformation?: boolean;
       },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<PricingDefinition>> {
     const uniqueTimerID = Logging.traceDatabaseRequestStart();
@@ -137,10 +145,31 @@ export default class PricingStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
+    // Sites
+    if (params.withEntityInformation) {
+      const oneToOneCardinality = true;
+      const oneToOneCardinalityNotNull = false;
+      DatabaseUtils.pushCompanyLookupInAggregation({
+        tenantID: tenant.id, aggregation, localField: 'entityID', foreignField: '_id',
+        asField: 'company', oneToOneCardinality, oneToOneCardinalityNotNull
+      });
+      DatabaseUtils.pushSiteLookupInAggregation({
+        tenantID: tenant.id, aggregation, localField: 'entityID', foreignField: '_id',
+        asField: 'site', oneToOneCardinality, oneToOneCardinalityNotNull
+      });
+      DatabaseUtils.pushSiteAreaLookupInAggregation({
+        tenantID: tenant.id, aggregation, localField: 'entityID', foreignField: '_id',
+        asField: 'siteArea', oneToOneCardinality, oneToOneCardinalityNotNull
+      });
+      DatabaseUtils.pushChargingStationLookupInAggregation({
+        tenantID: tenant.id, aggregation, localField: 'entityID', foreignField: '_id',
+        asField: 'chargingStation', oneToOneCardinality, oneToOneCardinalityNotNull
+      });
+    }
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Convert Object ID to string
-    // DatabaseUtils.pushConvertObjectIDToString(aggregation, 'entityID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'entityID');
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenant.id, aggregation);
     // Project

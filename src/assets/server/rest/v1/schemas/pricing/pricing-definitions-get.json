@@ -8,8 +8,27 @@
     "entityType": {
       "$ref": "pricing-definition#/definitions/entityType"
     },
+    "Search": {
+      "$ref": "common#/definitions/search"
+    },
+    "SortFields": {
+      "$ref": "common#/definitions/sortFields"
+    },
     "Limit": {
       "$ref": "common#/definitions/limit"
+    },
+    "Skip": {
+      "$ref": "common#/definitions/skip"
+    },
+    "OnlyRecordCount": {
+      "$ref": "common#/definitions/onlyRecordCount"
+    },
+    "ProjectFields": {
+      "$ref": "common#/definitions/projectFields"
+    },
+    "WithEntityInformation": {
+      "type": "boolean",
+      "sanitize": "mongo"
     }
   }
 }

@@ -4,6 +4,7 @@ import { CarCatalogDataResult, CarDataResult, CompanyDataResult, PricingDataResu
 import { HttpCarCatalogRequest, HttpCarCatalogsRequest, HttpCarRequest, HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
 import { HttpChargingStationRequest, HttpChargingStationsRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
+import { HttpPricingDefinitionRequest, HttpPricingDefinitionsRequest } from '../../../../types/requests/HttpPricingRequest';
 import { HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
 import { HttpSiteAssignUsersRequest, HttpSiteRequest, HttpSiteUsersRequest } from '../../../../types/requests/HttpSiteRequest';
 import { HttpTagRequest, HttpTagsRequest } from '../../../../types/requests/HttpTagRequest';
@@ -20,7 +21,6 @@ import DynamicAuthorizationFactory from '../../../../authorization/DynamicAuthor
 import { EntityDataType } from '../../../../types/GlobalType';
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import { HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
-import { HttpPricingDefinitionRequest } from '../../../../types/requests/HttpPricingRequest';
 import PricingDefinition from '../../../../types/Pricing';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
@@ -355,7 +355,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetPricingDefinitionsAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Partial<HttpPricingDefinitionRequest>): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpPricingDefinitionsRequest>): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),

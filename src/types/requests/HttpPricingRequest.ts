@@ -3,6 +3,7 @@ import HttpDatabaseRequest from './HttpDatabaseRequest';
 
 export interface HttpPricingDefinitionRequest extends HttpByIDRequest {
   ID: string;
+  WithEntityInformation?: boolean;
 }
 
 export interface HttpPricingDefinitionsRequest extends HttpDatabaseRequest {
@@ -10,4 +11,5 @@ export interface HttpPricingDefinitionsRequest extends HttpDatabaseRequest {
   Search?: string;
   entityID?: string;
   entityType?: string;
+  WithEntityInformation?: boolean;
 }

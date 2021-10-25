@@ -11,11 +11,11 @@ export default class PricingApi extends CrudApi {
   }
 
   public async readPricingDefinitions(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(ServerRoute.REST_PRICING_DEFINITIONS));
+    return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(ServerRoute.REST_PRICING_DEFINITIONS) + '?WithEntityInformation=true');
   }
 
   public async readPricingDefinition(id: string) {
-    return super.readById(id, this.buildRestEndpointUrl(ServerRoute.REST_PRICING_DEFINITION, { id }));
+    return super.readById(id, this.buildRestEndpointUrl(ServerRoute.REST_PRICING_DEFINITION, { id }) + '?WithEntityInformation=true');
   }
 
   public async updatePricingDefinition(data: PricingDefinition) {
