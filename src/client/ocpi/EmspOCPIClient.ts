@@ -448,6 +448,10 @@ export default class EmspOCPIClient extends OCPIClient {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         message: `${Utils.buildConnectorInfo(connectorID)} OCPI Remote Start Session is not available for Tag ID '${tagID}'`,
         module: MODULE_NAME, method: 'remoteStartSession',
         detailedMessages: { tag: tag }
@@ -457,6 +461,10 @@ export default class EmspOCPIClient extends OCPIClient {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         message: `${Utils.buildConnectorInfo(connectorID)} OCPI Remote Start Session is not available for user with Tag ID '${tagID}'`,
         module: MODULE_NAME, method: 'remoteStartSession',
         detailedMessages: { user: tag.user }
@@ -517,6 +525,10 @@ export default class EmspOCPIClient extends OCPIClient {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,
         source: transaction?.chargeBoxID,
+        chargingStationID: transaction?.chargeBoxID,
+        siteID: transaction?.siteID,
+        siteAreaID: transaction?.siteAreaID,
+        companyID: transaction?.companyID,
         message: `Transaction ID '${transactionId}' does not exist`,
         module: MODULE_NAME, method: 'remoteStopSession',
         detailedMessages: { transaction }
@@ -526,6 +538,10 @@ export default class EmspOCPIClient extends OCPIClient {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,
         source: transaction?.chargeBoxID,
+        chargingStationID: transaction?.chargeBoxID,
+        siteID: transaction?.siteID,
+        siteAreaID: transaction?.siteAreaID,
+        companyID: transaction?.companyID,
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction belongs to an external organization`,
         module: MODULE_NAME, method: 'remoteStopSession',
         detailedMessages: { transaction }
@@ -535,6 +551,10 @@ export default class EmspOCPIClient extends OCPIClient {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,
         source: transaction?.chargeBoxID,
+        chargingStationID: transaction?.chargeBoxID,
+        siteID: transaction?.siteID,
+        siteAreaID: transaction?.siteAreaID,
+        companyID: transaction?.companyID,
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} No OCPI Session data`,
         module: MODULE_NAME, method: 'remoteStopSession',
         detailedMessages: { transaction }

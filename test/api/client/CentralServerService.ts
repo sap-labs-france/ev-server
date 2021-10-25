@@ -22,6 +22,7 @@ import SiteAreaApi from './SiteAreaApi';
 import SmartChargingApi from './SmartChargingApi';
 import StatisticsApi from './StatisticsApi';
 import { StatusCodes } from 'http-status-codes';
+import TagApi from './TagApi';
 import TenantApi from './TenantApi';
 import { TenantComponents } from '../../../src/types/Tenant';
 import TestConstants from './utils/TestConstants';
@@ -45,6 +46,7 @@ export default class CentralServerService {
   public siteApi: SiteApi;
   public siteAreaApi: SiteAreaApi;
   public userApi: UserApi;
+  public tagApi: TagApi;
   public chargingStationApi: ChargingStationApi;
   public registrationApi: RegistrationTokenApi;
   public transactionApi: TransactionApi;
@@ -96,6 +98,7 @@ export default class CentralServerService {
     this.siteApi = new SiteApi(this.authenticatedApi);
     this.siteAreaApi = new SiteAreaApi(this.authenticatedApi);
     this.userApi = new UserApi(this.authenticatedApi);
+    this.tagApi = new TagApi(this.authenticatedApi);
     this.chargingStationApi = new ChargingStationApi(this.authenticatedApi, this._baseApi);
     this.transactionApi = new TransactionApi(this.authenticatedApi);
     this.settingApi = new SettingApi(this.authenticatedApi);

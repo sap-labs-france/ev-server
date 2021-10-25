@@ -915,7 +915,6 @@ describe('Billing Service', function() {
         before(async () => {
           testData.billingImpl = await testData.setBillingSystemValidCredentials();
           testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
-          assert(!!testData.userService, 'User service cannot be null');
           testData.userService = new CentralServerService(
             testData.tenantContext.getTenant().subdomain,
             testData.userContext
@@ -1269,6 +1268,82 @@ describe('Billing Service', function() {
         });
 
       });
+
+
+      describe('When basic user has a free access', () => {
+        // eslint-disable-next-line @typescript-eslint/require-await
+        before(async () => {
+          testData.billingImpl = await testData.setBillingSystemValidCredentials();
+          testData.adminUserContext = await testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+          expect(testData.adminUserContext).to.not.be.null;
+          testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
+          testData.userService = new CentralServerService(
+            testData.tenantContext.getTenant().subdomain,
+            testData.userContext
+          );
+          testData.adminUserService = new CentralServerService(
+            testData.tenantContext.getTenant().subdomain,
+            testData.adminUserContext
+          );
+          expect(testData.userService).to.not.be.null;
+          // Update the freeAccess flag for the basic user:
+          await testData.adminUserService.userApi.update({
+            id: ContextDefinition.TENANT_USER_LIST[2].id,
+            freeAccess: true
+          });
+        });
+
+        it('should NOT add an item to a DRAFT invoice after a transaction', async () => {
+          await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
+          const userWithBillingData = await testData.billingImpl.getUser(testData.userContext);
+          await testData.assignPaymentMethod(userWithBillingData, 'tok_fr');
+          const itemsBefore = await testData.getNumberOfSessions(testData.userContext.id);
+          const transactionID = await testData.generateTransaction(testData.userContext);
+          assert(transactionID, 'transactionID should not be null');
+          // await testData.checkTransactionBillingData(transactionID); // TODO - Check not yet possible!
+          // await testData.userService.billingApi.synchronizeInvoices({});
+          const itemsAfter = await testData.getNumberOfSessions(testData.userContext.id);
+          expect(itemsAfter).eq(itemsBefore);
+        });
+      });
+
+      describe('When basic user does not have a free access', () => {
+        // eslint-disable-next-line @typescript-eslint/require-await
+        before(async () => {
+          testData.billingImpl = await testData.setBillingSystemValidCredentials();
+          testData.adminUserContext = await testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+          expect(testData.adminUserContext).to.not.be.null;
+          testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
+          testData.userService = new CentralServerService(
+            testData.tenantContext.getTenant().subdomain,
+            testData.userContext
+          );
+          testData.adminUserService = new CentralServerService(
+            testData.tenantContext.getTenant().subdomain,
+            testData.adminUserContext
+          );
+          expect(testData.userService).to.not.be.null;
+          // Update the freeAccess flag for the basic user:
+          await testData.adminUserService.userApi.update({
+            id: ContextDefinition.TENANT_USER_LIST[2].id,
+            freeAccess: false
+          });
+        });
+
+        it('should add an item to a DRAFT invoice after a transaction', async () => {
+          await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
+          // const userWithBillingData = await testData.billingImpl.getUser(testData.userContext);
+          // await testData.assignPaymentMethod(userWithBillingData, 'tok_fr');
+          const itemsBefore = await testData.getNumberOfSessions(testData.userContext.id);
+          const transactionID = await testData.generateTransaction(testData.userContext);
+          assert(transactionID, 'transactionID should not be null');
+          // await testData.checkTransactionBillingData(transactionID); // TODO - Check not yet possible!
+          // await testData.userService.billingApi.synchronizeInvoices({});
+          const itemsAfter = await testData.getNumberOfSessions(testData.userContext.id);
+          expect(itemsAfter).to.be.gt(itemsBefore);
+        });
+      });
+
     });
 
     describe('with Transaction Billing + Periodic Billing ON', () => {

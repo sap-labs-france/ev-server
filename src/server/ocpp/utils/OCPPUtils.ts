@@ -57,11 +57,15 @@ export default class OCPPUtils {
   }
 
   public static async checkChargingStationConnectionToken(action: ServerAction, tenant: Tenant, chargingStationID: string,
-      tokenID: string, detailedMessages?: any): Promise<RegistrationToken> {
+      siteID: string, siteAreaID: string, companyID: string, tokenID: string, detailedMessages?: any): Promise<RegistrationToken> {
     // Check Token
     if (!tokenID) {
       throw new BackendError({
         source: chargingStationID,
+        chargingStationID: chargingStationID,
+        siteID: siteID,
+        siteAreaID: siteAreaID,
+        companyID: companyID,
         action: ServerAction.OCPP_BOOT_NOTIFICATION,
         module: MODULE_NAME, method: 'checkChargingStationConnectionToken',
         message: 'Charging Station Token is required, connection refused',
@@ -73,6 +77,10 @@ export default class OCPPUtils {
     if (!token) {
       throw new BackendError({
         source: chargingStationID,
+        chargingStationID: chargingStationID,
+        siteID: siteID,
+        siteAreaID: siteAreaID,
+        companyID: companyID,
         action,
         module: MODULE_NAME, method: 'checkChargingStationConnectionToken',
         message: `Charging Station Token ID '${tokenID}' has not been found, connection refused`,
@@ -82,9 +90,22 @@ export default class OCPPUtils {
     if (!token.expirationDate || moment().isAfter(token.expirationDate)) {
       throw new BackendError({
         source: chargingStationID,
+        chargingStationID: chargingStationID,
+        siteID: siteID,
+        siteAreaID: siteAreaID,
+        companyID: companyID,
         action,
         module: MODULE_NAME, method: 'checkChargingStationConnectionToken',
-        message: `Charging Station Token ID '${tokenID}' is expired, connection refused`,
+        message: `Charging Station Token ID '${tokenID}' has expired, connection refused`,
+        detailedMessages
+      });
+    }
+    if (token.revocationDate && moment().isAfter(token.revocationDate)) {
+      throw new BackendError({
+        source: chargingStationID,
+        action,
+        module: MODULE_NAME, method: 'checkChargingStationConnectionToken',
+        message: `Charging Station Token ID '${tokenID}' has been revoked, connection refused`,
         detailedMessages
       });
     }
@@ -150,6 +171,10 @@ export default class OCPPUtils {
     if (!oicpClient) {
       throw new BackendError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         user: user,
         action: action,
         module: MODULE_NAME, method: 'processOICPTransaction',
@@ -172,6 +197,10 @@ export default class OCPPUtils {
         if (!authorization) {
           throw new BackendError({
             source: chargingStation.id,
+            chargingStationID: chargingStation.id,
+            siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            companyID: chargingStation.companyID,
             action: ServerAction.OICP_PUSH_SESSIONS,
             message: 'No Authorization found, OICP Session not started',
             module: MODULE_NAME, method: 'processOICPTransaction',
@@ -339,6 +368,10 @@ export default class OCPPUtils {
             // Prevent from starting a transaction when Billing prerequisites are not met
             throw new BackendError({
               source: transaction.chargeBoxID,
+              chargingStationID: transaction.chargeBoxID,
+              siteID: transaction.siteID,
+              siteAreaID: transaction.siteAreaID,
+              companyID: transaction.companyID,
               user: transaction.user,
               action: ServerAction.BILLING_TRANSACTION,
               module: MODULE_NAME, method: 'processTransactionBilling',
@@ -524,6 +557,10 @@ export default class OCPPUtils {
     if (!transaction) {
       throw new BackendError({
         source: transaction.chargeBoxID,
+        chargingStationID: transaction.chargeBoxID,
+        siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
         action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
         module: MODULE_NAME, method: 'rebuildTransactionSimplePricing',
         message: 'Transaction does not exist',
@@ -532,6 +569,10 @@ export default class OCPPUtils {
     if (!transaction.stop) {
       throw new BackendError({
         source: transaction.chargeBoxID,
+        chargingStationID: transaction.chargeBoxID,
+        siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
         action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
         module: MODULE_NAME, method: 'rebuildTransactionSimplePricing',
         message: `Transaction ID '${transaction.id}' is in progress`,
@@ -540,6 +581,10 @@ export default class OCPPUtils {
     if (transaction.stop.pricingSource !== PricingSettingsType.SIMPLE) {
       throw new BackendError({
         source: transaction.chargeBoxID,
+        chargingStationID: transaction.chargeBoxID,
+        siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
         action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
         module: MODULE_NAME, method: 'rebuildTransactionSimplePricing',
         message: `Transaction ID '${transaction.id}' was not priced with simple pricing`,
@@ -1287,6 +1332,10 @@ export default class OCPPUtils {
     if (!chargingStation.capabilities?.supportChargingProfiles) {
       throw new BackendError({
         source: chargingProfile.chargingStationID,
+        chargingStationID: chargingProfile.chargingStationID,
+        siteID: chargingProfile.chargingStation?.siteID,
+        siteAreaID: chargingProfile.chargingStation?.siteAreaID,
+        companyID: chargingProfile.chargingStation?.companyID,
         action: ServerAction.CHARGING_PROFILE_DELETE,
         module: MODULE_NAME, method: 'clearAndDeleteChargingProfile',
         message: 'Charging Station does not support the Charging Profiles',
@@ -1297,6 +1346,10 @@ export default class OCPPUtils {
     if (!chargingStationVendor) {
       throw new BackendError({
         source: chargingProfile.chargingStationID,
+        chargingStationID: chargingProfile.chargingStationID,
+        siteID: chargingProfile.chargingStation?.siteID,
+        siteAreaID: chargingProfile.chargingStation?.siteAreaID,
+        companyID: chargingProfile.chargingStation?.companyID,
         action: ServerAction.CHARGING_PROFILE_DELETE,
         module: MODULE_NAME, method: 'clearAndDeleteChargingProfile',
         message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for setting a Charging Profile`,
@@ -1363,6 +1416,10 @@ export default class OCPPUtils {
     if (!Utils.isChargingStationIDValid(headers.chargeBoxIdentity)) {
       throw new BackendError({
         source: headers.chargeBoxIdentity,
+        chargingStationID: headers.chargeBoxIdentity,
+        siteID: headers.siteID,
+        siteAreaID: headers.siteAreaID,
+        companyID: headers.companyID,
         module: MODULE_NAME,
         method: 'normalizeAndCheckSOAPParams',
         message: 'The Charging Station ID is invalid'
@@ -1377,6 +1434,10 @@ export default class OCPPUtils {
     if (!chargingStation) {
       throw new BackendError({
         source: chargingProfile.chargingStationID,
+        chargingStationID: chargingProfile.chargingStationID,
+        siteID: chargingProfile.chargingStation?.siteID,
+        siteAreaID: chargingProfile.chargingStation?.siteAreaID,
+        companyID: chargingProfile.chargingStation?.companyID,
         action: ServerAction.CHARGING_PROFILE_UPDATE,
         module: MODULE_NAME, method: 'setAndSaveChargingProfile',
         message: 'Charging Station not found',
@@ -1389,6 +1450,10 @@ export default class OCPPUtils {
     if (!chargingStationVendor) {
       throw new BackendError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         action: ServerAction.CHARGING_PROFILE_UPDATE,
         module: MODULE_NAME, method: 'setAndSaveChargingProfile',
         message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for setting a Charging Profile`,
@@ -1412,6 +1477,10 @@ export default class OCPPUtils {
     if (resultStatus !== OCPPChargingProfileStatus.ACCEPTED) {
       throw new BackendError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         action: ServerAction.CHARGING_PROFILE_UPDATE,
         module: MODULE_NAME, method: 'setAndSaveChargingProfile',
         message: 'Cannot set the Charging Profile!',
@@ -1482,6 +1551,10 @@ export default class OCPPUtils {
     if (!ocppHeader.chargeBoxIdentity) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
+        chargingStationID: ocppHeader.chargeBoxIdentity,
+        siteID: ocppHeader.siteID,
+        siteAreaID: ocppHeader.siteAreaID,
+        companyID: ocppHeader.companyID,
         module: MODULE_NAME,
         method: 'checkAndGetTenantAndChargingStation',
         message: 'Should have the required property \'chargeBoxIdentity\'!'
@@ -1490,6 +1563,10 @@ export default class OCPPUtils {
     if (!ocppHeader.tenantID) {
       throw new BackendError({
         source: ocppHeader.chargeBoxIdentity,
+        chargingStationID: ocppHeader.chargeBoxIdentity,
+        siteID: ocppHeader.siteID,
+        siteAreaID: ocppHeader.siteAreaID,
+        companyID: ocppHeader.companyID,
         module: MODULE_NAME,
         method: 'checkAndGetTenantAndChargingStation',
         message: 'Should have the required property \'tenantID\'!'
@@ -1500,6 +1577,10 @@ export default class OCPPUtils {
     if (!tenant) {
       throw new BackendError({
         source: ocppHeader.chargeBoxIdentity,
+        chargingStationID: ocppHeader.chargeBoxIdentity,
+        siteID: ocppHeader.siteID,
+        siteAreaID: ocppHeader.siteAreaID,
+        companyID: ocppHeader.companyID,
         module: MODULE_NAME,
         method: 'checkAndGetTenantAndChargingStation',
         message: `Tenant ID '${ocppHeader.tenantID}' does not exist!`
@@ -1510,6 +1591,10 @@ export default class OCPPUtils {
     if (!chargingStationLock) {
       throw new BackendError({
         source: ocppHeader.chargeBoxIdentity,
+        chargingStationID: ocppHeader.chargeBoxIdentity,
+        siteID: ocppHeader.siteID,
+        siteAreaID: ocppHeader.siteAreaID,
+        companyID: ocppHeader.companyID,
         module: MODULE_NAME,
         method: 'checkAndGetTenantAndChargingStation',
         message: 'Cannot acquire a lock on the Charging Station'
@@ -1523,18 +1608,35 @@ export default class OCPPUtils {
       if (!chargingStation) {
         throw new BackendError({
           source: ocppHeader.chargeBoxIdentity,
+          chargingStationID: ocppHeader.chargeBoxIdentity,
+          siteID: ocppHeader.siteID,
+          siteAreaID: ocppHeader.siteAreaID,
+          companyID: ocppHeader.companyID,
           module: MODULE_NAME,
           method: 'checkAndGetTenantAndChargingStation',
           message: 'Charging Station does not exist'
         });
       }
       // Deleted?
-      if (chargingStation?.deleted) {
+      if (chargingStation.deleted) {
+        throw new BackendError({
+          source: ocppHeader.chargeBoxIdentity,
+          chargingStationID: ocppHeader.chargeBoxIdentity,
+          siteID: ocppHeader.siteID,
+          siteAreaID: ocppHeader.siteAreaID,
+          companyID: ocppHeader.companyID,
+          module: MODULE_NAME,
+          method: 'checkAndGetTenantAndChargingStation',
+          message: 'Charging Station has been deleted'
+        });
+      }
+      // Inactive?
+      if (chargingStation.forceInactive) {
         throw new BackendError({
           source: ocppHeader.chargeBoxIdentity,
           module: MODULE_NAME,
           method: 'checkAndGetTenantAndChargingStation',
-          message: 'Charging Station is deleted'
+          message: 'Charging Station has been forced as inactive'
         });
       }
     } catch (error) {
@@ -1758,6 +1860,10 @@ export default class OCPPUtils {
     if (!chargingStationClient) {
       throw new BackendError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
         module: MODULE_NAME, method: 'requestChangeChargingStationOcppParameter',
         message: 'Charging Station is not connected to the backend',
@@ -1797,6 +1903,10 @@ export default class OCPPUtils {
     if (!chargingStationClient) {
       throw new BackendError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         action: ServerAction.CHARGING_STATION_REQUEST_OCPP_PARAMETERS,
         module: MODULE_NAME, method: 'requestChargingStationOcppParameters',
         message: 'Charging Station is not connected to the backend',
@@ -1831,6 +1941,10 @@ export default class OCPPUtils {
     if (!chargingStationClient) {
       throw new BackendError({
         source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         action: ServerAction.CHARGING_STATION_RESET,
         module: MODULE_NAME, method: 'triggerChargingStationReset',
         message: 'Charging Station is not connected to the backend',
@@ -1908,6 +2022,10 @@ export default class OCPPUtils {
         throw new BackendError({
           user, action,
           source: chargingStation.id,
+          chargingStationID: chargingStation.id,
+          siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          companyID: chargingStation.companyID,
           message: 'Billing prerequisites are not met',
           module: MODULE_NAME, method: 'checkBillingPrerequisites',
           detailedMessages: { errorCodes }
@@ -2338,6 +2456,10 @@ export default class OCPPUtils {
     if (!transaction.user) {
       throw new BackendError({
         source: transaction.chargeBoxID,
+        chargingStationID: transaction.chargeBoxID,
+        siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
         user: transaction.user,
         action,
         module: MODULE_NAME, method: 'processOCPITransaction',
@@ -2347,6 +2469,10 @@ export default class OCPPUtils {
     if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
       throw new BackendError({
         source: transaction.chargeBoxID,
+        chargingStationID: transaction.chargeBoxID,
+        siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
         user: transaction.user,
         action,
         module: MODULE_NAME, method: 'processOCPITransaction',
@@ -2356,6 +2482,10 @@ export default class OCPPUtils {
     if (transaction.user.issuer) {
       throw new BackendError({
         source: transaction.chargeBoxID,
+        chargingStationID: transaction.chargeBoxID,
+        siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
         user: transaction.user,
         action,
         module: MODULE_NAME, method: 'processOCPITransaction',
@@ -2366,6 +2496,10 @@ export default class OCPPUtils {
     if (!ocpiClient) {
       throw new BackendError({
         source: transaction.chargeBoxID,
+        chargingStationID: transaction.chargeBoxID,
+        siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
         user: transaction.user,
         action,
         module: MODULE_NAME, method: 'processOCPITransaction',
@@ -2378,6 +2512,10 @@ export default class OCPPUtils {
         if (!transaction.authorizationID) {
           throw new BackendError({
             source: transaction.chargeBoxID,
+            chargingStationID: transaction.chargeBoxID,
+            siteID: transaction.siteID,
+            siteAreaID: transaction.siteAreaID,
+            companyID: transaction.companyID,
             user: transaction.user,
             action: action,
             module: MODULE_NAME, method: 'processOCPITransaction',

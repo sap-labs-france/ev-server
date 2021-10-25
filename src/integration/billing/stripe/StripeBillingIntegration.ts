@@ -764,29 +764,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
   }
 
-  private isTransactionUserInternal(transaction: Transaction): boolean {
-    return this.isUserInternal(transaction?.user);
-  }
-
-  private isUserInternal(user: User): boolean {
-    // slf
-    if (this.tenant.id === '5be7fb271014d90008992f06') {
-      const email = user?.email?.toLocaleLowerCase();
-      if (email?.endsWith('@sap.com') || email?.endsWith('@vinci-facilities.com')) {
-        // Internal user
-        return true;
-      }
-    } else if (this.tenant.id === '5e2701b248aaa90007904cca') {
-      // Special mode for a particular user on that particular tenant
-      if (user?.id !== '5e74e254a25a3e0006fa79d3') {
-        // Do not bill other users than that one!
-        return true;
-      }
-    }
-    // This is an external user
-    return false;
-  }
-
   public async startTransaction(transaction: Transaction): Promise<BillingDataTransactionStart> {
 
     if (!this.settings.billing.isTransactionBillingActivated) {
@@ -795,8 +772,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
         withBillingActive: false
       };
     }
-    // Temporary solution - Check for internal users
-    if (this.isTransactionUserInternal(transaction)) {
+    // User with free access are not billed
+    if (transaction.user?.freeAccess) {
       return {
         // Do not bill internal users
         withBillingActive: false
@@ -1571,8 +1548,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
       // Nothing to check - billing of transactions is not yet ON
       return errorCodes;
     }
-    if (this.isUserInternal(user)) {
-      // Nothing to check - we do not bill internal user's transactions
+    if (user.freeAccess) {
+      // Nothing to check - we do not bill user having a free access
       return errorCodes;
     }
     // Make sure the STRIPE connection is ok
