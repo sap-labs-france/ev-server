@@ -1,4 +1,5 @@
 {
+  "$id": "pricing-definition-create",
   "title": "Create a Pricing Definition",
   "type": "object",
   "properties": {

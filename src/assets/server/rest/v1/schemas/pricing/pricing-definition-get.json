@@ -1,4 +1,5 @@
 {
+  "$id": "pricing-definition-get",
   "title": "Get one pricing definition",
   "type": "object",
   "properties": {

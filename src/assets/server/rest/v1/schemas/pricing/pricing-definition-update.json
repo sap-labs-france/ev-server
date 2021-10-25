@@ -1,5 +1,6 @@
 {
-  "title": "Create a Pricing Definition",
+  "$id": "pricing-definition-update",
+  "title": "Update a Pricing Definition",
   "type": "object",
   "properties": {
     "id": {
