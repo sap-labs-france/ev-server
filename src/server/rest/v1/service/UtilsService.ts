@@ -108,7 +108,7 @@ export default class UtilsService {
   }
 
   public static async checkAndGetPricingDefinitionAuthorization(tenant: Tenant, userToken: UserToken, pricingDefinitionID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityDataType, additionalFilters: Record<string, any> = {}, applyProjectFields = false, checkIssuer = true): Promise<PricingDefinition> {
+      action: ServerAction, entityData?: EntityDataType, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<PricingDefinition> {
   // Check mandatory fields
     UtilsService.assertIdIsProvided(action, pricingDefinitionID, MODULE_NAME, 'checkAndGetPricingDefinitionAuthorization', userToken);
     // Get dynamic auth
@@ -135,6 +135,14 @@ export default class UtilsService {
       MODULE_NAME, 'checkAndGetPricingDefinitionAuthorization', userToken);
     // Add actions
     await AuthorizationService.addPricingDefinitionAuthorizations(tenant, userToken, pricingDefinition, authorizationFilter);
+    // Assign projected fields
+    if (authorizationFilter.projectFields) {
+      pricingDefinition.projectFields = authorizationFilter.projectFields;
+    }
+    // Assign Metadata
+    if (authorizationFilter.metadata) {
+      pricingDefinition.metadata = authorizationFilter.metadata;
+    }
     // Check
     const authorized = AuthorizationService.canPerformAction(pricingDefinition, authAction);
     if (!authorized) {

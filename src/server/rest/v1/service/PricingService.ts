@@ -46,18 +46,24 @@ export default class PricingService {
       return;
     }
     // Get the pricing definitions
-    const pricingDefinitions = await PricingStorage.getPricingDefinitions(req.tenant, {
-      entityIDs: filteredRequest.entityID ? filteredRequest.entityID.split('|') : null,
-      entityTypes: filteredRequest.entityType ? filteredRequest.entityType.split('|') : null,
-      ...authorizationPricingDefinitionsFilter.filters
-    }, {
-      limit: filteredRequest.Limit,
-      skip: filteredRequest.Skip,
-      sort: filteredRequest.SortFields,
-      onlyRecordCount: filteredRequest.OnlyRecordCount
-    },
-    authorizationPricingDefinitionsFilter.projectFields
+    const pricingDefinitions = await PricingStorage.getPricingDefinitions(req.tenant,
+      {
+        entityIDs: filteredRequest.entityID ? filteredRequest.entityID.split('|') : null,
+        entityTypes: filteredRequest.entityType ? filteredRequest.entityType.split('|') : null,
+        withEntityInformation: filteredRequest?.WithEntityInformation,
+        ...authorizationPricingDefinitionsFilter.filters
+      }, {
+        limit: filteredRequest.Limit,
+        skip: filteredRequest.Skip,
+        sort: filteredRequest.SortFields,
+        onlyRecordCount: filteredRequest.OnlyRecordCount
+      },
+      authorizationPricingDefinitionsFilter.projectFields
     );
+    // Assign projected fields
+    if (authorizationPricingDefinitionsFilter.projectFields) {
+      pricingDefinitions.projectFields = authorizationPricingDefinitionsFilter.projectFields;
+    }
     // Add Auth flags
     await AuthorizationService.addPricingDefinitionsAuthorizations(req.tenant, req.user, pricingDefinitions as PricingDataResult, authorizationPricingDefinitionsFilter);
     // Return

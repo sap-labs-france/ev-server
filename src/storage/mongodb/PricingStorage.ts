@@ -165,6 +165,21 @@ export default class PricingStorage {
         tenantID: tenant.id, aggregation, localField: 'entityID', foreignField: '_id',
         asField: 'chargingStation', oneToOneCardinality, oneToOneCardinalityNotNull
       });
+      // Check if it has detailed messages
+      aggregation.push({
+        $addFields: {
+          entityName: {
+            $switch: {
+              branches: [
+                { case: { $eq: [ 'Company', '$entityType' ] }, then: '$company.name' },
+                { case: { $eq: [ 'Site', '$entityType' ] }, then: '$company.name' },
+                { case: { $eq: [ 'SiteArea', '$entityType' ] }, then: '$siteArea.name' },
+              ],
+              default: '$entityID'
+            }
+          }
+        }
+      });
     }
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
