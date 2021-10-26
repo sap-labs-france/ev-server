@@ -830,7 +830,7 @@ describe('Billing Service', function() {
       });
     });
 
-    xdescribe('Pricing Definition', () => {
+    describe('Pricing Definition', () => {
       before(async () => {
       });
 

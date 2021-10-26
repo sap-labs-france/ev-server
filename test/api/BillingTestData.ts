@@ -539,6 +539,7 @@ export default class BillingTestData {
     const pricingDefinitionId = response?.data?.id;
     response = await this.adminUserService.pricingApi.readPricingDefinition(pricingDefinitionId);
     assert(response?.data?.id === pricingDefinitionId, 'The ID should be: ' + pricingDefinitionId);
+    assert(response?.data?.entityName === chargingStation.id);
 
     // Create a 2nd one valid in the future with a stupid flat fee
     tariff.name = tariff.name + ' - In the future';
@@ -603,6 +604,6 @@ export default class BillingTestData {
     const pricingDefinitionId = response?.data?.id;
     response = await this.adminUserService.pricingApi.readPricingDefinition(pricingDefinitionId);
     assert(response?.data?.id === pricingDefinitionId, 'The ID should be: ' + pricingDefinitionId);
-    assert(response?.data?.siteArea?.id === siteArea.id, 'The Site Area data should be retrieved as well');
+    assert(response?.data?.entityName === siteArea.name, 'The Site Area data should be retrieved as well');
   }
 }
