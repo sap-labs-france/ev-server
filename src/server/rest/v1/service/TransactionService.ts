@@ -422,8 +422,7 @@ export default class TransactionService {
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
       'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge', 'currentInactivityStatus',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.pricingSource', 'stop.reason',
-      'userID',
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.pricingSource', 'stop.reason'
     ];
     // Check Cars
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
@@ -548,12 +547,27 @@ export default class TransactionService {
         value: filteredRequest.ID.toString()
       });
     }
+    // Check and Get User
+    let user: User;
+    try {
+      user = await UtilsService.checkAndGetUserAuthorization(
+        req.tenant, req.user, transaction.userID, Action.READ, action, null, null, true, false);
+    } catch (error) {
+      // Ignore
+    }
     // Check User
-    if (!(await Authorizations.canReadUser(req.user, { UserID: transaction.userID })).authorized) {
+    if (!user) {
       // Remove User
       delete transaction.user;
       delete transaction.userID;
+      delete transaction.tag;
       delete transaction.tagID;
+      delete transaction.carCatalogID;
+      delete transaction.carCatalog;
+      delete transaction.carID;
+      delete transaction.car;
+      delete transaction.billingData;
+
       if (transaction.stop) {
         delete transaction.stop.user;
         delete transaction.stop.userID;
