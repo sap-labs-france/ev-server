@@ -45,7 +45,7 @@ export default class LoggingService {
     }
     // Get Log
     const logging = await LoggingStorage.getLog(req.tenant, filteredRequest.ID, [
-      'id', 'level', 'timestamp', 'type', 'source', 'host', 'process', 'action', 'message',
+      'id', 'level', 'timestamp', 'type', 'source', 'host', 'process', 'action', 'message', 'chargingStationID',
       'user.name', 'user.firstName', 'actionOnUser.name', 'actionOnUser.firstName', 'hasDetailedMessages', 'detailedMessages'
     ]);
     res.json(logging);
@@ -141,7 +141,7 @@ export default class LoggingService {
       sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
       onlyRecordCount: filteredRequest.OnlyRecordCount
     }, [
-      'id', 'level', 'timestamp', 'type', 'source', 'host', 'process', 'action', 'message',
+      'id', 'level', 'timestamp', 'type', 'source', 'host', 'process', 'action', 'message', 'chargingStationID',
       'user.name', 'user.firstName', 'actionOnUser.name', 'actionOnUser.firstName', 'hasDetailedMessages', 'method', 'module',
     ]);
     return loggings;

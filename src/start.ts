@@ -145,6 +145,8 @@ export default class Bootstrap {
       // Keep the server names globally
       if (serverStarted.length === 1) {
         global.serverName = serverStarted[0];
+      } else {
+        global.serverName = Constants.CENTRAL_SERVER;
       }
       // Log
       await this.logDuration(startTimeGlobalMillis, `${serverStarted.join(', ')} server has been started successfuly`, ServerAction.BOOTSTRAP_STARTUP);

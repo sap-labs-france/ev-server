@@ -10206,9 +10206,6 @@
           "ocppProtocol": {
             "type": "string"
           },
-          "cfApplicationIDAndInstanceIndex": {
-            "type": "string"
-          },
           "lastSeen": {
             "type": "string"
           },

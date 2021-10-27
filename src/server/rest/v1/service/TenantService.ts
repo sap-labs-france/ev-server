@@ -293,7 +293,7 @@ export default class TenantService {
       '/verify-email?VerificationToken=' + verificationToken + '&Email=' +
       tenantUser.email + '&ResetToken=' + resetHash;
     // Send Register User (Async)
-    await NotificationHandler.sendNewRegisteredUser(
+    void NotificationHandler.sendNewRegisteredUser(
       tenant,
       Utils.generateUUID(),
       tenantUser,
@@ -458,9 +458,9 @@ export default class TenantService {
         }
         // Delete Endpoints if component is inactive
         const oicpEndpoints = await OICPEndpointStorage.getOicpEndpoints(tenant, { role: OICPRole.CPO }, Constants.DB_PARAMS_MAX_LIMIT);
-        oicpEndpoints.result.forEach(async (oicpEndpoint) => {
+        for (const oicpEndpoint of oicpEndpoints.result) {
           await OICPEndpointStorage.deleteOicpEndpoint(tenant, oicpEndpoint.id);
-        });
+        }
       }
     }
   }

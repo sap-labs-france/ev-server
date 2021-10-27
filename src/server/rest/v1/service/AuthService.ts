@@ -258,7 +258,7 @@ export default class AuthService {
       const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +
         '/verify-email?VerificationToken=' + verificationToken + '&Email=' + newUser.email;
       // Notify (Async)
-      await NotificationHandler.sendNewRegisteredUser(
+      void NotificationHandler.sendNewRegisteredUser(
         tenant,
         Utils.generateUUID(),
         newUser,
@@ -326,7 +326,7 @@ export default class AuthService {
     const evseDashboardResetPassURL = Utils.buildEvseURL(filteredRequest.tenant) +
       '/define-password?hash=' + resetHash;
     // Send Request Password (Async)
-    await NotificationHandler.sendRequestPassword(
+    void NotificationHandler.sendRequestPassword(
       tenant,
       Utils.generateUUID(),
       user,
@@ -467,7 +467,6 @@ export default class AuthService {
         message: 'Cannot verify email in the Super Tenant'
       });
     }
-
     if (!tenant) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -552,7 +551,7 @@ export default class AuthService {
         'User account has been successfully verified but needs an admin to activate it',
       detailedMessages: { params: req.query }
     });
-    await NotificationHandler.sendAccountVerification(
+    void NotificationHandler.sendAccountVerification(
       tenant,
       Utils.generateUUID(),
       user,
@@ -659,7 +658,7 @@ export default class AuthService {
       '/verify-email?VerificationToken=' + verificationToken + '&Email=' +
       user.email;
     // Send Verification Email (Async)
-    await NotificationHandler.sendVerificationEmail(
+    void NotificationHandler.sendVerificationEmail(
       tenant,
       Utils.generateUUID(),
       user,

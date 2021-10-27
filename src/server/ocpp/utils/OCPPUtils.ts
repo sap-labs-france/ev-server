@@ -18,6 +18,7 @@ import Consumption from '../../../types/Consumption';
 import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
 import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
 import CpoOICPClient from '../../../client/oicp/CpoOICPClient';
+import DatabaseUtils from '../../../storage/mongodb/DatabaseUtils';
 import Lock from '../../../types/Locking';
 import LockingHelper from '../../../locking/LockingHelper';
 import LockingManager from '../../../locking/LockingManager';
@@ -48,27 +49,23 @@ import url from 'url';
 const MODULE_NAME = 'OCPPUtils';
 
 export default class OCPPUtils {
-  public static getServerActionFromOcppCommand(command: Command): ServerAction {
+  public static buildServerActionFromOcppCommand(command: Command): ServerAction {
     if (command && typeof command === 'string') {
       return `Ocpp${command}` as ServerAction;
     }
     return ServerAction.UNKNOWN_ACTION;
   }
 
-  public static async checkChargingStationConnectionToken(action: ServerAction, tenant: Tenant, chargingStationID: string,
-      siteID: string, siteAreaID: string, companyID: string, tokenID: string, detailedMessages?: any): Promise<RegistrationToken> {
+  public static async ensureChargingStationHasValidConnectionToken(action: ServerAction, tenant: Tenant,
+      chargingStationID: string, tokenID: string): Promise<RegistrationToken> {
     // Check Token
     if (!tokenID) {
       throw new BackendError({
         source: chargingStationID,
         chargingStationID: chargingStationID,
-        siteID: siteID,
-        siteAreaID: siteAreaID,
-        companyID: companyID,
         action: ServerAction.OCPP_BOOT_NOTIFICATION,
-        module: MODULE_NAME, method: 'checkChargingStationConnectionToken',
-        message: 'Charging Station Token is required, connection refused',
-        detailedMessages
+        module: MODULE_NAME, method: 'ensureChargingStationHasValidConnectionToken',
+        message: 'Token ID is required, request rejected!',
       });
     }
     // Get the Token
@@ -77,35 +74,26 @@ export default class OCPPUtils {
       throw new BackendError({
         source: chargingStationID,
         chargingStationID: chargingStationID,
-        siteID: siteID,
-        siteAreaID: siteAreaID,
-        companyID: companyID,
         action,
-        module: MODULE_NAME, method: 'checkChargingStationConnectionToken',
-        message: `Charging Station Token ID '${tokenID}' has not been found, connection refused`,
-        detailedMessages
+        module: MODULE_NAME, method: 'ensureChargingStationHasValidConnectionToken',
+        message: `Token ID '${tokenID}' has not been found, request rejected!`,
       });
     }
     if (!token.expirationDate || moment().isAfter(token.expirationDate)) {
       throw new BackendError({
         source: chargingStationID,
         chargingStationID: chargingStationID,
-        siteID: siteID,
-        siteAreaID: siteAreaID,
-        companyID: companyID,
         action,
-        module: MODULE_NAME, method: 'checkChargingStationConnectionToken',
-        message: `Charging Station Token ID '${tokenID}' has expired, connection refused`,
-        detailedMessages
+        module: MODULE_NAME, method: 'ensureChargingStationHasValidConnectionToken',
+        message: `Token ID '${tokenID}' has expired, request rejected!`,
       });
     }
     if (token.revocationDate && moment().isAfter(token.revocationDate)) {
       throw new BackendError({
         source: chargingStationID,
         action,
-        module: MODULE_NAME, method: 'checkChargingStationConnectionToken',
-        message: `Charging Station Token ID '${tokenID}' has been revoked, connection refused`,
-        detailedMessages
+        module: MODULE_NAME, method: 'ensureChargingStationHasValidConnectionToken',
+        message: `Token ID '${tokenID}' has been revoked, request rejected!`,
       });
     }
     return token;
@@ -1386,38 +1374,27 @@ export default class OCPPUtils {
     });
   }
 
-  public static async normalizeAndCheckSOAPParams(headers: any, req: any): Promise<void> {
+  public static async checkChargingStationAndEnrichSoapOcppHeaders(command: Command, headers: OCPPHeader, req: any): Promise<void> {
     // Normalize
     OCPPUtils.normalizeOneSOAPParam(headers, 'chargeBoxIdentity');
     OCPPUtils.normalizeOneSOAPParam(headers, 'Action');
     OCPPUtils.normalizeOneSOAPParam(headers, 'To');
     OCPPUtils.normalizeOneSOAPParam(headers, 'From.Address');
     OCPPUtils.normalizeOneSOAPParam(headers, 'ReplyTo.Address');
+    // Add current IPs to charging station properties
+    headers.currentIPAddress = Utils.getRequestIP(req);
     // Parse the request (lower case for fucking charging station DBT URL registration)
     const urlParts = url.parse(decodeURIComponent(req.url.toLowerCase()), true);
-    const tenantID = urlParts.query.tenantid as string;
-    const token = urlParts.query.token;
-    // Set the Tenant ID
-    headers.tenantID = tenantID;
-    if (tenantID) {
-      const tenant = await TenantStorage.getTenant(tenantID);
-      if (tenant) {
-        headers.tenant = tenant;
-      }
-    }
+    headers.tenantID = urlParts.query.tenantid as string;
+    headers.tokenID = urlParts.query.token as string;
+    // Get all the necessary entities
+    const { tenant, chargingStation, token, lock } = await OCPPUtils.checkAndGetChargingStationData(
+      OCPPUtils.buildServerActionFromOcppCommand(command), headers.tenantID, headers.chargeBoxIdentity, headers.tokenID);
+    // Set
+    headers.tenant = tenant;
+    headers.chargingStation = chargingStation;
     headers.token = token;
-    if (!Utils.isChargingStationIDValid(headers.chargeBoxIdentity)) {
-      throw new BackendError({
-        source: headers.chargeBoxIdentity,
-        chargingStationID: headers.chargeBoxIdentity,
-        siteID: headers.siteID,
-        siteAreaID: headers.siteAreaID,
-        companyID: headers.companyID,
-        module: MODULE_NAME,
-        method: 'normalizeAndCheckSOAPParams',
-        message: 'The Charging Station ID is invalid'
-      });
-    }
+    headers.lock = lock;
     return Promise.resolve();
   }
 
@@ -1538,114 +1515,173 @@ export default class OCPPUtils {
         meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC);
   }
 
-  public static async checkAndGetTenantAndChargingStation(
-      ocppHeader: OCPPHeader):Promise<{ chargingStation: ChargingStation, tenant: Tenant, chargingStationLock: Lock}> {
-    // Check
-    if (!ocppHeader.chargeBoxIdentity) {
+  public static checkChargingStationOcppParameters(action: ServerAction, tenantID: string, chargingStationID: string, tokenID: string): void {
+    // Check Charging Station
+    if (!chargingStationID) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        chargingStationID: ocppHeader.chargeBoxIdentity,
-        siteID: ocppHeader.siteID,
-        siteAreaID: ocppHeader.siteAreaID,
-        companyID: ocppHeader.companyID,
-        module: MODULE_NAME,
-        method: 'checkAndGetTenantAndChargingStation',
-        message: 'Should have the required property \'chargeBoxIdentity\'!'
+        action,
+        module: MODULE_NAME, method: 'checkChargingStationOcppParameters',
+        message: 'The Charging Station ID is mandatory, request rejected!'
       });
     }
-    if (!ocppHeader.tenantID) {
+    if (!Utils.isChargingStationIDValid(chargingStationID)) {
       throw new BackendError({
-        source: ocppHeader.chargeBoxIdentity,
-        chargingStationID: ocppHeader.chargeBoxIdentity,
-        siteID: ocppHeader.siteID,
-        siteAreaID: ocppHeader.siteAreaID,
-        companyID: ocppHeader.companyID,
-        module: MODULE_NAME,
-        method: 'checkAndGetTenantAndChargingStation',
-        message: 'Should have the required property \'tenantID\'!'
+        source: chargingStationID,
+        action, chargingStationID,
+        module: MODULE_NAME, method: 'checkChargingStationOcppParameters',
+        message: `The Charging Station ID '${chargingStationID}' is invalid, request rejected!`
       });
     }
+    // Check Tenant
+    if (!tenantID) {
+      throw new BackendError({
+        source: chargingStationID,
+        action, chargingStationID,
+        module: MODULE_NAME, method: 'checkChargingStationOcppParameters',
+        message: 'The Tenant ID is mandatory, request rejected!'
+      });
+    }
+    if (!DatabaseUtils.isObjectID(tenantID)) {
+      throw new BackendError({
+        source: chargingStationID,
+        action, chargingStationID,
+        module: MODULE_NAME, method: 'checkChargingStationOcppParameters',
+        message: `The Tenant ID '${tenantID}' is invalid, request rejected!`
+      });
+    }
+    // Check Token
+    if (!tokenID) {
+      throw new BackendError({
+        source: chargingStationID,
+        action, chargingStationID,
+        module: MODULE_NAME, method: 'checkChargingStationOcppParameters',
+        message: 'The Token ID is mandatory, request rejected!'
+      });
+    }
+    if (!DatabaseUtils.isObjectID(tokenID)) {
+      throw new BackendError({
+        source: chargingStationID,
+        action, chargingStationID,
+        module: MODULE_NAME, method: 'checkChargingStationOcppParameters',
+        message: `The Token ID '${tokenID}' is invalid, request rejected!`
+      });
+    }
+  }
+
+  public static async checkAndGetChargingStationData(action: ServerAction, tenantID: string, chargingStationID: string,
+      tokenID: string, acquireLock = true): Promise<{ tenant: Tenant; chargingStation?: ChargingStation; token?: RegistrationToken; lock?: Lock }> {
+    // Check parameters
+    OCPPUtils.checkChargingStationOcppParameters(
+      ServerAction.WS_CONNECTION, tenantID, chargingStationID, tokenID);
     // Get Tenant
-    const tenant = await TenantStorage.getTenant(ocppHeader.tenantID);
+    const tenant = await TenantStorage.getTenant(tenantID);
     if (!tenant) {
       throw new BackendError({
-        source: ocppHeader.chargeBoxIdentity,
-        chargingStationID: ocppHeader.chargeBoxIdentity,
-        siteID: ocppHeader.siteID,
-        siteAreaID: ocppHeader.siteAreaID,
-        companyID: ocppHeader.companyID,
-        module: MODULE_NAME,
-        method: 'checkAndGetTenantAndChargingStation',
-        message: `Tenant ID '${ocppHeader.tenantID}' does not exist!`
+        source: chargingStationID,
+        chargingStationID,
+        module: MODULE_NAME, method: 'checkAndGetChargingStationData',
+        message: `Tenant ID '${tenantID}' does not exist, request rejected!`
       });
     }
     // Get first the lock to get the most recent Charging Station from the DB
-    const chargingStationLock = await LockingHelper.acquireChargingStationLock(tenant.id, ocppHeader.chargeBoxIdentity);
-    if (!chargingStationLock) {
-      throw new BackendError({
-        source: ocppHeader.chargeBoxIdentity,
-        chargingStationID: ocppHeader.chargeBoxIdentity,
-        siteID: ocppHeader.siteID,
-        siteAreaID: ocppHeader.siteAreaID,
-        companyID: ocppHeader.companyID,
-        module: MODULE_NAME,
-        method: 'checkAndGetTenantAndChargingStation',
-        message: 'Cannot acquire a lock on the Charging Station'
-      });
+    let lock: Lock;
+    if (acquireLock) {
+      lock = await LockingHelper.acquireChargingStationLock(tenant.id, chargingStationID);
+      if (!lock) {
+        throw new BackendError({
+          source: chargingStationID,
+          chargingStationID,
+          module: MODULE_NAME,
+          method: 'checkAndGetChargingStationData',
+          message: 'Cannot acquire a lock on the Charging Station, request rejected!'
+        });
+      }
     }
     // Get the Charging Station
     let chargingStation: ChargingStation;
+    let token: RegistrationToken;
     try {
       chargingStation = await ChargingStationStorage.getChargingStation(
-        tenant, ocppHeader.chargeBoxIdentity, { withSiteArea: true });
+        tenant, chargingStationID, { withSiteArea: true, issuer: true });
       if (!chargingStation) {
-        throw new BackendError({
-          source: ocppHeader.chargeBoxIdentity,
-          chargingStationID: ocppHeader.chargeBoxIdentity,
-          siteID: ocppHeader.siteID,
-          siteAreaID: ocppHeader.siteAreaID,
-          companyID: ocppHeader.companyID,
-          module: MODULE_NAME,
-          method: 'checkAndGetTenantAndChargingStation',
-          message: 'Charging Station does not exist'
-        });
-      }
-      // Deleted?
-      if (chargingStation.deleted) {
-        throw new BackendError({
-          source: ocppHeader.chargeBoxIdentity,
-          chargingStationID: ocppHeader.chargeBoxIdentity,
-          siteID: ocppHeader.siteID,
-          siteAreaID: ocppHeader.siteAreaID,
-          companyID: ocppHeader.companyID,
-          module: MODULE_NAME,
-          method: 'checkAndGetTenantAndChargingStation',
-          message: 'Charging Station has been deleted'
-        });
-      }
-      // Inactive?
-      if (chargingStation.forceInactive) {
-        throw new BackendError({
-          source: ocppHeader.chargeBoxIdentity,
-          module: MODULE_NAME,
-          method: 'checkAndGetTenantAndChargingStation',
-          message: 'Charging Station has been forced as inactive'
+        // Must have a valid connection Token
+        token = await OCPPUtils.ensureChargingStationHasValidConnectionToken(action, tenant, chargingStationID, tokenID);
+        // Check Action
+        if (action !== ServerAction.WS_CONNECTION &&
+            action !== ServerAction.OCPP_BOOT_NOTIFICATION) {
+          throw new BackendError({
+            source: chargingStationID,
+            chargingStationID,
+            module: MODULE_NAME,
+            method: 'checkAndGetChargingStationData',
+            message: 'Charging Station does not exist, request rejected!'
+          });
+        }
+      } else {
+        // Update the DB (Migration for existing charging stations)
+        if (!chargingStation.tokenID) {
+          chargingStation.tokenID = tokenID;
+        }
+        // Check
+        if (chargingStation.tokenID !== tokenID) {
+          // Must have a valid connection Token
+          token = await OCPPUtils.ensureChargingStationHasValidConnectionToken(action, tenant, chargingStationID, tokenID);
+          // Ok, set it
+          await Logging.logInfo({
+            tenantID: tenant.id,
+            siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            companyID: chargingStation.companyID,
+            chargingStationID: chargingStation.id,
+            source: chargingStation.id,
+            action, module: MODULE_NAME, method: 'checkAndGetChargingStationData',
+            message: `New Token ID '${tokenID}' has been set (old was '${chargingStation.tokenID}')`
+          });
+          chargingStation.tokenID = tokenID;
+        }
+        // Deleted?
+        if (chargingStation.deleted) {
+          throw new BackendError({
+            source: chargingStationID,
+            chargingStationID,
+            siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            companyID: chargingStation.companyID,
+            module: MODULE_NAME,
+            method: 'checkAndGetChargingStationData',
+            message: 'Charging Station has been deleted, request rejected!'
+          });
+        }
+        // Inactive?
+        if (chargingStation.forceInactive) {
+          throw new BackendError({
+            source: chargingStationID,
+            chargingStationID,
+            siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            companyID: chargingStation.companyID,
+            module: MODULE_NAME,
+            method: 'checkAndGetChargingStationData',
+            message: 'Charging Station has been forced as inactive, request rejected!'
+          });
+        }
+        // Save Charging Station lastSeen date
+        await ChargingStationStorage.saveChargingStationRuntimeData(tenant, chargingStation.id, {
+          lastSeen: new Date(),
+          tokenID: tokenID,
+          cloudHostIP: Utils.getHostIP(),
+          cloudHostName: Utils.getHostName(),
         });
       }
     } catch (error) {
       // Release the lock in case of issues with Charging Station
-      await LockingManager.release(chargingStationLock);
-      // Rethrow the error
+      if (acquireLock) {
+        await LockingManager.release(lock);
+      }
       throw error;
     }
-    // Stick it to the headers
-    ocppHeader.tenant = tenant;
-    ocppHeader.chargingStation = chargingStation;
-    return {
-      tenant,
-      chargingStation,
-      chargingStationLock
-    };
+    return { tenant, chargingStation, token, lock };
   }
 
   public static async requestAndSaveChargingStationOcppParameters(tenant: Tenant, chargingStation: ChargingStation): Promise<OCPPChangeConfigurationCommandResult> {

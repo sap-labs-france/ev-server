@@ -40,7 +40,7 @@ export default class LoggingStorage {
       siteID: DatabaseUtils.convertToObjectID(logToSave.siteID),
       siteAreaID: DatabaseUtils.convertToObjectID(logToSave.siteAreaID),
       source: logToSave.source,
-      host: logToSave.host ? logToSave.host : Utils.getHostname(),
+      host: logToSave.host ? logToSave.host : Utils.getHostName(),
       process: logToSave.process ? logToSave.process : (cluster.isWorker ? 'worker ' + cluster.worker.id.toString() : 'master'),
       type: logToSave.type,
       timestamp: Utils.convertToDate(logToSave.timestamp),

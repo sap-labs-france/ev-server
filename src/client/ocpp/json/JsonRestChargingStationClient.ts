@@ -40,11 +40,10 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     }
     // Check URL: remove starting and trailing '/'
     if (chargingStationURL.endsWith('/')) {
-      // Remove '/'
       chargingStationURL = chargingStationURL.substring(0, chargingStationURL.length - 1);
     }
     // Keep
-    this.serverURL = `${chargingStationURL}/REST/${tenantID}/${chargingStation.id}`;
+    this.serverURL = `${chargingStationURL}/REST/${tenantID}/${chargingStation.tokenID}/${chargingStation.id}`;
     this.chargingStation = chargingStation;
     this.requests = {};
   }
@@ -124,7 +123,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
       source: this.chargingStation.id,
       action: ServerAction.WS_REST_CLIENT_CONNECTION_OPENED,
       module: MODULE_NAME, method: 'onOpen',
-      message: `Try to connect to '${this.serverURL}' ${Configuration.isCloudFoundry() ? ', CF Instance \'' + this.chargingStation.cfApplicationIDAndInstanceIndex + '\'' : ''}`
+      message: `Try to connect to '${this.serverURL}'...`
     });
     // Create Promise
     return await new Promise((resolve, reject) => {
@@ -134,7 +133,6 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         if (Configuration.isCloudFoundry()) {
           WSOptions = {
             protocol: WSServerProtocol.REST,
-            headers: { 'X-CF-APP-INSTANCE': this.chargingStation.cfApplicationIDAndInstanceIndex }
           };
         } else {
           WSOptions = {

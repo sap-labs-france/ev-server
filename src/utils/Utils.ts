@@ -1562,7 +1562,7 @@ export default class Utils {
     const performanceRecord: PerformanceRecord = {
       tenantSubdomain: params.tenantSubdomain,
       timestamp: new Date(),
-      host: Utils.getHostname(),
+      host: Utils.getHostName(),
       action: params.action,
       group: params.group
     };
@@ -1593,11 +1593,21 @@ export default class Utils {
     return performanceRecord;
   }
 
-  public static getHostname(): string {
+  public static getHostName(): string {
     return Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname();
   }
 
-  // when exporting values
+  public static getHostIP(): string {
+    const hostname = Utils.getHostName();
+    if (hostname.startsWith('ip-')) {
+      const hostnameParts = hostname.split('-');
+      if (hostnameParts.length > 4) {
+        const lastIPDigit = hostnameParts[4].split('.')[0];
+        return `${hostnameParts[1]}.${hostnameParts[2]}.${hostnameParts[3]}.${lastIPDigit}`;
+      }
+    }
+  }
+
   public static escapeCsvValue(value: any): string {
     // add double quote start and end
     // replace double quotes inside value to double double quotes to display double quote correctly in csv editor

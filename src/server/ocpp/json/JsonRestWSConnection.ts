@@ -25,7 +25,7 @@ export default class JsonRestWSConnection extends WSConnection {
   public async initialize(): Promise<void> {
     // Already initialized?
     if (!this.initialized) {
-      // Call super class
+      // Init parent
       await super.initialize();
       this.initialized = true;
       await Logging.logInfo({
@@ -58,6 +58,8 @@ export default class JsonRestWSConnection extends WSConnection {
   }
 
   public onClose(closeEvent: CloseEvent): void {
+    // Remove the connection
+    this.wsServer.removeRestConnection(this);
     void Logging.logInfo({
       tenantID: this.getTenantID(),
       siteID: this.getSiteID(),
@@ -70,8 +72,6 @@ export default class JsonRestWSConnection extends WSConnection {
       message: `Connection has been closed, Reason: '${closeEvent.reason ? closeEvent.reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(Utils.convertToInt(closeEvent))}', Code: '${closeEvent.toString()}'`,
       detailedMessages: { closeEvent }
     });
-    // Remove the connection
-    this.wsServer.removeRestConnection(this);
   }
 
   public async handleRequest(messageId: string, command: Command, commandPayload: Record<string, unknown> | string): Promise<void> {
@@ -87,7 +87,7 @@ export default class JsonRestWSConnection extends WSConnection {
         module: MODULE_NAME,
         method: 'handleRequest',
         message: 'Charging Station not found',
-        action: OCPPUtils.getServerActionFromOcppCommand(command)
+        action: OCPPUtils.buildServerActionFromOcppCommand(command)
       });
     }
     // Get the client from JSON Server
@@ -106,7 +106,7 @@ export default class JsonRestWSConnection extends WSConnection {
         module: MODULE_NAME,
         method: 'handleRequest',
         message: 'Charging Station is not connected to the backend',
-        action: OCPPUtils.getServerActionFromOcppCommand(command)
+        action: OCPPUtils.buildServerActionFromOcppCommand(command)
       });
     }
     // Call the client
@@ -128,7 +128,7 @@ export default class JsonRestWSConnection extends WSConnection {
         module: MODULE_NAME,
         method: 'handleRequest',
         message: `'${actionMethod}' is not implemented`,
-        action: OCPPUtils.getServerActionFromOcppCommand(command)
+        action: OCPPUtils.buildServerActionFromOcppCommand(command)
       });
     }
   }

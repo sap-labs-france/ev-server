@@ -119,12 +119,6 @@ export default class Configuration {
     }
   }
 
-  public static getCFApplicationIDAndInstanceIndex(): string {
-    if (Configuration.isCloudFoundry()) {
-      return Configuration.getCFApplicationID() + ':' + Configuration.getCFInstanceIndex();
-    }
-  }
-
   // Central System REST config
   public static getCentralSystemRestServiceConfig(): CentralSystemRestServiceConfiguration {
     // Read conf

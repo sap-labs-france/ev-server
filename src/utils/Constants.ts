@@ -42,6 +42,7 @@ export default class Constants {
   public static readonly BATCH_PAGE_SIZE = 1000;
 
   public static readonly CHARGING_STATION_LOCK_SECS = 5;
+  public static readonly CHARGING_STATION_CONNECTION_LOCK_SECS = 5;
 
   public static readonly HEALTH_CHECK_ROUTE = '/health-check';
 

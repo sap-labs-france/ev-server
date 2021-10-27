@@ -144,7 +144,7 @@ export default class AsyncTaskManager {
                 try {
                   // Update the task
                   asyncTask.execTimestamp = new Date();
-                  asyncTask.execHost = Utils.getHostname();
+                  asyncTask.execHost = Utils.getHostName();
                   asyncTask.status = AsyncTaskStatus.RUNNING;
                   asyncTask.lastChangedOn = asyncTask.execTimestamp;
                   await AsyncTaskStorage.saveAsyncTask(asyncTask);

@@ -594,18 +594,16 @@ export default class Logging {
     }
   }
 
-  // Used to log exception in catch(...) only
-  public static async logException(error: Error, action: ServerAction, source: string,
+  public static async logException(exception: Error, action: ServerAction, source: string,
       module: string, method: string, tenantID: string, user?: UserToken | User | string): Promise<void> {
-    const log: Log = Logging._buildLog(error, action, source, module, method, tenantID, user);
-    if (error instanceof AppAuthError) {
-      await Logging.logSecurityError(log);
-    } else if (error instanceof AppError) {
-      await Logging.logError(log);
-    } else if (error instanceof BackendError) {
-      await Logging.logError(log);
+    if (exception instanceof AppAuthError) {
+      await Logging._logActionAppAuthExceptionMessage(tenantID, action, exception);
+    } else if (exception instanceof AppError) {
+      await Logging._logActionAppExceptionMessage(tenantID, action, exception);
+    } else if (exception instanceof BackendError) {
+      await Logging._logActionBackendExceptionMessage(tenantID, action, exception);
     } else {
-      await Logging.logError(log);
+      await Logging.logError(Logging._buildLog(exception, action, source, module, method, tenantID, user));
     }
   }
 
@@ -918,10 +916,6 @@ export default class Logging {
         }
       }
     }
-    // Do not log to DB simple string messages
-    if (log['simpleMessage']) {
-      return;
-    }
     // Log Level
     switch (LogLevel[logLevel]) {
       // No logging at all
@@ -955,7 +949,7 @@ export default class Logging {
     // Source
     log.source = log.source ?? `${Constants.CENTRAL_SERVER}`;
     // Host
-    log.host = Utils.getHostname();
+    log.host = Utils.getHostName();
     // Process
     log.process = log.process ? log.process : (cluster.isWorker ? 'worker ' + cluster.worker.id.toString() : 'master');
     // Check
@@ -983,9 +977,7 @@ export default class Logging {
     if (!log.tenantID || log.tenantID === '') {
       log.tenantID = Constants.DEFAULT_TENANT;
     }
-    if (global.serverName &&
-        global.serverName !== Constants.CENTRAL_SERVER &&
-        log.source === Constants.CENTRAL_SERVER) {
+    if (global.serverName !== Constants.CENTRAL_SERVER) {
       log.source = `${global.serverName}Server`;
     }
     // Log in Cloud Foundry

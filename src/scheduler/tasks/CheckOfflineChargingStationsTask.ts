@@ -33,8 +33,11 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
             let ocppHeartbeatConfiguration: OCPPGetConfigurationCommandResult;
             // Check if charging station is still connected
             try {
-              ocppHeartbeatConfiguration = await OCPPUtils.requestChargingStationOcppParameters(
-                tenant, chargingStation, { key: Constants.OCPP_HEARTBEAT_KEYS as string[] });
+              // Send credentials to get the token
+              ocppHeartbeatConfiguration = await Utils.executePromiseWithTimeout(
+                5000, OCPPUtils.requestChargingStationOcppParameters(tenant, chargingStation, { key: Constants.OCPP_HEARTBEAT_KEYS as string[] }),
+                `Time out error (5s) when trying to get OCPP configuration from '${chargingStation.id}'`
+              );
             } catch (error) {
               // Charging Station is offline!
               continue;
@@ -54,7 +57,7 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
                 detailedMessages: { ocppHeartbeatConfiguration }
               });
               // Update lastSeen
-              await ChargingStationStorage.saveChargingStationLastSeen(tenant, chargingStation.id,
+              await ChargingStationStorage.saveChargingStationRuntimeData(tenant, chargingStation.id,
                 { lastSeen: new Date() }
               );
               // Remove charging station from notification
@@ -69,7 +72,7 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
           if (chargingStations.result.length > 0) {
             const chargingStationIDs = chargingStations.result.map((chargingStation) => chargingStation.id).join(', ');
             // Send notification
-            await NotificationHandler.sendOfflineChargingStations(
+            void NotificationHandler.sendOfflineChargingStations(
               tenant, {
                 chargeBoxIDs: chargingStationIDs,
                 evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
