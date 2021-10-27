@@ -192,7 +192,7 @@ export default class TagService {
     await TagStorage.saveTag(req.tenant, newTag);
     // OCPI
     await TagService.updateTagOCPI(action, req.tenant, req.user, newTag);
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       action: action,
       user: req.user,
@@ -264,7 +264,7 @@ export default class TagService {
     await TagStorage.saveTag(req.tenant, tag);
     // OCPI
     await TagService.updateTagOCPI(action, req.tenant, req.user, tag);
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       action: action,
       user: req.user, actionOnUser: user,
@@ -305,7 +305,7 @@ export default class TagService {
     // Save
     await TagStorage.saveTag(req.tenant, tag);
     await TagService.updateTagOCPI(action, req.tenant, req.user, tag);
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       action: action,
       module: MODULE_NAME, method: 'handleUpdateTagByVisualID',
@@ -381,7 +381,7 @@ export default class TagService {
     }
     // OCPI
     await TagService.updateTagOCPI(action, req.tenant, req.user, tag);
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       action: action,
       module: MODULE_NAME, method: 'handleUpdateTag',

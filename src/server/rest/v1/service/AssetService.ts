@@ -391,7 +391,7 @@ export default class AssetService {
     // Delete
     await AssetStorage.deleteAsset(req.tenant, asset.id);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user,
       module: MODULE_NAME, method: 'handleDeleteAsset',
@@ -547,7 +547,7 @@ export default class AssetService {
     // Save
     newAsset.id = await AssetStorage.saveAsset(req.tenant, newAsset);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user,
       module: MODULE_NAME, method: 'handleCreateAsset',
@@ -619,7 +619,7 @@ export default class AssetService {
     // Update Asset
     await AssetStorage.saveAsset(req.tenant, asset);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user,
       module: MODULE_NAME, method: 'handleUpdateAsset',

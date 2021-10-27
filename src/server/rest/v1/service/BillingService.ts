@@ -613,7 +613,7 @@ export default class BillingService {
     // Invoke the billing implementation
     const operationResult: BillingOperationResult = await billingImpl.deletePaymentMethod(user, filteredRequest.paymentMethodId);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteSite',
       message: `Payment Method '${filteredRequest.paymentMethodId}' has been deleted successfully`,

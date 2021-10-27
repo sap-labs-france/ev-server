@@ -1,5 +1,5 @@
 import { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { Log, LogLevel, LogType } from '../types/Log';
+import { Log, LogLevel } from '../types/Log';
 import { NextFunction, Request, Response } from 'express';
 import PerformanceRecord, { PerformanceRecordGroup, PerformanceTracingData } from '../types/Performance';
 import { ServerAction, ServerType } from '../types/Server';
@@ -8,7 +8,6 @@ import global, { ActionsResponse } from '../types/GlobalType';
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
 import BackendError from '../exception/BackendError';
-import CFLog from 'cf-nodejs-logging-support';
 import Configuration from '../utils/Configuration';
 import Constants from './Constants';
 import { HTTPError } from '../types/HTTPError';
@@ -98,56 +97,28 @@ export default class Logging {
     );
   }
 
-  // Log Debug
   public static async logDebug(log: Log): Promise<string> {
     log.level = LogLevel.DEBUG;
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     return Logging._log(log);
   }
 
-  // Log Security Debug
-  public static async logSecurityDebug(log: Log): Promise<string> {
-    log.type = LogType.SECURITY;
-    return Logging.logDebug(log);
-  }
-
-  // Log Info
   public static async logInfo(log: Log): Promise<string> {
     log.level = LogLevel.INFO;
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     return Logging._log(log);
   }
 
-  // Log Security Info
-  public static async logSecurityInfo(log: Log): Promise<string> {
-    log.type = LogType.SECURITY;
-    return Logging.logInfo(log);
-  }
-
-  // Log Warning
   public static async logWarning(log: Log): Promise<string> {
     log.level = LogLevel.WARNING;
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     return Logging._log(log);
   }
 
-  // Log Security Warning
-  public static async logSecurityWarning(log: Log): Promise<string> {
-    log.type = LogType.SECURITY;
-    return Logging.logWarning(log);
-  }
-
-  // Log Error
   public static async logError(log: Log): Promise<string> {
     log.level = LogLevel.ERROR;
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     return Logging._log(log);
-  }
-
-  // Log Security Error
-  public static async logSecurityError(log: Log): Promise<string> {
-    log.type = LogType.SECURITY;
-    return Logging.logError(log);
   }
 
   public static async logActionsResponse(
@@ -306,7 +277,7 @@ export default class Logging {
       // Log
       const message = `Express HTTP Request << Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB << ${req.method} '${req.url}'`;
       Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
-      await Logging.logSecurityDebug({
+      await Logging.logDebug({
         tenantID,
         action: ServerAction.HTTP_REQUEST,
         user: userID,
@@ -393,7 +364,7 @@ export default class Logging {
             console.warn(chalk.yellow('===================================='));
           }
         }
-        await Logging.logSecurityDebug({
+        await Logging.logDebug({
           tenantID: tenantID,
           user: req.user,
           action: ServerAction.HTTP_RESPONSE,
@@ -433,7 +404,7 @@ export default class Logging {
       sizeof(request)).div(1024).toNumber(), 2);
     const message = `Axios HTTP Request >> Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB - ${request.method.toLocaleUpperCase()} '${request.url}'`;
     Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
-    await Logging.logSecurityDebug({
+    await Logging.logDebug({
       tenantID: tenant.id,
       action: ServerAction.HTTP_REQUEST,
       module: Constants.MODULE_AXIOS, method: 'interceptor',
@@ -507,7 +478,7 @@ export default class Logging {
       }
     }
     try {
-      await Logging.logSecurityDebug({
+      await Logging.logDebug({
         tenantID: tenant.id,
         action: ServerAction.HTTP_RESPONSE,
         message,
@@ -530,7 +501,7 @@ export default class Logging {
         await PerformanceStorage.updatePerformanceRecord(performanceRecord);
       }
     } catch (error) {
-      await Logging.logSecurityDebug({
+      await Logging.logDebug({
         tenantID: tenant.id,
         action: ServerAction.HTTP_RESPONSE,
         message: `Axios HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`,
@@ -545,7 +516,7 @@ export default class Logging {
 
   public static async traceAxiosError(tenant: Tenant, error: AxiosError): Promise<void> {
     // Error handling is done outside to get the proper module information
-    await Logging.logSecurityError({
+    await Logging.logError({
       tenantID: tenant.id,
       action: ServerAction.HTTP_ERROR,
       message: `Axios HTTP Error >> ${error.config?.method?.toLocaleUpperCase()}/${error.response?.status} '${error.config?.url}' - ${error.message}`,
@@ -734,7 +705,6 @@ export default class Logging {
   private static async _logActionExceptionMessage(tenantID: string, action: ServerAction, exception: any, detailedMessages = {}): Promise<void> {
     await Logging.logError({
       tenantID: tenantID,
-      type: LogType.SECURITY,
       user: exception.user,
       module: exception.module,
       method: exception.method,
@@ -759,7 +729,6 @@ export default class Logging {
     // Log
     await Logging.logError({
       tenantID: tenantID,
-      type: LogType.SECURITY,
       chargingStationID: exception.params.chargingStationID,
       siteID: exception.params.siteID,
       siteAreaID: exception.params.siteAreaID,
@@ -789,7 +758,6 @@ export default class Logging {
     // Log
     await Logging.logError({
       tenantID: tenantID,
-      type: LogType.SECURITY,
       chargingStationID: exception.params.chargingStationID,
       siteID: exception.params.siteID,
       siteAreaID: exception.params.siteAreaID,
@@ -807,9 +775,8 @@ export default class Logging {
   // Used to check URL params (not in catch)
   private static async _logActionAppAuthExceptionMessage(tenantID: string, action: ServerAction, exception: AppAuthError, detailedMessages = {}): Promise<void> {
     // Log
-    await Logging.logSecurityError({
+    await Logging.logError({
       tenantID: tenantID,
-      type: LogType.SECURITY,
       user: exception.params.user,
       chargingStationID: exception.params.chargingStationID,
       siteID: exception.params.siteID,
@@ -938,10 +905,6 @@ export default class Logging {
       // Format
       log.detailedMessages = Logging._format(log.detailedMessages);
     }
-    // Check Type
-    if (!log.type) {
-      log.type = LogType.REGULAR;
-    }
     // First char always in Uppercase
     if (typeof log.message === 'string' && log.message && log.message.length > 0) {
       log.message = log.message[0].toUpperCase() + log.message.substring(1);
@@ -951,11 +914,6 @@ export default class Logging {
     }
     // Source
     log.source = global.serverType ?? ServerType.CENTRAL_SERVER;
-    // Log in Cloud Foundry
-    if (Configuration.isCloudFoundry()) {
-      // Bind to express app
-      CFLog.logMessage(Logging.getCFLogLevel(log.level), log.message);
-    }
     // Log
     return LoggingStorage.saveLog(log.tenantID, log);
   }
@@ -1027,7 +985,6 @@ export default class Logging {
     // Log
     await Logging.logError({
       tenantID: Constants.DEFAULT_TENANT,
-      type: LogType.SECURITY,
       module: MODULE_NAME,
       method: 'anonymizeSensitiveData',
       action: ServerAction.LOGGING,
@@ -1035,20 +992,5 @@ export default class Logging {
       detailedMessages: { message }
     });
     return null;
-  }
-
-  // Log
-  private static getCFLogLevel(logLevel): string {
-    // Log level
-    switch (logLevel) {
-      case LogLevel.DEBUG:
-        return 'debug';
-      case LogLevel.INFO:
-        return 'info';
-      case LogLevel.WARNING:
-        return 'warning';
-      case LogLevel.ERROR:
-        return 'error';
-    }
   }
 }

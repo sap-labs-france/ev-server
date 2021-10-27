@@ -107,7 +107,7 @@ export default class UserService {
       await UserStorage.removeSitesFromUser(req.tenant, filteredRequest.userID, sites.map((site) => site.id));
     }
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user,
       module: MODULE_NAME,
@@ -128,7 +128,7 @@ export default class UserService {
     if (!user.issuer) {
       // Delete User
       await UserStorage.deleteUser(req.tenant, user.id);
-      await Logging.logSecurityInfo({
+      await Logging.logInfo({
         tenantID: req.user.tenantID,
         user: req.user, actionOnUser: user,
         module: MODULE_NAME, method: 'handleDeleteUser',
@@ -148,7 +148,7 @@ export default class UserService {
     // Delete User
     await UserStorage.deleteUser(req.tenant, user.id);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, actionOnUser: user,
       module: MODULE_NAME, method: 'handleDeleteUser',
@@ -220,7 +220,7 @@ export default class UserService {
     // Update Billing
     await UserService.updateUserBilling(ServerAction.USER_UPDATE, req.tenant, req.user, user);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, actionOnUser: user,
       module: MODULE_NAME, method: 'handleUpdateUser',
@@ -266,7 +266,7 @@ export default class UserService {
       mobileOs: filteredRequest.mobileOS,
       mobileLastChangedOn: new Date()
     });
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: user,
       module: MODULE_NAME, method: 'handleUpdateUserMobileToken',
@@ -655,7 +655,7 @@ export default class UserService {
     // Update Billing
     await UserService.updateUserBilling(ServerAction.USER_CREATE, req.tenant, req.user, newUser);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, actionOnUser: req.user,
       module: MODULE_NAME, method: 'handleCreateUser',

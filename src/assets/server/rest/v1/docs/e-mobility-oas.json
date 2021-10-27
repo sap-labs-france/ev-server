@@ -7056,9 +7056,6 @@
             "$ref": "#/components/parameters/LogHost"
           },
           {
-            "$ref": "#/components/parameters/LogType"
-          },
-          {
             "$ref": "#/components/parameters/LogAction"
           },
           {
@@ -7222,10 +7219,13 @@
             "$ref": "#/components/parameters/LogHost"
           },
           {
-            "$ref": "#/components/parameters/LogType"
+            "$ref": "#/components/parameters/LogAction"
           },
           {
-            "$ref": "#/components/parameters/LogAction"
+            "$ref": "#/components/parameters/ChargingStationID"
+          },
+          {
+            "$ref": "#/components/parameters/SiteID"
           },
           {
             "$ref": "#/components/parameters/UserID"
@@ -11548,18 +11548,6 @@
         "description": "Log host",
         "schema": {
           "type": "string"
-        }
-      },
-      "LogType": {
-        "in": "query",
-        "name": "Type",
-        "description": "Log type",
-        "schema": {
-          "type": "string",
-          "enum": [
-            "R",
-            "S"
-          ]
         }
       },
       "LogAction": {

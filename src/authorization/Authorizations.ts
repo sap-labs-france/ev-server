@@ -727,7 +727,7 @@ export default class Authorizations {
     const authDefinition = AuthorizationsManager.getInstance();
     const result = await authDefinition.canPerformAction(loggedUser.rolesACL, entity, action, context);
     if (!result.authorized && Authorizations.getConfiguration().debug) {
-      void Logging.logSecurityInfo({
+      void Logging.logInfo({
         tenantID: loggedUser.tenantID, user: loggedUser,
         action: ServerAction.AUTHORIZATIONS,
         module: MODULE_NAME, method: 'canPerformAction',
@@ -1120,7 +1120,7 @@ export default class Authorizations {
     const authDefinition = AuthorizationsManager.getInstance();
     const authorized = await authDefinition.can(loggedUser.rolesACL, entity, action, context);
     if (!authorized && Authorizations.getConfiguration().debug) {
-      void Logging.logSecurityInfo({
+      void Logging.logInfo({
         tenantID: loggedUser.tenantID, user: loggedUser,
         action: ServerAction.AUTHORIZATIONS,
         module: MODULE_NAME, method: 'canPerformAction',

@@ -90,7 +90,7 @@ export default class AuthService {
         // Yes: Check date to reset pass
         if (user.passwordBlockedUntil && moment(user.passwordBlockedUntil).isBefore(moment())) {
           // Time elapsed: activate the account again
-          await Logging.logSecurityInfo({
+          await Logging.logInfo({
             tenantID: req.user.tenantID,
             actionOnUser: user,
             module: MODULE_NAME, method: 'handleLogIn', action: action,
@@ -239,7 +239,7 @@ export default class AuthService {
       }
     }
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: tenant.id,
       user: newUser, action: action,
       module: MODULE_NAME,
@@ -306,7 +306,7 @@ export default class AuthService {
     // Init Password info
     await UserStorage.saveUserPassword(tenant, user.id, { passwordResetHash: resetHash });
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: tenant.id,
       user: user, action: action,
       module: MODULE_NAME,
@@ -353,7 +353,7 @@ export default class AuthService {
       await UserStorage.saveUserStatus(tenant, user.id, UserStatus.ACTIVE);
     }
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: tenant.id,
       user: user, action: action,
       module: MODULE_NAME,
@@ -526,7 +526,7 @@ export default class AuthService {
     await UserStorage.saveUserAccountVerification(tenant, user.id,
       { verificationToken: null, verifiedAt: new Date() });
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: tenant.id,
       user: user, action: action,
       module: MODULE_NAME, method: 'handleVerifyEmail',
@@ -623,7 +623,7 @@ export default class AuthService {
       verificationToken = user.verificationToken;
     }
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: tenant.id,
       user: user,
       action: action,
@@ -699,7 +699,7 @@ export default class AuthService {
 
   public static async userLoginSucceeded(action: ServerAction, tenant: Tenant, user: User, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Password / Login OK
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: tenant.id,
       user: user,
       module: MODULE_NAME, method: 'checkUserLogin',

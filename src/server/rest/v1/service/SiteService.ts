@@ -71,7 +71,7 @@ export default class SiteService {
     // Update
     await SiteStorage.updateSiteUserAdmin(req.tenant, filteredRequest.siteID, filteredRequest.userID, filteredRequest.siteAdmin);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, actionOnUser: user,
       module: MODULE_NAME, method: 'handleUpdateSiteUserAdmin',
@@ -122,7 +122,7 @@ export default class SiteService {
     // Update
     await SiteStorage.updateSiteOwner(req.tenant, filteredRequest.siteID, filteredRequest.userID, filteredRequest.siteOwner);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, actionOnUser: user,
       module: MODULE_NAME, method: 'handleUpdateSiteOwner',
@@ -152,7 +152,7 @@ export default class SiteService {
       await SiteStorage.removeUsersFromSite(req.tenant, site.id, users.map((user) => user.id));
     }
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user,
       module: MODULE_NAME,
@@ -216,7 +216,7 @@ export default class SiteService {
     // Delete
     await SiteStorage.deleteSite(req.tenant, site.id);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteSite',
       message: `Site '${site.name}' has been deleted successfully`,
@@ -360,7 +360,7 @@ export default class SiteService {
     // Save
     site.id = await SiteStorage.saveSite(req.tenant, site);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleCreateSite',
       message: `Site '${site.name}' has been created successfully`,
@@ -419,7 +419,7 @@ export default class SiteService {
     // Save
     await SiteStorage.saveSite(req.tenant, site, Utils.objectHasProperty(filteredRequest, 'image') ? true : false);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateSite',
       message: `Site '${site.name}' has been updated successfully`,

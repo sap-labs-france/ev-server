@@ -322,7 +322,7 @@ export default class ChargingStationService {
       }
     }
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       action,
       user: req.user, module: MODULE_NAME,
@@ -920,7 +920,7 @@ export default class ChargingStationService {
       // Delete physically
       await ChargingStationStorage.deleteChargingStation(req.tenant, chargingStation.id);
     }
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteChargingStation',
       message: `Charging Station '${chargingStation.id}' has been deleted successfully`,

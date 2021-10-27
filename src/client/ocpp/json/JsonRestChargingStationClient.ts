@@ -127,18 +127,11 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     return await new Promise((resolve, reject) => {
       try {
         // Create WS
-        let WSOptions = {};
-        if (Configuration.isCloudFoundry()) {
-          WSOptions = {
-            protocol: WSServerProtocol.REST,
-          };
-        } else {
-          WSOptions = {
-            protocol: WSServerProtocol.REST
-          };
-        }
+        const wsOptions = {
+          protocol: WSServerProtocol.REST
+        };
         const wsClientOptions: WSClientOptions = {
-          WSOptions: WSOptions,
+          WSOptions: wsOptions,
           autoReconnectTimeout: Configuration.getWSClientConfig().autoReconnectTimeout,
           autoReconnectMaxRetries: Configuration.getWSClientConfig().autoReconnectMaxRetries,
           logTenantID: this.tenantID

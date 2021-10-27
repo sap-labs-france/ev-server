@@ -124,7 +124,6 @@ export default class MongoDBStorage {
     // Logs
     await this.handleIndexesInCollection(tenantID, 'logs', [
       { fields: { timestamp: 1 }, options: { expireAfterSeconds: 14 * 24 * 3600 } },
-      { fields: { type: 1, timestamp: 1 } },
       { fields: { action: 1, timestamp: 1 } },
       { fields: { level: 1, timestamp: 1 } },
       { fields: { source: 1, timestamp: 1 } },

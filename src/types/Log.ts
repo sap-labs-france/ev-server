@@ -18,7 +18,6 @@ export interface Log extends AuthorizationActions {
   method: string;
   timestamp?: Date;
   action: ServerAction;
-  type?: LogType;
   message: string;
   user?: User|UserToken|string;
   actionOnUser?: User|UserToken|string;
@@ -33,9 +32,4 @@ export enum LogLevel {
   ERROR = 'E',
   NONE = 'NONE',
   DEFAULT = 'DEFAULT',
-}
-
-export enum LogType {
-  REGULAR = 'R',
-  SECURITY = 'S',
 }

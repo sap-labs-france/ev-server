@@ -26,7 +26,6 @@ import UserToken from '../types/UserToken';
 import { WebSocketCloseEventStatusString } from '../types/WebSocket';
 import _ from 'lodash';
 import bcrypt from 'bcryptjs';
-import cfenv from 'cfenv';
 import chalk from 'chalk';
 import fs from 'fs';
 import global from '../types/GlobalType';
@@ -1302,7 +1301,7 @@ export default class Utils {
   }
 
   public static getChargingStationEndpoint() : ChargingStationEndpoint {
-    return Configuration.isCloudFoundry() ? ChargingStationEndpoint.SCP : ChargingStationEndpoint.AWS;
+    return ChargingStationEndpoint.AWS;
   }
 
   public static async generateQrCode(data: string) :Promise<string> {
@@ -1594,7 +1593,7 @@ export default class Utils {
   }
 
   public static getHostName(): string {
-    return Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname();
+    return os.hostname();
   }
 
   public static getHostIP(): string {
@@ -1646,7 +1645,7 @@ export default class Utils {
       return data;
     }
     // Log
-    await Logging.logSecurityError({
+    await Logging.logError({
       tenantID,
       module: MODULE_NAME,
       method: 'sanitizeCSVExport',

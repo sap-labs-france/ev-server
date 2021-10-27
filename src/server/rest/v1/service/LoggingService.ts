@@ -94,7 +94,6 @@ export default class LoggingService {
       chargingStationIDs: filteredRequest.ChargingStationID ? filteredRequest.ChargingStationID.split('|') : null,
       hosts: filteredRequest.Host ? filteredRequest.Host.split('|') : null,
       levels: filteredRequest.Level ? filteredRequest.Level.split('|') : null,
-      type: filteredRequest.Type,
       sources: filteredRequest.Source ? filteredRequest.Source.split('|') : null,
       actions: filteredRequest.Action ? filteredRequest.Action.split('|') : null,
       ...authorizationSitesFilter.filters

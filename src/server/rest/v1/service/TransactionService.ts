@@ -354,7 +354,7 @@ export default class TransactionService {
       OCPPUtils.clearChargingStationConnectorRuntimeData(chargingStation, transaction.connectorId);
       // Save Connectors
       await ChargingStationStorage.saveChargingStationConnectors(req.tenant, chargingStation.id, chargingStation.connectors);
-      await Logging.logSecurityInfo({
+      await Logging.logInfo({
         tenantID: req.user.tenantID,
         user: req.user, actionOnUser: transaction.userID,
         module: MODULE_NAME, method: 'handleTransactionSoftStop',
@@ -388,7 +388,7 @@ export default class TransactionService {
           user: req.user, action: action
         });
       }
-      await Logging.logSecurityInfo({
+      await Logging.logInfo({
         tenantID: req.user.tenantID,
         user: req.user, actionOnUser: transaction.userID,
         module: MODULE_NAME, method: 'handleTransactionSoftStop',
