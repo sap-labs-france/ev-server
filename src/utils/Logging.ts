@@ -2,6 +2,7 @@ import { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { Log, LogLevel, LogType } from '../types/Log';
 import { NextFunction, Request, Response } from 'express';
 import PerformanceRecord, { PerformanceRecordGroup, PerformanceTracingData } from '../types/Performance';
+import { ServerAction, ServerType } from '../types/Server';
 import global, { ActionsResponse } from '../types/GlobalType';
 
 import AppAuthError from '../exception/AppAuthError';
@@ -17,7 +18,6 @@ import { OCPIResult } from '../types/ocpi/OCPIResult';
 import { OCPPStatus } from '../types/ocpp/OCPPClient';
 import { OICPResult } from '../types/oicp/OICPResult';
 import PerformanceStorage from '../storage/mongodb/PerformanceStorage';
-import { ServerAction } from '../types/Server';
 import Tenant from '../types/Tenant';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import User from '../types/User';
@@ -949,8 +949,8 @@ export default class Logging {
     if (!log.tenantID || log.tenantID === '') {
       log.tenantID = Constants.DEFAULT_TENANT;
     }
-    // Force the source
-    log.source = global.serverType;
+    // Source
+    log.source = global.serverType ?? ServerType.CENTRAL_SERVER;
     // Log in Cloud Foundry
     if (Configuration.isCloudFoundry()) {
       // Bind to express app

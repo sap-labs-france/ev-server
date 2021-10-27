@@ -1,9 +1,10 @@
 import { ServerAction, ServerType } from './Server';
 
+import { AuthorizationActions } from './Authorization';
 import User from './User';
 import UserToken from './UserToken';
 
-export interface Log {
+export interface Log extends AuthorizationActions {
   tenantID: string;
   id?: string;
   level?: LogLevel;

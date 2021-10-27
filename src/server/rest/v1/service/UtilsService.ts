@@ -21,7 +21,9 @@ import Constants from '../../../../utils/Constants';
 import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
 import { EntityDataType } from '../../../../types/GlobalType';
+import { Log } from '../../../../types/Log';
 import Logging from '../../../../utils/Logging';
+import LoggingStorage from '../../../../storage/mongodb/LoggingStorage';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import OICPEndpoint from '../../../../types/oicp/OICPEndpoint';
 import PDFDocument from 'pdfkit';
@@ -285,6 +287,56 @@ export default class UtilsService {
       });
     }
     return site;
+  }
+
+  public static async checkAndGetLogAuthorization(tenant: Tenant, userToken: UserToken, logID: string, authAction: Action,
+      action: ServerAction, entityData?: EntityDataType, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Log> {
+    // Check mandatory fields
+    UtilsService.assertIdIsProvided(action, logID, MODULE_NAME, 'checkAndGetLogAuthorization', userToken);
+    // Get dynamic auth
+    const authorizationFilter = await AuthorizationService.checkAndGetLoggingAuthorizations(
+      tenant, userToken, { ID: logID }, authAction, entityData);
+    if (!authorizationFilter.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: authAction, entity: Entity.LOGGING,
+        module: MODULE_NAME, method: 'checkAndGetLogAuthorization',
+        value: logID
+      });
+    }
+    // Get Log
+    const log = await LoggingStorage.getLog(tenant, logID,
+      {
+        ...additionalFilters,
+        ...authorizationFilter.filters,
+      },
+      applyProjectFields ? authorizationFilter.projectFields : null
+    );
+    UtilsService.assertObjectExists(action, log, `Log ID '${logID}' does not exist`,
+      MODULE_NAME, 'checkAndGetLogAuthorization', userToken);
+    // Assign projected fields
+    if (authorizationFilter.projectFields) {
+      log.projectFields = authorizationFilter.projectFields;
+    }
+    // Assign Metadata
+    if (authorizationFilter.metadata) {
+      log.metadata = authorizationFilter.metadata;
+    }
+    // Add actions
+    AuthorizationService.addLogAuthorizations(tenant, userToken, log, authorizationFilter);
+    // Check
+    const authorized = AuthorizationService.canPerformAction(log, authAction);
+    if (!authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: authAction, entity: Entity.LOGGING,
+        module: MODULE_NAME, method: 'checkAndGetLogAuthorization',
+        value: logID,
+      });
+    }
+    return log;
   }
 
   public static async checkUserSitesAuthorization(tenant: Tenant, userToken: UserToken, user: User, siteIDs: string[],

@@ -733,9 +733,12 @@ export default class UserService {
     if (!authorizationUsersFilters.authorized) {
       return Constants.DB_EMPTY_DATA_RESULT;
     }
-    // Get Tag IDs from Visual IDs
+    // Optimization: Get Tag IDs from Visual IDs
     if (filteredRequest.VisualTagID) {
-      const tagIDs = await TagStorage.getTags(req.tenant, { visualIDs: filteredRequest.VisualTagID.split('|') }, Constants.DB_PARAMS_MAX_LIMIT, ['userID']);
+      const tagIDs = await TagStorage.getTags(req.tenant, {
+        visualIDs: filteredRequest.VisualTagID.split('|')
+      },
+      Constants.DB_PARAMS_MAX_LIMIT, ['userID']);
       if (!Utils.isEmptyArray(tagIDs.result)) {
         const userIDs = _.uniq(tagIDs.result.map((tag) => tag.userID));
         filteredRequest.UserID = userIDs.join('|');

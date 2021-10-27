@@ -17,5 +17,6 @@ export interface HttpLogsRequest extends HttpDatabaseRequest {
   Type: LogType;
   Action: string;
   UserID: string;
+  SiteID: string;
   ChargingStationID: string;
 }

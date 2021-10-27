@@ -55,16 +55,18 @@ export default class LoggingStorage {
     }
   }
 
-  public static async getLog(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID, projectFields: string[]): Promise<Log> {
+  public static async getLog(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID,
+      params: { siteIDs?: string[]; } = {}, projectFields: string[]): Promise<Log> {
     const logsMDB = await LoggingStorage.getLogs(tenant, {
-      logIDs: [id]
+      logIDs: [id],
+      siteIDs: params.siteIDs,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return logsMDB.count === 1 ? logsMDB.result[0] : null;
   }
 
   public static async getLogs(tenant: Tenant, params: {
     startDateTime?: Date; endDateTime?: Date; levels?: string[]; sources?: string[]; type?: string; actions?: string[];
-    hosts?: string[]; userIDs?: string[]; chargingStationIDs?: string[]; search?: string; logIDs?: string[];
+    hosts?: string[]; userIDs?: string[]; siteIDs?: string[]; chargingStationIDs?: string[]; search?: string; logIDs?: string[];
   } = {}, dbParams: DbParams, projectFields: string[]): Promise<DataResult<Log>> {
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -117,6 +119,12 @@ export default class LoggingStorage {
     // Host
     if (params.hosts && params.hosts.length > 0) {
       filters.host = { $in: params.hosts };
+    }
+    // Site
+    if (!Utils.isEmptyArray(params.siteIDs)) {
+      filters.siteID = {
+        $in: params.siteIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID))
+      };
     }
     // User
     if (!Utils.isEmptyArray(params.userIDs)) {
