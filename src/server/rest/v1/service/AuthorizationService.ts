@@ -195,6 +195,7 @@ export default class AuthorizationService {
   }
 
   public static async addUsersAuthorizations(tenant: Tenant, userToken: UserToken, users: UserDataResult, authorizationFilter: AuthorizationFilter): Promise<void> {
+    users.metadata = authorizationFilter.metadata;
     users.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.CREATE, authorizationFilter);
     // Enrich
     for (const user of users.result) {
@@ -223,7 +224,7 @@ export default class AuthorizationService {
       filters: {},
       dataSources: new Map(),
       projectFields: [],
-      authorized: false
+      authorized: false,
     };
     // Check static & dynamic authorization
     await AuthorizationService.canPerformAuthorizationAction(
