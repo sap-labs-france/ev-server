@@ -50,7 +50,6 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
                 siteAreaID: chargingStation.siteAreaID,
                 companyID: chargingStation.companyID,
                 chargingStationID: chargingStation.id,
-                source: chargingStation.id,
                 action: ServerAction.OFFLINE_CHARGING_STATION,
                 module: MODULE_NAME, method: 'processTenant',
                 message: 'Offline charging station responded successfully to an OCPP command and will be ignored',

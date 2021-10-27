@@ -20,7 +20,6 @@ import OCPIUtils from '../../../ocpi/OCPIUtils';
 import { ServerAction } from '../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
 import { TenantComponents } from '../../../../types/Tenant';
-import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import UtilsService from './UtilsService';
 
 const MODULE_NAME = 'OCPIEndpointService';
@@ -226,7 +225,6 @@ export default class OCPIEndpointService {
       });
     } else {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'handlePingOcpiEndpoint',
         action,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -260,7 +258,6 @@ export default class OCPIEndpointService {
     const pullLocationsLock = await LockingHelper.createOCPIPullLocationsLock(req.tenant.id, ocpiEndpoint);
     if (!pullLocationsLock) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action,
         errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
         module: MODULE_NAME, method: 'handlePullLocationsEndpoint',
@@ -312,7 +309,6 @@ export default class OCPIEndpointService {
     const pullSessionsLock = await LockingHelper.createOCPIPullSessionsLock(req.tenant.id, ocpiEndpoint);
     if (!pullSessionsLock) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PULL_SESSIONS,
         errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
         message: 'Error in pulling the OCPI Sessions: cannot acquire the lock',
@@ -363,7 +359,6 @@ export default class OCPIEndpointService {
     const pullTokensLock = await LockingHelper.createOCPIPullTokensLock(req.tenant.id, ocpiEndpoint, false);
     if (!pullTokensLock) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PULL_TOKENS,
         errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
         message: 'Error in pulling the OCPI tokens: cannot acquire the lock',
@@ -414,7 +409,6 @@ export default class OCPIEndpointService {
     const pullCdrsLock = await LockingHelper.createOCPIPullCdrsLock(req.tenant.id, ocpiEndpoint);
     if (!pullCdrsLock) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PULL_CDRS,
         errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
         message: 'Error in pulling the OCPI CDRs: cannot acquire the lock',
@@ -465,7 +459,6 @@ export default class OCPIEndpointService {
     const checkCdrsLock = await LockingHelper.createOCPICheckCdrsLock(req.tenant.id, ocpiEndpoint);
     if (!checkCdrsLock) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_CHECK_CDRS,
         errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
         message: 'Error in checking the OCPI CDRs: cannot acquire the lock',
@@ -516,7 +509,6 @@ export default class OCPIEndpointService {
     const checkSessionsLock = await LockingHelper.createOCPICheckSessionsLock(req.tenant.id, ocpiEndpoint);
     if (!checkSessionsLock) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_CHECK_SESSIONS,
         errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
         message: 'Error in checking the OCPI Sessions: cannot acquire the lock',
@@ -567,7 +559,6 @@ export default class OCPIEndpointService {
     const checkLocationsLock = await LockingHelper.createOCPICheckLocationsLock(req.tenant.id, ocpiEndpoint);
     if (!checkLocationsLock) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_CHECK_LOCATIONS,
         errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
         message: 'Error in checking the OCPI Locations: cannot acquire the lock',
@@ -618,7 +609,6 @@ export default class OCPIEndpointService {
     const patchStatusesLock = await LockingHelper.createOCPIPatchEVSEStatusesLock(req.tenant.id, ocpiEndpoint);
     if (!patchStatusesLock) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PATCH_LOCATION,
         errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
         message: 'Error in pushing the OCPI EVSE Statuses: cannot acquire the lock',
@@ -669,7 +659,6 @@ export default class OCPIEndpointService {
     const pushTokensLock = await LockingHelper.createOCPIPushTokensLock(req.tenant.id, ocpiEndpoint);
     if (!pushTokensLock) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action,
         errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
         module: MODULE_NAME, method: 'handlePushTokensOcpiEndpoint',
@@ -734,7 +723,6 @@ export default class OCPIEndpointService {
       // Already unregistered
       if (result.statusCode === 405) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'handleUnregisterOcpiEndpoint',
           action,
           errorCode: HTTPError.OCPI_ENDPOINT_ALREADY_UNREGISTERED,
@@ -742,7 +730,6 @@ export default class OCPIEndpointService {
         });
       }
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'handleUnregisterOcpiEndpoint',
         action,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -789,7 +776,6 @@ export default class OCPIEndpointService {
       // Already registered
       if (result.statusCode === 405) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'handleRegisterOcpiEndpoint',
           action,
           errorCode: HTTPError.OCPI_ENDPOINT_ALREADY_REGISTERED,
@@ -797,7 +783,6 @@ export default class OCPIEndpointService {
         });
       }
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'handleRegisterOcpiEndpoint',
         action,
         errorCode: HTTPError.GENERAL_ERROR,

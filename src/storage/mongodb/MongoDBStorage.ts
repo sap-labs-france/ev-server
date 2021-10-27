@@ -1,4 +1,4 @@
-import { ChangeStreamDocument, Collection, CreateIndexesOptions, Db, GridFSBucket, IndexSpecification, MongoClient, ObjectId, ReadPreferenceMode } from 'mongodb';
+import { ChangeStreamDocument, Collection, CreateIndexesOptions, Db, GridFSBucket, IndexSpecification, MongoClient, ReadPreferenceMode } from 'mongodb';
 import mongoUriBuilder, { MongoUriConfig } from 'mongo-uri-builder';
 
 import BackendError from '../../exception/BackendError';
@@ -37,7 +37,6 @@ export default class MongoDBStorage {
   public getCollection<T>(tenantID: string, collectionName: string): Collection<T> {
     if (!this.database) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'getCollection',
         message: 'Not supposed to call getCollection before database start',
@@ -51,7 +50,6 @@ export default class MongoDBStorage {
       callback: (documentID: unknown, documentChange: DatabaseDocumentChange, document: unknown) => void): Promise<void> {
     if (!this.database) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'watchDatabaseCollection',
         message: 'Database has not yet started',
@@ -62,7 +60,6 @@ export default class MongoDBStorage {
     const dbCollection = this.getCollection(tenant.id, collectionName);
     if (!dbCollection) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'watchDatabaseCollection',
         message: `Database collection '${tenant.id}.${collectionName}' has not been found!`,
@@ -93,7 +90,6 @@ export default class MongoDBStorage {
     // Safety check
     if (!this.database) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'checkAndCreateTenantDatabase',
         message: 'Database has not yet started',
@@ -132,6 +128,8 @@ export default class MongoDBStorage {
       { fields: { action: 1, timestamp: 1 } },
       { fields: { level: 1, timestamp: 1 } },
       { fields: { source: 1, timestamp: 1 } },
+      { fields: { chargingStationID: 1, timestamp: 1 } },
+      { fields: { siteID: 1, timestamp: 1 } },
       { fields: { host: 1, timestamp: 1 } },
       { fields: { message: 'text' } },
     ]);
@@ -217,7 +215,6 @@ export default class MongoDBStorage {
       // Safety check
       if (!this.database) {
         throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
           method: 'deleteTenantDatabase',
           message: 'Not supposed to call deleteTenantDatabase before database start',
@@ -292,7 +289,6 @@ export default class MongoDBStorage {
     // Safety check
     if (!this.database) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'checkDatabase',
         message: 'Not supposed to call checkDatabase before database start',
@@ -396,7 +392,6 @@ export default class MongoDBStorage {
     // Safety check
     if (!this.database) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'handleIndexesInCollection',
         message: 'Not supposed to call handleIndexesInCollection before database start',

@@ -83,7 +83,6 @@ export default class UtilsService {
     // External Charging Station
     if (!chargingStation.issuer) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `ChargingStation Id '${chargingStation.id}' not issued by the organization`,
         module: MODULE_NAME, method: 'checkAndGetChargingStationAuthorization',
@@ -94,7 +93,6 @@ export default class UtilsService {
     // Deleted?
     if (chargingStation?.deleted) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `ChargingStation with ID '${chargingStation.id}' is logically deleted`,
         module: MODULE_NAME,
@@ -135,7 +133,6 @@ export default class UtilsService {
     // External Company
     if (checkIssuer && !company.issuer) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Company '${company.name}' with ID '${company.id}' not issued by the organization`,
         module: MODULE_NAME, method: 'checkAndGetCompanyAuthorization',
@@ -197,7 +194,6 @@ export default class UtilsService {
     // External User
     if (checkIssuer && !user.issuer) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `User '${user.name}' with ID '${user.id}' not issued by the organization`,
         module: MODULE_NAME, method: 'checkAndGetUserAuthorization',
@@ -259,7 +255,6 @@ export default class UtilsService {
     // External Site
     if (checkIssuer && !site.issuer) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Site '${site.name}' with ID '${site.id}' not issued by the organization`,
         module: MODULE_NAME, method: 'checkAndGetSiteAuthorization',
@@ -298,7 +293,6 @@ export default class UtilsService {
     UtilsService.assertIdIsProvided(action, user.id, MODULE_NAME, 'checkUserSitesAuthorization', userToken);
     if (Utils.isEmptyArray(siteIDs)) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Site\'s IDs must be provided',
         module: MODULE_NAME, method: 'checkUserSitesAuthorization',
@@ -343,7 +337,6 @@ export default class UtilsService {
       // External Site
       if (!site.issuer) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `Site ID '${site.id}' not issued by the organization`,
           module: MODULE_NAME, method: 'checkUserSitesAuthorization',
@@ -361,7 +354,6 @@ export default class UtilsService {
     UtilsService.assertIdIsProvided(action, site.id, MODULE_NAME, 'checkSiteUsersAuthorization', userToken);
     if (Utils.isEmptyArray(userIDs)) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The User\'s IDs must be provided',
         module: MODULE_NAME, method: 'checkSiteUsersAuthorization',
@@ -406,7 +398,6 @@ export default class UtilsService {
       // External User
       if (!user.issuer) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `User ID '${user.id}' not issued by the organization`,
           module: MODULE_NAME, method: 'checkSiteUsersAuthorization',
@@ -425,7 +416,6 @@ export default class UtilsService {
     UtilsService.assertIdIsProvided(action, siteArea.id, MODULE_NAME, 'checkSiteAreaAssetsAuthorization', userToken);
     if (Utils.isEmptyArray(assetIDs)) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Asset\'s IDs must be provided',
         module: MODULE_NAME, method: 'checkSiteAreaAssetsAuthorization',
@@ -467,7 +457,6 @@ export default class UtilsService {
       // External Asset
       if (!asset.issuer) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `Asset ID '${asset.id}' not issued by the organization`,
           module: MODULE_NAME, method: 'checkSiteAreaAssetsAuthorization',
@@ -485,7 +474,6 @@ export default class UtilsService {
     UtilsService.assertIdIsProvided(action, siteArea.id, MODULE_NAME, 'checkSiteAreaChargingStationsAuthorization', userToken);
     if (Utils.isEmptyArray(chargingStationIDs)) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Charging Station\'s IDs must be provided',
         module: MODULE_NAME,
@@ -528,7 +516,6 @@ export default class UtilsService {
       // External Charging Station
       if (!chargingStation.issuer) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `Charging Station ID '${chargingStation.id}' not issued by the organization`,
           module: MODULE_NAME, method: 'checkSiteAreaChargingStationsAuthorization',
@@ -570,7 +557,6 @@ export default class UtilsService {
     // External Site Area
     if (checkIssuer && !siteArea.issuer) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Site Area '${siteArea.name}' with ID '${siteArea.id}' not issued by the organization`,
         module: MODULE_NAME, method: 'checkAndGetSiteAreaAuthorization',
@@ -759,7 +745,6 @@ export default class UtilsService {
       // Object does not exist
       throw new AppError({
         action,
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The ID must be provided',
         module: module,
@@ -773,7 +758,6 @@ export default class UtilsService {
     if (!object) {
       throw new AppError({
         action,
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: errorMsg,
         module: module,
@@ -786,7 +770,6 @@ export default class UtilsService {
   public static checkIfOCPIEndpointValid(ocpiEndpoint: Partial<OCPIEndpoint>, req: Request): void {
     if (req.method !== 'POST' && !ocpiEndpoint.id) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The OCPI Endpoint ID is mandatory',
         module: MODULE_NAME,
@@ -795,7 +778,6 @@ export default class UtilsService {
     }
     if (!ocpiEndpoint.name) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The OCPI Endpoint name is mandatory',
         module: MODULE_NAME,
@@ -805,7 +787,6 @@ export default class UtilsService {
     }
     if (!ocpiEndpoint.role) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The OCPI Endpoint role is mandatory',
         module: MODULE_NAME,
@@ -815,7 +796,6 @@ export default class UtilsService {
     }
     if (!ocpiEndpoint.baseUrl) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The OCPI Endpoint base URL is mandatory',
         module: MODULE_NAME,
@@ -825,7 +805,6 @@ export default class UtilsService {
     }
     if (ocpiEndpoint.countryCode && !countries.isValid(ocpiEndpoint.countryCode)) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `The OCPI Endpoint ${ocpiEndpoint.countryCode} country code provided is invalid`,
         module: MODULE_NAME,
@@ -835,7 +814,6 @@ export default class UtilsService {
     }
     if (!ocpiEndpoint.localToken) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The OCPI Endpoint local token is mandatory',
         module: MODULE_NAME,
@@ -845,7 +823,6 @@ export default class UtilsService {
     }
     if (!ocpiEndpoint.token) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The OCPI Endpoint token is mandatory',
         module: MODULE_NAME,
@@ -858,7 +835,6 @@ export default class UtilsService {
   public static checkIfOICPEndpointValid(oicpEndpoint: Partial<OICPEndpoint>, req: Request): void {
     if (req.method !== 'POST' && !oicpEndpoint.id) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The OICP Endpoint ID is mandatory',
         module: MODULE_NAME,
@@ -867,7 +843,6 @@ export default class UtilsService {
     }
     if (!oicpEndpoint.name) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The OICP Endpoint name is mandatory',
         module: MODULE_NAME,
@@ -877,7 +852,6 @@ export default class UtilsService {
     }
     if (!oicpEndpoint.role) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The OICP Endpoint role is mandatory',
         module: MODULE_NAME,
@@ -887,7 +861,6 @@ export default class UtilsService {
     }
     if (!oicpEndpoint.baseUrl) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The OICP Endpoint base URL is mandatory',
         module: MODULE_NAME,
@@ -1034,7 +1007,6 @@ export default class UtilsService {
       filteredRequest: ChargingProfile, req: Request): void {
     if (req.method !== 'POST' && !filteredRequest.id) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Charging Profile ID is mandatory',
         module: MODULE_NAME,
@@ -1043,7 +1015,6 @@ export default class UtilsService {
     }
     if (!Utils.objectHasProperty(filteredRequest, 'chargingStationID')) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.CHARGING_PROFILE_UPDATE,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Charging Station ID is mandatory',
@@ -1053,7 +1024,6 @@ export default class UtilsService {
     }
     if (!Utils.objectHasProperty(filteredRequest, 'connectorID')) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.CHARGING_PROFILE_UPDATE,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Connector ID is mandatory',
@@ -1063,7 +1033,6 @@ export default class UtilsService {
     }
     if (!filteredRequest.profile) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.CHARGING_PROFILE_UPDATE,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Charging Profile is mandatory',
@@ -1075,7 +1044,6 @@ export default class UtilsService {
       !filteredRequest.profile.chargingProfilePurpose || !filteredRequest.profile.chargingProfileKind ||
       !filteredRequest.profile.chargingSchedule) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.CHARGING_PROFILE_UPDATE,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Invalid Charging Profile',
@@ -1085,7 +1053,6 @@ export default class UtilsService {
     }
     if (!filteredRequest.profile.chargingSchedule.chargingSchedulePeriod) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.CHARGING_PROFILE_UPDATE,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Invalid Charging Profile\'s Schedule',
@@ -1095,7 +1062,6 @@ export default class UtilsService {
     }
     if (filteredRequest.profile.chargingSchedule.chargingSchedulePeriod.length === 0) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.CHARGING_PROFILE_UPDATE,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Charging Profile\'s schedule must not be empty',
@@ -1108,7 +1074,6 @@ export default class UtilsService {
       filteredRequest.profile.chargingSchedule.duration * 1000);
     if (!moment(endScheduleDate).isBefore(moment(filteredRequest.profile.chargingSchedule.startSchedule).add('1', 'd').add('1', 'm'))) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.CHARGING_PROFILE_UPDATE,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Charging Profile\'s schedule should not exceed 24 hours',
@@ -1122,7 +1087,6 @@ export default class UtilsService {
       // Check Min
       if (chargingSchedulePeriod.limit < 0) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           action: ServerAction.CHARGING_PROFILE_UPDATE,
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'Charging Schedule is below the min limitation (0A)',
@@ -1134,7 +1098,6 @@ export default class UtilsService {
       // Check Max
       if (chargingSchedulePeriod.limit > maxAmpLimit) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           action: ServerAction.CHARGING_PROFILE_UPDATE,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `Charging Schedule is above the max limitation (${maxAmpLimit}A)`,
@@ -1155,7 +1118,6 @@ export default class UtilsService {
       // Check if properties from charge point match the properties from the connector
       if (connector.voltage && chargePoint.voltage && connector.voltage !== chargePoint.voltage) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           action: ServerAction.CHARGING_STATION_UPDATE_PARAMS,
           errorCode: HTTPError.CHARGE_POINT_NOT_VALID,
           message: 'Charge Point does not match the voltage of its connectors',
@@ -1165,7 +1127,6 @@ export default class UtilsService {
       }
       if (connector.numberOfConnectedPhase && chargePoint.numberOfConnectedPhase && connector.numberOfConnectedPhase !== chargePoint.numberOfConnectedPhase) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           action: ServerAction.CHARGING_STATION_UPDATE_PARAMS,
           errorCode: HTTPError.CHARGE_POINT_NOT_VALID,
           message: 'Charge Point does not match the number of phases of its connectors',
@@ -1175,7 +1136,6 @@ export default class UtilsService {
       }
       if (connector.currentType && chargePoint.currentType && connector.currentType !== chargePoint.currentType) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           action: ServerAction.CHARGING_STATION_UPDATE_PARAMS,
           errorCode: HTTPError.CHARGE_POINT_NOT_VALID,
           message: 'Charge Point does not match the currentType of its connectors',
@@ -1187,7 +1147,6 @@ export default class UtilsService {
       if (chargePoint.sharePowerToAllConnectors || chargePoint.cannotChargeInParallel) {
         if (connector.amperage && chargePoint.amperage && connector.amperage !== chargePoint.amperage) {
           throw new AppError({
-            source: Constants.CENTRAL_SERVER,
             action: ServerAction.CHARGING_STATION_UPDATE_PARAMS,
             errorCode: HTTPError.CHARGE_POINT_NOT_VALID,
             message: 'Charge Points amperage does not equal the amperage of the connectors (shared power between connectors)',
@@ -1197,7 +1156,6 @@ export default class UtilsService {
         }
         if (connector.power && chargePoint.power && connector.power !== chargePoint.power) {
           throw new AppError({
-            source: Constants.CENTRAL_SERVER,
             action: ServerAction.CHARGING_STATION_UPDATE_PARAMS,
             errorCode: HTTPError.CHARGE_POINT_NOT_VALID,
             message: 'Charge Points power does not equal the power of the connectors (shared power between connectors)',
@@ -1212,7 +1170,6 @@ export default class UtilsService {
     }
     if (chargePointAmperage > 0 && chargePointAmperage !== chargePoint.amperage) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.CHARGING_STATION_UPDATE_PARAMS,
         errorCode: HTTPError.CHARGE_POINT_NOT_VALID,
         message: `Charge Points amperage ${chargePoint.amperage}A does not match the combined amperage of the connectors ${chargePointPower}A`,
@@ -1222,7 +1179,6 @@ export default class UtilsService {
     }
     if (chargePointPower > 0 && chargePointPower !== chargePoint.power) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.CHARGING_STATION_UPDATE_PARAMS,
         errorCode: HTTPError.CHARGE_POINT_NOT_VALID,
         message: `Charge Points power ${chargePoint.power}W does not match the combined power of the connectors ${chargePointPower}W`,
@@ -1235,7 +1191,6 @@ export default class UtilsService {
   public static checkIfSiteValid(site: Partial<Site>, req: Request): void {
     if (req.method !== 'POST' && !site.id) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site ID is mandatory',
         module: MODULE_NAME, method: 'checkIfSiteValid',
@@ -1244,7 +1199,6 @@ export default class UtilsService {
     }
     if (!site.name) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site Name is mandatory',
         module: MODULE_NAME, method: 'checkIfSiteValid',
@@ -1253,7 +1207,6 @@ export default class UtilsService {
     }
     if (!site.companyID) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Company ID is mandatory for the Site',
         module: MODULE_NAME, method: 'checkIfSiteValid',
@@ -1265,7 +1218,6 @@ export default class UtilsService {
   public static checkIfSiteAreaValid(siteArea: Partial<SiteArea>, req: Request): void {
     if (req.method !== 'POST' && !siteArea.id) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site Area ID is mandatory',
         module: MODULE_NAME, method: 'checkIfSiteAreaValid',
@@ -1274,7 +1226,6 @@ export default class UtilsService {
     }
     if (!siteArea.name) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site Area name is mandatory',
         module: MODULE_NAME, method: 'checkIfSiteAreaValid',
@@ -1283,7 +1234,6 @@ export default class UtilsService {
     }
     if (!siteArea.siteID) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site ID is mandatory',
         module: MODULE_NAME, method: 'checkIfSiteAreaValid',
@@ -1293,7 +1243,6 @@ export default class UtilsService {
     // Power
     if (siteArea.maximumPower <= 0) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Site maximum power must be a positive number but got ${siteArea.maximumPower} kW`,
         module: MODULE_NAME, method: 'checkIfSiteAreaValid',
@@ -1302,7 +1251,6 @@ export default class UtilsService {
     }
     if (siteArea.voltage !== Voltage.VOLTAGE_230 && siteArea.voltage !== Voltage.VOLTAGE_110) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Site voltage must be either 110V or 230V but got ${siteArea.voltage as number}V`,
         module: MODULE_NAME, method: 'checkIfSiteAreaValid',
@@ -1311,7 +1259,6 @@ export default class UtilsService {
     }
     if (siteArea.numberOfPhases !== 1 && siteArea.numberOfPhases !== 3) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Site area number of phases must be either 1 or 3 but got ${siteArea.numberOfPhases}`,
         module: MODULE_NAME, method: 'checkIfSiteAreaValid',
@@ -1323,7 +1270,6 @@ export default class UtilsService {
   public static checkIfAssetValid(asset: Partial<Asset>, req: Request): void {
     if (req.method !== 'POST' && !asset.id) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Asset ID is mandatory',
         module: MODULE_NAME, method: 'checkIfAssetValid',
@@ -1332,7 +1278,6 @@ export default class UtilsService {
     }
     if (!asset.name) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Asset Name is mandatory',
         module: MODULE_NAME, method: 'checkIfAssetValid',
@@ -1341,7 +1286,6 @@ export default class UtilsService {
     }
     if (!asset.siteAreaID) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Asset Site Area is mandatory',
         module: MODULE_NAME, method: 'checkIfAssetValid',
@@ -1350,7 +1294,6 @@ export default class UtilsService {
     }
     if (!asset.assetType) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Asset type is mandatory',
         module: MODULE_NAME, method: 'checkIfAssetValid',
@@ -1359,7 +1302,6 @@ export default class UtilsService {
     }
     if (!(typeof asset.staticValueWatt === 'number')) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Fallback value must be of type number',
         module: MODULE_NAME, method: 'checkIfAssetValid',
@@ -1369,7 +1311,6 @@ export default class UtilsService {
     if (Utils.objectHasProperty(asset, 'fluctuationPercent')) {
       if (!(typeof asset.fluctuationPercent === 'number') || asset.fluctuationPercent < 0 || asset.fluctuationPercent > 100) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'Fluctuation percentage should be between 0 and 100',
           module: MODULE_NAME, method: 'checkIfAssetValid',
@@ -1380,7 +1321,6 @@ export default class UtilsService {
     if (asset.dynamicAsset) {
       if (!asset.connectionID && !asset.usesPushAPI) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'Asset connection is mandatory, if it is not using push API',
           module: MODULE_NAME, method: 'checkIfAssetValid',
@@ -1389,7 +1329,6 @@ export default class UtilsService {
       }
       if (!asset.meterID && !asset.usesPushAPI) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'Asset meter ID is mandatory, if it is not using push API',
           module: MODULE_NAME, method: 'checkIfAssetValid',
@@ -1403,7 +1342,6 @@ export default class UtilsService {
     // Check badge ID
     if (!tag.id) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Tag ID is mandatory',
         module: MODULE_NAME, method: 'checkIfUserTagIsValid',
@@ -1413,7 +1351,6 @@ export default class UtilsService {
     // Check badge visual ID
     if (!tag.visualID) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Tag visual ID is mandatory',
         module: MODULE_NAME, method: 'checkIfUserTagIsValid',
@@ -1427,7 +1364,6 @@ export default class UtilsService {
     // Check user activation
     if (!Utils.objectHasProperty(tag, 'active')) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Tag Active property is mandatory',
         module: MODULE_NAME, method: 'checkIfUserTagIsValid',
@@ -1440,7 +1376,6 @@ export default class UtilsService {
     const tenantID = req.user.tenantID;
     if (!tenantID) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Tenant is mandatory',
         module: MODULE_NAME,
@@ -1451,7 +1386,6 @@ export default class UtilsService {
     // Update model?
     if (req.method !== 'POST' && !filteredRequest.id) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'User ID is mandatory',
         module: MODULE_NAME,
@@ -1474,7 +1408,6 @@ export default class UtilsService {
     if ((filteredRequest.role !== UserRole.BASIC) && (filteredRequest.role !== UserRole.DEMO) &&
       !Authorizations.isAdmin(req.user) && !Authorizations.isSuperAdmin(req.user)) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Only Admins can assign the role '${Utils.getRoleNameFromRoleID(filteredRequest.role)}'`,
         module: MODULE_NAME,
@@ -1486,7 +1419,6 @@ export default class UtilsService {
     // Only Basic, Demo, Admin user other Tenants (!== default)
     if (tenantID !== 'default' && filteredRequest.role && filteredRequest.role === UserRole.SUPER_ADMIN) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'User cannot have the Super Admin role in this Tenant',
         module: MODULE_NAME,
@@ -1499,7 +1431,6 @@ export default class UtilsService {
     if ((filteredRequest.role === UserRole.ADMIN || filteredRequest.role === UserRole.SUPER_ADMIN) &&
       !Authorizations.isAdmin(req.user) && !Authorizations.isSuperAdmin(req.user)) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `User without role Admin or Super Admin tried to ${filteredRequest.id ? 'update' : 'create'} an User with the '${Utils.getRoleNameFromRoleID(filteredRequest.role)}' role`,
         module: MODULE_NAME,
@@ -1510,7 +1441,6 @@ export default class UtilsService {
     }
     if (req.method === 'POST' && !filteredRequest.name) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'User Last Name is mandatory',
         module: MODULE_NAME,
@@ -1521,7 +1451,6 @@ export default class UtilsService {
     }
     if (req.method === 'POST' && !filteredRequest.email) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'User Email is mandatory',
         module: MODULE_NAME,
@@ -1532,7 +1461,6 @@ export default class UtilsService {
     }
     if (req.method === 'POST' && !Utils.isUserEmailValid(filteredRequest.email)) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `User Email '${filteredRequest.email}' is not valid`,
         module: MODULE_NAME,
@@ -1544,7 +1472,6 @@ export default class UtilsService {
     // Check for password requirement and validity if user is created
     if (req.method === 'POST' && (!filteredRequest.password || !Utils.isPasswordValid(filteredRequest.password))) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'User Password is empty or not valid',
         module: MODULE_NAME,
@@ -1556,7 +1483,6 @@ export default class UtilsService {
     // Check for password validity if user's password is updated
     if (req.method === 'PUT' && filteredRequest.password && !Utils.isPasswordValid(filteredRequest.password)) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'User Password is not valid',
         module: MODULE_NAME,
@@ -1567,7 +1493,6 @@ export default class UtilsService {
     }
     if (filteredRequest.phone && !Utils.isPhoneValid(filteredRequest.phone)) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `User Phone '${filteredRequest.phone}' is not valid`,
         module: MODULE_NAME,
@@ -1578,7 +1503,6 @@ export default class UtilsService {
     }
     if (filteredRequest.mobile && !Utils.isPhoneValid(filteredRequest.mobile)) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `User Mobile '${filteredRequest.mobile}' is not valid`,
         module: MODULE_NAME,
@@ -1589,7 +1513,6 @@ export default class UtilsService {
     }
     if (filteredRequest.plateID && !Utils.isPlateIDValid(filteredRequest.plateID)) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `User Plate ID '${filteredRequest.plateID}' is not valid`,
         module: MODULE_NAME,
@@ -1603,7 +1526,6 @@ export default class UtilsService {
   public static checkIfCarValid(car: Partial<Car>, req: Request): void {
     if (req.method !== 'POST' && !car.id) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Car ID is mandatory',
         module: MODULE_NAME, method: 'checkIfCarValid',
@@ -1612,7 +1534,6 @@ export default class UtilsService {
     }
     if (!car.vin) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Vin Car is mandatory',
         module: MODULE_NAME, method: 'checkIfCarValid',
@@ -1621,7 +1542,6 @@ export default class UtilsService {
     }
     if (!car.licensePlate) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'License Plate is mandatory',
         module: MODULE_NAME, method: 'checkIfCarValid',
@@ -1630,7 +1550,6 @@ export default class UtilsService {
     }
     if (!Utils.isPlateIDValid(car.licensePlate)) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Car License Plate ID '${car.licensePlate}' is not valid`,
         module: MODULE_NAME, method: 'checkIfCarValid',
@@ -1640,7 +1559,6 @@ export default class UtilsService {
     }
     if (!car.carCatalogID) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Car Catalog ID is mandatory',
         module: MODULE_NAME, method: 'checkIfCarValid',
@@ -1649,7 +1567,6 @@ export default class UtilsService {
     }
     if (!car.type) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Car type is mandatory',
         module: MODULE_NAME, method: 'checkIfCarValid',
@@ -1658,7 +1575,6 @@ export default class UtilsService {
     }
     if (!car.converter) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Car Converter is mandatory',
         module: MODULE_NAME, method: 'checkIfCarValid',
@@ -1667,7 +1583,6 @@ export default class UtilsService {
     }
     if (!car.converter.amperagePerPhase) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Car Converter amperage per phase is mandatory',
         module: MODULE_NAME, method: 'checkIfCarValid',
@@ -1676,7 +1591,6 @@ export default class UtilsService {
     }
     if (!car.converter.numberOfPhases) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Car Converter number of phases is mandatory',
         module: MODULE_NAME, method: 'checkIfCarValid',
@@ -1685,7 +1599,6 @@ export default class UtilsService {
     }
     if (!car.converter.powerWatts) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Car Converter power is mandatory',
         module: MODULE_NAME, method: 'checkIfCarValid',
@@ -1694,7 +1607,6 @@ export default class UtilsService {
     }
     if (!car.converter.type) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Car Converter type is mandatory',
         module: MODULE_NAME, method: 'checkIfCarValid',
@@ -1710,7 +1622,6 @@ export default class UtilsService {
     if (sensitivePropertyNames) {
       if (!Array.isArray(sensitivePropertyNames)) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.CYPHER_INVALID_SENSITIVE_DATA_ERROR,
           message: 'Unexpected situation - sensitiveData is not an array',
           module: MODULE_NAME,
@@ -1739,7 +1650,6 @@ export default class UtilsService {
           }
         } else {
           throw new AppError({
-            source: Constants.CENTRAL_SERVER,
             errorCode: HTTPError.CYPHER_INVALID_SENSITIVE_DATA_ERROR,
             message: `The property '${propertyName}' is not set`,
             module: MODULE_NAME,
@@ -1756,7 +1666,6 @@ export default class UtilsService {
     if (sensitivePropertyNames) {
       if (!Array.isArray(sensitivePropertyNames)) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.CYPHER_INVALID_SENSITIVE_DATA_ERROR,
           message: 'Unexpected situation - sensitiveData is not an array',
           module: MODULE_NAME,
@@ -1808,7 +1717,6 @@ export default class UtilsService {
     // External Tag
     if (checkIssuer && !tag.issuer) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Tag ID '${tag.id}' not issued by the organization`,
         module: MODULE_NAME, method: 'checkAndGetTagByXXXAuthorization',

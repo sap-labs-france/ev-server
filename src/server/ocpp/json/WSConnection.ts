@@ -63,7 +63,6 @@ export default abstract class WSConnection {
     const chargingStationConnectionLock = await LockingHelper.acquireChargingStationConnectionLock(this.getTenantID());
     if (!chargingStationConnectionLock) {
       throw new BackendError({
-        source: this.getChargingStationID(),
         chargingStationID: this.getChargingStationID(),
         module: MODULE_NAME, method: 'initialize',
         message: 'Cannot acquire a lock on the Charging Station\'s connection'
@@ -108,7 +107,6 @@ export default abstract class WSConnection {
             [responseCallback] = this.requests[messageId];
           } else {
             throw new BackendError({
-              source: this.getChargingStationID(),
               chargingStationID: this.getChargingStationID(),
               siteID: this.getSiteID(),
               siteAreaID: this.getSiteAreaID(),
@@ -122,7 +120,6 @@ export default abstract class WSConnection {
           if (!responseCallback) {
             // Error
             throw new BackendError({
-              source: this.getChargingStationID(),
               chargingStationID: this.getChargingStationID(),
               siteID: this.getSiteID(),
               siteAreaID: this.getSiteAreaID(),
@@ -150,7 +147,6 @@ export default abstract class WSConnection {
           if (!this.requests[messageId]) {
             // Error
             throw new BackendError({
-              source: this.getChargingStationID(),
               chargingStationID: this.getChargingStationID(),
               siteID: this.getSiteID(),
               siteAreaID: this.getSiteAreaID(),
@@ -165,7 +161,6 @@ export default abstract class WSConnection {
             [, rejectCallback] = this.requests[messageId];
           } else {
             throw new BackendError({
-              source: this.getChargingStationID(),
               chargingStationID: this.getChargingStationID(),
               siteID: this.getSiteID(),
               siteAreaID: this.getSiteAreaID(),
@@ -178,7 +173,6 @@ export default abstract class WSConnection {
           }
           delete this.requests[messageId];
           rejectCallback(new OCPPError({
-            source: this.getChargingStationID(),
             chargingStationID: this.getChargingStationID(),
             siteID: this.getSiteID(),
             siteAreaID: this.getSiteAreaID(),
@@ -193,7 +187,6 @@ export default abstract class WSConnection {
         // Error
         default:
           throw new BackendError({
-            source: this.getChargingStationID(),
             chargingStationID: this.getChargingStationID(),
             siteID: this.getSiteID(),
             siteAreaID: this.getSiteAreaID(),
@@ -211,7 +204,6 @@ export default abstract class WSConnection {
         siteAreaID: this.siteAreaID,
         companyID: this.companyID,
         chargingStationID: this.chargingStationID,
-        source: this.chargingStationID,
         action: OCPPUtils.buildServerActionFromOcppCommand(command),
         message: `${error.message as string}`,
         module: MODULE_NAME, method: 'onMessage',
@@ -402,7 +394,6 @@ export default abstract class WSConnection {
         siteAreaID: this.siteAreaID,
         companyID: this.companyID,
         chargingStationID: this.chargingStationID,
-        source: this.chargingStationID,
         action: action,
         module: MODULE_NAME, method: 'constructor',
         message: `REST service connection to Charging Station with URL: '${req.url}'`,
@@ -415,7 +406,6 @@ export default abstract class WSConnection {
         siteAreaID: this.siteAreaID,
         companyID: this.companyID,
         chargingStationID: this.chargingStationID,
-        source: this.chargingStationID,
         action: action,
         module: MODULE_NAME, method: 'constructor',
         message: `Charging Station connection with URL: '${req.url}'`,
@@ -428,7 +418,6 @@ export default abstract class WSConnection {
         siteAreaID: this.siteAreaID,
         companyID: this.companyID,
         chargingStationID: this.chargingStationID,
-        source: this.chargingStationID,
         action: action,
         module: MODULE_NAME, method: 'constructor',
         message: `Unknown connection attempts with URL: '${req.url}'`,

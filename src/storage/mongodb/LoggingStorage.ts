@@ -7,7 +7,6 @@ import DbParams from '../../types/database/DbParams';
 import { Log } from '../../types/Log';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
-import cluster from 'cluster';
 
 export default class LoggingStorage {
   public static async deleteLogs(tenant: Tenant, deleteUpToDate: Date): Promise<DeletedResult> {
@@ -41,7 +40,6 @@ export default class LoggingStorage {
       siteAreaID: DatabaseUtils.convertToObjectID(logToSave.siteAreaID),
       source: logToSave.source,
       host: logToSave.host ? logToSave.host : Utils.getHostName(),
-      process: logToSave.process ? logToSave.process : (cluster.isWorker ? 'worker ' + cluster.worker.id.toString() : 'master'),
       type: logToSave.type,
       timestamp: Utils.convertToDate(logToSave.timestamp),
       module: logToSave.module,
@@ -66,7 +64,7 @@ export default class LoggingStorage {
 
   public static async getLogs(tenant: Tenant, params: {
     startDateTime?: Date; endDateTime?: Date; levels?: string[]; sources?: string[]; type?: string; actions?: string[];
-    hosts?: string[]; userIDs?: string[]; search?: string; logIDs?: string[];
+    hosts?: string[]; userIDs?: string[]; chargingStationIDs?: string[]; search?: string; logIDs?: string[];
   } = {}, dbParams: DbParams, projectFields: string[]): Promise<DataResult<Log>> {
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -93,6 +91,12 @@ export default class LoggingStorage {
       if (params.endDateTime) {
         filters.timestamp.$lte = Utils.convertToDate(params.endDateTime);
       }
+    }
+    // ID
+    if (!Utils.isEmptyArray(params.logIDs)) {
+      filters._id = {
+        $in: params.logIDs.map((logID) => DatabaseUtils.convertToObjectID(logID))
+      };
     }
     // Level
     if (params.levels && params.levels.length > 0) {
@@ -121,10 +125,10 @@ export default class LoggingStorage {
         { actionOnUserID: { $in: params.userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID)) } }
       ];
     }
-    // ID
-    if (!Utils.isEmptyArray(params.logIDs)) {
-      filters._id = {
-        $in: params.logIDs.map((logID) => DatabaseUtils.convertToObjectID(logID))
+    // Charging Station
+    if (!Utils.isEmptyArray(params.chargingStationIDs)) {
+      filters.chargingStationID = {
+        $in: params.chargingStationIDs
       };
     }
     // Create Aggregation

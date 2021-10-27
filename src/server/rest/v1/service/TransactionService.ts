@@ -27,7 +27,6 @@ import { RefundStatus } from '../../../../types/Refund';
 import { ServerAction } from '../../../../types/Server';
 import SynchronizeRefundTransactionsTask from '../../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
-import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import TransactionValidator from '../validator/TransactionValidator';
 import User from '../../../../types/User';
@@ -87,7 +86,6 @@ export default class TransactionService {
     if (!filteredRequest.transactionsIDs) {
       // Not Found!
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Transaction IDs must be provided',
         module: MODULE_NAME, method: 'handleRefundTransactions',
@@ -139,7 +137,6 @@ export default class TransactionService {
     const refundConnector = await RefundFactory.getRefundImpl(req.tenant);
     if (!refundConnector) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'No Refund Implementation Found',
         module: MODULE_NAME, method: 'handleRefundTransactions',
@@ -151,7 +148,6 @@ export default class TransactionService {
       await refundConnector.checkConnection(req.user.id);
     } catch (error) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.REFUND_CONNECTION_ERROR,
         message: 'No Refund valid connection found',
         module: MODULE_NAME, method: 'handleRefundTransactions',
@@ -199,7 +195,6 @@ export default class TransactionService {
     // Check Issuer
     if (!transaction.issuer) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.TRANSACTION_NOT_FROM_TENANT,
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction belongs to an external organization`,
         module: MODULE_NAME, method: 'handlePushTransactionCdr',
@@ -209,7 +204,6 @@ export default class TransactionService {
     // No Roaming Cdr to push
     if (!transaction.oicpData?.session && !transaction.ocpiData?.session) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.TRANSACTION_WITH_NO_OCPI_DATA,
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} No OCPI or OICP Session data`,
         module: MODULE_NAME, method: 'handlePushTransactionCdr',
@@ -221,7 +215,6 @@ export default class TransactionService {
       // CDR already pushed
       if (transaction.ocpiData.cdr?.id) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.TRANSACTION_CDR_ALREADY_PUSHED,
           message: `The CDR of the Transaction ID '${transaction.id}' has already been pushed`,
           module: MODULE_NAME, method: 'handlePushTransactionCdr',
@@ -256,7 +249,6 @@ export default class TransactionService {
       // CDR already pushed
       if (transaction.oicpData.cdr?.SessionID) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.TRANSACTION_CDR_ALREADY_PUSHED,
           message: `The CDR of the transaction ID '${transaction.id}' has already been pushed`,
           module: MODULE_NAME, method: 'handlePushTransactionCdr',
@@ -364,7 +356,6 @@ export default class TransactionService {
       await ChargingStationStorage.saveChargingStationConnectors(req.tenant, chargingStation.id, chargingStation.connectors);
       await Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
-        source: chargingStation.id,
         user: req.user, actionOnUser: transaction.userID,
         module: MODULE_NAME, method: 'handleTransactionSoftStop',
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has already been stopped and connector has been cleaned`,
@@ -391,7 +382,6 @@ export default class TransactionService {
       );
       if (result.idTagInfo?.status !== OCPPAuthorizationStatus.ACCEPTED) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction cannot be stopped`,
           module: MODULE_NAME, method: 'handleTransactionSoftStop',
@@ -400,7 +390,6 @@ export default class TransactionService {
       }
       await Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
-        source: chargingStation.id,
         user: req.user, actionOnUser: transaction.userID,
         module: MODULE_NAME, method: 'handleTransactionSoftStop',
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has been stopped successfully`,
@@ -479,7 +468,6 @@ export default class TransactionService {
     if (filteredRequest.StartDateTime && filteredRequest.EndDateTime &&
       moment(filteredRequest.StartDateTime).isAfter(moment(filteredRequest.EndDateTime))) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `The requested start date '${new Date(filteredRequest.StartDateTime).toISOString()}' is after the requested end date '${new Date(filteredRequest.StartDateTime).toISOString()}' `,
         module: MODULE_NAME, method: 'handleGetConsumptionFromTransaction',
@@ -755,7 +743,6 @@ export default class TransactionService {
     // Check
     if (!transaction?.ocpiData) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Transaction ID '${transaction.id}' does not contain roaming data`,
         module: MODULE_NAME, method: 'handleExportTransactionOcpiCdr',

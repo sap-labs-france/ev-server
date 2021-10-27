@@ -1,4 +1,5 @@
-import { ServerAction } from './Server';
+import { ServerAction, ServerType } from './Server';
+
 import User from './User';
 import UserToken from './UserToken';
 
@@ -10,9 +11,8 @@ export interface Log {
   siteAreaID?: string;
   siteID?: string;
   companyID?: string;
-  source?: string;
+  source?: ServerType;
   host?: string;
-  process?: string;
   module: string;
   method: string;
   timestamp?: Date;

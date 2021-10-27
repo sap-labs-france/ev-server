@@ -403,7 +403,6 @@ export default class DatabaseUtils {
   public static checkTenantObject(tenant: Tenant): void {
     if (!tenant) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'checkTenantObject',
         message: 'Invalid Tenant'

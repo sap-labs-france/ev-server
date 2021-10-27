@@ -743,7 +743,6 @@ export default class Authorizations {
       // Check Site Area
       if (!chargingStation.siteAreaID || !chargingStation.siteArea) {
         throw new BackendError({
-          source: chargingStation.id,
           chargingStationID: chargingStation.id,
           siteID: chargingStation.siteID,
           siteAreaID: chargingStation.siteAreaID,
@@ -757,7 +756,6 @@ export default class Authorizations {
       // Check Site
       if (!chargingStation.siteID) {
         throw new BackendError({
-          source: chargingStation.id,
           chargingStationID: chargingStation.id,
           siteID: chargingStation.siteID,
           siteAreaID: chargingStation.siteAreaID,
@@ -913,7 +911,6 @@ export default class Authorizations {
               siteAreaID: chargingStation.siteAreaID,
               companyID: chargingStation.companyID,
               chargingStationID: chargingStation.id,
-              source: chargingStation.id,
               tenantID: tenant.id, action,
               message: `${Utils.buildConnectorInfo(connector.connectorId, transaction?.id)} Valid Remote Authorization found for Tag ID '${tag.ocpiToken.uid}'`,
               module: MODULE_NAME, method: 'checkOCPIAuthorizedUser',
@@ -944,7 +941,6 @@ export default class Authorizations {
     // User status
     if (user.status !== UserStatus.ACTIVE) {
       throw new BackendError({
-        source: chargingStation.id,
         chargingStationID: chargingStation.id,
         siteID: chargingStation.siteID,
         siteAreaID: chargingStation.siteAreaID,
@@ -972,7 +968,6 @@ export default class Authorizations {
       };
       if (!await Authorizations.canPerformActionOnChargingStation(userToken, authAction, chargingStation, context)) {
         throw new BackendError({
-          source: chargingStation.id,
           chargingStationID: chargingStation.id,
           siteID: chargingStation.siteID,
           siteAreaID: chargingStation.siteAreaID,
@@ -1014,7 +1009,6 @@ export default class Authorizations {
       }
     ).catch(() => { });
     throw new BackendError({
-      source: chargingStation.id,
       chargingStationID: chargingStation.id,
       siteID: chargingStation.siteID,
       siteAreaID: chargingStation.siteAreaID,
@@ -1058,7 +1052,6 @@ export default class Authorizations {
       // Inactive Tag
       if (!tag.active) {
         throw new BackendError({
-          source: chargingStation.id,
           chargingStationID: chargingStation.id,
           siteID: chargingStation.siteID,
           siteAreaID: chargingStation.siteAreaID,
@@ -1073,7 +1066,6 @@ export default class Authorizations {
       // No User
       if (!tag.user) {
         throw new BackendError({
-          source: chargingStation.id,
           chargingStationID: chargingStation.id,
           siteID: chargingStation.siteID,
           siteAreaID: chargingStation.siteAreaID,

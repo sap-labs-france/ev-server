@@ -1,7 +1,6 @@
 import { HttpTenantLogoRequest, HttpTenantRequest, HttpTenantsRequest } from '../../../../types/requests/HttpTenantRequest';
 
 import AppError from '../../../../exception/AppError';
-import Constants from '../../../../utils/Constants';
 import { HTTPError } from '../../../../types/HTTPError';
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from '../../../../validator/SchemaValidator';
@@ -63,7 +62,6 @@ export default class TenantValidator extends SchemaValidator {
       if (tenant.components.oicp && tenant.components.ocpi &&
           tenant.components.oicp.active && tenant.components.ocpi.active) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'Both OICP and OCPI roaming components cannot be active',
           module: this.moduleName, method: 'validateComponentDependencies'
@@ -73,7 +71,6 @@ export default class TenantValidator extends SchemaValidator {
       if (tenant.components.smartCharging && tenant.components.organization &&
           tenant.components.smartCharging.active && !tenant.components.organization.active) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'Organization must be active to use the Smart Charging component',
           module: this.moduleName, method: 'validateComponentDependencies'
@@ -83,7 +80,6 @@ export default class TenantValidator extends SchemaValidator {
       if (tenant.components.asset && tenant.components.organization &&
         tenant.components.asset.active && !tenant.components.organization.active) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'Organization must be active to use the Asset component',
           module: this.moduleName, method: 'validateComponentDependencies'
@@ -93,7 +89,6 @@ export default class TenantValidator extends SchemaValidator {
       if (tenant.components.carConnector && tenant.components.car &&
         tenant.components.carConnector.active && !tenant.components.car.active) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'Car must be active to use the Car Connector component',
           module: this.moduleName, method: 'validateComponentDependencies'
@@ -103,7 +98,6 @@ export default class TenantValidator extends SchemaValidator {
       if (tenant.components.billing && tenant.components.pricing &&
           tenant.components.billing.active && !tenant.components.pricing.active) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'Pricing must be active to use the Billing component',
           module: this.moduleName, method: 'validateComponentDependencies'
@@ -113,7 +107,6 @@ export default class TenantValidator extends SchemaValidator {
       if (tenant.components.refund && tenant.components.pricing &&
           tenant.components.refund.active && !tenant.components.pricing.active) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'Pricing must be active to use the Refund component',
           module: this.moduleName, method: 'validateComponentDependencies'

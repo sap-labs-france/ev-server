@@ -459,7 +459,6 @@ export default class ChargingStationStorage {
       if (!Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)
         && params.errorType.includes(ChargingStationInErrorType.MISSING_SITE_AREA)) {
         throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
           method: 'getChargingStationsInError',
           message: 'Organization is not active whereas filter is on missing site.'

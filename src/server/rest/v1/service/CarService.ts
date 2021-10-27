@@ -156,7 +156,6 @@ export default class CarService {
     const syncCarCatalogsLock = await LockingHelper.acquireSyncCarCatalogsLock(Constants.DEFAULT_TENANT);
     if (!syncCarCatalogsLock) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: action,
         errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
         module: MODULE_NAME, method: 'handleSynchronizeCarCatalogs',
@@ -232,7 +231,6 @@ export default class CarService {
       filteredRequest.licensePlate, filteredRequest.vin);
     if (car) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.CAR_ALREADY_EXIST_ERROR,
         message: `The Car with VIN: '${filteredRequest.vin}' and License plate: '${filteredRequest.licensePlate}' already exist`,
         user: req.user,
@@ -304,7 +302,6 @@ export default class CarService {
         req.tenant, filteredRequest.licensePlate, filteredRequest.vin);
       if (sameCar) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.CAR_ALREADY_EXIST_ERROR,
           message: `Car with VIN '${filteredRequest.vin}' and License Plate '${filteredRequest.licensePlate}' already exists`,
           user: req.user,

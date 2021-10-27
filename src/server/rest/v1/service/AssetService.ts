@@ -56,7 +56,6 @@ export default class AssetService {
     // Check dates
     if (!filteredRequest.StartDate || !filteredRequest.EndDate) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Start date and end date must be provided',
         module: MODULE_NAME, method: 'handleGetAssetConsumption',
@@ -68,7 +67,6 @@ export default class AssetService {
     if (filteredRequest.StartDate && filteredRequest.EndDate &&
         moment(filteredRequest.StartDate).isAfter(moment(filteredRequest.EndDate))) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `The requested start date '${filteredRequest.StartDate.toISOString()}' is after the end date '${filteredRequest.EndDate.toISOString()}' `,
         module: MODULE_NAME, method: 'handleGetAssetConsumption',
@@ -114,7 +112,6 @@ export default class AssetService {
     // Check if connection ID exists
     if (!Utils.isNullOrUndefined(asset.connectionID)) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `The asset '${asset.name}' has a defined connection. The push API can not be used`,
         module: MODULE_NAME, method: 'handleCreateAssetConsumption',
@@ -126,7 +123,6 @@ export default class AssetService {
     if (filteredRequest.startedAt && filteredRequest.endedAt &&
         !moment(filteredRequest.endedAt).isAfter(moment(filteredRequest.startedAt))) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `The requested start date '${moment(filteredRequest.startedAt).toISOString()}' is after the end date '${moment(filteredRequest.endedAt).toISOString()}' `,
         module: MODULE_NAME, method: 'handleCreateAssetConsumption',
@@ -139,7 +135,6 @@ export default class AssetService {
     if (!Utils.isNullOrUndefined(lastConsumption)) {
       if (moment(filteredRequest.startedAt).isBefore(moment(lastConsumption.endedAt))) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `The start date '${moment(filteredRequest.startedAt).toISOString()}' of the pushed consumption is before the end date '${moment(lastConsumption.endedAt).toISOString()}' of the latest asset consumption`,
           module: MODULE_NAME, method: 'handleCreateAssetConsumption',
@@ -202,7 +197,6 @@ export default class AssetService {
     // Asset has unknown connection type
     if (!assetImpl) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Asset service is not configured',
         module: MODULE_NAME, method: 'handleCheckAssetConnection',
@@ -263,7 +257,6 @@ export default class AssetService {
     // Dynamic asset ?
     if (!asset.dynamicAsset) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         module: MODULE_NAME, method: 'handleRetrieveConsumption',
         action: action,
@@ -275,7 +268,6 @@ export default class AssetService {
     // Uses Push API
     if (asset.usesPushAPI) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         module: MODULE_NAME, method: 'handleRetrieveConsumption',
         action: action,
@@ -288,7 +280,6 @@ export default class AssetService {
     const assetImpl = await AssetFactory.getAssetImpl(req.tenant, asset.connectionID);
     if (!assetImpl) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Asset service is not configured',
         module: MODULE_NAME, method: 'handleRetrieveConsumption',
@@ -390,7 +381,6 @@ export default class AssetService {
       MODULE_NAME, 'handleDeleteAsset', req.user);
     if (!asset.issuer) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Asset '${asset.id}' not issued by the organization`,
         module: MODULE_NAME, method: 'handleUpdateAsset',
@@ -600,7 +590,6 @@ export default class AssetService {
       MODULE_NAME, 'handleUpdateAsset', req.user);
     if (!asset.issuer) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Asset '${asset.id}' not issued by the organization`,
         module: MODULE_NAME, method: 'handleUpdateAsset',

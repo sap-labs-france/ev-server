@@ -242,8 +242,6 @@ export default class Constants {
 
   public static readonly CHARGING_STATION_CONFIGURATION = 'Configuration';
 
-  public static readonly CENTRAL_SERVER = 'CentralServer';
-
   public static readonly OCPI_SEPARATOR = '*';
   public static readonly OCPI_RECORDS_LIMIT = 25;
   public static readonly OCPI_MAX_PARALLEL_REQUESTS = 2;

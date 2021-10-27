@@ -198,7 +198,6 @@ export default class SettingService {
     if (settingUpdate.sensitiveData) {
       if (!Array.isArray(settingUpdate.sensitiveData)) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.CYPHER_INVALID_SENSITIVE_DATA_ERROR,
           message: `The property 'sensitiveData' for Setting with ID '${settingUpdate.id}' is not an array`,
           module: MODULE_NAME,
@@ -239,7 +238,6 @@ export default class SettingService {
       if (!Constants.CRYPTO_SUPPORTED_ALGORITHM.includes(
         Utils.buildCryptoAlgorithm(settingUpdate.content.crypto.keyProperties))) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.CRYPTO_ALGORITHM_NOT_SUPPORTED,
           message: 'Crypto algorithm not supported',
           module: MODULE_NAME, method: 'handleUpdateSetting',
@@ -250,7 +248,6 @@ export default class SettingService {
       const keyLength = settingUpdate.content.crypto.keyProperties.blockSize / 8;
       if (settingUpdate.content.crypto.key.length !== keyLength) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.CRYPTO_KEY_LENGTH_INVALID,
           message: 'Crypto key length is invalid',
           module: MODULE_NAME, method: 'handleUpdateSetting',
@@ -262,7 +259,6 @@ export default class SettingService {
         await Cypher.checkCryptoSettings(settingUpdate.content.crypto);
       } catch (error) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.CRYPTO_CHECK_FAILED,
           message: 'Crypto check failed to run: ' + error.message,
           module: MODULE_NAME, method: 'handleUpdateSetting',
@@ -272,7 +268,6 @@ export default class SettingService {
       // Check if migration is on-going
       if (setting.content.crypto.migrationToBeDone) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.CRYPTO_MIGRATION_IN_PROGRESS,
           message: 'Crypto migration is in progress',
           module: MODULE_NAME, method: 'handleUpdateSetting',

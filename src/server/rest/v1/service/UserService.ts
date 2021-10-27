@@ -171,7 +171,6 @@ export default class UserService {
       const userWithEmail = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
       if (userWithEmail && user.id !== userWithEmail.id) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
           message: `Email '${filteredRequest.email}' already exists`,
           module: MODULE_NAME, method: 'handleUpdateUser',
@@ -251,7 +250,6 @@ export default class UserService {
     // Check Mandatory fields
     if (!filteredRequest.mobileToken) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'User\'s mobile token ID must be provided',
         module: MODULE_NAME, method: 'handleUpdateUserMobileToken',
@@ -409,7 +407,6 @@ export default class UserService {
     const importUsersLock = await LockingHelper.acquireImportUsersLock(req.tenant.id);
     if (!importUsersLock) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: action,
         errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
         module: MODULE_NAME, method: 'handleImportUsers',
@@ -622,7 +619,6 @@ export default class UserService {
     const foundUser = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
     if (foundUser) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
         message: `Email '${filteredRequest.email}' already exists`,
         module: MODULE_NAME, method: 'handleCreateUser',
@@ -839,7 +835,6 @@ export default class UserService {
           const userCanBeDeleted = await billingImpl.checkIfUserCanBeDeleted(user);
           if (!userCanBeDeleted) {
             throw new AppError({
-              source: Constants.CENTRAL_SERVER,
               action: ServerAction.USER_DELETE,
               errorCode: HTTPError.BILLING_DELETE_ERROR,
               message: 'User cannot be deleted due to billing constraints',
@@ -851,7 +846,6 @@ export default class UserService {
         }
       } catch (error) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           action: ServerAction.USER_DELETE,
           errorCode: HTTPError.BILLING_DELETE_ERROR,
           message: 'Error occurred in billing system',

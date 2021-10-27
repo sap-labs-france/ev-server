@@ -31,7 +31,6 @@ export default class SiteService {
     // Check mandatory fields
     if (!filteredRequest.userID) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The User ID must be provided',
         module: MODULE_NAME, method: 'handleUpdateSiteUserAdmin',
@@ -40,7 +39,6 @@ export default class SiteService {
     }
     if (!filteredRequest.siteID) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Site ID must be provided',
         module: MODULE_NAME, method: 'handleUpdateSiteUserAdmin',
@@ -49,7 +47,6 @@ export default class SiteService {
     }
     if (!Utils.objectHasProperty(filteredRequest, 'siteAdmin')) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Site Admin value must be provided',
         module: MODULE_NAME, method: 'handleUpdateSiteUserAdmin',
@@ -58,7 +55,6 @@ export default class SiteService {
     }
     if (req.user.id === filteredRequest.userID) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Cannot change the site Admin on the logged user',
         module: MODULE_NAME, method: 'handleUpdateSiteUserAdmin',
@@ -95,7 +91,6 @@ export default class SiteService {
     // Check mandatory fields
     if (!filteredRequest.userID) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The User ID must be provided',
         module: MODULE_NAME, method: 'handleUpdateSiteOwner',
@@ -104,7 +99,6 @@ export default class SiteService {
     }
     if (!filteredRequest.siteID) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Site ID must be provided',
         module: MODULE_NAME, method: 'handleUpdateSiteOwner',
@@ -113,7 +107,6 @@ export default class SiteService {
     }
     if (!Utils.objectHasProperty(filteredRequest, 'siteOwner')) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Site Owner value must be provided',
         module: MODULE_NAME, method: 'handleUpdateSiteOwner',
@@ -307,7 +300,6 @@ export default class SiteService {
       // Object does not exist
       throw new AppError({
         action,
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The ID must be provided',
         module: MODULE_NAME, method: 'handleGetSiteImage',
@@ -404,7 +396,6 @@ export default class SiteService {
         }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);
         if (publicChargingStations.count > 0) {
           throw new AppError({
-            source: Constants.CENTRAL_SERVER,
             errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
             message: `Cannot set site ${site.name} to private as charging station ${publicChargingStations.result[0].id} under site is public`,
             module: MODULE_NAME, method: 'handleUpdateSite',

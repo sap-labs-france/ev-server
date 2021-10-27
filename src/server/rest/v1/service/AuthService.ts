@@ -72,7 +72,6 @@ export default class AuthService {
     const tenant = await AuthService.getTenant(filteredRequest.tenant);
     if (!tenant) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with Email '${filteredRequest.email}' tried to log in with an unknown tenant '${filteredRequest.tenant}'!`,
         module: MODULE_NAME,
@@ -109,7 +108,6 @@ export default class AuthService {
         } else {
           // Return data
           throw new AppError({
-            source: Constants.CENTRAL_SERVER,
             errorCode: HTTPError.USER_ACCOUNT_LOCKED_ERROR,
             message: 'User is locked',
             module: MODULE_NAME,
@@ -141,7 +139,6 @@ export default class AuthService {
     const tenant = await AuthService.getTenant(filteredRequest.tenant);
     if (!tenant.id) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User is trying to register with an unknown tenant '${filteredRequest.tenant}'!`,
         module: MODULE_NAME,
@@ -154,7 +151,6 @@ export default class AuthService {
     const response = await AxiosFactory.getAxiosInstance(tenant).get(recaptchaURL);
     if (!response.data.success) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The captcha is invalid',
         module: MODULE_NAME,
@@ -162,7 +158,6 @@ export default class AuthService {
       });
     } else if (response.data.score < 0.5) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The captcha score is too low',
         module: MODULE_NAME,
@@ -175,7 +170,6 @@ export default class AuthService {
     const user = await UserStorage.getUserByEmail(tenant, filteredRequest.email);
     if (user) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
         message: 'Email already exists',
         module: MODULE_NAME,
@@ -279,7 +273,6 @@ export default class AuthService {
     // No hash: Send email with init pass hash link
     if (!filteredRequest.captcha) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The captcha is mandatory',
         module: MODULE_NAME,
@@ -292,7 +285,6 @@ export default class AuthService {
     // Check
     if (!response.data.success) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The reCaptcha is invalid',
         module: MODULE_NAME,
@@ -300,7 +292,6 @@ export default class AuthService {
       });
     } else if (response.data.score < 0.5) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `The reCaptcha score is too low, got ${response.data.score as string} and expected to be >= 0.5`,
         module: MODULE_NAME,
@@ -380,7 +371,6 @@ export default class AuthService {
     const tenant = await AuthService.getTenant(filteredRequest.tenant);
     if (!tenant) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User is trying to access resource with an unknown tenant '${filteredRequest.tenant}'!`,
         module: MODULE_NAME,
@@ -405,7 +395,6 @@ export default class AuthService {
     const tenant = await AuthService.getTenant(filteredRequest.Tenant);
     if (!tenant) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Tenant is mandatory',
         module: MODULE_NAME,
@@ -449,7 +438,6 @@ export default class AuthService {
     const tenant = await AuthService.getTenant(filteredRequest.Tenant);
     if (!tenant) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         action: action,
         module: MODULE_NAME,
@@ -460,7 +448,6 @@ export default class AuthService {
     // Check that this is not the super tenant
     if (tenant.id === Constants.DEFAULT_TENANT) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         action: action,
         module: MODULE_NAME, method: 'handleVerifyEmail',
@@ -469,7 +456,6 @@ export default class AuthService {
     }
     if (!tenant) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         action: action,
         module: MODULE_NAME,
@@ -484,7 +470,6 @@ export default class AuthService {
     // Check if account is already active
     if (user.status === UserStatus.ACTIVE) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.USER_ACCOUNT_ALREADY_ACTIVE_ERROR,
         action: action,
         user: user,
@@ -495,7 +480,6 @@ export default class AuthService {
     // Check verificationToken
     if (user.verificationToken !== filteredRequest.VerificationToken) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.INVALID_TOKEN_ERROR,
         action: action,
         user: user,
@@ -571,7 +555,6 @@ export default class AuthService {
     const tenant = await AuthService.getTenant(filteredRequest.tenant);
     if (!tenant) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User is trying to access resource with an unknown tenant '${filteredRequest.tenant}'!`,
         module: MODULE_NAME,
@@ -582,7 +565,6 @@ export default class AuthService {
     // Check that this is not the super tenant
     if (tenant.id === Constants.DEFAULT_TENANT) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Cannot request a verification Email in the Super Tenant',
         module: MODULE_NAME,
@@ -596,7 +578,6 @@ export default class AuthService {
     const response = await AxiosFactory.getAxiosInstance(tenant).get(recaptchaURL);
     if (!response.data.success) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The captcha is invalid',
         module: MODULE_NAME,
@@ -605,7 +586,6 @@ export default class AuthService {
       });
     } else if (response.data.score < 0.5) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The captcha is too low',
         module: MODULE_NAME,
@@ -620,7 +600,6 @@ export default class AuthService {
     // Check if account is already active
     if (user.status === UserStatus.ACTIVE) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.USER_ACCOUNT_ALREADY_ACTIVE_ERROR,
         message: 'Account is already active',
         module: MODULE_NAME,
@@ -696,7 +675,6 @@ export default class AuthService {
         });
       // Log
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.USER_ACCOUNT_LOCKED_ERROR,
         message: 'User is locked',
         module: MODULE_NAME,
@@ -709,7 +687,6 @@ export default class AuthService {
       await UserStorage.saveUserPassword(tenant, user.id, { passwordWrongNbrTrials });
       // Log
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User failed to log in, ${_centralSystemRestConfig.passwordWrongNumberOfTrial - user.passwordWrongNbrTrials} trial(s) remaining`,
         module: MODULE_NAME,
@@ -794,7 +771,6 @@ export default class AuthService {
     // User Found?
     if (!user) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `Unknown user tried to log in with email '${filteredRequest.email}'`,
         module: MODULE_NAME,
@@ -813,7 +789,6 @@ export default class AuthService {
       switch (user.status) {
         case UserStatus.PENDING:
           throw new AppError({
-            source: Constants.CENTRAL_SERVER,
             errorCode: HTTPError.USER_ACCOUNT_PENDING_ERROR,
             message: 'Account is pending! User must activate his account in his email',
             module: MODULE_NAME,
@@ -822,7 +797,6 @@ export default class AuthService {
           });
         case UserStatus.LOCKED:
           throw new AppError({
-            source: Constants.CENTRAL_SERVER,
             errorCode: HTTPError.USER_ACCOUNT_LOCKED_ERROR,
             message: `Account is locked ('${user.status}')`,
             module: MODULE_NAME,
@@ -831,7 +805,6 @@ export default class AuthService {
           });
         case UserStatus.INACTIVE:
           throw new AppError({
-            source: Constants.CENTRAL_SERVER,
             errorCode: HTTPError.USER_ACCOUNT_INACTIVE_ERROR,
             message: `Account is inactive ('${user.status}')`,
             module: MODULE_NAME,
@@ -840,7 +813,6 @@ export default class AuthService {
           });
         case UserStatus.BLOCKED:
           throw new AppError({
-            source: Constants.CENTRAL_SERVER,
             errorCode: HTTPError.USER_ACCOUNT_BLOCKED_ERROR,
             message: `Account is blocked ('${user.status}')`,
             module: MODULE_NAME,

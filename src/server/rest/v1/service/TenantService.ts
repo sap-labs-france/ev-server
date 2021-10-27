@@ -52,7 +52,6 @@ export default class TenantService {
     // Check if current tenant
     if (tenant.id === req.user.tenantID) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `Your own tenant with id '${tenant.id}' cannot be deleted`,
         module: MODULE_NAME, method: 'handleDeleteTenant',
@@ -239,7 +238,6 @@ export default class TenantService {
     const foundTenant = await TenantStorage.getTenantBySubdomain(filteredRequest.subdomain);
     if (foundTenant) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.TENANT_ALREADY_EXIST,
         message: `The tenant with subdomain '${filteredRequest.subdomain}' already exists`,
         module: MODULE_NAME, method: 'handleCreateTenant',
@@ -338,7 +336,6 @@ export default class TenantService {
     const foundTenant = await TenantStorage.getTenantBySubdomain(filteredRequest.subdomain);
     if (filteredRequest.subdomain !== tenant.subdomain && foundTenant) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.TENANT_ALREADY_EXIST,
         message: `The tenant with subdomain '${filteredRequest.subdomain}' already exists`,
         module: MODULE_NAME, method: 'handleCreateTenant',
@@ -353,7 +350,6 @@ export default class TenantService {
       const siteAreas = await SiteAreaStorage.getSiteAreas(tenant, { smartCharging: true }, Constants.DB_PARAMS_MAX_LIMIT);
       if (siteAreas.count !== 0) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.SMART_CHARGING_STILL_ACTIVE_FOR_SITE_AREA,
           message: 'Site Area(s) is/are still enabled for Smart Charging. Please deactivate it/them to disable Smart Charging in Tenant',
           module: MODULE_NAME,

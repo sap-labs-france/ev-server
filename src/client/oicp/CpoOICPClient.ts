@@ -87,7 +87,6 @@ export default class CpoOICPClient extends OICPClient {
       siteAreaID: transaction.siteAreaID,
       companyID: transaction.companyID,
       chargingStationID: transaction.chargeBoxID,
-      source: transaction.chargeBoxID,
       action: ServerAction.OICP_PUSH_SESSIONS,
       message: `Start OICP Session ID '${transaction.id}'`,
       module: MODULE_NAME, method: 'startSession',
@@ -98,7 +97,6 @@ export default class CpoOICPClient extends OICPClient {
   public async updateSession(transaction: Transaction): Promise<void> {
     if (!transaction.oicpData || !transaction.oicpData.session) {
       throw new BackendError({
-        source: transaction.chargeBoxID,
         chargingStationID: transaction.chargeBoxID,
         siteID: transaction.siteID,
         siteAreaID: transaction.siteAreaID,
@@ -130,7 +128,6 @@ export default class CpoOICPClient extends OICPClient {
   public async stopSession(transaction: Transaction): Promise<void> {
     if (!transaction.oicpData) {
       throw new BackendError({
-        source: transaction.chargeBoxID,
         chargingStationID: transaction.chargeBoxID,
         siteID: transaction.siteID,
         siteAreaID: transaction.siteAreaID,
@@ -143,7 +140,6 @@ export default class CpoOICPClient extends OICPClient {
     }
     if (!transaction.oicpData.session) {
       throw new BackendError({
-        source: transaction.chargeBoxID,
         chargingStationID: transaction.chargeBoxID,
         siteID: transaction.siteID,
         siteAreaID: transaction.siteAreaID,
@@ -156,7 +152,6 @@ export default class CpoOICPClient extends OICPClient {
     }
     if (!transaction.stop) {
       throw new BackendError({
-        source: transaction.chargeBoxID,
         chargingStationID: transaction.chargeBoxID,
         siteID: transaction.siteID,
         siteAreaID: transaction.siteAreaID,
@@ -186,7 +181,6 @@ export default class CpoOICPClient extends OICPClient {
         siteAreaID: transaction.siteAreaID,
         companyID: transaction.companyID,
         chargingStationID: transaction.chargeBoxID,
-        source: transaction.chargeBoxID,
         user: transaction.user,
         action: ServerAction.OICP_PUSH_SESSIONS,
         message: `OICP Session ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') has been stopped successfully`,
@@ -480,7 +474,6 @@ export default class CpoOICPClient extends OICPClient {
   public async updateEVSEStatus(chargingStation: ChargingStation, connector: Connector): Promise<OICPAcknowledgment> {
     if (!chargingStation.siteAreaID && !chargingStation.siteArea) {
       throw new BackendError({
-        source: chargingStation.id,
         chargingStationID: chargingStation.id,
         siteID: chargingStation.siteID,
         siteAreaID: chargingStation.siteAreaID,
@@ -492,7 +485,6 @@ export default class CpoOICPClient extends OICPClient {
     }
     if (!chargingStation.issuer) {
       throw new BackendError({
-        source: chargingStation.id,
         chargingStationID: chargingStation.id,
         siteID: chargingStation.siteID,
         siteAreaID: chargingStation.siteAreaID,
@@ -504,7 +496,6 @@ export default class CpoOICPClient extends OICPClient {
     }
     if (!chargingStation.public) {
       throw new BackendError({
-        source: chargingStation.id,
         chargingStationID: chargingStation.id,
         siteID: chargingStation.siteID,
         siteAreaID: chargingStation.siteAreaID,
@@ -738,7 +729,6 @@ export default class CpoOICPClient extends OICPClient {
         siteAreaID: transaction.siteAreaID,
         companyID: transaction.companyID,
         chargingStationID: transaction.chargeBoxID,
-        source: transaction.chargeBoxID,
         user: user,
         action: ServerAction.OICP_AUTHORIZE_STOP,
         message: this.buildOICPChargingNotificationErrorMessage(authorizeResponse, requestError),
@@ -757,7 +747,6 @@ export default class CpoOICPClient extends OICPClient {
         siteAreaID: transaction.siteAreaID,
         companyID: transaction.companyID,
         chargingStationID: transaction.chargeBoxID,
-        source: transaction.chargeBoxID,
         user: user,
         action: ServerAction.OICP_AUTHORIZE_STOP,
         module: MODULE_NAME, method: 'authorizeStop',
@@ -771,7 +760,6 @@ export default class CpoOICPClient extends OICPClient {
         siteAreaID: transaction.siteAreaID,
         companyID: transaction.companyID,
         chargingStationID: transaction.chargeBoxID,
-        source: transaction.chargeBoxID,
         user: user,
         action: ServerAction.OICP_AUTHORIZE_STOP,
         message: 'Stop Transaction has been authorized',
@@ -787,7 +775,6 @@ export default class CpoOICPClient extends OICPClient {
     let requestError: any;
     if (!transaction.oicpData) {
       throw new BackendError({
-        source: transaction.chargeBoxID,
         chargingStationID: transaction.chargeBoxID,
         siteID: transaction.siteID,
         siteAreaID: transaction.siteAreaID,
@@ -800,7 +787,6 @@ export default class CpoOICPClient extends OICPClient {
     }
     if (!transaction.oicpData.session) {
       throw new BackendError({
-        source: transaction.chargeBoxID,
         chargingStationID: transaction.chargeBoxID,
         siteID: transaction.siteID,
         siteAreaID: transaction.siteAreaID,
@@ -813,7 +799,6 @@ export default class CpoOICPClient extends OICPClient {
     }
     if (!transaction.stop) {
       throw new BackendError({
-        source: transaction.chargeBoxID,
         chargingStationID: transaction.chargeBoxID,
         siteID: transaction.siteID,
         siteAreaID: transaction.siteAreaID,
@@ -868,7 +853,6 @@ export default class CpoOICPClient extends OICPClient {
         siteAreaID: transaction.siteAreaID,
         companyID: transaction.companyID,
         chargingStationID: transaction.chargeBoxID,
-        source: transaction.chargeBoxID,
         user: transaction.user,
         action: ServerAction.OICP_PUSH_CDRS,
         message: this.buildOICPChargingNotificationErrorMessage(pushCdrResponse, requestError),
@@ -886,7 +870,6 @@ export default class CpoOICPClient extends OICPClient {
         siteAreaID: transaction.siteAreaID,
         companyID: transaction.companyID,
         chargingStationID: transaction.chargeBoxID,
-        source: transaction.chargeBoxID,
         user: transaction.user,
         action: ServerAction.OICP_PUSH_CDRS,
         message: `CDR of Session ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') has been pushed successfully`,
@@ -903,7 +886,6 @@ export default class CpoOICPClient extends OICPClient {
     // Check for input parameter
     if (!transaction.oicpData) {
       throw new BackendError({
-        source: transaction.chargeBoxID,
         chargingStationID: transaction.chargeBoxID,
         siteID: transaction.siteID,
         siteAreaID: transaction.siteAreaID,
@@ -916,7 +898,6 @@ export default class CpoOICPClient extends OICPClient {
     }
     if (!transaction.oicpData.session) {
       throw new BackendError({
-        source: transaction.chargeBoxID,
         chargingStationID: transaction.chargeBoxID,
         siteID: transaction.siteID,
         siteAreaID: transaction.siteAreaID,
@@ -959,7 +940,6 @@ export default class CpoOICPClient extends OICPClient {
         siteAreaID: transaction.siteAreaID,
         companyID: transaction.companyID,
         chargingStationID: transaction.chargeBoxID,
-        source: transaction.chargeBoxID,
         user: transaction.user,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_START,
         message: this.buildOICPChargingNotificationErrorMessage(notificationStartResponse, requestError),
@@ -977,7 +957,6 @@ export default class CpoOICPClient extends OICPClient {
         siteAreaID: transaction.siteAreaID,
         companyID: transaction.companyID,
         chargingStationID: transaction.chargeBoxID,
-        source: transaction.chargeBoxID,
         user: transaction.user,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_START,
         message: `Session ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') has been started successfully`,
@@ -994,7 +973,6 @@ export default class CpoOICPClient extends OICPClient {
       // Check for input parameter
       if (!transaction.oicpData) {
         throw new BackendError({
-          source: transaction.chargeBoxID,
           chargingStationID: transaction.chargeBoxID,
           siteID: transaction.siteID,
           siteAreaID: transaction.siteAreaID,
@@ -1007,7 +985,6 @@ export default class CpoOICPClient extends OICPClient {
       }
       if (!transaction.oicpData.session) {
         throw new BackendError({
-          source: transaction.chargeBoxID,
           chargingStationID: transaction.chargeBoxID,
           siteID: transaction.siteID,
           siteAreaID: transaction.siteAreaID,
@@ -1054,7 +1031,6 @@ export default class CpoOICPClient extends OICPClient {
           siteAreaID: transaction.siteAreaID,
           companyID: transaction.companyID,
           chargingStationID: transaction.chargeBoxID,
-          source: transaction.chargeBoxID,
           user: transaction.user,
           action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_PROGRESS,
           message: this.buildOICPChargingNotificationErrorMessage(notificationProgressResponse, requestError),
@@ -1072,7 +1048,6 @@ export default class CpoOICPClient extends OICPClient {
           siteAreaID: transaction.siteAreaID,
           companyID: transaction.companyID,
           chargingStationID: transaction.chargeBoxID,
-          source: transaction.chargeBoxID,
           user: transaction.user,
           action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_PROGRESS,
           message: `Session ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') has been updated successfully`,
@@ -1089,7 +1064,6 @@ export default class CpoOICPClient extends OICPClient {
     // Check for input parameter
     if (!transaction.oicpData) {
       throw new BackendError({
-        source: transaction.chargeBoxID,
         chargingStationID: transaction.chargeBoxID,
         siteID: transaction.siteID,
         siteAreaID: transaction.siteAreaID,
@@ -1102,7 +1076,6 @@ export default class CpoOICPClient extends OICPClient {
     }
     if (!transaction.oicpData.session) {
       throw new BackendError({
-        source: transaction.chargeBoxID,
         chargingStationID: transaction.chargeBoxID,
         siteID: transaction.siteID,
         siteAreaID: transaction.siteAreaID,
@@ -1115,7 +1088,6 @@ export default class CpoOICPClient extends OICPClient {
     }
     if (!transaction.stop) {
       throw new BackendError({
-        source: transaction.chargeBoxID,
         chargingStationID: transaction.chargeBoxID,
         siteID: transaction.siteID,
         siteAreaID: transaction.siteAreaID,
@@ -1167,7 +1139,6 @@ export default class CpoOICPClient extends OICPClient {
         siteAreaID: transaction.siteAreaID,
         companyID: transaction.companyID,
         chargingStationID: transaction.chargeBoxID,
-        source: transaction.chargeBoxID,
         user: transaction.user,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_END,
         message: this.buildOICPChargingNotificationErrorMessage(notificationEndResponse, requestError),
@@ -1185,7 +1156,6 @@ export default class CpoOICPClient extends OICPClient {
         siteAreaID: transaction.siteAreaID,
         companyID: transaction.companyID,
         chargingStationID: transaction.chargeBoxID,
-        source: transaction.chargeBoxID,
         user: transaction.user,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_END,
         message: `Session ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') has been ended successfully`,
@@ -1202,7 +1172,6 @@ export default class CpoOICPClient extends OICPClient {
     // Check for input parameter
     if (!transaction.oicpData) {
       throw new BackendError({
-        source: transaction.chargeBoxID,
         chargingStationID: transaction.chargeBoxID,
         siteID: transaction.siteID,
         siteAreaID: transaction.siteAreaID,
@@ -1215,7 +1184,6 @@ export default class CpoOICPClient extends OICPClient {
     }
     if (!transaction.oicpData.session) {
       throw new BackendError({
-        source: transaction.chargeBoxID,
         chargingStationID: transaction.chargeBoxID,
         siteID: transaction.siteID,
         siteAreaID: transaction.siteAreaID,
@@ -1255,7 +1223,6 @@ export default class CpoOICPClient extends OICPClient {
         siteAreaID: transaction.siteAreaID,
         companyID: transaction.companyID,
         chargingStationID: transaction.chargeBoxID,
-        source: transaction.chargeBoxID,
         user: transaction.user,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_ERROR,
         message: this.buildOICPChargingNotificationErrorMessage(notificationErrorResponse, requestError),

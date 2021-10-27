@@ -24,7 +24,6 @@ import User from '../types/User';
 import UserToken from '../types/UserToken';
 import Utils from './Utils';
 import chalk from 'chalk';
-import cluster from 'cluster';
 import sizeof from 'object-sizeof';
 
 const MODULE_NAME = 'Logging';
@@ -57,7 +56,6 @@ export default class Logging {
       const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}KB, got ${sizeOfResponseDataKB}KB`);
       await Logging.logWarning({
         tenantID: tenant.id,
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.PERFORMANCES,
         module, method,
         message: `${message}: ${error.message}`,
@@ -75,7 +73,6 @@ export default class Logging {
       const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms, got ${executionDurationMillis} ms`);
       await Logging.logWarning({
         tenantID: tenant.id,
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.PERFORMANCES,
         module, method,
         message: `${message}: ${error.message}`,
@@ -167,7 +164,6 @@ export default class Logging {
       await Logging.logError({
         tenantID: tenantID,
         user,
-        source: Constants.CENTRAL_SERVER,
         action, module, method,
         message: messageSuccessAndError
       });
@@ -176,7 +172,6 @@ export default class Logging {
       await Logging.logInfo({
         tenantID: tenantID,
         user,
-        source: Constants.CENTRAL_SERVER,
         action, module, method,
         message: messageSuccess
       });
@@ -185,7 +180,6 @@ export default class Logging {
       await Logging.logError({
         tenantID: tenantID,
         user,
-        source: Constants.CENTRAL_SERVER,
         action, module, method,
         message: messageError
       });
@@ -194,7 +188,6 @@ export default class Logging {
       await Logging.logInfo({
         tenantID: tenantID,
         user,
-        source: Constants.CENTRAL_SERVER,
         action, module, method,
         message: messageNoSuccessNoError
       });
@@ -218,7 +211,6 @@ export default class Logging {
     if (ocpiResult.success > 0 && ocpiResult.failure > 0) {
       await Logging.logError({
         tenantID: tenantID,
-        source: Constants.CENTRAL_SERVER,
         action, module, method,
         message: messageSuccessAndError,
         detailedMessages: ocpiResult.logs
@@ -227,7 +219,6 @@ export default class Logging {
     } else if (ocpiResult.success > 0) {
       await Logging.logInfo({
         tenantID: tenantID,
-        source: Constants.CENTRAL_SERVER,
         action, module, method,
         message: messageSuccess,
         detailedMessages: ocpiResult.logs
@@ -236,7 +227,6 @@ export default class Logging {
     } else if (ocpiResult.failure > 0) {
       await Logging.logError({
         tenantID: tenantID,
-        source: Constants.CENTRAL_SERVER,
         action, module, method,
         message: messageError,
         detailedMessages: ocpiResult.logs
@@ -245,7 +235,6 @@ export default class Logging {
     } else {
       await Logging.logInfo({
         tenantID: tenantID,
-        source: Constants.CENTRAL_SERVER,
         action, module, method,
         message: messageNoSuccessNoError,
         detailedMessages: ocpiResult.logs
@@ -374,7 +363,6 @@ export default class Logging {
           const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB} KB, got ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB`);
           await Logging.logWarning({
             tenantID,
-            source: Constants.CENTRAL_SERVER,
             action: ServerAction.PERFORMANCES,
             module: MODULE_NAME, method: 'logExpressResponse',
             message: `${message}: ${error.message}`,
@@ -392,7 +380,6 @@ export default class Logging {
           const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms, got ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms`);
           await Logging.logWarning({
             tenantID,
-            source: Constants.CENTRAL_SERVER,
             action: ServerAction.PERFORMANCES,
             module: MODULE_NAME, method: 'logExpressResponse',
             message: `${message}: ${error.message}`,
@@ -489,7 +476,6 @@ export default class Logging {
       const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}`);
       await Logging.logWarning({
         tenantID: tenant.id,
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.PERFORMANCES,
         module: Constants.MODULE_AXIOS, method: 'logAxiosResponse',
         message: `${message}: ${error.message}`,
@@ -507,7 +493,6 @@ export default class Logging {
       const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms, got ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms`);
       await Logging.logWarning({
         tenantID: tenant.id,
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.PERFORMANCES,
         module: Constants.MODULE_AXIOS, method: 'logAxiosResponse',
         message: `${message}: ${error.message}`,
@@ -594,7 +579,7 @@ export default class Logging {
     }
   }
 
-  public static async logException(exception: Error, action: ServerAction, source: string,
+  public static async logException(exception: Error, action: ServerAction,
       module: string, method: string, tenantID: string, user?: UserToken | User | string): Promise<void> {
     if (exception instanceof AppAuthError) {
       await Logging._logActionAppAuthExceptionMessage(tenantID, action, exception);
@@ -603,7 +588,7 @@ export default class Logging {
     } else if (exception instanceof BackendError) {
       await Logging._logActionBackendExceptionMessage(tenantID, action, exception);
     } else {
-      await Logging.logError(Logging._buildLog(exception, action, source, module, method, tenantID, user));
+      await Logging.logError(Logging._buildLog(exception, action, module, method, tenantID, user));
     }
   }
 
@@ -666,7 +651,6 @@ export default class Logging {
     Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
     await Logging.logDebug({
       tenantID: tenant.id,
-      source: chargingStationID,
       chargingStationID: chargingStationID,
       siteAreaID: chargingStationDetails.siteAreaID,
       siteID: chargingStationDetails.siteID,
@@ -703,7 +687,6 @@ export default class Logging {
       const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms, got ${executionDurationMillis} ms`);
       await Logging.logWarning({
         tenantID: tenant.id,
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.PERFORMANCES,
         module, method: 'traceChargingStationActionEnd',
         message: `${message}: ${error.message}`,
@@ -720,7 +703,6 @@ export default class Logging {
     if (response && response['status'] === OCPPStatus.REJECTED) {
       await Logging.logError({
         tenantID: tenant.id,
-        source: chargingStationID,
         chargingStationID: chargingStationID,
         siteID: chargingStationDetails.siteID,
         siteAreaID: chargingStationDetails.siteAreaID,
@@ -731,7 +713,6 @@ export default class Logging {
     } else {
       await Logging.logDebug({
         tenantID: tenant.id,
-        source: chargingStationID,
         chargingStationID: chargingStationID,
         siteID: chargingStationDetails.siteID,
         siteAreaID: chargingStationDetails.siteAreaID,
@@ -755,7 +736,6 @@ export default class Logging {
       tenantID: tenantID,
       type: LogType.SECURITY,
       user: exception.user,
-      source: exception.source,
       module: exception.module,
       method: exception.method,
       action: action,
@@ -780,7 +760,6 @@ export default class Logging {
     await Logging.logError({
       tenantID: tenantID,
       type: LogType.SECURITY,
-      source: exception.params.source,
       chargingStationID: exception.params.chargingStationID,
       siteID: exception.params.siteID,
       siteAreaID: exception.params.siteAreaID,
@@ -811,7 +790,6 @@ export default class Logging {
     await Logging.logError({
       tenantID: tenantID,
       type: LogType.SECURITY,
-      source: exception.params.source,
       chargingStationID: exception.params.chargingStationID,
       siteID: exception.params.siteID,
       siteAreaID: exception.params.siteAreaID,
@@ -849,12 +827,11 @@ export default class Logging {
     });
   }
 
-  private static _buildLog(error, action: ServerAction, source: string, module: string,
+  private static _buildLog(error, action: ServerAction, module: string,
       method: string, tenantID: string, user: UserToken | User | string): Log {
     const tenant = tenantID ? tenantID : Constants.DEFAULT_TENANT;
     if (error.params) {
       return {
-        source: source,
         user: user,
         tenantID: tenant,
         actionOnUser: error.params.actionOnUser,
@@ -868,7 +845,6 @@ export default class Logging {
       };
     }
     return {
-      source: source,
       user: user,
       tenantID: tenant,
       actionOnUser: error.actionOnUser,
@@ -946,12 +922,8 @@ export default class Logging {
     }
     // Timestamp
     log.timestamp = new Date();
-    // Source
-    log.source = log.source ?? `${Constants.CENTRAL_SERVER}`;
     // Host
     log.host = Utils.getHostName();
-    // Process
-    log.process = log.process ? log.process : (cluster.isWorker ? 'worker ' + cluster.worker.id.toString() : 'master');
     // Check
     if (log.detailedMessages) {
       // Anonymize message
@@ -977,9 +949,8 @@ export default class Logging {
     if (!log.tenantID || log.tenantID === '') {
       log.tenantID = Constants.DEFAULT_TENANT;
     }
-    if (global.serverName !== Constants.CENTRAL_SERVER) {
-      log.source = `${global.serverName}Server`;
-    }
+    // Force the source
+    log.source = global.serverType;
     // Log in Cloud Foundry
     if (Configuration.isCloudFoundry()) {
       // Bind to express app

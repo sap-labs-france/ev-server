@@ -46,7 +46,6 @@ export default class JsonWSConnection extends WSConnection {
       // Not Found
       default:
         backendError = new BackendError({
-          source: this.getChargingStationID(),
           chargingStationID: this.getChargingStationID(),
           siteID: this.getSiteID(),
           siteAreaID: this.getSiteAreaID(),
@@ -57,13 +56,7 @@ export default class JsonWSConnection extends WSConnection {
             `Web Socket Protocol '${wsConnection.protocol}' not supported` : 'Web Socket Protocol is mandatory'
         });
         // Log in the right Tenants
-        void Logging.logException(
-          backendError,
-          ServerAction.WS_JSON_CONNECTION_ERROR,
-          this.getChargingStationID(),
-          MODULE_NAME, 'constructor',
-          this.getTenantID()
-        );
+        void Logging.logException(backendError, ServerAction.WS_JSON_CONNECTION_ERROR, MODULE_NAME, 'constructor', this.getTenantID());
         throw backendError;
     }
     this.isConnectionAlive = true;
@@ -97,7 +90,6 @@ export default class JsonWSConnection extends WSConnection {
         siteAreaID: this.getSiteAreaID(),
         companyID: this.getCompanyID(),
         chargingStationID: this.getChargingStationID(),
-        source: this.getChargingStationID(),
         action: ServerAction.WS_JSON_CONNECTION_OPENED,
         module: MODULE_NAME, method: 'initialize',
         message: `New Json connection from '${this.getClientIP().toString()}', Protocol '${this.getWSConnection().protocol}', URL '${this.getURL()}'`,
@@ -113,7 +105,6 @@ export default class JsonWSConnection extends WSConnection {
       siteAreaID: this.getSiteAreaID(),
       companyID: this.getCompanyID(),
       chargingStationID: this.getChargingStationID(),
-      source: this.getChargingStationID(),
       action: ServerAction.WS_JSON_CONNECTION_ERROR,
       module: MODULE_NAME, method: 'onError',
       message: `Error occurred: ${errorEvent?.message}`,
@@ -130,7 +121,6 @@ export default class JsonWSConnection extends WSConnection {
       siteAreaID: this.getSiteAreaID(),
       companyID: this.getCompanyID(),
       chargingStationID: this.getChargingStationID(),
-      source: this.getChargingStationID(),
       action: ServerAction.WS_JSON_CONNECTION_CLOSED,
       module: MODULE_NAME, method: 'onClose',
       message: `Connection has been closed, Reason: '${closeEvent.reason ? closeEvent.reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(Utils.convertToInt(closeEvent))}', Code: '${closeEvent.toString()}'`,
@@ -197,7 +187,6 @@ export default class JsonWSConnection extends WSConnection {
     } else {
       // Throw Exception
       throw new OCPPError({
-        source: this.getChargingStationID(),
         chargingStationID: this.getChargingStationID(),
         siteID: this.getSiteID(),
         siteAreaID: this.getSiteAreaID(),
@@ -218,7 +207,6 @@ export default class JsonWSConnection extends WSConnection {
         siteAreaID: this.getSiteAreaID(),
         companyID: this.getCompanyID(),
         chargingStationID: this.getChargingStationID(),
-        source: this.getChargingStationID(),
         module: MODULE_NAME, method: 'getChargingStationClient',
         action: ServerAction.WS_CONNECTION,
         message: `Cannot retrieve WS client from WS connection with status '${this.getConnectionStatusString()}'`,

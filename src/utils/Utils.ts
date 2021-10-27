@@ -1587,8 +1587,8 @@ export default class Utils {
     if (params.httpResponseCode) {
       performanceRecord.httpResponseCode = params.httpResponseCode;
     }
-    if (global.serverName) {
-      performanceRecord.server = global.serverName;
+    if (global.serverType) {
+      performanceRecord.server = global.serverType;
     }
     return performanceRecord;
   }

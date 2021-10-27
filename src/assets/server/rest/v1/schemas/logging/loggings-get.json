@@ -40,6 +40,9 @@
     "UserID": {
       "$ref": "common#/definitions/ids"
     },
+    "ChargingStationID": {
+      "$ref": "common#/definitions/string-ids"
+    },
     "Search": {
       "$ref": "common#/definitions/search"
     },

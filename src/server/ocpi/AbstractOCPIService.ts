@@ -82,7 +82,6 @@ export default abstract class AbstractOCPIService {
     const regexResult = /^\/\w*/g.exec(req.url);
     if (!regexResult) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'restService',
         message: 'Regex did not match.'
       });
@@ -122,7 +121,6 @@ export default abstract class AbstractOCPIService {
       // Get token from header
       if (!req.headers || !req.headers.authorization) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'processEndpointAction',
           action: ServerAction.OCPI_ENDPOINT,
           errorCode: StatusCodes.UNAUTHORIZED,
@@ -137,7 +135,6 @@ export default abstract class AbstractOCPIService {
         decodedToken = JSON.parse(OCPIUtils.atob(token));
       } catch (error) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'processEndpointAction',
           action: ServerAction.OCPI_ENDPOINT,
           errorCode: StatusCodes.UNAUTHORIZED,
@@ -153,7 +150,6 @@ export default abstract class AbstractOCPIService {
       // Check if tenant is found
       if (!tenant) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'processEndpointAction',
           action: ServerAction.OCPI_ENDPOINT,
           errorCode: StatusCodes.UNAUTHORIZED,
@@ -163,7 +159,6 @@ export default abstract class AbstractOCPIService {
       }
       if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'processEndpointAction',
           action: ServerAction.OCPI_ENDPOINT,
           errorCode: StatusCodes.UNAUTHORIZED,
@@ -175,7 +170,6 @@ export default abstract class AbstractOCPIService {
       // Check if endpoint is found
       if (!ocpiEndpoint) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'processEndpointAction',
           action: ServerAction.OCPI_ENDPOINT,
           errorCode: StatusCodes.UNAUTHORIZED,
@@ -190,7 +184,6 @@ export default abstract class AbstractOCPIService {
       if (endpoint) {
         await Logging.logDebug({
           tenantID: tenant.id,
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: action,
           message: `>> OCPI Request ${req.method} ${req.originalUrl}`,
           action: ServerAction.OCPI_ENDPOINT,
@@ -200,7 +193,6 @@ export default abstract class AbstractOCPIService {
         if (response) {
           await Logging.logDebug({
             tenantID: tenant.id,
-            source: Constants.CENTRAL_SERVER,
             module: MODULE_NAME, method: action,
             message: `<< OCPI Response ${req.method} ${req.originalUrl}`,
             action: ServerAction.OCPI_ENDPOINT,
@@ -210,7 +202,6 @@ export default abstract class AbstractOCPIService {
         } else {
           await Logging.logWarning({
             tenantID: tenant.id,
-            source: Constants.CENTRAL_SERVER,
             module: MODULE_NAME, method: action,
             message: `<< OCPI Endpoint ${req.method} ${req.originalUrl} not implemented`,
             action: ServerAction.OCPI_ENDPOINT
@@ -219,7 +210,6 @@ export default abstract class AbstractOCPIService {
         }
       } else {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'processEndpointAction',
           action: ServerAction.OCPI_ENDPOINT,
           errorCode: HTTPError.NOT_IMPLEMENTED_ERROR,
@@ -230,7 +220,6 @@ export default abstract class AbstractOCPIService {
     } catch (error) {
       await Logging.logError({
         tenantID: req.user && req.user.tenantID ? req.user.tenantID : Constants.DEFAULT_TENANT,
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: action,
         message: `<< OCPI Response Error ${req.method} ${req.originalUrl}`,
         action: ServerAction.OCPI_ENDPOINT,

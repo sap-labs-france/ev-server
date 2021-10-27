@@ -26,7 +26,6 @@ export default class ConnectionService {
     // Charge Box is mandatory
     if (!connectionID) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Connection\'s ID must be provided',
         module: MODULE_NAME, method: 'handleGetConnection',
@@ -115,7 +114,6 @@ export default class ConnectionService {
     } else {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
-        source: Constants.CENTRAL_SERVER,
         user: req.user,
         module: MODULE_NAME, method: 'handleCreateConnection',
         message: `No integration found for connector '${filteredRequest.connectorId}' `
@@ -130,7 +128,6 @@ export default class ConnectionService {
     const connectionID = ConnectionValidator.getInstance().validateConnectionGetReq(req.query).ID;
     if (!connectionID) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         user: req.user,
         module: MODULE_NAME, method: 'handleGetConnection',

@@ -112,7 +112,7 @@ export default class JsonChargingStationService {
     try {
       return await this.chargingStationService[`handle${command}`](headers, payload);
     } catch (error) {
-      await Logging.logException(error, OCPPUtils.buildServerActionFromOcppCommand(command), headers.chargeBoxIdentity, MODULE_NAME, command, headers.tenantID);
+      await Logging.logException(error, OCPPUtils.buildServerActionFromOcppCommand(command), MODULE_NAME, command, headers.tenantID);
       throw error;
     }
   }

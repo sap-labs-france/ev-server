@@ -1,4 +1,5 @@
 import CentralSystemConfiguration, { CentralSystemImplementation } from './types/configuration/CentralSystemConfiguration';
+import { ServerAction, ServerType } from './types/Server';
 
 import AsyncTaskManager from './async-task/AsyncTaskManager';
 import CentralRestServer from './server/rest/CentralRestServer';
@@ -19,7 +20,6 @@ import ODataServiceConfiguration from './types/configuration/ODataServiceConfigu
 import OICPServer from './server/oicp/OICPServer';
 import OICPServiceConfiguration from './types/configuration/OICPServiceConfiguration';
 import SchedulerManager from './scheduler/SchedulerManager';
-import { ServerAction } from './types/Server';
 import SoapCentralSystemServer from './server/ocpp/soap/SoapCentralSystemServer';
 import StorageConfiguration from './types/configuration/StorageConfiguration';
 import Utils from './utils/Utils';
@@ -46,7 +46,7 @@ export default class Bootstrap {
   private static migrationConfig: MigrationConfiguration;
 
   public static async start(): Promise<void> {
-    let serverStarted: string[] = [];
+    let serverStarted: ServerType[] = [];
     let startTimeMillis: number;
     const startTimeGlobalMillis = await this.logAndGetStartTimeMillis('e-Mobility Server is starting...');
     try {
@@ -144,9 +144,9 @@ export default class Bootstrap {
 
       // Keep the server names globally
       if (serverStarted.length === 1) {
-        global.serverName = serverStarted[0];
+        global.serverType = serverStarted[0];
       } else {
-        global.serverName = Constants.CENTRAL_SERVER;
+        global.serverType = ServerType.CENTRAL_SERVER;
       }
       // Log
       await this.logDuration(startTimeGlobalMillis, `${serverStarted.join(', ')} server has been started successfuly`, ServerAction.BOOTSTRAP_STARTUP);
@@ -190,8 +190,8 @@ export default class Bootstrap {
     }
   }
 
-  private static async startServersListening(): Promise<string[]> {
-    const serverStarted = [];
+  private static async startServersListening(): Promise<ServerType[]> {
+    const serverTypes: ServerType[] = [];
     try {
       // -------------------------------------------------------------------------
       // REST Server (Front-End)
@@ -203,7 +203,7 @@ export default class Bootstrap {
         }
         // Start it
         await Bootstrap.centralRestServer.start();
-        serverStarted.push('Rest');
+        serverTypes.push(ServerType.REST_SERVER);
       }
       // -------------------------------------------------------------------------
       // Central Server (Charging Stations)
@@ -219,14 +219,14 @@ export default class Bootstrap {
               Bootstrap.SoapCentralSystemServer = new SoapCentralSystemServer(centralSystemConfig, Bootstrap.chargingStationConfig);
               // Start
               await Bootstrap.SoapCentralSystemServer.start();
-              serverStarted.push('Soap');
+              serverTypes.push(ServerType.SOAP_SERVER);
               break;
             case CentralSystemImplementation.JSON:
               // Create implementation
               Bootstrap.JsonCentralSystemServer = new JsonCentralSystemServer(centralSystemConfig, Bootstrap.chargingStationConfig);
               // Start
               await Bootstrap.JsonCentralSystemServer.start();
-              serverStarted.push('Json');
+              serverTypes.push(ServerType.JSON_SERVER);
               break;
             // Not Found
             default:
@@ -243,7 +243,7 @@ export default class Bootstrap {
         Bootstrap.ocpiServer = new OCPIServer(Bootstrap.ocpiConfig);
         // Start server instance
         await Bootstrap.ocpiServer.start();
-        serverStarted.push('Ocpi');
+        serverTypes.push(ServerType.OCPI_SERVER);
       }
       // -------------------------------------------------------------------------
       // OICP Server
@@ -253,7 +253,7 @@ export default class Bootstrap {
         Bootstrap.oicpServer = new OICPServer(Bootstrap.oicpConfig);
         // Start server instance
         await Bootstrap.oicpServer.start();
-        serverStarted.push('Oicp');
+        serverTypes.push(ServerType.OICP_SERVER);
       }
       // -------------------------------------------------------------------------
       // OData Server
@@ -263,7 +263,7 @@ export default class Bootstrap {
         Bootstrap.oDataServer = new ODataServer(Bootstrap.oDataServerConfig);
         // Start server instance
         await Bootstrap.oDataServer.start();
-        serverStarted.push('OData');
+        serverTypes.push(ServerType.ODATA_SERVER);
       }
     } catch (error) {
       console.error(chalk.red(error));
@@ -271,15 +271,15 @@ export default class Bootstrap {
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.STARTUP,
         module: MODULE_NAME, method: 'startServersListening',
-        message: `Unexpected exception in ${serverStarted.join(', ')}: ${error.toString()}`,
+        message: `Unexpected exception in ${serverTypes.join(', ')}: ${error.toString()}`,
         detailedMessages: { error: error.stack }
       });
     }
     // Batch server only
-    if (Utils.isEmptyArray(serverStarted)) {
-      serverStarted.push('Batch');
+    if (Utils.isEmptyArray(serverTypes)) {
+      serverTypes.push(ServerType.BATCH_SERVER);
     }
-    return serverStarted;
+    return serverTypes;
   }
 }
 

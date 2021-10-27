@@ -45,7 +45,6 @@ export default class SessionHashService {
       // Check User's Hash
       if (userHashID !== this.buildUserHashID(user)) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.USER_ACCOUNT_CHANGED,
           message: 'User has been updated and will be logged off',
           module: MODULE_NAME,
@@ -56,7 +55,6 @@ export default class SessionHashService {
       // Check Tenant's Hash
       if (tenantHashID !== this.buildTenantHashID(tenant)) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.TENANT_COMPONENT_CHANGED,
           message: 'Tenant has been updated and all users will be logged off',
           module: MODULE_NAME,
