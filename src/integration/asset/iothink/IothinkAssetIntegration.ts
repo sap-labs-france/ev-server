@@ -3,7 +3,7 @@ import { AssetConnectionSetting, AssetConnectionType, AssetSetting } from '../..
 
 import { AbstractCurrentConsumption } from '../../../types/Consumption';
 import AssetIntegration from '../AssetIntegration';
-import AssetTokenCache from '../../../utils/TokenManager';
+import AssetTokenCache from '../../../utils/AssetTokenCache';
 import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
 import BackendError from '../../../exception/BackendError';
@@ -174,7 +174,7 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
     );
     const data = response.data;
     return {
-      accessToken: await Cypher.encrypt(this.tenant, data.access_token),
+      accessToken: data.access_token,
       tokenType: data.token_type,
       expiresIn: data.expires_in,
       userName: data.userName,
