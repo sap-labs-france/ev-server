@@ -1,11 +1,11 @@
-import { AssetConnectionTokenSetting, AssetConnectionType } from '../types/Setting';
-
+import { AssetConnectionToken } from '../types/Asset';
+import { AssetConnectionType } from '../types/Setting';
 import Tenant from '../types/Tenant';
 import moment from 'moment';
 
 export default class AssetTokenCache {
   private static instances = new Map<string, AssetTokenCache>();
-  private tokens = new Map<AssetConnectionType, AssetConnectionTokenSetting>();
+  private tokens = new Map<AssetConnectionType, AssetConnectionToken>();
 
   public static getInstanceForTenant(tenant: Tenant): AssetTokenCache {
     if (!AssetTokenCache.instances.has(tenant.id)) {
@@ -14,7 +14,7 @@ export default class AssetTokenCache {
     return AssetTokenCache.instances.get(tenant.id);
   }
 
-  public getToken(assetConnectionType: AssetConnectionType): AssetConnectionTokenSetting {
+  public getToken(assetConnectionType: AssetConnectionType): AssetConnectionToken {
     const token = this.tokens.get(assetConnectionType);
     if (token && !moment(new Date(token.expires)).subtract(60, 'seconds').isBefore()) {
       return token;
@@ -22,7 +22,7 @@ export default class AssetTokenCache {
     return null;
   }
 
-  public setToken(assetConnectionType: AssetConnectionType, token: AssetConnectionTokenSetting): void {
+  public setToken(assetConnectionType: AssetConnectionType, token: AssetConnectionToken): void {
     this.tokens.set(assetConnectionType, token);
   }
 }
