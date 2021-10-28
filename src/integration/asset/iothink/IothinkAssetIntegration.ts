@@ -149,13 +149,13 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
 
   private async connect(): Promise<string> {
     // Get token from cache
-    let token = AssetTokenCache.getInstanceForTenant(this.tenant).getToken(AssetConnectionType.IOTHINK);
+    let token = AssetTokenCache.getInstanceForTenant(this.tenant).getToken(this.connection.id);
     if (!token) {
       this.checkConnectionIsProvided();
       // Get a fresh token (if not found or expired)
       token = await this.fetchAssetProviderToken(await this.getCredentialURLParams());
       // Cache it for better performance
-      AssetTokenCache.getInstanceForTenant(this.tenant).setToken(AssetConnectionType.IOTHINK, token);
+      AssetTokenCache.getInstanceForTenant(this.tenant).setToken(this.connection.id, token);
     }
     return token.accessToken;
   }
@@ -172,14 +172,13 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
         }),
       `Time out error (5s) when getting the token with the connection URL '${this.connection.url}/token'`
     );
-    const data = response.data;
     return {
-      accessToken: data.access_token,
-      tokenType: data.token_type,
-      expiresIn: data.expires_in,
-      userName: data.userName,
-      issued: data['.issued'],
-      expires: data['.expires']
+      accessToken: response.data.access_token,
+      tokenType: response.data.token_type,
+      expiresIn: response.data.expires_in,
+      userName: response.data.userName,
+      issued: response.data['.issued'],
+      expires: response.data['.expires']
     };
   }
 
