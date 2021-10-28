@@ -28,6 +28,10 @@
       "type": "boolean",
       "sanitize": "mongo"
     },
+    "WithUser": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
     "SiteAreaID": {
       "$ref": "common#/definitions/ids"
     },

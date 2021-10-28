@@ -26,7 +26,6 @@ import UserToken from '../types/UserToken';
 import { WebSocketCloseEventStatusString } from '../types/WebSocket';
 import _ from 'lodash';
 import bcrypt from 'bcryptjs';
-import cfenv from 'cfenv';
 import chalk from 'chalk';
 import fs from 'fs';
 import global from '../types/GlobalType';
@@ -292,6 +291,15 @@ export default class Utils {
   public static isNullOrUndefined(obj: any): boolean {
     // eslint-disable-next-line no-eq-null, eqeqeq
     return obj == null;
+  }
+
+  public static objectAllPropertiesAreEqual(doc1: Record<string, any>, doc2: Record<string, any>, properties: string[]): boolean {
+    for (const property of properties) {
+      if ((doc1[property] !== doc2[property] && (!Utils.isNullOrUndefined(doc1[property]) || !Utils.isNullOrUndefined(doc2[property])))) {
+        return false;
+      }
+    }
+    return true;
   }
 
   public static getConnectorStatusesFromChargingStations(chargingStations: ChargingStation[]): ConnectorStats {
@@ -1293,7 +1301,7 @@ export default class Utils {
   }
 
   public static getChargingStationEndpoint() : ChargingStationEndpoint {
-    return Configuration.isCloudFoundry() ? ChargingStationEndpoint.SCP : ChargingStationEndpoint.AWS;
+    return ChargingStationEndpoint.AWS;
   }
 
   public static async generateQrCode(data: string) :Promise<string> {
@@ -1470,12 +1478,14 @@ export default class Utils {
     }
     // REST API
     if (url.startsWith('/client/api/') ||
-        url.startsWith('/client/util/') ||
+        url.startsWith('/v1/api/')) {
+      return PerformanceRecordGroup.REST_SECURED;
+    }
+    if (url.startsWith('/client/util/') ||
         url.startsWith('/client/auth/') ||
-        url.startsWith('/v1/api/') ||
         url.startsWith('/v1/util/') ||
         url.startsWith('/v1/auth/')) {
-      return PerformanceRecordGroup.REST;
+      return PerformanceRecordGroup.REST_PUBLIC;
     }
     // OCPI
     if (url.includes('ocpi')) {
@@ -1506,12 +1516,16 @@ export default class Utils {
       return PerformanceRecordGroup.IOTHINK;
     }
     // Lacroix
-    if (url.includes('esoflink')) {
+    if (url.includes('esoftlink ')) {
       return PerformanceRecordGroup.LACROIX;
     }
     // EV Database
     if (url.includes('ev-database')) {
       return PerformanceRecordGroup.EV_DATABASE;
+    }
+    // WIT
+    if (url.includes('wit-datacenter')) {
+      return PerformanceRecordGroup.WIT;
     }
     // SAP Smart Charging
     if (url.includes('smart-charging')) {
@@ -1540,14 +1554,14 @@ export default class Utils {
   }
 
   public static buildPerformanceRecord(params: {
-    tenantSubdomain: string; durationMs?: number; resSizeKb?: number;
+    tenantSubdomain?: string; durationMs?: number; resSizeKb?: number;
     reqSizeKb?: number; action: ServerAction|string; group?: PerformanceRecordGroup;
     httpUrl?: string; httpMethod?: string; httpResponseCode?: number; chargingStationID?: string,
   }): PerformanceRecord {
     const performanceRecord: PerformanceRecord = {
       tenantSubdomain: params.tenantSubdomain,
       timestamp: new Date(),
-      host: Utils.getHostname(),
+      host: Utils.getHostName(),
       action: params.action,
       group: params.group
     };
@@ -1572,17 +1586,27 @@ export default class Utils {
     if (params.httpResponseCode) {
       performanceRecord.httpResponseCode = params.httpResponseCode;
     }
-    if (global.serverName) {
-      performanceRecord.server = global.serverName;
+    if (global.serverType) {
+      performanceRecord.server = global.serverType;
     }
     return performanceRecord;
   }
 
-  public static getHostname(): string {
-    return Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname();
+  public static getHostName(): string {
+    return os.hostname();
   }
 
-  // when exporting values
+  public static getHostIP(): string {
+    const hostname = Utils.getHostName();
+    if (hostname.startsWith('ip-')) {
+      const hostnameParts = hostname.split('-');
+      if (hostnameParts.length > 4) {
+        const lastIPDigit = hostnameParts[4].split('.')[0];
+        return `${hostnameParts[1]}.${hostnameParts[2]}.${hostnameParts[3]}.${lastIPDigit}`;
+      }
+    }
+  }
+
   public static escapeCsvValue(value: any): string {
     // add double quote start and end
     // replace double quotes inside value to double double quotes to display double quote correctly in csv editor
@@ -1621,7 +1645,7 @@ export default class Utils {
       return data;
     }
     // Log
-    await Logging.logSecurityError({
+    await Logging.logError({
       tenantID,
       module: MODULE_NAME,
       method: 'sanitizeCSVExport',

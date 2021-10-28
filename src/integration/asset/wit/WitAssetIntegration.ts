@@ -6,11 +6,11 @@ import AssetIntegration from '../AssetIntegration';
 import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
 import BackendError from '../../../exception/BackendError';
-import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import Tenant from '../../../types/Tenant';
+import { URLSearchParams } from 'url';
 import Utils from '../../../utils/Utils';
 import moment from 'moment';
 
@@ -49,7 +49,6 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSetting> 
       );
       await Logging.logDebug({
         tenantID: this.tenant.id,
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
         message: `${asset.name} > WIT web service has been called successfully`,
         module: MODULE_NAME, method: 'retrieveConsumption',
@@ -58,7 +57,6 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSetting> 
       return this.filterConsumptionRequest(asset, response.data, manualCall);
     } catch (error) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'retrieveConsumption',
         action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
@@ -138,7 +136,6 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSetting> 
   private checkConnectionIsProvided(): void {
     if (!this.connection) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'checkConnectionIsProvided',
         action: ServerAction.CHECK_CONNECTION,

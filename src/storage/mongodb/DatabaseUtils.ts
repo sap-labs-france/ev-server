@@ -6,7 +6,6 @@ import Constants from '../../utils/Constants';
 import DbLookup from '../../types/database/DbLookup';
 import { OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
 import Tenant from '../../types/Tenant';
-import TenantStorage from './TenantStorage';
 import User from '../../types/User';
 import UserToken from '../../types/UserToken';
 import Utils from '../../utils/Utils';
@@ -16,6 +15,10 @@ const FIXED_COLLECTIONS: string[] = ['tenants', 'migrations'];
 const MODULE_NAME = 'DatabaseUtils';
 
 export default class DatabaseUtils {
+  public static isObjectID(id: string): boolean {
+    return ObjectId.isValid(id);
+  }
+
   public static buildAggregateOptions(): AggregateOptions {
     return { allowDiskUse: true };
   }
@@ -127,8 +130,8 @@ export default class DatabaseUtils {
       JSON.parse(`{
         "$group": {
           "_id": {
-            "ïd": "$id",
-            "_ïd": "$_id"
+            "id": "$id",
+            "_id": "$_id"
           },
           "root": { "$first": "$$ROOT" },
           "${arrayName}": { "$push": "$${arrayName}" }
@@ -397,44 +400,9 @@ export default class DatabaseUtils {
     return userID;
   }
 
-  public static async checkTenant(tenantID: string): Promise<Tenant> {
-    let tenant;
-    if (!tenantID) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME,
-        method: 'checkTenant',
-        message: 'The Tenant ID is mandatory'
-      });
-    }
-    if (tenantID !== Constants.DEFAULT_TENANT) {
-      // Valid Object ID?
-      if (!ObjectId.isValid(tenantID)) {
-        throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME,
-          method: 'checkTenant',
-          message: `Invalid Tenant ID '${tenantID}'`
-        });
-      }
-      // Get the Tenant
-      tenant = await TenantStorage.getTenant(tenantID);
-      if (!tenant) {
-        throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME,
-          method: 'checkTenant',
-          message: `Invalid Tenant ID '${tenantID}'`
-        });
-      }
-    }
-    return tenant;
-  }
-
   public static checkTenantObject(tenant: Tenant): void {
     if (!tenant) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'checkTenantObject',
         message: 'Invalid Tenant'

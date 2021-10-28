@@ -4,7 +4,6 @@ import { AuthorizationContext, AuthorizationResult } from '../types/Authorizatio
 import { AccessControl } from 'role-acl';
 import AuthorizationValidatorStorage from '../storage/mongodb/validator/AuthorizationValidatorStorage';
 import BackendError from '../exception/BackendError';
-import Constants from '../utils/Constants';
 import chalk from 'chalk';
 
 const MODULE_NAME = 'AuthorizationsManager';
@@ -24,7 +23,6 @@ export default class AuthorizationsManager {
       } catch (error) {
         console.error(chalk.red(error.stack));
         throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'constructor',
           message: `Unable to init authorization definition for role '${roleName}'`,
           detailedMessages: { error: error.stack, role }
@@ -37,7 +35,6 @@ export default class AuthorizationsManager {
     } catch (error) {
       console.error(chalk.red(error.stack));
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'constructor',
         message: 'Unable to init authorization definition',
         detailedMessages: { error: error.stack }
@@ -62,7 +59,6 @@ export default class AuthorizationsManager {
       }
     } catch (error) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'getScopes',
         message: 'Unable to load available scopes',
@@ -78,7 +74,6 @@ export default class AuthorizationsManager {
       return permission.granted;
     } catch (error) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'can',
         message: 'Unable to check authorization',
@@ -110,7 +105,6 @@ export default class AuthorizationsManager {
       return authResult;
     } catch (error) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'canPerformAction',
         message: 'Unable to check authorization',

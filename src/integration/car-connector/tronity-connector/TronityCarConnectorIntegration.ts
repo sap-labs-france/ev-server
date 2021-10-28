@@ -5,12 +5,12 @@ import { AxiosInstance } from 'axios';
 import BackendError from '../../../exception/BackendError';
 import { Car } from '../../../types/Car';
 import CarConnectorIntegration from '../CarConnectorIntegration';
-import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import Tenant from '../../../types/Tenant';
+import { URLSearchParams } from 'url';
 import Utils from '../../../utils/Utils';
 
 const MODULE_NAME = 'TronityCarConnectorIntegration';
@@ -40,7 +40,6 @@ export default class TronityCarConnectorIntegration extends CarConnectorIntegrat
     if (Utils.isNullOrUndefined(car.carConnectorData.carConnectorMeterID)) {
       await Logging.logError({
         tenantID: this.tenant.id,
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'getCurrentSoC',
         action: ServerAction.CAR_CONNECTOR,
@@ -60,7 +59,6 @@ export default class TronityCarConnectorIntegration extends CarConnectorIntegrat
       );
       await Logging.logDebug({
         tenantID: this.tenant.id,
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.CAR_CONNECTOR,
         message: `${car.vin} > Tronity web service has been called successfully`,
         module: MODULE_NAME, method: 'getCurrentSoC',
@@ -72,7 +70,6 @@ export default class TronityCarConnectorIntegration extends CarConnectorIntegrat
       return null;
     } catch (error) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'getCurrentSoC',
         action: ServerAction.CAR_CONNECTOR,
@@ -122,7 +119,6 @@ export default class TronityCarConnectorIntegration extends CarConnectorIntegrat
   private checkConnectionIsProvided(): void {
     if (!this.connection) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'checkConnectionIsProvided',
         action: ServerAction.CHECK_CONNECTION,

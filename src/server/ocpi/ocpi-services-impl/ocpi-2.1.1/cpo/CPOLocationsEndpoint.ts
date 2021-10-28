@@ -58,7 +58,6 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
       // Check if at least of site found
       if (!evseConnector) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'getLocationRequest',
           action: ServerAction.OCPI_GET_LOCATIONS,
           errorCode: HTTPError.GENERAL_ERROR,
@@ -72,7 +71,6 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
       // Check if at least of site found
       if (!evseConnector) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'getLocationRequest',
           action: ServerAction.OCPI_GET_LOCATIONS,
           errorCode: HTTPError.GENERAL_ERROR,
@@ -87,7 +85,6 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
       // Check if at least of site found
       if (!evseConnector) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'getLocationRequest',
           action: ServerAction.OCPI_GET_LOCATIONS,
           errorCode: HTTPError.GENERAL_ERROR,

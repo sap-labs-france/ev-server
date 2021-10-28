@@ -123,6 +123,18 @@ export default class NotificationHandler {
                 // Send
                 await notificationSource.notificationTask.sendEndOfCharge(sourceData, user, tenant, NotificationSeverity.INFO);
               }
+            } else {
+              await Logging.logDebug({
+                tenantID: tenant.id,
+                chargingStationID: chargingStation.id,
+                companyID: chargingStation.companyID,
+                siteID: chargingStation.siteID,
+                siteAreaID: chargingStation.siteAreaID,
+                module: MODULE_NAME, method: 'sendEndOfCharge',
+                action: ServerAction.END_OF_CHARGE,
+                user: user.id,
+                message: `Notification via '${notificationSource.channel}' has already been sent`
+              });
             }
           } catch (error) {
             await Logging.logActionExceptionMessage(tenant.id, ServerAction.END_OF_CHARGE, error);
@@ -165,6 +177,18 @@ export default class NotificationHandler {
                 // Send
                 await notificationSource.notificationTask.sendOptimalChargeReached(sourceData, user, tenant, NotificationSeverity.INFO);
               }
+            } else {
+              await Logging.logDebug({
+                tenantID: tenant.id,
+                chargingStationID: chargingStation.id,
+                companyID: chargingStation.companyID,
+                siteID: chargingStation.siteID,
+                siteAreaID: chargingStation.siteAreaID,
+                module: MODULE_NAME, method: 'sendOptimalChargeReached',
+                action: ServerAction.OPTIMAL_CHARGE_REACHED,
+                user: user.id,
+                message: `Notification via '${notificationSource.channel}' has already been sent`
+              });
             }
           } catch (error) {
             await Logging.logActionExceptionMessage(tenant.id, ServerAction.OPTIMAL_CHARGE_REACHED, error);
@@ -207,6 +231,18 @@ export default class NotificationHandler {
                 // Send
                 await notificationSource.notificationTask.sendEndOfSession(sourceData, user, tenant, NotificationSeverity.INFO);
               }
+            } else {
+              await Logging.logDebug({
+                tenantID: tenant.id,
+                chargingStationID: chargingStation.id,
+                companyID: chargingStation.companyID,
+                siteID: chargingStation.siteID,
+                siteAreaID: chargingStation.siteAreaID,
+                module: MODULE_NAME, method: 'sendEndOfSession',
+                action: ServerAction.END_OF_SESSION,
+                user: user.id,
+                message: `Notification via '${notificationSource.channel}' has already been sent`
+              });
             }
           } catch (error) {
             await Logging.logActionExceptionMessage(tenant.id, ServerAction.END_OF_SESSION, error);
@@ -249,6 +285,18 @@ export default class NotificationHandler {
                 // Send
                 await notificationSource.notificationTask.sendEndOfSignedSession(sourceData, user, tenant, NotificationSeverity.INFO);
               }
+            } else {
+              await Logging.logDebug({
+                tenantID: tenant.id,
+                chargingStationID: chargingStation.id,
+                companyID: chargingStation.companyID,
+                siteID: chargingStation.siteID,
+                siteAreaID: chargingStation.siteAreaID,
+                module: MODULE_NAME, method: 'sendEndOfSignedSession',
+                action: ServerAction.END_OF_SESSION,
+                user: user.id,
+                message: `Notification via '${notificationSource.channel}' has already been sent`
+              });
             }
           } catch (error) {
             await Logging.logActionExceptionMessage(tenant.id, ServerAction.END_OF_SESSION, error);
@@ -429,12 +477,27 @@ export default class NotificationHandler {
         // Active?
         if (notificationSource.enabled) {
           try {
-            // Save
-            await NotificationHandler.saveNotification(
-              tenant, notificationSource.channel, notificationID, ServerAction.VERIFICATION_EMAIL, { user });
-            // Send
-            await notificationSource.notificationTask.sendVerificationEmail(
-              sourceData, user, tenant, NotificationSeverity.INFO);
+            // Check notification
+            const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
+              tenant, notificationSource.channel, ServerAction.VERIFICATION_EMAIL,
+              null, user.id, { intervalMins: 10 });
+            // Notified?
+            if (!hasBeenNotified) {
+              // Save
+              await NotificationHandler.saveNotification(
+                tenant, notificationSource.channel, notificationID, ServerAction.VERIFICATION_EMAIL, { user });
+              // Send
+              await notificationSource.notificationTask.sendVerificationEmail(
+                sourceData, user, tenant, NotificationSeverity.INFO);
+            } else {
+              await Logging.logDebug({
+                tenantID: tenant.id,
+                module: MODULE_NAME, method: 'sendVerificationEmail',
+                action: ServerAction.VERIFICATION_EMAIL,
+                user: user.id,
+                message: `Notification via '${notificationSource.channel}' has already been sent`
+              });
+            }
           } catch (error) {
             await Logging.logActionExceptionMessage(tenant.id, ServerAction.VERIFICATION_EMAIL, error);
           }
@@ -485,20 +548,38 @@ export default class NotificationHandler {
           // Active?
           if (notificationSource.enabled) {
             try {
-              // Save
-              await NotificationHandler.saveNotification(
-                tenant, notificationSource.channel, notificationID, ServerAction.CHARGING_STATION_STATUS_ERROR, {
-                  chargingStation,
-                  notificationData: {
-                    'connectorId': sourceData.connectorId,
-                    'error': sourceData.error
+              // Check notification
+              const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
+                tenant, notificationSource.channel, ServerAction.CHARGING_STATION_STATUS_ERROR,
+                sourceData.chargeBoxID, null, { intervalMins: 10 });
+              // Notified?
+              if (!hasBeenNotified) {
+                // Save
+                await NotificationHandler.saveNotification(
+                  tenant, notificationSource.channel, notificationID, ServerAction.CHARGING_STATION_STATUS_ERROR, {
+                    chargingStation,
+                    notificationData: {
+                      'connectorId': sourceData.connectorId,
+                      'error': sourceData.error
+                    }
                   }
+                );
+                // Send
+                for (const adminUser of adminUsers) {
+                  await notificationSource.notificationTask.sendChargingStationStatusError(
+                    sourceData, adminUser, tenant, NotificationSeverity.ERROR);
                 }
-              );
-              // Send
-              for (const adminUser of adminUsers) {
-                await notificationSource.notificationTask.sendChargingStationStatusError(
-                  sourceData, adminUser, tenant, NotificationSeverity.ERROR);
+              } else {
+                await Logging.logDebug({
+                  tenantID: tenant.id,
+                  chargingStationID: chargingStation.id,
+                  companyID: chargingStation.companyID,
+                  siteID: chargingStation.siteID,
+                  siteAreaID: chargingStation.siteAreaID,
+                  module: MODULE_NAME, method: 'sendChargingStationStatusError',
+                  action: ServerAction.CHARGING_STATION_STATUS_ERROR,
+                  message: `Notification via '${notificationSource.channel}' has already been sent`
+                });
               }
             } catch (error) {
               await Logging.logActionExceptionMessage(tenant.id, ServerAction.CHARGING_STATION_STATUS_ERROR, error);
@@ -612,6 +693,18 @@ export default class NotificationHandler {
                 await notificationSource.notificationTask.sendSessionStarted(
                   sourceData, user, tenant, NotificationSeverity.INFO);
               }
+            } else {
+              await Logging.logDebug({
+                tenantID: tenant.id,
+                chargingStationID: chargingStation.id,
+                companyID: chargingStation.companyID,
+                siteID: chargingStation.siteID,
+                siteAreaID: chargingStation.siteAreaID,
+                module: MODULE_NAME, method: 'sendSessionStarted',
+                action: ServerAction.TRANSACTION_STARTED,
+                user: user.id,
+                message: `Notification via '${notificationSource.channel}' has already been sent`
+              });
             }
           } catch (error) {
             await Logging.logActionExceptionMessage(tenant.id, ServerAction.TRANSACTION_STARTED, error);
@@ -653,6 +746,13 @@ export default class NotificationHandler {
                       sourceData, adminUser, tenant, NotificationSeverity.ERROR);
                   }
                 }
+              } else {
+                await Logging.logDebug({
+                  tenantID: tenant.id,
+                  module: MODULE_NAME, method: 'sendSmtpError',
+                  action: ServerAction.EMAIL_SERVER_ERROR,
+                  message: `Notification via '${notificationSource.channel}' has already been sent`
+                });
               }
             } catch (error) {
               await Logging.logActionExceptionMessage(tenant.id, ServerAction.EMAIL_SERVER_ERROR, error);
@@ -701,6 +801,13 @@ export default class NotificationHandler {
                       sourceData, adminUser, tenant, NotificationSeverity.ERROR);
                   }
                 }
+              } else {
+                await Logging.logDebug({
+                  tenantID: tenant.id,
+                  module: MODULE_NAME, method: 'sendOCPIPatchChargingStationsStatusesError',
+                  action: ServerAction.PATCH_EVSE_STATUS_ERROR,
+                  message: `Notification via '${notificationSource.channel}' has already been sent`
+                });
               }
             } catch (error) {
               await Logging.logActionExceptionMessage(tenant.id, ServerAction.PATCH_EVSE_STATUS_ERROR, error);
@@ -744,6 +851,13 @@ export default class NotificationHandler {
                       sourceData, adminUser, tenant, NotificationSeverity.ERROR);
                   }
                 }
+              } else {
+                await Logging.logDebug({
+                  tenantID: tenant.id,
+                  module: MODULE_NAME, method: 'sendOICPPatchChargingStationsStatusesError',
+                  action: ServerAction.PATCH_EVSE_STATUS_ERROR,
+                  message: `Notification via '${notificationSource.channel}' has already been sent`
+                });
               }
             } catch (error) {
               await Logging.logActionExceptionMessage(tenant.id, ServerAction.PATCH_EVSE_STATUS_ERROR, error);
@@ -787,6 +901,13 @@ export default class NotificationHandler {
                       sourceData, adminUser, tenant, NotificationSeverity.ERROR);
                   }
                 }
+              } else {
+                await Logging.logDebug({
+                  tenantID: tenant.id,
+                  module: MODULE_NAME, method: 'sendOICPPatchChargingStationsError',
+                  action: ServerAction.PATCH_EVSE_ERROR,
+                  message: `Notification via '${notificationSource.channel}' has already been sent`
+                });
               }
             } catch (error) {
               await Logging.logActionExceptionMessage(tenant.id, ServerAction.PATCH_EVSE_ERROR, error);
@@ -821,6 +942,14 @@ export default class NotificationHandler {
               // Send
               await notificationSource.notificationTask.sendUserAccountInactivity(
                 sourceData, user, tenant, NotificationSeverity.INFO);
+            } else {
+              await Logging.logDebug({
+                tenantID: tenant.id,
+                module: MODULE_NAME, method: 'sendUserAccountInactivity',
+                action: ServerAction.USER_ACCOUNT_INACTIVITY,
+                user: user.id,
+                message: `Notification via '${notificationSource.channel}' has already been sent`
+              });
             }
           } catch (error) {
             await Logging.logActionExceptionMessage(tenant.id, ServerAction.USER_ACCOUNT_INACTIVITY, error);
@@ -863,6 +992,18 @@ export default class NotificationHandler {
                 // Send
                 await notificationSource.notificationTask.sendPreparingSessionNotStarted(sourceData, user, tenant, NotificationSeverity.INFO);
               }
+            } else {
+              await Logging.logDebug({
+                tenantID: tenant.id,
+                chargingStationID: chargingStation.id,
+                companyID: chargingStation.companyID,
+                siteID: chargingStation.siteID,
+                siteAreaID: chargingStation.siteAreaID,
+                module: MODULE_NAME, method: 'sendPreparingSessionNotStarted',
+                action: ServerAction.PREPARING_SESSION_NOT_STARTED,
+                user: user.id,
+                message: `Notification via '${notificationSource.channel}' has already been sent`
+              });
             }
           } catch (error) {
             await Logging.logActionExceptionMessage(tenant.id, ServerAction.PREPARING_SESSION_NOT_STARTED, error);
@@ -905,6 +1046,13 @@ export default class NotificationHandler {
                       sourceData, adminUser, tenant, NotificationSeverity.INFO);
                   }
                 }
+              } else {
+                await Logging.logDebug({
+                  tenantID: tenant.id,
+                  module: MODULE_NAME, method: 'sendOfflineChargingStations',
+                  action: ServerAction.OFFLINE_CHARGING_STATIONS,
+                  message: `Notification via '${notificationSource.channel}' has already been sent`
+                });
               }
             } catch (error) {
               await Logging.logActionExceptionMessage(tenant.id, ServerAction.OFFLINE_CHARGING_STATIONS, error);
@@ -947,6 +1095,13 @@ export default class NotificationHandler {
                       sourceData, adminUser, tenant, NotificationSeverity.ERROR);
                   }
                 }
+              } else {
+                await Logging.logDebug({
+                  tenantID: tenant.id,
+                  module: MODULE_NAME, method: 'sendBillingSynchronizationFailed',
+                  action: ServerAction.BILLING_USER_SYNCHRONIZATION_FAILED,
+                  message: `Notification via '${notificationSource.channel}' has already been sent`
+                });
               }
             } catch (error) {
               await Logging.logActionExceptionMessage(tenant.id, ServerAction.BILLING_USER_SYNCHRONIZATION_FAILED, error);
@@ -989,6 +1144,13 @@ export default class NotificationHandler {
                       sourceData, adminUser, tenant, NotificationSeverity.ERROR);
                   }
                 }
+              } else {
+                await Logging.logDebug({
+                  tenantID: tenant.id,
+                  module: MODULE_NAME, method: 'sendBillingInvoicesSynchronizationFailed',
+                  action: ServerAction.BILLING_INVOICE_SYNCHRONIZATION_FAILED,
+                  message: `Notification via '${notificationSource.channel}' has already been sent`
+                });
               }
             } catch (error) {
               await Logging.logActionExceptionMessage(tenant.id, ServerAction.BILLING_USER_SYNCHRONIZATION_FAILED, error);
@@ -1031,6 +1193,13 @@ export default class NotificationHandler {
                       sourceData, adminUser, tenant, NotificationSeverity.ERROR);
                   }
                 }
+              } else {
+                await Logging.logDebug({
+                  tenantID: tenant.id,
+                  module: MODULE_NAME, method: 'sendBillingPeriodicOperationFailed',
+                  action: ServerAction.BILLING_PERFORM_OPERATIONS,
+                  message: `Notification via '${notificationSource.channel}' has already been sent`
+                });
               }
             } catch (error) {
               await Logging.logActionExceptionMessage(tenant.id, ServerAction.BILLING_PERFORM_OPERATIONS, error);
@@ -1060,7 +1229,7 @@ export default class NotificationHandler {
             if (!hasBeenNotified) {
               // Save
               await NotificationHandler.saveNotification(
-                tenant, notificationSource.channel, null, ServerAction.BILLING_USER_SYNCHRONIZATION_FAILED);
+                tenant, notificationSource.channel, null, ServerAction.CAR_CATALOG_SYNCHRONIZATION_FAILED);
               // Send
               for (const adminUser of adminUsers) {
                 // Enabled?
@@ -1069,6 +1238,13 @@ export default class NotificationHandler {
                     sourceData, adminUser, Constants.DEFAULT_TENANT_OBJECT, NotificationSeverity.ERROR);
                 }
               }
+            } else {
+              await Logging.logDebug({
+                tenantID: tenant.id,
+                module: MODULE_NAME, method: 'sendCarsSynchronizationFailed',
+                action: ServerAction.CAR_CATALOG_SYNCHRONIZATION_FAILED,
+                message: `Notification via '${notificationSource.channel}' has already been sent`
+              });
             }
           } catch (error) {
             await Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, ServerAction.CAR_CATALOG_SYNCHRONIZATION_FAILED, error);
@@ -1111,6 +1287,17 @@ export default class NotificationHandler {
                       sourceData, adminUser, tenant, NotificationSeverity.ERROR);
                   }
                 }
+              } else {
+                await Logging.logDebug({
+                  tenantID: tenant.id,
+                  chargingStationID: chargingStation.id,
+                  companyID: chargingStation.companyID,
+                  siteID: chargingStation.siteID,
+                  siteAreaID: chargingStation.siteAreaID,
+                  module: MODULE_NAME, method: 'sendComputeAndApplyChargingProfilesFailed',
+                  action: ServerAction.COMPUTE_AND_APPLY_CHARGING_PROFILES_FAILED,
+                  message: `Notification via '${notificationSource.channel}' has already been sent`
+                });
               }
             } catch (error) {
               await Logging.logActionExceptionMessage(tenant.id, ServerAction.COMPUTE_AND_APPLY_CHARGING_PROFILES_FAILED, error);
@@ -1190,9 +1377,20 @@ export default class NotificationHandler {
                 // Send
                 await notificationSource.notificationTask.sendSessionNotStarted(sourceData, sourceData.user, tenant, NotificationSeverity.INFO);
               }
+            } else {
+              await Logging.logDebug({
+                tenantID: tenant.id,
+                chargingStationID: chargingStation.id,
+                companyID: chargingStation.companyID,
+                siteID: chargingStation.siteID,
+                siteAreaID: chargingStation.siteAreaID,
+                module: MODULE_NAME, method: 'sendSessionNotStarted',
+                action: ServerAction.SESSION_NOT_STARTED_AFTER_AUTHORIZE,
+                message: `Notification via '${notificationSource.channel}' has already been sent`
+              });
             }
           } catch (error) {
-            await Logging.logActionExceptionMessage(tenant.id, ServerAction.OPTIMAL_CHARGE_REACHED, error);
+            await Logging.logActionExceptionMessage(tenant.id, ServerAction.SESSION_NOT_STARTED_AFTER_AUTHORIZE, error);
           }
         }
       }
@@ -1227,6 +1425,14 @@ export default class NotificationHandler {
                     sourceData, user, tenant, NotificationSeverity.INFO);
                 }
               }
+            } else {
+              await Logging.logDebug({
+                tenantID: tenant.id,
+                module: MODULE_NAME, method: 'sendBillingNewInvoiceNotification',
+                action: ServerAction.BILLING_NEW_INVOICE,
+                user: user.id,
+                message: `Notification via '${notificationSource.channel}' has already been sent`
+              });
             }
           } catch (error) {
             await Logging.logActionExceptionMessage(tenant.id, ServerAction.BILLING_NEW_INVOICE, error);
@@ -1257,7 +1463,6 @@ export default class NotificationHandler {
         siteAreaID: extraParams.chargingStation?.siteAreaID,
         companyID: extraParams.chargingStation?.companyID,
         chargingStationID: extraParams.chargingStation?.id,
-        source: (extraParams.chargingStation ? extraParams.chargingStation.id : null),
         module: MODULE_NAME, method: 'saveNotification',
         action: sourceDescr,
         actionOnUser: extraParams.user,
@@ -1271,7 +1476,6 @@ export default class NotificationHandler {
         siteAreaID: extraParams.chargingStation?.siteAreaID,
         companyID: extraParams.chargingStation?.companyID,
         chargingStationID: extraParams.chargingStation?.id,
-        source: (extraParams.chargingStation ? extraParams.chargingStation.id : null),
         module: MODULE_NAME, method: 'saveNotification',
         action: sourceDescr,
         message: `Admin users are being notified (${channel})`
