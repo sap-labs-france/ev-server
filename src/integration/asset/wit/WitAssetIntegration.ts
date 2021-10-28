@@ -110,9 +110,7 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSetting> 
     if (!token) {
       // Check if connection is initialized
       this.checkConnectionIsProvided();
-      // Get credential params
-      const credentials = await this.getCredentialURLParams();
-      token = await this.fetchAssetProviderToken(credentials);
+      token = await this.fetchAssetProviderToken(await this.getCredentialURLParams());
       // Cache it for better performance
       AssetTokenCache.getInstanceForTenant(this.tenant).setToken(this.connection.id, token);
     }
