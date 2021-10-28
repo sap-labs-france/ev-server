@@ -1,5 +1,6 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
+import { IntegrationSettings, TechnicalSettings } from '../../../../types/Setting';
 import { NextFunction, Request, Response } from 'express';
 
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -13,7 +14,6 @@ import SettingSecurity from './security/SettingSecurity';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import SettingValidator from '../validator/SettingValidator';
 import { StatusCodes } from 'http-status-codes';
-import { TechnicalSettings } from '../../../../types/Setting';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 import _ from 'lodash';
@@ -182,7 +182,7 @@ export default class SettingService {
     UtilsService.assertIdIsProvided(action, req.body.id, MODULE_NAME, 'handleUpdateSetting', req.user);
     switch (req.body.identifier) {
       // Filter
-      case TechnicalSettings.OCPI:
+      case IntegrationSettings.OCPI:
         filteredRequest = SettingValidator.getInstance().validateSettingOCPISetReq(req.body);
         break;
       case TechnicalSettings.CRYPTO:
@@ -191,18 +191,17 @@ export default class SettingService {
       case TechnicalSettings.USER:
         filteredRequest = SettingValidator.getInstance().validateSettingUserSetReq(req.body);
         break;
-      case TechnicalSettings.SMART_CHARGING:
+      case IntegrationSettings.SMART_CHARGING:
         filteredRequest = SettingValidator.getInstance().validateSettingSmartChargingSetReq(req.body);
         break;
-      case TechnicalSettings.REFUND:
+      case IntegrationSettings.REFUND:
         filteredRequest = SettingValidator.getInstance().validateSettingRefundSetReq(req.body);
         break;
-      case TechnicalSettings.PRICING:
+      case IntegrationSettings.PRICING:
         filteredRequest = SettingValidator.getInstance().validateSettingPricingSetReq(req.body);
         break;
       default:
         filteredRequest = settingUpdate;
-        // TODO : Check for each Setting Type that we do have equivalent results
         await Logging.logDebug({
           tenantID: req.user.tenantID,
           user: req.user, module: MODULE_NAME, method: 'handleUpdateSetting',

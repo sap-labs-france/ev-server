@@ -2,8 +2,11 @@ import CreatedUpdatedProps from './CreatedUpdatedProps';
 import { TenantComponents } from './Tenant';
 
 export enum TechnicalSettings {
-  USER = 'user',
   CRYPTO = 'crypto',
+  USER = 'user',
+}
+
+export enum IntegrationSettings {
   OCPI = 'ocpi',
   SMART_CHARGING = 'smartCharging',
   REFUND = 'refund',
