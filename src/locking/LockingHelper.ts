@@ -24,6 +24,14 @@ export default class LockingHelper {
     return lock;
   }
 
+  public static async acquireAsyncTaskManagerLock(tenantID: string): Promise<Lock | null> {
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.ASYNC_TASK_MANAGER, 'async-task-manager', 24 * 60 * 60);
+    if (!(await LockingManager.acquire(lock))) {
+      return null;
+    }
+    return lock;
+  }
+
   public static async acquireSiteAreaSmartChargingLock(tenantID: string, siteArea: SiteArea, timeoutSecs: number): Promise<Lock | null> {
     const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.SITE_AREA, `${siteArea.id}-smart-charging`, 180);
     if (!(await LockingManager.acquire(lock, timeoutSecs))) {
