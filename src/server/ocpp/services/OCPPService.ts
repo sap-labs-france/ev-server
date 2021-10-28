@@ -95,7 +95,7 @@ export default class OCPPService {
       // Send Notification (Async)
       this.notifyBootNotification(tenant, chargingStation);
       // Request OCPP configuration
-      this.requestOCPPConfigurationDelayed(tenant, chargingStation, templateUpdateResult, heartbeatIntervalSecs);
+      this.requestOCPPConfigurationAfterBootNotification(tenant, chargingStation, templateUpdateResult, heartbeatIntervalSecs);
       // Log
       await Logging.logInfo({
         tenantID: tenant.id,
@@ -141,7 +141,7 @@ export default class OCPPService {
       // Save Heart Beat
       await OCPPStorage.saveHeartbeat(tenant, heartbeat);
       // Log
-      await Logging.logDebug({
+      await Logging.logInfo({
         tenantID: tenant.id,
         siteID: chargingStation.siteID,
         siteAreaID: chargingStation.siteAreaID,
@@ -1951,53 +1951,74 @@ export default class OCPPService {
     );
   }
 
-  private requestOCPPConfigurationDelayed(tenant: Tenant, chargingStation: ChargingStation, templateUpdateResult: TemplateUpdateResult, heartbeatIntervalSecs: number) {
+  private requestOCPPConfigurationAfterBootNotification(tenant: Tenant, chargingStation: ChargingStation,
+      templateUpdateResult: TemplateUpdateResult, heartbeatIntervalSecs: number) {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     setTimeout(async () => {
-      let result: OCPPChangeConfigurationCommandResult;
       // Synchronize heartbeat interval OCPP parameter for charging stations that do not take into account its value in the boot notification response
-      let setHeartbeatIntervalOcppParam = false;
-      // Change one of the key
       for (const heartbeatOcppKey of Constants.OCPP_HEARTBEAT_KEYS) {
-        result = await OCPPUtils.requestChangeChargingStationOcppParameter(tenant, chargingStation, {
-          key: heartbeatOcppKey,
-          value: heartbeatIntervalSecs.toString()
-        }, false);
-        if (result.status === OCPPConfigurationStatus.ACCEPTED ||
-            result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
-          setHeartbeatIntervalOcppParam = true;
-          break;
+        try {
+          const result = await OCPPUtils.requestChangeChargingStationOcppParameter(tenant, chargingStation, {
+            key: heartbeatOcppKey,
+            value: heartbeatIntervalSecs.toString()
+          }, false);
+          if (result.status === OCPPConfigurationStatus.ACCEPTED ||
+              result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
+            break;
+          }
+          await Logging.logError({
+            tenantID: tenant.id,
+            action: ServerAction.OCPP_BOOT_NOTIFICATION,
+            siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            companyID: chargingStation.companyID,
+            chargingStationID: chargingStation.id,
+            module: MODULE_NAME, method: 'requestOCPPConfigurationDelayed',
+            message: `Cannot set '${heartbeatOcppKey}' to '${heartbeatIntervalSecs.toString()}' secs: '${result.status}'`
+          });
+        } catch (error) {
+          await Logging.logError({
+            tenantID: tenant.id,
+            action: ServerAction.OCPP_BOOT_NOTIFICATION,
+            siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            companyID: chargingStation.companyID,
+            chargingStationID: chargingStation.id,
+            module: MODULE_NAME, method: 'requestOCPPConfigurationDelayed',
+            message: `Cannot set '${heartbeatOcppKey}' to '${heartbeatIntervalSecs.toString()}' secs: '${error.message as string}'`,
+            detailedMessages: { error: error.stack }
+          });
         }
-      }
-      if (!setHeartbeatIntervalOcppParam) {
-        await Logging.logError({
-          tenantID: tenant.id,
-          action: ServerAction.OCPP_BOOT_NOTIFICATION,
-          siteID: chargingStation.siteID,
-          siteAreaID: chargingStation.siteAreaID,
-          companyID: chargingStation.companyID,
-          chargingStationID: chargingStation.id,
-          module: MODULE_NAME, method: 'requestOCPPConfigurationDelayed',
-          message: `Cannot set heartbeat interval OCPP Parameter on '${chargingStation.id}' in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
-          detailedMessages: { heartbeatIntervalSecs, chargingStation }
-        });
       }
       // Apply Charging Station Template OCPP configuration
       if (templateUpdateResult.ocppStandardUpdated || templateUpdateResult.ocppVendorUpdated) {
-        result = await OCPPUtils.applyTemplateOcppParametersToChargingStation(tenant, chargingStation);
-      }
-      if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
-        await Logging.logError({
-          tenantID: tenant.id,
-          action: ServerAction.OCPP_BOOT_NOTIFICATION,
-          siteID: chargingStation.siteID,
-          siteAreaID: chargingStation.siteAreaID,
-          companyID: chargingStation.companyID,
-          chargingStationID: chargingStation.id,
-          module: MODULE_NAME, method: 'requestOCPPConfigurationDelayed',
-          message: `Cannot request and save OCPP Parameters from '${chargingStation.id}' in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
-          detailedMessages: { result, chargingStation }
-        });
+        try {
+          const result = await OCPPUtils.applyTemplateOcppParametersToChargingStation(tenant, chargingStation);
+          if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
+            await Logging.logError({
+              tenantID: tenant.id,
+              action: ServerAction.OCPP_BOOT_NOTIFICATION,
+              siteID: chargingStation.siteID,
+              siteAreaID: chargingStation.siteAreaID,
+              companyID: chargingStation.companyID,
+              chargingStationID: chargingStation.id,
+              module: MODULE_NAME, method: 'requestOCPPConfigurationDelayed',
+              message: `Cannot apply Template OCPP Parameters: '${result.status}'`
+            });
+          }
+        } catch (error) {
+          await Logging.logError({
+            tenantID: tenant.id,
+            action: ServerAction.OCPP_BOOT_NOTIFICATION,
+            siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            companyID: chargingStation.companyID,
+            chargingStationID: chargingStation.id,
+            module: MODULE_NAME, method: 'requestOCPPConfigurationDelayed',
+            message: `Cannot apply Template OCPP Parameters: ${error.message as string}`,
+            detailedMessages: { error: error.stack }
+          });
+        }
       }
     }, Constants.DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS);
   }
