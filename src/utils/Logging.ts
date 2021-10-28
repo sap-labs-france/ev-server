@@ -710,7 +710,7 @@ export default class Logging {
       method: exception.method,
       action: action,
       message: exception.message,
-      detailedMessages: { stack: exception.stack, ...detailedMessages }
+      detailedMessages: { error: exception.stack, ...detailedMessages }
     });
   }
 

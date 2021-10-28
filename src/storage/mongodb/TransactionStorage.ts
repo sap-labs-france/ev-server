@@ -322,7 +322,7 @@ export default class TransactionStorage {
         endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; tagIDs?: string[]; inactivityStatus?: string[];
         ocpiSessionID?: string; ocpiAuthorizationID?: string; ocpiSessionDateFrom?: Date; ocpiSessionDateTo?: Date; ocpiCdrDateFrom?: Date; ocpiCdrDateTo?: Date;
         ocpiSessionChecked?: boolean; ocpiCdrChecked?: boolean; oicpSessionID?: string; withSite?: boolean; withSiteArea?: boolean; withCompany?: boolean;
-        statistics?: 'refund' | 'history' | 'ongoing'; refundStatus?: string[]; withTag?: boolean; hasUserID?: boolean; withUser?: boolean; withCar?: boolean;
+        statistics?: 'refund' | 'history' | 'ongoing'; refundStatus?: RefundStatus[]; withTag?: boolean; hasUserID?: boolean; withUser?: boolean; withCar?: boolean;
       },
       dbParams: DbParams, projectFields?: string[]): Promise<TransactionDataResult> {
     // Debug
@@ -475,7 +475,7 @@ export default class TransactionStorage {
       };
     }
     // Refund status
-    if (params.refundStatus && params.refundStatus.length > 0) {
+    if (!Utils.isEmptyArray(params.refundStatus)) {
       const statuses = params.refundStatus.map((status) => status === RefundStatus.NOT_SUBMITTED ? null : status);
       filters['refundData.status'] = {
         $in: statuses
