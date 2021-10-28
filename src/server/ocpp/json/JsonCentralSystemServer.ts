@@ -54,6 +54,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         siteAreaID: chargingStationLocation?.siteAreaID,
         companyID: chargingStationLocation?.companyID,
         chargingStationID: chargingStationID,
+        source: chargingStationID,
         module: MODULE_NAME, method: 'getChargingStationClient',
         action: ServerAction.WS_CONNECTION,
         message: 'No open WebSocket connection found'
@@ -155,7 +156,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         }
       } catch (error) {
         ws.close(WebSocketCloseEventStatusCode.CLOSE_UNSUPPORTED, error.message);
-        await Logging.logException(error, ServerAction.WS_CONNECTION, MODULE_NAME, 'connection',
+        await Logging.logException(error, ServerAction.WS_CONNECTION, '', MODULE_NAME, 'connection',
           wsConnection?.getTenantID() ? wsConnection.getTenantID() : Constants.DEFAULT_TENANT);
       }
     });

@@ -1,4 +1,4 @@
-export enum CloudCredentialsEnvKey {
+export enum CloudCredentialsKey {
   EV_DATABASE_KEY = 'evDBKey',
   SMTP_USERNAME = 'smtpUsername',
   SMTP_PASSWORD = 'smtpPassword',
@@ -11,4 +11,4 @@ export enum CloudCredentialsEnvKey {
   FIREBASE_PRIVATE_KEY = 'firebasePrivateKey'
 }
 
-export type CloudCredentials = Record<CloudCredentialsEnvKey, string>;
+export type CloudCredentials = Record<CloudCredentialsKey, string>;

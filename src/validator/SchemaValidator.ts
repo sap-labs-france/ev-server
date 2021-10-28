@@ -101,6 +101,7 @@ export default class SchemaValidator {
         }
       }
       throw new AppError({
+        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: concatenatedErrors.join(', '),
         module: this.moduleName,

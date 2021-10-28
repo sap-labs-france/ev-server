@@ -614,19 +614,7 @@ export enum ServerProtocol {
   WSS = 'wss'
 }
 
-export enum ServerType {
-  REST_SERVER = 'RestServer',
-  SOAP_SERVER = 'SoapServer',
-  JSON_SERVER = 'JsonServer',
-  OCPI_SERVER = 'OcpiServer',
-  OICP_SERVER = 'OicpServer',
-  ODATA_SERVER = 'ODataServer',
-  BATCH_SERVER = 'BatchServer',
-  CENTRAL_SERVER = 'CentralServer',
-}
-
 export enum WSServerProtocol {
   OCPP16 = 'ocpp1.6',
   REST = 'rest'
 }
-

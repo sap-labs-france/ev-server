@@ -42,6 +42,7 @@ export default class CPOSessionsEndpoint extends AbstractEndpoint {
     const limit = (req.query.limit && Utils.convertToInt(req.query.limit) < Constants.OCPI_RECORDS_LIMIT) ? Utils.convertToInt(req.query.limit) : Constants.OCPI_RECORDS_LIMIT;
     if (!req.query.date_from) {
       throw new AppError({
+        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PULL_SESSIONS,
         module: MODULE_NAME, method: 'getSessionsRequest',
         errorCode: StatusCodes.BAD_REQUEST,

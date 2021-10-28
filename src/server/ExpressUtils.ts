@@ -1,5 +1,6 @@
 import express, { NextFunction, Request, Response } from 'express';
 
+import CFLog from 'cf-nodejs-logging-support';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
@@ -52,6 +53,11 @@ export default class ExpressUtils {
     }
     // Use
     app.use(locale(Constants.SUPPORTED_LOCALES));
+    // Check Cloud Foundry
+    if (Configuration.isCloudFoundry()) {
+      // Bind to express app
+      app.use(CFLog.logNetwork);
+    }
     return app;
   }
 

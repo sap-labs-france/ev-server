@@ -43,6 +43,7 @@ export default abstract class CarIntegration {
           // Log
           await Logging.logDebug({
             tenantID: Constants.DEFAULT_TENANT,
+            source: Constants.CENTRAL_SERVER,
             action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
             module: MODULE_NAME, method: 'synchronizeCarCatalogs',
             message: `${externalCar.id} - ${externalCar.vehicleMake} - ${externalCar.vehicleModel} has been created successfully`,
@@ -77,6 +78,7 @@ export default abstract class CarIntegration {
           // Log
           await Logging.logDebug({
             tenantID: Constants.DEFAULT_TENANT,
+            source: Constants.CENTRAL_SERVER,
             action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
             module: MODULE_NAME, method: 'synchronizeCarCatalogs',
             message: `${externalCar.id} - ${externalCar.vehicleMake} - ${externalCar.vehicleModel} has been updated successfully`,
@@ -86,6 +88,7 @@ export default abstract class CarIntegration {
         actionsDone.inError++;
         await Logging.logError({
           tenantID: Constants.DEFAULT_TENANT,
+          source: Constants.CENTRAL_SERVER,
           action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
           module: MODULE_NAME, method: 'synchronizeCarCatalogs',
           message: `${externalCar.id} - ${externalCar.vehicleMake} - ${externalCar.vehicleModel} got synchronization error`,

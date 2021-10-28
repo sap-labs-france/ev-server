@@ -51,6 +51,7 @@ export default class RegistrationTokenService {
     // Check
     if (!filteredRequest.description) {
       throw new AppError({
+        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The description must be provided',
         module: MODULE_NAME, method: 'handleCreateRegistrationToken',
@@ -62,6 +63,7 @@ export default class RegistrationTokenService {
         Authorizations.isSiteAdmin(req.user) &&
         !filteredRequest.siteAreaID) {
       throw new AppError({
+        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Site ID must be provided',
         module: MODULE_NAME, method: 'handleCreateRegistrationToken',
@@ -119,6 +121,7 @@ export default class RegistrationTokenService {
     // Check
     if (!filteredRequest.description) {
       throw new AppError({
+        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The description must be provided',
         module: MODULE_NAME, method: 'handleUpdateRegistrationToken',
@@ -166,7 +169,7 @@ export default class RegistrationTokenService {
     // Delete
     await RegistrationTokenStorage.deleteRegistrationToken(req.tenant, tokenID);
     // Log
-    await Logging.logInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user,
       module: MODULE_NAME, method: 'handleDeleteRegistrationToken',
@@ -198,6 +201,7 @@ export default class RegistrationTokenService {
     if (registrationToken.expirationDate &&
         moment(registrationToken.expirationDate).isBefore(new Date())) {
       throw new AppError({
+        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Cannot revoke a token that has expired',
         module: MODULE_NAME, method: 'handleRevokeRegistrationToken',
@@ -210,7 +214,7 @@ export default class RegistrationTokenService {
     registrationToken.lastChangedOn = new Date();
     await RegistrationTokenStorage.saveRegistrationToken(req.tenant, registrationToken);
     // Log
-    await Logging.logInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user,
       module: MODULE_NAME, method: 'handleRevokeRegistrationToken',

@@ -447,6 +447,7 @@ export default class EmspOCPIClient extends OCPIClient {
     if (!tag || !tag.issuer || !tag.active) {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,
+        source: chargingStation.id,
         chargingStationID: chargingStation.id,
         siteID: chargingStation.siteID,
         siteAreaID: chargingStation.siteAreaID,
@@ -459,6 +460,7 @@ export default class EmspOCPIClient extends OCPIClient {
     if (!tag.user || !tag.user.issuer) {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,
+        source: chargingStation.id,
         chargingStationID: chargingStation.id,
         siteID: chargingStation.siteID,
         siteAreaID: chargingStation.siteAreaID,
@@ -505,6 +507,7 @@ export default class EmspOCPIClient extends OCPIClient {
       siteAreaID: chargingStation.siteAreaID,
       companyID: chargingStation.companyID,
       chargingStationID: chargingStation.id,
+      source: chargingStation.id,
       message: `${Utils.buildConnectorInfo(connectorID)} OCPI Remote Start session response status '${response.status}'`,
       module: MODULE_NAME, method: 'remoteStartSession',
       detailedMessages: { remoteStart, response: response.data }
@@ -521,6 +524,7 @@ export default class EmspOCPIClient extends OCPIClient {
     if (!transaction) {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,
+        source: transaction?.chargeBoxID,
         chargingStationID: transaction?.chargeBoxID,
         siteID: transaction?.siteID,
         siteAreaID: transaction?.siteAreaID,
@@ -533,6 +537,7 @@ export default class EmspOCPIClient extends OCPIClient {
     if (!transaction.issuer) {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,
+        source: transaction?.chargeBoxID,
         chargingStationID: transaction?.chargeBoxID,
         siteID: transaction?.siteID,
         siteAreaID: transaction?.siteAreaID,
@@ -545,6 +550,7 @@ export default class EmspOCPIClient extends OCPIClient {
     if (!transaction.ocpiData?.session) {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,
+        source: transaction?.chargeBoxID,
         chargingStationID: transaction?.chargeBoxID,
         siteID: transaction?.siteID,
         siteAreaID: transaction?.siteAreaID,
@@ -575,6 +581,7 @@ export default class EmspOCPIClient extends OCPIClient {
       siteAreaID: transaction.siteAreaID,
       companyID: transaction.companyID,
       chargingStationID: transaction.chargeBoxID,
+      source: transaction.chargeBoxID,
       message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OCPI Remote Stop response status '${response.status}'`,
       module: MODULE_NAME, method: 'remoteStopSession',
       detailedMessages: { response: response.data }

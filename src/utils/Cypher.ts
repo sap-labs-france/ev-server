@@ -72,6 +72,7 @@ export default class Cypher {
     // Check
     if (decryptedData !== dataToEncrypt) {
       throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
         message: 'Crypto algorithm check failed',
         module: MODULE_NAME, method: 'checkCryptoSettings',
       });
@@ -81,6 +82,7 @@ export default class Cypher {
   public static async encryptSensitiveDataInJSON(tenant: Tenant, data: Record<string, any>, useFormerKey = false, cryptoSetting?: CryptoSetting): Promise<void> {
     if (typeof data !== 'object') {
       throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'encryptSensitiveDataInJSON',
         message: `The parameter ${data} is not an object`
@@ -104,6 +106,7 @@ export default class Cypher {
   public static async decryptSensitiveDataInJSON(tenant: Tenant, data: Record<string, any>, useFormerKey = false, cryptoSetting?: CryptoSetting): Promise<void> {
     if (typeof data !== 'object') {
       throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'decryptSensitiveDataInJSON',
         message: `The parameter ${data} is not an object`
@@ -126,6 +129,7 @@ export default class Cypher {
   public static hashSensitiveDataInJSON(obj: Record<string, any>): void {
     if (typeof obj !== 'object') {
       throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'hashSensitiveDataInJSON',
         message: `The parameter ${obj} is not an object`
@@ -135,6 +139,7 @@ export default class Cypher {
       // Check that sensitive data is an array
       if (!Array.isArray(obj.sensitiveData)) {
         throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
           method: 'hashSensitiveDataInJSON',
           message: 'The property \'sensitiveData\' is not an array'
@@ -169,6 +174,7 @@ export default class Cypher {
         await Cypher.saveCryptoSetting(tenant, cryptoSettings);
       } catch (err) {
         throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
           method: 'handleCryptoSettingsChange',
           message: `Sensitive Data migration for tenant with ID: ${tenant.id} failed.`
@@ -179,6 +185,7 @@ export default class Cypher {
       }
     } else {
       throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'handleCryptoSettingsChange',
         message: `Sensitive Data migration is in progress for tenant with ID: ${tenant.id}.`
@@ -204,6 +211,7 @@ export default class Cypher {
     const cryptoSettings = await SettingStorage.getCryptoSettings(tenant);
     if (!cryptoSettings || !cryptoSettings.crypto) {
       throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'getCryptoSetting',
         message: `Tenant ID '${tenant.id}' does not have crypto settings.`

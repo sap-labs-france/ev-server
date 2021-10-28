@@ -52,6 +52,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     const connectorID = urlSegment.shift();
     if (!countryCode || !partyID || !locationID) {
       throw new AppError({
+        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PATCH_LOCATION,
         module: MODULE_NAME, method: 'patchLocationRequest',
         errorCode: HTTPError.GENERAL_ERROR,
@@ -62,6 +63,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     const location = req.body as OCPILocation;
     if (locationID !== location.id) {
       throw new AppError({
+        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PATCH_LOCATION,
         module: MODULE_NAME, method: 'patchLocationRequest',
         errorCode: StatusCodes.NOT_FOUND,
@@ -75,6 +77,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
         tenant, locationID, evseUID);
       if (!chargingStation) {
         throw new AppError({
+          source: Constants.CENTRAL_SERVER,
           action: ServerAction.OCPI_PATCH_LOCATION,
           module: MODULE_NAME, method: 'patchLocationRequest',
           errorCode: StatusCodes.NOT_FOUND,
@@ -86,6 +89,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       const foundEvse = location.evses.find((evse) => evse.uid === evseUID);
       if (!foundEvse) {
         throw new AppError({
+          source: Constants.CENTRAL_SERVER,
           action: ServerAction.OCPI_PATCH_LOCATION,
           module: MODULE_NAME, method: 'patchLocationRequest',
           errorCode: StatusCodes.NOT_FOUND,
@@ -97,6 +101,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       const chargingStationEvse = chargingStation.ocpiData.evses.find((evse) => evse.uid === evseUID);
       if (!chargingStationEvse) {
         throw new AppError({
+          source: Constants.CENTRAL_SERVER,
           action: ServerAction.OCPI_PATCH_LOCATION,
           module: MODULE_NAME, method: 'patchLocationRequest',
           errorCode: StatusCodes.NOT_FOUND,
@@ -109,6 +114,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
         const foundEvseConnector = foundEvse.connectors.find((evseConnector) => evseConnector.id === connectorID);
         if (!foundEvseConnector) {
           throw new AppError({
+            source: Constants.CENTRAL_SERVER,
             action: ServerAction.OCPI_PATCH_LOCATION,
             module: MODULE_NAME, method: 'patchLocationRequest',
             errorCode: StatusCodes.NOT_FOUND,
@@ -128,6 +134,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
         tenantID: tenant.id,
         action: ServerAction.OCPI_PATCH_LOCATION,
         message: `Patching of Location ID '${locationID}' is not supported currently`,
+        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'patchLocationRequest',
         detailedMessages: { location }
       });
@@ -145,6 +152,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     const connectorID = urlSegment.shift();
     if (!countryCode || !partyID || !locationID) {
       throw new AppError({
+        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PUT_LOCATION,
         module: MODULE_NAME, method: 'putLocationRequest',
         errorCode: HTTPError.GENERAL_ERROR,
@@ -156,6 +164,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     const location = req.body as OCPILocation;
     if (locationID !== location.id) {
       throw new AppError({
+        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PUT_LOCATION,
         module: MODULE_NAME, method: 'putLocationRequest',
         errorCode: StatusCodes.NOT_FOUND,
@@ -169,6 +178,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
         (evse) => evse.uid === evseUID);
       if (!foundEvse) {
         throw new AppError({
+          source: Constants.CENTRAL_SERVER,
           action: ServerAction.OCPI_PUT_LOCATION,
           module: MODULE_NAME, method: 'putLocationRequest',
           errorCode: StatusCodes.NOT_FOUND,
@@ -182,6 +192,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
           (evseConnector) => evseConnector.id === connectorID);
         if (!foundEvseConnector) {
           throw new AppError({
+            source: Constants.CENTRAL_SERVER,
             action: ServerAction.OCPI_PUT_LOCATION,
             module: MODULE_NAME, method: 'putLocationRequest',
             errorCode: StatusCodes.NOT_FOUND,
@@ -258,6 +269,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       (connector) => connector?.id === ocpiConnector.id);
     if (!foundConnector) {
       throw new AppError({
+        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PUT_LOCATION,
         module: MODULE_NAME, method: 'putLocationRequest',
         errorCode: StatusCodes.NOT_FOUND,
@@ -291,6 +303,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
           tenantID: tenant.id,
           action: ServerAction.OCPI_PATCH_LOCATION,
           message: `Charging Station '${evse.uid}' of Location '${location.name}' with ID '${location.id}' has been deleted`,
+          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'updateEvse',
           detailedMessages: location
         });
@@ -303,6 +316,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
         tenantID: tenant.id,
         action: ServerAction.OCPI_PATCH_LOCATION,
         message: `Charging Station '${evse.uid}' of Location '${location.name}' with ID '${location.id}' has been updated`,
+        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'updateEvse',
         detailedMessages: location
       });
@@ -314,6 +328,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       tenant, location.id, evse.uid);
     if (!chargingStation) {
       throw new AppError({
+        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PUT_LOCATION,
         module: MODULE_NAME, method: 'updateConnector',
         errorCode: StatusCodes.NOT_FOUND,

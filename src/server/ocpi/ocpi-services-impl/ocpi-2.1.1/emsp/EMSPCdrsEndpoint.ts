@@ -3,6 +3,7 @@ import { NextFunction, Request, Response } from 'express';
 import AbstractEndpoint from '../../AbstractEndpoint';
 import AbstractOCPIService from '../../../AbstractOCPIService';
 import AppError from '../../../../../exception/AppError';
+import Constants from '../../../../../utils/Constants';
 import { HTTPError } from '../../../../../types/HTTPError';
 import { OCPICdr } from '../../../../../types/ocpi/OCPICdr';
 import OCPIEndpoint from '../../../../../types/ocpi/OCPIEndpoint';
@@ -39,6 +40,7 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
     const id = urlSegment.shift();
     if (!id) {
       throw new AppError({
+        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PULL_CDRS,
         module: MODULE_NAME, method: 'getCdrRequest',
         errorCode: HTTPError.GENERAL_ERROR,
@@ -49,6 +51,7 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
     const transaction: Transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant, id);
     if (!transaction) {
       throw new AppError({
+        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PULL_CDRS,
         module: MODULE_NAME, method: 'getCdrRequest',
         errorCode: HTTPError.GENERAL_ERROR,
@@ -58,6 +61,7 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
     }
     if (!transaction.ocpiData?.cdr) {
       throw new AppError({
+        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PULL_CDRS,
         module: MODULE_NAME, method: 'getCdrRequest',
         errorCode: HTTPError.GENERAL_ERROR,

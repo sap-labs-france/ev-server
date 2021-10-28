@@ -187,6 +187,7 @@ export default class CpoOCPIClient extends OCPIClient {
       });
     if (!response.data.data) {
       throw new BackendError({
+        source: chargingStation.id,
         chargingStationID: chargingStation.id,
         siteID: chargingStation.siteID,
         siteAreaID: chargingStation.siteAreaID,
@@ -200,6 +201,7 @@ export default class CpoOCPIClient extends OCPIClient {
     const authorizationInfo = response.data.data as OCPIAuthorizationInfo;
     if (authorizationInfo.allowed !== OCPIAllowed.ALLOWED) {
       throw new BackendError({
+        source: chargingStation.id,
         chargingStationID: chargingStation.id,
         siteID: chargingStation.siteID,
         siteAreaID: chargingStation.siteAreaID,
@@ -212,6 +214,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     if (!authorizationInfo.authorization_id) {
       throw new BackendError({
+        source: chargingStation.id,
         chargingStationID: chargingStation.id,
         siteID: chargingStation.siteID,
         siteAreaID: chargingStation.siteAreaID,
@@ -228,6 +231,7 @@ export default class CpoOCPIClient extends OCPIClient {
       siteAreaID: chargingStation.siteAreaID,
       companyID: chargingStation.companyID,
       chargingStationID: chargingStation.id,
+      source: chargingStation.id,
       action: ServerAction.OCPI_AUTHORIZE_TOKEN,
       message: `OCPI Tag ID '${token.uid}' has been authorized successfully`,
       module: MODULE_NAME, method: 'authorizeToken',
@@ -276,6 +280,7 @@ export default class CpoOCPIClient extends OCPIClient {
       siteAreaID: chargingStation.siteAreaID,
       companyID: chargingStation.companyID,
       chargingStationID: chargingStation.id,
+      source: chargingStation.id,
       action: ServerAction.OCPI_START_SESSION,
       message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OCPI Transaction has been started successfully`,
       module: MODULE_NAME, method: 'startSession',
@@ -286,6 +291,7 @@ export default class CpoOCPIClient extends OCPIClient {
   public async updateSession(transaction: Transaction): Promise<void> {
     if (!transaction.ocpiData?.session) {
       throw new BackendError({
+        source: transaction.chargeBoxID,
         chargingStationID: transaction.chargeBoxID,
         siteID: transaction.siteID,
         siteAreaID: transaction.siteAreaID,
@@ -328,6 +334,7 @@ export default class CpoOCPIClient extends OCPIClient {
       siteAreaID: transaction.siteAreaID,
       companyID: transaction.companyID,
       chargingStationID: transaction.chargeBoxID,
+      source: transaction.chargeBoxID,
       action: ServerAction.OCPI_PUSH_SESSIONS,
       message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OCPI Transaction has been patched successfully`,
       module: MODULE_NAME, method: 'updateSession',
@@ -338,6 +345,7 @@ export default class CpoOCPIClient extends OCPIClient {
   public async stopSession(transaction: Transaction): Promise<void> {
     if (!transaction.ocpiData?.session) {
       throw new BackendError({
+        source: transaction.chargeBoxID,
         chargingStationID: transaction.chargeBoxID,
         siteID: transaction.siteID,
         siteAreaID: transaction.siteAreaID,
@@ -349,6 +357,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     if (!transaction.stop) {
       throw new BackendError({
+        source: transaction.chargeBoxID,
         chargingStationID: transaction.chargeBoxID,
         siteID: transaction.siteID,
         siteAreaID: transaction.siteAreaID,
@@ -382,6 +391,7 @@ export default class CpoOCPIClient extends OCPIClient {
       siteAreaID: transaction.siteAreaID,
       companyID: transaction.companyID,
       chargingStationID: transaction.chargeBoxID,
+      source: transaction.chargeBoxID,
       action: ServerAction.OCPI_STOP_SESSION,
       message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OCPI Transaction has been stopped successfully`,
       module: MODULE_NAME, method: 'stopSession',
@@ -392,6 +402,7 @@ export default class CpoOCPIClient extends OCPIClient {
   public async postCdr(transaction: Transaction): Promise<void> {
     if (!transaction.ocpiData?.session) {
       throw new BackendError({
+        source: transaction.chargeBoxID,
         chargingStationID: transaction.chargeBoxID,
         siteID: transaction.siteID,
         siteAreaID: transaction.siteAreaID,
@@ -403,6 +414,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     if (!transaction.stop) {
       throw new BackendError({
+        source: transaction.chargeBoxID,
         chargingStationID: transaction.chargeBoxID,
         siteID: transaction.siteID,
         siteAreaID: transaction.siteAreaID,
@@ -449,6 +461,7 @@ export default class CpoOCPIClient extends OCPIClient {
         siteAreaID: transaction.siteAreaID,
         companyID: transaction.companyID,
         chargingStationID: transaction.chargeBoxID,
+        source: transaction.chargeBoxID,
         action: ServerAction.OCPI_PUSH_CDRS,
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OCPI CDR has been sent successfully`,
         module: MODULE_NAME, method: 'postCdr',
@@ -461,6 +474,7 @@ export default class CpoOCPIClient extends OCPIClient {
         siteAreaID: transaction.siteAreaID,
         companyID: transaction.companyID,
         chargingStationID: transaction.chargeBoxID,
+        source: transaction.chargeBoxID,
         action: ServerAction.OCPI_PUSH_CDRS,
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OCPI CDR has no consumption and will be be ignored`,
         module: MODULE_NAME, method: 'postCdr',
@@ -472,6 +486,7 @@ export default class CpoOCPIClient extends OCPIClient {
   public async updateChargingStationStatus(chargingStation: ChargingStation, status?: OCPIEvseStatus): Promise<void> {
     if (!chargingStation.siteAreaID) {
       throw new BackendError({
+        source: chargingStation.id,
         chargingStationID: chargingStation.id,
         siteID: chargingStation.siteID,
         siteAreaID: chargingStation.siteAreaID,
@@ -483,6 +498,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     if (!chargingStation.issuer) {
       throw new BackendError({
+        source: chargingStation.id,
         chargingStationID: chargingStation.id,
         siteID: chargingStation.siteID,
         siteAreaID: chargingStation.siteAreaID,
@@ -510,6 +526,7 @@ export default class CpoOCPIClient extends OCPIClient {
       siteAreaID: chargingStation.siteAreaID,
       companyID: chargingStation.companyID,
       chargingStationID: chargingStation.id,
+      source: chargingStation.id,
       action: ServerAction.OCPI_PATCH_STATUS,
       message: 'Charging Station has been removed successfully',
       module: MODULE_NAME, method: 'removeChargingStation',
@@ -520,6 +537,7 @@ export default class CpoOCPIClient extends OCPIClient {
   public async patchChargingStationStatus(chargingStation: ChargingStation, connector: Connector): Promise<void> {
     if (!chargingStation.siteAreaID && !chargingStation.siteArea) {
       throw new BackendError({
+        source: chargingStation.id,
         chargingStationID: chargingStation.id,
         siteID: chargingStation.siteID,
         siteAreaID: chargingStation.siteAreaID,
@@ -531,6 +549,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     if (!chargingStation.issuer) {
       throw new BackendError({
+        source: chargingStation.id,
         chargingStationID: chargingStation.id,
         siteID: chargingStation.siteID,
         siteAreaID: chargingStation.siteAreaID,
@@ -542,6 +561,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     if (!chargingStation.public) {
       throw new BackendError({
+        source: chargingStation.id,
         chargingStationID: chargingStation.id,
         siteID: chargingStation.siteID,
         siteAreaID: chargingStation.siteAreaID,
@@ -779,7 +799,7 @@ export default class CpoOCPIClient extends OCPIClient {
                 if (result.failure > 0) {
                   // Send notification to admins
                   // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                  void NotificationHandler.sendOCPIPatchChargingStationsStatusesError(
+                  await NotificationHandler.sendOCPIPatchChargingStationsStatusesError(
                     this.tenant,
                     {
                       location: location.name,
@@ -856,6 +876,7 @@ export default class CpoOCPIClient extends OCPIClient {
     // Check for input parameter
     if (!locationId || !evseUID || !newStatus) {
       throw new BackendError({
+        source: chargingStation.id,
         chargingStationID: chargingStation.id,
         siteID: chargingStation.siteID,
         siteAreaID: chargingStation.siteAreaID,
@@ -890,6 +911,7 @@ export default class CpoOCPIClient extends OCPIClient {
       siteAreaID: chargingStation.siteAreaID,
       companyID: chargingStation.companyID,
       chargingStationID: chargingStation.id,
+      source: chargingStation.id,
       action: ServerAction.OCPI_PATCH_STATUS,
       message: `OCPI Charging Station ID '${evseUID}' has been patched successfully to '${newStatus}'`,
       module: MODULE_NAME, method: 'patchEVSEStatus',
@@ -901,6 +923,7 @@ export default class CpoOCPIClient extends OCPIClient {
   private async checkCdr(transaction: Transaction): Promise<boolean> {
     if (!transaction.ocpiData?.cdr) {
       throw new BackendError({
+        source: transaction.chargeBoxID,
         chargingStationID: transaction.chargeBoxID,
         siteID: transaction.siteID,
         siteAreaID: transaction.siteAreaID,
@@ -930,6 +953,7 @@ export default class CpoOCPIClient extends OCPIClient {
         siteAreaID: transaction.siteAreaID,
         companyID: transaction.companyID,
         chargingStationID: transaction.chargeBoxID,
+        source: transaction.chargeBoxID,
         action: ServerAction.OCPI_CHECK_CDRS,
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} CDR does not exist in IOP`,
         module: MODULE_NAME, method: 'checkCdr',
@@ -955,6 +979,7 @@ export default class CpoOCPIClient extends OCPIClient {
           siteAreaID: transaction.siteAreaID,
           companyID: transaction.companyID,
           chargingStationID: transaction.chargeBoxID,
+          source: transaction.chargeBoxID,
           action: ServerAction.OCPI_CHECK_CDRS,
           message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} CDR has been checked successfully`,
           module: MODULE_NAME, method: 'checkCdr',
@@ -969,6 +994,7 @@ export default class CpoOCPIClient extends OCPIClient {
       siteAreaID: transaction.siteAreaID,
       companyID: transaction.companyID,
       chargingStationID: transaction.chargeBoxID,
+      source: transaction.chargeBoxID,
       action: ServerAction.OCPI_CHECK_CDRS,
       message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Failed to check CDR '${transaction.ocpiData.session.id}' at ${cdrsUrl}/${transaction.ocpiData.cdr.id}`,
       module: MODULE_NAME, method: 'checkCdr',
@@ -980,6 +1006,7 @@ export default class CpoOCPIClient extends OCPIClient {
   private async checkSession(transaction: Transaction): Promise<boolean> {
     if (!transaction.ocpiData?.session) {
       throw new BackendError({
+        source: transaction.chargeBoxID,
         chargingStationID: transaction.chargeBoxID,
         siteID: transaction.siteID,
         siteAreaID: transaction.siteAreaID,
@@ -1010,6 +1037,7 @@ export default class CpoOCPIClient extends OCPIClient {
           siteAreaID: transaction.siteAreaID,
           companyID: transaction.companyID,
           chargingStationID: transaction.chargeBoxID,
+          source: transaction.chargeBoxID,
           action: ServerAction.OCPI_CHECK_SESSIONS,
           message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has been checked successfully`,
           module: MODULE_NAME, method: 'checkSession',
@@ -1024,6 +1052,7 @@ export default class CpoOCPIClient extends OCPIClient {
       siteAreaID: transaction.siteAreaID,
       companyID: transaction.companyID,
       chargingStationID: transaction.chargeBoxID,
+      source: transaction.chargeBoxID,
       action: ServerAction.OCPI_CHECK_SESSIONS,
       message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Failed to check Transaction at ${sessionsUrl}`,
       module: MODULE_NAME, method: 'checkSession',
