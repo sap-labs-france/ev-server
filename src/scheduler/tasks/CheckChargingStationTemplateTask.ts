@@ -6,20 +6,12 @@ import Logging from '../../utils/Logging';
 import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
-import { TaskConfig } from '../../types/TaskConfig';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'CheckChargingStationTemplateTask';
 
 export default class CheckChargingStationTemplateTask extends SchedulerTask {
-  public async run(name: string, config: TaskConfig): Promise<void> {
-    // Update Template
-    this.updateChargingStationTemplates();
-    // Call default implementation
-    await super.run(name, config);
-  }
-
   public async processTenant(tenant: Tenant): Promise<void> {
     // Get the lock
     const checkChargingStationTemplateLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.CHARGING_STATION, 'check-charging-station-template');
@@ -82,14 +74,6 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
         message: `${updated} Charging Stations have been processed with Template in Tenant ${Utils.buildTenantName(tenant)})`
       });
     }
-  }
-
-  private updateChargingStationTemplates() {
-    // Update current Chargers
-    Utils.updateChargingStationTemplatesFromFile().catch(
-      (error) => {
-        void Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, ServerAction.UPDATE_CHARGING_STATION_TEMPLATES, error);
-      });
   }
 }
 

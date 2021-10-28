@@ -31,4 +31,5 @@ export enum LockEntity {
   TAG = 'tag',
   OICP_ENDPOINT = 'oicp-endpoint',
   ASYNC_TASK = 'async-task',
+  SCHEDULER_TASK = 'scheduler-task',
 }

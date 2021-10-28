@@ -138,7 +138,7 @@ export default class AsyncTaskManager {
             }
             if (abstractAsyncTask) {
               // Get the lock
-              const asyncTaskLock = await LockingHelper.acquireAsyncTaskLock(Constants.DEFAULT_TENANT, asyncTask);
+              const asyncTaskLock = await LockingHelper.acquireAsyncTaskLock(Constants.DEFAULT_TENANT, asyncTask.id);
               if (asyncTaskLock) {
                 const startAsyncTaskTime = new Date().getTime();
                 try {
