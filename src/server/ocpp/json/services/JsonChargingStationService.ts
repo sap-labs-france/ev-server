@@ -110,10 +110,9 @@ export default class JsonChargingStationService {
 
   private async handle(command: Command, headers: OCPPHeader, payload) {
     try {
-      // Handle
       return await this.chargingStationService[`handle${command}`](headers, payload);
     } catch (error) {
-      await Logging.logException(error, OCPPUtils.getServerActionFromOcppCommand(command), headers.chargeBoxIdentity, MODULE_NAME, command, headers.tenantID);
+      await Logging.logException(error, OCPPUtils.buildServerActionFromOcppCommand(command), MODULE_NAME, command, headers.tenantID);
       throw error;
     }
   }

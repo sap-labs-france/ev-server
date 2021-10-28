@@ -1,5 +1,3 @@
-import Site, { SiteUser } from '../../types/Site';
-import User, { UserSite } from '../../types/User';
 import global, { DatabaseCount, FilterParams, Image } from '../../types/GlobalType';
 
 import ChargingStationStorage from './ChargingStationStorage';
@@ -10,8 +8,10 @@ import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { ObjectId } from 'mongodb';
+import Site from '../../types/Site';
 import SiteAreaStorage from './SiteAreaStorage';
 import Tenant from '../../types/Tenant';
+import { UserSite } from '../../types/User';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'SiteStorage';

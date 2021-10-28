@@ -10,11 +10,6 @@ import chalk from 'chalk';
 
 const MODULE_NAME = 'LockingManager';
 
-/**
- * Namespace based runtime locking primitive management with a DB storage for sharing purpose among different hosts.
- * Implemented lock types:
- *  - E = mutually exclusive
- */
 export default class LockingManager {
   public static createExclusiveLock(tenantID: string, entity: LockEntity, key: string, lockValiditySecs = 600): Lock {
     return this.createLock(tenantID, entity, key, LockType.EXCLUSIVE, lockValiditySecs);
@@ -125,7 +120,7 @@ export default class LockingManager {
       key: key.toLowerCase(),
       type: type,
       timestamp: new Date(),
-      hostname: Utils.getHostname()
+      hostname: Utils.getHostName()
     };
     // Set expiration date
     if (lockValiditySecs > 0) {

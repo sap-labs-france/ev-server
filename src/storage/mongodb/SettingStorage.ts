@@ -37,7 +37,6 @@ export default class SettingStorage {
     if (!settingToSave.id && !settingToSave.identifier) {
       // ID must be provided!
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'saveSetting',
         message: 'Setting has no ID and no Identifier'
