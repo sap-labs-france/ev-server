@@ -1,6 +1,5 @@
 import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
-import { NumberFormatPartTypes } from 'intl';
 
 export interface HttpSettingRequest extends HttpByIDRequest {
   ContentFilter: boolean;
