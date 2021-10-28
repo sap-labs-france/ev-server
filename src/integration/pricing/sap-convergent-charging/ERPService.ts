@@ -1,7 +1,6 @@
 import AbstractSoapClient from './AbstractSoapClient';
 import BackendError from '../../../exception/BackendError';
 import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
-import Constants from '../../../utils/Constants';
 import { ServerAction } from '../../../types/Server';
 import Tenant from '../../../types/Tenant';
 import User from '../../../types/User';
@@ -41,7 +40,6 @@ export default class ERPService extends AbstractSoapClient {
     const connection = await ConnectionStorage.getConnectionByConnectorIdAndUserId(tenant, 'convergent-invoicing', user.id);
     if (!connection) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'createInvoice',
         message: 'Convergent Invoicing connection is missing',
@@ -54,7 +52,6 @@ export default class ERPService extends AbstractSoapClient {
     if (!result.data.InvoiceDocumentNumber) {
       if (result.data.status === 'error') {
         throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
           method: 'createInvoice',
           message: result.data.message,
@@ -67,7 +64,6 @@ export default class ERPService extends AbstractSoapClient {
           return null;
         }
         throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
           method: 'createInvoice',
           message: 'Unable to create invoice',
@@ -77,7 +73,6 @@ export default class ERPService extends AbstractSoapClient {
         });
       }
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'createInvoice',
         message: 'Unable to create invoice',

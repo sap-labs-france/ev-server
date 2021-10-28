@@ -1235,6 +1235,7 @@ export default class TransactionStorage {
     // Authorization window
     aggregation.push({
       $match: {
+        issuer: true,
         timestamp: {
           $gt: Utils.convertToDate(authorizeStartDate),
           $lt: Utils.convertToDate(authorizeEndDate)

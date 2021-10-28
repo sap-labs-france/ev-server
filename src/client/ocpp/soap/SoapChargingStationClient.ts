@@ -47,7 +47,6 @@ export default class SoapChargingStationClient extends ChargingStationClient {
             siteAreaID: scsc.chargingStation.siteAreaID,
             companyID: scsc.chargingStation.companyID,
             chargingStationID: scsc.chargingStation.id,
-            source: scsc.chargingStation.id,
             module: MODULE_NAME, method: 'getChargingStationClient',
             message: `OCPP version ${scsc.chargingStation.ocppVersion} not supported`
           });
@@ -66,7 +65,6 @@ export default class SoapChargingStationClient extends ChargingStationClient {
             siteAreaID: scsc.chargingStation.siteAreaID,
             companyID: scsc.chargingStation.companyID,
             chargingStationID: scsc.chargingStation.id,
-            source: scsc.chargingStation.id,
             module: MODULE_NAME, method: 'getChargingStationClient',
             message: `Error when creating SOAP client: ${error.toString()}`,
             detailedMessages: { error: error.stack }
@@ -88,7 +86,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders(Command.REMOTE_STOP_TRANSACTION);
     // Trace
-    const startTimestamp = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant.id,
+    const performanceTracingData = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant,
       this.chargingStation.id, ServerAction.CHARGING_STATION_REMOTE_STOP_TRANSACTION,
       [params, { headers: this.client.getSoapHeaders() }], '<<', {
         siteID: this.chargingStation.siteID,
@@ -108,7 +106,6 @@ export default class SoapChargingStationClient extends ChargingStationClient {
         siteAreaID: this.chargingStation.siteAreaID,
         companyID: this.chargingStation.companyID,
         chargingStationID: this.chargingStation.id,
-        source: this.chargingStation.id,
         module: MODULE_NAME, method: 'remoteStopTransaction',
         message: `Error when trying to stop the transaction ID ${params.transactionId}: ${error.toString()}`,
         detailedMessages: { 'error': error.stack, result, envelope }
@@ -122,7 +119,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
         companyID: this.chargingStation.companyID,
-      }, startTimestamp);
+      }, performanceTracingData);
     return result;
   }
 
@@ -130,7 +127,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders(Command.REMOTE_START_TRANSACTION);
     // Trace
-    const startTimestamp = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant.id, this.chargingStation.id, ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION,
+    const performanceTracingData = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant, this.chargingStation.id, ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION,
       [params, { headers: this.client.getSoapHeaders() }], '<<', {
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
@@ -148,7 +145,6 @@ export default class SoapChargingStationClient extends ChargingStationClient {
         siteAreaID: this.chargingStation.siteAreaID,
         companyID: this.chargingStation.companyID,
         chargingStationID: this.chargingStation.id,
-        source: this.chargingStation.id,
         module: MODULE_NAME, method: 'remoteStartTransaction',
         message: `Error when trying to start a transaction: ${error.toString()}`,
         detailedMessages: { 'error': error.stack , result, envelope },
@@ -161,7 +157,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
         companyID: this.chargingStation.companyID,
-      }, startTimestamp);
+      }, performanceTracingData);
     return result;
   }
 
@@ -169,7 +165,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders(Command.UNLOCK_CONNECTOR);
     // Trace
-    const startTimestamp = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant.id, this.chargingStation.id, ServerAction.CHARGING_STATION_UNLOCK_CONNECTOR,
+    const performanceTracingData = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant, this.chargingStation.id, ServerAction.CHARGING_STATION_UNLOCK_CONNECTOR,
       [params, { headers: this.client.getSoapHeaders() }], '<<', {
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
@@ -189,7 +185,6 @@ export default class SoapChargingStationClient extends ChargingStationClient {
         siteAreaID: this.chargingStation.siteAreaID,
         companyID: this.chargingStation.companyID,
         chargingStationID: this.chargingStation.id,
-        source: this.chargingStation.id,
         module: MODULE_NAME, method: 'unlockConnector',
         message: `Error when trying to unlock the connector '${params.connectorId}': ${error.toString()}`,
         detailedMessages: { 'error': error.stack , result, envelope }
@@ -202,7 +197,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
         companyID: this.chargingStation.companyID,
-      }, startTimestamp);
+      }, performanceTracingData);
     return result;
   }
 
@@ -210,7 +205,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders(Command.RESET);
     // Trace
-    const startTimestamp = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant.id, this.chargingStation.id, ServerAction.CHARGING_STATION_RESET,
+    const performanceTracingData = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant, this.chargingStation.id, ServerAction.CHARGING_STATION_RESET,
       [params, { headers: this.client.getSoapHeaders() }], '<<', {
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
@@ -230,7 +225,6 @@ export default class SoapChargingStationClient extends ChargingStationClient {
         siteAreaID: this.chargingStation.siteAreaID,
         companyID: this.chargingStation.companyID,
         chargingStationID: this.chargingStation.id,
-        source: this.chargingStation.id,
         module: MODULE_NAME, method: 'reset',
         message: `Error when trying to reboot: ${error.toString()}`,
         detailedMessages: { 'error': error.stack , result, envelope }
@@ -243,7 +237,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
         companyID: this.chargingStation.companyID,
-      }, startTimestamp);
+      }, performanceTracingData);
     return result;
   }
 
@@ -251,7 +245,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders(Command.CLEAR_CACHE);
     // Trace
-    const startTimestamp = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant.id, this.chargingStation.id, ServerAction.CHARGING_STATION_CLEAR_CACHE,
+    const performanceTracingData = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant, this.chargingStation.id, ServerAction.CHARGING_STATION_CLEAR_CACHE,
       [{ headers: this.client.getSoapHeaders() }], '<<', {
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
@@ -269,7 +263,6 @@ export default class SoapChargingStationClient extends ChargingStationClient {
         siteAreaID: this.chargingStation.siteAreaID,
         companyID: this.chargingStation.companyID,
         chargingStationID: this.chargingStation.id,
-        source: this.chargingStation.id,
         module: MODULE_NAME, method: 'clearCache',
         message: `Error when trying to clear the cache: ${error.toString()}`,
         detailedMessages: { 'error': error.stack , result, envelope }
@@ -282,7 +275,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
         companyID: this.chargingStation.companyID,
-      }, startTimestamp);
+      }, performanceTracingData);
     return result;
   }
 
@@ -290,7 +283,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders(Command.GET_CONFIGURATION);
     // Trace
-    const startTimestamp = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant.id, this.chargingStation.id, ServerAction.CHARGING_STATION_GET_CONFIGURATION,
+    const performanceTracingData = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant, this.chargingStation.id, ServerAction.CHARGING_STATION_GET_CONFIGURATION,
       [params, { headers: this.client.getSoapHeaders() }], '<<', {
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
@@ -317,7 +310,6 @@ export default class SoapChargingStationClient extends ChargingStationClient {
         siteAreaID: this.chargingStation.siteAreaID,
         companyID: this.chargingStation.companyID,
         chargingStationID: this.chargingStation.id,
-        source: this.chargingStation.id,
         module: MODULE_NAME, method: 'getConfiguration',
         message: `Error when trying to get the configuration: ${error.toString()}`,
         detailedMessages: { 'error': error.stack , result, envelope }
@@ -330,7 +322,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
         companyID: this.chargingStation.companyID,
-      }, startTimestamp);
+      }, performanceTracingData);
     return result;
   }
 
@@ -339,7 +331,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders(Command.CHANGE_CONFIGURATION);
     // Trace
-    const startTimestamp = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant.id, this.chargingStation.id, ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
+    const performanceTracingData = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant, this.chargingStation.id, ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
       [params, { headers: this.client.getSoapHeaders() }], '<<', {
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
@@ -361,7 +353,6 @@ export default class SoapChargingStationClient extends ChargingStationClient {
         siteAreaID: this.chargingStation.siteAreaID,
         companyID: this.chargingStation.companyID,
         chargingStationID: this.chargingStation.id,
-        source: this.chargingStation.id,
         module: MODULE_NAME, method: 'changeConfiguration',
         action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
         message: `Error when trying to change the configuration parameter '${key}' with value '${value}': ${error.toString()}`,
@@ -375,7 +366,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
         companyID: this.chargingStation.companyID,
-      }, startTimestamp);
+      }, performanceTracingData);
     return result;
   }
 

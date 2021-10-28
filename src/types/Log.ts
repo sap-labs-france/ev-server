@@ -1,8 +1,10 @@
-import { ServerAction } from './Server';
+import { ServerAction, ServerType } from './Server';
+
+import { AuthorizationActions } from './Authorization';
 import User from './User';
 import UserToken from './UserToken';
 
-export interface Log {
+export interface Log extends AuthorizationActions {
   tenantID: string;
   id?: string;
   level?: LogLevel;
@@ -10,14 +12,12 @@ export interface Log {
   siteAreaID?: string;
   siteID?: string;
   companyID?: string;
-  source?: string;
+  source?: ServerType;
   host?: string;
-  process?: string;
   module: string;
   method: string;
   timestamp?: Date;
   action: ServerAction;
-  type?: LogType;
   message: string;
   user?: User|UserToken|string;
   actionOnUser?: User|UserToken|string;
@@ -32,9 +32,4 @@ export enum LogLevel {
   ERROR = 'E',
   NONE = 'NONE',
   DEFAULT = 'DEFAULT',
-}
-
-export enum LogType {
-  REGULAR = 'R',
-  SECURITY = 'S',
 }

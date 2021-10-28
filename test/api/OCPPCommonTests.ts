@@ -254,7 +254,7 @@ export default class OCPPCommonTests {
     }
     if (this.createdTags && Array.isArray(this.createdTags)) {
       for (const tag of this.createdTags) {
-        await this.centralUserService.userApi.deleteTag(tag.id);
+        await this.centralUserService.tagApi.deleteTag(tag.id);
       }
     }
   }
@@ -454,7 +454,6 @@ export default class OCPPCommonTests {
   }
 
   public async testRemoteStartTransactionWithUnassignedChargingStation() {
-    console.log('yooo ' + this.transactionStartUser.tags[0].id);
     const response = await this.centralUserService.chargingStationApi.remoteStartTransaction({
       'chargingStationID': this.chargingStationContext.getChargingStation().id,
       'args': {
@@ -1106,7 +1105,7 @@ export default class OCPPCommonTests {
   }
 
   private async createTag(tag: Tag) {
-    const createdTag = await this.centralUserService.userApi.createTag(tag);
+    const createdTag = await this.centralUserService.tagApi.createTag(tag);
     return createdTag;
   }
 

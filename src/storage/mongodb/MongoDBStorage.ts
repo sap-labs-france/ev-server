@@ -1,9 +1,10 @@
-import { ChangeStream, ChangeStreamOptions, ClientSession, Collection, CreateIndexesOptions, Db, GridFSBucket, IndexSpecification, MongoClient, ReadPreferenceMode } from 'mongodb';
+import { ChangeStreamDocument, Collection, CreateIndexesOptions, Db, GridFSBucket, IndexSpecification, MongoClient, ReadPreferenceMode } from 'mongodb';
 import mongoUriBuilder, { MongoUriConfig } from 'mongo-uri-builder';
 
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
+import { DatabaseDocumentChange } from '../../types/GlobalType';
 import DatabaseUtils from './DatabaseUtils';
 import { LockEntity } from '../../types/Locking';
 import LockingManager from '../../locking/LockingManager';
@@ -11,6 +12,7 @@ import Logging from '../../utils/Logging';
 import MigrationConfiguration from '../../types/configuration/MigrationConfiguration';
 import { ServerAction } from '../../types/Server';
 import StorageConfiguration from '../../types/configuration/StorageConfiguration';
+import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 import chalk from 'chalk';
 import urlencode from 'urlencode';
@@ -18,7 +20,7 @@ import urlencode from 'urlencode';
 const MODULE_NAME = 'MongoDBStorage';
 
 export default class MongoDBStorage {
-  private db: Db;
+  private database: Db;
   private readonly dbConfig: StorageConfiguration;
   private readonly migrationConfig: MigrationConfiguration;
 
@@ -29,34 +31,68 @@ export default class MongoDBStorage {
   }
 
   public getDatabase(): Db {
-    return this.db;
+    return this.database;
   }
 
   public getCollection<T>(tenantID: string, collectionName: string): Collection<T> {
-    if (!this.db) {
+    if (!this.database) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'getCollection',
         message: 'Not supposed to call getCollection before database start',
         action: ServerAction.MONGO_DB
       });
     }
-    return this.db.collection<T>(DatabaseUtils.getCollectionName(tenantID, collectionName));
+    return this.database.collection<T>(DatabaseUtils.getCollectionName(tenantID, collectionName));
   }
 
-  public watch(pipeline: Record<string, unknown>[], options: ChangeStreamOptions & { session?: ClientSession; }): ChangeStream {
-    return this.db.watch(pipeline, options);
+  public async watchDatabaseCollection(tenant: Tenant, collectionName: string,
+      callback: (documentID: unknown, documentChange: DatabaseDocumentChange, document: unknown) => void): Promise<void> {
+    if (!this.database) {
+      throw new BackendError({
+        module: MODULE_NAME,
+        method: 'watchDatabaseCollection',
+        message: 'Database has not yet started',
+        action: ServerAction.MONGO_DB
+      });
+    }
+    // Get the DB collection
+    const dbCollection = this.getCollection(tenant.id, collectionName);
+    if (!dbCollection) {
+      throw new BackendError({
+        module: MODULE_NAME,
+        method: 'watchDatabaseCollection',
+        message: `Database collection '${tenant.id}.${collectionName}' has not been found!`,
+        action: ServerAction.MONGO_DB
+      });
+    }
+    // Watch
+    const changeStream = dbCollection.watch([], { fullDocument: 'updateLookup' });
+    const message = `Database collection '${tenant.id}.${collectionName}' is being watched`;
+    Utils.isDevelopmentEnv() && console.log(chalk.green(message));
+    await Logging.logDebug({
+      tenantID: tenant.id,
+      action: ServerAction.MONGO_DB,
+      message,
+      module: MODULE_NAME, method: 'watchDatabaseCollection'
+    });
+    // Trigger callbacks
+    changeStream.on('change', (changeStreamDocument: ChangeStreamDocument) => {
+      const documentID = changeStreamDocument.documentKey ? changeStreamDocument.documentKey['_id'] : null;
+      const documentChange = changeStreamDocument.operationType;
+      const fullDocument = changeStreamDocument.fullDocument;
+      // Callback
+      callback(documentID, documentChange as DatabaseDocumentChange, fullDocument);
+    });
   }
 
   public async checkAndCreateTenantDatabase(tenantID: string): Promise<void> {
     // Safety check
-    if (!this.db) {
+    if (!this.database) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'checkAndCreateTenantDatabase',
-        message: 'Not supposed to call checkAndCreateTenantDatabase before database start',
+        message: 'Database has not yet started',
         action: ServerAction.MONGO_DB
       });
     }
@@ -88,10 +124,11 @@ export default class MongoDBStorage {
     // Logs
     await this.handleIndexesInCollection(tenantID, 'logs', [
       { fields: { timestamp: 1 }, options: { expireAfterSeconds: 14 * 24 * 3600 } },
-      { fields: { type: 1, timestamp: 1 } },
       { fields: { action: 1, timestamp: 1 } },
       { fields: { level: 1, timestamp: 1 } },
       { fields: { source: 1, timestamp: 1 } },
+      { fields: { chargingStationID: 1, timestamp: 1 } },
+      { fields: { siteID: 1, timestamp: 1 } },
       { fields: { host: 1, timestamp: 1 } },
       { fields: { message: 'text' } },
     ]);
@@ -127,6 +164,7 @@ export default class MongoDBStorage {
     ]);
     // Transactions
     await this.handleIndexesInCollection(tenantID, 'transactions', [
+      { fields: { timestamp: 1 } },
       { fields: { issuer: 1, timestamp: 1 } },
       { fields: { chargeBoxID: 1 } },
       { fields: { tagID: 1 } },
@@ -174,9 +212,8 @@ export default class MongoDBStorage {
     // Not the Default tenant
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Safety check
-      if (!this.db) {
+      if (!this.database) {
         throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
           method: 'deleteTenantDatabase',
           message: 'Not supposed to call deleteTenantDatabase before database start',
@@ -184,20 +221,20 @@ export default class MongoDBStorage {
         });
       }
       // Get all the collections
-      const collections = await this.db.listCollections().toArray();
+      const collections = await this.database.listCollections().toArray();
       // Check and Delete
       for (const collection of collections) {
         // Check
         if (collection.name.startsWith(`${tenantID}.`)) {
           // Delete
-          await this.db.collection(collection.name).drop();
+          await this.database.collection(collection.name).drop();
         }
       }
     }
   }
 
   public getGridFSBucket(name: string): GridFSBucket {
-    return new GridFSBucket(this.db, { bucketName: name });
+    return new GridFSBucket(this.database, { bucketName: name });
   }
 
   public async start(): Promise<void> {
@@ -239,7 +276,7 @@ export default class MongoDBStorage {
       }
     );
     // Get the EVSE DB
-    this.db = mongoDBClient.db();
+    this.database = mongoDBClient.db();
     // Check Database only when migration is active
     if (this.migrationConfig.active) {
       await this.checkDatabase();
@@ -249,9 +286,8 @@ export default class MongoDBStorage {
 
   private async checkDatabase(): Promise<void> {
     // Safety check
-    if (!this.db) {
+    if (!this.database) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'checkDatabase',
         message: 'Not supposed to call checkDatabase before database start',
@@ -320,7 +356,7 @@ export default class MongoDBStorage {
 
   private async handleCheckTenants() {
     // Get all the Tenants
-    const tenantsMDB = await this.db.collection(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, 'tenants'))
+    const tenantsMDB = await this.database.collection(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, 'tenants'))
       .find({}).toArray();
     const tenantIds = tenantsMDB.map((t): string => t._id.toString());
     for (const tenantId of tenantIds) {
@@ -353,9 +389,8 @@ export default class MongoDBStorage {
   private async handleIndexesInCollection(tenantID: string,
       name: string, indexes?: { fields: IndexSpecification; options?: CreateIndexesOptions }[]): Promise<void> {
     // Safety check
-    if (!this.db) {
+    if (!this.database) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'handleIndexesInCollection',
         message: 'Not supposed to call handleIndexesInCollection before database start',
@@ -364,13 +399,13 @@ export default class MongoDBStorage {
     }
     try {
       // Get all the collections
-      const currentCollections = await this.db.listCollections().toArray();
+      const currentCollections = await this.database.listCollections().toArray();
       const tenantCollectionName = DatabaseUtils.getCollectionName(tenantID, name);
       const foundCollection = currentCollections.find((collection) => collection.name === tenantCollectionName);
       // Create
       if (!foundCollection) {
         try {
-          await this.db.createCollection(tenantCollectionName);
+          await this.database.createCollection(tenantCollectionName);
         } catch (error) {
           const message = `Error in creating collection '${tenantID}.${tenantCollectionName}': ${error.message as string}`;
           Utils.isDevelopmentEnv() && console.error(chalk.red(message));
@@ -386,7 +421,7 @@ export default class MongoDBStorage {
       // Indexes?
       if (indexes) {
         // Get current indexes
-        let databaseIndexes = await this.db.collection(tenantCollectionName).listIndexes().toArray();
+        let databaseIndexes = await this.database.collection(tenantCollectionName).listIndexes().toArray();
         // Drop indexes
         for (const databaseIndex of databaseIndexes) {
           if (databaseIndex.key._id) {
@@ -417,7 +452,7 @@ export default class MongoDBStorage {
               });
             }
             try {
-              await this.db.collection(tenantCollectionName).dropIndex(databaseIndex.key);
+              await this.database.collection(tenantCollectionName).dropIndex(databaseIndex.key);
             } catch (error) {
               const message = `Error in dropping index '${databaseIndex.name}' in '${tenantCollectionName}': ${error.message}`;
               Utils.isDevelopmentEnv() && console.error(chalk.red(message));
@@ -432,7 +467,7 @@ export default class MongoDBStorage {
           }
         }
         // Get updated indexes
-        databaseIndexes = await this.db.collection(tenantCollectionName).listIndexes().toArray();
+        databaseIndexes = await this.database.collection(tenantCollectionName).listIndexes().toArray();
         // Create indexes
         for (const index of indexes) {
           const foundDatabaseIndex = databaseIndexes.find((databaseIndex) => this.buildIndexName(index.fields) === databaseIndex.name);
@@ -450,7 +485,7 @@ export default class MongoDBStorage {
               });
             }
             try {
-              await this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
+              await this.database.collection(tenantCollectionName).createIndex(index.fields, index.options);
             } catch (error) {
               const message = `Error in creating index '${JSON.stringify(index.fields)}' with options '${JSON.stringify(index.options)}' in '${tenantCollectionName}': ${error.message as string}`;
               Utils.isDevelopmentEnv() && console.error(chalk.red(message));

@@ -386,7 +386,7 @@ export default class ContextDefinition {
         visualID: new ObjectId().toString(),
         issuer: false,
         active: true
-      }] : null)
+      }] : null),
     },
     { // Admin not assigned
       id: '5ce249a1a39ae1c056c123ef',
@@ -406,7 +406,7 @@ export default class ContextDefinition {
         visualID: new ObjectId().toString(),
         issuer: false,
         active: true
-      }] : null)
+      }] : null),
     },
     { // Basic user
       id: '5ce249a1a39ae1c056c123ab',
@@ -426,7 +426,7 @@ export default class ContextDefinition {
         visualID: new ObjectId().toString(),
         issuer: false,
         active: true
-      }] : null)
+      }] : null),
     },
     { // Demo user
       id: '5ce249a1a39ae1c056c123cd',
@@ -446,7 +446,8 @@ export default class ContextDefinition {
         visualID: new ObjectId().toString(),
         issuer: false,
         active: true
-      }] : null)
+      }] : null),
+      freeAccess: false,
     },
     { // Basic user unassigned
       id: '5ce249a1a39ae1c056c456ad',
@@ -466,7 +467,7 @@ export default class ContextDefinition {
         visualID: new ObjectId().toString(),
         issuer: false,
         active: true
-      }] : null)
+      }] : null),
     },
     { // Basic user pending
       id: '5ce249a1a39ae1c056c456ab',
@@ -486,7 +487,8 @@ export default class ContextDefinition {
         visualID: new ObjectId().toString(),
         issuer: false,
         active: true
-      }] : null)
+      }] : null),
+      freeAccess: false,
     },
     { // Basic user Locked
       id: '5ce249a1a39ae1c056c789ef',
@@ -506,7 +508,8 @@ export default class ContextDefinition {
         visualID: new ObjectId().toString(),
         issuer: false,
         active: true
-      }] : null)
+      }] : null),
+      freeAccess: false,
     },
     { // Basic user No Tags
       id: '5ce249a1a39ae1c056c567ab',
@@ -526,7 +529,8 @@ export default class ContextDefinition {
         visualID: new ObjectId().toString(),
         issuer: false,
         active: true
-      }] : null)
+      }] : null),
+      freeAccess: false,
     },
     { // External User
       id: '5ce249a1a39ae1c056c456ae',
@@ -546,7 +550,8 @@ export default class ContextDefinition {
         visualID: new ObjectId().toString(),
         issuer: false,
         active: true
-      }] : null)
+      }] : null),
+      freeAccess: false,
     }
   ];
 
