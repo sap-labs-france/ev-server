@@ -40,7 +40,7 @@ export default class SettingValidator extends SchemaValidator {
   }
 
   public validateSettingSmartChargingSetReq(data: Record<string, unknown>): HttpSettingSmartChargingSetRequest {
-    return this.validate(this.settingUserSet, data);
+    return this.validate(this.settingSmartChargingSet, data);
   }
 
   public validateSettingRefundSetReq(data: Record<string, unknown>): HttpSettingRefundSetRequest {
