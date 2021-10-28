@@ -145,7 +145,6 @@ export default class SapConvergentChargingPricingIntegration extends PricingInte
       siteAreaID: chargingStation.siteAreaID,
       companyID: chargingStation.companyID,
       chargingStationID: chargingStation.id,
-      source: chargingStation.id,
       module: MODULE_NAME, method: 'handleError',
       action: action,
       message: chargingResult.message,
@@ -160,7 +159,6 @@ export default class SapConvergentChargingPricingIntegration extends PricingInte
         const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(this.tenant, chargingStation);
         if (!chargingStationClient) {
           throw new BackendError({
-            source: chargingStation.id,
             chargingStationID: chargingStation.id,
             siteID: chargingStation.siteID,
             siteAreaID: chargingStation.siteAreaID,

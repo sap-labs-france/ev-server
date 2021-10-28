@@ -3,6 +3,7 @@ import Transaction, { TransactionStats } from './Transaction';
 
 import { AuthorizationDefinitionFieldMetadata } from './Authorization';
 import Company from './Company';
+import { Log } from './Log';
 import PricingDefinition from './Pricing';
 import Site from './Site';
 import SiteArea from './SiteArea';
@@ -32,6 +33,8 @@ export interface SiteDataResult extends DataResult<Site>{
   canAssignUsers: boolean;
   canUnassignUsers: boolean;
 }
+
+export type LogDataResult = DataResult<Log>;
 
 export interface SiteAreaDataResult extends DataResult<SiteArea> {
   canCreate: boolean;

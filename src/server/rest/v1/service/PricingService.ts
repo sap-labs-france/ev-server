@@ -100,7 +100,7 @@ export default class PricingService {
     // Save
     newPricingDefinition.id = await PricingStorage.savePricingDefinition(req.tenant, newPricingDefinition);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleCreatePricingDefinition',
       message: `Pricing model '${newPricingDefinition.id}' has been created successfully`,
@@ -136,7 +136,7 @@ export default class PricingService {
     // Update Pricing
     await PricingStorage.savePricingDefinition(req.tenant, pricingDefinition);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleUpdatePricingDefinition',
       message: `Pricing model '${pricingDefinition.id}' has been updated successfully`,
@@ -160,7 +160,7 @@ export default class PricingService {
     // Delete
     await PricingStorage.deletePricingDefinition(req.tenant, pricing.id);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleDeletePricingDefinition',
       message: `Pricing model '${pricingDefinitionID}' has been deleted successfully`,

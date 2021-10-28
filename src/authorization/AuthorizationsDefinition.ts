@@ -29,8 +29,20 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
         ]
       },
-      { resource: Entity.LOGGINGS, action: Action.LIST },
-      { resource: Entity.LOGGING, action: Action.READ },
+      {
+        resource: Entity.LOGGINGS, action: Action.LIST,
+        attributes: [
+          'id', 'level', 'timestamp', 'type', 'source', 'host', 'action', 'message', 'chargingStationID', 'siteID',
+          'user.name', 'user.firstName', 'actionOnUser.name', 'actionOnUser.firstName', 'hasDetailedMessages', 'method', 'module',
+        ]
+      },
+      {
+        resource: Entity.LOGGING, action: Action.READ,
+        attributes: [
+          'id', 'level', 'timestamp', 'type', 'source', 'host', 'action', 'message', 'chargingStationID', 'siteID',
+          'user.name', 'user.firstName', 'actionOnUser.name', 'actionOnUser.firstName', 'hasDetailedMessages', 'detailedMessages'
+        ]
+      },
       { resource: Entity.TENANTS, action: Action.LIST },
       { resource: Entity.TENANT, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE] },
       {
@@ -211,8 +223,20 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       { resource: Entity.REPORT, action: [Action.READ] },
-      { resource: Entity.LOGGINGS, action: Action.LIST },
-      { resource: Entity.LOGGING, action: Action.READ },
+      {
+        resource: Entity.LOGGINGS, action: Action.LIST,
+        attributes: [
+          'id', 'level', 'timestamp', 'type', 'source', 'host', 'action', 'message', 'chargingStationID', 'siteID',
+          'user.name', 'user.firstName', 'actionOnUser.name', 'actionOnUser.firstName', 'hasDetailedMessages', 'method', 'module',
+        ]
+      },
+      {
+        resource: Entity.LOGGING, action: Action.READ,
+        attributes: [
+          'id', 'level', 'timestamp', 'type', 'source', 'host', 'action', 'message', 'chargingStationID', 'siteID',
+          'user.name', 'user.firstName', 'actionOnUser.name', 'actionOnUser.firstName', 'hasDetailedMessages', 'detailedMessages'
+        ]
+      },
       { resource: Entity.PRICING, action: [Action.READ, Action.UPDATE] },
       { resource: Entity.PRICING_DEFINITIONS, action: [Action.LIST],
         attributes: ['id', 'entityID', 'entityType', 'name', 'description', 'entityName',
@@ -1011,11 +1035,33 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
       },
       { resource: Entity.REPORT, action: [Action.READ] },
-      { resource: Entity.LOGGINGS, action: Action.LIST },
       {
-        resource: Entity.LOGGING,
-        action: Action.READ,
-        args: { 'sites': '$.site' }
+        resource: Entity.LOGGINGS, action: Action.LIST,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdmin']
+          }
+        },
+        attributes: [
+          'id', 'level', 'timestamp', 'type', 'source', 'host', 'action', 'message', 'chargingStationID', 'siteID',
+          'user.name', 'user.firstName', 'actionOnUser.name', 'actionOnUser.firstName', 'hasDetailedMessages', 'method', 'module',
+        ]
+      },
+      {
+        resource: Entity.LOGGING, action: Action.READ,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdmin']
+          }
+        },
+        attributes: [
+          'id', 'level', 'timestamp', 'type', 'source', 'host', 'action', 'message', 'chargingStationID', 'siteID',
+          'user.name', 'user.firstName', 'actionOnUser.name', 'actionOnUser.firstName', 'hasDetailedMessages', 'detailedMessages'
+        ]
       },
       { resource: Entity.TOKENS, action: Action.LIST },
       {

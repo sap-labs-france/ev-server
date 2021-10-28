@@ -7,7 +7,6 @@ export default class OCPPError extends Error {
   public details?: any;
 
   public constructor(readonly params: {
-    source: string;
     module: string;
     method: string;
     code: string;

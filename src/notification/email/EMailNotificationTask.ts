@@ -192,7 +192,6 @@ export default class EMailNotificationTask implements NotificationTask {
         siteAreaID: data?.siteAreaID,
         companyID: data?.companyID,
         chargingStationID: data?.chargeBoxID,
-        source: data?.chargeBoxID,
         action: ServerAction.EMAIL_NOTIFICATION,
         module: MODULE_NAME, method: 'sendEmail',
         message: 'No suitable main SMTP server configuration found to send email',
@@ -208,7 +207,6 @@ export default class EMailNotificationTask implements NotificationTask {
         siteAreaID: data?.siteAreaID,
         companyID: data?.companyID,
         chargingStationID: data?.chargeBoxID,
-        source: data?.chargeBoxID,
         action: ServerAction.EMAIL_NOTIFICATION,
         module: MODULE_NAME, method: 'sendEmail',
         message: 'No suitable backup SMTP server configuration found or activated to send email after an error on the main SMTP server',
@@ -240,7 +238,6 @@ export default class EMailNotificationTask implements NotificationTask {
         siteAreaID: data?.siteAreaID,
         companyID: data?.companyID,
         chargingStationID: data?.chargeBoxID,
-        source: data?.chargeBoxID,
         action: ServerAction.EMAIL_NOTIFICATION,
         module: MODULE_NAME, method: 'sendEmail',
         actionOnUser: user,
@@ -260,7 +257,6 @@ export default class EMailNotificationTask implements NotificationTask {
           siteAreaID: data?.siteAreaID,
           companyID: data?.companyID,
           chargingStationID: data?.chargeBoxID,
-          source: data?.chargeBoxID,
           action: ServerAction.EMAIL_NOTIFICATION,
           module: MODULE_NAME, method: 'sendEmail',
           message: `Error Sending Email (${rfc2047.decode(messageToSend.header.from.toString())}): '${rfc2047.decode(messageToSend.header.subject)}'`,
@@ -298,7 +294,7 @@ export default class EMailNotificationTask implements NotificationTask {
       // Notify on SMTP error
       if (sendSmtpError) {
         // TODO: Circular deps: src/notification/NotificationHandler.ts -> src/notification/email/EMailNotificationTask.ts -> src/notification/NotificationHandler.ts
-        await NotificationHandler.sendSmtpError(
+        void NotificationHandler.sendSmtpError(
           tenant,
           {
             SMTPError: error,
@@ -318,7 +314,6 @@ export default class EMailNotificationTask implements NotificationTask {
       if (!user) {
         // Error
         throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
           action: ServerAction.EMAIL_NOTIFICATION,
           module: MODULE_NAME, method: 'prepareAndSendEmail',
           message: `No User is provided for '${templateName}'`
@@ -329,7 +324,6 @@ export default class EMailNotificationTask implements NotificationTask {
         // Error
         throw new BackendError({
           actionOnUser: user,
-          source: Constants.CENTRAL_SERVER,
           action: ServerAction.EMAIL_NOTIFICATION,
           module: MODULE_NAME, method: 'prepareAndSendEmail',
           message: `No email is provided for User for '${templateName}'`
@@ -340,7 +334,6 @@ export default class EMailNotificationTask implements NotificationTask {
       if (!emailTemplate) {
         // Error
         throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
           action: ServerAction.EMAIL_NOTIFICATION,
           module: MODULE_NAME, method: 'prepareAndSendEmail',
           message: `No Email template found for '${templateName}'`
@@ -438,7 +431,6 @@ export default class EMailNotificationTask implements NotificationTask {
         siteAreaID: data?.siteAreaID,
         companyID: data?.companyID,
         chargingStationID: data?.chargeBoxID,
-        source: data?.chargeBoxID,
         action: ServerAction.EMAIL_NOTIFICATION,
         module: MODULE_NAME, method: 'prepareAndSendEmail',
         message: 'Error in preparing email for user',

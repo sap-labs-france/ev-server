@@ -113,7 +113,6 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
             siteAreaID: chargingStation.siteAreaID,
             companyID: chargingStation.companyID,
             chargingStationID: chargingStation.id,
-            source: chargingStation.id,
             action: ServerAction.OICP_AUTHORIZE_REMOTE_START,
             message: `An existing remote authorization exists for Charging Station '${chargingStation.id}' and Connector ID ${connector.connectorId}`,
             module: MODULE_NAME, method: 'authorizeRemoteStart'
@@ -192,7 +191,6 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
         siteAreaID: transaction.siteAreaID,
         companyID: transaction.companyID,
         chargingStationID: transaction.chargeBoxID,
-        source: transaction.chargeBoxID,
         action: ServerAction.OICP_AUTHORIZE_REMOTE_STOP,
         message: `Charging Station '${transaction.chargeBoxID}' not found`,
         module: MODULE_NAME, method: 'authorizeRemoteStop'
@@ -217,7 +215,6 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
         siteAreaID: chargingStation.siteAreaID,
         companyID: chargingStation.companyID,
         chargingStationID: chargingStation.id,
-        source: chargingStation.id,
         action: ServerAction.OICP_AUTHORIZE_REMOTE_START,
         message: `Charging Station '${chargingStation.id}' not found`,
         module: MODULE_NAME, method: 'remoteStartTransaction'
@@ -240,7 +237,6 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
         siteAreaID: chargingStation.siteAreaID,
         companyID: chargingStation.companyID,
         chargingStationID: chargingStation.id,
-        source: chargingStation.id,
         action: ServerAction.OICP_AUTHORIZE_REMOTE_STOP,
         message: `Charging Station '${chargingStation.id}' not found`,
         module: MODULE_NAME, method: 'remoteStopTransaction'

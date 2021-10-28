@@ -49,7 +49,7 @@ export default class LoggingDatabaseTableCleanupTask extends SchedulerTask {
         // Delete
         const result = await LoggingStorage.deleteLogs(tenant, deleteUpToDate);
         if (result.acknowledged) {
-          await Logging.logSecurityInfo({
+          await Logging.logInfo({
             tenantID: tenant.id,
             action: ServerAction.LOGS_CLEANUP,
             module: MODULE_NAME, method: 'deleteLogs',
@@ -92,7 +92,7 @@ export default class LoggingDatabaseTableCleanupTask extends SchedulerTask {
         // Delete Logs
         const result = await PerformanceStorage.deletePerformanceRecords({ deleteUpToDate });
         if (result.acknowledged) {
-          await Logging.logSecurityInfo({
+          await Logging.logInfo({
             tenantID: tenant.id,
             action: ServerAction.PERFORMANCES_CLEANUP,
             module: MODULE_NAME, method: 'deletePerformanceRecords',

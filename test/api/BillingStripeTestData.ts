@@ -1,6 +1,5 @@
 import { BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingUser, BillingUserData } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
-import PricingDefinition, { PricedConsumptionData, PricingDimension } from '../../src/types/Pricing';
 import Tenant, { TenantComponents } from '../../src/types/Tenant';
 import chai, { assert, expect } from 'chai';
 
@@ -10,6 +9,7 @@ import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Cypher from '../../src/utils/Cypher';
 import Factory from '../factories/Factory';
+import { PricedConsumptionData } from '../../src/types/Pricing';
 import Stripe from 'stripe';
 import StripeBillingIntegration from '../../src/integration/billing/stripe/StripeBillingIntegration';
 import TenantContext from './context/TenantContext';
@@ -19,7 +19,6 @@ import UserStorage from '../../src/storage/mongodb/UserStorage';
 import Utils from '../../src/utils/Utils';
 import chaiSubset from 'chai-subset';
 import config from '../config';
-import moment from 'moment';
 import responseHelper from '../helpers/responseHelper';
 
 chai.use(chaiSubset);

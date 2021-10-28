@@ -9,7 +9,6 @@ export default class LoggingHelper {
       siteAreaID: transaction.siteAreaID,
       companyID: transaction.companyID,
       chargingStationID: transaction.chargeBoxID,
-      source: transaction.chargeBoxID,
       actionOnUser: transaction.user,
     };
   }

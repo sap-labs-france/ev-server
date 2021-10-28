@@ -43,7 +43,6 @@ export default class TenantStorage {
     // Check
     if (!tenantToSave.id && !tenantToSave.name) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'saveTenant',
         message: 'Tenant has no ID and no Name'
