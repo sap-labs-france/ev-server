@@ -15,13 +15,12 @@ import moment from 'moment';
 const MODULE_NAME = 'LoggingDatabaseTableCleanupTask';
 
 export default class LoggingDatabaseTableCleanupTask extends SchedulerTask {
-  public async run(name: string, config: TaskConfig): Promise<void> {
+
+  public async beforeTaskRun(config: TaskConfig): Promise<void> {
     // Delete Default Tenant Logs
     await this.deleteLogs(Constants.DEFAULT_TENANT_OBJECT, config);
     // Delete Default Tenant Perfs Records
     await this.deletePerformanceRecords(Constants.DEFAULT_TENANT_OBJECT, config);
-    // Call for all Tenants
-    await super.run(name, config);
   }
 
   async processTenant(tenant: Tenant, config: LoggingDatabaseTableCleanupTaskConfig): Promise<void> {
@@ -116,4 +115,3 @@ export default class LoggingDatabaseTableCleanupTask extends SchedulerTask {
     }
   }
 }
-
