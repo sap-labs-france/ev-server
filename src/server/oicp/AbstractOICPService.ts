@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from 'express';
-import Tenant, { TenantComponents } from '../../types/Tenant';
 
 import AbstractEndpoint from './oicp-services-impl/AbstractEndpoint';
 import AppAuthError from '../../exception/AppAuthError';
@@ -12,6 +11,8 @@ import { OICPStatusCode } from '../../types/oicp/OICPStatusCode';
 import OICPUtils from './OICPUtils';
 import { ServerAction } from '../../types/Server';
 import { StatusCodes } from 'http-status-codes';
+import Tenant from '../../types/Tenant';
+import { TenantComponents } from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
 
@@ -83,6 +84,7 @@ export default abstract class AbstractOICPService {
       // Check if tenant was found
       if (!tenant) {
         throw new AppError({
+          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'processEndpointAction',
           action: ServerAction.OICP_ENDPOINT,
           errorCode: StatusCodes.UNAUTHORIZED,
@@ -92,6 +94,7 @@ export default abstract class AbstractOICPService {
       }
       if (!Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {
         throw new AppError({
+          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'processEndpointAction',
           action: ServerAction.OICP_ENDPOINT,
           errorCode: StatusCodes.UNAUTHORIZED,
@@ -106,6 +109,7 @@ export default abstract class AbstractOICPService {
       if (endpoint) {
         await Logging.logDebug({
           tenantID: tenant.id,
+          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: endpointName,
           message: `>> OICP Request ${req.method} ${req.originalUrl}`,
           action: ServerAction.OICP_ENDPOINT,
@@ -115,6 +119,7 @@ export default abstract class AbstractOICPService {
         if (response) {
           await Logging.logDebug({
             tenantID: tenant.id,
+            source: Constants.CENTRAL_SERVER,
             module: MODULE_NAME, method: endpointName,
             message: `<< OICP Response ${req.method} ${req.originalUrl}`,
             action: ServerAction.OICP_ENDPOINT,
@@ -124,6 +129,7 @@ export default abstract class AbstractOICPService {
         } else {
           await Logging.logWarning({
             tenantID: tenant.id,
+            source: Constants.CENTRAL_SERVER,
             module: MODULE_NAME, method: endpointName,
             message: `<< OICP Endpoint ${req.method} ${req.originalUrl} not implemented`,
             action: ServerAction.OICP_ENDPOINT
@@ -132,6 +138,7 @@ export default abstract class AbstractOICPService {
         }
       } else {
         throw new AppError({
+          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'processEndpointAction',
           action: ServerAction.OICP_ENDPOINT,
           errorCode: HTTPError.NOT_IMPLEMENTED_ERROR,
@@ -142,6 +149,7 @@ export default abstract class AbstractOICPService {
     } catch (error) {
       await Logging.logError({
         tenantID: req.user && req.user.tenantID ? req.user.tenantID : Constants.DEFAULT_TENANT,
+        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: endpointName,
         message: `<< OICP Response Error ${req.method} ${req.originalUrl}`,
         action: ServerAction.OICP_ENDPOINT,

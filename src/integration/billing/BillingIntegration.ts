@@ -49,6 +49,7 @@ export default abstract class BillingIntegration {
         // Process them
         await Logging.logInfo({
           tenantID: this.tenant.id,
+          source: Constants.CENTRAL_SERVER,
           action: ServerAction.BILLING_SYNCHRONIZE_USERS,
           module: MODULE_NAME, method: 'synchronizeUsers',
           message: `${users.length} new user(s) are going to be synchronized`
@@ -65,6 +66,7 @@ export default abstract class BillingIntegration {
     } else {
       await Logging.logWarning({
         tenantID: this.tenant.id,
+        source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_SYNCHRONIZE_USERS,
         module: MODULE_NAME, method: 'synchronizeUsers',
         message: 'Feature is switched OFF - operation has been aborted'
@@ -92,6 +94,7 @@ export default abstract class BillingIntegration {
       await Logging.logInfo({
         tenantID: this.tenant.id,
         actionOnUser: user,
+        source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_SYNCHRONIZE_USER,
         module: MODULE_NAME, method: 'synchronizeUser',
         message: `Successfully synchronized user: '${user.id}' - '${user.email}'`,
@@ -101,6 +104,7 @@ export default abstract class BillingIntegration {
       await Logging.logError({
         tenantID: this.tenant.id,
         actionOnUser: user,
+        source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_SYNCHRONIZE_USER,
         module: MODULE_NAME, method: 'synchronizeUser',
         message: `Failed to synchronize user: '${user.id}' - '${user.email}'`,
@@ -117,6 +121,7 @@ export default abstract class BillingIntegration {
       if (user?.billingData?.customerID !== billingUser?.billingData?.customerID) {
         await Logging.logWarning({
           tenantID: this.tenant.id,
+          source: Constants.CENTRAL_SERVER,
           action: ServerAction.BILLING_FORCE_SYNCHRONIZE_USER,
           module: MODULE_NAME, method: 'forceSynchronizeUser',
           message: `CustomerID has been repaired - old value ${user?.billingData?.customerID} - ${billingUser?.billingData?.customerID}`
@@ -124,6 +129,7 @@ export default abstract class BillingIntegration {
       }
       await Logging.logInfo({
         tenantID: this.tenant.id,
+        source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_FORCE_SYNCHRONIZE_USER,
         actionOnUser: user,
         module: MODULE_NAME, method: 'forceSynchronizeUser',
@@ -133,6 +139,7 @@ export default abstract class BillingIntegration {
       await Logging.logError({
         tenantID: this.tenant.id,
         actionOnUser: user,
+        source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_FORCE_SYNCHRONIZE_USER,
         module: MODULE_NAME, method: 'forceSynchronizeUser',
         message: `Failed to force the synchronization of user: '${user.id}' - '${user.email}'`,
@@ -150,6 +157,7 @@ export default abstract class BillingIntegration {
     };
     await Logging.logWarning({
       tenantID: this.tenant.id,
+      source: Constants.CENTRAL_SERVER,
       action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
       module: MODULE_NAME, method: 'synchronizeInvoices',
       message: 'Method is deprecated - operation skipped'
@@ -185,6 +193,7 @@ export default abstract class BillingIntegration {
             actionsDone.inSuccess++;
             await Logging.logWarning({
               tenantID: this.tenant.id,
+              source: Constants.CENTRAL_SERVER,
               action: ServerAction.BILLING_PERFORM_OPERATIONS,
               actionOnUser: invoice.user,
               module: MODULE_NAME, method: 'chargeInvoices',
@@ -199,6 +208,7 @@ export default abstract class BillingIntegration {
           }
           await Logging.logInfo({
             tenantID: this.tenant.id,
+            source: Constants.CENTRAL_SERVER,
             action: ServerAction.BILLING_PERFORM_OPERATIONS,
             actionOnUser: invoice.user,
             module: MODULE_NAME, method: 'chargeInvoices',
@@ -209,6 +219,7 @@ export default abstract class BillingIntegration {
           actionsDone.inError++;
           await Logging.logError({
             tenantID: this.tenant.id,
+            source: Constants.CENTRAL_SERVER,
             action: ServerAction.BILLING_PERFORM_OPERATIONS,
             actionOnUser: invoice.user,
             module: MODULE_NAME, method: 'chargeInvoices',
@@ -232,7 +243,7 @@ export default abstract class BillingIntegration {
         // Format amunt with currency symbol depending on locale
         const invoiceAmount = new Intl.NumberFormat(Utils.convertLocaleForCurrency(billingInvoice.user.locale), { style: 'currency', currency: billingInvoice.currency.toUpperCase() }).format(decimInvoiceAmount.toNumber());
         // Send async notification
-        void NotificationHandler.sendBillingNewInvoiceNotification(
+        await NotificationHandler.sendBillingNewInvoiceNotification(
           this.tenant,
           billingInvoice.id,
           billingInvoice.user,
@@ -254,6 +265,7 @@ export default abstract class BillingIntegration {
     } catch (error) {
       await Logging.logError({
         tenantID: this.tenant.id,
+        source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_TRANSACTION,
         module: MODULE_NAME, method: 'sendInvoiceNotification',
         message: `Failed to send notification for invoice '${billingInvoice.id}'`,
@@ -268,6 +280,7 @@ export default abstract class BillingIntegration {
     if (!transaction.userID || !transaction.user) {
       throw new BackendError({
         message: 'User is not provided',
+        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'checkStopTransaction',
         action: ServerAction.BILLING_TRANSACTION
@@ -277,6 +290,7 @@ export default abstract class BillingIntegration {
     if (!transaction.chargeBox) {
       throw new BackendError({
         message: 'Charging Station is not provided',
+        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'checkStopTransaction',
         action: ServerAction.BILLING_TRANSACTION
@@ -286,6 +300,7 @@ export default abstract class BillingIntegration {
     if (!transaction.user?.billingData?.customerID) {
       throw new BackendError({
         message: 'User has no Billing Data',
+        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'checkStopTransaction',
         action: ServerAction.BILLING_TRANSACTION
@@ -298,6 +313,7 @@ export default abstract class BillingIntegration {
     if (!transaction.userID || !transaction.user) {
       throw new BackendError({
         message: 'User is not provided',
+        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'checkStartTransaction',
         action: ServerAction.BILLING_TRANSACTION
@@ -307,6 +323,7 @@ export default abstract class BillingIntegration {
     if (!transaction.user?.billingData?.customerID) {
       throw new BackendError({
         message: 'User has no billing data or no customer ID',
+        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'checkStartTransaction',
         action: ServerAction.BILLING_TRANSACTION
@@ -364,6 +381,7 @@ export default abstract class BillingIntegration {
     // await this.checkConnection(); - stripe connection is useless to cleanup test data
     await Logging.logInfo({
       tenantID: this.tenant.id,
+      source: Constants.CENTRAL_SERVER,
       action: ServerAction.BILLING_TEST_DATA_CLEANUP,
       module: MODULE_NAME, method: '_clearAllInvoiceTestData',
       message: 'Starting test data cleanup'
@@ -371,6 +389,7 @@ export default abstract class BillingIntegration {
     await this._clearAllInvoiceTestData();
     await Logging.logInfo({
       tenantID: this.tenant.id,
+      source: Constants.CENTRAL_SERVER,
       action: ServerAction.BILLING_TEST_DATA_CLEANUP,
       module: MODULE_NAME, method: '_clearAllInvoiceTestData',
       message: 'Invoice Test data cleanup has been completed'
@@ -378,6 +397,7 @@ export default abstract class BillingIntegration {
     await this._clearAllUsersTestData();
     await Logging.logInfo({
       tenantID: this.tenant.id,
+      source: Constants.CENTRAL_SERVER,
       action: ServerAction.BILLING_TEST_DATA_CLEANUP,
       module: MODULE_NAME, method: '_clearAllInvoiceTestData',
       message: 'User Test data cleanup has been completed'
@@ -392,6 +412,7 @@ export default abstract class BillingIntegration {
         await this._clearInvoiceTestData(invoice);
         await Logging.logInfo({
           tenantID: this.tenant.id,
+          source: Constants.CENTRAL_SERVER,
           action: ServerAction.BILLING_TEST_DATA_CLEANUP,
           actionOnUser: invoice.user,
           module: MODULE_NAME, method: '_clearAllInvoiceTestData',
@@ -400,6 +421,7 @@ export default abstract class BillingIntegration {
       } catch (error) {
         await Logging.logError({
           tenantID: this.tenant.id,
+          source: Constants.CENTRAL_SERVER,
           action: ServerAction.BILLING_TEST_DATA_CLEANUP,
           actionOnUser: invoice.user,
           module: MODULE_NAME, method: '_clearAllInvoiceTestData',
@@ -414,6 +436,7 @@ export default abstract class BillingIntegration {
     if (billingInvoice.liveMode) {
       throw new BackendError({
         message: 'Unexpected situation - attempt to clear an invoice with live billing data',
+        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: '_clearInvoiceTestData',
         action: ServerAction.BILLING_TEST_DATA_CLEANUP
@@ -462,6 +485,7 @@ export default abstract class BillingIntegration {
         await this._clearUserTestBillingData(user);
         await Logging.logInfo({
           tenantID: this.tenant.id,
+          source: Constants.CENTRAL_SERVER,
           action: ServerAction.BILLING_TEST_DATA_CLEANUP,
           actionOnUser: user,
           module: MODULE_NAME, method: '_clearAllUsersTestData',
@@ -470,6 +494,7 @@ export default abstract class BillingIntegration {
       } catch (error) {
         await Logging.logError({
           tenantID: this.tenant.id,
+          source: Constants.CENTRAL_SERVER,
           action: ServerAction.BILLING_TEST_DATA_CLEANUP,
           actionOnUser: user,
           module: MODULE_NAME, method: '_clearAllUsersTestData',
@@ -497,6 +522,7 @@ export default abstract class BillingIntegration {
     if (user?.billingData?.liveMode) {
       throw new BackendError({
         message: 'Unexpected situation - attempt to clear a user with live billing data',
+        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: '_clearUserTestBillingData',
         action: ServerAction.BILLING_TEST_DATA_CLEANUP

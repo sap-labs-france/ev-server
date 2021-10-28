@@ -47,6 +47,7 @@ export default class SapConcurRefundIntegration extends RefundIntegration<Concur
         if (error.config.method === 'post') {
           if (error.config.url.endsWith('/token')) {
             throw new BackendError({
+              source: Constants.CENTRAL_SERVER,
               module: MODULE_NAME,
               method: 'retryDelay',
               message: `Unable to post token, response status ${error.response.status}, attempt ${retryCount}`,
@@ -59,6 +60,7 @@ export default class SapConcurRefundIntegration extends RefundIntegration<Concur
               payload: JSON.parse(error.config.data)
             };
             throw new BackendError({
+              source: Constants.CENTRAL_SERVER,
               module: MODULE_NAME,
               method: 'retryDelay',
               message: `Unable to post data on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`,
@@ -68,6 +70,7 @@ export default class SapConcurRefundIntegration extends RefundIntegration<Concur
           }
         } else {
           throw new BackendError({
+            source: Constants.CENTRAL_SERVER,
             module: MODULE_NAME,
             method: 'retryDelay',
             message: `Unable to make data request on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`,
@@ -75,8 +78,9 @@ export default class SapConcurRefundIntegration extends RefundIntegration<Concur
             detailedMessages: { response: error.response.data }
           });
         }
-      } catch (error) {
-        void Logging.logException(error, ServerAction.REFUND, MODULE_NAME, 'anonymous', this.tenant.id);
+      } catch (err) {
+        void Logging.logException(
+          err, ServerAction.REFUND, Constants.CENTRAL_SERVER, MODULE_NAME, 'anonymous', this.tenant.id, null);
       }
       return axiosRetry.exponentialDelay(retryCount);
     },
@@ -96,6 +100,7 @@ export default class SapConcurRefundIntegration extends RefundIntegration<Concur
     const connection = await this.getRefreshedConnection(userID);
     if (!connection) {
       throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         user: userID,
         method: 'checkConnection', action: ServerAction.REFUND,
@@ -152,6 +157,7 @@ export default class SapConcurRefundIntegration extends RefundIntegration<Concur
       return connection;
     } catch (error) {
       throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
         message: `Concur access token not granted for User ID '${userID}'`,
         module: MODULE_NAME,
         method: 'GetAccessToken',
@@ -193,7 +199,7 @@ export default class SapConcurRefundIntegration extends RefundIntegration<Concur
           await TransactionStorage.saveTransactionRefundData(this.tenant, transaction.id, transaction.refundData);
           refundedTransactions.push(transaction);
         } catch (error) {
-          await Logging.logException(error, ServerAction.REFUND, MODULE_NAME, 'refund', this.tenant.id, userID);
+          await Logging.logException(error, ServerAction.REFUND, MODULE_NAME, MODULE_NAME, 'refund', this.tenant.id, userID);
         }
       },
       { concurrency: 10 });
@@ -299,6 +305,7 @@ export default class SapConcurRefundIntegration extends RefundIntegration<Concur
       return response.data.Items[0];
     }
     throw new BackendError({
+      source: Constants.CENTRAL_SERVER,
       message: `The city '${site.address.city}' of the station is unknown to Concur`,
       module: MODULE_NAME,
       method: 'getLocation',
@@ -346,6 +353,7 @@ export default class SapConcurRefundIntegration extends RefundIntegration<Concur
       return response.data.quickExpenseIdUri;
     } catch (error) {
       throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
         message: 'Unable to create Quick Expense',
         module: MODULE_NAME,
         method: 'createQuickExpense',
@@ -398,6 +406,7 @@ export default class SapConcurRefundIntegration extends RefundIntegration<Concur
       return response.data.ID;
     } catch (error) {
       throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
         message: 'Unable to create an Expense Report',
         module: MODULE_NAME,
         method: 'createExpenseReport',
@@ -433,6 +442,7 @@ export default class SapConcurRefundIntegration extends RefundIntegration<Concur
       return response.data.ID;
     } catch (error) {
       throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
         message: 'Unable to create an Expense Report',
         module: MODULE_NAME, method: 'createExpenseReport',
         user: userID,
@@ -465,6 +475,7 @@ export default class SapConcurRefundIntegration extends RefundIntegration<Concur
         return null;
       }
       throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
         message: `Unable to get Report details with ID '${reportID}'`,
         module: MODULE_NAME,
         method: 'getExpenseReport',
@@ -487,6 +498,7 @@ export default class SapConcurRefundIntegration extends RefundIntegration<Concur
       return response.data.Items;
     } catch (error) {
       throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
         message: 'Unable to get expense Reports',
         module: MODULE_NAME,
         method: 'getExpenseReports',
@@ -528,6 +540,7 @@ export default class SapConcurRefundIntegration extends RefundIntegration<Concur
       return connection;
     } catch (error) {
       throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
         message: `Concur access token not refreshed (ID: '${userID}')`,
         module: MODULE_NAME,
         method: 'refreshToken',
@@ -542,6 +555,7 @@ export default class SapConcurRefundIntegration extends RefundIntegration<Concur
     let connection = await ConnectionStorage.getConnectionByConnectorIdAndUserId(this.tenant, CONNECTOR_ID, userID);
     if (!connection) {
       throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
         message: `The user with ID '${userID}' does not have a connection to connector '${CONNECTOR_ID}'`,
         module: MODULE_NAME,
         method: 'getRefreshedConnection',

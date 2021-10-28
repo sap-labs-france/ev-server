@@ -3,6 +3,7 @@ import { NextFunction, Request, Response } from 'express';
 import AbstractEndpoint from '../../AbstractEndpoint';
 import AbstractOCPIService from '../../../AbstractOCPIService';
 import AppError from '../../../../../exception/AppError';
+import Constants from '../../../../../utils/Constants';
 import { HTTPError } from '../../../../../types/HTTPError';
 import OCPIEndpoint from '../../../../../types/ocpi/OCPIEndpoint';
 import { OCPIResponse } from '../../../../../types/ocpi/OCPIResponse';
@@ -44,6 +45,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
     const sessionId = urlSegment.shift();
     if (!countryCode || !partyId || !sessionId) {
       throw new AppError({
+        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PULL_SESSIONS,
         module: MODULE_NAME, method: 'getSessionRequest',
         errorCode: StatusCodes.BAD_REQUEST,
@@ -54,6 +56,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
     const transaction: Transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant, sessionId);
     if (!transaction) {
       throw new AppError({
+        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PULL_SESSIONS,
         module: MODULE_NAME, method: 'getSessionRequest',
         errorCode: HTTPError.GENERAL_ERROR,
@@ -74,6 +77,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
     const sessionId = urlSegment.shift();
     if (!countryCode || !partyId || !sessionId) {
       throw new AppError({
+        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PUT_SESSION,
         module: MODULE_NAME, method: 'putSessionRequest',
         errorCode: StatusCodes.BAD_REQUEST,
@@ -86,6 +90,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
       session.id = sessionId;
     } else if (session.id !== sessionId) {
       throw new AppError({
+        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PUT_SESSION,
         module: MODULE_NAME, method: 'putSessionRequest',
         errorCode: StatusCodes.BAD_REQUEST,
@@ -107,6 +112,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
     const sessionId = urlSegment.shift();
     if (!countryCode || !partyId || !sessionId) {
       throw new AppError({
+        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PATCH_SESSION,
         module: MODULE_NAME, method: 'patchSessionRequest',
         errorCode: HTTPError.GENERAL_ERROR,
@@ -117,6 +123,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
     const transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant, sessionId);
     if (!transaction) {
       throw new AppError({
+        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PATCH_SESSION,
         module: MODULE_NAME, method: 'patchSessionRequest',
         errorCode: HTTPError.GENERAL_ERROR,
@@ -148,6 +155,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
     }
     if (!patched) {
       throw new AppError({
+        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PATCH_SESSION,
         module: MODULE_NAME, method: 'patchSessionRequest',
         errorCode: HTTPError.GENERAL_ERROR,

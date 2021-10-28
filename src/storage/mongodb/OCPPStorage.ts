@@ -441,6 +441,7 @@ export default class OCPPStorage {
       } catch (error) {
         await Logging.logError({
           tenantID: tenant.id,
+          source: meterValueToSave.chargeBoxID,
           chargingStationID: meterValueToSave.chargeBoxID,
           siteID: meterValueToSave.siteID,
           siteAreaID: meterValueToSave.siteAreaID,

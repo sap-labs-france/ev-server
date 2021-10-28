@@ -45,7 +45,7 @@ export default class OICPEndpointService {
     // Delete
     await OICPEndpointStorage.deleteOicpEndpoint(req.tenant, oicpEndpoint.id);
     // Log
-    await Logging.logInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteOicpEndpoint',
       message: `Oicp Endpoint '${oicpEndpoint.name}' has been deleted successfully`,
@@ -95,7 +95,7 @@ export default class OICPEndpointService {
     } as OICPEndpoint;
     const endpointID = await OICPEndpointStorage.saveOicpEndpoint(req.tenant, oicpEndpoint);
     // Log
-    await Logging.logInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleCreateOicpEndpoint',
       message: `Oicp Endpoint '${filteredRequest.name}' has been created successfully`,
@@ -135,7 +135,7 @@ export default class OICPEndpointService {
     // Update OicpEndpoint
     await OICPEndpointStorage.saveOicpEndpoint(req.tenant, { ...oicpEndpoint, ...filteredRequest });
     // Log
-    await Logging.logInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateOicpEndpoint',
       message: `Oicp Endpoint '${oicpEndpoint.name}' has been updated successfully`,
@@ -306,7 +306,7 @@ export default class OICPEndpointService {
     // Check ping result
     if (pingResult.statusCode === OICPStatusCode.Code000) {
       // Log
-      await Logging.logInfo({
+      await Logging.logSecurityInfo({
         tenantID: req.tenant.id,
         user: req.user, module: MODULE_NAME, method: 'handlePingOicpEndpoint',
         message: `Oicp Endpoint '${filteredRequest.name}' can be reached successfully`,
@@ -316,7 +316,7 @@ export default class OICPEndpointService {
       res.json(Object.assign(pingResult, Constants.REST_RESPONSE_SUCCESS));
     } else {
       // Log
-      await Logging.logError({
+      await Logging.logSecurityError({
         tenantID: req.tenant.id,
         user: req.user, module: MODULE_NAME, method: 'handlePingOicpEndpoint',
         message: `Oicp Endpoint '${filteredRequest.name}' cannot be reached`,
@@ -355,7 +355,7 @@ export default class OICPEndpointService {
     // Check ping result
     if (result.statusCode === StatusCodes.OK) {
       // Log
-      await Logging.logInfo({
+      await Logging.logSecurityInfo({
         tenantID: req.tenant.id,
         user: req.user, module: MODULE_NAME, method: 'handleUnregisterOicpEndpoint',
         message: `Oicp Endpoint '${oicpEndpoint.name}' can be reached successfully`,
@@ -365,7 +365,7 @@ export default class OICPEndpointService {
       res.json(Object.assign(result, Constants.REST_RESPONSE_SUCCESS));
     } else {
       // Log
-      await Logging.logError({
+      await Logging.logSecurityError({
         tenantID: req.tenant.id,
         user: req.user, module: MODULE_NAME, method: 'handleUnregisterOicpEndpoint',
         message: `Oicp Endpoint '${oicpEndpoint.name}' cannot be reached`,
@@ -404,7 +404,7 @@ export default class OICPEndpointService {
     // Check ping result
     if (result.statusCode === StatusCodes.OK) {
       // Log
-      await Logging.logInfo({
+      await Logging.logSecurityInfo({
         tenantID: req.tenant.id,
         user: req.user, module: MODULE_NAME, method: 'handleRegisterOicpEndpoint',
         message: `Oicp Endpoint '${oicpEndpoint.name}' can be reached successfully`,
@@ -414,7 +414,7 @@ export default class OICPEndpointService {
       res.json(Object.assign(result, Constants.REST_RESPONSE_SUCCESS));
     } else {
       // Log
-      await Logging.logError({
+      await Logging.logSecurityError({
         tenantID: req.tenant.id,
         user: req.user, module: MODULE_NAME, method: 'handleRegisterOicpEndpoint',
         message: `Oicp Endpoint '${oicpEndpoint.name}' cannot be reached`,

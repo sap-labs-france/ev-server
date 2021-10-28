@@ -42,6 +42,7 @@ export default abstract class ChargingStationVendorIntegration {
         siteAreaID: chargingStation.siteAreaID,
         companyID: chargingStation.companyID,
         chargingStationID: chargingStation.id,
+        source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_LIMIT_POWER,
         message: `Charge Point '${chargePoint.chargePointID}' is excluded from power limitation`,
         module: MODULE_NAME, method: 'setStaticPowerLimitation',
@@ -56,6 +57,7 @@ export default abstract class ChargingStationVendorIntegration {
         siteAreaID: chargingStation.siteAreaID,
         companyID: chargingStation.companyID,
         chargingStationID: chargingStation.id,
+        source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_LIMIT_POWER,
         message: `No OCPP Parameter provided in template for Charge Point '${chargePoint.chargePointID}'`,
         module: MODULE_NAME, method: 'setStaticPowerLimitation',
@@ -66,6 +68,7 @@ export default abstract class ChargingStationVendorIntegration {
     // Check if feature is fully supported
     if (!this.hasStaticLimitationFullSupport(chargingStation, chargePoint)) {
       throw new BackendError({
+        source: chargingStation.id,
         chargingStationID: chargingStation.id,
         siteID: chargingStation.siteID,
         siteAreaID: chargingStation.siteAreaID,
@@ -77,6 +80,7 @@ export default abstract class ChargingStationVendorIntegration {
     }
     if (maxAmps < (StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases * numberOfConnectors)) {
       throw new BackendError({
+        source: chargingStation.id,
         chargingStationID: chargingStation.id,
         siteID: chargingStation.siteID,
         siteAreaID: chargingStation.siteAreaID,
@@ -88,6 +92,7 @@ export default abstract class ChargingStationVendorIntegration {
     }
     if (Utils.isEmptyArray(chargingStation.connectors)) {
       throw new BackendError({
+        source: chargingStation.id,
         chargingStationID: chargingStation.id,
         siteID: chargingStation.siteID,
         siteAreaID: chargingStation.siteAreaID,
@@ -108,6 +113,7 @@ export default abstract class ChargingStationVendorIntegration {
         siteAreaID: chargingStation.siteAreaID,
         companyID: chargingStation.companyID,
         chargingStationID: chargingStation.id,
+        source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_LIMIT_POWER,
         message: `Set Power limitation via OCPP on ${chargePoint.ocppParamForPowerLimitation} key to ${ocppLimitAmpValue} value`,
         module: MODULE_NAME, method: 'setStaticPowerLimitation',
@@ -156,6 +162,7 @@ export default abstract class ChargingStationVendorIntegration {
                 siteAreaID: chargingStation.siteAreaID,
                 companyID: chargingStation.companyID,
                 chargingStationID: chargingStation.id,
+                source: chargingStation.id,
                 action: ServerAction.OCPP_PARAM_UPDATE,
                 message: `${Utils.buildConnectorInfo(connectorID)} Amperage limit set to ${connector.amperageLimit}A following an update of OCPP Parameter '${ocppParamName}'`,
                 module: MODULE_NAME, method: 'checkUpdateOfOCPPParams',
@@ -178,6 +185,7 @@ export default abstract class ChargingStationVendorIntegration {
     // Check if feature is supported
     if (!chargingStation.capabilities?.supportChargingProfiles) {
       throw new BackendError({
+        source: chargingStation.id,
         chargingStationID: chargingStation.id,
         siteID: chargingStation.siteID,
         siteAreaID: chargingStation.siteAreaID,
@@ -191,6 +199,7 @@ export default abstract class ChargingStationVendorIntegration {
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant, chargingStation);
     if (!chargingStationClient) {
       throw new BackendError({
+        source: chargingStation.id,
         chargingStationID: chargingStation.id,
         siteID: chargingStation.siteID,
         siteAreaID: chargingStation.siteAreaID,
@@ -219,6 +228,7 @@ export default abstract class ChargingStationVendorIntegration {
             siteAreaID: chargingStation.siteAreaID,
             companyID: chargingStation.companyID,
             chargingStationID: chargingStation.id,
+            source: chargingStation.id,
             action: ServerAction.CHARGING_PROFILE_UPDATE,
             message: 'Set Charging Profile on Connector ID 0 has been rejected, will try connector per connector',
             module: MODULE_NAME, method: 'clearChargingProfile',
@@ -249,6 +259,7 @@ export default abstract class ChargingStationVendorIntegration {
         siteAreaID: chargingStation.siteAreaID,
         companyID: chargingStation.companyID,
         chargingStationID: chargingStation.id,
+        source: chargingStation.id,
         action: ServerAction.CHARGING_PROFILE_UPDATE,
         message: 'Error occurred while setting the Charging Profile',
         module: MODULE_NAME, method: 'setChargingProfile',
@@ -268,6 +279,7 @@ export default abstract class ChargingStationVendorIntegration {
     // Check if feature is supported
     if (!chargingStation.capabilities?.supportChargingProfiles) {
       throw new BackendError({
+        source: chargingStation.id,
         chargingStationID: chargingStation.id,
         siteID: chargingStation.siteID,
         siteAreaID: chargingStation.siteAreaID,
@@ -281,6 +293,7 @@ export default abstract class ChargingStationVendorIntegration {
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant, chargingStation);
     if (!chargingStationClient) {
       throw new BackendError({
+        source: chargingStation.id,
         chargingStationID: chargingStation.id,
         siteID: chargingStation.siteID,
         siteAreaID: chargingStation.siteAreaID,
@@ -305,6 +318,7 @@ export default abstract class ChargingStationVendorIntegration {
             siteAreaID: chargingStation.siteAreaID,
             companyID: chargingStation.companyID,
             chargingStationID: chargingStation.id,
+            source: chargingStation.id,
             action: ServerAction.CHARGING_PROFILE_DELETE,
             module: MODULE_NAME, method: 'clearChargingProfile',
             message: 'Clear Charging Profile on Connector ID 0 has been rejected, will try connector per connector',
@@ -335,6 +349,7 @@ export default abstract class ChargingStationVendorIntegration {
         siteAreaID: chargingStation.siteAreaID,
         companyID: chargingStation.companyID,
         chargingStationID: chargingStation.id,
+        source: chargingStation.id,
         action: ServerAction.CHARGING_PROFILE_DELETE,
         message: 'Error occurred while clearing the Charging Profile',
         module: MODULE_NAME, method: 'clearChargingProfile',
@@ -349,6 +364,7 @@ export default abstract class ChargingStationVendorIntegration {
     // Check if feature is supported
     if (!chargingStation.capabilities?.supportChargingProfiles) {
       throw new BackendError({
+        source: chargingStation.id,
         chargingStationID: chargingStation.id,
         siteID: chargingStation.siteID,
         siteAreaID: chargingStation.siteAreaID,
@@ -360,6 +376,7 @@ export default abstract class ChargingStationVendorIntegration {
     }
     if (connectorID === 0) {
       throw new BackendError({
+        source: chargingStation.id,
         chargingStationID: chargingStation.id,
         siteID: chargingStation.siteID,
         siteAreaID: chargingStation.siteAreaID,
@@ -373,6 +390,7 @@ export default abstract class ChargingStationVendorIntegration {
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant, chargingStation);
     if (!chargingStationClient) {
       throw new BackendError({
+        source: chargingStation.id,
         chargingStationID: chargingStation.id,
         siteID: chargingStation.siteID,
         siteAreaID: chargingStation.siteAreaID,
@@ -399,6 +417,7 @@ export default abstract class ChargingStationVendorIntegration {
         siteAreaID: chargingStation.siteAreaID,
         companyID: chargingStation.companyID,
         chargingStationID: chargingStation.id,
+        source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_GET_COMPOSITE_SCHEDULE,
         message: 'Error occurred while getting the Composite Schedule',
         module: MODULE_NAME, method: 'getCompositeSchedule',
@@ -421,6 +440,7 @@ export default abstract class ChargingStationVendorIntegration {
     try {
       if (connectorID === 0) {
         throw new BackendError({
+          source: chargingStation.id,
           chargingStationID: chargingStation.id,
           siteID: chargingStation.siteID,
           siteAreaID: chargingStation.siteAreaID,
@@ -492,6 +512,7 @@ export default abstract class ChargingStationVendorIntegration {
             siteAreaID: chargingStation.siteAreaID,
             companyID: chargingStation.companyID,
             chargingStationID: chargingStation.id,
+            source: chargingStation.id,
             action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
             message: `${Utils.buildConnectorInfo(connectorID)} Current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${Utils.getConnectorLimitSourceString(result.limitSource)}'`,
             module: MODULE_NAME, method: 'getCurrentConnectorLimit',
@@ -507,6 +528,7 @@ export default abstract class ChargingStationVendorIntegration {
         siteAreaID: chargingStation.siteAreaID,
         companyID: chargingStation.companyID,
         chargingStationID: chargingStation.id,
+        source: chargingStation.id,
         action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
         message: `${Utils.buildConnectorInfo(connectorID)} Cannot retrieve the current limitation`,
         module: MODULE_NAME, method: 'getCurrentConnectorLimit',
@@ -525,6 +547,7 @@ export default abstract class ChargingStationVendorIntegration {
       siteAreaID: chargingStation.siteAreaID,
       companyID: chargingStation.companyID,
       chargingStationID: chargingStation.id,
+      source: chargingStation.id,
       action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
       message: `${Utils.buildConnectorInfo(connectorID)} Current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${Utils.getConnectorLimitSourceString(result.limitSource)}'`,
       module: MODULE_NAME, method: 'getCurrentConnectorLimit',
@@ -677,6 +700,7 @@ export default abstract class ChargingStationVendorIntegration {
               siteAreaID: chargingStation.siteAreaID,
               companyID: chargingStation.companyID,
               chargingStationID: chargingStation.id,
+              source: chargingStation.id,
               action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
               message: `${Utils.buildConnectorInfo(connectorID)} Current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${Utils.getConnectorLimitSourceString(result.limitSource)} in DB'`,
               module: MODULE_NAME, method: 'getCurrentConnectorLimit',
@@ -698,6 +722,7 @@ export default abstract class ChargingStationVendorIntegration {
               siteAreaID: chargingStation.siteAreaID,
               companyID: chargingStation.companyID,
               chargingStationID: chargingStation.id,
+              source: chargingStation.id,
               action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
               message: `${Utils.buildConnectorInfo(connectorID)} Current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${Utils.getConnectorLimitSourceString(result.limitSource)} in DB'`,
               module: MODULE_NAME, method: 'getCurrentConnectorLimit',
@@ -720,6 +745,7 @@ export default abstract class ChargingStationVendorIntegration {
               siteAreaID: chargingStation.siteAreaID,
               companyID: chargingStation.companyID,
               chargingStationID: chargingStation.id,
+              source: chargingStation.id,
               action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
               message: `${Utils.buildConnectorInfo(connectorID)} Current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${Utils.getConnectorLimitSourceString(result.limitSource)} in DB'`,
               module: MODULE_NAME, method: 'getCurrentConnectorLimit',

@@ -42,7 +42,6 @@ export default class Constants {
   public static readonly BATCH_PAGE_SIZE = 1000;
 
   public static readonly CHARGING_STATION_LOCK_SECS = 5;
-  public static readonly CHARGING_STATION_CONNECTION_LOCK_SECS = 5;
 
   public static readonly HEALTH_CHECK_ROUTE = '/health-check';
 
@@ -241,6 +240,8 @@ export default class Constants {
   public static readonly DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS = 10000;
 
   public static readonly CHARGING_STATION_CONFIGURATION = 'Configuration';
+
+  public static readonly CENTRAL_SERVER = 'CentralServer';
 
   public static readonly OCPI_SEPARATOR = '*';
   public static readonly OCPI_RECORDS_LIMIT = 25;

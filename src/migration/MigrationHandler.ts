@@ -11,12 +11,17 @@ import RemoveDuplicateTagVisualIDsTask from './tasks/RemoveDuplicateTagVisualIDs
 import RestoreDataIntegrityInSiteUsersTask from './tasks/RestoreDataIntegrityInSiteUsersTask';
 import { ServerAction } from '../types/Server';
 import chalk from 'chalk';
+import cluster from 'cluster';
 import moment from 'moment';
 
 const MODULE_NAME = 'MigrationHandler';
 
 export default class MigrationHandler {
   public static async migrate(processAsyncTasksOnly = false): Promise<void> {
+    // Check we're on the master nodejs process
+    if (!cluster.isMaster) {
+      return;
+    }
     // Create a Lock for migration
     const migrationLock = LockingManager.createExclusiveLock(Constants.DEFAULT_TENANT, LockEntity.DATABASE, 'migration', 3600);
     if (await LockingManager.acquire(migrationLock)) {
@@ -96,7 +101,7 @@ export default class MigrationHandler {
   private static async executeTask(currentMigrationTask: MigrationTask): Promise<void> {
     try {
       // Log Start Task
-      let logMsg = `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running...`;
+      let logMsg = `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}...`;
       await Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
@@ -120,7 +125,7 @@ export default class MigrationHandler {
         timestamp: startDate,
         durationSecs: totalTaskTimeSecs
       });
-      logMsg = `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs`;
+      logMsg = `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}`;
       await Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
@@ -130,7 +135,7 @@ export default class MigrationHandler {
       // Log in the console also
       console.log(logMsg);
     } catch (error) {
-      const logMsg = `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has failed with error: ${error.message as string}`;
+      const logMsg = `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has failed with error: ${error.toString()} ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}`;
       await Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,

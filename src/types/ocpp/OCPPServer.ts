@@ -19,6 +19,7 @@ export interface OCPPBootNotificationRequestExtended extends OCPPBootNotificatio
   currentIPAddress: string | string[];
   ocppProtocol: OCPPProtocol;
   ocppVersion: OCPPVersion;
+  lastSeen: Date;
   timestamp: Date;
   lastReboot: Date;
 }

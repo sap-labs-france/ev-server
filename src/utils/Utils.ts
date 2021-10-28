@@ -26,6 +26,7 @@ import UserToken from '../types/UserToken';
 import { WebSocketCloseEventStatusString } from '../types/WebSocket';
 import _ from 'lodash';
 import bcrypt from 'bcryptjs';
+import cfenv from 'cfenv';
 import chalk from 'chalk';
 import fs from 'fs';
 import global from '../types/GlobalType';
@@ -1301,7 +1302,7 @@ export default class Utils {
   }
 
   public static getChargingStationEndpoint() : ChargingStationEndpoint {
-    return ChargingStationEndpoint.AWS;
+    return Configuration.isCloudFoundry() ? ChargingStationEndpoint.SCP : ChargingStationEndpoint.AWS;
   }
 
   public static async generateQrCode(data: string) :Promise<string> {
@@ -1561,7 +1562,7 @@ export default class Utils {
     const performanceRecord: PerformanceRecord = {
       tenantSubdomain: params.tenantSubdomain,
       timestamp: new Date(),
-      host: Utils.getHostName(),
+      host: Utils.getHostname(),
       action: params.action,
       group: params.group
     };
@@ -1586,27 +1587,17 @@ export default class Utils {
     if (params.httpResponseCode) {
       performanceRecord.httpResponseCode = params.httpResponseCode;
     }
-    if (global.serverType) {
-      performanceRecord.server = global.serverType;
+    if (global.serverName) {
+      performanceRecord.server = global.serverName;
     }
     return performanceRecord;
   }
 
-  public static getHostName(): string {
-    return os.hostname();
+  public static getHostname(): string {
+    return Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname();
   }
 
-  public static getHostIP(): string {
-    const hostname = Utils.getHostName();
-    if (hostname.startsWith('ip-')) {
-      const hostnameParts = hostname.split('-');
-      if (hostnameParts.length > 4) {
-        const lastIPDigit = hostnameParts[4].split('.')[0];
-        return `${hostnameParts[1]}.${hostnameParts[2]}.${hostnameParts[3]}.${lastIPDigit}`;
-      }
-    }
-  }
-
+  // when exporting values
   public static escapeCsvValue(value: any): string {
     // add double quote start and end
     // replace double quotes inside value to double double quotes to display double quote correctly in csv editor
@@ -1645,7 +1636,7 @@ export default class Utils {
       return data;
     }
     // Log
-    await Logging.logError({
+    await Logging.logSecurityError({
       tenantID,
       module: MODULE_NAME,
       method: 'sanitizeCSVExport',

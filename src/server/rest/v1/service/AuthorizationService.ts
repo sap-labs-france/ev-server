@@ -1,6 +1,6 @@
 import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity, SiteAreaAuthorizationActions, TagAuthorizationActions } from '../../../../types/Authorization';
 import { Car, CarCatalog } from '../../../../types/Car';
-import { CarCatalogDataResult, CarDataResult, CompanyDataResult, LogDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, UserDataResult } from '../../../../types/DataResult';
+import { CarCatalogDataResult, CarDataResult, CompanyDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, UserDataResult } from '../../../../types/DataResult';
 import { HttpCarCatalogRequest, HttpCarCatalogsRequest, HttpCarRequest, HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
 import { HttpChargingStationRequest, HttpChargingStationsRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
@@ -20,8 +20,6 @@ import DynamicAuthorizationFactory from '../../../../authorization/DynamicAuthor
 import { EntityDataType } from '../../../../types/GlobalType';
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import { HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
-import { HttpLogRequest } from '../../../../types/requests/HttpLoggingRequest';
-import { Log } from '../../../../types/Log';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
@@ -71,12 +69,6 @@ export default class AuthorizationService {
       tenant, Entity.SITE, userToken, filteredRequest, filteredRequest.ID ? { SiteID: filteredRequest.ID } : {}, authAction, entityData);
   }
 
-  public static async checkAndGetLoggingAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Partial<HttpLogRequest>, authAction: Action, entityData?: EntityDataType): Promise<AuthorizationFilter> {
-    return AuthorizationService.checkAndGetEntityAuthorizations(
-      tenant, Entity.LOGGING, userToken, filteredRequest, filteredRequest.ID ? { LogID: filteredRequest.ID } : {}, authAction, entityData);
-  }
-
   public static async addSitesAuthorizations(tenant: Tenant, userToken: UserToken, sites: SiteDataResult, authorizationFilter: AuthorizationFilter): Promise<void> {
     // Add canCreate flag to root
     sites.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE, Action.CREATE,
@@ -91,38 +83,25 @@ export default class AuthorizationService {
     // Enrich
     if (!site.issuer) {
       site.canRead = true;
+      site.canUpdate = false;
+      site.canDelete = false;
+      site.canAssignUsers = false;
+      site.canUnassignUsers = false;
     } else {
       site.canRead = true; // Always true as it should be filtered upfront
       site.canDelete = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.SITE, Action.DELETE, authorizationFilter, { SiteID: site.id }, site);
-      !site.canDelete && delete site.canDelete; // Optimize data over the net
       site.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.SITE, Action.UPDATE, authorizationFilter, { SiteID: site.id }, site);
-      !site.canUpdate && delete site.canUpdate; // Optimize data over the net
       site.canExportOCPPParams = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.SITE_AREA, Action.EXPORT_OCPP_PARAMS, authorizationFilter, { SiteID: site.id }, site);
-      !site.canExportOCPPParams && delete site.canExportOCPPParams; // Optimize data over the net
       site.canGenerateQrCode = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.SITE_AREA, Action.GENERATE_QR, authorizationFilter, { SiteID: site.id }, site);
-      !site.canGenerateQrCode && delete site.canGenerateQrCode; // Optimize data over the net
       site.canAssignUsers = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.USERS_SITES, Action.ASSIGN, authorizationFilter, { SiteID: site.id }, site);
-      !site.canAssignUsers && delete site.canAssignUsers; // Optimize data over the net
       site.canUnassignUsers = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.USERS_SITES, Action.UNASSIGN, authorizationFilter, { SiteID: site.id }, site);
-      !site.canUnassignUsers && delete site.canUnassignUsers; // Optimize data over the net
     }
-  }
-
-  public static addLogsAuthorizations(tenant: Tenant, userToken: UserToken, logs: LogDataResult, authorizationFilter: AuthorizationFilter): void {
-    // Enrich
-    for (const log of logs.result) {
-      AuthorizationService.addLogAuthorizations(tenant, userToken, log, authorizationFilter);
-    }
-  }
-
-  public static addLogAuthorizations(tenant: Tenant, userToken: UserToken, log: Log, authorizationFilter: AuthorizationFilter): void {
-    log.canRead = true; // Always true as it should be filtered upfront
   }
 
   public static async checkAndGetSitesAuthorizations(tenant: Tenant, userToken: UserToken,
@@ -135,20 +114,6 @@ export default class AuthorizationService {
     };
     // Check static & dynamic authorization
     await this.canPerformAuthorizationAction(tenant, userToken, Entity.SITES, Action.LIST,
-      authorizationFilters, filteredRequest);
-    return authorizationFilters;
-  }
-
-  public static async checkAndGetLoggingsAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Partial<HttpSiteUsersRequest>): Promise<AuthorizationFilter> {
-    const authorizationFilters: AuthorizationFilter = {
-      filters: {},
-      dataSources: new Map(),
-      projectFields: [],
-      authorized: false,
-    };
-    // Check static & dynamic authorization
-    await this.canPerformAuthorizationAction(tenant, userToken, Entity.LOGGINGS, Action.LIST,
       authorizationFilters, filteredRequest);
     return authorizationFilters;
   }
@@ -231,9 +196,6 @@ export default class AuthorizationService {
 
   public static async addUsersAuthorizations(tenant: Tenant, userToken: UserToken, users: UserDataResult, authorizationFilter: AuthorizationFilter): Promise<void> {
     users.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.CREATE, authorizationFilter);
-    users.canExport = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USERS, Action.EXPORT, authorizationFilter);
-    users.canImport = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USERS, Action.IMPORT, authorizationFilter);
-    users.canSynchronizeBilling = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USERS, Action.SYNCHRONIZE_BILLING_USERS, authorizationFilter);
     // Enrich
     for (const user of users.result) {
       await AuthorizationService.addUserAuthorizations(tenant, userToken, user, authorizationFilter);
@@ -244,14 +206,14 @@ export default class AuthorizationService {
     // Enrich
     if (!user.issuer) {
       user.canRead = true;
+      user.canUpdate = false;
+      user.canDelete = false;
     } else {
       user.canRead = true; // Always true as it should be filtered upfront
       user.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.USER, Action.UPDATE, authorizationFilter, { UserID: user.id }, user);
-      !user.canUpdate && delete user.canUpdate; // Optimize data over the net
       user.canDelete = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.USER, Action.DELETE, authorizationFilter, { UserID: user.id }, user);
-      !user.canDelete && delete user.canDelete; // Optimize data over the net
     }
   }
 
@@ -312,17 +274,11 @@ export default class AuthorizationService {
   public static async addTagsAuthorizations(tenant: Tenant, userToken: UserToken, tags: TagDataResult, authorizationFilter: AuthorizationFilter): Promise<void> {
     // Add canCreate flag to root
     tags.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAG, Action.CREATE, authorizationFilter);
-    !tags.canCreate && delete tags.canCreate; // Optimize data over the net
     tags.canAssign = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAG, Action.ASSIGN, authorizationFilter);
-    !tags.canAssign && delete tags.canAssign; // Optimize data over the net
     tags.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAG, Action.DELETE, authorizationFilter);
-    !tags.canDelete && delete tags.canDelete; // Optimize data over the net
     tags.canImport = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAGS, Action.IMPORT, authorizationFilter);
-    !tags.canImport && delete tags.canImport; // Optimize data over the net
     tags.canExport = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAGS, Action.EXPORT, authorizationFilter);
-    !tags.canExport && delete tags.canExport; // Optimize data over the net
     tags.canUnassign = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAGS, Action.UNASSIGN, authorizationFilter);
-    !tags.canUnassign && delete tags.canUnassign; // Optimize data over the net
     tags.metadata = authorizationFilter.metadata;
     // Enrich
     for (const tag of tags.result) {
@@ -334,23 +290,20 @@ export default class AuthorizationService {
     // Enrich
     if (!tag.issuer) {
       tag.canRead = true;
+      tag.canUpdate = false;
+      tag.canDelete = false;
     } else {
       tag.canRead = true; // Always true as it should be filtered upfront
       tag.canDelete = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.TAG, Action.DELETE, authorizationFilter, { TagID: tag.id }, tag);
-      !tag.canDelete && delete tag.canDelete; // Optimize data over the net
       tag.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.TAG, Action.UPDATE, authorizationFilter, { TagID: tag.id }, tag);
-      !tag.canUpdate && delete tag.canUpdate; // Optimize data over the net
       tag.canUpdateByVisualID = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.TAG, Action.UPDATE_BY_VISUAL_ID, authorizationFilter, { TagID: tag.id }, tag);
-      !tag.canUpdateByVisualID && delete tag.canUpdateByVisualID; // Optimize data over the net
       tag.canUnassign = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.TAG, Action.UNASSIGN, authorizationFilter, { TagID: tag.id }, tag);
-      !tag.canUnassign && delete tag.canUnassign; // Optimize data over the net
       tag.canAssign = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.TAG, Action.ASSIGN, authorizationFilter, { TagID: tag.id }, tag);
-      !tag.canAssign && delete tag.canAssign; // Optimize data over the net
     }
   }
 
@@ -382,14 +335,14 @@ export default class AuthorizationService {
     // Enrich
     if (!company.issuer) {
       company.canRead = true;
+      company.canUpdate = false;
+      company.canDelete = false;
     } else {
       company.canRead = true; // Always true as it should be filtered upfront
       company.canDelete = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.COMPANY, Action.DELETE, authorizationFilter, { CompanyID: company.id }, company);
-      !company.canDelete && delete company.canDelete; // Optimize data over the net
       company.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.COMPANY, Action.UPDATE, authorizationFilter, { CompanyID: company.id }, company);
-      !company.canUpdate && delete company.canUpdate; // Optimize data over the net
     }
   }
 
@@ -433,33 +386,31 @@ export default class AuthorizationService {
     // Enrich
     if (!siteArea.issuer) {
       siteArea.canRead = true;
+      siteArea.canUpdate = false;
+      siteArea.canDelete = false;
+      siteArea.canAssignAssets = false;
+      siteArea.canUnassignAssets = false;
+      siteArea.canAssignChargingStations = false;
+      siteArea.canUnassignChargingStations = false;
     } else {
       // Downcast & enhance filters with values needed in dynamic filters
       siteArea.canRead = true; // Always true as it should be filtered upfront
       siteArea.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.SITE_AREA, Action.DELETE, authorizationFilter, { SiteAreaID: siteArea.id, SiteID: siteArea.siteID }, siteArea);
-      !siteArea.canUpdate && delete siteArea.canUpdate; // Optimize data over the net
       siteArea.canDelete = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.SITE_AREA, Action.UPDATE, authorizationFilter, { SiteAreaID: siteArea.id, SiteID: siteArea.siteID }, siteArea);
-      !siteArea.canDelete && delete siteArea.canDelete; // Optimize data over the net
       siteArea.canAssignAssets = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.SITE_AREA, Action.ASSIGN_ASSETS_TO_SITE_AREA, authorizationFilter, { SiteAreaID: siteArea.id, SiteID: siteArea.siteID }, siteArea);
-      !siteArea.canAssignAssets && delete siteArea.canAssignAssets; // Optimize data over the net
       siteArea.canUnassignAssets = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.SITE_AREA, Action.UNASSIGN_ASSETS_TO_SITE_AREA, authorizationFilter, { SiteAreaID: siteArea.id, SiteID: siteArea.siteID }, siteArea);
-      !siteArea.canUnassignAssets && delete siteArea.canUnassignAssets; // Optimize data over the net
       siteArea.canAssignChargingStations = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.SITE_AREA, Action.ASSIGN_CHARGING_STATIONS_TO_SITE_AREA, authorizationFilter, { SiteAreaID: siteArea.id, SiteID: siteArea.siteID }, siteArea);
-      !siteArea.canAssignChargingStations && delete siteArea.canAssignChargingStations; // Optimize data over the net
       siteArea.canUnassignChargingStations = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.SITE_AREA, Action.UNASSIGN_CHARGING_STATIONS_TO_SITE_AREA, authorizationFilter, { SiteAreaID: siteArea.id, SiteID: siteArea.siteID }, siteArea);
-      !siteArea.canUnassignChargingStations && delete siteArea.canUnassignChargingStations; // Optimize data over the net
       siteArea.canExportOCPPParams = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.SITE_AREA, Action.EXPORT_OCPP_PARAMS, authorizationFilter, { SiteAreaID: siteArea.id, SiteID: siteArea.siteID }, siteArea);
-      !siteArea.canExportOCPPParams && delete siteArea.canExportOCPPParams; // Optimize data over the net
       siteArea.canGenerateQrCode = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.SITE_AREA, Action.GENERATE_QR, authorizationFilter, { SiteAreaID: siteArea.id, SiteID: siteArea.siteID }, siteArea);
-      !siteArea.canGenerateQrCode && delete siteArea.canGenerateQrCode; // Optimize data over the net
     }
   }
 
@@ -523,10 +474,8 @@ export default class AuthorizationService {
     car.canRead = true; // Always true as it should be filtered upfront
     car.canDelete = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CAR, Action.DELETE, authorizationFilter, { CarID: car.id }, car);
-    !car.canDelete && delete car.canDelete; // Optimize data over the net
     car.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CAR, Action.UPDATE, authorizationFilter, { CarID: car.id }, car);
-    !car.canUpdate && delete car.canUpdate; // Optimize data over the net
   }
 
   public static async checkAndGetCarCatalogsAuthorizations(tenant: Tenant, userToken: UserToken,
@@ -564,10 +513,8 @@ export default class AuthorizationService {
     carCatalog.canRead = true; // Always true as it should be filtered upfront
     carCatalog.canDelete = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CAR_CATALOG, Action.DELETE, authorizationFilter, { CarCatalogID: carCatalog.id }, carCatalog);
-    !carCatalog.canDelete && delete carCatalog.canDelete; // Optimize data over the net
     carCatalog.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CAR_CATALOG, Action.UPDATE, authorizationFilter, { CarCatalogID: carCatalog.id }, carCatalog);
-    !carCatalog.canUpdate && delete carCatalog.canUpdate; // Optimize data over the net
   }
 
 

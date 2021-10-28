@@ -9,6 +9,7 @@ import AxiosFactory from '../../../../../utils/AxiosFactory';
 import { ChargePointStatus } from '../../../../../types/ocpp/OCPPServer';
 import ChargingStationClientFactory from '../../../../../client/ocpp/ChargingStationClientFactory';
 import ChargingStationStorage from '../../../../../storage/mongodb/ChargingStationStorage';
+import Constants from '../../../../../utils/Constants';
 import Logging from '../../../../../utils/Logging';
 import { OCPICommandType } from '../../../../../types/ocpi/OCPICommandType';
 import OCPIEndpoint from '../../../../../types/ocpi/OCPIEndpoint';
@@ -48,6 +49,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
         const command = urlSegment.shift();
         if (!command) {
           throw new AppError({
+            source: Constants.CENTRAL_SERVER,
             action: ServerAction.OCPI_COMMAND,
             module: MODULE_NAME, method: 'getToken',
             errorCode: StatusCodes.BAD_REQUEST,
@@ -65,6 +67,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
             return this.buildOCPIResponse(OCPICommandResponseType.NOT_SUPPORTED);
           default:
             throw new AppError({
+              source: Constants.CENTRAL_SERVER,
               action: ServerAction.OCPI_COMMAND,
               module: MODULE_NAME, method: 'getToken',
               errorCode: StatusCodes.BAD_REQUEST,
@@ -79,6 +82,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     const startSession = req.body as OCPIStartSession;
     if (!this.validateStartSession(startSession)) {
       throw new AppError({
+        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'remoteStartSession',
         action: ServerAction.OCPI_START_SESSION,
         errorCode: StatusCodes.BAD_REQUEST,
@@ -133,6 +137,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
         siteAreaID: chargingStation.siteAreaID,
         companyID: chargingStation.companyID,
         chargingStationID: chargingStation.id,
+        source: chargingStation.id,
         message: `${Utils.buildConnectorInfo(connectorID)} Connector not found`,
         module: MODULE_NAME, method: 'remoteStartSession',
         detailedMessages: { connectorID, chargingStation, startSession }
@@ -147,6 +152,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
         siteAreaID: chargingStation.siteAreaID,
         companyID: chargingStation.companyID,
         chargingStationID: chargingStation.id,
+        source: chargingStation.id,
         message: `Charging Station ID '${startSession.evse_uid}' is either not public or local to the tenant`,
         module: MODULE_NAME, method: 'remoteStartSession',
         detailedMessages: { chargingStation, startSession }
@@ -162,6 +168,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
         siteAreaID: chargingStation.siteAreaID,
         companyID: chargingStation.companyID,
         chargingStationID: chargingStation.id,
+        source: chargingStation.id,
         message: `Charging Station ID '${chargingStation.id}' is not available (status is '${connector.status}')`,
         module: MODULE_NAME, method: 'remoteStartSession',
         detailedMessages: { chargingStation, startSession }
@@ -181,6 +188,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
           siteAreaID: chargingStation.siteAreaID,
           companyID: chargingStation.companyID,
           chargingStationID: chargingStation.id,
+          source: chargingStation.id,
           action: ServerAction.OCPI_START_SESSION,
           message: `Remote authorization already exists for Charging Station '${chargingStation.id}' and Connector ID ${connector.connectorId}`,
           module: MODULE_NAME, method: 'remoteStartSession',
@@ -214,6 +222,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     const stopSession = req.body as OCPIStopSession;
     if (!this.validateStopSession(stopSession)) {
       throw new AppError({
+        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'remoteStopSession',
         action: ServerAction.OCPI_START_SESSION,
         errorCode: StatusCodes.BAD_REQUEST,
@@ -240,6 +249,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
         siteAreaID: transaction.siteAreaID,
         companyID: transaction.companyID,
         chargingStationID: transaction.chargeBoxID,
+        source: transaction.chargeBoxID,
         action: ServerAction.OCPI_STOP_SESSION,
         message: `Transaction with Session ID '${stopSession.session_id}' is local to the tenant`,
         module: MODULE_NAME, method: 'remoteStopSession',
@@ -255,6 +265,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
         siteAreaID: transaction.siteAreaID,
         companyID: transaction.companyID,
         chargingStationID: transaction.chargeBoxID,
+        source: transaction.chargeBoxID,
         message: `Transaction with Session ID '${stopSession.session_id}' is already stopped`,
         module: MODULE_NAME, method: 'remoteStopSession',
         detailedMessages: { stopSession, transaction },
@@ -269,6 +280,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
         siteAreaID: transaction.siteAreaID,
         companyID: transaction.companyID,
         chargingStationID: transaction.chargeBoxID,
+        source: transaction.chargeBoxID,
         action: ServerAction.OCPI_STOP_SESSION,
         message: `Charging Station ID '${transaction.chargeBoxID}' has not been found`,
         module: MODULE_NAME, method: 'remoteStopSession',
@@ -317,6 +329,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
         siteAreaID: chargingStation.siteAreaID,
         companyID: chargingStation.companyID,
         chargingStationID: chargingStation.id,
+        source: chargingStation.id,
         action: ServerAction.OCPI_START_SESSION,
         message: 'Charging Station is not connected to the backend',
         module: MODULE_NAME, method: 'remoteStartTransaction',
@@ -344,6 +357,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
         siteAreaID: chargingStation.siteAreaID,
         companyID: chargingStation.companyID,
         chargingStationID: chargingStation.id,
+        source: chargingStation.id,
         action: ServerAction.OCPI_STOP_SESSION,
         message: 'Charging Station is not connected to the backend',
         module: MODULE_NAME, method: 'remoteStopTransaction',

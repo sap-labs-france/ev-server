@@ -1,5 +1,4 @@
 import { OCPIGetTokensTaskConfig, TaskConfig } from '../../../types/TaskConfig';
-import Tenant, { TenantComponents } from '../../../types/Tenant';
 
 import Constants from '../../../utils/Constants';
 import LockingHelper from '../../../locking/LockingHelper';
@@ -12,6 +11,8 @@ import { OCPIRegistrationStatus } from '../../../types/ocpi/OCPIRegistrationStat
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
 import SchedulerTask from '../../SchedulerTask';
 import { ServerAction } from '../../../types/Server';
+import Tenant from '../../../types/Tenant';
+import { TenantComponents } from '../../../types/Tenant';
 import Utils from '../../../utils/Utils';
 
 const MODULE_NAME = 'OCPIGetTokensTask';

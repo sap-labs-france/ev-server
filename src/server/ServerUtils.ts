@@ -8,11 +8,12 @@ import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 import { StatusCodes } from 'http-status-codes';
 import Utils from '../utils/Utils';
+import cluster from 'cluster';
 import https from 'https';
 
 export class ServerUtils {
   public static async defaultListenCb(serverModuleName: string, methodName: string, serverName: string, protocol: ServerProtocol, hostname: string, port: number): Promise<void> {
-    const logMsg = `${serverName} Server listening on '${protocol}://${hostname}:${port}'`;
+    const logMsg = `${serverName} Server listening on '${protocol}://${hostname}:${port}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}`;
     // Log
     await Logging.logInfo({
       tenantID: Constants.DEFAULT_TENANT,
@@ -78,7 +79,7 @@ export class ServerUtils {
     }
     // Log
     // eslint-disable-next-line no-console
-    console.log(`Starting ${serverName} Server...`);
+    console.log(`Starting ${serverName} Server ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}...`);
     // Listen
     if (serverConfig.host && serverConfig.port) {
       httpServer.listen(serverConfig.port, serverConfig.host, cb);
@@ -86,7 +87,7 @@ export class ServerUtils {
       httpServer.listen(serverConfig.port, cb);
     } else {
       // eslint-disable-next-line no-console
-      console.log(`Fail to start ${serverName} Server listening, missing required port configuration`);
+      console.log(`Fail to start ${serverName} Server listening ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}, missing required port configuration`);
     }
   }
 

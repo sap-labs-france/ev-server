@@ -44,7 +44,8 @@ export default class ODataSchema {
       // Add logging: login info
       await Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
-        module: MODULE_NAME, method: 'getSchema',
+        module: MODULE_NAME,
+        source: 'ODataServer', method: 'getSchema',
         action: ServerAction.ODATA_SERVER,
         message: 'Unauthorized Access',
         detailedMessages: { error: error.stack }

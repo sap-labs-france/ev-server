@@ -1,4 +1,4 @@
-import { ChargePointStatus, OCPPFirmwareStatus, OCPPPhase, OCPPProtocol, OCPPVersion } from './ocpp/OCPPServer';
+import { ChargePointStatus, OCPPFirmwareStatus, OCPPPhase, OCPPProtocol, OCPPVersion, RegistrationStatus } from './ocpp/OCPPServer';
 
 import { AuthorizationActions } from './Authorization';
 import { ChargingRateUnitType } from './ChargingProfile';
@@ -28,6 +28,7 @@ export default interface ChargingStation extends CreatedUpdatedProps, Authorizat
   chargePointModel: string;
   chargeBoxSerialNumber: string;
   chargePointVendor: string;
+  registrationStatus: RegistrationStatus;
   iccid: string;
   imsi: string;
   meterType: string;
@@ -37,12 +38,10 @@ export default interface ChargingStation extends CreatedUpdatedProps, Authorizat
   endpoint: string;
   ocppVersion: OCPPVersion;
   ocppProtocol: OCPPProtocol;
-  cloudHostIP?: string;
-  cloudHostName?: string;
+  cfApplicationIDAndInstanceIndex: string;
   lastSeen: Date;
   deleted: boolean;
   inactive: boolean;
-  tokenID: string;
   forceInactive: boolean;
   manualConfiguration?: boolean;
   lastReboot: Date;

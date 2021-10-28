@@ -6,6 +6,7 @@ import Constants from '../utils/Constants';
 import { ServerProtocol } from '../types/Server';
 import { ServerUtils } from './ServerUtils';
 import { StatusCodes } from 'http-status-codes';
+import cluster from 'cluster';
 
 export class MicroWsUtils {
   public static createApp(serverConfig: CentralSystemServerConfiguration): TemplatedApp {
@@ -41,7 +42,7 @@ export class MicroWsUtils {
       app.listen(serverConfig.port, cb);
     } else {
       // eslint-disable-next-line no-console
-      console.log(`Fail to start ${serverName} Server listening, missing required port configuration`);
+      console.log(`Fail to start ${serverName} Server listening ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}, missing required port configuration`);
     }
   }
 

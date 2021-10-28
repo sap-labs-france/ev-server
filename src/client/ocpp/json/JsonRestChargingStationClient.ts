@@ -27,6 +27,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     let chargingStationURL = chargingStation.chargingStationURL;
     if (!chargingStationURL) {
       throw new BackendError({
+        source: chargingStation.id,
         chargingStationID: chargingStation.id,
         siteID: chargingStation.siteID,
         siteAreaID: chargingStation.siteAreaID,
@@ -39,10 +40,11 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     }
     // Check URL: remove starting and trailing '/'
     if (chargingStationURL.endsWith('/')) {
+      // Remove '/'
       chargingStationURL = chargingStationURL.substring(0, chargingStationURL.length - 1);
     }
     // Keep
-    this.serverURL = `${chargingStationURL}/REST/${tenantID}/${chargingStation.tokenID}/${chargingStation.id}`;
+    this.serverURL = `${chargingStationURL}/REST/${tenantID}/${chargingStation.id}`;
     this.chargingStation = chargingStation;
     this.requests = {};
   }
@@ -119,19 +121,28 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
       siteAreaID: this.chargingStation.siteAreaID,
       companyID: this.chargingStation.companyID,
       chargingStationID: this.chargingStation.id,
+      source: this.chargingStation.id,
       action: ServerAction.WS_REST_CLIENT_CONNECTION_OPENED,
       module: MODULE_NAME, method: 'onOpen',
-      message: `Try to connect to '${this.serverURL}'...`
+      message: `Try to connect to '${this.serverURL}' ${Configuration.isCloudFoundry() ? ', CF Instance \'' + this.chargingStation.cfApplicationIDAndInstanceIndex + '\'' : ''}`
     });
     // Create Promise
     return await new Promise((resolve, reject) => {
       try {
         // Create WS
-        const wsOptions = {
-          protocol: WSServerProtocol.REST
-        };
+        let WSOptions = {};
+        if (Configuration.isCloudFoundry()) {
+          WSOptions = {
+            protocol: WSServerProtocol.REST,
+            headers: { 'X-CF-APP-INSTANCE': this.chargingStation.cfApplicationIDAndInstanceIndex }
+          };
+        } else {
+          WSOptions = {
+            protocol: WSServerProtocol.REST
+          };
+        }
         const wsClientOptions: WSClientOptions = {
-          WSOptions: wsOptions,
+          WSOptions: WSOptions,
           autoReconnectTimeout: Configuration.getWSClientConfig().autoReconnectTimeout,
           autoReconnectMaxRetries: Configuration.getWSClientConfig().autoReconnectMaxRetries,
           logTenantID: this.tenantID
@@ -145,6 +156,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             siteAreaID: this.chargingStation.siteAreaID,
             companyID: this.chargingStation.companyID,
             chargingStationID: this.chargingStation.id,
+            source: this.chargingStation.id,
             action: ServerAction.WS_REST_CLIENT_CONNECTION_OPENED,
             module: MODULE_NAME, method: 'onOpen',
             message: `Connection opened to '${this.serverURL}'`
@@ -160,6 +172,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             siteAreaID: this.chargingStation.siteAreaID,
             companyID: this.chargingStation.companyID,
             chargingStationID: this.chargingStation.id,
+            source: this.chargingStation.id,
             action: ServerAction.WS_REST_CLIENT_CONNECTION_CLOSED,
             module: MODULE_NAME, method: 'onClose',
             message: `Connection closed to '${this.serverURL}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`,
@@ -174,6 +187,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             siteAreaID: this.chargingStation.siteAreaID,
             companyID: this.chargingStation.companyID,
             chargingStationID: this.chargingStation.id,
+            source: this.chargingStation.id,
             action: ServerAction.WS_REST_CLIENT_CONNECTION_ERROR,
             module: MODULE_NAME, method: 'onError',
             message: `Connection error to '${this.serverURL}: ${error.toString()}`,
@@ -199,6 +213,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
                   siteAreaID: this.chargingStation.siteAreaID,
                   companyID: this.chargingStation.companyID,
                   chargingStationID: this.chargingStation.id,
+                  source: this.chargingStation.id,
                   action: ServerAction.WS_REST_CLIENT_ERROR_RESPONSE,
                   module: MODULE_NAME, method: 'onMessage',
                   message: `${commandPayload.toString()}`,
@@ -220,6 +235,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
                 siteAreaID: this.chargingStation.siteAreaID,
                 companyID: this.chargingStation.companyID,
                 chargingStationID: this.chargingStation.id,
+                source: this.chargingStation.id,
                 action: ServerAction.WS_REST_CLIENT_ERROR_RESPONSE,
                 module: MODULE_NAME, method: 'onMessage',
                 message: 'Received unknown message',
@@ -227,7 +243,12 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
               });
             }
           } catch (error) {
-            await Logging.logException(error, ServerAction.WS_REST_CLIENT_MESSAGE, MODULE_NAME, 'onMessage', this.tenantID
+            await Logging.logException(
+              error,
+              ServerAction.WS_REST_CLIENT_MESSAGE,
+              this.chargingStation.id,
+              MODULE_NAME, 'onMessage',
+              this.tenantID
             );
           }
         };

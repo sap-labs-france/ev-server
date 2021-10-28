@@ -4,7 +4,6 @@ import ChargingStation from './ChargingStation';
 import Company from './Company';
 import JsonCentralSystemServer from '../server/ocpp/json/JsonCentralSystemServer';
 import MongoDBStorage from '../storage/mongodb/MongoDBStorage';
-import { ServerType } from './Server';
 import Site from './Site';
 import SiteArea from './SiteArea';
 import SoapCentralSystemServer from '../server/ocpp/soap/SoapCentralSystemServer';
@@ -76,7 +75,7 @@ interface TSGlobal extends Global {
   appRoot: string;
   centralSystemJsonServer: JsonCentralSystemServer;
   centralSystemSoapServer: SoapCentralSystemServer;
-  serverType: ServerType;
+  serverName: string;
   Promise: any;
 }
 

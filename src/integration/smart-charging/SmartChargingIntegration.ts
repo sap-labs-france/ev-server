@@ -2,6 +2,7 @@ import { ActionsResponse } from '../../types/GlobalType';
 import BackendError from '../../exception/BackendError';
 import { ChargingProfile } from '../../types/ChargingProfile';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
+import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
 import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
@@ -61,6 +62,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
         // Log failed
         await Logging.logError({
           tenantID: this.tenant.id,
+          source: chargingProfile.chargingStationID,
           siteID: chargingProfile.chargingStation.siteID,
           siteAreaID: chargingProfile.chargingStation.siteAreaID,
           companyID: chargingProfile.chargingStation.companyID,
@@ -91,6 +93,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
   protected checkIfSiteAreaIsValid(siteArea: SiteArea): void {
     if (!siteArea.maximumPower) {
       throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
         action: ServerAction.SMART_CHARGING,
         module: MODULE_NAME, method: 'checkIfSiteAreaIsValid',
         message: `Maximum Power is not set in Site Area '${siteArea.name}'`
@@ -98,6 +101,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
     }
     if (siteArea.voltage !== Voltage.VOLTAGE_230 && siteArea.voltage !== Voltage.VOLTAGE_110) {
       throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
         action: ServerAction.SMART_CHARGING,
         module: MODULE_NAME, method: 'checkIfSiteAreaIsValid',
         message: `Voltage must be either 110V or 230V in Site Area '${siteArea.name}'`
@@ -105,6 +109,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
     }
     if (siteArea.numberOfPhases !== 1 && siteArea.numberOfPhases !== 3) {
       throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
         action: ServerAction.SMART_CHARGING,
         module: MODULE_NAME, method: 'checkIfSiteAreaIsValid',
         message: `Number of phases must be either 1 or 3 in Site Area '${siteArea.name}'`
@@ -113,6 +118,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
     // Charging Stations
     if (!siteArea.chargingStations) {
       throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
         action: ServerAction.SMART_CHARGING,
         module: MODULE_NAME, method: 'checkIfSiteAreaIsValid',
         message: `No Charging Stations found in Site Area '${siteArea.name}'`
@@ -131,6 +137,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
         // Log failed
         await Logging.logError({
           tenantID: this.tenant.id,
+          source: chargingProfile.chargingStationID,
           siteID: chargingProfile.chargingStation.siteID,
           siteAreaID: chargingProfile.chargingStation.siteAreaID,
           companyID: chargingProfile.chargingStation.companyID,
@@ -147,7 +154,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
     // Remember Charging Stations which were removed from Smart Charging
     this.excludedChargingStations.push(chargingStation.id);
     // Notify Admins
-    void NotificationHandler.sendComputeAndApplyChargingProfilesFailed(tenant, chargingStation,
+    await NotificationHandler.sendComputeAndApplyChargingProfilesFailed(tenant, chargingStation,
       { chargeBoxID: chargingProfile.chargingStationID,
         siteID: chargingProfile.chargingStation?.siteID,
         siteAreaID: chargingProfile.chargingStation?.siteAreaID,
