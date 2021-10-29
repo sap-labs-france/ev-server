@@ -1,4 +1,4 @@
-import { AnalyticsSettingsType, AssetConnectionSetting, AssetConnectionType, AssetSettingsType, CarConnectorConnectionSetting, CarConnectorConnectionType, CarConnectorSettingsType, OicpBusinessDetails, OicpSetting, PricingSettingsType, RoamingSettingsType, SettingDB, SettingDBContent, SettingLink, SimplePricingSetting } from '../../../../../types/Setting';
+import { AnalyticsSettingsType, AssetConnectionSetting, AssetConnectionType, AssetSettingsType, BillingSettingsType, CarConnectorConnectionSetting, CarConnectorConnectionType, CarConnectorSettingsType, OicpBusinessDetails, OicpSetting, PricingSettingsType, RoamingSettingsType, SettingDB, SettingDBContent, SettingLink, SimplePricingSetting } from '../../../../../types/Setting';
 import { HttpSettingRequest, HttpSettingsRequest } from '../../../../../types/requests/HttpSettingRequest';
 
 import Utils from '../../../../../utils/Utils';
@@ -111,15 +111,18 @@ export default class SettingSecurity {
             password: sanitize(request.content.convergentCharging.password),
           };
           break;
-        case PricingSettingsType.SIMPLE:
-          if (!Utils.isEmptyJSon(request.content.simple)) {
-            settings.content.simple = {
-              price: sanitize(request.content.simple.price),
-              currency: sanitize(request.content.simple.currency),
-            };
-          } else {
-            settings.content.simple = { } as SimplePricingSetting;
-          }
+        case BillingSettingsType.STRIPE:
+          settings.content.billing = {
+            isTransactionBillingActivated : sanitize(request.content.billing.isTransactionBillingActivated),
+            immediateBillingAllowed: sanitize(request.content.billing.immediateBillingAllowed),
+            periodicBillingAllowed: sanitize(request.content.billing.periodicBillingAllowed),
+            taxID: sanitize(request.content.billing.taxID)
+          };
+          settings.content.stripe = {
+            url: sanitize(request.content.stripe.url),
+            secretKey: sanitize(request.content.stripe.secretKey),
+            publicKey: sanitize(request.content.stripe.publicKey),
+          };
           break;
         case AssetSettingsType.ASSET:
           settings.content.asset = {
