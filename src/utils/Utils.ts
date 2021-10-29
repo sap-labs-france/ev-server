@@ -18,6 +18,7 @@ import Constants from './Constants';
 import Cypher from './Cypher';
 import { Decimal } from 'decimal.js';
 import Logging from './Logging';
+import { Promise } from 'bluebird';
 import QRCode from 'qrcode';
 import { Request } from 'express';
 import { ServerAction } from '../types/Server';

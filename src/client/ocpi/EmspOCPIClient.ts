@@ -24,6 +24,7 @@ import { OCPIStopSession } from '../../types/ocpi/OCPIStopSession';
 import OCPIUtils from '../../server/ocpi/OCPIUtils';
 import OCPIUtilsService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIUtilsService';
 import { OcpiSetting } from '../../types/Setting';
+import { Promise } from 'bluebird';
 import { ServerAction } from '../../types/Server';
 import Site from '../../types/Site';
 import SiteArea from '../../types/SiteArea';
