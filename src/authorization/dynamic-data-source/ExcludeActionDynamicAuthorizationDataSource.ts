@@ -1,6 +1,7 @@
 import { DynamicAuthorizationDataSourceData, DynamicAuthorizationDataSourceName } from '../../types/Authorization';
 
 import DynamicAuthorizationDataSource from '../DynamicAuthorizationDataSource';
+import { Promise } from 'bluebird';
 
 export default class ExcludeActionDynamicAuthorizationDataSource
   extends DynamicAuthorizationDataSource<DynamicAuthorizationDataSourceData> {

@@ -615,13 +615,13 @@ export enum ServerProtocol {
 }
 
 export enum ServerType {
-  REST_SERVER = 'RestServer',
-  SOAP_SERVER = 'SoapServer',
-  JSON_SERVER = 'JsonServer',
-  OCPI_SERVER = 'OcpiServer',
-  OICP_SERVER = 'OicpServer',
-  ODATA_SERVER = 'ODataServer',
-  BATCH_SERVER = 'BatchServer',
+  REST_SERVER = 'Rest',
+  SOAP_SERVER = 'Soap',
+  JSON_SERVER = 'Json',
+  OCPI_SERVER = 'Ocpi',
+  OICP_SERVER = 'Oicp',
+  ODATA_SERVER = 'OData',
+  BATCH_SERVER = 'Batch',
   CENTRAL_SERVER = 'CentralServer',
 }
 
