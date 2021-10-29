@@ -20,7 +20,25 @@
           }
         },
         "convergentCharging": {
-          "type": "object"
+          "type": "object",
+          "properties": {
+            "url": {
+              "type": "string",
+              "sanitize": "mongo"
+            },
+            "password" : {
+              "type": "string",
+              "sanitize": "mongo"
+            },
+            "user" : {
+              "type": "string",
+              "sanitize": "mongo"
+            },
+            "chargeableItemName" : {
+              "type": "string",
+              "sanitize": "mongo"
+            }
+          }
         },
         "type": {
           "type": "string",
