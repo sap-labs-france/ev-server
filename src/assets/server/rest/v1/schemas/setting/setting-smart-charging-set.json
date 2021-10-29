@@ -57,6 +57,7 @@
     },
     "sensitiveData": {
       "type": "array",
+      "nullable": true,
       "items": {
         "type": "string",
         "sanitize": "mongo"

@@ -19,10 +19,13 @@
             }
           }
         },
+        "convergentCharging": {
+          "type": "object"
+        },
         "type": {
           "type": "string",
           "sanitize": "mongo",
-          "enum": ["simple"]
+          "enum": ["simple", "convergentCharging"]
         }
       },
       "required": [
@@ -39,6 +42,7 @@
       "enum": ["pricing"]
     },
     "sensitiveData": {
+      "nullable": true,
       "type": "array",
       "items": {
         "type": "string",
