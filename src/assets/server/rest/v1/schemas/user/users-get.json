@@ -22,6 +22,10 @@
       "type": "boolean",
       "sanitize": "mongo"
     },
+    "FreeAccess": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
     "Status": {
       "type": "string",
       "sanitize": "mongo",

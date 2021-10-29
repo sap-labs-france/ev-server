@@ -66,7 +66,6 @@ export default class LacroixAssetIntegration extends AssetIntegration<AssetSetti
       );
       await Logging.logDebug({
         tenantID: this.tenant.id,
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
         message: `${asset.name} > Lacroix web service has been called successfully`,
         module: MODULE_NAME, method: 'retrieveConsumption',
@@ -75,7 +74,6 @@ export default class LacroixAssetIntegration extends AssetIntegration<AssetSetti
       return await this.filterConsumptionRequest(asset, response.data, manualCall);
     } catch (error) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'retrieveConsumption',
         action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
@@ -177,7 +175,6 @@ export default class LacroixAssetIntegration extends AssetIntegration<AssetSetti
   private checkConnectionIsProvided(): void {
     if (!this.connection) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'checkConnectionIsProvided',
         action: ServerAction.CHECK_CONNECTION,

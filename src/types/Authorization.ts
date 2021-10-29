@@ -29,7 +29,15 @@ export interface AuthorizationDefinitionCondition {
 export interface AuthorizationDefinitionConditionArgs {
   filters: string[];
   asserts: string[];
-  metadata?: Record<string, unknown>;
+  metadata?: Record<string, AuthorizationDefinitionFieldMetadata>;
+}
+
+export interface AuthorizationDefinitionFieldMetadata {
+  visible: boolean;
+  enabled: string;
+  mandatory: boolean;
+  values: string[]|boolean[]|number[],
+  defaultValue: string|boolean|number,
 }
 
 export interface AuthorizationResult {
@@ -43,7 +51,7 @@ export interface AuthorizationFilter {
   authorized: boolean;
   dataSources: Map<DynamicAuthorizationDataSourceName, DynamicAuthorizationDataSource<DynamicAuthorizationDataSourceData>>;
   projectFields: string[];
-  metadata?: Record<string, unknown>;
+  metadata?: Record<string, AuthorizationDefinitionFieldMetadata>;
 }
 
 export interface Grant {
@@ -187,7 +195,7 @@ export interface AuthorizationContext {
   assets?: string[];
   filters?: DynamicAuthorizationFilterName[] | [DynamicAuthorizationFilterName[]];
   asserts?: DynamicAuthorizationAssertName[] | [DynamicAuthorizationAssertName[]];
-  metadata?: Record<string, unknown>;
+  metadata?: Record<string, AuthorizationDefinitionFieldMetadata>;
 }
 
 export interface AuthorizationActions {

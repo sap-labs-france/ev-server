@@ -71,7 +71,10 @@ export default class OCPPValidation extends SchemaValidator {
     // Check Connector ID
     if (!Utils.getConnectorFromID(chargingStation, startTransaction.connectorId)) {
       throw new BackendError({
-        source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         module: MODULE_NAME, method: 'validateStartTransaction',
         message: `The Connector ID '${startTransaction.connectorId}' is invalid`,
         action: ServerAction.OCPP_START_TRANSACTION
@@ -102,7 +105,6 @@ export default class OCPPValidation extends SchemaValidator {
         siteAreaID: chargingStation.siteAreaID,
         companyID: chargingStation.companyID,
         chargingStationID: chargingStation.id,
-        source: chargingStation.id,
         module: MODULE_NAME, method: 'validateMeterValues',
         action: ServerAction.OCPP_METER_VALUES,
         message: 'Connector ID must not be \'0\' and has been reset to \'1\''
@@ -119,7 +121,6 @@ export default class OCPPValidation extends SchemaValidator {
         siteAreaID: chargingStation.siteAreaID,
         companyID: chargingStation.companyID,
         chargingStationID: chargingStation.id,
-        source: chargingStation.id,
         module: MODULE_NAME, method: 'validateMeterValues',
         action: ServerAction.OCPP_METER_VALUES,
         message: `Connector ID '${meterValues.connectorId}' not found in charging station for transaction '${meterValues.transactionId}'`
@@ -141,7 +142,6 @@ export default class OCPPValidation extends SchemaValidator {
             siteAreaID: chargingStation.siteAreaID,
             companyID: chargingStation.companyID,
             chargingStationID: chargingStation.id,
-            source: chargingStation.id,
             module: MODULE_NAME, method: 'validateMeterValues',
             action: ServerAction.OCPP_METER_VALUES,
             message: `Transaction ID '${meterValues.transactionId}' not found but retrieved from StartTransaction '${connectorTransactionID}'`
@@ -159,7 +159,6 @@ export default class OCPPValidation extends SchemaValidator {
         siteAreaID: chargingStation.siteAreaID,
         companyID: chargingStation.companyID,
         chargingStationID: chargingStation.id,
-        source: chargingStation.id,
         module: MODULE_NAME, method: 'validateMeterValues',
         action: ServerAction.OCPP_METER_VALUES,
         message: `Transaction ID is not provided but retrieved from StartTransaction '${connectorTransactionID}'`

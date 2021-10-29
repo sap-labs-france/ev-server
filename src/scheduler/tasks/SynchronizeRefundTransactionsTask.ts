@@ -1,3 +1,5 @@
+import Tenant, { TenantComponents } from '../../types/Tenant';
+
 import Constants from '../../utils/Constants';
 import { LockEntity } from '../../types/Locking';
 import LockingManager from '../../locking/LockingManager';
@@ -7,8 +9,6 @@ import { RefundStatus } from '../../types/Refund';
 import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
 import { TaskConfig } from '../../types/TaskConfig';
-import Tenant from '../../types/Tenant';
-import { TenantComponents } from '../../types/Tenant';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import Utils from '../../utils/Utils';
 

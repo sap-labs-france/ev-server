@@ -24,6 +24,7 @@ import { OCPIStopSession } from '../../types/ocpi/OCPIStopSession';
 import OCPIUtils from '../../server/ocpi/OCPIUtils';
 import OCPIUtilsService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIUtilsService';
 import { OcpiSetting } from '../../types/Setting';
+import { Promise } from 'bluebird';
 import { ServerAction } from '../../types/Server';
 import Site from '../../types/Site';
 import SiteArea from '../../types/SiteArea';
@@ -447,7 +448,10 @@ export default class EmspOCPIClient extends OCPIClient {
     if (!tag || !tag.issuer || !tag.active) {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,
-        source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         message: `${Utils.buildConnectorInfo(connectorID)} OCPI Remote Start Session is not available for Tag ID '${tagID}'`,
         module: MODULE_NAME, method: 'remoteStartSession',
         detailedMessages: { tag: tag }
@@ -456,7 +460,10 @@ export default class EmspOCPIClient extends OCPIClient {
     if (!tag.user || !tag.user.issuer) {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,
-        source: chargingStation.id,
+        chargingStationID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         message: `${Utils.buildConnectorInfo(connectorID)} OCPI Remote Start Session is not available for user with Tag ID '${tagID}'`,
         module: MODULE_NAME, method: 'remoteStartSession',
         detailedMessages: { user: tag.user }
@@ -499,7 +506,6 @@ export default class EmspOCPIClient extends OCPIClient {
       siteAreaID: chargingStation.siteAreaID,
       companyID: chargingStation.companyID,
       chargingStationID: chargingStation.id,
-      source: chargingStation.id,
       message: `${Utils.buildConnectorInfo(connectorID)} OCPI Remote Start session response status '${response.status}'`,
       module: MODULE_NAME, method: 'remoteStartSession',
       detailedMessages: { remoteStart, response: response.data }
@@ -516,7 +522,10 @@ export default class EmspOCPIClient extends OCPIClient {
     if (!transaction) {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,
-        source: transaction?.chargeBoxID,
+        chargingStationID: transaction?.chargeBoxID,
+        siteID: transaction?.siteID,
+        siteAreaID: transaction?.siteAreaID,
+        companyID: transaction?.companyID,
         message: `Transaction ID '${transactionId}' does not exist`,
         module: MODULE_NAME, method: 'remoteStopSession',
         detailedMessages: { transaction }
@@ -525,7 +534,10 @@ export default class EmspOCPIClient extends OCPIClient {
     if (!transaction.issuer) {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,
-        source: transaction?.chargeBoxID,
+        chargingStationID: transaction?.chargeBoxID,
+        siteID: transaction?.siteID,
+        siteAreaID: transaction?.siteAreaID,
+        companyID: transaction?.companyID,
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction belongs to an external organization`,
         module: MODULE_NAME, method: 'remoteStopSession',
         detailedMessages: { transaction }
@@ -534,7 +546,10 @@ export default class EmspOCPIClient extends OCPIClient {
     if (!transaction.ocpiData?.session) {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,
-        source: transaction?.chargeBoxID,
+        chargingStationID: transaction?.chargeBoxID,
+        siteID: transaction?.siteID,
+        siteAreaID: transaction?.siteAreaID,
+        companyID: transaction?.companyID,
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} No OCPI Session data`,
         module: MODULE_NAME, method: 'remoteStopSession',
         detailedMessages: { transaction }
@@ -561,7 +576,6 @@ export default class EmspOCPIClient extends OCPIClient {
       siteAreaID: transaction.siteAreaID,
       companyID: transaction.companyID,
       chargingStationID: transaction.chargeBoxID,
-      source: transaction.chargeBoxID,
       message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OCPI Remote Stop response status '${response.status}'`,
       module: MODULE_NAME, method: 'remoteStopSession',
       detailedMessages: { response: response.data }

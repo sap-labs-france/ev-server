@@ -16,6 +16,7 @@ import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
+import { Promise } from 'bluebird';
 import { Request } from 'express';
 import { ServerAction } from '../../../types/Server';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
@@ -64,7 +65,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
         });
       } catch (error) {
         throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'checkConnection',
           action: ServerAction.CHECK_BILLING_CONNECTION,
           message: 'Failed to connect to Stripe - Key is inconsistent',
@@ -77,7 +77,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
         this.productionMode = await StripeHelpers.isConnectedToALiveAccount(this.stripe);
         if (this.productionMode && !Utils.isProductionEnv()) {
           throw new BackendError({
-            source: Constants.CENTRAL_SERVER,
             module: MODULE_NAME, method: 'checkConnection',
             action: ServerAction.CHECK_BILLING_CONNECTION,
             message: 'Failed to connect to Stripe - connecting to a productive account is forbidden in DEV Mode'
@@ -85,7 +84,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
         }
       } catch (error) {
         throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'checkConnection',
           action: ServerAction.CHECK_BILLING_CONNECTION,
           message: 'Failed to connect to Stripe',
@@ -106,7 +104,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
       const billingTax: BillingTax = await this.getTaxRate(taxID);
       if (!billingTax) {
         throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'checkTaxPrerequisites',
           action: ServerAction.BILLING_TAXES,
           message: `Billing prerequisites are not consistent - taxID is not found or inactive - taxID: '${taxID}'`
@@ -114,7 +111,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
       }
     } else {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'checkTaxPrerequisites',
         action: ServerAction.BILLING_TAXES,
         message: 'Billing prerequisites are not consistent - taxID is mandatory'
@@ -133,7 +129,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
     if (secretKey?.startsWith('sk_live_') || publicKey?.startsWith('pk_live_')) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'checkTestDataCleanupPrerequisites',
         action: ServerAction.BILLING_TEST_DATA_CLEANUP,
         message: 'Stripe Account is live - Test data cleanup has been aborted'
@@ -231,7 +226,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
       } while (request.has_more);
       await Logging.logInfo({
         tenantID: this.tenant.id,
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_TAXES,
         module: MODULE_NAME, method: 'getTaxes',
         message: `Retrieved tax list (${taxes.length} taxes)`
@@ -299,7 +293,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     if (!stripeInvoice) {
       throw new BackendError({
         message: 'Unexpected situation - invoice is not set',
-        source: Constants.CENTRAL_SERVER, module: MODULE_NAME, action: ServerAction.BILLING,
+        module: MODULE_NAME, action: ServerAction.BILLING,
         method: 'synchronizeAsBillingInvoice',
       });
     }
@@ -317,7 +311,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     if (!userID) {
       throw new BackendError({
         message: `Unexpected situation - invoice is not an e-Mobility invoice - ${stripeInvoiceID}`,
-        source: Constants.CENTRAL_SERVER, module: MODULE_NAME, action: ServerAction.BILLING,
+        module: MODULE_NAME, action: ServerAction.BILLING,
         method: 'synchronizeAsBillingInvoice',
       });
     } else if (checkUserExists) {
@@ -326,7 +320,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       if (!user) {
         throw new BackendError({
           message: `Unexpected situation - the e-Mobility user does not exist - ${userID}`,
-          source: Constants.CENTRAL_SERVER, module: MODULE_NAME, action: ServerAction.BILLING,
+          module: MODULE_NAME, action: ServerAction.BILLING,
           method: 'synchronizeAsBillingInvoice',
         });
       }
@@ -426,7 +420,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
       } else {
         await Logging.logError({
           tenantID: this.tenant.id,
-          source: Constants.CENTRAL_SERVER,
           action: ServerAction.BILLING_CHARGE_INVOICE,
           actionOnUser: billingInvoice.user,
           module: MODULE_NAME, method: 'chargeInvoice',
@@ -520,7 +513,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     if (!paymentMethodId) {
       throw new BackendError({
         message: 'Payment Method ID is mandatory',
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'attemptInvoicePayment',
         actionOnUser: billingInvoice.user,
@@ -549,7 +541,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     if (!customerID) {
       throw new BackendError({
         message: 'User is not known in Stripe',
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'setupPaymentMethod',
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
@@ -585,7 +576,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     if (!customerID) {
       throw new BackendError({
         message: 'User is not known in Stripe',
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'deletePaymentMethod',
         action: ServerAction.BILLING_DELETE_PAYMENT_METHOD,
@@ -605,7 +595,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
       });
       await Logging.logInfo({
         tenantID: this.tenant.id,
-        source: Constants.CENTRAL_SERVER,
         actionOnUser: user,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
         module: MODULE_NAME, method: '_createSetupIntent',
@@ -649,7 +638,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
       await this.stripe.paymentMethods.update(paymentMethodId, paymentMethodUpdateParams);
       await Logging.logInfo({
         tenantID: this.tenant.id,
-        source: Constants.CENTRAL_SERVER,
         actionOnUser: user,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
         module: MODULE_NAME, method: '_attachPaymentMethod',
@@ -663,7 +651,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
       }
       await Logging.logInfo({
         tenantID: this.tenant.id,
-        source: Constants.CENTRAL_SERVER,
         actionOnUser: user,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
         module: MODULE_NAME, method: '_attachPaymentMethod',
@@ -740,7 +727,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
       if (customer.invoice_settings.default_payment_method === paymentMethodId) {
         throw new BackendError({
           message: 'Cannot delete default payment method',
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
           method: '_detachPaymentMethod',
           action: ServerAction.BILLING_DELETE_PAYMENT_METHOD,
@@ -750,7 +736,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
       const paymentMethod: Stripe.PaymentMethod = await this.stripe.paymentMethods.detach(paymentMethodId);
       await Logging.logInfo({
         tenantID: this.tenant.id,
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_DELETE_PAYMENT_METHOD,
         module: MODULE_NAME, method: '_detachPaymentMethod',
         message: `Payment method ${paymentMethodId} has been detached - customer '${customerID}'`
@@ -777,29 +762,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
   }
 
-  private isTransactionUserInternal(transaction: Transaction): boolean {
-    return this.isUserInternal(transaction?.user);
-  }
-
-  private isUserInternal(user: User): boolean {
-    // slf
-    if (this.tenant.id === '5be7fb271014d90008992f06') {
-      const email = user?.email?.toLocaleLowerCase();
-      if (email?.endsWith('@sap.com') || email?.endsWith('@vinci-facilities.com')) {
-        // Internal user
-        return true;
-      }
-    } else if (this.tenant.id === '5e2701b248aaa90007904cca') {
-      // Special mode for a particular user on that particular tenant
-      if (user?.id !== '5e74e254a25a3e0006fa79d3') {
-        // Do not bill other users than that one!
-        return true;
-      }
-    }
-    // This is an external user
-    return false;
-  }
-
   public async startTransaction(transaction: Transaction): Promise<BillingDataTransactionStart> {
 
     if (!this.settings.billing.isTransactionBillingActivated) {
@@ -808,8 +770,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
         withBillingActive: false
       };
     }
-    // Temporary solution - Check for internal users
-    if (this.isTransactionUserInternal(transaction)) {
+    // User with free access are not billed
+    if (transaction.user?.freeAccess) {
       return {
         // Do not bill internal users
         withBillingActive: false
@@ -830,7 +792,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
       // Not yet LIVE ... starting a transaction without a STRIPE CUSTOMER is allowed
       await Logging.logWarning({
         tenantID: this.tenant.id,
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_TRANSACTION,
         module: MODULE_NAME, method: 'startTransaction',
         message: 'Live Mode is OFF - transaction has been started with NO customer data'
@@ -846,7 +807,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     if (!customer) {
       throw new BackendError({
         message: `Customer not found - ${customerID}`,
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'startTransaction',
         action: ServerAction.BILLING_TRANSACTION
@@ -859,7 +819,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     if (!customer.default_source && !customer.invoice_settings?.default_payment_method) {
       throw new BackendError({
         message: `Customer has no default payment method - ${customer.id}`,
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'startTransaction',
         action: ServerAction.BILLING_TRANSACTION
@@ -967,7 +926,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
         await Logging.logWarning({
           tenantID: this.tenant.id,
           user: transaction.userID,
-          source: Constants.CENTRAL_SERVER,
           action: ServerAction.BILLING_TRANSACTION,
           module: MODULE_NAME, method: 'stopTransaction',
           message: `Transaction data is suspicious - billing operation has been aborted - transaction ID: ${transaction.id}`
@@ -1009,7 +967,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
         await Logging.logInfo({
           tenantID: this.tenant.id,
           user: transaction.userID,
-          source: Constants.CENTRAL_SERVER,
           action: ServerAction.BILLING_TRANSACTION,
           module: MODULE_NAME, method: 'billTransaction',
           message: `Billing process is about to start - transaction ID: ${transaction.id}`
@@ -1021,7 +978,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
       await Logging.logError({
         tenantID: this.tenant.id,
         user: transaction.userID,
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_TRANSACTION,
         module: MODULE_NAME, method: 'billTransaction',
         message: `Failed to bill the transaction - Transaction ID '${transaction.id}'`,
@@ -1154,7 +1110,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
         await Logging.logError({
           tenantID: this.tenant.id,
           user: user.id,
-          source: Constants.CENTRAL_SERVER,
           action: ServerAction.BILLING_TRANSACTION,
           module: MODULE_NAME, method: 'billInvoiceItem',
           message: `Unexpected situation - stripe invoice item is null - stripe invoice id: '${stripeInvoice?.id}'`
@@ -1167,7 +1122,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
       await Logging.logError({
         tenantID: this.tenant.id,
         user: user.id,
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_TRANSACTION,
         module: MODULE_NAME, method: 'billInvoiceItem',
         message: `Unexpected situation - stripe invoice item is null - stripe invoice id: '${stripeInvoice?.id}'`
@@ -1188,7 +1142,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
         await Logging.logError({
           tenantID: this.tenant.id,
           user: user.id,
-          source: Constants.CENTRAL_SERVER,
           action: ServerAction.BILLING_TRANSACTION,
           module: MODULE_NAME, method: 'billInvoiceItem',
           message: `Payment attempt failed - stripe invoice: '${stripeInvoice?.id}'`,
@@ -1282,7 +1235,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
   // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
   public async checkIfUserCanBeCreated(user: User): Promise<boolean> {
     // throw new BackendError({
-    //   source: Constants.CENTRAL_SERVER,
     //   module: MODULE_NAME, method: 'createUser',
     //   action: ServerAction.USER_CREATE,
     //   user: user,
@@ -1294,7 +1246,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
   // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
   public async checkIfUserCanBeUpdated(user: User): Promise<boolean> {
     // throw new BackendError({
-    //   source: Constants.CENTRAL_SERVER,
     //   module: MODULE_NAME, method: 'updateUser',
     //   action: ServerAction.USER_CREATE,
     //   user: user,
@@ -1454,7 +1405,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
         const deleted = (customer.deleted) ? true : false; // ACHTUNG - STRIPE type definition is wrong!
         if (deleted) {
           throw new BackendError({
-            source: Constants.CENTRAL_SERVER,
             module: MODULE_NAME, method: 'getStripeCustomer',
             action: ServerAction.BILLING,
             message: `Customer is marked as deleted - ${customerID}`
@@ -1468,7 +1418,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
         // May happen when billing settings are changed to point to a different STRIPE account
         // ---------------------------------------------------------------------------------------
         throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'getStripeCustomer',
           action: ServerAction.BILLING,
           message: `Customer ID is inconsistent - ${customerID}`,
@@ -1490,8 +1439,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
       // Nothing to check - billing of transactions is not yet ON
       return errorCodes;
     }
-    if (this.isUserInternal(user)) {
-      // Nothing to check - we do not bill internal user's transactions
+    if (user.freeAccess) {
+      // Nothing to check - we do not bill user having a free access
       return errorCodes;
     }
     // Make sure the STRIPE connection is ok

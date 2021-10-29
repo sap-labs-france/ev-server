@@ -6,6 +6,7 @@ import Constants from '../../utils/Constants';
 import I18nManager from '../../utils/I18nManager';
 import Logging from '../../utils/Logging';
 import NotificationTask from '../NotificationTask';
+import { Promise } from 'bluebird';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
@@ -457,7 +458,6 @@ export default class RemotePushNotificationTask implements NotificationTask {
         siteAreaID: data?.siteAreaID,
         companyID: data?.companyID,
         chargingStationID: data?.chargeBoxID,
-        source: data?.chargeBoxID,
         action: ServerAction.REMOTE_PUSH_NOTIFICATION,
         module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
         message: `'${notificationType}': No mobile token found for this User`,
@@ -482,7 +482,6 @@ export default class RemotePushNotificationTask implements NotificationTask {
         siteAreaID: data?.siteAreaID,
         companyID: data?.companyID,
         chargingStationID: data?.chargeBoxID,
-        source: data?.chargeBoxID,
         action: ServerAction.REMOTE_PUSH_NOTIFICATION,
         module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
         message: `Notification Sent: '${notificationType}' - '${title}'`,
@@ -496,7 +495,6 @@ export default class RemotePushNotificationTask implements NotificationTask {
         siteAreaID: data?.siteAreaID,
         companyID: data?.companyID,
         chargingStationID: data?.chargeBoxID,
-        source: data?.chargeBoxID,
         action: ServerAction.REMOTE_PUSH_NOTIFICATION,
         module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
         message: `Error when sending Notification: '${notificationType}' - '${error.message}'`,

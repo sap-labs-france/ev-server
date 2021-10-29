@@ -214,8 +214,6 @@ export enum ServerAction {
 
   BOOTSTRAP_STARTUP = 'BootstrapStartup',
 
-  SOCKET_IO = 'SocketIO',
-
   OCPP_BOOT_NOTIFICATION = 'OcppBootNotification',
   OCPP_AUTHORIZE = 'OcppAuthorize',
   OCPP_HEARTBEAT = 'OcppHeartbeat',
@@ -618,7 +616,19 @@ export enum ServerProtocol {
   WSS = 'wss'
 }
 
+export enum ServerType {
+  REST_SERVER = 'Rest',
+  SOAP_SERVER = 'Soap',
+  JSON_SERVER = 'Json',
+  OCPI_SERVER = 'Ocpi',
+  OICP_SERVER = 'Oicp',
+  ODATA_SERVER = 'OData',
+  BATCH_SERVER = 'Batch',
+  CENTRAL_SERVER = 'CentralServer',
+}
+
 export enum WSServerProtocol {
   OCPP16 = 'ocpp1.6',
   REST = 'rest'
 }
+

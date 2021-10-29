@@ -1,7 +1,7 @@
+import ChargingStation, { Command } from '../../../types/ChargingStation';
 import { OCPPCancelReservationCommandParam, OCPPCancelReservationCommandResult, OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPClearCacheCommandResult, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPDataTransferCommandParam, OCPPDataTransferCommandResult, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPReserveNowCommandParam, OCPPReserveNowCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUpdateFirmwareCommandParam } from '../../../types/ocpp/OCPPClient';
 
 import ChargingStationClient from '../../ocpp/ChargingStationClient';
-import { Command } from '../../../types/ChargingStation';
 import JsonWSConnection from '../../../server/ocpp/json/JsonWSConnection';
 import Logging from '../../../utils/Logging';
 import { OCPPMessageType } from '../../../types/ocpp/OCPPCommon';
@@ -19,18 +19,11 @@ export default class JsonChargingStationClient extends ChargingStationClient {
   private tenant: Tenant;
   private wsConnection: JsonWSConnection;
 
-  constructor(wsConnection: JsonWSConnection, tenant: Tenant, chargingStationID: string, chargingStationDetails: {
-    siteAreaID: string,
-    siteID: string,
-    companyID: string,
-  }) {
+  constructor(wsConnection: JsonWSConnection, tenant: Tenant, chargingStationID: string) {
     super();
     this.wsConnection = wsConnection;
     this.tenant = tenant;
     this.chargingStationID = chargingStationID;
-    this.siteID = chargingStationDetails.siteID;
-    this.siteAreaID = chargingStationDetails.siteAreaID;
-    this.companyID = chargingStationDetails.companyID;
   }
 
   getChargingStationID(): string {
@@ -99,6 +92,12 @@ export default class JsonChargingStationClient extends ChargingStationClient {
 
   public async cancelReservation(params: OCPPCancelReservationCommandParam): Promise<OCPPCancelReservationCommandResult> {
     return this.sendMessage(params, Command.CANCEL_RESERVATION);
+  }
+
+  public setChargingStationDetails(chargingStation: ChargingStation): void {
+    this.siteID = chargingStation?.siteID;
+    this.siteAreaID = chargingStation?.siteAreaID;
+    this.companyID = chargingStation?.companyID;
   }
 
   private async sendMessage(params: any, command: Command): Promise<any> {
