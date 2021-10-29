@@ -75,7 +75,7 @@ export interface HttpSettingRefundSetRequest extends HttpSettingSetRequest {
     concur: {
       apiUrl: string,
       appUrl: string,
-      authentificationUrl: string,
+      authenticationUrl: string,
       clientId: string,
       clientSecret: string,
       expenseTypeId: string,
@@ -91,6 +91,12 @@ export interface HttpSettingPricingSetRequest extends HttpSettingSetRequest {
     simple?: {
       price: number,
       currency: string
+    }
+    convergentCharging?: {
+      url: string,
+      user: string,
+      password: string,
+      chargeableItemName: string
     }
   }
 }
