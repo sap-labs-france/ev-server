@@ -14,6 +14,7 @@ export interface DeletedResult {
   acknowledged?: boolean;
   deletedCount?: number;
 }
+
 export interface DataResult<T> {
   count: number;
   result: T[];
@@ -39,15 +40,20 @@ export type LogDataResult = DataResult<Log>;
 export interface SiteAreaDataResult extends DataResult<SiteArea> {
   canCreate: boolean;
 }
+
 export interface CarDataResult extends DataResult<Car> {
   canCreate: boolean;
 }
 
-export interface UserDataResult extends DataResult<User> {
-  canCreate: boolean;
-}
 export interface CarCatalogDataResult extends DataResult<CarCatalog> {
   canSync: boolean;
+}
+
+export interface UserDataResult extends DataResult<User> {
+  canCreate: boolean;
+  canExport: boolean;
+  canImport: boolean;
+  canSynchronizeBilling: boolean;
 }
 export interface TagDataResult extends DataResult<Tag> {
   canCreate: boolean;

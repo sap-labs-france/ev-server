@@ -11532,13 +11532,13 @@
         "schema": {
           "type": "string",
           "enum": [
-            "RestServer",
-            "SoapServer",
-            "JsonServer",
-            "OcpiServer",
-            "OicpServer",
-            "ODataServer",
-            "BatchServer"
+            "Rest",
+            "Soap",
+            "Json",
+            "Ocpi",
+            "Oicp",
+            "OData",
+            "Batch"
           ]
         }
       },
