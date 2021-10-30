@@ -1,7 +1,7 @@
 import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, CarConnectorSettingsType, CryptoKeyProperties, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
 import { Car, CarCatalog } from '../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion, OCPPVersionURLPath } from '../types/ocpp/OCPPServer';
-import ChargingStation, { ChargePoint, ChargingStationEndpoint, ChargingStationTemplate, Connector, ConnectorCurrentLimitSource, CurrentType, Voltage } from '../types/ChargingStation';
+import ChargingStation, { ChargePoint, ChargingStationEndpoint, Connector, ConnectorCurrentLimitSource, CurrentType, Voltage } from '../types/ChargingStation';
 import PerformanceRecord, { PerformanceRecordGroup } from '../types/Performance';
 import Tenant, { TenantComponentContent, TenantComponents } from '../types/Tenant';
 import Transaction, { CSPhasesUsed, InactivityStatus } from '../types/Transaction';
@@ -11,7 +11,6 @@ import crypto, { CipherGCMTypes } from 'crypto';
 import Address from '../types/Address';
 import { AxiosError } from 'axios';
 import BackendError from '../exception/BackendError';
-import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
 import Configuration from './Configuration';
 import ConnectorStats from '../types/ConnectorStats';
 import Constants from './Constants';
@@ -42,36 +41,6 @@ import validator from 'validator';
 const MODULE_NAME = 'Utils';
 
 export default class Utils {
-  public static async updateChargingStationTemplatesFromFile(): Promise<void> {
-    // Read File
-    let chargingStationTemplates: ChargingStationTemplate[];
-    try {
-      chargingStationTemplates = JSON.parse(fs.readFileSync(Configuration.getChargingStationTemplatesConfig().templatesFilePath, 'utf8'));
-    } catch (error) {
-      await Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, ServerAction.UPDATE_CHARGING_STATION_TEMPLATES, error);
-      return;
-    }
-    // Delete all previous templates
-    await ChargingStationStorage.deleteChargingStationTemplates();
-    // Update Templates
-    for (const chargingStationTemplate of chargingStationTemplates) {
-      try {
-        // Set the hashes
-        chargingStationTemplate.hash = Cypher.hash(JSON.stringify(chargingStationTemplate));
-        chargingStationTemplate.hashTechnical = Cypher.hash(JSON.stringify(chargingStationTemplate.technical));
-        chargingStationTemplate.hashCapabilities = Cypher.hash(JSON.stringify(chargingStationTemplate.capabilities));
-        chargingStationTemplate.hashOcppStandard = Cypher.hash(JSON.stringify(chargingStationTemplate.ocppStandardParameters));
-        chargingStationTemplate.hashOcppVendor = Cypher.hash(JSON.stringify(chargingStationTemplate.ocppVendorParameters));
-        // Save
-        await ChargingStationStorage.saveChargingStationTemplate(chargingStationTemplate);
-      } catch (error) {
-        error.message = `Charging Station Template ID '${chargingStationTemplate.id}' is not valid: ${error.message as string}`;
-        await Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, ServerAction.UPDATE_CHARGING_STATION_TEMPLATES, error);
-        Utils.isDevelopmentEnv() && console.error(chalk.red(error.message));
-      }
-    }
-  }
-
   public static buildConnectorInfo(connectorID: number, transactionID?: number): string {
     let connectorInfo = `Connector ID '${connectorID}' >`;
     if (transactionID > 0) {

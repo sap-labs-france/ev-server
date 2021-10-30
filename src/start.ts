@@ -5,8 +5,11 @@ import AsyncTaskManager from './async-task/AsyncTaskManager';
 import CentralRestServer from './server/rest/CentralRestServer';
 import CentralSystemRestServiceConfiguration from './types/configuration/CentralSystemRestServiceConfiguration';
 import ChargingStationConfiguration from './types/configuration/ChargingStationConfiguration';
+import ChargingStationStorage from './storage/mongodb/ChargingStationStorage';
+import { ChargingStationTemplate } from './types/ChargingStation';
 import Configuration from './utils/Configuration';
 import Constants from './utils/Constants';
+import Cypher from './utils/Cypher';
 import I18nManager from './utils/I18nManager';
 import JsonCentralSystemServer from './server/ocpp/json/JsonCentralSystemServer';
 import Logging from './utils/Logging';
@@ -24,6 +27,7 @@ import SoapCentralSystemServer from './server/ocpp/soap/SoapCentralSystemServer'
 import StorageConfiguration from './types/configuration/StorageConfiguration';
 import Utils from './utils/Utils';
 import chalk from 'chalk';
+import fs from 'fs';
 import global from './types/GlobalType';
 
 const MODULE_NAME = 'Bootstrap';
@@ -138,7 +142,7 @@ export default class Bootstrap {
       // Update Charging Station Templates
       // -------------------------------------------------------------------------
       startTimeMillis = await this.logAndGetStartTimeMillis('Charging Station templates is being updated...');
-      await Utils.updateChargingStationTemplatesFromFile();
+      await this.updateChargingStationTemplatesFromFile();
       // Log
       await this.logDuration(startTimeMillis, 'Charging Station templates have been updated successfully');
 
@@ -159,6 +163,36 @@ export default class Bootstrap {
         message: `Unexpected exception in ${serverStarted.join(', ')}`,
         detailedMessages: { error: error.stack }
       });
+    }
+  }
+
+  private static async updateChargingStationTemplatesFromFile(): Promise<void> {
+    // Read File
+    let chargingStationTemplates: ChargingStationTemplate[];
+    try {
+      chargingStationTemplates = JSON.parse(fs.readFileSync(Configuration.getChargingStationTemplatesConfig().templatesFilePath, 'utf8'));
+    } catch (error) {
+      await Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, ServerAction.UPDATE_CHARGING_STATION_TEMPLATES, error);
+      return;
+    }
+    // Delete all previous templates
+    await ChargingStationStorage.deleteChargingStationTemplates();
+    // Update Templates
+    for (const chargingStationTemplate of chargingStationTemplates) {
+      try {
+        // Set the hashes
+        chargingStationTemplate.hash = Cypher.hash(JSON.stringify(chargingStationTemplate));
+        chargingStationTemplate.hashTechnical = Cypher.hash(JSON.stringify(chargingStationTemplate.technical));
+        chargingStationTemplate.hashCapabilities = Cypher.hash(JSON.stringify(chargingStationTemplate.capabilities));
+        chargingStationTemplate.hashOcppStandard = Cypher.hash(JSON.stringify(chargingStationTemplate.ocppStandardParameters));
+        chargingStationTemplate.hashOcppVendor = Cypher.hash(JSON.stringify(chargingStationTemplate.ocppVendorParameters));
+        // Save
+        await ChargingStationStorage.saveChargingStationTemplate(chargingStationTemplate);
+      } catch (error) {
+        error.message = `Charging Station Template ID '${chargingStationTemplate.id}' is not valid: ${error.message as string}`;
+        await Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, ServerAction.UPDATE_CHARGING_STATION_TEMPLATES, error);
+        Utils.isDevelopmentEnv() && console.error(chalk.red(error.message));
+      }
     }
   }
 
