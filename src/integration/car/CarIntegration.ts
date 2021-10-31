@@ -2,9 +2,9 @@ import { ActionsResponse } from '../../types/GlobalType';
 import { CarCatalog } from '../../types/Car';
 import CarStorage from '../../storage/mongodb/CarStorage';
 import Constants from '../../utils/Constants';
-import Cypher from '../../utils/Cypher';
 import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
+import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'CarIntegration';
 
@@ -19,8 +19,8 @@ export default abstract class CarIntegration {
     for (const externalCar of externalCars) {
       try {
         const internalCar = await CarStorage.getCarCatalog(externalCar.id);
-        const externalCarHash = Cypher.hash(JSON.stringify(externalCar));
-        const externalCarImagesHash = Cypher.hash(externalCar.imageURLs.toString());
+        const externalCarHash = Utils.hash(JSON.stringify(externalCar));
+        const externalCarImagesHash = Utils.hash(externalCar.imageURLs.toString());
         // New Car: Create it
         if (!internalCar) {
           externalCar.hash = externalCarHash;

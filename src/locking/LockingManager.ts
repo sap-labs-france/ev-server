@@ -1,7 +1,6 @@
 import Lock, { LockEntity, LockType } from '../types/Locking';
 
 import BackendError from '../exception/BackendError';
-import Cypher from '../utils/Cypher';
 import LockingStorage from '../storage/mongodb/LockingStorage';
 import Logging from '../utils/Logging';
 import { ServerAction } from '../types/Server';
@@ -114,7 +113,7 @@ export default class LockingManager {
     }
     // Build lock
     const lock: Lock = {
-      id: Cypher.hash(`${tenantID}~${entity}~${key.toLowerCase()}~${type}`),
+      id: Utils.hash(`${tenantID}~${entity}~${key.toLowerCase()}~${type}`),
       tenantID,
       entity: entity,
       key: key.toLowerCase(),

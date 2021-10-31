@@ -14,9 +14,7 @@ import BackendError from '../exception/BackendError';
 import Configuration from './Configuration';
 import ConnectorStats from '../types/ConnectorStats';
 import Constants from './Constants';
-import Cypher from './Cypher';
 import { Decimal } from 'decimal.js';
-import Logging from './Logging';
 import { Promise } from 'bluebird';
 import QRCode from 'qrcode';
 import { Request } from 'express';
@@ -26,7 +24,6 @@ import UserToken from '../types/UserToken';
 import { WebSocketCloseEventStatusString } from '../types/WebSocket';
 import _ from 'lodash';
 import bcrypt from 'bcryptjs';
-import chalk from 'chalk';
 import fs from 'fs';
 import global from '../types/GlobalType';
 import http from 'http';
@@ -37,8 +34,6 @@ import path from 'path';
 import tzlookup from 'tz-lookup';
 import { v4 as uuid } from 'uuid';
 import validator from 'validator';
-
-const MODULE_NAME = 'Utils';
 
 export default class Utils {
   public static buildConnectorInfo(connectorID: number, transactionID?: number): string {
@@ -1091,20 +1086,7 @@ export default class Utils {
     if (Utils.isNullOrUndefined(object)) {
       return object;
     }
-    let cloneObject: T = object;
-    try {
-      cloneObject = _.cloneDeep(object);
-    } catch (error) {
-      void Logging.logError({
-        tenantID: Constants.DEFAULT_TENANT,
-        module: MODULE_NAME,
-        method: 'cloneObject',
-        action: ServerAction.LOGGING,
-        message: `Failed to clone object with error: ${error}`,
-        detailedMessages: { error }
-      });
-    }
-    return cloneObject;
+    return _.cloneDeep(object);
   }
 
   public static getConnectorLetterFromConnectorID(connectorID: number): string {
@@ -1129,7 +1111,7 @@ export default class Utils {
   }
 
   public static generateToken(email: string): string {
-    return Cypher.hash(`${crypto.randomBytes(256).toString('hex')}}~${new Date().toISOString()}~${email}`);
+    return Utils.hash(`${crypto.randomBytes(256).toString('hex')}}~${new Date().toISOString()}~${email}`);
   }
 
   public static getRoleNameFromRoleID(roleID: string): string {
@@ -1225,7 +1207,7 @@ export default class Utils {
   }
 
   public static hashPassword(password: string): string {
-    return Cypher.hash(password);
+    return Utils.hash(password);
   }
 
   public static isValidDate(date: any): boolean {
@@ -1504,25 +1486,6 @@ export default class Utils {
     return PerformanceRecordGroup.UNKNOWN;
   }
 
-  public static serializeOriginalSchema(originalSchema: Record<string, unknown>): string {
-    // Check for schema missing vars
-    if (Utils.isDevelopmentEnv()) {
-      return JSON.stringify(originalSchema);
-    }
-  }
-
-  public static checkOriginalSchema(originalSchema: string, validatedSchema: Record<string, unknown>): void {
-    if (Utils.isDevelopmentEnv() && originalSchema !== JSON.stringify(validatedSchema)) {
-      console.error(chalk.red('===================================='));
-      console.error(chalk.red('Data changed after schema validation'));
-      console.error(chalk.red('Original Data:'));
-      console.error(chalk.red(originalSchema));
-      console.error(chalk.red('Validated Data:'));
-      console.error(chalk.red(JSON.stringify(validatedSchema)));
-      console.error(chalk.red('===================================='));
-    }
-  }
-
   public static buildPerformanceRecord(params: {
     tenantSubdomain?: string; durationMs?: number; resSizeKb?: number;
     reqSizeKb?: number; action: ServerAction|string; group?: PerformanceRecordGroup;
@@ -1614,15 +1577,10 @@ export default class Utils {
       }
       return data;
     }
-    // Log
-    await Logging.logError({
-      tenantID,
-      module: MODULE_NAME,
-      method: 'sanitizeCSVExport',
-      action: ServerAction.EXPORT_TO_CSV,
-      message: 'No matching object type for CSV data sanitization',
-      detailedMessages: { data }
-    });
     return null;
+  }
+
+  public static hash(data: string): string {
+    return crypto.createHash('sha256').update(data).digest('hex');
   }
 }

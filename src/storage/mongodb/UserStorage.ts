@@ -8,7 +8,6 @@ import BackendError from '../../exception/BackendError';
 import { BillingUserData } from '../../types/Billing';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
-import Cypher from '../../utils/Cypher';
 import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
@@ -50,7 +49,7 @@ export default class UserStorage {
       // Get
       const eulaMDB = eulasMDB[0];
       // Check if eula has changed
-      currentEulaHash = Cypher.hash(currentEula);
+      currentEulaHash = Utils.hash(currentEula);
       if (currentEulaHash !== eulaMDB.hash) {
         // New Version
         const eula = {
@@ -77,7 +76,7 @@ export default class UserStorage {
       language: language,
       version: 1,
       text: currentEula,
-      hash: Cypher.hash(currentEula)
+      hash: Utils.hash(currentEula)
     };
     // Create
     await global.database.getCollection<Eula>(tenant.id, 'eulas').insertOne(eula);
@@ -169,7 +168,7 @@ export default class UserStorage {
       // Create the list
       for (const siteID of siteIDs) {
         siteUsersMDB.push({
-          '_id': Cypher.hash(`${siteID}~${userID}`),
+          '_id': Utils.hash(`${siteID}~${userID}`),
           'userID': DatabaseUtils.convertToObjectID(userID),
           'siteID': DatabaseUtils.convertToObjectID(siteID),
           'siteAdmin': false
@@ -188,7 +187,7 @@ export default class UserStorage {
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     const siteUserMDB = {
-      '_id': Cypher.hash(`${siteID}~${userID}`),
+      '_id': Utils.hash(`${siteID}~${userID}`),
       'userID': DatabaseUtils.convertToObjectID(userID),
       'siteID': DatabaseUtils.convertToObjectID(siteID),
       'siteAdmin': false
