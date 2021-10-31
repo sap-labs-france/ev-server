@@ -77,14 +77,14 @@ export default class Bootstrap {
         case 'mongodb':
           // Create MongoDB
           Bootstrap.database = new MongoDBStorage(Bootstrap.storageConfig);
-          // Keep a global reference
-          global.database = Bootstrap.database;
           break;
         default:
           console.error(chalk.red(`Storage Server implementation '${Bootstrap.storageConfig.implementation}' not supported!`));
       }
       // Connect to the Database
       await Bootstrap.database.start();
+      // Keep a global reference
+      global.database = Bootstrap.database;
       // Log
       await this.logDuration(startTimeMillis, 'Connected to the Database successfully');
 
@@ -156,7 +156,7 @@ export default class Bootstrap {
       await this.logDuration(startTimeGlobalMillis, `${serverStarted.join(', ')} server has been started successfuly`, ServerAction.BOOTSTRAP_STARTUP);
     } catch (error) {
       console.error(chalk.red(error));
-      await Logging.logError({
+      global.database && await Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.BOOTSTRAP_STARTUP,
         module: MODULE_NAME, method: 'start',
