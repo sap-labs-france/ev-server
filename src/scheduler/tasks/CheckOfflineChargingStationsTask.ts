@@ -6,8 +6,8 @@ import { LockEntity } from '../../types/Locking';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
+import OCPPCommon from '../../server/ocpp/utils/OCPPCommon';
 import { OCPPGetConfigurationCommandResult } from '../../types/ocpp/OCPPClient';
-import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
@@ -35,7 +35,7 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
             try {
               // Send credentials to get the token
               ocppHeartbeatConfiguration = await Utils.executePromiseWithTimeout(
-                5000, OCPPUtils.requestChargingStationOcppParameters(tenant, chargingStation, { key: Constants.OCPP_HEARTBEAT_KEYS as string[] }),
+                5000, OCPPCommon.requestChargingStationOcppParameters(tenant, chargingStation, { key: Constants.OCPP_HEARTBEAT_KEYS as string[] }),
                 `Time out error (5s) when trying to get OCPP configuration from '${chargingStation.id}'`
               );
             } catch (error) {
