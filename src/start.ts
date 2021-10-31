@@ -9,7 +9,6 @@ import ChargingStationStorage from './storage/mongodb/ChargingStationStorage';
 import { ChargingStationTemplate } from './types/ChargingStation';
 import Configuration from './utils/Configuration';
 import Constants from './utils/Constants';
-import Cypher from './utils/Cypher';
 import I18nManager from './utils/I18nManager';
 import JsonCentralSystemServer from './server/ocpp/json/JsonCentralSystemServer';
 import Logging from './utils/Logging';
@@ -181,11 +180,11 @@ export default class Bootstrap {
     for (const chargingStationTemplate of chargingStationTemplates) {
       try {
         // Set the hashes
-        chargingStationTemplate.hash = Cypher.hash(JSON.stringify(chargingStationTemplate));
-        chargingStationTemplate.hashTechnical = Cypher.hash(JSON.stringify(chargingStationTemplate.technical));
-        chargingStationTemplate.hashCapabilities = Cypher.hash(JSON.stringify(chargingStationTemplate.capabilities));
-        chargingStationTemplate.hashOcppStandard = Cypher.hash(JSON.stringify(chargingStationTemplate.ocppStandardParameters));
-        chargingStationTemplate.hashOcppVendor = Cypher.hash(JSON.stringify(chargingStationTemplate.ocppVendorParameters));
+        chargingStationTemplate.hash = Utils.hash(JSON.stringify(chargingStationTemplate));
+        chargingStationTemplate.hashTechnical = Utils.hash(JSON.stringify(chargingStationTemplate.technical));
+        chargingStationTemplate.hashCapabilities = Utils.hash(JSON.stringify(chargingStationTemplate.capabilities));
+        chargingStationTemplate.hashOcppStandard = Utils.hash(JSON.stringify(chargingStationTemplate.ocppStandardParameters));
+        chargingStationTemplate.hashOcppVendor = Utils.hash(JSON.stringify(chargingStationTemplate.ocppVendorParameters));
         // Save
         await ChargingStationStorage.saveChargingStationTemplate(chargingStationTemplate);
       } catch (error) {

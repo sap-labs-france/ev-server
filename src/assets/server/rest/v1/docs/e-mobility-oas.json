@@ -5614,7 +5614,6 @@
                     "sendChargingStationStatusError": true,
                     "sendChargingStationRegistered": false,
                     "sendOcpiPatchStatusError": false,
-                    "sendSmtpError": false,
                     "sendUserAccountInactivity": false,
                     "sendPreparingSessionNotStarted": false,
                     "sendOfflineChargingStations": false,
@@ -10797,9 +10796,6 @@
             "type": "boolean"
           },
           "sendOcpiPatchStatusError": {
-            "type": "boolean"
-          },
-          "sendSmtpError": {
             "type": "boolean"
           },
           "sendOfflineChargingStations": {

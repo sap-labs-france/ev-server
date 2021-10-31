@@ -2,7 +2,6 @@ import { Car, CarCatalog, CarCatalogChargeAlternativeTable, CarCatalogChargeOpti
 import global, { DatabaseCount, FilterParams, Image } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
-import Cypher from '../../utils/Cypher';
 import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
@@ -320,7 +319,7 @@ export default class CarStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     // Save new image
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogimages').findOneAndReplace(
-      { _id: Cypher.hash(`${carImageToSave}~${carID}`), },
+      { _id: Utils.hash(`${carImageToSave}~${carID}`), },
       { carID: Utils.convertToInt(carID), image: carImageToSave },
       { upsert: true }
     );
