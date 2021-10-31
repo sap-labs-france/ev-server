@@ -18,7 +18,6 @@ import { OCPPStatus } from '../types/ocpp/OCPPClient';
 import { OICPResult } from '../types/oicp/OICPResult';
 import PerformanceStorage from '../storage/mongodb/PerformanceStorage';
 import Tenant from '../types/Tenant';
-import TenantStorage from '../storage/mongodb/TenantStorage';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
 import Utils from './Utils';
@@ -233,30 +232,6 @@ export default class Logging {
         const tenant = req['tenant'] as Tenant;
         tenantID = tenant.id;
         tenantSubdomain = tenant.subdomain;
-      // Check OCPI
-      } else if (req.headers?.authorization?.startsWith('Token')) {
-        let token: string;
-        try {
-          if (req.headers?.authorization.startsWith('Token')) {
-            token = req.headers.authorization.slice(6);
-          }
-          if (req.headers?.authorization.startsWith('Bearer')) {
-            token = req.headers.authorization.slice(7);
-          }
-          // Try Base 64 decoding (OCPI)
-          if (token) {
-            const decodedToken = JSON.parse(Buffer.from(token, 'base64').toString());
-            if (Utils.objectHasProperty(decodedToken, 'tid')) {
-              tenantSubdomain = decodedToken['tid'];
-              const tenant = await TenantStorage.getTenantBySubdomain(tenantSubdomain);
-              if (tenant) {
-                tenantID = tenant.id;
-              }
-            }
-          }
-        } catch (error) {
-          // Ignore
-        }
       }
       // Check User
       if (req['user']) {
