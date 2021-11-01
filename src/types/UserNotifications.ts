@@ -2,7 +2,6 @@ import User, { UserStatus } from './User';
 
 import ChargingStation from './ChargingStation';
 import NotificationTask from '../notification/NotificationTask';
-import { SMTPError } from 'emailjs';
 
 export default interface UserNotifications {
   sendSessionStarted: boolean;
@@ -16,7 +15,6 @@ export default interface UserNotifications {
   sendChargingStationRegistered: boolean;
   sendOcpiPatchStatusError: boolean;
   sendOicpPatchStatusError: boolean;
-  sendSmtpError: boolean;
   sendUserAccountInactivity: boolean;
   sendPreparingSessionNotStarted: boolean;
   sendOfflineChargingStations: boolean;
@@ -42,7 +40,6 @@ export type UserNotificationKeys =
  'sendChargingStationRegistered' |
  'sendOcpiPatchStatusError' |
  'sendOicpPatchStatusError' |
- 'sendSmtpError' |
  'sendUserAccountInactivity' |
  'sendPreparingSessionNotStarted' |
  'sendOfflineChargingStations' |
@@ -67,7 +64,6 @@ export enum UserNotificationType {
   OCPI_PATCH_STATUS_ERROR = 'OcpiPatchStatusError',
   OICP_PATCH_STATUS_ERROR = 'OicpPatchStatusError',
   OICP_PATCH_EVSE_ERROR = 'OicpPatchEvseError',
-  SMTP_ERROR = 'SmtpError',
   PREPARING_SESSION_NOT_STARTED = 'PreparingSessionNotStarted',
   USER_ACCOUNT_INACTIVITY = 'UserAccountInactivity',
   OFFLINE_CHARGING_STATION = 'OfflineChargingStation',
@@ -231,11 +227,6 @@ export interface TransactionStartedNotification extends BaseNotification {
   connectorId: string;
   evseDashboardURL: string;
   evseDashboardChargingStationURL: string;
-}
-
-export interface SmtpErrorNotification extends BaseNotification {
-  SMTPError: SMTPError;
-  evseDashboardURL: string;
 }
 
 export interface OICPPatchChargingStationsErrorNotification extends BaseNotification {

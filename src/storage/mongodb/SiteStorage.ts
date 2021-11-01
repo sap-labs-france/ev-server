@@ -2,7 +2,6 @@ import global, { DatabaseCount, FilterParams, Image } from '../../types/GlobalTy
 
 import ChargingStationStorage from './ChargingStationStorage';
 import Constants from '../../utils/Constants';
-import Cypher from '../../utils/Cypher';
 import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
@@ -77,7 +76,7 @@ export default class SiteStorage {
         for (const userID of userIDs) {
           // Add
           siteUsers.push({
-            '_id': Cypher.hash(`${siteID}~${userID}`),
+            '_id': Utils.hash(`${siteID}~${userID}`),
             'userID': DatabaseUtils.convertToObjectID(userID),
             'siteID': DatabaseUtils.convertToObjectID(siteID),
             'siteAdmin': false

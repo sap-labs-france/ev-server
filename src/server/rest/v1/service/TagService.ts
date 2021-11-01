@@ -9,7 +9,7 @@ import Tenant, { TenantComponents } from '../../../../types/Tenant';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
-import AsyncTaskManager from '../../../../async-task/AsyncTaskManager';
+import AsyncTaskBuilder from '../../../../async-task/AsyncTaskBuilder';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import Busboy from 'busboy';
@@ -524,7 +524,7 @@ export default class TagService {
                 `No Tag have been uploaded in ${executionDurationSecs}s`, req.user
               );
               // Create and Save async task
-              await AsyncTaskManager.createAndSaveAsyncTasks({
+              await AsyncTaskBuilder.createAndSaveAsyncTasks({
                 name: AsyncTasks.TAGS_IMPORT,
                 action: ServerAction.TAGS_IMPORT,
                 type: AsyncTaskType.TASK,

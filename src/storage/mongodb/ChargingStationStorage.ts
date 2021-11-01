@@ -10,7 +10,6 @@ import BackendError from '../../exception/BackendError';
 import ChargingStationValidatorStorage from './validator/ChargingStationValidatorStorage';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
-import Cypher from '../../utils/Cypher';
 import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
@@ -943,7 +942,7 @@ export default class ChargingStationStorage {
       chargingProfileFilter._id = chargingProfileToSave.id;
     } else {
       chargingProfileFilter._id =
-        Cypher.hash(`${chargingProfileToSave.chargingStationID}~${chargingProfileToSave.connectorID}~${chargingProfileToSave.profile.chargingProfileId}`);
+      Utils.hash(`${chargingProfileToSave.chargingStationID}~${chargingProfileToSave.connectorID}~${chargingProfileToSave.profile.chargingProfileId}`);
     }
     // Properties to save
     const chargingProfileMDB: any = {

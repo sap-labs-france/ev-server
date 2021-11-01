@@ -7,7 +7,7 @@ import Tenant, { TenantComponents } from '../../../../types/Tenant';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
-import AsyncTaskManager from '../../../../async-task/AsyncTaskManager';
+import AsyncTaskBuilder from '../../../../async-task/AsyncTaskBuilder';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import { Car } from '../../../../types/Car';
@@ -165,7 +165,7 @@ export default class CarService {
     }
     try {
       // Create and Save async task
-      await AsyncTaskManager.createAndSaveAsyncTasks({
+      await AsyncTaskBuilder.createAndSaveAsyncTasks({
         name: AsyncTasks.SYNCHRONIZE_CAR_CATALOGS,
         action,
         type: AsyncTaskType.TASK,
