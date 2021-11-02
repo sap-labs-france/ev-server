@@ -1,5 +1,5 @@
 import User, { UserRole } from '../types/User';
-import UserNotifications, { AccountVerificationNotification, AdminAccountVerificationNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
+import UserNotifications, { AccountVerificationNotification, AdminAccountVerificationNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
 
 import ChargingStation from '../types/ChargingStation';
 import Configuration from '../utils/Configuration';
@@ -708,55 +708,6 @@ export default class NotificationHandler {
             }
           } catch (error) {
             await Logging.logActionExceptionMessage(tenant.id, ServerAction.TRANSACTION_STARTED, error);
-          }
-        }
-      }
-    }
-  }
-
-  static async sendSmtpError(tenant: Tenant, sourceData: SmtpErrorNotification): Promise<void> {
-    if (tenant.id !== Constants.DEFAULT_TENANT) {
-      // Get the Tenant logo
-      if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
-        const tenantLogo = await TenantStorage.getTenantLogo(tenant);
-        tenant.logo = tenantLogo.logo;
-      }
-      sourceData.tenantLogoURL = tenant.logo;
-      // Enrich with admins
-      const adminUsers = await NotificationHandler.getAdminUsers(tenant, 'sendSmtpError');
-      if (!Utils.isEmptyArray(adminUsers)) {
-        // For each Sources
-        for (const notificationSource of NotificationHandler.notificationSources) {
-          // Active?
-          if (notificationSource.enabled) {
-            try {
-              // Check notification
-              const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
-                tenant, notificationSource.channel, ServerAction.EMAIL_SERVER_ERROR,
-                null, null, { intervalMins: 60 });
-              if (!hasBeenNotified) {
-                // Email enabled?
-                if (NotificationHandler.notificationConfig.Email.enabled) {
-                  // Save
-                  await NotificationHandler.saveNotification(
-                    tenant, notificationSource.channel, null, ServerAction.EMAIL_SERVER_ERROR, { notificationData: { SMTPError: sourceData.SMTPError } });
-                  // Send
-                  for (const adminUser of adminUsers) {
-                    await notificationSource.notificationTask.sendSmtpError(
-                      sourceData, adminUser, tenant, NotificationSeverity.ERROR);
-                  }
-                }
-              } else {
-                await Logging.logDebug({
-                  tenantID: tenant.id,
-                  module: MODULE_NAME, method: 'sendSmtpError',
-                  action: ServerAction.EMAIL_SERVER_ERROR,
-                  message: `Notification via '${notificationSource.channel}' has already been sent`
-                });
-              }
-            } catch (error) {
-              await Logging.logActionExceptionMessage(tenant.id, ServerAction.EMAIL_SERVER_ERROR, error);
-            }
           }
         }
       }

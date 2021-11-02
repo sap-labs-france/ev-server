@@ -5614,7 +5614,6 @@
                     "sendChargingStationStatusError": true,
                     "sendChargingStationRegistered": false,
                     "sendOcpiPatchStatusError": false,
-                    "sendSmtpError": false,
                     "sendUserAccountInactivity": false,
                     "sendPreparingSessionNotStarted": false,
                     "sendOfflineChargingStations": false,
@@ -10799,9 +10798,6 @@
           "sendOcpiPatchStatusError": {
             "type": "boolean"
           },
-          "sendSmtpError": {
-            "type": "boolean"
-          },
           "sendOfflineChargingStations": {
             "type": "boolean"
           },
@@ -11532,13 +11528,13 @@
         "schema": {
           "type": "string",
           "enum": [
-            "RestServer",
-            "SoapServer",
-            "JsonServer",
-            "OcpiServer",
-            "OicpServer",
-            "ODataServer",
-            "BatchServer"
+            "Rest",
+            "Soap",
+            "Json",
+            "Ocpi",
+            "Oicp",
+            "OData",
+            "Batch"
           ]
         }
       },

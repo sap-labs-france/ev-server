@@ -327,13 +327,11 @@ describe('Authentication Service (utall)', function() {
     it('should not be possible to verify email for the Super Tenant', async () => {
       const response = await CentralServerService.defaultInstance.authenticationApi.verifyEmail('unknown@sap.com', 'unknownVerificationToken', '');
       expect(response.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
-      expect(response.data.message).to.be.eq('Cannot verify email in the Super Tenant');
     });
 
     it('should not be possible to request verification email for the Super Tenant', async () => {
       const response = await CentralServerService.defaultInstance.authenticationApi.resendVerificationEmail('unknown@sap.com', '');
       expect(response.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
-      expect(response.data.message).to.be.eq('Cannot request a verification Email in the Super Tenant');
     });
   });
 });

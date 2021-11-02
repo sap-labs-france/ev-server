@@ -1688,7 +1688,7 @@ export default class UtilsService {
           // Get the sensitive property from the DB
           const currentValue = _.get(currentProperties, propertyName);
           if (currentValue && typeof currentValue === 'string') {
-            const currentHash = Cypher.hash(currentValue);
+            const currentHash = Utils.hash(currentValue);
             if (newValue !== currentHash) {
             // Yes: Encrypt
               _.set(newProperties, propertyName, await Cypher.encrypt(tenant, newValue));
@@ -1731,7 +1731,7 @@ export default class UtilsService {
           // If the value is undefined, null or empty then do nothing and skip to the next property
           if (value && typeof value === 'string') {
             // eslint-disable-next-line @typescript-eslint/ban-types
-            _.set(properties, propertyName, Cypher.hash(value));
+            _.set(properties, propertyName, Utils.hash(value));
           }
         }
       }

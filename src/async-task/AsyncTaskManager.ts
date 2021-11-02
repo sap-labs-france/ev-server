@@ -19,6 +19,7 @@ import OCPIPullSessionsAsyncTask from './tasks/ocpi/OCPIPullSessionsAsyncTask';
 import OCPIPullTokensAsyncTask from './tasks/ocpi/OCPIPullTokensAsyncTask';
 import OCPIPushEVSEStatusesAsyncTask from './tasks/ocpi/OCPIPushEVSEStatusesAsyncTask';
 import OCPIPushTokensAsyncTask from './tasks/ocpi/OCPIPushTokensAsyncTask';
+import { Promise } from 'bluebird';
 import { ServerAction } from '../types/Server';
 import SynchronizeCarCatalogsAsyncTask from './tasks/SynchronizeCarCatalogsAsyncTask';
 import TagsImportAsyncTask from './tasks/TagsImportAsyncTask';
@@ -223,31 +224,5 @@ export default class AsyncTaskManager {
         }
       }
     }
-  }
-
-  public static async createAndSaveAsyncTasks(asyncTask: Omit<AsyncTask, 'id'>): Promise<void> {
-    // Check
-    if (Utils.isNullOrUndefined(asyncTask)) {
-      throw new Error('The asynchronous task must not be null');
-    }
-    // Check
-    if (Utils.isNullOrUndefined(asyncTask.name)) {
-      throw new Error('The Name of the asynchronous task is mandatory');
-    }
-    if (!Utils.isNullOrUndefined(asyncTask.parameters) && (typeof asyncTask.parameters !== 'object')) {
-      throw new Error('The Parameters of the asynchronous task must be a Json document');
-    }
-    // Set
-    asyncTask.status = AsyncTaskStatus.PENDING;
-    asyncTask.createdOn = new Date();
-    // Save
-    await AsyncTaskStorage.saveAsyncTask(asyncTask as AsyncTask);
-    // Log
-    await Logging.logInfo({
-      tenantID: Constants.DEFAULT_TENANT,
-      action: ServerAction.ASYNC_TASK,
-      module: MODULE_NAME, method: 'createAndSaveAsyncTasks',
-      message: `The asynchronous task '${asyncTask.name}' has been saved successfully and will be processed soon`
-    });
   }
 }

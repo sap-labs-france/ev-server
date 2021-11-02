@@ -3,6 +3,7 @@ import axiosRetry, { IAxiosRetryConfig } from 'axios-retry';
 
 import Configuration from './Configuration';
 import Logging from './Logging';
+import { Promise } from 'bluebird';
 import { StatusCodes } from 'http-status-codes';
 import Tenant from '../types/Tenant';
 

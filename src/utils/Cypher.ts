@@ -59,10 +59,6 @@ export default class Cypher {
     return decrypted.toString();
   }
 
-  public static hash(data: string): string {
-    return crypto.createHash('sha256').update(data).digest('hex');
-  }
-
   public static async checkCryptoSettings(cryptoSetting: CryptoSetting): Promise<void> {
     const dataToEncrypt = 'test-data-to-encrypt';
     // Cypher
@@ -146,7 +142,7 @@ export default class Cypher {
           const value = _.get(obj, property);
           // If the value is undefined, null or empty then do nothing and skip to the next property
           if (value && value.length > 0) {
-            _.set(obj, property, Cypher.hash(value));
+            _.set(obj, property, Utils.hash(value));
           }
         }
       }
