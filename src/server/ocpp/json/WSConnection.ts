@@ -91,8 +91,8 @@ export default abstract class WSConnection {
     try {
       // Parse the message
       [messageType, messageId, command, commandPayload, errorDetails] = JSON.parse(messageEvent.toString()) as OCPPIncomingRequest;
-      // Initialize: done in the message as init could be lengthy and first message may be lost
-      await this.initialize();
+      // Wait for init
+      await this.waitForInitialization();
       // Check the Type of message
       switch (messageType) {
         // Incoming Message
@@ -422,6 +422,32 @@ export default abstract class WSConnection {
         module: MODULE_NAME, method: 'constructor',
         message: `Unknown connection attempts with URL: '${req.url}'`,
       });
+    }
+  }
+
+  private async waitForInitialization() {
+    // Wait for init
+    if (!this.initialized) {
+      // Wait for 10 secs max
+      let remainingWaitingLoop = 10;
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        await Utils.sleep(1000);
+        // Check
+        if (this.initialized) {
+          break;
+        }
+        // Nbr of trials ended?
+        if (remainingWaitingLoop <= 0) {
+          throw new BackendError({
+            chargingStationID: this.getChargingStationID(),
+            module: MODULE_NAME, method: 'waitForInitialization',
+            message: 'OCPP Request received before OCPP connection has been completed!'
+          });
+        }
+        // Try another time
+        remainingWaitingLoop--;
+      }
     }
   }
 
