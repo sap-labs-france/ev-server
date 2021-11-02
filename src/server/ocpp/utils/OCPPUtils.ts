@@ -1524,13 +1524,6 @@ export default class OCPPUtils {
         message: 'The Token ID is mandatory, request rejected!'
       });
     }
-    if (!DatabaseUtils.isObjectID(tokenID)) {
-      throw new BackendError({
-        action, chargingStationID,
-        module: MODULE_NAME, method: 'checkChargingStationOcppParameters',
-        message: `The Token ID '${tokenID}' is invalid, request rejected!`
-      });
-    }
   }
 
   public static async checkAndGetChargingStationData(action: ServerAction, tenantID: string, chargingStationID: string,
