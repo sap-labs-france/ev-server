@@ -59,28 +59,13 @@ export default abstract class WSConnection {
   }
 
   public async initialize(): Promise<void> {
-    // Control the number of Json connections
-    const chargingStationConnectionLock = await LockingHelper.acquireChargingStationConnectionLock(this.getTenantID());
-    if (!chargingStationConnectionLock) {
-      throw new BackendError({
-        chargingStationID: this.getChargingStationID(),
-        module: MODULE_NAME, method: 'initialize',
-        message: 'Cannot acquire a lock on the Charging Station\'s connection'
-      });
-    }
-    // Proceed with the connection handling
-    try {
-      if (!this.initialized) {
-        // Check and Get Charging Station data
-        const { tenant, chargingStation } = await OCPPUtils.checkAndGetChargingStationData(
-          ServerAction.WS_CONNECTION, this.getTenantID(), this.getChargingStationID(), this.getTokenID(), false);
-        // Set
-        this.setTenant(tenant);
-        this.setChargingStation(chargingStation);
-      }
-    } finally {
-      // Release the lock
-      await LockingManager.release(chargingStationConnectionLock);
+    if (!this.initialized) {
+      // Check and Get Charging Station data
+      const { tenant, chargingStation } = await OCPPUtils.checkAndGetChargingStationData(
+        ServerAction.WS_CONNECTION, this.getTenantID(), this.getChargingStationID(), this.getTokenID(), false);
+      // Set
+      this.setTenant(tenant);
+      this.setChargingStation(chargingStation);
     }
   }
 
