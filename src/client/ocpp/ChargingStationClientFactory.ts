@@ -44,7 +44,6 @@ export default class ChargingStationClientFactory {
     } else {
       if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
         throw new BackendError({
-          source: chargingStation.id,
           chargingStationID: chargingStation.id,
           siteID: chargingStation.siteID,
           siteAreaID: chargingStation.siteAreaID,
@@ -60,7 +59,6 @@ export default class ChargingStationClientFactory {
     // Check
     if (!chargingClient) {
       throw new BackendError({
-        source: chargingStation.id,
         chargingStationID: chargingStation.id,
         siteID: chargingStation.siteID,
         siteAreaID: chargingStation.siteAreaID,

@@ -29,7 +29,6 @@ export default class OICPEndpointStorage {
     if (!oicpEndpointToSave.name) {
       // Name must be provided!
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'saveOicpEndpoint',
         message: 'OICPEndpoint has no Name'

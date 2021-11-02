@@ -1,7 +1,6 @@
 import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
-import Site, { SiteUser } from '../../types/Site';
 import Tenant, { TenantComponents } from '../../types/Tenant';
-import User, { ImportedUser, UserRole, UserSite, UserStatus } from '../../types/User';
+import User, { ImportedUser, UserRole, UserStatus } from '../../types/User';
 import { UserInError, UserInErrorType } from '../../types/InError';
 import global, { DatabaseCount, FilterParams, Image, ImportStatus } from '../../types/GlobalType';
 
@@ -17,6 +16,7 @@ import Eula from '../../types/Eula';
 import Logging from '../../utils/Logging';
 import Mustache from 'mustache';
 import { ObjectId } from 'mongodb';
+import { SiteUser } from '../../types/Site';
 import TagStorage from './TagStorage';
 import UserNotifications from '../../types/UserNotifications';
 import Utils from '../../utils/Utils';
@@ -212,7 +212,6 @@ export default class UserStorage {
     // Check if ID or email is provided
     if (!userToSave.id && !userToSave.email) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'saveUser',
         message: 'User has no ID and no Email'
@@ -551,7 +550,6 @@ export default class UserStorage {
     if (!userID) {
       // ID must be provided!
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'saveUserImage',
         message: 'User Image has no ID'
