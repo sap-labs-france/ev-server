@@ -98,7 +98,8 @@ export default class SiteAreaSecurity {
       voltage: sanitize(request.voltage),
       smartCharging: UtilsSecurity.filterBoolean(request.smartCharging),
       accessControl: UtilsSecurity.filterBoolean(request.accessControl),
-      siteID: sanitize(request.siteID)
+      siteID: sanitize(request.siteID),
+      tariffID: sanitize(request.tariffID)
     } as Partial<SiteArea>;
     if (Utils.objectHasProperty(request, 'image')) {
       filteredRequest.image = sanitize(request.image);

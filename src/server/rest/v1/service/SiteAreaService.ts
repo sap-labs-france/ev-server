@@ -357,6 +357,7 @@ export default class SiteAreaService {
       }
     }
     siteArea.numberOfPhases = filteredRequest.numberOfPhases;
+    siteArea.tariffID = filteredRequest.tariffID;
     let actionsResponse: ActionsResponse;
     if (siteArea.smartCharging && !filteredRequest.smartCharging) {
       actionsResponse = await OCPPUtils.clearAndDeleteChargingProfilesForSiteArea(
