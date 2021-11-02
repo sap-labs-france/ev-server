@@ -37,7 +37,7 @@ export default class SiteAreaSecurity {
     return {
       ID: sanitize(request.ID),
       WithChargingStations: !request.WithChargeBoxes ? false : sanitize(request.WithChargingStations),
-      WithSite: !request.WithSite ? false : sanitize(request.WithSite)
+      WithSite: request.WithSite ? Utils.convertToBoolean(request.WithSite) : false
     } as HttpSiteAreaRequest;
   }
 
