@@ -20,7 +20,7 @@ export default class SynchronizeBillingInvoicesTask extends SchedulerTask {
           // Synchronize new Invoices and Invoices changes
           const synchronizeActionResults = await billingImpl.synchronizeInvoices();
           if (synchronizeActionResults.inError > 0) {
-            await NotificationHandler.sendBillingInvoicesSynchronizationFailed(
+            void NotificationHandler.sendBillingInvoicesSynchronizationFailed(
               tenant,
               {
                 nbrInvoicesInError: synchronizeActionResults.inError,

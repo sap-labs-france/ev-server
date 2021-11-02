@@ -7056,10 +7056,13 @@
             "$ref": "#/components/parameters/LogHost"
           },
           {
-            "$ref": "#/components/parameters/LogType"
+            "$ref": "#/components/parameters/LogAction"
           },
           {
-            "$ref": "#/components/parameters/LogAction"
+            "$ref": "#/components/parameters/ChargingStationID"
+          },
+          {
+            "$ref": "#/components/parameters/SiteID"
           },
           {
             "$ref": "#/components/parameters/UserID"
@@ -7216,10 +7219,13 @@
             "$ref": "#/components/parameters/LogHost"
           },
           {
-            "$ref": "#/components/parameters/LogType"
+            "$ref": "#/components/parameters/LogAction"
           },
           {
-            "$ref": "#/components/parameters/LogAction"
+            "$ref": "#/components/parameters/ChargingStationID"
+          },
+          {
+            "$ref": "#/components/parameters/SiteID"
           },
           {
             "$ref": "#/components/parameters/UserID"
@@ -10206,9 +10212,6 @@
           "ocppProtocol": {
             "type": "string"
           },
-          "cfApplicationIDAndInstanceIndex": {
-            "type": "string"
-          },
           "lastSeen": {
             "type": "string"
           },
@@ -11132,6 +11135,15 @@
           "type": "string"
         }
       },
+      "SiteID": {
+        "in": "query",
+        "name": "SiteID",
+        "description": "Site ID",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
       "UserID": {
         "in": "query",
         "name": "UserID",
@@ -11518,7 +11530,16 @@
         "name": "Source",
         "description": "Log source",
         "schema": {
-          "type": "string"
+          "type": "string",
+          "enum": [
+            "RestServer",
+            "SoapServer",
+            "JsonServer",
+            "OcpiServer",
+            "OicpServer",
+            "ODataServer",
+            "BatchServer"
+          ]
         }
       },
       "LogHost": {
@@ -11527,18 +11548,6 @@
         "description": "Log host",
         "schema": {
           "type": "string"
-        }
-      },
-      "LogType": {
-        "in": "query",
-        "name": "Type",
-        "description": "Log type",
-        "schema": {
-          "type": "string",
-          "enum": [
-            "R",
-            "S"
-          ]
         }
       },
       "LogAction": {

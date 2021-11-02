@@ -466,7 +466,6 @@ export default class OCPIUtilsService {
   public static async updateTransaction(tenant: Tenant, session: OCPISession): Promise<void> {
     if (!OCPIUtilsService.validateSession(session)) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'updateTransaction',
         errorCode: StatusCodes.BAD_REQUEST,
         message: 'Session object is invalid',
@@ -485,7 +484,6 @@ export default class OCPIUtilsService {
       const user = await UserStorage.getUser(tenant, session.auth_id);
       if (!user) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'updateTransaction',
           errorCode: HTTPError.GENERAL_ERROR,
           message: `No User found for auth_id ${session.auth_id}`,
@@ -497,7 +495,6 @@ export default class OCPIUtilsService {
       const chargingStation = await ChargingStationStorage.getChargingStationByOcpiEvseID(tenant, evse.evse_id);
       if (!chargingStation) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'updateTransaction',
           errorCode: HTTPError.GENERAL_ERROR,
           message: `No Charging Station found with ID '${evse.uid}' in Location '${session.location.id}'`,
@@ -547,7 +544,6 @@ export default class OCPIUtilsService {
       await Logging.logDebug({
         tenantID: tenant.id,
         action: ServerAction.OCPI_PUSH_SESSION,
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'updateTransaction',
         message: `Ignore session update session.last_updated < transaction.currentTimestamp for transaction ${transaction.id}`,
         detailedMessages: { session }
@@ -596,7 +592,6 @@ export default class OCPIUtilsService {
   public static async processCdr(tenant: Tenant, cdr: OCPICdr): Promise<void> {
     if (!OCPIUtilsService.validateCdr(cdr)) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'processCdr',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Cdr object is invalid',
@@ -607,7 +602,6 @@ export default class OCPIUtilsService {
     const transaction: Transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant, cdr.id);
     if (!transaction) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'processCdr',
         errorCode: HTTPError.GENERAL_ERROR,
         message: `No Transaction found for OCPI CDR ID '${cdr.id}'`,
@@ -659,7 +653,6 @@ export default class OCPIUtilsService {
   public static async updateToken(tenant: Tenant, ocpiEndpoint: OCPIEndpoint, token: OCPIToken, tag: Tag, emspUser: User): Promise<void> {
     if (!OCPIUtilsService.validateToken(token)) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'updateToken',
         errorCode: StatusCodes.BAD_REQUEST,
         message: 'Token object is invalid',
@@ -671,7 +664,6 @@ export default class OCPIUtilsService {
       // External organization
       if (emspUser.issuer) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'updateToken',
           errorCode: StatusCodes.CONFLICT,
           message: 'Token already assigned to an internal user',
@@ -683,7 +675,6 @@ export default class OCPIUtilsService {
       // Check the tag
       if (tag && tag.issuer) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'checkExistingTag',
           errorCode: StatusCodes.CONFLICT,
           message: 'Token already exists in the current organization',
@@ -709,7 +700,6 @@ export default class OCPIUtilsService {
       // Check the Tag
       if (tag && tag.issuer) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'checkExistingTag',
           errorCode: StatusCodes.CONFLICT,
           message: 'Token already exists in the current organization',
@@ -951,10 +941,10 @@ export default class OCPIUtilsService {
       case '60633bb1834fed0016310189':
         // Check Site Area
         switch (chargingStation?.siteAreaID) {
-          // ShowRoom Marcel Pagnol II
+          // A Droite Park Marcel Pagnol
           case '60d5a20c9deee6001419cabb':
             switch (chargingStation?.id) {
-              case 'IES-Marcel-Pagnol-Boussy-Saint-Antoine':
+              case 'BMPBA':
                 // Type 2
                 if (connector.type === ConnectorType.TYPE_2) {
                   return 'STE-AC_22k';
@@ -963,6 +953,19 @@ export default class OCPIUtilsService {
                 return 'STE-DC_25k';
               case 'P91800RMRCLPGNL22AC':
                 return 'STE-AC_22k';
+            }
+            return defaultTariff;
+          // A Droite Park Les Bains des Docks
+          case '61697ae8d9c095772ca9a771':
+            switch (chargingStation?.id) {
+              case 'HBDBA':
+              case 'HBDBB':
+                // Type 2
+                if (connector.type === ConnectorType.TYPE_2) {
+                  return 'STE-AC_43k';
+                }
+                // DC
+                return 'STE-DC_60k';
             }
             return defaultTariff;
         }
