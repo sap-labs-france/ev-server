@@ -107,7 +107,6 @@ export default class TransactionCommonTests {
     } else {
       expect(transactionResponse.status).eq(StatusCodes.FORBIDDEN);
       expect(transactionResponse.data).not.null;
-      expect(transactionResponse.data.message).eq(`Role Basic is not authorized to perform Read on Transaction '${response.transactionId}'`);
     }
   }
 

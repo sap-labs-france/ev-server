@@ -27,6 +27,7 @@ import Logging from '../../../../utils/Logging';
 import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
 import { OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
+import OCPPCommon from '../../../ocpp/utils/OCPPCommon';
 import OCPPStorage from '../../../../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
 import { OICPActionType } from '../../../../types/oicp/OICPEvseData';
@@ -309,7 +310,7 @@ export default class ChargingStationService {
     if (resetAndApplyTemplate) {
       try {
         // Use the reset to apply the template again
-        await OCPPUtils.triggerChargingStationReset(req.tenant, chargingStation, true);
+        await OCPPCommon.triggerChargingStationReset(req.tenant, chargingStation, true);
       } catch (error) {
         throw new AppError({
           action: action,
@@ -796,7 +797,7 @@ export default class ChargingStationService {
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${filteredRequest.chargingStationID}' does not exist`,
       MODULE_NAME, 'handleRequestChargingStationOcppParameters', req.user);
     // Get the configuration
-    let result = await OCPPUtils.requestAndSaveChargingStationOcppParameters(req.tenant, chargingStation);
+    let result = await OCPPCommon.requestAndSaveChargingStationOcppParameters(req.tenant, chargingStation);
     if (filteredRequest.forceUpdateOCPPParamsFromTemplate) {
       result = await OCPPUtils.updateChargingStationOcppParametersWithTemplate(req.tenant, chargingStation);
     }
@@ -1961,7 +1962,7 @@ export default class ChargingStationService {
             await ChargingStationStorage.saveOcppParameters(req.tenant, chargingStationOcppParameters);
           } else {
             // Not a custom param: refresh the whole OCPP Parameters
-            await OCPPUtils.requestAndSaveChargingStationOcppParameters(req.tenant, chargingStation);
+            await OCPPCommon.requestAndSaveChargingStationOcppParameters(req.tenant, chargingStation);
           }
         } else {
           // Add custom param
@@ -1971,7 +1972,7 @@ export default class ChargingStationService {
         }
       } else {
         // Refresh the whole OCPP Parameters
-        await OCPPUtils.requestAndSaveChargingStationOcppParameters(req.tenant, chargingStation);
+        await OCPPCommon.requestAndSaveChargingStationOcppParameters(req.tenant, chargingStation);
       }
       // Check update with Vendor
       const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorImpl(chargingStation);
