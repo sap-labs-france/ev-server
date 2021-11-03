@@ -136,7 +136,7 @@ export default class TagService {
       });
     }
     // Check Tag with ID
-    let tag = await TagStorage.getTag(req.tenant, filteredRequest.id.toUpperCase());
+    let tag = await TagStorage.getTag(req.tenant, filteredRequest.id);
     if (tag) {
       throw new AppError({
         errorCode: HTTPError.TAG_ALREADY_EXIST_ERROR,
@@ -178,7 +178,7 @@ export default class TagService {
     }
     // Create
     const newTag: Tag = {
-      id: filteredRequest.id.toUpperCase(),
+      id: filteredRequest.id,
       description: filteredRequest.description,
       issuer: true,
       active: filteredRequest.active,
@@ -808,7 +808,7 @@ export default class TagService {
   private static async processTag(action: ServerAction, req: Request, importedTag: ImportedTag, tagsToBeImported: ImportedTag[]): Promise<boolean> {
     try {
       const newImportedTag: ImportedTag = {
-        id: importedTag.id.toUpperCase(),
+        id: importedTag.id,
         visualID: importedTag.visualID,
         description: importedTag.description ? importedTag.description : `Tag ID '${importedTag.id}'`,
         importedData: importedTag.importedData
@@ -825,7 +825,7 @@ export default class TagService {
         const newImportedUser: ImportedUser = {
           name: importedTag.name.toUpperCase(),
           firstName: importedTag.firstName,
-          email: importedTag.email,
+          email: importedTag.email.toLowerCase(),
           siteIDs: importedTag.siteIDs
         };
         try {
