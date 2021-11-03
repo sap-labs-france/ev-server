@@ -28,7 +28,7 @@ export default class GlobalRouter {
   public buildRoutes(): express.Router {
     this.buildRouteAuth();
     this.buildRouteAPI();
-    this.buildRouteUtils();
+    this.buildRouteUtil();
     this.buildRouteDocs();
     return this.router;
   }
@@ -59,7 +59,7 @@ export default class GlobalRouter {
       ]);
   }
 
-  protected buildRouteUtils(): void {
+  protected buildRouteUtil(): void {
     this.router.use('/util', new UtilRouter().buildRoutes());
   }
 
