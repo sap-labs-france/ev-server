@@ -16,8 +16,9 @@ export default class UtilRouter {
   }
 
   protected buildRoutePing(): void {
-    this.router.get(`/${ServerRoute.REST_PING}`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.get(`/${ServerRoute.REST_PING}`, (req: Request, res: Response, next: NextFunction) => {
       res.sendStatus(StatusCodes.OK);
+      next();
     });
   }
 }
