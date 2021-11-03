@@ -6,7 +6,6 @@ import Constants from '../utils/Constants';
 import { HTTPError } from '../types/HTTPError';
 import { ObjectId } from 'mongodb';
 import Schema from '../types/validator/Schema';
-import Utils from '../utils/Utils';
 import addFormats from 'ajv-formats';
 import chalk from 'chalk';
 import countries from 'i18n-iso-countries';
@@ -88,7 +87,7 @@ export default class SchemaValidator {
       }
     }
     // Keep the original version for checking missing props after
-    const originalSchema = Utils.serializeOriginalSchema(data);
+    const originalSchema = this.serializeOriginalSchema(data);
     // Run validation
     if (!fnValidate(data)) {
       if (!fnValidate.errors) {
@@ -111,7 +110,7 @@ export default class SchemaValidator {
       });
     }
     // Check for missing fields in Authorization Definition (not possible to make AJV failing on missing fields)
-    Utils.checkOriginalSchema(originalSchema, data);
+    this.checkOriginalSchema(originalSchema, data);
     return data;
   }
 
@@ -158,5 +157,30 @@ export default class SchemaValidator {
       type: 'string',
       validate: (c) => countries.isValid(c)
     });
+  }
+
+  private serializeOriginalSchema(originalSchema: Record<string, unknown>): string {
+    // Check for schema missing vars
+    if (this.isDevelopmentEnv()) {
+      return JSON.stringify(originalSchema);
+    }
+  }
+
+  private checkOriginalSchema(originalSchema: string, validatedSchema: Record<string, unknown>): void {
+    if (this.isDevelopmentEnv() && originalSchema !== JSON.stringify(validatedSchema)) {
+      console.error(chalk.red('===================================='));
+      console.error(chalk.red('Data changed after schema validation'));
+      console.error(chalk.red('Original Data:'));
+      console.error(chalk.red(originalSchema));
+      console.error(chalk.red('Validated Data:'));
+      console.error(chalk.red(JSON.stringify(validatedSchema)));
+      console.error(chalk.red('===================================='));
+    }
+  }
+
+  // Dup method: Avoid circular deps with Utils class
+  // src/validator/SchemaValidator.ts -> src/utils/Utils.ts -> src/utils/Cypher.ts -> src/storage/mongodb/SettingStorage.ts -> src/utils/Logging.ts -> src/storage/mongodb/PerformanceStorage.ts -> src/storage/mongodb/validator/PerformanceValidatorStorage.ts -> src/validator/SchemaValidator.ts
+  private isDevelopmentEnv(): boolean {
+    return process.env.NODE_ENV === 'development';
   }
 }

@@ -962,7 +962,7 @@ export default class OCPIUtilsService {
               case 'HBDBB':
                 // Type 2
                 if (connector.type === ConnectorType.TYPE_2) {
-                  return 'STE-AC_43k';
+                  return 'STE-AC_22k';
                 }
                 // DC
                 return 'STE-DC_60k';

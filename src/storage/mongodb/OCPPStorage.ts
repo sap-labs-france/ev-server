@@ -1,7 +1,6 @@
-import { OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPDataTransferRequestExtended, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationRequestExtended, OCPPHeartbeatRequestExtended, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPReadingContext, OCPPStatusNotificationRequestExtended } from '../../types/ocpp/OCPPServer';
+import { OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPDataTransferRequestExtended, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationRequestExtended, OCPPHeartbeatRequestExtended, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPStatusNotificationRequestExtended } from '../../types/ocpp/OCPPServer';
 import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
-import Cypher from '../../utils/Cypher';
 import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
@@ -20,7 +19,7 @@ export default class OCPPStorage {
     DatabaseUtils.checkTenantObject(tenant);
     const timestamp = Utils.convertToDate(authorize.timestamp);
     const authorizeMDB: any = {
-      _id: Cypher.hash(`${authorize.chargeBoxID}~${timestamp.toISOString()}`),
+      _id: Utils.hash(`${authorize.chargeBoxID}~${timestamp.toISOString()}`),
       tagID: authorize.idTag,
       authorizationId: authorize.authorizationId,
       chargeBoxID: authorize.chargeBoxID,
@@ -111,7 +110,7 @@ export default class OCPPStorage {
     const timestamp = Utils.convertToDate(heartbeat.timestamp);
     // Insert
     const heartBeatMDB: any = {
-      _id: Cypher.hash(`${heartbeat.chargeBoxID}~${timestamp.toISOString()}`),
+      _id: Utils.hash(`${heartbeat.chargeBoxID}~${timestamp.toISOString()}`),
       chargeBoxID: heartbeat.chargeBoxID,
       timestamp: timestamp,
       timezone: heartbeat.timezone
@@ -252,7 +251,7 @@ export default class OCPPStorage {
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     const statusNotificationMDB: any = {
-      _id: Cypher.hash(`${statusNotificationToSave.chargeBoxID}~${statusNotificationToSave.connectorId}~${statusNotificationToSave.status}~${timestamp.toISOString()}`),
+      _id: Utils.hash(`${statusNotificationToSave.chargeBoxID}~${statusNotificationToSave.connectorId}~${statusNotificationToSave.status}~${timestamp.toISOString()}`),
       timestamp,
       chargeBoxID: statusNotificationToSave.chargeBoxID,
       connectorId: Utils.convertToInt(statusNotificationToSave.connectorId),
@@ -278,7 +277,7 @@ export default class OCPPStorage {
     const timestamp = Utils.convertToDate(dataTransfer.timestamp);
     // Insert
     const dataTransferMDB: any = {
-      _id: Cypher.hash(`${dataTransfer.chargeBoxID}~${dataTransfer.data}~${timestamp.toISOString()}`),
+      _id: Utils.hash(`${dataTransfer.chargeBoxID}~${dataTransfer.data}~${timestamp.toISOString()}`),
       vendorId: dataTransfer.vendorId,
       messageId: dataTransfer.messageId,
       data: dataTransfer.data,
@@ -300,7 +299,7 @@ export default class OCPPStorage {
     const timestamp = Utils.convertToDate(bootNotification.timestamp);
     // Insert
     const bootNotificationMDB: any = {
-      _id: Cypher.hash(`${bootNotification.chargeBoxID}~${timestamp.toISOString()}`),
+      _id: Utils.hash(`${bootNotification.chargeBoxID}~${timestamp.toISOString()}`),
       chargeBoxID: bootNotification.chargeBoxID,
       chargePointVendor: bootNotification.chargePointVendor,
       chargePointModel: bootNotification.chargePointModel,
@@ -386,7 +385,7 @@ export default class OCPPStorage {
     const timestamp = Utils.convertToDate(diagnosticsStatusNotification.timestamp);
     // Insert
     const diagnosticsStatusNotificationMDB: any = {
-      _id: Cypher.hash(`${diagnosticsStatusNotification.chargeBoxID}~${timestamp.toISOString()}`),
+      _id: Utils.hash(`${diagnosticsStatusNotification.chargeBoxID}~${timestamp.toISOString()}`),
       chargeBoxID: diagnosticsStatusNotification.chargeBoxID,
       status: diagnosticsStatusNotification.status,
       timestamp: timestamp,
@@ -406,7 +405,7 @@ export default class OCPPStorage {
     const timestamp = Utils.convertToDate(firmwareStatusNotification.timestamp);
     // Insert
     const firmwareStatusNotificationMDB: any = {
-      _id: Cypher.hash(`${firmwareStatusNotification.chargeBoxID}~${timestamp.toISOString()}`),
+      _id: Utils.hash(`${firmwareStatusNotification.chargeBoxID}~${timestamp.toISOString()}`),
       chargeBoxID: firmwareStatusNotification.chargeBoxID,
       status: firmwareStatusNotification.status,
       timestamp: timestamp,
@@ -428,7 +427,7 @@ export default class OCPPStorage {
       try {
         const timestamp = Utils.convertToDate(meterValueToSave.timestamp);
         const meterValueMDB: any = {
-          _id: Cypher.hash(`${meterValueToSave.chargeBoxID}~${meterValueToSave.connectorId}~${timestamp.toISOString()}~${meterValueToSave.value}~${JSON.stringify(meterValueToSave.attribute)}`),
+          _id: Utils.hash(`${meterValueToSave.chargeBoxID}~${meterValueToSave.connectorId}~${timestamp.toISOString()}~${meterValueToSave.value}~${JSON.stringify(meterValueToSave.attribute)}`),
           chargeBoxID: meterValueToSave.chargeBoxID,
           connectorId: Utils.convertToInt(meterValueToSave.connectorId),
           transactionId: Utils.convertToInt(meterValueToSave.transactionId),

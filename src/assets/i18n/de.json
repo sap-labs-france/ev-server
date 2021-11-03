@@ -87,10 +87,6 @@
       "title": "Senden der Hubject EVSE Daten",
       "body": "Die EVSE Daten der Ladestationen konnte nicht zur Hubject Roaming-Plattform übermittelt werden. Organisation: '{{tenantName}}', überprüfen Sie die Logs"
     },
-    "smtpError": {
-      "title": "Email Server Error",
-      "body": "Das E-Mail Server ist fehlgeschlagen. Organisation: '{{tenantName}}', überprüfen Sie die Einstellungen"
-    },
     "optimalChargeReached": {
       "title": "Optimale Ladung erreicht",
       "body": "Ihr Elektroauto, verbunden mit Ladestation '{{chargeBoxID}}', Ladepunkt '{{connectorId}}', hat die optimale Ladung (85%) erreicht. Organisation: '{{tenantName}}'"

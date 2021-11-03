@@ -1,5 +1,3 @@
-import express, { NextFunction, Request, Response } from 'express';
-
 import AssetRouter from './api/AssetRouter';
 import AuthRouter from './auth/AuthRouter';
 import AuthService from '../service/AuthService';
@@ -13,13 +11,13 @@ import LoggingRouter from './api/LoggingRouter';
 import NotificationRouter from './api/NotificationRouter';
 import OCPIEndpointRouter from './api/OCPIEndpointRouter';
 import PricingRouter from './api/PricingRouter';
-import { StatusCodes } from 'http-status-codes';
 import SwaggerRouter from './doc/SwaggerRouter';
 import TagRouter from './api/TagRouter';
 import TenantRouter from './api/TenantRouter';
 import TransactionRouter from './api/TransactionRouter';
 import UserRouter from './api/UserRouter';
 import UtilRouter from './util/UtilRouter';
+import express from 'express';
 
 export default class GlobalRouter {
   private router: express.Router;
@@ -31,9 +29,8 @@ export default class GlobalRouter {
   public buildRoutes(): express.Router {
     this.buildRouteAuth();
     this.buildRouteAPI();
-    this.buildRouteUtils();
+    this.buildRouteUtil();
     this.buildRouteDocs();
-    this.buildUnknownRoute();
     return this.router;
   }
 
@@ -64,20 +61,11 @@ export default class GlobalRouter {
       ]);
   }
 
-  protected buildRouteUtils(): void {
-    this.router.use('/utils', new UtilRouter().buildRoutes());
+  protected buildRouteUtil(): void {
+    this.router.use('/util', new UtilRouter().buildRoutes());
   }
 
   protected buildRouteDocs(): void {
     this.router.use('/docs', new SwaggerRouter().buildRoutes());
-  }
-
-  protected buildUnknownRoute(): void {
-    this.router.use('*', (req: Request, res: Response, next: NextFunction) => {
-      if (!res.headersSent) {
-        res.sendStatus(StatusCodes.NOT_FOUND);
-        next();
-      }
-    });
   }
 }

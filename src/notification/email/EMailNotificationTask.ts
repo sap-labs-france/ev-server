@@ -1,4 +1,4 @@
-import { AccountVerificationNotification, AdminAccountVerificationNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, VerificationEmailNotification } from '../../types/UserNotifications';
+import { AccountVerificationNotification, AdminAccountVerificationNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, VerificationEmailNotification } from '../../types/UserNotifications';
 import { Message, SMTPClient, SMTPError } from 'emailjs';
 
 import BackendError from '../../exception/BackendError';
@@ -6,7 +6,6 @@ import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import EmailConfiguration from '../../types/configuration/EmailConfiguration';
 import Logging from '../../utils/Logging';
-import NotificationHandler from '../NotificationHandler';
 import NotificationTask from '../NotificationTask';
 import { ServerAction } from '../../types/Server';
 import TemplateManager from '../../utils/TemplateManager';
@@ -99,10 +98,6 @@ export default class EMailNotificationTask implements NotificationTask {
 
   public async sendVerificationEmailUserImport(data: VerificationEmailNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     return this.prepareAndSendEmail('verification-email-user-import', data, user, tenant, severity);
-  }
-
-  public async sendSmtpError(data: SmtpErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
-    return this.prepareAndSendEmail('smtp-error', data, user, tenant, severity, true);
   }
 
   public async sendOCPIPatchChargingStationsStatusesError(data: OCPIPatchChargingStationsStatusesErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
@@ -271,12 +266,13 @@ export default class EMailNotificationTask implements NotificationTask {
         });
       // For Unit Tests only: Tenant is deleted and email is not known thus this Logging statement is always failing with an invalid Tenant
       // eslint-disable-next-line no-empty
-      } catch (err) { }
-      let sendSmtpError = true;
+      } catch (err) {
+        // Ignore
+      }
+      let smtpFailed = true;
       if (error instanceof SMTPError) {
         const err: SMTPError = error;
         switch (err.smtp) {
-          // TODO: Add a fitting data structure to types to cope with SMTP returned codes
           case 421:
           case 432:
           case 450:
@@ -287,23 +283,13 @@ export default class EMailNotificationTask implements NotificationTask {
           case 510:
           case 511:
           case 550:
-            sendSmtpError = false;
+            smtpFailed = false;
             break;
         }
       }
-      // Notify on SMTP error
-      if (sendSmtpError) {
-        // TODO: Circular deps: src/notification/NotificationHandler.ts -> src/notification/email/EMailNotificationTask.ts -> src/notification/NotificationHandler.ts
-        void NotificationHandler.sendSmtpError(
-          tenant,
-          {
-            SMTPError: error,
-            evseDashboardURL: data.evseDashboardURL
-          }
-        );
-        if (!useSmtpClientBackup) {
-          await this.sendEmail(email, data, tenant, user, severity, true);
-        }
+      // Use email backup?
+      if (smtpFailed && !useSmtpClientBackup) {
+        await this.sendEmail(email, data, tenant, user, severity, true);
       }
     }
   }

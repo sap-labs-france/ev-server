@@ -6,7 +6,7 @@ import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import StripeHelpers, { StripeChargeOperationResult } from './StripeHelpers';
 import Transaction, { StartTransactionErrorCode } from '../../../types/Transaction';
 
-import AsyncTaskManager from '../../../async-task/AsyncTaskManager';
+import AsyncTaskBuilder from '../../../async-task/AsyncTaskBuilder';
 import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
 import BackendError from '../../../exception/BackendError';
@@ -20,6 +20,7 @@ import Logging from '../../../utils/Logging';
 import LoggingHelper from '../../../utils/LoggingHelper';
 import PricingEngine from '../../pricing/PricingEngine';
 import PricingHelper from '../../pricing/PricingHelper';
+import { Promise } from 'bluebird';
 import { Request } from 'express';
 import { ServerAction } from '../../../types/Server';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
@@ -927,7 +928,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       }
     }
     // Create and Save async task
-    await AsyncTaskManager.createAndSaveAsyncTasks({
+    await AsyncTaskBuilder.createAndSaveAsyncTasks({
       name: AsyncTasks.BILL_TRANSACTION,
       action: ServerAction.BILLING_TRANSACTION,
       type: AsyncTaskType.TASK,

@@ -87,10 +87,6 @@
          "title":"Odeslat nabíjecí stanice platformě Hubject",
          "body":"Převod stavů nabíjecí stanice na roamingovou platformu Hubject se u organizace '{{tenantName}}' nezdařil, zkontrolujte protokol"
       },
-      "smtpError":{
-         "title":"Chyba e-mailového serveru",
-         "body":"Primární e-mailový server selhal u organizace '{{tenantName}}‘, zkontrolujte konfiguraci"
-      },
       "optimalChargeReached":{
          "title":"Dosaženo optimálního nabití",
          "body":"Vaše elektrické vozidlo, které je připojeno k nabíjecí stanici '{{chargeBoxID}}', konektor '{{connectorId}}', dosáhlo u organizace '{{tenantName}}' optimálního nabití (85 %) "

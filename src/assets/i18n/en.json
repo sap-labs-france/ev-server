@@ -87,10 +87,6 @@
       "title": "Hubject Send Charging Stations",
       "body": "The transfer to the Hubject roaming platform of the charging station's data has failed in organization '{{tenantName}}', check the logs"
     },
-    "smtpError": {
-      "title": "Email Server Error",
-      "body": "The primary email server has failed in organization '{{tenantName}}', check the configuration"
-    },
     "optimalChargeReached": {
       "title": "Optimal Charge Reached",
       "body": "Your electric vehicle, which is connected to '{{chargeBoxID}}', connector '{{connectorId}}', reached its optimal charge (85%) in organization '{{tenantName}}'"

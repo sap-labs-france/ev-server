@@ -11,6 +11,7 @@ import { DataResult } from '../../types/DataResult';
 import { Decimal } from 'decimal.js';
 import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
+import { Promise } from 'bluebird';
 import { Request } from 'express';
 import { ServerAction } from '../../types/Server';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
