@@ -137,7 +137,7 @@ export default class LockingManager {
           await LockingStorage.insertLock(lock);
           return;
         } catch {
-          await Utils.sleep(1000);
+          await Utils.sleep(250 + Math.trunc(Math.random() * 2000));
         }
       } while (Date.now() < timeoutDateMs);
       throw Error(`Lock acquisition timeout ${timeoutSecs} secs reached`);

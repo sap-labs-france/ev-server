@@ -1,3 +1,5 @@
+import express, { NextFunction, Request, Response } from 'express';
+
 import AuthService from './v1/service/AuthService';
 import CentralRestServerService from './CentralRestServerService';
 import CentralSystemRestServiceConfiguration from '../../types/configuration/CentralSystemRestServiceConfiguration';
@@ -5,7 +7,7 @@ import ExpressUtils from '../ExpressUtils';
 import GlobalRouter from './v1/router/GlobalRouter';
 import Logging from '../../utils/Logging';
 import { ServerUtils } from '../ServerUtils';
-import express from 'express';
+import { StatusCodes } from 'http-status-codes';
 import http from 'http';
 import sanitize from 'express-sanitizer';
 
@@ -36,6 +38,13 @@ export default class CentralRestServer {
     this.expressApplication.all('/client/util/:action',
       Logging.traceExpressRequest.bind(this),
       CentralRestServerService.restServiceUtil.bind(this));
+    // Unknwon Route
+    this.expressApplication.use('*', (req: Request, res: Response, next: NextFunction) => {
+      if (!res.headersSent) {
+        res.sendStatus(StatusCodes.NOT_FOUND);
+        next();
+      }
+    });
     // Post init
     ExpressUtils.postInitApplication(this.expressApplication);
     // Create HTTP server to serve the express app
