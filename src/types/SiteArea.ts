@@ -42,4 +42,5 @@ export default interface SiteArea extends CreatedUpdatedProps, SiteAreaAuthoriza
   siteAreaParentID?: string;
   distanceMeters?: number;
   openingTimes?: OpeningTimes;
+  siteAreaChildren?: SiteArea[];
 }

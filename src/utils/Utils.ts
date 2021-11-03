@@ -9,6 +9,7 @@ import User, { UserRole, UserStatus } from '../types/User';
 import crypto, { CipherGCMTypes } from 'crypto';
 
 import Address from '../types/Address';
+import AppError from '../exception/AppError';
 import { AxiosError } from 'axios';
 import BackendError from '../exception/BackendError';
 import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
@@ -21,6 +22,7 @@ import Logging from './Logging';
 import QRCode from 'qrcode';
 import { Request } from 'express';
 import { ServerAction } from '../types/Server';
+import SiteArea from '../types/SiteArea';
 import Tag from '../types/Tag';
 import UserToken from '../types/UserToken';
 import { WebSocketCloseEventStatusString } from '../types/WebSocket';
@@ -1636,5 +1638,45 @@ export default class Utils {
       detailedMessages: { data }
     });
     return null;
+  }
+
+  public static buildSubSiteAreaTree(siteAreaList: SiteArea[]): Partial<SiteArea>[] {
+    const hashTable = Object.create(null);
+    siteAreaList.forEach((siteArea) => {
+      hashTable[siteArea.id] = { ...siteArea, siteAreaChildren: [] };
+    });
+    const dataTree = [];
+    siteAreaList.forEach((siteArea) => {
+      if (siteArea.siteAreaParentID) {
+        if (!Utils.isNullOrUndefined(hashTable[siteArea.siteAreaParentID]) &&
+          hashTable[siteArea.siteAreaParentID].smartCharging === hashTable[siteArea.id].smartCharging &&
+          hashTable[siteArea.siteAreaParentID].siteID === hashTable[siteArea.id].siteID) {
+          hashTable[siteArea.siteAreaParentID].siteAreaChildren.push(hashTable[siteArea.id]);
+        } else {
+          throw AppError;
+        }
+      } else {
+        dataTree.push(hashTable[siteArea.id]);
+      }
+    });
+    const count = { value: 0 };
+    for (const tree of dataTree) {
+      count.value++;
+      this.countElements(tree, count);
+      // count += this.countElements(tree, count);
+    }
+    if (count.value !== siteAreaList.length) {
+      throw AppError;
+    }
+    return dataTree;
+  }
+
+  private static countElements(siteArea: Partial<SiteArea>, count: { value: number }) {
+    if (siteArea.siteAreaChildren) {
+      for (const child of siteArea.siteAreaChildren) {
+        count.value++;
+        this.countElements(child, count);
+      }
+    }
   }
 }

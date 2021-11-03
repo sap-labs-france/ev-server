@@ -374,57 +374,22 @@ export default class SiteAreaService {
     siteArea.siteID = filteredRequest.siteID;
     siteArea.smartCharging = filteredRequest.smartCharging;
     siteArea.accessControl = filteredRequest.accessControl;
+    siteArea.siteAreaParentID = filteredRequest.siteAreaParentID;
+    const siteAreas = await SiteAreaStorage.getSiteAreas(req.tenant, { siteIDs: [siteArea.siteID] }, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'siteAreaParentID', 'siteID', 'smartCharging', 'name']);
     // Check site area chain validity
-    if (!Utils.isNullOrUndefined(filteredRequest.siteAreaParentID)) {
-      siteArea.siteAreaParentID = filteredRequest.siteAreaParentID;
-      const siteAreas = await SiteAreaStorage.getSiteAreas(req.tenant, { siteIDs: [siteArea.siteID] }, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'siteAreaParentID', 'siteID', 'smartCharging']);
-      const siteAreaChain = [];
-      // Check for child
-      const siteAreaChild = siteAreas.result.find((x) => x.siteAreaParentID === siteArea.id);
-      if (!Utils.isNullOrUndefined(siteAreaChild)) {
-        siteAreaChain.push(siteAreaChild);
-        const index = siteAreas.result.findIndex((X) => X.id === siteArea.id);
-        siteAreas[index] = { id: siteArea.id, siteAreaParentID: siteArea.siteAreaParentID, siteID: siteArea.siteID, smartCharging: siteArea.smartCharging };
-      } else {
-        siteAreaChain.push([{ id: siteArea.id, siteAreaParentID: siteArea.siteAreaParentID, siteID: siteArea.siteID, smartCharging: siteArea.smartCharging }]);
-      }
-      for (let i = 0; i < siteAreaChain.length; i++) {
-        const parentSiteArea = siteAreas.result.find((x) => x.id === siteAreaChain[i].siteAreaParentID);
-        // Check for circular structure
-        if (!Utils.isNullOrUndefined(parentSiteArea) && siteAreaChain.some((x) => x.id === parentSiteArea.siteAreaParentID)) {
-          throw new AppError({
-            source: Constants.CENTRAL_SERVER,
-            action: action,
-            errorCode: HTTPError.SUB_SITE_AREA_ERROR,
-            message: 'A circular structure has been detected in the site area chain',
-            module: MODULE_NAME, method: 'handleUpdateSiteArea',
-            user: req.user, actionOnUser: req.user
-          });
-        // Check for same site assignment
-        } else if (!Utils.isNullOrUndefined(parentSiteArea) && parentSiteArea?.siteID !== siteAreaChain[i].siteID) {
-          throw new AppError({
-            source: Constants.CENTRAL_SERVER,
-            action: action,
-            errorCode: HTTPError.SUB_SITE_AREA_ERROR,
-            message: 'All site areas of a chain need to be assigned to the same site',
-            module: MODULE_NAME, method: 'handleUpdateSiteArea',
-            user: req.user, actionOnUser: req.user
-          });
-        // Check properties
-        } else if (!Utils.isNullOrUndefined(parentSiteArea) && parentSiteArea?.smartCharging !== siteAreaChain[i].smartCharging) {
-          throw new AppError({
-            source: Constants.CENTRAL_SERVER,
-            action: action,
-            errorCode: HTTPError.SUB_SITE_AREA_ERROR,
-            message: 'All site areas of a chain need to have the smart charging enablement',
-            module: MODULE_NAME, method: 'handleUpdateSiteArea',
-            user: req.user, actionOnUser: req.user
-          });
-        // Add next site area to chain
-        } else if (!Utils.isNullOrUndefined(parentSiteArea?.siteAreaParentID)) {
-          siteAreaChain.push({ id: parentSiteArea.id, siteAreaParentID: parentSiteArea.siteAreaParentID, siteID: siteArea.siteID, smartCharging: siteArea.smartCharging });
-        }
-      }
+    try {
+      const index = siteAreas.result.findIndex((X) => X.id === siteArea.id);
+      siteAreas[index] = { id: siteArea.id, siteAreaParentID: siteArea.siteAreaParentID, siteID: siteArea.siteID, smartCharging: siteArea.smartCharging };
+      Utils.buildSubSiteAreaTree(siteAreas.result);
+    } catch {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: action,
+        errorCode: HTTPError.SUB_SITE_AREA_ERROR,
+        message: 'Error occurred while updating SiteArea. All sub site areas need to have the same site and smart charging enablement. Circular structures are not allowed',
+        module: MODULE_NAME, method: 'handleUpdateSiteArea',
+        user: req.user
+      });
     }
     siteArea.lastChangedBy = { 'id': req.user.id };
     siteArea.lastChangedOn = new Date();
