@@ -379,7 +379,6 @@ export default class SiteAreaService {
       Utils.buildSubSiteAreaTree(siteAreas.result);
     } catch {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: action,
         errorCode: HTTPError.SUB_SITE_AREA_ERROR,
         message: 'Error occurred while updating SiteArea. All sub site areas need to have the same site and smart charging enablement. Circular structures are not allowed',
