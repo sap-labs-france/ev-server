@@ -192,15 +192,6 @@ export default class LockingHelper {
     return lock;
   }
 
-  public static async acquireChargingStationConnectionLock(tenantID: string): Promise<Lock | null> {
-    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.CHARGING_STATION,
-      'json-connection', Constants.CHARGING_STATION_CONNECTION_LOCK_SECS);
-    if (!(await LockingManager.acquire(lock, Constants.CHARGING_STATION_CONNECTION_LOCK_SECS * 2))) {
-      return null;
-    }
-    return lock;
-  }
-
   private static async acquireOCPIEndpointActionLock(tenantID: string, ocpiEndpoint: OCPIEndpoint, action: string): Promise<Lock | null> {
     const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.OCPI_ENDPOINT, `${ocpiEndpoint.id}-${action}`);
     if (!(await LockingManager.acquire(lock))) {

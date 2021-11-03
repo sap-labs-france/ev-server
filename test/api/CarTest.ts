@@ -133,7 +133,6 @@ describe('Car', function() {
           }), false
         );
         expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
-        expect(response.data.message).to.equal('Vin Car is mandatory');
       });
 
       it('Should not be able to create a new car without a license plate', async () => {
@@ -145,7 +144,6 @@ describe('Car', function() {
           }), false
         );
         expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
-        expect(response.data.message).to.equal('License Plate is mandatory');
       });
 
       it('Should not be able to create a new car without a car type', async () => {
@@ -168,7 +166,6 @@ describe('Car', function() {
           }), false
         );
         expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
-        expect(response.data.message).to.equal('Car Catalog ID is mandatory');
       });
 
       it('Should not be able to create a new car with existent VIN and License Plate', async () => {

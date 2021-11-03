@@ -7,7 +7,7 @@ import ChargingStationClientFactory from '../../client/ocpp/ChargingStationClien
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
+import OCPPCommon from '../../server/ocpp/utils/OCPPCommon';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
@@ -114,7 +114,7 @@ export default abstract class ChargingStationVendorIntegration {
         detailedMessages: { maxAmps, ocppParam: chargePoint.ocppParamForPowerLimitation, ocppLimitAmpValue: ocppLimitAmpValue }
       });
       // Change the OCPP Parameter
-      result = await OCPPUtils.requestChangeChargingStationOcppParameter(tenant, chargingStation, {
+      result = await OCPPCommon.requestChangeChargingStationOcppParameter(tenant, chargingStation, {
         key: chargePoint.ocppParamForPowerLimitation,
         value: ocppLimitAmpValue.toString()
       });
