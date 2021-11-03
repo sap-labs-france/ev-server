@@ -941,10 +941,10 @@ export default class OCPIUtilsService {
       case '60633bb1834fed0016310189':
         // Check Site Area
         switch (chargingStation?.siteAreaID) {
-          // ShowRoom Marcel Pagnol II
+          // A Droite Park Marcel Pagnol
           case '60d5a20c9deee6001419cabb':
             switch (chargingStation?.id) {
-              case 'IES-Marcel-Pagnol-Boussy-Saint-Antoine':
+              case 'BMPBA':
                 // Type 2
                 if (connector.type === ConnectorType.TYPE_2) {
                   return 'STE-AC_22k';
@@ -953,6 +953,19 @@ export default class OCPIUtilsService {
                 return 'STE-DC_25k';
               case 'P91800RMRCLPGNL22AC':
                 return 'STE-AC_22k';
+            }
+            return defaultTariff;
+          // A Droite Park Les Bains des Docks
+          case '61697ae8d9c095772ca9a771':
+            switch (chargingStation?.id) {
+              case 'HBDBA':
+              case 'HBDBB':
+                // Type 2
+                if (connector.type === ConnectorType.TYPE_2) {
+                  return 'STE-AC_22k';
+                }
+                // DC
+                return 'STE-DC_60k';
             }
             return defaultTariff;
         }

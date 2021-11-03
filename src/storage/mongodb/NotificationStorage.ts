@@ -1,7 +1,6 @@
 import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
-import Cypher from '../../utils/Cypher';
 import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
@@ -130,7 +129,7 @@ export default class NotificationStorage {
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     const ocpiEndpointMDB: any = {
-      _id: Cypher.hash(`${notificationToSave.sourceId}~${notificationToSave.channel}`),
+      _id: Utils.hash(`${notificationToSave.sourceId}~${notificationToSave.channel}`),
       userID: DatabaseUtils.convertToObjectID(notificationToSave.userID),
       timestamp: Utils.convertToDate(notificationToSave.timestamp),
       channel: notificationToSave.channel,

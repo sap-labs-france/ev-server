@@ -30,7 +30,6 @@ import Tag from '../../../../types/Tag';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
-import UtilsService from './UtilsService';
 import _ from 'lodash';
 
 const MODULE_NAME = 'AuthorizationService';
@@ -231,6 +230,9 @@ export default class AuthorizationService {
 
   public static async addUsersAuthorizations(tenant: Tenant, userToken: UserToken, users: UserDataResult, authorizationFilter: AuthorizationFilter): Promise<void> {
     users.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.CREATE, authorizationFilter);
+    users.canExport = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USERS, Action.EXPORT, authorizationFilter);
+    users.canImport = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USERS, Action.IMPORT, authorizationFilter);
+    users.canSynchronizeBilling = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USERS, Action.SYNCHRONIZE_BILLING_USERS, authorizationFilter);
     // Enrich
     for (const user of users.result) {
       await AuthorizationService.addUserAuthorizations(tenant, userToken, user, authorizationFilter);
@@ -688,7 +690,7 @@ export default class AuthorizationService {
   private static filterProjectFields(authFields: string[], httpProjectField: string): string[] {
     let fields = authFields;
     // Only allow projected fields
-    const httpProjectFields = UtilsService.httpFilterProjectToArray(httpProjectField);
+    const httpProjectFields = AuthorizationService.httpFilterProjectToArray(httpProjectField);
     if (!Utils.isEmptyArray(httpProjectFields)) {
       fields = authFields.filter(
         (authField) => httpProjectFields.includes(authField));
@@ -846,5 +848,11 @@ export default class AuthorizationService {
     authorizationFilters.projectFields = AuthorizationService.filterProjectFields(authResult.fields,
       filteredRequest.ProjectFields);
     return authorizationFilters;
+  }
+
+  private static httpFilterProjectToArray(httpProjectFields: string): string[] {
+    if (httpProjectFields) {
+      return httpProjectFields.split('|');
+    }
   }
 }
