@@ -82,8 +82,6 @@ export default class Bootstrap {
       }
       // Connect to the Database
       await Bootstrap.database.start();
-      // Keep a global reference
-      global.database = Bootstrap.database;
       // Log
       await this.logDuration(startTimeMillis, 'Connected to the Database successfully');
 
