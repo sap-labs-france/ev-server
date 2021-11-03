@@ -5614,7 +5614,6 @@
                     "sendChargingStationStatusError": true,
                     "sendChargingStationRegistered": false,
                     "sendOcpiPatchStatusError": false,
-                    "sendSmtpError": false,
                     "sendUserAccountInactivity": false,
                     "sendPreparingSessionNotStarted": false,
                     "sendOfflineChargingStations": false,
@@ -7056,10 +7055,13 @@
             "$ref": "#/components/parameters/LogHost"
           },
           {
-            "$ref": "#/components/parameters/LogType"
+            "$ref": "#/components/parameters/LogAction"
           },
           {
-            "$ref": "#/components/parameters/LogAction"
+            "$ref": "#/components/parameters/ChargingStationID"
+          },
+          {
+            "$ref": "#/components/parameters/SiteID"
           },
           {
             "$ref": "#/components/parameters/UserID"
@@ -7216,10 +7218,13 @@
             "$ref": "#/components/parameters/LogHost"
           },
           {
-            "$ref": "#/components/parameters/LogType"
+            "$ref": "#/components/parameters/LogAction"
           },
           {
-            "$ref": "#/components/parameters/LogAction"
+            "$ref": "#/components/parameters/ChargingStationID"
+          },
+          {
+            "$ref": "#/components/parameters/SiteID"
           },
           {
             "$ref": "#/components/parameters/UserID"
@@ -10206,9 +10211,6 @@
           "ocppProtocol": {
             "type": "string"
           },
-          "cfApplicationIDAndInstanceIndex": {
-            "type": "string"
-          },
           "lastSeen": {
             "type": "string"
           },
@@ -10796,9 +10798,6 @@
           "sendOcpiPatchStatusError": {
             "type": "boolean"
           },
-          "sendSmtpError": {
-            "type": "boolean"
-          },
           "sendOfflineChargingStations": {
             "type": "boolean"
           },
@@ -11127,6 +11126,15 @@
         "in": "query",
         "name": "TagID",
         "description": "Pipe separated Tag IDs",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "SiteID": {
+        "in": "query",
+        "name": "SiteID",
+        "description": "Site ID",
         "required": false,
         "schema": {
           "type": "string"
@@ -11518,7 +11526,16 @@
         "name": "Source",
         "description": "Log source",
         "schema": {
-          "type": "string"
+          "type": "string",
+          "enum": [
+            "Rest",
+            "Soap",
+            "Json",
+            "Ocpi",
+            "Oicp",
+            "OData",
+            "Batch"
+          ]
         }
       },
       "LogHost": {
@@ -11527,18 +11544,6 @@
         "description": "Log host",
         "schema": {
           "type": "string"
-        }
-      },
-      "LogType": {
-        "in": "query",
-        "name": "Type",
-        "description": "Log type",
-        "schema": {
-          "type": "string",
-          "enum": [
-            "R",
-            "S"
-          ]
         }
       },
       "LogAction": {

@@ -145,11 +145,7 @@
           "type": "boolean",
           "sanitize": "mongo"
         },
-        "sendSmtpAuthError": {
-          "type": "boolean",
-          "sanitize": "mongo"
-        },
-        "sendSmtpError": {
+        "sendOicpPatchStatusError": {
           "type": "boolean",
           "sanitize": "mongo"
         },

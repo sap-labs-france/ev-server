@@ -8,7 +8,6 @@ import UserToken from '../types/UserToken';
 
 export default class AppError extends Error {
   constructor(readonly params: {
-    source: string;
     message: string;
     errorCode: HTTPError | StatusCodes;
     module: string;

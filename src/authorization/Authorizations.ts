@@ -727,7 +727,7 @@ export default class Authorizations {
     const authDefinition = AuthorizationsManager.getInstance();
     const result = await authDefinition.canPerformAction(loggedUser.rolesACL, entity, action, context);
     if (!result.authorized && Authorizations.getConfiguration().debug) {
-      void Logging.logSecurityInfo({
+      void Logging.logInfo({
         tenantID: loggedUser.tenantID, user: loggedUser,
         action: ServerAction.AUTHORIZATIONS,
         module: MODULE_NAME, method: 'canPerformAction',
@@ -743,7 +743,6 @@ export default class Authorizations {
       // Check Site Area
       if (!chargingStation.siteAreaID || !chargingStation.siteArea) {
         throw new BackendError({
-          source: chargingStation.id,
           chargingStationID: chargingStation.id,
           siteID: chargingStation.siteID,
           siteAreaID: chargingStation.siteAreaID,
@@ -757,7 +756,6 @@ export default class Authorizations {
       // Check Site
       if (!chargingStation.siteID) {
         throw new BackendError({
-          source: chargingStation.id,
           chargingStationID: chargingStation.id,
           siteID: chargingStation.siteID,
           siteAreaID: chargingStation.siteAreaID,
@@ -793,7 +791,7 @@ export default class Authorizations {
         return { user };
       }
       // Create the Tag as inactive and abort
-      await this.notifyUnknownBadgeHasBeenUsedAndAbort(action, tenant, tagID, chargingStation);
+      this.notifyUnknownBadgeHasBeenUsedAndAbort(action, tenant, tagID, chargingStation);
     }
     // Get Authorized User
     const user = await this.checkAndGetAuthorizedUserFromTag(action, tenant, chargingStation, transaction, tag, authAction);
@@ -913,7 +911,6 @@ export default class Authorizations {
               siteAreaID: chargingStation.siteAreaID,
               companyID: chargingStation.companyID,
               chargingStationID: chargingStation.id,
-              source: chargingStation.id,
               tenantID: tenant.id, action,
               message: `${Utils.buildConnectorInfo(connector.connectorId, transaction?.id)} Valid Remote Authorization found for Tag ID '${tag.ocpiToken.uid}'`,
               module: MODULE_NAME, method: 'checkOCPIAuthorizedUser',
@@ -944,7 +941,6 @@ export default class Authorizations {
     // User status
     if (user.status !== UserStatus.ACTIVE) {
       throw new BackendError({
-        source: chargingStation.id,
         chargingStationID: chargingStation.id,
         siteID: chargingStation.siteID,
         siteAreaID: chargingStation.siteAreaID,
@@ -972,7 +968,6 @@ export default class Authorizations {
       };
       if (!await Authorizations.canPerformActionOnChargingStation(userToken, authAction, chargingStation, context)) {
         throw new BackendError({
-          source: chargingStation.id,
           chargingStationID: chargingStation.id,
           siteID: chargingStation.siteID,
           siteAreaID: chargingStation.siteAreaID,
@@ -989,7 +984,7 @@ export default class Authorizations {
     return user;
   }
 
-  private static async notifyUnknownBadgeHasBeenUsedAndAbort(
+  private static notifyUnknownBadgeHasBeenUsedAndAbort(
       action: ServerAction, tenant: Tenant, tagID: string, chargingStation: ChargingStation) {
     const tag: Tag = {
       id: tagID,
@@ -1000,7 +995,7 @@ export default class Authorizations {
       default: false
     };
     // Notify (Async)
-    await NotificationHandler.sendUnknownUserBadged(
+    void NotificationHandler.sendUnknownUserBadged(
       tenant,
       Utils.generateUUID(),
       chargingStation,
@@ -1014,7 +1009,6 @@ export default class Authorizations {
       }
     ).catch(() => { });
     throw new BackendError({
-      source: chargingStation.id,
       chargingStationID: chargingStation.id,
       siteID: chargingStation.siteID,
       siteAreaID: chargingStation.siteAreaID,
@@ -1058,7 +1052,6 @@ export default class Authorizations {
       // Inactive Tag
       if (!tag.active) {
         throw new BackendError({
-          source: chargingStation.id,
           chargingStationID: chargingStation.id,
           siteID: chargingStation.siteID,
           siteAreaID: chargingStation.siteAreaID,
@@ -1073,7 +1066,6 @@ export default class Authorizations {
       // No User
       if (!tag.user) {
         throw new BackendError({
-          source: chargingStation.id,
           chargingStationID: chargingStation.id,
           siteID: chargingStation.siteID,
           siteAreaID: chargingStation.siteAreaID,
@@ -1128,7 +1120,7 @@ export default class Authorizations {
     const authDefinition = AuthorizationsManager.getInstance();
     const authorized = await authDefinition.can(loggedUser.rolesACL, entity, action, context);
     if (!authorized && Authorizations.getConfiguration().debug) {
-      void Logging.logSecurityInfo({
+      void Logging.logInfo({
         tenantID: loggedUser.tenantID, user: loggedUser,
         action: ServerAction.AUTHORIZATIONS,
         module: MODULE_NAME, method: 'canPerformAction',

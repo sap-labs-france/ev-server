@@ -1,7 +1,6 @@
 import Lock, { LockEntity, LockType } from '../types/Locking';
 
 import BackendError from '../exception/BackendError';
-import Cypher from '../utils/Cypher';
 import LockingStorage from '../storage/mongodb/LockingStorage';
 import Logging from '../utils/Logging';
 import { ServerAction } from '../types/Server';
@@ -10,11 +9,6 @@ import chalk from 'chalk';
 
 const MODULE_NAME = 'LockingManager';
 
-/**
- * Namespace based runtime locking primitive management with a DB storage for sharing purpose among different hosts.
- * Implemented lock types:
- *  - E = mutually exclusive
- */
 export default class LockingManager {
   public static createExclusiveLock(tenantID: string, entity: LockEntity, key: string, lockValiditySecs = 600): Lock {
     return this.createLock(tenantID, entity, key, LockType.EXCLUSIVE, lockValiditySecs);
@@ -119,13 +113,13 @@ export default class LockingManager {
     }
     // Build lock
     const lock: Lock = {
-      id: Cypher.hash(`${tenantID}~${entity}~${key.toLowerCase()}~${type}`),
+      id: Utils.hash(`${tenantID}~${entity}~${key.toLowerCase()}~${type}`),
       tenantID,
       entity: entity,
       key: key.toLowerCase(),
       type: type,
       timestamp: new Date(),
-      hostname: Utils.getHostname()
+      hostname: Utils.getHostName()
     };
     // Set expiration date
     if (lockValiditySecs > 0) {
@@ -143,7 +137,7 @@ export default class LockingManager {
           await LockingStorage.insertLock(lock);
           return;
         } catch {
-          await Utils.sleep(1000);
+          await Utils.sleep(250 + Math.trunc(Math.random() * 2000));
         }
       } while (Date.now() < timeoutDateMs);
       throw Error(`Lock acquisition timeout ${timeoutSecs} secs reached`);

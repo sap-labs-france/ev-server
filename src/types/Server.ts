@@ -267,7 +267,6 @@ export enum ServerAction {
   TRANSACTION_STARTED = 'TransactionStarted',
   VERIFICATION_EMAIL = 'VerificationEmail',
   VERIFICATION_EMAIL_USER_IMPORT = 'VerificationEmailUserImport',
-  EMAIL_SERVER_ERROR = 'EmailServerError',
   PATCH_EVSE_STATUS_ERROR = 'PatchEVSEStatusError',
   PATCH_EVSE_ERROR = 'PatchEVSEError',
   USER_ACCOUNT_INACTIVITY = 'UserAccountInactivity',
@@ -614,7 +613,19 @@ export enum ServerProtocol {
   WSS = 'wss'
 }
 
+export enum ServerType {
+  REST_SERVER = 'Rest',
+  SOAP_SERVER = 'Soap',
+  JSON_SERVER = 'Json',
+  OCPI_SERVER = 'Ocpi',
+  OICP_SERVER = 'Oicp',
+  ODATA_SERVER = 'OData',
+  BATCH_SERVER = 'Batch',
+  CENTRAL_SERVER = 'CentralServer',
+}
+
 export enum WSServerProtocol {
   OCPP16 = 'ocpp1.6',
   REST = 'rest'
 }
+

@@ -1,7 +1,7 @@
 import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, CarConnectorSettingsType, CryptoKeyProperties, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
 import { Car, CarCatalog } from '../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion, OCPPVersionURLPath } from '../types/ocpp/OCPPServer';
-import ChargingStation, { ChargePoint, ChargingStationEndpoint, ChargingStationTemplate, Connector, ConnectorCurrentLimitSource, CurrentType, Voltage } from '../types/ChargingStation';
+import ChargingStation, { ChargePoint, ChargingStationEndpoint, Connector, ConnectorCurrentLimitSource, CurrentType, Voltage } from '../types/ChargingStation';
 import PerformanceRecord, { PerformanceRecordGroup } from '../types/Performance';
 import Tenant, { TenantComponentContent, TenantComponents } from '../types/Tenant';
 import Transaction, { CSPhasesUsed, InactivityStatus } from '../types/Transaction';
@@ -11,13 +11,11 @@ import crypto, { CipherGCMTypes } from 'crypto';
 import Address from '../types/Address';
 import { AxiosError } from 'axios';
 import BackendError from '../exception/BackendError';
-import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
 import Configuration from './Configuration';
 import ConnectorStats from '../types/ConnectorStats';
 import Constants from './Constants';
-import Cypher from './Cypher';
 import { Decimal } from 'decimal.js';
-import Logging from './Logging';
+import { Promise } from 'bluebird';
 import QRCode from 'qrcode';
 import { Request } from 'express';
 import { ServerAction } from '../types/Server';
@@ -26,8 +24,6 @@ import UserToken from '../types/UserToken';
 import { WebSocketCloseEventStatusString } from '../types/WebSocket';
 import _ from 'lodash';
 import bcrypt from 'bcryptjs';
-import cfenv from 'cfenv';
-import chalk from 'chalk';
 import fs from 'fs';
 import global from '../types/GlobalType';
 import http from 'http';
@@ -39,39 +35,7 @@ import tzlookup from 'tz-lookup';
 import { v4 as uuid } from 'uuid';
 import validator from 'validator';
 
-const MODULE_NAME = 'Utils';
-
 export default class Utils {
-  public static async updateChargingStationTemplatesFromFile(): Promise<void> {
-    // Read File
-    let chargingStationTemplates: ChargingStationTemplate[];
-    try {
-      chargingStationTemplates = JSON.parse(fs.readFileSync(Configuration.getChargingStationTemplatesConfig().templatesFilePath, 'utf8'));
-    } catch (error) {
-      await Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, ServerAction.UPDATE_CHARGING_STATION_TEMPLATES, error);
-      return;
-    }
-    // Delete all previous templates
-    await ChargingStationStorage.deleteChargingStationTemplates();
-    // Update Templates
-    for (const chargingStationTemplate of chargingStationTemplates) {
-      try {
-        // Set the hashes
-        chargingStationTemplate.hash = Cypher.hash(JSON.stringify(chargingStationTemplate));
-        chargingStationTemplate.hashTechnical = Cypher.hash(JSON.stringify(chargingStationTemplate.technical));
-        chargingStationTemplate.hashCapabilities = Cypher.hash(JSON.stringify(chargingStationTemplate.capabilities));
-        chargingStationTemplate.hashOcppStandard = Cypher.hash(JSON.stringify(chargingStationTemplate.ocppStandardParameters));
-        chargingStationTemplate.hashOcppVendor = Cypher.hash(JSON.stringify(chargingStationTemplate.ocppVendorParameters));
-        // Save
-        await ChargingStationStorage.saveChargingStationTemplate(chargingStationTemplate);
-      } catch (error) {
-        error.message = `Charging Station Template ID '${chargingStationTemplate.id}' is not valid: ${error.message as string}`;
-        await Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, ServerAction.UPDATE_CHARGING_STATION_TEMPLATES, error);
-        Utils.isDevelopmentEnv() && console.error(chalk.red(error.message));
-      }
-    }
-  }
-
   public static buildConnectorInfo(connectorID: number, transactionID?: number): string {
     let connectorInfo = `Connector ID '${connectorID}' >`;
     if (transactionID > 0) {
@@ -1122,20 +1086,7 @@ export default class Utils {
     if (Utils.isNullOrUndefined(object)) {
       return object;
     }
-    let cloneObject: T = object;
-    try {
-      cloneObject = _.cloneDeep(object);
-    } catch (error) {
-      void Logging.logError({
-        tenantID: Constants.DEFAULT_TENANT,
-        module: MODULE_NAME,
-        method: 'cloneObject',
-        action: ServerAction.LOGGING,
-        message: `Failed to clone object with error: ${error}`,
-        detailedMessages: { error }
-      });
-    }
-    return cloneObject;
+    return _.cloneDeep(object);
   }
 
   public static getConnectorLetterFromConnectorID(connectorID: number): string {
@@ -1160,7 +1111,7 @@ export default class Utils {
   }
 
   public static generateToken(email: string): string {
-    return Cypher.hash(`${crypto.randomBytes(256).toString('hex')}}~${new Date().toISOString()}~${email}`);
+    return Utils.hash(`${crypto.randomBytes(256).toString('hex')}}~${new Date().toISOString()}~${email}`);
   }
 
   public static getRoleNameFromRoleID(roleID: string): string {
@@ -1256,7 +1207,7 @@ export default class Utils {
   }
 
   public static hashPassword(password: string): string {
-    return Cypher.hash(password);
+    return Utils.hash(password);
   }
 
   public static isValidDate(date: any): boolean {
@@ -1302,7 +1253,7 @@ export default class Utils {
   }
 
   public static getChargingStationEndpoint() : ChargingStationEndpoint {
-    return Configuration.isCloudFoundry() ? ChargingStationEndpoint.SCP : ChargingStationEndpoint.AWS;
+    return ChargingStationEndpoint.AWS;
   }
 
   public static async generateQrCode(data: string) :Promise<string> {
@@ -1535,25 +1486,6 @@ export default class Utils {
     return PerformanceRecordGroup.UNKNOWN;
   }
 
-  public static serializeOriginalSchema(originalSchema: Record<string, unknown>): string {
-    // Check for schema missing vars
-    if (Utils.isDevelopmentEnv()) {
-      return JSON.stringify(originalSchema);
-    }
-  }
-
-  public static checkOriginalSchema(originalSchema: string, validatedSchema: Record<string, unknown>): void {
-    if (Utils.isDevelopmentEnv() && originalSchema !== JSON.stringify(validatedSchema)) {
-      console.error(chalk.red('===================================='));
-      console.error(chalk.red('Data changed after schema validation'));
-      console.error(chalk.red('Original Data:'));
-      console.error(chalk.red(originalSchema));
-      console.error(chalk.red('Validated Data:'));
-      console.error(chalk.red(JSON.stringify(validatedSchema)));
-      console.error(chalk.red('===================================='));
-    }
-  }
-
   public static buildPerformanceRecord(params: {
     tenantSubdomain?: string; durationMs?: number; resSizeKb?: number;
     reqSizeKb?: number; action: ServerAction|string; group?: PerformanceRecordGroup;
@@ -1562,7 +1494,7 @@ export default class Utils {
     const performanceRecord: PerformanceRecord = {
       tenantSubdomain: params.tenantSubdomain,
       timestamp: new Date(),
-      host: Utils.getHostname(),
+      host: Utils.getHostName(),
       action: params.action,
       group: params.group
     };
@@ -1587,17 +1519,27 @@ export default class Utils {
     if (params.httpResponseCode) {
       performanceRecord.httpResponseCode = params.httpResponseCode;
     }
-    if (global.serverName) {
-      performanceRecord.server = global.serverName;
+    if (global.serverType) {
+      performanceRecord.server = global.serverType;
     }
     return performanceRecord;
   }
 
-  public static getHostname(): string {
-    return Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname();
+  public static getHostName(): string {
+    return os.hostname();
   }
 
-  // when exporting values
+  public static getHostIP(): string {
+    const hostname = Utils.getHostName();
+    if (hostname.startsWith('ip-')) {
+      const hostnameParts = hostname.split('-');
+      if (hostnameParts.length > 4) {
+        const lastIPDigit = hostnameParts[4].split('.')[0];
+        return `${hostnameParts[1]}.${hostnameParts[2]}.${hostnameParts[3]}.${lastIPDigit}`;
+      }
+    }
+  }
+
   public static escapeCsvValue(value: any): string {
     // add double quote start and end
     // replace double quotes inside value to double double quotes to display double quote correctly in csv editor
@@ -1635,15 +1577,10 @@ export default class Utils {
       }
       return data;
     }
-    // Log
-    await Logging.logSecurityError({
-      tenantID,
-      module: MODULE_NAME,
-      method: 'sanitizeCSVExport',
-      action: ServerAction.EXPORT_TO_CSV,
-      message: 'No matching object type for CSV data sanitization',
-      detailedMessages: { data }
-    });
     return null;
+  }
+
+  public static hash(data: string): string {
+    return crypto.createHash('sha256').update(data).digest('hex');
   }
 }
