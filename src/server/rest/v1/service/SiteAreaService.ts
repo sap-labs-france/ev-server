@@ -375,7 +375,7 @@ export default class SiteAreaService {
     // Check site area chain validity
     try {
       const index = siteAreas.result.findIndex((X) => X.id === siteArea.id);
-      siteAreas[index] = { id: siteArea.id, siteAreaParentID: siteArea.siteAreaParentID, siteID: siteArea.siteID, smartCharging: siteArea.smartCharging };
+      siteAreas.result[index] = { id: siteArea.id, siteAreaParentID: siteArea.siteAreaParentID, siteID: siteArea.siteID, smartCharging: siteArea.smartCharging } as SiteArea;
       Utils.buildSubSiteAreaTree(siteAreas.result);
     } catch {
       throw new AppError({
