@@ -567,6 +567,7 @@ export default class ChargingStationStorage {
       capabilities: chargingStationToSave.capabilities,
       ocppStandardParameters: chargingStationToSave.ocppStandardParameters,
       ocppVendorParameters: chargingStationToSave.ocppVendorParameters,
+      tariffID: chargingStationToSave.tariffID,
     };
     // Add Created/LastChanged By
     DatabaseUtils.addLastChangedCreatedProps(chargingStationMDB, chargingStationToSave);

@@ -65,6 +65,7 @@ export default interface ChargingStation extends CreatedUpdatedProps, Authorizat
   distanceMeters?: number;
   ocpiData?: ChargingStationOcpiData;
   oicpData?: ChargingStationOicpData;
+  tariffID?: string;
 }
 
 export interface ChargingStationOcpiData {

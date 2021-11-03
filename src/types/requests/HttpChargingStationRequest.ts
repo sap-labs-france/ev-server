@@ -80,6 +80,7 @@ export interface HttpChargingStationParamsUpdateRequest {
     numberOfConnectedPhase: number;
     phaseAssignmentToGrid: PhaseAssignmentToGrid;
   }[];
+  tariffID?: string;
 }
 
 export interface HttpChargingStationRequest extends HttpByIDRequest {

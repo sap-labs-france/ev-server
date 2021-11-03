@@ -47,6 +47,10 @@
       "items": {
         "$ref": "chargingstation#/definitions/chargePoint"
       }
+    },
+    "tariffID": {
+      "type": "string",
+      "sanitize": "mongo"
     }
   },
   "required": [
