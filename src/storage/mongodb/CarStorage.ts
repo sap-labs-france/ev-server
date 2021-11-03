@@ -2,7 +2,6 @@ import { Car, CarCatalog, CarCatalogChargeAlternativeTable, CarCatalogChargeOpti
 import global, { DatabaseCount, FilterParams, Image } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
-import Cypher from '../../utils/Cypher';
 import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
@@ -320,7 +319,7 @@ export default class CarStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     // Save new image
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogimages').findOneAndReplace(
-      { _id: Cypher.hash(`${carImageToSave}~${carID}`), },
+      { _id: Utils.hash(`${carImageToSave}~${carID}`), },
       { carID: Utils.convertToInt(carID), image: carImageToSave },
       { upsert: true }
     );
@@ -667,24 +666,6 @@ export default class CarStorage {
     aggregation.push({
       $limit: (dbParams.limit > 0 && dbParams.limit < Constants.DB_RECORD_COUNT_CEIL) ? dbParams.limit : Constants.DB_RECORD_COUNT_CEIL
     });
-    // Car Image
-    aggregation.push({
-      $addFields: {
-        'carCatalog.image': {
-          $cond: {
-            if: { $gt: ['$carCatalog.image', null] }, then: {
-              $concat: [
-                `${Utils.buildRestServerURL()}/client/util/CarCatalogImage?ID=`,
-                '$carCatalog.id',
-                '&LastChangedOn=',
-                { $toString: '$carCatalog.lastChangedOn' }
-              ]
-            }, else: null
-          }
-
-        }
-      }
-    });
     // Users
     if (params.withUser) {
       DatabaseUtils.pushUserLookupInAggregation({
@@ -697,6 +678,24 @@ export default class CarStorage {
       DatabaseUtils.pushCarCatalogLookupInAggregation({
         tenantID: Constants.DEFAULT_TENANT, aggregation, localField: 'carCatalogID', foreignField: '_id',
         asField: 'carCatalog', oneToOneCardinality: true
+      });
+      // Car Image
+      aggregation.push({
+        $addFields: {
+          'carCatalog.image': {
+            $cond: {
+              if: { $gt: ['$carCatalog.image', null] }, then: {
+                $concat: [
+                  `${Utils.buildRestServerURL()}/client/util/CarCatalogImage?ID=`,
+                  '$carCatalog.id',
+                  '&LastChangedOn=',
+                  { $toString: '$carCatalog.lastChangedOn' }
+                ]
+              }, else: null
+            }
+
+          }
+        }
       });
     }
     // Add Created By / Last Changed By

@@ -2,7 +2,6 @@ import global, { FilterParams, GroupParams } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
 import Consumption from '../../types/Consumption';
-import Cypher from '../../utils/Cypher';
 import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
@@ -157,11 +156,6 @@ export default class ConsumptionStorage {
         assetID: DatabaseUtils.convertToObjectID(params.assetID)
       }
     });
-    // Convert Object ID to string
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
-    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Sort
     aggregation.push({
       $sort: { startedAt: -1 }
@@ -170,17 +164,18 @@ export default class ConsumptionStorage {
     aggregation.push({
       $limit: 1
     });
-    let consumption: Consumption = null;
+    // Convert Object ID to string
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Read DB
     const consumptionsMDB = await global.database.getCollection<Consumption>(tenant.id, 'consumptions')
       .aggregate<Consumption>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
-    if (!Utils.isEmptyArray(consumptionsMDB)) {
-      consumption = consumptionsMDB[0];
-    }
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getLastAssetConsumption', startTime, aggregation, consumptionsMDB);
-    return consumption;
+    return !Utils.isEmptyArray(consumptionsMDB) ? consumptionsMDB[0] : null;
   }
 
   static async getSiteAreaConsumptions(tenant: Tenant,
@@ -634,9 +629,9 @@ export default class ConsumptionStorage {
     if (!consumption.id) {
       const timestamp = Utils.convertToDate(consumption.endedAt);
       if (consumption.transactionId) {
-        consumption.id = Cypher.hash(`${consumption.transactionId}~${timestamp.toISOString()}`);
+        consumption.id = Utils.hash(`${consumption.transactionId}~${timestamp.toISOString()}`);
       } else if (consumption.assetID) {
-        consumption.id = Cypher.hash(`${consumption.assetID}~${timestamp.toISOString()}`);
+        consumption.id = Utils.hash(`${consumption.assetID}~${timestamp.toISOString()}`);
       } else {
         throw new Error('Consumption cannot be saved: no Transaction ID or Asset ID provided');
       }

@@ -29,8 +29,20 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
         ]
       },
-      { resource: Entity.LOGGINGS, action: Action.LIST },
-      { resource: Entity.LOGGING, action: Action.READ },
+      {
+        resource: Entity.LOGGINGS, action: Action.LIST,
+        attributes: [
+          'id', 'level', 'timestamp', 'type', 'source', 'host', 'action', 'message', 'chargingStationID', 'siteID',
+          'user.name', 'user.firstName', 'actionOnUser.name', 'actionOnUser.firstName', 'hasDetailedMessages', 'method', 'module',
+        ]
+      },
+      {
+        resource: Entity.LOGGING, action: Action.READ,
+        attributes: [
+          'id', 'level', 'timestamp', 'type', 'source', 'host', 'action', 'message', 'chargingStationID', 'siteID',
+          'user.name', 'user.firstName', 'actionOnUser.name', 'actionOnUser.firstName', 'hasDetailedMessages', 'detailedMessages'
+        ]
+      },
       { resource: Entity.TENANTS, action: Action.LIST },
       { resource: Entity.TENANT, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE] },
       {
@@ -70,7 +82,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn', 'createdBy',
           'lastChangedOn', 'lastChangedBy', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
-          'billingData.customerID', 'billingData.lastChangedOn', 'technical'
+          'billingData.customerID', 'billingData.lastChangedOn', 'technical', 'freeAccess'
         ]
       },
       {
@@ -95,7 +107,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.USER, action: [Action.READ, Action.CREATE, Action.UPDATE],
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
-          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address', 'technical'
+          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address', 'technical', 'freeAccess'
         ]
       },
       {
@@ -211,8 +223,20 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       { resource: Entity.REPORT, action: [Action.READ] },
-      { resource: Entity.LOGGINGS, action: Action.LIST },
-      { resource: Entity.LOGGING, action: Action.READ },
+      {
+        resource: Entity.LOGGINGS, action: Action.LIST,
+        attributes: [
+          'id', 'level', 'timestamp', 'type', 'source', 'host', 'action', 'message', 'chargingStationID', 'siteID',
+          'user.name', 'user.firstName', 'actionOnUser.name', 'actionOnUser.firstName', 'hasDetailedMessages', 'method', 'module',
+        ]
+      },
+      {
+        resource: Entity.LOGGING, action: Action.READ,
+        attributes: [
+          'id', 'level', 'timestamp', 'type', 'source', 'host', 'action', 'message', 'chargingStationID', 'siteID',
+          'user.name', 'user.firstName', 'actionOnUser.name', 'actionOnUser.firstName', 'hasDetailedMessages', 'detailedMessages'
+        ]
+      },
       { resource: Entity.PRICING, action: [Action.READ, Action.UPDATE] },
       { resource: Entity.BILLING, action: [Action.CHECK_CONNECTION, Action.CLEAR_BILLING_TEST_DATA] },
       { resource: Entity.TAXES, action: [Action.LIST] },
@@ -992,11 +1016,33 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
       },
       { resource: Entity.REPORT, action: [Action.READ] },
-      { resource: Entity.LOGGINGS, action: Action.LIST },
       {
-        resource: Entity.LOGGING,
-        action: Action.READ,
-        args: { 'sites': '$.site' }
+        resource: Entity.LOGGINGS, action: Action.LIST,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdmin']
+          }
+        },
+        attributes: [
+          'id', 'level', 'timestamp', 'type', 'source', 'host', 'action', 'message', 'chargingStationID', 'siteID',
+          'user.name', 'user.firstName', 'actionOnUser.name', 'actionOnUser.firstName', 'hasDetailedMessages', 'method', 'module',
+        ]
+      },
+      {
+        resource: Entity.LOGGING, action: Action.READ,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdmin']
+          }
+        },
+        attributes: [
+          'id', 'level', 'timestamp', 'type', 'source', 'host', 'action', 'message', 'chargingStationID', 'siteID',
+          'user.name', 'user.firstName', 'actionOnUser.name', 'actionOnUser.firstName', 'hasDetailedMessages', 'detailedMessages'
+        ]
       },
       { resource: Entity.TOKENS, action: Action.LIST },
       {
@@ -1010,7 +1056,16 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['SitesAdmin', 'LocalIssuer']
+            filters: ['SitesAdmin', 'LocalIssuer'],
+            metadata: {
+              userID: {
+                visible: true,
+                enabled: true,
+                mandatory: true,
+                values: [],
+                defaultValue: null,
+              }
+            },
           }
         },
         attributes: [

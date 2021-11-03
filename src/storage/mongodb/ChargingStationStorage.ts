@@ -10,7 +10,6 @@ import BackendError from '../../exception/BackendError';
 import ChargingStationValidatorStorage from './validator/ChargingStationValidatorStorage';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
-import Cypher from '../../utils/Cypher';
 import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
@@ -147,7 +146,7 @@ export default class ChargingStationStorage {
   public static async getChargingStations(tenant: Tenant,
       params: {
         search?: string; chargingStationIDs?: string[]; chargingStationSerialNumbers?: string[]; siteAreaIDs?: string[]; withNoSiteArea?: boolean;
-        connectorStatuses?: string[]; connectorTypes?: string[]; statusChangedBefore?: Date; withSiteArea?: boolean;
+        connectorStatuses?: string[]; connectorTypes?: string[]; statusChangedBefore?: Date; withSiteArea?: boolean; withUser?: boolean;
         ocpiEvseUid?: string; ocpiEvseID?: string; ocpiLocationID?: string; oicpEvseID?: string;
         siteIDs?: string[]; companyIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
         locCoordinates?: number[]; locMaxDistanceMeters?: number; public?: boolean;
@@ -340,10 +339,12 @@ export default class ChargingStationStorage {
       $limit: dbParams.limit
     });
     // Users on connectors
-    DatabaseUtils.pushArrayLookupInAggregation('connectors', DatabaseUtils.pushUserLookupInAggregation.bind(this), {
-      tenantID: tenant.id, aggregation: aggregation, localField: 'connectors.currentUserID', foreignField: '_id',
-      asField: 'connectors.user', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy']
-    }, { sort: dbParams.sort });
+    if (params.withUser) {
+      DatabaseUtils.pushArrayLookupInAggregation('connectors', DatabaseUtils.pushUserLookupInAggregation.bind(this), {
+        tenantID: tenant.id, aggregation: aggregation, localField: 'connectors.currentUserID', foreignField: '_id',
+        asField: 'connectors.user', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy']
+      }, { sort: dbParams.sort });
+    }
     // Site Area
     if (params.withSiteArea) {
       DatabaseUtils.pushSiteAreaLookupInAggregation({
@@ -457,7 +458,6 @@ export default class ChargingStationStorage {
       if (!Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)
         && params.errorType.includes(ChargingStationInErrorType.MISSING_SITE_AREA)) {
         throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
           method: 'getChargingStationsInError',
           message: 'Organization is not active whereas filter is on missing site.'
@@ -515,6 +515,8 @@ export default class ChargingStationStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
+    // Remove old field
+    delete chargingStationToSave['registrationStatus'];
     // Build Request
     const chargingStationMDB = {
       _id: chargingStationToSave.id,
@@ -532,16 +534,17 @@ export default class ChargingStationStorage {
       chargePointModel: chargingStationToSave.chargePointModel,
       chargeBoxSerialNumber: chargingStationToSave.chargeBoxSerialNumber,
       chargePointVendor: chargingStationToSave.chargePointVendor,
-      registrationStatus: chargingStationToSave.registrationStatus,
       iccid: chargingStationToSave.iccid,
       imsi: chargingStationToSave.imsi,
+      tokenID: chargingStationToSave.tokenID,
       meterType: chargingStationToSave.meterType,
       firmwareVersion: chargingStationToSave.firmwareVersion,
       meterSerialNumber: chargingStationToSave.meterSerialNumber,
       endpoint: chargingStationToSave.endpoint,
       ocppVersion: chargingStationToSave.ocppVersion,
+      cloudHostIP: chargingStationToSave.cloudHostIP,
+      cloudHostName: chargingStationToSave.cloudHostName,
       ocppProtocol: chargingStationToSave.ocppProtocol,
-      cfApplicationIDAndInstanceIndex: chargingStationToSave.cfApplicationIDAndInstanceIndex,
       lastSeen: Utils.convertToDate(chargingStationToSave.lastSeen),
       deleted: Utils.convertToBoolean(chargingStationToSave.deleted),
       lastReboot: Utils.convertToDate(chargingStationToSave.lastReboot),
@@ -602,25 +605,6 @@ export default class ChargingStationStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveChargingStationConnectors', startTime, connectors);
   }
 
-  public static async saveChargingStationCFApplicationIDAndInstanceIndex(tenant: Tenant, id: string,
-      cfApplicationIDAndInstanceIndex: string): Promise<void> {
-    // Debug
-    const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
-    DatabaseUtils.checkTenantObject(tenant);
-    // Modify document
-    await global.database.getCollection<ChargingStation>(tenant.id, 'chargingstations').findOneAndUpdate(
-      { '_id': id },
-      {
-        $set: {
-          cfApplicationIDAndInstanceIndex
-        }
-      },
-      { upsert: true });
-    // Debug
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveChargingStationCFApplicationIDAndInstanceIndex', startTime, cfApplicationIDAndInstanceIndex);
-  }
-
   public static async saveChargingStationOicpData(tenant: Tenant, id: string,
       oicpData: ChargingStationOicpData): Promise<void> {
     // Debug
@@ -640,8 +624,8 @@ export default class ChargingStationStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveChargingStationOicpData', startTime, oicpData);
   }
 
-  public static async saveChargingStationLastSeen(tenant: Tenant, id: string,
-      params: { lastSeen: Date; currentIPAddress?: string | string[] }): Promise<void> {
+  public static async saveChargingStationRuntimeData(tenant: Tenant, id: string,
+      params: { lastSeen: Date; currentIPAddress?: string | string[]; tokenID?: string; cloudHostIP?: string; cloudHostName?: string; }): Promise<void> {
     // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
@@ -958,7 +942,7 @@ export default class ChargingStationStorage {
       chargingProfileFilter._id = chargingProfileToSave.id;
     } else {
       chargingProfileFilter._id =
-        Cypher.hash(`${chargingProfileToSave.chargingStationID}~${chargingProfileToSave.connectorID}~${chargingProfileToSave.profile.chargingProfileId}`);
+      Utils.hash(`${chargingProfileToSave.chargingStationID}~${chargingProfileToSave.connectorID}~${chargingProfileToSave.profile.chargingProfileId}`);
     }
     // Properties to save
     const chargingProfileMDB: any = {

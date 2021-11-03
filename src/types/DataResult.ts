@@ -1,7 +1,9 @@
 import { Car, CarCatalog } from './Car';
 import Transaction, { TransactionStats } from './Transaction';
 
+import { AuthorizationDefinitionFieldMetadata } from './Authorization';
 import Company from './Company';
+import { Log } from './Log';
 import Site from './Site';
 import SiteArea from './SiteArea';
 import Tag from './Tag';
@@ -11,10 +13,12 @@ export interface DeletedResult {
   acknowledged?: boolean;
   deletedCount?: number;
 }
+
 export interface DataResult<T> {
   count: number;
   result: T[];
   projectFields?: string[];
+  metadata?: Record<string, AuthorizationDefinitionFieldMetadata>;
 }
 
 export interface CompanyDataResult extends DataResult<Company>{
@@ -26,18 +30,25 @@ export interface SiteDataResult extends DataResult<Site>{
   canUnassignUsers: boolean;
 }
 
+export type LogDataResult = DataResult<Log>;
+
 export interface SiteAreaDataResult extends DataResult<SiteArea> {
   canCreate: boolean;
 }
+
 export interface CarDataResult extends DataResult<Car> {
   canCreate: boolean;
 }
 
-export interface UserDataResult extends DataResult<User> {
-  canCreate: boolean;
-}
 export interface CarCatalogDataResult extends DataResult<CarCatalog> {
   canSync: boolean;
+}
+
+export interface UserDataResult extends DataResult<User> {
+  canCreate: boolean;
+  canExport: boolean;
+  canImport: boolean;
+  canSynchronizeBilling: boolean;
 }
 export interface TagDataResult extends DataResult<Tag> {
   canCreate: boolean;

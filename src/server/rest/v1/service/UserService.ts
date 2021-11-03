@@ -10,7 +10,7 @@ import User, { ImportedUser, UserRequiredImportProperties } from '../../../../ty
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
-import AsyncTaskManager from '../../../../async-task/AsyncTaskManager';
+import AsyncTaskBuilder from '../../../../async-task/AsyncTaskBuilder';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
@@ -107,7 +107,7 @@ export default class UserService {
       await UserStorage.removeSitesFromUser(req.tenant, filteredRequest.userID, sites.map((site) => site.id));
     }
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user,
       module: MODULE_NAME,
@@ -128,7 +128,7 @@ export default class UserService {
     if (!user.issuer) {
       // Delete User
       await UserStorage.deleteUser(req.tenant, user.id);
-      await Logging.logSecurityInfo({
+      await Logging.logInfo({
         tenantID: req.user.tenantID,
         user: req.user, actionOnUser: user,
         module: MODULE_NAME, method: 'handleDeleteUser',
@@ -148,7 +148,7 @@ export default class UserService {
     // Delete User
     await UserStorage.deleteUser(req.tenant, user.id);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, actionOnUser: user,
       module: MODULE_NAME, method: 'handleDeleteUser',
@@ -171,7 +171,6 @@ export default class UserService {
       const userWithEmail = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
       if (userWithEmail && user.id !== userWithEmail.id) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
           message: `Email '${filteredRequest.email}' already exists`,
           module: MODULE_NAME, method: 'handleUpdateUser',
@@ -221,7 +220,7 @@ export default class UserService {
     // Update Billing
     await UserService.updateUserBilling(ServerAction.USER_UPDATE, req.tenant, req.user, user);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, actionOnUser: user,
       module: MODULE_NAME, method: 'handleUpdateUser',
@@ -231,7 +230,7 @@ export default class UserService {
     // Notify
     if (statusHasChanged && req.tenant.id !== Constants.DEFAULT_TENANT) {
       // Send notification (Async)
-      NotificationHandler.sendUserAccountStatusChanged(
+      void NotificationHandler.sendUserAccountStatusChanged(
         req.tenant,
         Utils.generateUUID(),
         user,
@@ -251,7 +250,6 @@ export default class UserService {
     // Check Mandatory fields
     if (!filteredRequest.mobileToken) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'User\'s mobile token ID must be provided',
         module: MODULE_NAME, method: 'handleUpdateUserMobileToken',
@@ -268,7 +266,7 @@ export default class UserService {
       mobileOs: filteredRequest.mobileOS,
       mobileLastChangedOn: new Date()
     });
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: user,
       module: MODULE_NAME, method: 'handleUpdateUserMobileToken',
@@ -409,7 +407,6 @@ export default class UserService {
     const importUsersLock = await LockingHelper.acquireImportUsersLock(req.tenant.id);
     if (!importUsersLock) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: action,
         errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
         module: MODULE_NAME, method: 'handleImportUsers',
@@ -524,7 +521,7 @@ export default class UserService {
                 `No User have been uploaded in ${executionDurationSecs}s`, req.user
               );
               // Create and Save async task
-              await AsyncTaskManager.createAndSaveAsyncTasks({
+              await AsyncTaskBuilder.createAndSaveAsyncTasks({
                 name: AsyncTasks.USERS_IMPORT,
                 action: ServerAction.USERS_IMPORT,
                 type: AsyncTaskType.TASK,
@@ -622,7 +619,6 @@ export default class UserService {
     const foundUser = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
     if (foundUser) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
         message: `Email '${filteredRequest.email}' already exists`,
         module: MODULE_NAME, method: 'handleCreateUser',
@@ -659,7 +655,7 @@ export default class UserService {
     // Update Billing
     await UserService.updateUserBilling(ServerAction.USER_CREATE, req.tenant, req.user, newUser);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, actionOnUser: req.user,
       module: MODULE_NAME, method: 'handleCreateUser',
@@ -737,9 +733,12 @@ export default class UserService {
     if (!authorizationUsersFilters.authorized) {
       return Constants.DB_EMPTY_DATA_RESULT;
     }
-    // Get Tag IDs from Visual IDs
+    // Optimization: Get Tag IDs from Visual IDs
     if (filteredRequest.VisualTagID) {
-      const tagIDs = await TagStorage.getTags(req.tenant, { visualIDs: filteredRequest.VisualTagID.split('|') }, Constants.DB_PARAMS_MAX_LIMIT, ['userID']);
+      const tagIDs = await TagStorage.getTags(req.tenant, {
+        visualIDs: filteredRequest.VisualTagID.split('|')
+      },
+      Constants.DB_PARAMS_MAX_LIMIT, ['userID']);
       if (!Utils.isEmptyArray(tagIDs.result)) {
         const userIDs = _.uniq(tagIDs.result.map((tag) => tag.userID));
         filteredRequest.UserID = userIDs.join('|');
@@ -755,6 +754,7 @@ export default class UserService {
         roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
         statuses: (filteredRequest.Status ? filteredRequest.Status.split('|') : null),
         technical: Utils.isBoolean(filteredRequest.Technical) ? filteredRequest.Technical : null,
+        freeAccess: Utils.isBoolean(filteredRequest.FreeAccess) ? filteredRequest.FreeAccess : null,
         excludeSiteID: filteredRequest.ExcludeSiteID,
         ...authorizationUsersFilters.filters
       },
@@ -838,7 +838,6 @@ export default class UserService {
           const userCanBeDeleted = await billingImpl.checkIfUserCanBeDeleted(user);
           if (!userCanBeDeleted) {
             throw new AppError({
-              source: Constants.CENTRAL_SERVER,
               action: ServerAction.USER_DELETE,
               errorCode: HTTPError.BILLING_DELETE_ERROR,
               message: 'User cannot be deleted due to billing constraints',
@@ -850,7 +849,6 @@ export default class UserService {
         }
       } catch (error) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           action: ServerAction.USER_DELETE,
           errorCode: HTTPError.BILLING_DELETE_ERROR,
           message: 'Error occurred in billing system',
@@ -969,8 +967,9 @@ export default class UserService {
     // Save Admin Data
     if (projectFields.includes('plateID') ||
         projectFields.includes('technical') ||
-        projectFields.includes('notificationsActive')) {
-      const adminData: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications, technical?: boolean } = {};
+        projectFields.includes('notificationsActive') ||
+        projectFields.includes('freeAccess')) {
+      const adminData: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications, technical?: boolean, freeAccess?: boolean } = {};
       if (Utils.objectHasProperty(user, 'plateID') &&
           projectFields.includes('plateID')) {
         adminData.plateID = user.plateID || null;
@@ -978,6 +977,10 @@ export default class UserService {
       if (Utils.objectHasProperty(user, 'technical') &&
           projectFields.includes('technical')) {
         adminData.technical = user.technical;
+      }
+      if (Utils.objectHasProperty(user, 'freeAccess') &&
+          projectFields.includes('freeAccess')) {
+        adminData.freeAccess = user.freeAccess;
       }
       if (Utils.objectHasProperty(user, 'notificationsActive') &&
           projectFields.includes('notificationsActive')) {

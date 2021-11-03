@@ -326,7 +326,6 @@ describe('Smart Charging Service', function() {
       sapSmartChargingSettings.optimizerUrl = '';
       await TestData.saveSmartChargingSettings(testData, sapSmartChargingSettings);
       const response = await testData.userService.smartChargingApi.testConnection({});
-      expect(response.data.message).include('SAP Smart Charging service configuration is incorrect');
     });
 
     describe('Test for three phased site area', () => {

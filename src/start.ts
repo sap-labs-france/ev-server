@@ -1,9 +1,12 @@
 import CentralSystemConfiguration, { CentralSystemImplementation } from './types/configuration/CentralSystemConfiguration';
+import { ServerAction, ServerType } from './types/Server';
 
 import AsyncTaskManager from './async-task/AsyncTaskManager';
 import CentralRestServer from './server/rest/CentralRestServer';
 import CentralSystemRestServiceConfiguration from './types/configuration/CentralSystemRestServiceConfiguration';
 import ChargingStationConfiguration from './types/configuration/ChargingStationConfiguration';
+import ChargingStationStorage from './storage/mongodb/ChargingStationStorage';
+import { ChargingStationTemplate } from './types/ChargingStation';
 import Configuration from './utils/Configuration';
 import Constants from './utils/Constants';
 import I18nManager from './utils/I18nManager';
@@ -19,11 +22,11 @@ import ODataServiceConfiguration from './types/configuration/ODataServiceConfigu
 import OICPServer from './server/oicp/OICPServer';
 import OICPServiceConfiguration from './types/configuration/OICPServiceConfiguration';
 import SchedulerManager from './scheduler/SchedulerManager';
-import { ServerAction } from './types/Server';
 import SoapCentralSystemServer from './server/ocpp/soap/SoapCentralSystemServer';
 import StorageConfiguration from './types/configuration/StorageConfiguration';
 import Utils from './utils/Utils';
 import chalk from 'chalk';
+import fs from 'fs';
 import global from './types/GlobalType';
 
 const MODULE_NAME = 'Bootstrap';
@@ -46,7 +49,7 @@ export default class Bootstrap {
   private static migrationConfig: MigrationConfiguration;
 
   public static async start(): Promise<void> {
-    let serverStarted: string[] = [];
+    let serverStarted: ServerType[] = [];
     let startTimeMillis: number;
     const startTimeGlobalMillis = await this.logAndGetStartTimeMillis('e-Mobility Server is starting...');
     try {
@@ -73,14 +76,14 @@ export default class Bootstrap {
         case 'mongodb':
           // Create MongoDB
           Bootstrap.database = new MongoDBStorage(Bootstrap.storageConfig);
-          // Keep a global reference
-          global.database = Bootstrap.database;
           break;
         default:
           console.error(chalk.red(`Storage Server implementation '${Bootstrap.storageConfig.implementation}' not supported!`));
       }
       // Connect to the Database
       await Bootstrap.database.start();
+      // Keep a global reference
+      global.database = Bootstrap.database;
       // Log
       await this.logDuration(startTimeMillis, 'Connected to the Database successfully');
 
@@ -138,25 +141,57 @@ export default class Bootstrap {
       // Update Charging Station Templates
       // -------------------------------------------------------------------------
       startTimeMillis = await this.logAndGetStartTimeMillis('Charging Station templates is being updated...');
-      await Utils.updateChargingStationTemplatesFromFile();
+      await this.updateChargingStationTemplatesFromFile();
       // Log
       await this.logDuration(startTimeMillis, 'Charging Station templates have been updated successfully');
 
       // Keep the server names globally
       if (serverStarted.length === 1) {
-        global.serverName = serverStarted[0];
+        global.serverType = serverStarted[0];
+      } else {
+        global.serverType = ServerType.CENTRAL_SERVER;
       }
       // Log
       await this.logDuration(startTimeGlobalMillis, `${serverStarted.join(', ')} server has been started successfuly`, ServerAction.BOOTSTRAP_STARTUP);
     } catch (error) {
       console.error(chalk.red(error));
-      await Logging.logError({
+      global.database && await Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.BOOTSTRAP_STARTUP,
         module: MODULE_NAME, method: 'start',
         message: `Unexpected exception in ${serverStarted.join(', ')}`,
         detailedMessages: { error: error.stack }
       });
+    }
+  }
+
+  private static async updateChargingStationTemplatesFromFile(): Promise<void> {
+    // Read File
+    let chargingStationTemplates: ChargingStationTemplate[];
+    try {
+      chargingStationTemplates = JSON.parse(fs.readFileSync(Configuration.getChargingStationTemplatesConfig().templatesFilePath, 'utf8'));
+    } catch (error) {
+      await Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, ServerAction.UPDATE_CHARGING_STATION_TEMPLATES, error);
+      return;
+    }
+    // Delete all previous templates
+    await ChargingStationStorage.deleteChargingStationTemplates();
+    // Update Templates
+    for (const chargingStationTemplate of chargingStationTemplates) {
+      try {
+        // Set the hashes
+        chargingStationTemplate.hash = Utils.hash(JSON.stringify(chargingStationTemplate));
+        chargingStationTemplate.hashTechnical = Utils.hash(JSON.stringify(chargingStationTemplate.technical));
+        chargingStationTemplate.hashCapabilities = Utils.hash(JSON.stringify(chargingStationTemplate.capabilities));
+        chargingStationTemplate.hashOcppStandard = Utils.hash(JSON.stringify(chargingStationTemplate.ocppStandardParameters));
+        chargingStationTemplate.hashOcppVendor = Utils.hash(JSON.stringify(chargingStationTemplate.ocppVendorParameters));
+        // Save
+        await ChargingStationStorage.saveChargingStationTemplate(chargingStationTemplate);
+      } catch (error) {
+        error.message = `Charging Station Template ID '${chargingStationTemplate.id}' is not valid: ${error.message as string}`;
+        await Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, ServerAction.UPDATE_CHARGING_STATION_TEMPLATES, error);
+        Utils.isDevelopmentEnv() && console.error(chalk.red(error.message));
+      }
     }
   }
 
@@ -188,8 +223,8 @@ export default class Bootstrap {
     }
   }
 
-  private static async startServersListening(): Promise<string[]> {
-    const serverStarted = [];
+  private static async startServersListening(): Promise<ServerType[]> {
+    const serverTypes: ServerType[] = [];
     try {
       // -------------------------------------------------------------------------
       // REST Server (Front-End)
@@ -201,7 +236,7 @@ export default class Bootstrap {
         }
         // Start it
         await Bootstrap.centralRestServer.start();
-        serverStarted.push('Rest');
+        serverTypes.push(ServerType.REST_SERVER);
       }
       // -------------------------------------------------------------------------
       // Central Server (Charging Stations)
@@ -217,14 +252,14 @@ export default class Bootstrap {
               Bootstrap.SoapCentralSystemServer = new SoapCentralSystemServer(centralSystemConfig, Bootstrap.chargingStationConfig);
               // Start
               await Bootstrap.SoapCentralSystemServer.start();
-              serverStarted.push('Soap');
+              serverTypes.push(ServerType.SOAP_SERVER);
               break;
             case CentralSystemImplementation.JSON:
               // Create implementation
               Bootstrap.JsonCentralSystemServer = new JsonCentralSystemServer(centralSystemConfig, Bootstrap.chargingStationConfig);
               // Start
               await Bootstrap.JsonCentralSystemServer.start();
-              serverStarted.push('Json');
+              serverTypes.push(ServerType.JSON_SERVER);
               break;
             // Not Found
             default:
@@ -241,7 +276,7 @@ export default class Bootstrap {
         Bootstrap.ocpiServer = new OCPIServer(Bootstrap.ocpiConfig);
         // Start server instance
         await Bootstrap.ocpiServer.start();
-        serverStarted.push('Ocpi');
+        serverTypes.push(ServerType.OCPI_SERVER);
       }
       // -------------------------------------------------------------------------
       // OICP Server
@@ -251,7 +286,7 @@ export default class Bootstrap {
         Bootstrap.oicpServer = new OICPServer(Bootstrap.oicpConfig);
         // Start server instance
         await Bootstrap.oicpServer.start();
-        serverStarted.push('Oicp');
+        serverTypes.push(ServerType.OICP_SERVER);
       }
       // -------------------------------------------------------------------------
       // OData Server
@@ -261,7 +296,7 @@ export default class Bootstrap {
         Bootstrap.oDataServer = new ODataServer(Bootstrap.oDataServerConfig);
         // Start server instance
         await Bootstrap.oDataServer.start();
-        serverStarted.push('OData');
+        serverTypes.push(ServerType.ODATA_SERVER);
       }
     } catch (error) {
       console.error(chalk.red(error));
@@ -269,15 +304,15 @@ export default class Bootstrap {
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.STARTUP,
         module: MODULE_NAME, method: 'startServersListening',
-        message: `Unexpected exception in ${serverStarted.join(', ')}: ${error.toString()}`,
+        message: `Unexpected exception in ${serverTypes.join(', ')}: ${error.toString()}`,
         detailedMessages: { error: error.stack }
       });
     }
     // Batch server only
-    if (Utils.isEmptyArray(serverStarted)) {
-      serverStarted.push('Batch');
+    if (Utils.isEmptyArray(serverTypes)) {
+      serverTypes.push(ServerType.BATCH_SERVER);
     }
-    return serverStarted;
+    return serverTypes;
   }
 }
 

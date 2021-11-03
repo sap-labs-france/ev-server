@@ -25,7 +25,7 @@ export default class JsonRestWSConnection extends WSConnection {
   public async initialize(): Promise<void> {
     // Already initialized?
     if (!this.initialized) {
-      // Call super class
+      // Init parent
       await super.initialize();
       this.initialized = true;
       await Logging.logInfo({
@@ -34,7 +34,6 @@ export default class JsonRestWSConnection extends WSConnection {
         siteAreaID: this.getSiteAreaID(),
         companyID: this.getCompanyID(),
         chargingStationID: this.getChargingStationID(),
-        source: this.getChargingStationID(),
         action: ServerAction.WS_REST_CONNECTION_OPENED,
         module: MODULE_NAME, method: 'initialize',
         message: `New Rest connection from '${this.getClientIP().toString()}', Protocol '${this.getWSConnection().protocol}', URL '${this.getURL()}'`
@@ -49,7 +48,6 @@ export default class JsonRestWSConnection extends WSConnection {
       siteAreaID: this.getSiteAreaID(),
       companyID: this.getCompanyID(),
       chargingStationID: this.getChargingStationID(),
-      source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
       module: MODULE_NAME, method: 'onError',
       action: ServerAction.WS_REST_CONNECTION_ERROR,
       message: `Error ${errorEvent?.error} ${errorEvent?.message}`,
@@ -58,20 +56,19 @@ export default class JsonRestWSConnection extends WSConnection {
   }
 
   public onClose(closeEvent: CloseEvent): void {
+    // Remove the connection
+    this.wsServer.removeRestConnection(this);
     void Logging.logInfo({
       tenantID: this.getTenantID(),
       siteID: this.getSiteID(),
       siteAreaID: this.getSiteAreaID(),
       companyID: this.getCompanyID(),
       chargingStationID: this.getChargingStationID(),
-      source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
       module: MODULE_NAME, method: 'onClose',
       action: ServerAction.WS_REST_CONNECTION_CLOSED,
       message: `Connection has been closed, Reason: '${closeEvent.reason ? closeEvent.reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(Utils.convertToInt(closeEvent))}', Code: '${closeEvent.toString()}'`,
       detailedMessages: { closeEvent }
     });
-    // Remove the connection
-    this.wsServer.removeRestConnection(this);
   }
 
   public async handleRequest(messageId: string, command: Command, commandPayload: Record<string, unknown> | string): Promise<void> {
@@ -79,11 +76,14 @@ export default class JsonRestWSConnection extends WSConnection {
     const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenant(), this.getChargingStationID());
     if (!chargingStation) {
       throw new BackendError({
-        source: this.getChargingStationID(),
+        chargingStationID: this.getChargingStationID(),
+        siteID: this.getSiteID(),
+        siteAreaID: this.getSiteAreaID(),
+        companyID: this.getCompanyID(),
         module: MODULE_NAME,
         method: 'handleRequest',
         message: 'Charging Station not found',
-        action: OCPPUtils.getServerActionFromOcppCommand(command)
+        action: OCPPUtils.buildServerActionFromOcppCommand(command)
       });
     }
     // Get the client from JSON Server
@@ -94,11 +94,14 @@ export default class JsonRestWSConnection extends WSConnection {
     });
     if (!chargingStationClient) {
       throw new BackendError({
-        source: this.getChargingStationID(),
+        chargingStationID: this.getChargingStationID(),
+        siteID: this.getSiteID(),
+        siteAreaID: this.getSiteAreaID(),
+        companyID: this.getCompanyID(),
         module: MODULE_NAME,
         method: 'handleRequest',
         message: 'Charging Station is not connected to the backend',
-        action: OCPPUtils.getServerActionFromOcppCommand(command)
+        action: OCPPUtils.buildServerActionFromOcppCommand(command)
       });
     }
     // Call the client
@@ -112,11 +115,14 @@ export default class JsonRestWSConnection extends WSConnection {
     } else {
       // Error
       throw new BackendError({
-        source: this.getChargingStationID(),
+        chargingStationID: this.getChargingStationID(),
+        siteID: this.getSiteID(),
+        siteAreaID: this.getSiteAreaID(),
+        companyID: this.getCompanyID(),
         module: MODULE_NAME,
         method: 'handleRequest',
         message: `'${actionMethod}' is not implemented`,
-        action: OCPPUtils.getServerActionFromOcppCommand(command)
+        action: OCPPUtils.buildServerActionFromOcppCommand(command)
       });
     }
   }
