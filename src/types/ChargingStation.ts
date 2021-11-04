@@ -170,6 +170,7 @@ export interface Connector {
   currentType?: CurrentType;
   chargePointID?: number;
   phaseAssignmentToGrid?: PhaseAssignmentToGrid;
+  tariffID?: string;
 }
 
 export interface PhaseAssignmentToGrid {

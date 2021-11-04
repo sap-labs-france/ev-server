@@ -936,6 +936,27 @@ export default class OCPIUtilsService {
 
   private static buildTariffID(tenant: Tenant, chargingStation: ChargingStation, connector: Connector): string {
     const defaultTariff = 'Default';
+    // Connector?
+    if (connector.tariffID) {
+      return connector.tariffID;
+    }
+    // Charging Station?
+    if (chargingStation.tariffID) {
+      return chargingStation.tariffID;
+    }
+    // Site Area?
+    if (chargingStation.siteArea && chargingStation.siteArea.tariffID) {
+      return chargingStation.siteArea.tariffID;
+    }
+    // Site?
+    if (chargingStation.site && chargingStation.site.tariffID) {
+      chargingStation.site.tariffID;
+    }
+    // Tenant?
+    // TODO: Get TariffID from SettingStorage (pending prerequisite PR).
+    // Default.
+    return defaultTariff;
+    // OLD rules (for setting them into the proper objects)
     switch (tenant?.id) {
       // Station-e
       case '60633bb1834fed0016310189':
