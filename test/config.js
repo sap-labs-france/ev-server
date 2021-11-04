@@ -333,6 +333,30 @@ const config = convict({
       format: Number,
       default: ''
     }
+  },
+  assetConnectors: {
+    ioThink: {
+      user: {
+        doc: 'IoThink asset connector username',
+        format: String,
+        default: ''
+      },
+      password: {
+        doc: 'IoThink asset connector password',
+        format: String,
+        default: ''
+      },
+      url: {
+        doc: 'IoThink asset connector URL',
+        format: String,
+        default: 'https://api.kheiron-sp.io'
+      },
+      meterID: {
+        doc: 'Meter ID to connect asset to',
+        format: String,
+        default: ''
+      }
+    }
   }
 });
 

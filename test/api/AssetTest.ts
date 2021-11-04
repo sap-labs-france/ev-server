@@ -1,3 +1,4 @@
+import { AssetConnectionType, AssetSettingsType, SettingDB } from '../../src/types/Setting';
 import chai, { expect } from 'chai';
 
 import Asset from '../../src/types/Asset';
@@ -5,12 +6,16 @@ import CentralServerService from './client/CentralServerService';
 import Company from '../../src/types/Company';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
+import Cypher from '../../src/utils/Cypher';
 import Factory from '../factories/Factory';
 import Site from '../../src/types/Site';
 import SiteArea from '../../src/types/SiteArea';
 import { StatusCodes } from 'http-status-codes';
+import { TenantComponents } from '../../src/types/Tenant';
 import TenantContext from './context/TenantContext';
 import chaiSubset from 'chai-subset';
+import config from '../config';
+import { l } from 'i18n-js';
 
 chai.use(chaiSubset);
 
@@ -28,6 +33,7 @@ class TestData {
   public createdSiteAreas: SiteArea[] = [];
   public newAsset: Asset;
   public createdAssets: Asset[] = [];
+  public ioThinkAssetConnectorID: string;
 }
 
 const testData: TestData = new TestData();
@@ -142,6 +148,21 @@ describe('Asset', function() {
         expect(testData.newSiteArea).to.not.be.null;
       });
 
+      after(async () => {
+        await testData.userService.deleteEntity(
+          testData.userService.siteAreaApi,
+          testData.newSiteArea
+        );
+        await testData.userService.deleteEntity(
+          testData.userService.siteApi,
+          testData.newSite
+        );
+        await testData.userService.deleteEntity(
+          testData.userService.companyApi,
+          testData.newCompany
+        );
+      });
+
       it('Should be able to create a new Asset', async () => {
         // Create
         testData.newAsset = await testData.userService.createEntity(
@@ -239,6 +260,140 @@ describe('Asset', function() {
         expect(response.status).to.be.eq(StatusCodes.OK);
         expect(response.data.count).to.be.eq(1);
       });
+
+    });
+
+    describe('Where admin user with asset ', () => {
+
+      before(async () => {
+        testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+        if (testData.userContext === testData.centralUserContext) {
+          // Reuse the central user service (to avoid double login)
+          testData.userService = testData.centralUserService;
+        } else {
+          testData.userService = new CentralServerService(
+            testData.tenantContext.getTenant().subdomain,
+            testData.userContext
+          );
+        }
+        // Create a new Company
+        testData.newCompany = await testData.userService.createEntity(
+          testData.userService.companyApi,
+          Factory.company.build()
+        );
+        testData.createdCompanies.push(testData.newCompany);
+        expect(testData.newCompany).to.not.be.null;
+        // Create a new Site
+        testData.newSite = await testData.userService.createEntity(
+          testData.userService.siteApi,
+          Factory.site.build({
+            companyID: testData.newCompany.id
+          })
+        );
+        testData.createdSites.push(testData.newSite);
+        expect(testData.newSite).to.not.be.null;
+        // Create a new Site Area
+        testData.newSiteArea = await testData.userService.createEntity(
+          testData.userService.siteAreaApi,
+          Factory.siteArea.build({
+            siteID: testData.newSite.id
+          })
+        );
+        testData.createdSiteAreas.push(testData.newSiteArea);
+        expect(testData.newSiteArea).to.not.be.null;
+        // Create a new Asset
+        testData.newAsset = await testData.userService.createEntity(
+          testData.userService.assetApi,
+          Factory.asset.build({
+            siteAreaID: testData.newSiteArea.id,
+            assetType: 'PR'
+          })
+        );
+        testData.createdAssets.push(testData.newAsset);
+        expect(testData.newAsset).to.not.be.null;
+      });
+
+      after(async () => {
+        await testData.userService.deleteEntity(
+          testData.userService.assetApi,
+          testData.newAsset
+        );
+        await testData.userService.deleteEntity(
+          testData.userService.siteAreaApi,
+          testData.newSiteArea
+        );
+        await testData.userService.deleteEntity(
+          testData.userService.siteApi,
+          testData.newSite
+        );
+        await testData.userService.deleteEntity(
+          testData.userService.companyApi,
+          testData.newCompany
+        );
+      });
+
+      it('Should be able to create an ioThink asset connector', async () => {
+        const settings = await testData.centralUserService.settingApi.readAll({});
+        let newSetting = false;
+        let setting: SettingDB = settings.data.result.find((s) => s.identifier === TenantComponents.ASSET);
+        if (!setting) {
+          setting = {} as SettingDB;
+          setting.identifier = TenantComponents.ASSET;
+          newSetting = true;
+        }
+        const settingID = '0123456789abcdef';
+        setting.content = {
+          type: AssetSettingsType.ASSET,
+          asset: {
+            connections: [{
+              id: settingID,
+              name: 'Testing IoThink Asset Connector',
+              description: 'Testing IoThink Asset Connector',
+              url: config.get('assetConnectors.ioThink.url'),
+              timestamp: (new Date()),
+              type: AssetConnectionType.IOTHINK,
+              refreshIntervalMins: 1,
+              iothinkConnection: {
+                user: config.get('assetConnectors.ioThink.user'),
+                password: config.get('assetConnectors.ioThink.password')
+              }
+            }]
+          }
+        };
+        setting.sensitiveData = ['content.asset.connections[0].iothinkConnection.password'];
+        if (newSetting) {
+          await testData.centralUserService.settingApi.create(setting);
+        }
+        await testData.centralUserService.settingApi.update(setting);
+        const settingsUpdated = await testData.centralUserService.settingApi.readAll({});
+        const settingUpdated: SettingDB = settingsUpdated.data.result.find((s) => s.identifier === TenantComponents.ASSET);
+        expect(settingUpdated.content.asset.connections[0].id).to.be.eq(settingID);
+        testData.ioThinkAssetConnectorID = settingID;
+      });
+
+      it('should be able to connect ioThink asset connector connection', async () => {
+        const response = await testData.centralUserService.assetApi.checkAssetConnectorLink(testData.ioThinkAssetConnectorID);
+        expect(response.data?.status).to.be.eq('Success');
+        expect(response.data?.connectionIsValid).to.be.eq(true);
+      });
+
+      it('should be able to connect existing asset to asset connector', async () => {
+        // Change entity
+        testData.newAsset.dynamicAsset = true;
+        testData.newAsset.meterID = config.get('assetConnectors.ioThink.meterID');
+        testData.newAsset.connectionID = testData.ioThinkAssetConnectorID;
+        // Update
+        await testData.userService.updateEntity(
+          testData.userService.assetApi,
+          testData.newAsset
+        );
+      });
+
+      it('should be able to retrieve latest consumption', async () => {
+        const response = await testData.centralUserService.assetApi.retrieveLatestConsumption(testData.newAsset.id);
+        expect(response.data?.status).to.be.eq('Success');
+      });
+
     });
   });
 });
