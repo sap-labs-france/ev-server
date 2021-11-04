@@ -178,7 +178,6 @@ export default class SettingService {
 
   public static async handleUpdateSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     let filteredRequest: any;
-    const settingUpdate = SettingSecurity.filterSettingUpdateRequest(req.body);
     UtilsService.assertIdIsProvided(action, req.body.id, MODULE_NAME, 'handleUpdateSetting', req.user);
     switch (req.body.identifier) {
       // Filter
@@ -201,7 +200,7 @@ export default class SettingService {
         filteredRequest = SettingValidator.getInstance().validateSettingPricingSetReq(req.body);
         break;
       default:
-        filteredRequest = settingUpdate;
+        filteredRequest = SettingSecurity.filterSettingUpdateRequest(req.body);
         await Logging.logDebug({
           tenantID: req.user.tenantID,
           user: req.user, module: MODULE_NAME, method: 'handleUpdateSetting',
