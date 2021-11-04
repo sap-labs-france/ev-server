@@ -148,11 +148,12 @@ export default class CpoOCPIClient extends OCPIClient {
       }
       const executionDurationLoopSecs = (new Date().getTime() - startTimeLoop) / 1000;
       const executionDurationTotalLoopSecs = (new Date().getTime() - startTime) / 1000;
-      await Logging.logDebug({
+      await Logging.logInfo({
         tenantID: this.tenant.id,
         action: ServerAction.OCPI_PULL_TOKENS,
         message: `${numberOfTags.toString()} token(s) processed in ${executionDurationLoopSecs}s - Total of ${totalNumberOfToken} token(s) processed in ${executionDurationTotalLoopSecs}s`,
-        module: MODULE_NAME, method: 'pullTokens'
+        module: MODULE_NAME, method: 'pullTokens',
+        detailedMessages: { tokens }
       });
     } while (nextResult);
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;

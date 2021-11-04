@@ -82,8 +82,6 @@ export default class Bootstrap {
       }
       // Connect to the Database
       await Bootstrap.database.start();
-      // Keep a global reference
-      global.database = Bootstrap.database;
       // Log
       await this.logDuration(startTimeMillis, 'Connected to the Database successfully');
 
@@ -141,6 +139,7 @@ export default class Bootstrap {
       // Update Charging Station Templates
       // -------------------------------------------------------------------------
       startTimeMillis = await this.logAndGetStartTimeMillis('Charging Station templates is being updated...');
+      // Load and Save the Charging Station templates
       await this.updateChargingStationTemplatesFromFile();
       // Log
       await this.logDuration(startTimeMillis, 'Charging Station templates have been updated successfully');
