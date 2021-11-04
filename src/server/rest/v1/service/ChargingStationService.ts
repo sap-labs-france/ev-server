@@ -224,6 +224,11 @@ export default class ChargingStationService {
           connector.numberOfConnectedPhase = filteredConnector.numberOfConnectedPhase;
         }
         connector.phaseAssignmentToGrid = filteredConnector.phaseAssignmentToGrid;
+        if (filteredRequest.public) {
+          connector.tariffID = filteredConnector.tariffID;
+        } else if (connector.tariffID) {
+          delete connector.tariffID;
+        }
       }
     }
     // Manual Config

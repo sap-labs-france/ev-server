@@ -79,6 +79,7 @@ export interface HttpChargingStationParamsUpdateRequest {
     currentType: CurrentType;
     numberOfConnectedPhase: number;
     phaseAssignmentToGrid: PhaseAssignmentToGrid;
+    tariffID?: string;
   }[];
   tariffID?: string;
 }
