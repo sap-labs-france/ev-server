@@ -63,9 +63,15 @@ export default class OCPPUtils {
     if (!tokenID) {
       throw new BackendError({
         chargingStationID: chargingStationID,
-        action: ServerAction.OCPP_BOOT_NOTIFICATION,
-        module: MODULE_NAME, method: 'ensureChargingStationHasValidConnectionToken',
+        action, module: MODULE_NAME, method: 'ensureChargingStationHasValidConnectionToken',
         message: 'Token ID is required, request rejected!',
+      });
+    }
+    if (!DatabaseUtils.isObjectID(tokenID)) {
+      throw new BackendError({
+        action, chargingStationID,
+        module: MODULE_NAME, method: 'ensureChargingStationHasValidConnectionToken',
+        message: `The Token ID '${tokenID}' is invalid, request rejected!`
       });
     }
     // Get the Token
@@ -73,23 +79,20 @@ export default class OCPPUtils {
     if (!token) {
       throw new BackendError({
         chargingStationID: chargingStationID,
-        action,
-        module: MODULE_NAME, method: 'ensureChargingStationHasValidConnectionToken',
+        action, module: MODULE_NAME, method: 'ensureChargingStationHasValidConnectionToken',
         message: `Token ID '${tokenID}' has not been found, request rejected!`,
       });
     }
     if (!token.expirationDate || moment().isAfter(token.expirationDate)) {
       throw new BackendError({
         chargingStationID: chargingStationID,
-        action,
-        module: MODULE_NAME, method: 'ensureChargingStationHasValidConnectionToken',
+        action, module: MODULE_NAME, method: 'ensureChargingStationHasValidConnectionToken',
         message: `Token ID '${tokenID}' has expired, request rejected!`,
       });
     }
     if (token.revocationDate && moment().isAfter(token.revocationDate)) {
       throw new BackendError({
-        action,
-        module: MODULE_NAME, method: 'ensureChargingStationHasValidConnectionToken',
+        action, module: MODULE_NAME, method: 'ensureChargingStationHasValidConnectionToken',
         message: `Token ID '${tokenID}' has been revoked, request rejected!`,
       });
     }
