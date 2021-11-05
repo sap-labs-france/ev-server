@@ -424,32 +424,18 @@ export default class OCPPStorage {
     DatabaseUtils.checkTenantObject(tenant);
     // Save all
     for (const meterValueToSave of meterValuesToSave.values) {
-      try {
-        const timestamp = Utils.convertToDate(meterValueToSave.timestamp);
-        const meterValueMDB: any = {
-          _id: Utils.hash(`${meterValueToSave.chargeBoxID}~${meterValueToSave.connectorId}~${timestamp.toISOString()}~${meterValueToSave.value}~${JSON.stringify(meterValueToSave.attribute)}`),
-          chargeBoxID: meterValueToSave.chargeBoxID,
-          connectorId: Utils.convertToInt(meterValueToSave.connectorId),
-          transactionId: Utils.convertToInt(meterValueToSave.transactionId),
-          timestamp,
-          value: meterValueToSave.attribute.format === 'SignedData' ? meterValueToSave.value : Utils.convertToInt(meterValueToSave.value),
-          attribute: meterValueToSave.attribute,
-        };
-        // Execute
-        await global.database.getCollection(tenant.id, 'metervalues').insertOne(meterValueMDB);
-      } catch (error) {
-        await Logging.logError({
-          tenantID: tenant.id,
-          chargingStationID: meterValueToSave.chargeBoxID,
-          siteID: meterValueToSave.siteID,
-          siteAreaID: meterValueToSave.siteAreaID,
-          companyID: meterValueToSave.companyID,
-          module: MODULE_NAME, method: 'saveMeterValues',
-          action: ServerAction.OCPP_METER_VALUES,
-          message: 'An error occurred while trying to save the meter value',
-          detailedMessages: { error: error.stack, meterValue: meterValueToSave, meterValues: meterValuesToSave }
-        });
-      }
+      const timestamp = Utils.convertToDate(meterValueToSave.timestamp);
+      const meterValueMDB: any = {
+        _id: Utils.hash(`${meterValueToSave.chargeBoxID}~${meterValueToSave.connectorId}~${timestamp.toISOString()}~${meterValueToSave.value}~${JSON.stringify(meterValueToSave.attribute)}`),
+        chargeBoxID: meterValueToSave.chargeBoxID,
+        connectorId: Utils.convertToInt(meterValueToSave.connectorId),
+        transactionId: Utils.convertToInt(meterValueToSave.transactionId),
+        timestamp,
+        value: meterValueToSave.attribute.format === 'SignedData' ? meterValueToSave.value : Utils.convertToInt(meterValueToSave.value),
+        attribute: meterValueToSave.attribute,
+      };
+      // Execute
+      await global.database.getCollection(tenant.id, 'metervalues').insertOne(meterValueMDB);
     }
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveMeterValues', startTime, meterValuesToSave);
