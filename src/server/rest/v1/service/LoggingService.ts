@@ -109,7 +109,7 @@ export default class LoggingService {
       logs.projectFields = authorizationSitesFilter.projectFields;
     }
     // Add Auth flags
-    AuthorizationService.addLogsAuthorizations(req.tenant, req.user, logs as LogDataResult, authorizationSitesFilter);
+    await AuthorizationService.addLogsAuthorizations(req.tenant, req.user, logs as LogDataResult, authorizationSitesFilter);
     return logs;
   }
 }
