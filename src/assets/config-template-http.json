@@ -79,10 +79,6 @@
   "OCPIEndpoint": {
     "baseUrl": ""
   },
-  "WSClient": {
-    "autoReconnectMaxRetries": 10,
-    "autoReconnectTimeout": 60
-  },
   "AsyncTask": {
     "active": true,
     "nbrTasksInParallel": 4

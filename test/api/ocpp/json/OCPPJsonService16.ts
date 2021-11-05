@@ -30,8 +30,6 @@ export default class OCPPJsonService16 extends OCPPService {
       const sentRequests = {};
       const wsClientOptions: WSClientOptions = {
         protocols: WSServerProtocol.OCPP16,
-        autoReconnectTimeout: config.get('wsClient').autoReconnectTimeout,
-        autoReconnectMaxRetries: config.get('wsClient').autoReconnectMaxRetries
       };
       const wsConnection = new WSClient(`${this.serverUrl}/${chargeBoxIdentity}`, wsClientOptions, false);
       // Opened
