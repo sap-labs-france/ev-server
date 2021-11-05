@@ -132,7 +132,7 @@ export default class TransactionService {
     }
     // Get Transaction User
     const user: User = await UserStorage.getUser(req.tenant, req.user.id);
-    UtilsService.assertObjectExists(action, user, `User ID '${req.user.id}' does not exist`,
+    UtilsService.assertObjectExists(action, user, `User ID '${req.user.id as string}' does not exist`,
       MODULE_NAME, 'handleRefundTransactions', req.user);
     const refundConnector = await RefundFactory.getRefundImpl(req.tenant);
     if (!refundConnector) {
