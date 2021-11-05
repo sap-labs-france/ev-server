@@ -42,7 +42,7 @@ export default abstract class WSConnection {
     this.wsServer = wsServer;
     void Logging.logDebug({
       tenantID: Constants.DEFAULT_TENANT,
-      action: ServerAction.WS_CONNECTION_OPENED,
+      action: ServerAction.WS_CONNECTION,
       module: MODULE_NAME, method: 'constructor',
       message: `WS connection opening attempts with URL: '${req.url}'`,
     });
