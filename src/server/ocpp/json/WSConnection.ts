@@ -5,8 +5,6 @@ import WebSocket, { CLOSED, CLOSING, CONNECTING, CloseEvent, ErrorEvent, Message
 import BackendError from '../../../exception/BackendError';
 import Constants from '../../../utils/Constants';
 import JsonCentralSystemServer from './JsonCentralSystemServer';
-import LockingHelper from '../../../locking/LockingHelper';
-import LockingManager from '../../../locking/LockingManager';
 import Logging from '../../../utils/Logging';
 import OCPPError from '../../../exception/OcppError';
 import OCPPUtils from '../utils/OCPPUtils';
