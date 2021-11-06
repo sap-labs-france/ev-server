@@ -1,5 +1,3 @@
-import WebSocket, { CloseEvent, ErrorEvent } from 'ws';
-
 import BackendError from '../../../exception/BackendError';
 import ChargingStationClient from '../../../client/ocpp/ChargingStationClient';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
@@ -11,6 +9,7 @@ import OCPPUtils from '../utils/OCPPUtils';
 import { ServerAction } from '../../../types/Server';
 import Utils from '../../../utils/Utils';
 import WSConnection from './WSConnection';
+import WebSocket from 'ws';
 import global from '../../../types/GlobalType';
 import http from 'http';
 
@@ -41,7 +40,7 @@ export default class JsonRestWSConnection extends WSConnection {
     }
   }
 
-  public onError(errorEvent: ErrorEvent): void {
+  public onError(error: Error): void {
     void Logging.logError({
       tenantID: this.getTenantID(),
       siteID: this.getSiteID(),
@@ -50,12 +49,12 @@ export default class JsonRestWSConnection extends WSConnection {
       chargingStationID: this.getChargingStationID(),
       module: MODULE_NAME, method: 'onError',
       action: ServerAction.WS_REST_CONNECTION_ERROR,
-      message: `Error ${errorEvent?.error} ${errorEvent?.message}`,
-      detailedMessages: { errorEvent: errorEvent }
+      message: `Error: ${error?.message}`,
+      detailedMessages: { error: error?.stack }
     });
   }
 
-  public onClose(closeEvent: CloseEvent): void {
+  public onClose(code: number, reason: Buffer): void {
     // Remove the connection
     this.wsServer.removeRestConnection(this);
     void Logging.logInfo({
@@ -66,8 +65,8 @@ export default class JsonRestWSConnection extends WSConnection {
       chargingStationID: this.getChargingStationID(),
       module: MODULE_NAME, method: 'onClose',
       action: ServerAction.WS_REST_CONNECTION_CLOSED,
-      message: `Connection has been closed, Reason: '${closeEvent.reason ? closeEvent.reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(Utils.convertToInt(closeEvent))}', Code: '${closeEvent.toString()}'`,
-      detailedMessages: { closeEvent }
+      message: `Connection has been closed, Reason: '${reason.toString()}', Message: '${Utils.getWebSocketCloseEventStatusString(Utils.convertToInt(code))}', Code: '${code}'`,
+      detailedMessages: { code, reason }
     });
   }
 
@@ -111,7 +110,7 @@ export default class JsonRestWSConnection extends WSConnection {
       // Call the method
       const result = await chargingStationClient[actionMethod](commandPayload);
       // Send Response
-      await this.sendMessage(messageId, result, OCPPMessageType.CALL_RESULT_MESSAGE, command);
+      await this.sendMessage(messageId, OCPPMessageType.CALL_RESULT_MESSAGE, command, result);
     } else {
       // Error
       throw new BackendError({
