@@ -117,7 +117,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
       siteAreaID: this.chargingStation.siteAreaID,
       companyID: this.chargingStation.companyID,
       chargingStationID: this.chargingStation.id,
-      action: ServerAction.WS_REST_CLIENT_CONNECTION_OPENED,
+      action: ServerAction.WS_REST_CLIENT_CONNECTION,
       module: MODULE_NAME, method: 'onOpen',
       message: `Try to connect to '${this.serverURL}'...`
     });
