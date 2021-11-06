@@ -40,12 +40,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     if (chargingStationURL.endsWith('/')) {
       chargingStationURL = chargingStationURL.substring(0, chargingStationURL.length - 1);
     }
-    // Keep
-    this.serverURL = `ws://${chargingStation.cloudHostIP}/REST/${tenantID}/${chargingStation.tokenID}/${chargingStation.id}`;
-    // Override
-    if (Utils.isDevelopmentEnv()) {
-      this.serverURL = `${chargingStationURL}/REST/${tenantID}/${chargingStation.tokenID}/${chargingStation.id}`;
-    }
+    this.serverURL = `${chargingStationURL}/REST/${tenantID}/${chargingStation.tokenID}/${chargingStation.id}`;
     this.chargingStation = chargingStation;
     this.requests = {};
   }
