@@ -166,7 +166,7 @@ export default class JsonWSConnection extends WSConnection {
         // Call it
         result = await this.chargingStationService[methodName](this.headers, commandPayload);
         // Send Response
-        await this.sendMessage(messageId, OCPPMessageType.CALL_RESULT_MESSAGE, command, result);
+        await this.sendResponse(messageId, command, result);
       } finally {
         // Clean the header
         delete this.headers.chargingStation;

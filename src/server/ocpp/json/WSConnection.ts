@@ -170,11 +170,15 @@ export default abstract class WSConnection {
     return this.clientIP;
   }
 
-  public async sendError(messageId: string, error: OCPPError): Promise<unknown> {
-    return this.sendMessage(messageId, OCPPMessageType.CALL_ERROR_MESSAGE, null, null, error);
+  public async sendResponse(messageID: string, command: Command, response: Record<string, string>): Promise<Record<string, any>> {
+    return this.sendMessage(messageID, OCPPMessageType.CALL_RESULT_MESSAGE, command, response);
   }
 
-  public async sendMessage(messageID: string, messageType: OCPPMessageType, command: Command, commandParams: Record<string, unknown>, error?: OCPPError): Promise<unknown> {
+  public async sendError(messageID: string, error: OCPPError): Promise<unknown> {
+    return this.sendMessage(messageID, OCPPMessageType.CALL_ERROR_MESSAGE, null, null, error);
+  }
+
+  public async sendMessage(messageID: string, messageType: OCPPMessageType, command?: Command, data?: Record<string, unknown>, error?: OCPPError): Promise<unknown> {
     // Create a promise
     return new Promise((resolve, reject) => {
       let messageToSend: string;
@@ -196,12 +200,12 @@ export default abstract class WSConnection {
         case OCPPMessageType.CALL_MESSAGE:
           // Build request
           this.ocppRequests[messageID] = [responseCallback, rejectCallback, command];
-          messageToSend = JSON.stringify([messageType, messageID, command, commandParams]);
+          messageToSend = JSON.stringify([messageType, messageID, command, data]);
           break;
         // Response
         case OCPPMessageType.CALL_RESULT_MESSAGE:
           // Build response
-          messageToSend = JSON.stringify([messageType, messageID, commandParams]);
+          messageToSend = JSON.stringify([messageType, messageID, data]);
           break;
         // Error Message
         case OCPPMessageType.CALL_ERROR_MESSAGE:
