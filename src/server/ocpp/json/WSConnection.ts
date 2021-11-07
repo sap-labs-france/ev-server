@@ -170,7 +170,7 @@ export default abstract class WSConnection {
     return this.clientIP;
   }
 
-  public async sendResponse(messageID: string, command: Command, response: Record<string, string>): Promise<Record<string, any>> {
+  public async sendResponse(messageID: string, command: Command, response: Record<string, any>): Promise<Record<string, any>> {
     return this.sendMessage(messageID, OCPPMessageType.CALL_RESULT_MESSAGE, command, response);
   }
 
@@ -178,7 +178,7 @@ export default abstract class WSConnection {
     return this.sendMessage(messageID, OCPPMessageType.CALL_ERROR_MESSAGE, null, null, error);
   }
 
-  public async sendMessage(messageID: string, messageType: OCPPMessageType, command?: Command, data?: Record<string, unknown>, error?: OCPPError): Promise<unknown> {
+  public async sendMessage(messageID: string, messageType: OCPPMessageType, command?: Command, data?: Record<string, any>, error?: OCPPError): Promise<unknown> {
     // Create a promise
     return new Promise((resolve, reject) => {
       let messageToSend: string;
