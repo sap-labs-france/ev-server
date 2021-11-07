@@ -31,15 +31,6 @@ export class ServerUtils {
     if (serverConfig.protocol === ServerProtocol.HTTPS || serverConfig.protocol === ServerProtocol.WSS) {
       // Create the options
       const options: https.ServerOptions = {};
-      // Set the keys
-      // FIXME: read certificates directly from config.json file. In the future: config for OICP in default tenant
-      if (serverConfig.sslKey && serverConfig.sslCert) {
-        options.key = serverConfig.sslKey;
-        options.cert = serverConfig.sslCert;
-      }
-      // pragma options.requestCert = true; // TODO: Test on QA System: Reject incoming requests without valid certificate (OICP: accept only requests from Hubject)
-      // options.rejectUnauthorized = true; // TODO: Test on QA System
-
       // Intermediate cert?
       if (serverConfig.sslCa) {
         // Array?
