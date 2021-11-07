@@ -1270,7 +1270,7 @@ export default class ChargingStationService {
     }
     let filteredRequest: any;
     try {
-      let result: any;
+      let result: any = {};
       switch (command) {
         // Clear Cache
         case Command.CLEAR_CACHE:
@@ -1345,75 +1345,67 @@ export default class ChargingStationService {
           filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionResetReq(req.body);
           result = await chargingStationClient.reset({ type: filteredRequest.args.type });
           break;
-        // Other commands
+        // Unknwon command
         default:
-          // Log Specific Schema has not been verified:
-          await Logging.logError({
-            tenantID: req.tenant.id,
-            siteID: chargingStation.siteID,
-            siteAreaID: chargingStation.siteAreaID,
-            companyID: chargingStation.companyID,
-            chargingStationID: chargingStation.id,
-            user: req.user,
-            action: action,
-            module: MODULE_NAME, method: 'handleAction',
-            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-            message: `Command '${command}' has not its own validation schema.`
-          });
           throw new AppError({
+            chargingStationID: chargingStation.id,
+            siteAreaID: chargingStation.siteAreaID,
+            siteID: chargingStation.siteID,
+            companyID: chargingStation.companyID,
+            action: action,
             errorCode: HTTPError.GENERAL_ERROR,
-            message: `Command '${command}' has not its own validation schema.`,
+            message: `Unknown OCPP command '${command}'`,
             module: MODULE_NAME,
-            method: 'handleAction'
+            method: 'handleAction',
+            user: req.user,
           });
       }
-      if (result) {
-        // OCPP Command with status
-        if (Utils.objectHasProperty(result, 'status') && ![OCPPStatus.ACCEPTED, OCPPUnlockStatus.UNLOCKED].includes(result.status)) {
-          await Logging.logError({
-            tenantID: req.tenant.id,
-            siteID: chargingStation.siteID,
-            siteAreaID: chargingStation.siteAreaID,
-            companyID: chargingStation.companyID,
-            chargingStationID: chargingStation.id,
-            user: req.user,
-            module: MODULE_NAME, method: 'handleChargingStationCommand',
-            action: action,
-            message: `OCPP Command '${command}' has failed`,
-            detailedMessages: { filteredRequest, result }
-          });
-        } else {
-          // OCPP Command with no status
-          await Logging.logInfo({
-            tenantID: req.tenant.id,
-            siteID: chargingStation.siteID,
-            siteAreaID: chargingStation.siteAreaID,
-            companyID: chargingStation.companyID,
-            chargingStationID: chargingStation.id,
-            user: req.user,
-            module: MODULE_NAME, method: 'handleChargingStationCommand',
-            action: action,
-            message: `OCPP Command '${command}' has been executed successfully`,
-            detailedMessages: { filteredRequest, result }
-          });
-        }
-        res.json(result);
-        next();
-        return;
+      // Expect result
+      if (!result) {
+        throw new AppError({
+          chargingStationID: chargingStation.id,
+          siteAreaID: chargingStation.siteAreaID,
+          siteID: chargingStation.siteID,
+          companyID: chargingStation.companyID,
+          action: action,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: `Received an empty response from OCPP command '${command}'`,
+          module: MODULE_NAME,
+          method: 'handleAction',
+          user: req.user,
+        });
       }
-      // Throw error
-      throw new AppError({
-        chargingStationID: chargingStation.id,
-        siteAreaID: chargingStation.siteAreaID,
-        siteID: chargingStation.siteID,
-        companyID: chargingStation.companyID,
-        action: action,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `Unknown OCPP command '${command}'`,
-        module: MODULE_NAME,
-        method: 'handleChargingStationCommand',
-        user: req.user,
-      });
+      // OCPP Command with status
+      if (Utils.objectHasProperty(result, 'status') && ![OCPPStatus.ACCEPTED, OCPPUnlockStatus.UNLOCKED].includes(result.status)) {
+        await Logging.logError({
+          tenantID: req.tenant.id,
+          siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          companyID: chargingStation.companyID,
+          chargingStationID: chargingStation.id,
+          user: req.user,
+          module: MODULE_NAME, method: 'handleAction',
+          action: action,
+          message: `OCPP Command '${command}' has failed`,
+          detailedMessages: { filteredRequest, result }
+        });
+      } else {
+        // OCPP Command with no status
+        await Logging.logInfo({
+          tenantID: req.tenant.id,
+          siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          companyID: chargingStation.companyID,
+          chargingStationID: chargingStation.id,
+          user: req.user,
+          module: MODULE_NAME, method: 'handleAction',
+          action: action,
+          message: `OCPP Command '${command}' has been executed successfully`,
+          detailedMessages: { filteredRequest, result }
+        });
+      }
+      res.json(result);
+      next();
     } catch (error) {
       throw new AppError({
         chargingStationID: chargingStation.id,
@@ -1423,7 +1415,7 @@ export default class ChargingStationService {
         action: action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `OCPP Command '${command}' has failed`,
-        module: MODULE_NAME, method: 'handleChargingStationCommand',
+        module: MODULE_NAME, method: 'handleAction',
         user: req.user,
         detailedMessages: { error: error.stack }
       });
