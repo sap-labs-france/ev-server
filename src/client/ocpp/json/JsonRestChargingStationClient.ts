@@ -5,7 +5,6 @@ import { ServerAction, WSServerProtocol } from '../../../types/Server';
 
 import BackendError from '../../../exception/BackendError';
 import ChargingStationClient from '../ChargingStationClient';
-import Configuration from '../../../utils/Configuration';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import WSClient from '../../websocket/WSClient';
@@ -41,7 +40,6 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     if (chargingStationURL.endsWith('/')) {
       chargingStationURL = chargingStationURL.substring(0, chargingStationURL.length - 1);
     }
-    // Keep
     this.serverURL = `${chargingStationURL}/REST/${tenantID}/${chargingStation.tokenID}/${chargingStation.id}`;
     this.chargingStation = chargingStation;
     this.requests = {};
@@ -119,23 +117,22 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
       siteAreaID: this.chargingStation.siteAreaID,
       companyID: this.chargingStation.companyID,
       chargingStationID: this.chargingStation.id,
-      action: ServerAction.WS_REST_CLIENT_CONNECTION_OPENED,
+      action: ServerAction.WS_REST_CLIENT_CONNECTION,
       module: MODULE_NAME, method: 'onOpen',
       message: `Try to connect to '${this.serverURL}'...`
     });
     // Create Promise
-    return await new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       try {
         // Create WS
-        const wsOptions = {
-          protocol: WSServerProtocol.REST
-        };
         const wsClientOptions: WSClientOptions = {
-          WSOptions: wsOptions,
-          autoReconnectTimeout: Configuration.getWSClientConfig().autoReconnectTimeout,
-          autoReconnectMaxRetries: Configuration.getWSClientConfig().autoReconnectMaxRetries,
+          wsOptions: {
+            protocol: WSServerProtocol.REST,
+            handshakeTimeout: 5000,
+          },
           logTenantID: this.tenantID
         };
+        // Create and Open the WS
         this.wsConnection = new WSClient(this.serverURL, wsClientOptions);
         // Opened
         this.wsConnection.onopen = async () => {
@@ -227,8 +224,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
               });
             }
           } catch (error) {
-            await Logging.logException(error, ServerAction.WS_REST_CLIENT_MESSAGE, MODULE_NAME, 'onMessage', this.tenantID
-            );
+            await Logging.logException(error, ServerAction.WS_REST_CLIENT_MESSAGE, MODULE_NAME, 'onMessage', this.tenantID);
           }
         };
       } catch (error) {

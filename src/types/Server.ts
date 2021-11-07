@@ -250,6 +250,7 @@ export enum ServerAction {
   WS_REST_CLIENT_ERROR_RESPONSE = 'WSRestClientErrorResponse',
   WS_REST_CLIENT_MESSAGE = 'WSRestClientMessage',
   WS_REST_CLIENT_SEND_MESSAGE = 'WSRestClientSendMessage',
+  WS_REST_CLIENT_CONNECTION = 'WSRestClientConnection',
   WS_REST_CLIENT_CONNECTION_CLOSED = 'WSRestClientConnectionClosed',
   WS_REST_CLIENT_CONNECTION_OPENED = 'WSRestClientConnectionOpened',
   WS_REST_CLIENT_CONNECTION_ERROR = 'WSRestClientConnectionError',

@@ -553,7 +553,7 @@ export default class BillingService {
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
+        errorCode: HTTPError.MISSING_SETTINGS,
         message: 'Billing service is not configured',
         module: MODULE_NAME, method: 'handleBillingGetPaymentMethods',
         action: action,

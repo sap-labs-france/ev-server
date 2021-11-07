@@ -40,7 +40,7 @@ export default class WSClient {
   }
 
   public open(): void {
-    this.ws = new WebSocket(this.url, this.options.protocols || [], this.options.WSOptions || {});
+    this.ws = new WebSocket(this.url, this.options.protocols || [], this.options.wsOptions || {});
     // Handle Socket open
     this.ws.on('open', this.onOpen.bind(this));
     // Handle Socket error
