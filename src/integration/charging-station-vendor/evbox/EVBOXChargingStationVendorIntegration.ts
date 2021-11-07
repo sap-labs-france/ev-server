@@ -1,7 +1,7 @@
 import ChargingStation, { ChargePoint } from '../../../types/ChargingStation';
 
 import ChargingStationVendorIntegration from '../ChargingStationVendorIntegration';
-import { OCPPChangeConfigurationCommandResult } from '../../../types/ocpp/OCPPClient';
+import { OCPPChangeConfigurationResponse } from '../../../types/ocpp/OCPPClient';
 import Tenant from '../../../types/Tenant';
 
 export default class EVBOXChargingStationVendorIntegration extends ChargingStationVendorIntegration {
@@ -11,7 +11,7 @@ export default class EVBOXChargingStationVendorIntegration extends ChargingStati
 
   // EV-BOX use dA as unit for static limitation
   public async setStaticPowerLimitation(tenant: Tenant, chargingStation: ChargingStation,
-      chargePoint?: ChargePoint, maxAmps?: number): Promise<OCPPChangeConfigurationCommandResult> {
+      chargePoint?: ChargePoint, maxAmps?: number): Promise<OCPPChangeConfigurationResponse> {
     return super.setStaticPowerLimitation(tenant, chargingStation, chargePoint, maxAmps, 10);
   }
 

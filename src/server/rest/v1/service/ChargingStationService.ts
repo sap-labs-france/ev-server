@@ -3,7 +3,7 @@ import ChargingStation, { ChargingStationOcppParameters, ChargingStationQRCode, 
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { HttpChargingStationChangeConfigurationRequest, HttpChargingStationGetCompositeScheduleRequest, HttpChargingStationStartTransactionRequest, HttpChargingStationStopTransactionRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { NextFunction, Request, Response } from 'express';
-import { OCPPChangeConfigurationCommandResult, OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPStatus, OCPPUnlockStatus } from '../../../../types/ocpp/OCPPClient';
+import { OCPPChangeConfigurationResponse, OCPPConfigurationStatus, OCPPGetCompositeScheduleResponse, OCPPStatus, OCPPUnlockStatus } from '../../../../types/ocpp/OCPPClient';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
@@ -1781,7 +1781,7 @@ export default class ChargingStationService {
     // Get composite schedule
     let result: any;
     if (filteredRequest.args.connectorId === 0) {
-      result = [] as OCPPGetCompositeScheduleCommandResult[];
+      result = [] as OCPPGetCompositeScheduleResponse[];
       for (const connector of chargingStation.connectors) {
         // Connector ID > 0
         const chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
@@ -1916,7 +1916,7 @@ export default class ChargingStationService {
 
   private static async executeChargingStationChangeConfiguration(action: ServerAction, chargingStation: ChargingStation, command: Command,
       filteredRequest: HttpChargingStationChangeConfigurationRequest, req: Request, res: Response, next: NextFunction,
-      chargingStationClient: ChargingStationClient): Promise<OCPPChangeConfigurationCommandResult> {
+      chargingStationClient: ChargingStationClient): Promise<OCPPChangeConfigurationResponse> {
     // Change the config
     const result = await chargingStationClient.changeConfiguration({
       key: filteredRequest.args.key,
