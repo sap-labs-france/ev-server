@@ -1,7 +1,7 @@
 import { BillingDataTransactionStart, BillingDataTransactionStop } from '../../../types/Billing';
 import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargingStationCapabilities, ChargingStationTemplate, Command, Connector, ConnectorCurrentLimitSource, CurrentType, OcppParameter, SiteAreaLimitSource, StaticLimitAmps, TemplateUpdate, TemplateUpdateResult } from '../../../types/ChargingStation';
-import { OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
+import { OCPPChangeConfigurationResponse, OCPPChargingProfileStatus, OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
 import { OCPPMeasurand, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat } from '../../../types/ocpp/OCPPServer';
 import { OICPIdentification, OICPSessionID } from '../../../types/oicp/OICPIdentification';
 import Tenant, { TenantComponents } from '../../../types/Tenant';
@@ -1217,7 +1217,7 @@ export default class OCPPUtils {
     return chargingStationTemplateUpdateResult;
   }
 
-  public static async applyTemplateOcppParametersToChargingStation(tenant: Tenant, chargingStation: ChargingStation): Promise<OCPPChangeConfigurationCommandResult> {
+  public static async applyTemplateOcppParametersToChargingStation(tenant: Tenant, chargingStation: ChargingStation): Promise<OCPPChangeConfigurationResponse> {
     await Logging.logDebug({
       tenantID: tenant.id,
       siteID: chargingStation.siteID,
@@ -1229,11 +1229,11 @@ export default class OCPPUtils {
       message: `Apply Template's OCPP Parameters for '${chargingStation.id}' in Tenant ${Utils.buildTenantName(tenant)})`,
     });
     // Request and save the latest OCPP parameters
-    let result = await Utils.executePromiseWithTimeout<OCPPChangeConfigurationCommandResult>(
+    let result = await Utils.executePromiseWithTimeout<OCPPChangeConfigurationResponse>(
       Constants.DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS, OCPPCommon.requestAndSaveChargingStationOcppParameters(tenant, chargingStation),
       `Time out error (${Constants.DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS.toString()} ms) in requesting OCPP Parameters`);
     // Update the OCPP Parameters from the template
-    result = await Utils.executePromiseWithTimeout<OCPPChangeConfigurationCommandResult>(
+    result = await Utils.executePromiseWithTimeout<OCPPChangeConfigurationResponse>(
       Constants.DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS, OCPPUtils.updateChargingStationOcppParametersWithTemplate(tenant, chargingStation),
       `Time out error (${Constants.DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS} ms) in updating OCPP Parameters`);
     if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
@@ -1638,8 +1638,8 @@ export default class OCPPUtils {
     return { tenant, chargingStation, token, lock };
   }
 
-  public static async updateChargingStationOcppParametersWithTemplate(tenant: Tenant, chargingStation: ChargingStation): Promise<OCPPChangeConfigurationCommandResult> {
-    let result: OCPPChangeConfigurationCommandResult;
+  public static async updateChargingStationOcppParametersWithTemplate(tenant: Tenant, chargingStation: ChargingStation): Promise<OCPPChangeConfigurationResponse> {
+    let result: OCPPChangeConfigurationResponse;
     const updatedOcppParameters: ActionsResponse = {
       inError: 0,
       inSuccess: 0

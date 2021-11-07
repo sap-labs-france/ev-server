@@ -102,7 +102,6 @@ export default abstract class WSConnection {
               message: `Unknwon OCPP Request for '${wsData.toString()}'`,
             });
           }
-          delete this.ocppRequests[messageID];
           responseCallback(commandPayload);
           break;
         // Error Message
@@ -120,7 +119,6 @@ export default abstract class WSConnection {
               detailedMessages: { messageType, messageID, commandPayload, errorDetails }
             });
           }
-          delete this.ocppRequests[messageID];
           rejectCallback(new OCPPError({
             chargingStationID: this.getChargingStationID(),
             siteID: this.getSiteID(),
@@ -182,17 +180,32 @@ export default abstract class WSConnection {
     // Create a promise
     return new Promise((resolve, reject) => {
       let messageToSend: string;
+      let messageProcessed = false;
+      let requestTimeout: NodeJS.Timer;
       // Function that will receive the request's response
-      const responseCallback = (payload: Record<string, unknown> | string): void => {
-        // Send the response
-        resolve(payload);
+      const responseCallback = (payload?: Record<string, unknown> | string): void => {
+        if (!messageProcessed) {
+          if (requestTimeout) {
+            clearTimeout(requestTimeout);
+          }
+          // Send response
+          messageProcessed = true;
+          delete this.ocppRequests[messageID];
+          resolve(payload);
+        }
       };
       // Function that will receive the request's rejection
       const rejectCallback = (reason: string | OCPPError): void => {
-        // Build Exception
-        const ocppError = reason instanceof OCPPError ? reason : new Error(reason);
-        // Send error
-        reject(ocppError);
+        if (!messageProcessed) {
+          if (requestTimeout) {
+            clearTimeout(requestTimeout);
+          }
+          // Send error
+          messageProcessed = true;
+          delete this.ocppRequests[messageID];
+          const ocppError = reason instanceof OCPPError ? reason : new Error(reason);
+          reject(ocppError);
+        }
       };
       // Type of message
       switch (messageType) {
@@ -213,21 +226,26 @@ export default abstract class WSConnection {
           messageToSend = JSON.stringify([messageType, messageID, error.code ? error.code : OCPPErrorType.GENERIC_ERROR, error.message ? error.message : '', error.details ? error.details : {}]);
           break;
       }
-      // Check if wsConnection is ready
+      // Check Connection
       if (this.isWSConnectionOpen()) {
-        // Yes: Send Message
-        this.wsConnection.send(messageToSend);
+        // Send Message
+        this.wsConnection.send(messageToSend, (wsError?: Error) => {
+          if (wsError) {
+            rejectCallback(`Error '${wsError?.message}' when sending Message ID '${messageID}' with content '${messageToSend}' (${this.tenantSubdomain})`);
+          }
+        });
       } else {
-        // Reject it
+        // Reject
         return rejectCallback(`WebSocket closed for Message ID '${messageID}' with content '${messageToSend}' (${this.tenantSubdomain})`);
       }
       // Response?
       if (messageType !== OCPPMessageType.CALL_MESSAGE) {
-        // Yes: send Ok
-        resolve();
+        responseCallback();
       } else {
-        // Send timeout
-        setTimeout(() => rejectCallback(`Timeout for Message ID '${messageID}' with content '${messageToSend} (${this.tenantSubdomain})`), Constants.OCPP_SOCKET_TIMEOUT);
+        // Trigger timeout
+        requestTimeout = setTimeout(() => {
+          rejectCallback(`Timeout for Message ID '${messageID}' with content '${messageToSend} (${this.tenantSubdomain})`);
+        }, Constants.OCPP_SOCKET_TIMEOUT);
       }
     });
   }

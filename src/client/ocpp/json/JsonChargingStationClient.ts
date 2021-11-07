@@ -1,5 +1,5 @@
 import ChargingStation, { Command } from '../../../types/ChargingStation';
-import { OCPPCancelReservationCommandParam, OCPPCancelReservationCommandResult, OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPClearCacheCommandResult, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPDataTransferCommandParam, OCPPDataTransferCommandResult, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPReserveNowCommandParam, OCPPReserveNowCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUpdateFirmwareCommandParam } from '../../../types/ocpp/OCPPClient';
+import { OCPPCancelReservationRequest, OCPPCancelReservationResponse, OCPPChangeAvailabilityRequest, OCPPChangeAvailabilityResponse, OCPPChangeConfigurationRequest, OCPPChangeConfigurationResponse, OCPPClearCacheResponse, OCPPClearChargingProfileRequest, OCPPClearChargingProfileResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPGetCompositeScheduleRequest, OCPPGetCompositeScheduleResponse, OCPPGetConfigurationRequest, OCPPGetConfigurationResponse, OCPPGetDiagnosticsRequest, OCPPGetDiagnosticsResponse, OCPPRemoteStartTransactionRequest, OCPPRemoteStartTransactionResponse, OCPPRemoteStopTransactionRequest, OCPPRemoteStopTransactionResponse, OCPPReserveNowRequest, OCPPReserveNowResponse, OCPPResetRequest, OCPPResetResponse, OCPPSetChargingProfileRequest, OCPPSetChargingProfileResponse, OCPPUnlockConnectorRequest, OCPPUnlockConnectorResponse, OCPPUpdateFirmwareRequest } from '../../../types/ocpp/OCPPClient';
 
 import ChargingStationClient from '../../ocpp/ChargingStationClient';
 import JsonWSConnection from '../../../server/ocpp/json/JsonWSConnection';
@@ -30,67 +30,67 @@ export default class JsonChargingStationClient extends ChargingStationClient {
     return this.wsConnection.getChargingStationID();
   }
 
-  public async remoteStartTransaction(params: OCPPRemoteStartTransactionCommandParam): Promise<OCPPRemoteStartTransactionCommandResult> {
+  public async remoteStartTransaction(params: OCPPRemoteStartTransactionRequest): Promise<OCPPRemoteStartTransactionResponse> {
     return this.sendMessage(Command.REMOTE_START_TRANSACTION, params);
   }
 
-  public async reset(params: OCPPResetCommandParam): Promise<OCPPResetCommandResult> {
+  public async reset(params: OCPPResetRequest): Promise<OCPPResetResponse> {
     return this.sendMessage(Command.RESET, params);
   }
 
-  public async clearCache(): Promise<OCPPClearCacheCommandResult> {
+  public async clearCache(): Promise<OCPPClearCacheResponse> {
     return this.sendMessage(Command.CLEAR_CACHE, {});
   }
 
-  public async getConfiguration(params: OCPPGetConfigurationCommandParam = {}): Promise<OCPPGetConfigurationCommandResult> {
+  public async getConfiguration(params: OCPPGetConfigurationRequest = {}): Promise<OCPPGetConfigurationResponse> {
     return this.sendMessage(Command.GET_CONFIGURATION, params);
   }
 
-  public async changeConfiguration(params: OCPPChangeConfigurationCommandParam): Promise<OCPPChangeConfigurationCommandResult> {
+  public async changeConfiguration(params: OCPPChangeConfigurationRequest): Promise<OCPPChangeConfigurationResponse> {
     return this.sendMessage(Command.CHANGE_CONFIGURATION, params);
   }
 
-  public async remoteStopTransaction(params: OCPPRemoteStopTransactionCommandParam): Promise<OCPPRemoteStopTransactionCommandResult> {
+  public async remoteStopTransaction(params: OCPPRemoteStopTransactionRequest): Promise<OCPPRemoteStopTransactionResponse> {
     return this.sendMessage(Command.REMOTE_STOP_TRANSACTION, params);
   }
 
-  public async unlockConnector(params: OCPPUnlockConnectorCommandParam): Promise<OCPPUnlockConnectorCommandResult> {
+  public async unlockConnector(params: OCPPUnlockConnectorRequest): Promise<OCPPUnlockConnectorResponse> {
     return this.sendMessage(Command.UNLOCK_CONNECTOR, params);
   }
 
-  public async setChargingProfile(params: OCPPSetChargingProfileCommandParam): Promise<OCPPSetChargingProfileCommandResult> {
+  public async setChargingProfile(params: OCPPSetChargingProfileRequest): Promise<OCPPSetChargingProfileResponse> {
     return this.sendMessage(Command.SET_CHARGING_PROFILE, params);
   }
 
-  public async getCompositeSchedule(params: OCPPGetCompositeScheduleCommandParam): Promise<OCPPGetCompositeScheduleCommandResult> {
+  public async getCompositeSchedule(params: OCPPGetCompositeScheduleRequest): Promise<OCPPGetCompositeScheduleResponse> {
     return this.sendMessage(Command.GET_COMPOSITE_SCHEDULE, params);
   }
 
-  public async clearChargingProfile(params: OCPPClearChargingProfileCommandParam): Promise<OCPPClearChargingProfileCommandResult> {
+  public async clearChargingProfile(params: OCPPClearChargingProfileRequest): Promise<OCPPClearChargingProfileResponse> {
     return this.sendMessage(Command.CLEAR_CHARGING_PROFILE, params);
   }
 
-  public async changeAvailability(params: OCPPChangeAvailabilityCommandParam): Promise<OCPPChangeAvailabilityCommandResult> {
+  public async changeAvailability(params: OCPPChangeAvailabilityRequest): Promise<OCPPChangeAvailabilityResponse> {
     return this.sendMessage(Command.CHANGE_AVAILABILITY, params);
   }
 
-  public async getDiagnostics(params: OCPPGetDiagnosticsCommandParam): Promise<OCPPGetDiagnosticsCommandResult> {
+  public async getDiagnostics(params: OCPPGetDiagnosticsRequest): Promise<OCPPGetDiagnosticsResponse> {
     return this.sendMessage(Command.GET_DIAGNOSTICS, params);
   }
 
-  public async updateFirmware(params: OCPPUpdateFirmwareCommandParam): Promise<void> {
+  public async updateFirmware(params: OCPPUpdateFirmwareRequest): Promise<void> {
     return this.sendMessage(Command.UPDATE_FIRMWARE, params);
   }
 
-  public async dataTransfer(params: OCPPDataTransferCommandParam): Promise<OCPPDataTransferCommandResult> {
+  public async dataTransfer(params: OCPPDataTransferRequest): Promise<OCPPDataTransferResponse> {
     return this.sendMessage(Command.DATA_TRANSFER, params);
   }
 
-  public async reserveNow(params: OCPPReserveNowCommandParam): Promise<OCPPReserveNowCommandResult> {
+  public async reserveNow(params: OCPPReserveNowRequest): Promise<OCPPReserveNowResponse> {
     return this.sendMessage(Command.RESERVE_NOW, params);
   }
 
-  public async cancelReservation(params: OCPPCancelReservationCommandParam): Promise<OCPPCancelReservationCommandResult> {
+  public async cancelReservation(params: OCPPCancelReservationRequest): Promise<OCPPCancelReservationResponse> {
     return this.sendMessage(Command.CANCEL_RESERVATION, params);
   }
 
