@@ -110,7 +110,7 @@ export default class JsonRestWSConnection extends WSConnection {
       // Call the method
       const result = await chargingStationClient[actionMethod](commandPayload);
       // Send Response
-      await this.sendMessage(messageId, OCPPMessageType.CALL_RESULT_MESSAGE, command, result);
+      await this.sendResponse(messageId, command, result);
     } else {
       // Error
       throw new BackendError({
