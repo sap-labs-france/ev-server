@@ -8539,7 +8539,7 @@
         }
       }
     },
-    "/api/assets/connectors/:id/connection/check": {
+    "/api/assets/connectors/{id}/connection/check": {
       "get": {
         "security": [
           {
@@ -9621,7 +9621,7 @@
         }
       }
     },
-    "/api/ocpi/endpoints/:id/evses/statuses/send": {
+    "/api/ocpi/endpoints/{id}/evses/statuses/send": {
       "put": {
         "security": [
           {
@@ -9663,7 +9663,7 @@
         }
       }
     },
-    "/api/ocpi/endpoints/:id/tokens/send": {
+    "/api/ocpi/endpoints/{id}/tokens/send": {
       "put": {
         "security": [
           {
@@ -9705,7 +9705,7 @@
         }
       }
     },
-    "/api/ocpi/endpoints/:id/tokens/generate": {
+    "/api/ocpi/endpoints/{id}/tokens/generate": {
       "put": {
         "security": [
           {
@@ -9764,7 +9764,7 @@
         }
       }
     },
-    "/api/ocpi/endpoints/:id/register": {
+    "/api/ocpi/endpoints/{id}/register": {
       "put": {
         "security": [
           {
@@ -9817,7 +9817,7 @@
         }
       }
     },
-    "/api/ocpi/endpoints/:id/unregister": {
+    "/api/ocpi/endpoints/{id}/unregister": {
       "put": {
         "security": [
           {
@@ -9958,7 +9958,7 @@
         }
       }
     },
-    "/api/oicp/endpoints/:id/evses/statuses/send": {
+    "/api/oicp/endpoints/{id}/evses/statuses/send": {
       "put": {
         "security": [
           {
@@ -10000,7 +10000,7 @@
         }
       }
     },
-    "/api/oicp/endpoints/:id/evses/send": {
+    "/api/oicp/endpoints/{id}/evses/send": {
       "put": {
         "security": [
           {

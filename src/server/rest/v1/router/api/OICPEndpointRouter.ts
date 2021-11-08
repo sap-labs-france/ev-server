@@ -15,7 +15,7 @@ export default class OICPEndpointRouter {
   public buildRoutes(): express.Router {
     this.buildRouteOicpEndpointCreate();
     this.buildRouteOicpEndpointPing();
-    this.buildRouteOicpEndpointSendEvseStatues();
+    this.buildRouteOicpEndpointSendEvseStatuses();
     this.buildRouteOicpEndpointSendEvses();
     return this.router;
   }
@@ -33,7 +33,7 @@ export default class OICPEndpointRouter {
     });
   }
 
-  private buildRouteOicpEndpointSendEvseStatues(): void {
+  private buildRouteOicpEndpointSendEvseStatuses(): void {
     this.router.put(`/${ServerRoute.REST_OICP_ENDPOINT_SEND_EVSE_STATUSES}`, async (req: Request, res: Response, next: NextFunction) => {
       req.body.id = req.params.id;
       await RouterUtils.handleServerAction(OICPEndpointService.handleSendEVSEStatusesOicpEndpoint.bind(this), ServerAction.OICP_ENDPOINT_SEND_EVSE_STATUSES, req, res, next);
