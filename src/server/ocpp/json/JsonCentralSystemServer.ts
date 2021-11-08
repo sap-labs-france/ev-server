@@ -55,11 +55,11 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
           // for (const key of this.ongoingWSInitializations.keys()) {
           //   console.log(chalk.green(`** Init incoming URL: ${key}`));
           // }
-          // console.log(chalk.green('====================================='));
         } else {
           console.log(chalk.green('** No ongoing WS initialization(s)'));
         }
-      }, 5000);
+        console.log(chalk.green('====================================='));
+      }, 1000);
     }
   }
 
