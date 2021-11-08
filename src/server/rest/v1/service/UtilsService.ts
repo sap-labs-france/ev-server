@@ -34,7 +34,9 @@ import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
+import Transaction from '../../../../types/Transaction';
 import { TransactionInErrorType } from '../../../../types/InError';
+import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
@@ -752,6 +754,82 @@ export default class UtilsService {
       action: ServerAction, entityData?: EntityDataType, additionalFilters: Record<string, any> = {}, applyProjectFields = false, checkIssuer = true): Promise<Tag> {
     return UtilsService.checkAndGetTagByXXXAuthorization(tenant, userToken, tagID, TagStorage.getTagByVisualID.bind(this),
       authAction, action, entityData, additionalFilters, applyProjectFields, checkIssuer);
+  }
+
+  public static async checkAndGetTransactionsAuthorization(tenant: Tenant, userToken: UserToken, authAction: Action,
+      action: ServerAction, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Transaction[]> {
+
+
+    /* const authObject = await AuthorizationService.checkAndGetTransactionsAuthorizations(tenant, userToken, additionalFilters);
+      await TransactionService.getTransactions(req, action, {}, authObject.projectFields);
+
+    return await ;*/
+  }
+
+  public static async checkAndGetTransactionAuthorization(tenant: Tenant, userToken: UserToken, transactionID: number, authAction: Action,
+      action: ServerAction, entityData?: EntityDataType, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Transaction> {
+    // Check mandatory fields
+    UtilsService.assertIdIsProvided(action, transactionID, MODULE_NAME, 'checkAndGetTransactionAuthorization', userToken);
+    // Get dynamic auth
+    const authorizationFilter = await AuthorizationService.checkAndGetTransactionAuthorizations(
+      tenant, userToken, { ID: transactionID }, authAction, entityData);
+    if (!authorizationFilter.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: authAction, entity: Entity.TAG,
+        module: MODULE_NAME, method: 'checkAndGetTransactionAuthorization',
+        value: transactionID.toString()
+      });
+    }
+    // Get the Transaction & check it exists
+    const transaction = await TransactionStorage.getTransaction(tenant, transactionID,
+      {
+        ...additionalFilters,
+        ...authorizationFilter.filters
+      },
+      applyProjectFields ? authorizationFilter.projectFields : null
+    );
+    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${transactionID}' does not exist`,
+      MODULE_NAME, 'checkAndGetTransactionAuthorization', userToken);
+    // Check Transaction
+    if (!await Authorizations.canReadTransaction(userToken, transaction)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: Action.READ, entity: Entity.TRANSACTION,
+        module: MODULE_NAME, method: 'checkAndGetTransactionAuthorization',
+        value: transactionID.toString()
+      });
+    }
+    // Check and Get User
+    let user: User;
+    try {
+      user = await UtilsService.checkAndGetUserAuthorization(
+        tenant, userToken, transaction.userID, Action.READ, action, null, null, true, false);
+    } catch (error) {
+      // Ignore
+    }
+    // Check User
+    if (!user) {
+      // Remove User
+      delete transaction.user;
+      delete transaction.userID;
+      delete transaction.tag;
+      delete transaction.tagID;
+      delete transaction.carCatalogID;
+      delete transaction.carCatalog;
+      delete transaction.carID;
+      delete transaction.car;
+      delete transaction.billingData;
+
+      if (transaction.stop) {
+        delete transaction.stop.user;
+        delete transaction.stop.userID;
+        delete transaction.stop.tagID;
+      }
+    }
+    return transaction;
   }
 
   public static sendEmptyDataResult(res: Response, next: NextFunction): void {

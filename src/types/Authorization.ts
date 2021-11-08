@@ -227,6 +227,13 @@ export interface SiteAuthorizationActions extends AuthorizationActions {
   canGenerateQrCode?: boolean;
 }
 
+export interface TransactionAuthorizationActions extends AuthorizationActions {
+  canStart?: boolean;
+  canStop?: boolean;
+  canTruc?: boolean;
+  canAnotherTruc?: boolean;
+}
+
 export enum DynamicAuthorizationFilterName {
   ASSIGNED_SITES_COMPANIES = 'AssignedSitesCompanies',
   SITES_ADMIN = 'SitesAdmin',

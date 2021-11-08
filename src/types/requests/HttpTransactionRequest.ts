@@ -1,3 +1,4 @@
+import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 import { InactivityStatus } from '../Transaction';
 
@@ -14,7 +15,7 @@ export interface HttpUnassignTransactionsToUserRequest {
   TagID: string;
 }
 
-export interface HttpTransactionRequest {
+export interface HttpTransactionRequest extends HttpByIDRequest {
   ID: number;
   WithTag: boolean;
   WithCar: boolean;

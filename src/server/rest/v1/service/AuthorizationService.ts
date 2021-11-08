@@ -7,6 +7,7 @@ import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requ
 import { HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
 import { HttpSiteAssignUsersRequest, HttpSiteRequest, HttpSiteUsersRequest } from '../../../../types/requests/HttpSiteRequest';
 import { HttpTagRequest, HttpTagsRequest } from '../../../../types/requests/HttpTagRequest';
+import { HttpTransactionRequest, HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
 import { HttpUserAssignSitesRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
 import User, { UserRole } from '../../../../types/User';
@@ -27,6 +28,7 @@ import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import Tag from '../../../../types/Tag';
+import Transaction from '../../../../types/Transaction';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
@@ -302,10 +304,30 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
+  public static async checkAndGetTransactionsAuthorizations(tenant: Tenant, userToken: UserToken,
+      filteredRequest: Partial<HttpTransactionsRequest>): Promise<AuthorizationFilter> {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      dataSources: new Map(),
+      projectFields: [],
+      authorized: false
+    };
+    // Check static & dynamic authorization
+    await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TRANSACTIONS, Action.LIST, authorizationFilters, filteredRequest);
+    return authorizationFilters;
+  }
+
   public static async checkAndGetTagAuthorizations(tenant: Tenant, userToken: UserToken,
       filteredRequest: Partial<HttpTagRequest>, authAction: Action, entityData?: EntityDataType): Promise<AuthorizationFilter> {
     return AuthorizationService.checkAndGetEntityAuthorizations(
       tenant, Entity.TAG, userToken, filteredRequest, filteredRequest.ID ? { TagID: filteredRequest.ID } : {}, authAction, entityData);
+  }
+
+  public static async checkAndGetTransactionAuthorizations(tenant: Tenant, userToken: UserToken,
+      filteredRequest: Partial<HttpTransactionRequest>, authAction: Action, entityData?: EntityDataType): Promise<AuthorizationFilter> {
+    return AuthorizationService.checkAndGetEntityAuthorizations(
+      tenant, Entity.TRANSACTION, userToken, filteredRequest, filteredRequest.ID ? { TransactionID: filteredRequest.ID } : {}, authAction, entityData);
   }
 
   public static async addTagsAuthorizations(tenant: Tenant, userToken: UserToken, tags: TagDataResult, authorizationFilter: AuthorizationFilter): Promise<void> {

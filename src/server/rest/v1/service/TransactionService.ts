@@ -7,6 +7,7 @@ import Transaction, { TransactionAction } from '../../../../types/Transaction';
 import { ActionsResponse } from '../../../../types/GlobalType';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
+import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
 import { BillingStatus } from '../../../../types/Billing';
@@ -41,16 +42,10 @@ const MODULE_NAME = 'TransactionService';
 export default class TransactionService {
 
   public static async handleGetTransactions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Get transactions
-    const transactions = await TransactionService.getTransactions(req, action, {}, [
-      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
-      'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
-      'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit',
-      'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.meterStop',
-      'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID', 'tag.visualID', 'stop.tag.visualID',
-      'site.name', 'siteArea.name', 'company.name'
-    ]);
+    // Filter request
+    const filteredRequest = TransactionValidator.getInstance().validateTransactionsGetReq(req.query);
+    // Check and get transactions
+    const transactions = await UtilsService.checkAndGetTransactionsAuthorization(req.tenant, req.user, Action.LIST, action, filteredRequest);
     res.json(transactions);
     next();
   }
@@ -407,6 +402,7 @@ export default class TransactionService {
     // Transaction Id is mandatory
     UtilsService.assertIdIsProvided(action, filteredRequest.TransactionId, MODULE_NAME,
       'handleGetConsumptionFromTransaction', req.user);
+    // Check authorization & get projectFields
     let projectFields = [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
       'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge', 'currentInactivityStatus',
@@ -505,64 +501,15 @@ export default class TransactionService {
   }
 
   public static async handleGetTransaction(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Filter
+    // Filter request
     const filteredRequest = TransactionValidator.getInstance().validateTransactionGetReq(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetTransaction', req.user);
-    // Get Transaction
-    const transaction = await TransactionStorage.getTransaction(req.tenant, filteredRequest.ID,
-      { withTag: filteredRequest.WithTag, withCar: filteredRequest.WithCar, withUser: filteredRequest.WithUser },
-      [
-        'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'tagID', 'tag.visualID', 'tag.description', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
-        'userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'roundedPrice', 'price', 'priceUnit',
-        'stop.userID', 'stop.user.id', 'stop.user.name', 'stop.user.firstName', 'stop.user.email',
-        'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
-        'currentCumulatedPrice', 'currentInactivityStatus', 'signedData', 'stop.reason',
-        'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh', 'stop.meterStop',
-        'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.pricingSource', 'stop.signedData',
-        'stop.tagID', 'stop.tag.visualID', 'stop.tag.description', 'billingData.stop.status', 'billingData.stop.invoiceID',
-        'billingData.stop.invoiceStatus', 'billingData.stop.invoiceNumber',
-        'carID' ,'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion'
-      ]
-    );
-    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.ID}' does not exist`,
-      MODULE_NAME, 'handleGetTransaction', req.user);
-    // Check Transaction
-    if (!await Authorizations.canReadTransaction(req.user, transaction)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.READ, entity: Entity.TRANSACTION,
-        module: MODULE_NAME, method: 'handleGetTransaction',
-        value: filteredRequest.ID.toString()
-      });
-    }
-    // Check and Get User
-    let user: User;
-    try {
-      user = await UtilsService.checkAndGetUserAuthorization(
-        req.tenant, req.user, transaction.userID, Action.READ, action, null, null, true, false);
-    } catch (error) {
-      // Ignore
-    }
-    // Check User
-    if (!user) {
-      // Remove User
-      delete transaction.user;
-      delete transaction.userID;
-      delete transaction.tag;
-      delete transaction.tagID;
-      delete transaction.carCatalogID;
-      delete transaction.carCatalog;
-      delete transaction.carID;
-      delete transaction.car;
-      delete transaction.billingData;
-
-      if (transaction.stop) {
-        delete transaction.stop.user;
-        delete transaction.stop.userID;
-        delete transaction.stop.tagID;
-      }
-    }
+    // Check and get Transaction
+    const transaction = await UtilsService.checkAndGetTransactionAuthorization(
+      req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {
+        withCar: filteredRequest.WithCar,
+        withUser: filteredRequest.WithUser,
+        withTag: filteredRequest.WithTag,
+      }, true);
     // Return
     res.json(transaction);
     next();
@@ -689,6 +636,7 @@ export default class TransactionService {
     await UtilsService.exportToCSV(req, res, 'exported-sessions.csv',
       TransactionService.getCompletedTransactionsToExport.bind(this),
       TransactionService.convertToCSV.bind(this));
+    next();
   }
 
   public static async getCompletedTransactionsToExport(req: Request): Promise<DataResult<Transaction>> {
@@ -708,6 +656,7 @@ export default class TransactionService {
     await UtilsService.exportToCSV(req, res, 'exported-refund-sessions.csv',
       TransactionService.getRefundedTransactionsToExport.bind(this),
       TransactionService.convertToCSV.bind(this));
+    next();
   }
 
   public static async getRefundedTransactionsToExport(req: Request): Promise<DataResult<Transaction>> {

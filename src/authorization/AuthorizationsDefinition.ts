@@ -215,11 +215,33 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Action.CHANGE_AVAILABILITY, Action.TRIGGER_DATA_TRANSFER
         ]
       },
-      { resource: Entity.TRANSACTIONS, action: [Action.LIST, Action.EXPORT, Action.IN_ERROR] },
+      { resource: Entity.TRANSACTIONS, action: [Action.LIST, Action.EXPORT, Action.IN_ERROR],
+        attributes: [
+          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
+          'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
+          'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit',
+          'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
+          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.meterStop',
+          'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID', 'tag.visualID', 'stop.tag.visualID',
+          'site.name', 'siteArea.name', 'company.name'
+        ]
+      },
       {
         resource: Entity.TRANSACTION,
         action: [
           Action.READ, Action.UPDATE, Action.DELETE, Action.REFUND_TRANSACTION
+        ],
+        attributes: [
+          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'tagID', 'tag.visualID', 'tag.description', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
+          'userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'roundedPrice', 'price', 'priceUnit',
+          'stop.userID', 'stop.user.id', 'stop.user.name', 'stop.user.firstName', 'stop.user.email',
+          'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
+          'currentCumulatedPrice', 'currentInactivityStatus', 'signedData', 'stop.reason',
+          'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh', 'stop.meterStop',
+          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.pricingSource', 'stop.signedData',
+          'stop.tagID', 'stop.tag.visualID', 'stop.tag.description', 'billingData.stop.status', 'billingData.stop.invoiceID',
+          'billingData.stop.invoiceStatus', 'billingData.stop.invoiceNumber',
+          'carID' ,'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion'
         ]
       },
       { resource: Entity.REPORT, action: [Action.READ] },
@@ -797,7 +819,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       { resource: Entity.CHARGING_STATION, action: Action.READ },
       { resource: Entity.TRANSACTIONS, action: Action.LIST },
-      { resource: Entity.TRANSACTION, action: Action.READ },
+      { resource: Entity.TRANSACTION, action: Action.READ, attributes: ['id'] },
     ]
   },
   siteAdmin: {
