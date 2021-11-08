@@ -304,8 +304,8 @@ export default class SettingService {
           user: req.user
         });
       } else {
-        if (Utils.hash(settingUpdate.content.crypto.key) !== Utils.hash(setting.content.crypto.key)) {
-          settingUpdate.content.crypto.migrationToBeDone = true;
+        if (Utils.hash(filteredRequest.content.crypto.key) !== Utils.hash(setting.content.crypto.key)) {
+          filteredRequest.content.crypto.migrationToBeDone = true;
         }
         filteredRequest.content.crypto.formerKey = setting.content.crypto.key;
         filteredRequest.content.crypto.formerKeyProperties = setting.content.crypto.keyProperties;
