@@ -38,43 +38,39 @@ export default class JsonWSConnection extends WSConnection {
   }
 
   public async initialize(): Promise<void> {
-    // Already initialized?
-    if (!this.initialized) {
-      // Init parent
-      await super.initialize();
-      // Initialize the default Headers
-      this.headers = {
-        chargeBoxIdentity: this.getChargingStationID(),
-        ocppVersion: (this.getWSConnection().protocol.startsWith('ocpp') ? this.getWSConnection().protocol.replace('ocpp', '') : this.getWSConnection().protocol) as OCPPVersion,
-        ocppProtocol: OCPPProtocol.JSON,
-        chargingStationURL: Configuration.getJsonEndpointConfig().baseSecureUrl ?? Configuration.getJsonEndpointConfig().baseUrl,
-        tenantID: this.getTenantID(),
-        tokenID: this.getTokenID(),
-        From: {
-          Address: this.getClientIP()
-        }
-      };
-      this.initialized = true;
-      await Logging.logInfo({
-        tenantID: this.getTenantID(),
-        siteID: this.getSiteID(),
-        siteAreaID: this.getSiteAreaID(),
-        companyID: this.getCompanyID(),
-        chargingStationID: this.getChargingStationID(),
-        action: ServerAction.WS_JSON_CONNECTION_OPENED,
-        module: MODULE_NAME, method: 'initialize',
-        message: `New Json connection from '${this.getClientIP().toString()}' with URL '${this.getURL()}'`,
-        detailedMessages: { ocppHeaders: this.headers }
-      });
-    }
+    // Init parent
+    await super.initialize();
+    // Initialize the default Headers
+    this.headers = {
+      chargeBoxIdentity: this.getChargingStationID(),
+      ocppVersion: (this.getWSConnection().protocol.startsWith('ocpp') ? this.getWSConnection().protocol.replace('ocpp', '') : this.getWSConnection().protocol) as OCPPVersion,
+      ocppProtocol: OCPPProtocol.JSON,
+      chargingStationURL: Configuration.getJsonEndpointConfig().baseSecureUrl ?? Configuration.getJsonEndpointConfig().baseUrl,
+      tenantID: this.getTenantID(),
+      tokenID: this.getTokenID(),
+      From: {
+        Address: this.getClientIP()
+      }
+    };
+    await Logging.logInfo({
+      tenantID: this.getTenantID(),
+      siteID: this.getSiteID(),
+      siteAreaID: this.getSiteAreaID(),
+      companyID: this.getCompanyID(),
+      chargingStationID: this.getChargingStationID(),
+      action: ServerAction.WS_JSON_CONNECTION_OPENED,
+      module: MODULE_NAME, method: 'initialize',
+      message: `New Json connection from '${this.getClientIP().toString()}' with URL '${this.getURL()}'`,
+      detailedMessages: { ocppHeaders: this.headers }
+    });
   }
 
-  public async onPing(message: ArrayBuffer): Promise<void> {
+  public async onPing(message: string): Promise<void> {
     this.isConnectionAlive = true;
     await this.updateChargingStationLastSeen();
   }
 
-  public async onPong(message: ArrayBuffer): Promise<void> {
+  public async onPong(message: string): Promise<void> {
     this.isConnectionAlive = true;
     await this.updateChargingStationLastSeen();
   }
