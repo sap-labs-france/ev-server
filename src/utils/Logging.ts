@@ -18,7 +18,6 @@ import { OCPPStatus } from '../types/ocpp/OCPPClient';
 import { OICPResult } from '../types/oicp/OICPResult';
 import PerformanceStorage from '../storage/mongodb/PerformanceStorage';
 import Tenant from '../types/Tenant';
-import TenantStorage from '../storage/mongodb/TenantStorage';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
 import Utils from './Utils';
@@ -49,7 +48,7 @@ export default class Logging {
     const sizeOfResponseDataKB = Utils.truncTo(Utils.createDecimal(
       sizeof(response)).div(1024).toNumber(), 2);
     const numberOfRecords = Array.isArray(response) ? response.length : 0;
-    const message = `${module}.${method} - ${executionDurationMillis.toString()} ms - Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB - ${numberOfRecords.toString()} rec(s)`;
+    const message = `${module}.${method} - ${executionDurationMillis.toString()} ms - Req ${sizeOfRequestDataKB} KB - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB - ${numberOfRecords.toString()} rec(s)`;
     Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
     if (sizeOfResponseDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
       const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}KB, got ${sizeOfResponseDataKB}KB`);
@@ -233,30 +232,6 @@ export default class Logging {
         const tenant = req['tenant'] as Tenant;
         tenantID = tenant.id;
         tenantSubdomain = tenant.subdomain;
-      // Check OCPI
-      } else if (req.headers?.authorization?.startsWith('Token')) {
-        let token: string;
-        try {
-          if (req.headers?.authorization.startsWith('Token')) {
-            token = req.headers.authorization.slice(6);
-          }
-          if (req.headers?.authorization.startsWith('Bearer')) {
-            token = req.headers.authorization.slice(7);
-          }
-          // Try Base 64 decoding (OCPI)
-          if (token) {
-            const decodedToken = JSON.parse(Buffer.from(token, 'base64').toString());
-            if (Utils.objectHasProperty(decodedToken, 'tid')) {
-              tenantSubdomain = decodedToken['tid'];
-              const tenant = await TenantStorage.getTenantBySubdomain(tenantSubdomain);
-              if (tenant) {
-                tenantID = tenant.id;
-              }
-            }
-          }
-        } catch (error) {
-          // Ignore
-        }
       }
       // Check User
       if (req['user']) {
@@ -618,7 +593,7 @@ export default class Logging {
     // Compute size
     const sizeOfRequestDataKB = Utils.truncTo(Utils.createDecimal(
       sizeof(request)).div(1024).toNumber(), 2);
-    const message = `${direction} OCPP Request '${action}' - Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB - ${direction === '>>' ? 'Received' : 'Sent'}`;
+    const message = `${direction} OCPP Request '${action}' - Req ${sizeOfRequestDataKB} KB - ${direction === '>>' ? 'Received' : 'Sent'}`;
     Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
     await Logging.logDebug({
       tenantID: tenant.id,

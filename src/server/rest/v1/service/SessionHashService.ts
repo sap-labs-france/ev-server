@@ -2,7 +2,6 @@ import { NextFunction, Request, Response } from 'express';
 
 import AppError from '../../../../exception/AppError';
 import Constants from '../../../../utils/Constants';
-import Cypher from '../../../../utils/Cypher';
 import { HTTPError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
@@ -73,14 +72,14 @@ export default class SessionHashService {
   public static buildUserHashID(user: User): string {
     // Generate User Hash
     if (user) {
-      return Cypher.hash(`${Utils.getLanguageFromLocale(user.locale)}/${user.email}/${user.role}/${user.status}`);
+      return Utils.hash(`${Utils.getLanguageFromLocale(user.locale)}/${user.email}/${user.role}/${user.status}`);
     }
   }
 
   public static buildTenantHashID(tenant: Tenant): string {
     // Generate Tenant Hash
     if (tenant) {
-      return Cypher.hash(JSON.stringify(Utils.getTenantActiveComponents(tenant)));
+      return Utils.hash(JSON.stringify(Utils.getTenantActiveComponents(tenant)));
     }
   }
 }

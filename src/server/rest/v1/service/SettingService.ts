@@ -76,7 +76,7 @@ export default class SettingService {
     Cypher.hashSensitiveDataInJSON(setting);
     // If Crypto Settings, hash key
     if (setting.identifier === 'crypto') {
-      setting.content.crypto.key = Cypher.hash(setting.content.crypto.key);
+      setting.content.crypto.key = Utils.hash(setting.content.crypto.key);
     }
     // Return
     res.json(setting);
@@ -106,7 +106,7 @@ export default class SettingService {
     Cypher.hashSensitiveDataInJSON(setting);
     // If Crypto Settings, hash key
     if (setting.identifier === 'crypto') {
-      setting.content.crypto.key = Cypher.hash(setting.content.crypto.key);
+      setting.content.crypto.key = Utils.hash(setting.content.crypto.key);
     }
     // Return
     res.json(setting);
@@ -135,7 +135,7 @@ export default class SettingService {
       Cypher.hashSensitiveDataInJSON(setting);
       // If Crypto Settings, hash key
       if (setting.identifier === 'crypto') {
-        setting.content.crypto.key = Cypher.hash(setting.content.crypto.key);
+        setting.content.crypto.key = Utils.hash(setting.content.crypto.key);
       }
     }
     // Return
@@ -213,7 +213,7 @@ export default class SettingService {
           // Get the sensitive property from the DB
           const valueInDb = _.get(setting, property);
           if (valueInDb && valueInDb.length > 0) {
-            const hashedValueInDB = Cypher.hash(valueInDb);
+            const hashedValueInDB = Utils.hash(valueInDb);
             if (valueInRequest !== hashedValueInDB) {
               // Yes: Encrypt
               _.set(settingUpdate, property, await Cypher.encrypt(req.tenant, valueInRequest));
@@ -274,7 +274,7 @@ export default class SettingService {
           user: req.user
         });
       } else {
-        if (Cypher.hash(settingUpdate.content.crypto.key) !== Cypher.hash(setting.content.crypto.key)) {
+        if (Utils.hash(settingUpdate.content.crypto.key) !== Utils.hash(setting.content.crypto.key)) {
           settingUpdate.content.crypto.migrationToBeDone = true;
         }
         settingUpdate.content.crypto.formerKey = setting.content.crypto.key;

@@ -9,7 +9,7 @@ import SiteArea from '../types/SiteArea';
 
 export default class LockingHelper {
   public static async acquireAsyncTaskLock(tenantID: string, asyncTaskID: string): Promise<Lock | null> {
-    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.ASYNC_TASK, asyncTaskID, 5 * 60);
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.ASYNC_TASK, asyncTaskID, 15 * 60);
     if (!(await LockingManager.acquire(lock))) {
       return null;
     }
@@ -187,15 +187,6 @@ export default class LockingHelper {
     const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.CHARGING_STATION,
       `${chargingStationID}`, Constants.CHARGING_STATION_LOCK_SECS);
     if (!(await LockingManager.acquire(lock, Constants.CHARGING_STATION_LOCK_SECS * 2))) {
-      return null;
-    }
-    return lock;
-  }
-
-  public static async acquireChargingStationConnectionLock(tenantID: string): Promise<Lock | null> {
-    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.CHARGING_STATION,
-      'json-connection', Constants.CHARGING_STATION_CONNECTION_LOCK_SECS);
-    if (!(await LockingManager.acquire(lock, Constants.CHARGING_STATION_CONNECTION_LOCK_SECS * 2))) {
       return null;
     }
     return lock;

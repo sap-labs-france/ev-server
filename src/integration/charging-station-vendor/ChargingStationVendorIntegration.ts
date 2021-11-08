@@ -1,13 +1,13 @@
 import { ChargingProfile, ChargingProfileKindType, ChargingProfilePurposeType, ChargingRateUnitType, ChargingSchedule, ChargingSchedulePeriod, RecurrencyKindType } from '../../types/ChargingProfile';
 import ChargingStation, { ChargePoint, ConnectorCurrentLimit, ConnectorCurrentLimitSource, StaticLimitAmps } from '../../types/ChargingStation';
-import { OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPClearChargingProfileCommandResult, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPSetChargingProfileCommandResult } from '../../types/ocpp/OCPPClient';
+import { OCPPChangeConfigurationResponse, OCPPChargingProfileStatus, OCPPClearChargingProfileResponse, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPGetCompositeScheduleResponse, OCPPSetChargingProfileResponse } from '../../types/ocpp/OCPPClient';
 
 import BackendError from '../../exception/BackendError';
 import ChargingStationClientFactory from '../../client/ocpp/ChargingStationClientFactory';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
+import OCPPCommon from '../../server/ocpp/utils/OCPPCommon';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
@@ -32,7 +32,7 @@ export default abstract class ChargingStationVendorIntegration {
   }
 
   public async setStaticPowerLimitation(tenant: Tenant, chargingStation: ChargingStation,
-      chargePoint?: ChargePoint, maxAmps?: number, ocppParamValueMultiplier = 1): Promise<OCPPChangeConfigurationCommandResult> {
+      chargePoint?: ChargePoint, maxAmps?: number, ocppParamValueMultiplier = 1): Promise<OCPPChangeConfigurationResponse> {
     const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, chargePoint);
     const numberOfConnectors = chargePoint ? chargePoint.connectorIDs.length : chargingStation.connectors.length;
     if (chargePoint.excludeFromPowerLimitation) {
@@ -100,7 +100,7 @@ export default abstract class ChargingStationVendorIntegration {
     }
     // Fixed the max amp per connector
     const ocppLimitAmpValue = this.convertLimitAmpPerPhase(chargingStation, chargePoint, 0, maxAmps * ocppParamValueMultiplier);
-    let result: OCPPChangeConfigurationCommandResult;
+    let result: OCPPChangeConfigurationResponse;
     try {
       await Logging.logDebug({
         tenantID: tenant.id,
@@ -114,7 +114,7 @@ export default abstract class ChargingStationVendorIntegration {
         detailedMessages: { maxAmps, ocppParam: chargePoint.ocppParamForPowerLimitation, ocppLimitAmpValue: ocppLimitAmpValue }
       });
       // Change the OCPP Parameter
-      result = await OCPPUtils.requestChangeChargingStationOcppParameter(tenant, chargingStation, {
+      result = await OCPPCommon.requestChangeChargingStationOcppParameter(tenant, chargingStation, {
         key: chargePoint.ocppParamForPowerLimitation,
         value: ocppLimitAmpValue.toString()
       });
@@ -174,7 +174,7 @@ export default abstract class ChargingStationVendorIntegration {
   }
 
   public async setChargingProfile(tenant: Tenant, chargingStation: ChargingStation, chargePoint: ChargePoint,
-      chargingProfile: ChargingProfile): Promise<OCPPSetChargingProfileCommandResult | OCPPSetChargingProfileCommandResult[]> {
+      chargingProfile: ChargingProfile): Promise<OCPPSetChargingProfileResponse | OCPPSetChargingProfileResponse[]> {
     // Check if feature is supported
     if (!chargingStation.capabilities?.supportChargingProfiles) {
       throw new BackendError({
@@ -224,7 +224,7 @@ export default abstract class ChargingStationVendorIntegration {
             module: MODULE_NAME, method: 'clearChargingProfile',
             detailedMessages: { result }
           });
-          const results = [] as OCPPSetChargingProfileCommandResult[];
+          const results = [] as OCPPSetChargingProfileResponse[];
           for (const connector of chargingStation.connectors) {
             const ret = await chargingStationClient.setChargingProfile({
               connectorId: connector.connectorId,
@@ -264,7 +264,7 @@ export default abstract class ChargingStationVendorIntegration {
   }
 
   public async clearChargingProfile(tenant: Tenant, chargingStation: ChargingStation,
-      chargingProfile: ChargingProfile): Promise<OCPPClearChargingProfileCommandResult | OCPPClearChargingProfileCommandResult[]> {
+      chargingProfile: ChargingProfile): Promise<OCPPClearChargingProfileResponse | OCPPClearChargingProfileResponse[]> {
     // Check if feature is supported
     if (!chargingStation.capabilities?.supportChargingProfiles) {
       throw new BackendError({
@@ -310,7 +310,7 @@ export default abstract class ChargingStationVendorIntegration {
             message: 'Clear Charging Profile on Connector ID 0 has been rejected, will try connector per connector',
             detailedMessages: { result }
           });
-          const results = [] as OCPPClearChargingProfileCommandResult[];
+          const results = [] as OCPPClearChargingProfileResponse[];
           for (const connector of chargingStation.connectors) {
             // Clear the Profile
             const ret = await chargingStationClient.clearChargingProfile({
@@ -345,7 +345,7 @@ export default abstract class ChargingStationVendorIntegration {
   }
 
   public async getCompositeSchedule(tenant: Tenant, chargingStation: ChargingStation, chargePoint: ChargePoint,
-      connectorID: number, durationSecs: number, chargingRateUnit?: ChargingRateUnitType): Promise<OCPPGetCompositeScheduleCommandResult> {
+      connectorID: number, durationSecs: number, chargingRateUnit?: ChargingRateUnitType): Promise<OCPPGetCompositeScheduleResponse> {
     // Check if feature is supported
     if (!chargingStation.capabilities?.supportChargingProfiles) {
       throw new BackendError({

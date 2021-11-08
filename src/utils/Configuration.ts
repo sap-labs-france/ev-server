@@ -25,8 +25,6 @@ import OICPEndpointConfiguration from '../types/configuration/OICPEndpointConfig
 import OICPServiceConfiguration from '../types/configuration/OICPServiceConfiguration';
 import SchedulerConfiguration from '../types/configuration/SchedulerConfiguration';
 import StorageConfiguration from '../types/configuration/StorageConfiguration';
-import Utils from './Utils';
-import WSClientConfiguration from '../types/configuration/WSClientConfiguration';
 import WSDLEndpointConfiguration from '../types/configuration/WSDLEndpointConfiguration';
 import fs from 'fs';
 import global from './../types/GlobalType';
@@ -106,7 +104,7 @@ export default class Configuration {
   }
 
   public static getEmailConfig(): EmailConfiguration {
-    if (Utils.isUndefined(Configuration.getConfig().Email.disableBackup)) {
+    if (Configuration.isUndefined(Configuration.getConfig().Email.disableBackup)) {
       Configuration.getConfig().Email.disableBackup = false;
     }
     return Configuration.getConfig().Email;
@@ -123,23 +121,23 @@ export default class Configuration {
   public static getChargingStationConfig(): ChargingStationConfiguration {
     // Read conf and set defaults values
     const chargingStationConfiguration: ChargingStationConfiguration = Configuration.getConfig().ChargingStation;
-    if (!Utils.isUndefined(chargingStationConfiguration)) {
-      if (Utils.isUndefined(chargingStationConfiguration.heartbeatIntervalOCPPSSecs)) {
-        if (!Utils.isUndefined(chargingStationConfiguration.heartbeatIntervalSecs)) {
+    if (!Configuration.isUndefined(chargingStationConfiguration)) {
+      if (Configuration.isUndefined(chargingStationConfiguration.heartbeatIntervalOCPPSSecs)) {
+        if (!Configuration.isUndefined(chargingStationConfiguration.heartbeatIntervalSecs)) {
           chargingStationConfiguration.heartbeatIntervalOCPPSSecs = chargingStationConfiguration.heartbeatIntervalSecs;
         } else {
           chargingStationConfiguration.heartbeatIntervalOCPPSSecs = 180;
         }
       }
-      if (Utils.isUndefined(chargingStationConfiguration.heartbeatIntervalOCPPJSecs)) {
-        if (!Utils.isUndefined(chargingStationConfiguration.heartbeatIntervalSecs)) {
+      if (Configuration.isUndefined(chargingStationConfiguration.heartbeatIntervalOCPPJSecs)) {
+        if (!Configuration.isUndefined(chargingStationConfiguration.heartbeatIntervalSecs)) {
           chargingStationConfiguration.heartbeatIntervalOCPPJSecs = chargingStationConfiguration.heartbeatIntervalSecs;
         } else {
           chargingStationConfiguration.heartbeatIntervalOCPPJSecs = 3600;
         }
       }
-      if (Utils.isUndefined(chargingStationConfiguration.maxLastSeenIntervalSecs)) {
-        if (!Utils.isUndefined(chargingStationConfiguration.heartbeatIntervalSecs)) {
+      if (Configuration.isUndefined(chargingStationConfiguration.maxLastSeenIntervalSecs)) {
+        if (!Configuration.isUndefined(chargingStationConfiguration.heartbeatIntervalSecs)) {
           chargingStationConfiguration.maxLastSeenIntervalSecs = 3 * chargingStationConfiguration.heartbeatIntervalSecs;
         } else {
           chargingStationConfiguration.maxLastSeenIntervalSecs = 540;
@@ -154,57 +152,44 @@ export default class Configuration {
     return Configuration.getConfig().Logging;
   }
 
-  public static getWSClientConfig(): WSClientConfiguration {
-    if (Utils.isUndefined(Configuration.getConfig().WSClient)) {
-      Configuration.getConfig().WSClient = {} as WSClientConfiguration;
-    }
-    if (Utils.isUndefined(Configuration.getConfig().WSClient.autoReconnectMaxRetries)) {
-      Configuration.getConfig().WSClient.autoReconnectMaxRetries = Constants.WS_DEFAULT_RECONNECT_MAX_RETRIES;
-    }
-    if (Utils.isUndefined(Configuration.getConfig().WSClient.autoReconnectTimeout)) {
-      Configuration.getConfig().WSClient.autoReconnectTimeout = Constants.WS_DEFAULT_RECONNECT_TIMEOUT;
-    }
-    return Configuration.getConfig().WSClient;
-  }
-
   public static getHealthCheckConfig(): HealthCheckConfiguration {
-    if (Utils.isUndefined(Configuration.getConfig().HealthCheck)) {
+    if (Configuration.isUndefined(Configuration.getConfig().HealthCheck)) {
       Configuration.getConfig().HealthCheck = {} as HealthCheckConfiguration;
     }
-    if (Utils.isUndefined(Configuration.getConfig().HealthCheck.enabled)) {
+    if (Configuration.isUndefined(Configuration.getConfig().HealthCheck.enabled)) {
       Configuration.getConfig().HealthCheck.enabled = true;
     }
     return Configuration.getConfig().HealthCheck;
   }
 
   public static getMigrationConfig(): MigrationConfiguration {
-    if (Utils.isUndefined(Configuration.getConfig().Migration)) {
+    if (Configuration.isUndefined(Configuration.getConfig().Migration)) {
       Configuration.getConfig().Migration = {} as MigrationConfiguration;
     }
-    if (Utils.isUndefined(Configuration.getConfig().Migration.active)) {
+    if (Configuration.isUndefined(Configuration.getConfig().Migration.active)) {
       Configuration.getConfig().Migration.active = false;
     }
     return Configuration.getConfig().Migration;
   }
 
   public static getChargingStationTemplatesConfig(): ChargingStationTemplatesConfiguration {
-    if (Utils.isUndefined(Configuration.getConfig().ChargingStationTemplates)) {
+    if (Configuration.isUndefined(Configuration.getConfig().ChargingStationTemplates)) {
       Configuration.getConfig().ChargingStationTemplates = {} as ChargingStationTemplatesConfiguration;
     }
-    if (Utils.isUndefined(Configuration.getConfig().ChargingStationTemplates.templatesFilePath)) {
+    if (Configuration.isUndefined(Configuration.getConfig().ChargingStationTemplates.templatesFilePath)) {
       Configuration.getConfig().ChargingStationTemplates.templatesFilePath = `${global.appRoot}/assets/charging-station-templates/charging-stations.json`;
     }
     return Configuration.getConfig().ChargingStationTemplates;
   }
 
   public static getAxiosConfig(): AxiosConfiguration {
-    if (Utils.isUndefined(Configuration.getConfig().Axios)) {
+    if (Configuration.isUndefined(Configuration.getConfig().Axios)) {
       Configuration.getConfig().Axios = {} as AxiosConfiguration;
     }
-    if (Utils.isUndefined(Configuration.getConfig().Axios.timeout)) {
+    if (Configuration.isUndefined(Configuration.getConfig().Axios.timeout)) {
       Configuration.getConfig().Axios.timeout = Constants.AXIOS_DEFAULT_TIMEOUT;
     }
-    if (Utils.isUndefined(Configuration.getConfig().Axios.retries)) {
+    if (Configuration.isUndefined(Configuration.getConfig().Axios.retries)) {
       Configuration.getConfig().Axios.retries = 0;
     }
     return Configuration.getConfig().Axios;
@@ -215,6 +200,11 @@ export default class Configuration {
       Configuration.config = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/config.json`, 'utf8')) as ConfigurationData;
     }
     return Configuration.config;
+  }
+
+  // Dup method: Avoid circular deps with Utils class
+  private static isUndefined(obj: any): boolean {
+    return typeof obj === 'undefined';
   }
 }
 

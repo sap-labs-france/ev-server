@@ -6,8 +6,8 @@ import { LockEntity } from '../../types/Locking';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
-import { OCPPGetConfigurationCommandResult } from '../../types/ocpp/OCPPClient';
-import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
+import OCPPCommon from '../../server/ocpp/utils/OCPPCommon';
+import { OCPPGetConfigurationResponse } from '../../types/ocpp/OCPPClient';
 import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
@@ -30,12 +30,12 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
         if (!Utils.isEmptyArray(chargingStations.result)) {
           for (let i = chargingStations.result.length - 1; i >= 0; i--) {
             const chargingStation = chargingStations.result[i];
-            let ocppHeartbeatConfiguration: OCPPGetConfigurationCommandResult;
+            let ocppHeartbeatConfiguration: OCPPGetConfigurationResponse;
             // Check if charging station is still connected
             try {
               // Send credentials to get the token
               ocppHeartbeatConfiguration = await Utils.executePromiseWithTimeout(
-                5000, OCPPUtils.requestChargingStationOcppParameters(tenant, chargingStation, { key: Constants.OCPP_HEARTBEAT_KEYS as string[] }),
+                5000, OCPPCommon.requestChargingStationOcppParameters(tenant, chargingStation, { key: Constants.OCPP_HEARTBEAT_KEYS as string[] }),
                 `Time out error (5s) when trying to get OCPP configuration from '${chargingStation.id}'`
               );
             } catch (error) {
