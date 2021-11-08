@@ -3,6 +3,7 @@ import * as uWS from 'uWebSockets.js';
 import { App, HttpRequest, HttpResponse, WebSocket, us_socket_context_t } from 'uWebSockets.js';
 import { ServerAction, ServerType, WSServerProtocol } from '../../../types/Server';
 
+import BackendError from '../../../exception/BackendError';
 import CentralSystemConfiguration from '../../../types/configuration/CentralSystemConfiguration';
 import CentralSystemServer from '../CentralSystemServer';
 import ChargingStationClient from '../../../client/ocpp/ChargingStationClient';
@@ -13,21 +14,54 @@ import JsonWSConnection from './JsonWSConnection';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import WSConnection from './WSConnection';
+import { WebSocketCloseEventStatusCode } from '../../../types/WebSocket';
+import chalk from 'chalk';
 import global from '../../../types/GlobalType';
 
 const MODULE_NAME = 'JsonCentralSystemServer';
 
 
 export default class JsonCentralSystemServer extends CentralSystemServer {
-  private jsonChargingStationClients: Map<string, JsonWSConnection>;
-  private jsonRestClients: Map<string, JsonRestWSConnection>;
+  private ongoingWSInitializations: Map<string, null> = new Map;
+  private jsonWSConnections: Map<string, JsonWSConnection> = new Map();
+  private jsonRestWSConnections: Map<string, JsonRestWSConnection> = new Map();
 
   constructor(centralSystemConfig: CentralSystemConfiguration, chargingStationConfig: ChargingStationConfiguration) {
-    // Call parent
     super(centralSystemConfig, chargingStationConfig);
-    // Keep local
-    this.jsonChargingStationClients = new Map<string, JsonWSConnection>();
-    this.jsonRestClients = new Map<string, JsonRestWSConnection>();
+    if (this.centralSystemConfig.debug) {
+      setInterval(() => {
+        console.log(chalk.green('====================================='));
+        if (this.jsonWSConnections.size > 0) {
+          console.log(chalk.green(`** ${this.jsonWSConnections.size} CS connection(s)`));
+          for (const key of this.jsonWSConnections.keys()) {
+            const jsonChargingStationClient = this.jsonWSConnections.get(key);
+            console.log(chalk.green(`** Connection CS: ${jsonChargingStationClient.getChargingStationID()}`));
+          }
+        } else {
+          console.log(chalk.green('** No CS connection'));
+        }
+        console.log(chalk.green('====================================='));
+        if (this.jsonRestWSConnections.size > 0) {
+          console.log(chalk.green(`** ${this.jsonRestWSConnections.size} CS connection(s)`));
+          for (const key of this.jsonRestWSConnections.keys()) {
+            const jsonRestClient = this.jsonRestWSConnections.get(key);
+            console.log(chalk.green(`** Connection REST: ${jsonRestClient.getChargingStationID()}`));
+          }
+        } else {
+          console.log(chalk.green('** No REST connection'));
+        }
+        console.log(chalk.green('====================================='));
+        if (this.ongoingWSInitializations.size > 0) {
+          console.log(chalk.green(`** ${this.ongoingWSInitializations.size} ongoing WS initialization(s)`));
+          for (const key of this.ongoingWSInitializations.keys()) {
+            console.log(chalk.green(`** Init incoming URL: ${key}`));
+          }
+        } else {
+          console.log(chalk.green('** No ongoing WS initialization(s)'));
+        }
+        console.log(chalk.green('====================================='));
+      }, 5000);
+    }
   }
 
   public start(): void {
@@ -43,7 +77,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     companyID: string
   }): ChargingStationClient {
     // Get the Json Web Socket
-    const jsonWebSocket = this.jsonChargingStationClients.get(`${tenantID}~${chargingStationID}`);
+    const jsonWebSocket = this.jsonWSConnections.get(`${tenantID}~${chargingStationID}`);
     if (!jsonWebSocket) {
       void Logging.logError({
         tenantID: tenantID,
@@ -61,28 +95,32 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     return jsonWebSocket.getChargingStationClient();
   }
 
-  public removeJsonConnection(wsConnection: JsonWSConnection): boolean {
-    // Remove from cache
-    return this.jsonChargingStationClients.delete(wsConnection.getID());
+  public removeJsonWSConnection(wsConnection: JsonWSConnection): boolean {
+    return this.jsonWSConnections.delete(wsConnection.getID());
   }
 
-  public getNumberOfJsonConnections(): number {
-    return this.jsonChargingStationClients.size;
+  public getNumberOfJsonWSConnections(): number {
+    return this.jsonWSConnections.size;
   }
 
-  public removeRestConnection(wsConnection: JsonRestWSConnection): boolean {
-    // Remove from cache
-    return this.jsonRestClients.delete(wsConnection.getID());
+  public removeJsonRestWSConnection(wsConnection: JsonRestWSConnection): boolean {
+    return this.jsonRestWSConnections.delete(wsConnection.getID());
   }
 
-  private addJsonConnection(wsConnection: JsonWSConnection) {
-    // Keep the connection
-    this.jsonChargingStationClients.set(wsConnection.getID(), wsConnection);
+  private setJsonWSConnection(wsConnection: JsonWSConnection) {
+    this.jsonWSConnections.set(wsConnection.getID(), wsConnection);
   }
 
-  private addRestConnection(wsConnection: JsonRestWSConnection) {
-    // Keep the connection
-    this.jsonRestClients.set(wsConnection.getID(), wsConnection);
+  private setJsonRestWSConnection(wsConnection: JsonRestWSConnection) {
+    this.jsonRestWSConnections.set(wsConnection.getID(), wsConnection);
+  }
+
+  private getJsonWSConnection(id: string): JsonWSConnection {
+    return this.jsonWSConnections.get(id);
+  }
+
+  private getJsonRestWSConnection(id: string): JsonRestWSConnection {
+    return this.jsonRestWSConnections.get(id);
   }
 
   private startWSServer() {
@@ -138,6 +176,8 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       },
       open: async (ws: WebSocket) => {
         let wsConnection: WSConnection;
+        // Init in progress
+        this.ongoingWSInitializations.set(ws.url, null);
         try {
           // Check Rest calls
           if (ws.url.startsWith('/REST')) {
@@ -146,9 +186,9 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
             // Init
             await wsConnection.initialize();
             // Add
-            this.addRestConnection(wsConnection as JsonRestWSConnection);
+            this.setJsonRestWSConnection(wsConnection as JsonRestWSConnection);
             // Keep WS
-            ws.jsonWSConnection = wsConnection;
+            ws.jsonRestWSConnection = wsConnection;
           } else if (ws.url.startsWith('/OCPP16')) {
             // Set the protocol
             ws.protocol = WSServerProtocol.OCPP16;
@@ -157,53 +197,72 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
             // Init
             await wsConnection.initialize();
             // Add
-            this.addJsonConnection(wsConnection as JsonWSConnection);
+            this.setJsonWSConnection(wsConnection as JsonWSConnection);
             // Keep WS
-            ws.jsonRestWSConnection = wsConnection;
+            ws.jsonWSConnection = wsConnection;
           } else {
             throw Error('Wrong WebSocket client connection URI path');
           }
+          // Keep data
+          ws.chargingStationID = wsConnection.getChargingStationID();
+          ws.tenantID = wsConnection.getTenantID();
+          ws.tokenID = wsConnection.getTokenID();
+          ws.siteID = wsConnection.getSiteID();
+          ws.siteAreaID = wsConnection.getSiteAreaID();
+          ws.companyID = wsConnection.getCompanyID();
         } catch (error) {
-          // TODO: Check how to send reason
-          // ws.close(WebSocketCloseEventStatusCode.CLOSE_UNSUPPORTED, error.message);
-          ws.close();
+          ws.end(WebSocketCloseEventStatusCode.CLOSE_ABNORMAL, error.message);
           await Logging.logException(error, ServerAction.WS_CONNECTION, MODULE_NAME, 'connection',
             wsConnection?.getTenantID() ? wsConnection.getTenantID() : Constants.DEFAULT_TENANT);
+        } finally {
+          // Clear init
+          this.ongoingWSInitializations.delete(ws.url);
         }
       },
       message: async (ws: WebSocket, message: ArrayBuffer, isBinary: boolean) => {
-        const wsConnection = this.getWSConnectionFromWebSocket(ws);
+        // Convert right away
+        const ocppMessage = Buffer.from(message).toString();
+        // Get the WS
+        const wsConnection = await this.getWSConnectionFromWebSocket(ws);
         if (wsConnection) {
-          await wsConnection.onMessage(message, isBinary);
-        } else {
-          ws.close();
+          await wsConnection.onMessage(ocppMessage, isBinary);
         }
       },
       drain: (ws: WebSocket) => {
         console.log('WS: Drain');
       },
       close: async (ws: WebSocket, code: number, message: ArrayBuffer) => {
+        // Convert right away
+        const ocppMessage = Buffer.from(message).toString();
+        // Check Json connection
         const jsonWSConnection = ws.jsonWSConnection as JsonWSConnection;
         if (jsonWSConnection) {
-          this.removeJsonConnection(jsonWSConnection);
-          await this.logWSConnectionClosed(jsonWSConnection, ServerAction.WS_CONNECTION_CLOSED, code, message);
+          this.removeJsonWSConnection(jsonWSConnection);
+          await this.logWSConnectionClosed(jsonWSConnection, ServerAction.WS_CONNECTION_CLOSED, code, ocppMessage);
         }
+        // Check REST connection
         const jsonRestWSConnection = ws.jsonRestWSConnection as JsonRestWSConnection;
         if (jsonRestWSConnection) {
-          this.removeRestConnection(jsonRestWSConnection);
-          await this.logWSConnectionClosed(jsonRestWSConnection, ServerAction.WS_REST_CONNECTION_CLOSED, code, message);
+          this.removeJsonRestWSConnection(jsonRestWSConnection);
+          await this.logWSConnectionClosed(jsonRestWSConnection, ServerAction.WS_REST_CONNECTION_CLOSED, code, ocppMessage);
         }
       },
       ping: async (ws: WebSocket, message: ArrayBuffer) => {
-        const wsConnection = this.getWSConnectionFromWebSocket(ws);
+        // Convert right away
+        const ocppMessage = Buffer.from(message).toString();
+        // Get the WS
+        const wsConnection = await this.getWSConnectionFromWebSocket(ws);
         if (wsConnection) {
-          await wsConnection.onPing(message);
+          await wsConnection.onPing(ocppMessage);
         }
       },
       pong: async (ws: WebSocket, message: ArrayBuffer) => {
-        const wsConnection = this.getWSConnectionFromWebSocket(ws);
+        // Convert right away
+        const ocppMessage = Buffer.from(message).toString();
+        // Get the WS
+        const wsConnection = await this.getWSConnectionFromWebSocket(ws);
         if (wsConnection) {
-          await wsConnection.onPong(message);
+          await wsConnection.onPong(ocppMessage);
         }
       }
     }).listen(this.centralSystemConfig.port, (token) => {
@@ -213,16 +272,30 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     });
   }
 
-  private getWSConnectionFromWebSocket(ws: uWS.WebSocket): WSConnection {
+  private async getWSConnectionFromWebSocket(ws: uWS.WebSocket): Promise<WSConnection> {
+    // Check if init has been finished
+    await this.waitForEndOfInitialization(ws);
     if (ws.jsonWSConnection) {
-      return ws.jsonWSConnection;
+      // Check if it's still available in the Map
+      const jsonWSConnection = ws.jsonWSConnection as JsonWSConnection;
+      if (!this.getJsonWSConnection(jsonWSConnection.getID())) {
+        this.setJsonWSConnection(jsonWSConnection);
+      }
+      return jsonWSConnection;
     }
     if (ws.jsonRestWSConnection) {
-      return ws.jsonRestWSConnection;
+      // Check if it's still available in the Map
+      const jsonRestWSConnection = ws.jsonRestWSConnection as JsonRestWSConnection;
+      if (!this.getJsonRestWSConnection(jsonRestWSConnection.getID())) {
+        this.setJsonRestWSConnection(jsonRestWSConnection);
+      }
+      return jsonRestWSConnection;
     }
+    // Nothing found
+    ws.end(WebSocketCloseEventStatusCode.CLOSE_ABNORMAL, 'Web Socket not registered in the backend');
   }
 
-  private async logWSConnectionClosed(wsConnection: WSConnection, action: ServerAction, code: number, message: ArrayBuffer): Promise<void> {
+  private async logWSConnectionClosed(wsConnection: WSConnection, action: ServerAction, code: number, message: string): Promise<void> {
     await Logging.logInfo({
       tenantID: wsConnection.getTenantID(),
       siteID: wsConnection.getSiteID(),
@@ -230,9 +303,39 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       companyID: wsConnection.getCompanyID(),
       chargingStationID: wsConnection.getChargingStationID(),
       action, module: MODULE_NAME, method: 'onClose',
-      message: `Connection has been closed, Reason: '${Buffer.from(message).toString()}', Message: '${Utils.getWebSocketCloseEventStatusString(Utils.convertToInt(code))}', Code: '${code}'`,
+      message: `Connection has been closed, Reason: '${message ?? 'Unknown'}', Message: '${Utils.getWebSocketCloseEventStatusString(Utils.convertToInt(code))}', Code: '${code}'`,
       detailedMessages: { code, message }
     });
+  }
+
+  private async waitForEndOfInitialization(ws: WebSocket) {
+    // Wait for init
+    if (this.ongoingWSInitializations.has(ws.url)) {
+      // Try 10 times
+      let remainingTrials = 10;
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        // Wait
+        await Utils.sleep(250);
+        // Check
+        if (!this.ongoingWSInitializations.has(ws.url)) {
+          break;
+        }
+        // Nbr of trials ended?
+        if (remainingTrials <= 0) {
+          throw new BackendError({
+            siteID: ws.siteID,
+            siteAreaID: ws.siteAreaID,
+            companyID: ws.companyID,
+            chargingStationID: ws.chargingStationID,
+            module: MODULE_NAME, method: 'waitForInitialization',
+            message: 'OCPP Request received before OCPP connection init has been completed!'
+          });
+        }
+        // Try another time
+        remainingTrials--;
+      }
+    }
   }
 }
 
