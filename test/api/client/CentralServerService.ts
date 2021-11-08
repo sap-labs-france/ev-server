@@ -14,6 +14,7 @@ import { HTTPError } from '../../../src/types/HTTPError';
 import LogsApi from './LogsApi';
 import MailApi from './MailApi';
 import OCPIEndpointApi from './OCPIEndpointApi';
+import OICPEndpointApi from './OICPEndpointApi';
 import RegistrationTokenApi from './RegistrationTokenApi';
 import SettingApi from './SettingApi';
 import SiteApi from './SiteApi';
@@ -51,6 +52,7 @@ export default class CentralServerService {
   public transactionApi: TransactionApi;
   public settingApi: SettingApi;
   public ocpiEndpointApi: OCPIEndpointApi;
+  public oicpEndpointApi: OICPEndpointApi;
   public authenticatedSuperAdminApi: AuthenticatedBaseApi;
   public authenticationApi: AuthenticationApi;
   public tenantApi: TenantApi;
@@ -102,6 +104,7 @@ export default class CentralServerService {
     this.settingApi = new SettingApi(this.authenticatedApi);
     this.logsApi = new LogsApi(this.authenticatedApi);
     this.ocpiEndpointApi = new OCPIEndpointApi(this.authenticatedApi);
+    this.oicpEndpointApi = new OICPEndpointApi(this.authenticatedApi);
     this.authenticationApi = new AuthenticationApi(this._baseApi);
     this.tenantApi = new TenantApi(this.authenticatedSuperAdminApi, this._baseApi);
     this.mailApi = new MailApi(new BaseApi(`http://${config.get('mailServer.host')}:${config.get('mailServer.port')}`));
