@@ -2,7 +2,6 @@ import ChargingStation, { Command } from '../../../types/ChargingStation';
 import { OCPPErrorType, OCPPMessageType } from '../../../types/ocpp/OCPPCommon';
 import { OCPPProtocol, OCPPVersion } from '../../../types/ocpp/OCPPServer';
 import { ServerAction, WSServerProtocol } from '../../../types/Server';
-import WebSocket, { CloseEvent, ErrorEvent } from 'ws';
 
 import BackendError from '../../../exception/BackendError';
 import ChargingStationClient from '../../../client/ocpp/ChargingStationClient';
@@ -19,6 +18,7 @@ import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
 import OCPPUtils from '../utils/OCPPUtils';
 import Utils from '../../../utils/Utils';
 import WSConnection from './WSConnection';
+import WebSocket from 'ws';
 import http from 'http';
 
 const MODULE_NAME = 'JsonWSConnection';
@@ -98,7 +98,7 @@ export default class JsonWSConnection extends WSConnection {
     }
   }
 
-  public onError(errorEvent: ErrorEvent): void {
+  public onError(error: Error): void {
     void Logging.logError({
       tenantID: this.getTenantID(),
       siteID: this.getSiteID(),
@@ -107,12 +107,12 @@ export default class JsonWSConnection extends WSConnection {
       chargingStationID: this.getChargingStationID(),
       action: ServerAction.WS_JSON_CONNECTION_ERROR,
       module: MODULE_NAME, method: 'onError',
-      message: `Error occurred: ${errorEvent?.message}`,
-      detailedMessages: { errorEvent }
+      message: `Error occurred: ${error?.message}`,
+      detailedMessages: { error: error.stack }
     });
   }
 
-  public onClose(closeEvent: CloseEvent): void {
+  public onClose(code: number, reason: Buffer): void {
     // Remove the connection
     this.wsServer.removeJsonConnection(this);
     void Logging.logInfo({
@@ -123,8 +123,8 @@ export default class JsonWSConnection extends WSConnection {
       chargingStationID: this.getChargingStationID(),
       action: ServerAction.WS_JSON_CONNECTION_CLOSED,
       module: MODULE_NAME, method: 'onClose',
-      message: `Connection has been closed, Reason: '${closeEvent.reason ? closeEvent.reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(Utils.convertToInt(closeEvent))}', Code: '${closeEvent.toString()}'`,
-      detailedMessages: { closeEvent }
+      message: `Connection has been closed, Reason: '${reason?.toString()}', Message: '${Utils.getWebSocketCloseEventStatusString(Utils.convertToInt(code))}', Code: '${code}'`,
+      detailedMessages: { code, reason }
     });
   }
 
@@ -166,7 +166,7 @@ export default class JsonWSConnection extends WSConnection {
         // Call it
         result = await this.chargingStationService[methodName](this.headers, commandPayload);
         // Send Response
-        await this.sendMessage(messageId, result, OCPPMessageType.CALL_RESULT_MESSAGE, command);
+        await this.sendResponse(messageId, command, result);
       } finally {
         // Clean the header
         delete this.headers.chargingStation;
