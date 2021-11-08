@@ -3,7 +3,7 @@
 
 import ChargingStation, { Connector } from '../../../../types/ChargingStation';
 import { NextFunction, Request, Response } from 'express';
-import { OCPPRemoteStartStopStatus, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandResult } from '../../../../types/ocpp/OCPPClient';
+import { OCPPRemoteStartStopStatus, OCPPRemoteStartTransactionResponse, OCPPRemoteStopTransactionResponse } from '../../../../types/ocpp/OCPPClient';
 import { OICPAuthorizeRemoteStartCpoReceive, OICPAuthorizeRemoteStopCpoReceive } from '../../../../types/oicp/OICPAuthorize';
 
 import AbstractEndpoint from '../AbstractEndpoint';
@@ -206,7 +206,7 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
   }
 
   private async remoteStartTransaction(tenant: Tenant, chargingStation: ChargingStation,
-      connector: Connector, authorizeRemoteStart: OICPAuthorizeRemoteStartCpoReceive): Promise<OCPPRemoteStartTransactionCommandResult> {
+      connector: Connector, authorizeRemoteStart: OICPAuthorizeRemoteStartCpoReceive): Promise<OCPPRemoteStartTransactionResponse> {
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant, chargingStation);
     if (!chargingStationClient) {
       await Logging.logError({
@@ -228,7 +228,7 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
     return result;
   }
 
-  private async remoteStopTransaction(tenant: Tenant, chargingStation: ChargingStation, transactionId: number): Promise<OCPPRemoteStopTransactionCommandResult> {
+  private async remoteStopTransaction(tenant: Tenant, chargingStation: ChargingStation, transactionId: number): Promise<OCPPRemoteStopTransactionResponse> {
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant, chargingStation);
     if (!chargingStationClient) {
       await Logging.logError({
