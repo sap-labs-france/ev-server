@@ -1,18 +1,24 @@
 import ChargingStation, { Command } from '../../../types/ChargingStation';
 import { FctOCPPReject, FctOCPPResponse, OCPPErrorType, OCPPIncomingRequest, OCPPIncomingResponse, OCPPMessageType, OCPPRequest } from '../../../types/ocpp/OCPPCommon';
+import WebSocket, { CLOSED, CLOSING, CONNECTING, OPEN } from 'ws';
 
 import BackendError from '../../../exception/BackendError';
 import Constants from '../../../utils/Constants';
+import JsonCentralSystemServer from './JsonCentralSystemServer';
 import Logging from '../../../utils/Logging';
 import OCPPError from '../../../exception/OcppError';
 import OCPPUtils from '../utils/OCPPUtils';
+import { OCPPVersion } from '../../../types/ocpp/OCPPServer';
 import { ServerAction } from '../../../types/Server';
 import Tenant from '../../../types/Tenant';
-import { WebSocket } from 'uWebSockets.js';
+import Utils from '../../../utils/Utils';
+import http from 'http';
 
 const MODULE_NAME = 'WSConnection';
 
 export default abstract class WSConnection {
+  protected initialized: boolean;
+  protected wsServer: JsonCentralSystemServer;
   private siteID: string;
   private siteAreaID: string;
   private companyID: string;
@@ -22,42 +28,55 @@ export default abstract class WSConnection {
   private tokenID: string;
   private url: string;
   private clientIP: string | string[];
-  private webSocket: WebSocket;
+  private wsConnection: WebSocket;
   private ocppRequests: Record<string, OCPPRequest> = {};
 
-  constructor(webSocket: WebSocket, url: string) {
+  constructor(wsConnection: WebSocket, req: http.IncomingMessage, wsServer: JsonCentralSystemServer) {
     // Init
-    this.url = url.trim().replace(/\b(\?|&).*/, ''); // Filter trailing URL parameters
-    // this.clientIP = Utils.getRequestIP(url);
-    this.webSocket = webSocket;
-    this.clientIP = Buffer.from(webSocket.getRemoteAddressAsText()).toString();
+    this.url = req.url.trim().replace(/\b(\?|&).*/, ''); // Filter trailing URL parameters
+    this.clientIP = Utils.getRequestIP(req);
+    this.wsConnection = wsConnection;
+    this.initialized = false;
+    this.wsServer = wsServer;
     void Logging.logDebug({
       tenantID: Constants.DEFAULT_TENANT,
       action: ServerAction.WS_CONNECTION,
       module: MODULE_NAME, method: 'constructor',
-      message: `WS connection opening attempts with URL: '${url}'`,
+      message: `WS connection opening attempts with URL: '${req.url}'`,
     });
+    // Check actions
+    this.checkActionInRequest(req);
     // Check mandatory fields
-    this.checkMandatoryFieldsInRequest();
+    this.checkMandatoryFieldsInRequest(req);
+    // Handle incoming messages
+    this.wsConnection.on('message', this.onMessage.bind(this));
+    // Handle Socket error
+    this.wsConnection.on('error', this.onError.bind(this));
+    // Handle Socket close
+    this.wsConnection.on('close', this.onClose.bind(this));
   }
 
   public async initialize(): Promise<void> {
-    // Check and Get Charging Station data
-    const { tenant, chargingStation } = await OCPPUtils.checkAndGetChargingStationData(
-      ServerAction.WS_CONNECTION, this.getTenantID(), this.getChargingStationID(), this.getTokenID(), false);
-    // Set
-    this.setTenant(tenant);
-    this.setChargingStation(chargingStation);
+    if (!this.initialized) {
+      // Check and Get Charging Station data
+      const { tenant, chargingStation } = await OCPPUtils.checkAndGetChargingStationData(
+        ServerAction.WS_CONNECTION, this.getTenantID(), this.getChargingStationID(), this.getTokenID(), false);
+      // Set
+      this.setTenant(tenant);
+      this.setChargingStation(chargingStation);
+    }
   }
 
-  public async onMessage(message: string, isBinary: boolean): Promise<void> {
+  public async onMessage(wsData: WebSocket.RawData, isBinary: boolean): Promise<void> {
     let responseCallback: FctOCPPResponse;
     let rejectCallback: FctOCPPReject;
     let command: Command, commandPayload: Record<string, any>, errorDetails: Record<string, any>;
+    const ocppMessage: OCPPIncomingRequest|OCPPIncomingResponse = JSON.parse(wsData.toString());
     // Parse the data
-    const ocppMessage: OCPPIncomingRequest|OCPPIncomingResponse = JSON.parse(message);
     const [messageType, messageID] = ocppMessage;
     try {
+      // Wait for init
+      await this.waitForInitialization();
       // Check the Type of message
       switch (messageType) {
         // Incoming Message
@@ -80,7 +99,7 @@ export default abstract class WSConnection {
               siteAreaID: this.getSiteAreaID(),
               companyID: this.getCompanyID(),
               module: MODULE_NAME, method: 'onMessage',
-              message: `Unknwon OCPP Request for '${message.toString()}'`,
+              message: `Unknwon OCPP Request for '${wsData.toString()}'`,
             });
           }
           responseCallback(commandPayload);
@@ -96,7 +115,7 @@ export default abstract class WSConnection {
               siteAreaID: this.getSiteAreaID(),
               companyID: this.getCompanyID(),
               module: MODULE_NAME, method: 'onMessage',
-              message: `Unknwon OCPP Request for '${message.toString()}'`,
+              message: `Unknwon OCPP Request for '${wsData.toString()}'`,
               detailedMessages: { messageType, messageID, commandPayload, errorDetails }
             });
           }
@@ -107,7 +126,7 @@ export default abstract class WSConnection {
             companyID: this.getCompanyID(),
             module: MODULE_NAME, method: 'onMessage',
             code: command,
-            message: message.toString(),
+            message: wsData.toString(),
           }));
           break;
         default:
@@ -118,7 +137,7 @@ export default abstract class WSConnection {
             companyID: this.getCompanyID(),
             action: OCPPUtils.buildServerActionFromOcppCommand(command),
             module: MODULE_NAME, method: 'onMessage',
-            message: `Wrong OCPP Message Type '${messageType as string}' for '${message.toString()}'`,
+            message: `Wrong OCPP Message Type '${messageType as string}' for '${wsData.toString()}'`,
           });
       }
     } catch (error) {
@@ -131,14 +150,14 @@ export default abstract class WSConnection {
         action: OCPPUtils.buildServerActionFromOcppCommand(command),
         message: `${error.message as string}`,
         module: MODULE_NAME, method: 'onMessage',
-        detailedMessages: { data: message, error: error.stack }
+        detailedMessages: { data: wsData, error: error.stack }
       });
       await this.sendError(messageID, error);
     }
   }
 
   public getWSConnection(): WebSocket {
-    return this.webSocket;
+    return this.wsConnection;
   }
 
   public getURL(): string {
@@ -207,11 +226,17 @@ export default abstract class WSConnection {
           messageToSend = JSON.stringify([messageType, messageID, error.code ? error.code : OCPPErrorType.GENERIC_ERROR, error.message ? error.message : '', error.details ? error.details : {}]);
           break;
       }
-      // Send Message
-      // if (this.webSocket.getBufferedAmount())
-      if (!this.webSocket.send(messageToSend)) {
-        // TODO: Backpressure to handle
-        rejectCallback(`Error when sending Message ID '${messageID}' with content '${messageToSend}' (${this.tenantSubdomain})`);
+      // Check Connection
+      if (this.isWSConnectionOpen()) {
+        // Send Message
+        this.wsConnection.send(messageToSend, (wsError?: Error) => {
+          if (wsError) {
+            rejectCallback(`Error '${wsError?.message}' when sending Message ID '${messageID}' with content '${messageToSend}' (${this.tenantSubdomain})`);
+          }
+        });
+      } else {
+        // Reject
+        return rejectCallback(`WebSocket closed for Message ID '${messageID}' with content '${messageToSend}' (${this.tenantSubdomain})`);
       }
       // Response?
       if (messageType !== OCPPMessageType.CALL_MESSAGE) {
@@ -271,7 +296,30 @@ export default abstract class WSConnection {
     return `${this.getTenantID()}~${this.getChargingStationID()}`;
   }
 
-  private checkMandatoryFieldsInRequest() {
+  public isWSConnectionOpen(): boolean {
+    return this.getConnectionStatus() === OPEN;
+  }
+
+  public getConnectionStatusString(): string {
+    switch (this.getConnectionStatus()) {
+      case OPEN:
+        return 'Open';
+      case CONNECTING:
+        return 'Connecting';
+      case CLOSING:
+        return 'Closing';
+      case CLOSED:
+        return 'Closed';
+      default:
+        return `Unknown code '${this.getConnectionStatus()}'`;
+    }
+  }
+
+  private getConnectionStatus(): number {
+    return this.wsConnection?.readyState;
+  }
+
+  private checkMandatoryFieldsInRequest(req: http.IncomingMessage) {
     // Check URL: remove starting and trailing '/'
     if (this.url.endsWith('/')) {
       // Remove '/'
@@ -296,12 +344,78 @@ export default abstract class WSConnection {
     this.chargingStationID = splittedURL[3];
     // Check parameters
     OCPPUtils.checkChargingStationOcppParameters(
-      ServerAction.WS_CONNECTION, this.tenantID, this.tokenID, this.chargingStationID);
+      ServerAction.WS_CONNECTION, this.tenantID, this.chargingStationID, this.tokenID);
+  }
+
+  private checkActionInRequest(req: http.IncomingMessage) {
+    let action = ServerAction.WS_CONNECTION_OPENED;
+    if (req.url.startsWith('/REST')) {
+      void Logging.logDebug({
+        tenantID: this.tenantID,
+        siteID: this.siteID,
+        siteAreaID: this.siteAreaID,
+        companyID: this.companyID,
+        chargingStationID: this.chargingStationID,
+        action: action,
+        module: MODULE_NAME, method: 'constructor',
+        message: `REST service connection to Charging Station with URL: '${req.url}'`,
+      });
+      action = ServerAction.WS_REST_CONNECTION_OPENED;
+    } else if (req.url.startsWith(`/${Utils.getOCPPServerVersionURLPath(OCPPVersion.VERSION_16)}`)) {
+      void Logging.logDebug({
+        tenantID: this.tenantID,
+        siteID: this.siteID,
+        siteAreaID: this.siteAreaID,
+        companyID: this.companyID,
+        chargingStationID: this.chargingStationID,
+        action: action,
+        module: MODULE_NAME, method: 'constructor',
+        message: `Charging Station connection with URL: '${req.url}'`,
+      });
+      action = ServerAction.WS_JSON_CONNECTION_OPENED;
+    } else {
+      void Logging.logError({
+        tenantID: this.tenantID,
+        siteID: this.siteID,
+        siteAreaID: this.siteAreaID,
+        companyID: this.companyID,
+        chargingStationID: this.chargingStationID,
+        action: action,
+        module: MODULE_NAME, method: 'constructor',
+        message: `Unknown connection attempts with URL: '${req.url}'`,
+      });
+    }
+  }
+
+  private async waitForInitialization() {
+    // Wait for init
+    if (!this.initialized) {
+      // Wait for 10 secs max
+      let remainingWaitingLoop = 10;
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        await Utils.sleep(1000);
+        // Check
+        if (this.initialized) {
+          break;
+        }
+        // Nbr of trials ended?
+        if (remainingWaitingLoop <= 0) {
+          throw new BackendError({
+            chargingStationID: this.getChargingStationID(),
+            module: MODULE_NAME, method: 'waitForInitialization',
+            message: 'OCPP Request received before OCPP connection has been completed!'
+          });
+        }
+        // Try another time
+        remainingWaitingLoop--;
+      }
+    }
   }
 
   public abstract handleRequest(messageId: string, command: Command, commandPayload: Record<string, unknown> | string): Promise<void>;
 
-  public abstract onPing(message: string): Promise<void>;
+  public abstract onError(error: Error): void;
 
-  public abstract onPong(message: string): Promise<void>;
+  public abstract onClose(code: number, reason: Buffer): void;
 }

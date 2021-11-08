@@ -1488,7 +1488,7 @@ export default class OCPPUtils {
         meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC);
   }
 
-  public static checkChargingStationOcppParameters(action: ServerAction, tenantID: string, tokenID: string, chargingStationID: string): void {
+  public static checkChargingStationOcppParameters(action: ServerAction, tenantID: string, chargingStationID: string, tokenID: string): void {
     // Check Charging Station
     if (!chargingStationID) {
       throw new BackendError({
@@ -1533,7 +1533,7 @@ export default class OCPPUtils {
       tokenID: string, acquireLock = true): Promise<{ tenant: Tenant; chargingStation?: ChargingStation; token?: RegistrationToken; lock?: Lock }> {
     // Check parameters
     OCPPUtils.checkChargingStationOcppParameters(
-      ServerAction.WS_CONNECTION, tenantID, tokenID, chargingStationID);
+      ServerAction.WS_CONNECTION, tenantID, chargingStationID, tokenID);
     // Get Tenant
     const tenant = await TenantStorage.getTenant(tenantID);
     if (!tenant) {

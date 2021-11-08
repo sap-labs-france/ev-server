@@ -298,7 +298,7 @@ export default class Bootstrap {
         serverTypes.push(ServerType.ODATA_SERVER);
       }
     } catch (error) {
-      console.error(chalk.red(error.stack));
+      console.error(chalk.red(error));
       await Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.STARTUP,

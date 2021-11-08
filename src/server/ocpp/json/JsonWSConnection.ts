@@ -1,21 +1,25 @@
 import ChargingStation, { Command } from '../../../types/ChargingStation';
+import { OCPPErrorType, OCPPMessageType } from '../../../types/ocpp/OCPPCommon';
 import { OCPPProtocol, OCPPVersion } from '../../../types/ocpp/OCPPServer';
+import { ServerAction, WSServerProtocol } from '../../../types/Server';
 
+import BackendError from '../../../exception/BackendError';
 import ChargingStationClient from '../../../client/ocpp/ChargingStationClient';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
+import JsonCentralSystemServer from './JsonCentralSystemServer';
 import JsonChargingStationClient from '../../../client/ocpp/json/JsonChargingStationClient';
 import JsonChargingStationService from './services/JsonChargingStationService';
 import LockingManager from '../../../locking/LockingManager';
 import Logging from '../../../utils/Logging';
 import OCPPError from '../../../exception/OcppError';
-import { OCPPErrorType } from '../../../types/ocpp/OCPPCommon';
 import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
 import OCPPUtils from '../utils/OCPPUtils';
-import { ServerAction } from '../../../types/Server';
+import Utils from '../../../utils/Utils';
 import WSConnection from './WSConnection';
-import { WebSocket } from 'uWebSockets.js';
+import WebSocket from 'ws';
+import http from 'http';
 
 const MODULE_NAME = 'JsonWSConnection';
 
@@ -26,51 +30,110 @@ export default class JsonWSConnection extends WSConnection {
   private headers: OCPPHeader;
   private lastSeen: Date;
 
-  constructor(webSocket: WebSocket, url: string) {
+  constructor(wsConnection: WebSocket, req: http.IncomingMessage, wsServer: JsonCentralSystemServer) {
     // Call super
-    super(webSocket, url);
-    // Create the Json Client
-    this.chargingStationClient = new JsonChargingStationClient(this, this.getTenant(), this.getChargingStationID());
-    // Create the Json Server Service
-    this.chargingStationService = new JsonChargingStationService();
-    // Ok
+    super(wsConnection, req, wsServer);
+    let backendError: BackendError;
+    // Check Protocol (required field of OCPP spec)
+    switch (wsConnection.protocol) {
+      // OCPP 1.6?
+      case WSServerProtocol.OCPP16:
+        // Create the Json Client
+        this.chargingStationClient = new JsonChargingStationClient(this, this.getTenant(), this.getChargingStationID());
+        // Create the Json Server Service
+        this.chargingStationService = new JsonChargingStationService();
+        break;
+      // Not Found
+      default:
+        backendError = new BackendError({
+          chargingStationID: this.getChargingStationID(),
+          siteID: this.getSiteID(),
+          siteAreaID: this.getSiteAreaID(),
+          companyID: this.getCompanyID(),
+          module: MODULE_NAME,
+          method: 'constructor',
+          message: wsConnection.protocol ?
+            `Web Socket Protocol '${wsConnection.protocol}' not supported` : 'Web Socket Protocol is mandatory'
+        });
+        // Log in the right Tenants
+        void Logging.logException(backendError, ServerAction.WS_JSON_CONNECTION_ERROR, MODULE_NAME, 'constructor', this.getTenantID());
+        throw backendError;
+    }
     this.isConnectionAlive = true;
+    // Handle Socket ping
+    this.getWSConnection().on('ping', this.onPing.bind(this));
+    // Handle Socket pong
+    this.getWSConnection().on('pong', this.onPong.bind(this));
   }
 
   public async initialize(): Promise<void> {
-    // Init parent
-    await super.initialize();
-    // Initialize the default Headers
-    this.headers = {
-      chargeBoxIdentity: this.getChargingStationID(),
-      ocppVersion: (this.getWSConnection().protocol.startsWith('ocpp') ? this.getWSConnection().protocol.replace('ocpp', '') : this.getWSConnection().protocol) as OCPPVersion,
-      ocppProtocol: OCPPProtocol.JSON,
-      chargingStationURL: Configuration.getJsonEndpointConfig().baseSecureUrl ?? Configuration.getJsonEndpointConfig().baseUrl,
-      tenantID: this.getTenantID(),
-      tokenID: this.getTokenID(),
-      From: {
-        Address: this.getClientIP()
-      }
-    };
-    await Logging.logInfo({
+    // Already initialized?
+    if (!this.initialized) {
+      // Init parent
+      await super.initialize();
+      // Initialize the default Headers
+      this.headers = {
+        chargeBoxIdentity: this.getChargingStationID(),
+        ocppVersion: (this.getWSConnection().protocol.startsWith('ocpp') ? this.getWSConnection().protocol.replace('ocpp', '') : this.getWSConnection().protocol) as OCPPVersion,
+        ocppProtocol: OCPPProtocol.JSON,
+        chargingStationURL: Configuration.getJsonEndpointConfig().baseSecureUrl ?? Configuration.getJsonEndpointConfig().baseUrl,
+        tenantID: this.getTenantID(),
+        tokenID: this.getTokenID(),
+        From: {
+          Address: this.getClientIP()
+        }
+      };
+      this.initialized = true;
+      await Logging.logInfo({
+        tenantID: this.getTenantID(),
+        siteID: this.getSiteID(),
+        siteAreaID: this.getSiteAreaID(),
+        companyID: this.getCompanyID(),
+        chargingStationID: this.getChargingStationID(),
+        action: ServerAction.WS_JSON_CONNECTION_OPENED,
+        module: MODULE_NAME, method: 'initialize',
+        message: `New Json connection from '${this.getClientIP().toString()}', Protocol '${this.getWSConnection().protocol}', URL '${this.getURL()}'`,
+        detailedMessages: { ocppHeaders: this.headers }
+      });
+    }
+  }
+
+  public onError(error: Error): void {
+    void Logging.logError({
       tenantID: this.getTenantID(),
       siteID: this.getSiteID(),
       siteAreaID: this.getSiteAreaID(),
       companyID: this.getCompanyID(),
       chargingStationID: this.getChargingStationID(),
-      action: ServerAction.WS_JSON_CONNECTION_OPENED,
-      module: MODULE_NAME, method: 'initialize',
-      message: `New Json connection from '${this.getClientIP().toString()}' with URL '${this.getURL()}'`,
-      detailedMessages: { ocppHeaders: this.headers }
+      action: ServerAction.WS_JSON_CONNECTION_ERROR,
+      module: MODULE_NAME, method: 'onError',
+      message: `Error occurred: ${error?.message}`,
+      detailedMessages: { error: error.stack }
     });
   }
 
-  public async onPing(message: string): Promise<void> {
+  public onClose(code: number, reason: Buffer): void {
+    // Remove the connection
+    this.wsServer.removeJsonConnection(this);
+    void Logging.logInfo({
+      tenantID: this.getTenantID(),
+      siteID: this.getSiteID(),
+      siteAreaID: this.getSiteAreaID(),
+      companyID: this.getCompanyID(),
+      chargingStationID: this.getChargingStationID(),
+      action: ServerAction.WS_JSON_CONNECTION_CLOSED,
+      module: MODULE_NAME, method: 'onClose',
+      message: `Connection has been closed, Reason: '${reason?.toString()}', Message: '${Utils.getWebSocketCloseEventStatusString(Utils.convertToInt(code))}', Code: '${code}'`,
+      detailedMessages: { code, reason }
+    });
+  }
+
+  public async onPing(): Promise<void> {
     this.isConnectionAlive = true;
     await this.updateChargingStationLastSeen();
   }
 
-  public async onPong(message: string): Promise<void> {
+  public async onPong(): Promise<void> {
     this.isConnectionAlive = true;
     await this.updateChargingStationLastSeen();
   }
@@ -91,8 +154,12 @@ export default class JsonWSConnection extends WSConnection {
       this.headers.lock = lock;
       // Trace
       const performanceTracingData = await Logging.traceOcppMessageRequest(Constants.MODULE_JSON_OCPP_SERVER_16,
-        this.getTenant(), this.getChargingStationID(), OCPPUtils.buildServerActionFromOcppCommand(command), commandPayload, '>>',
-        { siteAreaID: this.getSiteAreaID(), siteID: this.getSiteID(), companyID: this.getCompanyID() }
+        this.getTenant(), this.getChargingStationID(),
+        OCPPUtils.buildServerActionFromOcppCommand(command), commandPayload, '>>', {
+          siteAreaID: this.getSiteAreaID(),
+          siteID: this.getSiteID(),
+          companyID: this.getCompanyID(),
+        }
       );
       let result: any;
       try {
@@ -110,8 +177,11 @@ export default class JsonWSConnection extends WSConnection {
         await LockingManager.release(lock);
         // Trace
         await Logging.traceOcppMessageResponse(Constants.MODULE_JSON_OCPP_SERVER_16, this.getTenant(), this.getChargingStationID(),
-          OCPPUtils.buildServerActionFromOcppCommand(command), commandPayload, result, '<<',
-          { siteAreaID: this.getSiteAreaID(), siteID: this.getSiteID(), companyID: this.getCompanyID() }, performanceTracingData
+          OCPPUtils.buildServerActionFromOcppCommand(command), commandPayload, result, '<<', {
+            siteAreaID: this.getSiteAreaID(),
+            siteID: this.getSiteID(),
+            companyID: this.getCompanyID(),
+          }, performanceTracingData
         );
       }
     } else {
@@ -130,6 +200,19 @@ export default class JsonWSConnection extends WSConnection {
   }
 
   public getChargingStationClient(): ChargingStationClient {
+    if (!this.isWSConnectionOpen()) {
+      void Logging.logError({
+        tenantID: this.getTenantID(),
+        siteID: this.getSiteID(),
+        siteAreaID: this.getSiteAreaID(),
+        companyID: this.getCompanyID(),
+        chargingStationID: this.getChargingStationID(),
+        module: MODULE_NAME, method: 'getChargingStationClient',
+        action: ServerAction.WS_CONNECTION,
+        message: `Cannot retrieve WS client from WS connection with status '${this.getConnectionStatusString()}'`,
+      });
+      return null;
+    }
     return this.chargingStationClient;
   }
 
