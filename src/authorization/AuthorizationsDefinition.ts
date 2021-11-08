@@ -30,7 +30,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       {
-        resource: Entity.LOGGINGS, action: Action.LIST,
+        resource: Entity.LOGGINGS, action: [Action.LIST, Action.EXPORT],
         attributes: [
           'id', 'level', 'timestamp', 'type', 'source', 'host', 'action', 'message', 'chargingStationID', 'siteID',
           'user.name', 'user.firstName', 'actionOnUser.name', 'actionOnUser.firstName', 'hasDetailedMessages', 'method', 'module',
@@ -246,7 +246,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       { resource: Entity.REPORT, action: [Action.READ] },
       {
-        resource: Entity.LOGGINGS, action: Action.LIST,
+        resource: Entity.LOGGINGS, action: [Action.LIST, Action.EXPORT],
         attributes: [
           'id', 'level', 'timestamp', 'type', 'source', 'host', 'action', 'message', 'chargingStationID', 'siteID',
           'user.name', 'user.firstName', 'actionOnUser.name', 'actionOnUser.firstName', 'hasDetailedMessages', 'method', 'module',
@@ -1039,7 +1039,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       { resource: Entity.REPORT, action: [Action.READ] },
       {
-        resource: Entity.LOGGINGS, action: Action.LIST,
+        resource: Entity.LOGGINGS, action: [Action.LIST, Action.EXPORT],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
