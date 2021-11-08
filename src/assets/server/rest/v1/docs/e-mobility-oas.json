@@ -9780,15 +9780,6 @@
             "$ref": "#/components/parameters/OCPIEndpointID"
           }
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/OCPIEndpoint"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "OCPI Endpoint registered",
@@ -9989,6 +9980,39 @@
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
+      },
+      "delete": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Delete an OICP Endpoint",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OICPEndpointID"
+          }
+        ],
+        "tags": [
+          "OICP"
+        ],
+        "responses": {
+          "200": {
+            "description": "OICP Endpoint deleted"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
       }
     },
     "/api/oicp/endpoints/{id}/ping": {
@@ -10109,6 +10133,94 @@
               "application/json": {
                 "example": {
                   "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/oicp/endpoints/{id}/register": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Register OICP Endpoint",
+        "tags": [
+          "OICP"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OICPEndpointID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OCPI Endpoint registered",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success",
+                  "statusCode": 200,
+                  "statusText": "OK"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/oicp/endpoints/{id}/unregister": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Unregister OICP Endpoint",
+        "tags": [
+          "OICP"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OICPEndpointID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OICP Endpoint unregistered",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success",
+                  "statusCode": 200,
+                  "statusText": "OK"
                 }
               }
             }
