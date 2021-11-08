@@ -1,24 +1,20 @@
 import ChargingStation, { Command } from '../../../types/ChargingStation';
 import { FctOCPPReject, FctOCPPResponse, OCPPErrorType, OCPPIncomingRequest, OCPPIncomingResponse, OCPPMessageType, OCPPRequest } from '../../../types/ocpp/OCPPCommon';
-import WebSocket, { CLOSED, CLOSING, CONNECTING, OPEN } from 'ws';
 
 import BackendError from '../../../exception/BackendError';
 import Constants from '../../../utils/Constants';
-import JsonCentralSystemServer from './JsonCentralSystemServer';
 import Logging from '../../../utils/Logging';
 import OCPPError from '../../../exception/OcppError';
 import OCPPUtils from '../utils/OCPPUtils';
-import { OCPPVersion } from '../../../types/ocpp/OCPPServer';
 import { ServerAction } from '../../../types/Server';
 import Tenant from '../../../types/Tenant';
 import Utils from '../../../utils/Utils';
-import http from 'http';
+import { WebSocket } from 'uWebSockets.js';
 
 const MODULE_NAME = 'WSConnection';
 
 export default abstract class WSConnection {
   protected initialized: boolean;
-  protected wsServer: JsonCentralSystemServer;
   private siteID: string;
   private siteAreaID: string;
   private companyID: string;
@@ -28,32 +24,25 @@ export default abstract class WSConnection {
   private tokenID: string;
   private url: string;
   private clientIP: string | string[];
-  private wsConnection: WebSocket;
+  private webSocket: WebSocket;
   private ocppRequests: Record<string, OCPPRequest> = {};
 
-  constructor(wsConnection: WebSocket, req: http.IncomingMessage, wsServer: JsonCentralSystemServer) {
+  constructor(webSocket: WebSocket, url: string) {
     // Init
-    this.url = req.url.trim().replace(/\b(\?|&).*/, ''); // Filter trailing URL parameters
-    this.clientIP = Utils.getRequestIP(req);
-    this.wsConnection = wsConnection;
+    this.url = url.trim().replace(/\b(\?|&).*/, ''); // Filter trailing URL parameters
+    // this.clientIP = Utils.getRequestIP(url);
+    this.webSocket = webSocket;
     this.initialized = false;
-    this.wsServer = wsServer;
+    // TODO: Handle Client IP
+    this.clientIP = '';
     void Logging.logDebug({
       tenantID: Constants.DEFAULT_TENANT,
       action: ServerAction.WS_CONNECTION,
       module: MODULE_NAME, method: 'constructor',
-      message: `WS connection opening attempts with URL: '${req.url}'`,
+      message: `WS connection opening attempts with URL: '${url}'`,
     });
-    // Check actions
-    this.checkActionInRequest(req);
     // Check mandatory fields
-    this.checkMandatoryFieldsInRequest(req);
-    // Handle incoming messages
-    this.wsConnection.on('message', this.onMessage.bind(this));
-    // Handle Socket error
-    this.wsConnection.on('error', this.onError.bind(this));
-    // Handle Socket close
-    this.wsConnection.on('close', this.onClose.bind(this));
+    this.checkMandatoryFieldsInRequest();
   }
 
   public async initialize(): Promise<void> {
@@ -67,11 +56,11 @@ export default abstract class WSConnection {
     }
   }
 
-  public async onMessage(wsData: WebSocket.RawData, isBinary: boolean): Promise<void> {
+  public async onMessage(wsData: ArrayBuffer, isBinary: boolean): Promise<void> {
     let responseCallback: FctOCPPResponse;
     let rejectCallback: FctOCPPReject;
     let command: Command, commandPayload: Record<string, any>, errorDetails: Record<string, any>;
-    const ocppMessage: OCPPIncomingRequest|OCPPIncomingResponse = JSON.parse(wsData.toString());
+    const ocppMessage: OCPPIncomingRequest|OCPPIncomingResponse = JSON.parse(Buffer.from(wsData).toString());
     // Parse the data
     const [messageType, messageID] = ocppMessage;
     try {
@@ -157,7 +146,7 @@ export default abstract class WSConnection {
   }
 
   public getWSConnection(): WebSocket {
-    return this.wsConnection;
+    return this.webSocket;
   }
 
   public getURL(): string {
@@ -226,17 +215,11 @@ export default abstract class WSConnection {
           messageToSend = JSON.stringify([messageType, messageID, error.code ? error.code : OCPPErrorType.GENERIC_ERROR, error.message ? error.message : '', error.details ? error.details : {}]);
           break;
       }
-      // Check Connection
-      if (this.isWSConnectionOpen()) {
-        // Send Message
-        this.wsConnection.send(messageToSend, (wsError?: Error) => {
-          if (wsError) {
-            rejectCallback(`Error '${wsError?.message}' when sending Message ID '${messageID}' with content '${messageToSend}' (${this.tenantSubdomain})`);
-          }
-        });
-      } else {
-        // Reject
-        return rejectCallback(`WebSocket closed for Message ID '${messageID}' with content '${messageToSend}' (${this.tenantSubdomain})`);
+      // Send Message
+      // if (this.webSocket.getBufferedAmount())
+      if (!this.webSocket.send(messageToSend)) {
+        // TODO: Backpressure to handle
+        rejectCallback(`Error when sending Message ID '${messageID}' with content '${messageToSend}' (${this.tenantSubdomain})`);
       }
       // Response?
       if (messageType !== OCPPMessageType.CALL_MESSAGE) {
@@ -296,30 +279,7 @@ export default abstract class WSConnection {
     return `${this.getTenantID()}~${this.getChargingStationID()}`;
   }
 
-  public isWSConnectionOpen(): boolean {
-    return this.getConnectionStatus() === OPEN;
-  }
-
-  public getConnectionStatusString(): string {
-    switch (this.getConnectionStatus()) {
-      case OPEN:
-        return 'Open';
-      case CONNECTING:
-        return 'Connecting';
-      case CLOSING:
-        return 'Closing';
-      case CLOSED:
-        return 'Closed';
-      default:
-        return `Unknown code '${this.getConnectionStatus()}'`;
-    }
-  }
-
-  private getConnectionStatus(): number {
-    return this.wsConnection?.readyState;
-  }
-
-  private checkMandatoryFieldsInRequest(req: http.IncomingMessage) {
+  private checkMandatoryFieldsInRequest() {
     // Check URL: remove starting and trailing '/'
     if (this.url.endsWith('/')) {
       // Remove '/'
@@ -344,47 +304,7 @@ export default abstract class WSConnection {
     this.chargingStationID = splittedURL[3];
     // Check parameters
     OCPPUtils.checkChargingStationOcppParameters(
-      ServerAction.WS_CONNECTION, this.tenantID, this.chargingStationID, this.tokenID);
-  }
-
-  private checkActionInRequest(req: http.IncomingMessage) {
-    let action = ServerAction.WS_CONNECTION_OPENED;
-    if (req.url.startsWith('/REST')) {
-      void Logging.logDebug({
-        tenantID: this.tenantID,
-        siteID: this.siteID,
-        siteAreaID: this.siteAreaID,
-        companyID: this.companyID,
-        chargingStationID: this.chargingStationID,
-        action: action,
-        module: MODULE_NAME, method: 'constructor',
-        message: `REST service connection to Charging Station with URL: '${req.url}'`,
-      });
-      action = ServerAction.WS_REST_CONNECTION_OPENED;
-    } else if (req.url.startsWith(`/${Utils.getOCPPServerVersionURLPath(OCPPVersion.VERSION_16)}`)) {
-      void Logging.logDebug({
-        tenantID: this.tenantID,
-        siteID: this.siteID,
-        siteAreaID: this.siteAreaID,
-        companyID: this.companyID,
-        chargingStationID: this.chargingStationID,
-        action: action,
-        module: MODULE_NAME, method: 'constructor',
-        message: `Charging Station connection with URL: '${req.url}'`,
-      });
-      action = ServerAction.WS_JSON_CONNECTION_OPENED;
-    } else {
-      void Logging.logError({
-        tenantID: this.tenantID,
-        siteID: this.siteID,
-        siteAreaID: this.siteAreaID,
-        companyID: this.companyID,
-        chargingStationID: this.chargingStationID,
-        action: action,
-        module: MODULE_NAME, method: 'constructor',
-        message: `Unknown connection attempts with URL: '${req.url}'`,
-      });
-    }
+      ServerAction.WS_CONNECTION, this.tenantID, this.tokenID, this.chargingStationID);
   }
 
   private async waitForInitialization() {
@@ -415,7 +335,7 @@ export default abstract class WSConnection {
 
   public abstract handleRequest(messageId: string, command: Command, commandPayload: Record<string, unknown> | string): Promise<void>;
 
-  public abstract onError(error: Error): void;
+  public abstract onPing(message: ArrayBuffer): Promise<void>;
 
-  public abstract onClose(code: number, reason: Buffer): void;
+  public abstract onPong(message: ArrayBuffer): Promise<void>;
 }
