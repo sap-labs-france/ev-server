@@ -30,8 +30,7 @@ export default abstract class WSConnection {
     this.url = url.trim().replace(/\b(\?|&).*/, ''); // Filter trailing URL parameters
     // this.clientIP = Utils.getRequestIP(url);
     this.webSocket = webSocket;
-    // TODO: Handle Client IP
-    this.clientIP = '';
+    this.clientIP = Buffer.from(webSocket.getRemoteAddressAsText()).toString();
     void Logging.logDebug({
       tenantID: Constants.DEFAULT_TENANT,
       action: ServerAction.WS_CONNECTION,
