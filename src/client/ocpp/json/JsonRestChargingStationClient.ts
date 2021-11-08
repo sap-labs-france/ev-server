@@ -1,11 +1,10 @@
 import ChargingStation, { Command } from '../../../types/ChargingStation';
-import { OCPPCancelReservationCommandParam, OCPPCancelReservationCommandResult, OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPClearCacheCommandResult, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPDataTransferCommandParam, OCPPDataTransferCommandResult, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPReserveNowCommandParam, OCPPReserveNowCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPStatus, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUpdateFirmwareCommandParam } from '../../../types/ocpp/OCPPClient';
+import { OCPPCancelReservationRequest, OCPPCancelReservationResponse, OCPPChangeAvailabilityRequest, OCPPChangeAvailabilityResponse, OCPPChangeConfigurationRequest, OCPPChangeConfigurationResponse, OCPPClearCacheResponse, OCPPClearChargingProfileRequest, OCPPClearChargingProfileResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPGetCompositeScheduleRequest, OCPPGetCompositeScheduleResponse, OCPPGetConfigurationRequest, OCPPGetConfigurationResponse, OCPPGetDiagnosticsRequest, OCPPGetDiagnosticsResponse, OCPPRemoteStartTransactionRequest, OCPPRemoteStartTransactionResponse, OCPPRemoteStopTransactionRequest, OCPPRemoteStopTransactionResponse, OCPPReserveNowRequest, OCPPReserveNowResponse, OCPPResetRequest, OCPPResetResponse, OCPPSetChargingProfileRequest, OCPPSetChargingProfileResponse, OCPPStatus, OCPPUnlockConnectorRequest, OCPPUnlockConnectorResponse, OCPPUpdateFirmwareRequest } from '../../../types/ocpp/OCPPClient';
 import { OCPPIncomingRequest, OCPPMessageType, OCPPOutgoingRequest } from '../../../types/ocpp/OCPPCommon';
 import { ServerAction, WSServerProtocol } from '../../../types/Server';
 
 import BackendError from '../../../exception/BackendError';
 import ChargingStationClient from '../ChargingStationClient';
-import Configuration from '../../../utils/Configuration';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import WSClient from '../../websocket/WSClient';
@@ -41,73 +40,72 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     if (chargingStationURL.endsWith('/')) {
       chargingStationURL = chargingStationURL.substring(0, chargingStationURL.length - 1);
     }
-    // Keep
     this.serverURL = `${chargingStationURL}/REST/${tenantID}/${chargingStation.tokenID}/${chargingStation.id}`;
     this.chargingStation = chargingStation;
     this.requests = {};
   }
 
-  public async remoteStartTransaction(params: OCPPRemoteStartTransactionCommandParam): Promise<OCPPRemoteStartTransactionCommandResult> {
+  public async remoteStartTransaction(params: OCPPRemoteStartTransactionRequest): Promise<OCPPRemoteStartTransactionResponse> {
     return this.sendMessage(this.buildRequest(Command.REMOTE_START_TRANSACTION, params));
   }
 
-  public async reset(params: OCPPResetCommandParam): Promise<OCPPResetCommandResult> {
+  public async reset(params: OCPPResetRequest): Promise<OCPPResetResponse> {
     return this.sendMessage(this.buildRequest(Command.RESET, params));
   }
 
-  public async clearCache(): Promise<OCPPClearCacheCommandResult> {
+  public async clearCache(): Promise<OCPPClearCacheResponse> {
     return this.sendMessage(this.buildRequest(Command.CLEAR_CACHE));
   }
 
-  public async getConfiguration(params: OCPPGetConfigurationCommandParam): Promise<OCPPGetConfigurationCommandResult> {
+  public async getConfiguration(params: OCPPGetConfigurationRequest): Promise<OCPPGetConfigurationResponse> {
     return this.sendMessage(this.buildRequest(Command.GET_CONFIGURATION, params));
   }
 
-  public async changeConfiguration(params: OCPPChangeConfigurationCommandParam): Promise<OCPPChangeConfigurationCommandResult> {
+  public async changeConfiguration(params: OCPPChangeConfigurationRequest): Promise<OCPPChangeConfigurationResponse> {
     return this.sendMessage(this.buildRequest(Command.CHANGE_CONFIGURATION, params));
   }
 
-  public async remoteStopTransaction(params: OCPPRemoteStopTransactionCommandParam): Promise<OCPPRemoteStopTransactionCommandResult> {
+  public async remoteStopTransaction(params: OCPPRemoteStopTransactionRequest): Promise<OCPPRemoteStopTransactionResponse> {
     return this.sendMessage(this.buildRequest(Command.REMOTE_STOP_TRANSACTION, params));
   }
 
-  public async unlockConnector(params: OCPPUnlockConnectorCommandParam): Promise<OCPPUnlockConnectorCommandResult> {
+  public async unlockConnector(params: OCPPUnlockConnectorRequest): Promise<OCPPUnlockConnectorResponse> {
     return this.sendMessage(this.buildRequest(Command.UNLOCK_CONNECTOR, params));
   }
 
-  public async setChargingProfile(params: OCPPSetChargingProfileCommandParam): Promise<OCPPSetChargingProfileCommandResult> {
+  public async setChargingProfile(params: OCPPSetChargingProfileRequest): Promise<OCPPSetChargingProfileResponse> {
     return this.sendMessage(this.buildRequest(Command.SET_CHARGING_PROFILE, params));
   }
 
-  public async getCompositeSchedule(params: OCPPGetCompositeScheduleCommandParam): Promise<OCPPGetCompositeScheduleCommandResult> {
+  public async getCompositeSchedule(params: OCPPGetCompositeScheduleRequest): Promise<OCPPGetCompositeScheduleResponse> {
     return this.sendMessage(this.buildRequest(Command.GET_COMPOSITE_SCHEDULE, params));
   }
 
-  public async clearChargingProfile(params: OCPPClearChargingProfileCommandParam): Promise<OCPPClearChargingProfileCommandResult> {
+  public async clearChargingProfile(params: OCPPClearChargingProfileRequest): Promise<OCPPClearChargingProfileResponse> {
     return this.sendMessage(this.buildRequest(Command.CLEAR_CHARGING_PROFILE, params));
   }
 
-  public async changeAvailability(params: OCPPChangeAvailabilityCommandParam): Promise<OCPPChangeAvailabilityCommandResult> {
+  public async changeAvailability(params: OCPPChangeAvailabilityRequest): Promise<OCPPChangeAvailabilityResponse> {
     return this.sendMessage(this.buildRequest(Command.CHANGE_AVAILABILITY, params));
   }
 
-  public async getDiagnostics(params: OCPPGetDiagnosticsCommandParam): Promise<OCPPGetDiagnosticsCommandResult> {
+  public async getDiagnostics(params: OCPPGetDiagnosticsRequest): Promise<OCPPGetDiagnosticsResponse> {
     return this.sendMessage(this.buildRequest(Command.GET_DIAGNOSTICS, params));
   }
 
-  public async updateFirmware(params: OCPPUpdateFirmwareCommandParam): Promise<void> {
+  public async updateFirmware(params: OCPPUpdateFirmwareRequest): Promise<void> {
     return this.sendMessage(this.buildRequest(Command.UPDATE_FIRMWARE, params));
   }
 
-  public async dataTransfer(params: OCPPDataTransferCommandParam): Promise<OCPPDataTransferCommandResult> {
+  public async dataTransfer(params: OCPPDataTransferRequest): Promise<OCPPDataTransferResponse> {
     return this.sendMessage(this.buildRequest(Command.DATA_TRANSFER, params));
   }
 
-  public async reserveNow(params: OCPPReserveNowCommandParam): Promise<OCPPReserveNowCommandResult> {
+  public async reserveNow(params: OCPPReserveNowRequest): Promise<OCPPReserveNowResponse> {
     return this.sendMessage(this.buildRequest(Command.RESERVE_NOW, params));
   }
 
-  public async cancelReservation(params: OCPPCancelReservationCommandParam): Promise<OCPPCancelReservationCommandResult> {
+  public async cancelReservation(params: OCPPCancelReservationRequest): Promise<OCPPCancelReservationResponse> {
     return this.sendMessage(this.buildRequest(Command.CANCEL_RESERVATION, params));
   }
 
@@ -119,23 +117,22 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
       siteAreaID: this.chargingStation.siteAreaID,
       companyID: this.chargingStation.companyID,
       chargingStationID: this.chargingStation.id,
-      action: ServerAction.WS_REST_CLIENT_CONNECTION_OPENED,
+      action: ServerAction.WS_REST_CLIENT_CONNECTION,
       module: MODULE_NAME, method: 'onOpen',
       message: `Try to connect to '${this.serverURL}'...`
     });
     // Create Promise
-    return await new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       try {
         // Create WS
-        const wsOptions = {
-          protocol: WSServerProtocol.REST
-        };
         const wsClientOptions: WSClientOptions = {
-          WSOptions: wsOptions,
-          autoReconnectTimeout: Configuration.getWSClientConfig().autoReconnectTimeout,
-          autoReconnectMaxRetries: Configuration.getWSClientConfig().autoReconnectMaxRetries,
+          wsOptions: {
+            protocol: WSServerProtocol.REST,
+            handshakeTimeout: 5000,
+          },
           logTenantID: this.tenantID
         };
+        // Create and Open the WS
         this.wsConnection = new WSClient(this.serverURL, wsClientOptions);
         // Opened
         this.wsConnection.onopen = async () => {
@@ -227,8 +224,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
               });
             }
           } catch (error) {
-            await Logging.logException(error, ServerAction.WS_REST_CLIENT_MESSAGE, MODULE_NAME, 'onMessage', this.tenantID
-            );
+            await Logging.logException(error, ServerAction.WS_REST_CLIENT_MESSAGE, MODULE_NAME, 'onMessage', this.tenantID);
           }
         };
       } catch (error) {

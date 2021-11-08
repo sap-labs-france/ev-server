@@ -270,7 +270,6 @@ export default class MongoDBStorage {
       {
         minPoolSize: Math.floor(this.dbConfig.poolSize / 4),
         maxPoolSize: this.dbConfig.poolSize,
-        replicaSet: Utils.isDevelopmentEnv() ? null : this.dbConfig.replicaSet,
         loggerLevel: this.dbConfig.debug ? 'debug' : null,
         readPreference: this.dbConfig.readPreference ? this.dbConfig.readPreference as ReadPreferenceMode : ReadPreferenceMode.secondaryPreferred
       }

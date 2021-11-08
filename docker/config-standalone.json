@@ -34,10 +34,6 @@
   "OCPIEndpoint": {
     "baseUrl": "http://server-standalone:9090"
   },
-  "WSClient": {
-    "autoReconnectMaxRetries": 10,
-    "autoReconnectTimeout": 60
-  },
   "AsyncTask": {
     "active": true,
     "nbrTasksInParallel": 4
