@@ -20,13 +20,12 @@ import global from '../../../types/GlobalType';
 
 const MODULE_NAME = 'JsonCentralSystemServer';
 
-
 export default class JsonCentralSystemServer extends CentralSystemServer {
   private ongoingWSInitializations: Map<string, null> = new Map;
   private jsonWSConnections: Map<string, JsonWSConnection> = new Map();
   private jsonRestWSConnections: Map<string, JsonRestWSConnection> = new Map();
 
-  constructor(centralSystemConfig: CentralSystemConfiguration, chargingStationConfig: ChargingStationConfiguration) {
+  public constructor(centralSystemConfig: CentralSystemConfiguration, chargingStationConfig: ChargingStationConfiguration) {
     super(centralSystemConfig, chargingStationConfig);
     if (this.centralSystemConfig.debug) {
       setInterval(() => {
@@ -71,11 +70,8 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     this.startWSServer();
   }
 
-  public getChargingStationClient(tenantID: string, chargingStationID: string, chargingStationLocation?: {
-    siteID: string,
-    siteAreaID: string,
-    companyID: string
-  }): ChargingStationClient {
+  public getChargingStationClient(tenantID: string, chargingStationID: string,
+      chargingStationLocation?: { siteID: string, siteAreaID: string, companyID: string }): ChargingStationClient {
     // Get the Json Web Socket
     const jsonWebSocket = this.jsonWSConnections.get(`${tenantID}~${chargingStationID}`);
     if (!jsonWebSocket) {
@@ -95,40 +91,12 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     return jsonWebSocket.getChargingStationClient();
   }
 
-  public removeJsonWSConnection(wsConnection: JsonWSConnection): boolean {
-    return this.jsonWSConnections.delete(wsConnection.getID());
-  }
-
-  public getNumberOfJsonWSConnections(): number {
-    return this.jsonWSConnections.size;
-  }
-
-  public removeJsonRestWSConnection(wsConnection: JsonRestWSConnection): boolean {
-    return this.jsonRestWSConnections.delete(wsConnection.getID());
-  }
-
-  private setJsonWSConnection(wsConnection: JsonWSConnection) {
-    this.jsonWSConnections.set(wsConnection.getID(), wsConnection);
-  }
-
-  private setJsonRestWSConnection(wsConnection: JsonRestWSConnection) {
-    this.jsonRestWSConnections.set(wsConnection.getID(), wsConnection);
-  }
-
-  private getJsonWSConnection(id: string): JsonWSConnection {
-    return this.jsonWSConnections.get(id);
-  }
-
-  private getJsonRestWSConnection(id: string): JsonRestWSConnection {
-    return this.jsonRestWSConnections.get(id);
-  }
-
   private startWSServer() {
     console.log(`Starting ${ServerType.JSON_SERVER} Server...`);
     App({}).ws('/*', {
       compression: uWS.SHARED_COMPRESSOR,
-      maxPayloadLength: 64 * 1024,
-      idleTimeout: 24 * 3600,
+      maxPayloadLength: 64 * 1024, // 64 KB per request
+      idleTimeout: 1 * 3600, // 1 hour of inactivity => Close
       upgrade: async (res: HttpResponse, req: HttpRequest, context: us_socket_context_t) => {
         // Check for WS connection over HTTP
         const upgrade = req.getHeader('upgrade');
@@ -265,6 +233,8 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
           await wsConnection.onPong(ocppMessage);
         }
       }
+    }).any('/*', (res, req) => {
+      res.end('Nothing to see here!');
     }).listen(this.centralSystemConfig.port, (token) => {
       if (token) {
         console.log(`${ServerType.JSON_SERVER} Server listening on 'ws://${this.centralSystemConfig.host}:${this.centralSystemConfig.port}'`);
@@ -337,5 +307,28 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       }
     }
   }
-}
 
+  private removeJsonWSConnection(wsConnection: JsonWSConnection): boolean {
+    return this.jsonWSConnections.delete(wsConnection.getID());
+  }
+
+  private removeJsonRestWSConnection(wsConnection: JsonRestWSConnection): boolean {
+    return this.jsonRestWSConnections.delete(wsConnection.getID());
+  }
+
+  private setJsonWSConnection(wsConnection: JsonWSConnection) {
+    this.jsonWSConnections.set(wsConnection.getID(), wsConnection);
+  }
+
+  private setJsonRestWSConnection(wsConnection: JsonRestWSConnection) {
+    this.jsonRestWSConnections.set(wsConnection.getID(), wsConnection);
+  }
+
+  private getJsonWSConnection(id: string): JsonWSConnection {
+    return this.jsonWSConnections.get(id);
+  }
+
+  private getJsonRestWSConnection(id: string): JsonRestWSConnection {
+    return this.jsonRestWSConnections.get(id);
+  }
+}
