@@ -24,7 +24,6 @@ import OICPEndpointConfiguration from './OICPEndpointConfiguration';
 import OICPServiceConfiguration from './OICPServiceConfiguration';
 import SchedulerConfiguration from './SchedulerConfiguration';
 import StorageConfiguration from './StorageConfiguration';
-import WSClientConfiguration from './WSClientConfiguration';
 import WSDLEndpointConfiguration from './WSDLEndpointConfiguration';
 
 export interface Configuration {
@@ -37,7 +36,6 @@ export interface Configuration {
   JsonEndpoint: JsonEndpointConfiguration;
   OCPIEndpoint: OCPIEndpointConfiguration;
   OICPEndpoint: OICPEndpointConfiguration;
-  WSClient: WSClientConfiguration;
   OCPIService: OCPIServiceConfiguration;
   OICPService: OICPServiceConfiguration;
   ODataService: ODataServiceConfiguration;
@@ -58,4 +56,4 @@ export interface Configuration {
   Axios?: AxiosConfiguration
 }
 
-export type ConfigurationSection = CryptoConfiguration|CentralSystemServerConfiguration|CentralSystemConfiguration|CentralSystemRestServiceConfiguration|CentralSystemFrontEndConfiguration|WSDLEndpointConfiguration|JsonEndpointConfiguration|OCPIEndpointConfiguration|WSClientConfiguration|OCPIServiceConfiguration|ODataServiceConfiguration|FirebaseConfiguration|EmailConfiguration|StorageConfiguration|NotificationConfiguration|AuthorizationConfiguration|ChargingStationConfiguration|SchedulerConfiguration|LocalesConfiguration|LoggingConfiguration|HealthCheckConfiguration|MigrationConfiguration|EVDatabaseConfiguration|ChargingStationTemplatesConfiguration|AxiosConfiguration;
+export type ConfigurationSection = CryptoConfiguration|CentralSystemServerConfiguration|CentralSystemConfiguration|CentralSystemRestServiceConfiguration|CentralSystemFrontEndConfiguration|WSDLEndpointConfiguration|JsonEndpointConfiguration|OCPIEndpointConfiguration|OCPIServiceConfiguration|ODataServiceConfiguration|FirebaseConfiguration|EmailConfiguration|StorageConfiguration|NotificationConfiguration|AuthorizationConfiguration|ChargingStationConfiguration|SchedulerConfiguration|LocalesConfiguration|LoggingConfiguration|HealthCheckConfiguration|MigrationConfiguration|EVDatabaseConfiguration|ChargingStationTemplatesConfiguration|AxiosConfiguration;

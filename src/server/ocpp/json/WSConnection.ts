@@ -1,12 +1,10 @@
 import ChargingStation, { Command } from '../../../types/ChargingStation';
-import { OCPPErrorType, OCPPIncomingRequest, OCPPMessageType, OCPPRequest } from '../../../types/ocpp/OCPPCommon';
-import WebSocket, { CLOSED, CLOSING, CONNECTING, CloseEvent, ErrorEvent, MessageEvent, OPEN } from 'ws';
+import { FctOCPPReject, FctOCPPResponse, OCPPErrorType, OCPPIncomingRequest, OCPPIncomingResponse, OCPPMessageType, OCPPRequest } from '../../../types/ocpp/OCPPCommon';
+import WebSocket, { CLOSED, CLOSING, CONNECTING, OPEN } from 'ws';
 
 import BackendError from '../../../exception/BackendError';
 import Constants from '../../../utils/Constants';
 import JsonCentralSystemServer from './JsonCentralSystemServer';
-import LockingHelper from '../../../locking/LockingHelper';
-import LockingManager from '../../../locking/LockingManager';
 import Logging from '../../../utils/Logging';
 import OCPPError from '../../../exception/OcppError';
 import OCPPUtils from '../utils/OCPPUtils';
@@ -31,7 +29,7 @@ export default abstract class WSConnection {
   private url: string;
   private clientIP: string | string[];
   private wsConnection: WebSocket;
-  private requests: { [id: string]: OCPPRequest } = {};
+  private ocppRequests: Record<string, OCPPRequest> = {};
 
   constructor(wsConnection: WebSocket, req: http.IncomingMessage, wsServer: JsonCentralSystemServer) {
     // Init
@@ -69,117 +67,77 @@ export default abstract class WSConnection {
     }
   }
 
-  public async onMessage(messageEvent: MessageEvent): Promise<void> {
-    let [messageType, messageId, command, commandPayload, errorDetails]: OCPPIncomingRequest = [0, '', '' as Command, '', {}];
-    let responseCallback: (payload?: Record<string, unknown> | string) => void;
-    let rejectCallback: (reason?: OCPPError) => void;
+  public async onMessage(wsData: WebSocket.RawData, isBinary: boolean): Promise<void> {
+    let responseCallback: FctOCPPResponse;
+    let rejectCallback: FctOCPPReject;
+    let command: Command, commandPayload: Record<string, any>, errorDetails: Record<string, any>;
+    const ocppMessage: OCPPIncomingRequest|OCPPIncomingResponse = JSON.parse(wsData.toString());
+    // Parse the data
+    const [messageType, messageID] = ocppMessage;
     try {
-      // Parse the message
-      [messageType, messageId, command, commandPayload, errorDetails] = JSON.parse(messageEvent.toString()) as OCPPIncomingRequest;
       // Wait for init
       await this.waitForInitialization();
       // Check the Type of message
       switch (messageType) {
         // Incoming Message
         case OCPPMessageType.CALL_MESSAGE:
+          // Get the data
+          [,,command,commandPayload] = ocppMessage as OCPPIncomingRequest;
           // Process the call
-          await this.handleRequest(messageId, command, commandPayload);
+          await this.handleRequest(messageID, command, commandPayload);
           break;
         // Outcome Message
         case OCPPMessageType.CALL_RESULT_MESSAGE:
+          // Get the data
+          [,,commandPayload] = ocppMessage as OCPPIncomingResponse;
           // Respond
-          if (Utils.isIterable(this.requests[messageId])) {
-            [responseCallback] = this.requests[messageId];
-          } else {
-            throw new BackendError({
-              chargingStationID: this.getChargingStationID(),
-              siteID: this.getSiteID(),
-              siteAreaID: this.getSiteAreaID(),
-              companyID: this.getCompanyID(),
-              module: MODULE_NAME,
-              method: 'onMessage',
-              message: `Response request for message id ${messageId} is not iterable`,
-              action: OCPPUtils.buildServerActionFromOcppCommand(command)
-            });
-          }
+          [responseCallback,,command] = this.ocppRequests[messageID];
           if (!responseCallback) {
-            // Error
             throw new BackendError({
               chargingStationID: this.getChargingStationID(),
               siteID: this.getSiteID(),
               siteAreaID: this.getSiteAreaID(),
               companyID: this.getCompanyID(),
-              module: MODULE_NAME,
-              method: 'onMessage',
-              message: `Response request for unknown message id ${messageId}`,
-              action: OCPPUtils.buildServerActionFromOcppCommand(command)
+              module: MODULE_NAME, method: 'onMessage',
+              message: `Unknwon OCPP Request for '${wsData.toString()}'`,
             });
           }
-          delete this.requests[messageId];
-          responseCallback(command);
+          responseCallback(commandPayload);
           break;
         // Error Message
         case OCPPMessageType.CALL_ERROR_MESSAGE:
-          // Log
-          await Logging.logError({
-            tenantID: this.getTenantID(),
-            module: MODULE_NAME,
-            method: 'onMessage',
-            action: OCPPUtils.buildServerActionFromOcppCommand(command),
-            message: `Error occurred '${command}' with message content '${JSON.stringify(commandPayload)}'`,
-            detailedMessages: { messageType, messageId, command, commandPayload, errorDetails }
-          });
-          if (!this.requests[messageId]) {
-            // Error
+          [,,commandPayload,errorDetails] = ocppMessage as OCPPIncomingResponse;
+          [,rejectCallback,command] = this.ocppRequests[messageID];
+          if (!rejectCallback) {
             throw new BackendError({
               chargingStationID: this.getChargingStationID(),
               siteID: this.getSiteID(),
               siteAreaID: this.getSiteAreaID(),
               companyID: this.getCompanyID(),
-              module: MODULE_NAME,
-              method: 'onMessage',
-              message: `Error request for unknown message id ${messageId}`,
-              action: OCPPUtils.buildServerActionFromOcppCommand(command)
+              module: MODULE_NAME, method: 'onMessage',
+              message: `Unknwon OCPP Request for '${wsData.toString()}'`,
+              detailedMessages: { messageType, messageID, commandPayload, errorDetails }
             });
           }
-          if (Utils.isIterable(this.requests[messageId])) {
-            [, rejectCallback] = this.requests[messageId];
-          } else {
-            throw new BackendError({
-              chargingStationID: this.getChargingStationID(),
-              siteID: this.getSiteID(),
-              siteAreaID: this.getSiteAreaID(),
-              companyID: this.getCompanyID(),
-              module: MODULE_NAME,
-              method: 'onMessage',
-              message: `Error request for message id ${messageId} is not iterable`,
-              action: OCPPUtils.buildServerActionFromOcppCommand(command)
-            });
-          }
-          delete this.requests[messageId];
           rejectCallback(new OCPPError({
             chargingStationID: this.getChargingStationID(),
             siteID: this.getSiteID(),
             siteAreaID: this.getSiteAreaID(),
             companyID: this.getCompanyID(),
-            module: MODULE_NAME,
-            method: 'onMessage',
+            module: MODULE_NAME, method: 'onMessage',
             code: command,
-            message: commandPayload.toString(),
-            details: { errorDetails }
+            message: wsData.toString(),
           }));
           break;
-        // Error
         default:
           throw new BackendError({
             chargingStationID: this.getChargingStationID(),
             siteID: this.getSiteID(),
             siteAreaID: this.getSiteAreaID(),
             companyID: this.getCompanyID(),
-            module: MODULE_NAME,
-            method: 'onMessage',
-            message: `Wrong message type ${messageType}`,
-            action: OCPPUtils.buildServerActionFromOcppCommand(command)
+            action: OCPPUtils.buildServerActionFromOcppCommand(command),
+            module: MODULE_NAME, method: 'onMessage',
+            message: `Wrong OCPP Message Type '${messageType as string}' for '${wsData.toString()}'`,
           });
       }
     } catch (error) {
@@ -192,9 +150,9 @@ export default abstract class WSConnection {
         action: OCPPUtils.buildServerActionFromOcppCommand(command),
         message: `${error.message as string}`,
         module: MODULE_NAME, method: 'onMessage',
-        detailedMessages: { messageEvent, error: error.stack }
+        detailedMessages: { data: wsData, error: error.stack }
       });
-      await this.sendError(messageId, error);
+      await this.sendError(messageID, error);
     }
   }
 
@@ -210,65 +168,84 @@ export default abstract class WSConnection {
     return this.clientIP;
   }
 
-  public async sendError(messageId: string, error: OCPPError): Promise<unknown> {
-    // Send error
-    return this.sendMessage(messageId, error, OCPPMessageType.CALL_ERROR_MESSAGE);
+  public async sendResponse(messageID: string, command: Command, response: Record<string, any>): Promise<Record<string, any>> {
+    return this.sendMessage(messageID, OCPPMessageType.CALL_RESULT_MESSAGE, command, response);
   }
 
-  public async sendMessage(messageId: string, commandParams: Record<string, unknown> | OCPPError, messageType: OCPPMessageType,
-      command?: Command): Promise<unknown> {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const self = this;
+  public async sendError(messageID: string, error: OCPPError): Promise<unknown> {
+    return this.sendMessage(messageID, OCPPMessageType.CALL_ERROR_MESSAGE, null, null, error);
+  }
+
+  public async sendMessage(messageID: string, messageType: OCPPMessageType, command?: Command, data?: Record<string, any>, error?: OCPPError): Promise<unknown> {
     // Create a promise
-    return await new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       let messageToSend: string;
+      let messageProcessed = false;
+      let requestTimeout: NodeJS.Timer;
       // Function that will receive the request's response
-      function responseCallback(payload: Record<string, unknown> | string): void {
-        // Send the response
-        resolve(payload);
-      }
+      const responseCallback = (payload?: Record<string, unknown> | string): void => {
+        if (!messageProcessed) {
+          if (requestTimeout) {
+            clearTimeout(requestTimeout);
+          }
+          // Send response
+          messageProcessed = true;
+          delete this.ocppRequests[messageID];
+          resolve(payload);
+        }
+      };
       // Function that will receive the request's rejection
-      function rejectCallback(reason: string | OCPPError): void {
-        // Build Exception
-        self.requests[messageId] = [() => { }, () => { }];
-        const error = reason instanceof OCPPError ? reason : new Error(reason);
-        // Send error
-        reject(error);
-      }
+      const rejectCallback = (reason: string | OCPPError): void => {
+        if (!messageProcessed) {
+          if (requestTimeout) {
+            clearTimeout(requestTimeout);
+          }
+          // Send error
+          messageProcessed = true;
+          delete this.ocppRequests[messageID];
+          const ocppError = reason instanceof OCPPError ? reason : new Error(reason);
+          reject(ocppError);
+        }
+      };
       // Type of message
       switch (messageType) {
         // Request
         case OCPPMessageType.CALL_MESSAGE:
           // Build request
-          this.requests[messageId] = [responseCallback, rejectCallback];
-          messageToSend = JSON.stringify([messageType, messageId, command, commandParams]);
+          this.ocppRequests[messageID] = [responseCallback, rejectCallback, command];
+          messageToSend = JSON.stringify([messageType, messageID, command, data]);
           break;
         // Response
         case OCPPMessageType.CALL_RESULT_MESSAGE:
           // Build response
-          messageToSend = JSON.stringify([messageType, messageId, commandParams]);
+          messageToSend = JSON.stringify([messageType, messageID, data]);
           break;
         // Error Message
         case OCPPMessageType.CALL_ERROR_MESSAGE:
           // Build Error Message
-          messageToSend = JSON.stringify([messageType, messageId, commandParams.code ? commandParams.code : OCPPErrorType.GENERIC_ERROR, commandParams.message ? commandParams.message : '', commandParams.details ? commandParams.details : {}]);
+          messageToSend = JSON.stringify([messageType, messageID, error.code ? error.code : OCPPErrorType.GENERIC_ERROR, error.message ? error.message : '', error.details ? error.details : {}]);
           break;
       }
-      // Check if wsConnection is ready
+      // Check Connection
       if (this.isWSConnectionOpen()) {
-        // Yes: Send Message
-        this.wsConnection.send(messageToSend);
+        // Send Message
+        this.wsConnection.send(messageToSend, (wsError?: Error) => {
+          if (wsError) {
+            rejectCallback(`Error '${wsError?.message}' when sending Message ID '${messageID}' with content '${messageToSend}' (${this.tenantSubdomain})`);
+          }
+        });
       } else {
-        // Reject it
-        return rejectCallback(`WebSocket closed for Message ID '${messageId}' with content '${messageToSend}' (${this.tenantSubdomain})`);
+        // Reject
+        return rejectCallback(`WebSocket closed for Message ID '${messageID}' with content '${messageToSend}' (${this.tenantSubdomain})`);
       }
       // Response?
       if (messageType !== OCPPMessageType.CALL_MESSAGE) {
-        // Yes: send Ok
-        resolve();
+        responseCallback();
       } else {
-        // Send timeout
-        setTimeout(() => rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${this.tenantSubdomain})`), Constants.OCPP_SOCKET_TIMEOUT);
+        // Trigger timeout
+        requestTimeout = setTimeout(() => {
+          rejectCallback(`Timeout for Message ID '${messageID}' with content '${messageToSend} (${this.tenantSubdomain})`);
+        }, Constants.OCPP_SOCKET_TIMEOUT);
       }
     });
   }
@@ -438,7 +415,7 @@ export default abstract class WSConnection {
 
   public abstract handleRequest(messageId: string, command: Command, commandPayload: Record<string, unknown> | string): Promise<void>;
 
-  public abstract onError(errorEvent: ErrorEvent): void;
+  public abstract onError(error: Error): void;
 
-  public abstract onClose(closeEvent: CloseEvent): void;
+  public abstract onClose(code: number, reason: Buffer): void;
 }

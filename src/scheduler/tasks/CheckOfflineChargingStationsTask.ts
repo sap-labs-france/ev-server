@@ -7,7 +7,7 @@ import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
 import OCPPCommon from '../../server/ocpp/utils/OCPPCommon';
-import { OCPPGetConfigurationCommandResult } from '../../types/ocpp/OCPPClient';
+import { OCPPGetConfigurationResponse } from '../../types/ocpp/OCPPClient';
 import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
@@ -30,7 +30,7 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
         if (!Utils.isEmptyArray(chargingStations.result)) {
           for (let i = chargingStations.result.length - 1; i >= 0; i--) {
             const chargingStation = chargingStations.result[i];
-            let ocppHeartbeatConfiguration: OCPPGetConfigurationCommandResult;
+            let ocppHeartbeatConfiguration: OCPPGetConfigurationResponse;
             // Check if charging station is still connected
             try {
               // Send credentials to get the token
