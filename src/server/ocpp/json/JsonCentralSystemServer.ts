@@ -75,7 +75,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     // Get the Json Web Socket
     const jsonWebSocket = this.jsonWSConnections.get(`${tenantID}~${chargingStationID}`);
     if (!jsonWebSocket) {
-      void Logging.logError({
+      void Logging.logWarning({
         tenantID: tenantID,
         siteID: chargingStationLocation?.siteID,
         siteAreaID: chargingStationLocation?.siteAreaID,
