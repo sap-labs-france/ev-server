@@ -32,33 +32,33 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         console.log(chalk.green('====================================='));
         if (this.jsonWSConnections.size > 0) {
           console.log(chalk.green(`** ${this.jsonWSConnections.size} CS connection(s)`));
-          for (const key of this.jsonWSConnections.keys()) {
-            const jsonChargingStationClient = this.jsonWSConnections.get(key);
-            console.log(chalk.green(`** Connection CS: ${jsonChargingStationClient.getChargingStationID()}`));
-          }
+          // for (const key of this.jsonWSConnections.keys()) {
+          //   const jsonChargingStationClient = this.jsonWSConnections.get(key);
+          //   console.log(chalk.green(`** Connection CS: ${jsonChargingStationClient.getChargingStationID()}`));
+          // }
+          // console.log(chalk.green('====================================='));
         } else {
           console.log(chalk.green('** No CS connection'));
         }
-        console.log(chalk.green('====================================='));
         if (this.jsonRestWSConnections.size > 0) {
           console.log(chalk.green(`** ${this.jsonRestWSConnections.size} CS connection(s)`));
-          for (const key of this.jsonRestWSConnections.keys()) {
-            const jsonRestClient = this.jsonRestWSConnections.get(key);
-            console.log(chalk.green(`** Connection REST: ${jsonRestClient.getChargingStationID()}`));
-          }
+          // for (const key of this.jsonRestWSConnections.keys()) {
+          //   const jsonRestClient = this.jsonRestWSConnections.get(key);
+          //   console.log(chalk.green(`** Connection REST: ${jsonRestClient.getChargingStationID()}`));
+          // }
+          // console.log(chalk.green('====================================='));
         } else {
           console.log(chalk.green('** No REST connection'));
         }
-        console.log(chalk.green('====================================='));
         if (this.ongoingWSInitializations.size > 0) {
           console.log(chalk.green(`** ${this.ongoingWSInitializations.size} ongoing WS initialization(s)`));
-          for (const key of this.ongoingWSInitializations.keys()) {
-            console.log(chalk.green(`** Init incoming URL: ${key}`));
-          }
+          // for (const key of this.ongoingWSInitializations.keys()) {
+          //   console.log(chalk.green(`** Init incoming URL: ${key}`));
+          // }
+          // console.log(chalk.green('====================================='));
         } else {
           console.log(chalk.green('** No ongoing WS initialization(s)'));
         }
-        console.log(chalk.green('====================================='));
       }, 5000);
     }
   }
@@ -132,7 +132,6 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
           });
           res.close();
         }
-        req.forEach((key, value) => console.log(key, value));
         // Okay
         res.upgrade(
           { url: req.getUrl() },
@@ -196,9 +195,6 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
           await wsConnection.onMessage(ocppMessage, isBinary);
         }
       },
-      drain: (ws: WebSocket) => {
-        console.log('WS: Drain');
-      },
       close: async (ws: WebSocket, code: number, message: ArrayBuffer) => {
         // Convert right away
         const ocppMessage = Buffer.from(message).toString();
@@ -237,7 +233,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       res.end('Nothing to see here!');
     }).listen(this.centralSystemConfig.port, (token) => {
       if (token) {
-        console.log(`${ServerType.JSON_SERVER} Server listening on 'ws://${this.centralSystemConfig.host}:${this.centralSystemConfig.port}'`);
+        console.log(`${ServerType.JSON_SERVER} Server listening on 'http://${this.centralSystemConfig.host}:${this.centralSystemConfig.port}'`);
       }
     });
   }
