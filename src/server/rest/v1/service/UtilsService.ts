@@ -1,6 +1,7 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { Car, CarCatalog } from '../../../../types/Car';
 import ChargingStation, { ChargePoint, Voltage } from '../../../../types/ChargingStation';
+import { DataResult, TransactionDataResult } from '../../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
@@ -19,7 +20,6 @@ import Company from '../../../../types/Company';
 import CompanyStorage from '../../../../storage/mongodb/CompanyStorage';
 import Constants from '../../../../utils/Constants';
 import Cypher from '../../../../utils/Cypher';
-import { DataResult } from '../../../../types/DataResult';
 import { EntityDataType } from '../../../../types/GlobalType';
 import { Log } from '../../../../types/Log';
 import Logging from '../../../../utils/Logging';
@@ -757,13 +757,19 @@ export default class UtilsService {
   }
 
   public static async checkAndGetTransactionsAuthorization(tenant: Tenant, userToken: UserToken, authAction: Action,
-      action: ServerAction, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Transaction[]> {
+      action: ServerAction, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<TransactionDataResult> {
 
 
-    /* const authObject = await AuthorizationService.checkAndGetTransactionsAuthorizations(tenant, userToken, additionalFilters);
-      await TransactionService.getTransactions(req, action, {}, authObject.projectFields);
-
-    return await ;*/
+    const authObject = await AuthorizationService.checkAndGetTransactionsAuthorizations(tenant, userToken, additionalFilters);
+    if (!applyProjectFields) {
+      authObject.projectFields = [];
+    }
+    return await TransactionStorage.getTransactions(tenant, {
+      withTag: additionalFilters.withTag,
+      withCar: additionalFilters.withCar,
+      withChargingStation: additionalFilters.withChargingStation,
+      withUser: additionalFilters.withUser,
+    }, Constants.DB_PARAMS_DEFAULT_RECORD, authObject.projectFields);
   }
 
   public static async checkAndGetTransactionAuthorization(tenant: Tenant, userToken: UserToken, transactionID: number, authAction: Action,
