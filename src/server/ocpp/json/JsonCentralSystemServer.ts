@@ -316,7 +316,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       // eslint-disable-next-line no-constant-condition
       while (true) {
         // Wait
-        await Utils.sleep(250);
+        await Utils.sleep(100);
         // Check
         if (!this.ongoingWSInitializations.has(ws.url)) {
           break;
