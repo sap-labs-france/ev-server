@@ -8,13 +8,11 @@ import OCPPError from '../../../exception/OcppError';
 import OCPPUtils from '../utils/OCPPUtils';
 import { ServerAction } from '../../../types/Server';
 import Tenant from '../../../types/Tenant';
-import Utils from '../../../utils/Utils';
 import { WebSocket } from 'uWebSockets.js';
 
 const MODULE_NAME = 'WSConnection';
 
 export default abstract class WSConnection {
-  protected initialized: boolean;
   private siteID: string;
   private siteAreaID: string;
   private companyID: string;
@@ -32,7 +30,6 @@ export default abstract class WSConnection {
     this.url = url.trim().replace(/\b(\?|&).*/, ''); // Filter trailing URL parameters
     // this.clientIP = Utils.getRequestIP(url);
     this.webSocket = webSocket;
-    this.initialized = false;
     // TODO: Handle Client IP
     this.clientIP = '';
     void Logging.logDebug({
@@ -46,26 +43,22 @@ export default abstract class WSConnection {
   }
 
   public async initialize(): Promise<void> {
-    if (!this.initialized) {
-      // Check and Get Charging Station data
-      const { tenant, chargingStation } = await OCPPUtils.checkAndGetChargingStationData(
-        ServerAction.WS_CONNECTION, this.getTenantID(), this.getChargingStationID(), this.getTokenID(), false);
-      // Set
-      this.setTenant(tenant);
-      this.setChargingStation(chargingStation);
-    }
+    // Check and Get Charging Station data
+    const { tenant, chargingStation } = await OCPPUtils.checkAndGetChargingStationData(
+      ServerAction.WS_CONNECTION, this.getTenantID(), this.getChargingStationID(), this.getTokenID(), false);
+    // Set
+    this.setTenant(tenant);
+    this.setChargingStation(chargingStation);
   }
 
-  public async onMessage(wsData: ArrayBuffer, isBinary: boolean): Promise<void> {
+  public async onMessage(message: string, isBinary: boolean): Promise<void> {
     let responseCallback: FctOCPPResponse;
     let rejectCallback: FctOCPPReject;
     let command: Command, commandPayload: Record<string, any>, errorDetails: Record<string, any>;
-    const ocppMessage: OCPPIncomingRequest|OCPPIncomingResponse = JSON.parse(Buffer.from(wsData).toString());
     // Parse the data
+    const ocppMessage: OCPPIncomingRequest|OCPPIncomingResponse = JSON.parse(message);
     const [messageType, messageID] = ocppMessage;
     try {
-      // Wait for init
-      await this.waitForInitialization();
       // Check the Type of message
       switch (messageType) {
         // Incoming Message
@@ -88,7 +81,7 @@ export default abstract class WSConnection {
               siteAreaID: this.getSiteAreaID(),
               companyID: this.getCompanyID(),
               module: MODULE_NAME, method: 'onMessage',
-              message: `Unknwon OCPP Request for '${wsData.toString()}'`,
+              message: `Unknwon OCPP Request for '${message.toString()}'`,
             });
           }
           responseCallback(commandPayload);
@@ -104,7 +97,7 @@ export default abstract class WSConnection {
               siteAreaID: this.getSiteAreaID(),
               companyID: this.getCompanyID(),
               module: MODULE_NAME, method: 'onMessage',
-              message: `Unknwon OCPP Request for '${wsData.toString()}'`,
+              message: `Unknwon OCPP Request for '${message.toString()}'`,
               detailedMessages: { messageType, messageID, commandPayload, errorDetails }
             });
           }
@@ -115,7 +108,7 @@ export default abstract class WSConnection {
             companyID: this.getCompanyID(),
             module: MODULE_NAME, method: 'onMessage',
             code: command,
-            message: wsData.toString(),
+            message: message.toString(),
           }));
           break;
         default:
@@ -126,7 +119,7 @@ export default abstract class WSConnection {
             companyID: this.getCompanyID(),
             action: OCPPUtils.buildServerActionFromOcppCommand(command),
             module: MODULE_NAME, method: 'onMessage',
-            message: `Wrong OCPP Message Type '${messageType as string}' for '${wsData.toString()}'`,
+            message: `Wrong OCPP Message Type '${messageType as string}' for '${message.toString()}'`,
           });
       }
     } catch (error) {
@@ -139,7 +132,7 @@ export default abstract class WSConnection {
         action: OCPPUtils.buildServerActionFromOcppCommand(command),
         message: `${error.message as string}`,
         module: MODULE_NAME, method: 'onMessage',
-        detailedMessages: { data: wsData, error: error.stack }
+        detailedMessages: { data: message, error: error.stack }
       });
       await this.sendError(messageID, error);
     }
@@ -307,35 +300,9 @@ export default abstract class WSConnection {
       ServerAction.WS_CONNECTION, this.tenantID, this.tokenID, this.chargingStationID);
   }
 
-  private async waitForInitialization() {
-    // Wait for init
-    if (!this.initialized) {
-      // Wait for 10 secs max
-      let remainingWaitingLoop = 10;
-      // eslint-disable-next-line no-constant-condition
-      while (true) {
-        await Utils.sleep(1000);
-        // Check
-        if (this.initialized) {
-          break;
-        }
-        // Nbr of trials ended?
-        if (remainingWaitingLoop <= 0) {
-          throw new BackendError({
-            chargingStationID: this.getChargingStationID(),
-            module: MODULE_NAME, method: 'waitForInitialization',
-            message: 'OCPP Request received before OCPP connection has been completed!'
-          });
-        }
-        // Try another time
-        remainingWaitingLoop--;
-      }
-    }
-  }
-
   public abstract handleRequest(messageId: string, command: Command, commandPayload: Record<string, unknown> | string): Promise<void>;
 
-  public abstract onPing(message: ArrayBuffer): Promise<void>;
+  public abstract onPing(message: string): Promise<void>;
 
-  public abstract onPong(message: ArrayBuffer): Promise<void>;
+  public abstract onPong(message: string): Promise<void>;
 }

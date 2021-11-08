@@ -17,22 +17,18 @@ export default class JsonRestWSConnection extends WSConnection {
   }
 
   public async initialize(): Promise<void> {
-    // Already initialized?
-    if (!this.initialized) {
-      // Init parent
-      await super.initialize();
-      this.initialized = true;
-      await Logging.logInfo({
-        tenantID: this.getTenantID(),
-        siteID: this.getSiteID(),
-        siteAreaID: this.getSiteAreaID(),
-        companyID: this.getCompanyID(),
-        chargingStationID: this.getChargingStationID(),
-        action: ServerAction.WS_REST_CONNECTION_OPENED,
-        module: MODULE_NAME, method: 'initialize',
-        message: `New Rest connection from '${this.getClientIP().toString()}', Protocol '${this.getWSConnection().protocol}', URL '${this.getURL()}'`
-      });
-    }
+    // Init parent
+    await super.initialize();
+    await Logging.logInfo({
+      tenantID: this.getTenantID(),
+      siteID: this.getSiteID(),
+      siteAreaID: this.getSiteAreaID(),
+      companyID: this.getCompanyID(),
+      chargingStationID: this.getChargingStationID(),
+      action: ServerAction.WS_REST_CONNECTION_OPENED,
+      module: MODULE_NAME, method: 'initialize',
+      message: `New Rest connection from URL '${this.getURL()}'`
+    });
   }
 
   public async handleRequest(messageId: string, command: Command, commandPayload: Record<string, unknown> | string): Promise<void> {
@@ -91,10 +87,10 @@ export default class JsonRestWSConnection extends WSConnection {
     }
   }
 
-  public async onPing(message: ArrayBuffer): Promise<void> {
+  public async onPing(message: string): Promise<void> {
   }
 
-  public async onPong(message: ArrayBuffer): Promise<void> {
+  public async onPong(message: string): Promise<void> {
   }
 }
 
