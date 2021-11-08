@@ -36,4 +36,12 @@ export default class OICPEndpointApi extends CrudApi {
   public async unregister(id: string) {
     return super.update(id, this.buildRestEndpointUrl(ServerRoute.REST_OICP_ENDPOINT_UNREGISTER, { id }));
   }
+
+  public async sendEvseStatuses(id: string) {
+    return super.update(id, this.buildRestEndpointUrl(ServerRoute.REST_OICP_ENDPOINT_SEND_EVSE_STATUSES, { id }));
+  }
+
+  public async sendEvses(id: string) {
+    return super.update(id, this.buildRestEndpointUrl(ServerRoute.REST_OICP_ENDPOINT_SEND_EVSES, { id }));
+  }
 }

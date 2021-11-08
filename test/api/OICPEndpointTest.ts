@@ -70,6 +70,28 @@ describe('OICP Endpoint (utoicp)', function() {
       expect(response.data.statusText).to.be.equal(ReasonPhrases.OK);
     });
 
+    it('Should send EVSEs statuses', async () => {
+      // Check if the deleted entity cannot be retrieved with its id
+      const response = await testData.centralUserService.oicpEndpointApi.sendEvseStatuses(testData.newOcpiEndpoint.id);
+      expect(response.status).to.be.equal(StatusCodes.OK);
+      expect(response.data.success).to.be.equal(0);
+      expect(response.data.failure).to.be.equal(0);
+      expect(response.data.total).to.be.equal(0);
+      expect(response.data.logs).to.be.null;
+      expect(response.data.objectIDsInFailure.length).to.be.eq(0);
+    });
+
+    it('Should send EVSEs', async () => {
+      // Check if the deleted entity cannot be retrieved with its id
+      const response = await testData.centralUserService.oicpEndpointApi.sendEvses(testData.newOcpiEndpoint.id);
+      expect(response.status).to.be.equal(StatusCodes.OK);
+      expect(response.data.success).to.be.equal(0);
+      expect(response.data.failure).to.be.equal(0);
+      expect(response.data.total).to.be.equal(0);
+      expect(response.data.logs).to.be.null;
+      expect(response.data.objectIDsInFailure.length).to.be.eq(0);
+    });
+
     it('Should update the OICP Endpoint', async () => {
       // Change entity
       testData.newOcpiEndpoint.name = 'NewName';
