@@ -42,7 +42,7 @@ export default class TransactionService {
 
   public static async handleGetTransactions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Get transactions
-    const transactions = await TransactionService.getTransactions(req, action, {}, [
+    const transactions = await TransactionService.getTransactions(req, action, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
       'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
       'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit',
@@ -132,7 +132,7 @@ export default class TransactionService {
     }
     // Get Transaction User
     const user: User = await UserStorage.getUser(req.tenant, req.user.id);
-    UtilsService.assertObjectExists(action, user, `User ID '${req.user.id}' does not exist`,
+    UtilsService.assertObjectExists(action, user, `User ID '${req.user.id as string}' does not exist`,
       MODULE_NAME, 'handleRefundTransactions', req.user);
     const refundConnector = await RefundFactory.getRefundImpl(req.tenant);
     if (!refundConnector) {
@@ -572,7 +572,7 @@ export default class TransactionService {
 
   public static async handleGetChargingStationTransactions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Get transaction
-    const transactions = await TransactionService.getTransactions(req, action, {}, [
+    const transactions = await TransactionService.getTransactions(req, action, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
       'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge', 'currentInactivityStatus',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
@@ -598,7 +598,7 @@ export default class TransactionService {
 
   public static async handleGetTransactionsActive(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     req.query.Status = 'active';
-    const transactions = await TransactionService.getTransactions(req, action, {}, [
+    const transactions = await TransactionService.getTransactions(req, action, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'status', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
       'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
       'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit', 'tagID', 'tag.visualID', 'site.name', 'siteArea.name', 'company.name'
@@ -610,7 +610,7 @@ export default class TransactionService {
   public static async handleGetTransactionsCompleted(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Get transaction
     req.query.Status = 'completed';
-    const transactions = await TransactionService.getTransactions(req, action, {}, [
+    const transactions = await TransactionService.getTransactions(req, action, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
       'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.meterStop',
@@ -629,7 +629,7 @@ export default class TransactionService {
     req.query.issuer = 'true';
     // Call
     req.query.Status = 'completed';
-    const transactions = await TransactionService.getTransactions(req, action, {}, [
+    const transactions = await TransactionService.getTransactions(req, action, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
       'refundData.reportId', 'refundData.refundedAt', 'refundData.status', 'site.name', 'siteArea.name', 'company.name',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
@@ -697,7 +697,7 @@ export default class TransactionService {
     // Get transaction
     req.query.Status = 'completed';
     req.query.WithTag = 'true';
-    return TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_EXPORT, {}, [
+    return TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_EXPORT, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
       'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'site.name', 'siteArea.name', 'company.name',
@@ -714,7 +714,7 @@ export default class TransactionService {
 
   public static async getRefundedTransactionsToExport(req: Request): Promise<DataResult<Transaction>> {
     req.query.Status = 'completed';
-    return await TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_TO_REFUND_EXPORT, {}, [
+    return await TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_TO_REFUND_EXPORT, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
       'refundData.reportId', 'refundData.refundedAt', 'refundData.status', 'site.name', 'siteArea.name', 'company.name',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
@@ -961,8 +961,7 @@ export default class TransactionService {
     return result;
   }
 
-  private static async getTransactions(req: Request, action: ServerAction,
-      params: { completedTransactions?: boolean, withTag?: boolean } = {}, projectFields): Promise<DataResult<Transaction>> {
+  private static async getTransactions(req: Request, action: ServerAction, projectFields): Promise<DataResult<Transaction>> {
     // Check Transactions
     if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
