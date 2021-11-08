@@ -59,7 +59,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
           console.log(chalk.green('** No ongoing WS initialization(s)'));
         }
         console.log(chalk.green('====================================='));
-      }, 1000);
+      }, 5000);
     }
   }
 
@@ -277,12 +277,12 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
   private async waitForEndOfInitialization(ws: WebSocket) {
     // Wait for init
     if (this.ongoingWSInitializations.has(ws.url)) {
-      // Try 10 times
-      let remainingTrials = 10;
+      // Try 30 times
+      let remainingTrials = 30;
       // eslint-disable-next-line no-constant-condition
       while (true) {
         // Wait
-        await Utils.sleep(100);
+        await Utils.sleep(500 + Math.trunc(Math.random() * 1000));
         // Check
         if (!this.ongoingWSInitializations.has(ws.url)) {
           break;
