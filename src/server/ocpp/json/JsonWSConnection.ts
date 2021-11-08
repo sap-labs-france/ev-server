@@ -91,12 +91,8 @@ export default class JsonWSConnection extends WSConnection {
       this.headers.lock = lock;
       // Trace
       const performanceTracingData = await Logging.traceOcppMessageRequest(Constants.MODULE_JSON_OCPP_SERVER_16,
-        this.getTenant(), this.getChargingStationID(),
-        OCPPUtils.buildServerActionFromOcppCommand(command), commandPayload, '>>', {
-          siteAreaID: this.getSiteAreaID(),
-          siteID: this.getSiteID(),
-          companyID: this.getCompanyID(),
-        }
+        this.getTenant(), this.getChargingStationID(), OCPPUtils.buildServerActionFromOcppCommand(command), commandPayload, '>>',
+        { siteAreaID: this.getSiteAreaID(), siteID: this.getSiteID(), companyID: this.getCompanyID() }
       );
       let result: any;
       try {
@@ -114,11 +110,8 @@ export default class JsonWSConnection extends WSConnection {
         await LockingManager.release(lock);
         // Trace
         await Logging.traceOcppMessageResponse(Constants.MODULE_JSON_OCPP_SERVER_16, this.getTenant(), this.getChargingStationID(),
-          OCPPUtils.buildServerActionFromOcppCommand(command), commandPayload, result, '<<', {
-            siteAreaID: this.getSiteAreaID(),
-            siteID: this.getSiteID(),
-            companyID: this.getCompanyID(),
-          }, performanceTracingData
+          OCPPUtils.buildServerActionFromOcppCommand(command), commandPayload, result, '<<',
+          { siteAreaID: this.getSiteAreaID(), siteID: this.getSiteID(), companyID: this.getCompanyID() }, performanceTracingData
         );
       }
     } else {
