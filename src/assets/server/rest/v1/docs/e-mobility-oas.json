@@ -67,6 +67,10 @@
     {
       "name": "OCPI",
       "description": "OCPI API"
+    },
+    {
+      "name": "OICP",
+      "description": "OICP API"
     }
   ],
   "paths": {
@@ -5018,58 +5022,6 @@
         }
       }
     },
-    "/api/assets/{id}/consumptions": {
-      "post": {
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "description": "Push latest asset consumption",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/assetID"
-          }
-        ],
-        "tags": [
-          "Assets"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AssetConsumption"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Asset consumption created successfully",
-            "content": {
-              "application/json": {
-                "example": {
-                  "consumption": "###",
-                  "status": "Success"
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          },
-          "403": {
-            "$ref": "#/components/responses/ForbiddenError"
-          },
-          "500": {
-            "$ref": "#/components/responses/BackendError"
-          },
-          "550": {
-            "description": "Asset does not exist"
-          }
-        }
-      }
-    },
     "/api/charging-profiles": {
       "get": {
         "security": [
@@ -8734,6 +8686,56 @@
           },
           "550": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Push latest asset consumption",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/assetID"
+          }
+        ],
+        "tags": [
+          "Assets"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetConsumption"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Asset consumption created successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "consumption": "###",
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "description": "Asset does not exist"
           }
         }
       }
