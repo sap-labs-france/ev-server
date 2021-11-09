@@ -30,7 +30,9 @@ export interface SiteDataResult extends DataResult<Site>{
   canUnassignUsers: boolean;
 }
 
-export type LogDataResult = DataResult<Log>;
+export interface LogDataResult extends DataResult<Log>{
+  canExport: boolean;
+}
 
 export interface SiteAreaDataResult extends DataResult<SiteArea> {
   canCreate: boolean;

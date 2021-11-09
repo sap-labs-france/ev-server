@@ -1,5 +1,5 @@
 import ChargingStation, { ChargingStationOcppParameters } from '../../../types/ChargingStation';
-import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPConfigurationStatus, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPResetCommandResult, OCPPResetStatus, OCPPResetType } from '../../../types/ocpp/OCPPClient';
+import { OCPPChangeConfigurationRequest, OCPPChangeConfigurationResponse, OCPPConfigurationStatus, OCPPGetConfigurationRequest, OCPPGetConfigurationResponse, OCPPResetResponse, OCPPResetStatus, OCPPResetType } from '../../../types/ocpp/OCPPClient';
 
 import BackendError from '../../../exception/BackendError';
 import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
@@ -13,8 +13,8 @@ import Utils from '../../../utils/Utils';
 const MODULE_NAME = 'OCPPCommon';
 
 export default class OCPPCommon {
-  public static async requestChangeChargingStationOcppParameter(tenant: Tenant, chargingStation: ChargingStation, params: OCPPChangeConfigurationCommandParam,
-      saveChange = true, triggerConditionalReset = false): Promise<OCPPChangeConfigurationCommandResult> {
+  public static async requestChangeChargingStationOcppParameter(tenant: Tenant, chargingStation: ChargingStation, params: OCPPChangeConfigurationRequest,
+      saveChange = true, triggerConditionalReset = false): Promise<OCPPChangeConfigurationResponse> {
     // Get the OCPP Client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant, chargingStation);
     if (!chargingStationClient) {
@@ -54,7 +54,7 @@ export default class OCPPCommon {
     return result;
   }
 
-  public static async requestAndSaveChargingStationOcppParameters(tenant: Tenant, chargingStation: ChargingStation): Promise<OCPPChangeConfigurationCommandResult> {
+  public static async requestAndSaveChargingStationOcppParameters(tenant: Tenant, chargingStation: ChargingStation): Promise<OCPPChangeConfigurationResponse> {
     try {
       // Get the OCPP Configuration
       const ocppConfiguration = await OCPPCommon.requestChargingStationOcppParameters(tenant, chargingStation, {});
@@ -118,7 +118,7 @@ export default class OCPPCommon {
   }
 
   public static async triggerChargingStationReset(tenant: Tenant, chargingStation: ChargingStation,
-      hardResetFallback = false, resetType: OCPPResetType = OCPPResetType.SOFT): Promise<OCPPResetCommandResult> {
+      hardResetFallback = false, resetType: OCPPResetType = OCPPResetType.SOFT): Promise<OCPPResetResponse> {
     // Get the Charging Station client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant, chargingStation);
     if (!chargingStationClient) {
@@ -174,7 +174,7 @@ export default class OCPPCommon {
   }
 
   public static async requestChargingStationOcppParameters(tenant: Tenant, chargingStation: ChargingStation,
-      params: OCPPGetConfigurationCommandParam): Promise<OCPPGetConfigurationCommandResult> {
+      params: OCPPGetConfigurationRequest): Promise<OCPPGetConfigurationResponse> {
     // Get the OCPP Client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant, chargingStation);
     if (!chargingStationClient) {

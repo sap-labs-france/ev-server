@@ -48,7 +48,7 @@ export default class Logging {
     const sizeOfResponseDataKB = Utils.truncTo(Utils.createDecimal(
       sizeof(response)).div(1024).toNumber(), 2);
     const numberOfRecords = Array.isArray(response) ? response.length : 0;
-    const message = `${module}.${method} - ${executionDurationMillis.toString()} ms - Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB - ${numberOfRecords.toString()} rec(s)`;
+    const message = `${module}.${method} - ${executionDurationMillis.toString()} ms - Req ${sizeOfRequestDataKB} KB - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB - ${numberOfRecords.toString()} rec(s)`;
     Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
     if (sizeOfResponseDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
       const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}KB, got ${sizeOfResponseDataKB}KB`);
@@ -593,7 +593,7 @@ export default class Logging {
     // Compute size
     const sizeOfRequestDataKB = Utils.truncTo(Utils.createDecimal(
       sizeof(request)).div(1024).toNumber(), 2);
-    const message = `${direction} OCPP Request '${action}' - Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB - ${direction === '>>' ? 'Received' : 'Sent'}`;
+    const message = `${direction} OCPP Request '${action}' - Req ${sizeOfRequestDataKB} KB - ${direction === '>>' ? 'Received' : 'Sent'}`;
     Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
     await Logging.logDebug({
       tenantID: tenant.id,
@@ -632,7 +632,7 @@ export default class Logging {
     if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
       const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms, got ${executionDurationMillis} ms`);
       await Logging.logWarning({
-        tenantID: tenant.id,
+        tenantID: tenant?.id,
         action: ServerAction.PERFORMANCES,
         module, method: 'traceChargingStationActionEnd',
         message: `${message}: ${error.message}`,
@@ -640,7 +640,7 @@ export default class Logging {
       });
       if (Utils.isDevelopmentEnv()) {
         console.warn(chalk.yellow('===================================='));
-        console.warn(chalk.yellow(`Tenant ID '${tenant.id}'`));
+        console.warn(chalk.yellow(`Tenant ID '${tenant?.id}'`));
         console.warn(chalk.yellow(error));
         console.warn(chalk.yellow(message));
         console.warn(chalk.yellow('===================================='));
@@ -648,7 +648,7 @@ export default class Logging {
     }
     if (response && response['status'] === OCPPStatus.REJECTED) {
       await Logging.logError({
-        tenantID: tenant.id,
+        tenantID: tenant?.id,
         chargingStationID: chargingStationID,
         siteID: chargingStationDetails.siteID,
         siteAreaID: chargingStationDetails.siteAreaID,
@@ -658,7 +658,7 @@ export default class Logging {
       });
     } else {
       await Logging.logDebug({
-        tenantID: tenant.id,
+        tenantID: tenant?.id,
         chargingStationID: chargingStationID,
         siteID: chargingStationDetails.siteID,
         siteAreaID: chargingStationDetails.siteAreaID,

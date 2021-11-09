@@ -1,9 +1,13 @@
 import { Command } from '../ChargingStation';
 import OCPPError from '../../exception/OcppError';
 
-export type OCPPRequest = [(payload?: Record<string, unknown> | string) => void, (reason?: OCPPError) => void];
+export type FctOCPPResponse = (payload?: Record<string, unknown> | string) => void;
+export type FctOCPPReject = (reason?: OCPPError) => void;
 
-export type OCPPIncomingRequest = [OCPPMessageType, string, Command, Record<string, unknown> | string, Record<string, unknown>];
+export type OCPPRequest = [FctOCPPResponse, FctOCPPReject, Command];
+
+export type OCPPIncomingRequest = [OCPPMessageType, string, Command, Record<string, unknown>, Record<string, unknown>];
+export type OCPPIncomingResponse = [OCPPMessageType, string, Record<string, unknown>, Record<string, unknown>];
 
 export type OCPPOutgoingRequest = [OCPPMessageType, string, Command, Record<string, unknown>];
 

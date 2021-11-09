@@ -2064,7 +2064,7 @@ export default class OCPPService {
     // Enrich Request
     ocppRequest.chargeBoxID = chargingStation.id;
     ocppRequest.timezone = Utils.getTimezone(chargingStation.coordinates);
-    if (withTimeStamp) {
+    if (withTimeStamp && !ocppRequest.timestamp) {
       ocppRequest.timestamp = new Date();
     }
   }

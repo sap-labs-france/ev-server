@@ -9,7 +9,7 @@ import SiteArea from '../types/SiteArea';
 
 export default class LockingHelper {
   public static async acquireAsyncTaskLock(tenantID: string, asyncTaskID: string): Promise<Lock | null> {
-    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.ASYNC_TASK, asyncTaskID, 5 * 60);
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.ASYNC_TASK, asyncTaskID, 15 * 60);
     if (!(await LockingManager.acquire(lock))) {
       return null;
     }

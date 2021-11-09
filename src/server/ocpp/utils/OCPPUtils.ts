@@ -1,7 +1,7 @@
 import { BillingDataTransactionStart, BillingDataTransactionStop } from '../../../types/Billing';
 import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargingStationCapabilities, ChargingStationTemplate, Command, Connector, ConnectorCurrentLimitSource, CurrentType, OcppParameter, SiteAreaLimitSource, StaticLimitAmps, TemplateUpdate, TemplateUpdateResult } from '../../../types/ChargingStation';
-import { OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
+import { OCPPChangeConfigurationResponse, OCPPChargingProfileStatus, OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
 import { OCPPMeasurand, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat } from '../../../types/ocpp/OCPPServer';
 import { OICPIdentification, OICPSessionID } from '../../../types/oicp/OICPIdentification';
 import Tenant, { TenantComponents } from '../../../types/Tenant';
@@ -63,9 +63,15 @@ export default class OCPPUtils {
     if (!tokenID) {
       throw new BackendError({
         chargingStationID: chargingStationID,
-        action: ServerAction.OCPP_BOOT_NOTIFICATION,
-        module: MODULE_NAME, method: 'ensureChargingStationHasValidConnectionToken',
+        action, module: MODULE_NAME, method: 'ensureChargingStationHasValidConnectionToken',
         message: 'Token ID is required, request rejected!',
+      });
+    }
+    if (!DatabaseUtils.isObjectID(tokenID)) {
+      throw new BackendError({
+        action, chargingStationID,
+        module: MODULE_NAME, method: 'ensureChargingStationHasValidConnectionToken',
+        message: `The Token ID '${tokenID}' is invalid, request rejected!`
       });
     }
     // Get the Token
@@ -73,23 +79,20 @@ export default class OCPPUtils {
     if (!token) {
       throw new BackendError({
         chargingStationID: chargingStationID,
-        action,
-        module: MODULE_NAME, method: 'ensureChargingStationHasValidConnectionToken',
+        action, module: MODULE_NAME, method: 'ensureChargingStationHasValidConnectionToken',
         message: `Token ID '${tokenID}' has not been found, request rejected!`,
       });
     }
     if (!token.expirationDate || moment().isAfter(token.expirationDate)) {
       throw new BackendError({
         chargingStationID: chargingStationID,
-        action,
-        module: MODULE_NAME, method: 'ensureChargingStationHasValidConnectionToken',
+        action, module: MODULE_NAME, method: 'ensureChargingStationHasValidConnectionToken',
         message: `Token ID '${tokenID}' has expired, request rejected!`,
       });
     }
     if (token.revocationDate && moment().isAfter(token.revocationDate)) {
       throw new BackendError({
-        action,
-        module: MODULE_NAME, method: 'ensureChargingStationHasValidConnectionToken',
+        action, module: MODULE_NAME, method: 'ensureChargingStationHasValidConnectionToken',
         message: `Token ID '${tokenID}' has been revoked, request rejected!`,
       });
     }
@@ -1214,7 +1217,7 @@ export default class OCPPUtils {
     return chargingStationTemplateUpdateResult;
   }
 
-  public static async applyTemplateOcppParametersToChargingStation(tenant: Tenant, chargingStation: ChargingStation): Promise<OCPPChangeConfigurationCommandResult> {
+  public static async applyTemplateOcppParametersToChargingStation(tenant: Tenant, chargingStation: ChargingStation): Promise<OCPPChangeConfigurationResponse> {
     await Logging.logDebug({
       tenantID: tenant.id,
       siteID: chargingStation.siteID,
@@ -1226,11 +1229,11 @@ export default class OCPPUtils {
       message: `Apply Template's OCPP Parameters for '${chargingStation.id}' in Tenant ${Utils.buildTenantName(tenant)})`,
     });
     // Request and save the latest OCPP parameters
-    let result = await Utils.executePromiseWithTimeout<OCPPChangeConfigurationCommandResult>(
+    let result = await Utils.executePromiseWithTimeout<OCPPChangeConfigurationResponse>(
       Constants.DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS, OCPPCommon.requestAndSaveChargingStationOcppParameters(tenant, chargingStation),
       `Time out error (${Constants.DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS.toString()} ms) in requesting OCPP Parameters`);
     // Update the OCPP Parameters from the template
-    result = await Utils.executePromiseWithTimeout<OCPPChangeConfigurationCommandResult>(
+    result = await Utils.executePromiseWithTimeout<OCPPChangeConfigurationResponse>(
       Constants.DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS, OCPPUtils.updateChargingStationOcppParametersWithTemplate(tenant, chargingStation),
       `Time out error (${Constants.DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS} ms) in updating OCPP Parameters`);
     if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
@@ -1485,7 +1488,7 @@ export default class OCPPUtils {
         meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC);
   }
 
-  public static checkChargingStationOcppParameters(action: ServerAction, tenantID: string, chargingStationID: string, tokenID: string): void {
+  public static checkChargingStationOcppParameters(action: ServerAction, tenantID: string, tokenID: string, chargingStationID: string): void {
     // Check Charging Station
     if (!chargingStationID) {
       throw new BackendError({
@@ -1530,7 +1533,7 @@ export default class OCPPUtils {
       tokenID: string, acquireLock = true): Promise<{ tenant: Tenant; chargingStation?: ChargingStation; token?: RegistrationToken; lock?: Lock }> {
     // Check parameters
     OCPPUtils.checkChargingStationOcppParameters(
-      ServerAction.WS_CONNECTION, tenantID, chargingStationID, tokenID);
+      ServerAction.WS_CONNECTION, tenantID, tokenID, chargingStationID);
     // Get Tenant
     const tenant = await TenantStorage.getTenant(tenantID);
     if (!tenant) {
@@ -1635,8 +1638,8 @@ export default class OCPPUtils {
     return { tenant, chargingStation, token, lock };
   }
 
-  public static async updateChargingStationOcppParametersWithTemplate(tenant: Tenant, chargingStation: ChargingStation): Promise<OCPPChangeConfigurationCommandResult> {
-    let result: OCPPChangeConfigurationCommandResult;
+  public static async updateChargingStationOcppParametersWithTemplate(tenant: Tenant, chargingStation: ChargingStation): Promise<OCPPChangeConfigurationResponse> {
+    let result: OCPPChangeConfigurationResponse;
     const updatedOcppParameters: ActionsResponse = {
       inError: 0,
       inSuccess: 0

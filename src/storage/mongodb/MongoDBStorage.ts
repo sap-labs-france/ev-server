@@ -1,10 +1,10 @@
 import { ChangeStreamDocument, Collection, CreateIndexesOptions, Db, GridFSBucket, IndexSpecification, MongoClient, ReadPreferenceMode } from 'mongodb';
+import global, { DatabaseDocumentChange } from '../../types/GlobalType';
 import mongoUriBuilder, { MongoUriConfig } from 'mongo-uri-builder';
 
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
-import { DatabaseDocumentChange } from '../../types/GlobalType';
 import DatabaseUtils from './DatabaseUtils';
 import { LockEntity } from '../../types/Locking';
 import LockingManager from '../../locking/LockingManager';
@@ -270,13 +270,14 @@ export default class MongoDBStorage {
       {
         minPoolSize: Math.floor(this.dbConfig.poolSize / 4),
         maxPoolSize: this.dbConfig.poolSize,
-        replicaSet: Utils.isDevelopmentEnv() ? null : this.dbConfig.replicaSet,
         loggerLevel: this.dbConfig.debug ? 'debug' : null,
         readPreference: this.dbConfig.readPreference ? this.dbConfig.readPreference as ReadPreferenceMode : ReadPreferenceMode.secondaryPreferred
       }
     );
     // Get the EVSE DB
     this.database = mongoDBClient.db();
+    // Keep a global reference
+    global.database = this;
     // Check Database only when migration is active
     if (this.migrationConfig.active) {
       await this.checkDatabase();
