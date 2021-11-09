@@ -632,7 +632,7 @@ export default class Logging {
     if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
       const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms, got ${executionDurationMillis} ms`);
       await Logging.logWarning({
-        tenantID: tenant.id,
+        tenantID: tenant?.id,
         action: ServerAction.PERFORMANCES,
         module, method: 'traceChargingStationActionEnd',
         message: `${message}: ${error.message}`,
@@ -640,7 +640,7 @@ export default class Logging {
       });
       if (Utils.isDevelopmentEnv()) {
         console.warn(chalk.yellow('===================================='));
-        console.warn(chalk.yellow(`Tenant ID '${tenant.id}'`));
+        console.warn(chalk.yellow(`Tenant ID '${tenant?.id}'`));
         console.warn(chalk.yellow(error));
         console.warn(chalk.yellow(message));
         console.warn(chalk.yellow('===================================='));
@@ -648,7 +648,7 @@ export default class Logging {
     }
     if (response && response['status'] === OCPPStatus.REJECTED) {
       await Logging.logError({
-        tenantID: tenant.id,
+        tenantID: tenant?.id,
         chargingStationID: chargingStationID,
         siteID: chargingStationDetails.siteID,
         siteAreaID: chargingStationDetails.siteAreaID,
@@ -658,7 +658,7 @@ export default class Logging {
       });
     } else {
       await Logging.logDebug({
-        tenantID: tenant.id,
+        tenantID: tenant?.id,
         chargingStationID: chargingStationID,
         siteID: chargingStationDetails.siteID,
         siteAreaID: chargingStationDetails.siteAreaID,
