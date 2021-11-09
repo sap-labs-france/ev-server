@@ -228,21 +228,12 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
   private async getWSConnectionFromWebSocket(ws: uWS.WebSocket): Promise<WSConnection> {
     // Check if init has been finished
     await this.waitForEndOfInitialization(ws);
+    // Return the WS connection
     if (ws.jsonWSConnection) {
-      // Check if it's still available in the Map
-      const jsonWSConnection = ws.jsonWSConnection as JsonWSConnection;
-      if (!this.getJsonWSConnection(jsonWSConnection.getID())) {
-        this.setJsonWSConnection(jsonWSConnection);
-      }
-      return jsonWSConnection;
+      return ws.jsonWSConnection;
     }
     if (ws.jsonRestWSConnection) {
-      // Check if it's still available in the Map
-      const jsonRestWSConnection = ws.jsonRestWSConnection as JsonRestWSConnection;
-      if (!this.getJsonRestWSConnection(jsonRestWSConnection.getID())) {
-        this.setJsonRestWSConnection(jsonRestWSConnection);
-      }
-      return jsonRestWSConnection;
+      return ws.jsonRestWSConnection;
     }
     // Close the WS
     try {
@@ -268,29 +259,14 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
   private async waitForEndOfInitialization(ws: WebSocket) {
     // Wait for init
     if (this.ongoingWSInitializations.has(ws.url)) {
-      // Try 30 times
-      let remainingTrials = 30;
       // eslint-disable-next-line no-constant-condition
       while (true) {
         // Wait
-        await Utils.sleep(500 + Math.trunc(Math.random() * 1000));
+        await Utils.sleep(1000 + Math.trunc(Math.random() * 1000));
         // Check
         if (!this.ongoingWSInitializations.has(ws.url)) {
           break;
         }
-        // Nbr of trials ended?
-        if (remainingTrials <= 0) {
-          throw new BackendError({
-            siteID: ws.siteID,
-            siteAreaID: ws.siteAreaID,
-            companyID: ws.companyID,
-            chargingStationID: ws.chargingStationID,
-            module: MODULE_NAME, method: 'waitForInitialization',
-            message: 'OCPP Request received before OCPP connection init has been completed!'
-          });
-        }
-        // Try another time
-        remainingTrials--;
       }
     }
   }
