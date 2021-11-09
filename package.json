@@ -2,7 +2,7 @@
   "name": "ev-server",
   "version": "2.5.9",
   "engines": {
-    "node": "14.x.x",
+    "node": "16.x.x",
     "npm": "6.x.x"
   },
   "repository": {
