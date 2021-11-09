@@ -29,6 +29,7 @@ export default class SchemaValidator {
   private static assetSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/asset/asset.json`, 'utf8'));
   private static companySchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/company/company.json`, 'utf8'));
   private static ocpiEndpointSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/ocpi/ocpi-endpoint.json`, 'utf8'));
+  private static registrationTokenSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/registration-token/registration-token.json`, 'utf8'));
   private readonly ajv: Ajv;
 
   constructor(readonly moduleName: string,
@@ -52,17 +53,20 @@ export default class SchemaValidator {
     // Add custom Formatter
     this.addCustomFormatters();
     // Add common schema
-    this.ajv.addSchema(SchemaValidator.commonSchema);
-    this.ajv.addSchema(SchemaValidator.tenantSchema);
-    this.ajv.addSchema(SchemaValidator.tenantComponentSchema);
-    this.ajv.addSchema(SchemaValidator.chargingStationSchema);
-    this.ajv.addSchema(SchemaValidator.tagSchema);
-    this.ajv.addSchema(SchemaValidator.transactionSchema);
-    this.ajv.addSchema(SchemaValidator.userSchema);
-    this.ajv.addSchema(SchemaValidator.carSchema);
-    this.ajv.addSchema(SchemaValidator.assetSchema);
-    this.ajv.addSchema(SchemaValidator.companySchema);
-    this.ajv.addSchema(SchemaValidator.ocpiEndpointSchema);
+    this.ajv.addSchema([
+      SchemaValidator.commonSchema,
+      SchemaValidator.tenantSchema,
+      SchemaValidator.tenantComponentSchema,
+      SchemaValidator.chargingStationSchema,
+      SchemaValidator.tagSchema,
+      SchemaValidator.transactionSchema,
+      SchemaValidator.userSchema,
+      SchemaValidator.carSchema,
+      SchemaValidator.assetSchema,
+      SchemaValidator.companySchema,
+      SchemaValidator.ocpiEndpointSchema,
+      SchemaValidator.registrationTokenSchema
+    ]);
   }
 
   protected validate(schema: Schema, data: Record<string, unknown>): any {
