@@ -4,7 +4,6 @@ import express, { NextFunction, Request, Response } from 'express';
 
 import RouterUtils from '../RouterUtils';
 import SettingService from '../../service/SettingService';
-import Utils from '../../../../../utils/Utils';
 import sanitize from 'mongo-sanitize';
 
 export default class SettingRouter {
@@ -17,19 +16,31 @@ export default class SettingRouter {
   public buildRoutes(): express.Router {
     this.buildRouteSettings();
     this.buildRouteSetting();
+    this.buildRouteCreateSetting();
     return this.router;
   }
 
-  protected buildRouteSettings(): void {
+  private buildRouteSettings(): void {
     this.router.get(`/${ServerRoute.REST_SETTINGS}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(SettingService.handleGetSettings.bind(this), ServerAction.SETTINGS, req, res, next);
+      if (req.query.Identifier) {
+        req.query.ID = req.query.Identifier;
+        await RouterUtils.handleServerAction(SettingService.handleGetSettingByIdentifier.bind(this), ServerAction.SETTING_BY_IDENTIFIER, req, res, next);
+      } else {
+        await RouterUtils.handleServerAction(SettingService.handleGetSettings.bind(this), ServerAction.SETTINGS, req, res, next);
+      }
     });
   }
 
-  protected buildRouteSetting(): void {
+  private buildRouteSetting(): void {
     this.router.get(`/${ServerRoute.REST_SETTING}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = sanitize(req.params.id);
       await RouterUtils.handleServerAction(SettingService.handleGetSetting.bind(this), ServerAction.SETTING, req, res, next);
+    });
+  }
+
+  private buildRouteCreateSetting(): void {
+    this.router.post(`/${ServerRoute.REST_SETTINGS}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(SettingService.handleCreateSetting.bind(this), ServerAction.SETTING_CREATE, req, res, next);
     });
   }
 }
