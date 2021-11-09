@@ -1,3 +1,5 @@
+import { ServerAction, ServerType } from '../../../types/Server';
+
 import CentralSystemConfiguration from '../../../types/configuration/CentralSystemConfiguration';
 import CentralSystemServer from '../CentralSystemServer';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
@@ -5,7 +7,6 @@ import Constants from '../../../utils/Constants';
 import ExpressUtils from '../../ExpressUtils';
 import Logging from '../../../utils/Logging';
 import { OCPPVersion } from '../../../types/ocpp/OCPPServer';
-import { ServerAction } from '../../../types/Server';
 import { ServerUtils } from '../../ServerUtils';
 import Utils from '../../../utils/Utils';
 import centralSystemService15 from './services/SoapCentralSystemService15';
@@ -40,7 +41,7 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
   start(): void {
     // Make it global for SOAP Services
     global.centralSystemSoapServer = this;
-    ServerUtils.startHttpServer(this.centralSystemConfig, this.httpServer, MODULE_NAME, 'OCPP-S');
+    ServerUtils.startHttpServer(this.centralSystemConfig, this.httpServer, MODULE_NAME, ServerType.SOAP_SERVER);
     // Create Soap Servers
     // OCPP 1.5 -----------------------------------------
     const soapServer15 = soap.listen(this.httpServer, `/${Utils.getOCPPServerVersionURLPath(OCPPVersion.VERSION_15)}`, centralSystemService15, this.readWsdl('OCPPCentralSystemService15.wsdl'));
