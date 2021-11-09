@@ -32,29 +32,16 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         console.log(chalk.green('====================================='));
         if (this.jsonWSConnections.size > 0) {
           console.log(chalk.green(`** ${this.jsonWSConnections.size} CS connection(s)`));
-          // for (const key of this.jsonWSConnections.keys()) {
-          //   const jsonChargingStationClient = this.jsonWSConnections.get(key);
-          //   console.log(chalk.green(`** Connection CS: ${jsonChargingStationClient.getChargingStationID()}`));
-          // }
-          // console.log(chalk.green('====================================='));
         } else {
           console.log(chalk.green('** No CS connection'));
         }
         if (this.jsonRestWSConnections.size > 0) {
           console.log(chalk.green(`** ${this.jsonRestWSConnections.size} CS connection(s)`));
-          // for (const key of this.jsonRestWSConnections.keys()) {
-          //   const jsonRestClient = this.jsonRestWSConnections.get(key);
-          //   console.log(chalk.green(`** Connection REST: ${jsonRestClient.getChargingStationID()}`));
-          // }
-          // console.log(chalk.green('====================================='));
         } else {
           console.log(chalk.green('** No REST connection'));
         }
         if (this.ongoingWSInitializations.size > 0) {
           console.log(chalk.green(`** ${this.ongoingWSInitializations.size} ongoing WS initialization(s)`));
-          // for (const key of this.ongoingWSInitializations.keys()) {
-          //   console.log(chalk.green(`** Init incoming URL: ${key}`));
-          // }
         } else {
           console.log(chalk.green('** No ongoing WS initialization(s)'));
         }
