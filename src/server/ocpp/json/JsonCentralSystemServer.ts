@@ -3,7 +3,6 @@ import * as uWS from 'uWebSockets.js';
 import { App, HttpRequest, HttpResponse, WebSocket, us_socket_context_t } from 'uWebSockets.js';
 import { ServerAction, ServerType, WSServerProtocol } from '../../../types/Server';
 
-import BackendError from '../../../exception/BackendError';
 import CentralSystemConfiguration from '../../../types/configuration/CentralSystemConfiguration';
 import CentralSystemServer from '../CentralSystemServer';
 import ChargingStationClient from '../../../client/ocpp/ChargingStationClient';
@@ -285,13 +284,5 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
 
   private setJsonRestWSConnection(wsConnection: JsonRestWSConnection) {
     this.jsonRestWSConnections.set(wsConnection.getID(), wsConnection);
-  }
-
-  private getJsonWSConnection(id: string): JsonWSConnection {
-    return this.jsonWSConnections.get(id);
-  }
-
-  private getJsonRestWSConnection(id: string): JsonRestWSConnection {
-    return this.jsonRestWSConnections.get(id);
   }
 }

@@ -210,11 +210,11 @@ export default abstract class WSConnection {
       // Send Message
       try {
         if (!this.webSocket.send(messageToSend)) {
-          // TODO: Backpressure to check
+          // TODO: WS Backpressure to check
           rejectCallback(`Error when sending Message ID '${messageID}' with content '${messageToSend}' (${this.tenantSubdomain})`);
         }
       } catch (wsError) {
-        rejectCallback(`Error '${wsError?.message as string ?? 'Unknown'}' when sending Message ID '${messageID}' with content '${messageToSend}' (${this.tenantSubdomain})`);
+        // Ignore, socket is invalid
       }
       // Response?
       if (messageType !== OCPPMessageType.CALL_MESSAGE) {
