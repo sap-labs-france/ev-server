@@ -1,6 +1,7 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { ActionsResponse, ImportStatus } from '../../../../types/GlobalType';
 import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
+import Busboy, { BusboyHeaders } from 'busboy';
 import { DataResult, TagDataResult } from '../../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
@@ -12,7 +13,6 @@ import AppError from '../../../../exception/AppError';
 import AsyncTaskBuilder from '../../../../async-task/AsyncTaskBuilder';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
-import Busboy from 'busboy';
 import CSVError from 'csvtojson/v2/CSVError';
 import Constants from '../../../../utils/Constants';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
@@ -429,7 +429,7 @@ export default class TagService {
       // Delete all previously imported tags
       await TagStorage.deleteImportedTags(req.tenant);
       // Get the stream
-      const busboy = new Busboy({ headers: req.headers });
+      const busboy = new Busboy({ headers: req.headers as BusboyHeaders });
       req.pipe(busboy);
       // Handle closed socket
       let connectionClosed = false;
