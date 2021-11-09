@@ -24,8 +24,6 @@ import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 import moment from 'moment';
-import { util } from 'chai';
-import { utils } from 'mocha';
 
 const MODULE_NAME = 'SiteAreaService';
 
@@ -374,7 +372,7 @@ export default class SiteAreaService {
     const siteAreas = await SiteAreaStorage.getSiteAreas(req.tenant, { siteIDs: [siteArea.siteID] }, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'siteAreaParentID', 'siteID', 'smartCharging', 'name']);
     // Check site area chain validity
     try {
-      const index = siteAreas.result.findIndex((X) => X.id === siteArea.id);
+      const index = siteAreas.result.findIndex((siteAreaToChange) => siteAreaToChange.id === siteArea.id);
       siteAreas.result[index] = { id: siteArea.id, siteAreaParentID: siteArea.siteAreaParentID, siteID: siteArea.siteID, smartCharging: siteArea.smartCharging } as SiteArea;
       Utils.buildSubSiteAreaTree(siteAreas.result);
     } catch {

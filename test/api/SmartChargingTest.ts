@@ -374,6 +374,7 @@ describe('Smart Charging Service', function() {
 
       it('Test for two cars charging with lower site area limit', async () => {
         testData.siteAreaContext.getSiteArea().maximumPower = 32000;
+        await testData.userService.siteAreaApi.update(testData.siteAreaContext.getSiteArea());
         const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
         TestData.validateChargingProfile(chargingProfiles[0], transaction);
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
@@ -451,6 +452,7 @@ describe('Smart Charging Service', function() {
 
       it('Test for sticky limit - 1 three phased and 2 single phased cars charging and one car on a single phased station', async () => {
         testData.siteAreaContext.getSiteArea().maximumPower = 100000;
+        await testData.userService.siteAreaApi.update(testData.siteAreaContext.getSiteArea());
         await testData.chargingStationContext.stopTransaction(transaction.id, testData.userContext.tags[0].id, 180, new Date());
         const transactionStartResponse = await testData.chargingStationContext.startTransaction(1, testData.userContext.tags[0].id, 180, new Date);
         const transactionResponse = await testData.centralUserService.transactionApi.readById(transactionStartResponse.transactionId);
@@ -747,6 +749,7 @@ describe('Smart Charging Service', function() {
 
       it('Test for two cars charging with lower site area limit', async () => {
         testData.siteAreaContext.getSiteArea().maximumPower = 10000;
+        await testData.userService.siteAreaApi.update(testData.siteAreaContext.getSiteArea());
         const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
         TestData.validateChargingProfile(chargingProfiles[0], transaction);
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
@@ -861,6 +864,7 @@ describe('Smart Charging Service', function() {
 
       it('Test for sticky limit - check if cars are able to go up again, when using the buffer', async () => {
         testData.siteAreaContext.getSiteArea().maximumPower = 100000;
+        await testData.userService.siteAreaApi.update(testData.siteAreaContext.getSiteArea());
         // Send meter values for all stations
         await TestData.sendMeterValue(Voltage.VOLTAGE_230, 17, transaction, testData.chargingStationContext, { csPhase1: true, csPhase2: false, csPhase3:false });
         await TestData.sendMeterValue(Voltage.VOLTAGE_230, 21, transaction1, testData.chargingStationContext, { csPhase1: true, csPhase2: false, csPhase3:false });
@@ -1005,6 +1009,7 @@ describe('Smart Charging Service', function() {
 
       it('Test for two cars charging with lower site area limit', async () => {
         testData.siteAreaContext.getSiteArea().maximumPower = 100000;
+        await testData.userService.siteAreaApi.update(testData.siteAreaContext.getSiteArea());
         const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
         TestData.validateChargingProfile(chargingProfiles[0], transaction);
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
@@ -1145,6 +1150,7 @@ describe('Smart Charging Service', function() {
       });
       it('Test for sticky limit - check if cars are able to go up again, when using the buffer', async () => {
         testData.siteAreaContext.getSiteArea().maximumPower = 200000;
+        await testData.userService.siteAreaApi.update(testData.siteAreaContext.getSiteArea());
         // Send meter values for all stations
         await TestData.sendMeterValue(Voltage.VOLTAGE_400, 110, transaction, testData.chargingStationContext);
         await TestData.sendMeterValue(Voltage.VOLTAGE_400, 80, transaction1, testData.chargingStationContext);

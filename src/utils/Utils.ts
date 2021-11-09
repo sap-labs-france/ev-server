@@ -1586,14 +1586,17 @@ export default class Utils {
     return crypto.createHash('sha256').update(data).digest('hex');
   }
 
-  public static buildSubSiteAreaTree(siteAreaList: SiteArea[]): Partial<SiteArea>[] {
+  public static buildSubSiteAreaTree(siteAreaList: SiteArea[], siteAreaId?: string): SiteArea[] {
+    // Hash Table helper
     const hashTable = Object.create(null);
     siteAreaList.forEach((siteArea) => {
       hashTable[siteArea.id] = { ...siteArea, siteAreaChildren: [] };
     });
-    const dataTree = [];
+    const siteAreaTrees = [];
+    // Build tree
     siteAreaList.forEach((siteArea) => {
       if (siteArea.siteAreaParentID) {
+        // Check if site area chain is meeting the constraints
         if (!Utils.isNullOrUndefined(hashTable[siteArea.siteAreaParentID]) &&
           hashTable[siteArea.siteAreaParentID].smartCharging === hashTable[siteArea.id].smartCharging &&
           hashTable[siteArea.siteAreaParentID].siteID === hashTable[siteArea.id].siteID) {
@@ -1602,24 +1605,53 @@ export default class Utils {
           throw AppError;
         }
       } else {
-        dataTree.push(hashTable[siteArea.id]);
+        // If no parent ID is defined it is a root site area
+        siteAreaTrees.push(hashTable[siteArea.id]);
       }
     });
+    // Define helper to count tree
     const count = { value: 0 };
-    for (const tree of dataTree) {
+    for (const siteAreaTree of siteAreaTrees) {
+      // If site area ID is defined return tree, which contains the id
+      if (siteAreaId) {
+        const requestedTree = this.checkIfSiteAreaInTree(siteAreaTree, siteAreaId);
+        if (requestedTree) {
+          return [siteAreaTree];
+        }
+        // If it is not containing the ID go to next tree
+        continue;
+      }
+      // If no ID defined count elements
       count.value++;
-      this.countElements(tree, count);
-      // count += this.countElements(tree, count);
+      this.countElements(siteAreaTree, count);
     }
+    // If site area list is the same length as elements in the tree, the tree is valid
     if (count.value !== siteAreaList.length) {
       throw AppError;
     }
-    return dataTree;
+    return siteAreaTrees;
   }
 
-  private static countElements(siteArea: Partial<SiteArea>, count: { value: number }) {
-    if (siteArea.siteAreaChildren) {
-      for (const child of siteArea.siteAreaChildren) {
+  public static checkIfSiteAreaInTree(siteAreaTree: Partial<SiteArea>, siteAreaId: string): boolean {
+    if (siteAreaId === siteAreaTree.id) {
+      return true;
+    }
+    if (siteAreaTree.siteAreaChildren) {
+      for (const siteAreaChild of siteAreaTree.siteAreaChildren) {
+        if (siteAreaChild.id === siteAreaId) {
+          return true;
+        }
+        if (this.checkIfSiteAreaInTree(siteAreaChild, siteAreaId)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  private static countElements(siteAreaTree: Partial<SiteArea>, count: { value: number }) {
+    if (siteAreaTree.siteAreaChildren) {
+      for (const child of siteAreaTree.siteAreaChildren) {
         count.value++;
         this.countElements(child, count);
       }

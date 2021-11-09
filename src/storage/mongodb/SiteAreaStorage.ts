@@ -140,8 +140,8 @@ export default class SiteAreaStorage {
   public static async getSiteAreas(tenant: Tenant,
       params: {
         siteAreaIDs?: string[]; search?: string; siteIDs?: string[]; companyIDs?: string[]; withSite?: boolean, withSiteAreaParent?: boolean; issuer?: boolean; name?: string;
-        withChargingStations?: boolean; withOnlyChargingStations?: boolean; withAvailableChargingStations?: boolean;
-        locCoordinates?: number[]; locMaxDistanceMeters?: number; smartCharging?: boolean; withImage?: boolean;
+        withChargingStations?: boolean; withOnlyChargingStations?: boolean; withAvailableChargingStations?: boolean; ChargingStationConnectorStatuses?: string[];
+        locCoordinates?: number[]; locMaxDistanceMeters?: number; smartCharging?: boolean; withImage?: boolean; withAssets?: boolean
       } = {},
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteArea>> {
     // Debug
@@ -271,9 +271,34 @@ export default class SiteAreaStorage {
     }
     // Charging Stations
     if (params.withChargingStations || params.withOnlyChargingStations || params.withAvailableChargingStations) {
+      let pipelineMatch = {};
+      const additionalPipeline = [];
+      if (params.ChargingStationConnectorStatuses) {
+        pipelineMatch = { ['connectors.status'] : { $in: params.ChargingStationConnectorStatuses } };
+        additionalPipeline.push({
+          '$addFields': {
+            'connectors': {
+              '$filter': {
+                input: '$connectors',
+                as: 'connector',
+                cond: {
+                  $in: ['$$connector.status', params.ChargingStationConnectorStatuses]
+                }
+              }
+            }
+          }
+        });
+      }
       DatabaseUtils.pushChargingStationLookupInAggregation({
         tenantID: tenant.id, aggregation, localField: '_id', foreignField: 'siteAreaID',
-        asField: 'chargingStations'
+        asField: 'chargingStations', pipelineMatch
+      }, additionalPipeline);
+    }
+    // Assets
+    if (params.withAssets) {
+      DatabaseUtils.pushAssetLookupInAggregation({
+        tenantID: tenant.id, aggregation, localField: '_id', foreignField: 'siteAreaID',
+        asField: 'assets'
       });
     }
     // Site Area Image

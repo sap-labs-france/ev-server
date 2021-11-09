@@ -1,6 +1,7 @@
 import ChargingStation, { Voltage } from '../types/ChargingStation';
 
 import Address from './Address';
+import Asset from './Asset';
 import ConnectorStats from './ConnectorStats';
 import Consumption from './Consumption';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
@@ -37,6 +38,7 @@ export default interface SiteArea extends CreatedUpdatedProps, SiteAreaAuthoriza
   smartCharging: boolean;
   accessControl: boolean;
   chargingStations: ChargingStation[];
+  assets: Asset[];
   connectorStats: ConnectorStats;
   values: Consumption[];
   siteAreaParentID?: string;

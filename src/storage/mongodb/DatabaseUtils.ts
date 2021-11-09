@@ -101,6 +101,13 @@ export default class DatabaseUtils {
     }, [DatabaseUtils.buildChargingStationInactiveFlagQuery(), ...additionalPipeline]);
   }
 
+  public static pushAssetLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []): void {
+    DatabaseUtils.pushCollectionLookupInAggregation('assets', {
+      objectIDFields: ['createdBy', 'lastChangedBy'],
+      ...lookupParams
+    }, [DatabaseUtils.buildChargingStationInactiveFlagQuery(), ...additionalPipeline]);
+  }
+
   public static pushTagLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []): void {
     DatabaseUtils.pushCollectionLookupInAggregation('tags', {
       objectIDFields: ['createdBy', 'lastChangedBy'],
