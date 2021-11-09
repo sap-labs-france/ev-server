@@ -123,6 +123,19 @@ export default class SiteAreaService {
     // Check and Get Site Area
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
       req.tenant, req.user, siteAreaID, Action.DELETE, action);
+    const siteAreas = await SiteAreaStorage.getSiteAreas(req.tenant, { siteIDs: [siteArea.siteID] }, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'siteAreaParentID', 'siteID', 'smartCharging', 'name']);
+    // Check site area chain validity
+    try {
+      Utils.buildSubSiteAreaTree(siteAreas.result.filter((x) => x.id !== siteArea.id));
+    } catch {
+      throw new AppError({
+        action: action,
+        errorCode: HTTPError.SUB_SITE_AREA_ERROR,
+        message: 'Error occurred while deleting SiteArea. All sub site areas need to have the same site and smart charging enablement. Circular structures are not allowed',
+        module: MODULE_NAME, method: 'handleCreateSiteArea',
+        user: req.user
+      });
+    }
     // Delete
     await SiteAreaStorage.deleteSiteArea(req.tenant, siteArea.id);
     // Log
@@ -304,6 +317,21 @@ export default class SiteAreaService {
       createdBy: { id: req.user.id },
       createdOn: new Date()
     } as SiteArea;
+    const siteAreas = await SiteAreaStorage.getSiteAreas(req.tenant, { siteIDs: [newSiteArea.siteID] }, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'siteAreaParentID', 'siteID', 'smartCharging', 'name']);
+    // Check site area chain validity
+    try {
+      siteAreas.result.push({ id: newSiteArea.id, siteAreaParentID: newSiteArea.siteAreaParentID,
+        siteID: newSiteArea.siteID, smartCharging: newSiteArea.smartCharging } as SiteArea) ;
+      Utils.buildSubSiteAreaTree(siteAreas.result);
+    } catch {
+      throw new AppError({
+        action: action,
+        errorCode: HTTPError.SUB_SITE_AREA_ERROR,
+        message: 'Error occurred while creating SiteArea. All sub site areas need to have the same site and smart charging enablement. Circular structures are not allowed',
+        module: MODULE_NAME, method: 'handleCreateSiteArea',
+        user: req.user
+      });
+    }
     // Save
     newSiteArea.id = await SiteAreaStorage.saveSiteArea(req.tenant, newSiteArea, true);
     await Logging.logInfo({
