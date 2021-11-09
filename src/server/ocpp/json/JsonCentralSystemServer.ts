@@ -257,8 +257,12 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       }
       return jsonRestWSConnection;
     }
-    // Nothing found
-    ws.end(WebSocketCloseEventStatusCode.CLOSE_ABNORMAL, 'Web Socket not registered in the backend');
+    // Close the WS
+    try {
+      ws.end(WebSocketCloseEventStatusCode.CLOSE_ABNORMAL, 'Web Socket not registered in the backend');
+    } catch (error) {
+      // Ignore if WS is not valid (Error: Invalid access of closed uWS.WebSocket/SSLWebSocket)
+    }
   }
 
   private async logWSConnectionClosed(wsConnection: WSConnection, action: ServerAction, code: number, message: string): Promise<void> {
