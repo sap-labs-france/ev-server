@@ -961,7 +961,7 @@ export default class TransactionService {
     return result;
   }
 
-  private static async getTransactions(req: Request, action: ServerAction, projectFields: string[]): Promise<DataResult<Transaction>> {
+  private static async getTransactions(req: Request, action: ServerAction, projectFields): Promise<DataResult<Transaction>> {
     // Check Transactions
     if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
