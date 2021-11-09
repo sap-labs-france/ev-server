@@ -758,8 +758,6 @@ export default class UtilsService {
 
   public static async checkAndGetTransactionsAuthorization(tenant: Tenant, userToken: UserToken, authAction: Action,
       action: ServerAction, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<TransactionDataResult> {
-
-
     const authObject = await AuthorizationService.checkAndGetTransactionsAuthorizations(tenant, userToken, additionalFilters);
     if (!applyProjectFields) {
       authObject.projectFields = [];
