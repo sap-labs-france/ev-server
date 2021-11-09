@@ -32,29 +32,16 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         console.log(chalk.green('====================================='));
         if (this.jsonWSConnections.size > 0) {
           console.log(chalk.green(`** ${this.jsonWSConnections.size} CS connection(s)`));
-          // for (const key of this.jsonWSConnections.keys()) {
-          //   const jsonChargingStationClient = this.jsonWSConnections.get(key);
-          //   console.log(chalk.green(`** Connection CS: ${jsonChargingStationClient.getChargingStationID()}`));
-          // }
-          // console.log(chalk.green('====================================='));
         } else {
           console.log(chalk.green('** No CS connection'));
         }
         if (this.jsonRestWSConnections.size > 0) {
           console.log(chalk.green(`** ${this.jsonRestWSConnections.size} CS connection(s)`));
-          // for (const key of this.jsonRestWSConnections.keys()) {
-          //   const jsonRestClient = this.jsonRestWSConnections.get(key);
-          //   console.log(chalk.green(`** Connection REST: ${jsonRestClient.getChargingStationID()}`));
-          // }
-          // console.log(chalk.green('====================================='));
         } else {
           console.log(chalk.green('** No REST connection'));
         }
         if (this.ongoingWSInitializations.size > 0) {
           console.log(chalk.green(`** ${this.ongoingWSInitializations.size} ongoing WS initialization(s)`));
-          // for (const key of this.ongoingWSInitializations.keys()) {
-          //   console.log(chalk.green(`** Init incoming URL: ${key}`));
-          // }
         } else {
           console.log(chalk.green('** No ongoing WS initialization(s)'));
         }
@@ -241,24 +228,19 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
   private async getWSConnectionFromWebSocket(ws: uWS.WebSocket): Promise<WSConnection> {
     // Check if init has been finished
     await this.waitForEndOfInitialization(ws);
+    // Return the WS connection
     if (ws.jsonWSConnection) {
-      // Check if it's still available in the Map
-      const jsonWSConnection = ws.jsonWSConnection as JsonWSConnection;
-      if (!this.getJsonWSConnection(jsonWSConnection.getID())) {
-        this.setJsonWSConnection(jsonWSConnection);
-      }
-      return jsonWSConnection;
+      return ws.jsonWSConnection;
     }
     if (ws.jsonRestWSConnection) {
-      // Check if it's still available in the Map
-      const jsonRestWSConnection = ws.jsonRestWSConnection as JsonRestWSConnection;
-      if (!this.getJsonRestWSConnection(jsonRestWSConnection.getID())) {
-        this.setJsonRestWSConnection(jsonRestWSConnection);
-      }
-      return jsonRestWSConnection;
+      return ws.jsonRestWSConnection;
     }
-    // Nothing found
-    ws.end(WebSocketCloseEventStatusCode.CLOSE_ABNORMAL, 'Web Socket not registered in the backend');
+    // Close the WS
+    try {
+      ws.end(WebSocketCloseEventStatusCode.CLOSE_ABNORMAL, 'Web Socket not registered in the backend');
+    } catch (error) {
+      // Ignore if WS is not valid (Error: Invalid access of closed uWS.WebSocket/SSLWebSocket)
+    }
   }
 
   private async logWSConnectionClosed(wsConnection: WSConnection, action: ServerAction, code: number, message: string): Promise<void> {
@@ -277,29 +259,14 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
   private async waitForEndOfInitialization(ws: WebSocket) {
     // Wait for init
     if (this.ongoingWSInitializations.has(ws.url)) {
-      // Try 30 times
-      let remainingTrials = 30;
       // eslint-disable-next-line no-constant-condition
       while (true) {
         // Wait
-        await Utils.sleep(500 + Math.trunc(Math.random() * 1000));
+        await Utils.sleep(1000 + Math.trunc(Math.random() * 1000));
         // Check
         if (!this.ongoingWSInitializations.has(ws.url)) {
           break;
         }
-        // Nbr of trials ended?
-        if (remainingTrials <= 0) {
-          throw new BackendError({
-            siteID: ws.siteID,
-            siteAreaID: ws.siteAreaID,
-            companyID: ws.companyID,
-            chargingStationID: ws.chargingStationID,
-            module: MODULE_NAME, method: 'waitForInitialization',
-            message: 'OCPP Request received before OCPP connection init has been completed!'
-          });
-        }
-        // Try another time
-        remainingTrials--;
       }
     }
   }
