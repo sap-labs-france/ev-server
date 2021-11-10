@@ -14,7 +14,6 @@ import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import WSConnection from './WSConnection';
 import { WebSocketCloseEventStatusCode } from '../../../types/WebSocket';
-import chalk from 'chalk';
 import global from '../../../types/GlobalType';
 
 const MODULE_NAME = 'JsonCentralSystemServer';
@@ -28,23 +27,23 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     super(centralSystemConfig, chargingStationConfig);
     if (this.centralSystemConfig.debug) {
       setInterval(() => {
-        console.log(chalk.green('====================================='));
+        Logging.logConsoleDebug('=====================================');
         if (this.jsonWSConnections.size > 0) {
-          console.log(chalk.green(`** ${this.jsonWSConnections.size} CS connection(s)`));
+          Logging.logConsoleDebug(`** ${this.jsonWSConnections.size} CS connection(s)`);
         } else {
-          console.log(chalk.green('** No CS connection'));
+          Logging.logConsoleDebug('** No CS connection');
         }
         if (this.jsonRestWSConnections.size > 0) {
-          console.log(chalk.green(`** ${this.jsonRestWSConnections.size} CS connection(s)`));
+          Logging.logConsoleDebug(`** ${this.jsonRestWSConnections.size} CS connection(s)`);
         } else {
-          console.log(chalk.green('** No REST connection'));
+          Logging.logConsoleDebug('** No REST connection');
         }
         if (this.ongoingWSInitializations.size > 0) {
-          console.log(chalk.green(`** ${this.ongoingWSInitializations.size} ongoing WS initialization(s)`));
+          Logging.logConsoleDebug(`** ${this.ongoingWSInitializations.size} ongoing WS initialization(s)`);
         } else {
-          console.log(chalk.green('** No ongoing WS initialization(s)'));
+          Logging.logConsoleDebug('** No ongoing WS initialization(s)');
         }
-        console.log(chalk.green('====================================='));
+        Logging.logConsoleDebug('=====================================');
       }, 5000);
     }
   }
@@ -78,7 +77,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
   }
 
   private startWSServer() {
-    console.log(`Starting ${ServerType.JSON_SERVER} Server...`);
+    Logging.logConsoleDebug(`Starting ${ServerType.JSON_SERVER} Server...`);
     App({}).ws('/*', {
       // compression: uWS.SHARED_COMPRESSOR,
       maxPayloadLength: 64 * 1024, // 64 KB per request
@@ -170,7 +169,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
             ws.end(WebSocketCloseEventStatusCode.CLOSE_ABNORMAL, error.message);
           } catch (wsError) {
             // Ignore
-            Utils.isDevelopmentEnv() && console.error(chalk.red(`Error when closing Web Socket '${wsError?.message as string}'`));
+            Utils.isDevelopmentEnv() && Logging.logConsoleError(`Error when closing Web Socket '${wsError?.message as string}'`);
           }
         } finally {
           // Clear init
@@ -224,7 +223,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       res.end('Nothing to see here!');
     }).listen(this.centralSystemConfig.port, (token) => {
       if (token) {
-        console.log(`${ServerType.JSON_SERVER} Server listening on 'http://${this.centralSystemConfig.host}:${this.centralSystemConfig.port}'`);
+        Utils.isDevelopmentEnv() && Logging.logConsoleDebug(`${ServerType.JSON_SERVER} Server listening on 'http://${this.centralSystemConfig.host}:${this.centralSystemConfig.port}'`);
       }
     });
   }
@@ -244,7 +243,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       ws.end(WebSocketCloseEventStatusCode.CLOSE_ABNORMAL, 'Web Socket not registered in the backend');
     } catch (wsError) {
       // Ignore if WS is not valid (Error: Invalid access of closed uWS.WebSocket/SSLWebSocket)
-      Utils.isDevelopmentEnv() && console.error(chalk.red(`Error when closing Web Socket '${wsError?.message as string}'`));
+      Utils.isDevelopmentEnv() && Logging.logConsoleError(`Error when closing Web Socket '${wsError?.message as string}'`);
     }
   }
 

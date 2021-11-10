@@ -10,7 +10,6 @@ import { ServerAction } from '../../../types/Server';
 import Tenant from '../../../types/Tenant';
 import Utils from '../../../utils/Utils';
 import { WebSocket } from 'uWebSockets.js';
-import chalk from 'chalk';
 
 const MODULE_NAME = 'WSConnection';
 
@@ -223,7 +222,7 @@ export default abstract class WSConnection {
             message: `Error when sending message '${messageToSend}' to Web Socket`,
             detailedMessages: { message: messageToSend }
           });
-          Utils.isDevelopmentEnv() && console.error(chalk.red(`Error when sending message '${messageToSend}' to Web Socket`));
+          Utils.isDevelopmentEnv() && Logging.logConsoleError(`Error when sending message '${messageToSend}' to Web Socket`);
         }
       } catch (wsError) {
         // Invalid Web Socket
@@ -238,7 +237,7 @@ export default abstract class WSConnection {
           message: `Error when sending message '${messageToSend}' to Web Socket: ${wsError?.message as string}`,
           detailedMessages: { message: messageToSend, error: wsError?.stack }
         });
-        Utils.isDevelopmentEnv() && console.error(chalk.red(`Error when sending message '${messageToSend}' to Web Socket: ${wsError?.message as string}`));
+        Utils.isDevelopmentEnv() && Logging.logConsoleError(`Error when sending message '${messageToSend}' to Web Socket: ${wsError?.message as string}`);
       }
       // Response?
       if (messageType !== OCPPMessageType.CALL_MESSAGE) {
