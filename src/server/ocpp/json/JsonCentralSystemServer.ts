@@ -37,6 +37,8 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
             jsonWSConnection.getWSConnection().ping();
             validConnections++;
           } catch (error) {
+            // Remove the invalid connection
+            this.jsonWSConnections.delete(key);
             invalidConnections++;
             const message = `Invalid Web Socket connection '${error?.message as string}', removed from cache!`;
             void Logging.logError({
