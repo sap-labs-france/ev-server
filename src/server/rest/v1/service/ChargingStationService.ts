@@ -171,8 +171,6 @@ export default class ChargingStationService {
       chargingStation.public = filteredRequest.public;
       if (filteredRequest.public) {
         chargingStation.tariffID = filteredRequest.tariffID;
-      } else if (chargingStation.tariffID) {
-        delete chargingStation.tariffID;
       }
     }
     if (Utils.objectHasProperty(filteredRequest, 'excludeFromSmartCharging')) {
@@ -226,8 +224,6 @@ export default class ChargingStationService {
         connector.phaseAssignmentToGrid = filteredConnector.phaseAssignmentToGrid;
         if (filteredRequest.public) {
           connector.tariffID = filteredConnector.tariffID;
-        } else if (connector.tariffID) {
-          delete connector.tariffID;
         }
       }
     }
