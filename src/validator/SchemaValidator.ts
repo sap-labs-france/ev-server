@@ -4,10 +4,10 @@ import { AnySchemaObject, DataValidateFunction, DataValidationCxt } from 'ajv/di
 import AppError from '../exception/AppError';
 import Constants from '../utils/Constants';
 import { HTTPError } from '../types/HTTPError';
+import Logging from '../utils/Logging';
 import { ObjectId } from 'mongodb';
 import Schema from '../types/validator/Schema';
 import addFormats from 'ajv-formats';
-import chalk from 'chalk';
 import countries from 'i18n-iso-countries';
 import fs from 'fs';
 import global from '../types/GlobalType';
@@ -70,10 +70,10 @@ export default class SchemaValidator {
   protected validate(schema: Schema, data: Record<string, unknown>): any {
     let fnValidate: ValidateFunction<unknown>;
     if (!schema.$id) {
-      console.error(chalk.red('===================================='));
-      console.error(chalk.red('Missing schema ID:'));
-      console.error(chalk.red(JSON.stringify(schema)));
-      console.error(chalk.red('===================================='));
+      Logging.logConsoleError('====================================');
+      Logging.logConsoleError('Missing schema ID:');
+      Logging.logConsoleError(JSON.stringify(schema));
+      Logging.logConsoleError('====================================');
       // Not cached: Compile schema
       fnValidate = this.ajv.compile(schema);
     } else {
@@ -168,13 +168,13 @@ export default class SchemaValidator {
 
   private checkOriginalSchema(originalSchema: string, validatedSchema: Record<string, unknown>): void {
     if (this.isDevelopmentEnv() && originalSchema !== JSON.stringify(validatedSchema)) {
-      console.error(chalk.red('===================================='));
-      console.error(chalk.red('Data changed after schema validation'));
-      console.error(chalk.red('Original Data:'));
-      console.error(chalk.red(originalSchema));
-      console.error(chalk.red('Validated Data:'));
-      console.error(chalk.red(JSON.stringify(validatedSchema)));
-      console.error(chalk.red('===================================='));
+      Logging.logConsoleError('====================================');
+      Logging.logConsoleError('Data changed after schema validation');
+      Logging.logConsoleError('Original Data:');
+      Logging.logConsoleError(originalSchema);
+      Logging.logConsoleError('Validated Data:');
+      Logging.logConsoleError(JSON.stringify(validatedSchema));
+      Logging.logConsoleError('====================================');
     }
   }
 

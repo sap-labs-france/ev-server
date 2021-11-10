@@ -1,3 +1,4 @@
+import Logging from '../../../utils/Logging';
 import SoapRequest from './SoapRequest';
 import Utils from '../../../utils/Utils';
 import { performance } from 'perf_hooks';
@@ -32,7 +33,7 @@ export default abstract class AbstractSoapClient {
     await this._initSOAPClient();
     // Log
     // eslint-disable-next-line no-console
-    Utils.isDevelopmentEnv() && console.debug(JSON.stringify({
+    Utils.isDevelopmentEnv() && Logging.logConsoleInfo(JSON.stringify({
       request
     }, null, 2));
     // Init SOAP header
@@ -59,8 +60,7 @@ export default abstract class AbstractSoapClient {
         data: result || {}
       };
       // Log Response
-      // eslint-disable-next-line no-console
-      Utils.isDevelopmentEnv() && console.debug(JSON.stringify(response, null, 2));
+      Utils.isDevelopmentEnv() && Logging.logConsoleDebug(JSON.stringify(response, null, 2));
       // Return response
       return response;
     } catch (error) {

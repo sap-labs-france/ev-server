@@ -386,7 +386,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
           process.env.STRIPE_WEBHOOK_SECRET
         );
       } catch (err) {
-        console.log('⚠️  Webhook signature verification failed.');
+        Logging.logConsoleError('⚠️  Webhook signature verification failed.');
         // pragma return res.sendStatus(StatusCodes.BAD_REQUEST);
         return false; // ##CR - this is stupid
       }
@@ -401,16 +401,16 @@ export default class StripeBillingIntegration extends BillingIntegration {
     if (event.type === 'payment_intent.succeeded') {
       // The payment was complete
       // Fulfill any orders, e-mail receipts, etc
-      console.log('💰 Payment succeeded with payment method ' + event.data.object.payment_method);
+      Logging.logConsoleInfo('💰 Payment succeeded with payment method ' + event.data.object.payment_method);
     } else if (event.type === 'payment_intent.payment_failed') {
       // The payment failed to go through due to decline or authentication request
       const error = event.data.object.last_payment_error.message;
-      console.log('❌ Payment failed with error: ' + error);
+      Logging.logConsoleError('❌ Payment failed with error: ' + error);
     } else if (event.type === 'payment_method.attached') {
       // A new payment method was attached to a customer
-      console.log('💳 Attached ' + event.data.object.id + ' to customer');
+      Logging.logConsoleInfo('💳 Attached ' + event.data.object.id + ' to customer');
     } else {
-      console.log(`❌ unexpected event : ${event.type}`);
+      Logging.logConsoleError(`❌ unexpected event : ${event.type}`);
     }
     return true;
   }

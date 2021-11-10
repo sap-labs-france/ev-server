@@ -10,7 +10,7 @@ import MigrationTask from './MigrationTask';
 import RemoveDuplicateTagVisualIDsTask from './tasks/RemoveDuplicateTagVisualIDsTask';
 import RestoreDataIntegrityInSiteUsersTask from './tasks/RestoreDataIntegrityInSiteUsersTask';
 import { ServerAction } from '../types/Server';
-import chalk from 'chalk';
+import Utils from '../utils/Utils';
 import moment from 'moment';
 
 const MODULE_NAME = 'MigrationHandler';
@@ -104,7 +104,7 @@ export default class MigrationHandler {
         message: logMsg
       });
       // Log in the console also
-      console.log(logMsg);
+      Utils.isDevelopmentEnv() && Logging.logConsoleDebug(logMsg);
       // Start time and date
       const startTaskTime = moment();
       const startDate = new Date();
@@ -128,7 +128,7 @@ export default class MigrationHandler {
         message: logMsg
       });
       // Log in the console also
-      console.log(logMsg);
+      Utils.isDevelopmentEnv() && Logging.logConsoleDebug(logMsg);
     } catch (error) {
       const logMsg = `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has failed with error: ${error.message as string}`;
       await Logging.logError({
@@ -138,7 +138,7 @@ export default class MigrationHandler {
         message: logMsg,
         detailedMessages: { error: error.stack }
       });
-      console.error(chalk.red(logMsg));
+      Logging.logConsoleError(logMsg);
     }
   }
 }
