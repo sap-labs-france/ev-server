@@ -3,7 +3,6 @@ import * as uWS from 'uWebSockets.js';
 import { App, HttpRequest, HttpResponse, WebSocket, us_socket_context_t } from 'uWebSockets.js';
 import { ServerAction, ServerType, WSServerProtocol } from '../../../types/Server';
 
-import BackendError from '../../../exception/BackendError';
 import CentralSystemConfiguration from '../../../types/configuration/CentralSystemConfiguration';
 import CentralSystemServer from '../CentralSystemServer';
 import ChargingStationClient from '../../../client/ocpp/ChargingStationClient';
@@ -81,7 +80,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
   private startWSServer() {
     console.log(`Starting ${ServerType.JSON_SERVER} Server...`);
     App({}).ws('/*', {
-      compression: uWS.SHARED_COMPRESSOR,
+      // compression: uWS.SHARED_COMPRESSOR,
       maxPayloadLength: 64 * 1024, // 64 KB per request
       idleTimeout: 1 * 3600, // 1 hour of inactivity => Close
       upgrade: async (res: HttpResponse, req: HttpRequest, context: us_socket_context_t) => {
@@ -165,9 +164,14 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
           ws.siteAreaID = wsConnection.getSiteAreaID();
           ws.companyID = wsConnection.getCompanyID();
         } catch (error) {
-          ws.end(WebSocketCloseEventStatusCode.CLOSE_ABNORMAL, error.message);
           await Logging.logException(error, ServerAction.WS_CONNECTION, MODULE_NAME, 'connection',
             wsConnection?.getTenantID() ? wsConnection.getTenantID() : Constants.DEFAULT_TENANT);
+          try {
+            ws.end(WebSocketCloseEventStatusCode.CLOSE_ABNORMAL, error.message);
+          } catch (wsError) {
+            // Ignore
+            Utils.isDevelopmentEnv() && console.error(chalk.red(`Error when closing Web Socket '${wsError?.message as string}'`));
+          }
         } finally {
           // Clear init
           this.ongoingWSInitializations.delete(ws.url);
@@ -228,27 +232,19 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
   private async getWSConnectionFromWebSocket(ws: uWS.WebSocket): Promise<WSConnection> {
     // Check if init has been finished
     await this.waitForEndOfInitialization(ws);
+    // Return the WS connection
     if (ws.jsonWSConnection) {
-      // Check if it's still available in the Map
-      const jsonWSConnection = ws.jsonWSConnection as JsonWSConnection;
-      if (!this.getJsonWSConnection(jsonWSConnection.getID())) {
-        this.setJsonWSConnection(jsonWSConnection);
-      }
-      return jsonWSConnection;
+      return ws.jsonWSConnection;
     }
     if (ws.jsonRestWSConnection) {
-      // Check if it's still available in the Map
-      const jsonRestWSConnection = ws.jsonRestWSConnection as JsonRestWSConnection;
-      if (!this.getJsonRestWSConnection(jsonRestWSConnection.getID())) {
-        this.setJsonRestWSConnection(jsonRestWSConnection);
-      }
-      return jsonRestWSConnection;
+      return ws.jsonRestWSConnection;
     }
     // Close the WS
     try {
       ws.end(WebSocketCloseEventStatusCode.CLOSE_ABNORMAL, 'Web Socket not registered in the backend');
-    } catch (error) {
+    } catch (wsError) {
       // Ignore if WS is not valid (Error: Invalid access of closed uWS.WebSocket/SSLWebSocket)
+      Utils.isDevelopmentEnv() && console.error(chalk.red(`Error when closing Web Socket '${wsError?.message as string}'`));
     }
   }
 
@@ -268,29 +264,14 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
   private async waitForEndOfInitialization(ws: WebSocket) {
     // Wait for init
     if (this.ongoingWSInitializations.has(ws.url)) {
-      // Try 30 times
-      let remainingTrials = 30;
       // eslint-disable-next-line no-constant-condition
       while (true) {
         // Wait
-        await Utils.sleep(500 + Math.trunc(Math.random() * 1000));
+        await Utils.sleep(1000 + Math.trunc(Math.random() * 1000));
         // Check
         if (!this.ongoingWSInitializations.has(ws.url)) {
           break;
         }
-        // Nbr of trials ended?
-        if (remainingTrials <= 0) {
-          throw new BackendError({
-            siteID: ws.siteID,
-            siteAreaID: ws.siteAreaID,
-            companyID: ws.companyID,
-            chargingStationID: ws.chargingStationID,
-            module: MODULE_NAME, method: 'waitForInitialization',
-            message: 'OCPP Request received before OCPP connection init has been completed!'
-          });
-        }
-        // Try another time
-        remainingTrials--;
       }
     }
   }
@@ -309,13 +290,5 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
 
   private setJsonRestWSConnection(wsConnection: JsonRestWSConnection) {
     this.jsonRestWSConnections.set(wsConnection.getID(), wsConnection);
-  }
-
-  private getJsonWSConnection(id: string): JsonWSConnection {
-    return this.jsonWSConnections.get(id);
-  }
-
-  private getJsonRestWSConnection(id: string): JsonRestWSConnection {
-    return this.jsonRestWSConnections.get(id);
   }
 }
