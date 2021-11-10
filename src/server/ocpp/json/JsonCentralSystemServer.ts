@@ -25,6 +25,37 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
 
   public constructor(centralSystemConfig: CentralSystemConfiguration, chargingStationConfig: ChargingStationConfiguration) {
     super(centralSystemConfig, chargingStationConfig);
+    // Check WS connection
+    setInterval(() => {
+      Utils.isDevelopmentEnv() && Logging.logConsoleDebug('=====================================');
+      Utils.isDevelopmentEnv() && Logging.logConsoleDebug('Checking WS connection...');
+      let validConnections = 0, invalidConnections = 0;
+      for (const key of this.jsonWSConnections.keys()) {
+        const jsonWSConnection = this.jsonWSConnections.get(key);
+        if (jsonWSConnection) {
+          try {
+            jsonWSConnection.getWSConnection().ping();
+            validConnections++;
+          } catch (error) {
+            invalidConnections++;
+            const message = `Invalid Web Socket connection '${error?.message as string}', removed from cache!`;
+            void Logging.logError({
+              tenantID: jsonWSConnection.getTenantID(),
+              siteID: jsonWSConnection.getSiteID(),
+              siteAreaID: jsonWSConnection.getSiteAreaID(),
+              companyID: jsonWSConnection.getCompanyID(),
+              chargingStationID: jsonWSConnection.getChargingStationID(),
+              module: MODULE_NAME, method: 'constructor',
+              action: ServerAction.WS_JSON_CONNECTION_ERROR,
+              message, detailedMessages: { error: error.stack }
+            });
+            Utils.isDevelopmentEnv() && Logging.logConsoleError(message);
+          }
+        }
+      }
+      Utils.isDevelopmentEnv() && Logging.logConsoleDebug(`WS connection checked: ${validConnections} valid, ${invalidConnections} invalid`);
+      Utils.isDevelopmentEnv() && Logging.logConsoleDebug('=====================================');
+    }, 10000);
     if (this.centralSystemConfig.debug) {
       setInterval(() => {
         Logging.logConsoleDebug('=====================================');
