@@ -1,6 +1,7 @@
 import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
 import { ActionsResponse, ImportStatus } from '../../../../types/GlobalType';
 import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
+import Busboy, { BusboyHeaders } from 'busboy';
 import { Car, CarType } from '../../../../types/Car';
 import { DataResult, UserDataResult } from '../../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
@@ -14,7 +15,6 @@ import AsyncTaskBuilder from '../../../../async-task/AsyncTaskBuilder';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
-import Busboy from 'busboy';
 import CSVError from 'csvtojson/v2/CSVError';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
 import Constants from '../../../../utils/Constants';
@@ -427,7 +427,7 @@ export default class UserService {
       // Delete all previously imported users
       await UserStorage.deleteImportedUsers(req.tenant);
       // Get the stream
-      const busboy = new Busboy({ headers: req.headers });
+      const busboy = new Busboy({ headers: req.headers as BusboyHeaders });
       req.pipe(busboy);
       // Handle closed socket
       let connectionClosed = false;

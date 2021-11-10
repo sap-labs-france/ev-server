@@ -208,10 +208,13 @@ export default abstract class WSConnection {
           break;
       }
       // Send Message
-      // if (this.webSocket.getBufferedAmount())
-      if (!this.webSocket.send(messageToSend)) {
-        // TODO: Backpressure to handle
-        rejectCallback(`Error when sending Message ID '${messageID}' with content '${messageToSend}' (${this.tenantSubdomain})`);
+      try {
+        if (!this.webSocket.send(messageToSend)) {
+          // TODO: WS Backpressure to check
+          rejectCallback(`Error when sending Message ID '${messageID}' with content '${messageToSend}' (${this.tenantSubdomain})`);
+        }
+      } catch (wsError) {
+        // Ignore, socket is invalid
       }
       // Response?
       if (messageType !== OCPPMessageType.CALL_MESSAGE) {
