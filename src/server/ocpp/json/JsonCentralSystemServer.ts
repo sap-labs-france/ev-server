@@ -27,8 +27,8 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     super(centralSystemConfig, chargingStationConfig);
     // Check WS connection
     setInterval(() => {
-      this.centralSystemConfig.debug || Utils.isDevelopmentEnv() && Logging.logConsoleDebug('===========================================');
-      this.centralSystemConfig.debug || Utils.isDevelopmentEnv() && Logging.logConsoleDebug('Checking WS connection...');
+      (this.centralSystemConfig.debug || Utils.isDevelopmentEnv()) && Logging.logConsoleDebug('===========================================');
+      (this.centralSystemConfig.debug || Utils.isDevelopmentEnv()) && Logging.logConsoleDebug('Checking WS connection...');
       let validConnections = 0, invalidConnections = 0;
       for (const key of this.jsonWSConnections.keys()) {
         const jsonWSConnection = this.jsonWSConnections.get(key);
@@ -51,14 +51,14 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
               action: ServerAction.WS_JSON_CONNECTION_ERROR,
               message, detailedMessages: { error: error.stack }
             });
-            this.centralSystemConfig.debug || Utils.isDevelopmentEnv() && Logging.logConsoleError(message);
+            (this.centralSystemConfig.debug || Utils.isDevelopmentEnv()) && Logging.logConsoleError(message);
           }
         }
       }
-      this.centralSystemConfig.debug || Utils.isDevelopmentEnv() && Logging.logConsoleDebug(`WS connection checked: ${validConnections} valid, ${invalidConnections} invalid`);
-      this.centralSystemConfig.debug || Utils.isDevelopmentEnv() && Logging.logConsoleDebug('===========================================');
+      (this.centralSystemConfig.debug || Utils.isDevelopmentEnv()) && Logging.logConsoleDebug(`WS connection checked: ${validConnections} valid, ${invalidConnections} invalid`);
+      (this.centralSystemConfig.debug || Utils.isDevelopmentEnv()) && Logging.logConsoleDebug('===========================================');
     }, 10000);
-    if (this.centralSystemConfig.debug || Utils.isDevelopmentEnv()) {
+    if ((this.centralSystemConfig.debug || Utils.isDevelopmentEnv())) {
       setInterval(() => {
         Logging.logConsoleDebug('=====================================');
         if (this.jsonWSConnections.size > 0) {
