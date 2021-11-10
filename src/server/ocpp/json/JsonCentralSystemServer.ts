@@ -22,6 +22,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
   private ongoingWSInitializations: Map<string, null> = new Map;
   private jsonWSConnections: Map<string, JsonWSConnection> = new Map();
   private jsonRestWSConnections: Map<string, JsonRestWSConnection> = new Map();
+  private processingWSRequestsOnHold = 0;
 
   public constructor(centralSystemConfig: CentralSystemConfiguration, chargingStationConfig: ChargingStationConfiguration) {
     super(centralSystemConfig, chargingStationConfig);
@@ -76,6 +77,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         } else {
           Logging.logConsoleDebug('** No ongoing WS initialization(s)');
         }
+        Logging.logConsoleDebug(`** ${this.processingWSRequestsOnHold} WS Requests on hold`);
         Logging.logConsoleDebug('=====================================');
       }, 5000);
     }
@@ -296,12 +298,14 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
   private async waitForEndOfInitialization(ws: WebSocket) {
     // Wait for init
     if (this.ongoingWSInitializations.has(ws.url)) {
+      this.processingWSRequestsOnHold++;
       // eslint-disable-next-line no-constant-condition
       while (true) {
         // Wait
         await Utils.sleep(1000 + Math.trunc(Math.random() * 1000));
         // Check
         if (!this.ongoingWSInitializations.has(ws.url)) {
+          this.processingWSRequestsOnHold--;
           break;
         }
       }
