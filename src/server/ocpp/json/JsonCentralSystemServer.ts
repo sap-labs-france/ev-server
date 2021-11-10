@@ -211,7 +211,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       },
       message: async (ws: WebSocket, message: ArrayBuffer, isBinary: boolean) => {
         // Convert right away
-        const ocppMessage = Buffer.from(message).toString();
+        const ocppMessage = Utils.convertBufferArrayToString(message);
         // Get the WS
         const wsConnection = await this.getWSConnectionFromWebSocket(ws);
         if (wsConnection) {
@@ -220,7 +220,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       },
       close: async (ws: WebSocket, code: number, message: ArrayBuffer) => {
         // Convert right away
-        const ocppMessage = Buffer.from(message).toString();
+        const ocppMessage = Utils.convertBufferArrayToString(message).toString();
         // Check Json connection
         const jsonWSConnection = ws.jsonWSConnection as JsonWSConnection;
         if (jsonWSConnection) {
@@ -235,8 +235,8 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         }
       },
       ping: async (ws: WebSocket, message: ArrayBuffer) => {
-        // Convert right away
-        const ocppMessage = Buffer.from(message).toString();
+        // Convert
+        const ocppMessage = Utils.convertBufferArrayToString(message);
         // Get the WS
         const wsConnection = await this.getWSConnectionFromWebSocket(ws);
         if (wsConnection) {
@@ -244,8 +244,8 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         }
       },
       pong: async (ws: WebSocket, message: ArrayBuffer) => {
-        // Convert right away
-        const ocppMessage = Buffer.from(message).toString();
+        // Convert
+        const ocppMessage = Utils.convertBufferArrayToString(message);
         // Get the WS
         const wsConnection = await this.getWSConnectionFromWebSocket(ws);
         if (wsConnection) {
