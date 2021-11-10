@@ -8,7 +8,9 @@ import OCPPError from '../../../exception/OcppError';
 import OCPPUtils from '../utils/OCPPUtils';
 import { ServerAction } from '../../../types/Server';
 import Tenant from '../../../types/Tenant';
+import Utils from '../../../utils/Utils';
 import { WebSocket } from 'uWebSockets.js';
+import chalk from 'chalk';
 
 const MODULE_NAME = 'WSConnection';
 
@@ -210,11 +212,33 @@ export default abstract class WSConnection {
       // Send Message
       try {
         if (!this.webSocket.send(messageToSend)) {
-          // TODO: WS Backpressure to check
-          rejectCallback(`Error when sending Message ID '${messageID}' with content '${messageToSend}' (${this.tenantSubdomain})`);
+          void Logging.logError({
+            tenantID: this.tenantID,
+            chargingStationID: this.chargingStationID,
+            companyID: this.companyID,
+            siteID: this.siteID,
+            siteAreaID: this.siteAreaID,
+            module: MODULE_NAME, method: 'sendMessage',
+            action: ServerAction.WS_JSON_CONNECTION_ERROR,
+            message: `Error when sending message '${messageToSend}' to Web Socket`,
+            detailedMessages: { message: messageToSend }
+          });
+          Utils.isDevelopmentEnv() && console.error(chalk.red(`Error when sending message '${messageToSend}' to Web Socket`));
         }
       } catch (wsError) {
-        // Ignore, socket is invalid
+        // Invalid Web Socket
+        void Logging.logError({
+          tenantID: this.tenantID,
+          chargingStationID: this.chargingStationID,
+          companyID: this.companyID,
+          siteID: this.siteID,
+          siteAreaID: this.siteAreaID,
+          module: MODULE_NAME, method: 'sendMessage',
+          action: ServerAction.WS_JSON_CONNECTION_ERROR,
+          message: `Error when sending message '${messageToSend}' to Web Socket: ${wsError?.message as string}`,
+          detailedMessages: { message: messageToSend, error: wsError?.stack }
+        });
+        Utils.isDevelopmentEnv() && console.error(chalk.red(`Error when sending message '${messageToSend}' to Web Socket: ${wsError?.message as string}`));
       }
       // Response?
       if (messageType !== OCPPMessageType.CALL_MESSAGE) {

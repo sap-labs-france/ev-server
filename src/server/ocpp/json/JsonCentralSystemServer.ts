@@ -80,7 +80,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
   private startWSServer() {
     console.log(`Starting ${ServerType.JSON_SERVER} Server...`);
     App({}).ws('/*', {
-      compression: uWS.SHARED_COMPRESSOR,
+      // compression: uWS.SHARED_COMPRESSOR,
       maxPayloadLength: 64 * 1024, // 64 KB per request
       idleTimeout: 1 * 3600, // 1 hour of inactivity => Close
       upgrade: async (res: HttpResponse, req: HttpRequest, context: us_socket_context_t) => {
@@ -164,9 +164,14 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
           ws.siteAreaID = wsConnection.getSiteAreaID();
           ws.companyID = wsConnection.getCompanyID();
         } catch (error) {
-          ws.end(WebSocketCloseEventStatusCode.CLOSE_ABNORMAL, error.message);
           await Logging.logException(error, ServerAction.WS_CONNECTION, MODULE_NAME, 'connection',
             wsConnection?.getTenantID() ? wsConnection.getTenantID() : Constants.DEFAULT_TENANT);
+          try {
+            ws.end(WebSocketCloseEventStatusCode.CLOSE_ABNORMAL, error.message);
+          } catch (wsError) {
+            // Ignore
+            Utils.isDevelopmentEnv() && console.error(chalk.red(`Error when closing Web Socket '${wsError?.message as string}'`));
+          }
         } finally {
           // Clear init
           this.ongoingWSInitializations.delete(ws.url);
@@ -237,8 +242,9 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     // Close the WS
     try {
       ws.end(WebSocketCloseEventStatusCode.CLOSE_ABNORMAL, 'Web Socket not registered in the backend');
-    } catch (error) {
+    } catch (wsError) {
       // Ignore if WS is not valid (Error: Invalid access of closed uWS.WebSocket/SSLWebSocket)
+      Utils.isDevelopmentEnv() && console.error(chalk.red(`Error when closing Web Socket '${wsError?.message as string}'`));
     }
   }
 
