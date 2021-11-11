@@ -252,7 +252,6 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
     }
     if (siteArea.siteAreaChildren) {
       for (const child of siteArea.siteAreaChildren) {
-        console.log(fuseTree);
         await this.buildFuseNodes(child,
           (fuseTree.rootFuse ? fuseTree.rootFuse.children : fuseTree[fuseTree.length - 1].children),
           fuseID, carConnectorAssignments, cars, excludedChargingStations, chargingStationsInError, currentChargingProfiles, transactions);

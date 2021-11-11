@@ -1,3 +1,4 @@
+import { HTTPAuthError, HTTPError } from '../../src/types/HTTPError';
 import chai, { expect } from 'chai';
 
 import Asset from '../../src/types/Asset';
@@ -5,7 +6,6 @@ import CentralServerService from '../api/client/CentralServerService';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
-import { HTTPAuthError } from '../../src/types/HTTPError';
 import Site from '../../src/types/Site';
 import SiteArea from '../../src/types/SiteArea';
 import SiteAreaContext from './context/SiteAreaContext';
@@ -26,6 +26,8 @@ class TestData {
   public siteContext: SiteContext;
   public siteAreaContext: SiteAreaContext;
   public newSiteArea: any;
+  public newSubSiteArea: any;
+  public newSubSubSiteArea: any;
   public newUser: any;
   public siteWithSiteAdmin: Site;
   public siteWithoutSiteAdmin: Site;
@@ -456,6 +458,90 @@ describe('Site Area', function() {
           false
         );
         expect(response.status).to.equal(StatusCodes.OK);
+      });
+    });
+
+    describe('Sub Site Area Tests', () => {
+
+      before(async () => {
+        login(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+        // Create the entity
+        testData.newSiteArea = await testData.userService.createEntity(
+          testData.userService.siteAreaApi,
+          Factory.siteArea.build({ siteID: testData.siteContext.getSite().id })
+        );
+        testData.createdSiteAreas.push(testData.newSiteArea);
+      });
+
+      it('Should be able to create a new sub site area', async () => {
+        const newSubSiteArea = Factory.siteArea.build({ siteID: testData.siteContext.getSite().id });
+        newSubSiteArea.siteAreaParentID = testData.newSiteArea.id;
+        testData.newSubSiteArea = await testData.userService.createEntity(
+          testData.userService.siteAreaApi, newSubSiteArea
+        );
+        testData.createdSiteAreas.push(testData.newSubSiteArea);
+      });
+
+      it('Should not be able to create a new sub site area with different smart charging enablement', async () => {
+        const newSubSiteArea = Factory.siteArea.build({ siteID: testData.siteContext.getSite().id });
+        newSubSiteArea.siteAreaParentID = testData.newSiteArea.id;
+        newSubSiteArea.smartCharging = true;
+        const response = await testData.userService.createEntity(testData.userService.siteAreaApi, newSubSiteArea, false);
+        expect(response.status).to.equal(HTTPError.SUB_SITE_AREA_ERROR);
+      });
+
+      it('Should be able to create a new sub site area for sub site area', async () => {
+        const newSubSubSiteArea = Factory.siteArea.build({ siteID: testData.siteContext.getSite().id });
+        newSubSubSiteArea.siteAreaParentID = testData.newSubSiteArea.id;
+        testData.newSubSubSiteArea = await testData.userService.createEntity(testData.userService.siteAreaApi, newSubSubSiteArea);
+        testData.createdSiteAreas.push(testData.newSubSubSiteArea);
+      });
+
+      it('Should be able to update a sub site area of a sub site area', async () => {
+        // Change entity
+        testData.newSubSubSiteArea.name = 'New Name';
+        // Update
+        await testData.userService.updateEntity(
+          testData.userService.siteAreaApi,
+          testData.newSubSubSiteArea
+        );
+      });
+
+      it('Should not be able to create circular structure in site area chain', async () => {
+        // Change entity
+        testData.newSiteArea.siteAreaParentID = testData.newSubSubSiteArea.id;
+        // Update
+        const response = await testData.userService.updateEntity(
+          testData.userService.siteAreaApi,
+          testData.newSiteArea, false
+        );
+        expect(response.status).to.equal(HTTPError.SUB_SITE_AREA_ERROR);
+      });
+
+      it('Should not be able to delete root site area, which still has children', async () => {
+        // Delete the created entity
+        const response = await testData.userService.deleteEntity(
+          testData.userService.siteAreaApi,
+          testData.newSiteArea, false
+        );
+        expect(response.status).to.equal(HTTPError.SUB_SITE_AREA_ERROR);
+      });
+
+      it('Should not be able to delete sub site area, which still has children', async () => {
+        // Delete the created entity
+        const response = await testData.userService.deleteEntity(
+          testData.userService.siteAreaApi,
+          testData.newSubSiteArea, false
+        );
+        expect(response.status).to.equal(HTTPError.SUB_SITE_AREA_ERROR);
+      });
+
+      it('Should be able to delete sub site area, which do not have children', async () => {
+        // Delete the created entity
+        await testData.userService.deleteEntity(
+          testData.userService.siteAreaApi,
+          testData.newSubSubSiteArea
+        );
       });
     });
   });
