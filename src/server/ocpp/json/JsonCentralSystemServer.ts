@@ -470,7 +470,6 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
   }
 
   private monitorWSConnectionsJob() {
-    // Debug
     if (this.isDebug()) {
       setInterval(() => {
         Logging.logConsoleDebug('=====================================');
@@ -507,7 +506,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       await this.checkAndCleanupWebSocket(ServerAction.WS_JSON_CONNECTION_CLOSED, this.jsonWSConnections, 'Json');
       // Check Rest connections
       await this.checkAndCleanupWebSocket(ServerAction.WS_REST_CLIENT_CONNECTION_CLOSED, this.jsonRestWSConnections, 'Rest');
-    }, 10000);
+    }, 10 * 60 * 1000);
   }
 
   private async checkAndCleanupWebSocket(action: ServerAction, wsConnectionMap: Map<string, WSConnection>, type: 'Json'|'Rest') {
@@ -543,14 +542,21 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
             siteAreaID: wsConnection.getSiteAreaID(),
             companyID: wsConnection.getCompanyID(),
             chargingStationID: wsConnection.getChargingStationID(),
-            module: MODULE_NAME, method: 'constructor',
+            module: MODULE_NAME, method: 'checkAndCleanupWebSocket',
             action, message, detailedMessages: { error: error.stack }
           });
           this.isDebug() && Logging.logConsoleError(message);
         }
       }
     }
-    this.isDebug() && Logging.logConsoleDebug(`${type} WS Connection checked: ${validConnections} valid, ${invalidConnections} invalid`);
+    const message = `${type} WS Connection checked: ${validConnections} valid, ${invalidConnections} invalid`;
+    this.isDebug() && Logging.logConsoleDebug(message);
+    void Logging.logInfo({
+      tenantID: Constants.DEFAULT_TENANT,
+      module: MODULE_NAME, method: 'checkAndCleanupWebSocket',
+      action: ServerAction.WS_CONNECTION,
+      message
+    });
     this.isDebug() && Logging.logConsoleDebug('===========================================');
   }
 }
