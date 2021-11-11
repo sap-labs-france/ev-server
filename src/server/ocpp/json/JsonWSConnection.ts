@@ -7,7 +7,6 @@ import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import JsonChargingStationClient from '../../../client/ocpp/json/JsonChargingStationClient';
 import JsonChargingStationService from './services/JsonChargingStationService';
-import LockingManager from '../../../locking/LockingManager';
 import Logging from '../../../utils/Logging';
 import OCPPError from '../../../exception/OcppError';
 import { OCPPErrorType } from '../../../types/ocpp/OCPPCommon';
@@ -44,7 +43,7 @@ export default class JsonWSConnection extends WSConnection {
       chargeBoxIdentity: this.getChargingStationID(),
       ocppVersion: (this.getWSConnection().protocol.startsWith('ocpp') ? this.getWSConnection().protocol.replace('ocpp', '') : this.getWSConnection().protocol) as OCPPVersion,
       ocppProtocol: OCPPProtocol.JSON,
-      chargingStationURL: Configuration.getJsonEndpointConfig().baseSecureUrl ?? Configuration.getJsonEndpointConfig().baseUrl,
+      chargingStationURL: Configuration.getJsonEndpointConfig().baseSecureUrl,
       tenantID: this.getTenantID(),
       tokenID: this.getTokenID(),
       From: {
@@ -70,13 +69,12 @@ export default class JsonWSConnection extends WSConnection {
     if (typeof this.chargingStationService[methodName] === 'function') {
       this.headers.currentIPAddress = this.getClientIP();
       // Check the Charging Station
-      const { tenant, chargingStation, token, lock } = await OCPPUtils.checkAndGetChargingStationData(OCPPUtils.buildServerActionFromOcppCommand(command),
-        this.getTenantID(), this.getChargingStationID(), this.getTokenID(), true);
+      const { tenant, chargingStation, token } = await OCPPUtils.checkAndGetChargingStationData(OCPPUtils.buildServerActionFromOcppCommand(command),
+        this.getTenantID(), this.getChargingStationID(), this.getTokenID());
       // Set the header
       this.headers.tenant = tenant;
       this.headers.chargingStation = chargingStation;
       this.headers.token = token;
-      this.headers.lock = lock;
       // Trace
       const performanceTracingData = await Logging.traceOcppMessageRequest(Constants.MODULE_JSON_OCPP_SERVER_16,
         this.getTenant(), this.getChargingStationID(), OCPPUtils.buildServerActionFromOcppCommand(command), commandPayload, '>>',
@@ -93,9 +91,6 @@ export default class JsonWSConnection extends WSConnection {
         delete this.headers.chargingStation;
         delete this.headers.tenant;
         delete this.headers.token;
-        delete this.headers.lock;
-        // Release lock
-        await LockingManager.release(lock);
         // Trace
         await Logging.traceOcppMessageResponse(Constants.MODULE_JSON_OCPP_SERVER_16, this.getTenant(), this.getChargingStationID(),
           OCPPUtils.buildServerActionFromOcppCommand(command), commandPayload, result, '<<',
