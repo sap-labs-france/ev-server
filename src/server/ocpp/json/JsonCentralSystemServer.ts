@@ -498,12 +498,8 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         } else {
           Logging.logConsoleDebug('** No ongoing WS initialization(s)');
         }
-        Logging.logConsoleDebug(`** ${this.incomingAndWaitingWSMessages.size} WS Requests on hold`);
-        for (const incomingAndWaitingWSMessageKey of this.incomingAndWaitingWSMessages.keys()) {
-          const incomingAndWaitingWSMessage = this.incomingAndWaitingWSMessages.get(incomingAndWaitingWSMessageKey);
-          Logging.logConsoleDebug(`Incoming WS Message on hold: Key '${incomingAndWaitingWSMessageKey}', value '${incomingAndWaitingWSMessage}'`);
-        }
-        Logging.logConsoleDebug(`** ${this.ongoingWSMessage} ongoing WS Requests`);
+        Logging.logConsoleDebug(`** ${this.incomingAndWaitingWSMessages.size} incoming WS Requests on hold`);
+        Logging.logConsoleDebug(`** ${this.ongoingWSMessage} incoming WS Requests`);
         Logging.logConsoleDebug('=====================================');
       }, 5000);
     }
