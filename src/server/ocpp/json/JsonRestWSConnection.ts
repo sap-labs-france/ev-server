@@ -1,10 +1,7 @@
 import BackendError from '../../../exception/BackendError';
-import ChargingStationClient from '../../../client/ocpp/ChargingStationClient';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import { Command } from '../../../types/ChargingStation';
-import Logging from '../../../utils/Logging';
 import OCPPUtils from '../utils/OCPPUtils';
-import { ServerAction } from '../../../types/Server';
 import WSConnection from './WSConnection';
 import { WebSocket } from 'uWebSockets.js';
 import global from '../../../types/GlobalType';
@@ -19,16 +16,6 @@ export default class JsonRestWSConnection extends WSConnection {
   public async initialize(): Promise<void> {
     // Init parent
     await super.initialize();
-    await Logging.logInfo({
-      tenantID: this.getTenantID(),
-      siteID: this.getSiteID(),
-      siteAreaID: this.getSiteAreaID(),
-      companyID: this.getCompanyID(),
-      chargingStationID: this.getChargingStationID(),
-      action: ServerAction.WS_REST_CONNECTION_OPENED,
-      module: MODULE_NAME, method: 'initialize',
-      message: `New Rest connection from URL '${this.getURL()}'`
-    });
   }
 
   public async handleRequest(messageId: string, command: Command, commandPayload: Record<string, unknown> | string): Promise<void> {
