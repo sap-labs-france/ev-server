@@ -38,6 +38,17 @@ import { v4 as uuid } from 'uuid';
 import validator from 'validator';
 
 export default class Utils {
+
+  public static convertBufferArrayToString(data: ArrayBuffer): string {
+    if (!data) {
+      return null;
+    }
+    if (data.byteLength === 0) {
+      return '';
+    }
+    return Buffer.from(data).toString();
+  }
+
   public static buildConnectorInfo(connectorID: number, transactionID?: number): string {
     let connectorInfo = `Connector ID '${connectorID}' >`;
     if (transactionID > 0) {

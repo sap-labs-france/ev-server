@@ -8,6 +8,7 @@ import OCPPError from '../../../exception/OcppError';
 import OCPPUtils from '../utils/OCPPUtils';
 import { ServerAction } from '../../../types/Server';
 import Tenant from '../../../types/Tenant';
+import Utils from '../../../utils/Utils';
 import { WebSocket } from 'uWebSockets.js';
 
 const MODULE_NAME = 'WSConnection';
@@ -30,7 +31,7 @@ export default abstract class WSConnection {
     this.url = url.trim().replace(/\b(\?|&).*/, ''); // Filter trailing URL parameters
     // this.clientIP = Utils.getRequestIP(url);
     this.webSocket = webSocket;
-    this.clientIP = Buffer.from(webSocket.getRemoteAddressAsText()).toString();
+    this.clientIP = Utils.convertBufferArrayToString(webSocket.getRemoteAddressAsText()).toString();
     void Logging.logDebug({
       tenantID: Constants.DEFAULT_TENANT,
       action: ServerAction.WS_CONNECTION,
@@ -210,11 +211,33 @@ export default abstract class WSConnection {
       // Send Message
       try {
         if (!this.webSocket.send(messageToSend)) {
-          // TODO: Backpressure to check
-          rejectCallback(`Error when sending Message ID '${messageID}' with content '${messageToSend}' (${this.tenantSubdomain})`);
+          void Logging.logError({
+            tenantID: this.tenantID,
+            chargingStationID: this.chargingStationID,
+            companyID: this.companyID,
+            siteID: this.siteID,
+            siteAreaID: this.siteAreaID,
+            module: MODULE_NAME, method: 'sendMessage',
+            action: ServerAction.WS_JSON_CONNECTION_ERROR,
+            message: `Error when sending message '${messageToSend}' to Web Socket`,
+            detailedMessages: { message: messageToSend }
+          });
+          Utils.isDevelopmentEnv() && Logging.logConsoleError(`Error when sending message '${messageToSend}' to Web Socket`);
         }
       } catch (wsError) {
-        rejectCallback(`Error '${wsError?.message as string ?? 'Unknown'}' when sending Message ID '${messageID}' with content '${messageToSend}' (${this.tenantSubdomain})`);
+        // Invalid Web Socket
+        void Logging.logError({
+          tenantID: this.tenantID,
+          chargingStationID: this.chargingStationID,
+          companyID: this.companyID,
+          siteID: this.siteID,
+          siteAreaID: this.siteAreaID,
+          module: MODULE_NAME, method: 'sendMessage',
+          action: ServerAction.WS_JSON_CONNECTION_ERROR,
+          message: `Error when sending message '${messageToSend}' to Web Socket: ${wsError?.message as string}`,
+          detailedMessages: { message: messageToSend, error: wsError?.stack }
+        });
+        Utils.isDevelopmentEnv() && Logging.logConsoleError(`Error when sending message '${messageToSend}' to Web Socket: ${wsError?.message as string}`);
       }
       // Response?
       if (messageType !== OCPPMessageType.CALL_MESSAGE) {
