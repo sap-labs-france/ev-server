@@ -18,7 +18,6 @@ import { WebSocket } from 'uWebSockets.js';
 const MODULE_NAME = 'JsonWSConnection';
 
 export default class JsonWSConnection extends WSConnection {
-  public isConnectionAlive: boolean;
   private chargingStationClient: JsonChargingStationClient;
   private chargingStationService: JsonChargingStationService;
   private headers: OCPPHeader;
@@ -31,8 +30,6 @@ export default class JsonWSConnection extends WSConnection {
     this.chargingStationClient = new JsonChargingStationClient(this, this.getTenant(), this.getChargingStationID());
     // Create the Json Server Service
     this.chargingStationService = new JsonChargingStationService();
-    // Ok
-    this.isConnectionAlive = true;
   }
 
   public async initialize(): Promise<void> {
@@ -53,12 +50,10 @@ export default class JsonWSConnection extends WSConnection {
   }
 
   public async onPing(message: string): Promise<void> {
-    this.isConnectionAlive = true;
     await this.updateChargingStationLastSeen();
   }
 
   public async onPong(message: string): Promise<void> {
-    this.isConnectionAlive = true;
     await this.updateChargingStationLastSeen();
   }
 

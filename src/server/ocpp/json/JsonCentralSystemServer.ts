@@ -57,9 +57,15 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       },
       close: async (ws: WebSocket, code: number, message: ArrayBuffer) => {
         // Convert right away
-        const reason = Utils.convertBufferArrayToString(message).toString();
-        // Close
-        await this.closeWebSocket(ws, code, reason, true);
+        const reason = Utils.convertBufferArrayToString(message);
+        // Lock incoming WS messages
+        await this.aquireLockForProcessingMessage(ws);
+        try {
+          // Close
+          await this.closeWebSocket(ws, code, reason, true);
+        } finally {
+          this.releaseLockAfterProcessingMessage(ws);
+        }
       },
       ping: async (ws: WebSocket, message: ArrayBuffer) => {
         // Convert
