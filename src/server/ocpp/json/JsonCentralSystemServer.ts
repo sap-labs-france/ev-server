@@ -58,11 +58,11 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
           const ocppMessage = Utils.convertBufferArrayToString(message);
           // Wait for Init
           const processMessage = await this.waitForEndOfInitForOnMessage(ws, ocppMessage);
-          // Check if connection is still valid
-          const result = await this.isWebSocketValid(ws);
-          if (result.ok) {
-            // Get the WS
-            if (processMessage) {
+          // Get the WS
+          if (processMessage) {
+            // Check if connection is still valid
+            const result = await this.isWebSocketValid(ws);
+            if (result.ok) {
               const wsConnection = await this.getWSConnectionFromWebSocket(ws);
               if (wsConnection) {
                 await wsConnection.onMessage(ocppMessage, isBinary);
@@ -392,12 +392,14 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         case Command.METER_VALUES:
         case Command.UNLOCK_CONNECTOR:
         case Command.RESERVE_NOW:
-        case Command.STATUS_NOTIFICATION:
         case Command.CHANGE_AVAILABILITY:
         case Command.SET_CHARGING_PROFILE:
         case Command.CLEAR_CHARGING_PROFILE:
         case Command.GET_COMPOSITE_SCHEDULE:
           return `${ws.url as string}~${command}~${ocppParameter.connectorId}`;
+
+        case Command.STATUS_NOTIFICATION:
+          return `${ws.url as string}~${command}~${ocppParameter.connectorId}~${ocppParameter.status}`;
 
         case Command.AUTHORIZE:
         case Command.STOP_TRANSACTION:
