@@ -4,10 +4,10 @@ import { AnySchemaObject, DataValidateFunction, DataValidationCxt } from 'ajv/di
 import AppError from '../exception/AppError';
 import Constants from '../utils/Constants';
 import { HTTPError } from '../types/HTTPError';
-import Logging from '../utils/Logging';
 import { ObjectId } from 'mongodb';
 import Schema from '../types/validator/Schema';
 import addFormats from 'ajv-formats';
+import chalk from 'chalk';
 import countries from 'i18n-iso-countries';
 import fs from 'fs';
 import global from '../types/GlobalType';
@@ -70,10 +70,10 @@ export default class SchemaValidator {
   protected validate(schema: Schema, data: Record<string, unknown>): any {
     let fnValidate: ValidateFunction<unknown>;
     if (!schema.$id) {
-      Logging.logConsoleError('====================================');
-      Logging.logConsoleError('Missing schema ID:');
-      Logging.logConsoleError(JSON.stringify(schema));
-      Logging.logConsoleError('====================================');
+      this.logConsoleError('====================================');
+      this.logConsoleError('Missing schema ID:');
+      this.logConsoleError(JSON.stringify(schema));
+      this.logConsoleError('====================================');
       // Not cached: Compile schema
       fnValidate = this.ajv.compile(schema);
     } else {
@@ -168,13 +168,13 @@ export default class SchemaValidator {
 
   private checkOriginalSchema(originalSchema: string, validatedSchema: Record<string, unknown>): void {
     if (this.isDevelopmentEnv() && originalSchema !== JSON.stringify(validatedSchema)) {
-      Logging.logConsoleError('====================================');
-      Logging.logConsoleError('Data changed after schema validation');
-      Logging.logConsoleError('Original Data:');
-      Logging.logConsoleError(originalSchema);
-      Logging.logConsoleError('Validated Data:');
-      Logging.logConsoleError(JSON.stringify(validatedSchema));
-      Logging.logConsoleError('====================================');
+      this.logConsoleError('====================================');
+      this.logConsoleError('Data changed after schema validation');
+      this.logConsoleError('Original Data:');
+      this.logConsoleError(originalSchema);
+      this.logConsoleError('Validated Data:');
+      this.logConsoleError(JSON.stringify(validatedSchema));
+      this.logConsoleError('====================================');
     }
   }
 
@@ -182,5 +182,10 @@ export default class SchemaValidator {
   // src/validator/SchemaValidator.ts -> src/utils/Utils.ts -> src/utils/Cypher.ts -> src/storage/mongodb/SettingStorage.ts -> src/utils/Logging.ts -> src/storage/mongodb/PerformanceStorage.ts -> src/storage/mongodb/validator/PerformanceValidatorStorage.ts -> src/validator/SchemaValidator.ts
   private isDevelopmentEnv(): boolean {
     return process.env.NODE_ENV === 'development';
+  }
+
+  // Creatd to avoid circular dependency
+  private logConsoleError(message: string): void {
+    console.error(chalk.red(`${new Date().toLocaleString()} - ${message}`));
   }
 }

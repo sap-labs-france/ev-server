@@ -13,7 +13,6 @@ import OCPPError from '../../../exception/OcppError';
 import { OCPPErrorType } from '../../../types/ocpp/OCPPCommon';
 import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
 import OCPPUtils from '../utils/OCPPUtils';
-import { ServerAction } from '../../../types/Server';
 import WSConnection from './WSConnection';
 import { WebSocket } from 'uWebSockets.js';
 
@@ -52,17 +51,6 @@ export default class JsonWSConnection extends WSConnection {
         Address: this.getClientIP()
       }
     };
-    await Logging.logInfo({
-      tenantID: this.getTenantID(),
-      siteID: this.getSiteID(),
-      siteAreaID: this.getSiteAreaID(),
-      companyID: this.getCompanyID(),
-      chargingStationID: this.getChargingStationID(),
-      action: ServerAction.WS_JSON_CONNECTION_OPENED,
-      module: MODULE_NAME, method: 'initialize',
-      message: `New Json connection from '${this.getClientIP().toString()}' with URL '${this.getURL()}'`,
-      detailedMessages: { ocppHeaders: this.headers }
-    });
   }
 
   public async onPing(message: string): Promise<void> {

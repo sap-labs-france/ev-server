@@ -5,7 +5,6 @@ import LockingStorage from '../storage/mongodb/LockingStorage';
 import Logging from '../utils/Logging';
 import { ServerAction } from '../types/Server';
 import Utils from '../utils/Utils';
-import chalk from 'chalk';
 
 const MODULE_NAME = 'LockingManager';
 
@@ -137,7 +136,15 @@ export default class LockingManager {
           await LockingStorage.insertLock(lock);
           return;
         } catch {
-          await Utils.sleep(250 + Math.trunc(Math.random() * 2000));
+          // Wait before trying to get the next lock
+          const lockWaitTimeMillis = 500 + Math.trunc(Math.random() * 1000);
+          Utils.isDevelopmentEnv() && Logging.logConsoleWarning(`>> Lock failed, Wait for ${lockWaitTimeMillis}ms, lock '${lock.tenantID}~${lock.entity}~${lock.key}`);
+          await Utils.sleep(lockWaitTimeMillis);
+          // Update timestamp
+          lock.timestamp = new Date(lock.timestamp.getTime() + lockWaitTimeMillis);
+          if (lock.expirationDate) {
+            lock.expirationDate = new Date(lock.expirationDate.getTime() + lockWaitTimeMillis);
+          }
         }
       } while (Date.now() < timeoutDateMs);
       throw Error(`Lock acquisition timeout ${timeoutSecs} secs reached`);
