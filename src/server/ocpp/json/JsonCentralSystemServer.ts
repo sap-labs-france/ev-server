@@ -21,6 +21,7 @@ const MODULE_NAME = 'JsonCentralSystemServer';
 
 export default class JsonCentralSystemServer extends CentralSystemServer {
   private ongoingWSInits: Map<string, null> = new Map;
+  private ongoingWSMessage = 0;
   private incomingAndWaitingWSMessages: Map<string, string> = new Map;
   private jsonWSConnections: Map<string, JsonWSConnection> = new Map();
   private jsonRestWSConnections: Map<string, JsonRestWSConnection> = new Map();
@@ -51,16 +52,25 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         await this.onOpen(ws);
       },
       message: async (ws: WebSocket, message: ArrayBuffer, isBinary: boolean) => {
-        // Convert right away
-        const ocppMessage = Utils.convertBufferArrayToString(message);
-        // Wait for Init
-        const processMessage = await this.waitForEndOfInitForOnMessage(ws, ocppMessage);
-        // Get the WS
-        if (processMessage) {
-          const wsConnection = await this.getWSConnectionFromWebSocket(ws);
-          if (wsConnection) {
-            await wsConnection.onMessage(ocppMessage, isBinary);
+        try {
+          this.ongoingWSMessage++;
+          // Convert right away
+          const ocppMessage = Utils.convertBufferArrayToString(message);
+          // Wait for Init
+          const processMessage = await this.waitForEndOfInitForOnMessage(ws, ocppMessage);
+          // Check if connection is still valid
+          const result = await this.isWebSocketValid(ws);
+          if (result.ok) {
+            // Get the WS
+            if (processMessage) {
+              const wsConnection = await this.getWSConnectionFromWebSocket(ws);
+              if (wsConnection) {
+                await wsConnection.onMessage(ocppMessage, isBinary);
+              }
+            }
           }
+        } finally {
+          this.ongoingWSMessage--;
         }
       },
       close: async (ws: WebSocket, code: number, message: ArrayBuffer) => {
@@ -493,6 +503,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
           const incomingAndWaitingWSMessage = this.incomingAndWaitingWSMessages.get(incomingAndWaitingWSMessageKey);
           Logging.logConsoleDebug(`Incoming WS Message on hold: Key '${incomingAndWaitingWSMessageKey}', value '${incomingAndWaitingWSMessage}'`);
         }
+        Logging.logConsoleDebug(`** ${this.ongoingWSMessage} ongoing WS Requests`);
         Logging.logConsoleDebug('=====================================');
       }, 5000);
     }
