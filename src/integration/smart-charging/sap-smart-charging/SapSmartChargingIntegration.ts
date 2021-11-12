@@ -67,7 +67,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
       { siteIDs: [sourceSiteArea.siteID], withChargingStations: true, withAssets: true,
         ChargingStationConnectorStatuses: [ChargePointStatus.CHARGING, ChargePointStatus.SUSPENDED_EVSE] },
       Constants.DB_PARAMS_MAX_LIMIT);
-    // Build site area tree
+    // Build site area tree, which contains the source site area
     const rootSiteArea = Utils.buildSubSiteAreaTree(siteAreas.result, sourceSiteArea.id)[0];
     // TODO: Store the Site Area ID in the DB profiles and use siteAreaIDs param in this DB request.
     // Get all the charging station IDs from site areas to retrieve current profiles
@@ -193,7 +193,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
   private async buildFuseNodes(siteArea: SiteArea, fuseTree, fuseID: {value: number}, carConnectorAssignments: OptimizerCarConnectorAssignment[],
       cars: OptimizerCar[], excludedChargingStations: string[], chargingStationsInError: {value: boolean},
       currentChargingProfiles: ChargingProfile[], transactions: Transaction[]): Promise<void> {
-    // this.checkIfSiteAreaIsValid(siteArea);
+    this.checkIfSiteAreaIsValid(siteArea);
     // Adjust site limitation
     const rootFuse = await this.buildRootFuse(siteArea, fuseID, excludedChargingStations);
     // Loop through charging stations to get each connector

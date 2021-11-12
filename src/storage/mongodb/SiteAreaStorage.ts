@@ -141,7 +141,7 @@ export default class SiteAreaStorage {
       params: {
         siteAreaIDs?: string[]; search?: string; siteIDs?: string[]; companyIDs?: string[]; withSite?: boolean, withSiteAreaParent?: boolean; issuer?: boolean; name?: string;
         withChargingStations?: boolean; withOnlyChargingStations?: boolean; withAvailableChargingStations?: boolean; ChargingStationConnectorStatuses?: string[];
-        locCoordinates?: number[]; locMaxDistanceMeters?: number; smartCharging?: boolean; withImage?: boolean; withAssets?: boolean
+        locCoordinates?: number[]; locMaxDistanceMeters?: number; smartCharging?: boolean; withImage?: boolean; withAssets?: boolean; withNoSiteAreaParent?: boolean
       } = {},
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteArea>> {
     // Debug
@@ -209,6 +209,9 @@ export default class SiteAreaStorage {
     }
     if (params.name) {
       filters.name = params.name;
+    }
+    if (params.withNoSiteAreaParent) {
+      filters.siteAreaParentID = null;
     }
     // Filters
     if (filters) {
