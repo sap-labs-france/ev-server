@@ -76,17 +76,13 @@ export default class OCPPService {
       // Get Charging Station
       if (!chargingStation) {
         // Create Charging Station
-        chargingStation = await this.checkAndCreateChargingStationFromBootNotification(tenant, bootNotification, headers);
+        chargingStation = await this.createChargingStationFromBootNotification(tenant, bootNotification, headers);
       } else {
         // Check Charging Station
-        this.checkExistingChargingStation(headers, chargingStation, bootNotification);
+        this.checkSameChargingStation(headers, chargingStation, bootNotification);
       }
       // Enrich Charging Station
-      this.enrichChargingStationFromBootNotification(chargingStation, headers, bootNotification);
-      // Clear Firmware Status
-      if (chargingStation.firmwareUpdateStatus) {
-        await ChargingStationStorage.saveChargingStationFirmwareStatus(tenant, chargingStation.id, null);
-      }
+      await this.enrichChargingStationFromBootNotification(tenant, chargingStation, headers, bootNotification);
       // Apply Charging Station Template
       const templateUpdateResult = await this.applyChargingStationTemplate(tenant, chargingStation);
       // Save Charging Station
@@ -1827,12 +1823,11 @@ export default class OCPPService {
     bootNotification.currentIPAddress = headers.currentIPAddress;
     bootNotification.ocppProtocol = headers.ocppProtocol;
     bootNotification.ocppVersion = headers.ocppVersion;
-    // Set the default
-    bootNotification.lastReboot = new Date();
-    bootNotification.timestamp = bootNotification.lastReboot;
+    bootNotification.timestamp = new Date();
   }
 
-  private async checkAndCreateChargingStationFromBootNotification(tenant: Tenant, bootNotification: OCPPBootNotificationRequestExtended, headers: OCPPHeader): Promise<ChargingStation> {
+  private async createChargingStationFromBootNotification(tenant: Tenant,
+      bootNotification: OCPPBootNotificationRequestExtended, headers: OCPPHeader): Promise<ChargingStation> {
     // New Charging Station: Create (Token has already been checked and provided!)
     const newChargingStation = {} as ChargingStation;
     for (const key in bootNotification) {
@@ -1862,7 +1857,7 @@ export default class OCPPService {
     return newChargingStation;
   }
 
-  private checkExistingChargingStation(headers: OCPPHeader, chargingStation: ChargingStation, bootNotification: OCPPBootNotificationRequestExtended) {
+  private checkSameChargingStation(headers: OCPPHeader, chargingStation: ChargingStation, bootNotification: OCPPBootNotificationRequestExtended) {
     // Existing Charging Station: Update
     // Check if same vendor and model
     if ((chargingStation.chargePointVendor !== bootNotification.chargePointVendor ||
@@ -1886,25 +1881,29 @@ export default class OCPPService {
         detailedMessages: { headers, bootNotification }
       });
     }
-    chargingStation.chargePointSerialNumber = bootNotification.chargePointSerialNumber;
-    chargingStation.chargeBoxSerialNumber = bootNotification.chargeBoxSerialNumber;
-    chargingStation.firmwareVersion = bootNotification.firmwareVersion;
-    chargingStation.lastReboot = bootNotification.lastReboot;
-    // Back again
-    chargingStation.deleted = false;
   }
 
-  private enrichChargingStationFromBootNotification(chargingStation: ChargingStation, headers: OCPPHeader, bootNotification: OCPPBootNotificationRequestExtended) {
+  private async enrichChargingStationFromBootNotification(tenant: Tenant, chargingStation: ChargingStation, headers: OCPPHeader,
+      bootNotification: OCPPBootNotificationRequestExtended) {
     // Set common params
-    chargingStation.ocppVersion = headers.ocppVersion;
-    chargingStation.ocppProtocol = headers.ocppProtocol;
+    chargingStation.ocppProtocol = bootNotification.ocppProtocol;
+    chargingStation.ocppVersion = bootNotification.ocppVersion;
     chargingStation.currentIPAddress = bootNotification.currentIPAddress;
     chargingStation.cloudHostIP = Utils.getHostIP();
     chargingStation.cloudHostName = Utils.getHostName();
-    chargingStation.lastSeen = new Date();
+    chargingStation.lastReboot = bootNotification.timestamp;
+    chargingStation.lastSeen = bootNotification.timestamp;
+    chargingStation.chargePointSerialNumber = bootNotification.chargePointSerialNumber;
+    chargingStation.chargeBoxSerialNumber = bootNotification.chargeBoxSerialNumber;
+    chargingStation.firmwareVersion = bootNotification.firmwareVersion;
+    chargingStation.deleted = false;
     // Set the Charging Station URL?
     if (headers.chargingStationURL) {
       chargingStation.chargingStationURL = headers.chargingStationURL;
+    }
+    // Clear Firmware Status
+    if (chargingStation.firmwareUpdateStatus) {
+      await ChargingStationStorage.saveChargingStationFirmwareStatus(tenant, chargingStation.id, null);
     }
     // Backup connectors
     if (!Utils.isEmptyArray(chargingStation.connectors)) {

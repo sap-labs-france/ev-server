@@ -45,7 +45,7 @@ export default abstract class WSConnection {
   public async initialize(): Promise<void> {
     // Check and Get Charging Station data
     const { tenant, chargingStation } = await OCPPUtils.checkAndGetChargingStationData(
-      ServerAction.WS_CONNECTION, this.getTenantID(), this.getChargingStationID(), this.getTokenID(), false);
+      ServerAction.WS_CONNECTION, this.getTenantID(), this.getChargingStationID(), this.getTokenID());
     // Set
     this.setTenant(tenant);
     this.setChargingStation(chargingStation);
