@@ -127,9 +127,9 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         // Create WS
         const wsClientOptions: WSClientOptions = {
           wsOptions: {
-            protocol: WSServerProtocol.REST,
             handshakeTimeout: 5000,
           },
+          protocols: WSServerProtocol.REST,
           logTenantID: this.tenantID
         };
         // Create and Open the WS
@@ -173,7 +173,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             chargingStationID: this.chargingStation.id,
             action: ServerAction.WS_REST_CLIENT_CONNECTION_ERROR,
             module: MODULE_NAME, method: 'onError',
-            message: `Connection error to '${this.serverURL}: ${error.toString()}`,
+            message: `Connection error to '${this.serverURL}: ${error?.message}`,
             detailedMessages: { error: error.stack }
           });
           // Terminate WS in error

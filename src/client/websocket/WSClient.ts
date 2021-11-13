@@ -157,7 +157,7 @@ export default class WSClient {
             module: MODULE_NAME, method: 'onError',
             action: ServerAction.WS_CLIENT_ERROR,
             message: `Connection error to '${this.url}': ${error?.message as string}`,
-            detailedMessages: { error }
+            detailedMessages: { error: error.stack }
           });
         } else {
           !Utils.isProductionEnv() && Logging.logConsoleError(`WSClient connection error to '${this.url}': ${error?.message as string}`);
