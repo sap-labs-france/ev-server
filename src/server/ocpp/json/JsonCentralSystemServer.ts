@@ -273,7 +273,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     let action: ServerAction;
     // Json connection
     if (wsConnection.getWS().protocol === WSServerProtocol.OCPP16) {
-      existingWSConnection = this.getJsonRestWSConnection(wsConnection.getID());
+      existingWSConnection = this.getJsonWSConnection(wsConnection.getID());
       action = ServerAction.WS_JSON_CONNECTION_ERROR;
     }
     // REST connection
@@ -469,7 +469,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         Logging.logConsoleDebug(`** ${this.runningWSMessages} running WS Messages (Requests + Responses)`);
         Logging.logConsoleDebug(`** ${this.waitingWSMessages} queued WS Message(s)`);
         Logging.logConsoleDebug('=====================================');
-      }, 5000);
+      }, 5 * 1000);
     }
   }
 
@@ -504,7 +504,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     }
     // Log
     if (validConnections.length || invalidConnections.length) {
-      const message = `${validConnections.length} ${type} valid WS Connection (${invalidConnections.length} invalid)`;
+      const message = `${validConnections.length} ${type} valid WS Connection pinged (${invalidConnections.length} invalid)`;
       this.isDebug() && Logging.logConsoleDebug(message);
       if (invalidConnections.length) {
         void Logging.logError({
