@@ -85,6 +85,8 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
           await wsConnection.onPong(ocppMessage);
         }
       }
+    }).any('/health-check', (res, req) => {
+      res.end('OK');
     }).listen(this.centralSystemConfig.port, (token) => {
       if (token) {
         this.isDebug() && Logging.logConsoleDebug(`${ServerType.JSON_SERVER} Server listening on 'http://${this.centralSystemConfig.host}:${this.centralSystemConfig.port}'`);
