@@ -383,7 +383,6 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
   private async waitForNextWSMessageProcessing(wsWrapper: WSWrapper): Promise<boolean> {
     // Wait for init to handle multiple same WS Connection
     if (this.runningWSRequestsMessages[wsWrapper.url]) {
-      this.isDebug() && Logging.logConsoleDebug(`A WS Message is already running for '${wsWrapper.url}', wait for it to end`);
       this.waitingWSMessages++;
       // eslint-disable-next-line no-constant-condition
       while (true) {
@@ -466,9 +465,9 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         Logging.logConsoleDebug('=====================================');
         Logging.logConsoleDebug(`** ${this.jsonWSConnections.size} JSON Connection(s)`);
         Logging.logConsoleDebug(`** ${this.jsonRestWSConnections.size} REST Connection(s)`);
-        Logging.logConsoleDebug(`** ${Object.keys(this.runningWSRequestsMessages).length} running WS Request Messages`);
-        Logging.logConsoleDebug(`** ${this.runningWSMessages} running WS Messages`);
-        Logging.logConsoleDebug(`** ${this.waitingWSMessages} waiting WS Message(s)`);
+        Logging.logConsoleDebug(`** ${Object.keys(this.runningWSRequestsMessages).length} running WS Messages (Requests)`);
+        Logging.logConsoleDebug(`** ${this.runningWSMessages} running WS Messages (Requests + Responses)`);
+        Logging.logConsoleDebug(`** ${this.waitingWSMessages} queued WS Message(s)`);
         Logging.logConsoleDebug('=====================================');
       }, 5000);
     }
