@@ -123,18 +123,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       res.onAborted(() => {
         // If no handler here, it crashes!!!
       });
-      const upgrade = req.getHeader('upgrade');
-      if (upgrade !== 'websocket') {
-        await Logging.logError({
-          tenantID: Constants.DEFAULT_TENANT,
-          module: MODULE_NAME, method: 'onUpgrade',
-          action: ServerAction.WS_CONNECTION,
-          message: `WS Connection - Invalid: No WS 'upgrade' HTTP Header for '${req.getUrl()}'`
-        });
-        res.close();
-        return;
-      }
-      // Check URI (/OCPP16/<TENANT_ID>/<TOKEN_ID>/<CHARGING_STATION_ID>)
+      // Check URI (/OCPP16/<TENANT_ID>/<TOKEN_ID>/<CHARGING_STATION_ID> or /REST/<TENANT_ID>/<TOKEN_ID>/<CHARGING_STATION_ID>)
       const url = req.getUrl();
       if (!url.startsWith('/OCPP16') && !url.startsWith('/REST')) {
         await Logging.logError({
@@ -146,14 +135,25 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         res.close();
         return;
       }
-      // Check Protocol (ocpp1.6)
+      // Check Protocol (ocpp1.6 / rest)
       const protocol = req.getHeader('sec-websocket-protocol');
-      if (protocol !== WSServerProtocol.OCPP16) {
+      if (url.startsWith('/OCPP16') && (protocol !== WSServerProtocol.OCPP16)) {
         await Logging.logError({
           tenantID: Constants.DEFAULT_TENANT,
           module: MODULE_NAME, method: 'onUpgrade',
           action: ServerAction.WS_CONNECTION,
           message: `WS Connection - Invalid: No valid protocol (expected: 'ocpp1.6') for '${req.getUrl()}'`,
+          detailedMessages: { protocol }
+        });
+        res.close();
+        return;
+      }
+      if (url.startsWith('/REST') && (protocol !== WSServerProtocol.REST)) {
+        await Logging.logError({
+          tenantID: Constants.DEFAULT_TENANT,
+          module: MODULE_NAME, method: 'onUpgrade',
+          action: ServerAction.WS_CONNECTION,
+          message: `WS Connection - Invalid: No valid protocol (expected: 'rest') for '${req.getUrl()}'`,
           detailedMessages: { protocol }
         });
         res.close();
