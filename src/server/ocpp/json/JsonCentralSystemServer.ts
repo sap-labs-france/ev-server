@@ -479,14 +479,14 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     setInterval(async () => {
       this.isDebug() && Logging.logConsoleDebug('===========================================');
       // Check Json connections
-      await this.checkAndCleanupWebSocket(this.jsonWSConnections, 'Json');
+      await this.checkAndCleanupWebSockets(this.jsonWSConnections, 'Json');
       // Check Rest connections
-      await this.checkAndCleanupWebSocket(this.jsonRestWSConnections, 'Rest');
+      await this.checkAndCleanupWebSockets(this.jsonRestWSConnections, 'Rest');
       this.isDebug() && Logging.logConsoleDebug('===========================================');
     }, 30 * 60 * 1000);
   }
 
-  private async checkAndCleanupWebSocket(wsConnections: Map<string, WSConnection>, type: 'Json'|'Rest') {
+  private async checkAndCleanupWebSockets(wsConnections: Map<string, WSConnection>, type: 'Json'|'Rest') {
     const validConnections: string[] = [], invalidConnections: string[] = [];
     for (const wsConnectionKey of wsConnections.keys()) {
       const wsConnection = wsConnections.get(wsConnectionKey);
@@ -510,14 +510,14 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         void Logging.logError({
           tenantID: Constants.DEFAULT_TENANT,
           module: MODULE_NAME, method: 'checkAndCleanupWebSocket',
-          action: ServerAction.WS_CONNECTION,
+          action: ServerAction.WS_CONNECTION_PINGED,
           message, detailedMessages: { validConnections, invalidConnections }
         });
       } else {
         void Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT,
           module: MODULE_NAME, method: 'checkAndCleanupWebSocket',
-          action: ServerAction.WS_CONNECTION,
+          action: ServerAction.WS_CONNECTION_PINGED,
           message, detailedMessages: { validConnections, invalidConnections }
         });
       }

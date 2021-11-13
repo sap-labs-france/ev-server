@@ -234,6 +234,7 @@ export enum ServerAction {
   WS_CLIENT_INFO = 'WSClientInfo',
 
   WS_CONNECTION = 'WSConnection',
+  WS_CONNECTION_PINGED = 'WSConnectionPinged',
   WS_CONNECTION_OPENED = 'WSConnectionOpened',
   WS_CONNECTION_CLOSED = 'WSConnectionClosed',
 
