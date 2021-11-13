@@ -57,7 +57,6 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       // Create SOAP client
       soap.createClient(chargingStationWdsl, options, async (error, client) => {
         if (error) {
-          // Log
           await Logging.logError({
             tenantID: scsc.tenant.id,
             action: ServerAction.CHARGING_STATION_CLIENT_INITIALIZATION,

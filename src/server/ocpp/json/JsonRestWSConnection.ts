@@ -3,14 +3,14 @@ import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStor
 import { Command } from '../../../types/ChargingStation';
 import OCPPUtils from '../utils/OCPPUtils';
 import WSConnection from './WSConnection';
-import { WebSocket } from 'uWebSockets.js';
+import WSWrapper from './WSWrapper';
 import global from '../../../types/GlobalType';
 
 const MODULE_NAME = 'JsonRestWSConnection';
 
 export default class JsonRestWSConnection extends WSConnection {
-  constructor(webSocket: WebSocket, url: string) {
-    super(webSocket, url);
+  constructor(ws: WSWrapper) {
+    super(ws);
   }
 
   public async initialize(): Promise<void> {
@@ -18,7 +18,21 @@ export default class JsonRestWSConnection extends WSConnection {
     await super.initialize();
   }
 
-  public async handleRequest(messageId: string, command: Command, commandPayload: Record<string, unknown> | string): Promise<void> {
+  public async handleRequest(command: Command, commandPayload: Record<string, unknown> | string): Promise<any> {
+    let result: any;
+    // Check Command
+    if (!this.isValidOcppCommandFromRest(command)) {
+      throw new BackendError({
+        chargingStationID: this.getChargingStationID(),
+        siteID: this.getSiteID(),
+        siteAreaID: this.getSiteAreaID(),
+        companyID: this.getCompanyID(),
+        module: MODULE_NAME,
+        method: 'handleRequest',
+        message: `Command '${command}' is not allowed from REST server`,
+        action: OCPPUtils.buildServerActionFromOcppCommand(command)
+      });
+    }
     // Get the Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenant(), this.getChargingStationID());
     if (!chargingStation) {
@@ -34,11 +48,7 @@ export default class JsonRestWSConnection extends WSConnection {
       });
     }
     // Get the client from JSON Server
-    const chargingStationClient = global.centralSystemJsonServer.getChargingStationClient(this.getTenantID(), this.getChargingStationID(), {
-      siteAreaID: this.getSiteAreaID(),
-      siteID: this.getSiteID(),
-      companyID: this.getCompanyID()
-    });
+    const chargingStationClient = global.centralSystemJsonServer.getChargingStationClient(this.getTenant(), chargingStation);
     if (!chargingStationClient) {
       throw new BackendError({
         chargingStationID: this.getChargingStationID(),
@@ -56,11 +66,8 @@ export default class JsonRestWSConnection extends WSConnection {
     // Call
     if (typeof chargingStationClient[actionMethod] === 'function') {
       // Call the method
-      const result = await chargingStationClient[actionMethod](commandPayload);
-      // Send Response
-      await this.sendResponse(messageId, command, result);
+      result = await chargingStationClient[actionMethod](commandPayload);
     } else {
-      // Error
       throw new BackendError({
         chargingStationID: this.getChargingStationID(),
         siteID: this.getSiteID(),
@@ -72,6 +79,7 @@ export default class JsonRestWSConnection extends WSConnection {
         action: OCPPUtils.buildServerActionFromOcppCommand(command)
       });
     }
+    return result;
   }
 
   public async onPing(message: string): Promise<void> {
@@ -79,5 +87,25 @@ export default class JsonRestWSConnection extends WSConnection {
 
   public async onPong(message: string): Promise<void> {
   }
-}
 
+  private isValidOcppCommandFromRest(command: Command): boolean {
+    // Only client request is allowed
+    return [
+      Command.RESET,
+      Command.CLEAR_CACHE,
+      Command.GET_CONFIGURATION,
+      Command.CHANGE_CONFIGURATION,
+      Command.REMOTE_START_TRANSACTION,
+      Command.REMOTE_STOP_TRANSACTION,
+      Command.UNLOCK_CONNECTOR,
+      Command.SET_CHARGING_PROFILE,
+      Command.GET_COMPOSITE_SCHEDULE,
+      Command.CLEAR_CHARGING_PROFILE,
+      Command.CHANGE_AVAILABILITY,
+      Command.GET_DIAGNOSTICS,
+      Command.UPDATE_FIRMWARE,
+      Command.RESERVE_NOW,
+      Command.CANCEL_RESERVATION
+    ].includes(command);
+  }
+}
