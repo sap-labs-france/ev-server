@@ -30,7 +30,7 @@ export default class OCPPCommon {
     }
     // Apply the configuration change
     const result = await chargingStationClient.changeConfiguration(params);
-    const isValidResultStatus: boolean = result.status === OCPPConfigurationStatus.ACCEPTED || result.status === OCPPConfigurationStatus.REBOOT_REQUIRED;
+    const isValidResultStatus = (result.status === OCPPConfigurationStatus.ACCEPTED) || (result.status === OCPPConfigurationStatus.REBOOT_REQUIRED);
     // Request the new Configuration?
     if (saveChange && isValidResultStatus) {
       // Request and save it

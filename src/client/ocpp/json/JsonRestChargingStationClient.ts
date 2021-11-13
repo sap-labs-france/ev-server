@@ -228,7 +228,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           }
         };
       } catch (error) {
-        reject(new Error(`Unexpected error on opening Web Socket connection: ${error.message}'`));
+        reject(new Error(`Unexpected error on opening Web Socket connection: ${error.message as string}'`));
       }
     });
   }
