@@ -146,7 +146,7 @@ export default class OCPPService {
         chargingStationID: chargingStation.id,
         module: MODULE_NAME, method: 'handleHeartbeat',
         action: ServerAction.OCPP_HEARTBEAT,
-        message: `Heartbeat saved with IP '${chargingStation.currentIPAddress.toString()}'`,
+        message: 'Heartbeat saved',
         detailedMessages: { heartbeat }
       });
       return {
