@@ -17,6 +17,9 @@ export default class OICPEndpointRouter {
     this.buildRouteOicpEndpointPing();
     this.buildRouteOicpEndpointSendEvseStatuses();
     this.buildRouteOicpEndpointSendEvses();
+    this.buildRouteOicpEndpoints();
+    this.buildRouteOicpEndpoint();
+    this.buildRouteOicpEndpointUpdate();
     return this.router;
   }
 
@@ -44,6 +47,26 @@ export default class OICPEndpointRouter {
     this.router.put(`/${ServerRoute.REST_OICP_ENDPOINT_SEND_EVSES}`, async (req: Request, res: Response, next: NextFunction) => {
       req.body.id = req.params.id;
       await RouterUtils.handleServerAction(OICPEndpointService.handleSendEVSEsOicpEndpoint.bind(this), ServerAction.OICP_ENDPOINT_SEND_EVSES, req, res, next);
+    });
+  }
+
+  private buildRouteOicpEndpoints(): void {
+    this.router.get(`/${ServerRoute.REST_OICP_ENDPOINTS}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(OICPEndpointService.handleGetOicpEndpoints.bind(this), ServerAction.OICP_ENDPOINTS, req, res, next);
+    });
+  }
+
+  private buildRouteOicpEndpoint(): void {
+    this.router.get(`/${ServerRoute.REST_OICP_ENDPOINT}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = req.params.id;
+      await RouterUtils.handleServerAction(OICPEndpointService.handleGetOicpEndpoint.bind(this), ServerAction.OICP_ENDPOINT, req, res, next);
+    });
+  }
+
+  private buildRouteOicpEndpointUpdate(): void {
+    this.router.put(`/${ServerRoute.REST_OICP_ENDPOINT}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.body.id = req.params.id;
+      await RouterUtils.handleServerAction(OICPEndpointService.handleUpdateOicpEndpoint.bind(this), ServerAction.OICP_ENDPOINT_UPDATE, req, res, next);
     });
   }
 }

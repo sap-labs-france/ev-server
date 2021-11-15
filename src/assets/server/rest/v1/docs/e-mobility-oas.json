@@ -9905,6 +9905,92 @@
         }
       }
     },
+    "/api/oicp/endpoints/{id}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve an OICP Endpoint",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OICPEndpointID"
+          }
+        ],
+        "tags": [
+          "OICP"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return OICP Endpoint",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OICPEndpoint"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Update an OICP Endpoint",
+        "tags": [
+          "OICP"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OICPEndpoint"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OICP Endpoint updated successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
     "/api/oicp/endpoints/{id}/ping": {
       "put": {
         "security": [
