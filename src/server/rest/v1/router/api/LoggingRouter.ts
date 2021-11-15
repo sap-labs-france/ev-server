@@ -19,20 +19,20 @@ export default class LoggingRouter {
     return this.router;
   }
 
-  protected buildRouteLoggings(): void {
+  private buildRouteLoggings(): void {
     this.router.get(`/${ServerRoute.REST_LOGGINGS}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(LoggingService.handleGetLogs.bind(this), ServerAction.LOGGINGS, req, res, next);
     });
   }
 
-  protected buildRouteLogging(): void {
+  private buildRouteLogging(): void {
     this.router.get(`/${ServerRoute.REST_LOGGING}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
       await RouterUtils.handleServerAction(LoggingService.handleGetLog.bind(this), ServerAction.LOGGING, req, res, next);
     });
   }
 
-  protected buildRouteLoggingsExport(): void {
+  private buildRouteLoggingsExport(): void {
     this.router.get(`/${ServerRoute.REST_LOGGINGS_EXPORT}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(LoggingService.handleExportLogs.bind(this), ServerAction.LOGGINGS_EXPORT, req, res, next);
     });
