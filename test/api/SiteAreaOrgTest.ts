@@ -487,7 +487,7 @@ describe('Site Area', function() {
         newSubSiteArea.siteAreaParentID = testData.newSiteArea.id;
         newSubSiteArea.smartCharging = true;
         const response = await testData.userService.createEntity(testData.userService.siteAreaApi, newSubSiteArea, false);
-        expect(response.status).to.equal(HTTPError.SUB_SITE_AREA_ERROR);
+        expect(response.status).to.equal(HTTPError.SITE_AREA_PARENT_ERROR);
       });
 
       it('Should be able to create a new sub site area for sub site area', async () => {
@@ -515,7 +515,7 @@ describe('Site Area', function() {
           testData.userService.siteAreaApi,
           testData.newSiteArea, false
         );
-        expect(response.status).to.equal(HTTPError.SUB_SITE_AREA_ERROR);
+        expect(response.status).to.equal(HTTPError.SITE_AREA_PARENT_ERROR);
       });
 
       it('Should not be able to delete root site area, which still has children', async () => {
@@ -524,7 +524,7 @@ describe('Site Area', function() {
           testData.userService.siteAreaApi,
           testData.newSiteArea, false
         );
-        expect(response.status).to.equal(HTTPError.SUB_SITE_AREA_ERROR);
+        expect(response.status).to.equal(HTTPError.SITE_AREA_PARENT_ERROR);
       });
 
       it('Should not be able to delete sub site area, which still has children', async () => {
@@ -533,7 +533,7 @@ describe('Site Area', function() {
           testData.userService.siteAreaApi,
           testData.newSubSiteArea, false
         );
-        expect(response.status).to.equal(HTTPError.SUB_SITE_AREA_ERROR);
+        expect(response.status).to.equal(HTTPError.SITE_AREA_PARENT_ERROR);
       });
 
       it('Should be able to delete sub site area, which do not have children', async () => {

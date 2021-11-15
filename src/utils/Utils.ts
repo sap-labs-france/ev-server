@@ -1574,7 +1574,7 @@ export default class Utils {
     return crypto.createHash('sha256').update(data).digest('hex');
   }
 
-  public static buildSubSiteAreaTree(siteAreaList: SiteArea[], siteAreaId = null): SiteArea[] {
+  public static buildSubSiteAreaTree(siteAreaList: SiteArea[], siteAreaId: string = null): SiteArea[] {
     // Hash Table helper
     const hashTable = Object.create(null);
     siteAreaList.forEach((siteArea) => {
@@ -1585,10 +1585,11 @@ export default class Utils {
     siteAreaList.forEach((siteArea) => {
       if (!Utils.isNullOrUndefined(siteArea.siteAreaParentID)) {
         // Check if site area chain is meeting the constraints
-        if ((!Utils.isNullOrUndefined(hashTable[siteArea.siteAreaParentID]) &&
+        if (!Utils.isNullOrUndefined(hashTable[siteArea.siteAreaParentID]) &&
           hashTable[siteArea.siteAreaParentID].smartCharging === hashTable[siteArea.id].smartCharging &&
           hashTable[siteArea.siteAreaParentID].siteID === hashTable[siteArea.id].siteID &&
-          hashTable[siteArea.siteAreaParentID].numberOfPhases === hashTable[siteArea.id].numberOfPhases)) {
+          hashTable[siteArea.siteAreaParentID].voltage === hashTable[siteArea.id].voltage &&
+          hashTable[siteArea.siteAreaParentID].numberOfPhases === hashTable[siteArea.id].numberOfPhases) {
           // Push sub site area to parent children array
           hashTable[siteArea.siteAreaParentID].siteAreaChildren.push(hashTable[siteArea.id]);
         } else {
@@ -1599,27 +1600,25 @@ export default class Utils {
         siteAreaTrees.push(hashTable[siteArea.id]);
       }
     });
-    if (!Utils.isNullOrUndefined(siteAreaId)) {
-    // Loop through trees to take required Action
-      const count = { value: 0 };
-      for (const siteAreaTree of siteAreaTrees) {
+    // Loop through trees to find specific tree or check validity
+    const count = { value: 0 };
+    for (const siteAreaTree of siteAreaTrees) {
       // If site area ID is defined return tree, which contains the site area
-        if (!Utils.isNullOrUndefined(siteAreaId)) {
-          const requestedTree = this.checkIfSiteAreaInTree(siteAreaTree, siteAreaId);
-          if (requestedTree) {
-            return [siteAreaTree];
-          }
-          // If it is not containing the ID go to next tree
-          continue;
+      if (!Utils.isNullOrUndefined(siteAreaId)) {
+        const requestedTree = this.checkIfSiteAreaInTree(siteAreaTree, siteAreaId);
+        if (requestedTree) {
+          return [siteAreaTree];
         }
-        // If no ID defined count elements to verify validity
-        count.value++;
-        this.countElementsOfTree(siteAreaTree, count);
+        // If it is not containing the ID go to next tree
+        continue;
       }
-      // If site area list is the same length as elements in the tree, the tree is valid
-      if (count.value !== siteAreaList.length) {
-        throw BackendError;
-      }
+      // If no ID defined count elements to verify validity
+      count.value++;
+      this.countElementsOfTree(siteAreaTree, count);
+    }
+    // If site area list is the same length as elements in the tree, the tree is valid
+    if (count.value !== siteAreaList.length) {
+      throw BackendError;
     }
     return siteAreaTrees;
   }

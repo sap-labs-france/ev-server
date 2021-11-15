@@ -105,7 +105,7 @@ export default class DatabaseUtils {
     DatabaseUtils.pushCollectionLookupInAggregation('assets', {
       objectIDFields: ['createdBy', 'lastChangedBy'],
       ...lookupParams
-    }, [DatabaseUtils.buildChargingStationInactiveFlagQuery(), ...additionalPipeline]);
+    }, additionalPipeline);
   }
 
   public static pushTagLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []): void {

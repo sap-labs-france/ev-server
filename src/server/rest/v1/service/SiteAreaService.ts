@@ -124,14 +124,14 @@ export default class SiteAreaService {
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
       req.tenant, req.user, siteAreaID, Action.DELETE, action);
     const siteAreas = await SiteAreaStorage.getSiteAreas(req.tenant, { siteIDs: [siteArea.siteID] }, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'siteAreaParentID', 'siteID', 'smartCharging', 'name']);
-    // Check site area chain validity
+    // Remove site area from array and check site area chain validity
     try {
-      Utils.buildSubSiteAreaTree(siteAreas.result.filter((x) => x.id !== siteArea.id));
+      Utils.buildSubSiteAreaTree(siteAreas.result.filter((siteAreaToDelete) => siteAreaToDelete.id !== siteArea.id));
     } catch {
       throw new AppError({
         action: action,
-        errorCode: HTTPError.SUB_SITE_AREA_ERROR,
-        message: 'Error occurred while deleting SiteArea. All sub site areas need to have the same site and smart charging enablement. Circular structures are not allowed',
+        errorCode: HTTPError.SITE_AREA_PARENT_ERROR,
+        message: 'Error occurred while deleting SiteArea. Site Area has dependencies to other site areas',
         module: MODULE_NAME, method: 'handleCreateSiteArea',
         user: req.user
       });
@@ -326,8 +326,8 @@ export default class SiteAreaService {
     } catch {
       throw new AppError({
         action: action,
-        errorCode: HTTPError.SUB_SITE_AREA_ERROR,
-        message: 'Error occurred while creating SiteArea. All sub site areas need to have the same site and smart charging enablement. Circular structures are not allowed',
+        errorCode: HTTPError.SITE_AREA_PARENT_ERROR,
+        message: 'Error occurred while creating SiteArea. All sub site areas need to have the same site, number of phases, voltage and smart charging enablement. Circular structures are not allowed',
         module: MODULE_NAME, method: 'handleCreateSiteArea',
         user: req.user
       });
@@ -406,8 +406,8 @@ export default class SiteAreaService {
     } catch {
       throw new AppError({
         action: action,
-        errorCode: HTTPError.SUB_SITE_AREA_ERROR,
-        message: 'Error occurred while updating SiteArea. All sub site areas need to have the same site and smart charging enablement. Circular structures are not allowed',
+        errorCode: HTTPError.SITE_AREA_PARENT_ERROR,
+        message: 'Error occurred while updating SiteArea. All sub site areas need to have the same site, number of phases, voltage and smart charging enablement. Circular structures are not allowed',
         module: MODULE_NAME, method: 'handleUpdateSiteArea',
         user: req.user
       });

@@ -173,7 +173,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.SITE_AREAS, action: Action.LIST,
         attributes: [
-          'id', 'name', 'siteID', 'siteParentID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging',
+          'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city', 'address.country',
           'address.coordinates', 'site.id', 'site.name', 'siteAreaParentID', 'siteAreaParent.name', 'issuer', 'distanceMeters', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy'
         ]
@@ -518,7 +518,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         },
         attributes: [
-          'id', 'name', 'siteID', 'siteAreaParentID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging',
+          'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city', 'address.country',
           'address.coordinates', 'site.id', 'site.name', 'siteAreaParentID', 'siteAreaParent.name', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'
         ],
@@ -772,7 +772,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.SITE_AREAS, action: Action.LIST,
         attributes: [
-          'id', 'name', 'siteID', 'siteAreaParentID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging',
+          'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city', 'address.country',
           'address.coordinates', 'site.id', 'site.name', 'siteAreaParentID', 'siteAreaParent.name', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'
         ]
