@@ -902,6 +902,29 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         },
       },
+      {
+        resource: Entity.SITE, action: Action.READ,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['AssignedSites', 'LocalIssuer'],
+            metadata: {
+              autoUserSiteAssignment: {
+                visible: true,
+                enabled: false,
+                mandatory: true,
+                values: [],
+                defaultValue: null,
+              }
+            },
+          }
+        },
+        attributes: [
+          'id', 'name', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
+          'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
+        ],
+      },
       { resource: Entity.SITE_AREA, action: Action.CREATE },
       {
         resource: Entity.SITE_AREA,
