@@ -1,6 +1,5 @@
-import { AssetConnectionToken } from '../types/Asset';
-import { AssetConnectionType } from '../types/Setting';
-import Tenant from '../types/Tenant';
+import { AssetConnectionToken } from '../../types/Asset';
+import Tenant from '../../types/Tenant';
 import moment from 'moment';
 
 export default class AssetTokenCache {

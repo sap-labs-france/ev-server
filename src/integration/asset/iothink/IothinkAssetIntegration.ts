@@ -1,9 +1,9 @@
 import Asset, { AssetConnectionToken, AssetType, IothinkProperty } from '../../../types/Asset';
-import { AssetConnectionSetting, AssetConnectionType, AssetSetting } from '../../../types/Setting';
+import { AssetConnectionSetting, AssetSetting } from '../../../types/Setting';
 
 import { AbstractCurrentConsumption } from '../../../types/Consumption';
 import AssetIntegration from '../AssetIntegration';
-import AssetTokenCache from '../../../utils/AssetTokenCache';
+import AssetTokenCache from '../AssetTokenCache';
 import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
 import BackendError from '../../../exception/BackendError';
