@@ -44,7 +44,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     // Start the WS server
     Logging.logConsoleDebug(`Starting ${ServerType.JSON_SERVER} Server...`);
     App({}).ws('/*', {
-      // compression: uWS.SHARED_COMPRESSOR,
+      compression: uWS.SHARED_COMPRESSOR,
       maxPayloadLength: 64 * 1024, // 64 KB per request
       idleTimeout: 1 * 3600, // 1 hour of inactivity => Close
       upgrade: async (res: HttpResponse, req: HttpRequest, context: us_socket_context_t) => {
