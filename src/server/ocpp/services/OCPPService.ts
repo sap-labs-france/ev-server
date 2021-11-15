@@ -70,7 +70,7 @@ export default class OCPPService {
           action: ServerAction.OCPP_BOOT_NOTIFICATION,
           module: MODULE_NAME, method: 'handleBootNotification',
           message: 'Should have the required property \'chargeBoxIdentity\'!',
-          detailedMessages: { headers, bootNotification }
+          detailedMessages: { bootNotification }
         });
       }
       // Get Charging Station
@@ -103,7 +103,7 @@ export default class OCPPService {
         action: ServerAction.OCPP_BOOT_NOTIFICATION,
         module: MODULE_NAME, method: 'handleBootNotification',
         message: 'Boot Notification has been accepted',
-        detailedMessages: { headers, bootNotification }
+        detailedMessages: { bootNotification }
       });
       // Accept
       return {
@@ -146,8 +146,8 @@ export default class OCPPService {
         chargingStationID: chargingStation.id,
         module: MODULE_NAME, method: 'handleHeartbeat',
         action: ServerAction.OCPP_HEARTBEAT,
-        message: `Heartbeat saved with IP '${chargingStation.currentIPAddress.toString()}'`,
-        detailedMessages: { headers, heartbeat }
+        message: 'Heartbeat saved',
+        detailedMessages: { heartbeat }
       });
       return {
         currentTime: new Date().toISOString()
@@ -180,7 +180,7 @@ export default class OCPPService {
           action: ServerAction.OCPP_STATUS_NOTIFICATION,
           module: MODULE_NAME, method: 'handleStatusNotification',
           message: `Connector ID '0' > ${this.buildStatusNotification(statusNotification)}, will be ignored (Connector ID = '0')`,
-          detailedMessages: { headers, statusNotification }
+          detailedMessages: { statusNotification }
         });
         return {};
       }
@@ -214,7 +214,7 @@ export default class OCPPService {
           module: MODULE_NAME, method: 'handleMeterValues',
           action: ServerAction.OCPP_METER_VALUES,
           message: 'No relevant Meter Values to save',
-          detailedMessages: { headers, meterValues }
+          detailedMessages: { meterValues }
         });
         return {};
       }
@@ -273,7 +273,7 @@ export default class OCPPService {
         user: transaction.userID,
         module: MODULE_NAME, method: 'handleMeterValues',
         message: `${Utils.buildConnectorInfo(meterValues.connectorId, meterValues.transactionId)}  MeterValue have been saved`,
-        detailedMessages: { headers, normalizedMeterValues }
+        detailedMessages: { normalizedMeterValues }
       });
     } catch (error) {
       this.addChargingStationToException(error, headers.chargeBoxIdentity);
@@ -307,7 +307,7 @@ export default class OCPPService {
         module: MODULE_NAME, method: 'handleAuthorize',
         action: ServerAction.OCPP_AUTHORIZE, user: (authorize.user ? authorize.user : null),
         message: `User has been authorized with Badge ID '${authorize.idTag}'`,
-        detailedMessages: { headers, authorize }
+        detailedMessages: { authorize }
       });
       // Accepted
       return {
@@ -348,7 +348,7 @@ export default class OCPPService {
         action: ServerAction.OCPP_DIAGNOSTICS_STATUS_NOTIFICATION,
         module: MODULE_NAME, method: 'handleDiagnosticsStatusNotification',
         message: 'Diagnostics Status Notification has been saved',
-        detailedMessages: { headers, diagnosticsStatusNotification }
+        detailedMessages: { diagnosticsStatusNotification }
       });
       return {};
     } catch (error) {
@@ -381,7 +381,7 @@ export default class OCPPService {
         module: MODULE_NAME, method: 'handleFirmwareStatusNotification',
         action: ServerAction.OCPP_FIRMWARE_STATUS_NOTIFICATION,
         message: `Firmware Status Notification '${firmwareStatusNotification.status}' has been saved`,
-        detailedMessages: { headers, firmwareStatusNotification }
+        detailedMessages: { firmwareStatusNotification }
       });
       return {};
     } catch (error) {
@@ -480,7 +480,7 @@ export default class OCPPService {
         chargingStationID: chargingStation.id,
         module: MODULE_NAME, method: 'handleDataTransfer',
         action: ServerAction.CHARGING_STATION_DATA_TRANSFER, message: 'Data Transfer has been saved',
-        detailedMessages: { headers, dataTransfer }
+        detailedMessages: { dataTransfer }
       });
       // Accepted
       return {
@@ -553,7 +553,7 @@ export default class OCPPService {
         user: alternateUser ?? (user ?? null),
         actionOnUser: alternateUser ? (user ?? null) : null,
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has been stopped successfully`,
-        detailedMessages: { headers, stopTransaction }
+        detailedMessages: { stopTransaction }
       });
       // Accepted
       return {
@@ -1878,7 +1878,7 @@ export default class OCPPService {
             `Got chargePointModel='${bootNotification.chargePointModel}' but expected '${chargingStation.chargePointModel}'! ` : '') +
           (bootNotification.chargePointSerialNumber !== chargingStation.chargePointSerialNumber ?
             `Got chargePointSerialNumber='${bootNotification.chargePointSerialNumber ? bootNotification.chargePointSerialNumber : ''}' but expected '${chargingStation.chargePointSerialNumber ? chargingStation.chargePointSerialNumber : ''}'!` : ''),
-        detailedMessages: { headers, bootNotification }
+        detailedMessages: { bootNotification }
       });
     }
   }
@@ -1974,7 +1974,7 @@ export default class OCPPService {
             companyID: chargingStation.companyID,
             chargingStationID: chargingStation.id,
             module: MODULE_NAME, method: 'requestOCPPConfigurationDelayed',
-            message: `Cannot set '${heartbeatOcppKey}' to '${heartbeatIntervalSecs.toString()}' secs: '${result.status}'`
+            message: `Cannot set '${heartbeatOcppKey}' to '${heartbeatIntervalSecs.toString()}' secs`
           });
         } catch (error) {
           await Logging.logError({
@@ -1985,7 +1985,7 @@ export default class OCPPService {
             companyID: chargingStation.companyID,
             chargingStationID: chargingStation.id,
             module: MODULE_NAME, method: 'requestOCPPConfigurationDelayed',
-            message: `Cannot set '${heartbeatOcppKey}' to '${heartbeatIntervalSecs.toString()}' secs: '${error.message as string}'`,
+            message: `Cannot set '${heartbeatOcppKey}' to '${heartbeatIntervalSecs.toString()}' secs`,
             detailedMessages: { error: error.stack }
           });
         }
@@ -2041,7 +2041,7 @@ export default class OCPPService {
             module: MODULE_NAME,
             method: 'enrichAuthorize',
             message: 'Cannot authorize a roaming user on a private charging station',
-            detailedMessages: { headers, authorize }
+            detailedMessages: { authorize }
           });
         }
       } else {
@@ -2051,7 +2051,7 @@ export default class OCPPService {
           module: MODULE_NAME,
           method: 'enrichAuthorize',
           message: 'Authorization ID has not been supplied',
-          detailedMessages: { headers, authorize }
+          detailedMessages: { authorize }
         });
       }
     }
@@ -2081,7 +2081,7 @@ export default class OCPPService {
         module: MODULE_NAME, method: 'bypassStopTransaction',
         action: ServerAction.OCPP_STOP_TRANSACTION,
         message: 'Ignored Transaction ID = 0',
-        detailedMessages: { headers, stopTransaction }
+        detailedMessages: { stopTransaction }
       });
       return true;
     }
@@ -2099,7 +2099,7 @@ export default class OCPPService {
         module: MODULE_NAME, method: 'getTransactionFromMeterValues',
         message: `${Utils.buildConnectorInfo(meterValues.connectorId)} Meter Values are not linked to a transaction and will be ignored`,
         action: ServerAction.OCPP_METER_VALUES,
-        detailedMessages: { headers, meterValues }
+        detailedMessages: { meterValues }
       });
     }
     const transaction = await TransactionStorage.getTransaction(tenant, meterValues.transactionId, { withUser: true, withTag: true, withCar: true });
@@ -2117,7 +2117,7 @@ export default class OCPPService {
         module: MODULE_NAME, method: 'getTransactionFromMeterValues',
         message: `${Utils.buildConnectorInfo(meterValues.connectorId, meterValues.transactionId)} Transaction does not exist`,
         action: ServerAction.OCPP_METER_VALUES,
-        detailedMessages: { headers, meterValues }
+        detailedMessages: { meterValues }
       });
     }
     // Transaction finished
@@ -2132,7 +2132,7 @@ export default class OCPPService {
         module: MODULE_NAME, method: 'getTransactionFromMeterValues',
         message: `${Utils.buildConnectorInfo(meterValues.connectorId, meterValues.transactionId)} Transaction has already been stopped`,
         action: ServerAction.OCPP_METER_VALUES,
-        detailedMessages: { headers, transaction, meterValues }
+        detailedMessages: { transaction, meterValues }
       });
     }
     // Received Meter Values after the Transaction End Meter Value
@@ -2146,7 +2146,7 @@ export default class OCPPService {
         module: MODULE_NAME, method: 'getTransactionFromMeterValues',
         action: ServerAction.OCPP_METER_VALUES,
         message: `${Utils.buildConnectorInfo(meterValues.connectorId, meterValues.transactionId)} Meter Values received after the 'Transaction.End'`,
-        detailedMessages: { headers, meterValues }
+        detailedMessages: { meterValues }
       });
     }
     return transaction;
@@ -2165,7 +2165,7 @@ export default class OCPPService {
         module: MODULE_NAME, method: 'abortOngoingTransactionInMeterValues',
         action: ServerAction.OCPP_METER_VALUES,
         message: `${Utils.buildConnectorInfo(meterValues.connectorId, meterValues.transactionId)} Charging Station is not connected to the backend, cannot send a Remote Stop Transaction on an ongoing Transaction`,
-        detailedMessages: { headers, meterValues }
+        detailedMessages: { meterValues }
       });
     } else {
       // Send Remote Stop
@@ -2182,7 +2182,7 @@ export default class OCPPService {
           module: MODULE_NAME, method: 'abortOngoingTransactionInMeterValues',
           action: ServerAction.OCPP_METER_VALUES,
           message: `${Utils.buildConnectorInfo(meterValues.connectorId, meterValues.transactionId)} Transaction has been automatically remotely stopped`,
-          detailedMessages: { headers, meterValues }
+          detailedMessages: { meterValues }
         });
       } else {
         await Logging.logError({
@@ -2194,7 +2194,7 @@ export default class OCPPService {
           module: MODULE_NAME, method: 'abortOngoingTransactionInMeterValues',
           action: ServerAction.OCPP_METER_VALUES,
           message: `${Utils.buildConnectorInfo(meterValues.connectorId, meterValues.transactionId)} Cannot send a Remote Stop Transaction on an unknown ongoing Transaction`,
-          detailedMessages: { headers, meterValues }
+          detailedMessages: { meterValues }
         });
       }
     }
@@ -2212,7 +2212,7 @@ export default class OCPPService {
         module: MODULE_NAME, method: 'getTransactionFromStopTransaction',
         message: `Transaction with ID '${stopTransaction.transactionId}' doesn't exist`,
         action: ServerAction.OCPP_STOP_TRANSACTION,
-        detailedMessages: { headers, stopTransaction }
+        detailedMessages: { stopTransaction }
       });
     }
     return transaction;

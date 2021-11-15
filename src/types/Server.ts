@@ -234,18 +234,17 @@ export enum ServerAction {
   WS_CLIENT_INFO = 'WSClientInfo',
 
   WS_CONNECTION = 'WSConnection',
+  WS_CONNECTION_PINGED = 'WSConnectionPinged',
   WS_CONNECTION_OPENED = 'WSConnectionOpened',
   WS_CONNECTION_CLOSED = 'WSConnectionClosed',
 
   WS_JSON_CONNECTION_OPENED = 'WSJsonConnectionOpened',
   WS_JSON_CONNECTION_CLOSED = 'WSJsonConnectionClosed',
   WS_JSON_CONNECTION_ERROR = 'WSJsonConnectionError',
-  WS_JSON_CONNECTION_PINGED = 'WSJsonConnectionPinged',
-  WS_JSON_CONNECTION_PONGED = 'WSJsonConnectionPonged',
 
-  WS_REST_CONNECTION_OPENED = 'WSRestServerConnectionOpened',
-  WS_REST_CONNECTION_CLOSED = 'WSRestServerConnectionClosed',
-  WS_REST_CONNECTION_ERROR = 'WSRestServerConnectionError',
+  WS_REST_CONNECTION_OPENED = 'WSRestConnectionOpened',
+  WS_REST_CONNECTION_CLOSED = 'WSRestConnectionClosed',
+  WS_REST_CONNECTION_ERROR = 'WSRestConnectionError',
 
   WS_REST_CLIENT_ERROR_RESPONSE = 'WSRestClientErrorResponse',
   WS_REST_CLIENT_MESSAGE = 'WSRestClientMessage',
@@ -585,6 +584,15 @@ export enum ServerRoute {
   REST_OCPI_ENDPOINT = 'ocpi/endpoints/:id',
   REST_OCPI_ENDPOINT_REGISTER = 'ocpi/endpoints/:id/register',
   REST_OCPI_ENDPOINT_UNREGISTER = 'ocpi/endpoints/:id/unregister',
+
+  REST_OICP_ENDPOINTS = 'oicp/endpoints',
+  REST_OICP_ENDPOINT = 'oicp/endpoints/:id',
+  REST_OICP_ENDPOINT_PING = 'oicp/endpoints/:id/ping',
+  REST_OICP_ENDPOINT_SEND_EVSE_STATUSES = 'oicp/endpoints/:id/evses/statuses/send',
+  REST_OICP_ENDPOINT_SEND_EVSES = 'oicp/endpoints/:id/evses/send',
+  REST_OICP_ENDPOINT_REGISTER = 'oicp/endpoints/:id/register',
+  REST_OICP_ENDPOINT_UNREGISTER = 'oicp/endpoints/:id/unregister',
+
 
   // BILLING URLs for CRUD operations on PAYMENT METHODS
   REST_BILLING_PAYMENT_METHODS = 'users/:userID/payment-methods',

@@ -20,6 +20,7 @@ import SitesAdminDynamicAuthorizationFilter from './dynamic-filters/SitesAdminDy
 import SitesOwnerDynamicAuthorizationDataSource from './dynamic-data-source/SitesOwnerDynamicAuthorizationDataSource';
 import SitesOwnerDynamicAuthorizationFilter from './dynamic-filters/SitesOwnerDynamicAuthorizationFilter';
 import Tenant from '../types/Tenant';
+import UserMandatoryDynamicAuthorizationAssert from './dynamic-assert/UserMandatoryDynamicAuthorizationAssert';
 import UserToken from '../types/UserToken';
 
 export default class DynamicAuthorizationFactory {
@@ -83,6 +84,9 @@ export default class DynamicAuthorizationFactory {
         break;
       case DynamicAuthorizationAssertName.BASIC_USER:
         dynamicAssert = new BasicUserDynamicAuthorizationAssert(tenant, userToken, negateAssert);
+        break;
+      case DynamicAuthorizationAssertName.USER_MANDATORY:
+        dynamicAssert = new UserMandatoryDynamicAuthorizationAssert(tenant, userToken, negateAssert);
         break;
     }
     return dynamicAssert;

@@ -427,7 +427,7 @@ export default class Logging {
     let sizeOfResponseDataKB = 0;
     if (response.config.headers['Content-Length']) {
       sizeOfResponseDataKB = Utils.truncTo(
-        Utils.createDecimal(response.config.headers['Content-Length']).div(1024).toNumber(), 2);
+        Utils.createDecimal(Utils.convertToInt(response.config.headers['Content-Length'])).div(1024).toNumber(), 2);
     } else if (response.data) {
       sizeOfResponseDataKB = Utils.truncTo(
         Utils.createDecimal(sizeof(response.data)).div(1024).toNumber(), 2);
@@ -618,8 +618,7 @@ export default class Logging {
       siteID: chargingStationDetails.siteID,
       companyID: chargingStationDetails.companyID,
       module: module, method: action, action,
-      message,
-      detailedMessages: { request }
+      message, detailedMessages: { request }
     });
     const performanceID = await PerformanceStorage.savePerformanceRecord(
       Utils.buildPerformanceRecord({

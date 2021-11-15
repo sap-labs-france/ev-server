@@ -67,6 +67,10 @@
     {
       "name": "OCPI",
       "description": "OCPI API"
+    },
+    {
+      "name": "OICP",
+      "description": "OICP API"
     }
   ],
   "paths": {
@@ -5018,58 +5022,6 @@
         }
       }
     },
-    "/api/assets/{id}/consumptions": {
-      "post": {
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "description": "Push latest asset consumption",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/assetID"
-          }
-        ],
-        "tags": [
-          "Assets"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AssetConsumption"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Asset consumption created successfully",
-            "content": {
-              "application/json": {
-                "example": {
-                  "consumption": "###",
-                  "status": "Success"
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          },
-          "403": {
-            "$ref": "#/components/responses/ForbiddenError"
-          },
-          "500": {
-            "$ref": "#/components/responses/BackendError"
-          },
-          "550": {
-            "description": "Asset does not exist"
-          }
-        }
-      }
-    },
     "/api/charging-profiles": {
       "get": {
         "security": [
@@ -8587,7 +8539,7 @@
         }
       }
     },
-    "/api/assets/connectors/:id/connection/check": {
+    "/api/assets/connectors/{id}/connection/check": {
       "get": {
         "security": [
           {
@@ -8734,6 +8686,56 @@
           },
           "550": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Push latest asset consumption",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/assetID"
+          }
+        ],
+        "tags": [
+          "Assets"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetConsumption"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Asset consumption created successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "consumption": "###",
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "description": "Asset does not exist"
           }
         }
       }
@@ -9619,7 +9621,7 @@
         }
       }
     },
-    "/api/ocpi/endpoints/:id/evses/statuses/send": {
+    "/api/ocpi/endpoints/{id}/evses/statuses/send": {
       "put": {
         "security": [
           {
@@ -9661,7 +9663,7 @@
         }
       }
     },
-    "/api/ocpi/endpoints/:id/tokens/send": {
+    "/api/ocpi/endpoints/{id}/tokens/send": {
       "put": {
         "security": [
           {
@@ -9703,7 +9705,7 @@
         }
       }
     },
-    "/api/ocpi/endpoints/:id/tokens/generate": {
+    "/api/ocpi/endpoints/{id}/tokens/generate": {
       "put": {
         "security": [
           {
@@ -9762,7 +9764,7 @@
         }
       }
     },
-    "/api/ocpi/endpoints/:id/register": {
+    "/api/ocpi/endpoints/{id}/register": {
       "put": {
         "security": [
           {
@@ -9815,7 +9817,7 @@
         }
       }
     },
-    "/api/ocpi/endpoints/:id/unregister": {
+    "/api/ocpi/endpoints/{id}/unregister": {
       "put": {
         "security": [
           {
@@ -9840,6 +9842,281 @@
                   "status": "Success",
                   "statusCode": 200,
                   "statusText": "OK"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/oicp/endpoints": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Create an OICP Endpoint",
+        "tags": [
+          "OICP"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OICPEndpoint"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "OICP Endpoint created successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "###",
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/oicp/endpoints/{id}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve an OICP Endpoint",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OICPEndpointID"
+          }
+        ],
+        "tags": [
+          "OICP"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return OICP Endpoint",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OICPEndpoint"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Update an OICP Endpoint",
+        "tags": [
+          "OICP"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OICPEndpoint"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OICP Endpoint updated successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/oicp/endpoints/{id}/ping": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Ping an OICP Endpoint",
+        "tags": [
+          "OICP"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OICPEndpointID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OICPEndpoint"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OICP Endpoint is reachable",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success",
+                  "statusCode": "000",
+                  "statusText": "OK"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/oicp/endpoints/{id}/evses/statuses/send": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Send OICP EVSE's statuses",
+        "tags": [
+          "OICP"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OICPEndpointID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OICP Endpoint's EVSE's statuses sent",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": 0,
+                  "failure": 0,
+                  "total": 0,
+                  "logs": null,
+                  "objectIDsInFailure": []
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/oicp/endpoints/{id}/evses/send": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Send OICP EVSEs",
+        "tags": [
+          "OICP"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OICPEndpointID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OICP Endpoint's EVSEs sent",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": 0,
+                  "failure": 0,
+                  "total": 0,
+                  "logs": null,
+                  "objectIDsInFailure": []
                 }
               }
             }
@@ -11026,6 +11303,42 @@
             "type": "boolean"
           }
         }
+      },
+      "OICPEndpoint": {
+        "type": "object",
+        "required": [
+          "name",
+          "role",
+          "baseUrl"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "CPO",
+              "EMSP"
+            ]
+          },
+          "baseUrl": {
+            "type": "string"
+          },
+          "countryCode": {
+            "type": "string"
+          },
+          "partyId": {
+            "type": "string"
+          },
+          "backgroundPatchJob": {
+            "type": "boolean"
+          }
+        }
       }
     },
     "parameters": {
@@ -11609,6 +11922,15 @@
         "in": "path",
         "name": "id",
         "description": "OCPI Endpoint ID",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "OICPEndpointID": {
+        "in": "path",
+        "name": "id",
+        "description": "OICP Endpoint ID",
         "required": true,
         "schema": {
           "type": "string"
