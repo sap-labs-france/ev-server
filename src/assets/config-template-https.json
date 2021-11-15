@@ -85,10 +85,10 @@
     "externalProtocol": "https"
   },
   "WSDLEndpoint": {
-    "baseUrl": ""
+    "baseSecureUrl": ""
   },
   "JsonEndpoint": {
-    "baseUrl": ""
+    "baseSecureUrl": ""
   },
   "OCPIEndpoint": {
     "baseUrl": ""

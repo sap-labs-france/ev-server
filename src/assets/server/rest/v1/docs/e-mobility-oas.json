@@ -10066,7 +10066,11 @@
             "content": {
               "application/json": {
                 "example": {
-                  "status": "Success"
+                  "success": 0,
+                  "failure": 0,
+                  "total": 0,
+                  "logs": null,
+                  "objectIDsInFailure": []
                 }
               }
             }
@@ -10108,7 +10112,11 @@
             "content": {
               "application/json": {
                 "example": {
-                  "status": "Success"
+                  "success": 0,
+                  "failure": 0,
+                  "total": 0,
+                  "logs": null,
+                  "objectIDsInFailure": []
                 }
               }
             }

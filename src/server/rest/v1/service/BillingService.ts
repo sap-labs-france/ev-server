@@ -23,6 +23,7 @@ import { TenantComponents } from '../../../../types/Tenant';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import User from '../../../../types/User';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
+import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 
 const MODULE_NAME = 'BillingService';
@@ -529,7 +530,7 @@ export default class BillingService {
     const paymentMethodId: string = filteredRequest.paymentMethodId;
     const operationResult: BillingOperationResult = await billingImpl.setupPaymentMethod(user, paymentMethodId);
     if (operationResult) {
-      console.log(operationResult);
+      Utils.isDevelopmentEnv() && Logging.logConsoleError(operationResult as unknown as string);
     }
     res.json(operationResult);
     next();

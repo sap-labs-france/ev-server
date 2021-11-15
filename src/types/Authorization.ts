@@ -240,7 +240,8 @@ export enum DynamicAuthorizationFilterName {
 export enum DynamicAuthorizationAssertName {
   POOL_CAR = 'PoolCar',
   OWN_USER = 'OwnUser',
-  BASIC_USER = 'BasicUser'
+  BASIC_USER = 'BasicUser',
+  USER_MANDATORY = 'UserMandatory'
 }
 
 export enum DynamicAuthorizationDataSourceName {

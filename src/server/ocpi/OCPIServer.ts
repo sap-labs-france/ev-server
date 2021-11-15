@@ -7,6 +7,7 @@ import ExpressUtils from '../ExpressUtils';
 import Logging from '../../utils/Logging';
 import OCPIServiceConfiguration from '../../types/configuration/OCPIServiceConfiguration';
 import OCPIServices from './OCPIServices';
+import { ServerType } from '../../types/Server';
 import { ServerUtils } from '../ServerUtils';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
@@ -51,7 +52,7 @@ export default class OCPIServer {
 
   // Start the server
   public start(): void {
-    ServerUtils.startHttpServer(this.ocpiRestConfig, ServerUtils.createHttpServer(this.ocpiRestConfig, this.expressApplication), MODULE_NAME, 'OCPI');
+    ServerUtils.startHttpServer(this.ocpiRestConfig, ServerUtils.createHttpServer(this.ocpiRestConfig, this.expressApplication), MODULE_NAME, ServerType.OCPI_SERVER);
   }
 
   private async resolveTenant(req: Request, res: Response, next: NextFunction): Promise<void> {
