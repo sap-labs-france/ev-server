@@ -1235,7 +1235,7 @@ export default class ChargingStationService {
     // Backward compatibility for the mobile application
     req.body.chargeBoxID && (req.body.chargingStationID = req.body.chargeBoxID);
     // Filter - Type is hacked because code below is. Would need approval to change code structure.
-    const command = action.slice('RestChargingStation'.length) as Command;
+    const command = action.slice('Ocpp'.length) as Command;
     UtilsService.assertIdIsProvided(action, req.body.chargingStationID, MODULE_NAME, 'handleAction', req.user);
     // Get the Charging station
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
