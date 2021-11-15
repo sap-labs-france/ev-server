@@ -618,8 +618,7 @@ export default class Logging {
       siteID: chargingStationDetails.siteID,
       companyID: chargingStationDetails.companyID,
       module: module, method: action, action,
-      message,
-      detailedMessages: { request }
+      message, detailedMessages: { request }
     });
     const performanceID = await PerformanceStorage.savePerformanceRecord(
       Utils.buildPerformanceRecord({

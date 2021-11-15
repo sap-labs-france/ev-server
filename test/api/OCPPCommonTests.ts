@@ -1008,8 +1008,7 @@ export default class OCPPCommonTests {
     // Boot notification empty the connectors
     // Send status notifications
     for (const connector of this.chargingStationContext.getChargingStation().connectors) {
-      // Send async on purpose
-      void this.chargingStationContext.setConnectorStatus({
+      await this.chargingStationContext.setConnectorStatus({
         connectorId: connector.connectorId,
         status: ChargePointStatus.AVAILABLE,
         errorCode: ChargePointErrorCode.NO_ERROR,

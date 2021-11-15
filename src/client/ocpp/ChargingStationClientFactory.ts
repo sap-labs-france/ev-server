@@ -20,24 +20,18 @@ export default class ChargingStationClientFactory {
       switch (chargingStation.ocppProtocol) {
         // JSON
         case OCPPProtocol.JSON:
-          // Get the client from Json Server
+          // Json Server
           if (global.centralSystemJsonServer) {
-            chargingClient = global.centralSystemJsonServer.getChargingStationClient(tenant.id, chargingStation.id, {
-              siteAreaID: chargingStation.siteAreaID,
-              siteID: chargingStation.siteID,
-              companyID: chargingStation.companyID,
-            });
-          }
-          // Not Found
-          if (!chargingClient) {
-            // Use the remote client
+            // Get the local WS Connection Client
+            chargingClient = global.centralSystemJsonServer.getChargingStationClient(tenant, chargingStation);
+          } else {
+            // Get the Remote WS Connection Client (Rest)
             chargingClient = new JsonRestChargingStationClient(tenant.id, chargingStation);
           }
           break;
         // SOAP
         case OCPPProtocol.SOAP:
-        default:
-          // Init client
+          // Init SOAP client
           chargingClient = await SoapChargingStationClient.getChargingStationClient(tenant, chargingStation);
           break;
       }
@@ -54,7 +48,6 @@ export default class ChargingStationClientFactory {
         });
       }
       chargingClient = OCPIClientFactory.getChargingStationClient(tenant, chargingStation);
-      // TODO: add Hubject support
     }
     // Check
     if (!chargingClient) {
