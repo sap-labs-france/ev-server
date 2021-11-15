@@ -1073,7 +1073,16 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'user.name', 'user.firstName', 'user.email', 'createdOn', 'lastChangedOn'
         ],
       },
-      { resource: Entity.TAG, action: Action.CREATE },
+      {
+        resource: Entity.TAG, action: Action.CREATE,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: ['UserMandatory'],
+            filters: []
+          }
+        }
+      },
       {
         resource: Entity.TAG, action: Action.READ,
         condition: {
@@ -1098,11 +1107,21 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ],
       },
       {
-        resource: Entity.TAG, action: [Action.UPDATE, Action.DELETE],
+        resource: Entity.TAG, action: Action.DELETE,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
+            filters: ['SitesAdmin', 'LocalIssuer']
+          }
+        }
+      },
+      {
+        resource: Entity.TAG, action: Action.UPDATE,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: ['UserMandatory'],
             filters: ['SitesAdmin', 'LocalIssuer']
           }
         }
