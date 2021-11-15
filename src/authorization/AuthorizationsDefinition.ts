@@ -911,11 +911,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
             filters: ['AssignedSites', 'LocalIssuer'],
             metadata: {
               autoUserSiteAssignment: {
-                visible: true,
                 enabled: false,
-                mandatory: true,
-                values: [],
-                defaultValue: null,
               }
             },
           }
@@ -1082,11 +1078,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
             filters: ['SitesAdmin', 'LocalIssuer'],
             metadata: {
               userID: {
-                visible: true,
-                enabled: true,
                 mandatory: true,
-                values: [],
-                defaultValue: null,
               }
             },
           }
@@ -1115,11 +1107,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
             filters: ['SitesAdmin', 'LocalIssuer'],
             metadata: {
               userID: {
-                visible: true,
-                enabled: true,
                 mandatory: true,
-                values: [],
-                defaultValue: null,
               }
             },
           }
