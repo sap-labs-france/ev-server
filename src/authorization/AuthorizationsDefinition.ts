@@ -835,10 +835,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
             metadata: {
               status: {
                 visible: true,
-                enabled: true,
                 mandatory: true,
-                values: [],
-                defaultValue: null,
               }
             },
           }
