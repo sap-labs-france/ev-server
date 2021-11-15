@@ -1,4 +1,4 @@
-FROM node:lts-alpine as builder
+FROM node:16 as builder
 
 ARG build
 
@@ -7,12 +7,8 @@ WORKDIR /usr/builder
 COPY package.json package-lock.json ./
 
 RUN npm set progress=false && npm config set depth 0 && npm cache clean --force
-RUN apk add --no-cache --virtual .gyp \
-  build-base \
-  git \
-  python \
-  && npm install \
-  && apk del .gyp
+
+RUN npm install
 
 COPY LICENSE NOTICE ./
 COPY src ./src
@@ -24,7 +20,7 @@ COPY webpack.config.js ./
 
 RUN npm run build:${build}
 
-FROM node:lts-alpine
+FROM node:16
 
 WORKDIR /usr/app
 COPY --from=builder /usr/builder/node_modules ./node_modules

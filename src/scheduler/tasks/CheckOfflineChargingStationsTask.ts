@@ -6,8 +6,8 @@ import { LockEntity } from '../../types/Locking';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
-import { OCPPGetConfigurationCommandResult } from '../../types/ocpp/OCPPClient';
-import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
+import OCPPCommon from '../../server/ocpp/utils/OCPPCommon';
+import { OCPPGetConfigurationResponse } from '../../types/ocpp/OCPPClient';
 import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
@@ -30,11 +30,14 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
         if (!Utils.isEmptyArray(chargingStations.result)) {
           for (let i = chargingStations.result.length - 1; i >= 0; i--) {
             const chargingStation = chargingStations.result[i];
-            let ocppHeartbeatConfiguration: OCPPGetConfigurationCommandResult;
+            let ocppHeartbeatConfiguration: OCPPGetConfigurationResponse;
             // Check if charging station is still connected
             try {
-              ocppHeartbeatConfiguration = await OCPPUtils.requestChargingStationOcppParameters(
-                tenant, chargingStation, { key: Constants.OCPP_HEARTBEAT_KEYS as string[] });
+              // Send credentials to get the token
+              ocppHeartbeatConfiguration = await Utils.executePromiseWithTimeout(
+                5000, OCPPCommon.requestChargingStationOcppParameters(tenant, chargingStation, { key: Constants.OCPP_HEARTBEAT_KEYS as string[] }),
+                `Time out error (5s) when trying to get OCPP configuration from '${chargingStation.id}'`
+              );
             } catch (error) {
               // Charging Station is offline!
               continue;
@@ -47,14 +50,13 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
                 siteAreaID: chargingStation.siteAreaID,
                 companyID: chargingStation.companyID,
                 chargingStationID: chargingStation.id,
-                source: chargingStation.id,
                 action: ServerAction.OFFLINE_CHARGING_STATION,
                 module: MODULE_NAME, method: 'processTenant',
                 message: 'Offline charging station responded successfully to an OCPP command and will be ignored',
                 detailedMessages: { ocppHeartbeatConfiguration }
               });
               // Update lastSeen
-              await ChargingStationStorage.saveChargingStationLastSeen(tenant, chargingStation.id,
+              await ChargingStationStorage.saveChargingStationRuntimeData(tenant, chargingStation.id,
                 { lastSeen: new Date() }
               );
               // Remove charging station from notification
@@ -69,7 +71,7 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
           if (chargingStations.result.length > 0) {
             const chargingStationIDs = chargingStations.result.map((chargingStation) => chargingStation.id).join(', ');
             // Send notification
-            await NotificationHandler.sendOfflineChargingStations(
+            void NotificationHandler.sendOfflineChargingStations(
               tenant, {
                 chargeBoxIDs: chargingStationIDs,
                 evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)

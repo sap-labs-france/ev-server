@@ -80,7 +80,7 @@ export default class NotificationService {
       evseDashboardURL: Utils.buildEvseURL(),
     };
     // Send Notification
-    await NotificationHandler.sendEndUserErrorNotification(req.tenant, endUserErrorNotification);
+    void NotificationHandler.sendEndUserErrorNotification(req.tenant, endUserErrorNotification);
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();

@@ -6,7 +6,6 @@ import Constants from '../utils/Constants';
 import { HTTPError } from '../types/HTTPError';
 import { ObjectId } from 'mongodb';
 import Schema from '../types/validator/Schema';
-import Utils from '../utils/Utils';
 import addFormats from 'ajv-formats';
 import chalk from 'chalk';
 import countries from 'i18n-iso-countries';
@@ -69,10 +68,10 @@ export default class SchemaValidator {
   protected validate(schema: Schema, data: Record<string, unknown>): any {
     let fnValidate: ValidateFunction<unknown>;
     if (!schema.$id) {
-      console.error(chalk.red('===================================='));
-      console.error(chalk.red('Missing schema ID:'));
-      console.error(chalk.red(JSON.stringify(schema)));
-      console.error(chalk.red('===================================='));
+      this.logConsoleError('====================================');
+      this.logConsoleError('Missing schema ID:');
+      this.logConsoleError(JSON.stringify(schema));
+      this.logConsoleError('====================================');
       // Not cached: Compile schema
       fnValidate = this.ajv.compile(schema);
     } else {
@@ -86,7 +85,7 @@ export default class SchemaValidator {
       }
     }
     // Keep the original version for checking missing props after
-    const originalSchema = Utils.serializeOriginalSchema(data);
+    const originalSchema = this.serializeOriginalSchema(data);
     // Run validation
     if (!fnValidate(data)) {
       if (!fnValidate.errors) {
@@ -101,7 +100,6 @@ export default class SchemaValidator {
         }
       }
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: concatenatedErrors.join(', '),
         module: this.moduleName,
@@ -110,7 +108,7 @@ export default class SchemaValidator {
       });
     }
     // Check for missing fields in Authorization Definition (not possible to make AJV failing on missing fields)
-    Utils.checkOriginalSchema(originalSchema, data);
+    this.checkOriginalSchema(originalSchema, data);
     return data;
   }
 
@@ -157,5 +155,35 @@ export default class SchemaValidator {
       type: 'string',
       validate: (c) => countries.isValid(c)
     });
+  }
+
+  private serializeOriginalSchema(originalSchema: Record<string, unknown>): string {
+    // Check for schema missing vars
+    if (this.isDevelopmentEnv()) {
+      return JSON.stringify(originalSchema);
+    }
+  }
+
+  private checkOriginalSchema(originalSchema: string, validatedSchema: Record<string, unknown>): void {
+    if (this.isDevelopmentEnv() && originalSchema !== JSON.stringify(validatedSchema)) {
+      this.logConsoleError('====================================');
+      this.logConsoleError('Data changed after schema validation');
+      this.logConsoleError('Original Data:');
+      this.logConsoleError(originalSchema);
+      this.logConsoleError('Validated Data:');
+      this.logConsoleError(JSON.stringify(validatedSchema));
+      this.logConsoleError('====================================');
+    }
+  }
+
+  // Dup method: Avoid circular deps with Utils class
+  // src/validator/SchemaValidator.ts -> src/utils/Utils.ts -> src/utils/Cypher.ts -> src/storage/mongodb/SettingStorage.ts -> src/utils/Logging.ts -> src/storage/mongodb/PerformanceStorage.ts -> src/storage/mongodb/validator/PerformanceValidatorStorage.ts -> src/validator/SchemaValidator.ts
+  private isDevelopmentEnv(): boolean {
+    return process.env.NODE_ENV === 'development';
+  }
+
+  // Creatd to avoid circular dependency
+  private logConsoleError(message: string): void {
+    console.error(chalk.red(`${new Date().toLocaleString()} - ${message}`));
   }
 }

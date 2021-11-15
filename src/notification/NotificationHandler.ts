@@ -1,5 +1,5 @@
 import User, { UserRole } from '../types/User';
-import UserNotifications, { AccountVerificationNotification, AdminAccountVerificationNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
+import UserNotifications, { AccountVerificationNotification, AdminAccountVerificationNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
 
 import ChargingStation from '../types/ChargingStation';
 import Configuration from '../utils/Configuration';
@@ -130,7 +130,6 @@ export default class NotificationHandler {
                 companyID: chargingStation.companyID,
                 siteID: chargingStation.siteID,
                 siteAreaID: chargingStation.siteAreaID,
-                source: chargingStation.id,
                 module: MODULE_NAME, method: 'sendEndOfCharge',
                 action: ServerAction.END_OF_CHARGE,
                 user: user.id,
@@ -185,7 +184,6 @@ export default class NotificationHandler {
                 companyID: chargingStation.companyID,
                 siteID: chargingStation.siteID,
                 siteAreaID: chargingStation.siteAreaID,
-                source: chargingStation.id,
                 module: MODULE_NAME, method: 'sendOptimalChargeReached',
                 action: ServerAction.OPTIMAL_CHARGE_REACHED,
                 user: user.id,
@@ -240,7 +238,6 @@ export default class NotificationHandler {
                 companyID: chargingStation.companyID,
                 siteID: chargingStation.siteID,
                 siteAreaID: chargingStation.siteAreaID,
-                source: chargingStation.id,
                 module: MODULE_NAME, method: 'sendEndOfSession',
                 action: ServerAction.END_OF_SESSION,
                 user: user.id,
@@ -295,7 +292,6 @@ export default class NotificationHandler {
                 companyID: chargingStation.companyID,
                 siteID: chargingStation.siteID,
                 siteAreaID: chargingStation.siteAreaID,
-                source: chargingStation.id,
                 module: MODULE_NAME, method: 'sendEndOfSignedSession',
                 action: ServerAction.END_OF_SESSION,
                 user: user.id,
@@ -496,7 +492,6 @@ export default class NotificationHandler {
             } else {
               await Logging.logDebug({
                 tenantID: tenant.id,
-                source: Constants.CENTRAL_SERVER,
                 module: MODULE_NAME, method: 'sendVerificationEmail',
                 action: ServerAction.VERIFICATION_EMAIL,
                 user: user.id,
@@ -581,7 +576,6 @@ export default class NotificationHandler {
                   companyID: chargingStation.companyID,
                   siteID: chargingStation.siteID,
                   siteAreaID: chargingStation.siteAreaID,
-                  source: chargingStation.id,
                   module: MODULE_NAME, method: 'sendChargingStationStatusError',
                   action: ServerAction.CHARGING_STATION_STATUS_ERROR,
                   message: `Notification via '${notificationSource.channel}' has already been sent`
@@ -706,7 +700,6 @@ export default class NotificationHandler {
                 companyID: chargingStation.companyID,
                 siteID: chargingStation.siteID,
                 siteAreaID: chargingStation.siteAreaID,
-                source: chargingStation.id,
                 module: MODULE_NAME, method: 'sendSessionStarted',
                 action: ServerAction.TRANSACTION_STARTED,
                 user: user.id,
@@ -715,56 +708,6 @@ export default class NotificationHandler {
             }
           } catch (error) {
             await Logging.logActionExceptionMessage(tenant.id, ServerAction.TRANSACTION_STARTED, error);
-          }
-        }
-      }
-    }
-  }
-
-  static async sendSmtpError(tenant: Tenant, sourceData: SmtpErrorNotification): Promise<void> {
-    if (tenant.id !== Constants.DEFAULT_TENANT) {
-      // Get the Tenant logo
-      if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
-        const tenantLogo = await TenantStorage.getTenantLogo(tenant);
-        tenant.logo = tenantLogo.logo;
-      }
-      sourceData.tenantLogoURL = tenant.logo;
-      // Enrich with admins
-      const adminUsers = await NotificationHandler.getAdminUsers(tenant, 'sendSmtpError');
-      if (!Utils.isEmptyArray(adminUsers)) {
-        // For each Sources
-        for (const notificationSource of NotificationHandler.notificationSources) {
-          // Active?
-          if (notificationSource.enabled) {
-            try {
-              // Check notification
-              const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
-                tenant, notificationSource.channel, ServerAction.EMAIL_SERVER_ERROR,
-                null, null, { intervalMins: 60 });
-              if (!hasBeenNotified) {
-                // Email enabled?
-                if (NotificationHandler.notificationConfig.Email.enabled) {
-                  // Save
-                  await NotificationHandler.saveNotification(
-                    tenant, notificationSource.channel, null, ServerAction.EMAIL_SERVER_ERROR, { notificationData: { SMTPError: sourceData.SMTPError } });
-                  // Send
-                  for (const adminUser of adminUsers) {
-                    await notificationSource.notificationTask.sendSmtpError(
-                      sourceData, adminUser, tenant, NotificationSeverity.ERROR);
-                  }
-                }
-              } else {
-                await Logging.logDebug({
-                  tenantID: tenant.id,
-                  source: Constants.CENTRAL_SERVER,
-                  module: MODULE_NAME, method: 'sendSmtpError',
-                  action: ServerAction.EMAIL_SERVER_ERROR,
-                  message: `Notification via '${notificationSource.channel}' has already been sent`
-                });
-              }
-            } catch (error) {
-              await Logging.logActionExceptionMessage(tenant.id, ServerAction.EMAIL_SERVER_ERROR, error);
-            }
           }
         }
       }
@@ -812,7 +755,6 @@ export default class NotificationHandler {
               } else {
                 await Logging.logDebug({
                   tenantID: tenant.id,
-                  source: Constants.CENTRAL_SERVER,
                   module: MODULE_NAME, method: 'sendOCPIPatchChargingStationsStatusesError',
                   action: ServerAction.PATCH_EVSE_STATUS_ERROR,
                   message: `Notification via '${notificationSource.channel}' has already been sent`
@@ -863,7 +805,6 @@ export default class NotificationHandler {
               } else {
                 await Logging.logDebug({
                   tenantID: tenant.id,
-                  source: Constants.CENTRAL_SERVER,
                   module: MODULE_NAME, method: 'sendOICPPatchChargingStationsStatusesError',
                   action: ServerAction.PATCH_EVSE_STATUS_ERROR,
                   message: `Notification via '${notificationSource.channel}' has already been sent`
@@ -914,7 +855,6 @@ export default class NotificationHandler {
               } else {
                 await Logging.logDebug({
                   tenantID: tenant.id,
-                  source: Constants.CENTRAL_SERVER,
                   module: MODULE_NAME, method: 'sendOICPPatchChargingStationsError',
                   action: ServerAction.PATCH_EVSE_ERROR,
                   message: `Notification via '${notificationSource.channel}' has already been sent`
@@ -956,7 +896,6 @@ export default class NotificationHandler {
             } else {
               await Logging.logDebug({
                 tenantID: tenant.id,
-                source: Constants.CENTRAL_SERVER,
                 module: MODULE_NAME, method: 'sendUserAccountInactivity',
                 action: ServerAction.USER_ACCOUNT_INACTIVITY,
                 user: user.id,
@@ -1011,7 +950,6 @@ export default class NotificationHandler {
                 companyID: chargingStation.companyID,
                 siteID: chargingStation.siteID,
                 siteAreaID: chargingStation.siteAreaID,
-                source: chargingStation.id,
                 module: MODULE_NAME, method: 'sendPreparingSessionNotStarted',
                 action: ServerAction.PREPARING_SESSION_NOT_STARTED,
                 user: user.id,
@@ -1062,7 +1000,6 @@ export default class NotificationHandler {
               } else {
                 await Logging.logDebug({
                   tenantID: tenant.id,
-                  source: Constants.CENTRAL_SERVER,
                   module: MODULE_NAME, method: 'sendOfflineChargingStations',
                   action: ServerAction.OFFLINE_CHARGING_STATIONS,
                   message: `Notification via '${notificationSource.channel}' has already been sent`
@@ -1112,7 +1049,6 @@ export default class NotificationHandler {
               } else {
                 await Logging.logDebug({
                   tenantID: tenant.id,
-                  source: Constants.CENTRAL_SERVER,
                   module: MODULE_NAME, method: 'sendBillingSynchronizationFailed',
                   action: ServerAction.BILLING_USER_SYNCHRONIZATION_FAILED,
                   message: `Notification via '${notificationSource.channel}' has already been sent`
@@ -1162,7 +1098,6 @@ export default class NotificationHandler {
               } else {
                 await Logging.logDebug({
                   tenantID: tenant.id,
-                  source: Constants.CENTRAL_SERVER,
                   module: MODULE_NAME, method: 'sendBillingInvoicesSynchronizationFailed',
                   action: ServerAction.BILLING_INVOICE_SYNCHRONIZATION_FAILED,
                   message: `Notification via '${notificationSource.channel}' has already been sent`
@@ -1212,7 +1147,6 @@ export default class NotificationHandler {
               } else {
                 await Logging.logDebug({
                   tenantID: tenant.id,
-                  source: Constants.CENTRAL_SERVER,
                   module: MODULE_NAME, method: 'sendBillingPeriodicOperationFailed',
                   action: ServerAction.BILLING_PERFORM_OPERATIONS,
                   message: `Notification via '${notificationSource.channel}' has already been sent`
@@ -1258,7 +1192,6 @@ export default class NotificationHandler {
             } else {
               await Logging.logDebug({
                 tenantID: tenant.id,
-                source: Constants.CENTRAL_SERVER,
                 module: MODULE_NAME, method: 'sendCarsSynchronizationFailed',
                 action: ServerAction.CAR_CATALOG_SYNCHRONIZATION_FAILED,
                 message: `Notification via '${notificationSource.channel}' has already been sent`
@@ -1312,7 +1245,6 @@ export default class NotificationHandler {
                   companyID: chargingStation.companyID,
                   siteID: chargingStation.siteID,
                   siteAreaID: chargingStation.siteAreaID,
-                  source: chargingStation.id,
                   module: MODULE_NAME, method: 'sendComputeAndApplyChargingProfilesFailed',
                   action: ServerAction.COMPUTE_AND_APPLY_CHARGING_PROFILES_FAILED,
                   message: `Notification via '${notificationSource.channel}' has already been sent`
@@ -1403,7 +1335,6 @@ export default class NotificationHandler {
                 companyID: chargingStation.companyID,
                 siteID: chargingStation.siteID,
                 siteAreaID: chargingStation.siteAreaID,
-                source: chargingStation.id,
                 module: MODULE_NAME, method: 'sendSessionNotStarted',
                 action: ServerAction.SESSION_NOT_STARTED_AFTER_AUTHORIZE,
                 message: `Notification via '${notificationSource.channel}' has already been sent`
@@ -1448,7 +1379,6 @@ export default class NotificationHandler {
             } else {
               await Logging.logDebug({
                 tenantID: tenant.id,
-                source: Constants.CENTRAL_SERVER,
                 module: MODULE_NAME, method: 'sendBillingNewInvoiceNotification',
                 action: ServerAction.BILLING_NEW_INVOICE,
                 user: user.id,
@@ -1484,7 +1414,6 @@ export default class NotificationHandler {
         siteAreaID: extraParams.chargingStation?.siteAreaID,
         companyID: extraParams.chargingStation?.companyID,
         chargingStationID: extraParams.chargingStation?.id,
-        source: (extraParams.chargingStation ? extraParams.chargingStation.id : null),
         module: MODULE_NAME, method: 'saveNotification',
         action: sourceDescr,
         actionOnUser: extraParams.user,
@@ -1498,7 +1427,6 @@ export default class NotificationHandler {
         siteAreaID: extraParams.chargingStation?.siteAreaID,
         companyID: extraParams.chargingStation?.companyID,
         chargingStationID: extraParams.chargingStation?.id,
-        source: (extraParams.chargingStation ? extraParams.chargingStation.id : null),
         module: MODULE_NAME, method: 'saveNotification',
         action: sourceDescr,
         message: `Admin users are being notified (${channel})`

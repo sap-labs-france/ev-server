@@ -1,4 +1,3 @@
-import WSClientConfiguration from './configuration/WSClientConfiguration';
 import { WSServerProtocol } from './Server';
 import WebSocket from 'ws';
 
@@ -21,6 +20,12 @@ export const WebSocketCloseEventStatusString: Record<WebSocketCloseEventStatusCo
   1015: 'TLS Handshake'
 });
 
+export interface WebSocketPingResult {
+  ok: boolean;
+  errorCode?: WebSocketCloseEventStatusCode;
+  errorMessage?: string;
+}
+
 export enum WebSocketCloseEventStatusCode {
   CLOSE_NORMAL = 1000,
   CLOSE_GOING_AWAY = 1001,
@@ -40,8 +45,8 @@ export enum WebSocketCloseEventStatusCode {
   CLOSE_TLS_HANDSHAKE = 1015
 }
 
-export interface WSClientOptions extends WSClientConfiguration {
-  WSOptions?: WebSocket.ClientOptions;
+export interface WSClientOptions {
+  wsOptions?: WebSocket.ClientOptions;
   logTenantID?: string;
   protocols?: WSServerProtocol | WSServerProtocol[];
 }

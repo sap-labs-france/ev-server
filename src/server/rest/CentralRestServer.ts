@@ -4,6 +4,7 @@ import CentralSystemRestServiceConfiguration from '../../types/configuration/Cen
 import ExpressUtils from '../ExpressUtils';
 import GlobalRouter from './v1/router/GlobalRouter';
 import Logging from '../../utils/Logging';
+import { ServerType } from '../../types/Server';
 import { ServerUtils } from '../ServerUtils';
 import express from 'express';
 import http from 'http';
@@ -29,13 +30,23 @@ export default class CentralRestServer {
     // Routers
     this.expressApplication.use('/v1', new GlobalRouter().buildRoutes());
     // Secured API
-    this.expressApplication.all('/client/api/:action',
+    this.expressApplication.use('/client/api/:action',
       AuthService.authenticate(),
       CentralRestServerService.restServiceSecured.bind(this));
     // Util API
-    this.expressApplication.all('/client/util/:action',
+    this.expressApplication.use('/client/util/:action',
       Logging.traceExpressRequest.bind(this),
       CentralRestServerService.restServiceUtil.bind(this));
+    // Unknwon Route
+    // TODO: Called before other routes: To Check
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    // this.expressApplication.use((req: Request, res: Response, next: NextFunction) => {
+    //   if (!res.headersSent) {
+    //     console.log(`Res status: ${res.statusCode}, url: ${req.url}`);
+    //     res.sendStatus(StatusCodes.NOT_FOUND);
+    //   }
+    //   next();
+    // });
     // Post init
     ExpressUtils.postInitApplication(this.expressApplication);
     // Create HTTP server to serve the express app
@@ -43,6 +54,6 @@ export default class CentralRestServer {
   }
 
   start(): void {
-    ServerUtils.startHttpServer(CentralRestServer.centralSystemRestConfig, CentralRestServer.restHttpServer, MODULE_NAME, 'REST');
+    ServerUtils.startHttpServer(CentralRestServer.centralSystemRestConfig, CentralRestServer.restHttpServer, MODULE_NAME, ServerType.REST_SERVER);
   }
 }

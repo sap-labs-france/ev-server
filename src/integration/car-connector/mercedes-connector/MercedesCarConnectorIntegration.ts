@@ -29,7 +29,6 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
         if (error.config.method === 'post') {
           if (error.config.url.endsWith('/token.oauth2')) {
             throw new BackendError({
-              source: Constants.CENTRAL_SERVER,
               module: MODULE_NAME,
               method: 'retryDelay',
               message: `Unable to post token, response status ${error.response.status}, attempt ${retryCount}`,
@@ -42,7 +41,6 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
               payload: JSON.parse(error.config.data)
             };
             throw new BackendError({
-              source: Constants.CENTRAL_SERVER,
               module: MODULE_NAME,
               method: 'retryDelay',
               message: `Unable to post data on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`,
@@ -52,7 +50,6 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
           }
         } else {
           throw new BackendError({
-            source: Constants.CENTRAL_SERVER,
             module: MODULE_NAME,
             method: 'retryDelay',
             message: `Unable to make data request on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`,
@@ -60,9 +57,8 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
             detailedMessages: { response: error.response.data }
           });
         }
-      } catch (err) {
-        void Logging.logException(
-          err, ServerAction.CAR_CONNECTOR, Constants.CENTRAL_SERVER, MODULE_NAME, 'anonymous', this.tenant.id, null);
+      } catch (error) {
+        void Logging.logException(error, ServerAction.CAR_CONNECTOR, MODULE_NAME, 'anonymous', this.tenant.id);
       }
       return axiosRetry.exponentialDelay(retryCount);
     },
@@ -127,7 +123,6 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
       return connection;
     } catch (error) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         message: 'Mercedes access token not granted',
         module: MODULE_NAME,
         method: 'createConnection',
@@ -151,7 +146,6 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
       );
       await Logging.logDebug({
         tenantID: this.tenant.id,
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.CAR_CONNECTOR,
         message: `${car.vin} > Mercedes web service has been called successfully`,
         module: MODULE_NAME, method: 'getCurrentSoC',
@@ -163,7 +157,6 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
       return null;
     } catch (error) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'getCurrentSoC',
         action: ServerAction.CAR_CONNECTOR,
@@ -223,7 +216,6 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
       return connection;
     } catch (error) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         message: 'Mercedes access token not refreshed',
         module: MODULE_NAME,
         method: 'refreshToken',
@@ -238,7 +230,6 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
     let connection = await ConnectionStorage.getConnectionByConnectorIdAndUserId(this.tenant, CarConnectorConnectionType.MERCEDES, userID);
     if (!connection) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         message: `The user does not have a connection to connector '${CarConnectorConnectionType.MERCEDES}'`,
         module: MODULE_NAME,
         method: 'getRefreshedConnection',

@@ -71,17 +71,13 @@
     "externalProtocol": "http"
   },
   "WSDLEndpoint": {
-    "baseUrl": ""
+    "baseSecureUrl": ""
   },
   "JsonEndpoint": {
-    "baseUrl": ""
+    "baseSecureUrl": ""
   },
   "OCPIEndpoint": {
     "baseUrl": ""
-  },
-  "WSClient": {
-    "autoReconnectMaxRetries": 10,
-    "autoReconnectTimeout": 60
   },
   "AsyncTask": {
     "active": true,

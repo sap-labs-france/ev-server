@@ -1,7 +1,6 @@
 import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
-import Site, { SiteUser } from '../../types/Site';
 import Tenant, { TenantComponents } from '../../types/Tenant';
-import User, { ImportedUser, UserRole, UserSite, UserStatus } from '../../types/User';
+import User, { ImportedUser, UserRole, UserStatus } from '../../types/User';
 import { UserInError, UserInErrorType } from '../../types/InError';
 import global, { DatabaseCount, FilterParams, Image, ImportStatus } from '../../types/GlobalType';
 
@@ -9,7 +8,6 @@ import BackendError from '../../exception/BackendError';
 import { BillingUserData } from '../../types/Billing';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
-import Cypher from '../../utils/Cypher';
 import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
@@ -17,6 +15,7 @@ import Eula from '../../types/Eula';
 import Logging from '../../utils/Logging';
 import Mustache from 'mustache';
 import { ObjectId } from 'mongodb';
+import { SiteUser } from '../../types/Site';
 import TagStorage from './TagStorage';
 import UserNotifications from '../../types/UserNotifications';
 import Utils from '../../utils/Utils';
@@ -50,7 +49,7 @@ export default class UserStorage {
       // Get
       const eulaMDB = eulasMDB[0];
       // Check if eula has changed
-      currentEulaHash = Cypher.hash(currentEula);
+      currentEulaHash = Utils.hash(currentEula);
       if (currentEulaHash !== eulaMDB.hash) {
         // New Version
         const eula = {
@@ -77,7 +76,7 @@ export default class UserStorage {
       language: language,
       version: 1,
       text: currentEula,
-      hash: Cypher.hash(currentEula)
+      hash: Utils.hash(currentEula)
     };
     // Create
     await global.database.getCollection<Eula>(tenant.id, 'eulas').insertOne(eula);
@@ -169,7 +168,7 @@ export default class UserStorage {
       // Create the list
       for (const siteID of siteIDs) {
         siteUsersMDB.push({
-          '_id': Cypher.hash(`${siteID}~${userID}`),
+          '_id': Utils.hash(`${siteID}~${userID}`),
           'userID': DatabaseUtils.convertToObjectID(userID),
           'siteID': DatabaseUtils.convertToObjectID(siteID),
           'siteAdmin': false
@@ -188,7 +187,7 @@ export default class UserStorage {
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     const siteUserMDB = {
-      '_id': Cypher.hash(`${siteID}~${userID}`),
+      '_id': Utils.hash(`${siteID}~${userID}`),
       'userID': DatabaseUtils.convertToObjectID(userID),
       'siteID': DatabaseUtils.convertToObjectID(siteID),
       'siteAdmin': false
@@ -212,7 +211,6 @@ export default class UserStorage {
     // Check if ID or email is provided
     if (!userToSave.id && !userToSave.email) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'saveUser',
         message: 'User has no ID and no Email'
@@ -252,7 +250,6 @@ export default class UserStorage {
         sendChargingStationRegistered: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendChargingStationRegistered) : false,
         sendOcpiPatchStatusError: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendOcpiPatchStatusError) : false,
         sendOicpPatchStatusError: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendOicpPatchStatusError) : false,
-        sendSmtpError: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendSmtpError) : false,
         sendUserAccountInactivity: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendUserAccountInactivity) : false,
         sendPreparingSessionNotStarted: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendPreparingSessionNotStarted) : false,
         sendOfflineChargingStations: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendOfflineChargingStations) : false,
@@ -551,7 +548,6 @@ export default class UserStorage {
     if (!userID) {
       // ID must be provided!
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'saveUserImage',
         message: 'User Image has no ID'
@@ -1116,7 +1112,6 @@ export default class UserStorage {
         sendChargingStationRegistered: false,
         sendOcpiPatchStatusError: false,
         sendOicpPatchStatusError: false,
-        sendSmtpError: false,
         sendOfflineChargingStations: false,
         sendBillingSynchronizationFailed: false,
         sendBillingPeriodicOperationFailed: false,

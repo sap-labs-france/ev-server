@@ -1,10 +1,10 @@
-import { ChangeStreamDocument, Collection, CreateIndexesOptions, Db, GridFSBucket, IndexSpecification, MongoClient, ObjectId, ReadPreferenceMode } from 'mongodb';
+import { ChangeStreamDocument, Collection, CreateIndexesOptions, Db, GridFSBucket, IndexSpecification, MongoClient, ReadPreferenceMode } from 'mongodb';
+import global, { DatabaseDocumentChange } from '../../types/GlobalType';
 import mongoUriBuilder, { MongoUriConfig } from 'mongo-uri-builder';
 
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
-import { DatabaseDocumentChange } from '../../types/GlobalType';
 import DatabaseUtils from './DatabaseUtils';
 import { LockEntity } from '../../types/Locking';
 import LockingManager from '../../locking/LockingManager';
@@ -14,7 +14,6 @@ import { ServerAction } from '../../types/Server';
 import StorageConfiguration from '../../types/configuration/StorageConfiguration';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
-import chalk from 'chalk';
 import urlencode from 'urlencode';
 
 const MODULE_NAME = 'MongoDBStorage';
@@ -37,7 +36,6 @@ export default class MongoDBStorage {
   public getCollection<T>(tenantID: string, collectionName: string): Collection<T> {
     if (!this.database) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'getCollection',
         message: 'Not supposed to call getCollection before database start',
@@ -51,7 +49,6 @@ export default class MongoDBStorage {
       callback: (documentID: unknown, documentChange: DatabaseDocumentChange, document: unknown) => void): Promise<void> {
     if (!this.database) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'watchDatabaseCollection',
         message: 'Database has not yet started',
@@ -62,7 +59,6 @@ export default class MongoDBStorage {
     const dbCollection = this.getCollection(tenant.id, collectionName);
     if (!dbCollection) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'watchDatabaseCollection',
         message: `Database collection '${tenant.id}.${collectionName}' has not been found!`,
@@ -72,7 +68,7 @@ export default class MongoDBStorage {
     // Watch
     const changeStream = dbCollection.watch([], { fullDocument: 'updateLookup' });
     const message = `Database collection '${tenant.id}.${collectionName}' is being watched`;
-    Utils.isDevelopmentEnv() && console.log(chalk.green(message));
+    Utils.isDevelopmentEnv() && Logging.logConsoleDebug(message);
     await Logging.logDebug({
       tenantID: tenant.id,
       action: ServerAction.MONGO_DB,
@@ -93,7 +89,6 @@ export default class MongoDBStorage {
     // Safety check
     if (!this.database) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'checkAndCreateTenantDatabase',
         message: 'Database has not yet started',
@@ -128,10 +123,11 @@ export default class MongoDBStorage {
     // Logs
     await this.handleIndexesInCollection(tenantID, 'logs', [
       { fields: { timestamp: 1 }, options: { expireAfterSeconds: 14 * 24 * 3600 } },
-      { fields: { type: 1, timestamp: 1 } },
       { fields: { action: 1, timestamp: 1 } },
       { fields: { level: 1, timestamp: 1 } },
       { fields: { source: 1, timestamp: 1 } },
+      { fields: { chargingStationID: 1, timestamp: 1 } },
+      { fields: { siteID: 1, timestamp: 1 } },
       { fields: { host: 1, timestamp: 1 } },
       { fields: { message: 'text' } },
     ]);
@@ -217,7 +213,6 @@ export default class MongoDBStorage {
       // Safety check
       if (!this.database) {
         throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
           method: 'deleteTenantDatabase',
           message: 'Not supposed to call deleteTenantDatabase before database start',
@@ -242,7 +237,7 @@ export default class MongoDBStorage {
   }
 
   public async start(): Promise<void> {
-    console.log(`Connecting to '${this.dbConfig.implementation}'...`);
+    Logging.logConsoleDebug(`Connecting to '${this.dbConfig.implementation}'...`);
     // Build EVSE URL
     let mongoUrl: string;
     // URI provided?
@@ -268,31 +263,31 @@ export default class MongoDBStorage {
       mongoUrl = mongoUriBuilder(uri);
     }
     // Connect to EVSE
-    console.log(`Connecting to '${mongoUrl}'`);
+    Logging.logConsoleDebug(`Connecting to '${mongoUrl}'`);
     const mongoDBClient = await MongoClient.connect(
       mongoUrl,
       {
         minPoolSize: Math.floor(this.dbConfig.poolSize / 4),
         maxPoolSize: this.dbConfig.poolSize,
-        replicaSet: Utils.isDevelopmentEnv() ? null : this.dbConfig.replicaSet,
         loggerLevel: this.dbConfig.debug ? 'debug' : null,
         readPreference: this.dbConfig.readPreference ? this.dbConfig.readPreference as ReadPreferenceMode : ReadPreferenceMode.secondaryPreferred
       }
     );
     // Get the EVSE DB
     this.database = mongoDBClient.db();
+    // Keep a global reference
+    global.database = this;
     // Check Database only when migration is active
     if (this.migrationConfig.active) {
       await this.checkDatabase();
     }
-    console.log(`Connected to '${this.dbConfig.implementation}' successfully`);
+    Logging.logConsoleDebug(`Connected to '${this.dbConfig.implementation}' successfully`);
   }
 
   private async checkDatabase(): Promise<void> {
     // Safety check
     if (!this.database) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'checkDatabase',
         message: 'Not supposed to call checkDatabase before database start',
@@ -348,7 +343,7 @@ export default class MongoDBStorage {
       }
     } catch (error) {
       const message = 'Error while checking Database in tenant \'default\'';
-      Utils.isDevelopmentEnv() && console.log(chalk.red(message));
+      Utils.isDevelopmentEnv() && Logging.logConsoleError(message);
       await Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MONGO_DB,
@@ -379,7 +374,7 @@ export default class MongoDBStorage {
         }
       } catch (error) {
         const message = `Error while checking Database in tenant '${tenantId}'`;
-        Utils.isDevelopmentEnv() && console.log(chalk.red(message));
+        Utils.isDevelopmentEnv() && Logging.logConsoleError(message);
         await Logging.logError({
           tenantID: Constants.DEFAULT_TENANT,
           action: ServerAction.MONGO_DB,
@@ -396,7 +391,6 @@ export default class MongoDBStorage {
     // Safety check
     if (!this.database) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'handleIndexesInCollection',
         message: 'Not supposed to call handleIndexesInCollection before database start',
@@ -414,7 +408,7 @@ export default class MongoDBStorage {
           await this.database.createCollection(tenantCollectionName);
         } catch (error) {
           const message = `Error in creating collection '${tenantID}.${tenantCollectionName}': ${error.message as string}`;
-          Utils.isDevelopmentEnv() && console.error(chalk.red(message));
+          Utils.isDevelopmentEnv() && Logging.logConsoleError(message);
           await Logging.logError({
             tenantID: Constants.DEFAULT_TENANT,
             action: ServerAction.MONGO_DB,
@@ -448,7 +442,7 @@ export default class MongoDBStorage {
           if (!foundIndex) {
             if (Utils.isDevelopmentEnv()) {
               const message = `Drop index '${databaseIndex.name}' in collection ${tenantCollectionName}`;
-              Utils.isDevelopmentEnv() && console.log(message);
+              Utils.isDevelopmentEnv() && Logging.logConsoleDebug(message);
               await Logging.logInfo({
                 tenantID: Constants.DEFAULT_TENANT,
                 action: ServerAction.MONGO_DB,
@@ -461,7 +455,7 @@ export default class MongoDBStorage {
               await this.database.collection(tenantCollectionName).dropIndex(databaseIndex.key);
             } catch (error) {
               const message = `Error in dropping index '${databaseIndex.name}' in '${tenantCollectionName}': ${error.message}`;
-              Utils.isDevelopmentEnv() && console.error(chalk.red(message));
+              Utils.isDevelopmentEnv() && Logging.logConsoleError(message);
               await Logging.logError({
                 tenantID: Constants.DEFAULT_TENANT,
                 action: ServerAction.MONGO_DB,
@@ -481,7 +475,7 @@ export default class MongoDBStorage {
           if (!foundDatabaseIndex) {
             if (Utils.isDevelopmentEnv()) {
               const message = `Create index ${JSON.stringify(index)} in collection ${tenantCollectionName}`;
-              Utils.isDevelopmentEnv() && console.log(message);
+              Utils.isDevelopmentEnv() && Logging.logConsoleDebug(message);
               await Logging.logInfo({
                 tenantID: Constants.DEFAULT_TENANT,
                 action: ServerAction.MONGO_DB,
@@ -494,7 +488,7 @@ export default class MongoDBStorage {
               await this.database.collection(tenantCollectionName).createIndex(index.fields, index.options);
             } catch (error) {
               const message = `Error in creating index '${JSON.stringify(index.fields)}' with options '${JSON.stringify(index.options)}' in '${tenantCollectionName}': ${error.message as string}`;
-              Utils.isDevelopmentEnv() && console.error(chalk.red(message));
+              Utils.isDevelopmentEnv() && Logging.logConsoleError(message);
               await Logging.logError({
                 tenantID: Constants.DEFAULT_TENANT,
                 action: ServerAction.MONGO_DB,
@@ -508,7 +502,7 @@ export default class MongoDBStorage {
       }
     } catch (error) {
       const message = `Unexpected error in handling Collection '${tenantID}.${name}': ${error.message as string}`;
-      Utils.isDevelopmentEnv() && console.error(chalk.red(message));
+      Utils.isDevelopmentEnv() && Logging.logConsoleError(message);
       await Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MONGO_DB,

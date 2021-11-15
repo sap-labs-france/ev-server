@@ -7,7 +7,7 @@ import Tenant, { TenantComponents } from '../../../../types/Tenant';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
-import AsyncTaskManager from '../../../../async-task/AsyncTaskManager';
+import AsyncTaskBuilder from '../../../../async-task/AsyncTaskBuilder';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import { Car } from '../../../../types/Car';
@@ -156,7 +156,6 @@ export default class CarService {
     const syncCarCatalogsLock = await LockingHelper.acquireSyncCarCatalogsLock(Constants.DEFAULT_TENANT);
     if (!syncCarCatalogsLock) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: action,
         errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
         module: MODULE_NAME, method: 'handleSynchronizeCarCatalogs',
@@ -166,7 +165,7 @@ export default class CarService {
     }
     try {
       // Create and Save async task
-      await AsyncTaskManager.createAndSaveAsyncTasks({
+      await AsyncTaskBuilder.createAndSaveAsyncTasks({
         name: AsyncTasks.SYNCHRONIZE_CAR_CATALOGS,
         action,
         type: AsyncTaskType.TASK,
@@ -232,7 +231,6 @@ export default class CarService {
       filteredRequest.licensePlate, filteredRequest.vin);
     if (car) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.CAR_ALREADY_EXIST_ERROR,
         message: `The Car with VIN: '${filteredRequest.vin}' and License plate: '${filteredRequest.licensePlate}' already exist`,
         user: req.user,
@@ -273,7 +271,7 @@ export default class CarService {
     };
     // Save
     newCar.id = await CarStorage.saveCar(req.tenant, newCar);
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleCreateCar',
       message: `Car with VIN '${newCar.vin}' and plate ID '${newCar.licensePlate}' has been created successfully`,
@@ -304,7 +302,6 @@ export default class CarService {
         req.tenant, filteredRequest.licensePlate, filteredRequest.vin);
       if (sameCar) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.CAR_ALREADY_EXIST_ERROR,
           message: `Car with VIN '${filteredRequest.vin}' and License Plate '${filteredRequest.licensePlate}' already exists`,
           user: req.user,
@@ -356,7 +353,7 @@ export default class CarService {
     if (setDefaultCarToOldUserID) {
       await CarService.setDefaultCarForUser(req.tenant, setDefaultCarToOldUserID);
     }
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateCar',
       message: `Car '${car.id}' has been updated successfully`,
@@ -437,7 +434,7 @@ export default class CarService {
     if (car.default) {
       await CarService.setDefaultCarForUser(req.tenant, car.userID);
     }
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteCar',
       message: `Car '${Utils.buildCarName(car)}' has been deleted successfully`,

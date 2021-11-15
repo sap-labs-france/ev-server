@@ -1,5 +1,5 @@
 import ChargingStation, { Command } from '../../../types/ChargingStation';
-import { OCPPCancelReservationCommandParam, OCPPCancelReservationCommandResult, OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPClearCacheCommandResult, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPDataTransferCommandParam, OCPPDataTransferCommandResult, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPReserveNowCommandParam, OCPPReserveNowCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUpdateFirmwareCommandParam } from '../../../types/ocpp/OCPPClient';
+import { OCPPCancelReservationRequest, OCPPCancelReservationResponse, OCPPChangeAvailabilityRequest, OCPPChangeAvailabilityResponse, OCPPChangeConfigurationRequest, OCPPChangeConfigurationResponse, OCPPClearCacheResponse, OCPPClearChargingProfileRequest, OCPPClearChargingProfileResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPGetCompositeScheduleRequest, OCPPGetCompositeScheduleResponse, OCPPGetConfigurationRequest, OCPPGetConfigurationResponse, OCPPGetDiagnosticsRequest, OCPPGetDiagnosticsResponse, OCPPRemoteStartTransactionRequest, OCPPRemoteStartTransactionResponse, OCPPRemoteStopTransactionRequest, OCPPRemoteStopTransactionResponse, OCPPReserveNowRequest, OCPPReserveNowResponse, OCPPResetRequest, OCPPResetResponse, OCPPSetChargingProfileRequest, OCPPSetChargingProfileResponse, OCPPUnlockConnectorRequest, OCPPUnlockConnectorResponse, OCPPUpdateFirmwareRequest } from '../../../types/ocpp/OCPPClient';
 
 import ChargingStationClient from '../ChargingStationClient';
 import Configuration from '../../../utils/Configuration';
@@ -47,7 +47,6 @@ export default class SoapChargingStationClient extends ChargingStationClient {
             siteAreaID: scsc.chargingStation.siteAreaID,
             companyID: scsc.chargingStation.companyID,
             chargingStationID: scsc.chargingStation.id,
-            source: scsc.chargingStation.id,
             module: MODULE_NAME, method: 'getChargingStationClient',
             message: `OCPP version ${scsc.chargingStation.ocppVersion} not supported`
           });
@@ -58,7 +57,6 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       // Create SOAP client
       soap.createClient(chargingStationWdsl, options, async (error, client) => {
         if (error) {
-          // Log
           await Logging.logError({
             tenantID: scsc.tenant.id,
             action: ServerAction.CHARGING_STATION_CLIENT_INITIALIZATION,
@@ -66,12 +64,11 @@ export default class SoapChargingStationClient extends ChargingStationClient {
             siteAreaID: scsc.chargingStation.siteAreaID,
             companyID: scsc.chargingStation.companyID,
             chargingStationID: scsc.chargingStation.id,
-            source: scsc.chargingStation.id,
             module: MODULE_NAME, method: 'getChargingStationClient',
-            message: `Error when creating SOAP client: ${error.toString()}`,
+            message: `Error when creating SOAP client: ${error.message as string}`,
             detailedMessages: { error: error.stack }
           });
-          reject(`Error when creating SOAP client for charging station with ID ${scsc.chargingStation.id}: ${error.message}`);
+          reject(`Error when creating SOAP client for charging station with ID ${scsc.chargingStation.id}: ${error.message as string}`);
         } else {
           // Keep
           scsc.client = client;
@@ -84,7 +81,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     });
   }
 
-  public async remoteStopTransaction(params: OCPPRemoteStopTransactionCommandParam): Promise<OCPPRemoteStopTransactionCommandResult> {
+  public async remoteStopTransaction(params: OCPPRemoteStopTransactionRequest): Promise<OCPPRemoteStopTransactionResponse> {
     // Init SOAP Headers with the action
     this.initSoapHeaders(Command.REMOTE_STOP_TRANSACTION);
     // Trace
@@ -108,9 +105,8 @@ export default class SoapChargingStationClient extends ChargingStationClient {
         siteAreaID: this.chargingStation.siteAreaID,
         companyID: this.chargingStation.companyID,
         chargingStationID: this.chargingStation.id,
-        source: this.chargingStation.id,
         module: MODULE_NAME, method: 'remoteStopTransaction',
-        message: `Error when trying to stop the transaction ID ${params.transactionId}: ${error.toString()}`,
+        message: `Error when trying to stop the transaction ID ${params.transactionId}: ${error.message as string}`,
         detailedMessages: { 'error': error.stack, result, envelope }
       });
       throw error;
@@ -126,7 +122,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     return result;
   }
 
-  public async remoteStartTransaction(params: OCPPRemoteStartTransactionCommandParam): Promise<OCPPRemoteStartTransactionCommandResult> {
+  public async remoteStartTransaction(params: OCPPRemoteStartTransactionRequest): Promise<OCPPRemoteStartTransactionResponse> {
     // Init SOAP Headers with the action
     this.initSoapHeaders(Command.REMOTE_START_TRANSACTION);
     // Trace
@@ -148,9 +144,8 @@ export default class SoapChargingStationClient extends ChargingStationClient {
         siteAreaID: this.chargingStation.siteAreaID,
         companyID: this.chargingStation.companyID,
         chargingStationID: this.chargingStation.id,
-        source: this.chargingStation.id,
         module: MODULE_NAME, method: 'remoteStartTransaction',
-        message: `Error when trying to start a transaction: ${error.toString()}`,
+        message: `Error when trying to start a transaction: ${error.message as string}`,
         detailedMessages: { 'error': error.stack , result, envelope },
       });
       throw error;
@@ -165,7 +160,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     return result;
   }
 
-  public async unlockConnector(params: OCPPUnlockConnectorCommandParam): Promise<OCPPUnlockConnectorCommandResult> {
+  public async unlockConnector(params: OCPPUnlockConnectorRequest): Promise<OCPPUnlockConnectorResponse> {
     // Init SOAP Headers with the action
     this.initSoapHeaders(Command.UNLOCK_CONNECTOR);
     // Trace
@@ -189,9 +184,8 @@ export default class SoapChargingStationClient extends ChargingStationClient {
         siteAreaID: this.chargingStation.siteAreaID,
         companyID: this.chargingStation.companyID,
         chargingStationID: this.chargingStation.id,
-        source: this.chargingStation.id,
         module: MODULE_NAME, method: 'unlockConnector',
-        message: `Error when trying to unlock the connector '${params.connectorId}': ${error.toString()}`,
+        message: `Error when trying to unlock the connector '${params.connectorId}': ${error.message as string}`,
         detailedMessages: { 'error': error.stack , result, envelope }
       });
       throw error;
@@ -206,7 +200,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     return result;
   }
 
-  public async reset(params: OCPPResetCommandParam): Promise<OCPPResetCommandResult> {
+  public async reset(params: OCPPResetRequest): Promise<OCPPResetResponse> {
     // Init SOAP Headers with the action
     this.initSoapHeaders(Command.RESET);
     // Trace
@@ -230,9 +224,8 @@ export default class SoapChargingStationClient extends ChargingStationClient {
         siteAreaID: this.chargingStation.siteAreaID,
         companyID: this.chargingStation.companyID,
         chargingStationID: this.chargingStation.id,
-        source: this.chargingStation.id,
         module: MODULE_NAME, method: 'reset',
-        message: `Error when trying to reboot: ${error.toString()}`,
+        message: `Error when trying to reboot: ${error.message as string}`,
         detailedMessages: { 'error': error.stack , result, envelope }
       });
       return error;
@@ -247,7 +240,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     return result;
   }
 
-  public async clearCache(): Promise<OCPPClearCacheCommandResult> {
+  public async clearCache(): Promise<OCPPClearCacheResponse> {
     // Init SOAP Headers with the action
     this.initSoapHeaders(Command.CLEAR_CACHE);
     // Trace
@@ -269,9 +262,8 @@ export default class SoapChargingStationClient extends ChargingStationClient {
         siteAreaID: this.chargingStation.siteAreaID,
         companyID: this.chargingStation.companyID,
         chargingStationID: this.chargingStation.id,
-        source: this.chargingStation.id,
         module: MODULE_NAME, method: 'clearCache',
-        message: `Error when trying to clear the cache: ${error.toString()}`,
+        message: `Error when trying to clear the cache: ${error.message as string}`,
         detailedMessages: { 'error': error.stack , result, envelope }
       });
       throw error;
@@ -286,7 +278,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     return result;
   }
 
-  public async getConfiguration(params: OCPPGetConfigurationCommandParam): Promise<OCPPGetConfigurationCommandResult> {
+  public async getConfiguration(params: OCPPGetConfigurationRequest): Promise<OCPPGetConfigurationResponse> {
     // Init SOAP Headers with the action
     this.initSoapHeaders(Command.GET_CONFIGURATION);
     // Trace
@@ -298,7 +290,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       }
     );
     // Set request
-    const request: { getConfigurationRequest: OCPPGetConfigurationCommandParam } = {
+    const request: { getConfigurationRequest: OCPPGetConfigurationRequest } = {
       'getConfigurationRequest': {}
     };
     // Key provided?
@@ -317,9 +309,8 @@ export default class SoapChargingStationClient extends ChargingStationClient {
         siteAreaID: this.chargingStation.siteAreaID,
         companyID: this.chargingStation.companyID,
         chargingStationID: this.chargingStation.id,
-        source: this.chargingStation.id,
         module: MODULE_NAME, method: 'getConfiguration',
-        message: `Error when trying to get the configuration: ${error.toString()}`,
+        message: `Error when trying to get the configuration: ${error.message as string}`,
         detailedMessages: { 'error': error.stack , result, envelope }
       });
       throw error;
@@ -334,7 +325,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     return result;
   }
 
-  public async changeConfiguration(params: OCPPChangeConfigurationCommandParam): Promise<OCPPChangeConfigurationCommandResult> {
+  public async changeConfiguration(params: OCPPChangeConfigurationRequest): Promise<OCPPChangeConfigurationResponse> {
     const { key, value } = params;
     // Init SOAP Headers with the action
     this.initSoapHeaders(Command.CHANGE_CONFIGURATION);
@@ -361,10 +352,9 @@ export default class SoapChargingStationClient extends ChargingStationClient {
         siteAreaID: this.chargingStation.siteAreaID,
         companyID: this.chargingStation.companyID,
         chargingStationID: this.chargingStation.id,
-        source: this.chargingStation.id,
         module: MODULE_NAME, method: 'changeConfiguration',
         action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
-        message: `Error when trying to change the configuration parameter '${key}' with value '${value}': ${error.toString()}`,
+        message: `Error when trying to change the configuration parameter '${key}' with value '${value}': ${error.message as string}`,
         detailedMessages: { 'error': error.stack , result, envelope }
       });
       throw error;
@@ -384,58 +374,54 @@ export default class SoapChargingStationClient extends ChargingStationClient {
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
-  public async setChargingProfile(params: OCPPSetChargingProfileCommandParam): Promise<OCPPSetChargingProfileCommandResult> {
+  public async setChargingProfile(params: OCPPSetChargingProfileRequest): Promise<OCPPSetChargingProfileResponse> {
     throw new Error('Method not implemented.');
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
-  public async getCompositeSchedule(params: OCPPGetCompositeScheduleCommandParam): Promise<OCPPGetCompositeScheduleCommandResult> {
+  public async getCompositeSchedule(params: OCPPGetCompositeScheduleRequest): Promise<OCPPGetCompositeScheduleResponse> {
     throw new Error('Method not implemented.');
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
-  public async clearChargingProfile(params: OCPPClearChargingProfileCommandParam): Promise<OCPPClearChargingProfileCommandResult> {
+  public async clearChargingProfile(params: OCPPClearChargingProfileRequest): Promise<OCPPClearChargingProfileResponse> {
     throw new Error('Method not implemented.');
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
-  public async changeAvailability(params: OCPPChangeAvailabilityCommandParam): Promise<OCPPChangeAvailabilityCommandResult> {
+  public async changeAvailability(params: OCPPChangeAvailabilityRequest): Promise<OCPPChangeAvailabilityResponse> {
     throw new Error('Method not implemented.');
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
-  public async getDiagnostics(params: OCPPGetDiagnosticsCommandParam): Promise<OCPPGetDiagnosticsCommandResult> {
+  public async getDiagnostics(params: OCPPGetDiagnosticsRequest): Promise<OCPPGetDiagnosticsResponse> {
     throw new Error('Method not implemented.');
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
-  public async updateFirmware(params: OCPPUpdateFirmwareCommandParam): Promise<void> {
+  public async updateFirmware(params: OCPPUpdateFirmwareRequest): Promise<void> {
     throw new Error('Method not implemented.');
   }
 
   /* eslint-disable @typescript-eslint/no-unused-vars */
   // eslint-disable-next-line @typescript-eslint/require-await
-  public async dataTransfer(params: OCPPDataTransferCommandParam): Promise<OCPPDataTransferCommandResult> {
+  public async dataTransfer(params: OCPPDataTransferRequest): Promise<OCPPDataTransferResponse> {
     throw new Error('Method not implemented.');
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
-  public async reserveNow(params: OCPPReserveNowCommandParam): Promise<OCPPReserveNowCommandResult> {
+  public async reserveNow(params: OCPPReserveNowRequest): Promise<OCPPReserveNowResponse> {
     throw new Error('Method not implemented.');
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
-  public async cancelReservation(params: OCPPCancelReservationCommandParam): Promise<OCPPCancelReservationCommandResult> {
+  public async cancelReservation(params: OCPPCancelReservationRequest): Promise<OCPPCancelReservationResponse> {
     throw new Error('Method not implemented.');
   }
   /* eslint-enable @typescript-eslint/no-unused-vars */
 
   private getWSDLEndpointBaseSecureUrl() {
     return this.wsdlEndpointConfig?.baseSecureUrl;
-  }
-
-  private getWSDLEndpointBaseUrl() {
-    return this.wsdlEndpointConfig?.baseUrl;
   }
 
   private initSoapHeaders(command: Command) {
@@ -447,6 +433,6 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     this.client.addSoapHeader('<a:ReplyTo xmlns:a="http://www.w3.org/2005/08/addressing"><a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address></a:ReplyTo>');
     this.client.addSoapHeader(`<a:To xmlns:a="http://www.w3.org/2005/08/addressing">${this.chargingStation.chargingStationURL}</a:To>`);
     this.client.addSoapHeader(`<a:Action xmlns:a="http://www.w3.org/2005/08/addressing">/${command}</a:Action>`);
-    this.client.addSoapHeader(`<a:From xmlns:a="http://www.w3.org/2005/08/addressing"><a:Address>${this.getWSDLEndpointBaseSecureUrl() ?? (this.getWSDLEndpointBaseUrl() ?? '')}</a:Address></a:From>`);
+    this.client.addSoapHeader(`<a:From xmlns:a="http://www.w3.org/2005/08/addressing"><a:Address>${this.getWSDLEndpointBaseSecureUrl()}</a:Address></a:From>`);
   }
 }

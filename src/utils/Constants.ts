@@ -42,6 +42,7 @@ export default class Constants {
   public static readonly BATCH_PAGE_SIZE = 1000;
 
   public static readonly CHARGING_STATION_LOCK_SECS = 5;
+  public static readonly CHARGING_STATION_CONNECTION_LOCK_SECS = 5;
 
   public static readonly HEALTH_CHECK_ROUTE = '/health-check';
 
@@ -241,8 +242,6 @@ export default class Constants {
 
   public static readonly CHARGING_STATION_CONFIGURATION = 'Configuration';
 
-  public static readonly CENTRAL_SERVER = 'CentralServer';
-
   public static readonly OCPI_SEPARATOR = '*';
   public static readonly OCPI_RECORDS_LIMIT = 25;
   public static readonly OCPI_MAX_PARALLEL_REQUESTS = 2;
@@ -294,7 +293,7 @@ export default class Constants {
     '([0-9a-f]{24})\\/',
     '(?:\\S+)$'].join(''), 'ig');
 
-  public static readonly OCPP_SOCKET_TIMEOUT = 30000; // 30 sec
+  public static readonly OCPP_SOCKET_TIMEOUT = 10 * 1000;
   public static readonly OCPP_HEARTBEAT_KEYS = Object.freeze(['HeartbeatInterval', 'HeartBeatInterval']);
 
   public static readonly MAX_DATE = new Date('9999-12-31Z23:59:59:999');
