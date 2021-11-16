@@ -256,6 +256,7 @@ export default class SiteStorage {
       companyID: DatabaseUtils.convertToObjectID(siteToSave.companyID),
       autoUserSiteAssignment: Utils.convertToBoolean(siteToSave.autoUserSiteAssignment),
       name: siteToSave.name,
+      tariffID: siteToSave.tariffID,
     };
     if (siteToSave.address) {
       siteMDB.address = {
@@ -269,9 +270,6 @@ export default class SiteStorage {
         coordinates: Utils.containsGPSCoordinates(siteToSave.address.coordinates) ? siteToSave.address.coordinates.map(
           (coordinate) => Utils.convertToFloat(coordinate)) : [],
       };
-    }
-    if (siteToSave.tariffID) {
-      siteMDB.tariffID = siteToSave.tariffID;
     }
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(siteMDB, siteToSave);
