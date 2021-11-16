@@ -275,6 +275,10 @@ describe('Asset', function() {
         );
         testData.createdAssets.push(testData.newAsset);
         expect(testData.newAsset).to.not.be.null;
+        expect(config.get('assetConnectors.ioThink.url')).to.not.be.empty;
+        expect(config.get('assetConnectors.ioThink.user')).to.not.be.empty;
+        expect(config.get('assetConnectors.ioThink.password')).to.not.be.empty;
+        expect(config.get('assetConnectors.ioThink.meterID')).to.not.be.empty;
       });
 
       after(async () => {
