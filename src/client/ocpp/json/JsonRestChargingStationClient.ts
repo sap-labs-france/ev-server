@@ -6,6 +6,7 @@ import { ServerAction, WSServerProtocol } from '../../../types/Server';
 import BackendError from '../../../exception/BackendError';
 import ChargingStationClient from '../ChargingStationClient';
 import Logging from '../../../utils/Logging';
+import LoggingHelper from '../../../utils/LoggingHelper';
 import Utils from '../../../utils/Utils';
 import WSClient from '../../websocket/WSClient';
 import { WSClientOptions } from '../../../types/WebSocket';
@@ -26,12 +27,8 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     let chargingStationURL = chargingStation.chargingStationURL;
     if (!chargingStationURL) {
       throw new BackendError({
-        chargingStationID: chargingStation.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
-        module: MODULE_NAME,
-        method: 'constructor',
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
+        module: MODULE_NAME, method: 'constructor',
         message: 'Cannot access the Charging Station via a REST call because no URL is provided',
         detailedMessages: { chargingStation }
       });
