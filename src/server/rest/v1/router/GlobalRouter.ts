@@ -10,6 +10,7 @@ import Logging from '../../../../utils/Logging';
 import LoggingRouter from './api/LoggingRouter';
 import NotificationRouter from './api/NotificationRouter';
 import OCPIEndpointRouter from './api/OCPIEndpointRouter';
+import OICPEndpointRouter from './api/OICPEndpointRouter';
 import PricingRouter from './api/PricingRouter';
 import SwaggerRouter from './doc/SwaggerRouter';
 import TagRouter from './api/TagRouter';
@@ -52,6 +53,7 @@ export default class GlobalRouter {
         new LoggingRouter().buildRoutes(),
         new NotificationRouter().buildRoutes(),
         new OCPIEndpointRouter().buildRoutes(),
+        new OICPEndpointRouter().buildRoutes(),
         new TagRouter().buildRoutes(),
         new TenantRouter().buildRoutes(),
         new TransactionRouter().buildRoutes(),
