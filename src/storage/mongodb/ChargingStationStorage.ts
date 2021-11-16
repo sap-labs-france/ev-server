@@ -366,8 +366,9 @@ export default class ChargingStationStorage {
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenant.id, aggregation);
     // Convert Object ID to string
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'companyID');
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Reorder connector ID

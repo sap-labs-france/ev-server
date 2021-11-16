@@ -25,7 +25,6 @@ import SchedulerManager from './scheduler/SchedulerManager';
 import SoapCentralSystemServer from './server/ocpp/soap/SoapCentralSystemServer';
 import StorageConfiguration from './types/configuration/StorageConfiguration';
 import Utils from './utils/Utils';
-import chalk from 'chalk';
 import fs from 'fs';
 import global from './types/GlobalType';
 
@@ -55,7 +54,7 @@ export default class Bootstrap {
     try {
       // Setup i18n
       await I18nManager.initialize();
-      console.log(`NodeJS is started in '${process.env.NODE_ENV || 'development'}' mode`);
+      Logging.logConsoleDebug(`NodeJS is started in '${process.env.NODE_ENV || 'development'}' mode`);
       // Get all configs
       Bootstrap.storageConfig = Configuration.getStorageConfig();
       Bootstrap.centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
@@ -78,7 +77,7 @@ export default class Bootstrap {
           Bootstrap.database = new MongoDBStorage(Bootstrap.storageConfig);
           break;
         default:
-          console.error(chalk.red(`Storage Server implementation '${Bootstrap.storageConfig.implementation}' not supported!`));
+          Logging.logConsoleError(`Storage Server implementation '${Bootstrap.storageConfig.implementation}' not supported!`);
       }
       // Connect to the Database
       await Bootstrap.database.start();
@@ -98,7 +97,7 @@ export default class Bootstrap {
       // Listen to promise failure
       process.on('unhandledRejection', (reason: any, p: any): void => {
         // eslint-disable-next-line no-console
-        console.error(chalk.red(`Unhandled Rejection: ${p?.toString()}, reason: ${reason as string}`));
+        Logging.logConsoleError(`Unhandled Rejection: ${p?.toString()}, reason: ${reason as string}`);
         void Logging.logError({
           tenantID: Constants.DEFAULT_TENANT,
           action: ServerAction.UNKNOWN_ACTION,
@@ -153,7 +152,7 @@ export default class Bootstrap {
       // Log
       await this.logDuration(startTimeGlobalMillis, `${serverStarted.join(', ')} server has been started successfuly`, ServerAction.BOOTSTRAP_STARTUP);
     } catch (error) {
-      console.error(chalk.red(error));
+      Logging.logConsoleError(error);
       global.database && await Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.BOOTSTRAP_STARTUP,
@@ -189,14 +188,14 @@ export default class Bootstrap {
       } catch (error) {
         error.message = `Charging Station Template ID '${chargingStationTemplate.id}' is not valid: ${error.message as string}`;
         await Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, ServerAction.UPDATE_CHARGING_STATION_TEMPLATES, error);
-        Utils.isDevelopmentEnv() && console.error(chalk.red(error.message));
+        Utils.isDevelopmentEnv() && Logging.logConsoleError(error.message);
       }
     }
   }
 
   private static async logAndGetStartTimeMillis(logMessage: string): Promise<number> {
     const timeStartMillis = Date.now();
-    console.log(chalk.green(logMessage));
+    Logging.logConsoleDebug(logMessage);
     if (global.database) {
       await Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
@@ -211,7 +210,7 @@ export default class Bootstrap {
   private static async logDuration(timeStartMillis: number, logMessage: string, action: ServerAction = ServerAction.STARTUP): Promise<void> {
     const timeDurationSecs = Utils.createDecimal(Date.now() - timeStartMillis).div(1000).toNumber();
     logMessage = `${logMessage} in ${timeDurationSecs} secs`;
-    console.log(chalk.green(logMessage));
+    Logging.logConsoleDebug(logMessage);
     if (global.database) {
       await Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
@@ -263,7 +262,7 @@ export default class Bootstrap {
             // Not Found
             default:
               // eslint-disable-next-line no-console
-              console.log(`Central System Server implementation '${centralSystemConfig.implementation}' not found!`);
+              Logging.logConsoleError(`Central System Server implementation '${centralSystemConfig.implementation}' not found!`);
           }
         }
       }
@@ -298,13 +297,13 @@ export default class Bootstrap {
         serverTypes.push(ServerType.ODATA_SERVER);
       }
     } catch (error) {
-      console.error(chalk.red(error));
+      Logging.logConsoleError(error.stack);
       await Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.STARTUP,
         module: MODULE_NAME, method: 'startServersListening',
-        message: `Unexpected exception in ${serverTypes.join(', ')}: ${error.toString()}`,
-        detailedMessages: { error: error.stack }
+        message: `Unexpected exception in ${serverTypes.join(', ')}: ${error?.message as string}`,
+        detailedMessages: { error: error?.stack }
       });
     }
     // Batch server only
@@ -318,6 +317,6 @@ export default class Bootstrap {
 // Start
 Bootstrap.start().catch(
   (error) => {
-    console.error(chalk.red(error));
+    Logging.logConsoleError(error.stack);
   }
 );
