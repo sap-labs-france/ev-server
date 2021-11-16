@@ -1,6 +1,7 @@
 import ChargingStation, { Command } from '../../../types/ChargingStation';
 import { OCPPProtocol, OCPPVersion } from '../../../types/ocpp/OCPPServer';
 
+import BackendError from '../../../exception/BackendError';
 import ChargingStationClient from '../../../client/ocpp/ChargingStationClient';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../utils/Configuration';
