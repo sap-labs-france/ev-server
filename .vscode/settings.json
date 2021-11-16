@@ -16,5 +16,6 @@
   "mochaExplorer.parallel": false,
   "mochaExplorer.exit": true,
   "mochaExplorer.debuggerConfig": "Debug Mocha Tests",
+  "mochaExplorer.debuggerPort": 9230,
   "search.usePCRE2": true
 }
