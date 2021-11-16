@@ -12,6 +12,7 @@ import Constants from '../utils/Constants';
 import CpoOCPIClient from '../client/ocpi/CpoOCPIClient';
 import CpoOICPClient from '../client/oicp/CpoOICPClient';
 import Logging from '../utils/Logging';
+import LoggingHelper from '../utils/LoggingHelper';
 import NotificationHandler from '../notification/NotificationHandler';
 import OCPIClientFactory from '../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../types/ocpi/OCPIRole';
@@ -609,12 +610,12 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.CONNECTIONS, Action.LIST);
   }
 
-  public static async canReadPricing(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.PRICING, Action.READ);
+  public static async canReadPricingDefinition(loggedUser: UserToken): Promise<boolean> {
+    return Authorizations.canPerformAction(loggedUser, Entity.PRICING_DEFINITION, Action.READ);
   }
 
-  public static async canUpdatePricing(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.PRICING, Action.UPDATE);
+  public static async canUpdatePricingModel(loggedUser: UserToken): Promise<boolean> {
+    return Authorizations.canPerformAction(loggedUser, Entity.PRICING_DEFINITION, Action.UPDATE);
   }
 
   public static async canClearBillingTestData(loggedUser: UserToken): Promise<boolean> {
@@ -743,10 +744,7 @@ export default class Authorizations {
       // Check Site Area
       if (!chargingStation.siteAreaID || !chargingStation.siteArea) {
         throw new BackendError({
-          chargingStationID: chargingStation.id,
-          siteID: chargingStation.siteID,
-          siteAreaID: chargingStation.siteAreaID,
-          companyID: chargingStation.companyID,
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
           action: action,
           module: MODULE_NAME, method: 'isTagIDAuthorizedOnChargingStation',
           message: `Charging Station '${chargingStation.id}' is not assigned to a Site Area!`,
@@ -756,10 +754,7 @@ export default class Authorizations {
       // Check Site
       if (!chargingStation.siteID) {
         throw new BackendError({
-          chargingStationID: chargingStation.id,
-          siteID: chargingStation.siteID,
-          siteAreaID: chargingStation.siteAreaID,
-          companyID: chargingStation.companyID,
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
           action: action,
           module: MODULE_NAME, method: 'isTagIDAuthorizedOnChargingStation',
           message: `Site Area '${chargingStation.siteArea.name}' is not assigned to a Site!`,
@@ -907,10 +902,7 @@ export default class Authorizations {
           // Check Tag ID
           if (remoteAuthorization.tagId === tag.ocpiToken?.uid) {
             await Logging.logDebug({
-              siteID: chargingStation.siteID,
-              siteAreaID: chargingStation.siteAreaID,
-              companyID: chargingStation.companyID,
-              chargingStationID: chargingStation.id,
+              ...LoggingHelper.getChargingStationProperties(chargingStation),
               tenantID: tenant.id, action,
               message: `${Utils.buildConnectorInfo(connector.connectorId, transaction?.id)} Valid Remote Authorization found for Tag ID '${tag.ocpiToken.uid}'`,
               module: MODULE_NAME, method: 'checkOCPIAuthorizedUser',
@@ -941,10 +933,7 @@ export default class Authorizations {
     // User status
     if (user.status !== UserStatus.ACTIVE) {
       throw new BackendError({
-        chargingStationID: chargingStation.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: action,
         message: `User with Tag ID '${tag.id}' is not Active ('${Utils.getStatusDescription(user.status)}')`,
         module: MODULE_NAME,
@@ -968,10 +957,7 @@ export default class Authorizations {
       };
       if (!await Authorizations.canPerformActionOnChargingStation(userToken, authAction, chargingStation, context)) {
         throw new BackendError({
-          chargingStationID: chargingStation.id,
-          siteID: chargingStation.siteID,
-          siteAreaID: chargingStation.siteAreaID,
-          companyID: chargingStation.companyID,
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
           action: action,
           message: `User with Tag ID '${tag.id}' is not authorized to perform the action '${authAction}'`,
           module: MODULE_NAME,
@@ -1009,10 +995,7 @@ export default class Authorizations {
       }
     ).catch(() => { });
     throw new BackendError({
-      chargingStationID: chargingStation.id,
-      siteID: chargingStation.siteID,
-      siteAreaID: chargingStation.siteAreaID,
-      companyID: chargingStation.companyID,
+      ...LoggingHelper.getChargingStationProperties(chargingStation),
       action: action,
       module: MODULE_NAME, method: 'notifyUnknownBadgeHasBeenUsedAndAbort',
       message: `Tag ID '${tagID}' is unknown`,
@@ -1052,10 +1035,7 @@ export default class Authorizations {
       // Inactive Tag
       if (!tag.active) {
         throw new BackendError({
-          chargingStationID: chargingStation.id,
-          siteID: chargingStation.siteID,
-          siteAreaID: chargingStation.siteAreaID,
-          companyID: chargingStation.companyID,
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
           action: action,
           message: `Tag ID '${tagID}' is not active`,
           module: MODULE_NAME, method: 'checkAndGetAuthorizedTag',
@@ -1066,10 +1046,7 @@ export default class Authorizations {
       // No User
       if (!tag.user) {
         throw new BackendError({
-          chargingStationID: chargingStation.id,
-          siteID: chargingStation.siteID,
-          siteAreaID: chargingStation.siteAreaID,
-          companyID: chargingStation.companyID,
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
           action: action,
           message: `Tag ID '${tagID}' is not assigned to a User`,
           module: MODULE_NAME, method: 'checkAndGetAuthorizedTag',

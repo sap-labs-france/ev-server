@@ -293,7 +293,7 @@ export default class Constants {
     '([0-9a-f]{24})\\/',
     '(?:\\S+)$'].join(''), 'ig');
 
-  public static readonly OCPP_SOCKET_TIMEOUT = 30000; // 30 sec
+  public static readonly OCPP_SOCKET_TIMEOUT = 10 * 1000;
   public static readonly OCPP_HEARTBEAT_KEYS = Object.freeze(['HeartbeatInterval', 'HeartBeatInterval']);
 
   public static readonly MAX_DATE = new Date('9999-12-31Z23:59:59:999');
@@ -349,6 +349,8 @@ export default class Constants {
     'mobileOs': 0,
     'mobileToken': 0,
     'verifiedAt': 0,
+    'importedData': 0,
+    'billingData': 0
   });
 
   public static readonly DEFAULT_OCPP_16_CONFIGURATION: OcppParameter[] = Object.freeze([

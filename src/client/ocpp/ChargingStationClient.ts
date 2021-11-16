@@ -1,35 +1,35 @@
-import { OCPPCancelReservationCommandParam, OCPPCancelReservationCommandResult, OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPClearCacheCommandResult, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPDataTransferCommandParam, OCPPDataTransferCommandResult, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPReserveNowCommandParam, OCPPReserveNowCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUpdateFirmwareCommandParam } from '../../types/ocpp/OCPPClient';
+import { OCPPCancelReservationRequest, OCPPCancelReservationResponse, OCPPChangeAvailabilityRequest, OCPPChangeAvailabilityResponse, OCPPChangeConfigurationRequest, OCPPChangeConfigurationResponse, OCPPClearCacheResponse, OCPPClearChargingProfileRequest, OCPPClearChargingProfileResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPGetCompositeScheduleRequest, OCPPGetCompositeScheduleResponse, OCPPGetConfigurationRequest, OCPPGetConfigurationResponse, OCPPGetDiagnosticsRequest, OCPPGetDiagnosticsResponse, OCPPRemoteStartTransactionRequest, OCPPRemoteStartTransactionResponse, OCPPRemoteStopTransactionRequest, OCPPRemoteStopTransactionResponse, OCPPReserveNowRequest, OCPPReserveNowResponse, OCPPResetRequest, OCPPResetResponse, OCPPSetChargingProfileRequest, OCPPSetChargingProfileResponse, OCPPUnlockConnectorRequest, OCPPUnlockConnectorResponse, OCPPUpdateFirmwareRequest } from '../../types/ocpp/OCPPClient';
 
 export default abstract class ChargingStationClient {
-  public abstract reset(params: OCPPResetCommandParam): Promise<OCPPResetCommandResult>;
+  public abstract reset(params: OCPPResetRequest): Promise<OCPPResetResponse>;
 
-  public abstract clearCache(): Promise<OCPPClearCacheCommandResult>;
+  public abstract clearCache(): Promise<OCPPClearCacheResponse>;
 
-  public abstract dataTransfer(params: OCPPDataTransferCommandParam): Promise<OCPPDataTransferCommandResult>;
+  public abstract dataTransfer(params: OCPPDataTransferRequest): Promise<OCPPDataTransferResponse>;
 
-  public abstract getConfiguration(params: OCPPGetConfigurationCommandParam): Promise<OCPPGetConfigurationCommandResult>;
+  public abstract getConfiguration(params: OCPPGetConfigurationRequest): Promise<OCPPGetConfigurationResponse>;
 
-  public abstract changeConfiguration(params: OCPPChangeConfigurationCommandParam): Promise<OCPPChangeConfigurationCommandResult>;
+  public abstract changeConfiguration(params: OCPPChangeConfigurationRequest): Promise<OCPPChangeConfigurationResponse>;
 
-  public abstract remoteStartTransaction(params: OCPPRemoteStartTransactionCommandParam): Promise<OCPPRemoteStartTransactionCommandResult>;
+  public abstract remoteStartTransaction(params: OCPPRemoteStartTransactionRequest): Promise<OCPPRemoteStartTransactionResponse>;
 
-  public abstract remoteStopTransaction(params: OCPPRemoteStopTransactionCommandParam): Promise<OCPPRemoteStopTransactionCommandResult>;
+  public abstract remoteStopTransaction(params: OCPPRemoteStopTransactionRequest): Promise<OCPPRemoteStopTransactionResponse>;
 
-  public abstract unlockConnector(params: OCPPUnlockConnectorCommandParam): Promise<OCPPUnlockConnectorCommandResult>;
+  public abstract unlockConnector(params: OCPPUnlockConnectorRequest): Promise<OCPPUnlockConnectorResponse>;
 
-  public abstract setChargingProfile(params: OCPPSetChargingProfileCommandParam): Promise<OCPPSetChargingProfileCommandResult>;
+  public abstract setChargingProfile(params: OCPPSetChargingProfileRequest): Promise<OCPPSetChargingProfileResponse>;
 
-  public abstract getCompositeSchedule(params: OCPPGetCompositeScheduleCommandParam): Promise<OCPPGetCompositeScheduleCommandResult>;
+  public abstract getCompositeSchedule(params: OCPPGetCompositeScheduleRequest): Promise<OCPPGetCompositeScheduleResponse>;
 
-  public abstract clearChargingProfile(params: OCPPClearChargingProfileCommandParam): Promise<OCPPClearChargingProfileCommandResult>;
+  public abstract clearChargingProfile(params: OCPPClearChargingProfileRequest): Promise<OCPPClearChargingProfileResponse>;
 
-  public abstract changeAvailability(params: OCPPChangeAvailabilityCommandParam): Promise<OCPPChangeAvailabilityCommandResult>;
+  public abstract changeAvailability(params: OCPPChangeAvailabilityRequest): Promise<OCPPChangeAvailabilityResponse>;
 
-  public abstract getDiagnostics(params: OCPPGetDiagnosticsCommandParam): Promise<OCPPGetDiagnosticsCommandResult>;
+  public abstract getDiagnostics(params: OCPPGetDiagnosticsRequest): Promise<OCPPGetDiagnosticsResponse>;
 
-  public abstract updateFirmware(params: OCPPUpdateFirmwareCommandParam): Promise<void>;
+  public abstract updateFirmware(params: OCPPUpdateFirmwareRequest): Promise<void>;
 
-  public abstract reserveNow(params: OCPPReserveNowCommandParam): Promise<OCPPReserveNowCommandResult>;
+  public abstract reserveNow(params: OCPPReserveNowRequest): Promise<OCPPReserveNowResponse>;
 
-  public abstract cancelReservation(params: OCPPCancelReservationCommandParam): Promise<OCPPCancelReservationCommandResult>;
+  public abstract cancelReservation(params: OCPPCancelReservationRequest): Promise<OCPPCancelReservationResponse>;
 }

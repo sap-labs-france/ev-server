@@ -345,7 +345,7 @@ export default class TransactionService {
     UtilsService.assertObjectExists(action, transaction, `Transaction ID ${transactionId} does not exist`,
       MODULE_NAME, 'handleTransactionSoftStop', req.user);
     // Get the Charging Station
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, transaction.chargeBoxID);
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, transaction.chargeBoxID, { withSiteArea: true });
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${transaction.chargeBoxID}' does not exist`,
       MODULE_NAME, 'handleTransactionSoftStop', req.user);
     // Check if already stopped
@@ -366,10 +366,12 @@ export default class TransactionService {
       const result = await new OCPPService(Configuration.getChargingStationConfig()).handleStopTransaction(
         {
           chargeBoxIdentity: chargingStation.id,
+          chargingStation: chargingStation,
           companyID: chargingStation.companyID,
           siteID: chargingStation.siteID,
           siteAreaID: chargingStation.siteAreaID,
-          tenantID: req.user.tenantID
+          tenantID: req.user.tenantID,
+          tenant: req.tenant,
         },
         {
           transactionId: transactionId,
@@ -519,7 +521,7 @@ export default class TransactionService {
         'currentCumulatedPrice', 'currentInactivityStatus', 'signedData', 'stop.reason',
         'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh', 'stop.meterStop',
         'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.pricingSource', 'stop.signedData',
-        'stop.tagID', 'stop.tag.visualID', 'stop.tag.description', 'billingData.stop.status', 'billingData.stop.invoiceID',
+        'stop.tagID', 'stop.tag.visualID', 'stop.tag.description', 'billingData.stop.status', 'billingData.stop.invoiceID', 'billingData.stop.invoiceItem',
         'billingData.stop.invoiceStatus', 'billingData.stop.invoiceNumber',
         'carID' ,'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion'
       ]

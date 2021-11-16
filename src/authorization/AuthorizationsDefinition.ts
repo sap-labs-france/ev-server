@@ -30,7 +30,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       {
-        resource: Entity.LOGGINGS, action: Action.LIST,
+        resource: Entity.LOGGINGS, action: [Action.LIST, Action.EXPORT],
         attributes: [
           'id', 'level', 'timestamp', 'type', 'source', 'host', 'action', 'message', 'chargingStationID', 'siteID',
           'user.name', 'user.firstName', 'actionOnUser.name', 'actionOnUser.firstName', 'hasDetailedMessages', 'method', 'module',
@@ -224,7 +224,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       { resource: Entity.REPORT, action: [Action.READ] },
       {
-        resource: Entity.LOGGINGS, action: Action.LIST,
+        resource: Entity.LOGGINGS, action: [Action.LIST, Action.EXPORT],
         attributes: [
           'id', 'level', 'timestamp', 'type', 'source', 'host', 'action', 'message', 'chargingStationID', 'siteID',
           'user.name', 'user.firstName', 'actionOnUser.name', 'actionOnUser.firstName', 'hasDetailedMessages', 'method', 'module',
@@ -238,6 +238,25 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       { resource: Entity.PRICING, action: [Action.READ, Action.UPDATE] },
+      { resource: Entity.PRICING_DEFINITIONS, action: [Action.LIST],
+        attributes: ['id', 'entityID', 'entityType', 'name', 'description', 'entityName',
+          'staticRestrictions.validFrom', 'staticRestrictions.validTo', 'staticRestrictions.connectorType', 'staticRestrictions.connectorPowerkW',
+          'restrictions.minEnergyKWh', 'restrictions.maxEnergyKWh', 'restrictions.minDurationSecs', 'restrictions.maxDurationSecs',
+          'dimensions.flatFee.active', 'dimensions.flatFee.price', 'dimensions.flatFee.stepSize', 'dimensions.flatFee.pricedData',
+          'dimensions.energy.active', 'dimensions.energy.price', 'dimensions.energy.stepSize', 'dimensions.energy.pricedData',
+          'dimensions.chargingTime.active', 'dimensions.chargingTime.price', 'dimensions.chargingTime.stepSize', 'dimensions.chargingTime.pricedData',
+          'dimensions.parkingTime.active', 'dimensions.parkingTime.price', 'dimensions.parkingTime.stepSize', 'dimensions.parkingTime.pricedData',
+        ]
+      },
+      { resource: Entity.PRICING_DEFINITION, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE],
+        attributes: ['id', 'entityID', 'entityType', 'name', 'description', 'entityName',
+          'staticRestrictions.validFrom', 'staticRestrictions.validTo', 'staticRestrictions.connectorType', 'staticRestrictions.connectorPowerkW',
+          'restrictions.minEnergyKWh', 'restrictions.maxEnergyKWh', 'restrictions.minDurationSecs', 'restrictions.maxDurationSecs',
+          'dimensions.flatFee.active', 'dimensions.flatFee.price', 'dimensions.flatFee.stepSize', 'dimensions.flatFee.pricedData',
+          'dimensions.energy.active', 'dimensions.energy.price', 'dimensions.energy.stepSize', 'dimensions.energy.pricedData',
+          'dimensions.chargingTime.active', 'dimensions.chargingTime.price', 'dimensions.chargingTime.stepSize', 'dimensions.chargingTime.pricedData',
+          'dimensions.parkingTime.active', 'dimensions.parkingTime.price', 'dimensions.parkingTime.stepSize', 'dimensions.parkingTime.pricedData',]
+      },
       { resource: Entity.BILLING, action: [Action.CHECK_CONNECTION, Action.CLEAR_BILLING_TEST_DATA] },
       { resource: Entity.TAXES, action: [Action.LIST] },
       // ---------------------------------------------------------------------------------------------------
@@ -831,7 +850,13 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['SitesAdmin', 'LocalIssuer']
+            filters: ['SitesAdmin', 'LocalIssuer'],
+            metadata: {
+              status: {
+                visible: true,
+                mandatory: true,
+              }
+            },
           }
         },
         attributes: [
@@ -901,6 +926,25 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
             filters: ['SitesAdmin', 'LocalIssuer']
           }
         },
+      },
+      {
+        resource: Entity.SITE, action: Action.READ,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['AssignedSites', 'LocalIssuer'],
+            metadata: {
+              autoUserSiteAssignment: {
+                enabled: false,
+              }
+            },
+          }
+        },
+        attributes: [
+          'id', 'name', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
+          'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
+        ],
       },
       { resource: Entity.SITE_AREA, action: Action.CREATE },
       {
@@ -1017,7 +1061,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       { resource: Entity.REPORT, action: [Action.READ] },
       {
-        resource: Entity.LOGGINGS, action: Action.LIST,
+        resource: Entity.LOGGINGS, action: [Action.LIST, Action.EXPORT],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
@@ -1059,11 +1103,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
             filters: ['SitesAdmin', 'LocalIssuer'],
             metadata: {
               userID: {
-                visible: true,
-                enabled: true,
                 mandatory: true,
-                values: [],
-                defaultValue: null,
               }
             },
           }
@@ -1073,7 +1113,16 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'user.name', 'user.firstName', 'user.email', 'createdOn', 'lastChangedOn'
         ],
       },
-      { resource: Entity.TAG, action: Action.CREATE },
+      {
+        resource: Entity.TAG, action: Action.CREATE,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: ['UserMandatory'],
+            filters: []
+          }
+        }
+      },
       {
         resource: Entity.TAG, action: Action.READ,
         condition: {
@@ -1083,11 +1132,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
             filters: ['SitesAdmin', 'LocalIssuer'],
             metadata: {
               userID: {
-                visible: true,
-                enabled: true,
                 mandatory: true,
-                values: [],
-                defaultValue: null,
               }
             },
           }
@@ -1098,11 +1143,21 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ],
       },
       {
-        resource: Entity.TAG, action: [Action.UPDATE, Action.DELETE],
+        resource: Entity.TAG, action: Action.DELETE,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
+            filters: ['SitesAdmin', 'LocalIssuer']
+          }
+        }
+      },
+      {
+        resource: Entity.TAG, action: Action.UPDATE,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: ['UserMandatory'],
             filters: ['SitesAdmin', 'LocalIssuer']
           }
         }

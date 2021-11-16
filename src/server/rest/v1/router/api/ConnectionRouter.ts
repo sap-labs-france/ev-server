@@ -21,26 +21,26 @@ export default class ConnectionRouter {
     return this.router;
   }
 
-  protected buildRouteConnections(): void {
+  private buildRouteConnections(): void {
     this.router.get(`/${ServerRoute.REST_CONNECTIONS}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(ConnectionService.handleGetConnections.bind(this), ServerAction.INTEGRATION_CONNECTIONS, req, res, next);
     });
   }
 
-  protected buildRouteConnection(): void {
+  private buildRouteConnection(): void {
     this.router.get(`/${ServerRoute.REST_CONNECTION}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = sanitize(req.params.id);
       await RouterUtils.handleServerAction(ConnectionService.handleGetConnection.bind(this), ServerAction.INTEGRATION_CONNECTION, req, res, next);
     });
   }
 
-  protected buildRouteCreateConnection(): void {
+  private buildRouteCreateConnection(): void {
     this.router.post(`/${ServerRoute.REST_CONNECTIONS}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(ConnectionService.handleCreateConnection.bind(this), ServerAction.INTEGRATION_CONNECTION_CREATE, req, res, next);
     });
   }
 
-  protected buildRouteDeleteConnection(): void {
+  private buildRouteDeleteConnection(): void {
     this.router.delete(`/${ServerRoute.REST_CONNECTION}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = sanitize(req.params.id);
       await RouterUtils.handleServerAction(ConnectionService.handleDeleteConnection.bind(this), ServerAction.INTEGRATION_CONNECTION_DELETE, req, res, next);

@@ -23,6 +23,7 @@ import { TenantComponents } from '../../../../types/Tenant';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import User from '../../../../types/User';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
+import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 
 const MODULE_NAME = 'BillingService';
@@ -529,7 +530,7 @@ export default class BillingService {
     const paymentMethodId: string = filteredRequest.paymentMethodId;
     const operationResult: BillingOperationResult = await billingImpl.setupPaymentMethod(user, paymentMethodId);
     if (operationResult) {
-      console.log(operationResult);
+      Utils.isDevelopmentEnv() && Logging.logConsoleError(operationResult as unknown as string);
     }
     res.json(operationResult);
     next();
@@ -553,7 +554,7 @@ export default class BillingService {
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
+        errorCode: HTTPError.MISSING_SETTINGS,
         message: 'Billing service is not configured',
         module: MODULE_NAME, method: 'handleBillingGetPaymentMethods',
         action: action,

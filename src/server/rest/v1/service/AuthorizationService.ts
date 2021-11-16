@@ -1,9 +1,10 @@
 import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity, SiteAreaAuthorizationActions, TagAuthorizationActions } from '../../../../types/Authorization';
 import { Car, CarCatalog } from '../../../../types/Car';
-import { CarCatalogDataResult, CarDataResult, CompanyDataResult, LogDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, UserDataResult } from '../../../../types/DataResult';
+import { CarCatalogDataResult, CarDataResult, CompanyDataResult, LogDataResult, PricingDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, UserDataResult } from '../../../../types/DataResult';
 import { HttpCarCatalogRequest, HttpCarCatalogsRequest, HttpCarRequest, HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
 import { HttpChargingStationRequest, HttpChargingStationsRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
+import { HttpPricingDefinitionRequest, HttpPricingDefinitionsRequest } from '../../../../types/requests/HttpPricingRequest';
 import { HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
 import { HttpSiteAssignUsersRequest, HttpSiteRequest, HttpSiteUsersRequest } from '../../../../types/requests/HttpSiteRequest';
 import { HttpTagRequest, HttpTagsRequest } from '../../../../types/requests/HttpTagRequest';
@@ -22,6 +23,7 @@ import { HTTPAuthError } from '../../../../types/HTTPError';
 import { HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
 import { HttpLogRequest } from '../../../../types/requests/HttpLoggingRequest';
 import { Log } from '../../../../types/Log';
+import PricingDefinition from '../../../../types/Pricing';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
@@ -80,14 +82,12 @@ export default class AuthorizationService {
     // Add canCreate flag to root
     sites.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE, Action.CREATE,
       authorizationFilter);
-    // Enrich
     for (const site of sites.result) {
       await AuthorizationService.addSiteAuthorizations(tenant, userToken, site, authorizationFilter);
     }
   }
 
   public static async addSiteAuthorizations(tenant: Tenant, userToken: UserToken, site: Site, authorizationFilter: AuthorizationFilter): Promise<void> {
-    // Enrich
     if (!site.issuer) {
       site.canRead = true;
     } else {
@@ -113,8 +113,8 @@ export default class AuthorizationService {
     }
   }
 
-  public static addLogsAuthorizations(tenant: Tenant, userToken: UserToken, logs: LogDataResult, authorizationFilter: AuthorizationFilter): void {
-    // Enrich
+  public static async addLogsAuthorizations(tenant: Tenant, userToken: UserToken, logs: LogDataResult, authorizationFilter: AuthorizationFilter): Promise<void> {
+    logs.canExport = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.LOGGINGS, Action.EXPORT, authorizationFilter);
     for (const log of logs.result) {
       AuthorizationService.addLogAuthorizations(tenant, userToken, log, authorizationFilter);
     }
@@ -229,18 +229,17 @@ export default class AuthorizationService {
   }
 
   public static async addUsersAuthorizations(tenant: Tenant, userToken: UserToken, users: UserDataResult, authorizationFilter: AuthorizationFilter): Promise<void> {
+    users.metadata = authorizationFilter.metadata;
     users.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.CREATE, authorizationFilter);
     users.canExport = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USERS, Action.EXPORT, authorizationFilter);
     users.canImport = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USERS, Action.IMPORT, authorizationFilter);
     users.canSynchronizeBilling = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USERS, Action.SYNCHRONIZE_BILLING_USERS, authorizationFilter);
-    // Enrich
     for (const user of users.result) {
       await AuthorizationService.addUserAuthorizations(tenant, userToken, user, authorizationFilter);
     }
   }
 
   public static async addUserAuthorizations(tenant: Tenant, userToken: UserToken, user: User, authorizationFilter: AuthorizationFilter): Promise<void> {
-    // Enrich
     if (!user.issuer) {
       user.canRead = true;
     } else {
@@ -260,7 +259,7 @@ export default class AuthorizationService {
       filters: {},
       dataSources: new Map(),
       projectFields: [],
-      authorized: false
+      authorized: false,
     };
     // Check static & dynamic authorization
     await AuthorizationService.canPerformAuthorizationAction(
@@ -323,14 +322,12 @@ export default class AuthorizationService {
     tags.canUnassign = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAGS, Action.UNASSIGN, authorizationFilter);
     !tags.canUnassign && delete tags.canUnassign; // Optimize data over the net
     tags.metadata = authorizationFilter.metadata;
-    // Enrich
     for (const tag of tags.result) {
       await AuthorizationService.addTagAuthorizations(tenant, userToken, tag, authorizationFilter);
     }
   }
 
   public static async addTagAuthorizations(tenant: Tenant, userToken: UserToken, tag: Tag, authorizationFilter: AuthorizationFilter): Promise<void> {
-    // Enrich
     if (!tag.issuer) {
       tag.canRead = true;
     } else {
@@ -371,14 +368,12 @@ export default class AuthorizationService {
     // Add canCreate flag to root
     companies.canCreate = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.COMPANY, Action.CREATE, authorizationFilter);
-    // Enrich
     for (const company of companies.result) {
       await AuthorizationService.addCompanyAuthorizations(tenant, userToken, company, authorizationFilter);
     }
   }
 
   public static async addCompanyAuthorizations(tenant: Tenant, userToken: UserToken, company: Company, authorizationFilter: AuthorizationFilter): Promise<void> {
-    // Enrich
     if (!company.issuer) {
       company.canRead = true;
     } else {
@@ -396,6 +391,46 @@ export default class AuthorizationService {
       filteredRequest: Partial<HttpCompanyRequest>, authAction: Action, entityData?: EntityDataType): Promise<AuthorizationFilter> {
     return AuthorizationService.checkAndGetEntityAuthorizations(
       tenant, Entity.COMPANY, userToken, filteredRequest, filteredRequest.ID ? { CompanyID: filteredRequest.ID } : {}, authAction, entityData);
+  }
+
+  public static async checkAndGetPricingDefinitionsAuthorizations(tenant: Tenant, userToken: UserToken,
+      filteredRequest: Partial<HttpPricingDefinitionsRequest>): Promise<AuthorizationFilter> {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      dataSources: new Map(),
+      projectFields: [],
+      authorized: false,
+    };
+    // Check static & dynamic authorization
+    await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.PRICING_DEFINITIONS, Action.LIST,
+      authorizationFilters, filteredRequest);
+    return authorizationFilters;
+  }
+
+  public static async addPricingDefinitionsAuthorizations(tenant: Tenant, userToken: UserToken, dataResult: PricingDataResult, filter: AuthorizationFilter): Promise<void> {
+    // Add canCreate flag to root
+    dataResult.canCreate = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.PRICING_DEFINITION, Action.CREATE, filter);
+    // Enrich
+    for (const pricingDefinition of dataResult.result) {
+      await AuthorizationService.addPricingDefinitionAuthorizations(tenant, userToken, pricingDefinition, filter);
+    }
+  }
+
+  public static async addPricingDefinitionAuthorizations(tenant: Tenant, userToken: UserToken, pricingDefinition: PricingDefinition, filter: AuthorizationFilter): Promise<void> {
+    // Enrich
+    pricingDefinition.canRead = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.PRICING_DEFINITION, Action.READ, filter, { CompanyID: pricingDefinition.id }, pricingDefinition);
+    pricingDefinition.canDelete = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.PRICING_DEFINITION, Action.DELETE, filter, { CompanyID: pricingDefinition.id }, pricingDefinition);
+    pricingDefinition.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.PRICING_DEFINITION, Action.UPDATE, filter, { CompanyID: pricingDefinition.id }, pricingDefinition);
+  }
+
+  public static async checkAndGetPricingDefinitionAuthorizations(tenant: Tenant, userToken: UserToken,
+      filteredRequest: Partial<HttpPricingDefinitionRequest>, authAction: Action, entityData?: EntityDataType): Promise<AuthorizationFilter> {
+    return AuthorizationService.checkAndGetEntityAuthorizations(
+      tenant, Entity.PRICING_DEFINITION, userToken, filteredRequest, filteredRequest.ID ? { PricingID: filteredRequest.ID } : {}, authAction, entityData);
   }
 
   public static async checkAndGetSiteAreaAuthorizations(tenant: Tenant, userToken: UserToken,
@@ -422,14 +457,12 @@ export default class AuthorizationService {
       authorizationFilter: AuthorizationFilter): Promise<void> {
     // Add canCreate flag to root
     siteAreas.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.CREATE, authorizationFilter);
-    // Enrich
     for (const siteArea of siteAreas.result) {
       await AuthorizationService.addSiteAreaAuthorizations(tenant, userToken, siteArea, authorizationFilter);
     }
   }
 
   public static async addSiteAreaAuthorizations(tenant: Tenant, userToken: UserToken, siteArea: SiteArea, authorizationFilter: AuthorizationFilter): Promise<void> {
-    // Enrich
     if (!siteArea.issuer) {
       siteArea.canRead = true;
     } else {
@@ -511,14 +544,12 @@ export default class AuthorizationService {
   public static async addCarsAuthorizations(tenant: Tenant, userToken: UserToken, cars: CarDataResult, authorizationFilter: AuthorizationFilter): Promise<void> {
     // Add canCreate flag to root
     cars.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR, Action.CREATE, authorizationFilter);
-    // Enrich
     for (const car of cars.result) {
       await AuthorizationService.addCarAuthorizations(tenant, userToken, car, authorizationFilter);
     }
   }
 
   public static async addCarAuthorizations(tenant: Tenant, userToken: UserToken, car: Car, authorizationFilter: AuthorizationFilter): Promise<void> {
-    // Enrich
     car.canRead = true; // Always true as it should be filtered upfront
     car.canDelete = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CAR, Action.DELETE, authorizationFilter, { CarID: car.id }, car);
@@ -552,14 +583,12 @@ export default class AuthorizationService {
       authorizationFilter: AuthorizationFilter): Promise<void> {
     // Add canSync flag to root
     carCatalogs.canSync = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR_CATALOGS, Action.SYNCHRONIZE, authorizationFilter);
-    // Enrich
     for (const carCatalog of carCatalogs.result) {
       await AuthorizationService.addCarCatalogAuthorizations(tenant, userToken, carCatalog, authorizationFilter);
     }
   }
 
   public static async addCarCatalogAuthorizations(tenant: Tenant, userToken: UserToken, carCatalog: CarCatalog, authorizationFilter: AuthorizationFilter): Promise<void> {
-    // Enrich
     carCatalog.canRead = true; // Always true as it should be filtered upfront
     carCatalog.canDelete = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CAR_CATALOG, Action.DELETE, authorizationFilter, { CarCatalogID: carCatalog.id }, carCatalog);

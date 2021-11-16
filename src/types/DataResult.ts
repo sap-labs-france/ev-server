@@ -4,6 +4,7 @@ import Transaction, { TransactionStats } from './Transaction';
 import { AuthorizationDefinitionFieldMetadata } from './Authorization';
 import Company from './Company';
 import { Log } from './Log';
+import PricingDefinition from './Pricing';
 import Site from './Site';
 import SiteArea from './SiteArea';
 import Tag from './Tag';
@@ -21,6 +22,10 @@ export interface DataResult<T> {
   metadata?: Record<string, AuthorizationDefinitionFieldMetadata>;
 }
 
+export interface PricingDataResult extends DataResult<PricingDefinition>{
+  canCreate: boolean;
+}
+
 export interface CompanyDataResult extends DataResult<Company>{
   canCreate: boolean;
 }
@@ -30,7 +35,9 @@ export interface SiteDataResult extends DataResult<Site>{
   canUnassignUsers: boolean;
 }
 
-export type LogDataResult = DataResult<Log>;
+export interface LogDataResult extends DataResult<Log>{
+  canExport: boolean;
+}
 
 export interface SiteAreaDataResult extends DataResult<SiteArea> {
   canCreate: boolean;

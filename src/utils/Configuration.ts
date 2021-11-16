@@ -25,7 +25,6 @@ import OICPEndpointConfiguration from '../types/configuration/OICPEndpointConfig
 import OICPServiceConfiguration from '../types/configuration/OICPServiceConfiguration';
 import SchedulerConfiguration from '../types/configuration/SchedulerConfiguration';
 import StorageConfiguration from '../types/configuration/StorageConfiguration';
-import WSClientConfiguration from '../types/configuration/WSClientConfiguration';
 import WSDLEndpointConfiguration from '../types/configuration/WSDLEndpointConfiguration';
 import fs from 'fs';
 import global from './../types/GlobalType';
@@ -151,19 +150,6 @@ export default class Configuration {
 
   public static getLoggingConfig(): LoggingConfiguration {
     return Configuration.getConfig().Logging;
-  }
-
-  public static getWSClientConfig(): WSClientConfiguration {
-    if (Configuration.isUndefined(Configuration.getConfig().WSClient)) {
-      Configuration.getConfig().WSClient = {} as WSClientConfiguration;
-    }
-    if (Configuration.isUndefined(Configuration.getConfig().WSClient.autoReconnectMaxRetries)) {
-      Configuration.getConfig().WSClient.autoReconnectMaxRetries = Constants.WS_DEFAULT_RECONNECT_MAX_RETRIES;
-    }
-    if (Configuration.isUndefined(Configuration.getConfig().WSClient.autoReconnectTimeout)) {
-      Configuration.getConfig().WSClient.autoReconnectTimeout = Constants.WS_DEFAULT_RECONNECT_TIMEOUT;
-    }
-    return Configuration.getConfig().WSClient;
   }
 
   public static getHealthCheckConfig(): HealthCheckConfiguration {

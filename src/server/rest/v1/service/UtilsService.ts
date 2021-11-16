@@ -27,6 +27,8 @@ import LoggingStorage from '../../../../storage/mongodb/LoggingStorage';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import OICPEndpoint from '../../../../types/oicp/OICPEndpoint';
 import PDFDocument from 'pdfkit';
+import PricingDefinition from '../../../../types/Pricing';
+import PricingStorage from '../../../../storage/mongodb/PricingStorage';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
@@ -103,6 +105,56 @@ export default class UtilsService {
       });
     }
     return chargingStation;
+  }
+
+  public static async checkAndGetPricingDefinitionAuthorization(tenant: Tenant, userToken: UserToken, pricingDefinitionID: string, authAction: Action,
+      action: ServerAction, entityData?: EntityDataType, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<PricingDefinition> {
+  // Check mandatory fields
+    UtilsService.assertIdIsProvided(action, pricingDefinitionID, MODULE_NAME, 'checkAndGetPricingDefinitionAuthorization', userToken);
+    // Get dynamic auth
+    const authorizationFilter = await AuthorizationService.checkAndGetPricingDefinitionAuthorizations(
+      tenant, userToken, { ID: pricingDefinitionID }, authAction, entityData);
+    if (!authorizationFilter.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: authAction, entity: Entity.PRICING_DEFINITION,
+        module: MODULE_NAME, method: 'checkAndGetPricingDefinitionAuthorization',
+        value: pricingDefinitionID
+      });
+    }
+    // Get Pricing
+    const pricingDefinition = await PricingStorage.getPricingDefinition(tenant, pricingDefinitionID,
+      {
+        ...additionalFilters,
+        ...authorizationFilter.filters
+      },
+      applyProjectFields ? authorizationFilter.projectFields : null
+    );
+    UtilsService.assertObjectExists(action, pricingDefinition, `Pricing Model ID '${pricingDefinitionID}' does not exist`,
+      MODULE_NAME, 'checkAndGetPricingDefinitionAuthorization', userToken);
+    // Add actions
+    await AuthorizationService.addPricingDefinitionAuthorizations(tenant, userToken, pricingDefinition, authorizationFilter);
+    // Assign projected fields
+    if (authorizationFilter.projectFields) {
+      pricingDefinition.projectFields = authorizationFilter.projectFields;
+    }
+    // Assign Metadata
+    if (authorizationFilter.metadata) {
+      pricingDefinition.metadata = authorizationFilter.metadata;
+    }
+    // Check
+    const authorized = AuthorizationService.canPerformAction(pricingDefinition, authAction);
+    if (!authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: authAction, entity: Entity.PRICING_DEFINITION,
+        module: MODULE_NAME, method: 'checkAndGetPricingDefinitionAuthorization',
+        value: pricingDefinitionID
+      });
+    }
+    return pricingDefinition;
   }
 
   public static async checkAndGetCompanyAuthorization(tenant: Tenant, userToken: UserToken, companyID: string, authAction: Action,
@@ -1314,6 +1366,25 @@ export default class UtilsService {
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Site area number of phases must be either 1 or 3 but got ${siteArea.numberOfPhases}`,
         module: MODULE_NAME, method: 'checkIfSiteAreaValid',
+        user: req.user.id
+      });
+    }
+  }
+
+  public static checkIfPricingDefinitionValid(pricing: Partial<PricingDefinition>, req: Request): void {
+    if (req.method !== 'POST' && !pricing.id) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Pricing ID is mandatory',
+        module: MODULE_NAME, method: 'checkIfPricingDefinitionValid',
+        user: req.user.id
+      });
+    }
+    if (!pricing.dimensions) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Pricing Dimensions are mandatory',
+        module: MODULE_NAME, method: 'checkIfPricingDefinitionValid',
         user: req.user.id
       });
     }
