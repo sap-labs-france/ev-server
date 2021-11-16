@@ -164,6 +164,8 @@ export default class ChargingStationService {
         }
       }
       chargingStation.public = filteredRequest.public;
+    }
+    if (Utils.objectHasProperty(filteredRequest, 'tariffID')) {
       chargingStation.tariffID = filteredRequest.tariffID;
     }
     if (Utils.objectHasProperty(filteredRequest, 'excludeFromSmartCharging')) {
