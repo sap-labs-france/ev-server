@@ -624,7 +624,7 @@ export default class TransactionService {
   public static async handleGetTransactionsToRefund(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.REFUND,
-      Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetTransactionsToRefund');
+      Action.LIST, Entity.TRANSACTION, MODULE_NAME, 'handleGetTransactionsToRefund');
     // Only e-Mobility transactions
     req.query.issuer = 'true';
     // Call
@@ -643,13 +643,13 @@ export default class TransactionService {
   public static async handleGetRefundReports(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.REFUND,
-      Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetRefundReports');
+      Action.LIST, Entity.TRANSACTION, MODULE_NAME, 'handleGetRefundReports');
     // Check Transaction
     if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.LIST, entity: Entity.TRANSACTIONS,
+        action: Action.LIST, entity: Entity.TRANSACTION,
         module: MODULE_NAME, method: 'handleGetRefundReports'
       });
     }
@@ -730,7 +730,7 @@ export default class TransactionService {
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST,
-        entity: Entity.TRANSACTIONS,
+        entity: Entity.TRANSACTION,
         module: MODULE_NAME,
         method: 'handleExportTransactionOcpiCdr'
       });
@@ -763,7 +763,7 @@ export default class TransactionService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.IN_ERROR, entity: Entity.TRANSACTIONS,
+        action: Action.IN_ERROR, entity: Entity.TRANSACTION,
         module: MODULE_NAME, method: 'handleGetTransactionsInError'
       });
     }
@@ -968,7 +968,7 @@ export default class TransactionService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.LIST, entity: Entity.TRANSACTIONS,
+        action: Action.LIST, entity: Entity.TRANSACTION,
         module: MODULE_NAME, method: 'handleGetTransactionsToRefund'
       });
     }

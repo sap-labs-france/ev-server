@@ -35,7 +35,7 @@ export default class PricingService {
   public static async handleGetPricingDefinitions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
-      Action.LIST, Entity.PRICING_DEFINITIONS, MODULE_NAME, 'handleGetPricingDefinitions');
+      Action.LIST, Entity.PRICING_DEFINITION, MODULE_NAME, 'handleGetPricingDefinitions');
     // Filter
     const filteredRequest = PricingValidator.getInstance().validatePricingDefinitionsGet(req.query);
     // Check dynamic auth
