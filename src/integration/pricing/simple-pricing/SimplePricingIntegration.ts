@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import { PricedConsumption, PricingSource } from '../../../types/Pricing';
 
 import Consumption from '../../../types/Consumption';
@@ -35,12 +36,15 @@ export default class SimplePricingIntegration extends PricingIntegration<SimpleP
       amount = 0;
       roundedAmount = 0;
     }
+    const cumulatedAmount = Utils.createDecimal(transaction.currentCumulatedPrice).plus(amount).toNumber();
+    const cumulatedRoundedAmount = Utils.truncTo(cumulatedAmount, 2);
     const pricedConsumption: PricedConsumption = {
       pricingSource: PricingSource.SIMPLE,
-      amount: amount,
-      roundedAmount: roundedAmount,
       currencyCode: this.settings.currency,
-      cumulatedAmount: transaction.currentCumulatedPrice ? Utils.createDecimal(transaction.currentCumulatedPrice).plus(amount).toNumber() : amount
+      amount,
+      roundedAmount,
+      cumulatedAmount,
+      cumulatedRoundedAmount
     };
     return pricedConsumption;
   }

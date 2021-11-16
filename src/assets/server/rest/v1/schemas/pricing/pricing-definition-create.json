@@ -1,0 +1,51 @@
+{
+  "$id": "pricing-definition-create",
+  "title": "Create a Pricing Definition",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "pricing-definition#/definitions/id"
+    },
+    "entityID": {
+      "$ref": "pricing-definition#/definitions/entityID"
+    },
+    "entityType": {
+      "$ref": "pricing-definition#/definitions/entityType"
+    },
+    "name": {
+      "$ref": "pricing-definition#/definitions/name"
+    },
+    "description": {
+      "$ref": "pricing-definition#/definitions/description"
+    },
+    "staticRestrictions": {
+      "$ref": "pricing-definition#/definitions/staticRestrictions"
+    },
+    "restrictions": {
+      "$ref": "pricing-definition#/definitions/restrictions"
+    },
+    "dimensions": {
+      "type": "object",
+      "properties": {
+        "flatFee": {
+          "$ref": "pricing-definition#/definitions/pricingDimension"
+        },
+        "energy": {
+          "$ref": "pricing-definition#/definitions/pricingDimension"
+        },
+        "chargingTime": {
+          "$ref": "pricing-definition#/definitions/pricingDimension"
+        },
+        "parkingTime": {
+          "$ref": "pricing-definition#/definitions/pricingDimension"
+        }
+      }
+    }
+  },
+  "required": [
+    "entityID",
+    "entityType",
+    "name",
+    "dimensions"
+  ]
+}
