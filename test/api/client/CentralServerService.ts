@@ -14,6 +14,7 @@ import { HTTPError } from '../../../src/types/HTTPError';
 import LogsApi from './LogsApi';
 import MailApi from './MailApi';
 import OCPIEndpointApi from './OCPIEndpointApi';
+import PricingApi from './PricingApi';
 import RegistrationTokenApi from './RegistrationTokenApi';
 import SettingApi from './SettingApi';
 import SiteApi from './SiteApi';
@@ -58,6 +59,7 @@ export default class CentralServerService {
   public logsApi: LogsApi;
   public statisticsApi: StatisticsApi;
   public billingApi: BillingApi;
+  public pricingApi: PricingApi;
   public smartChargingApi: SmartChargingApi;
   public _baseApi: BaseApi;
   private _baseURL: string;
@@ -108,6 +110,7 @@ export default class CentralServerService {
     this.statisticsApi = new StatisticsApi(this.authenticatedApi);
     this.registrationApi = new RegistrationTokenApi(this.authenticatedApi);
     this.billingApi = new BillingApi(this.authenticatedApi);
+    this.pricingApi = new PricingApi(this.authenticatedApi);
     this.assetApi = new AssetApi(this.authenticatedApi);
     this.carApi = new CarApi(this.authenticatedApi);
     this.smartChargingApi = new SmartChargingApi(this.authenticatedApi);

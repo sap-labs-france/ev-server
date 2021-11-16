@@ -84,6 +84,8 @@ export enum Entity {
   LOGGINGS = 'Loggings',
   LOGGING = 'Logging',
   PRICING = 'Pricing',
+  PRICING_DEFINITION = 'PricingDefinition',
+  PRICING_DEFINITIONS = 'PricingDefinitions',
   BILLING = 'Billing',
   SETTING = 'Setting',
   SETTINGS = 'Settings',

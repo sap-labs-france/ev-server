@@ -19,6 +19,7 @@ import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import StatefulChargingService from './StatefulChargingService';
 import Tenant from '../../../types/Tenant';
 import Transaction from '../../../types/Transaction';
+import Utils from '../../../utils/Utils';
 import moment from 'moment-timezone';
 
 const MODULE_NAME = 'ConvergentChargingPricingIntegration';
@@ -76,6 +77,7 @@ export default class SapConvergentChargingPricingIntegration extends PricingInte
         cumulatedAmount: 0,
         currencyCode: rateResult.transactionsToReserve.getCurrencyCode(),
         roundedAmount: 0,
+        cumulatedRoundedAmount: 0,
         pricingSource: PricingSource.CONVERGENT_CHARGING
       };
     }
@@ -99,6 +101,7 @@ export default class SapConvergentChargingPricingIntegration extends PricingInte
       return {
         roundedAmount: rateResult.amountToConfirm,
         cumulatedAmount: rateResult.accumulatedAmount,
+        cumulatedRoundedAmount: Utils.truncTo(rateResult.accumulatedAmount,2),
         currencyCode: rateResult.transactionsToConfirm.getCurrencyCode(),
         amount: rateResult.transactionsToConfirm.getTotalUnroundedAmount(),
         pricingSource: PricingSource.CONVERGENT_CHARGING
@@ -123,6 +126,7 @@ export default class SapConvergentChargingPricingIntegration extends PricingInte
       return {
         roundedAmount: rateResult.amountToConfirm,
         cumulatedAmount: rateResult.accumulatedAmount,
+        cumulatedRoundedAmount: Utils.truncTo(rateResult.accumulatedAmount, 2),
         currencyCode: rateResult.transactionsToConfirm.getCurrencyCode(),
         amount: rateResult.transactionsToConfirm.getTotalUnroundedAmount(),
         pricingSource: PricingSource.CONVERGENT_CHARGING

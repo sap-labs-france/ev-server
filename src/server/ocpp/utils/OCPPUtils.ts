@@ -1,6 +1,7 @@
 import { BillingDataTransactionStart, BillingDataTransactionStop } from '../../../types/Billing';
 import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargingStationCapabilities, ChargingStationTemplate, Command, Connector, ConnectorCurrentLimitSource, CurrentType, OcppParameter, SiteAreaLimitSource, StaticLimitAmps, TemplateUpdate, TemplateUpdateResult } from '../../../types/ChargingStation';
+import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import { OCPPChangeConfigurationResponse, OCPPChargingProfileStatus, OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
 import { OCPPMeasurand, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat } from '../../../types/ocpp/OCPPServer';
 import { OICPIdentification, OICPSessionID } from '../../../types/oicp/OICPIdentification';
@@ -269,7 +270,7 @@ export default class OCPPUtils {
             );
           }
           // Set
-          pricedConsumption = await pricingImpl.startSession(transaction, consumption);
+          pricedConsumption = await pricingImpl.startSession(transaction, consumption, chargingStation);
           if (pricedConsumption) {
             // Set the initial pricing
             transaction.price = pricedConsumption.amount;
@@ -277,12 +278,16 @@ export default class OCPPUtils {
             transaction.priceUnit = pricedConsumption.currencyCode;
             transaction.pricingSource = pricedConsumption.pricingSource;
             transaction.currentCumulatedPrice = pricedConsumption.amount;
+            transaction.currentCumulatedRoundedPrice = pricedConsumption.roundedAmount;
+            if (FeatureToggles.isFeatureActive(Feature.PRICING_NEW_MODEL)) {
+              transaction.pricingModel = pricedConsumption.pricingModel;
+            }
           }
           break;
         // Meter Values
         case TransactionAction.UPDATE:
           // Set
-          pricedConsumption = await pricingImpl.updateSession(transaction, consumption);
+          pricedConsumption = await pricingImpl.updateSession(transaction, consumption, chargingStation);
           if (pricedConsumption) {
             // Update consumption
             consumption.amount = pricedConsumption.amount;
@@ -291,12 +296,13 @@ export default class OCPPUtils {
             consumption.pricingSource = pricedConsumption.pricingSource;
             consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
             transaction.currentCumulatedPrice = consumption.cumulatedAmount;
+            transaction.currentCumulatedRoundedPrice = pricedConsumption.cumulatedRoundedAmount;
           }
           break;
         // Stop Transaction
         case TransactionAction.STOP:
           // Set
-          pricedConsumption = await pricingImpl.stopSession(transaction, consumption);
+          pricedConsumption = await pricingImpl.stopSession(transaction, consumption, chargingStation);
           if (pricedConsumption) {
             // Update consumption
             consumption.amount = pricedConsumption.amount;
@@ -305,6 +311,7 @@ export default class OCPPUtils {
             consumption.pricingSource = pricedConsumption.pricingSource;
             consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
             transaction.currentCumulatedPrice = consumption.cumulatedAmount;
+            transaction.currentCumulatedRoundedPrice = pricedConsumption.cumulatedRoundedAmount;
           }
           break;
       }
@@ -582,7 +589,7 @@ export default class OCPPUtils {
     // Update transaction
     transaction.roundedPrice = Utils.truncTo(transaction.price, 2);
     transaction.stop.price = transaction.currentCumulatedPrice;
-    transaction.stop.roundedPrice = Utils.truncTo(transaction.currentCumulatedPrice, 2);
+    transaction.stop.roundedPrice = transaction.currentCumulatedRoundedPrice;
     await TransactionStorage.saveTransaction(tenant, transaction);
   }
 
@@ -602,7 +609,7 @@ export default class OCPPUtils {
       totalDurationSecs: transaction.currentTotalDurationSecs,
       inactivityStatus: Utils.getInactivityStatusLevel(chargingStation, transaction.connectorId, transaction.currentTotalInactivitySecs),
       price: transaction.currentCumulatedPrice,
-      roundedPrice: Utils.truncTo(transaction.currentCumulatedPrice, 2),
+      roundedPrice: transaction.currentCumulatedRoundedPrice,
       priceUnit: transaction.priceUnit,
       pricingSource: transaction.pricingSource,
     };

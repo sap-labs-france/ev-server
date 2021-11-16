@@ -69,6 +69,7 @@ export default class TransactionStorage {
       roundedPrice: Utils.convertToFloat(transactionToSave.roundedPrice),
       priceUnit: transactionToSave.priceUnit,
       pricingSource: transactionToSave.pricingSource,
+      pricingModel: transactionToSave.pricingModel,
       stateOfCharge: transactionToSave.stateOfCharge,
       timezone: transactionToSave.timezone,
       signedData: transactionToSave.signedData,
@@ -79,6 +80,7 @@ export default class TransactionStorage {
       currentTotalInactivitySecs: Utils.convertToInt(transactionToSave.currentTotalInactivitySecs),
       currentInactivityStatus: transactionToSave.currentInactivityStatus,
       currentCumulatedPrice: Utils.convertToFloat(transactionToSave.currentCumulatedPrice),
+      currentCumulatedRoundedPrice: Utils.convertToFloat(transactionToSave.currentCumulatedRoundedPrice),
       transactionEndReceived: Utils.convertToBoolean(transactionToSave.transactionEndReceived),
       currentInstantWatts: Utils.convertToFloat(transactionToSave.currentInstantWatts),
       currentInstantWattsL1: Utils.convertToFloat(transactionToSave.currentInstantWattsL1),
@@ -135,6 +137,7 @@ export default class TransactionStorage {
       delete transactionMDB.currentInstantWattsL3;
       delete transactionMDB.currentInstantWattsDC;
       delete transactionMDB.currentCumulatedPrice;
+      delete transactionMDB.currentCumulatedRoundedPrice;
       delete transactionMDB.currentSignedData;
       delete transactionMDB.currentStateOfCharge;
       delete transactionMDB.currentTotalConsumptionWh;
@@ -530,6 +533,7 @@ export default class TransactionStorage {
             totalConsumptionWattHours: { $sum: '$currentTotalConsumptionWh' },
             totalDurationSecs: { $sum: '$currentTotalDurationSecs' },
             totalPrice: { $sum: '$currentCumulatedPrice' },
+            totalRoundedPrice: { $sum: '$currentCumulatedRoundedPrice' },
             totalInactivitySecs: { $sum:  '$currentTotalInactivitySecs' },
             currency: { $addToSet: '$priceUnit' },
             count: { $sum: 1 }

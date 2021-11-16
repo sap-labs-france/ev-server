@@ -247,7 +247,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       wsWrapper.siteAreaID = wsConnection.getSiteAreaID();
       wsWrapper.companyID = wsConnection.getCompanyID();
       // Check already existing WS Connection
-      this.checkWSConnectionAlreadyExists(wsConnection);
+      await this.checkWSConnectionAlreadyExists(wsConnection);
       // Reference a Json WebSocket connection object
       if (protocol === WSServerProtocol.OCPP16) {
         this.setJsonWSConnection(wsConnection as JsonWSConnection);
@@ -270,7 +270,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     return wsConnection;
   }
 
-  private checkWSConnectionAlreadyExists(wsConnection: WSConnection): void {
+  private async checkWSConnectionAlreadyExists(wsConnection: WSConnection): Promise<void> {
     let existingWSConnection: WSConnection;
     let action: ServerAction;
     // Json connection
@@ -287,14 +287,18 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     if (existingWSConnection) {
       const existingWSWrapper = existingWSConnection.getWS();
       if (!existingWSWrapper.closed) {
-        throw new BackendError({
-          siteID: wsConnection.getSiteID(),
-          siteAreaID: wsConnection.getSiteAreaID(),
-          companyID: wsConnection.getCompanyID(),
-          chargingStationID: wsConnection.getChargingStationID(),
-          action, module: MODULE_NAME, method: 'checkWSConnectionAlreadyExists',
-          message: `WS Connection - Already opened on '${existingWSWrapper.registrationTimestamp.toISOString()}': '${existingWSWrapper.url}'`
-        });
+        // Check WS
+        const result = await this.pingWebSocket(existingWSWrapper);
+        if (result.ok) {
+          throw new BackendError({
+            siteID: wsConnection.getSiteID(),
+            siteAreaID: wsConnection.getSiteAreaID(),
+            companyID: wsConnection.getCompanyID(),
+            chargingStationID: wsConnection.getChargingStationID(),
+            action, module: MODULE_NAME, method: 'checkWSConnectionAlreadyExists',
+            message: `WS Connection - Already opened on '${existingWSWrapper.registrationTimestamp.toISOString()}': '${existingWSWrapper.url}'`
+          });
+        }
       }
     }
   }
