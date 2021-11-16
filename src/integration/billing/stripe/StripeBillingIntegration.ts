@@ -920,7 +920,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
           action: ServerAction.BILLING_TRANSACTION,
           module: MODULE_NAME, method: 'stopTransaction',
           message: `Transaction data is suspicious - billing operation has been aborted - transaction ID: ${transaction.id}`,
-          ...LoggingHelper.getSessionProperties(transaction)
+          ...LoggingHelper.getTransactionProperties(transaction)
         });
         return {
           status: BillingStatus.UNBILLED
@@ -962,7 +962,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
           action: ServerAction.BILLING_TRANSACTION,
           module: MODULE_NAME, method: 'billTransaction',
           message: `Billing process is about to start - transaction ID: ${transaction.id}`,
-          ...LoggingHelper.getSessionProperties(transaction)
+          ...LoggingHelper.getTransactionProperties(transaction)
         });
         const billingDataTransactionStop: BillingDataTransactionStop = await this._billTransaction(transaction);
         return billingDataTransactionStop;
@@ -975,7 +975,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         module: MODULE_NAME, method: 'billTransaction',
         message: `Failed to bill the transaction - Transaction ID '${transaction.id}'`,
         detailedMessages: { error: error.stack },
-        ...LoggingHelper.getSessionProperties(transaction)
+        ...LoggingHelper.getTransactionProperties(transaction)
       });
     }
     return {
@@ -1076,7 +1076,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       method: 'extractTransactionPricingData',
       message: `Final pricing - Transaction: ${transaction.id}`,
       detailedMessages: pricingData,
-      ...LoggingHelper.getSessionProperties(transaction)
+      ...LoggingHelper.getTransactionProperties(transaction)
     });
     return pricingData;
   }

@@ -47,7 +47,7 @@ export default class PricingEngine {
       method: 'resolvePricingContext',
       message: `Pricing context has been resolved - ${pricingDefinitions.length} pricing definitions have been found`,
       detailedMessages: { resolvedPricingModel },
-      ...LoggingHelper.getSessionProperties(transaction)
+      ...LoggingHelper.getTransactionProperties(transaction)
     });
     return Promise.resolve(resolvedPricingModel);
   }
@@ -82,7 +82,7 @@ export default class PricingEngine {
       action: ServerAction.PRICING,
       method: 'getPricingDefinitions4Entity',
       message: `Pricing context resolution - ${actualPricingDefinitions.length || 0} pricing definitions found for ${entityType}: '${entityID}'`,
-      ...LoggingHelper.getSessionProperties(transaction)
+      ...LoggingHelper.getTransactionProperties(transaction)
     });
     return actualPricingDefinitions || [];
   }

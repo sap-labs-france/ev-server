@@ -30,7 +30,7 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
       action: ServerAction.PRICING,
       method: 'startSession',
       message: `Session START - Transaction: ${transaction.id} - Accumulated amount: ${pricedConsumption.cumulatedRoundedAmount} ${pricedConsumption.currencyCode}`,
-      ...LoggingHelper.getSessionProperties(transaction)
+      ...LoggingHelper.getTransactionProperties(transaction)
     });
     return pricedConsumption;
   }
@@ -49,7 +49,7 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
       method: 'stopSession',
       message: `Session STOP - Transaction: ${transaction.id} - Accumulated amount: ${pricedConsumption.cumulatedRoundedAmount} ${pricedConsumption.currencyCode}`,
       detailedMessages: { pricedConsumption },
-      ...LoggingHelper.getSessionProperties(transaction)
+      ...LoggingHelper.getTransactionProperties(transaction)
     });
     return pricedConsumption;
   }
@@ -107,7 +107,7 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
         method: 'resolvePricingContext',
         message: 'No pricing definition found - Simple Pricing logic will be used as a fallback',
         detailedMessages: { resolvedPricingModel },
-        ...LoggingHelper.getSessionProperties(transaction)
+        ...LoggingHelper.getTransactionProperties(transaction)
       });
     }
     return resolvedPricingModel;
