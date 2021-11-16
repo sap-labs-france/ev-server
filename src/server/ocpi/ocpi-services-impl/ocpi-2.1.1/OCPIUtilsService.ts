@@ -441,11 +441,11 @@ export default class OCPIUtilsService {
           if (chargePoint.cannotChargeInParallel) {
             chargingStationEvses.push(...OCPIUtilsService.convertChargingStation2UniqueEvse(tenant, chargingStation, chargePoint, options));
           } else {
-            chargingStationEvses.push(...OCPIUtilsService.convertChargingStation2MultipleEvses(tenant, chargingStation, chargePoint, options));
+            chargingStationEvses.push(...await OCPIUtilsService.convertChargingStation2MultipleEvses(tenant, chargingStation, chargePoint, options));
           }
         }
       } else {
-        chargingStationEvses.push(...OCPIUtilsService.convertChargingStation2MultipleEvses(tenant, chargingStation, null, options));
+        chargingStationEvses.push(...await OCPIUtilsService.convertChargingStation2MultipleEvses(tenant, chargingStation, null, options));
       }
       // Always update OCPI data
       await ChargingStationStorage.saveChargingStationOcpiData(tenant, chargingStation.id, { evses: chargingStationEvses });
@@ -738,7 +738,7 @@ export default class OCPIUtilsService {
     }
   }
 
-  public static convertConnector2OCPIConnector(tenant: Tenant, chargingStation: ChargingStation, connector: Connector, countryId: string, partyId: string): OCPIConnector {
+  public static async convertConnector2OCPIConnector(tenant: Tenant, chargingStation: ChargingStation, connector: Connector, countryId: string, partyId: string): Promise<OCPIConnector> {
     let type: OCPIConnectorType, format: OCPIConnectorFormat;
     const chargePoint = Utils.getChargePointFromID(chargingStation, connector?.chargePointID);
     const voltage: OCPIVoltage = OCPIUtilsService.getChargingStationOCPIVoltage(chargingStation, chargePoint, connector.connectorId);
@@ -774,7 +774,7 @@ export default class OCPIUtilsService {
       voltage: voltage,
       amperage: amperage,
       power_type: OCPIUtilsService.convertOCPINumberOfConnectedPhases2PowerType(ocpiNumberOfConnectedPhases),
-      tariff_id: OCPIUtilsService.buildTariffID(tenant, chargingStation, connector),
+      tariff_id: await OCPIUtilsService.buildTariffID(tenant, chargingStation, connector),
       last_updated: chargingStation.lastSeen
     };
   }
@@ -812,8 +812,8 @@ export default class OCPIUtilsService {
     return businessDetails;
   }
 
-  private static convertChargingStation2MultipleEvses(tenant: Tenant, chargingStation: ChargingStation,
-      chargePoint: ChargePoint, options: OCPILocationOptions): OCPIEvse[] {
+  private static async convertChargingStation2MultipleEvses(tenant: Tenant, chargingStation: ChargingStation,
+      chargePoint: ChargePoint, options: OCPILocationOptions): Promise<OCPIEvse[]> {
     // Loop through connectors and send one evse per connector
     let connectors: Connector[];
     if (chargePoint) {
@@ -821,7 +821,7 @@ export default class OCPIUtilsService {
     } else {
       connectors = chargingStation.connectors.filter((connector) => connector !== null);
     }
-    const evses = connectors.map((connector) => {
+    const evses = connectors.map(async (connector) => {
       const evse: OCPIEvse = {
         uid: OCPIUtils.buildEvseUID(chargingStation, connector),
         evse_id: RoamingUtils.buildEvseID(options.countryID, options.partyID,
@@ -829,7 +829,7 @@ export default class OCPIUtilsService {
         location_id: chargingStation.siteID,
         status: chargingStation.inactive ? OCPIEvseStatus.INOPERATIVE : OCPIUtilsService.convertStatus2OCPIStatus(connector.status),
         capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
-        connectors: [OCPIUtilsService.convertConnector2OCPIConnector(tenant, chargingStation, connector, options.countryID, options.partyID)],
+        connectors: [await OCPIUtilsService.convertConnector2OCPIConnector(tenant, chargingStation, connector, options.countryID, options.partyID)],
         last_updated: chargingStation.lastSeen,
         coordinates: {
           latitude: chargingStation.coordinates[1] ? chargingStation.coordinates[1].toString() : null,
@@ -858,7 +858,7 @@ export default class OCPIUtilsService {
       connectors = chargingStation.connectors.filter((connector) => connector !== null);
     }
     // Get all connectors
-    const ocpiConnectors: OCPIConnector[] = connectors.map((connector: Connector) =>
+    const ocpiConnectors: OCPIConnector[] = connectors.map(async (connector: Connector) =>
       OCPIUtilsService.convertConnector2OCPIConnector(tenant, chargingStation, connector, options.countryID, options.partyID));
     // Get connectors aggregated status
     const connectorOneStatus = OCPIUtilsService.convertToOneConnectorStatus(connectors);
@@ -935,7 +935,7 @@ export default class OCPIUtilsService {
     }
   }
 
-  private static buildTariffID(tenant: Tenant, chargingStation: ChargingStation, connector: Connector): string {
+  private static async buildTariffID(tenant: Tenant, chargingStation: ChargingStation, connector: Connector): Promise<string> {
     const defaultTariff = 'Default';
     // OLD rules (give time to customers to maintain their corresponding objects)
     switch (tenant?.id) {
@@ -1034,7 +1034,12 @@ export default class OCPIUtilsService {
     }
     // Site?
     if (chargingStation.site?.tariffID) {
-      chargingStation.site.tariffID;
+      return chargingStation.site.tariffID;
+    }
+    // Tenant?
+    const ocpiSettings = await SettingStorage.getOCPISettings(tenant);
+    if (ocpiSettings?.ocpi?.tariffID) {
+      return ocpiSettings.ocpi.tariffID;
     }
     // Default.
     return defaultTariff;
