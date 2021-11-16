@@ -120,7 +120,7 @@ export default class SettingService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.LIST, entity: Entity.SETTINGS,
+        action: Action.LIST, entity: Entity.SETTING,
         module: MODULE_NAME, method: 'handleGetSettings'
       });
     }

@@ -21,8 +21,7 @@ export class ServerUtils {
       action: ServerAction.STARTUP,
       message: logMsg
     });
-    // eslint-disable-next-line no-console
-    console.log(logMsg);
+    Logging.logConsoleDebug(logMsg);
   }
 
   public static createHttpServer(serverConfig: CentralSystemServerConfiguration,
@@ -68,17 +67,14 @@ export class ServerUtils {
         await ServerUtils.defaultListenCb(serverModuleName, 'startHttpServer', serverType, serverConfig.protocol, ServerUtils.getHttpServerAddress(httpServer), ServerUtils.getHttpServerPort(httpServer));
       };
     }
-    // Log
-    // eslint-disable-next-line no-console
-    console.log(`Starting ${serverType} Server...`);
+    Logging.logConsoleDebug(`Starting ${serverType} Server...`);
     // Listen
     if (serverConfig.host && serverConfig.port) {
       httpServer.listen(serverConfig.port, serverConfig.host, cb);
     } else if (!serverConfig.host && serverConfig.port) {
       httpServer.listen(serverConfig.port, cb);
     } else {
-      // eslint-disable-next-line no-console
-      console.log(`Fail to start ${serverType} Server listening, missing required port configuration`);
+      Logging.logConsoleDebug(`Fail to start ${serverType} Server listening, missing required port configuration`);
     }
   }
 

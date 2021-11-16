@@ -1,8 +1,9 @@
-import Asset, { AssetType, WitDataSet } from '../../../types/Asset';
+import Asset, { AssetConnectionToken, AssetType, WitDataSet } from '../../../types/Asset';
 import { AssetConnectionSetting, AssetSetting } from '../../../types/Setting';
 
 import { AbstractCurrentConsumption } from '../../../types/Consumption';
 import AssetIntegration from '../AssetIntegration';
+import AssetTokenCache from '../AssetTokenCache';
 import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
 import BackendError from '../../../exception/BackendError';
@@ -102,10 +103,19 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSetting> 
   }
 
   private async connect(): Promise<string> {
-    // Check if connection is initialized
-    this.checkConnectionIsProvided();
-    // Get credential params
-    const credentials = await this.getCredentialURLParams();
+    let token = AssetTokenCache.getInstanceForTenant(this.tenant).getToken(this.connection.id);
+    if (!token) {
+      // Check if connection is initialized
+      this.checkConnectionIsProvided();
+      token = await this.fetchAssetProviderToken(await this.getCredentialURLParams());
+      // Cache it for better performance
+      AssetTokenCache.getInstanceForTenant(this.tenant).setToken(this.connection.id, token);
+    }
+    return token.accessToken;
+  }
+
+  private async fetchAssetProviderToken(credentials: URLSearchParams): Promise<AssetConnectionToken> {
+    const now = new Date();
     // Send credentials to get the token
     const response = await Utils.executePromiseWithTimeout(5000,
       this.axiosInstance.post(`${this.connection.witConnection.authenticationUrl}/token`,
@@ -118,8 +128,14 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSetting> 
         }),
       `Time out error (5s) when getting the token with the connection URL '${this.connection.witConnection.authenticationUrl}/token'`
     );
-    // Return the Token
-    return response.data.access_token;
+    const expireTime = moment().add(response.data.expires_in, 'seconds').toDate();
+    return {
+      accessToken: response.data.access_token,
+      tokenType: response.data.token_type,
+      expiresIn: response.data.expires_in,
+      issued: now,
+      expires: expireTime,
+    };
   }
 
   private async getCredentialURLParams(): Promise<URLSearchParams> {

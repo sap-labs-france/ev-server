@@ -95,7 +95,7 @@ export default class OCPIEndpointService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.LIST, entity: Entity.OCPI_ENDPOINTS,
+        action: Action.LIST, entity: Entity.OCPI_ENDPOINT,
         module: MODULE_NAME, method: 'handleGetOcpiEndpoints'
       });
     }
