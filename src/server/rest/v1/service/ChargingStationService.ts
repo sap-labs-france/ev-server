@@ -169,7 +169,7 @@ export default class ChargingStationService {
         }
       }
       chargingStation.public = filteredRequest.public;
-      if (filteredRequest.public) {
+      if (filteredRequest.tariffID) {
         chargingStation.tariffID = filteredRequest.tariffID;
       }
     }
@@ -222,7 +222,7 @@ export default class ChargingStationService {
           connector.numberOfConnectedPhase = filteredConnector.numberOfConnectedPhase;
         }
         connector.phaseAssignmentToGrid = filteredConnector.phaseAssignmentToGrid;
-        if (filteredRequest.public) {
+        if (filteredRequest.tariffID) {
           connector.tariffID = filteredConnector.tariffID;
         }
       }
