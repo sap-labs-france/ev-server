@@ -149,18 +149,7 @@ describe('Asset', function() {
       });
 
       after(async () => {
-        await testData.userService.deleteEntity(
-          testData.userService.siteAreaApi,
-          testData.newSiteArea
-        );
-        await testData.userService.deleteEntity(
-          testData.userService.siteApi,
-          testData.newSite
-        );
-        await testData.userService.deleteEntity(
-          testData.userService.companyApi,
-          testData.newCompany
-        );
+
       });
 
       it('Should be able to create a new Asset', async () => {
@@ -276,31 +265,6 @@ describe('Asset', function() {
             testData.userContext
           );
         }
-        // Create a new Company
-        testData.newCompany = await testData.userService.createEntity(
-          testData.userService.companyApi,
-          Factory.company.build()
-        );
-        testData.createdCompanies.push(testData.newCompany);
-        expect(testData.newCompany).to.not.be.null;
-        // Create a new Site
-        testData.newSite = await testData.userService.createEntity(
-          testData.userService.siteApi,
-          Factory.site.build({
-            companyID: testData.newCompany.id
-          })
-        );
-        testData.createdSites.push(testData.newSite);
-        expect(testData.newSite).to.not.be.null;
-        // Create a new Site Area
-        testData.newSiteArea = await testData.userService.createEntity(
-          testData.userService.siteAreaApi,
-          Factory.siteArea.build({
-            siteID: testData.newSite.id
-          })
-        );
-        testData.createdSiteAreas.push(testData.newSiteArea);
-        expect(testData.newSiteArea).to.not.be.null;
         // Create a new Asset
         testData.newAsset = await testData.userService.createEntity(
           testData.userService.assetApi,
@@ -317,18 +281,6 @@ describe('Asset', function() {
         await testData.userService.deleteEntity(
           testData.userService.assetApi,
           testData.newAsset
-        );
-        await testData.userService.deleteEntity(
-          testData.userService.siteAreaApi,
-          testData.newSiteArea
-        );
-        await testData.userService.deleteEntity(
-          testData.userService.siteApi,
-          testData.newSite
-        );
-        await testData.userService.deleteEntity(
-          testData.userService.companyApi,
-          testData.newCompany
         );
       });
 
