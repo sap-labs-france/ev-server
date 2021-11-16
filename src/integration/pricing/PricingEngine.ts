@@ -67,7 +67,7 @@ export default class PricingEngine {
   }
 
   private static async getPricingDefinitions4Entity(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, entityType: PricingEntity, entityID: string): Promise<ResolvedPricingDefinition[]> {
-    let pricingDefinitions = await PricingEngine._getPricingDefinitions4Entity(tenant, entityID);
+    let pricingDefinitions = await PricingEngine.fetchPricingDefinitions4Entity(tenant, entityID);
     pricingDefinitions = pricingDefinitions || [];
     const actualPricingDefinitions = pricingDefinitions.filter((pricingDefinition) =>
       PricingEngine.checkEntityType(pricingDefinition, entityType)
@@ -87,7 +87,7 @@ export default class PricingEngine {
     return actualPricingDefinitions || [];
   }
 
-  private static async _getPricingDefinitions4Entity(tenant: Tenant, entityID: string): Promise<PricingDefinition[]> {
+  private static async fetchPricingDefinitions4Entity(tenant: Tenant, entityID: string): Promise<PricingDefinition[]> {
     if (entityID) {
       const entityIDs = [ entityID ];
       const pricingModelResults = await PricingStorage.getPricingDefinitions(tenant, { entityIDs }, {

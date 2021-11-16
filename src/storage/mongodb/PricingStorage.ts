@@ -74,12 +74,7 @@ export default class PricingStorage {
   }
 
   public static async getPricingDefinitions(tenant: Tenant,
-      params: {
-        pricingDefinitionIDs?: string[],
-        entityIDs?: string[];
-        entityTypes?: string[];
-        withEntityInformation?: boolean;
-      },
+      params: { pricingDefinitionIDs?: string[], entityIDs?: string[]; entityTypes?: string[]; withEntityInformation?: boolean; },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<PricingDefinition>> {
     const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
