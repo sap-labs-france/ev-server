@@ -57,7 +57,7 @@ export default class OICPEndpointService {
     next();
   }
 
-  public static async handleCreateOicpEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleCreateOicpEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OICP,
       Action.CREATE, Entity.OICP_ENDPOINT, MODULE_NAME, 'handleCreateOicpEndpoint');
@@ -185,7 +185,7 @@ export default class OICPEndpointService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.LIST, entity: Entity.OICP_ENDPOINTS,
+        action: Action.LIST, entity: Entity.OICP_ENDPOINT,
         module: MODULE_NAME, method: 'handleGetOicpEndpoints'
       });
     }
@@ -216,7 +216,7 @@ export default class OICPEndpointService {
     next();
   }
 
-  public static async handleSendEVSEStatusesOicpEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleSendEVSEStatusesOicpEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OICP,
       Action.READ, Entity.OICP_ENDPOINT, MODULE_NAME, 'handleSendEVSEStatusesOicpEndpoint');
@@ -247,7 +247,7 @@ export default class OICPEndpointService {
     next();
   }
 
-  public static async handleSendEVSEsOicpEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleSendEVSEsOicpEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OICP,
       Action.READ, Entity.OICP_ENDPOINT, MODULE_NAME, 'handleSendEVSEsOicpEndpoint');
@@ -278,7 +278,7 @@ export default class OICPEndpointService {
     next();
   }
 
-  public static async handlePingOicpEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handlePingOicpEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OICP,
       Action.UPDATE, Entity.OICP_ENDPOINT, MODULE_NAME, 'handlePingOicpEndpoint');

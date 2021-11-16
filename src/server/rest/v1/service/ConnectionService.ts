@@ -62,7 +62,7 @@ export default class ConnectionService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.LIST, entity: Entity.CONNECTIONS,
+        action: Action.LIST, entity: Entity.CONNECTION,
         module: MODULE_NAME, method: 'handleGetConnections'
       });
     }

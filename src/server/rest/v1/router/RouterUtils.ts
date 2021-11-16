@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 
+import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
 import Utils from '../../../../utils/Utils';
-import chalk from 'chalk';
 
 export default class RouterUtils {
   public static async handleServerAction(
@@ -13,7 +13,7 @@ export default class RouterUtils {
       next();
     } catch (error) {
       next(error);
-      Utils.isDevelopmentEnv() && console.error(chalk.red(error.stack));
+      Utils.isDevelopmentEnv() && Logging.logConsoleError(error.stack);
     }
   }
 }

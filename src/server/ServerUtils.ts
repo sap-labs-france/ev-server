@@ -1,4 +1,4 @@
-import { ServerAction, ServerProtocol } from '../types/Server';
+import { ServerAction, ServerProtocol, ServerType } from '../types/Server';
 import http, { IncomingMessage, ServerResponse } from 'http';
 
 import { AddressInfo } from 'net';
@@ -11,8 +11,9 @@ import Utils from '../utils/Utils';
 import https from 'https';
 
 export class ServerUtils {
-  public static async defaultListenCb(serverModuleName: string, methodName: string, serverName: string, protocol: ServerProtocol, hostname: string, port: number): Promise<void> {
-    const logMsg = `${serverName} Server listening on '${protocol}://${hostname}:${port}'`;
+  public static async defaultListenCb(serverModuleName: string, methodName: string, serverType: ServerType,
+      protocol: ServerProtocol, hostname: string, port: number): Promise<void> {
+    const logMsg = `${serverType} Server listening on '${protocol}://${hostname}:${port}'`;
     // Log
     await Logging.logInfo({
       tenantID: Constants.DEFAULT_TENANT,
@@ -20,8 +21,7 @@ export class ServerUtils {
       action: ServerAction.STARTUP,
       message: logMsg
     });
-    // eslint-disable-next-line no-console
-    console.log(logMsg);
+    Logging.logConsoleDebug(logMsg);
   }
 
   public static createHttpServer(serverConfig: CentralSystemServerConfiguration,
@@ -58,26 +58,23 @@ export class ServerUtils {
   }
 
   public static startHttpServer(serverConfig: CentralSystemServerConfiguration, httpServer: http.Server,
-      serverModuleName: string, serverName: string, listenCb?: () => void): void {
+      serverModuleName: string, serverType: ServerType, listenCb?: () => void): void {
     let cb: () => void;
     if (listenCb && typeof listenCb === 'function') {
       cb = listenCb;
     } else {
       cb = async () => {
-        await ServerUtils.defaultListenCb(serverModuleName, 'startHttpServer', serverName, serverConfig.protocol, ServerUtils.getHttpServerAddress(httpServer), ServerUtils.getHttpServerPort(httpServer));
+        await ServerUtils.defaultListenCb(serverModuleName, 'startHttpServer', serverType, serverConfig.protocol, ServerUtils.getHttpServerAddress(httpServer), ServerUtils.getHttpServerPort(httpServer));
       };
     }
-    // Log
-    // eslint-disable-next-line no-console
-    console.log(`Starting ${serverName} Server...`);
+    Logging.logConsoleDebug(`Starting ${serverType} Server...`);
     // Listen
     if (serverConfig.host && serverConfig.port) {
       httpServer.listen(serverConfig.port, serverConfig.host, cb);
     } else if (!serverConfig.host && serverConfig.port) {
       httpServer.listen(serverConfig.port, cb);
     } else {
-      // eslint-disable-next-line no-console
-      console.log(`Fail to start ${serverName} Server listening, missing required port configuration`);
+      Logging.logConsoleDebug(`Fail to start ${serverType} Server listening, missing required port configuration`);
     }
   }
 
