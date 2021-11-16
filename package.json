@@ -233,7 +233,7 @@
     "mocha": "^9.1.3",
     "mochawesome": "^6.3.1",
     "ncp": "^2.0.0",
-    "nodemon": "^2.0.14",
+    "nodemon": "^2.0.15",
     "npm-check": "^5.9.2",
     "nyc": "^15.1.0",
     "querystring": "^0.2.1",
