@@ -164,9 +164,7 @@ export default class ChargingStationService {
         }
       }
       chargingStation.public = filteredRequest.public;
-      if (filteredRequest.tariffID) {
-        chargingStation.tariffID = filteredRequest.tariffID;
-      }
+      chargingStation.tariffID = filteredRequest.tariffID;
     }
     if (Utils.objectHasProperty(filteredRequest, 'excludeFromSmartCharging')) {
       chargingStation.excludeFromSmartCharging = filteredRequest.excludeFromSmartCharging;
@@ -217,9 +215,7 @@ export default class ChargingStationService {
           connector.numberOfConnectedPhase = filteredConnector.numberOfConnectedPhase;
         }
         connector.phaseAssignmentToGrid = filteredConnector.phaseAssignmentToGrid;
-        if (filteredRequest.tariffID) {
-          connector.tariffID = filteredConnector.tariffID;
-        }
+        connector.tariffID = filteredConnector.tariffID;
       }
     }
     // Manual Config
