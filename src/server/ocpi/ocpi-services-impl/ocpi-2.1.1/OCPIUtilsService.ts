@@ -439,7 +439,7 @@ export default class OCPIUtilsService {
       if (!Utils.isEmptyArray(chargingStation.chargePoints)) {
         for (const chargePoint of chargingStation.chargePoints) {
           if (chargePoint.cannotChargeInParallel) {
-            chargingStationEvses.push(...OCPIUtilsService.convertChargingStation2UniqueEvse(tenant, chargingStation, chargePoint, options));
+            chargingStationEvses.push(...await OCPIUtilsService.convertChargingStation2UniqueEvse(tenant, chargingStation, chargePoint, options));
           } else {
             chargingStationEvses.push(...await OCPIUtilsService.convertChargingStation2MultipleEvses(tenant, chargingStation, chargePoint, options));
           }
@@ -821,7 +821,7 @@ export default class OCPIUtilsService {
     } else {
       connectors = chargingStation.connectors.filter((connector) => connector !== null);
     }
-    const evses = connectors.map(async (connector) => {
+    const evses = await Promise.all(connectors.map(async (connector) => {
       const evse: OCPIEvse = {
         uid: OCPIUtils.buildEvseUID(chargingStation, connector),
         evse_id: RoamingUtils.buildEvseID(options.countryID, options.partyID,
@@ -844,13 +844,13 @@ export default class OCPIUtilsService {
         evse.companyID = chargingStation.companyID;
       }
       return evse;
-    });
+    }));
     // Return all evses
     return evses;
   }
 
-  private static convertChargingStation2UniqueEvse(tenant: Tenant, chargingStation: ChargingStation,
-      chargePoint: ChargePoint, options: OCPILocationOptions): OCPIEvse[] {
+  private static async convertChargingStation2UniqueEvse(tenant: Tenant, chargingStation: ChargingStation,
+      chargePoint: ChargePoint, options: OCPILocationOptions): Promise<OCPIEvse[]> {
     let connectors: Connector[];
     if (chargePoint) {
       connectors = Utils.getConnectorsFromChargePoint(chargingStation, chargePoint);
@@ -858,8 +858,8 @@ export default class OCPIUtilsService {
       connectors = chargingStation.connectors.filter((connector) => connector !== null);
     }
     // Get all connectors
-    const ocpiConnectors: OCPIConnector[] = connectors.map(async (connector: Connector) =>
-      OCPIUtilsService.convertConnector2OCPIConnector(tenant, chargingStation, connector, options.countryID, options.partyID));
+    const ocpiConnectors: OCPIConnector[] = await Promise.all(connectors.map(async (connector: Connector) =>
+      await OCPIUtilsService.convertConnector2OCPIConnector(tenant, chargingStation, connector, options.countryID, options.partyID)));
     // Get connectors aggregated status
     const connectorOneStatus = OCPIUtilsService.convertToOneConnectorStatus(connectors);
     // Build evse
