@@ -85,6 +85,7 @@
             },
             "tariffID": {
               "type": "string",
+              "maxLength": 50,
               "sanitize": "mongo"
             }
           }
