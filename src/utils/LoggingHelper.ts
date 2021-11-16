@@ -4,7 +4,7 @@ import Transaction from '../types/Transaction';
 
 export default class LoggingHelper {
 
-  public static getSessionProperties(transaction: Transaction): Partial<Log> {
+  public static getTransactionProperties(transaction: Transaction): Partial<Log> {
     return {
       siteID: transaction.siteID,
       siteAreaID: transaction.siteAreaID,
