@@ -185,7 +185,7 @@ export default class OICPEndpointService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.LIST, entity: Entity.OICP_ENDPOINTS,
+        action: Action.LIST, entity: Entity.OICP_ENDPOINT,
         module: MODULE_NAME, method: 'handleGetOicpEndpoints'
       });
     }

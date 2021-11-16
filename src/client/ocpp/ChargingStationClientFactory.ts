@@ -4,6 +4,7 @@ import BackendError from '../../exception/BackendError';
 import ChargingStation from '../../types/ChargingStation';
 import ChargingStationClient from './ChargingStationClient';
 import JsonRestChargingStationClient from './json/JsonRestChargingStationClient';
+import LoggingHelper from '../../utils/LoggingHelper';
 import OCPIClientFactory from '../ocpi/OCPIClientFactory';
 import { OCPPProtocol } from '../../types/ocpp/OCPPServer';
 import SoapChargingStationClient from './soap/SoapChargingStationClient';
@@ -38,10 +39,7 @@ export default class ChargingStationClientFactory {
     } else {
       if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
         throw new BackendError({
-          chargingStationID: chargingStation.id,
-          siteID: chargingStation.siteID,
-          siteAreaID: chargingStation.siteAreaID,
-          companyID: chargingStation.companyID,
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
           module: MODULE_NAME,
           method: 'getChargingStationClient',
           message: 'Cannot instantiate roaming charging station client: no roaming components active'
@@ -52,10 +50,7 @@ export default class ChargingStationClientFactory {
     // Check
     if (!chargingClient) {
       throw new BackendError({
-        chargingStationID: chargingStation.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         module: MODULE_NAME,
         method: 'getChargingStationClient',
         message: 'No charging station client created or found'

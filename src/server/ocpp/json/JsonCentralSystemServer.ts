@@ -14,6 +14,7 @@ import Constants from '../../../utils/Constants';
 import JsonRestWSConnection from './JsonRestWSConnection';
 import JsonWSConnection from './JsonWSConnection';
 import Logging from '../../../utils/Logging';
+import LoggingHelper from '../../../utils/LoggingHelper';
 import { OCPPMessageType } from '../../../types/ocpp/OCPPCommon';
 import Tenant from '../../../types/Tenant';
 import Utils from '../../../utils/Utils';
@@ -102,10 +103,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     if (!jsonWebSocket) {
       void Logging.logWarning({
         tenantID: tenant.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
-        chargingStationID: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         module: MODULE_NAME, method: 'getChargingStationClient',
         action: ServerAction.WS_CONNECTION,
         message: 'No opened Web Socket connection found'

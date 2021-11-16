@@ -114,7 +114,7 @@ export default class AuthorizationService {
   }
 
   public static async addLogsAuthorizations(tenant: Tenant, userToken: UserToken, logs: LogDataResult, authorizationFilter: AuthorizationFilter): Promise<void> {
-    logs.canExport = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.LOGGINGS, Action.EXPORT, authorizationFilter);
+    logs.canExport = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.LOGGING, Action.EXPORT, authorizationFilter);
     for (const log of logs.result) {
       AuthorizationService.addLogAuthorizations(tenant, userToken, log, authorizationFilter);
     }
@@ -133,7 +133,7 @@ export default class AuthorizationService {
       authorized: false,
     };
     // Check static & dynamic authorization
-    await this.canPerformAuthorizationAction(tenant, userToken, Entity.SITES, Action.LIST,
+    await this.canPerformAuthorizationAction(tenant, userToken, Entity.SITE, Action.LIST,
       authorizationFilters, filteredRequest);
     return authorizationFilters;
   }
@@ -147,7 +147,7 @@ export default class AuthorizationService {
       authorized: false,
     };
     // Check static & dynamic authorization
-    await this.canPerformAuthorizationAction(tenant, userToken, Entity.LOGGINGS, Action.LIST,
+    await this.canPerformAuthorizationAction(tenant, userToken, Entity.LOGGING, Action.LIST,
       authorizationFilters, filteredRequest);
     return authorizationFilters;
   }
@@ -224,16 +224,16 @@ export default class AuthorizationService {
     };
     // Check static & dynamic authorization
     await this.canPerformAuthorizationAction(
-      tenant, userToken, Entity.USERS, Action.IN_ERROR, authorizationFilters, filteredRequest);
+      tenant, userToken, Entity.USER, Action.IN_ERROR, authorizationFilters, filteredRequest);
     return authorizationFilters;
   }
 
   public static async addUsersAuthorizations(tenant: Tenant, userToken: UserToken, users: UserDataResult, authorizationFilter: AuthorizationFilter): Promise<void> {
     users.metadata = authorizationFilter.metadata;
     users.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.CREATE, authorizationFilter);
-    users.canExport = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USERS, Action.EXPORT, authorizationFilter);
-    users.canImport = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USERS, Action.IMPORT, authorizationFilter);
-    users.canSynchronizeBilling = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USERS, Action.SYNCHRONIZE_BILLING_USERS, authorizationFilter);
+    users.canExport = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.EXPORT, authorizationFilter);
+    users.canImport = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.IMPORT, authorizationFilter);
+    users.canSynchronizeBilling = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.SYNCHRONIZE_BILLING_USERS, authorizationFilter);
     for (const user of users.result) {
       await AuthorizationService.addUserAuthorizations(tenant, userToken, user, authorizationFilter);
     }
@@ -263,7 +263,7 @@ export default class AuthorizationService {
     };
     // Check static & dynamic authorization
     await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.USERS, Action.LIST, authorizationFilters, filteredRequest);
+      tenant, userToken, Entity.USER, Action.LIST, authorizationFilters, filteredRequest);
     return authorizationFilters;
   }
 
@@ -277,7 +277,7 @@ export default class AuthorizationService {
     };
     // Check static & dynamic authorization
     await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.ASSETS, Action.LIST, authorizationFilters, filteredRequest);
+      tenant, userToken, Entity.ASSET, Action.LIST, authorizationFilters, filteredRequest);
     return authorizationFilters;
   }
 
@@ -297,7 +297,7 @@ export default class AuthorizationService {
     };
     // Check static & dynamic authorization
     await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.TAGS, Action.LIST, authorizationFilters, filteredRequest);
+      tenant, userToken, Entity.TAG, Action.LIST, authorizationFilters, filteredRequest);
     return authorizationFilters;
   }
 
@@ -315,11 +315,11 @@ export default class AuthorizationService {
     !tags.canAssign && delete tags.canAssign; // Optimize data over the net
     tags.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAG, Action.DELETE, authorizationFilter);
     !tags.canDelete && delete tags.canDelete; // Optimize data over the net
-    tags.canImport = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAGS, Action.IMPORT, authorizationFilter);
+    tags.canImport = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAG, Action.IMPORT, authorizationFilter);
     !tags.canImport && delete tags.canImport; // Optimize data over the net
-    tags.canExport = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAGS, Action.EXPORT, authorizationFilter);
+    tags.canExport = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAG, Action.EXPORT, authorizationFilter);
     !tags.canExport && delete tags.canExport; // Optimize data over the net
-    tags.canUnassign = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAGS, Action.UNASSIGN, authorizationFilter);
+    tags.canUnassign = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAG, Action.UNASSIGN, authorizationFilter);
     !tags.canUnassign && delete tags.canUnassign; // Optimize data over the net
     tags.metadata = authorizationFilter.metadata;
     for (const tag of tags.result) {
@@ -359,7 +359,7 @@ export default class AuthorizationService {
       authorized: false,
     };
     // Check static & dynamic authorization
-    await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.COMPANIES, Action.LIST,
+    await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.COMPANY, Action.LIST,
       authorizationFilters, filteredRequest);
     return authorizationFilters;
   }
@@ -402,7 +402,7 @@ export default class AuthorizationService {
       authorized: false,
     };
     // Check static & dynamic authorization
-    await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.PRICING_DEFINITIONS, Action.LIST,
+    await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.PRICING_DEFINITION, Action.LIST,
       authorizationFilters, filteredRequest);
     return authorizationFilters;
   }
@@ -448,7 +448,7 @@ export default class AuthorizationService {
       authorized: false,
     };
     // Check static & dynamic authorization
-    await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREAS, Action.LIST,
+    await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.LIST,
       authorizationFilters, filteredRequest);
     return authorizationFilters;
   }
@@ -531,7 +531,7 @@ export default class AuthorizationService {
     };
     // Check static & dynamic authorization
     await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.CARS, Action.LIST, authorizationFilters, filteredRequest);
+      tenant, userToken, Entity.CAR, Action.LIST, authorizationFilters, filteredRequest);
     return authorizationFilters;
   }
 
@@ -569,7 +569,7 @@ export default class AuthorizationService {
     };
     // Check static & dynamic authorization
     await this.canPerformAuthorizationAction(
-      tenant, userToken, Entity.CAR_CATALOGS, Action.LIST, authorizationFilters, filteredRequest);
+      tenant, userToken, Entity.CAR_CATALOG, Action.LIST, authorizationFilters, filteredRequest);
     return authorizationFilters;
   }
 
@@ -582,7 +582,7 @@ export default class AuthorizationService {
   public static async addCarCatalogsAuthorizationActions(tenant: Tenant, userToken: UserToken, carCatalogs: CarCatalogDataResult,
       authorizationFilter: AuthorizationFilter): Promise<void> {
     // Add canSync flag to root
-    carCatalogs.canSync = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR_CATALOGS, Action.SYNCHRONIZE, authorizationFilter);
+    carCatalogs.canSync = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR_CATALOG, Action.SYNCHRONIZE, authorizationFilter);
     for (const carCatalog of carCatalogs.result) {
       await AuthorizationService.addCarCatalogAuthorizations(tenant, userToken, carCatalog, authorizationFilter);
     }
@@ -609,7 +609,7 @@ export default class AuthorizationService {
     };
     // Check static & dynamic authorization
     await this.canPerformAuthorizationAction(
-      tenant, userToken, Entity.CHARGING_STATIONS, Action.LIST, authorizationFilters, filteredRequest);
+      tenant, userToken, Entity.CHARGING_STATION, Action.LIST, authorizationFilters, filteredRequest);
     return authorizationFilters;
   }
 
