@@ -1,9 +1,9 @@
 {
   "name": "ev-server",
-  "version": "2.5.9",
+  "version": "2.5.12",
   "engines": {
-    "node": "14.x.x",
-    "npm": "6.x.x"
+    "node": "16.x.x",
+    "npm": "8.x.x"
   },
   "repository": {
     "type": "git",
@@ -105,7 +105,7 @@
     "ajv": "^8.6.3",
     "ajv-formats": "^2.1.1",
     "ajv-keywords": "^5.0.0",
-    "axios": "^0.21.1",
+    "axios": "^0.24.0",
     "axios-retry": "^3.2.3",
     "basic-auth": "^2.0.1",
     "bcryptjs": "^2.4.3",
@@ -147,7 +147,7 @@
     "passport": "^0.5.0",
     "passport-jwt": "^4.0.0",
     "password-generator": "^2.3.2",
-    "pdfkit": "^0.12.3",
+    "pdfkit": "^0.13.0",
     "qrcode": "^1.4.4",
     "rfc2047": "^3.0.1",
     "role-acl": "^4.5.4",
@@ -161,7 +161,7 @@
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.3.0",
     "urlencode": "^1.1.0",
     "uuid": "^8.3.2",
-    "validator": "^13.6.0",
+    "validator": "^13.7.0",
     "ws": "^8.2.2"
   },
   "optionalDependencies": {
@@ -233,7 +233,7 @@
     "mocha": "^9.1.3",
     "mochawesome": "^6.3.1",
     "ncp": "^2.0.0",
-    "nodemon": "^2.0.14",
+    "nodemon": "^2.0.15",
     "npm-check": "^5.9.2",
     "nyc": "^15.1.0",
     "querystring": "^0.2.1",
@@ -244,7 +244,7 @@
     "ts-node-dev": "^1.1.8",
     "typescript": "^4.4.4",
     "webpack": "^5.58.1",
-    "webpack-cli": "^4.9.0",
+    "webpack-cli": "^4.9.1",
     "webpack-merge": "^5.8.0",
     "webpack-node-externals": "^3.0.0",
     "webpack-shell-plugin-next": "^2.2.2",

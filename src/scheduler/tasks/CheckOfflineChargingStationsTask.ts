@@ -5,6 +5,7 @@ import Constants from '../../utils/Constants';
 import { LockEntity } from '../../types/Locking';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
+import LoggingHelper from '../../utils/LoggingHelper';
 import NotificationHandler from '../../notification/NotificationHandler';
 import OCPPCommon from '../../server/ocpp/utils/OCPPCommon';
 import { OCPPGetConfigurationResponse } from '../../types/ocpp/OCPPClient';
@@ -46,10 +47,7 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
             if (ocppHeartbeatConfiguration) {
               await Logging.logInfo({
                 tenantID: tenant.id,
-                siteID: chargingStation.siteID,
-                siteAreaID: chargingStation.siteAreaID,
-                companyID: chargingStation.companyID,
-                chargingStationID: chargingStation.id,
+                ...LoggingHelper.getChargingStationProperties(chargingStation),
                 action: ServerAction.OFFLINE_CHARGING_STATION,
                 module: MODULE_NAME, method: 'processTenant',
                 message: 'Offline charging station responded successfully to an OCPP command and will be ignored',
