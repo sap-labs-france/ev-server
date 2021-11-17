@@ -15,6 +15,7 @@ import LogsApi from './LogsApi';
 import MailApi from './MailApi';
 import OCPIEndpointApi from './OCPIEndpointApi';
 import OICPEndpointApi from './OICPEndpointApi';
+import PricingApi from './PricingApi';
 import RegistrationTokenApi from './RegistrationTokenApi';
 import SettingApi from './SettingApi';
 import SiteApi from './SiteApi';
@@ -60,11 +61,12 @@ export default class CentralServerService {
   public logsApi: LogsApi;
   public statisticsApi: StatisticsApi;
   public billingApi: BillingApi;
+  public pricingApi: PricingApi;
   public smartChargingApi: SmartChargingApi;
   public _baseApi: BaseApi;
   private _baseURL: string;
-  private _authenticatedUser: any;
-  private _authenticatedSuperAdmin: any;
+  private _authenticatedUser: Partial<User>;
+  private _authenticatedSuperAdmin: Partial<User>;
 
   public constructor(tenantSubdomain = null, user: Partial<User> = null, superAdminUser: Partial<User> = null) {
     this._baseURL = `${config.get('server.scheme')}://${config.get('server.host')}:${config.get('server.port')}`;
@@ -111,6 +113,7 @@ export default class CentralServerService {
     this.statisticsApi = new StatisticsApi(this.authenticatedApi);
     this.registrationApi = new RegistrationTokenApi(this.authenticatedApi);
     this.billingApi = new BillingApi(this.authenticatedApi);
+    this.pricingApi = new PricingApi(this.authenticatedApi);
     this.assetApi = new AssetApi(this.authenticatedApi);
     this.carApi = new CarApi(this.authenticatedApi);
     this.smartChargingApi = new SmartChargingApi(this.authenticatedApi);
@@ -125,11 +128,11 @@ export default class CentralServerService {
     return CentralServerService._defaultInstance;
   }
 
-  public getAuthenticatedUserEmail() {
+  public getAuthenticatedUserEmail(): string {
     return this._authenticatedUser.email;
   }
 
-  public async updatePriceSetting(pricekWh, priceUnit) {
+  public async updatePriceSetting(pricekWh: number, priceUnit: string) {
     const settings = await this.settingApi.readAll({});
     let newSetting = false;
     let setting: SettingDB = settings.data.result.find((s) => s.identifier === 'pricing');
@@ -296,7 +299,7 @@ export default class CentralServerService {
     return response;
   }
 
-  public async reconnect() {
+  public async reconnect(): Promise<void> {
     await this.authenticatedApi.authenticate(true);
   }
 }

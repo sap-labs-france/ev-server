@@ -29,6 +29,7 @@ export default class SchemaValidator {
   private static assetSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/asset/asset.json`, 'utf8'));
   private static companySchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/company/company.json`, 'utf8'));
   private static ocpiEndpointSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/ocpi/ocpi-endpoint.json`, 'utf8'));
+  private static pricingDefinitionSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/pricing/pricing-definition.json`, 'utf8'));
   private static oicpEndpointSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/oicp/oicp-endpoint.json`, 'utf8'));
   private readonly ajv: Ajv;
 
@@ -64,16 +65,17 @@ export default class SchemaValidator {
     this.ajv.addSchema(SchemaValidator.assetSchema);
     this.ajv.addSchema(SchemaValidator.companySchema);
     this.ajv.addSchema(SchemaValidator.ocpiEndpointSchema);
+    this.ajv.addSchema(SchemaValidator.pricingDefinitionSchema);
     this.ajv.addSchema(SchemaValidator.oicpEndpointSchema);
   }
 
   protected validate(schema: Schema, data: Record<string, unknown>): any {
     let fnValidate: ValidateFunction<unknown>;
     if (!schema.$id) {
-      console.error(chalk.red('===================================='));
-      console.error(chalk.red('Missing schema ID:'));
-      console.error(chalk.red(JSON.stringify(schema)));
-      console.error(chalk.red('===================================='));
+      this.logConsoleError('====================================');
+      this.logConsoleError('Missing schema ID:');
+      this.logConsoleError(JSON.stringify(schema));
+      this.logConsoleError('====================================');
       // Not cached: Compile schema
       fnValidate = this.ajv.compile(schema);
     } else {
@@ -168,13 +170,13 @@ export default class SchemaValidator {
 
   private checkOriginalSchema(originalSchema: string, validatedSchema: Record<string, unknown>): void {
     if (this.isDevelopmentEnv() && originalSchema !== JSON.stringify(validatedSchema)) {
-      console.error(chalk.red('===================================='));
-      console.error(chalk.red('Data changed after schema validation'));
-      console.error(chalk.red('Original Data:'));
-      console.error(chalk.red(originalSchema));
-      console.error(chalk.red('Validated Data:'));
-      console.error(chalk.red(JSON.stringify(validatedSchema)));
-      console.error(chalk.red('===================================='));
+      this.logConsoleError('====================================');
+      this.logConsoleError('Data changed after schema validation');
+      this.logConsoleError('Original Data:');
+      this.logConsoleError(originalSchema);
+      this.logConsoleError('Validated Data:');
+      this.logConsoleError(JSON.stringify(validatedSchema));
+      this.logConsoleError('====================================');
     }
   }
 
@@ -182,5 +184,10 @@ export default class SchemaValidator {
   // src/validator/SchemaValidator.ts -> src/utils/Utils.ts -> src/utils/Cypher.ts -> src/storage/mongodb/SettingStorage.ts -> src/utils/Logging.ts -> src/storage/mongodb/PerformanceStorage.ts -> src/storage/mongodb/validator/PerformanceValidatorStorage.ts -> src/validator/SchemaValidator.ts
   private isDevelopmentEnv(): boolean {
     return process.env.NODE_ENV === 'development';
+  }
+
+  // Creatd to avoid circular dependency
+  private logConsoleError(message: string): void {
+    console.error(chalk.red(`${new Date().toLocaleString()} - ${message}`));
   }
 }

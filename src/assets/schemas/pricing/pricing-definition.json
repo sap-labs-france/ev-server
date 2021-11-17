@@ -1,0 +1,151 @@
+{
+  "$id": "pricing-definition",
+  "definitions": {
+    "id": {
+      "$ref": "common#/definitions/string-id"
+    },
+    "entityID": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "entityType": {
+      "type": "string",
+      "sanitize": "mongo",
+      "enum": [
+        "Tenant",
+        "Company",
+        "Site",
+        "SiteArea",
+        "ChargingStation"
+      ]
+    },
+    "name": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "description": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "staticRestrictions": {
+      "type": "object",
+      "nullable": true,
+      "properties": {
+        "validFrom": {
+          "type": "string",
+          "format": "date-time",
+          "sanitize": "mongo",
+          "nullable": true
+        },
+        "validTo": {
+          "type": "string",
+          "format": "date-time",
+          "sanitize": "mongo",
+          "nullable": true
+        },
+        "connectorType": {
+          "type": "string",
+          "sanitize": "mongo",
+          "enum": [
+            "T2",
+            "CCS",
+            "C",
+            "T1",
+            "T3C",
+            "T1CCS",
+            "D",
+            "U"
+          ]
+        },
+        "connectorPowerkW": {
+          "type": "number",
+          "sanitize": "mongo"
+        }
+      }
+    },
+    "restrictions": {
+      "type": "object",
+      "nullable": true,
+      "properties": {
+        "minEnergyKWh": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "maxEnergyKWh": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "minDurationSecs": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "maxDurationSecs": {
+          "type": "number",
+          "sanitize": "mongo"
+        }
+      }
+    },
+    "pricingDimension": {
+      "type": "object",
+      "properties": {
+        "active" : {
+          "type": "boolean",
+          "sanitize": "mongo"
+        },
+        "price" : {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "stepSize" : {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "pricedData" : {
+          "type": "object",
+          "properties": {
+            "unitPrice": {
+              "type": "number",
+              "sanitize": "mongo"
+            },
+            "amount": {
+              "type": "number",
+              "sanitize": "mongo"
+            },
+            "roundedAmount": {
+              "type": "number",
+              "sanitize": "mongo"
+            },
+            "quantity": {
+              "type": "number",
+              "sanitize": "mongo"
+            },
+            "sourceName": {
+              "type": "string",
+              "sanitize": "mongo"
+            },
+            "itemDescription" : {
+              "type": "string",
+              "sanitize": "mongo"
+            },
+            "taxes" : {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "sanitize": "mongo"
+              }
+            }
+          },
+          "required" : [
+            "unitPrice",
+            "amount",
+            "roundedAmount",
+            "quantity"
+          ]
+        }
+      },
+      "required" : [
+        "active"
+      ]
+    }
+  }
+}

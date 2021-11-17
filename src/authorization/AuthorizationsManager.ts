@@ -4,7 +4,7 @@ import { AuthorizationContext, AuthorizationResult } from '../types/Authorizatio
 import { AccessControl } from 'role-acl';
 import AuthorizationValidatorStorage from '../storage/mongodb/validator/AuthorizationValidatorStorage';
 import BackendError from '../exception/BackendError';
-import chalk from 'chalk';
+import Logging from '../utils/Logging';
 
 const MODULE_NAME = 'AuthorizationsManager';
 
@@ -21,7 +21,7 @@ export default class AuthorizationsManager {
         // Validate the role
         AUTHORIZATION_DEFINITION[roleName] = AuthorizationValidatorStorage.getInstance().validateAuthorizationDefinitionRole(role);
       } catch (error) {
-        console.error(chalk.red(error.stack));
+        Logging.logConsoleError(error.stack);
         throw new BackendError({
           module: MODULE_NAME, method: 'constructor',
           message: `Unable to init authorization definition for role '${roleName}'`,
@@ -33,7 +33,7 @@ export default class AuthorizationsManager {
       // Instantiate the ACLs
       this.accessControl = new AccessControl(AUTHORIZATION_DEFINITION, AUTHORIZATION_CONDITIONS);
     } catch (error) {
-      console.error(chalk.red(error.stack));
+      Logging.logConsoleError(error.stack);
       throw new BackendError({
         module: MODULE_NAME, method: 'constructor',
         message: 'Unable to init authorization definition',
