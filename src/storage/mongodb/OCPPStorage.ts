@@ -5,7 +5,6 @@ import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
-import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 

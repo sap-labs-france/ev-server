@@ -10,6 +10,8 @@ import Logging from '../../../../utils/Logging';
 import LoggingRouter from './api/LoggingRouter';
 import NotificationRouter from './api/NotificationRouter';
 import OCPIEndpointRouter from './api/OCPIEndpointRouter';
+import OICPEndpointRouter from './api/OICPEndpointRouter';
+import PricingRouter from './api/PricingRouter';
 import SettingRouter from './api/SettingRouter';
 import SwaggerRouter from './doc/SwaggerRouter';
 import TagRouter from './api/TagRouter';
@@ -45,7 +47,6 @@ export default class GlobalRouter {
       Logging.traceExpressRequest.bind(this),
       [
         new AssetRouter().buildRoutes(),
-        new BillingRouter().buildRoutes(),
         new CarRouter().buildRoutes(),
         new ChargingStationRouter().buildRoutes(),
         new CompanyRouter().buildRoutes(),
@@ -53,11 +54,14 @@ export default class GlobalRouter {
         new LoggingRouter().buildRoutes(),
         new NotificationRouter().buildRoutes(),
         new OCPIEndpointRouter().buildRoutes(),
+        new OICPEndpointRouter().buildRoutes(),
         new SettingRouter().buildRoutes(),
         new TagRouter().buildRoutes(),
         new TenantRouter().buildRoutes(),
         new TransactionRouter().buildRoutes(),
         new UserRouter().buildRoutes(),
+        new BillingRouter().buildRoutes(),
+        new PricingRouter().buildRoutes(),
       ]);
   }
 
