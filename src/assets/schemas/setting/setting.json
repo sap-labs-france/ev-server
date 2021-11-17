@@ -1,0 +1,19 @@
+{
+  "$id": "setting",
+  "definitions": {
+    "id": {
+      "$ref": "common#/definitions/id"
+    },
+    "identifier": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "sensitiveData": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "sanitize": "mongo"
+    }
+  }
+}

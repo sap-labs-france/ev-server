@@ -11,6 +11,7 @@ import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
 import SettingSecurity from './security/SettingSecurity';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
+import SettingValidator from '../validator/SettingValidator';
 import { StatusCodes } from 'http-status-codes';
 import { TechnicalSettings } from '../../../../types/Setting';
 import Utils from '../../../../utils/Utils';
@@ -154,7 +155,7 @@ export default class SettingService {
       });
     }
     // Filter
-    const filteredRequest = SettingSecurity.filterSettingCreateRequest(req.body);
+    const filteredRequest = SettingValidator.getInstance().validateSettingCreateReq(req.body);
     // Process the sensitive data if any
     await Cypher.encryptSensitiveDataInJSON(req.tenant, filteredRequest);
     // Update timestamp
