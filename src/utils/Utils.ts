@@ -36,6 +36,17 @@ import { v4 as uuid } from 'uuid';
 import validator from 'validator';
 
 export default class Utils {
+
+  public static convertBufferArrayToString(data: ArrayBuffer): string {
+    if (!data) {
+      return null;
+    }
+    if (data.byteLength === 0) {
+      return '';
+    }
+    return Buffer.from(data).toString();
+  }
+
   public static buildConnectorInfo(connectorID: number, transactionID?: number): string {
     let connectorInfo = `Connector ID '${connectorID}' >`;
     if (transactionID > 0) {
@@ -954,36 +965,13 @@ export default class Utils {
     return `${centralSystemFrontEndConfig.protocol}://${centralSystemFrontEndConfig.host}:${centralSystemFrontEndConfig.port}`;
   }
 
-  public static buildOCPPServerURL(tenantID: string, ocppVersion: OCPPVersion, ocppProtocol: OCPPProtocol, token?: string): string {
-    let ocppUrl: string;
-    if (Configuration.getJsonEndpointConfig().baseUrl && ocppProtocol === OCPPProtocol.JSON) {
-      ocppUrl = `${Configuration.getJsonEndpointConfig().baseUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}/${tenantID}`;
-      if (token) {
-        ocppUrl += `/${token}`;
-      }
-    } else if (Configuration.getWSDLEndpointConfig()?.baseUrl && ocppProtocol === OCPPProtocol.SOAP) {
-      ocppUrl = `${Configuration.getWSDLEndpointConfig().baseUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}?TenantID=${tenantID}`;
-      if (token) {
-        ocppUrl += `%26Token=${token}`;
-      }
-    }
-    return ocppUrl;
-  }
-
   public static buildOCPPServerSecureURL(tenantID: string, ocppVersion: OCPPVersion, ocppProtocol: OCPPProtocol, token?: string): string {
-    let ocppUrl: string;
-    if (Configuration.getJsonEndpointConfig().baseSecureUrl && ocppProtocol === OCPPProtocol.JSON) {
-      ocppUrl = `${Configuration.getJsonEndpointConfig().baseSecureUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}/${tenantID}`;
-      if (token) {
-        ocppUrl += `/${token}`;
-      }
-    } else if (Configuration.getWSDLEndpointConfig()?.baseSecureUrl && ocppProtocol === OCPPProtocol.SOAP) {
-      ocppUrl = `${Configuration.getWSDLEndpointConfig().baseSecureUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}?TenantID=${tenantID}`;
-      if (token) {
-        ocppUrl += `%26Token=${token}`;
-      }
+    switch (ocppProtocol) {
+      case OCPPProtocol.JSON:
+        return `${Configuration.getJsonEndpointConfig().baseSecureUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}/${tenantID}/${token}`;
+      case OCPPProtocol.SOAP:
+        return `${Configuration.getWSDLEndpointConfig().baseSecureUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}?TenantID=${tenantID}%26Token=${token}`;
     }
-    return ocppUrl;
   }
 
   public static getOCPPServerVersionURLPath(ocppVersion: OCPPVersion): string {
