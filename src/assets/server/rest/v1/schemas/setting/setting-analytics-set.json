@@ -1,6 +1,6 @@
 {
-  "$id": "setting-sac-set",
-  "title": "Set SAP Analytics Settings",
+  "$id": "setting-analytics-set",
+  "title": "Set Analytics Settings",
   "type": "object",
   "properties": {
     "content": {
@@ -16,6 +16,33 @@
             "timezone": {
               "type": "string",
               "sanitize": "mongo"
+            }
+          }
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "$ref": "common#/definitions/id"
+              },
+              "name": {
+                "type": "string",
+                "sanitize": "mongo"
+              },
+              "description": {
+                "type": "string",
+                "sanitize": "mongo"
+              },
+              "role": {
+                "type": "string",
+                "sanitize": "mongo"
+              },
+              "url": {
+                "type": "string",
+                "sanitize": "mongo"
+              }
             }
           }
         },

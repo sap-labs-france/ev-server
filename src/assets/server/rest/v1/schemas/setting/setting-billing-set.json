@@ -27,6 +27,33 @@
             }
           }
         },
+        "links": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "$ref": "common#/definitions/id"
+              },
+              "name": {
+                "type": "string",
+                "sanitize": "mongo"
+              },
+              "description": {
+                "type": "string",
+                "sanitize": "mongo"
+              },
+              "role": {
+                "type": "string",
+                "sanitize": "mongo"
+              },
+              "url": {
+                "type": "string",
+                "sanitize": "mongo"
+              }
+            }
+          }
+        },
         "type": {
           "type": "string",
           "sanitize": "mongo",

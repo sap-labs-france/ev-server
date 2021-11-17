@@ -203,7 +203,7 @@ export default class SettingService {
         filteredRequest = SettingValidator.getInstance().validateSettingPricingSetReq(req.body);
         break;
       case IntegrationSettings.SAC:
-        filteredRequest = SettingValidator.getInstance().validateSettingSacSetReq(req.body);
+        filteredRequest = SettingValidator.getInstance().validateSettingAnalyticsSetReq(req.body);
         break;
       default:
         filteredRequest = SettingSecurity.filterSettingUpdateRequest(req.body);
