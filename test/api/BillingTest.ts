@@ -4,7 +4,7 @@ import { BillingSettings, BillingSettingsType } from '../../src/types/Setting';
 import FeatureToggles, { Feature } from '../../src/utils/FeatureToggles';
 import chai, { assert, expect } from 'chai';
 
-import BillingTestData from './BillingTestData';
+import BillingTestHelper from './BillingTestHelper';
 import CentralServerService from './client/CentralServerService';
 import Constants from '../../src/utils/Constants';
 import ContextDefinition from './context/ContextDefinition';
@@ -12,7 +12,7 @@ import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
 import { StatusCodes } from 'http-status-codes';
-import StripeIntegrationTestData from './BillingStripeTestData';
+import StripeTestHelper from './StripeTestHelper';
 import TestConstants from './client/utils/TestConstants';
 import User from '../../src/types/User';
 import { UserInErrorType } from '../../src/types/InError';
@@ -24,8 +24,8 @@ import responseHelper from '../helpers/responseHelper';
 chai.use(chaiSubset);
 chai.use(responseHelper);
 
-const stripeTestHelper: StripeIntegrationTestData = new StripeIntegrationTestData();
-const billingTestHelper = new BillingTestData();
+const stripeTestHelper = new StripeTestHelper();
+const billingTestHelper = new BillingTestHelper();
 
 describe('Billing', function() {
   // Do not run the tests when the settings are not properly set
