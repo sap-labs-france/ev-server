@@ -205,6 +205,9 @@ export default class SettingService {
       case IntegrationSettings.SAC:
         filteredRequest = SettingValidator.getInstance().validateSettingSacSetReq(req.body);
         break;
+      case IntegrationSettings.ASSET:
+        filteredRequest = SettingValidator.getInstance().validateSettingAssetSetReq(req.body);
+        break;
       default:
         filteredRequest = SettingSecurity.filterSettingUpdateRequest(req.body);
         await Logging.logDebug({
