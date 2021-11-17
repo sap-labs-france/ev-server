@@ -401,7 +401,7 @@ export default class TagService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.IMPORT, entity: Entity.TAGS,
+        action: Action.IMPORT, entity: Entity.TAG,
         module: MODULE_NAME, method: 'handleImportTags'
       });
     }
@@ -609,7 +609,7 @@ export default class TagService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.IMPORT, entity: Entity.TAGS,
+        action: Action.IMPORT, entity: Entity.TAG,
         module: MODULE_NAME, method: 'handleImportTags'
       });
     }

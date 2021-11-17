@@ -256,6 +256,7 @@ export default class SiteStorage {
       companyID: DatabaseUtils.convertToObjectID(siteToSave.companyID),
       autoUserSiteAssignment: Utils.convertToBoolean(siteToSave.autoUserSiteAssignment),
       name: siteToSave.name,
+      tariffID: siteToSave.tariffID,
     };
     if (siteToSave.address) {
       siteMDB.address = {

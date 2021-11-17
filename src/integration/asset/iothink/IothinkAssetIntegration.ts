@@ -1,8 +1,9 @@
-import Asset, { AssetType, IothinkProperty } from '../../../types/Asset';
+import Asset, { AssetConnectionToken, AssetType, IothinkProperty } from '../../../types/Asset';
 import { AssetConnectionSetting, AssetSetting } from '../../../types/Setting';
 
 import { AbstractCurrentConsumption } from '../../../types/Consumption';
 import AssetIntegration from '../AssetIntegration';
+import AssetTokenCache from '../AssetTokenCache';
 import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
 import BackendError from '../../../exception/BackendError';
@@ -144,11 +145,19 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
   }
 
   private async connect(): Promise<string> {
-    // Check if connection is initialized
-    this.checkConnectionIsProvided();
-    // Get credential params
-    const credentials = await this.getCredentialURLParams();
-    // Send credentials to get the token
+    // Get token from cache
+    let token = AssetTokenCache.getInstanceForTenant(this.tenant).getToken(this.connection.id);
+    if (!token) {
+      this.checkConnectionIsProvided();
+      // Get a fresh token (if not found or expired)
+      token = await this.fetchAssetProviderToken(await this.getCredentialURLParams());
+      // Cache it for better performance
+      AssetTokenCache.getInstanceForTenant(this.tenant).setToken(this.connection.id, token);
+    }
+    return token.accessToken;
+  }
+
+  private async fetchAssetProviderToken(credentials: URLSearchParams): Promise<AssetConnectionToken> {
     const response = await Utils.executePromiseWithTimeout(5000,
       this.axiosInstance.post(`${this.connection.url}/token`,
         credentials,
@@ -160,8 +169,14 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
         }),
       `Time out error (5s) when getting the token with the connection URL '${this.connection.url}/token'`
     );
-    // Return the Token
-    return response.data.access_token;
+    return {
+      accessToken: response.data.access_token,
+      tokenType: response.data.token_type,
+      expiresIn: response.data.expires_in,
+      userName: response.data.userName,
+      issued: response.data['.issued'],
+      expires: response.data['.expires']
+    };
   }
 
   private async getCredentialURLParams(): Promise<URLSearchParams> {

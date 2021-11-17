@@ -9,7 +9,7 @@ export default class ExcludeActionDynamicAuthorizationFilter extends DynamicAuth
 
   public getApplicableEntities(): Entity[] {
     return [
-      Entity.TAGS
+      Entity.TAG
     ];
   }
 

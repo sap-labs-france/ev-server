@@ -92,7 +92,7 @@ export default class CompanyService {
   public static async handleGetCompanies(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
-      Action.LIST, Entity.COMPANIES, MODULE_NAME, 'handleGetCompanies');
+      Action.LIST, Entity.COMPANY, MODULE_NAME, 'handleGetCompanies');
     // Maintain retro-compatibility
     if (req.query.WithSites) {
       req.query.WithSite = req.query.WithSites;

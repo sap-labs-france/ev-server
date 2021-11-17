@@ -49,7 +49,7 @@ export default class Logging {
       sizeof(response)).div(1024).toNumber(), 2);
     const numberOfRecords = Array.isArray(response) ? response.length : 0;
     const message = `${module}.${method} - ${executionDurationMillis.toString()} ms - Req ${sizeOfRequestDataKB} KB - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB - ${numberOfRecords.toString()} rec(s)`;
-    Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
+    Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
     if (sizeOfResponseDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
       const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}KB, got ${sizeOfResponseDataKB}KB`);
       await Logging.logWarning({
@@ -60,11 +60,11 @@ export default class Logging {
         detailedMessages: { error: error.stack }
       });
       if (Utils.isDevelopmentEnv()) {
-        console.warn(chalk.yellow('===================================='));
-        console.warn(chalk.yellow(`Tenant ID '${tenant.id}'`));
-        console.warn(chalk.yellow(error));
-        console.warn(chalk.yellow(message));
-        console.warn(chalk.yellow('===================================='));
+        Logging.logConsoleWarning('====================================');
+        Logging.logConsoleWarning(`Tenant ID '${tenant.id}'`);
+        Logging.logConsoleWarning(error.stack);
+        Logging.logConsoleWarning(message);
+        Logging.logConsoleWarning('====================================');
       }
     }
     if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
@@ -77,11 +77,11 @@ export default class Logging {
         detailedMessages: { error: error.stack }
       });
       if (Utils.isDevelopmentEnv()) {
-        console.warn(chalk.yellow('===================================='));
-        console.warn(chalk.yellow(`Tenant ID '${tenant.id}'`));
-        console.warn(chalk.yellow(error));
-        console.warn(chalk.yellow(message));
-        console.warn(chalk.yellow('===================================='));
+        Logging.logConsoleWarning('====================================');
+        Logging.logConsoleWarning(`Tenant ID '${tenant.id}'`);
+        Logging.logConsoleWarning(error.stack);
+        Logging.logConsoleWarning(message);
+        Logging.logConsoleWarning('====================================');
       }
     }
     await PerformanceStorage.savePerformanceRecord(
@@ -120,6 +120,22 @@ export default class Logging {
     return Logging._log(log);
   }
 
+  public static logConsoleError(message: string): void {
+    console.error(chalk.red(`${new Date().toLocaleString()} - ${message}`));
+  }
+
+  public static logConsoleWarning(message: string): void {
+    console.warn(chalk.yellow(`${new Date().toLocaleString()} - ${message}`));
+  }
+
+  public static logConsoleInfo(message: string): void {
+    console.info(chalk.green(`${new Date().toLocaleString()} - ${message}`));
+  }
+
+  public static logConsoleDebug(message: string): void {
+    console.info(chalk.gray(`${new Date().toLocaleString()} - ${message}`));
+  }
+
   public static async logActionsResponse(
       tenantID: string, action: ServerAction, module: string, method: string, actionsResponse: ActionsResponse,
       messageSuccess: string, messageError: string, messageSuccessAndError: string,
@@ -137,7 +153,7 @@ export default class Logging {
         action, module, method,
         message: messageSuccessAndError
       });
-      Utils.isDevelopmentEnv() && console.error(chalk.red(messageSuccessAndError));
+      Utils.isDevelopmentEnv() && Logging.logConsoleError(messageSuccessAndError);
     } else if (actionsResponse.inSuccess > 0) {
       await Logging.logInfo({
         tenantID: tenantID,
@@ -145,7 +161,7 @@ export default class Logging {
         action, module, method,
         message: messageSuccess
       });
-      Utils.isDevelopmentEnv() && console.info(chalk.green(messageSuccess));
+      Utils.isDevelopmentEnv() && Logging.logConsoleInfo(messageSuccess);
     } else if (actionsResponse.inError > 0) {
       await Logging.logError({
         tenantID: tenantID,
@@ -153,7 +169,7 @@ export default class Logging {
         action, module, method,
         message: messageError
       });
-      Utils.isDevelopmentEnv() && console.error(chalk.red(messageError));
+      Utils.isDevelopmentEnv() && Logging.logConsoleError(messageError);
     } else {
       await Logging.logInfo({
         tenantID: tenantID,
@@ -161,7 +177,7 @@ export default class Logging {
         action, module, method,
         message: messageNoSuccessNoError
       });
-      Utils.isDevelopmentEnv() && console.info(chalk.green(messageNoSuccessNoError));
+      Utils.isDevelopmentEnv() && Logging.logConsoleInfo(messageNoSuccessNoError);
     }
   }
 
@@ -185,7 +201,7 @@ export default class Logging {
         message: messageSuccessAndError,
         detailedMessages: ocpiResult.logs
       });
-      Utils.isDevelopmentEnv() && console.error(chalk.red(messageSuccessAndError));
+      Utils.isDevelopmentEnv() && Logging.logConsoleError(messageSuccessAndError);
     } else if (ocpiResult.success > 0) {
       await Logging.logInfo({
         tenantID: tenantID,
@@ -193,7 +209,7 @@ export default class Logging {
         message: messageSuccess,
         detailedMessages: ocpiResult.logs
       });
-      Utils.isDevelopmentEnv() && console.info(chalk.green(messageSuccess));
+      Utils.isDevelopmentEnv() && Logging.logConsoleInfo(messageSuccess);
     } else if (ocpiResult.failure > 0) {
       await Logging.logError({
         tenantID: tenantID,
@@ -201,7 +217,7 @@ export default class Logging {
         message: messageError,
         detailedMessages: ocpiResult.logs
       });
-      Utils.isDevelopmentEnv() && console.error(chalk.red(messageError));
+      Utils.isDevelopmentEnv() && Logging.logConsoleError(messageError);
     } else {
       await Logging.logInfo({
         tenantID: tenantID,
@@ -209,7 +225,7 @@ export default class Logging {
         message: messageNoSuccessNoError,
         detailedMessages: ocpiResult.logs
       });
-      Utils.isDevelopmentEnv() && console.info(chalk.green(messageNoSuccessNoError));
+      Utils.isDevelopmentEnv() && Logging.logConsoleError(messageNoSuccessNoError);
     }
   }
 
@@ -228,14 +244,14 @@ export default class Logging {
       // Keep date/time
       req['timestamp'] = new Date();
       // Check Tenant
-      if (req['tenant']) {
-        const tenant = req['tenant'] as Tenant;
+      if (req.tenant) {
+        const tenant = req.tenant;
         tenantID = tenant.id;
         tenantSubdomain = tenant.subdomain;
       }
       // Check User
-      if (req['user']) {
-        const user = req['user'] as User;
+      if (req.user) {
+        const user = req.user;
         userID = user.id;
       }
       // Clear Default Tenant
@@ -251,7 +267,7 @@ export default class Logging {
       ).div(1024).toNumber(), 2);
       // Log
       const message = `Express HTTP Request << Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB << ${req.method} '${req.url}'`;
-      Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
+      Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
       await Logging.logDebug({
         tenantID,
         action: ServerAction.HTTP_REQUEST,
@@ -304,7 +320,7 @@ export default class Logging {
             Utils.createDecimal(res.getHeader('content-length') as number).div(1024).toNumber(), 2);
         }
         const message = `Express HTTP Response >> ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB >> ${req.method}/${res.statusCode} '${req.url}'`;
-        Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
+        Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
         if (sizeOfResponseDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
           const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB} KB, got ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB`);
           await Logging.logWarning({
@@ -315,11 +331,11 @@ export default class Logging {
             detailedMessages: { error: error.stack }
           });
           if (Utils.isDevelopmentEnv()) {
-            console.warn(chalk.yellow('===================================='));
-            console.warn(chalk.yellow(`Tenant ID '${tenantID}'`));
-            console.warn(chalk.yellow(error));
-            console.warn(chalk.yellow(message));
-            console.warn(chalk.yellow('===================================='));
+            Logging.logConsoleWarning('====================================');
+            Logging.logConsoleWarning(`Tenant ID '${tenantID}'`);
+            Logging.logConsoleWarning(error.stack);
+            Logging.logConsoleWarning(message);
+            Logging.logConsoleWarning('====================================');
           }
         }
         if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
@@ -332,11 +348,11 @@ export default class Logging {
             detailedMessages: { error: error.stack }
           });
           if (Utils.isDevelopmentEnv()) {
-            console.warn(chalk.yellow('===================================='));
-            console.warn(chalk.yellow(`Tenant ID '${tenantID}'`));
-            console.warn(chalk.yellow(error));
-            console.warn(chalk.yellow(message));
-            console.warn(chalk.yellow('===================================='));
+            Logging.logConsoleWarning('====================================');
+            Logging.logConsoleWarning(`Tenant ID '${tenantID}'`);
+            Logging.logConsoleWarning(error.stack);
+            Logging.logConsoleWarning(message);
+            Logging.logConsoleWarning('====================================');
           }
         }
         await Logging.logDebug({
@@ -378,7 +394,7 @@ export default class Logging {
     const sizeOfRequestDataKB = Utils.truncTo(Utils.createDecimal(
       sizeof(request)).div(1024).toNumber(), 2);
     const message = `Axios HTTP Request >> Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB - ${request.method.toLocaleUpperCase()} '${request.url}'`;
-    Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
+    Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
     await Logging.logDebug({
       tenantID: tenant.id,
       action: ServerAction.HTTP_REQUEST,
@@ -411,13 +427,13 @@ export default class Logging {
     let sizeOfResponseDataKB = 0;
     if (response.config.headers['Content-Length']) {
       sizeOfResponseDataKB = Utils.truncTo(
-        Utils.createDecimal(response.config.headers['Content-Length']).div(1024).toNumber(), 2);
+        Utils.createDecimal(Utils.convertToInt(response.config.headers['Content-Length'])).div(1024).toNumber(), 2);
     } else if (response.data) {
       sizeOfResponseDataKB = Utils.truncTo(
         Utils.createDecimal(sizeof(response.data)).div(1024).toNumber(), 2);
     }
     const message = `Axios HTTP Response << ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`;
-    Utils.isDevelopmentEnv() && console.log(chalk.green(message));
+    Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
     if (sizeOfResponseDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
       const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}`);
       await Logging.logWarning({
@@ -428,11 +444,11 @@ export default class Logging {
         detailedMessages: { error: error.stack }
       });
       if (Utils.isDevelopmentEnv()) {
-        console.warn(chalk.yellow('===================================='));
-        console.warn(chalk.yellow(`Tenant ID '${tenant.id}'`));
-        console.warn(chalk.yellow(error));
-        console.warn(chalk.yellow(message));
-        console.warn(chalk.yellow('===================================='));
+        Logging.logConsoleWarning('====================================');
+        Logging.logConsoleWarning(`Tenant ID '${tenant.id}'`);
+        Logging.logConsoleWarning(error.stack);
+        Logging.logConsoleWarning(message);
+        Logging.logConsoleWarning('====================================');
       }
     }
     if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
@@ -445,11 +461,11 @@ export default class Logging {
         detailedMessages: { error: error.stack }
       });
       if (Utils.isDevelopmentEnv()) {
-        console.warn(chalk.yellow('===================================='));
-        console.warn(chalk.yellow(`Tenant ID '${tenant.id}'`));
-        console.warn(chalk.yellow(error));
-        console.warn(chalk.yellow(message));
-        console.warn(chalk.yellow('===================================='));
+        Logging.logConsoleWarning('====================================');
+        Logging.logConsoleWarning(`Tenant ID '${tenant.id}'`);
+        Logging.logConsoleWarning(error.stack);
+        Logging.logConsoleWarning(message);
+        Logging.logConsoleWarning('====================================');
       }
     }
     try {
@@ -594,7 +610,7 @@ export default class Logging {
     const sizeOfRequestDataKB = Utils.truncTo(Utils.createDecimal(
       sizeof(request)).div(1024).toNumber(), 2);
     const message = `${direction} OCPP Request '${action}' - Req ${sizeOfRequestDataKB} KB - ${direction === '>>' ? 'Received' : 'Sent'}`;
-    Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
+    Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
     await Logging.logDebug({
       tenantID: tenant.id,
       chargingStationID: chargingStationID,
@@ -602,8 +618,7 @@ export default class Logging {
       siteID: chargingStationDetails.siteID,
       companyID: chargingStationDetails.companyID,
       module: module, method: action, action,
-      message,
-      detailedMessages: { request }
+      message, detailedMessages: { request }
     });
     const performanceID = await PerformanceStorage.savePerformanceRecord(
       Utils.buildPerformanceRecord({
@@ -628,7 +643,7 @@ export default class Logging {
     const sizeOfResponseDataKB = Utils.truncTo(Utils.createDecimal(
       sizeof(response)).div(1024).toNumber(), 2);
     const message = `${direction} OCPP Request '${action}' on '${chargingStationID}' has been processed ${executionDurationMillis ? 'in ' + executionDurationMillis.toString() + ' ms' : ''} - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB`;
-    Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
+    Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
     if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
       const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms, got ${executionDurationMillis} ms`);
       await Logging.logWarning({
@@ -639,11 +654,11 @@ export default class Logging {
         detailedMessages: { error: error.stack }
       });
       if (Utils.isDevelopmentEnv()) {
-        console.warn(chalk.yellow('===================================='));
-        console.warn(chalk.yellow(`Tenant ID '${tenant?.id}'`));
-        console.warn(chalk.yellow(error));
-        console.warn(chalk.yellow(message));
-        console.warn(chalk.yellow('===================================='));
+        Logging.logConsoleWarning('====================================');
+        Logging.logConsoleWarning(`Tenant ID '${tenant?.id}'`);
+        Logging.logConsoleWarning(error.stack);
+        Logging.logConsoleWarning(message);
+        Logging.logConsoleWarning('====================================');
       }
     }
     if (response && response['status'] === OCPPStatus.REJECTED) {

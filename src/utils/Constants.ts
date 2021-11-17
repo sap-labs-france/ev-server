@@ -349,6 +349,8 @@ export default class Constants {
     'mobileOs': 0,
     'mobileToken': 0,
     'verifiedAt': 0,
+    'importedData': 0,
+    'billingData': 0
   });
 
   public static readonly DEFAULT_OCPP_16_CONFIGURATION: OcppParameter[] = Object.freeze([

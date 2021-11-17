@@ -5,7 +5,6 @@ import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
 import Utils from '../../utils/Utils';
 import WebSocket from 'ws';
-import chalk from 'chalk';
 
 const MODULE_NAME = 'WSClient';
 
@@ -134,7 +133,7 @@ export default class WSClient {
     }
   }
 
-  private onError(error: Error) {
+  private onError(error) {
     switch (error.toString()) {
       case 'ECONNREFUSED':
         // Error message
@@ -143,12 +142,11 @@ export default class WSClient {
             tenantID: this.logTenantID,
             module: MODULE_NAME, method: 'onError',
             action: ServerAction.WS_CLIENT_ERROR,
-            message: `Connection refused to '${this.url}': ${error}`,
+            message: `Connection refused to '${this.url}': ${error?.message as string}`,
             detailedMessages: { error }
           });
         } else {
-          // eslint-disable-next-line no-console
-          (Utils.isDevelopmentEnv() || Utils.isTestEnv()) && console.error(chalk.red(`WSClient connection refused to '${this.url}':`), chalk.red(error));
+          !Utils.isProductionEnv() && Logging.logConsoleError(`WSClient connection refused to '${this.url}': ${error?.message as string}`);
         }
         break;
       default:
@@ -158,12 +156,11 @@ export default class WSClient {
             tenantID: this.logTenantID,
             module: MODULE_NAME, method: 'onError',
             action: ServerAction.WS_CLIENT_ERROR,
-            message: `Connection error to '${this.url}': ${error}`,
-            detailedMessages: { error }
+            message: `Connection error to '${this.url}': ${error?.message as string}`,
+            detailedMessages: { error: error.stack }
           });
         } else {
-          // eslint-disable-next-line no-console
-          (Utils.isDevelopmentEnv() || Utils.isTestEnv()) && console.error(chalk.red(`WSClient connection error to '${this.url}':`), chalk.red(error));
+          !Utils.isProductionEnv() && Logging.logConsoleError(`WSClient connection error to '${this.url}': ${error?.message as string}`);
         }
         break;
     }
@@ -173,7 +170,6 @@ export default class WSClient {
     switch (code) {
       case WebSocketCloseEventStatusCode.CLOSE_NORMAL: // Normal close
       case WebSocketCloseEventStatusCode.CLOSE_NO_STATUS:
-        // Informational message
         if (this.dbLogging) {
           void Logging.logInfo({
             tenantID: this.logTenantID,
@@ -182,13 +178,11 @@ export default class WSClient {
             message: `Connection closing to '${this.url}', Reason: '${reason ? reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`
           });
         } else {
-          // eslint-disable-next-line no-console
-          (Utils.isDevelopmentEnv() || Utils.isTestEnv()) && console.log(`WSClient connection closing to '${this.url}', Reason: '${reason ? reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`);
+          !Utils.isProductionEnv() && Logging.logConsoleInfo(`WSClient connection closing to '${this.url}', Reason: '${reason ? reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`);
         }
         break;
       // Abnormal close
       default:
-        // Error message
         if (this.dbLogging) {
           void Logging.logError({
             tenantID: this.logTenantID,
@@ -197,8 +191,7 @@ export default class WSClient {
             message: `Connection closing error to '${this.url}', Reason: '${reason ? reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`
           });
         } else {
-          // eslint-disable-next-line no-console
-          (Utils.isDevelopmentEnv() || Utils.isTestEnv()) && console.error(chalk.red(`WSClient Connection closing error to '${this.url}', Reason: '${reason ? reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`));
+          !Utils.isProductionEnv() && Logging.logConsoleError(`WSClient Connection closing error to '${this.url}', Reason: '${reason ? reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`);
         }
         break;
     }
