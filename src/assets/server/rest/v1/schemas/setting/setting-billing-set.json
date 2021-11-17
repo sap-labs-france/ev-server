@@ -1,0 +1,63 @@
+{
+  "$id": "setting-billing-set",
+  "title": "Set Billing Settings",
+  "type": "object",
+  "properties": {
+    "content": {
+      "type": "object",
+      "properties": {
+        "billing": {
+          "type": "object",
+          "properties": {
+            "isTransactionBillingActivated": {
+              "type": "boolean",
+              "sanitize": "mongo"
+            },
+            "immediateBillingAllowed": {
+              "type": "boolean",
+              "sanitize": "mongo"
+            },
+            "periodicBillingAllowed": {
+              "type": "boolean",
+              "sanitize": "mongo"
+            },
+            "taxID": {
+              "type": "string",
+              "sanitize": "mongo"
+            }
+          }
+        },
+        "type": {
+          "type": "string",
+          "sanitize": "mongo",
+          "enum": ["billing"]
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "id": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "identifier": {
+      "type": "string",
+      "sanitize": "mongo",
+      "enum": ["billing"]
+    },
+    "sensitiveData": {
+      "type": "array",
+      "nullable": true,
+      "items": {
+        "type": "string",
+        "sanitize": "mongo"
+      }
+    }
+  },
+  "required": [
+    "id",
+    "identifier",
+    "content"
+  ]
+}

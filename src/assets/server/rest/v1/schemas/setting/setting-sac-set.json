@@ -1,0 +1,55 @@
+{
+  "$id": "setting-sac-set",
+  "title": "Set SAP Analytics Settings",
+  "type": "object",
+  "properties": {
+    "content": {
+      "type": "object",
+      "properties": {
+        "sac": {
+          "type": "object",
+          "properties": {
+            "mainUrl": {
+              "type": "string",
+              "sanitize": "mongo"
+            },
+            "timezone": {
+              "type": "string",
+              "sanitize": "mongo"
+            }
+          }
+        },
+        "type": {
+          "type": "string",
+          "sanitize": "mongo",
+          "enum": ["sac"]
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "id": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "identifier": {
+      "type": "string",
+      "sanitize": "mongo",
+      "enum": ["sac"]
+    },
+    "sensitiveData": {
+      "type": "array",
+      "nullable": true,
+      "items": {
+        "type": "string",
+        "sanitize": "mongo"
+      }
+    }
+  },
+  "required": [
+    "id",
+    "identifier",
+    "content"
+  ]
+}

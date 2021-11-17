@@ -8,6 +8,8 @@ export enum TechnicalSettings {
 
 export enum IntegrationSettings {
   OCPI = 'ocpi',
+  OICP = 'oicp',
+  SAC = 'sapAnalytics',
   SMART_CHARGING = 'smartCharging',
   REFUND = 'refund',
   PRICING = 'pricing',
