@@ -72,10 +72,12 @@ export default class SchemaValidator {
   protected validate(schema: Schema, data: Record<string, unknown>): any {
     let fnValidate: ValidateFunction<unknown>;
     if (!schema.$id) {
-      this.logConsoleError('====================================');
-      this.logConsoleError('Missing schema ID:');
-      this.logConsoleError(JSON.stringify(schema));
-      this.logConsoleError('====================================');
+      if (this.isDevelopmentEnv()) {
+        this.logConsoleError('====================================');
+        this.logConsoleError('Missing schema ID:');
+        this.logConsoleError(JSON.stringify(schema));
+        this.logConsoleError('====================================');
+      }
       // Not cached: Compile schema
       fnValidate = this.ajv.compile(schema);
     } else {
