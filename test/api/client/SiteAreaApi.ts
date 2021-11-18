@@ -8,7 +8,7 @@ export default class SiteAreaApi extends CrudApi {
     super(authenticatedApi);
   }
 
-  public async readById(id) {
+  public async readById(id: string) {
     return super.readById(id, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREA, { id }));
   }
 
@@ -30,19 +30,18 @@ export default class SiteAreaApi extends CrudApi {
   }
 
   public async update(data) {
-    return super.update(data, '/client/api/SiteAreaUpdate');
+    return super.update(data, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREA, { id: data.id }));
   }
 
   public async delete(id) {
-    return super.delete(id, '/client/api/SiteAreaDelete');
+    return super.delete(id, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREA, { id }));
   }
 
-  public async readConsumption(SiteAreaId, StartDate, EndDate) {
+  public async readConsumption(SiteAreaId: string, StartDate: Date, EndDate: Date) {
     return super.read({
-      SiteAreaID: SiteAreaId,
       StartDate: StartDate,
       EndDate: EndDate
-    }, '/client/api/SiteAreaConsumption');
+    }, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREA_CONSUMPTION, { id: SiteAreaId }));
   }
 
   public async assignChargingStations(SiteAreaId, ChargingStationIDs) {
