@@ -7,8 +7,8 @@ import { ServerAction } from '../types/Server';
 import Utils from '../utils/Utils';
 import fs from 'fs';
 
-export default class ChargingStationBootstrapTemplate {
-  public static async updateChargingStationTemplatesFromFile(): Promise<void> {
+export default class ChargingStationTemplateBootstrap {
+  public static async uploadChargingStationTemplatesFromFile(): Promise<void> {
     // Read File
     let chargingStationTemplates: ChargingStationTemplate[];
     try {

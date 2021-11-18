@@ -4,9 +4,8 @@ import { ServerAction, ServerType } from './types/Server';
 import AsyncTaskManager from './async-task/AsyncTaskManager';
 import CentralRestServer from './server/rest/CentralRestServer';
 import CentralSystemRestServiceConfiguration from './types/configuration/CentralSystemRestServiceConfiguration';
-import ChargingStationBootstrapTemplate from './bootstrap/ChargingStationTemplate';
 import ChargingStationConfiguration from './types/configuration/ChargingStationConfiguration';
-import ChargingStationStorage from './storage/mongodb/ChargingStationStorage';
+import ChargingStationTemplateBootstrap from './bootstrap/ChargingStationTemplateBootstrap';
 import Configuration from './utils/Configuration';
 import Constants from './utils/Constants';
 import I18nManager from './utils/I18nManager';
@@ -138,7 +137,7 @@ export default class Bootstrap {
       // -------------------------------------------------------------------------
       startTimeMillis = await this.logAndGetStartTimeMillis('Charging Station templates is being updated...');
       // Load and Save the Charging Station templates
-      await ChargingStationBootstrapTemplate.updateChargingStationTemplatesFromFile();
+      await ChargingStationTemplateBootstrap.uploadChargingStationTemplatesFromFile();
       // Log
       await this.logDuration(startTimeMillis, 'Charging Station templates have been updated successfully');
 
