@@ -1,15 +1,16 @@
 {
+  "$id": "chargingstation-action",
   "title": "Charging Station Action Request",
   "type": "object",
   "properties": {
     "chargingStationID": {
-      "$ref": "chargingstation.json#/definitions/id"
+      "$ref": "chargingstation#/definitions/id"
     },
     "carID": {
-      "$ref": "common.json#/definitions/id"
+      "$ref": "common#/definitions/id"
     },
     "userID": {
-      "$ref": "common.json#/definitions/id"
+      "$ref": "common#/definitions/id"
     },
     "args": {
       "type": "object",
@@ -31,7 +32,7 @@
           "sanitize": "mongo"
         },
         "connectorId": {
-          "$ref": "chargingstation.json#/definitions/connector/properties/connectorId"
+          "$ref": "chargingstation#/definitions/connector/properties/connectorId"
         },
         "duration": {
           "type": "number",
@@ -43,10 +44,10 @@
           "enum": ["A", "W"]
         },
         "chargingProfilePurpose": {
-          "$ref": "chargingstation.json#/definitions/chargingProfile/properties/profile/properties/chargingProfilePurpose"
+          "$ref": "chargingstation#/definitions/chargingProfile/properties/profile/properties/chargingProfilePurpose"
         },
         "stackLevel": {
-          "$ref": "chargingstation.json#/definitions/chargingProfile/properties/profile/properties/stackLevel"
+          "$ref": "chargingstation#/definitions/chargingProfile/properties/profile/properties/stackLevel"
         },
         "tagID": {
           "type": "string",
@@ -84,15 +85,27 @@
           "sanitize": "mongo"
         },
         "transactionId": {
-          "$ref": "transaction.json#/definitions/id"
+          "$ref": "transaction#/definitions/id"
         },
         "csChargingProfile": {
-          "$ref": "chargingstation.json#/definitions/chargingProfile"
+          "$ref": "chargingstation#/definitions/chargingProfile"
+        },
+        "vendorId": {
+          "type": "string",
+          "sanitize": "mongo"
+        },
+        "messageId": {
+          "type": "string",
+          "sanitize": "mongo"
+        },
+        "data": {
+          "type": "string",
+          "sanitize": "mongo"
         }
       }
     },
     "chargePointID": {
-      "$ref": "common.json#/definitions/id"
+      "$ref": "common#/definitions/id"
     }
   },
   "required": [

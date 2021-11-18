@@ -1,43 +1,41 @@
 {
+  "$id": "tags-get",
   "title": "Get Tags",
-  "description": "",
   "type": "object",
   "properties": {
     "Active": {
-      "$ref": "tag.json#/definitions/active"
+      "$ref": "tag#/definitions/active"
     },
     "Issuer": {
-      "$ref": "tag.json#/definitions/issuer"
+      "$ref": "tag#/definitions/issuer"
     },
     "UserID": {
-      "$ref": "user.json#/definitions/ids"
+      "$ref": "common#/definitions/ids"
     },
     "WithUser": {
       "type": "boolean",
       "sanitize": "mongo"
     },
     "Search": {
-      "$ref": "common.json#/definitions/search"
+      "$ref": "common#/definitions/search"
     },
     "SortFields": {
-      "$ref": "common.json#/definitions/sortFields"
+      "$ref": "common#/definitions/sortFields"
     },
     "Limit": {
-      "$ref": "common.json#/definitions/limit"
+      "$ref": "common#/definitions/limit"
     },
     "Skip": {
-      "$ref": "common.json#/definitions/skip"
+      "$ref": "common#/definitions/skip"
     },
     "OnlyRecordCount": {
-      "$ref": "common.json#/definitions/onlyRecordCount"
+      "$ref": "common#/definitions/onlyRecordCount"
     },
     "ProjectFields": {
-      "$ref": "common.json#/definitions/projectFields"
-    },
-    "WithUser": {
-      "type": "boolean",
-      "sanitize": "mongo"
+      "$ref": "common#/definitions/projectFields"
     }
   },
-  "required": []
+  "required": [
+    "Limit"
+  ]
 }

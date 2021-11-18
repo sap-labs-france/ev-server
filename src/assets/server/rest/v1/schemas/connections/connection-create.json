@@ -1,16 +1,19 @@
 {
+  "$id": "connection-create",
   "title": "Connector connection creation",
   "description": "Describes properties required to create a connection to a connector",
   "type": "object",
   "properties": {
     "connectorId": {
-      "type": "string"
+      "type": "string",
+      "sanitize": "mongo"
     },
     "userId": {
-      "type": "string"
+      "$ref": "user#/definitions/id"
     },
     "data": {
-      "type": "object"
+      "type": "object",
+      "sanitize": "mongo"
     }
   },
   "required": [

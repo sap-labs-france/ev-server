@@ -1,0 +1,13 @@
+{
+  "$id": "connection-get",
+  "title": "Get Connection Request",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "common#/definitions/id"
+    }
+  },
+  "required": [
+    "ID"
+  ]
+}

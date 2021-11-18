@@ -1,22 +1,19 @@
 import { DataResult, DeletedResult } from '../../types/DataResult';
-import global, { FilterParams } from './../../types/GlobalType';
+import global, { DatabaseCount, FilterParams } from './../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import { Log } from '../../types/Log';
+import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
-import cluster from 'cluster';
 
 export default class LoggingStorage {
-  public static async deleteLogs(tenantID: string, deleteUpToDate: Date): Promise<DeletedResult> {
+  public static async deleteLogs(tenant: Tenant, deleteUpToDate: Date): Promise<DeletedResult> {
     // Check Tenant
-    await DatabaseUtils.checkTenant(tenantID);
+    DatabaseUtils.checkTenantObject(tenant);
     // Build filter
     const filters: FilterParams = {};
-    // Do Not Delete Security Logs
-    filters.type = {};
-    filters.type.$ne = 'S';
     // Date provided?
     if (deleteUpToDate) {
       filters.timestamp = {};
@@ -25,29 +22,7 @@ export default class LoggingStorage {
       return;
     }
     // Delete Logs
-    const result = await global.database.getCollection<Log>(tenantID, 'logs')
-      .deleteMany(filters);
-    // Return the result
-    return { acknowledged: result.acknowledged, deletedCount: result.deletedCount };
-  }
-
-  public static async deleteSecurityLogs(tenantID: string, deleteUpToDate: Date): Promise<DeletedResult> {
-    // Check Tenant
-    await DatabaseUtils.checkTenant(tenantID);
-    // Build filter
-    const filters: FilterParams = {};
-    // Delete Only Security Logs
-    filters.type = {};
-    filters.type.$eq = 'S';
-    // Date provided?
-    if (deleteUpToDate) {
-      filters.timestamp = {};
-      filters.timestamp.$lte = Utils.convertToDate(deleteUpToDate);
-    } else {
-      return;
-    }
-    // Delete Logs
-    const result = await global.database.getCollection<Log>(tenantID, 'logs')
+    const result = await global.database.getCollection<Log>(tenant.id, 'logs')
       .deleteMany(filters);
     // Return the result
     return { acknowledged: result.acknowledged, deletedCount: result.deletedCount };
@@ -59,11 +34,12 @@ export default class LoggingStorage {
       userID: logToSave.user ? DatabaseUtils.convertUserToObjectID(logToSave.user) : null,
       actionOnUserID: DatabaseUtils.convertUserToObjectID(logToSave.actionOnUser),
       level: logToSave.level,
-      siteID: logToSave.siteID,
+      chargingStationID: logToSave.chargingStationID,
+      companyID: DatabaseUtils.convertToObjectID(logToSave.companyID),
+      siteID: DatabaseUtils.convertToObjectID(logToSave.siteID),
+      siteAreaID: DatabaseUtils.convertToObjectID(logToSave.siteAreaID),
       source: logToSave.source,
-      host: logToSave.host ? logToSave.host : Utils.getHostname(),
-      process: logToSave.process ? logToSave.process : (cluster.isWorker ? 'worker ' + cluster.worker.id.toString() : 'master'),
-      type: logToSave.type,
+      host: logToSave.host ? logToSave.host : Utils.getHostName(),
       timestamp: Utils.convertToDate(logToSave.timestamp),
       module: logToSave.module,
       method: logToSave.method,
@@ -78,19 +54,21 @@ export default class LoggingStorage {
     }
   }
 
-  public static async getLog(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID, projectFields: string[]): Promise<Log> {
-    const logsMDB = await LoggingStorage.getLogs(tenantID, {
-      logIDs: [id]
+  public static async getLog(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID,
+      params: { siteIDs?: string[]; } = {}, projectFields: string[]): Promise<Log> {
+    const logsMDB = await LoggingStorage.getLogs(tenant, {
+      logIDs: [id],
+      siteIDs: params.siteIDs,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return logsMDB.count === 1 ? logsMDB.result[0] : null;
   }
 
-  public static async getLogs(tenantID: string, params: {
+  public static async getLogs(tenant: Tenant, params: {
     startDateTime?: Date; endDateTime?: Date; levels?: string[]; sources?: string[]; type?: string; actions?: string[];
-    hosts?: string[]; userIDs?: string[]; search?: string; logIDs?: string[];
+    hosts?: string[]; userIDs?: string[]; siteIDs?: string[]; chargingStationIDs?: string[]; search?: string; logIDs?: string[];
   } = {}, dbParams: DbParams, projectFields: string[]): Promise<DataResult<Log>> {
     // Check Tenant
-    await DatabaseUtils.checkTenant(tenantID);
+    DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit
@@ -106,20 +84,26 @@ export default class LoggingStorage {
     // Date provided?
     if (params.startDateTime || params.endDateTime) {
       filters.timestamp = {};
+      // Start date
+      if (params.startDateTime) {
+        filters.timestamp.$gte = Utils.convertToDate(params.startDateTime);
+      }
+      // End date
+      if (params.endDateTime) {
+        filters.timestamp.$lte = Utils.convertToDate(params.endDateTime);
+      }
     }
-    // Start date
-    if (params.startDateTime) {
-      filters.timestamp.$gte = Utils.convertToDate(params.startDateTime);
+    // ID
+    if (!Utils.isEmptyArray(params.logIDs)) {
+      filters._id = {
+        $in: params.logIDs.map((logID) => DatabaseUtils.convertToObjectID(logID))
+      };
     }
-    // End date
-    if (params.endDateTime) {
-      filters.timestamp.$lte = Utils.convertToDate(params.endDateTime);
-    }
-    // Filter on log levels
+    // Level
     if (params.levels && params.levels.length > 0) {
       filters.level = { $in: params.levels };
     }
-    // Filter on charging Stations
+    // Source
     if (params.sources && params.sources.length > 0) {
       filters.source = { $in: params.sources };
     }
@@ -127,25 +111,31 @@ export default class LoggingStorage {
     if (params.type) {
       filters.type = params.type;
     }
-    // Filter on actions
+    // Action
     if (params.actions && params.actions.length > 0) {
       filters.action = { $in: params.actions };
     }
-    // Filter on host
+    // Host
     if (params.hosts && params.hosts.length > 0) {
       filters.host = { $in: params.hosts };
     }
-    // Filter on users
+    // Site
+    if (!Utils.isEmptyArray(params.siteIDs)) {
+      filters.siteID = {
+        $in: params.siteIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID))
+      };
+    }
+    // User
     if (!Utils.isEmptyArray(params.userIDs)) {
       filters.$or = [
         { userID: { $in: params.userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID)) } },
         { actionOnUserID: { $in: params.userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID)) } }
       ];
     }
-    // Log ID
-    if (!Utils.isEmptyArray(params.logIDs)) {
-      filters._id = {
-        $in: params.logIDs.map((logID) => DatabaseUtils.convertToObjectID(logID))
+    // Charging Station
+    if (!Utils.isEmptyArray(params.chargingStationIDs)) {
+      filters.chargingStationID = {
+        $in: params.chargingStationIDs
       };
     }
     // Create Aggregation
@@ -161,7 +151,7 @@ export default class LoggingStorage {
       // Always limit the nbr of record to avoid perfs issues
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
-    const loggingsCountMDB = await global.database.getCollection<any>(tenantID, 'logs')
+    const loggingsCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'logs')
       .aggregate([...aggregation, { $count: 'count' }])
       .toArray();
     // Check if only the total count is requested
@@ -190,7 +180,7 @@ export default class LoggingStorage {
     });
     // Add Users
     DatabaseUtils.pushUserLookupInAggregation({
-      tenantID,
+      tenantID: tenant.id,
       aggregation: aggregation,
       asField: 'user',
       localField: 'userID',
@@ -201,7 +191,7 @@ export default class LoggingStorage {
       { $project: { name: 1, firstName: 1 } }
     ]);
     DatabaseUtils.pushUserLookupInAggregation({
-      tenantID,
+      tenantID: tenant.id,
       aggregation: aggregation,
       asField: 'actionOnUser',
       localField: 'actionOnUserID',
@@ -222,8 +212,8 @@ export default class LoggingStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const loggingsMDB = await global.database.getCollection<Log>(tenantID, 'logs')
-      .aggregate(aggregation, { allowDiskUse: true })
+    const loggingsMDB = await global.database.getCollection<Log>(tenant.id, 'logs')
+      .aggregate<Log>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Ok
     return {

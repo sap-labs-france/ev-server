@@ -15,7 +15,7 @@ import { OICPRegistrationStatus } from '../../../../types/oicp/OICPRegistrationS
 import { OICPStatusCode } from '../../../../types/oicp/OICPStatusCode';
 import { ServerAction } from '../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
-import TenantComponents from '../../../../types/TenantComponents';
+import { TenantComponents } from '../../../../types/Tenant';
 import UtilsService from './UtilsService';
 
 const MODULE_NAME = 'OICPEndpointService';
@@ -45,7 +45,7 @@ export default class OICPEndpointService {
     // Delete
     await OICPEndpointStorage.deleteOicpEndpoint(req.tenant, oicpEndpoint.id);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteOicpEndpoint',
       message: `Oicp Endpoint '${oicpEndpoint.name}' has been deleted successfully`,
@@ -57,7 +57,7 @@ export default class OICPEndpointService {
     next();
   }
 
-  public static async handleCreateOicpEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleCreateOicpEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OICP,
       Action.CREATE, Entity.OICP_ENDPOINT, MODULE_NAME, 'handleCreateOicpEndpoint');
@@ -95,7 +95,7 @@ export default class OICPEndpointService {
     } as OICPEndpoint;
     const endpointID = await OICPEndpointStorage.saveOicpEndpoint(req.tenant, oicpEndpoint);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleCreateOicpEndpoint',
       message: `Oicp Endpoint '${filteredRequest.name}' has been created successfully`,
@@ -135,7 +135,7 @@ export default class OICPEndpointService {
     // Update OicpEndpoint
     await OICPEndpointStorage.saveOicpEndpoint(req.tenant, { ...oicpEndpoint, ...filteredRequest });
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateOicpEndpoint',
       message: `Oicp Endpoint '${oicpEndpoint.name}' has been updated successfully`,
@@ -185,7 +185,7 @@ export default class OICPEndpointService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.LIST, entity: Entity.OICP_ENDPOINTS,
+        action: Action.LIST, entity: Entity.OICP_ENDPOINT,
         module: MODULE_NAME, method: 'handleGetOicpEndpoints'
       });
     }
@@ -216,7 +216,7 @@ export default class OICPEndpointService {
     next();
   }
 
-  public static async handleSendEVSEStatusesOicpEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleSendEVSEStatusesOicpEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OICP,
       Action.READ, Entity.OICP_ENDPOINT, MODULE_NAME, 'handleSendEVSEStatusesOicpEndpoint');
@@ -247,7 +247,7 @@ export default class OICPEndpointService {
     next();
   }
 
-  public static async handleSendEVSEsOicpEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleSendEVSEsOicpEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OICP,
       Action.READ, Entity.OICP_ENDPOINT, MODULE_NAME, 'handleSendEVSEsOicpEndpoint');
@@ -278,7 +278,7 @@ export default class OICPEndpointService {
     next();
   }
 
-  public static async handlePingOicpEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handlePingOicpEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OICP,
       Action.UPDATE, Entity.OICP_ENDPOINT, MODULE_NAME, 'handlePingOicpEndpoint');
@@ -306,7 +306,7 @@ export default class OICPEndpointService {
     // Check ping result
     if (pingResult.statusCode === OICPStatusCode.Code000) {
       // Log
-      await Logging.logSecurityInfo({
+      await Logging.logInfo({
         tenantID: req.tenant.id,
         user: req.user, module: MODULE_NAME, method: 'handlePingOicpEndpoint',
         message: `Oicp Endpoint '${filteredRequest.name}' can be reached successfully`,
@@ -316,7 +316,7 @@ export default class OICPEndpointService {
       res.json(Object.assign(pingResult, Constants.REST_RESPONSE_SUCCESS));
     } else {
       // Log
-      await Logging.logSecurityError({
+      await Logging.logError({
         tenantID: req.tenant.id,
         user: req.user, module: MODULE_NAME, method: 'handlePingOicpEndpoint',
         message: `Oicp Endpoint '${filteredRequest.name}' cannot be reached`,
@@ -355,7 +355,7 @@ export default class OICPEndpointService {
     // Check ping result
     if (result.statusCode === StatusCodes.OK) {
       // Log
-      await Logging.logSecurityInfo({
+      await Logging.logInfo({
         tenantID: req.tenant.id,
         user: req.user, module: MODULE_NAME, method: 'handleUnregisterOicpEndpoint',
         message: `Oicp Endpoint '${oicpEndpoint.name}' can be reached successfully`,
@@ -365,7 +365,7 @@ export default class OICPEndpointService {
       res.json(Object.assign(result, Constants.REST_RESPONSE_SUCCESS));
     } else {
       // Log
-      await Logging.logSecurityError({
+      await Logging.logError({
         tenantID: req.tenant.id,
         user: req.user, module: MODULE_NAME, method: 'handleUnregisterOicpEndpoint',
         message: `Oicp Endpoint '${oicpEndpoint.name}' cannot be reached`,
@@ -404,7 +404,7 @@ export default class OICPEndpointService {
     // Check ping result
     if (result.statusCode === StatusCodes.OK) {
       // Log
-      await Logging.logSecurityInfo({
+      await Logging.logInfo({
         tenantID: req.tenant.id,
         user: req.user, module: MODULE_NAME, method: 'handleRegisterOicpEndpoint',
         message: `Oicp Endpoint '${oicpEndpoint.name}' can be reached successfully`,
@@ -414,7 +414,7 @@ export default class OICPEndpointService {
       res.json(Object.assign(result, Constants.REST_RESPONSE_SUCCESS));
     } else {
       // Log
-      await Logging.logSecurityError({
+      await Logging.logError({
         tenantID: req.tenant.id,
         user: req.user, module: MODULE_NAME, method: 'handleRegisterOicpEndpoint',
         message: `Oicp Endpoint '${oicpEndpoint.name}' cannot be reached`,

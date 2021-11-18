@@ -2,7 +2,7 @@ import { Action, Entity } from '../types/Authorization';
 import User, { UserRole } from '../types/User';
 
 import { HTTPAuthError } from '../types/HTTPError';
-import TenantComponents from '../types/TenantComponents';
+import { TenantComponents } from '../types/Tenant';
 import UserToken from '../types/UserToken';
 
 export default class AppAuthError extends Error {
@@ -11,6 +11,10 @@ export default class AppAuthError extends Error {
     action: Action;
     entity: Entity;
     value?: string;
+    chargingStationID?: string;
+    siteID?: string;
+    siteAreaID?: string;
+    companyID?: string;
     errorCode: HTTPAuthError;
     module: string;
     method: string;

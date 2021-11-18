@@ -1,0 +1,14 @@
+{
+  "$id": "carcatalog-get",
+  "title": "Get a Car Catalog Request",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "type": "number",
+      "sanitize": "mongo"
+    }
+  },
+  "required": [
+    "ID"
+  ]
+}

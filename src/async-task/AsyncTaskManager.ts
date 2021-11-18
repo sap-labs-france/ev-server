@@ -1,7 +1,8 @@
 import AsyncTask, { AsyncTaskStatus, AsyncTasks } from '../types/AsyncTask';
+import global, { ActionsResponse, DatabaseDocumentChange } from '../types/GlobalType';
 
 import AbstractAsyncTask from './AsyncTask';
-import { ActionsResponse } from '../types/GlobalType';
+import AsyncTaskConfiguration from '../types/configuration/AsyncTaskConfiguration';
 import AsyncTaskStorage from '../storage/mongodb/AsyncTaskStorage';
 import BillTransactionAsyncTask from './tasks/BillTransactionAsyncTask';
 import Configuration from '../utils/Configuration';
@@ -18,6 +19,7 @@ import OCPIPullSessionsAsyncTask from './tasks/ocpi/OCPIPullSessionsAsyncTask';
 import OCPIPullTokensAsyncTask from './tasks/ocpi/OCPIPullTokensAsyncTask';
 import OCPIPushEVSEStatusesAsyncTask from './tasks/ocpi/OCPIPushEVSEStatusesAsyncTask';
 import OCPIPushTokensAsyncTask from './tasks/ocpi/OCPIPushTokensAsyncTask';
+import { Promise } from 'bluebird';
 import { ServerAction } from '../types/Server';
 import SynchronizeCarCatalogsAsyncTask from './tasks/SynchronizeCarCatalogsAsyncTask';
 import TagsImportAsyncTask from './tasks/TagsImportAsyncTask';
@@ -27,17 +29,29 @@ import Utils from '../utils/Utils';
 const MODULE_NAME = 'AsyncTaskManager';
 
 export default class AsyncTaskManager {
-  private static asyncTaskConfig;
+  private static asyncTaskConfig: AsyncTaskConfiguration;
 
   public static async init(): Promise<void> {
     // Get the conf
     AsyncTaskManager.asyncTaskConfig = Configuration.getAsyncTaskConfig();
-    // Active?
     if (AsyncTaskManager.asyncTaskConfig?.active) {
       // Turn all Running task to Pending
       await AsyncTaskStorage.updateRunningAsyncTaskToPending();
       // Run it
       void AsyncTaskManager.handleAsyncTasks();
+      // Listen to DB events
+      await global.database.watchDatabaseCollection(Constants.DEFAULT_TENANT_OBJECT, 'asynctasks',
+        (documentID: unknown, documentChange: DatabaseDocumentChange, document: unknown) => {
+          if (documentChange === DatabaseDocumentChange.UPDATE ||
+              documentChange === DatabaseDocumentChange.INSERT) {
+            // Check status
+            if (document['status'] === AsyncTaskStatus.PENDING) {
+              // Trigger the Async Framework
+              void AsyncTaskManager.handleAsyncTasks();
+            }
+          }
+        }
+      );
     }
   }
 
@@ -74,64 +88,16 @@ export default class AsyncTaskManager {
         await Promise.map(asyncTasks.result,
           async (asyncTask: AsyncTask) => {
             // Tasks
-            let abstractAsyncTask: AbstractAsyncTask;
-            switch (asyncTask.name) {
-              case AsyncTasks.BILL_TRANSACTION:
-                abstractAsyncTask = new BillTransactionAsyncTask(asyncTask);
-                break;
-              case AsyncTasks.TAGS_IMPORT:
-                abstractAsyncTask = new TagsImportAsyncTask(asyncTask);
-                break;
-              case AsyncTasks.USERS_IMPORT:
-                abstractAsyncTask = new UsersImportAsyncTask(asyncTask);
-                break;
-              case AsyncTasks.SYNCHRONIZE_CAR_CATALOGS:
-                abstractAsyncTask = new SynchronizeCarCatalogsAsyncTask(asyncTask);
-                break;
-              case AsyncTasks.OCPI_PUSH_TOKENS:
-                abstractAsyncTask = new OCPIPushTokensAsyncTask(asyncTask);
-                break;
-              case AsyncTasks.OCPI_PULL_LOCATIONS:
-                abstractAsyncTask = new OCPIPullLocationsAsyncTask(asyncTask);
-                break;
-              case AsyncTasks.OCPI_PULL_SESSIONS:
-                abstractAsyncTask = new OCPIPullSessionsAsyncTask(asyncTask);
-                break;
-              case AsyncTasks.OCPI_PULL_CDRS:
-                abstractAsyncTask = new OCPIPullCdrsAsyncTask(asyncTask);
-                break;
-              case AsyncTasks.OCPI_CHECK_CDRS:
-                abstractAsyncTask = new OCPICheckCdrsAsyncTask(asyncTask);
-                break;
-              case AsyncTasks.OCPI_CHECK_SESSIONS:
-                abstractAsyncTask = new OCPICheckSessionsAsyncTask(asyncTask);
-                break;
-              case AsyncTasks.OCPI_CHECK_LOCATIONS:
-                abstractAsyncTask = new OCPICheckLocationsAsyncTask(asyncTask);
-                break;
-              case AsyncTasks.OCPI_PULL_TOKENS:
-                abstractAsyncTask = new OCPIPullTokensAsyncTask(asyncTask);
-                break;
-              case AsyncTasks.OCPI_PUSH_EVSE_STATUSES:
-                abstractAsyncTask = new OCPIPushEVSEStatusesAsyncTask(asyncTask);
-                break;
-              default:
-                await Logging.logError({
-                  tenantID: Constants.DEFAULT_TENANT,
-                  action: ServerAction.ASYNC_TASK,
-                  module: MODULE_NAME, method: 'handleAsyncTasks',
-                  message: `The asynchronous task '${asyncTask.name}' is unknown`
-                });
-            }
+            const abstractAsyncTask = await AsyncTaskManager.createTask(asyncTask);
             if (abstractAsyncTask) {
               // Get the lock
-              const asyncTaskLock = await LockingHelper.acquireAsyncTaskLock(Constants.DEFAULT_TENANT, asyncTask);
+              const asyncTaskLock = await LockingHelper.acquireAsyncTaskLock(Constants.DEFAULT_TENANT, asyncTask.id);
               if (asyncTaskLock) {
                 const startAsyncTaskTime = new Date().getTime();
                 try {
                   // Update the task
                   asyncTask.execTimestamp = new Date();
-                  asyncTask.execHost = Utils.getHostname();
+                  asyncTask.execHost = Utils.getHostName();
                   asyncTask.status = AsyncTaskStatus.RUNNING;
                   asyncTask.lastChangedOn = asyncTask.execTimestamp;
                   await AsyncTaskStorage.saveAsyncTask(asyncTask);
@@ -172,7 +138,7 @@ export default class AsyncTaskManager {
                     tenantID: Constants.DEFAULT_TENANT,
                     module: MODULE_NAME, method: 'handleAsyncTasks',
                     action: ServerAction.ASYNC_TASK,
-                    message: `Error while running the asynchronous task '${asyncTask.name}': ${error.message}`,
+                    message: `Error while running the asynchronous task '${asyncTask.name}': ${error.message as string}`,
                     detailedMessages: { error: error.stack, asyncTask }
                   });
                 } finally {
@@ -203,29 +169,41 @@ export default class AsyncTaskManager {
     }
   }
 
-  public static async createAndSaveAsyncTasks(asyncTask: Omit<AsyncTask, 'id'>): Promise<void> {
-    // Check
-    if (Utils.isNullOrUndefined(asyncTask)) {
-      throw new Error('The asynchronous task must not be null');
+  private static async createTask(asyncTask: AsyncTask): Promise<AbstractAsyncTask> {
+    switch (asyncTask.name) {
+      case AsyncTasks.BILL_TRANSACTION:
+        return new BillTransactionAsyncTask(asyncTask);
+      case AsyncTasks.TAGS_IMPORT:
+        return new TagsImportAsyncTask(asyncTask);
+      case AsyncTasks.USERS_IMPORT:
+        return new UsersImportAsyncTask(asyncTask);
+      case AsyncTasks.SYNCHRONIZE_CAR_CATALOGS:
+        return new SynchronizeCarCatalogsAsyncTask(asyncTask);
+      case AsyncTasks.OCPI_PUSH_TOKENS:
+        return new OCPIPushTokensAsyncTask(asyncTask);
+      case AsyncTasks.OCPI_PULL_LOCATIONS:
+        return new OCPIPullLocationsAsyncTask(asyncTask);
+      case AsyncTasks.OCPI_PULL_SESSIONS:
+        return new OCPIPullSessionsAsyncTask(asyncTask);
+      case AsyncTasks.OCPI_PULL_CDRS:
+        return new OCPIPullCdrsAsyncTask(asyncTask);
+      case AsyncTasks.OCPI_CHECK_CDRS:
+        return new OCPICheckCdrsAsyncTask(asyncTask);
+      case AsyncTasks.OCPI_CHECK_SESSIONS:
+        return new OCPICheckSessionsAsyncTask(asyncTask);
+      case AsyncTasks.OCPI_CHECK_LOCATIONS:
+        return new OCPICheckLocationsAsyncTask(asyncTask);
+      case AsyncTasks.OCPI_PULL_TOKENS:
+        return new OCPIPullTokensAsyncTask(asyncTask);
+      case AsyncTasks.OCPI_PUSH_EVSE_STATUSES:
+        return new OCPIPushEVSEStatusesAsyncTask(asyncTask);
+      default:
+        await Logging.logError({
+          tenantID: Constants.DEFAULT_TENANT,
+          action: ServerAction.ASYNC_TASK,
+          module: MODULE_NAME, method: 'handleAsyncTasks',
+          message: `The asynchronous task '${asyncTask.name as string}' is unknown`
+        });
     }
-    // Check
-    if (Utils.isNullOrUndefined(asyncTask.name)) {
-      throw new Error('The Name of the asynchronous task is mandatory');
-    }
-    if (!Utils.isNullOrUndefined(asyncTask.parameters) && (typeof asyncTask.parameters !== 'object')) {
-      throw new Error('The Parameters of the asynchronous task must be a Json document');
-    }
-    // Set
-    asyncTask.status = AsyncTaskStatus.PENDING;
-    asyncTask.createdOn = new Date();
-    // Save
-    await AsyncTaskStorage.saveAsyncTask(asyncTask as AsyncTask);
-    // Log
-    await Logging.logInfo({
-      tenantID: Constants.DEFAULT_TENANT,
-      action: ServerAction.ASYNC_TASK,
-      module: MODULE_NAME, method: 'createAndSaveAsyncTasks',
-      message: `The asynchronous task '${asyncTask.name}' has been saved successfully and will be processed soon`
-    });
   }
 }

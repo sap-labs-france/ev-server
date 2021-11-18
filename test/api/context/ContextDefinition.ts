@@ -12,6 +12,7 @@ export interface TenantDefinition {
   componentSettings?: {
     pricing?: { content?: SettingDBContent };
     ocpi?: { content?: SettingDBContent };
+    oicp?: { content?: SettingDBContent };
     organization?: { content?: SettingDBContent };
     statistics?: { content?: SettingDBContent };
     refund?: { content?: SettingDBContent };
@@ -31,6 +32,7 @@ export default class ContextDefinition {
     TENANT_SIMPLE_PRICING: 'utpricing', // Only pricing component is active
     TENANT_CONVERGENT_CHARGING: 'utconvcharg', // Only convergent charging component is active
     TENANT_OCPI: 'utocpi', // Only ocpi component is active
+    TENANT_OICP: 'utoicp', // Only ocpi component is active
     TENANT_FUNDING: 'utrefund', // Only refund component is active
     TENANT_BILLING: 'utbilling', // Only billing and pricing component is active
     TENANT_ASSET: 'utasset', // Only asset component is active
@@ -359,11 +361,39 @@ export default class ContextDefinition {
             password: '',
             stickyLimitation: true,
             limitBufferDC: 20,
-            limitBufferAC: 10, }
+            limitBufferAC: 10,
+          }
         }
       },
     }
-  }
+  },
+  {
+    tenantName: ContextDefinition.TENANT_CONTEXTS.TENANT_OICP,
+    id: 'aaaaaaaaaaaaaaaaaaaaaab3',
+    subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_OICP,
+    componentSettings: {
+      oicp: {
+        content: {
+          type: RoamingSettingsType.OICP,
+          oicp: {
+            cpo: {
+              countryCode: 'FR',
+              partyID: 'UT',
+            },
+            emsp: {
+              countryCode: 'FR',
+              partyID: 'UT',
+            },
+            currency: 'EUR',
+            businessDetails: {
+              name: 'Test OICP',
+              website: 'http://www.utoicp.net'
+            }
+          }
+        }
+      },
+    },
+  },
   ];
 
   // List of users created in a tenant
@@ -386,7 +416,7 @@ export default class ContextDefinition {
         visualID: new ObjectId().toString(),
         issuer: false,
         active: true
-      }] : null)
+      }] : null),
     },
     { // Admin not assigned
       id: '5ce249a1a39ae1c056c123ef',
@@ -406,7 +436,7 @@ export default class ContextDefinition {
         visualID: new ObjectId().toString(),
         issuer: false,
         active: true
-      }] : null)
+      }] : null),
     },
     { // Basic user
       id: '5ce249a1a39ae1c056c123ab',
@@ -426,7 +456,7 @@ export default class ContextDefinition {
         visualID: new ObjectId().toString(),
         issuer: false,
         active: true
-      }] : null)
+      }] : null),
     },
     { // Demo user
       id: '5ce249a1a39ae1c056c123cd',
@@ -446,7 +476,8 @@ export default class ContextDefinition {
         visualID: new ObjectId().toString(),
         issuer: false,
         active: true
-      }] : null)
+      }] : null),
+      freeAccess: false,
     },
     { // Basic user unassigned
       id: '5ce249a1a39ae1c056c456ad',
@@ -466,7 +497,7 @@ export default class ContextDefinition {
         visualID: new ObjectId().toString(),
         issuer: false,
         active: true
-      }] : null)
+      }] : null),
     },
     { // Basic user pending
       id: '5ce249a1a39ae1c056c456ab',
@@ -486,7 +517,8 @@ export default class ContextDefinition {
         visualID: new ObjectId().toString(),
         issuer: false,
         active: true
-      }] : null)
+      }] : null),
+      freeAccess: false,
     },
     { // Basic user Locked
       id: '5ce249a1a39ae1c056c789ef',
@@ -506,7 +538,8 @@ export default class ContextDefinition {
         visualID: new ObjectId().toString(),
         issuer: false,
         active: true
-      }] : null)
+      }] : null),
+      freeAccess: false,
     },
     { // Basic user No Tags
       id: '5ce249a1a39ae1c056c567ab',
@@ -526,7 +559,8 @@ export default class ContextDefinition {
         visualID: new ObjectId().toString(),
         issuer: false,
         active: true
-      }] : null)
+      }] : null),
+      freeAccess: false,
     },
     { // External User
       id: '5ce249a1a39ae1c056c456ae',
@@ -546,7 +580,8 @@ export default class ContextDefinition {
         visualID: new ObjectId().toString(),
         issuer: false,
         active: true
-      }] : null)
+      }] : null),
+      freeAccess: false,
     }
   ];
 

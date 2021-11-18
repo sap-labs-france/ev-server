@@ -1,0 +1,71 @@
+{
+  "$id": "loggings-get",
+  "title": "Get Loggings",
+  "type": "object",
+  "properties": {
+    "StartDateTime": {
+      "type": "string",
+      "format": "date-time",
+      "sanitize": "mongo"
+    },
+    "EndDateTime": {
+      "type": "string",
+      "format": "date-time",
+      "sanitize": "mongo"
+    },
+    "Level": {
+      "type": "string",
+      "sanitize": "mongo",
+      "pattern": "^((D|I|W|E|NONE|DEFAULT)(\\||D|I|W|E|NONE|DEFAULT)*)?$"
+    },
+    "Source": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "Host": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "Type": {
+      "type": "string",
+      "sanitize": "mongo",
+      "enum": [
+        "R", "S"
+      ]
+    },
+    "Action": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "UserID": {
+      "$ref": "common#/definitions/ids"
+    },
+    "SiteID": {
+      "$ref": "common#/definitions/ids"
+    },
+    "ChargingStationID": {
+      "$ref": "common#/definitions/string-ids"
+    },
+    "Search": {
+      "$ref": "common#/definitions/search"
+    },
+    "SortFields": {
+      "$ref": "common#/definitions/sortFields"
+    },
+    "Limit": {
+      "$ref": "common#/definitions/limit"
+    },
+    "Skip": {
+      "$ref": "common#/definitions/skip"
+    },
+    "OnlyRecordCount": {
+      "$ref": "common#/definitions/onlyRecordCount"
+    },
+    "ProjectFields": {
+      "$ref": "common#/definitions/projectFields"
+    }
+  },
+  "required": [
+    "Limit"
+  ]
+}

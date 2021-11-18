@@ -1,8 +1,10 @@
 import { Application, NextFunction, Response } from 'express';
 
 import ExpressUtils from '../ExpressUtils';
+import Logging from '../../utils/Logging';
 import OICPServiceConfiguration from '../../types/configuration/OICPServiceConfiguration';
 import OICPServices from './OICPServices';
+import { ServerType } from '../../types/Server';
 import { ServerUtils } from '../ServerUtils';
 import { TenantIdHoldingRequest } from './AbstractOICPService';
 
@@ -17,6 +19,8 @@ export default class OICPServer {
     this.oicpRestConfig = oicpRestConfig;
     // Initialize express app
     this.expressApplication = ExpressUtils.initApplication(null, oicpRestConfig.debug);
+    // Log Express Request
+    this.expressApplication.use(Logging.traceExpressRequest.bind(this));
     // New OICP Services Instances
     const oicpServices = new OICPServices(this.oicpRestConfig);
     // Register all services in express
@@ -35,7 +39,8 @@ export default class OICPServer {
   }
 
   start(): void {
-    ServerUtils.startHttpServer(this.oicpRestConfig, ServerUtils.createHttpServer(this.oicpRestConfig, this.expressApplication), MODULE_NAME, 'OICP');
+    ServerUtils.startHttpServer(this.oicpRestConfig,
+      ServerUtils.createHttpServer(this.oicpRestConfig, this.expressApplication), MODULE_NAME, ServerType.OICP_SERVER);
   }
 }
 

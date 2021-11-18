@@ -30,7 +30,7 @@ export default class AssignedSitesDynamicAuthorizationFilter extends DynamicAuth
 
   public getApplicableEntities(): Entity[] {
     return [
-      Entity.SITES
+      Entity.SITE
     ];
   }
 

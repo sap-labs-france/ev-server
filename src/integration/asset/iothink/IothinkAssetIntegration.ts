@@ -1,16 +1,17 @@
-import Asset, { AssetType, IothinkProperty } from '../../../types/Asset';
+import Asset, { AssetConnectionToken, AssetType, IothinkProperty } from '../../../types/Asset';
 import { AssetConnectionSetting, AssetSetting } from '../../../types/Setting';
 
 import { AbstractCurrentConsumption } from '../../../types/Consumption';
 import AssetIntegration from '../AssetIntegration';
+import AssetTokenCache from '../AssetTokenCache';
 import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
 import BackendError from '../../../exception/BackendError';
-import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import Tenant from '../../../types/Tenant';
+import { URLSearchParams } from 'url';
 import Utils from '../../../utils/Utils';
 import moment from 'moment';
 
@@ -22,7 +23,7 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
 
   public constructor(tenant: Tenant, settings: AssetSetting, connection: AssetConnectionSetting) {
     super(tenant, settings, connection);
-    this.axiosInstance = AxiosFactory.getAxiosInstance(tenant.id);
+    this.axiosInstance = AxiosFactory.getAxiosInstance(tenant);
   }
 
   public async checkConnection(): Promise<void> {
@@ -49,7 +50,6 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
       );
       await Logging.logDebug({
         tenantID: this.tenant.id,
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
         message: `${asset.name} > Iothink web service has been called successfully`,
         module: MODULE_NAME, method: 'retrieveConsumption',
@@ -58,7 +58,6 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
       return this.filterConsumptionRequest(asset, response.data, manualCall);
     } catch (error) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'retrieveConsumption',
         action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
@@ -146,11 +145,19 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
   }
 
   private async connect(): Promise<string> {
-    // Check if connection is initialized
-    this.checkConnectionIsProvided();
-    // Get credential params
-    const credentials = await this.getCredentialURLParams();
-    // Send credentials to get the token
+    // Get token from cache
+    let token = AssetTokenCache.getInstanceForTenant(this.tenant).getToken(this.connection.id);
+    if (!token) {
+      this.checkConnectionIsProvided();
+      // Get a fresh token (if not found or expired)
+      token = await this.fetchAssetProviderToken(await this.getCredentialURLParams());
+      // Cache it for better performance
+      AssetTokenCache.getInstanceForTenant(this.tenant).setToken(this.connection.id, token);
+    }
+    return token.accessToken;
+  }
+
+  private async fetchAssetProviderToken(credentials: URLSearchParams): Promise<AssetConnectionToken> {
     const response = await Utils.executePromiseWithTimeout(5000,
       this.axiosInstance.post(`${this.connection.url}/token`,
         credentials,
@@ -162,8 +169,14 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
         }),
       `Time out error (5s) when getting the token with the connection URL '${this.connection.url}/token'`
     );
-    // Return the Token
-    return response.data.access_token;
+    return {
+      accessToken: response.data.access_token,
+      tokenType: response.data.token_type,
+      expiresIn: response.data.expires_in,
+      userName: response.data.userName,
+      issued: response.data['.issued'],
+      expires: response.data['.expires']
+    };
   }
 
   private async getCredentialURLParams(): Promise<URLSearchParams> {
@@ -177,7 +190,6 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
   private checkConnectionIsProvided(): void {
     if (!this.connection) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'checkConnectionIsProvided',
         action: ServerAction.CHECK_CONNECTION,

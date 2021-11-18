@@ -1,4 +1,5 @@
 import Tag, { ImportedTag } from '../../types/Tag';
+import Tenant, { TenantComponents } from '../../types/Tenant';
 import User, { ImportedUser, UserRole, UserStatus } from '../../types/User';
 
 import Constants from '../../utils/Constants';
@@ -8,8 +9,6 @@ import { ServerAction } from '../../types/Server';
 import Site from '../../types/Site';
 import SiteStorage from '../../storage/mongodb/SiteStorage';
 import TagStorage from '../../storage/mongodb/TagStorage';
-import Tenant from '../../types/Tenant';
-import TenantComponents from '../../types/TenantComponents';
 import UserStorage from '../../storage/mongodb/UserStorage';
 import Utils from '../../utils/Utils';
 
@@ -167,7 +166,7 @@ export default class ImportHelper {
     const evseDashboardVerifyEmailURL = Utils.buildEvseURL(tenant.subdomain) +
       '/verify-email?VerificationToken=' + verificationToken + '&Email=' + user.email + '&ResetToken=' + resetHash;
     // Send activate account link
-    await NotificationHandler.sendVerificationEmailUserImport(
+    void NotificationHandler.sendVerificationEmailUserImport(
       tenant.id,
       Utils.generateUUID(),
       user,

@@ -1,35 +1,38 @@
 {
+  "$id": "chargingstations-inerror-get",
   "title": "Get Charging Stations in error Request",
   "type": "object",
   "properties": {
     "Search": {
-      "$ref": "common.json#/definitions/search"
+      "$ref": "common#/definitions/search"
     },
     "SiteID": {
-      "$ref": "common.json#/definitions/ids"
+      "$ref": "common#/definitions/ids"
     },
     "SiteAreaID": {
-      "$ref": "common.json#/definitions/ids"
+      "$ref": "common#/definitions/ids"
     },
     "ErrorType": {
       "type": "string",
       "sanitize": "mongo"
     },
     "Limit": {
-      "$ref": "common.json#/definitions/limit"
+      "$ref": "common#/definitions/limit"
     },
     "SortFields": {
-      "$ref": "common.json#/definitions/sortFields"
+      "$ref": "common#/definitions/sortFields"
     },
     "Skip": {
-      "$ref": "common.json#/definitions/skip"
+      "$ref": "common#/definitions/skip"
     },
     "OnlyRecordCount": {
-      "$ref": "common.json#/definitions/onlyRecordCount"
+      "$ref": "common#/definitions/onlyRecordCount"
     },
     "ProjectFields": {
-      "$ref": "common.json#/definitions/projectFields"
+      "$ref": "common#/definitions/projectFields"
     }
   },
-  "required": []
+  "required": [
+    "Limit"
+  ]
 }

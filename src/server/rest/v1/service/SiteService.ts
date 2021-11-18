@@ -5,6 +5,7 @@ import { NextFunction, Request, Response } from 'express';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
+import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../../utils/Constants';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
@@ -12,7 +13,7 @@ import Site from '../../../../types/Site';
 import { SiteDataResult } from '../../../../types/DataResult';
 import SiteSecurity from './security/SiteSecurity';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
-import TenantComponents from '../../../../types/TenantComponents';
+import { TenantComponents } from '../../../../types/Tenant';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
@@ -30,7 +31,6 @@ export default class SiteService {
     // Check mandatory fields
     if (!filteredRequest.userID) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The User ID must be provided',
         module: MODULE_NAME, method: 'handleUpdateSiteUserAdmin',
@@ -39,7 +39,6 @@ export default class SiteService {
     }
     if (!filteredRequest.siteID) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Site ID must be provided',
         module: MODULE_NAME, method: 'handleUpdateSiteUserAdmin',
@@ -48,7 +47,6 @@ export default class SiteService {
     }
     if (!Utils.objectHasProperty(filteredRequest, 'siteAdmin')) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Site Admin value must be provided',
         module: MODULE_NAME, method: 'handleUpdateSiteUserAdmin',
@@ -57,7 +55,6 @@ export default class SiteService {
     }
     if (req.user.id === filteredRequest.userID) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Cannot change the site Admin on the logged user',
         module: MODULE_NAME, method: 'handleUpdateSiteUserAdmin',
@@ -74,7 +71,7 @@ export default class SiteService {
     // Update
     await SiteStorage.updateSiteUserAdmin(req.tenant, filteredRequest.siteID, filteredRequest.userID, filteredRequest.siteAdmin);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, actionOnUser: user,
       module: MODULE_NAME, method: 'handleUpdateSiteUserAdmin',
@@ -94,7 +91,6 @@ export default class SiteService {
     // Check mandatory fields
     if (!filteredRequest.userID) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The User ID must be provided',
         module: MODULE_NAME, method: 'handleUpdateSiteOwner',
@@ -103,7 +99,6 @@ export default class SiteService {
     }
     if (!filteredRequest.siteID) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Site ID must be provided',
         module: MODULE_NAME, method: 'handleUpdateSiteOwner',
@@ -112,7 +107,6 @@ export default class SiteService {
     }
     if (!Utils.objectHasProperty(filteredRequest, 'siteOwner')) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Site Owner value must be provided',
         module: MODULE_NAME, method: 'handleUpdateSiteOwner',
@@ -128,7 +122,7 @@ export default class SiteService {
     // Update
     await SiteStorage.updateSiteOwner(req.tenant, filteredRequest.siteID, filteredRequest.userID, filteredRequest.siteOwner);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, actionOnUser: user,
       module: MODULE_NAME, method: 'handleUpdateSiteOwner',
@@ -158,7 +152,7 @@ export default class SiteService {
       await SiteStorage.removeUsersFromSite(req.tenant, site.id, users.map((user) => user.id));
     }
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user,
       module: MODULE_NAME,
@@ -222,7 +216,7 @@ export default class SiteService {
     // Delete
     await SiteStorage.deleteSite(req.tenant, site.id);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteSite',
       message: `Site '${site.name}' has been deleted successfully`,
@@ -253,7 +247,7 @@ export default class SiteService {
   public static async handleGetSites(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
-      Action.LIST, Entity.SITES, MODULE_NAME, 'handleGetSites');
+      Action.LIST, Entity.SITE, MODULE_NAME, 'handleGetSites');
     // Filter request
     const filteredRequest = SiteSecurity.filterSitesRequest(req.query);
     // Check dynamic auth
@@ -286,6 +280,10 @@ export default class SiteService {
       },
       authorizationSitesFilter.projectFields
     );
+    // Assign projected fields
+    if (authorizationSitesFilter.projectFields) {
+      sites.projectFields = authorizationSitesFilter.projectFields;
+    }
     // Add Auth flags
     await AuthorizationService.addSitesAuthorizations(req.tenant, req.user, sites as SiteDataResult, authorizationSitesFilter);
     // Return
@@ -302,7 +300,6 @@ export default class SiteService {
       // Object does not exist
       throw new AppError({
         action,
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The ID must be provided',
         module: MODULE_NAME, method: 'handleGetSiteImage',
@@ -363,7 +360,7 @@ export default class SiteService {
     // Save
     site.id = await SiteStorage.saveSite(req.tenant, site);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleCreateSite',
       message: `Site '${site.name}' has been created successfully`,
@@ -392,7 +389,24 @@ export default class SiteService {
     site.name = filteredRequest.name;
     site.companyID = filteredRequest.companyID;
     if (Utils.objectHasProperty(filteredRequest, 'public')) {
+      if (!filteredRequest.public) {
+        const publicChargingStations = await ChargingStationStorage.getChargingStations(req.tenant, {
+          siteIDs: [site.id],
+          public: true,
+        }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);
+        if (publicChargingStations.count > 0) {
+          throw new AppError({
+            errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
+            message: `Cannot set site ${site.name} to private as charging station ${publicChargingStations.result[0].id} under site is public`,
+            module: MODULE_NAME, method: 'handleUpdateSite',
+            user: req.user,
+          });
+        }
+      }
       site.public = filteredRequest.public;
+    }
+    if (Utils.objectHasProperty(filteredRequest, 'tariffID')) {
+      site.tariffID = filteredRequest.tariffID;
     }
     if (Utils.objectHasProperty(filteredRequest, 'autoUserSiteAssignment')) {
       site.autoUserSiteAssignment = filteredRequest.autoUserSiteAssignment;
@@ -408,7 +422,7 @@ export default class SiteService {
     // Save
     await SiteStorage.saveSite(req.tenant, site, Utils.objectHasProperty(filteredRequest, 'image') ? true : false);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateSite',
       message: `Site '${site.name}' has been updated successfully`,

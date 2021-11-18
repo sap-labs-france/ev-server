@@ -1,12 +1,21 @@
 {
+  "$id": "chargingstation-get",
   "title": "Get one Charging Station",
   "type": "object",
   "properties": {
     "ID": {
-      "$ref": "chargingstation.json#/definitions/id"
+      "$ref": "chargingstation#/definitions/id"
     },
     "ProjectFields": {
-      "$ref": "common.json#/definitions/projectFields"
+      "$ref": "common#/definitions/projectFields"
+    },
+    "WithSite": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "WithSiteArea": {
+      "type": "boolean",
+      "sanitize": "mongo"
     }
   },
   "required": [

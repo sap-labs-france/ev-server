@@ -1,16 +1,14 @@
 import { SmartChargingSetting, SmartChargingSettingsType } from '../../types/Setting';
+import Tenant, { TenantComponents } from '../../types/Tenant';
 
-import DummySapSmartChargingIntegration from './dummy/DummySmartChargingIntegration';
-import SapSmartChargingIntegration from './export/sap-smart-charging';
+import SapSmartChargingIntegration from './sap-smart-charging/SapSmartChargingIntegration';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import SmartChargingIntegration from './SmartChargingIntegration';
-import Tenant from '../../types/Tenant';
-import TenantComponents from '../../types/TenantComponents';
 import Utils from '../../utils/Utils';
 
 export default class SmartChargingFactory {
   static async getSmartChargingImpl(tenant: Tenant): Promise<SmartChargingIntegration<SmartChargingSetting>> {
-    // Check if the pricing is active
+    // Check if Smart Charging is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)) {
       // Get the Smart Charging's settings
       const smartChargingSetting = await SettingStorage.getSmartChargingSettings(tenant);
@@ -22,15 +20,9 @@ export default class SmartChargingFactory {
             smartChargingIntegrationImpl = new SapSmartChargingIntegration(tenant, smartChargingSetting.sapSmartCharging);
             break;
         }
-        // Check if missing implementation
-        if (smartChargingIntegrationImpl instanceof DummySapSmartChargingIntegration) {
-          return null;
-        }
-        // Return the Smart Charging implementation
         return smartChargingIntegrationImpl;
       }
     }
-    // Smart Charging is not active
     return null;
   }
 }

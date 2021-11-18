@@ -1,11 +1,15 @@
+import { Command } from '../ChargingStation';
 import OCPPError from '../../exception/OcppError';
-import { ServerAction } from '../Server';
 
-export type OCPPRequest = [(payload?: Record<string, unknown> | string) => void, (reason?: OCPPError) => void];
+export type FctOCPPResponse = (payload?: Record<string, unknown> | string) => void;
+export type FctOCPPReject = (reason?: OCPPError) => void;
 
-export type OCPPIncomingRequest = [OCPPMessageType, string, ServerAction, Record<string, unknown> | string, Record<string, unknown>];
+export type OCPPRequest = [FctOCPPResponse, FctOCPPReject, Command];
 
-export type OCPPOutgoingRequest = [OCPPMessageType, string, ServerAction, Record<string, unknown>];
+export type OCPPIncomingRequest = [OCPPMessageType, string, Command, Record<string, unknown>, Record<string, unknown>];
+export type OCPPIncomingResponse = [OCPPMessageType, string, Record<string, unknown>, Record<string, unknown>];
+
+export type OCPPOutgoingRequest = [OCPPMessageType, string, Command, Record<string, unknown>];
 
 export enum OCPPMessageType {
   CALL_MESSAGE = 2, // Caller to Callee

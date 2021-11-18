@@ -1,0 +1,65 @@
+{
+  "$id": "asset",
+  "definitions": {
+    "id": {
+      "$ref": "common#/definitions/id"
+    },
+    "name": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "siteAreaID": {
+      "$ref": "common#/definitions/id"
+    },
+    "assetType": {
+      "type": "string",
+      "sanitize": "mongo",
+      "enum": ["CO", "PR", "CO-PR"]
+    },
+    "excludeFromSmartCharging": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "variationThresholdPercent": {
+      "type": "number",
+      "sanitize": "mongo"
+    },
+    "fluctuationPercent": {
+      "type": "number",
+      "sanitize": "mongo",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "staticValueWatt": {
+      "type": "number",
+      "sanitize": "mongo"
+    },
+    "image": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "dynamicAsset": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "usesPushAPI": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "coordinates": {
+      "type": "array",
+      "items": {
+        "type": "number",
+        "sanitize": "mongo"
+      }
+    },
+    "connectionID": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "meterID": {
+      "type": "string",
+      "sanitize": "mongo"
+    }
+  }
+}

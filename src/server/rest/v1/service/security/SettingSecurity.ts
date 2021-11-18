@@ -1,4 +1,4 @@
-import { AnalyticsSettingsType, AssetConnectionSetting, AssetConnectionType, AssetSettingsType, BillingSettingsType, CarConnectorConnectionSetting, CarConnectorConnectionType, CarConnectorSettingsType, ConcurRefundSetting, CryptoSettingsType, OcpiBusinessDetails, OcpiSetting, OicpBusinessDetails, OicpSetting, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDB, SettingDBContent, SettingLink, SimplePricingSetting, SmartChargingSettingsType, UserSettingsType } from '../../../../../types/Setting';
+import { AnalyticsSettingsType, AssetConnectionSetting, AssetConnectionType, AssetSettingsType, BillingSettingsType, CarConnectorConnectionSetting, CarConnectorConnectionType, CarConnectorSettingsType, OicpBusinessDetails, OicpSetting, PricingSettingsType, RoamingSettingsType, SettingDB, SettingDBContent, SettingLink, SimplePricingSetting } from '../../../../../types/Setting';
 import { HttpSettingRequest, HttpSettingsRequest } from '../../../../../types/requests/HttpSettingRequest';
 
 import Utils from '../../../../../utils/Utils';
@@ -37,12 +37,6 @@ export default class SettingSecurity {
     return SettingSecurity._filterSettingRequest(request);
   }
 
-  public static filterBillingSettingUpdateRequest(request: any): Partial<SettingDB> {
-    const filteredRequest = SettingSecurity._filterSettingRequest(request.body);
-    filteredRequest.id = sanitize(request.params.id);
-    return filteredRequest;
-  }
-
   private static _filterSettingRequest(request: Partial<SettingDB>): Partial<SettingDB> {
     const settings: SettingDB = {
       identifier: sanitize(request.identifier),
@@ -70,40 +64,6 @@ export default class SettingSecurity {
             mainUrl: sanitize(request.content.sac.mainUrl),
             timezone: sanitize(request.content.sac.timezone)
           };
-          break;
-        case RoamingSettingsType.OCPI:
-          settings.content.ocpi = {} as OcpiSetting;
-          if (Utils.objectHasProperty(request.content.ocpi, 'businessDetails')) {
-            settings.content.ocpi.businessDetails = {
-              name: sanitize(request.content.ocpi.businessDetails.name),
-              website: sanitize(request.content.ocpi.businessDetails.website)
-            } as OcpiBusinessDetails;
-            if (Utils.objectHasProperty(request.content.ocpi.businessDetails, 'logo')) {
-              settings.content.ocpi.businessDetails.logo = {
-                url: sanitize(request.content.ocpi.businessDetails.logo.url),
-                thumbnail: sanitize(request.content.ocpi.businessDetails.logo.thumbnail),
-                category: sanitize(request.content.ocpi.businessDetails.logo.category),
-                type: sanitize(request.content.ocpi.businessDetails.logo.type),
-                width: sanitize(request.content.ocpi.businessDetails.logo.width),
-                height: sanitize(request.content.ocpi.businessDetails.logo.height),
-              };
-            }
-          }
-          if (Utils.objectHasProperty(request.content.ocpi, 'cpo')) {
-            settings.content.ocpi.cpo = {
-              countryCode: sanitize(request.content.ocpi.cpo.countryCode),
-              partyID: sanitize(request.content.ocpi.cpo.partyID)
-            };
-          }
-          if (Utils.objectHasProperty(request.content.ocpi, 'emsp')) {
-            settings.content.ocpi.emsp = {
-              countryCode: sanitize(request.content.ocpi.emsp.countryCode),
-              partyID: sanitize(request.content.ocpi.emsp.partyID)
-            };
-          }
-          if (Utils.objectHasProperty(request.content.ocpi, 'currency')) {
-            settings.content.ocpi.currency = request.content.ocpi.currency;
-          }
           break;
         case RoamingSettingsType.OICP:
           settings.content.oicp = {} as OicpSetting;
@@ -143,23 +103,6 @@ export default class SettingSecurity {
             settings.content.oicp.currency = request.content.oicp.currency;
           }
           break;
-        case RefundSettingsType.CONCUR:
-          if (!Utils.isEmptyJSon(request.content.concur)) {
-            settings.content.concur = {
-              authenticationUrl: sanitize(request.content.concur.authenticationUrl),
-              apiUrl: sanitize(request.content.concur.apiUrl),
-              appUrl: sanitize(request.content.concur.appUrl),
-              clientId: sanitize(request.content.concur.clientId),
-              clientSecret: sanitize(request.content.concur.clientSecret),
-              paymentTypeId: sanitize(request.content.concur.paymentTypeId),
-              expenseTypeCode: sanitize(request.content.concur.expenseTypeCode),
-              policyId: sanitize(request.content.concur.policyId),
-              reportName: sanitize(request.content.concur.reportName),
-            };
-          } else {
-            settings.content.concur = { } as ConcurRefundSetting;
-          }
-          break;
         case PricingSettingsType.CONVERGENT_CHARGING:
           settings.content.convergentCharging = {
             url: sanitize(request.content.convergentCharging.url),
@@ -167,16 +110,6 @@ export default class SettingSecurity {
             user: sanitize(request.content.convergentCharging.user),
             password: sanitize(request.content.convergentCharging.password),
           };
-          break;
-        case PricingSettingsType.SIMPLE:
-          if (!Utils.isEmptyJSon(request.content.simple)) {
-            settings.content.simple = {
-              price: sanitize(request.content.simple.price),
-              currency: sanitize(request.content.simple.currency),
-            };
-          } else {
-            settings.content.simple = { } as SimplePricingSetting;
-          }
           break;
         case BillingSettingsType.STRIPE:
           settings.content.billing = {
@@ -189,16 +122,6 @@ export default class SettingSecurity {
             url: sanitize(request.content.stripe.url),
             secretKey: sanitize(request.content.stripe.secretKey),
             publicKey: sanitize(request.content.stripe.publicKey),
-          };
-          break;
-        case SmartChargingSettingsType.SAP_SMART_CHARGING:
-          settings.content.sapSmartCharging = {
-            optimizerUrl: sanitize(request.content.sapSmartCharging.optimizerUrl),
-            user: sanitize(request.content.sapSmartCharging.user),
-            password: sanitize(request.content.sapSmartCharging.password),
-            stickyLimitation: UtilsSecurity.filterBoolean(request.content.sapSmartCharging.stickyLimitation),
-            limitBufferDC: sanitize(request.content.sapSmartCharging.limitBufferDC),
-            limitBufferAC: sanitize(request.content.sapSmartCharging.limitBufferAC),
           };
           break;
         case AssetSettingsType.ASSET:
@@ -276,30 +199,16 @@ export default class SettingSecurity {
                   clientSecret: sanitize(connection.mercedesConnection.clientSecret),
                 };
                 break;
+              case CarConnectorConnectionType.TRONITY:
+                sanitizedConnection.tronityConnection = {
+                  apiUrl: sanitize(connection.tronityConnection.apiUrl),
+                  clientId: sanitize(connection.tronityConnection.clientId),
+                  clientSecret: sanitize(connection.tronityConnection.clientSecret),
+                };
+                break;
             }
             settings.content.carConnector.connections.push(sanitizedConnection);
           }
-          break;
-        case CryptoSettingsType.CRYPTO:
-          settings.content.crypto = {
-            key: sanitize(request.content.crypto.key),
-            keyProperties: {
-              blockCypher: sanitize(request.content.crypto.keyProperties?.blockCypher),
-              blockSize: Utils.convertToInt(sanitize(request.content.crypto.keyProperties?.blockSize)),
-              operationMode: sanitize(request.content.crypto.keyProperties?.operationMode)
-            },
-            formerKey: sanitize(request.content.crypto.formerKey),
-            formerKeyProperties: {
-              blockCypher: sanitize(request.content.crypto.formerKeyProperties?.blockCypher),
-              blockSize: Utils.convertToInt(sanitize(request.content.crypto.keyProperties?.blockSize)),
-              operationMode: sanitize(request.content.crypto.formerKeyProperties?.operationMode)
-            }
-          };
-          break;
-        case UserSettingsType.USER:
-          settings.content.user = {
-            autoActivateAccountAfterValidation: UtilsSecurity.filterBoolean(request.content.user.autoActivateAccountAfterValidation)
-          };
           break;
       }
     }

@@ -1,42 +1,57 @@
 import DynamicAuthorizationDataSource from '../authorization/DynamicAuthorizationDataSource';
 
 export interface AuthorizationDefinition {
-  superAdmin: {
-    grants: Grant[];
-    $extend?: any;
-  };
-  admin: {
-    grants: Grant[];
-    $extend?: any;
-  };
-  basic: {
-    grants: Grant[];
-    $extend?: any;
-  };
-  demo: {
-    grants: Grant[];
-    $extend?: any;
-  };
-  siteAdmin: {
-    grants: Grant[];
-    $extend?: any;
-  };
-  siteOwner: {
-    grants: Grant[];
-    $extend?: any;
-  };
+  superAdmin: AuthorizationDefinitionRole;
+  admin: AuthorizationDefinitionRole;
+  basic: AuthorizationDefinitionRole;
+  demo: AuthorizationDefinitionRole;
+  siteAdmin: AuthorizationDefinitionRole;
+  siteOwner: AuthorizationDefinitionRole;
+}
+export interface AuthorizationDefinitionRole {
+  grants: AuthorizationDefinitionGrant[];
+  $extend?: Record<string, unknown>;
+}
+
+export interface AuthorizationDefinitionGrant {
+  resource: Entity;
+  action: Action | Action[];
+  args?: Record<string, unknown>;
+  condition?: AuthorizationDefinitionCondition;
+  attributes?: string[];
+}
+
+export interface AuthorizationDefinitionCondition {
+  Fn: string;
+  args: AuthorizationDefinitionConditionArgs|AuthorizationDefinitionConditionArgs[]|AuthorizationDefinitionCondition[]|Record<string, unknown>;
+}
+
+export interface AuthorizationDefinitionConditionArgs {
+  filters: string[];
+  asserts: string[];
+  metadata?: Record<string, AuthorizationDefinitionFieldMetadata>;
+}
+
+export interface AuthorizationDefinitionFieldMetadata {
+  visible: boolean;
+  enabled: boolean;
+  mandatory: boolean;
+  values: string[]|boolean[]|number[],
+  defaultValue: string|boolean|number,
 }
 
 export interface AuthorizationResult {
   authorized: boolean;
   fields: string[];
+  context: AuthorizationContext;
 }
 
 export interface AuthorizationFilter {
   filters: Record<string, any>;
-  projectFields: string[];
   authorized: boolean;
   dataSources: Map<DynamicAuthorizationDataSourceName, DynamicAuthorizationDataSource<DynamicAuthorizationDataSourceData>>;
+  projectFields: string[];
+  metadata?: Record<string, AuthorizationDefinitionFieldMetadata>;
 }
 
 export interface Grant {
@@ -49,63 +64,41 @@ export interface Grant {
 
 export enum Entity {
   SITE = 'Site',
-  SITES = 'Sites',
   SITE_AREA = 'SiteArea',
-  SITE_AREAS = 'SiteAreas',
   COMPANY = 'Company',
-  COMPANIES = 'Companies',
   CHARGING_STATION = 'ChargingStation',
-  CHARGING_STATIONS = 'ChargingStations',
   TENANT = 'Tenant',
-  TENANTS = 'Tenants',
   TRANSACTION = 'Transaction',
-  TRANSACTIONS = 'Transactions',
-  TRANSACTION_METER_VALUES = 'MeterValues',
-  TRANSACTION_STOP = 'Stop',
   REPORT = 'Report',
   USER = 'User',
-  USERS = 'Users',
   USERS_SITES = 'UsersSites',
-  LOGGINGS = 'Loggings',
   LOGGING = 'Logging',
   PRICING = 'Pricing',
+  PRICING_DEFINITION = 'PricingDefinition',
   BILLING = 'Billing',
   SETTING = 'Setting',
-  SETTINGS = 'Settings',
-  TOKENS = 'Tokens',
   TOKEN = 'Token',
   ASYNC_TASK = 'AsyncTask',
-  ASYNC_TASKS = 'AsyncTasks',
   OCPI_ENDPOINT = 'OcpiEndpoint',
-  OCPI_ENDPOINTS = 'OcpiEndpoints',
   OICP_ENDPOINT = 'OicpEndpoint',
-  OICP_ENDPOINTS = 'OicpEndpoints',
   CONNECTION = 'Connection',
-  CONNECTIONS = 'Connections',
   ASSET = 'Asset',
-  ASSETS = 'Assets',
   CAR_CATALOG = 'CarCatalog',
-  CAR_CATALOGS = 'CarCatalogs',
   CAR = 'Car',
-  CARS = 'Cars',
   INVOICE = 'Invoice',
-  INVOICES = 'Invoices',
-  TAXES = 'Taxes',
+  TAX = 'Tax',
   REGISTRATION_TOKEN = 'RegistrationToken',
-  REGISTRATION_TOKENS = 'RegistrationTokens',
   CHARGING_PROFILE = 'ChargingProfile',
-  CHARGING_PROFILES = 'ChargingProfiles',
   NOTIFICATION = 'Notification',
-  TAGS = 'Tags',
   TAG = 'Tag',
   PAYMENT_METHOD = 'PaymentMethod',
-  PAYMENT_METHODS = 'PaymentMethods',
 }
 
 export enum Action {
   READ = 'Read',
   CREATE = 'Create',
   UPDATE = 'Update',
+  UPDATE_BY_VISUAL_ID = 'UpdateByVisualID',
   REPLACE = 'Replace',
   DELETE = 'Delete',
   LOGOUT = 'Logout',
@@ -116,6 +109,7 @@ export enum Action {
   ASSIGN = 'Assign',
   UNASSIGN = 'Unassign',
   CLEAR_CACHE = 'ClearCache',
+  TRIGGER_DATA_TRANSFER = 'DataTransfer',
   SYNCHRONIZE = 'Synchronize',
   GET_CONFIGURATION = 'GetConfiguration',
   CHANGE_CONFIGURATION = 'ChangeConfiguration',
@@ -176,6 +170,7 @@ export interface AuthorizationContext {
   assets?: string[];
   filters?: DynamicAuthorizationFilterName[] | [DynamicAuthorizationFilterName[]];
   asserts?: DynamicAuthorizationAssertName[] | [DynamicAuthorizationAssertName[]];
+  metadata?: Record<string, AuthorizationDefinitionFieldMetadata>;
 }
 
 export interface AuthorizationActions {
@@ -183,14 +178,23 @@ export interface AuthorizationActions {
   canCreate?: boolean;
   canUpdate?: boolean;
   canDelete?: boolean;
+  projectFields?: string[];
+  metadata?: Record<string, unknown>;
 }
+
+export interface TagAuthorizationActions extends AuthorizationActions {
+  canUnassign?: boolean;
+  canAssign?: boolean;
+  canUpdateByVisualID?: boolean;
+}
+
 export interface SiteAreaAuthorizationActions extends AuthorizationActions {
   canAssignAssets?: boolean;
   canUnassignAssets?: boolean;
   canAssignChargingStations?: boolean;
   canUnassignChargingStations?: boolean;
   canExportOCPPParams?: boolean;
-  canGenerateQrCode?:boolean;
+  canGenerateQrCode?: boolean;
 }
 
 export interface SiteAuthorizationActions extends AuthorizationActions {
@@ -207,11 +211,14 @@ export enum DynamicAuthorizationFilterName {
   ASSIGNED_SITES = 'AssignedSites',
   OWN_USER = 'OwnUser',
   LOCAL_ISSUER = 'LocalIssuer',
+  EXCLUDE_ACTION = 'ExcludeAction',
 }
 
 export enum DynamicAuthorizationAssertName {
   POOL_CAR = 'PoolCar',
   OWN_USER = 'OwnUser',
+  BASIC_USER = 'BasicUser',
+  USER_MANDATORY = 'UserMandatory'
 }
 
 export enum DynamicAuthorizationDataSourceName {
@@ -220,9 +227,10 @@ export enum DynamicAuthorizationDataSourceName {
   SITES_OWNER = 'SitesOwner',
   ASSIGNED_SITES = 'AssignedSites',
   OWN_USER = 'OwnUser',
+  EXCLUDE_ACTION = 'ExcludeAction',
 }
 
-export interface DynamicAuthorizationDataSourceData {}
+export interface DynamicAuthorizationDataSourceData { }
 
 export interface AssignedSitesCompaniesDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
   companyIDs?: string[];

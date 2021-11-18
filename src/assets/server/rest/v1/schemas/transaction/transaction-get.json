@@ -1,0 +1,25 @@
+{
+  "$id": "transaction-get",
+  "title": "Get Transaction Request",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "transaction#/definitions/id"
+    },
+    "WithTag": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "WithUser": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "WithCar": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    }
+  },
+  "required": [
+    "ID"
+  ]
+}

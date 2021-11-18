@@ -7,7 +7,6 @@ import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import Authorizations from '../../../../authorization/Authorizations';
 import CarConnectorFactory from '../../../../integration/car-connector/CarConnectorFactory';
-import ConnectionSecurity from './security/ConnectionSecurity';
 import ConnectionStorage from '../../../../storage/mongodb/ConnectionStorage';
 import ConnectionValidator from '../validator/ConnectionValidator';
 import Constants from '../../../../utils/Constants';
@@ -23,11 +22,10 @@ const MODULE_NAME = 'ConnectionService';
 export default class ConnectionService {
   public static async handleGetConnection(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const connectionID = ConnectionSecurity.filterConnectionRequestByID(req.query);
+    const connectionID = ConnectionValidator.getInstance().validateConnectionGetReq(req.query).ID;
     // Charge Box is mandatory
     if (!connectionID) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Connection\'s ID must be provided',
         module: MODULE_NAME, method: 'handleGetConnection',
@@ -64,12 +62,12 @@ export default class ConnectionService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.LIST, entity: Entity.CONNECTIONS,
+        action: Action.LIST, entity: Entity.CONNECTION,
         module: MODULE_NAME, method: 'handleGetConnections'
       });
     }
     // Filter
-    const filteredRequest = ConnectionSecurity.filterConnectionsRequest(req.query);
+    const filteredRequest = ConnectionValidator.getInstance().validateConnectionsGetReq(req.query);
     // Check Users
     let userProject: string[] = [];
     if ((await Authorizations.canListUsers(req.user)).authorized) {
@@ -92,10 +90,8 @@ export default class ConnectionService {
         module: MODULE_NAME, method: 'handleCreateConnection'
       });
     }
-    // Check
-    ConnectionValidator.getInstance().validateConnectionCreation(req.body);
     // Filter
-    const filteredRequest = ConnectionSecurity.filterConnectionCreateRequest(req.body);
+    const filteredRequest = ConnectionValidator.getInstance().validateConnectionCreateReq(req.body);
     let integrationConnector = null;
     switch (filteredRequest.connectorId) {
       case ConnectionType.MERCEDES:
@@ -108,7 +104,7 @@ export default class ConnectionService {
     if (!Utils.isNullOrUndefined(integrationConnector)) {
       // Create
       const connection: Connection = await integrationConnector.createConnection(filteredRequest.userId, filteredRequest.data);
-      await Logging.logSecurityInfo({
+      await Logging.logInfo({
         tenantID: req.user.tenantID, user: req.user,
         module: MODULE_NAME, method: 'handleCreateConnection',
         message: `Connection to '${connection.connectorId}' has been created successfully`,
@@ -118,7 +114,6 @@ export default class ConnectionService {
     } else {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
-        source: Constants.CENTRAL_SERVER,
         user: req.user,
         module: MODULE_NAME, method: 'handleCreateConnection',
         message: `No integration found for connector '${filteredRequest.connectorId}' `
@@ -130,10 +125,9 @@ export default class ConnectionService {
 
   public static async handleDeleteConnection(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const connectionID = ConnectionSecurity.filterConnectionRequestByID(req.query);
+    const connectionID = ConnectionValidator.getInstance().validateConnectionGetReq(req.query).ID;
     if (!connectionID) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         user: req.user,
         module: MODULE_NAME, method: 'handleGetConnection',
@@ -147,7 +141,7 @@ export default class ConnectionService {
     // Delete
     await ConnectionStorage.deleteConnectionById(req.tenant, connection.id);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user,
       actionOnUser: connection.userId,

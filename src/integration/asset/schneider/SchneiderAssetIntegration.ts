@@ -6,11 +6,11 @@ import AssetIntegration from '../AssetIntegration';
 import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
 import BackendError from '../../../exception/BackendError';
-import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import Tenant from '../../../types/Tenant';
+import { URLSearchParams } from 'url';
 import Utils from '../../../utils/Utils';
 
 const MODULE_NAME = 'SchneiderAssetIntegration';
@@ -20,7 +20,7 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
 
   public constructor(tenant: Tenant, settings: AssetSetting, connection: AssetConnectionSetting) {
     super(tenant, settings, connection);
-    this.axiosInstance = AxiosFactory.getAxiosInstance(tenant.id);
+    this.axiosInstance = AxiosFactory.getAxiosInstance(tenant);
   }
 
   public async checkConnection(): Promise<void> {
@@ -45,7 +45,6 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
       );
       await Logging.logDebug({
         tenantID: this.tenant.id,
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
         message: `${asset.name} > Schneider web service has been called successfully`,
         module: MODULE_NAME, method: 'retrieveConsumption',
@@ -54,7 +53,6 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
       return this.filterConsumptionRequest(asset, response.data);
     } catch (error) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'retrieveConsumption',
         action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
@@ -136,7 +134,6 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
   private checkConnectionIsProvided(): void {
     if (!this.connection) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'checkConnectionIsProvided',
         action: ServerAction.CHECK_CONNECTION,

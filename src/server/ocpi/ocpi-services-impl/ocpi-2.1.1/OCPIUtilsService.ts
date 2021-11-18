@@ -368,6 +368,7 @@ export default class OCPIUtilsService {
       case ChargePointStatus.CHARGING:
         return OCPIEvseStatus.CHARGING;
       case ChargePointStatus.FAULTED:
+      case ChargePointStatus.UNAVAILABLE:
         return OCPIEvseStatus.INOPERATIVE;
       case ChargePointStatus.PREPARING:
       case ChargePointStatus.SUSPENDED_EV:
@@ -432,7 +433,7 @@ export default class OCPIUtilsService {
     const chargingStations = await ChargingStationStorage.getChargingStations(tenant,
       { ...dbFilters, siteIDs: [ siteID ], public: true, issuer: true, withSiteArea: true },
       dbParams ?? Constants.DB_PARAMS_MAX_LIMIT,
-      [ 'id', 'chargePoints', 'connectors', 'coordinates', 'lastSeen', 'siteAreaID', 'siteID' ]);
+      [ 'id', 'chargePoints', 'connectors', 'coordinates', 'lastSeen', 'siteAreaID', 'siteID', 'companyID' ]);
     for (const chargingStation of chargingStations.result) {
       const chargingStationEvses: OCPIEvse[] = [];
       if (!Utils.isEmptyArray(chargingStation.chargePoints)) {
@@ -466,7 +467,6 @@ export default class OCPIUtilsService {
   public static async updateTransaction(tenant: Tenant, session: OCPISession): Promise<void> {
     if (!OCPIUtilsService.validateSession(session)) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'updateTransaction',
         errorCode: StatusCodes.BAD_REQUEST,
         message: 'Session object is invalid',
@@ -485,7 +485,6 @@ export default class OCPIUtilsService {
       const user = await UserStorage.getUser(tenant, session.auth_id);
       if (!user) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'updateTransaction',
           errorCode: HTTPError.GENERAL_ERROR,
           message: `No User found for auth_id ${session.auth_id}`,
@@ -497,7 +496,6 @@ export default class OCPIUtilsService {
       const chargingStation = await ChargingStationStorage.getChargingStationByOcpiEvseID(tenant, evse.evse_id);
       if (!chargingStation) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'updateTransaction',
           errorCode: HTTPError.GENERAL_ERROR,
           message: `No Charging Station found with ID '${evse.uid}' in Location '${session.location.id}'`,
@@ -547,7 +545,6 @@ export default class OCPIUtilsService {
       await Logging.logDebug({
         tenantID: tenant.id,
         action: ServerAction.OCPI_PUSH_SESSION,
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'updateTransaction',
         message: `Ignore session update session.last_updated < transaction.currentTimestamp for transaction ${transaction.id}`,
         detailedMessages: { session }
@@ -596,7 +593,6 @@ export default class OCPIUtilsService {
   public static async processCdr(tenant: Tenant, cdr: OCPICdr): Promise<void> {
     if (!OCPIUtilsService.validateCdr(cdr)) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'processCdr',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Cdr object is invalid',
@@ -607,7 +603,6 @@ export default class OCPIUtilsService {
     const transaction: Transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant, cdr.id);
     if (!transaction) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'processCdr',
         errorCode: HTTPError.GENERAL_ERROR,
         message: `No Transaction found for OCPI CDR ID '${cdr.id}'`,
@@ -659,7 +654,6 @@ export default class OCPIUtilsService {
   public static async updateToken(tenant: Tenant, ocpiEndpoint: OCPIEndpoint, token: OCPIToken, tag: Tag, emspUser: User): Promise<void> {
     if (!OCPIUtilsService.validateToken(token)) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'updateToken',
         errorCode: StatusCodes.BAD_REQUEST,
         message: 'Token object is invalid',
@@ -671,7 +665,6 @@ export default class OCPIUtilsService {
       // External organization
       if (emspUser.issuer) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'updateToken',
           errorCode: StatusCodes.CONFLICT,
           message: 'Token already assigned to an internal user',
@@ -683,7 +676,6 @@ export default class OCPIUtilsService {
       // Check the tag
       if (tag && tag.issuer) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'checkExistingTag',
           errorCode: StatusCodes.CONFLICT,
           message: 'Token already exists in the current organization',
@@ -709,7 +701,6 @@ export default class OCPIUtilsService {
       // Check the Tag
       if (tag && tag.issuer) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'checkExistingTag',
           errorCode: StatusCodes.CONFLICT,
           message: 'Token already exists in the current organization',
@@ -783,7 +774,7 @@ export default class OCPIUtilsService {
       voltage: voltage,
       amperage: amperage,
       power_type: OCPIUtilsService.convertOCPINumberOfConnectedPhases2PowerType(ocpiNumberOfConnectedPhases),
-      tariff_id: OCPIUtilsService.buildTariffID(tenant, chargingStation),
+      tariff_id: OCPIUtilsService.buildTariffID(tenant, chargingStation, connector),
       last_updated: chargingStation.lastSeen
     };
   }
@@ -801,7 +792,24 @@ export default class OCPIUtilsService {
   }
 
   private static async getOperatorBusinessDetails(tenant: Tenant): Promise<OCPIBusinessDetails> {
-    return (await SettingStorage.getOCPISettings(tenant)).ocpi.businessDetails;
+    const businessDetails = (await SettingStorage.getOCPISettings(tenant)).ocpi.businessDetails;
+    if (businessDetails) {
+      for (const key in businessDetails.logo) {
+        const data = businessDetails.logo[key];
+        if (!data) {
+          delete businessDetails.logo[key];
+        }
+      }
+      if (!businessDetails.logo?.url &&
+          !businessDetails.logo?.thumbnail &&
+          !businessDetails.logo?.category &&
+          !businessDetails.logo?.type &&
+          !businessDetails.logo?.width &&
+          !businessDetails.logo?.height) {
+        delete businessDetails.logo;
+      }
+    }
+    return businessDetails;
   }
 
   private static convertChargingStation2MultipleEvses(tenant: Tenant, chargingStation: ChargingStation,
@@ -829,8 +837,11 @@ export default class OCPIUtilsService {
         }
       };
       // Check addChargeBoxID flag
-      if (options?.addChargeBoxID) {
-        evse.chargeBoxId = chargingStation.id;
+      if (options?.addChargeBoxAndOrgIDs) {
+        evse.chargingStationID = chargingStation.id;
+        evse.siteID = chargingStation.siteID;
+        evse.siteAreaID = chargingStation.siteAreaID;
+        evse.companyID = chargingStation.companyID;
       }
       return evse;
     });
@@ -867,8 +878,11 @@ export default class OCPIUtilsService {
       }
     };
     // Check addChargeBoxID flag
-    if (options?.addChargeBoxID) {
-      evse.chargeBoxId = chargingStation.id;
+    if (options?.addChargeBoxAndOrgIDs) {
+      evse.chargingStationID = chargingStation.id;
+      evse.siteID = chargingStation.siteID;
+      evse.siteAreaID = chargingStation.siteAreaID;
+      evse.companyID = chargingStation.companyID;
     }
     return [evse];
   }
@@ -921,32 +935,63 @@ export default class OCPIUtilsService {
     }
   }
 
-  private static buildTariffID(tenant: Tenant, chargingStation: ChargingStation): string {
+  private static buildTariffID(tenant: Tenant, chargingStation: ChargingStation, connector: Connector): string {
+    const defaultTariff = 'Default';
     switch (tenant?.id) {
+      // Station-e
+      case '60633bb1834fed0016310189':
+        // Check Site Area
+        switch (chargingStation?.siteAreaID) {
+          // A Droite Park Marcel Pagnol
+          case '60d5a20c9deee6001419cabb':
+            switch (chargingStation?.id) {
+              case 'BMPBA':
+                // Type 2
+                if (connector.type === ConnectorType.TYPE_2) {
+                  return 'STE-AC_22k';
+                }
+                // DC
+                return 'STE-DC_25k';
+              case 'P91800RMRCLPGNL22AC':
+                return 'STE-AC_22k';
+            }
+            return defaultTariff;
+          // A Droite Park Les Bains des Docks
+          case '61697ae8d9c095772ca9a771':
+            switch (chargingStation?.id) {
+              case 'HBDBA':
+              case 'HBDBB':
+                // Type 2
+                if (connector.type === ConnectorType.TYPE_2) {
+                  return 'STE-AC_22k';
+                }
+                // DC
+                return 'STE-DC_60k';
+            }
+            return defaultTariff;
+        }
+        return defaultTariff;
       // SLF
       case '5be7fb271014d90008992f06':
         // Check Site Area
         switch (chargingStation?.siteAreaID) {
           // Mougins - South
           case '5abebb1b4bae1457eb565e98':
-            return 'FR*SLF_AC_Sud2';
+            return 'AC_Sud2';
           // Mougins - South - Fastcharging
           case '5b72cef274ae30000855e458':
-            return 'FR*SLF_DC_Sud';
-          // Caen
-          case '5ac678b5c0cc5e7fdd2c5ef3':
-            return 'FR*SLF_Caen';
+            return 'DC_Sud';
         }
-        return '';
+        return defaultTariff;
       // Proviridis
       case '5e2701b248aaa90007904cca':
         return '1';
       // Exadys
       case '5ff4c5ca1804a20013ce8a23':
-        return 'FR*EXA_Tarif_Standard';
+        return 'Tarif_Standard';
       // Inouid
       case '602e260fa9b0290023fb68d2':
-        return 'FR*ISE_Payant1';
+        return 'Payant1';
       // Properphi
       case '603655d291930d0014017e0a':
         switch (chargingStation?.siteAreaID) {
@@ -954,24 +999,27 @@ export default class OCPIUtilsService {
           case '60990f1cc48de10014ea4fdc':
             switch (chargingStation?.id) {
               case 'F3CBaume-CAHORS25DC':
-                return 'Tarif_EVSE_DC';
+                return 'EVSE_DC';
               case 'F3CBaume-LAFON22AC':
-                return 'Tarif_EVSE_AC';
+                return 'EVSE_AC';
             }
-            return '';
+            return defaultTariff;
           // Garage Cheval
           case '60e40cfc32a7e60014672290':
             switch (chargingStation?.id) {
               case 'F3CALBON-CAHORS25DC':
-                return 'Tarif_EVSE_DC';
+                return 'EVSE_DC';
               case 'F3CALBON-SCHNEIDER22AC':
-                return 'Tarif_EVSE_AC';
+                return 'EVSE_AC';
             }
-            return '';
+            return defaultTariff;
         }
-        return '';
+        return defaultTariff;
+      // eChargeNow
+      case '60b9f4336493830016c9a68c':
+        return 'Tarif_Standard';
     }
-    return '';
+    return defaultTariff;
   }
 
   private static convertOCPINumberOfConnectedPhases2PowerType(ocpiNumberOfConnectedPhases: number): OCPIPowerType {

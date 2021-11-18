@@ -1,0 +1,29 @@
+{
+  "$id": "transaction-consumptions-get",
+  "title": "Get Transaction Consumptions Request",
+  "type": "object",
+  "properties": {
+    "TransactionId": {
+      "$ref": "transaction#/definitions/id"
+    },
+    "WithTag": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "WithUser": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "WithCar": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "LoadAllConsumptions": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    }
+  },
+  "required": [
+    "TransactionId"
+  ]
+}

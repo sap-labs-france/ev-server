@@ -1,13 +1,14 @@
 import { ChargingProfile, ChargingProfileKindType, ChargingProfilePurposeType, ChargingRateUnitType, ChargingSchedule, ChargingSchedulePeriod, RecurrencyKindType } from '../../types/ChargingProfile';
 import ChargingStation, { ChargePoint, ConnectorCurrentLimit, ConnectorCurrentLimitSource, StaticLimitAmps } from '../../types/ChargingStation';
-import { OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPClearChargingProfileCommandResult, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPSetChargingProfileCommandResult } from '../../types/ocpp/OCPPClient';
+import { OCPPChangeConfigurationResponse, OCPPChargingProfileStatus, OCPPClearChargingProfileResponse, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPGetCompositeScheduleResponse, OCPPSetChargingProfileResponse } from '../../types/ocpp/OCPPClient';
 
 import BackendError from '../../exception/BackendError';
 import ChargingStationClientFactory from '../../client/ocpp/ChargingStationClientFactory';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
+import LoggingHelper from '../../utils/LoggingHelper';
+import OCPPCommon from '../../server/ocpp/utils/OCPPCommon';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
@@ -32,14 +33,13 @@ export default abstract class ChargingStationVendorIntegration {
   }
 
   public async setStaticPowerLimitation(tenant: Tenant, chargingStation: ChargingStation,
-      chargePoint?: ChargePoint, maxAmps?: number, ocppParamValueMultiplier = 1): Promise<OCPPChangeConfigurationCommandResult> {
+      chargePoint?: ChargePoint, maxAmps?: number, ocppParamValueMultiplier = 1): Promise<OCPPChangeConfigurationResponse> {
     const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, chargePoint);
     const numberOfConnectors = chargePoint ? chargePoint.connectorIDs.length : chargingStation.connectors.length;
     if (chargePoint.excludeFromPowerLimitation) {
       await Logging.logWarning({
         tenantID: tenant.id,
-        siteID: chargingStation.siteID,
-        source: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.CHARGING_STATION_LIMIT_POWER,
         message: `Charge Point '${chargePoint.chargePointID}' is excluded from power limitation`,
         module: MODULE_NAME, method: 'setStaticPowerLimitation',
@@ -50,8 +50,7 @@ export default abstract class ChargingStationVendorIntegration {
     if (!chargePoint.ocppParamForPowerLimitation) {
       await Logging.logWarning({
         tenantID: tenant.id,
-        siteID: chargingStation.siteID,
-        source: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.CHARGING_STATION_LIMIT_POWER,
         message: `No OCPP Parameter provided in template for Charge Point '${chargePoint.chargePointID}'`,
         module: MODULE_NAME, method: 'setStaticPowerLimitation',
@@ -62,7 +61,7 @@ export default abstract class ChargingStationVendorIntegration {
     // Check if feature is fully supported
     if (!this.hasStaticLimitationFullSupport(chargingStation, chargePoint)) {
       throw new BackendError({
-        source: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.CHARGING_STATION_LIMIT_POWER,
         module: MODULE_NAME, method: 'setStaticPowerLimitation',
         message: 'Charging Station capabilities or configuration does not support power limitation'
@@ -70,7 +69,7 @@ export default abstract class ChargingStationVendorIntegration {
     }
     if (maxAmps < (StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases * numberOfConnectors)) {
       throw new BackendError({
-        source: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.CHARGING_STATION_LIMIT_POWER,
         module: MODULE_NAME, method: 'setStaticPowerLimitation',
         message: `Cannot set the minimum power limit to ${maxAmps}A, minimum expected ${StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases * numberOfConnectors}A`,
@@ -78,7 +77,7 @@ export default abstract class ChargingStationVendorIntegration {
     }
     if (Utils.isEmptyArray(chargingStation.connectors)) {
       throw new BackendError({
-        source: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.CHARGING_STATION_LIMIT_POWER,
         module: MODULE_NAME, method: 'setStaticPowerLimitation',
         message: 'The Charging Station has no connector',
@@ -87,19 +86,18 @@ export default abstract class ChargingStationVendorIntegration {
     }
     // Fixed the max amp per connector
     const ocppLimitAmpValue = this.convertLimitAmpPerPhase(chargingStation, chargePoint, 0, maxAmps * ocppParamValueMultiplier);
-    let result: OCPPChangeConfigurationCommandResult;
+    let result: OCPPChangeConfigurationResponse;
     try {
       await Logging.logDebug({
         tenantID: tenant.id,
-        siteID: chargingStation.siteID,
-        source: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.CHARGING_STATION_LIMIT_POWER,
         message: `Set Power limitation via OCPP on ${chargePoint.ocppParamForPowerLimitation} key to ${ocppLimitAmpValue} value`,
         module: MODULE_NAME, method: 'setStaticPowerLimitation',
         detailedMessages: { maxAmps, ocppParam: chargePoint.ocppParamForPowerLimitation, ocppLimitAmpValue: ocppLimitAmpValue }
       });
       // Change the OCPP Parameter
-      result = await OCPPUtils.requestChangeChargingStationOcppParameter(tenant, chargingStation, {
+      result = await OCPPCommon.requestChangeChargingStationOcppParameter(tenant, chargingStation, {
         key: chargePoint.ocppParamForPowerLimitation,
         value: ocppLimitAmpValue.toString()
       });
@@ -137,8 +135,7 @@ export default abstract class ChargingStationVendorIntegration {
               connector.amperageLimit = this.convertLimitAmpToAllPhases(chargingStation, chargePoint, connectorID, Utils.convertToInt(ocppParamValue) / ocppParamValueDivider);
               await Logging.logInfo({
                 tenantID: tenant.id,
-                siteID: chargingStation.siteID,
-                source: chargingStation.id,
+                ...LoggingHelper.getChargingStationProperties(chargingStation),
                 action: ServerAction.OCPP_PARAM_UPDATE,
                 message: `${Utils.buildConnectorInfo(connectorID)} Amperage limit set to ${connector.amperageLimit}A following an update of OCPP Parameter '${ocppParamName}'`,
                 module: MODULE_NAME, method: 'checkUpdateOfOCPPParams',
@@ -157,11 +154,11 @@ export default abstract class ChargingStationVendorIntegration {
   }
 
   public async setChargingProfile(tenant: Tenant, chargingStation: ChargingStation, chargePoint: ChargePoint,
-      chargingProfile: ChargingProfile): Promise<OCPPSetChargingProfileCommandResult | OCPPSetChargingProfileCommandResult[]> {
+      chargingProfile: ChargingProfile): Promise<OCPPSetChargingProfileResponse | OCPPSetChargingProfileResponse[]> {
     // Check if feature is supported
     if (!chargingStation.capabilities?.supportChargingProfiles) {
       throw new BackendError({
-        source: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.CHARGING_PROFILE_UPDATE,
         module: MODULE_NAME, method: 'setChargingProfile',
         message: 'Charging Station does not support charging profiles'
@@ -171,7 +168,7 @@ export default abstract class ChargingStationVendorIntegration {
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant, chargingStation);
     if (!chargingStationClient) {
       throw new BackendError({
-        source: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.CHARGING_PROFILE_UPDATE,
         module: MODULE_NAME, method: 'setChargingProfile',
         message: 'Charging Station is not connected to the backend',
@@ -192,14 +189,13 @@ export default abstract class ChargingStationVendorIntegration {
         if (result.status !== OCPPChargingProfileStatus.ACCEPTED) {
           await Logging.logWarning({
             tenantID: tenant.id,
-            siteID: chargingStation.siteID,
-            source: chargingStation.id,
+            ...LoggingHelper.getChargingStationProperties(chargingStation),
             action: ServerAction.CHARGING_PROFILE_UPDATE,
             message: 'Set Charging Profile on Connector ID 0 has been rejected, will try connector per connector',
             module: MODULE_NAME, method: 'clearChargingProfile',
             detailedMessages: { result }
           });
-          const results = [] as OCPPSetChargingProfileCommandResult[];
+          const results = [] as OCPPSetChargingProfileResponse[];
           for (const connector of chargingStation.connectors) {
             const ret = await chargingStationClient.setChargingProfile({
               connectorId: connector.connectorId,
@@ -220,8 +216,7 @@ export default abstract class ChargingStationVendorIntegration {
     } catch (error) {
       await Logging.logError({
         tenantID: tenant.id,
-        siteID: chargingStation.siteID,
-        source: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.CHARGING_PROFILE_UPDATE,
         message: 'Error occurred while setting the Charging Profile',
         module: MODULE_NAME, method: 'setChargingProfile',
@@ -237,11 +232,11 @@ export default abstract class ChargingStationVendorIntegration {
   }
 
   public async clearChargingProfile(tenant: Tenant, chargingStation: ChargingStation,
-      chargingProfile: ChargingProfile): Promise<OCPPClearChargingProfileCommandResult | OCPPClearChargingProfileCommandResult[]> {
+      chargingProfile: ChargingProfile): Promise<OCPPClearChargingProfileResponse | OCPPClearChargingProfileResponse[]> {
     // Check if feature is supported
     if (!chargingStation.capabilities?.supportChargingProfiles) {
       throw new BackendError({
-        source: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.CHARGING_PROFILE_DELETE,
         module: MODULE_NAME, method: 'clearChargingProfile',
         message: 'Charging Station does not support charging profiles'
@@ -251,7 +246,7 @@ export default abstract class ChargingStationVendorIntegration {
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant, chargingStation);
     if (!chargingStationClient) {
       throw new BackendError({
-        source: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.CHARGING_PROFILE_DELETE,
         module: MODULE_NAME, method: 'clearChargingProfile',
         message: 'Charging Station is not connected to the backend',
@@ -268,14 +263,13 @@ export default abstract class ChargingStationVendorIntegration {
         if (result.status !== OCPPClearChargingProfileStatus.ACCEPTED) {
           await Logging.logWarning({
             tenantID: tenant.id,
-            siteID: chargingStation.siteID,
-            source: chargingStation.id,
+            ...LoggingHelper.getChargingStationProperties(chargingStation),
             action: ServerAction.CHARGING_PROFILE_DELETE,
             module: MODULE_NAME, method: 'clearChargingProfile',
             message: 'Clear Charging Profile on Connector ID 0 has been rejected, will try connector per connector',
             detailedMessages: { result }
           });
-          const results = [] as OCPPClearChargingProfileCommandResult[];
+          const results = [] as OCPPClearChargingProfileResponse[];
           for (const connector of chargingStation.connectors) {
             // Clear the Profile
             const ret = await chargingStationClient.clearChargingProfile({
@@ -283,19 +277,7 @@ export default abstract class ChargingStationVendorIntegration {
             });
             results.push(ret);
           }
-          // Reapply the current limitation
-          for (const chargePoint of chargingStation.chargePoints) {
-            await this.setStaticPowerLimitation(tenant, chargingStation, chargePoint,
-              this.getStaticPowerLimitation(chargingStation, chargePoint));
-          }
           return results;
-        }
-        // Reapply the current limitation
-        if (result.status === OCPPClearChargingProfileStatus.ACCEPTED) {
-          for (const chargePoint of chargingStation.chargePoints) {
-            await this.setStaticPowerLimitation(tenant, chargingStation, chargePoint,
-              this.getStaticPowerLimitation(chargingStation, chargePoint));
-          }
         }
         return result;
       }
@@ -304,19 +286,11 @@ export default abstract class ChargingStationVendorIntegration {
       const result = await chargingStationClient.clearChargingProfile({
         connectorId: chargingProfile.connectorID
       });
-      // Reapply the current limitation
-      if (result.status === OCPPClearChargingProfileStatus.ACCEPTED) {
-        for (const chargePoint of chargingStation.chargePoints) {
-          await this.setStaticPowerLimitation(tenant, chargingStation, chargePoint,
-            this.getStaticPowerLimitation(chargingStation, chargePoint));
-        }
-      }
       return result;
     } catch (error) {
       await Logging.logError({
         tenantID: tenant.id,
-        siteID: chargingStation.siteID,
-        source: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.CHARGING_PROFILE_DELETE,
         message: 'Error occurred while clearing the Charging Profile',
         module: MODULE_NAME, method: 'clearChargingProfile',
@@ -327,11 +301,11 @@ export default abstract class ChargingStationVendorIntegration {
   }
 
   public async getCompositeSchedule(tenant: Tenant, chargingStation: ChargingStation, chargePoint: ChargePoint,
-      connectorID: number, durationSecs: number): Promise<OCPPGetCompositeScheduleCommandResult> {
+      connectorID: number, durationSecs: number, chargingRateUnit?: ChargingRateUnitType): Promise<OCPPGetCompositeScheduleResponse> {
     // Check if feature is supported
     if (!chargingStation.capabilities?.supportChargingProfiles) {
       throw new BackendError({
-        source: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.CHARGING_STATION_GET_COMPOSITE_SCHEDULE,
         module: MODULE_NAME, method: 'getCompositeSchedule',
         message: 'Charging Station does not support Charging Profiles'
@@ -339,7 +313,7 @@ export default abstract class ChargingStationVendorIntegration {
     }
     if (connectorID === 0) {
       throw new BackendError({
-        source: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
         module: MODULE_NAME, method: 'getCompositeSchedule',
         message: `${Utils.buildConnectorInfo(connectorID)} Cannot get the Charging Profiles`,
@@ -349,7 +323,7 @@ export default abstract class ChargingStationVendorIntegration {
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant, chargingStation);
     if (!chargingStationClient) {
       throw new BackendError({
-        source: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.CHARGING_STATION_GET_COMPOSITE_SCHEDULE,
         module: MODULE_NAME, method: 'getCompositeSchedule',
         message: 'Charging Station is not connected to the backend',
@@ -360,7 +334,7 @@ export default abstract class ChargingStationVendorIntegration {
       const result = await chargingStationClient.getCompositeSchedule({
         connectorId: connectorID,
         duration: durationSecs,
-        chargingRateUnit: chargingStation.powerLimitUnit
+        chargingRateUnit
       });
       // Convert
       result.chargingSchedule = this.convertFromVendorChargingSchedule(chargingStation, chargePoint, result.connectorId, result.chargingSchedule);
@@ -368,8 +342,7 @@ export default abstract class ChargingStationVendorIntegration {
     } catch (error) {
       await Logging.logError({
         tenantID: tenant.id,
-        siteID: chargingStation.siteID,
-        source: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.CHARGING_STATION_GET_COMPOSITE_SCHEDULE,
         message: 'Error occurred while getting the Composite Schedule',
         module: MODULE_NAME, method: 'getCompositeSchedule',
@@ -392,7 +365,7 @@ export default abstract class ChargingStationVendorIntegration {
     try {
       if (connectorID === 0) {
         throw new BackendError({
-          source: chargingStation.id,
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
           action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
           module: MODULE_NAME, method: 'getCurrentConnectorLimit',
           message: 'Cannot get the current connector limit on Connector ID 0',
@@ -456,8 +429,7 @@ export default abstract class ChargingStationVendorIntegration {
           };
           await Logging.logInfo({
             tenantID: tenant.id,
-            siteID: chargingStation.siteID,
-            source: chargingStation.id,
+            ...LoggingHelper.getChargingStationProperties(chargingStation),
             action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
             message: `${Utils.buildConnectorInfo(connectorID)} Current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${Utils.getConnectorLimitSourceString(result.limitSource)}'`,
             module: MODULE_NAME, method: 'getCurrentConnectorLimit',
@@ -469,8 +441,7 @@ export default abstract class ChargingStationVendorIntegration {
     } catch (error) {
       await Logging.logError({
         tenantID: tenant.id,
-        siteID: chargingStation.siteID,
-        source: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
         message: `${Utils.buildConnectorInfo(connectorID)} Cannot retrieve the current limitation`,
         module: MODULE_NAME, method: 'getCurrentConnectorLimit',
@@ -485,8 +456,7 @@ export default abstract class ChargingStationVendorIntegration {
     };
     await Logging.logInfo({
       tenantID: tenant.id,
-      siteID: chargingStation.siteID,
-      source: chargingStation.id,
+      ...LoggingHelper.getChargingStationProperties(chargingStation),
       action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
       message: `${Utils.buildConnectorInfo(connectorID)} Current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${Utils.getConnectorLimitSourceString(result.limitSource)}'`,
       module: MODULE_NAME, method: 'getCurrentConnectorLimit',
@@ -618,6 +588,8 @@ export default abstract class ChargingStationVendorIntegration {
         if (moment(chargingSchedule.startSchedule).isAfter(now)) {
           chargingSchedule.startSchedule.setDate(currentDate.getDate() - 1);
         }
+      } else if (moment(chargingSchedule.startSchedule).isAfter(now)) {
+        return null;
       }
       // Check if the Charging Profile is active
       if (moment(chargingSchedule.startSchedule).add(chargingSchedule.duration, 's').isAfter(now)) {
@@ -633,8 +605,7 @@ export default abstract class ChargingStationVendorIntegration {
             };
             await Logging.logInfo({
               tenantID: tenant.id,
-              siteID: chargingStation.siteID,
-              source: chargingStation.id,
+              ...LoggingHelper.getChargingStationProperties(chargingStation),
               action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
               message: `${Utils.buildConnectorInfo(connectorID)} Current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${Utils.getConnectorLimitSourceString(result.limitSource)} in DB'`,
               module: MODULE_NAME, method: 'getCurrentConnectorLimit',
@@ -652,8 +623,7 @@ export default abstract class ChargingStationVendorIntegration {
             };
             await Logging.logInfo({
               tenantID: tenant.id,
-              siteID: chargingStation.siteID,
-              source: chargingStation.id,
+              ...LoggingHelper.getChargingStationProperties(chargingStation),
               action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
               message: `${Utils.buildConnectorInfo(connectorID)} Current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${Utils.getConnectorLimitSourceString(result.limitSource)} in DB'`,
               module: MODULE_NAME, method: 'getCurrentConnectorLimit',
@@ -672,8 +642,7 @@ export default abstract class ChargingStationVendorIntegration {
             };
             await Logging.logInfo({
               tenantID: tenant.id,
-              siteID: chargingStation.siteID,
-              source: chargingStation.id,
+              ...LoggingHelper.getChargingStationProperties(chargingStation),
               action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
               message: `${Utils.buildConnectorInfo(connectorID)} Current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${Utils.getConnectorLimitSourceString(result.limitSource)} in DB'`,
               module: MODULE_NAME, method: 'getCurrentConnectorLimit',

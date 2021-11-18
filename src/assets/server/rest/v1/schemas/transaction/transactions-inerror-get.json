@@ -1,0 +1,54 @@
+{
+  "$id": "transactions-inerror-get",
+  "title": "Get Transactions in error Request",
+  "type": "object",
+  "properties": {
+    "ChargingStationID": {
+      "$ref": "common#/definitions/string-ids"
+    },
+    "StartDateTime": {
+      "type": "string",
+      "format": "date-time",
+      "sanitize": "mongo"
+    },
+    "EndDateTime": {
+      "type": "string",
+      "format": "date-time",
+      "sanitize": "mongo"
+    },
+    "SiteID": {
+      "$ref": "common#/definitions/ids"
+    },
+    "SiteAreaID": {
+      "$ref": "common#/definitions/ids"
+    },
+    "ErrorType": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "ConnectorID": {
+      "$ref": "common#/definitions/number-ids"
+    },
+    "UserID": {
+      "$ref": "common#/definitions/ids"
+    },
+    "Search": {
+      "$ref": "common#/definitions/search"
+    },
+    "Limit": {
+      "$ref": "common#/definitions/limit"
+    },
+    "SortFields": {
+      "$ref": "common#/definitions/sortFields"
+    },
+    "Skip": {
+      "$ref": "common#/definitions/skip"
+    },
+    "ProjectFields": {
+      "$ref": "common#/definitions/projectFields"
+    }
+  },
+  "required": [
+    "Limit"
+  ]
+}

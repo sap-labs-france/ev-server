@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "424a6ba2-0c9e-4e7e-9ea2-23b30933aa44",
+		"_postman_id": "3b2367e7-a132-4d54-8e03-9ccaacac38a4",
 		"name": "EVSE",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -1031,19 +1031,70 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/client/api/Companies?WithSites=true",
+					"raw": "{{base_url}}/v1/api/companies",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
-						"client",
+						"v1",
 						"api",
-						"Companies"
+						"companies"
 					],
 					"query": [
 						{
-							"key": "WithSites",
-							"value": "true"
+							"key": "Search",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithSite",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "WithLogo",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Issuer",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "LocLongitude",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "LocLatitude",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "LocMaxDistanceMeters",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "Limit",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Skip",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "SortFields",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "ProjectFields",
+							"value": null,
+							"disabled": true
 						}
 					]
 				}
@@ -1066,49 +1117,15 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/client/api/Company?ID=5abeba504bae1457eb565e31",
+					"raw": "{{base_url}}/v1/api/companies/5abeba344bae1457eb565e27",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
-						"client",
+						"v1",
 						"api",
-						"Company"
-					],
-					"query": [
-						{
-							"key": "ID",
-							"value": "5abeba504bae1457eb565e31"
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "FE-CompanyLogos",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{base_url}}/client/api/CompanyLogos",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"client",
-						"api",
-						"CompanyLogos"
+						"companies",
+						"5abeba344bae1457eb565e27"
 					]
 				}
 			},
@@ -1130,20 +1147,100 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/client/api/CompanyLogo?ID=5abeba504bae1457eb565e31",
+					"raw": "{{base_url}}/v1/api/companies/{{companyID}}/logo?TenantID={{tenantID}}",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
-						"client",
+						"v1",
 						"api",
-						"CompanyLogo"
+						"companies",
+						"{{companyID}}",
+						"logo"
 					],
 					"query": [
 						{
-							"key": "ID",
-							"value": "5abeba504bae1457eb565e31"
+							"key": "TenantID",
+							"value": "{{tenantID}}"
 						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-CompanyUpdate",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"New Name\"\r\n}\r\n"
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/companies/{{companyID}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"companies",
+						"{{companyID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-CompanyDelete",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/companies/5a7234df6a0b293d15ed02e1",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"companies",
+						"5a7234df6a0b293d15ed02e1"
 					]
 				}
 			},
@@ -2019,82 +2116,92 @@
 						},
 						{
 							"key": "Issuer",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Search",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "SiteID",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "WithSite",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "SiteAreaID",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "ConnectorStatus",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "ConnectorType",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "ChargingStationID",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "IncludeDeleted",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "LocLongitude",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "LocLatitude",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "LocMaxDistanceMeters",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Skip",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "SortFields",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "OnlyRecordCount",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "ProjectFields",
-							"value": null,
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Status",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ErrorType",
+							"value": "",
 							"disabled": true
 						}
 					]
@@ -2297,7 +2404,7 @@
 						},
 						{
 							"key": "SiteID",
-							"value": null,
+							"value": "",
 							"disabled": true
 						}
 					]
@@ -2531,42 +2638,37 @@
 						},
 						{
 							"key": "Search",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "SiteID",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "SiteAreaID",
-							"value": null,
-							"disabled": true
-						},
-						{
-							"key": "ErrorType",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Skip",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "SortFields",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "OnlyRecordCount",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "ProjectFields",
-							"value": null,
+							"value": "",
 							"disabled": true
 						}
 					]
@@ -2609,82 +2711,82 @@
 						},
 						{
 							"key": "Search",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "SiteID",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "SiteAreaID",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Skip",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "SortFields",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "OnlyRecordCount",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "ProjectFields",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Issuer",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "WithNoSiteArea",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "ConnectorStatus",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "ConnectorType",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "ChargingStationID",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "IncludeDeleted",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "LocLongitude",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "LocLatitude",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "LocMaxDistanceMeters",
-							"value": null,
+							"value": "",
 							"disabled": true
 						}
 					]
@@ -2815,27 +2917,201 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/client/api/Notifications?DateFrom=2019-01-15T19:21:00&UserID=596c84497787fc5370a9df52&Channel=email",
+					"raw": "{{base_url}}/v1/api/notifications",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
-						"client",
+						"v1",
 						"api",
-						"Notifications"
+						"notifications"
 					],
 					"query": [
 						{
 							"key": "DateFrom",
-							"value": "2019-01-15T19:21:00"
+							"value": "",
+							"disabled": true
 						},
 						{
 							"key": "UserID",
-							"value": "596c84497787fc5370a9df52"
+							"value": "",
+							"disabled": true
 						},
 						{
 							"key": "Channel",
-							"value": "email"
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-Transactions",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/transactions",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"transactions"
+					],
+					"query": [
+						{
+							"key": "Issuer",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Search",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "StartDateTime",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "EndDateTime",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithChargingStation",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ChargingStationID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ConnectorID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithCar",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithUser",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "UserID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithTag",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "TagID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "VisualTagID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "SiteID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithSite",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "SiteAreaID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithSiteArea",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithCompany",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "InactivityStatus",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Statistics",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "RefundStatus",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "MinimalPrice",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ReportIDs",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Limit",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Skip",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "SortFields",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "OnlyRecordCount",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ProjectFields",
+							"value": "",
+							"disabled": true
 						}
 					]
 				}
@@ -2858,27 +3134,157 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/transactions?Status=completed&Limit=100&SiteID=5abeba9e4bae1457eb565e66",
+					"raw": "{{base_url}}/v1/api/transactions/status/completed",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
 						"v1",
 						"api",
-						"transactions"
+						"transactions",
+						"status",
+						"completed"
 					],
 					"query": [
 						{
-							"key": "Status",
-							"value": "completed"
+							"key": "Issuer",
+							"value": "",
+							"disabled": true
 						},
 						{
-							"key": "Limit",
-							"value": "100"
+							"key": "Search",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "StartDateTime",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "EndDateTime",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithChargingStation",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ChargingStationID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ConnectorID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithCar",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithUser",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "UserID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithTag",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "TagID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "VisualTagID",
+							"value": "",
+							"disabled": true
 						},
 						{
 							"key": "SiteID",
-							"value": "5abeba9e4bae1457eb565e66"
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithSite",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "SiteAreaID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithSiteArea",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithCompany",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "InactivityStatus",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Statistics",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "RefundStatus",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "MinimalPrice",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ReportIDs",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Limit",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Skip",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "SortFields",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "OnlyRecordCount",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ProjectFields",
+							"value": "",
+							"disabled": true
 						}
 					]
 				}
@@ -2901,7 +3307,708 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/transactions?Status=active&Limit=100&SiteID=5abeba9e4bae1457eb565e66",
+					"raw": "{{base_url}}/v1/api/transactions/status/active",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"transactions",
+						"status",
+						"active"
+					],
+					"query": [
+						{
+							"key": "Issuer",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Search",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "StartDateTime",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "EndDateTime",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithChargingStation",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ChargingStationID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ConnectorID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithCar",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithUser",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "UserID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithTag",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "TagID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "VisualTagID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "SiteID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithSite",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "SiteAreaID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithSiteArea",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithCompany",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "InactivityStatus",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Statistics",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "RefundStatus",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "MinimalPrice",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ReportIDs",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Limit",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Skip",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "SortFields",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "OnlyRecordCount",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ProjectFields",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-TransactionsRefund",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/transactions/status/active",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"transactions",
+						"status",
+						"active"
+					],
+					"query": [
+						{
+							"key": "Issuer",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Search",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "StartDateTime",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "EndDateTime",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithChargingStation",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ChargingStationID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ConnectorID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithCar",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithUser",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "UserID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithTag",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "TagID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "VisualTagID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "SiteID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithSite",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "SiteAreaID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithSiteArea",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithCompany",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "InactivityStatus",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Statistics",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "RefundStatus",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "MinimalPrice",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ReportIDs",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Limit",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Skip",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "SortFields",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "OnlyRecordCount",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ProjectFields",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-TransactionsInError",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/transactions/status/in-error",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"transactions",
+						"status",
+						"in-error"
+					],
+					"query": [
+						{
+							"key": "Issuer",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Search",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "StartDateTime",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "EndDateTime",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithChargingStation",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ChargingStationID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ConnectorID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithCar",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithUser",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "UserID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithTag",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "TagID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "VisualTagID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "SiteID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithSite",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "SiteAreaID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithSiteArea",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithCompany",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "InactivityStatus",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Statistics",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "RefundStatus",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "MinimalPrice",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ReportIDs",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Limit",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Skip",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "SortFields",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "OnlyRecordCount",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ProjectFields",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-TransactionsUnassigned",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/transactions/status/in-error",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"transactions",
+						"status",
+						"in-error"
+					],
+					"query": [
+						{
+							"key": "Issuer",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Search",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "StartDateTime",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "EndDateTime",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithChargingStation",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ChargingStationID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ConnectorID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithCar",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithUser",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "UserID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithTag",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "TagID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "VisualTagID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "SiteID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithSite",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "SiteAreaID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithSiteArea",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithCompany",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "InactivityStatus",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Statistics",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "RefundStatus",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "MinimalPrice",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ReportIDs",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Limit",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Skip",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "SortFields",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "OnlyRecordCount",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ProjectFields",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-TransactionsDelete",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"transactionsIDs\": [0, 1, 2]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/transactions",
 					"host": [
 						"{{base_url}}"
 					],
@@ -2912,16 +4019,14 @@
 					],
 					"query": [
 						{
-							"key": "Status",
-							"value": "active"
-						},
-						{
 							"key": "Limit",
-							"value": "100"
+							"value": "100",
+							"disabled": true
 						},
 						{
 							"key": "SiteID",
-							"value": "5abeba9e4bae1457eb565e66"
+							"value": "",
+							"disabled": true
 						}
 					]
 				}
@@ -2960,13 +4065,553 @@
 						"api",
 						"transactions",
 						"1247155539"
+					],
+					"query": [
+						{
+							"key": "WithCar",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithUser",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithTag",
+							"value": "",
+							"disabled": true
+						}
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "FE-AllTransactions",
+			"name": "FE-TransactionDelete",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/transactions/1247155538",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"transactions",
+						"1247155538"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-TransactionPushCDR",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/transactions/1247155539/ocpi/cdr",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"transactions",
+						"1247155539",
+						"ocpi",
+						"cdr"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-TransactionCDRExport",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/transactions/1247155539/ocpi/cdr/action/export",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"transactions",
+						"1247155539",
+						"ocpi",
+						"cdr",
+						"action",
+						"export"
+					],
+					"query": [
+						{
+							"key": "WithUser",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithCar",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithTag",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-TransactionConsumptions",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/transactions/1247155539/consumptions",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"transactions",
+						"1247155539",
+						"consumptions"
+					],
+					"query": [
+						{
+							"key": "LoadAllConsumptions",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithCar",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithUser",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithTag",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-TransactionRebuildConsumptions",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/transactions/1247155539/consumptions/rebuild",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"transactions",
+						"1247155539",
+						"consumptions",
+						"rebuild"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-TransactionSoftStop",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/transactions/1247155539/stop/soft",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"transactions",
+						"1247155539",
+						"stop",
+						"soft"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-TransactionRefund",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"transactionsIDs\": [0, 1, 2]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/transactions/action/refund",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"transactions",
+						"action",
+						"refund"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-TransactionExportRefunded",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"transactionsIDs\": [0, 1, 2]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/transactions/action/refund/export",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"transactions",
+						"action",
+						"refund",
+						"export"
+					],
+					"query": [
+						{
+							"key": "Status",
+							"value": "100",
+							"disabled": true
+						},
+						{
+							"key": "Issuer",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Search",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "StartDateTime",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "EndDateTime",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithChargingStation",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ChargingStationID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ConnectorID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithCar",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithUser",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "UserID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithTag",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "TagID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "VisualTagID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "SiteID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithSite",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "SiteAreaID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithSiteArea",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithCompany",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "InactivityStatus",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Statistics",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "RefundStatus",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "MinimalPrice",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ReportIDs",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Limit",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Skip",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "SortFields",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "OnlyRecordCount",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ProjectFields",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-TransactionSynchronizeToRefund",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/transactions/action/refund/synchronize",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"transactions",
+						"action",
+						"refund",
+						"synchronize"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-TransactionsRefundReports",
 			"request": {
 				"auth": {
 					"type": "bearer",
@@ -2981,31 +4626,269 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/transactions?Status=completed&StartDateTime=2017-12-31T23:00:00.000Z&EndDateTime=2018-08-17T15:37:57.059Z&Limit=100",
+					"raw": "{{base_url}}/v1/api/transactions/action/refund/reports",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
 						"v1",
 						"api",
-						"transactions"
+						"transactions",
+						"action",
+						"refund",
+						"reports"
+					],
+					"query": [
+						{
+							"key": "SiteAreaID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "SiteID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Limit",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Skip",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "SortFields",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "OnlyRecordCount",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-TransactionsAssign",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/transactions/action/assign",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"transactions",
+						"action",
+						"assign"
+					],
+					"query": [
+						{
+							"key": "TagID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "UserID",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-TransactionsExport",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/transactions/action/export",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"transactions",
+						"action",
+						"export"
 					],
 					"query": [
 						{
 							"key": "Status",
-							"value": "completed"
+							"value": "100",
+							"disabled": true
+						},
+						{
+							"key": "Issuer",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Search",
+							"value": "",
+							"disabled": true
 						},
 						{
 							"key": "StartDateTime",
-							"value": "2017-12-31T23:00:00.000Z"
+							"value": "",
+							"disabled": true
 						},
 						{
 							"key": "EndDateTime",
-							"value": "2018-08-17T15:37:57.059Z"
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithChargingStation",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ChargingStationID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ConnectorID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithCar",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithUser",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "UserID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithTag",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "TagID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "VisualTagID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "SiteID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithSite",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "SiteAreaID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithSiteArea",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithCompany",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "InactivityStatus",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Statistics",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "RefundStatus",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "MinimalPrice",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ReportIDs",
+							"value": "",
+							"disabled": true
 						},
 						{
 							"key": "Limit",
-							"value": "100"
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Skip",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "SortFields",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "OnlyRecordCount",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ProjectFields",
+							"value": "",
+							"disabled": true
 						}
 					]
 				}
@@ -3075,57 +4958,57 @@
 					"query": [
 						{
 							"key": "Issuer",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Search",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "SiteID",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "UserID",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Role",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Status",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Skip",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Limit",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "SortFields",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "OnlyRecordCount",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "ProjectFields",
-							"value": null,
+							"value": "",
 							"disabled": true
 						}
 					]
@@ -3193,7 +5076,7 @@
 					"query": [
 						{
 							"key": "Role",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
@@ -3203,22 +5086,22 @@
 						},
 						{
 							"key": "ErrorType",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Skip",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "SortFields",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "OnlyRecordCount",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
@@ -3261,22 +5144,22 @@
 					"query": [
 						{
 							"key": "Issuer",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Search",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "SiteID",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "UserID",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
@@ -3286,27 +5169,27 @@
 						},
 						{
 							"key": "Status",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Skip",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Limit",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "SortFields",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "OnlyRecordCount",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
@@ -3568,7 +5451,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"name\": \"FABIANO\",\r\n  \"firstName\": \"Sergio\",\r\n  \"email\": \"sdf3.sdf.sdfssss@free.fr\",\r\n  \"phone\": \"+33 492286307\",\r\n  \"mobile\": \"\",\r\n  \"iNumber\": \"I030367\",\r\n  \"tagIDs\": [\r\n    \"66BDC46F\"\r\n  ],\r\n  \"costCenter\": \"175030602\",\r\n  \"status\": \"A\",\r\n  \"role\": \"A\",\r\n  \"password\": \"\"\r\n"
+					"raw": "{\r\n  \"name\": \"FABIANO\",\r\n  \"firstName\": \"Sergio\",\r\n  \"email\": \"sdf3.sdf.sdfssss@free.fr\",\r\n  \"phone\": \"+33 492286307\",\r\n  \"mobile\": \"\",\r\n  \"iNumber\": \"I030367\",\r\n  \"tagIDs\": [\r\n    \"66BDC46F\"\r\n  ],\r\n  \"costCenter\": \"175030602\",\r\n  \"status\": \"A\",\r\n  \"role\": \"A\",\r\n  \"password\": \"\"\r\n}\r\n"
 				},
 				"url": {
 					"raw": "{{base_url}}/v1/api/users/{{userID}}",
@@ -3734,7 +5617,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/tags/action/export?Active",
+					"raw": "{{base_url}}/v1/api/tags/action/export?Active=",
 					"host": [
 						"{{base_url}}"
 					],
@@ -3748,42 +5631,42 @@
 					"query": [
 						{
 							"key": "Active",
-							"value": null
+							"value": ""
 						},
 						{
 							"key": "Issuer",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "UserID",
-							"value": null,
+							"value": "",
 							"description": "Pipe separated user ids",
 							"disabled": true
 						},
 						{
 							"key": "Search",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "SortFields",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Skip",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "OnlyRecordCount",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "ProjectFields",
-							"value": null,
+							"value": "",
 							"disabled": true
 						}
 					]
@@ -3870,12 +5753,7 @@
 				"header": [],
 				"body": {
 					"mode": "file",
-					"file": {},
-					"options": {
-						"raw": {
-							"language": "text"
-						}
-					}
+					"file": {}
 				},
 				"url": {
 					"raw": "{{base_url}}/v1/api/tags/action/import",
@@ -4074,6 +5952,736 @@
 			"response": []
 		},
 		{
+			"name": "FE-Assets",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/assets",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"assets"
+					],
+					"query": [
+						{
+							"key": "Issuer",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "SiteAreaIDs",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "SiteIDs",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithSiteArea",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "WithNoSiteArea",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "DynamicOnly",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Search",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "SortFields",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Limit",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Skip",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "OnlyRecordCount",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ProjectFields",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-Asset",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/assets/{{assetID}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"assets",
+						"{{assetID}}"
+					],
+					"query": [
+						{
+							"key": "WithSiteArea",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-AssetsInError",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/assets/status/in-error",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"assets",
+						"status",
+						"in-error"
+					],
+					"query": [
+						{
+							"key": "WithSiteArea",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-AssetUpdate",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"Updated asset\",\n    \"siteAreaID\": \"{{siteAreaID}}\",\n    \"assetType\": \"CO\",\n    \"excludeFromSmartCharging\": true,\n    \"variationThresholdPercent\": 100,\n    \"fluctuationPercent\": null,\n    \"staticValueWatt\": 2000,\n    \"image\": \"\",\n    \"dynamicAsset\": false,\n    \"connectionID\": \"\",\n    \"meterID\": \"\",\n    \"usesPushAPI\": false,\n    \"coordinates\": [0, 0]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/assets/{{assetID}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"assets",
+						"{{assetID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-AssetDelete",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/assets/{{assetID}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"assets",
+						"{{assetID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-AssetConsumptions",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/assets/601b2a5e52f1d8000e8dd95b/consumptions",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"assets",
+						"601b2a5e52f1d8000e8dd95b",
+						"consumptions"
+					],
+					"query": [
+						{
+							"key": "StartDate",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "EndDate",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-AssetImage",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/assets/601b2a5e52f1d8000e8dd95b/image",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"assets",
+						"601b2a5e52f1d8000e8dd95b",
+						"image"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-CarCatalogs",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/car-catalogs",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"car-catalogs"
+					],
+					"query": [
+						{
+							"key": "Search",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "CarMaker",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "SortFields",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Limit",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Skip",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "OnlyRecordCount",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ProjectFields",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-CarCatalog",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/car-catalogs/1172",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"car-catalogs",
+						"1172"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-CarCatalogImage",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/car-catalogs/1172/image",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"car-catalogs",
+						"1172",
+						"image"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-CarCatalogImages",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/car-catalogs/1172/images",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"car-catalogs",
+						"1172",
+						"images"
+					],
+					"query": [
+						{
+							"key": "Skip",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Limit",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-CarCatalogsSynchronize",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/car-catalogs/action/synchronize",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"car-catalogs",
+						"action",
+						"synchronize"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-CarMakers",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/car-makers",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"car-makers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-Cars",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/cars",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"cars"
+					],
+					"query": [
+						{
+							"key": "WithUser",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "CarMaker",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "UserID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Search",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Limit",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Skip",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "SortFields",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "OnlyRecordCount",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ProjectFields",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-Car",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/cars/5ff8303fe4f49300181eb0d9",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"cars",
+						"5ff8303fe4f49300181eb0d9"
+					],
+					"query": [
+						{
+							"key": "WithUser",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "CarMaker",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "UserID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Search",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Limit",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Skip",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "SortFields",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "OnlyRecordCount",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ProjectFields",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-CarCreate",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"vin\": \"string\",\n  \"licensePlate\": \"AB-123-CD\",\n  \"carCatalogID\": 1160,\n  \"forced\": true,\n  \"type\": \"P\",\n  \"userID\": \"{{userID}}\",\n  \"default\": true,\n  \"converter\": {\n    \"amperagePerPhase\": 1,\n    \"numberOfPhases\": 1,\n    \"powerWatts\": 1,\n    \"type\": \"S\"\n  }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/cars",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"cars"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "FE-Logs",
 			"request": {
 				"auth": {
@@ -4089,27 +6697,85 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/client/api/Loggings?DateFrom=2018-02-28T10:27:50.833Z&Limit=100&SortDate=-1",
+					"raw": "{{base_url}}/v1/api/loggings",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
-						"client",
+						"v1",
 						"api",
-						"Loggings"
+						"loggings"
 					],
 					"query": [
 						{
-							"key": "DateFrom",
-							"value": "2018-02-28T10:27:50.833Z"
+							"key": "StartDateTime",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "EndDateTime",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Level",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Source",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Host",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Type",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Action",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "UserID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Search",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "SortFields",
+							"value": "",
+							"disabled": true
 						},
 						{
 							"key": "Limit",
-							"value": "100"
+							"value": "",
+							"disabled": true
 						},
 						{
-							"key": "SortDate",
-							"value": "-1"
+							"key": "Skip",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "OnlyRecordCount",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ProjectFields",
+							"value": "",
+							"disabled": true
 						}
 					]
 				}
@@ -4132,20 +6798,857 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/client/api/Logging?ID=5b699c07558d35802ce52a4e",
+					"raw": "{{base_url}}/v1/api/loggings/611cca6c77d54005ca90a595",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
-						"client",
+						"v1",
 						"api",
-						"Logging"
+						"loggings",
+						"611cca6c77d54005ca90a595"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-IntegrationConnections",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/connections?UserID=60d476d8b6194a5a35c9ff6b",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"connections"
 					],
 					"query": [
 						{
-							"key": "ID",
-							"value": "5b699c07558d35802ce52a4e"
+							"key": "UserID",
+							"value": "60d476d8b6194a5a35c9ff6b"
 						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-IntegrationConnections Copy",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"connectorId\": 0,\n    \"userId\": \"{{userID}}\",\n    \"data\": {}\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/connections",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"connections"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-IntegrationConnection",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/connections/60d476d8b6194a5a35c9ff6b",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"connections",
+						"60d476d8b6194a5a35c9ff6b"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-IntegrationConnectionDelete",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/connections/60d476d8b6194a5a35c9ff6b",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"connections",
+						"60d476d8b6194a5a35c9ff6b"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-LogsExport",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/loggings/action/export",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"loggings",
+						"action",
+						"export"
+					],
+					"query": [
+						{
+							"key": "StartDateTime",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "EndDateTime",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Level",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Source",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Host",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Type",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Action",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "UserID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Search",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "SortFields",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Limit",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Skip",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "OnlyRecordCount",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ProjectFields",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OCPIEndpoints",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"ocpi",
+						"endpoints"
+					],
+					"query": [
+						{
+							"key": "Search",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "SortFields",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Limit",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Skip",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "OnlyRecordCount",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "ProjectFields",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OCPIEndpoint",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/5c823acfab55f900083fead0",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"ocpi",
+						"endpoints",
+						"5c823acfab55f900083fead0"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OCPIEndpointDelete",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c399fb1be2e11af30c052",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"ocpi",
+						"endpoints",
+						"614c399fb1be2e11af30c052"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OCPIEndpointCreate",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"OCPI Endpoint name\",\n  \"role\": \"CPO\",\n  \"baseUrl\": \"https://xxxxxxx.xx\",\n  \"countryCode\": \"FR\",\n  \"partyId\": \"ABC\",\n  \"localToken\": \"string\",\n  \"token\": \"string\",\n  \"backgroundPatchJob\": true\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"ocpi",
+						"endpoints"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OCPIEndpointUpdate",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"OCPI Endpoint name\",\n  \"role\": \"CPO\",\n  \"baseUrl\": \"https://xxxxxxx.xx\",\n  \"countryCode\": \"FR\",\n  \"partyId\": \"ABC\",\n  \"localToken\": \"string\",\n  \"token\": \"string\",\n  \"backgroundPatchJob\": true\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"ocpi",
+						"endpoints",
+						"614c3e32b1ef6620c9dfcdc7"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OCPIEndpointPing",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"OCPI Endpoint name\",\n  \"role\": \"CPO\",\n  \"baseUrl\": \"https://xxxxxxx.xx\",\n  \"countryCode\": \"FR\",\n  \"partyId\": \"ABC\",\n  \"localToken\": \"string\",\n  \"token\": \"string\",\n  \"backgroundPatchJob\": true\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7/ping",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"ocpi",
+						"endpoints",
+						"614c3e32b1ef6620c9dfcdc7",
+						"ping"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OCPIEndpointCheckCDRs",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7/cdrs/check",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"ocpi",
+						"endpoints",
+						"614c3e32b1ef6620c9dfcdc7",
+						"cdrs",
+						"check"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OCPIEndpointCheckLocations",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7/locations/check",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"ocpi",
+						"endpoints",
+						"614c3e32b1ef6620c9dfcdc7",
+						"locations",
+						"check"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OCPIEndpointCheckLocations Copy",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7/sessions/check",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"ocpi",
+						"endpoints",
+						"614c3e32b1ef6620c9dfcdc7",
+						"sessions",
+						"check"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OCPIEndpointPullCDRs",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7/cdrs/pull",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"ocpi",
+						"endpoints",
+						"614c3e32b1ef6620c9dfcdc7",
+						"cdrs",
+						"pull"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OCPIEndpointPullLocations",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7/locations/pull",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"ocpi",
+						"endpoints",
+						"614c3e32b1ef6620c9dfcdc7",
+						"locations",
+						"pull"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OCPIEndpointPullSessions",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7/sessions/pull",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"ocpi",
+						"endpoints",
+						"614c3e32b1ef6620c9dfcdc7",
+						"sessions",
+						"pull"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OCPIEndpointPullTokens",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7/tokens/pull",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"ocpi",
+						"endpoints",
+						"614c3e32b1ef6620c9dfcdc7",
+						"tokens",
+						"pull"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OCPIEndpointPushEvsesStatuses",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7/evses/statuses/send",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"ocpi",
+						"endpoints",
+						"614c3e32b1ef6620c9dfcdc7",
+						"evses",
+						"statuses",
+						"send"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OCPIEndpointPushTokens",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7/tokens/send",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"ocpi",
+						"endpoints",
+						"614c3e32b1ef6620c9dfcdc7",
+						"tokens",
+						"send"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OCPIEndpointRegister",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7/register",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"ocpi",
+						"endpoints",
+						"614c3e32b1ef6620c9dfcdc7",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OCPIEndpointUnregister",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7/unregister",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"ocpi",
+						"endpoints",
+						"614c3e32b1ef6620c9dfcdc7",
+						"unregister"
 					]
 				}
 			},
@@ -4512,44 +8015,6 @@
 			"response": []
 		},
 		{
-			"name": "FE-CompanyUpdate",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"id\": \"5abeba504bae1457eb565e31\",\r\n  \"name\": \"New Name\"\r\n}\r\n"
-				},
-				"url": {
-					"raw": "{{base_url}}/client/api/CompanyUpdate",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"client",
-						"api",
-						"CompanyUpdate"
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "FE-ChargingStationUpdate",
 			"request": {
 				"auth": {
@@ -4582,50 +8047,6 @@
 						"client",
 						"api",
 						"ChargingStationUpdate"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "FE-CompanyDelete",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "DELETE",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
-				"url": {
-					"raw": "{{base_url}}/client/api/CompanyDelete?ID=5a7234df6a0b293d15ed02e1",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"client",
-						"api",
-						"CompanyDelete"
-					],
-					"query": [
-						{
-							"key": "ID",
-							"value": "5a7234df6a0b293d15ed02e1"
-						}
 					]
 				}
 			},

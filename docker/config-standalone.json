@@ -14,9 +14,7 @@
     "userTokenKey": "s3A9js135sdf384hgj384ku38lilckjflskdjf2797boeiBhxQDM1GInRith",
     "userTokenLifetimeHours": 12,
     "userDemoTokenLifetimeDays": 365,
-    "socketIO": true,
-    "socketIOListNotificationIntervalSecs": 5,
-    "socketIOSingleNotificationIntervalSecs": 1,
+    "userTechnicalTokenLifetimeDays": 365,
     "passwordWrongNumberOfTrial": 3,
     "passwordBlockedWaitTimeMin": 5,
     "captchaSecretKey": "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe",
@@ -36,10 +34,6 @@
   "OCPIEndpoint": {
     "baseUrl": "http://server-standalone:9090"
   },
-  "WSClient": {
-    "autoReconnectMaxRetries": 10,
-    "autoReconnectTimeout": 60
-  },
   "AsyncTask": {
     "active": true,
     "nbrTasksInParallel": 4
@@ -54,7 +48,6 @@
     "database": "evse",
     "poolSize": 200,
     "replicaSet": "rs0",
-    "monitorDBChange": true,
     "debug": false
   },
   "Email": {

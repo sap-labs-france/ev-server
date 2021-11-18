@@ -19,7 +19,7 @@ import { SiteAreaDataResult } from '../../../../types/DataResult';
 import SiteAreaSecurity from './security/SiteAreaSecurity';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SmartChargingFactory from '../../../../integration/smart-charging/SmartChargingFactory';
-import TenantComponents from '../../../../types/TenantComponents';
+import { TenantComponents } from '../../../../types/Tenant';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
@@ -48,7 +48,7 @@ export default class SiteAreaService {
       await SiteAreaStorage.removeAssetsFromSiteArea(req.tenant, filteredRequest.siteAreaID, assets.map((asset) => asset.id));
     }
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user,
       module: MODULE_NAME,
@@ -82,7 +82,6 @@ export default class SiteAreaService {
           const numberOfConnectedPhase = Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connector.connectorId);
           if (numberOfConnectedPhase !== 1 && action === ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA) {
             throw new AppError({
-              source: Constants.CENTRAL_SERVER,
               action: action,
               errorCode: HTTPError.THREE_PHASE_CHARGER_ON_SINGLE_PHASE_SITE_AREA,
               message: `Error occurred while assigning charging station: '${chargingStation.id}'. Charging Station is not single phased`,
@@ -102,7 +101,7 @@ export default class SiteAreaService {
         req.tenant, filteredRequest.siteAreaID, chargingStations.map((chargingStation) => chargingStation.id));
     }
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user,
       module: MODULE_NAME, method: 'handleAssignChargingStationsToSiteArea',
@@ -127,7 +126,7 @@ export default class SiteAreaService {
     // Delete
     await SiteAreaStorage.deleteSiteArea(req.tenant, siteArea.id);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteSiteArea',
       message: `Site Area '${siteArea.name}' has been deleted successfully`,
@@ -187,7 +186,7 @@ export default class SiteAreaService {
   public static async handleGetSiteAreas(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
-      Action.LIST, Entity.SITE_AREAS, MODULE_NAME, 'handleGetSiteAreas');
+      Action.LIST, Entity.SITE_AREA, MODULE_NAME, 'handleGetSiteAreas');
     // Filter
     const filteredRequest = SiteAreaSecurity.filterSiteAreasRequest(req.query);
     // Check dynamic auth
@@ -219,6 +218,10 @@ export default class SiteAreaService {
       },
       authorizationSiteAreasFilter.projectFields
     );
+    // Assign projected fields
+    if (authorizationSiteAreasFilter.projectFields) {
+      siteAreas.projectFields = authorizationSiteAreasFilter.projectFields;
+    }
     // Add Auth flags
     await AuthorizationService.addSiteAreasAuthorizations(req.tenant, req.user, siteAreas as SiteAreaDataResult,
       authorizationSiteAreasFilter);
@@ -230,13 +233,12 @@ export default class SiteAreaService {
   public static async handleGetSiteAreaConsumption(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
-      Action.LIST, Entity.SITE_AREAS, MODULE_NAME, 'handleGetSiteAreaConsumption');
+      Action.LIST, Entity.SITE_AREA, MODULE_NAME, 'handleGetSiteAreaConsumption');
     // Filter request
     const filteredRequest = SiteAreaSecurity.filterSiteAreaConsumptionRequest(req.query);
     // Check dates
     if (!filteredRequest.StartDate || !filteredRequest.EndDate) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Start date and end date must be provided',
         module: MODULE_NAME, method: 'handleGetSiteAreaConsumption',
@@ -247,7 +249,6 @@ export default class SiteAreaService {
     if (filteredRequest.StartDate && filteredRequest.EndDate &&
         moment(filteredRequest.StartDate).isAfter(moment(filteredRequest.EndDate))) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `The requested start date '${filteredRequest.StartDate.toISOString()}' is after the end date '${filteredRequest.EndDate.toISOString()}' `,
         module: MODULE_NAME, method: 'handleGetSiteAreaConsumption',
@@ -274,7 +275,7 @@ export default class SiteAreaService {
   public static async handleCreateSiteArea(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
-      Action.CREATE, Entity.SITE_AREAS, MODULE_NAME, 'handleCreateSiteArea');
+      Action.CREATE, Entity.SITE_AREA, MODULE_NAME, 'handleCreateSiteArea');
     // Filter request
     const filteredRequest = SiteAreaSecurity.filterSiteAreaCreateRequest(req.body);
     // Check request data is valid
@@ -303,7 +304,7 @@ export default class SiteAreaService {
     } as SiteArea;
     // Save
     newSiteArea.id = await SiteAreaStorage.saveSiteArea(req.tenant, newSiteArea, true);
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleCreateSiteArea',
       message: `Site Area '${newSiteArea.name}' has been created successfully`,
@@ -345,7 +346,6 @@ export default class SiteAreaService {
           const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
           if (numberOfPhases !== 1) {
             throw new AppError({
-              source: Constants.CENTRAL_SERVER,
               action: action,
               errorCode: HTTPError.THREE_PHASE_CHARGER_ON_SINGLE_PHASE_SITE_AREA,
               message: `Error occurred while updating SiteArea.'${chargingStation.id}' is not single phased`,
@@ -385,7 +385,6 @@ export default class SiteAreaService {
           } catch (error) {
             await Logging.logError({
               tenantID: req.user.tenantID,
-              source: Constants.CENTRAL_SERVER,
               module: MODULE_NAME, method: 'handleUpdateSiteArea',
               action: action,
               message: 'An error occurred while trying to call smart charging',
@@ -399,7 +398,7 @@ export default class SiteAreaService {
       }, Constants.DELAY_SMART_CHARGING_EXECUTION_MILLIS);
     }
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateSiteArea',
       message: `Site Area '${siteArea.name}' has been updated successfully`,
@@ -408,7 +407,6 @@ export default class SiteAreaService {
     });
     if (actionsResponse && actionsResponse.inError > 0) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: action,
         errorCode: HTTPError.CLEAR_CHARGING_PROFILE_NOT_SUCCESSFUL,
         message: 'Error occurred while clearing Charging Profiles for Site Area',
