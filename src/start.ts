@@ -11,6 +11,7 @@ import Configuration from './utils/Configuration';
 import Constants from './utils/Constants';
 import I18nManager from './utils/I18nManager';
 import JsonCentralSystemServer from './server/ocpp/json/JsonCentralSystemServer';
+import LocalCarIntegration from './integration/car/local/LocalCarIntegration';
 import Logging from './utils/Logging';
 import MigrationConfiguration from './types/configuration/MigrationConfiguration';
 import MigrationHandler from './migration/MigrationHandler';
@@ -142,6 +143,15 @@ export default class Bootstrap {
       await this.updateChargingStationTemplatesFromFile();
       // Log
       await this.logDuration(startTimeMillis, 'Charging Station templates have been updated successfully');
+
+      // -------------------------------------------------------------------------
+      // Import Local Car Catalogs
+      // -------------------------------------------------------------------------
+      startTimeMillis = await this.logAndGetStartTimeMillis('Local car catalogs are being imported...');
+      // Load and Save the Charging Station templates
+      await LocalCarIntegration.importLocalCarCatalog();
+      // Log
+      await this.logDuration(startTimeMillis, 'Local car catalogs has been imported successfully');
 
       // Keep the server names globally
       if (serverStarted.length === 1) {
