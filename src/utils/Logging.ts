@@ -244,14 +244,14 @@ export default class Logging {
       // Keep date/time
       req['timestamp'] = new Date();
       // Check Tenant
-      if (req['tenant']) {
-        const tenant = req['tenant'] as Tenant;
+      if (req.tenant) {
+        const tenant = req.tenant;
         tenantID = tenant.id;
         tenantSubdomain = tenant.subdomain;
       }
       // Check User
-      if (req['user']) {
-        const user = req['user'] as User;
+      if (req.user) {
+        const user = req.user;
         userID = user.id;
       }
       // Clear Default Tenant
