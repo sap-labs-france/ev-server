@@ -43,7 +43,7 @@ export default class SiteAreaRouter {
 
   private buildRouteGetSiteAreaConsumption(): void {
     this.router.get(`/${ServerRoute.REST_SITE_AREA_CONSUMPTION}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.query.ID = req.params.id;
+      req.query.SiteAreaID = req.params.id;
       await RouterUtils.handleServerAction(SiteAreaService.handleGetSiteAreaConsumption.bind(this), ServerAction.SITE_AREA_CONSUMPTION, req, res, next);
     });
   }

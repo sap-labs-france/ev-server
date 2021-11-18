@@ -385,6 +385,11 @@
       },
       "post": {
         "description": "Create a SiteArea",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -442,6 +447,186 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SiteArea"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "put": {
+        "description": "Update a SiteArea",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/siteAreaID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SiteArea"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Site Area"
+        ],
+        "responses": {
+          "200": {
+            "description": "Site Area is updated with success"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "537": {
+            "description": "Error occurred while clearing Charging Profiles for Site Area"
+          },
+          "539": {
+            "description": "One of the charging stations is not single phased"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "delete": {
+        "description": "Delete a SiteArea",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/siteAreaID"
+          }
+        ],
+        "tags": [
+          "Site Area"
+        ],
+        "responses": {
+          "200": {
+            "description": "Site Area is deleted with success"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/site-areas/{id}/consumptions": {
+      "get": {
+        "description": "Retrieve Site Area consumptions",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/siteAreaID"
+          },
+          {
+            "in": "query",
+            "name": "StartDateTime",
+            "description": "Start Date (ISO format)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "EndDateTime",
+            "description": "End Date (ISO format)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Site Area"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return the site area's consumption",
+            "content": {
+              "application/json": {
+                "example": {
+                  "accessControl": true,
+                  "address": {
+                    "address1": "805 av. du Docteur Maurice Donat",
+                    "address2": "string",
+                    "postalCode": "06250",
+                    "city": "Mougins",
+                    "department": "Alpes Maritimes",
+                    "region": "PACA",
+                    "country": "France",
+                    "coordinates": [
+                      43,
+                      7
+                    ]
+                  },
+                  "createdBy": null,
+                  "issuer": true,
+                  "lastChangedBy": null,
+                  "maximumPower": 88320,
+                  "name": "###",
+                  "numberOfPhases": 3,
+                  "siteID": "###",
+                  "smartCharging": false,
+                  "voltage": 0,
+                  "id": "###",
+                  "values": [
+                    {
+                      "AssetConsumptionWatts": 0,
+                      "AssetConsumptionAmps": 0,
+                      "AssetProductionWatts": 0,
+                      "AssetProductionAmps": 0,
+                      "ChargingStationConsumptionWatts": 9000,
+                      "ChargingStationConsumptionAmps": 39.130434782608695,
+                      "NetConsumptionWatts": 9000,
+                      "NetConsumptionAmps": 39.130434782608695,
+                      "limitWatts": 88320,
+                      "limitAmps": null,
+                      "startedAt": "2020-01-02T11:00:00.000Z",
+                      "endedAt": "2020-01-02T11:00:00.000Z"
+                    }
+                  ]
                 }
               }
             }
@@ -10840,20 +11025,24 @@
         }
       },
       "LastChangedBy": {
-        "type": "string"
+        "type": "string",
+        "readOnly": true
       },
       "LastChangedOn": {
         "type": "string",
         "format": "date-time",
-        "example": "2020-07-22T17:02:42.036Z"
+        "example": "2020-07-22T17:02:42.036Z",
+        "readOnly": true
       },
       "CreatedBy": {
-        "type": "string"
+        "type": "string",
+        "readOnly": true
       },
       "CreatedOn": {
         "type": "string",
         "format": "date-time",
-        "example": "2020-07-22T17:02:42.036Z"
+        "example": "2020-07-22T17:02:42.036Z",
+        "readOnly": true
       },
       "ChargingStation": {
         "type": "object",
@@ -11019,7 +11208,11 @@
           },
           "currentInactivityStatus": {
             "type": "string",
-            "enum": ["E", "I", "W"],
+            "enum": [
+              "E",
+              "I",
+              "W"
+            ],
             "readOnly": true
           },
           "currentTotalConsumptionWh": {
