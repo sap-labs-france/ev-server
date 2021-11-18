@@ -89,8 +89,7 @@ export default class PricingEngine {
 
   private static async fetchPricingDefinitions4Entity(tenant: Tenant, entityID: string): Promise<PricingDefinition[]> {
     if (entityID) {
-      const entityIDs = [ entityID ];
-      const pricingModelResults = await PricingStorage.getPricingDefinitions(tenant, { entityIDs }, {
+      const pricingModelResults = await PricingStorage.getPricingDefinitions(tenant, { entityID }, {
         limit: Constants.DB_RECORD_COUNT_NO_LIMIT, skip: 0, sort: { createdOn: -1 }
       });
       if (pricingModelResults.count > 0) {
