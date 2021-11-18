@@ -22,6 +22,8 @@ export default class SiteAreaRouter {
     this.buildRouteGetSiteAreaImage();
     this.buildRouteAssignChargingStationsToSiteArea();
     this.buildRouteRemoveChargingStationsFromSiteArea();
+    this.buildRouteAssignAssetsToSiteArea();
+    this.buildRouteRemoveAssetsToSiteArea();
     return this.router;
   }
 
@@ -66,7 +68,7 @@ export default class SiteAreaRouter {
   }
 
   private buildRouteGetSiteAreaImage(): void {
-    this.router.get(`/${ServerRoute.REST_SITE_AREA}`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.get(`/${ServerRoute.REST_SITE_AREA_IMAGE}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
       await RouterUtils.handleServerAction(SiteAreaService.handleGetSiteAreaImage.bind(this), ServerAction.SITE_AREA_IMAGE, req, res, next);
     });
@@ -83,6 +85,20 @@ export default class SiteAreaRouter {
     this.router.put(`/${ServerRoute.REST_SITE_AREA_REMOVE_CHARGING_STATIONS}`, async (req: Request, res: Response, next: NextFunction) => {
       req.body.siteAreaID = req.params.id;
       await RouterUtils.handleServerAction(SiteAreaService.handleAssignChargingStationsToSiteArea.bind(this), ServerAction.REMOVE_CHARGING_STATIONS_FROM_SITE_AREA, req, res, next);
+    });
+  }
+
+  private buildRouteAssignAssetsToSiteArea(): void {
+    this.router.put(`/${ServerRoute.REST_SITE_AREA_ASSIGN_ASSETS}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.body.siteAreaID = req.params.id;
+      await RouterUtils.handleServerAction(SiteAreaService.handleAssignAssetsToSiteArea.bind(this), ServerAction.ADD_ASSET_TO_SITE_AREA, req, res, next);
+    });
+  }
+
+  private buildRouteRemoveAssetsToSiteArea(): void {
+    this.router.put(`/${ServerRoute.REST_SITE_AREA_REMOVE_ASSETS}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.body.siteAreaID = req.params.id;
+      await RouterUtils.handleServerAction(SiteAreaService.handleAssignAssetsToSiteArea.bind(this), ServerAction.REMOVE_ASSET_TO_SITE_AREA, req, res, next);
     });
   }
 }

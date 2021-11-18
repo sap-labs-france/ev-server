@@ -1,5 +1,6 @@
 import AuthenticatedBaseApi from './utils/AuthenticatedBaseApi';
 import CrudApi from './utils/CrudApi';
+import { Server } from 'http';
 import { ServerRoute } from '../../../src/types/Server';
 import TestConstants from './utils/TestConstants';
 
@@ -22,9 +23,8 @@ export default class SiteAreaApi extends CrudApi {
     if (data.chargeBoxIDs) {
       // Assign Chargers to Site
       await super.create({
-        siteAreaID: siteArea.data.id,
         chargingStationIDs: data.chargeBoxIDs
-      }, '/client/api/AddChargingStationsToSiteArea');
+      }, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREA_ASSIGN_CHARGING_STATIONS, { id: siteArea.data.id }));
     }
     return siteArea;
   }
@@ -37,36 +37,26 @@ export default class SiteAreaApi extends CrudApi {
     return super.delete(id, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREA, { id }));
   }
 
-  public async readConsumption(SiteAreaId: string, StartDate: Date, EndDate: Date) {
+  public async readConsumption(SiteAreaID: string, StartDate: Date, EndDate: Date) {
     return super.read({
       StartDate: StartDate,
       EndDate: EndDate
-    }, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREA_CONSUMPTION, { id: SiteAreaId }));
+    }, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREA_CONSUMPTION, { id: SiteAreaID }));
   }
 
-  public async assignChargingStations(siteAreaId: string, ChargingStationIDs: string[]) {
-    return super.update({
-      chargingStationIDs: ChargingStationIDs
-    }, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREA_ASSIGN_CHARGING_STATIONS, { id: siteAreaId }));
+  public async assignChargingStations(siteAreaID: string, chargingStationIDs: string[]) {
+    return super.update({ chargingStationIDs }, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREA_ASSIGN_CHARGING_STATIONS, { id: siteAreaID }));
   }
 
-  public async removeChargingStations(siteAreaId: string, ChargingStationIDs: string[]) {
-    return super.update({
-      chargingStationIDs: ChargingStationIDs
-    }, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREA_REMOVE_CHARGING_STATIONS, { id: siteAreaId }));
+  public async removeChargingStations(siteAreaID: string, chargingStationIDs: string[]) {
+    return super.update({ chargingStationIDs }, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREA_REMOVE_CHARGING_STATIONS, { id: siteAreaID }));
   }
 
-  public async assignAssets(SiteAreaId, ChargingStationIDs) {
-    return super.create({
-      siteAreaID: SiteAreaId,
-      assetIDs: ChargingStationIDs
-    }, '/client/api/AddAssetsToSiteArea');
+  public async assignAssets(siteAreaID: string, assetIDs: string[]) {
+    return super.update({ assetIDs }, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREA_ASSIGN_ASSETS, { id: siteAreaID }));
   }
 
-  public async removeAssets(SiteAreaId, ChargingStationIDs) {
-    return super.create({
-      siteAreaID: SiteAreaId,
-      assetIDs: ChargingStationIDs
-    }, '/client/api/RemoveAssetsFromSiteArea');
+  public async removeAssets(siteAreaID: string, assetIDs) {
+    return super.update({ assetIDs }, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREA_REMOVE_ASSETS, { id: siteAreaID }));
   }
 }
