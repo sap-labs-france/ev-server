@@ -19,20 +19,20 @@ export default class SiteAreaRouter {
     return this.router;
   }
 
-  protected buildRouteSiteAreas(): void {
+  private buildRouteSiteAreas(): void {
     this.router.get(`/${ServerRoute.REST_SITE_AREAS}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(SiteAreaService.handleGetSiteAreas.bind(this), ServerAction.SITE_AREAS, req, res, next);
     });
   }
 
-  protected buildRouteSiteArea(): void {
+  private buildRouteSiteArea(): void {
     this.router.get(`/${ServerRoute.REST_SITE_AREA}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
       await RouterUtils.handleServerAction(SiteAreaService.handleGetSiteArea.bind(this), ServerAction.SITE_AREA, req, res, next);
     });
   }
 
-  protected buildRouteCreateSiteArea(): void {
+  private buildRouteCreateSiteArea(): void {
     this.router.post(`/${ServerRoute.REST_SITE_AREAS}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(SiteAreaService.handleCreateSiteArea.bind(this), ServerAction.SITE_AREA_CREATE, req, res, next);
     });
