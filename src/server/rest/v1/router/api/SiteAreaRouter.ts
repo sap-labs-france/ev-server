@@ -19,6 +19,9 @@ export default class SiteAreaRouter {
     this.buildRouteGetSiteAreaConsumption();
     this.buildRouteUpdateSiteArea();
     this.buildRouteDeleteSiteArea();
+    this.buildRouteGetSiteAreaImage();
+    this.buildRouteAssignChargingStationsToSiteArea();
+    this.buildRouteRemoveChargingStationsFromSiteArea();
     return this.router;
   }
 
@@ -59,6 +62,27 @@ export default class SiteAreaRouter {
     this.router.delete(`/${ServerRoute.REST_SITE_AREA}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
       await RouterUtils.handleServerAction(SiteAreaService.handleDeleteSiteArea.bind(this), ServerAction.SITE_AREA_DELETE, req, res, next);
+    });
+  }
+
+  private buildRouteGetSiteAreaImage(): void {
+    this.router.get(`/${ServerRoute.REST_SITE_AREA}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = req.params.id;
+      await RouterUtils.handleServerAction(SiteAreaService.handleGetSiteAreaImage.bind(this), ServerAction.SITE_AREA_IMAGE, req, res, next);
+    });
+  }
+
+  private buildRouteAssignChargingStationsToSiteArea(): void {
+    this.router.put(`/${ServerRoute.REST_SITE_AREA_ASSIGN_CHARGING_STATIONS}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.body.siteAreaID = req.params.id;
+      await RouterUtils.handleServerAction(SiteAreaService.handleAssignChargingStationsToSiteArea.bind(this), ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA, req, res, next);
+    });
+  }
+
+  private buildRouteRemoveChargingStationsFromSiteArea(): void {
+    this.router.put(`/${ServerRoute.REST_SITE_AREA_REMOVE_CHARGING_STATIONS}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.body.siteAreaID = req.params.id;
+      await RouterUtils.handleServerAction(SiteAreaService.handleAssignChargingStationsToSiteArea.bind(this), ServerAction.REMOVE_CHARGING_STATIONS_FROM_SITE_AREA, req, res, next);
     });
   }
 }

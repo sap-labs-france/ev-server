@@ -44,18 +44,16 @@ export default class SiteAreaApi extends CrudApi {
     }, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREA_CONSUMPTION, { id: SiteAreaId }));
   }
 
-  public async assignChargingStations(SiteAreaId, ChargingStationIDs) {
-    return super.create({
-      siteAreaID: SiteAreaId,
+  public async assignChargingStations(siteAreaId: string, ChargingStationIDs: string[]) {
+    return super.update({
       chargingStationIDs: ChargingStationIDs
-    }, '/client/api/AddChargingStationsToSiteArea');
+    }, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREA_ASSIGN_CHARGING_STATIONS, { id: siteAreaId }));
   }
 
-  public async removeChargingStations(SiteAreaId, ChargingStationIDs) {
-    return super.create({
-      siteAreaID: SiteAreaId,
+  public async removeChargingStations(siteAreaId: string, ChargingStationIDs: string[]) {
+    return super.update({
       chargingStationIDs: ChargingStationIDs
-    }, '/client/api/RemoveChargingStationsFromSiteArea');
+    }, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREA_REMOVE_CHARGING_STATIONS, { id: siteAreaId }));
   }
 
   public async assignAssets(SiteAreaId, ChargingStationIDs) {

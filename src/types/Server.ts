@@ -604,6 +604,8 @@ export enum ServerRoute {
   REST_SITE_AREA = 'site-areas/:id',
   REST_SITE_AREA_CONSUMPTION = 'site-areas/:id/consumptions',
   REST_SITE_AREA_IMAGE = 'site-areas/:id/image',
+  REST_SITE_AREA_ASSIGN_CHARGING_STATIONS = 'site-areas/:id/charging-stations/assign',
+  REST_SITE_AREA_REMOVE_CHARGING_STATIONS = 'site-areas/:id/charging-stations/unassign',
 
   // BILLING URLs for CRUD operations on PAYMENT METHODS
   REST_BILLING_PAYMENT_METHODS = 'users/:userID/payment-methods',
