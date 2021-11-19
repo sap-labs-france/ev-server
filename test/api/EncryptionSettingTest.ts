@@ -39,14 +39,14 @@ describe('Encryption Setting', function() {
   describe('Success cases (utall)', () => {
     it('Check that updating the refund/concur setting works with sensitive data encryption', async () => {
       // Retrieve the setting id
-      let read = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, TestConstants.DEFAULT_PAGING);
+      let read = await testData.centralService.settingApi.readByIdentifier({ 'Identifier': 'refund' });
       expect(read.status).to.equal(StatusCodes.OK);
-      expect(read.data.count).to.equal(1);
+      expect(read.data).to.not.be.null;
       // Store the old setting
-      oldSetting = read.data.result[0];
+      oldSetting = read.data;
       // Update the setting
       testData.data = JSON.parse(`{
-          "id":"${read.data.result[0].id}",
+          "id":"${read.data.id}",
           "identifier":"refund",
           "sensitiveData":["content.concur.clientSecret"],
           "content":{
@@ -66,23 +66,23 @@ describe('Encryption Setting', function() {
       const update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
       expect(update.status).to.equal(StatusCodes.OK);
       // Retrieve the updated setting and check
-      read = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, TestConstants.DEFAULT_PAGING);
+      read = await testData.centralService.settingApi.readByIdentifier({ 'Identifier': 'refund' });
       expect(read.status).to.equal(StatusCodes.OK);
-      expect(read.data.count).to.equal(1);
-      expect(read.data.result[0].sensitiveData[0]).to.equal('content.concur.clientSecret');
-      expect(read.data.result[0].content.concur.clientSecret).to.not.equal(FAKE_WORD);
+      expect(read.data).to.not.be.null;
+      expect(read.data.sensitiveData[0]).to.equal('content.concur.clientSecret');
+      expect(read.data.content.concur.clientSecret).to.not.equal(FAKE_WORD);
     });
 
     it('Check that updating the pricing/convergent charging setting works with sensitive data encryption', async () => {
       // Retrieve the setting id
-      let read = await testData.centralService.settingApi.readAll({ 'Identifier': 'pricing' }, TestConstants.DEFAULT_PAGING);
+      let read = await testData.centralService.settingApi.readByIdentifier({ 'Identifier': 'pricing' });
       expect(read.status).to.equal(StatusCodes.OK);
-      expect(read.data.count).to.equal(1);
+      expect(read.data).to.not.be.null;
       // Store the old setting
-      oldSetting = read.data.result[0];
+      oldSetting = read.data;
       // Update the setting
       testData.data = JSON.parse(`{
-            "id":"${read.data.result[0].id}",
+            "id":"${read.data.id}",
             "identifier":"pricing",
             "sensitiveData":["content.convergentCharging.password"],
             "content":{
@@ -98,14 +98,14 @@ describe('Encryption Setting', function() {
       const update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
       expect(update.status).to.equal(StatusCodes.OK);
       // Retrieve the updated setting and check
-      read = await testData.centralService.settingApi.readAll({ 'Identifier': 'pricing' }, TestConstants.DEFAULT_PAGING);
+      read = await testData.centralService.settingApi.readByIdentifier({ 'Identifier': 'pricing' });
       expect(read.status).to.equal(StatusCodes.OK);
-      expect(read.data.count).to.equal(1);
-      expect(read.data.result[0].sensitiveData[0]).to.equal('content.convergentCharging.password');
-      expect(read.data.result[0].content.convergentCharging.password).to.not.equal(FAKE_WORD);
+      expect(read.data).to.not.be.null;
+      expect(read.data.sensitiveData[0]).to.equal('content.convergentCharging.password');
+      expect(read.data.content.convergentCharging.password).to.not.equal(FAKE_WORD);
       // Housekeeping set the pricing setting back to simple pricing
       testData.data = JSON.parse(`{
-        "id":"${read.data.result[0].id}",
+        "id":"${read.data.id}",
         "identifier": "pricing",
         "sensitiveData":[],
         "content":{

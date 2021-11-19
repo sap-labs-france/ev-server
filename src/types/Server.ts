@@ -601,6 +601,8 @@ export enum ServerRoute {
   REST_OICP_ENDPOINT_REGISTER = 'oicp/endpoints/:id/register',
   REST_OICP_ENDPOINT_UNREGISTER = 'oicp/endpoints/:id/unregister',
 
+  REST_SETTINGS = 'settings',
+  REST_SETTING = 'settings/:id',
 
   // BILLING URLs for CRUD operations on PAYMENT METHODS
   REST_BILLING_PAYMENT_METHODS = 'users/:userID/payment-methods',
