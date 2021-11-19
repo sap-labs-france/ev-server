@@ -1,0 +1,23 @@
+{
+  "$id": "site-area-get",
+  "title": "Get Site Area Request",
+  "type": "object",
+  "properties": {
+    "SiteAreaID": {
+      "$ref": "common#/definitions/id"
+    },
+    "StartDate": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "EndDate": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "SiteAreaID",
+    "StartDate",
+    "EndDate"
+  ]
+}

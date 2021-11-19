@@ -1,0 +1,38 @@
+{
+  "$id": "site-area-create",
+  "title": "Create Site Area Request",
+  "type": "object",
+  "properties": {
+    "name": {
+      "$ref": "site-area#/definitions/name"
+    },
+    "address": {
+      "$ref": "site-area#/definitions/address"
+    },
+    "maximumPower": {
+      "$ref": "site-area#/definitions/maximumPower"
+    },
+    "numberOfPhases": {
+      "$ref": "site-area#/definitions/numberOfPhases"
+    },
+    "voltage": {
+      "$ref": "site-area#/definitions/voltage"
+    },
+    "smartCharging": {
+      "$ref": "site-area#/definitions/smartCharging"
+    },
+    "accessControl": {
+      "$ref": "site-area#/definitions/accessControl"
+    },
+    "siteID": {
+      "$ref": "site-area#/definitions/siteID"
+    },
+    "image": {
+      "$ref": "site-area#/definitions/image"
+    }
+  },
+  "required": [
+    "name",
+    "siteID"
+  ]
+}

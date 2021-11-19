@@ -34,7 +34,7 @@ export default class SiteAreaService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.UPDATE, Entity.ASSET, MODULE_NAME, 'handleAssignAssetsToSiteArea');
     // Filter request
-    const filteredRequest = SiteAreaSecurity.filterAssignAssetsToSiteAreaRequest(req.body);
+    const filteredRequest = SiteAreaValidator.getInstance().validateSiteAreaAssignAssetsReq(req.body);
     // Check and Get Site Area
     const authAction = action === ServerAction.ADD_ASSET_TO_SITE_AREA ? Action.ASSIGN_ASSETS_TO_SITE_AREA : Action.UNASSIGN_ASSETS_TO_SITE_AREA;
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
@@ -67,7 +67,7 @@ export default class SiteAreaService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.CHARGING_STATION, MODULE_NAME, 'handleAssignChargingStationsToSiteArea');
     // Filter request
-    const filteredRequest = SiteAreaSecurity.filterAssignChargingStationsToSiteAreaRequest(req.body);
+    const filteredRequest = SiteAreaValidator.getInstance().validateSiteAreaAssignChargingStationsReq(req.body);
     // Check and Get Site Area
     const authAction = action === ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA ? Action.ASSIGN_CHARGING_STATIONS_TO_SITE_AREA : Action.UNASSIGN_CHARGING_STATIONS_TO_SITE_AREA;
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
@@ -241,17 +241,8 @@ export default class SiteAreaService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.LIST, Entity.SITE_AREA, MODULE_NAME, 'handleGetSiteAreaConsumption');
     // Filter request
-    const filteredRequest = SiteAreaSecurity.filterSiteAreaConsumptionRequest(req.query);
+    const filteredRequest = SiteAreaValidator.getInstance().validateSiteAreaGetConsumptionReq(req.query);
     // Check dates
-    if (!filteredRequest.StartDate || !filteredRequest.EndDate) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Start date and end date must be provided',
-        module: MODULE_NAME, method: 'handleGetSiteAreaConsumption',
-        user: req.user,
-        action: action
-      });
-    }
     if (filteredRequest.StartDate && filteredRequest.EndDate &&
       moment(filteredRequest.StartDate).isAfter(moment(filteredRequest.EndDate))) {
       throw new AppError({
@@ -283,12 +274,12 @@ export default class SiteAreaService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.CREATE, Entity.SITE_AREA, MODULE_NAME, 'handleCreateSiteArea');
     // Filter request
-    const filteredRequest = SiteAreaSecurity.filterSiteAreaCreateRequest(req.body);
+    const filteredRequest = SiteAreaValidator.getInstance().validateSiteAreaCreateReq(req.body);
     // Check request data is valid
     UtilsService.checkIfSiteAreaValid(filteredRequest, req);
     // Check auth
     const authorizationFilters = await AuthorizationService.checkAndGetSiteAreaAuthorizations(req.tenant, req.user,
-      {}, Action.CREATE, filteredRequest as SiteArea);
+      {}, Action.CREATE, filteredRequest);
     if (!authorizationFilters.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -327,12 +318,12 @@ export default class SiteAreaService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE_AREA, MODULE_NAME, 'handleUpdateSiteArea');
     // Filter request
-    const filteredRequest = SiteAreaSecurity.filterSiteAreaUpdateRequest(req.body);
+    const filteredRequest = SiteAreaValidator.getInstance().validateSiteAreaUpdateReq(req.body);
     // Check Mandatory fields
     UtilsService.checkIfSiteAreaValid(filteredRequest, req);
     // Check and Get SiteArea
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
-      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest as SiteArea, {
+      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest, {
         withChargingStations: true,
       }, false, true);
     // Check Site auth
