@@ -24,7 +24,7 @@ import responseHelper from '../helpers/responseHelper';
 chai.use(chaiSubset);
 chai.use(responseHelper);
 
-export default class StripeIntegrationTestData {
+export default class StripeTestHelper {
   // Tenant: utbilling
   public tenantContext: TenantContext;
   // User Service for action requiring admin permissions (e.g.: set/reset stripe settings)

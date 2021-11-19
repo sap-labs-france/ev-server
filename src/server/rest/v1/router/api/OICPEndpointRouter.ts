@@ -20,6 +20,9 @@ export default class OICPEndpointRouter {
     this.buildRouteOicpEndpoints();
     this.buildRouteOicpEndpoint();
     this.buildRouteOicpEndpointUpdate();
+    this.buildRouteOicpEndpointUnregister();
+    this.buildRouteOicpEndpointRegister();
+    this.buildRouteOicpEndpointDelete();
     return this.router;
   }
 
@@ -38,14 +41,14 @@ export default class OICPEndpointRouter {
 
   private buildRouteOicpEndpointSendEvseStatuses(): void {
     this.router.put(`/${ServerRoute.REST_OICP_ENDPOINT_SEND_EVSE_STATUSES}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.body.id = req.params.id;
+      req.params.ID = req.params.id;
       await RouterUtils.handleServerAction(OICPEndpointService.handleSendEVSEStatusesOicpEndpoint.bind(this), ServerAction.OICP_ENDPOINT_SEND_EVSE_STATUSES, req, res, next);
     });
   }
 
   private buildRouteOicpEndpointSendEvses(): void {
     this.router.put(`/${ServerRoute.REST_OICP_ENDPOINT_SEND_EVSES}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.body.id = req.params.id;
+      req.params.ID = req.params.id;
       await RouterUtils.handleServerAction(OICPEndpointService.handleSendEVSEsOicpEndpoint.bind(this), ServerAction.OICP_ENDPOINT_SEND_EVSES, req, res, next);
     });
   }
@@ -67,6 +70,27 @@ export default class OICPEndpointRouter {
     this.router.put(`/${ServerRoute.REST_OICP_ENDPOINT}`, async (req: Request, res: Response, next: NextFunction) => {
       req.body.id = req.params.id;
       await RouterUtils.handleServerAction(OICPEndpointService.handleUpdateOicpEndpoint.bind(this), ServerAction.OICP_ENDPOINT_UPDATE, req, res, next);
+    });
+  }
+
+  private buildRouteOicpEndpointUnregister(): void {
+    this.router.put(`/${ServerRoute.REST_OICP_ENDPOINT_UNREGISTER}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.params.ID = req.params.id;
+      await RouterUtils.handleServerAction(OICPEndpointService.handleUnregisterOicpEndpoint.bind(this), ServerAction.OICP_ENDPOINT_UNREGISTER, req, res, next);
+    });
+  }
+
+  private buildRouteOicpEndpointRegister(): void {
+    this.router.put(`/${ServerRoute.REST_OICP_ENDPOINT_REGISTER}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.params.ID = req.params.id;
+      await RouterUtils.handleServerAction(OICPEndpointService.handleRegisterOicpEndpoint.bind(this), ServerAction.OICP_ENDPOINT_REGISTER, req, res, next);
+    });
+  }
+
+  private buildRouteOicpEndpointDelete(): void {
+    this.router.delete(`/${ServerRoute.REST_OICP_ENDPOINT}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = req.params.id;
+      await RouterUtils.handleServerAction(OICPEndpointService.handleDeleteOicpEndpoint.bind(this), ServerAction.OICP_ENDPOINT_DELETE, req, res, next);
     });
   }
 }
