@@ -30,6 +30,7 @@ export default class SchemaValidator {
   private static companySchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/company/company.json`, 'utf8'));
   private static ocpiEndpointSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/ocpi/ocpi-endpoint.json`, 'utf8'));
   private static pricingDefinitionSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/pricing/pricing-definition.json`, 'utf8'));
+  private static siteAreasSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/site-area/site-area.json`, 'utf8'));
   private readonly ajv: Ajv;
 
   constructor(readonly moduleName: string,
@@ -65,6 +66,7 @@ export default class SchemaValidator {
     this.ajv.addSchema(SchemaValidator.companySchema);
     this.ajv.addSchema(SchemaValidator.ocpiEndpointSchema);
     this.ajv.addSchema(SchemaValidator.pricingDefinitionSchema);
+    this.ajv.addSchema(SchemaValidator.siteAreasSchema);
   }
 
   protected validate(schema: Schema, data: Record<string, unknown>): any {
