@@ -75,7 +75,7 @@ export default class PricingStorage {
   }
 
   public static async getPricingDefinitions(tenant: Tenant,
-      params: { pricingDefinitionIDs?: string[], entityID?: string; entityType?: string; withEntityInformation?: boolean; },
+      params: { pricingDefinitionIDs?: string[], entityType?: string; entityID?: string; withEntityInformation?: boolean; },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<PricingDefinition>> {
     const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
@@ -97,10 +97,10 @@ export default class PricingStorage {
     }
     // Context IDs
     if (!Utils.isNullOrEmptyString(params.entityID)) {
-      if (params.entityType !== PricingEntity.CHARGING_STATION) {
-        filters.entityID = { $in: [DatabaseUtils.convertToObjectID(params.entityID)] };
-      } else {
+      if (params.entityType === PricingEntity.CHARGING_STATION) {
         filters.entityID = { $in: [params.entityID] };
+      } else {
+        filters.entityID = { $in: [DatabaseUtils.convertToObjectID(params.entityID)] };
       }
     }
     // Remove deleted
