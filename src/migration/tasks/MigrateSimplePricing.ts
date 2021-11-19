@@ -35,7 +35,7 @@ export default class SimplePricingMigrationTask extends MigrationTask {
   }
 
   getVersion(): string {
-    return '2.0';
+    return '1.0';
   }
 
   getName(): string {
