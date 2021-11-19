@@ -1,19 +1,19 @@
-import { CarCatalog, CarCatalogChargeAlternativeTable, CarCatalogChargeOptionTable, CarCatalogConverter } from '../../../types/Car';
+import { CarCatalog, CarCatalogChargeAlternativeTable, CarCatalogChargeOptionTable, CarCatalogConverter } from '../types/Car';
 
-import CarStorage from '../../../storage/mongodb/CarStorage';
-import Constants from '../../../utils/Constants';
+import CarStorage from '../storage/mongodb/CarStorage';
+import Constants from '../utils/Constants';
 import Jimp from 'jimp';
-import Logging from '../../../utils/Logging';
-import { ServerAction } from '../../../types/Server';
-import Utils from '../../../utils/Utils';
-import { Voltage } from '../../../types/ChargingStation';
+import Logging from '../utils/Logging';
+import { ServerAction } from '../types/Server';
+import Utils from '../utils/Utils';
+import { Voltage } from '../types/ChargingStation';
 import fs from 'fs';
-import global from '../../../types/GlobalType';
+import global from '../types/GlobalType';
 
 const MODULE_NAME = 'LocalCarIntegration';
 
-export default class LocalCarIntegration {
-  public static async importLocalCarCatalog() : Promise<void> {
+export default class LocalCarCatalogBootstrap {
+  public static async uploadLocalCarCatalogsFromFile() : Promise<void> {
     let created = 0;
     try {
       const cars = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/cars/cars-definition.json`, 'utf8'));
