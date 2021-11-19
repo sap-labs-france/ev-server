@@ -9,6 +9,7 @@ import Logging from '../../utils/Logging';
 import { ObjectId } from 'mongodb';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
+import { filter } from 'bluebird';
 
 const MODULE_NAME = 'PricingStorage';
 
@@ -63,18 +64,18 @@ export default class PricingStorage {
   }
 
   public static async getPricingDefinition(tenant: Tenant, id: string,
-      params: { entityIDs?: string[]; entityTypes?: string[]; withEntityInformation?: boolean } = {}, projectFields?: string[]): Promise<PricingDefinition> {
+      params: { entityID?: string; entityType?: string; withEntityInformation?: boolean } = {}, projectFields?: string[]): Promise<PricingDefinition> {
     const pricingDefinitionMDB = await PricingStorage.getPricingDefinitions(tenant, {
       pricingDefinitionIDs: [id],
-      entityIDs: params.entityIDs,
-      entityTypes: params.entityTypes,
+      entityID: params.entityID,
+      entityType: params.entityType,
       withEntityInformation: params.withEntityInformation
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return pricingDefinitionMDB.count === 1 ? pricingDefinitionMDB.result[0] : null;
   }
 
   public static async getPricingDefinitions(tenant: Tenant,
-      params: { pricingDefinitionIDs?: string[], entityIDs?: string[]; entityTypes?: string[]; withEntityInformation?: boolean; },
+      params: { pricingDefinitionIDs?: string[], entityType?: string; entityID?: string; withEntityInformation?: boolean; },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<PricingDefinition>> {
     const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
@@ -95,8 +96,12 @@ export default class PricingStorage {
       };
     }
     // Context IDs
-    if (!Utils.isEmptyArray(params.entityIDs)) {
-      filters.entityID = { $in: params.entityIDs };
+    if (!Utils.isNullOrEmptyString(params.entityID)) {
+      if (params.entityType === PricingEntity.CHARGING_STATION) {
+        filters.entityID = { $in: [params.entityID] };
+      } else {
+        filters.entityID = { $in: [DatabaseUtils.convertToObjectID(params.entityID)] };
+      }
     }
     // Remove deleted
     filters.deleted = { '$ne': true };
