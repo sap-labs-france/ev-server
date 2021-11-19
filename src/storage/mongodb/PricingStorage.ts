@@ -9,7 +9,6 @@ import Logging from '../../utils/Logging';
 import { ObjectId } from 'mongodb';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
-import { filter } from 'bluebird';
 
 const MODULE_NAME = 'PricingStorage';
 
