@@ -118,7 +118,7 @@ export default class PricingStorage {
     }
     // Count Records
     const pricingDefinitionsCountMDB = await global.database.getCollection<any>(tenant.id, 'pricingdefinitions')
-      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
+      .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
@@ -191,9 +191,7 @@ export default class PricingStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const pricingDefinitions = await global.database.getCollection<PricingDefinition>(tenant.id, 'pricingdefinitions')
-      .aggregate<PricingDefinition>(aggregation, {
-      allowDiskUse: true
-    })
+      .aggregate<PricingDefinition>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getPricingDefinitions', uniqueTimerID, pricingDefinitions);
