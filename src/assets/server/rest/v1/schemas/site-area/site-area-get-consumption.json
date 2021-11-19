@@ -1,6 +1,6 @@
 {
-  "$id": "site-area-get",
-  "title": "Get Site Area Request",
+  "$id": "site-area-get-consumption",
+  "title": "Get Site Area Consumption Request",
   "type": "object",
   "properties": {
     "SiteAreaID": {
