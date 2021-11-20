@@ -93,7 +93,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
           await wsConnection.onPong(ocppMessage);
         }
       }
-    }).any('/health-check', (res, req) => {
+    }).any('/health-check', (res: HttpResponse) => {
       res.end('OK');
     }).listen(this.centralSystemConfig.port, (token) => {
       if (token) {
@@ -104,11 +104,11 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     });
   }
 
-  public getChargingStationClient(tenant: Tenant, chargingStation: ChargingStation): ChargingStationClient {
+  public async getChargingStationClient(tenant: Tenant, chargingStation: ChargingStation): Promise<ChargingStationClient> {
     // Get the Json Web Socket
     const jsonWebSocket = this.jsonWSConnections.get(`${tenant.id}~${chargingStation.id}`);
     if (!jsonWebSocket) {
-      void Logging.logWarning({
+      await Logging.logWarning({
         tenantID: tenant.id,
         siteID: chargingStation.siteID,
         siteAreaID: chargingStation.siteAreaID,
