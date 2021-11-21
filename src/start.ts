@@ -133,23 +133,26 @@ export default class Bootstrap {
       // Log
       await this.logDuration(startTimeMillis, 'Async Task manager has been started successfully');
 
-      // -------------------------------------------------------------------------
-      // Update Charging Station Templates
-      // -------------------------------------------------------------------------
-      startTimeMillis = await this.logAndGetStartTimeMillis('Charging Station templates is being updated...');
-      // Load and Save the Charging Station templates
-      await ChargingStationTemplateBootstrap.uploadChargingStationTemplatesFromFile();
-      // Log
-      await this.logDuration(startTimeMillis, 'Charging Station templates have been updated successfully');
+      // Update of manually uploaded data
+      if (Bootstrap.migrationConfig.active) {
+        // -------------------------------------------------------------------------
+        // Update Charging Station Templates
+        // -------------------------------------------------------------------------
+        startTimeMillis = await this.logAndGetStartTimeMillis('Charging Station templates is being updated...');
+        // Load and Save the Charging Station templates
+        await ChargingStationTemplateBootstrap.uploadChargingStationTemplatesFromFile();
+        // Log
+        await this.logDuration(startTimeMillis, 'Charging Station templates have been updated successfully');
 
-      // -------------------------------------------------------------------------
-      // Import Local Car Catalogs
-      // -------------------------------------------------------------------------
-      startTimeMillis = await this.logAndGetStartTimeMillis('Local car catalogs are being imported...');
-      // Load and Save the Charging Station templates
-      await LocalCarCatalogBootstrap.uploadLocalCarCatalogsFromFile();
-      // Log
-      await this.logDuration(startTimeMillis, 'Local car catalogs has been imported successfully');
+        // -------------------------------------------------------------------------
+        // Import Local Car Catalogs
+        // -------------------------------------------------------------------------
+        startTimeMillis = await this.logAndGetStartTimeMillis('Local car catalogs are being imported...');
+        // Load and Save the Charging Station templates
+        await LocalCarCatalogBootstrap.uploadLocalCarCatalogsFromFile();
+        // Log
+        await this.logDuration(startTimeMillis, 'Local car catalogs has been imported successfully');
+      }
 
       // Keep the server names globally
       if (serverStarted.length === 1) {
