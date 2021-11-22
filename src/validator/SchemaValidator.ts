@@ -30,6 +30,7 @@ export default class SchemaValidator {
   private static companySchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/company/company.json`, 'utf8'));
   private static ocpiEndpointSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/ocpi/ocpi-endpoint.json`, 'utf8'));
   private static pricingDefinitionSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/pricing/pricing-definition.json`, 'utf8'));
+  private static oicpEndpointSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/oicp/oicp-endpoint.json`, 'utf8'));
   private static settingSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/setting/setting.json`, 'utf8'));
   private readonly ajv: Ajv;
 
@@ -66,16 +67,19 @@ export default class SchemaValidator {
     this.ajv.addSchema(SchemaValidator.companySchema);
     this.ajv.addSchema(SchemaValidator.ocpiEndpointSchema);
     this.ajv.addSchema(SchemaValidator.pricingDefinitionSchema);
+    this.ajv.addSchema(SchemaValidator.oicpEndpointSchema);
     this.ajv.addSchema(SchemaValidator.settingSchema);
   }
 
   protected validate(schema: Schema, data: Record<string, unknown>): any {
     let fnValidate: ValidateFunction<unknown>;
     if (!schema.$id) {
-      this.logConsoleError('====================================');
-      this.logConsoleError('Missing schema ID:');
-      this.logConsoleError(JSON.stringify(schema));
-      this.logConsoleError('====================================');
+      if (this.isDevelopmentEnv()) {
+        this.logConsoleError('====================================');
+        this.logConsoleError('Missing schema ID:');
+        this.logConsoleError(JSON.stringify(schema));
+        this.logConsoleError('====================================');
+      }
       // Not cached: Compile schema
       fnValidate = this.ajv.compile(schema);
     } else {
