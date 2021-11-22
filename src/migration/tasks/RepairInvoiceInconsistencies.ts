@@ -1,4 +1,5 @@
 import BillingFactory from '../../integration/billing/BillingFactory';
+import BillingStorage from '../../storage/mongodb/BillingStorage';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
@@ -7,9 +8,7 @@ import StripeBillingIntegration from '../../integration/billing/stripe/StripeBil
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
-import moment from 'moment';
-import BillingStorage from '../../storage/mongodb/BillingStorage';
-import { BillingInvoice } from '../../types/Billing';
+// import moment from 'moment';
 
 const MODULE_NAME = 'RepairInvoiceInconsistencies';
 
@@ -22,20 +21,31 @@ export default class RepairInvoiceInconsistencies extends MigrationTask {
   }
 
   async migrateTenant(tenant: Tenant): Promise<void> {
-    const billingImpl = await BillingFactory.getBillingImpl(tenant);
-    if (billingImpl && billingImpl instanceof StripeBillingIntegration) {
-      await this.repairInvoices(tenant, billingImpl);
-      await Logging.logDebug({
-        tenantID: Constants.DEFAULT_TENANT,
-        module: MODULE_NAME, method: 'migrateTenant',
-        action: ServerAction.MIGRATION,
-        message: `Invoice consistency has been checked for tenant: ${Utils.buildTenantName(tenant)}`
+    try {
+      const billingImpl = await BillingFactory.getBillingImpl(tenant);
+      if (billingImpl && billingImpl instanceof StripeBillingIntegration) {
+        await this.repairInvoices(tenant, billingImpl);
+        await Logging.logDebug({
+          tenantID: Constants.DEFAULT_TENANT,
+          module: MODULE_NAME, method: 'migrateTenant',
+          action: ServerAction.MIGRATION,
+          message: `Invoice consistency has been checked for tenant: ${Utils.buildTenantName(tenant)}`
+        });
+      }
+    } catch (error) {
+      await Logging.logError({
+        tenantID: tenant.id,
+        action: ServerAction.BILLING_PERFORM_OPERATIONS,
+        module: MODULE_NAME, method: 'repairInvoices',
+        message: `Failed to repair invoice in tenant: ${tenant.subdomain}`,
+        detailedMessages: { error: error.stack }
       });
     }
+
   }
 
   getVersion(): string {
-    return '1.0';
+    return '9.0';
   }
 
   getName(): string {
@@ -50,9 +60,9 @@ export default class RepairInvoiceInconsistencies extends MigrationTask {
     await billingImpl.checkConnection();
     const limit = Constants.BATCH_PAGE_SIZE;
     const filter = {
-      startDateTime: moment().date(0).date(1).startOf('day').toDate() // 1st day of the previous month 00:00:00 (AM)
-    },;
-    const sort: { createdOn: 1 };
+      // startDateTime: moment().date(0).date(1).startOf('day').toDate() // 1st day of the previous month 00:00:00 (AM)
+    };
+    const sort = { createdOn: 1 };
     let skip = 0;
     // eslint-disable-next-line no-constant-condition
     while (true) {
@@ -64,34 +74,34 @@ export default class RepairInvoiceInconsistencies extends MigrationTask {
       for (const billingInvoice of invoices.result) {
         try {
           // Skip invoices that are already PAID or not relevant for the current billing process
-          if (billingInvoice.sessions !== null) {
-            continue;
+          if (!billingInvoice.sessions) {
+            await Logging.logInfo({
+              tenantID: tenant.id,
+              action: ServerAction.BILLING_PERFORM_OPERATIONS,
+              actionOnUser: billingInvoice.user,
+              module: MODULE_NAME, method: 'repairInvoices',
+              message: `Attempt to repair invoice: '${billingInvoice.id}' - '${billingInvoice.number}' `
+            });
+            await billingImpl.repairInvoice(billingInvoice);
+            await Logging.logInfo({
+              tenantID: tenant.id,
+              action: ServerAction.BILLING_PERFORM_OPERATIONS,
+              actionOnUser: billingInvoice.user,
+              module: MODULE_NAME, method: 'repairInvoices',
+              message: `Invoice has been repaired: '${billingInvoice.id}' - '${billingInvoice.number}' `
+            });
           }
-          await this.repairInvoice(tenant, billingImpl, billingInvoice);
         } catch (error) {
           await Logging.logError({
             tenantID: tenant.id,
             action: ServerAction.BILLING_PERFORM_OPERATIONS,
             actionOnUser: billingInvoice.user,
             module: MODULE_NAME, method: 'repairInvoices',
-            message: `Failed to repair invoice: '${billingInvoice.id}'`,
+            message: `Failed to repair invoice: '${billingInvoice.id}' - '${billingInvoice.number}' `,
             detailedMessages: { error: error.stack }
           });
         }
       }
     }
   }
-
-  public async repairInvoice(tenant: Tenant, billingImpl: StripeBillingIntegration, billingInvoice: BillingInvoice): Promise<void> {
-    const stripeInvoice = await billingImpl.getStripeInvoice(billingInvoice.invoiceID);
-    // TODO!
-    await Logging.logWarning({
-      tenantID: tenant.id,
-      action: ServerAction.BILLING_PERFORM_OPERATIONS,
-      actionOnUser: billingInvoice.user,
-      module: MODULE_NAME, method: 'repairInvoices',
-      message: `Attempt to repair invoice: '${billingInvoice.id}'`
-    });
-  }
-
 }

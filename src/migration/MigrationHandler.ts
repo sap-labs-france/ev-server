@@ -8,6 +8,7 @@ import Logging from '../utils/Logging';
 import MigrationStorage from '../storage/mongodb/MigrationStorage';
 import MigrationTask from './MigrationTask';
 import RemoveDuplicateTagVisualIDsTask from './tasks/RemoveDuplicateTagVisualIDsTask';
+import RepairInvoiceInconsistencies from './tasks/RepairInvoiceInconsistencies';
 import RestoreDataIntegrityInSiteUsersTask from './tasks/RestoreDataIntegrityInSiteUsersTask';
 import { ServerAction } from '../types/Server';
 import Utils from '../utils/Utils';
@@ -90,6 +91,7 @@ export default class MigrationHandler {
     currentMigrationTasks.push(new AddCompanyIDToChargingStationsTask());
     currentMigrationTasks.push(new RestoreDataIntegrityInSiteUsersTask());
     currentMigrationTasks.push(new AddUserIDToCarsTask());
+    currentMigrationTasks.push(new RepairInvoiceInconsistencies());
     return currentMigrationTasks;
   }
 
