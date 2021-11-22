@@ -45,7 +45,7 @@ export default class RepairInvoiceInconsistencies extends MigrationTask {
   }
 
   getVersion(): string {
-    return '9.0';
+    return '1.0';
   }
 
   getName(): string {
