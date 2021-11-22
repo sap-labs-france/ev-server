@@ -17,6 +17,8 @@ export default class SettingRouter {
     this.buildRouteSettings();
     this.buildRouteSetting();
     this.buildRouteCreateSetting();
+    this.buildRouteUpdateSetting();
+    this.buildRouteDeleteSetting();
     return this.router;
   }
 
@@ -41,6 +43,20 @@ export default class SettingRouter {
   private buildRouteCreateSetting(): void {
     this.router.post(`/${ServerRoute.REST_SETTINGS}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(SettingService.handleCreateSetting.bind(this), ServerAction.SETTING_CREATE, req, res, next);
+    });
+  }
+
+  private buildRouteUpdateSetting(): void {
+    this.router.put(`/${ServerRoute.REST_SETTING}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.body.id = req.params.id;
+      await RouterUtils.handleServerAction(SettingService.handleUpdateSetting.bind(this), ServerAction.SETTING_UPDATE, req, res, next);
+    });
+  }
+
+  private buildRouteDeleteSetting(): void {
+    this.router.delete(`/${ServerRoute.REST_SETTING}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = req.params.id;
+      await RouterUtils.handleServerAction(SettingService.handleDeleteSetting.bind(this), ServerAction.SETTING_DELETE, req, res, next);
     });
   }
 }
