@@ -891,7 +891,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
       tax_rates,
       // quantity: 1, //Cannot be set separately
       amount: Utils.createDecimal(dimensionData.roundedAmount).times(100).toNumber(),
-      metadata: { ...billingInvoiceItem?.metadata }
+      metadata: {
+        dimension,
+        ...billingInvoiceItem?.metadata
+      }
     };
     if (!parameters.invoice) {
       // STRIPE throws an exception when invoice is set to null.
