@@ -5,12 +5,12 @@ import AsyncTaskManager from './async-task/AsyncTaskManager';
 import CentralRestServer from './server/rest/CentralRestServer';
 import CentralSystemRestServiceConfiguration from './types/configuration/CentralSystemRestServiceConfiguration';
 import ChargingStationConfiguration from './types/configuration/ChargingStationConfiguration';
-import ChargingStationStorage from './storage/mongodb/ChargingStationStorage';
-import { ChargingStationTemplate } from './types/ChargingStation';
+import ChargingStationTemplateBootstrap from './bootstrap/ChargingStationTemplateBootstrap';
 import Configuration from './utils/Configuration';
 import Constants from './utils/Constants';
 import I18nManager from './utils/I18nManager';
 import JsonCentralSystemServer from './server/ocpp/json/JsonCentralSystemServer';
+import LocalCarCatalogBootstrap from './bootstrap/LocalCarCatalogBootstrap';
 import Logging from './utils/Logging';
 import MigrationConfiguration from './types/configuration/MigrationConfiguration';
 import MigrationHandler from './migration/MigrationHandler';
@@ -25,7 +25,6 @@ import SchedulerManager from './scheduler/SchedulerManager';
 import SoapCentralSystemServer from './server/ocpp/soap/SoapCentralSystemServer';
 import StorageConfiguration from './types/configuration/StorageConfiguration';
 import Utils from './utils/Utils';
-import fs from 'fs';
 import global from './types/GlobalType';
 
 const MODULE_NAME = 'Bootstrap';
@@ -134,14 +133,26 @@ export default class Bootstrap {
       // Log
       await this.logDuration(startTimeMillis, 'Async Task manager has been started successfully');
 
-      // -------------------------------------------------------------------------
-      // Update Charging Station Templates
-      // -------------------------------------------------------------------------
-      startTimeMillis = await this.logAndGetStartTimeMillis('Charging Station templates is being updated...');
-      // Load and Save the Charging Station templates
-      await this.updateChargingStationTemplatesFromFile();
-      // Log
-      await this.logDuration(startTimeMillis, 'Charging Station templates have been updated successfully');
+      // Update of manually uploaded data
+      if (Bootstrap.migrationConfig.active) {
+        // -------------------------------------------------------------------------
+        // Update Charging Station Templates
+        // -------------------------------------------------------------------------
+        startTimeMillis = await this.logAndGetStartTimeMillis('Charging Station templates is being updated...');
+        // Load and Save the Charging Station templates
+        await ChargingStationTemplateBootstrap.uploadChargingStationTemplatesFromFile();
+        // Log
+        await this.logDuration(startTimeMillis, 'Charging Station templates have been updated successfully');
+
+        // -------------------------------------------------------------------------
+        // Import Local Car Catalogs
+        // -------------------------------------------------------------------------
+        startTimeMillis = await this.logAndGetStartTimeMillis('Local car catalogs are being imported...');
+        // Load and Save the Charging Station templates
+        await LocalCarCatalogBootstrap.uploadLocalCarCatalogsFromFile();
+        // Log
+        await this.logDuration(startTimeMillis, 'Local car catalogs has been imported successfully');
+      }
 
       // Keep the server names globally
       if (serverStarted.length === 1) {
@@ -160,36 +171,6 @@ export default class Bootstrap {
         message: `Unexpected exception in ${serverStarted.join(', ')}`,
         detailedMessages: { error: error.stack }
       });
-    }
-  }
-
-  private static async updateChargingStationTemplatesFromFile(): Promise<void> {
-    // Read File
-    let chargingStationTemplates: ChargingStationTemplate[];
-    try {
-      chargingStationTemplates = JSON.parse(fs.readFileSync(Configuration.getChargingStationTemplatesConfig().templatesFilePath, 'utf8'));
-    } catch (error) {
-      await Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, ServerAction.UPDATE_CHARGING_STATION_TEMPLATES, error);
-      return;
-    }
-    // Delete all previous templates
-    await ChargingStationStorage.deleteChargingStationTemplates();
-    // Update Templates
-    for (const chargingStationTemplate of chargingStationTemplates) {
-      try {
-        // Set the hashes
-        chargingStationTemplate.hash = Utils.hash(JSON.stringify(chargingStationTemplate));
-        chargingStationTemplate.hashTechnical = Utils.hash(JSON.stringify(chargingStationTemplate.technical));
-        chargingStationTemplate.hashCapabilities = Utils.hash(JSON.stringify(chargingStationTemplate.capabilities));
-        chargingStationTemplate.hashOcppStandard = Utils.hash(JSON.stringify(chargingStationTemplate.ocppStandardParameters));
-        chargingStationTemplate.hashOcppVendor = Utils.hash(JSON.stringify(chargingStationTemplate.ocppVendorParameters));
-        // Save
-        await ChargingStationStorage.saveChargingStationTemplate(chargingStationTemplate);
-      } catch (error) {
-        error.message = `Charging Station Template ID '${chargingStationTemplate.id}' is not valid: ${error.message as string}`;
-        await Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, ServerAction.UPDATE_CHARGING_STATION_TEMPLATES, error);
-        Utils.isDevelopmentEnv() && Logging.logConsoleError(error.message);
-      }
     }
   }
 

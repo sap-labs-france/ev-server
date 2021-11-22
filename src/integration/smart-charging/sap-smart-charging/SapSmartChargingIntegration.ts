@@ -14,6 +14,7 @@ import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStor
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
+import LoggingHelper from '../../../utils/LoggingHelper';
 import { SapSmartChargingSetting } from '../../../types/Setting';
 import SiteArea from '../../../types/SiteArea';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
@@ -280,10 +281,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
       // Should not happen
       await Logging.logError({
         tenantID: this.tenant.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
-        chargingStationID: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.SMART_CHARGING,
         module: MODULE_NAME, method: 'getTransactionFromChargingConnector',
         message: `${siteArea.name} > No active transaction on '${chargingStation.id}' connector ID '${connector.connectorId}' Charging station will be excluded from this smart charging run.`,
@@ -297,10 +295,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
       // Should not happen
       await Logging.logError({
         tenantID: this.tenant.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
-        chargingStationID: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.SMART_CHARGING,
         module: MODULE_NAME, method: 'getTransactionFromChargingConnector',
         message: `${siteArea.name} > Active transaction ID '${connector.currentTransactionID}' on '${chargingStation.id}' connector ID '${connector.connectorId}' not found! Charging station will be excluded from this smart charging run.`,
@@ -590,10 +585,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
     }
     if (!connectorAmps.numberOfConnectedPhase) {
       throw new BackendError({
-        chargingStationID: chargingStation.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.SMART_CHARGING,
         module: MODULE_NAME, method: 'getConnectorNbrOfPhasesAndAmps',
         message: `${siteArea.name} > Cannot get the number of phases of connector ID '${connector.connectorId}'`,
@@ -602,10 +594,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
     }
     if (!connectorAmps.totalAmps) {
       throw new BackendError({
-        chargingStationID: chargingStation.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.SMART_CHARGING,
         module: MODULE_NAME, method: 'getConnectorNbrOfPhasesAndAmps',
         message: `${siteArea.name} > Cannot get the amperage of connector ID '${connector.connectorId}'`,

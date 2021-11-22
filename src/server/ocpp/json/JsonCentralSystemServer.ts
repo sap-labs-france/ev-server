@@ -70,6 +70,10 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       ping: async (ws: WebSocket, message: ArrayBuffer) => {
         // Convert
         const ocppMessage = Utils.convertBufferArrayToString(message);
+        // Update
+        if (ws.wsWrapper) {
+          (ws.wsWrapper as WSWrapper).lastPingDate = new Date();
+        }
         // Get the WS
         const wsConnection = await this.getWSConnectionFromWebSocket(ws.wsWrapper, false);
         if (wsConnection) {
@@ -79,13 +83,17 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       pong: async (ws: WebSocket, message: ArrayBuffer) => {
         // Convert
         const ocppMessage = Utils.convertBufferArrayToString(message);
+        // Update
+        if (ws.wsWrapper) {
+          (ws.wsWrapper as WSWrapper).lastPongDate = new Date();
+        }
         // Get the WS
         const wsConnection = await this.getWSConnectionFromWebSocket(ws.wsWrapper, false);
         if (wsConnection) {
           await wsConnection.onPong(ocppMessage);
         }
       }
-    }).any('/health-check', (res, req) => {
+    }).any('/health-check', (res: HttpResponse) => {
       res.end('OK');
     }).listen(this.centralSystemConfig.port, (token) => {
       if (token) {
@@ -96,11 +104,11 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     });
   }
 
-  public getChargingStationClient(tenant: Tenant, chargingStation: ChargingStation): ChargingStationClient {
+  public async getChargingStationClient(tenant: Tenant, chargingStation: ChargingStation): Promise<ChargingStationClient> {
     // Get the Json Web Socket
     const jsonWebSocket = this.jsonWSConnections.get(`${tenant.id}~${chargingStation.id}`);
     if (!jsonWebSocket) {
-      void Logging.logWarning({
+      await Logging.logWarning({
         tenantID: tenant.id,
         siteID: chargingStation.siteID,
         siteAreaID: chargingStation.siteAreaID,
@@ -290,14 +298,18 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         // Check WS
         const result = await this.pingWebSocket(existingWSWrapper);
         if (result.ok) {
-          throw new BackendError({
-            siteID: wsConnection.getSiteID(),
-            siteAreaID: wsConnection.getSiteAreaID(),
-            companyID: wsConnection.getCompanyID(),
-            chargingStationID: wsConnection.getChargingStationID(),
+          // Close the old WS and keep the new incoming one
+          await Logging.logWarning({
+            tenantID: existingWSConnection.getTenantID(),
+            siteID: existingWSConnection.getSiteID(),
+            siteAreaID: existingWSConnection.getSiteAreaID(),
+            companyID: existingWSConnection.getCompanyID(),
+            chargingStationID: existingWSConnection.getChargingStationID(),
             action, module: MODULE_NAME, method: 'checkWSConnectionAlreadyExists',
-            message: `WS Connection - Already opened on '${existingWSWrapper.registrationTimestamp.toISOString()}': '${existingWSWrapper.url}'`
+            message: `WS Connection - Close already opened WS on '${existingWSWrapper.firstConnectionDate.toISOString()}', last pinged on '${existingWSWrapper.lastPingDate ? existingWSWrapper.lastPingDate?.toISOString() : 'N/A'}', last ponged on '${existingWSWrapper.lastPongDate ? existingWSWrapper.lastPongDate?.toISOString() : 'N/A'}' : '${existingWSWrapper.url}'`
           });
+          // Close
+          await this.closeWebSocket(existingWSConnection.getWS(), WebSocketCloseEventStatusCode.CLOSE_ABNORMAL, 'New incoming connection');
         }
       }
     }
