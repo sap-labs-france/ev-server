@@ -9,7 +9,6 @@ import Logging from '../../utils/Logging';
 import { ObjectId } from 'mongodb';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
-import { filter } from 'bluebird';
 
 const MODULE_NAME = 'PricingStorage';
 
@@ -75,7 +74,7 @@ export default class PricingStorage {
   }
 
   public static async getPricingDefinitions(tenant: Tenant,
-      params: { pricingDefinitionIDs?: string[], entityID?: string; entityType?: string; withEntityInformation?: boolean; },
+      params: { pricingDefinitionIDs?: string[], entityType?: string; entityID?: string; withEntityInformation?: boolean; },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<PricingDefinition>> {
     const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
@@ -97,10 +96,10 @@ export default class PricingStorage {
     }
     // Context IDs
     if (!Utils.isNullOrEmptyString(params.entityID)) {
-      if (params.entityType !== PricingEntity.CHARGING_STATION) {
-        filters.entityID = { $in: [DatabaseUtils.convertToObjectID(params.entityID)] };
-      } else {
+      if (params.entityType === PricingEntity.CHARGING_STATION) {
         filters.entityID = { $in: [params.entityID] };
+      } else {
+        filters.entityID = { $in: [DatabaseUtils.convertToObjectID(params.entityID)] };
       }
     }
     // Remove deleted
@@ -118,7 +117,7 @@ export default class PricingStorage {
     }
     // Count Records
     const pricingDefinitionsCountMDB = await global.database.getCollection<any>(tenant.id, 'pricingdefinitions')
-      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
+      .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
@@ -191,9 +190,7 @@ export default class PricingStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const pricingDefinitions = await global.database.getCollection<PricingDefinition>(tenant.id, 'pricingdefinitions')
-      .aggregate<PricingDefinition>(aggregation, {
-      allowDiskUse: true
-    })
+      .aggregate<PricingDefinition>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getPricingDefinitions', uniqueTimerID, pricingDefinitions);

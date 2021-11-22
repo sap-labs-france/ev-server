@@ -868,10 +868,24 @@ export default class AuthorizationService {
     // Process Dynamic Filters
     await AuthorizationService.processDynamicFilters(tenant, userToken, authAction, entity,
       authorizationFilters, authorizationContext, entityID);
+    if (!authorizationFilters.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: authAction, entity: entity,
+        module: MODULE_NAME, method: 'checkAndGetEntityAuthorizations',
+      });
+    }
     // Process Dynamic Assertions
-    if (authorizationFilters.authorized) {
-      AuthorizationService.processDynamicAsserts(tenant, userToken, authAction, entity,
-        authorizationFilters, authorizationContext, entityData);
+    AuthorizationService.processDynamicAsserts(tenant, userToken, authAction, entity,
+      authorizationFilters, authorizationContext, entityData);
+    if (!authorizationFilters.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: authAction, entity: entity,
+        module: MODULE_NAME, method: 'checkAndGetEntityAuthorizations',
+      });
     }
     // Filter projected fields
     authorizationFilters.projectFields = AuthorizationService.filterProjectFields(authResult.fields,
