@@ -34,7 +34,8 @@
         "validFrom": {
           "type": "string",
           "format": "date-time",
-          "sanitize": "mongo"
+          "sanitize": "mongo",
+          "nullable": true
         },
         "validTo": {
           "type": "string",
@@ -53,8 +54,10 @@
             "T3C",
             "T1CCS",
             "D",
-            "U"
-          ]
+            "U",
+            null
+          ],
+          "nullable": true
         },
         "connectorPowerkW": {
           "type": "number",

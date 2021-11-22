@@ -490,7 +490,7 @@ export default class ChargingStationService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.LIST, entity: Entity.CHARGING_PROFILES,
+        action: Action.LIST, entity: Entity.CHARGING_PROFILE,
         module: MODULE_NAME, method: 'handleGetChargingProfiles'
       });
     }
@@ -1001,7 +1001,7 @@ export default class ChargingStationService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.IN_ERROR, entity: Entity.CHARGING_STATIONS,
+        action: Action.IN_ERROR, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleGetChargingStations'
       });
     }
@@ -1010,7 +1010,7 @@ export default class ChargingStationService {
     // Check component
     if (filteredRequest.SiteID) {
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
-        Action.READ, Entity.CHARGING_STATIONS, MODULE_NAME, 'handleGetChargingStations');
+        Action.READ, Entity.CHARGING_STATION, MODULE_NAME, 'handleGetChargingStations');
     }
     let errorType;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
@@ -1058,7 +1058,7 @@ export default class ChargingStationService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.LIST, entity: Entity.CHARGING_STATIONS,
+        action: Action.LIST, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleGetStatusNotifications'
       });
     }
@@ -1078,7 +1078,7 @@ export default class ChargingStationService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.LIST, entity: Entity.CHARGING_STATIONS,
+        action: Action.LIST, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleReserveNow'
       });
     }
@@ -1130,7 +1130,7 @@ export default class ChargingStationService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user, action: Action.LIST,
-        entity: Entity.CHARGING_STATIONS,
+        entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleGetBootNotifications'
       });
     }
@@ -1401,7 +1401,7 @@ export default class ChargingStationService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.LIST, entity: Entity.CHARGING_STATIONS,
+        action: Action.LIST, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'getChargingStations',
       });
     }

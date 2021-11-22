@@ -276,7 +276,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return stripeInvoice;
   }
 
-  private async _createStripeInvoice(customerID: string, userID: string, idempotencyKey?: string | number): Promise<Stripe.Invoice> {
+  private async createStripeInvoice(customerID: string, userID: string, idempotencyKey?: string | number): Promise<Stripe.Invoice> {
     // Let's create the STRIPE invoice
     const stripeInvoice: Stripe.Invoice = await this.stripe.invoices.create({
       customer: customerID,
@@ -345,7 +345,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return freshBillingInvoice;
   }
 
-  private async _createStripeInvoiceItem(parameters: Stripe.InvoiceItemCreateParams, idempotencyKey: string | number): Promise<Stripe.InvoiceItem> {
+  private async createStripeInvoiceItem(parameters: Stripe.InvoiceItemCreateParams, idempotencyKey: string | number): Promise<Stripe.InvoiceItem> {
     // Let's create the line item
     const stripeInvoiceItem = await this.stripe.invoiceItems.create(parameters, {
       // idempotency_key: idempotencyKey?.toString()
@@ -537,10 +537,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
     let billingOperationResult: BillingOperationResult;
     if (!paymentMethodId) {
       // Let's create a setupIntent for the stripe customer
-      billingOperationResult = await this._createSetupIntent(user, customerID);
+      billingOperationResult = await this.createSetupIntent(user, customerID);
     } else {
       // Attach payment method to the stripe customer
-      billingOperationResult = await this._attachPaymentMethod(user, customerID, paymentMethodId);
+      billingOperationResult = await this.attachPaymentMethod(user, customerID, paymentMethodId);
     }
     return billingOperationResult;
   }
@@ -550,7 +550,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     await this.checkConnection();
     // Check billing data consistency
     const customerID = user?.billingData?.customerID;
-    const paymentMethods: BillingPaymentMethod[] = await this._getPaymentMethods(user, customerID);
+    const paymentMethods: BillingPaymentMethod[] = await this.getStripePaymentMethods(user, customerID);
     await Logging.logInfo({
       tenantID: this.tenant.id,
       user,
@@ -575,11 +575,11 @@ export default class StripeBillingIntegration extends BillingIntegration {
       });
     }
     // Let's do it!
-    const billingOperationResult: BillingOperationResult = await this._detachPaymentMethod(paymentMethodId, customerID);
+    const billingOperationResult: BillingOperationResult = await this.detachStripePaymentMethod(paymentMethodId, customerID);
     return billingOperationResult;
   }
 
-  private async _createSetupIntent(user: User, customerID: string): Promise<BillingOperationResult> {
+  private async createSetupIntent(user: User, customerID: string): Promise<BillingOperationResult> {
     try {
       // Let's create a setupIntent for the stripe customer
       const setupIntent: Stripe.SetupIntent = await this.stripe.setupIntents.create({
@@ -612,7 +612,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
   }
 
-  private async _attachPaymentMethod(user: User, customerID: string, paymentMethodId: string): Promise<BillingOperationResult> {
+  private async attachPaymentMethod(user: User, customerID: string, paymentMethodId: string): Promise<BillingOperationResult> {
     try {
       // Attach payment method to the stripe customer
       const paymentMethod: Stripe.PaymentMethod = await this.stripe.paymentMethods.attach(paymentMethodId, {
@@ -664,7 +664,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
   }
 
-  private async _getPaymentMethods(user: User, customerID: string): Promise<BillingPaymentMethod[]> {
+  private async getStripePaymentMethods(user: User, customerID: string): Promise<BillingPaymentMethod[]> {
     const paymentMethods: BillingPaymentMethod[] = [];
     try {
       const customer = await this.getStripeCustomer(customerID);
@@ -707,7 +707,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return paymentMethods;
   }
 
-  private async _detachPaymentMethod(paymentMethodId: string, customerID: string): Promise<BillingOperationResult> {
+  private async detachStripePaymentMethod(paymentMethodId: string, customerID: string): Promise<BillingOperationResult> {
     try {
       // Verify payment method to be deleted is not the default one
       const customer = await this.getStripeCustomer(customerID);
@@ -821,22 +821,22 @@ export default class StripeBillingIntegration extends BillingIntegration {
     };
   }
 
-  private async _createStripeInvoiceItems(customerID: string, billingInvoiceItem: BillingInvoiceItem, invoiceID?: string): Promise<void> {
+  private async createStripeInvoiceItems(customerID: string, billingInvoiceItem: BillingInvoiceItem, invoiceID?: string): Promise<void> {
     // ---------------------------------------------------------------------------------------------------------
     // Be careful, we may have sessions mixing several pricing definitions
     // e.g.: We may have a tariff for the week-end which is different from the regular one.If the user starts a
     // session on friday night and keeps charging during the week-end, the two tariffs are used.
     // The invoice will show the detail for each tariff and for each billed dimension
     // ---------------------------------------------------------------------------------------------------------
-    await this._createStripeInvoiceItemHeader(customerID, billingInvoiceItem, invoiceID);
+    await this.createStripeInvoiceItemHeader(customerID, billingInvoiceItem, invoiceID);
     // Generate an invoice item for each tariff and each dimension!
     let counter = 0;
     for (const pricingConsumptionData of billingInvoiceItem.pricingData) {
-      await this._createStripeInvoiceItems4PricingConsumptionData(customerID, billingInvoiceItem, pricingConsumptionData, ++counter, invoiceID);
+      await this.createStripeInvoiceItems4PricingConsumptionData(customerID, billingInvoiceItem, pricingConsumptionData, ++counter, invoiceID);
     }
   }
 
-  private async _createStripeInvoiceItemHeader(customerID: string,
+  private async createStripeInvoiceItemHeader(customerID: string,
       billingInvoiceItem: BillingInvoiceItem, invoiceID?: string): Promise<void> {
     if (!billingInvoiceItem.headerDescription) {
       return;
@@ -858,19 +858,19 @@ export default class StripeBillingIntegration extends BillingIntegration {
       delete parameters.invoice;
     }
     // Make sure to generate a unique idem potency key per pricing definition and dimension
-    await this._createStripeInvoiceItem(parameters, this.buildIdemPotencyKey(billingInvoiceItem.transactionID, 'invoice', 'items-header'));
+    await this.createStripeInvoiceItem(parameters, this.buildIdemPotencyKey(billingInvoiceItem.transactionID, 'invoice', 'items-header'));
   }
 
-  private async _createStripeInvoiceItems4PricingConsumptionData(customerID: string,
+  private async createStripeInvoiceItems4PricingConsumptionData(customerID: string,
       billingInvoiceItem: BillingInvoiceItem, pricedData: PricedConsumptionData, counter: number, invoiceID?: string): Promise<void> {
     // A stripe invoice item per dimension
-    await this._createStripeInvoiceItem4Dimension(customerID, DimensionType.FLAT_FEE, billingInvoiceItem, pricedData, counter, invoiceID);
-    await this._createStripeInvoiceItem4Dimension(customerID, DimensionType.CHARGING_TIME, billingInvoiceItem, pricedData, counter, invoiceID);
-    await this._createStripeInvoiceItem4Dimension(customerID, DimensionType.ENERGY, billingInvoiceItem, pricedData, counter, invoiceID);
-    await this._createStripeInvoiceItem4Dimension(customerID, DimensionType.PARKING_TIME, billingInvoiceItem, pricedData, counter, invoiceID);
+    await this.createStripeInvoiceItem4Dimension(customerID, DimensionType.FLAT_FEE, billingInvoiceItem, pricedData, counter, invoiceID);
+    await this.createStripeInvoiceItem4Dimension(customerID, DimensionType.CHARGING_TIME, billingInvoiceItem, pricedData, counter, invoiceID);
+    await this.createStripeInvoiceItem4Dimension(customerID, DimensionType.ENERGY, billingInvoiceItem, pricedData, counter, invoiceID);
+    await this.createStripeInvoiceItem4Dimension(customerID, DimensionType.PARKING_TIME, billingInvoiceItem, pricedData, counter, invoiceID);
   }
 
-  private async _createStripeInvoiceItem4Dimension(customerID: string, dimension: string,
+  private async createStripeInvoiceItem4Dimension(customerID: string, dimension: string,
       billingInvoiceItem: BillingInvoiceItem, pricedData: PricedConsumptionData, counter: number, invoiceID?: string): Promise<Stripe.InvoiceItemCreateParams> {
     // data for the current dimension (energy | parkingTime, etc)
     const dimensionData: PricedDimensionData = pricedData[dimension];
@@ -897,7 +897,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       delete parameters.invoice;
     }
     // Make sure to generate a unique idem potency key per pricing definition and dimension
-    await this._createStripeInvoiceItem(parameters, this.buildIdemPotencyKey(billingInvoiceItem.transactionID, 'invoice', dimension + '-' + counter));
+    await this.createStripeInvoiceItem(parameters, this.buildIdemPotencyKey(billingInvoiceItem.transactionID, 'invoice', dimension + '-' + counter));
     return parameters;
   }
 
@@ -920,7 +920,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
           action: ServerAction.BILLING_TRANSACTION,
           module: MODULE_NAME, method: 'stopTransaction',
           message: `Transaction data is suspicious - billing operation has been aborted - transaction ID: ${transaction.id}`,
-          ...LoggingHelper.getSessionProperties(transaction)
+          ...LoggingHelper.getTransactionProperties(transaction)
         });
         return {
           status: BillingStatus.UNBILLED
@@ -962,10 +962,20 @@ export default class StripeBillingIntegration extends BillingIntegration {
           action: ServerAction.BILLING_TRANSACTION,
           module: MODULE_NAME, method: 'billTransaction',
           message: `Billing process is about to start - transaction ID: ${transaction.id}`,
-          ...LoggingHelper.getSessionProperties(transaction)
+          ...LoggingHelper.getTransactionProperties(transaction)
         });
-        const billingDataTransactionStop: BillingDataTransactionStop = await this._billTransaction(transaction);
-        return billingDataTransactionStop;
+        // ACHTUNG: a single transaction may generate several lines in the invoice
+        const invoiceItem: BillingInvoiceItem = this.convertToBillingInvoiceItem(transaction);
+        const billingInvoice = await this.billInvoiceItem(transaction.user, invoiceItem);
+        // Send a notification to the user
+        void this.sendInvoiceNotification(billingInvoice);
+        return {
+          status: BillingStatus.BILLED,
+          invoiceID: billingInvoice.id,
+          invoiceStatus: billingInvoice.status,
+          invoiceNumber: billingInvoice.number,
+          invoiceItem: this.shrinkInvoiceItem(invoiceItem),
+        };
       }
     } catch (error) {
       await Logging.logError({
@@ -975,7 +985,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         module: MODULE_NAME, method: 'billTransaction',
         message: `Failed to bill the transaction - Transaction ID '${transaction.id}'`,
         detailedMessages: { error: error.stack },
-        ...LoggingHelper.getSessionProperties(transaction)
+        ...LoggingHelper.getTransactionProperties(transaction)
       });
     }
     return {
@@ -983,7 +993,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     };
   }
 
-  private async _getLatestDraftInvoiceOfTheMonth(customerID: string): Promise<Stripe.Invoice> {
+  private async getLatestDraftInvoiceOfTheMonth(customerID: string): Promise<Stripe.Invoice> {
     // Fetch the invoice list - c.f.: https://stripe.com/docs/api/invoices/list
     // The invoices are returned sorted by creation date, with the most recent ones appearing first.
     const list = await this.stripe.invoices.list({
@@ -999,21 +1009,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
     // The latest DRAFT invoice is too old - don't reuse it!
     return null;
-  }
-
-  private async _billTransaction(transaction: Transaction): Promise<BillingDataTransactionStop> {
-    // ACHTUNG: a single transaction may generate several lines in the invoice
-    const invoiceItem: BillingInvoiceItem = this.convertToBillingInvoiceItem(transaction);
-    const billingInvoice = await this.billInvoiceItem(transaction.user, invoiceItem);
-    // Send a notification to the user
-    void this.sendInvoiceNotification(billingInvoice);
-    return {
-      status: BillingStatus.BILLED,
-      invoiceID: billingInvoice.id,
-      invoiceStatus: billingInvoice.status,
-      invoiceNumber: billingInvoice.number,
-      invoiceItem: this.shrinkInvoiceItem(invoiceItem),
-    };
   }
 
   private shrinkInvoiceItem(fatInvoiceItem: BillingInvoiceItem): BillingInvoiceItem {
@@ -1034,7 +1029,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       return this.convertPricingDataToBillingInvoiceItem(transaction);
     }
     // Simple Pricing - Do it the old way!
-    return this._convertToBillingInvoiceItem(transaction);
+    return this.convertSimplePricingToBillingInvoiceItem(transaction);
   }
 
   private convertPricingDataToBillingInvoiceItem(transaction: Transaction) : BillingInvoiceItem {
@@ -1076,7 +1071,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       method: 'extractTransactionPricingData',
       message: `Final pricing - Transaction: ${transaction.id}`,
       detailedMessages: pricingData,
-      ...LoggingHelper.getSessionProperties(transaction)
+      ...LoggingHelper.getTransactionProperties(transaction)
     });
     return pricingData;
   }
@@ -1112,7 +1107,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return pricingConsumptionData;
   }
 
-  private _convertToBillingInvoiceItem(transaction: Transaction) : BillingInvoiceItem {
+  private convertSimplePricingToBillingInvoiceItem(transaction: Transaction) : BillingInvoiceItem {
     // Destructuring transaction.stop
     const { price: unitPrice, priceUnit: currency, roundedPrice, totalConsumptionWh, timestamp } = transaction.stop;
     const transactionID = transaction.id;
@@ -1165,14 +1160,14 @@ export default class StripeBillingIntegration extends BillingIntegration {
       stripeInvoice = null;
     } else {
       // immediateBillingAllowed is OFF - let's add to the latest DRAFT invoice (if any)
-      stripeInvoice = await this._getLatestDraftInvoiceOfTheMonth(customerID);
+      stripeInvoice = await this.getLatestDraftInvoiceOfTheMonth(customerID);
     }
     // Let's create an invoice item per dimension
     // When the stripeInvoice is null a pending item is created
-    await this._createStripeInvoiceItems(customerID, billingInvoiceItem, stripeInvoice?.id);
+    await this.createStripeInvoiceItems(customerID, billingInvoiceItem, stripeInvoice?.id);
     if (!stripeInvoice) {
       // Let's create a new DRAFT invoice (if none has been found)
-      stripeInvoice = await this._createStripeInvoice(customerID, userID, this.buildIdemPotencyKey(billingInvoiceItem.transactionID, 'invoice'));
+      stripeInvoice = await this.createStripeInvoice(customerID, userID, this.buildIdemPotencyKey(billingInvoiceItem.transactionID, 'invoice'));
     } else {
       // Here an existing invoice is being reused
       refreshDataRequired = true;
@@ -1398,14 +1393,14 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   public async createUser(user: User): Promise<BillingUser> {
-    return await this._createUser(user, false);
+    return await this.createBillingUser(user, false);
   }
 
   public async repairUser(user: User): Promise<BillingUser> {
-    return await this._createUser(user, true);
+    return await this.createBillingUser(user, true);
   }
 
-  private async _createUser(user: User, forceUserCreation: boolean): Promise<BillingUser> {
+  private async createBillingUser(user: User, forceUserCreation: boolean): Promise<BillingUser> {
     // Check connection
     await this.checkConnection();
     await this.checkIfUserCanBeCreated(user);
