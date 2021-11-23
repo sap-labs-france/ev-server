@@ -12,6 +12,7 @@ import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import ChargingStationClientFactory from '../../../../client/ocpp/ChargingStationClientFactory';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Logging from '../../../../utils/Logging';
+import LoggingHelper from '../../../../utils/LoggingHelper';
 import { OICPAcknowledgment } from '../../../../types/oicp/OICPAcknowledgment';
 import { OICPRemoteActionType } from '../../../../types/oicp/OICPRemoteActionType';
 import { OICPSession } from '../../../../types/oicp/OICPSession';
@@ -109,10 +110,7 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
           // Current remote authorization fails due to valid remote authorization of different user
           await Logging.logDebug({
             tenantID: tenant.id,
-            siteID: chargingStation.siteID,
-            siteAreaID: chargingStation.siteAreaID,
-            companyID: chargingStation.companyID,
-            chargingStationID: chargingStation.id,
+            ...LoggingHelper.getChargingStationProperties(chargingStation),
             action: ServerAction.OICP_AUTHORIZE_REMOTE_START,
             message: `An existing remote authorization exists for Charging Station '${chargingStation.id}' and Connector ID ${connector.connectorId}`,
             module: MODULE_NAME, method: 'authorizeRemoteStart'
@@ -211,10 +209,7 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
     if (!chargingStationClient) {
       await Logging.logError({
         tenantID: tenant.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
-        chargingStationID: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.OICP_AUTHORIZE_REMOTE_START,
         message: `Charging Station '${chargingStation.id}' not found`,
         module: MODULE_NAME, method: 'remoteStartTransaction'
@@ -233,10 +228,7 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
     if (!chargingStationClient) {
       await Logging.logError({
         tenantID: tenant.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
-        chargingStationID: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.OICP_AUTHORIZE_REMOTE_STOP,
         message: `Charging Station '${chargingStation.id}' not found`,
         module: MODULE_NAME, method: 'remoteStopTransaction'

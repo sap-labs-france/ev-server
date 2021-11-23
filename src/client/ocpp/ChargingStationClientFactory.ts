@@ -4,6 +4,7 @@ import BackendError from '../../exception/BackendError';
 import ChargingStation from '../../types/ChargingStation';
 import ChargingStationClient from './ChargingStationClient';
 import JsonRestChargingStationClient from './json/JsonRestChargingStationClient';
+import LoggingHelper from '../../utils/LoggingHelper';
 import OCPIClientFactory from '../ocpi/OCPIClientFactory';
 import { OCPPProtocol } from '../../types/ocpp/OCPPServer';
 import SoapChargingStationClient from './soap/SoapChargingStationClient';
@@ -20,49 +21,36 @@ export default class ChargingStationClientFactory {
       switch (chargingStation.ocppProtocol) {
         // JSON
         case OCPPProtocol.JSON:
-          // Get the client from Json Server
+          // Json Server
           if (global.centralSystemJsonServer) {
-            chargingClient = global.centralSystemJsonServer.getChargingStationClient(tenant.id, chargingStation.id, {
-              siteAreaID: chargingStation.siteAreaID,
-              siteID: chargingStation.siteID,
-              companyID: chargingStation.companyID,
-            });
-          }
-          // Not Found
-          if (!chargingClient) {
-            // Use the remote client
+            // Get the local WS Connection Client
+            chargingClient = await global.centralSystemJsonServer.getChargingStationClient(tenant, chargingStation);
+          } else {
+            // Get the Remote WS Connection Client (Rest)
             chargingClient = new JsonRestChargingStationClient(tenant.id, chargingStation);
           }
           break;
         // SOAP
         case OCPPProtocol.SOAP:
-        default:
-          // Init client
+          // Init SOAP client
           chargingClient = await SoapChargingStationClient.getChargingStationClient(tenant, chargingStation);
           break;
       }
     } else {
       if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
         throw new BackendError({
-          chargingStationID: chargingStation.id,
-          siteID: chargingStation.siteID,
-          siteAreaID: chargingStation.siteAreaID,
-          companyID: chargingStation.companyID,
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
           module: MODULE_NAME,
           method: 'getChargingStationClient',
           message: 'Cannot instantiate roaming charging station client: no roaming components active'
         });
       }
       chargingClient = OCPIClientFactory.getChargingStationClient(tenant, chargingStation);
-      // TODO: add Hubject support
     }
     // Check
     if (!chargingClient) {
       throw new BackendError({
-        chargingStationID: chargingStation.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         module: MODULE_NAME,
         method: 'getChargingStationClient',
         message: 'No charging station client created or found'

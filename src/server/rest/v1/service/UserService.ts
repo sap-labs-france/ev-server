@@ -1,6 +1,7 @@
 import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
 import { ActionsResponse, ImportStatus } from '../../../../types/GlobalType';
 import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
+import Busboy, { BusboyHeaders } from 'busboy';
 import { Car, CarType } from '../../../../types/Car';
 import { DataResult, UserDataResult } from '../../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
@@ -14,7 +15,6 @@ import AsyncTaskBuilder from '../../../../async-task/AsyncTaskBuilder';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
-import Busboy from 'busboy';
 import CSVError from 'csvtojson/v2/CSVError';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
 import Constants from '../../../../utils/Constants';
@@ -91,7 +91,7 @@ export default class UserService {
 
   public static async handleAssignSitesToUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
-      Action.UPDATE, Entity.SITES, 'SiteService', 'handleAssignSitesToUser');
+      Action.UPDATE, Entity.SITE, 'SiteService', 'handleAssignSitesToUser');
     // Filter request
     const filteredRequest = UserValidator.getInstance().validateUserToSitesAssignReq(req.body);
     // Check and Get User
@@ -399,7 +399,7 @@ export default class UserService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.IMPORT, entity: Entity.USERS,
+        action: Action.IMPORT, entity: Entity.USER,
         module: MODULE_NAME, method: 'handleImportUser'
       });
     }
@@ -427,7 +427,7 @@ export default class UserService {
       // Delete all previously imported users
       await UserStorage.deleteImportedUsers(req.tenant);
       // Get the stream
-      const busboy = new Busboy({ headers: req.headers });
+      const busboy = new Busboy({ headers: req.headers as BusboyHeaders });
       req.pipe(busboy);
       // Handle closed socket
       let connectionClosed = false;

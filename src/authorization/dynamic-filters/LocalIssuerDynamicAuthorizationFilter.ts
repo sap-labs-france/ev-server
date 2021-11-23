@@ -10,7 +10,7 @@ export default class LocalIssuerDynamicAuthorizationFilter extends DynamicAuthor
 
   public getApplicableEntities(): Entity[] {
     return [
-      Entity.TAGS
+      Entity.TAG
     ];
   }
 

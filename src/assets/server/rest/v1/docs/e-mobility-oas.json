@@ -69,6 +69,14 @@
       "description": "OCPI API"
     },
     {
+      "name": "Settings",
+      "description": "Settings API"
+    },
+    {
+      "name": "OICP",
+      "description": "OICP API"
+    },
+    {
       "name": "Registration tokens",
       "description": "Registration tokens API"
     }
@@ -8539,7 +8547,7 @@
         }
       }
     },
-    "/api/assets/connectors/:id/connection/check": {
+    "/api/assets/connectors/{id}/connection/check": {
       "get": {
         "security": [
           {
@@ -8686,6 +8694,56 @@
           },
           "550": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Push latest asset consumption",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/assetID"
+          }
+        ],
+        "tags": [
+          "Assets"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetConsumption"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Asset consumption created successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "consumption": "###",
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "description": "Asset does not exist"
           }
         }
       }
@@ -9571,7 +9629,7 @@
         }
       }
     },
-    "/api/ocpi/endpoints/:id/evses/statuses/send": {
+    "/api/ocpi/endpoints/{id}/evses/statuses/send": {
       "put": {
         "security": [
           {
@@ -9613,7 +9671,7 @@
         }
       }
     },
-    "/api/ocpi/endpoints/:id/tokens/send": {
+    "/api/ocpi/endpoints/{id}/tokens/send": {
       "put": {
         "security": [
           {
@@ -9655,7 +9713,7 @@
         }
       }
     },
-    "/api/ocpi/endpoints/:id/tokens/generate": {
+    "/api/ocpi/endpoints/{id}/tokens/generate": {
       "put": {
         "security": [
           {
@@ -9714,7 +9772,7 @@
         }
       }
     },
-    "/api/ocpi/endpoints/:id/register": {
+    "/api/ocpi/endpoints/{id}/register": {
       "put": {
         "security": [
           {
@@ -9730,15 +9788,6 @@
             "$ref": "#/components/parameters/OCPIEndpointID"
           }
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/OCPIEndpoint"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "OCPI Endpoint registered",
@@ -9767,7 +9816,7 @@
         }
       }
     },
-    "/api/ocpi/endpoints/:id/unregister": {
+    "/api/ocpi/endpoints/{id}/unregister": {
       "put": {
         "security": [
           {
@@ -9919,7 +9968,7 @@
         "description": "Retrieve a Registration Token",
         "parameters": [
           {
-            "$ref": "#/components/parameters/RegistrationTokenID"
+            "$ref": "#/components/parameters/registrationTokenID"
           }
         ],
         "tags": [
@@ -9945,6 +9994,669 @@
           },
           "500": {
             "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/oicp/endpoints": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Create an OICP Endpoint",
+        "tags": [
+          "OICP"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OICPEndpoint"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "OICP Endpoint created successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "###",
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/oicp/endpoints/{id}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve an OICP Endpoint",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OICPEndpointID"
+          }
+        ],
+        "tags": [
+          "OICP"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return OICP Endpoint",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OICPEndpoint"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Update an OICP Endpoint",
+        "tags": [
+          "OICP"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OICPEndpoint"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OICP Endpoint updated successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Delete an OICP Endpoint",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OICPEndpointID"
+          }
+        ],
+        "tags": [
+          "OICP"
+        ],
+        "responses": {
+          "200": {
+            "description": "OICP Endpoint deleted"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/oicp/endpoints/{id}/ping": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Ping an OICP Endpoint",
+        "tags": [
+          "OICP"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OICPEndpointID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OICPEndpoint"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OICP Endpoint is reachable",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success",
+                  "statusCode": "000",
+                  "statusText": "OK"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/oicp/endpoints/{id}/evses/statuses/send": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Send OICP EVSE's statuses",
+        "tags": [
+          "OICP"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OICPEndpointID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OICP Endpoint's EVSE's statuses sent",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": 0,
+                  "failure": 0,
+                  "total": 0,
+                  "logs": null,
+                  "objectIDsInFailure": []
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/oicp/endpoints/{id}/evses/send": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Send OICP EVSEs",
+        "tags": [
+          "OICP"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OICPEndpointID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OICP Endpoint's EVSEs sent",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": 0,
+                  "failure": 0,
+                  "total": 0,
+                  "logs": null,
+                  "objectIDsInFailure": []
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/oicp/endpoints/{id}/register": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Register OICP Endpoint",
+        "tags": [
+          "OICP"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OICPEndpointID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OCPI Endpoint registered",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success",
+                  "statusCode": 200,
+                  "statusText": "OK"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/oicp/endpoints/{id}/unregister": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Unregister OICP Endpoint",
+        "tags": [
+          "OICP"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OICPEndpointID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OICP Endpoint unregistered",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success",
+                  "statusCode": 200,
+                  "statusText": "OK"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/settings": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a list of Settings",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "Identifier",
+            "description": "Setting Identifier",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Settings"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return Settings list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "backupSensitiveData": null,
+                      "content": {
+                        "type": "crypto",
+                        "crypto": {
+                          "key": "###",
+                          "keyProperties": {
+                            "blockCypher": "aes",
+                            "blockSize": 256,
+                            "operationMode": "gcm"
+                          }
+                        }
+                      },
+                      "createdBy": null,
+                      "identifier": "crypto",
+                      "lastChangedBy": null,
+                      "lastChangedOn": "2021-11-09T13:30:47.173Z",
+                      "sensitiveData": null,
+                      "id": "###"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Create a Setting",
+        "tags": [
+          "Settings"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Setting"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Setting created successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "###",
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/settings/{id}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a Setting",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SettingID"
+          }
+        ],
+        "tags": [
+          "Settings"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return Setting",
+            "content": {
+              "application/json": {
+                "example": {
+                  "backupSensitiveData": null,
+                  "content": {
+                    "type": "crypto",
+                    "crypto": {
+                      "key": "###",
+                      "keyProperties": {
+                        "blockCypher": "aes",
+                        "blockSize": 256,
+                        "operationMode": "gcm"
+                      }
+                    }
+                  },
+                  "createdBy": null,
+                  "identifier": "crypto",
+                  "lastChangedBy": null,
+                  "lastChangedOn": "2021-11-09T13:30:47.173Z",
+                  "sensitiveData": null,
+                  "id": "###"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Update a Setting",
+        "tags": [
+          "Settings"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SettingID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Setting"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Setting updated successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Delete a Setting",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SettingID"
+          }
+        ],
+        "tags": [
+          "Settings"
+        ],
+        "responses": {
+          "200": {
+            "description": "Setting deleted successfully"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
       }
@@ -11117,25 +11829,551 @@
           }
         }
       },
-      "RegistrationToken": {
+      "OICPEndpoint": {
         "type": "object",
         "required": [
-          "description"
+          "name",
+          "role",
+          "baseUrl"
         ],
         "properties": {
           "id": {
             "type": "string",
             "readOnly": true
           },
-          "description": {
+          "name": {
             "type": "string"
           },
-          "siteAreaID": {
-            "type": "string"
-          },
-          "expirationDate": {
+          "role": {
             "type": "string",
-            "format": "date-time"
+            "enum": [
+              "CPO",
+              "EMSP"
+            ]
+          },
+          "baseUrl": {
+            "type": "string"
+          },
+          "countryCode": {
+            "type": "string"
+          },
+          "partyId": {
+            "type": "string"
+          },
+          "backgroundPatchJob": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Setting": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "readOnly": true
+          },
+          "identifier": {
+            "type": "string"
+          },
+          "sensitiveData": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "content": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string"
+              },
+              "links": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "role": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "sac": {
+                "type": "object",
+                "properties": {
+                  "mainUrl": {
+                    "type": "string"
+                  },
+                  "timezone": {
+                    "type": "string"
+                  }
+                }
+              },
+              "ocpi": {
+                "type": "object",
+                "properties": {
+                  "businessDetails": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "website": {
+                        "type": "string"
+                      },
+                      "logo": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string"
+                          },
+                          "thumbnail": {
+                            "type": "string"
+                          },
+                          "category": {
+                            "type": "string"
+                          },
+                          "type": {
+                            "type": "string"
+                          },
+                          "width": {
+                            "type": "number"
+                          },
+                          "height": {
+                            "type": "number"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "cpo": {
+                    "type": "object",
+                    "properties": {
+                      "countryCode": {
+                        "type": "string"
+                      },
+                      "partyID": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "emsp": {
+                    "type": "object",
+                    "properties": {
+                      "countryCode": {
+                        "type": "string"
+                      },
+                      "partyID": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "currency": {
+                    "type": "string"
+                  }
+                }
+              },
+              "oicp": {
+                "type": "object",
+                "properties": {
+                  "businessDetails": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "website": {
+                        "type": "string"
+                      },
+                      "logo": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string"
+                          },
+                          "thumbnail": {
+                            "type": "string"
+                          },
+                          "category": {
+                            "type": "string"
+                          },
+                          "type": {
+                            "type": "string"
+                          },
+                          "width": {
+                            "type": "number"
+                          },
+                          "height": {
+                            "type": "number"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "cpo": {
+                    "type": "object",
+                    "properties": {
+                      "countryCode": {
+                        "type": "string"
+                      },
+                      "partyID": {
+                        "type": "string"
+                      },
+                      "key": {
+                        "type": "string"
+                      },
+                      "cert": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "emsp": {
+                    "type": "object",
+                    "properties": {
+                      "countryCode": {
+                        "type": "string"
+                      },
+                      "partyID": {
+                        "type": "string"
+                      },
+                      "key": {
+                        "type": "string"
+                      },
+                      "cert": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "currency": {
+                    "type": "string"
+                  }
+                }
+              },
+              "concur": {
+                "type": "object",
+                "properties": {
+                  "authenticationUrl": {
+                    "type": "string"
+                  },
+                  "apiUrl": {
+                    "type": "string"
+                  },
+                  "appUrl": {
+                    "type": "string"
+                  },
+                  "clientId": {
+                    "type": "string"
+                  },
+                  "clientSecret": {
+                    "type": "string"
+                  },
+                  "paymentTypeId": {
+                    "type": "string"
+                  },
+                  "expenseTypeCode": {
+                    "type": "string"
+                  },
+                  "policyId": {
+                    "type": "string"
+                  },
+                  "reportName": {
+                    "type": "string"
+                  }
+                }
+              },
+              "convergentCharging": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string"
+                  },
+                  "chargeableItemName": {
+                    "type": "string"
+                  },
+                  "user": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                }
+              },
+              "simple": {
+                "type": "object",
+                "properties": {
+                  "price": {
+                    "type": "number"
+                  },
+                  "currency": {
+                    "type": "string"
+                  }
+                }
+              },
+              "billing": {
+                "type": "object",
+                "properties": {
+                  "isTransactionBillingActivated": {
+                    "type": "boolean"
+                  },
+                  "immediateBillingAllowed": {
+                    "type": "boolean"
+                  },
+                  "periodicBillingAllowed": {
+                    "type": "boolean"
+                  },
+                  "taxID": {
+                    "type": "string"
+                  }
+                }
+              },
+              "stripe": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string"
+                  },
+                  "secretKey": {
+                    "type": "string"
+                  },
+                  "publicKey": {
+                    "type": "string"
+                  }
+                }
+              },
+              "sapSmartCharging": {
+                "type": "object",
+                "properties": {
+                  "optimizerUrl": {
+                    "type": "string"
+                  },
+                  "user": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  },
+                  "stickyLimitation": {
+                    "type": "boolean"
+                  },
+                  "limitBufferDC": {
+                    "type": "number"
+                  },
+                  "limitBufferAC": {
+                    "type": "number"
+                  }
+                }
+              },
+              "asset": {
+                "type": "object",
+                "properties": {
+                  "connections": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "url": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "refreshIntervalMins": {
+                          "type": "string"
+                        },
+                        "schneiderConnection": {
+                          "type": "object",
+                          "properties": {
+                            "user": {
+                              "type": "string"
+                            },
+                            "password": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "greenComConnection": {
+                          "type": "object",
+                          "properties": {
+                            "clientId": {
+                              "type": "string"
+                            },
+                            "clientSecret": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "iothinkConnection": {
+                          "type": "object",
+                          "properties": {
+                            "user": {
+                              "type": "string"
+                            },
+                            "password": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "witConnection": {
+                          "type": "object",
+                          "properties": {
+                            "authenticationUrl": {
+                              "type": "string"
+                            },
+                            "clientId": {
+                              "type": "string"
+                            },
+                            "clientSecret": {
+                              "type": "string"
+                            },
+                            "user": {
+                              "type": "string"
+                            },
+                            "password": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "lacroix": {
+                          "type": "object",
+                          "properties": {
+                            "user": {
+                              "type": "string"
+                            },
+                            "password": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "carConnector": {
+                "type": "object",
+                "properties": {
+                  "connections": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "mercedesConnection": {
+                          "type": "object",
+                          "properties": {
+                            "authenticationUrl": {
+                              "type": "string"
+                            },
+                            "apiUrl": {
+                              "type": "string"
+                            },
+                            "clientId": {
+                              "type": "string"
+                            },
+                            "clientSecret": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "tronityConnection": {
+                          "type": "object",
+                          "properties": {
+                            "apiUrl": {
+                              "type": "string"
+                            },
+                            "clientId": {
+                              "type": "string"
+                            },
+                            "clientSecret": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "crypto": {
+                "type": "object",
+                "properties": {
+                  "key": {
+                    "type": "string"
+                  },
+                  "keyProperties": {
+                    "type": "object",
+                    "properties": {
+                      "blockCypher": {
+                        "type": "string"
+                      },
+                      "blockSize": {
+                        "type": "number"
+                      },
+                      "operationMode": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "formerKey": {
+                    "type": "string"
+                  },
+                  "formerKeyProperties": {
+                    "type": "object",
+                    "properties": {
+                      "blockCypher": {
+                        "type": "string"
+                      },
+                      "blockSize": {
+                        "type": "number"
+                      },
+                      "operationMode": {
+                        "type": "number"
+                      }
+                    }
+                  }
+                }
+              },
+              "user": {
+                "type": "object",
+                "properties": {
+                  "autoActivateAccountAfterValidation": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -11726,7 +12964,25 @@
           "type": "string"
         }
       },
-      "RegistrationTokenID": {
+      "OICPEndpointID": {
+        "in": "path",
+        "name": "id",
+        "description": "OICP Endpoint ID",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "SettingID": {
+        "in": "path",
+        "name": "id",
+        "description": "Setting ID",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "registrationTokenID": {
         "in": "path",
         "name": "id",
         "description": "Registration token ID",

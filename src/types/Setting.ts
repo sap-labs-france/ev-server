@@ -2,8 +2,18 @@ import CreatedUpdatedProps from './CreatedUpdatedProps';
 import { TenantComponents } from './Tenant';
 
 export enum TechnicalSettings {
+  CRYPTO = 'crypto',
   USER = 'user',
-  CRYPTO = 'crypto'
+}
+
+export enum IntegrationSettings {
+  OCPI = 'ocpi',
+  OICP = 'oicp',
+  SAC = 'sapAnalytics',
+  SMART_CHARGING = 'smartCharging',
+  REFUND = 'refund',
+  PRICING = 'pricing',
+  ASSET = 'asset'
 }
 
 export interface Setting extends CreatedUpdatedProps {
@@ -107,6 +117,7 @@ export interface OcpiSetting {
   emsp: OcpiIdentifier;
   currency: string;
   businessDetails: OcpiBusinessDetails;
+  tariffID?: string;
 }
 
 export interface OicpSetting {

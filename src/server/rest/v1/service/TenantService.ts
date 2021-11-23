@@ -153,7 +153,7 @@ export default class TenantService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.LIST, entity: Entity.TENANTS,
+        action: Action.LIST, entity: Entity.TENANT,
         module: MODULE_NAME, method: 'handleGetTenants'
       });
     }

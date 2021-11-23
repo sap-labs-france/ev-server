@@ -1,0 +1,37 @@
+{
+  "$id": "oicp-endpoint",
+  "definitions": {
+    "id": {
+      "$ref": "common#/definitions/id"
+    },
+    "name": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "role": {
+      "type": "string",
+      "sanitize": "mongo",
+      "enum": [
+        "CPO",
+        "EMSP"
+      ]
+    },
+    "baseUrl": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "countryCode": {
+      "type": "string",
+      "sanitize": "mongo",
+      "format": "country"
+    },
+    "partyId": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "backgroundPathJob": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    }
+  }
+}
