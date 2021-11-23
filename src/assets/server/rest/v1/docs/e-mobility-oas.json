@@ -75,6 +75,10 @@
     {
       "name": "OICP",
       "description": "OICP API"
+    },
+    {
+      "name": "Registration tokens",
+      "description": "Registration tokens API"
     }
   ],
   "paths": {
@@ -10518,6 +10522,161 @@
           }
         }
       }
+    },
+    "/api/registration-tokens": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a list of Registration Tokens",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SiteAreaID"
+          },
+          {
+            "$ref": "#/components/parameters/SiteIDs"
+          }
+        ],
+        "tags": [
+          "Registration tokens"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return Registration Tokens list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "createdBy": {
+                        "firstName": "###",
+                        "name": "###"
+                      },
+                      "createdOn": "2021-11-08T14:39:10.363Z",
+                      "description": "###",
+                      "expirationDate": "2021-12-08T14:39:10.363Z",
+                      "revocationDate": null,
+                      "siteAreaID": null,
+                      "id": "###",
+                      "ocpp15SOAPSecureUrl": "###",
+                      "ocpp16SOAPSecureUrl": "###",
+                      "ocpp16JSONSecureUrl": "###"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Create a registration token",
+        "tags": [
+          "Registration tokens"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegistrationToken"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Registration token created successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "###",
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/registration-tokens/{id}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a Registration Token",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/registrationTokenID"
+          }
+        ],
+        "tags": [
+          "Registration tokens"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return registration Token",
+            "content": {
+              "application/json": {
+                "example": {
+                  "createdBy": {
+                    "firstName": "###",
+                    "name": "###"
+                  },
+                  "createdOn": "2021-11-23T15:30:50.509Z",
+                  "description": "###",
+                  "expirationDate": "2021-12-23T15:30:50.509Z",
+                  "revocationDate": null,
+                  "siteAreaID": null,
+                  "id": "###",
+                  "ocpp15SOAPSecureUrl": "###",
+                  "ocpp16SOAPSecureUrl": "###",
+                  "ocpp16JSONSecureUrl": "###"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -12234,6 +12393,28 @@
             }
           }
         }
+      },
+      "RegistrationToken": {
+        "type": "object",
+        "required": [
+          "description"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "readOnly": true
+          },
+          "description": {
+            "type": "string"
+          },
+          "siteAreaID": {
+            "type": "string"
+          },
+          "expirationDate": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
       }
     },
     "parameters": {
@@ -12835,6 +13016,15 @@
         "in": "path",
         "name": "id",
         "description": "Setting ID",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "registrationTokenID": {
+        "in": "path",
+        "name": "id",
+        "description": "Registration token ID",
         "required": true,
         "schema": {
           "type": "string"
