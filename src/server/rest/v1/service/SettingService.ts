@@ -177,12 +177,15 @@ export default class SettingService {
   }
 
   public static async handleUpdateSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    let filteredRequest: any;
+    let filteredRequest;
     UtilsService.assertIdIsProvided(action, req.body.id, MODULE_NAME, 'handleUpdateSetting', req.user);
     switch (req.body.identifier) {
       // Filter
       case IntegrationSettings.OCPI:
         filteredRequest = SettingValidator.getInstance().validateSettingOCPISetReq(req.body);
+        break;
+      case IntegrationSettings.OICP:
+        filteredRequest = SettingValidator.getInstance().validateSettingOICPSetReq(req.body);
         break;
       case TechnicalSettings.CRYPTO:
         filteredRequest = SettingValidator.getInstance().validateSettingCryptoSetReq(req.body);
@@ -198,6 +201,9 @@ export default class SettingService {
         break;
       case IntegrationSettings.PRICING:
         filteredRequest = SettingValidator.getInstance().validateSettingPricingSetReq(req.body);
+        break;
+      case IntegrationSettings.SAC:
+        filteredRequest = SettingValidator.getInstance().validateSettingAnalyticsSetReq(req.body);
         break;
       default:
         filteredRequest = SettingSecurity.filterSettingUpdateRequest(req.body);
