@@ -1,3 +1,5 @@
+import { AssetConnectionSetting, CarConnectorConnectionSetting } from '../Setting';
+
 import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 
@@ -11,7 +13,7 @@ export interface HttpSettingsRequest extends HttpDatabaseRequest {
 }
 
 export interface HttpSettingSetRequest {
-  id: string,
+  id?: string,
   identifier: string,
   sensitiveData: []
 }
@@ -166,6 +168,24 @@ export interface HttpSettingBillingSetRequest extends HttpSettingSetRequest {
       immediateBillingAllowed: boolean,
       periodicBillingAllowed: boolean,
       taxID: string
+    }
+  }
+}
+
+export interface HttpSettingAssetSetRequest extends HttpSettingSetRequest {
+  content: {
+    type: string,
+    asset: {
+      connections: AssetConnectionSetting[]
+    }
+  }
+}
+
+export interface HttpSettingCarConnectorSetRequest extends HttpSettingSetRequest {
+  content: {
+    type: string,
+    carConnector: {
+      connections: CarConnectorConnectionSetting[]
     }
   }
 }
