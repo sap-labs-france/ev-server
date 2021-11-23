@@ -1,10 +1,10 @@
 {
-  "$id": "ocpi-endpoints-get",
-  "title": "Get OCPI Endpoints list Request",
+  "$id": "oicp-endpoints-get",
+  "title": "Get OICP Endpoints list Request",
   "type": "object",
   "properties": {
     "Search": {
-      "$ref": "common#/definitions/search"
+      "$ref": "oicp-endpoint#/definitions/id"
     },
     "Limit": {
       "$ref": "common#/definitions/limit"

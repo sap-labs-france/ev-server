@@ -1,5 +1,6 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
+import { Car, CarCatalog } from '../../../../types/Car';
 import { CarCatalogDataResult, CarDataResult } from '../../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
@@ -10,7 +11,6 @@ import AppError from '../../../../exception/AppError';
 import AsyncTaskBuilder from '../../../../async-task/AsyncTaskBuilder';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
-import { Car } from '../../../../types/Car';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
 import CarValidator from '../validator/CarValidator';
 import Constants from '../../../../utils/Constants';
@@ -213,16 +213,8 @@ export default class CarService {
     // Check
     UtilsService.checkIfCarValid(filteredRequest, req);
     // Check auth
-    const authorizationFilters = await AuthorizationService.checkAndGetCarAuthorizations(
+    await AuthorizationService.checkAndGetCarAuthorizations(
       req.tenant,req.user, {}, Action.CREATE, filteredRequest as Car);
-    if (!authorizationFilters.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.CREATE, entity: Entity.CAR,
-        module: MODULE_NAME, method: 'handleCreateCar'
-      });
-    }
     // Check and get Car Catalog
     await UtilsService.checkAndGetCarCatalogAuthorization(
       req.tenant, req.user, filteredRequest.carCatalogID, Action.READ, action, filteredRequest as Car);

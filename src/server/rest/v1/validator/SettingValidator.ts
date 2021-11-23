@@ -13,7 +13,7 @@ export default class SettingValidator extends SchemaValidator {
   private settingRefundSet: Schema;
   private settingPricingSet: Schema;
   private settingCryptoSet: Schema;
-  private settingSacSet: Schema;
+  private settingAnalyticsSet: Schema;
   private settingOICPSet: Schema;
   private settingBillingSet: Schema;
   private settingAssetSet: Schema;
@@ -27,7 +27,7 @@ export default class SettingValidator extends SchemaValidator {
     this.settingRefundSet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-refund-set.json`, 'utf8'));
     this.settingPricingSet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-pricing-set.json`, 'utf8'));
     this.settingCryptoSet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-crypto-set.json`, 'utf8'));
-    this.settingSacSet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-sac-set.json`, 'utf8'));
+    this.settingAnalyticsSet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-analytics-set.json`, 'utf8'));
     this.settingOICPSet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-oicp-set.json`, 'utf8'));
     this.settingBillingSet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-billing-set.json`, 'utf8'));
     this.settingAssetSet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-asset-set.json`, 'utf8'));
@@ -65,8 +65,8 @@ export default class SettingValidator extends SchemaValidator {
     return this.validate(this.settingCryptoSet, data);
   }
 
-  public validateSettingSacSetReq(data: Record<string, unknown>): HttpSettingSacSetRequest {
-    return this.validate(this.settingSacSet, data);
+  public validateSettingAnalyticsSetReq(data: Record<string, unknown>): HttpSettingSacSetRequest {
+    return this.validate(this.settingAnalyticsSet, data);
   }
 
   public validateSettingOICPSetReq(data: Record<string, unknown>): HttpSettingOICPSetRequest {

@@ -321,7 +321,7 @@ export default class SettingService {
       case IntegrationSettings.PRICING:
         return SettingValidator.getInstance().validateSettingPricingSetReq(req.body);
       case IntegrationSettings.SAC:
-        return SettingValidator.getInstance().validateSettingSacSetReq(req.body);
+        return SettingValidator.getInstance().validateSettingAnalyticsSetReq(req.body);
       case IntegrationSettings.ASSET:
         return SettingValidator.getInstance().validateSettingAssetSetReq(req.body);
       default:
