@@ -67,7 +67,6 @@
   },
   "required": [
     "id",
-    "identifier",
-    "content"
+    "identifier"
   ]
 }
