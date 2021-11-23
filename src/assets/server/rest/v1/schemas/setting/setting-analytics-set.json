@@ -20,31 +20,7 @@
           }
         },
         "links": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "id": {
-                "$ref": "common#/definitions/id"
-              },
-              "name": {
-                "type": "string",
-                "sanitize": "mongo"
-              },
-              "description": {
-                "type": "string",
-                "sanitize": "mongo"
-              },
-              "role": {
-                "type": "string",
-                "sanitize": "mongo"
-              },
-              "url": {
-                "type": "string",
-                "sanitize": "mongo"
-              }
-            }
-          }
+          "$ref": "setting#/definitions/links"
         },
         "type": {
           "type": "string",
@@ -57,8 +33,7 @@
       ]
     },
     "id": {
-      "type": "string",
-      "sanitize": "mongo"
+      "$ref": "common#/definitions/id"
     },
     "identifier": {
       "type": "string",
@@ -66,12 +41,7 @@
       "enum": ["sac"]
     },
     "sensitiveData": {
-      "type": "array",
-      "nullable": true,
-      "items": {
-        "type": "string",
-        "sanitize": "mongo"
-      }
+      "$ref": "setting#/definitions/sensitiveData"
     }
   },
   "required": [
