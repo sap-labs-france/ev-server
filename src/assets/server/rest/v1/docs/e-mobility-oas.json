@@ -10560,7 +10560,10 @@
                       "expirationDate": "2021-12-08T14:39:10.363Z",
                       "revocationDate": null,
                       "siteAreaID": null,
-                      "id": "###"
+                      "id": "###",
+                      "ocpp15SOAPSecureUrl": "###",
+                      "ocpp16SOAPSecureUrl": "###",
+                      "ocpp16JSONSecureUrl": "###"
                     }
                   ]
                 }
@@ -10639,12 +10642,23 @@
         ],
         "responses": {
           "200": {
-            "description": "Registration Token created successfully",
+            "description": "Return registration Token",
             "content": {
               "application/json": {
                 "example": {
+                  "createdBy": {
+                    "firstName": "###",
+                    "name": "###"
+                  },
+                  "createdOn": "2021-11-23T15:30:50.509Z",
+                  "description": "###",
+                  "expirationDate": "2021-12-23T15:30:50.509Z",
+                  "revocationDate": null,
+                  "siteAreaID": null,
                   "id": "###",
-                  "status": "Success"
+                  "ocpp15SOAPSecureUrl": "###",
+                  "ocpp16SOAPSecureUrl": "###",
+                  "ocpp16JSONSecureUrl": "###"
                 }
               }
             }
@@ -10657,6 +10671,9 @@
           },
           "500": {
             "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
       }
