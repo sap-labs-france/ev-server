@@ -54,8 +54,10 @@
             "T3C",
             "T1CCS",
             "D",
-            "U"
-          ]
+            "U",
+            null
+          ],
+          "nullable": true
         },
         "connectorPowerkW": {
           "type": "number",

@@ -9,7 +9,7 @@ export interface HttpPricingDefinitionRequest extends HttpByIDRequest {
 export interface HttpPricingDefinitionsRequest extends HttpDatabaseRequest {
   ID?: string;
   Search?: string;
-  entityID?: string;
-  entityType?: string;
+  EntityID?: string;
+  EntityType?: string;
   WithEntityInformation?: boolean;
 }
