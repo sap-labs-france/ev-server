@@ -46,6 +46,39 @@ export interface HttpSettingOCPISetRequest extends HttpSettingSetRequest {
   }
 }
 
+export interface HttpSettingOICPSetRequest extends HttpSettingSetRequest {
+  content: {
+    type: string,
+    ocpi: {
+      businessDetails: {
+        logo: {
+          category?: string,
+          height?: number,
+          thumbnail?: string,
+          type?: string,
+          url?: string,
+          width?: number
+        },
+        name: string,
+        website: string
+      },
+      cpo: {
+        countryCode: string,
+        partyID: string,
+        key: string,
+        cert: string
+      },
+      currency: string,
+      emsp: {
+        countryCode: string,
+        partyID: string,
+        key: string,
+        cert: string
+      }
+    }
+  }
+}
+
 export interface HttpSettingUserSetRequest extends HttpSettingSetRequest {
   content: {
     type: string,
@@ -111,6 +144,28 @@ export interface HttpSettingCryptoSetRequest extends HttpSettingSetRequest {
         blockSize: number,
         operationMode: string
       }
+    }
+  }
+}
+
+export interface HttpSettingSacSetRequest extends HttpSettingSetRequest {
+  content: {
+    type: string,
+    sac: {
+      mainUrl: string,
+      timezone: string
+    }
+  }
+}
+
+export interface HttpSettingBillingSetRequest extends HttpSettingSetRequest {
+  content: {
+    type: string,
+    billing: {
+      isTransactionBillingActivated: boolean,
+      immediateBillingAllowed: boolean,
+      periodicBillingAllowed: boolean,
+      taxID: string
     }
   }
 }

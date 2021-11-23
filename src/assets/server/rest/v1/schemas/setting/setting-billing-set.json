@@ -1,32 +1,43 @@
 {
-  "$id": "setting-user-set",
-  "title": "Set User Settings",
+  "$id": "setting-billing-set",
+  "title": "Set Billing Settings",
   "type": "object",
   "properties": {
     "content": {
       "type": "object",
       "properties": {
-        "user": {
+        "billing": {
           "type": "object",
           "properties": {
-            "autoActivateAccountAfterValidation" : {
+            "isTransactionBillingActivated": {
               "type": "boolean",
+              "sanitize": "mongo"
+            },
+            "immediateBillingAllowed": {
+              "type": "boolean",
+              "sanitize": "mongo"
+            },
+            "periodicBillingAllowed": {
+              "type": "boolean",
+              "sanitize": "mongo"
+            },
+            "taxID": {
+              "type": "string",
               "sanitize": "mongo"
             }
           }
         },
+        "links": {
+          "$ref": "setting#/definitions/links"
+        },
         "type": {
           "type": "string",
           "sanitize": "mongo",
-          "enum": ["user"]
+          "enum": ["billing"]
         }
       },
-      "links": {
-        "$ref": "setting#/definitions/links"
-      },
       "required": [
-        "type",
-        "user"
+        "type"
       ]
     },
     "id": {
@@ -35,7 +46,7 @@
     "identifier": {
       "type": "string",
       "sanitize": "mongo",
-      "enum": ["user"]
+      "enum": ["billing"]
     },
     "sensitiveData": {
       "$ref": "setting#/definitions/sensitiveData"
