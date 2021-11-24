@@ -533,7 +533,7 @@ export default class UtilsService {
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
         action: Action.LIST,
-        entity: Entity.ASSETS,
+        entity: Entity.ASSET,
         module: MODULE_NAME, method: 'checkAndGetAssetsAuthorization',
       });
     }
@@ -592,7 +592,7 @@ export default class UtilsService {
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
         action: Action.LIST,
-        entity: Entity.CHARGING_STATIONS,
+        entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'checkAndGetChargingStationsAuthorization',
       });
     }

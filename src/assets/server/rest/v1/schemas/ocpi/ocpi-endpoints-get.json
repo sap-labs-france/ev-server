@@ -4,7 +4,7 @@
   "type": "object",
   "properties": {
     "Search": {
-      "$ref": "ocpi-endpoint#/definitions/id"
+      "$ref": "common#/definitions/search"
     },
     "Limit": {
       "$ref": "common#/definitions/limit"

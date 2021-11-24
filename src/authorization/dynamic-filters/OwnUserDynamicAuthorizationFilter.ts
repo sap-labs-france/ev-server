@@ -30,7 +30,7 @@ export default class OwnUserDynamicAuthorizationFilter extends DynamicAuthorizat
 
   public getApplicableEntities(): Entity[] {
     return [
-      Entity.TAGS
+      Entity.TAG
     ];
   }
 

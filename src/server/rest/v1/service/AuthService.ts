@@ -820,11 +820,27 @@ export default class AuthService {
             user: user
           });
       }
+      // Check Technical users
+      if (user.technical && AuthService.isLoggedFromUserDevice(req)) {
+        // No authorized to log
+        throw new AppError({
+          errorCode: HTTPError.TECHNICAL_USER_CANNOT_LOG_TO_UI_ERROR,
+          message: 'Technical user cannot log in to UI but only B2B',
+          module: MODULE_NAME,
+          method: 'checkUserLogin',
+          user: user
+        });
+      }
       // Login OK
       await AuthService.userLoginSucceeded(action, tenant, user, req, res, next);
     } else {
       // Login KO
       await AuthService.userLoginWrongPassword(action, tenant, user, req, res, next);
     }
+  }
+
+  private static isLoggedFromUserDevice(req: Request) {
+    return req.useragent.isMobile ||
+      req.useragent.isDesktop;
   }
 }

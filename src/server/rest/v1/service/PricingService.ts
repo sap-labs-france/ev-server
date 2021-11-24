@@ -35,7 +35,7 @@ export default class PricingService {
   public static async handleGetPricingDefinitions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
-      Action.LIST, Entity.PRICING_DEFINITIONS, MODULE_NAME, 'handleGetPricingDefinitions');
+      Action.LIST, Entity.PRICING_DEFINITION, MODULE_NAME, 'handleGetPricingDefinitions');
     // Filter
     const filteredRequest = PricingValidator.getInstance().validatePricingDefinitionsGet(req.query);
     // Check dynamic auth
@@ -48,14 +48,14 @@ export default class PricingService {
     // Get the pricing definitions
     const pricingDefinitions = await PricingStorage.getPricingDefinitions(req.tenant,
       {
-        entityIDs: filteredRequest.entityID ? filteredRequest.entityID.split('|') : null,
-        entityTypes: filteredRequest.entityType ? filteredRequest.entityType.split('|') : null,
+        entityID: filteredRequest.entityID || null,
+        entityType: filteredRequest.entityType || null,
         withEntityInformation: filteredRequest?.WithEntityInformation,
         ...authorizationPricingDefinitionsFilter.filters
       }, {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.SortFields,
+        sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       authorizationPricingDefinitionsFilter.projectFields

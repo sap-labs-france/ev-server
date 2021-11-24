@@ -24,7 +24,7 @@ import responseHelper from '../helpers/responseHelper';
 chai.use(chaiSubset);
 chai.use(responseHelper);
 
-export default class StripeIntegrationTestData {
+export default class StripeTestHelper {
   // Tenant: utbilling
   public tenantContext: TenantContext;
   // User Service for action requiring admin permissions (e.g.: set/reset stripe settings)
@@ -118,9 +118,9 @@ export default class StripeIntegrationTestData {
 
   public async saveBillingSettings(billingSettings: BillingSettings) : Promise<void> {
     // TODO - rethink that part
-    const tenantBillingSettings = await this.adminUserService.settingApi.readAll({ 'Identifier': 'billing' });
-    expect(tenantBillingSettings.data.count).to.be.eq(1);
-    const componentSetting: SettingDB = tenantBillingSettings.data.result[0];
+    const tenantBillingSettings = await this.adminUserService.settingApi.readByIdentifier({ 'Identifier': 'billing' });
+    expect(tenantBillingSettings.data).to.not.be.null;
+    const componentSetting: SettingDB = tenantBillingSettings.data;
     componentSetting.content.type = BillingSettingsType.STRIPE;
     componentSetting.content.billing = billingSettings.billing;
     componentSetting.content.stripe = billingSettings.stripe;
