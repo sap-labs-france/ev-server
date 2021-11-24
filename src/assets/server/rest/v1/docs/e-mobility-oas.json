@@ -65,6 +65,10 @@
       "description": "Notifications API"
     },
     {
+      "name": "Sites",
+      "description": "Sites API"
+    },
+    {
       "name": "OCPI",
       "description": "OCPI API"
     },

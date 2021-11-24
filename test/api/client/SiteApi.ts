@@ -1,22 +1,23 @@
+import AuthenticatedBaseApi from './utils/AuthenticatedBaseApi';
 import CrudApi from './utils/CrudApi';
 import { ServerRoute } from '../../../src/types/Server';
 import TestConstants from './utils/TestConstants';
 
 export default class SiteApi extends CrudApi {
-  public constructor(authenticatedApi) {
+  public constructor(authenticatedApi: AuthenticatedBaseApi) {
     super(authenticatedApi);
   }
 
-  public async readById(id) {
-    return super.readById(id, '/client/api/Site');
+  public async readById(id: string) {
+    return super.readById(id, this.buildRestEndpointUrl(ServerRoute.REST_SITE, { id }));
   }
 
   public async readAll(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, '/client/api/Sites');
+    return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(ServerRoute.REST_SITES));
   }
 
   public async create(data) {
-    const site = await super.create(data, '/client/api/SiteCreate');
+    const site = await super.create(data, this.buildRestEndpointUrl(ServerRoute.REST_SITES));
     // Check User IDs
     if (data.userIDs) {
       // Assign User IDs to Site

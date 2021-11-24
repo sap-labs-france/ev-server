@@ -14,6 +14,7 @@ import OICPEndpointRouter from './api/OICPEndpointRouter';
 import PricingRouter from './api/PricingRouter';
 import RegistrationTokenRouter from './api/RegistrationTokenRouter';
 import SettingRouter from './api/SettingRouter';
+import SiteRouter from './api/SiteRouter';
 import SwaggerRouter from './doc/SwaggerRouter';
 import TagRouter from './api/TagRouter';
 import TenantRouter from './api/TenantRouter';
@@ -58,6 +59,7 @@ export default class GlobalRouter {
         new OICPEndpointRouter().buildRoutes(),
         new RegistrationTokenRouter().buildRoutes(),
         new SettingRouter().buildRoutes(),
+        new SiteRouter().buildRoutes(),
         new TagRouter().buildRoutes(),
         new TenantRouter().buildRoutes(),
         new TransactionRouter().buildRoutes(),

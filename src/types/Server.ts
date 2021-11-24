@@ -608,6 +608,9 @@ export enum ServerRoute {
   REST_REGISTRATION_TOKENS = 'registration-tokens',
   REST_REGISTRATION_TOKEN = 'registration-tokens/:id',
 
+  REST_SITES = 'sites',
+  REST_SITE = 'sites/:id',
+
   // BILLING URLs for CRUD operations on PAYMENT METHODS
   REST_BILLING_PAYMENT_METHODS = 'users/:userID/payment-methods',
   REST_BILLING_PAYMENT_METHOD = 'users/:userID/payment-methods/:paymentMethodID',
