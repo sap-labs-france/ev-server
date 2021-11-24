@@ -61,7 +61,38 @@
     "Battery_Capacity_Full": 6.1,
     "Charge_Standard_PhaseAmp": 16,
     "Charge_Standard_Phase": 1,
-    "Performance_Topspeed":80,
+    "Performance_Topspeed": 80,
     "Drivetrain_Torque": 57
+  },
+  {
+    "Vehicle_ID": 100002,
+    "Vehicle_Make": "TATA Motors",
+    "Vehicle_Model": "Nexon",
+    "Vehicle_Model_Version": "EV",
+    "Images": [
+      "2021-tata-nexon-ev-suv.jpg",
+      "tata-nexon-ev-featured-5.jpg"
+    ],
+    "Charge_Standard_Table": {
+      "230V16A1X": {
+        "EVSE_PhaseVolt": 72,
+        "EVSE_Phase": 4,
+        "EVSE_PhaseAmp": 16,
+        "Charge_PhaseVolt": 230,
+        "Charge_PhaseAmp": 16,
+        "Charge_Phase": 1,
+        "Charge_Power": 4,
+        "Charge_Time": 106,
+        "Charge_Speed": 7
+      }
+    },
+    "Drivetrain_Power_HP": 21,
+    "Charge_Standard_Power": 13,
+    "Range_Real": 40,
+    "Battery_Capacity_Full": 8.6,
+    "Charge_Standard_PhaseAmp": 16,
+    "Charge_Standard_Phase": 1,
+    "Performance_Topspeed": 50,
+    "Drivetrain_Torque": 37
   }
 ]

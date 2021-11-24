@@ -1,0 +1,30 @@
+{
+  "$id": "oicp-endpoint-ping",
+  "title": "OICP Endpoint ping Request",
+  "type": "object",
+  "properties": {
+    "name": {
+      "$ref": "oicp-endpoint#/definitions/name"
+    },
+    "role": {
+      "$ref": "oicp-endpoint#/definitions/role"
+    },
+    "baseUrl": {
+      "$ref": "oicp-endpoint#/definitions/baseUrl"
+    },
+    "countryCode": {
+      "$ref": "oicp-endpoint#/definitions/countryCode"
+    },
+    "partyId": {
+      "$ref": "oicp-endpoint#/definitions/partyId"
+    },
+    "backgroundPatchJob": {
+      "$ref": "oicp-endpoint#/definitions/name"
+    }
+  },
+  "required": [
+    "name",
+    "role",
+    "baseUrl"
+  ]
+}

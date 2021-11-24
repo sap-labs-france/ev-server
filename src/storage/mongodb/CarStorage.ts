@@ -314,28 +314,28 @@ export default class CarStorage {
     return carToSave.id;
   }
 
-  public static async saveCarImage(carID: number, carImageToSave: string): Promise<void> {
+  public static async saveCarCatalogImage(id: number, carImageToSave: string): Promise<void> {
     // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Save new image
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogimages').findOneAndReplace(
-      { _id: Utils.hash(`${carImageToSave}~${carID}`), },
-      { carID: Utils.convertToInt(carID), image: carImageToSave },
+      { _id: Utils.hash(`${carImageToSave}~${id}`), },
+      { carID: Utils.convertToInt(id), image: carImageToSave },
       { upsert: true }
     );
     // Debug
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'saveCarImage', startTime, carImageToSave);
   }
 
-  public static async deleteCarImages(carID: number): Promise<void> {
+  public static async deleteCarCatalogImages(id: number): Promise<void> {
     // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Delete car catalogs images
     await global.database.getCollection(Constants.DEFAULT_TENANT, 'carcatalogimages').deleteMany(
-      { carID: Utils.convertToInt(carID) }
+      { carID: id }
     );
     // Debug
-    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'deleteCarImages', startTime, { carID });
+    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'deleteCarImages', startTime, { carID: id });
   }
 
   public static async getCarCatalogImage(id: number): Promise<{ id: number; image: string }> {
@@ -741,5 +741,15 @@ export default class CarStorage {
       .deleteOne({ '_id': DatabaseUtils.convertToObjectID(carID) });
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteCar', startTime, { carID });
+  }
+
+  public static async deleteCarCatalog(id: number): Promise<void> {
+    // Debug
+    const startTime = Logging.traceDatabaseRequestStart();
+    // Delete singular site area
+    await global.database.getCollection(Constants.DEFAULT_TENANT, 'carcatalogs')
+      .deleteOne({ '_id': id });
+    // Debug
+    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'deleteCarCatalog', startTime, { carID: id });
   }
 }

@@ -9,7 +9,7 @@ import { OCPICdr } from './ocpi/OCPICdr';
 import { OCPISession } from './ocpi/OCPISession';
 import { OICPChargeDetailRecord } from './oicp/OICPChargeDetailRecord';
 import { OICPSession } from './oicp/OICPSession';
-import { PricingModel } from './Pricing';
+import { ResolvedPricingModel } from './Pricing';
 import Site from './Site';
 import SiteArea from './SiteArea';
 import Tag from './Tag';
@@ -83,7 +83,7 @@ export default interface Transaction extends AbstractCurrentConsumption {
   roundedPrice?: number;
   priceUnit?: string;
   pricingSource?: string;
-  pricingModel?: PricingModel,
+  pricingModel?: ResolvedPricingModel,
   stateOfCharge: number;
   timezone: string;
   currentTimestamp?: Date;
@@ -93,6 +93,7 @@ export default interface Transaction extends AbstractCurrentConsumption {
   currentTotalDurationSecs?: number;
   transactionEndReceived?: boolean;
   currentCumulatedPrice?: number;
+  currentCumulatedRoundedPrice?: number; // added to address rounding issues on multiple pricing dimension
   currentSignedData?: string;
   status?: ChargePointStatus;
   numberOfMeterValues: number;
