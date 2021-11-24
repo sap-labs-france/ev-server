@@ -2,6 +2,7 @@ import { ServerAction, ServerRoute } from '../../../src/types/Server';
 
 import Asset from '../../../src/types/Asset';
 import AuthenticatedBaseApi from './utils/AuthenticatedBaseApi';
+import Consumption from '../../../src/types/Consumption';
 import CrudApi from './utils/CrudApi';
 import TestConstants from './utils/TestConstants';
 
@@ -34,12 +35,17 @@ export default class AssetApi extends CrudApi {
     return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(ServerRoute.REST_ASSETS_IN_ERROR));
   }
 
-  public async checkAssetConnectorLink(id): Promise<any> {
+  public async checkAssetConnectorLink(id: string): Promise<any> {
     return super.read(id, this.buildRestEndpointUrl(ServerRoute.REST_ASSET_CHECK_CONNECTION, { id }));
   }
 
-  public async retrieveLatestConsumption(id): Promise<any> {
+  public async retrieveLatestConsumption(id: string): Promise<any> {
     return super.read(id, this.buildRestEndpointUrl(ServerRoute.REST_ASSET_RETRIEVE_CONSUMPTION, { id }));
+  }
+
+
+  public async createConsumption(data: Consumption): Promise<any> {
+    return super.create(data, this.buildRestEndpointUrl(ServerRoute.REST_ASSET_CONSUMPTIONS));
   }
 
 }

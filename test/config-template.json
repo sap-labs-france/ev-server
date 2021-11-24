@@ -60,5 +60,13 @@
     "optimizerUrl": "",
     "user": "",
     "password": ""
+  },
+  "assetConnectors": {
+    "ioThink": {
+      "user": "",
+      "password": "",
+      "url": "",
+      "meterID": ""
+    }
   }
 }
