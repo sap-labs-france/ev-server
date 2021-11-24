@@ -1,9 +1,8 @@
-import { ServerAction, ServerRoute } from '../../../src/types/Server';
-
 import Asset from '../../../src/types/Asset';
 import AuthenticatedBaseApi from './utils/AuthenticatedBaseApi';
 import Consumption from '../../../src/types/Consumption';
 import CrudApi from './utils/CrudApi';
+import { ServerRoute } from '../../../src/types/Server';
 import TestConstants from './utils/TestConstants';
 
 export default class AssetApi extends CrudApi {

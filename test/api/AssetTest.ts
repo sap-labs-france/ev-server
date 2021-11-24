@@ -192,9 +192,6 @@ describe('Asset', function() {
         }
       });
 
-      after(async () => {
-
-      });
 
       it('Should be able to create a new Asset', async () => {
         // Create
