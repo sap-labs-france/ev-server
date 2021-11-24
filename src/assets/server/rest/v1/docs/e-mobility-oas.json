@@ -6994,6 +6994,174 @@
         }
       }
     },
+    "/api/sites": {
+      "get": {
+        "description": "Retrieve a list of Sites",
+        "tags": [
+          "Sites"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Issuer"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/UserID"
+          },
+          {
+            "$ref": "#/components/parameters/CompanyID"
+          },
+          {
+            "$ref": "#/components/parameters/SiteID"
+          },
+          {
+            "in": "query",
+            "name": "ExcludeSitesOfUserID",
+            "required": false,
+            "description": "Exclude sites of user ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/WithCompany"
+          },
+          {
+            "$ref": "#/components/parameters/WithAvailableChargers"
+          },
+          {
+            "$ref": "#/components/parameters/LocLongitude"
+          },
+          {
+            "$ref": "#/components/parameters/LocLatitude"
+          },
+          {
+            "$ref": "#/components/parameters/LocMaxDistanceMeters"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Return site list",
+            "content": {
+              "application/json": {
+                "schema":{
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "number",
+                      "example": 1
+                    },
+                    "result": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Site"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      },
+      "post": {
+        "description": "Create a Site",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Site"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Sites"
+        ],
+        "responses": {
+          "200": {
+            "description": "Site has been created with success",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success",
+                  "id": "###"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/sites/{id}": {
+      "get": {
+        "description": "Retrieve a site",
+        "tags": [
+          "Sites"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/siteID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Return site",
+            "content": {
+              "application/json": {
+                "schema":{
+                  "$ref": "#/components/schemas/Site"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
     "/api/loggings": {
       "get": {
         "security": [
@@ -11570,6 +11738,46 @@
           }
         }
       },
+      "Site": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "public": {
+            "type": "boolean"
+          },
+          "tariffID": {
+            "type": "string"
+          },
+          "autoUserSiteAssignment": {
+            "type": "boolean"
+          },
+          "companyID": {
+            "type": "string"
+          },
+          "image": {
+            "type": "string"
+          },
+          "createdOn": {
+            "$ref": "#/components/schemas/CreatedOn"
+          },
+          "lastChangedOn": {
+            "$ref": "#/components/schemas/LastChangedOn"
+          },
+          "issuer": {
+            "type": "boolean",
+            "readOnly": true
+          }
+        }
+      },
       "Notifications": {
         "type": "object",
         "properties": {
@@ -12533,6 +12741,15 @@
           "type": "string"
         }
       },
+      "siteID": {
+        "in": "path",
+        "name": "id",
+        "description": "Site ID",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
       "UserID": {
         "in": "query",
         "name": "UserID",
@@ -12827,6 +13044,16 @@
           "type": "boolean"
         }
       },
+      "WithAvailableChargers": {
+        "in": "query",
+        "name": "WithAvailableChargers",
+        "description": "Request Sites with their available chargers",
+        "example": false,
+        "required": false,
+        "schema": {
+          "type": "boolean"
+        }
+      },
       "RefundStatus": {
         "in": "query",
         "name": "RefundStatus",
@@ -12985,6 +13212,15 @@
         "name": "id",
         "description": "Car ID",
         "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "CompanyID": {
+        "in": "query",
+        "name": "id",
+        "description": "Company ID",
+        "required": false,
         "schema": {
           "type": "string"
         }
