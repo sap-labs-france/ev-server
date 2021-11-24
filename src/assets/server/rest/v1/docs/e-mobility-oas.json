@@ -10676,6 +10676,130 @@
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
+      },
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Update a Registration Token",
+        "tags": [
+          "Registration tokens"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/registrationTokenID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegistrationToken"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Registration Token updated successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Delete a Registration Token",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/registrationTokenID"
+          }
+        ],
+        "tags": [
+          "Registration tokens"
+        ],
+        "responses": {
+          "200": {
+            "description": "Registration Token deleted successfully"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/registration-tokens/{id}/revoke": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Revoke a Registration Token",
+        "tags": [
+          "Registration tokens"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/registrationTokenID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Registration Token revoked successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
       }
     }
   },
