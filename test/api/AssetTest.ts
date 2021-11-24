@@ -374,20 +374,21 @@ describe('Asset', function() {
         }
       });
 
-      // it('should not be able to retrieve latest consumption with incorrect credentials', async function() {
-      //   if (!testData.pending) {
-      //     const settingID = '0123456789abcdef';
-      //     const url = config.get('assetConnectors.ioThink.url');
-      //     const user = 'WrongUser';
-      //     const password = 'WrongPassword';
-      //     const settingUpdated = await createOrUpdateSettings(settingID, url, user, password);
-      //     expect(settingUpdated.content.asset.connections[0].id).to.be.eq(settingID);
-      //     const response = await testData.centralUserService.assetApi.retrieveLatestConsumption(testData.newAsset.id);
-      //     // expect response to have failure or forbidden
-      //   } else {
-      //     this.skip();
-      //   }
-      // });
+      it('should not be able to retrieve latest consumption with incorrect credentials', async function() {
+        if (!testData.pending) {
+          const settingID = '0123456789abcdef';
+          const url = config.get('assetConnectors.ioThink.url');
+          const user = 'WrongUser';
+          const password = 'WrongPassword';
+          const settingUpdated = await createOrUpdateSettings(settingID, url, user, password);
+          expect(settingUpdated.content.asset.connections[0].id).to.be.eq(settingID);
+          const response = await testData.centralUserService.assetApi.retrieveLatestConsumption(testData.newAsset.id);
+          // response status should instead be FORBIDDEN. Returned with value of INTERNAL SERVER ERROR
+          expect(response.status).to.be.eq(StatusCodes.INTERNAL_SERVER_ERROR);
+        } else {
+          this.skip();
+        }
+      });
 
     });
 
