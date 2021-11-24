@@ -6,6 +6,7 @@ import { ServerAction, WSServerProtocol } from '../../../types/Server';
 import BackendError from '../../../exception/BackendError';
 import ChargingStationClient from '../ChargingStationClient';
 import Logging from '../../../utils/Logging';
+import LoggingHelper from '../../../utils/LoggingHelper';
 import Utils from '../../../utils/Utils';
 import WSClient from '../../websocket/WSClient';
 import { WSClientOptions } from '../../../types/WebSocket';
@@ -26,12 +27,8 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     let chargingStationURL = chargingStation.chargingStationURL;
     if (!chargingStationURL) {
       throw new BackendError({
-        chargingStationID: chargingStation.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
-        module: MODULE_NAME,
-        method: 'constructor',
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
+        module: MODULE_NAME, method: 'constructor',
         message: 'Cannot access the Charging Station via a REST call because no URL is provided',
         detailedMessages: { chargingStation }
       });
@@ -127,9 +124,9 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         // Create WS
         const wsClientOptions: WSClientOptions = {
           wsOptions: {
-            protocol: WSServerProtocol.REST,
             handshakeTimeout: 5000,
           },
+          protocols: WSServerProtocol.REST,
           logTenantID: this.tenantID
         };
         // Create and Open the WS
@@ -173,7 +170,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             chargingStationID: this.chargingStation.id,
             action: ServerAction.WS_REST_CLIENT_CONNECTION_ERROR,
             module: MODULE_NAME, method: 'onError',
-            message: `Connection error to '${this.serverURL}: ${error.toString()}`,
+            message: `Connection error to '${this.serverURL}: ${error?.message}`,
             detailedMessages: { error: error.stack }
           });
           // Terminate WS in error
@@ -228,7 +225,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           }
         };
       } catch (error) {
-        reject(new Error(`Unexpected error on opening Web Socket connection: ${error.message}'`));
+        reject(new Error(`Unexpected error on opening Web Socket connection: ${error.message as string}'`));
       }
     });
   }

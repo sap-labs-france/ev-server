@@ -62,7 +62,7 @@ export default class OCPIGetTokensTask extends SchedulerTask {
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_PULL_TOKENS,
-          message: `The pull tokens process for endpoint '${ocpiEndpoint.name}' is being processed`
+          message: `The pull tokens process for endpoint '${ocpiEndpoint.name}' is being processed${config.partial ? ' (only diff)' : ' (full)'}...`
         });
         // Build OCPI Client
         const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
@@ -72,7 +72,7 @@ export default class OCPIGetTokensTask extends SchedulerTask {
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_PULL_TOKENS,
-          message: `The pull tokens process for endpoint '${ocpiEndpoint.name}' is completed`,
+          message: `The pull tokens process for endpoint '${ocpiEndpoint.name}' has been completed${config.partial ? ' (only diff)' : ' (full)'}`,
           detailedMessages: { result }
         });
       } catch (error) {

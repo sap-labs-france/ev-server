@@ -1,0 +1,35 @@
+{
+  "$id": "pricing-definitions-get",
+  "title": "Get Pricing Definitions Request",
+  "type": "object",
+  "properties": {
+    "EntityID": {
+      "$ref": "pricing-definition#/definitions/entityID"
+    },
+    "EntityType": {
+      "$ref": "pricing-definition#/definitions/entityType"
+    },
+    "Search": {
+      "$ref": "common#/definitions/search"
+    },
+    "SortFields": {
+      "$ref": "common#/definitions/sortFields"
+    },
+    "Limit": {
+      "$ref": "common#/definitions/limit"
+    },
+    "Skip": {
+      "$ref": "common#/definitions/skip"
+    },
+    "OnlyRecordCount": {
+      "$ref": "common#/definitions/onlyRecordCount"
+    },
+    "ProjectFields": {
+      "$ref": "common#/definitions/projectFields"
+    },
+    "WithEntityInformation": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    }
+  }
+}

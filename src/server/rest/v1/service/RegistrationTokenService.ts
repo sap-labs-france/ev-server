@@ -220,7 +220,7 @@ export default class RegistrationTokenService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.LIST, entity: Entity.TOKENS,
+        action: Action.LIST, entity: Entity.TOKEN,
         module: MODULE_NAME, method: 'handleGetRegistrationTokens'
       });
     }
