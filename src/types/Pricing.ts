@@ -124,7 +124,7 @@ export interface PricedConsumptionData {
 }
 
 export interface PricedDimensionData {
-  unitPrice: number;
+  unitPrice?: number;
   amount: number;
   roundedAmount: number;
   quantity: number;

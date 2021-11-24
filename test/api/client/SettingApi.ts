@@ -25,11 +25,11 @@ export default class SettingApi extends CrudApi {
   }
 
   public async update(data) {
-    return super.update(data, '/client/api/SettingUpdate');
+    return super.update(data, this.buildRestEndpointUrl(ServerRoute.REST_SETTING, { id: data.id }));
   }
 
   public async delete(id) {
-    return super.delete(id, '/client/api/SettingDelete');
+    return super.delete(id, this.buildRestEndpointUrl(ServerRoute.REST_SETTING, { id }));
   }
 }
 

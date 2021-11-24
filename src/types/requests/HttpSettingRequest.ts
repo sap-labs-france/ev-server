@@ -1,3 +1,5 @@
+import { AssetConnectionSetting, CarConnectorConnectionSetting } from '../Setting';
+
 import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 
@@ -11,7 +13,7 @@ export interface HttpSettingsRequest extends HttpDatabaseRequest {
 }
 
 export interface HttpSettingSetRequest {
-  id: string,
+  id?: string,
   identifier: string,
   sensitiveData: []
 }
@@ -42,6 +44,39 @@ export interface HttpSettingOCPISetRequest extends HttpSettingSetRequest {
         partyID: string
       },
       tariffID?: string
+    }
+  }
+}
+
+export interface HttpSettingOICPSetRequest extends HttpSettingSetRequest {
+  content: {
+    type: string,
+    ocpi: {
+      businessDetails: {
+        logo: {
+          category?: string,
+          height?: number,
+          thumbnail?: string,
+          type?: string,
+          url?: string,
+          width?: number
+        },
+        name: string,
+        website: string
+      },
+      cpo: {
+        countryCode: string,
+        partyID: string,
+        key: string,
+        cert: string
+      },
+      currency: string,
+      emsp: {
+        countryCode: string,
+        partyID: string,
+        key: string,
+        cert: string
+      }
     }
   }
 }
@@ -111,6 +146,46 @@ export interface HttpSettingCryptoSetRequest extends HttpSettingSetRequest {
         blockSize: number,
         operationMode: string
       }
+    }
+  }
+}
+
+export interface HttpSettingSacSetRequest extends HttpSettingSetRequest {
+  content: {
+    type: string,
+    sac: {
+      mainUrl: string,
+      timezone: string
+    }
+  }
+}
+
+export interface HttpSettingBillingSetRequest extends HttpSettingSetRequest {
+  content: {
+    type: string,
+    billing: {
+      isTransactionBillingActivated: boolean,
+      immediateBillingAllowed: boolean,
+      periodicBillingAllowed: boolean,
+      taxID: string
+    }
+  }
+}
+
+export interface HttpSettingAssetSetRequest extends HttpSettingSetRequest {
+  content: {
+    type: string,
+    asset: {
+      connections: AssetConnectionSetting[]
+    }
+  }
+}
+
+export interface HttpSettingCarConnectorSetRequest extends HttpSettingSetRequest {
+  content: {
+    type: string,
+    carConnector: {
+      connections: CarConnectorConnectionSetting[]
     }
   }
 }
