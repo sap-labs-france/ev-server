@@ -607,6 +607,7 @@ export enum ServerRoute {
 
   REST_REGISTRATION_TOKENS = 'registration-tokens',
   REST_REGISTRATION_TOKEN = 'registration-tokens/:id',
+  REST_REGISTRATION_TOKEN_REVOKE = 'registration-tokens/:id/revoke',
 
   REST_SITES = 'sites',
   REST_SITE = 'sites/:id',

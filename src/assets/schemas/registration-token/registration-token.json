@@ -1,0 +1,20 @@
+{
+  "$id": "registration-token",
+  "definitions": {
+    "id": {
+      "$ref": "common#/definitions/id"
+    },
+    "description": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "siteAreaID": {
+      "$ref": "common#/definitions/id"
+    },
+    "expirationDate": {
+      "type": "string",
+      "format": "date-time",
+      "sanitize": "mongo"
+    }
+  }
+}
