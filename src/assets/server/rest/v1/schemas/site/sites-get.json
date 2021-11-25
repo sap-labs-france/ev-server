@@ -1,0 +1,62 @@
+{
+  "$id": "sites-get",
+  "title": "Get site list Request",
+  "type": "object",
+  "properties": {
+    "Issuer": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "UserID": {
+      "$ref": "user#/definitions/id"
+    },
+    "CompanyID": {
+      "$ref": "company#/definitions/id"
+    },
+    "SiteID": {
+      "$ref": "site#/definitions/id"
+    },
+    "ExcludeSitesOfUserID": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "WithCompany": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "WithAvailableChargers": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "LocLongitude": {
+      "type": "number",
+      "format": "longitude",
+      "sanitize": "mongo"
+    },
+    "LocLatitude": {
+      "type": "number",
+      "format": "latitude",
+      "sanitize": "mongo"
+    },
+    "LocMaxDistanceMeters": {
+      "type": "number",
+      "sanitize": "mongo",
+      "exclusiveMinimum": 0
+    },
+    "Limit": {
+      "$ref": "common#/definitions/limit"
+    },
+    "Skip": {
+      "$ref": "common#/definitions/skip"
+    },
+    "SortFields": {
+      "$ref": "common#/definitions/sortFields"
+    },
+    "ProjectFields": {
+      "$ref": "common#/definitions/projectFields"
+    },
+    "OnlyRecordCount": {
+      "$ref": "common#/definitions/onlyRecordCount"
+    }
+  }
+}
