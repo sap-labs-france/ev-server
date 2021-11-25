@@ -1,32 +1,35 @@
 {
-  "$id": "setting-user-set",
-  "title": "Set User Settings",
+  "$id": "setting-analytics-set",
+  "title": "Set Analytics Settings",
   "type": "object",
   "properties": {
     "content": {
       "type": "object",
       "properties": {
-        "user": {
+        "sac": {
           "type": "object",
           "properties": {
-            "autoActivateAccountAfterValidation" : {
-              "type": "boolean",
+            "mainUrl": {
+              "type": "string",
+              "sanitize": "mongo"
+            },
+            "timezone": {
+              "type": "string",
               "sanitize": "mongo"
             }
           }
         },
+        "links": {
+          "$ref": "setting#/definitions/links"
+        },
         "type": {
           "type": "string",
           "sanitize": "mongo",
-          "enum": ["user"]
+          "enum": ["sac"]
         }
       },
-      "links": {
-        "$ref": "setting#/definitions/links"
-      },
       "required": [
-        "type",
-        "user"
+        "type"
       ]
     },
     "id": {
@@ -35,7 +38,7 @@
     "identifier": {
       "type": "string",
       "sanitize": "mongo",
-      "enum": ["user"]
+      "enum": ["sac"]
     },
     "sensitiveData": {
       "$ref": "setting#/definitions/sensitiveData"

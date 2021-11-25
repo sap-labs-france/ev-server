@@ -12,6 +12,7 @@ import NotificationRouter from './api/NotificationRouter';
 import OCPIEndpointRouter from './api/OCPIEndpointRouter';
 import OICPEndpointRouter from './api/OICPEndpointRouter';
 import PricingRouter from './api/PricingRouter';
+import RegistrationTokenRouter from './api/RegistrationTokenRouter';
 import SettingRouter from './api/SettingRouter';
 import SwaggerRouter from './doc/SwaggerRouter';
 import TagRouter from './api/TagRouter';
@@ -55,6 +56,7 @@ export default class GlobalRouter {
         new NotificationRouter().buildRoutes(),
         new OCPIEndpointRouter().buildRoutes(),
         new OICPEndpointRouter().buildRoutes(),
+        new RegistrationTokenRouter().buildRoutes(),
         new SettingRouter().buildRoutes(),
         new TagRouter().buildRoutes(),
         new TenantRouter().buildRoutes(),
