@@ -42,6 +42,7 @@ export default class ConsumptionPricer {
   private checkPricingDefinitionRestrictions(pricingDefinition: ResolvedPricingDefinition) : ResolvedPricingDefinition {
     if (pricingDefinition.restrictions) {
       if (!this.checkDayOfWeek(pricingDefinition.restrictions)
+        || !this.checkTimeValidity(pricingDefinition.restrictions)
         || !this.checkMinEnergy(pricingDefinition.restrictions)
         || !this.checkMaxEnergy(pricingDefinition.restrictions)
         || !this.checkMinDuration(pricingDefinition.restrictions)
@@ -59,6 +60,25 @@ export default class ConsumptionPricer {
       return restrictions.daysOfWeek.includes(moment(this.consumptionData.startedAt).isoWeekday());
     }
     // No restrictions related to the day of the week
+    return true;
+  }
+
+
+  private checkTimeValidity(restrictions: PricingRestriction): boolean {
+    if (!Utils.isNullOrUndefined(restrictions.timeFrom)) {
+      const hours = Utils.convertToInt(restrictions.timeFrom.slice(0, 2));
+      const minutes = Utils.convertToInt(restrictions.timeFrom.slice(3));
+      if (moment(this.consumptionData.startedAt).isBefore(new Date().setHours(hours, minutes))) {
+        return false;
+      }
+    }
+    if (!Utils.isNullOrUndefined(restrictions.timeTo)) {
+      const hours = Utils.convertToInt(restrictions.timeTo.slice(0, 2));
+      const minutes = Utils.convertToInt(restrictions.timeTo.slice(3));
+      if (moment(this.consumptionData.startedAt).isSameOrAfter(new Date().setHours(hours, minutes))) {
+        return false;
+      }
+    }
     return true;
   }
 
