@@ -407,7 +407,15 @@
         ],
         "responses": {
           "200": {
-            "description": "Site Area is created with success"
+            "description": "Site Area is created with success",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "success",
+                  "id": "###"
+                }
+              }
+            }
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
