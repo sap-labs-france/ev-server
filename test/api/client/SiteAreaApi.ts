@@ -1,21 +1,23 @@
+import AuthenticatedBaseApi from './utils/AuthenticatedBaseApi';
 import CrudApi from './utils/CrudApi';
+import { ServerRoute } from '../../../src/types/Server';
 import TestConstants from './utils/TestConstants';
 
 export default class SiteAreaApi extends CrudApi {
-  public constructor(authenticatedApi) {
+  public constructor(authenticatedApi: AuthenticatedBaseApi) {
     super(authenticatedApi);
   }
 
   public async readById(id) {
-    return super.readById(id, '/client/api/SiteArea');
+    return super.readById(id, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREA, { id }));
   }
 
   public async readAll(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, '/client/api/SiteAreas');
+    return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREAS));
   }
 
   public async create(data) {
-    const siteArea = await super.create(data, '/client/api/SiteAreaCreate');
+    const siteArea = await super.create(data, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREAS));
     // Check User IDs
     if (data.chargeBoxIDs) {
       // Assign Chargers to Site

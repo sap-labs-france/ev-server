@@ -1,0 +1,20 @@
+{
+  "$id": "registration-token-create",
+  "title": "Registration Token create Request",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "description": {
+      "$ref": "registration-token#/definitions/description"
+    },
+    "siteAreaID": {
+      "$ref": "registration-token#/definitions/siteAreaID"
+    },
+    "expirationDate": {
+      "$ref": "registration-token#/definitions/expirationDate"
+    }
+  },
+  "required": [
+    "description"
+  ]
+}
