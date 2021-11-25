@@ -46,12 +46,6 @@ export default class ConsumptionPricer {
         || !this.checkMaxEnergy(pricingDefinition.restrictions)
         || !this.checkMinDuration(pricingDefinition.restrictions)
         || !this.checkMaxDuration(pricingDefinition.restrictions)) {
-        // ---------------------------------------------------
-        // TODO - additional restrictions may be checked here
-        // ---------------------------------------------------
-        // startDate?: string, // Start date, for example: 2015-12-24, valid from this day
-        // endDate?: string, // End date, for example: 2015-12-27, valid until this day (excluding this day)
-        // daysOfWeek?: DayOfWeek[], // Which day(s) of the week this tariff is valid
         return null;
       }
     }
