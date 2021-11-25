@@ -1379,14 +1379,14 @@ export default class UtilsService {
       switch (action) {
         case ServerAction.SITE_AREA_DELETE:
           throw new AppError({
-            errorCode: HTTPError.PARENT_SITE_AREA_DEPENDENCY_ERROR,
+            errorCode: HTTPError.SITE_AREA_HIERARCHY_DEPENDENCY_ERROR,
             message: 'Site Area has dependencies to other site areas',
             module: MODULE_NAME, method: 'checkIfSiteAreaTreeValid',
             user: req.user.id
           });
         default:
           throw new AppError({
-            errorCode: HTTPError.PARENT_SITE_AREA_INCONSISTENCY_ERROR,
+            errorCode: HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR,
             message: 'Property inconsistency in Site Area Tree',
             module: MODULE_NAME, method: 'checkIfSiteAreaTreeValid',
             user: req.user.id
@@ -1403,7 +1403,7 @@ export default class UtilsService {
     // If site area list is the same length as elements in the tree, the tree is valid
     if (count.value !== siteAreaList.length) {
       throw new AppError({
-        errorCode: HTTPError.PARENT_SITE_AREA_CIRCULAR_STRUCTURE_ERROR,
+        errorCode: HTTPError.SITE_AREA_HIERARCHY_CIRCULAR_STRUCTURE_ERROR,
         message: 'Circular Structure in Site Area Tree',
         module: MODULE_NAME, method: 'checkIfSiteAreaTreeValid',
         user: req.user.id
