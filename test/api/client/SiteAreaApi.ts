@@ -1,21 +1,23 @@
+import AuthenticatedBaseApi from './utils/AuthenticatedBaseApi';
 import CrudApi from './utils/CrudApi';
+import { ServerRoute } from '../../../src/types/Server';
 import TestConstants from './utils/TestConstants';
 
 export default class SiteAreaApi extends CrudApi {
-  public constructor(authenticatedApi) {
+  public constructor(authenticatedApi: AuthenticatedBaseApi) {
     super(authenticatedApi);
   }
 
-  public async readById(id) {
-    return super.readById(id, '/client/api/SiteArea');
+  public async readById(id: string) {
+    return super.readById(id, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREA, { id }));
   }
 
   public async readAll(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, '/client/api/SiteAreas');
+    return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREAS));
   }
 
   public async create(data) {
-    const siteArea = await super.create(data, '/client/api/SiteAreaCreate');
+    const siteArea = await super.create(data, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREAS));
     // Check User IDs
     if (data.chargeBoxIDs) {
       // Assign Chargers to Site
@@ -28,19 +30,18 @@ export default class SiteAreaApi extends CrudApi {
   }
 
   public async update(data) {
-    return super.update(data, '/client/api/SiteAreaUpdate');
+    return super.update(data, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREA, { id: data.id }));
   }
 
   public async delete(id) {
-    return super.delete(id, '/client/api/SiteAreaDelete');
+    return super.delete(id, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREA, { id }));
   }
 
-  public async readConsumption(SiteAreaId, StartDate, EndDate) {
+  public async readConsumption(SiteAreaId: string, StartDate: Date, EndDate: Date) {
     return super.read({
-      SiteAreaID: SiteAreaId,
       StartDate: StartDate,
       EndDate: EndDate
-    }, '/client/api/SiteAreaConsumption');
+    }, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREA_CONSUMPTION, { id: SiteAreaId }));
   }
 
   public async assignChargingStations(SiteAreaId, ChargingStationIDs) {
