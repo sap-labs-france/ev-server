@@ -190,7 +190,7 @@ export default class SiteService {
     const users = await SiteStorage.getSiteUsers(req.tenant,
       {
         search: filteredRequest.Search,
-        siteIDs: [ filteredRequest.SiteID ],
+        siteIDs: [filteredRequest.SiteID],
         ...authorizationSiteUsersFilter.filters
       },
       {
@@ -250,7 +250,14 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.LIST, Entity.SITE, MODULE_NAME, 'handleGetSites');
     // Filter request
-    const filteredRequest = SiteSecurity.filterSitesRequest(req.query);
+    const filteredRequest = SiteValidator.getInstance().validateSitesGetReq(req.query);
+    // Create GPS Coordinates
+    if (filteredRequest.LocLongitude && filteredRequest.LocLatitude) {
+      filteredRequest.LocCoordinates = [
+        Utils.convertToFloat(filteredRequest.LocLongitude),
+        Utils.convertToFloat(filteredRequest.LocLatitude)
+      ];
+    }
     // Check dynamic auth
     const authorizationSitesFilter = await AuthorizationService.checkAndGetSitesAuthorizations(
       req.tenant, req.user, filteredRequest);
@@ -276,7 +283,7 @@ export default class SiteService {
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.SortFields,
+        sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       authorizationSitesFilter.projectFields

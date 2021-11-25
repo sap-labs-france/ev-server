@@ -43,6 +43,9 @@
       "sanitize": "mongo",
       "exclusiveMinimum": 0
     },
+    "Search": {
+      "$ref": "common#/definitions/search"
+    },
     "Limit": {
       "$ref": "common#/definitions/limit"
     },
