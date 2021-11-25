@@ -306,7 +306,7 @@ export default class ContextBuilder {
           siteAreaTemplate.issuer = true;
           siteAreaTemplate.smartCharging = siteAreaDef.smartCharging;
           siteAreaTemplate.maximumPower = siteAreaDef.maximumPower;
-          siteAreaTemplate.siteAreaParentID = siteAreaDef.siteAreaParentID;
+          siteAreaTemplate.parentSiteAreaID = siteAreaDef.parentSiteAreaID;
           siteAreaTemplate.numberOfPhases = siteAreaDef.numberOfPhases;
           siteAreaTemplate.voltage = siteAreaDef.voltage;
           console.log(`${buildTenant.id} (${buildTenant.name}) - Site Area '${siteAreaTemplate.name}'`);

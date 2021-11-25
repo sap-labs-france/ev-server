@@ -123,14 +123,14 @@ export default class SiteAreaService {
     // Check and Get Site Area
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
       req.tenant, req.user, siteAreaID, Action.DELETE, action);
-    const siteAreas = await SiteAreaStorage.getSiteAreas(req.tenant, { siteIDs: [siteArea.siteID] }, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'siteAreaParentID', 'siteID', 'smartCharging', 'name']);
+    const siteAreas = await SiteAreaStorage.getSiteAreas(req.tenant, { siteIDs: [siteArea.siteID] }, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'parentSiteAreaID', 'siteID', 'smartCharging', 'name']);
     // Remove site area from array and check site area chain validity
     try {
       Utils.buildSubSiteAreaTree(siteAreas.result.filter((siteAreaToDelete) => siteAreaToDelete.id !== siteArea.id));
     } catch {
       throw new AppError({
         action: action,
-        errorCode: HTTPError.SITE_AREA_PARENT_ERROR,
+        errorCode: HTTPError.PARENT_SITE_AREA_ERROR,
         message: 'Error occurred while deleting SiteArea. Site Area has dependencies to other site areas',
         module: MODULE_NAME, method: 'handleCreateSiteArea',
         user: req.user
@@ -162,7 +162,7 @@ export default class SiteAreaService {
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
       req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {
         withSite: filteredRequest.WithSite,
-        withSiteAreaParent: filteredRequest.WithSiteAreaParent,
+        withParentSiteArea: filteredRequest.WithParentSiteArea,
         withChargingStations: filteredRequest.WithChargingStations,
         withImage: true,
       }, true);
@@ -216,7 +216,7 @@ export default class SiteAreaService {
         issuer: filteredRequest.Issuer,
         search: filteredRequest.Search,
         withSite: filteredRequest.WithSite,
-        withSiteAreaParent: filteredRequest.WithSiteAreaParent,
+        withParentSiteArea: filteredRequest.WithParentSiteArea,
         withChargingStations: filteredRequest.WithChargeBoxes,
         withAvailableChargingStations: filteredRequest.WithAvailableChargers,
         locCoordinates: filteredRequest.LocCoordinates,
@@ -317,16 +317,16 @@ export default class SiteAreaService {
       createdBy: { id: req.user.id },
       createdOn: new Date()
     } as SiteArea;
-    const siteAreas = await SiteAreaStorage.getSiteAreas(req.tenant, { siteIDs: [newSiteArea.siteID] }, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'siteAreaParentID', 'siteID', 'smartCharging', 'name']);
+    const siteAreas = await SiteAreaStorage.getSiteAreas(req.tenant, { siteIDs: [newSiteArea.siteID] }, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'parentSiteAreaID', 'siteID', 'smartCharging', 'name']);
     // Check site area chain validity
     try {
-      siteAreas.result.push({ id: newSiteArea.id, siteAreaParentID: newSiteArea.siteAreaParentID,
+      siteAreas.result.push({ id: newSiteArea.id, parentSiteAreaID: newSiteArea.parentSiteAreaID,
         siteID: newSiteArea.siteID, smartCharging: newSiteArea.smartCharging } as SiteArea) ;
       Utils.buildSubSiteAreaTree(siteAreas.result);
     } catch {
       throw new AppError({
         action: action,
-        errorCode: HTTPError.SITE_AREA_PARENT_ERROR,
+        errorCode: HTTPError.PARENT_SITE_AREA_ERROR,
         message: 'Error occurred while creating SiteArea. All sub site areas need to have the same site, number of phases, voltage and smart charging enablement. Circular structures are not allowed',
         module: MODULE_NAME, method: 'handleCreateSiteArea',
         user: req.user
@@ -396,17 +396,17 @@ export default class SiteAreaService {
     siteArea.siteID = filteredRequest.siteID;
     siteArea.smartCharging = filteredRequest.smartCharging;
     siteArea.accessControl = filteredRequest.accessControl;
-    siteArea.siteAreaParentID = filteredRequest.siteAreaParentID;
-    const siteAreas = await SiteAreaStorage.getSiteAreas(req.tenant, { siteIDs: [siteArea.siteID] }, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'siteAreaParentID', 'siteID', 'smartCharging', 'name']);
+    siteArea.parentSiteAreaID = filteredRequest.parentSiteAreaID;
+    const siteAreas = await SiteAreaStorage.getSiteAreas(req.tenant, { siteIDs: [siteArea.siteID] }, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'parentSiteAreaID', 'siteID', 'smartCharging', 'name']);
     // Check site area chain validity
     try {
       const index = siteAreas.result.findIndex((siteAreaToChange) => siteAreaToChange.id === siteArea.id);
-      siteAreas.result[index] = { id: siteArea.id, siteAreaParentID: siteArea.siteAreaParentID, siteID: siteArea.siteID, smartCharging: siteArea.smartCharging } as SiteArea;
+      siteAreas.result[index] = { id: siteArea.id, parentSiteAreaID: siteArea.parentSiteAreaID, siteID: siteArea.siteID, smartCharging: siteArea.smartCharging } as SiteArea;
       Utils.buildSubSiteAreaTree(siteAreas.result);
     } catch {
       throw new AppError({
         action: action,
-        errorCode: HTTPError.SITE_AREA_PARENT_ERROR,
+        errorCode: HTTPError.PARENT_SITE_AREA_ERROR,
         message: 'Error occurred while updating SiteArea. All sub site areas need to have the same site, number of phases, voltage and smart charging enablement. Circular structures are not allowed',
         module: MODULE_NAME, method: 'handleUpdateSiteArea',
         user: req.user

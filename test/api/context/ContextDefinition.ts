@@ -672,7 +672,7 @@ export default class ContextDefinition {
       numberOfPhases: 3,
       maximumPower: 100000,
       smartCharging: true,
-      siteAreaParentID: '5ce249a2372f0b1c8caf5444',
+      parentSiteAreaID: '5ce249a2372f0b1c8caf5444',
       voltage: Voltage.VOLTAGE_230,
       siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC
     },

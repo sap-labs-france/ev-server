@@ -41,7 +41,7 @@ export default interface SiteArea extends CreatedUpdatedProps, SiteAreaAuthoriza
   assets: Asset[];
   connectorStats: ConnectorStats;
   values: Consumption[];
-  siteAreaParentID?: string;
+  parentSiteAreaID?: string;
   distanceMeters?: number;
   openingTimes?: OpeningTimes;
   siteAreaChildren?: SiteArea[];

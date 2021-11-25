@@ -1583,15 +1583,15 @@ export default class Utils {
     const siteAreaTrees: SiteArea[] = [];
     // Build tree
     siteAreaList.forEach((siteArea) => {
-      if (!Utils.isNullOrUndefined(siteArea.siteAreaParentID)) {
+      if (!Utils.isNullOrUndefined(siteArea.parentSiteAreaID)) {
         // Check if site area chain is meeting the constraints
-        if (!Utils.isNullOrUndefined(hashTable[siteArea.siteAreaParentID]) &&
-          hashTable[siteArea.siteAreaParentID].smartCharging === hashTable[siteArea.id].smartCharging &&
-          hashTable[siteArea.siteAreaParentID].siteID === hashTable[siteArea.id].siteID &&
-          hashTable[siteArea.siteAreaParentID].voltage === hashTable[siteArea.id].voltage &&
-          hashTable[siteArea.siteAreaParentID].numberOfPhases === hashTable[siteArea.id].numberOfPhases) {
+        if (!Utils.isNullOrUndefined(hashTable[siteArea.parentSiteAreaID]) &&
+          hashTable[siteArea.parentSiteAreaID].smartCharging === hashTable[siteArea.id].smartCharging &&
+          hashTable[siteArea.parentSiteAreaID].siteID === hashTable[siteArea.id].siteID &&
+          hashTable[siteArea.parentSiteAreaID].voltage === hashTable[siteArea.id].voltage &&
+          hashTable[siteArea.parentSiteAreaID].numberOfPhases === hashTable[siteArea.id].numberOfPhases) {
           // Push sub site area to parent children array
-          hashTable[siteArea.siteAreaParentID].siteAreaChildren.push(hashTable[siteArea.id]);
+          hashTable[siteArea.parentSiteAreaID].siteAreaChildren.push(hashTable[siteArea.id]);
         } else {
           throw BackendError;
         }

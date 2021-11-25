@@ -199,14 +199,14 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city', 'address.country',
-          'address.coordinates', 'site.id', 'site.name', 'siteAreaParentID', 'siteAreaParent.name', 'issuer', 'distanceMeters', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy'
+          'address.coordinates', 'site.id', 'site.name', 'parentSiteAreaID', 'parentSiteArea.name', 'issuer', 'distanceMeters', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy'
         ]
       },
       {
         resource: Entity.SITE_AREA, action: Action.READ,
         attributes: [
           'id', 'name', 'issuer', 'image', 'address', 'maximumPower', 'numberOfPhases',
-          'voltage', 'smartCharging', 'accessControl', 'connectorStats', 'siteID', 'site.name', 'siteAreaParentID', 'siteAreaParent.name'
+          'voltage', 'smartCharging', 'accessControl', 'connectorStats', 'siteID', 'site.name', 'parentSiteAreaID', 'parentSiteArea.name'
         ]
       },
       {
@@ -563,7 +563,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city', 'address.country',
-          'address.coordinates', 'site.id', 'site.name', 'siteAreaParentID', 'siteAreaParent.name', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'
+          'address.coordinates', 'site.id', 'site.name', 'parentSiteAreaID', 'parentSiteArea.name', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'
         ],
       },
       {
@@ -577,7 +577,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
         attributes: [
           'id', 'name', 'issuer', 'image', 'address', 'maximumPower', 'numberOfPhases',
-          'voltage', 'smartCharging', 'accessControl', 'connectorStats', 'siteID', 'siteAreaParentID', 'site.name', 'siteAreaParent.name'
+          'voltage', 'smartCharging', 'accessControl', 'connectorStats', 'siteID', 'parentSiteAreaID', 'site.name', 'parentSiteArea.name'
         ],
       },
       {
@@ -817,14 +817,14 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city', 'address.country',
-          'address.coordinates', 'site.id', 'site.name', 'siteAreaParentID', 'siteAreaParent.name', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'
+          'address.coordinates', 'site.id', 'site.name', 'parentSiteAreaID', 'parentSiteArea.name', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'
         ]
       },
       {
         resource: Entity.SITE_AREA, action: Action.READ,
         attributes: [
           'id', 'name', 'issuer', 'image', 'address', 'maximumPower', 'numberOfPhases',
-          'voltage', 'smartCharging', 'accessControl', 'connectorStats', 'siteID', 'siteAreaParentID', 'site.name', 'siteAreaParent.name'
+          'voltage', 'smartCharging', 'accessControl', 'connectorStats', 'siteID', 'parentSiteAreaID', 'site.name', 'parentSiteArea.name'
         ]
       },
       {
