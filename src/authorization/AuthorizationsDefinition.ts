@@ -10,7 +10,20 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn', 'createdBy',
           'lastChangedOn', 'lastChangedBy', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
           'billingData.customerID', 'billingData.lastChangedOn'
-        ]
+        ],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: [],
+            metadata: {
+              status: {
+                visible: true,
+                mandatory: true,
+              }
+            },
+          }
+        },
       },
       {
         resource: Entity.USER, action: Action.DELETE,
@@ -71,9 +84,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   },
   admin: {
     grants: [
-      {
-        resource: Entity.USER, action: Action.SYNCHRONIZE_BILLING_USERS,
-      },
+      { resource: Entity.USER, action: Action.SYNCHRONIZE_BILLING_USERS },
       {
         resource: Entity.USER,
         action: [
@@ -83,7 +94,20 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn', 'createdBy',
           'lastChangedOn', 'lastChangedBy', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
           'billingData.customerID', 'billingData.lastChangedOn', 'technical', 'freeAccess'
-        ]
+        ],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: [],
+            metadata: {
+              status: {
+                visible: true,
+                mandatory: true,
+              }
+            },
+          }
+        }
       },
       {
         resource: Entity.USER, action: Action.IN_ERROR,

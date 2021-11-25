@@ -21,14 +21,16 @@
           "enum": ["user"]
         }
       },
+      "links": {
+        "$ref": "setting#/definitions/links"
+      },
       "required": [
         "type",
         "user"
       ]
     },
     "id": {
-      "type": "string",
-      "sanitize": "mongo"
+      "$ref": "common#/definitions/id"
     },
     "identifier": {
       "type": "string",
@@ -36,17 +38,10 @@
       "enum": ["user"]
     },
     "sensitiveData": {
-      "type": "array",
-      "nullable": true,
-      "items": {
-        "type": "string",
-        "sanitize": "mongo"
-      }
+      "$ref": "setting#/definitions/sensitiveData"
     }
   },
   "required": [
-    "id",
-    "identifier",
-    "content"
+    "identifier"
   ]
 }
