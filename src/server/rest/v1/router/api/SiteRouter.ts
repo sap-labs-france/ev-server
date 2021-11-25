@@ -20,6 +20,9 @@ export default class SiteRouter {
     this.buildRouteSiteAssignUsers();
     this.buildRouteSiteUnassignUsers();
     this.buildRouteSiteGetUsers();
+    this.buildRouteSetSiteAdmin();
+    this.buildRouteSetSiteOwner();
+    this.buildRouteUpdateSite();
     return this.router;
   }
 
@@ -60,6 +63,27 @@ export default class SiteRouter {
     this.router.get(`/${ServerRoute.REST_SITE_USERS}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.SiteID = req.params.id;
       await RouterUtils.handleServerAction(SiteService.handleGetUsers.bind(this), ServerAction.SITE_USERS, req, res, next);
+    });
+  }
+
+  private buildRouteSetSiteAdmin(): void {
+    this.router.put(`/${ServerRoute.REST_SITE_ADMIN}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.body.siteID = req.params.id;
+      await RouterUtils.handleServerAction(SiteService.handleUpdateSiteUserAdmin.bind(this), ServerAction.SITE_USER_ADMIN, req, res, next);
+    });
+  }
+
+  private buildRouteSetSiteOwner(): void {
+    this.router.put(`/${ServerRoute.REST_SITE_OWNER}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.body.siteID = req.params.id;
+      await RouterUtils.handleServerAction(SiteService.handleUpdateSiteOwner.bind(this), ServerAction.SITE_OWNER, req, res, next);
+    });
+  }
+
+  private buildRouteUpdateSite(): void {
+    this.router.put(`/${ServerRoute.REST_SITE}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.body.id = req.params.id;
+      await RouterUtils.handleServerAction(SiteService.handleUpdateSite.bind(this), ServerAction.SITE_UPDATE, req, res, next);
     });
   }
 }
