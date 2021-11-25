@@ -507,7 +507,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Site Area is updated with success"
+            "description": "Site Area is updated with success",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
@@ -546,7 +553,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Site Area is deleted with success"
+            "description": "Site Area is deleted with success",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
