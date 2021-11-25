@@ -125,17 +125,7 @@ export default class SiteAreaService {
       req.tenant, req.user, siteAreaID, Action.DELETE, action);
     const siteAreas = await SiteAreaStorage.getSiteAreas(req.tenant, { siteIDs: [siteArea.siteID] }, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'parentSiteAreaID', 'siteID', 'smartCharging', 'name']);
     // Remove site area from array and check site area chain validity
-    try {
-      Utils.buildSubSiteAreaTree(siteAreas.result.filter((siteAreaToDelete) => siteAreaToDelete.id !== siteArea.id));
-    } catch {
-      throw new AppError({
-        action: action,
-        errorCode: HTTPError.PARENT_SITE_AREA_ERROR,
-        message: 'Error occurred while deleting SiteArea. Site Area has dependencies to other site areas',
-        module: MODULE_NAME, method: 'handleCreateSiteArea',
-        user: req.user
-      });
-    }
+    UtilsService.checkIfSiteAreaTreeValid(siteAreas.result.filter((siteAreaToDelete) => siteAreaToDelete.id !== siteArea.id), req, action);
     // Delete
     await SiteAreaStorage.deleteSiteArea(req.tenant, siteArea.id);
     // Log
@@ -318,20 +308,10 @@ export default class SiteAreaService {
       createdOn: new Date()
     } as SiteArea;
     const siteAreas = await SiteAreaStorage.getSiteAreas(req.tenant, { siteIDs: [newSiteArea.siteID] }, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'parentSiteAreaID', 'siteID', 'smartCharging', 'name']);
+    siteAreas.result.push({ id: newSiteArea.id, parentSiteAreaID: newSiteArea.parentSiteAreaID,
+      siteID: newSiteArea.siteID, smartCharging: newSiteArea.smartCharging } as SiteArea) ;
     // Check site area chain validity
-    try {
-      siteAreas.result.push({ id: newSiteArea.id, parentSiteAreaID: newSiteArea.parentSiteAreaID,
-        siteID: newSiteArea.siteID, smartCharging: newSiteArea.smartCharging } as SiteArea) ;
-      Utils.buildSubSiteAreaTree(siteAreas.result);
-    } catch {
-      throw new AppError({
-        action: action,
-        errorCode: HTTPError.PARENT_SITE_AREA_ERROR,
-        message: 'Error occurred while creating SiteArea. All sub site areas need to have the same site, number of phases, voltage and smart charging enablement. Circular structures are not allowed',
-        module: MODULE_NAME, method: 'handleCreateSiteArea',
-        user: req.user
-      });
-    }
+    UtilsService.checkIfSiteAreaTreeValid(siteAreas.result, req, action);
     // Save
     newSiteArea.id = await SiteAreaStorage.saveSiteArea(req.tenant, newSiteArea, true);
     await Logging.logInfo({
@@ -398,20 +378,10 @@ export default class SiteAreaService {
     siteArea.accessControl = filteredRequest.accessControl;
     siteArea.parentSiteAreaID = filteredRequest.parentSiteAreaID;
     const siteAreas = await SiteAreaStorage.getSiteAreas(req.tenant, { siteIDs: [siteArea.siteID] }, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'parentSiteAreaID', 'siteID', 'smartCharging', 'name']);
+    const index = siteAreas.result.findIndex((siteAreaToChange) => siteAreaToChange.id === siteArea.id);
+    siteAreas.result[index] = { id: siteArea.id, parentSiteAreaID: siteArea.parentSiteAreaID, siteID: siteArea.siteID, smartCharging: siteArea.smartCharging } as SiteArea;
     // Check site area chain validity
-    try {
-      const index = siteAreas.result.findIndex((siteAreaToChange) => siteAreaToChange.id === siteArea.id);
-      siteAreas.result[index] = { id: siteArea.id, parentSiteAreaID: siteArea.parentSiteAreaID, siteID: siteArea.siteID, smartCharging: siteArea.smartCharging } as SiteArea;
-      Utils.buildSubSiteAreaTree(siteAreas.result);
-    } catch {
-      throw new AppError({
-        action: action,
-        errorCode: HTTPError.PARENT_SITE_AREA_ERROR,
-        message: 'Error occurred while updating SiteArea. All sub site areas need to have the same site, number of phases, voltage and smart charging enablement. Circular structures are not allowed',
-        module: MODULE_NAME, method: 'handleUpdateSiteArea',
-        user: req.user
-      });
-    }
+    UtilsService.checkIfSiteAreaTreeValid(siteAreas.result, req, action);
     siteArea.lastChangedBy = { 'id': req.user.id };
     siteArea.lastChangedOn = new Date();
     // Save

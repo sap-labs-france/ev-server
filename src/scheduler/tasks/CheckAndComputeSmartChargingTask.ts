@@ -20,7 +20,7 @@ export default class CheckAndComputeSmartChargingTask extends SchedulerTask {
       const siteAreas = await SiteAreaStorage.getSiteAreas(tenant,
         { smartCharging: true, withNoParentSiteArea: true },
         Constants.DB_PARAMS_MAX_LIMIT);
-      const rootSiteAreas = Utils.buildSubSiteAreaTree(siteAreas.result);
+      const rootSiteAreas = Utils.buildSiteAreaTrees(siteAreas.result);
       // Get Site Area
       for (const siteArea of rootSiteAreas) {
         const siteAreaLock = await LockingHelper.acquireSiteAreaSmartChargingLock(tenant.id, siteArea, 30);

@@ -9,7 +9,6 @@ import User, { UserRole, UserStatus } from '../types/User';
 import crypto, { CipherGCMTypes } from 'crypto';
 
 import Address from '../types/Address';
-import AppError from '../exception/AppError';
 import { AxiosError } from 'axios';
 import BackendError from '../exception/BackendError';
 import Configuration from './Configuration';
@@ -1574,7 +1573,22 @@ export default class Utils {
     return crypto.createHash('sha256').update(data).digest('hex');
   }
 
-  public static buildSubSiteAreaTree(siteAreaList: SiteArea[], siteAreaId: string = null): SiteArea[] {
+  public static buildSiteAreaTree(siteAreaId: string, siteAreaList: SiteArea[]): SiteArea {
+    const siteAreaTrees = this.buildSiteAreaTrees(siteAreaList);
+    // Loop through trees to find specific tree
+    for (const siteAreaTree of siteAreaTrees) {
+      // If site area ID is defined return tree, which contains the site area
+      const requestedTree = this.checkIfSiteAreaInTree(siteAreaTree, siteAreaId);
+      if (requestedTree) {
+        return siteAreaTree;
+      }
+      // If it is not containing the ID go to next tree
+      continue;
+    }
+    return null;
+  }
+
+  public static buildSiteAreaTrees(siteAreaList: SiteArea[]): SiteArea[] {
     // Hash Table helper
     const hashTable = Object.create(null);
     siteAreaList.forEach((siteArea) => {
@@ -1593,33 +1607,13 @@ export default class Utils {
           // Push sub site area to parent children array
           hashTable[siteArea.parentSiteAreaID].siteAreaChildren.push(hashTable[siteArea.id]);
         } else {
-          throw BackendError;
+          throw new Error('Property inconsistency in Site Area Tree');
         }
       } else {
         // If no parent ID is defined push root site area to array
         siteAreaTrees.push(hashTable[siteArea.id]);
       }
     });
-    // Loop through trees to find specific tree or check validity
-    const count = { value: 0 };
-    for (const siteAreaTree of siteAreaTrees) {
-      // If site area ID is defined return tree, which contains the site area
-      if (!Utils.isNullOrUndefined(siteAreaId)) {
-        const requestedTree = this.checkIfSiteAreaInTree(siteAreaTree, siteAreaId);
-        if (requestedTree) {
-          return [siteAreaTree];
-        }
-        // If it is not containing the ID go to next tree
-        continue;
-      }
-      // If no ID defined count elements to verify validity
-      count.value++;
-      this.countElementsOfTree(siteAreaTree, count);
-    }
-    // If site area list is the same length as elements in the tree, the tree is valid
-    if (count.value !== siteAreaList.length) {
-      throw BackendError;
-    }
     return siteAreaTrees;
   }
 
@@ -1638,14 +1632,5 @@ export default class Utils {
       }
     }
     return false;
-  }
-
-  private static countElementsOfTree(siteAreaTree: Partial<SiteArea>, count: { value: number }) {
-    if (!Utils.isEmptyArray(siteAreaTree.siteAreaChildren)) {
-      for (const child of siteAreaTree.siteAreaChildren) {
-        count.value++;
-        this.countElementsOfTree(child, count);
-      }
-    }
   }
 }

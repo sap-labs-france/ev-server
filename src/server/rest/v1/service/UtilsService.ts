@@ -1371,6 +1371,46 @@ export default class UtilsService {
     }
   }
 
+  public static checkIfSiteAreaTreeValid(siteAreaList: SiteArea[], req: Request, action: ServerAction):void {
+    let siteAreaTrees: SiteArea[];
+    try {
+      siteAreaTrees = Utils.buildSiteAreaTrees(siteAreaList);
+    } catch {
+      switch (action) {
+        case ServerAction.SITE_AREA_DELETE:
+          throw new AppError({
+            errorCode: HTTPError.PARENT_SITE_AREA_DEPENDENCY_ERROR,
+            message: 'Site Area has dependencies to other site areas',
+            module: MODULE_NAME, method: 'checkIfSiteAreaTreeValid',
+            user: req.user.id
+          });
+        default:
+          throw new AppError({
+            errorCode: HTTPError.PARENT_SITE_AREA_INCONSISTENCY_ERROR,
+            message: 'Property inconsistency in Site Area Tree',
+            module: MODULE_NAME, method: 'checkIfSiteAreaTreeValid',
+            user: req.user.id
+          });
+      }
+    }
+    // Loop through trees to check validity
+    const count = { value: 0 };
+    for (const siteAreaTree of siteAreaTrees) {
+      // If no ID defined count elements to verify validity
+      count.value++;
+      this.countElementsOfSiteAreaTree(siteAreaTree, count);
+    }
+    // If site area list is the same length as elements in the tree, the tree is valid
+    if (count.value !== siteAreaList.length) {
+      throw new AppError({
+        errorCode: HTTPError.PARENT_SITE_AREA_CIRCULAR_STRUCTURE_ERROR,
+        message: 'Circular Structure in Site Area Tree',
+        module: MODULE_NAME, method: 'checkIfSiteAreaTreeValid',
+        user: req.user.id
+      });
+    }
+  }
+
   public static checkIfPricingDefinitionValid(pricing: Partial<PricingDefinition>, req: Request): void {
     if (req.method !== 'POST' && !pricing.id) {
       throw new AppError({
@@ -1870,5 +1910,14 @@ export default class UtilsService {
       });
     }
     return tag;
+  }
+
+  private static countElementsOfSiteAreaTree(siteAreaTree: Partial<SiteArea>, count: { value: number }) {
+    if (!Utils.isEmptyArray(siteAreaTree.siteAreaChildren)) {
+      for (const child of siteAreaTree.siteAreaChildren) {
+        count.value++;
+        this.countElementsOfSiteAreaTree(child, count);
+      }
+    }
   }
 }
