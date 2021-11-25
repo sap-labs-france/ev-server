@@ -17,6 +17,9 @@ export default class SiteRouter {
     this.buildRouteSites();
     this.buildRouteSite();
     this.buildRouteCreateSite();
+    this.buildRouteSiteAssignUsers();
+    this.buildRouteSiteUnassignUsers();
+    this.buildRouteSiteGetUsers();
     return this.router;
   }
 
@@ -36,6 +39,27 @@ export default class SiteRouter {
   private buildRouteCreateSite(): void {
     this.router.post(`/${ServerRoute.REST_SITES}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(SiteService.handleCreateSite.bind(this), ServerAction.SITE_CREATE, req, res, next);
+    });
+  }
+
+  private buildRouteSiteAssignUsers(): void {
+    this.router.put(`/${ServerRoute.REST_SITE_ADD_USERS}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.body.id = req.params.id;
+      await RouterUtils.handleServerAction(SiteService.handleAssignUsersToSite.bind(this), ServerAction.ADD_USERS_TO_SITE, req, res, next);
+    });
+  }
+
+  private buildRouteSiteUnassignUsers(): void {
+    this.router.put(`/${ServerRoute.REST_SITE_REMOVE_USERS}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.body.id = req.params.id;
+      await RouterUtils.handleServerAction(SiteService.handleAssignUsersToSite.bind(this), ServerAction.REMOVE_USERS_FROM_SITE, req, res, next);
+    });
+  }
+
+  private buildRouteSiteGetUsers(): void {
+    this.router.get(`/${ServerRoute.REST_SITE_USERS}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.SiteID = req.params.id;
+      await RouterUtils.handleServerAction(SiteService.handleGetUsers.bind(this), ServerAction.SITE_USERS, req, res, next);
     });
   }
 }

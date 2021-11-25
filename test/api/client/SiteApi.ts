@@ -24,36 +24,32 @@ export default class SiteApi extends CrudApi {
       await super.create({
         siteID: site.data.id,
         userIDs: data.userIDs
-      }, '/client/api/AddUsersToSite');
+      }, this.buildRestEndpointUrl(ServerRoute.REST_SITE_ADD_USERS, { id: site.data.id }));
     }
     return site;
   }
 
-  public async addUsersToSite(siteId, userIds) {
-    return super.create({
-      siteID: siteId,
-      userIDs: userIds
-    }, '/client/api/AddUsersToSite');
-  }
-
-  public async addSitesToUser(userId: string, siteIds: string[]) {
-    const url = this.buildRestEndpointUrl(ServerRoute.REST_USER_SITES, { id: userId });
-    return super.create({
-      siteIDs: siteIds,
-    }, url);
-  }
-
-  public async unassignSitesToUser(userId: string, siteIds: string[]) {
-    const url = this.buildRestEndpointUrl(ServerRoute.REST_USER_SITES, { id: userId });
+  public async addUsersToSite(siteID: string, userIDs: string[]) {
     return super.update({
-      siteIDs: siteIds,
-    }, url);
+      siteID,
+      userIDs
+    }, this.buildRestEndpointUrl(ServerRoute.REST_SITE_ADD_USERS, { id: siteID }));
   }
 
-  public async readUsersForSite(siteId) {
+  public async addSitesToUser(userID: string, siteIDs: string[]) {
+    const url = this.buildRestEndpointUrl(ServerRoute.REST_USER_SITES, { id: userID });
+    return super.create({ siteIDs }, url);
+  }
+
+  public async unassignSitesToUser(userID: string, siteIDs: string[]) {
+    const url = this.buildRestEndpointUrl(ServerRoute.REST_USER_SITES, { id: userID });
+    return super.update({ siteIDs }, url);
+  }
+
+  public async readUsersForSite(siteID: string) {
     return super.read({
-      SiteID: siteId
-    }, '/client/api/SiteUsers');
+      SiteID: siteID
+    }, this.buildRestEndpointUrl(ServerRoute.REST_SITE_USERS, { id: siteID }));
   }
 
   public async update(data) {

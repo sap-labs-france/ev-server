@@ -611,6 +611,9 @@ export enum ServerRoute {
 
   REST_SITES = 'sites',
   REST_SITE = 'sites/:id',
+  REST_SITE_USERS = 'sites/:id/users',
+  REST_SITE_ADD_USERS = 'sites/:id/users/assign',
+  REST_SITE_REMOVE_USERS = 'sites/:id/users/unassign',
 
   // BILLING URLs for CRUD operations on PAYMENT METHODS
   REST_BILLING_PAYMENT_METHODS = 'users/:userID/payment-methods',
