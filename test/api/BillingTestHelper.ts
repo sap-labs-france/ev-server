@@ -286,6 +286,30 @@ export default class BillingTestHelper {
         // Sets all other days as the days allowed for this pricing definition
         daysOfWeek: [ DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, DayOfWeek.SATURDAY, DayOfWeek.SUNDAY ].filter((day) => day !== moment().isoWeekday())
       };
+    } else if (testMode === 'THIS_HOUR') {
+      dimensions = {
+        energy: {
+          price: 3,
+          active: true
+        }
+      };
+      restrictions = {
+        daysOfWeek: [ moment().isoWeekday() ], // Sets today as the only day allowed for this pricing definition
+        timeFrom: moment().format('HH:mm'), // From this hour
+        timeTo: moment().add(30, 'minutes').format('HH:mm'), // Validity for half an hour
+      };
+    } else if (testMode === 'NEXT_HOUR') {
+      dimensions = {
+        chargingTime: {
+          price: 5, // Euro per hour
+          active: true
+        },
+      };
+      restrictions = {
+        daysOfWeek: [ moment().isoWeekday() ], // Sets today as the only day allowed for this pricing definition
+        timeFrom: moment().add(30, 'minutes').format('HH:mm'), // Valid in half an hour
+        timeTo: moment().add(30 + 60, 'minutes').format('HH:mm'), // for one hour
+      };
     } else {
       dimensions = {
         energy: {

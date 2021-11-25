@@ -81,6 +81,16 @@
           }          ,
           "nullable": true
         },
+        "timeFrom": {
+          "type": "string",
+          "sanitize": "mongo",
+          "pattern": "^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$"
+        },
+        "timeTo": {
+          "type": "string",
+          "sanitize": "mongo",
+          "pattern": "^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$"
+        },
         "minEnergyKWh": {
           "type": "number",
           "sanitize": "mongo"
