@@ -1,0 +1,24 @@
+{
+  "$id": "registration-token-update",
+  "title": "Registration Token update Request",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "registration-token#/definitions/id"
+    },
+    "description": {
+      "$ref": "registration-token#/definitions/description"
+    },
+    "siteAreaID": {
+      "$ref": "registration-token#/definitions/siteAreaID"
+    },
+    "expirationDate": {
+      "$ref": "registration-token#/definitions/expirationDate"
+    }
+  },
+  "required": [
+    "id",
+    "description"
+  ]
+}

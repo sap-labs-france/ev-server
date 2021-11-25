@@ -46,13 +46,15 @@
           "enum": ["simple", "convergentCharging"]
         }
       },
+      "links": {
+        "$ref": "setting#/definitions/links"
+      },
       "required": [
         "type"
       ]
     },
     "id": {
-      "type": "string",
-      "sanitize": "mongo"
+      "$ref": "common#/definitions/id"
     },
     "identifier": {
       "type": "string",
@@ -60,17 +62,10 @@
       "enum": ["pricing"]
     },
     "sensitiveData": {
-      "nullable": true,
-      "type": "array",
-      "items": {
-        "type": "string",
-        "sanitize": "mongo"
-      }
+      "$ref": "setting#/definitions/sensitiveData"
     }
   },
   "required": [
-    "id",
-    "identifier",
-    "content"
+    "identifier"
   ]
 }

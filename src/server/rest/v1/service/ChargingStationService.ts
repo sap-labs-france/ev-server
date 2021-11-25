@@ -506,7 +506,7 @@ export default class ChargingStationService {
     }
     projectFields = [
       'id', 'chargingStationID', 'chargePointID', 'connectorID', 'chargingStation.id',
-      'chargingStation.siteArea.id', 'chargingStation.siteArea.name', 'chargingStation.siteArea.maximumPower',
+      'chargingStation.siteArea.id', 'chargingStation.siteArea.name', 'chargingStation.siteArea.maximumPower','chargingStation.siteArea.siteID',
       ...projectFields
     ];
     // Check projection

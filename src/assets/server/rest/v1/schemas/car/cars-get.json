@@ -15,7 +15,7 @@
       "sanitize": "mongo"
     },
     "UserID": {
-      "$ref": "user#/definitions/id"
+      "$ref": "common#/definitions/ids"
     },
     "SortFields": {
       "$ref": "common#/definitions/sortFields"
