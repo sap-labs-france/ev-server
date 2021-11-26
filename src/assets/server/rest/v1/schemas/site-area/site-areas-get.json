@@ -16,10 +16,10 @@
       "sanitize": "mongo"
     },
     "SiteID": {
-      "$ref": "common#/definitions/id"
+      "$ref": "common#/definitions/ids"
     },
     "CompanyID": {
-      "$ref": "common#/definitions/id"
+      "$ref": "common#/definitions/ids"
     },
     "Issuer": {
       "type": "boolean",
