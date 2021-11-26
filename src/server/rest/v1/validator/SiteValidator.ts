@@ -1,6 +1,5 @@
-import { HttpSiteAssignUsersRequest, HttpSiteImageRequest, HttpSiteOwnerRequest, HttpSiteRequest, HttpSiteUserAdminRequest, HttpSitesRequest } from '../../../../types/requests/HttpSiteRequest';
+import { HttpSiteAssignUsersRequest, HttpSiteImageRequest, HttpSiteOwnerRequest, HttpSiteRequest, HttpSiteUserAdminRequest, HttpSiteUsersRequest, HttpSitesRequest } from '../../../../types/requests/HttpSiteRequest';
 
-import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from '../../../../validator/SchemaValidator';
 import Site from '../../../../types/Site';
@@ -16,6 +15,8 @@ export default class SiteValidator extends SchemaValidator {
   private siteAssignUsers: Schema;
   private siteGet: Schema;
   private siteGetImage: Schema;
+  private siteGetUsers: Schema;
+  private siteUpdate: Schema;
 
   private constructor() {
     super('SiteValidator');
@@ -26,6 +27,8 @@ export default class SiteValidator extends SchemaValidator {
     this.siteAssignUsers = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site/site-users-assign.json`, 'utf8'));
     this.siteGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site/site-get.json`, 'utf8'));
     this.siteGetImage = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site/site-get-image.json`, 'utf8'));
+    this.siteGetUsers = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site/site-get-users.json`, 'utf8'));
+    this.siteUpdate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site/site-update.json`, 'utf8'));
   }
 
   public static getInstance(): SiteValidator {
@@ -61,5 +64,13 @@ export default class SiteValidator extends SchemaValidator {
 
   public validateSiteGetImageReq(data: Record<string, unknown>): HttpSiteImageRequest {
     return this.validate(this.siteGetImage, data);
+  }
+
+  public validateSiteGetUsersReq(data: Record<string, unknown>): HttpSiteUsersRequest {
+    return this.validate(this.siteGetUsers, data);
+  }
+
+  public validateSiteUpdateReq(data: Record<string, unknown>): Site {
+    return this.validate(this.siteUpdate, data);
   }
 }

@@ -9,6 +9,9 @@
     "WithCompany": {
       "type": "boolean",
       "sanitize": "mongo"
+    },
+    "ProjectFields": {
+      "$ref": "common#/definitions/projectFields"
     }
   },
   "required": [
