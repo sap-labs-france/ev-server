@@ -21,7 +21,7 @@ export default class JsonRestWSConnection extends WSConnection {
   public async handleRequest(command: Command, commandPayload: Record<string, unknown> | string): Promise<any> {
     let result: any;
     // Check Command
-    if (!this.isValidOcppCommandFromRest(command)) {
+    if (!this.isValidOcppClientCommand(command)) {
       throw new BackendError({
         chargingStationID: this.getChargingStationID(),
         siteID: this.getSiteID(),
@@ -88,24 +88,25 @@ export default class JsonRestWSConnection extends WSConnection {
   public async onPong(message: string): Promise<void> {
   }
 
-  private isValidOcppCommandFromRest(command: Command): boolean {
+  private isValidOcppClientCommand(command: Command): boolean {
     // Only client request is allowed
     return [
-      Command.RESET,
-      Command.CLEAR_CACHE,
-      Command.GET_CONFIGURATION,
+      Command.CANCEL_RESERVATION,
+      Command.CHANGE_AVAILABILITY,
       Command.CHANGE_CONFIGURATION,
+      Command.CLEAR_CACHE,
+      Command.CLEAR_CHARGING_PROFILE,
+      Command.DATA_TRANSFER,
+      Command.GET_COMPOSITE_SCHEDULE,
+      Command.GET_CONFIGURATION,
+      Command.GET_DIAGNOSTICS,
       Command.REMOTE_START_TRANSACTION,
       Command.REMOTE_STOP_TRANSACTION,
-      Command.UNLOCK_CONNECTOR,
-      Command.SET_CHARGING_PROFILE,
-      Command.GET_COMPOSITE_SCHEDULE,
-      Command.CLEAR_CHARGING_PROFILE,
-      Command.CHANGE_AVAILABILITY,
-      Command.GET_DIAGNOSTICS,
-      Command.UPDATE_FIRMWARE,
       Command.RESERVE_NOW,
-      Command.CANCEL_RESERVATION
+      Command.RESET,
+      Command.SET_CHARGING_PROFILE,
+      Command.UNLOCK_CONNECTOR,
+      Command.UPDATE_FIRMWARE,
     ].includes(command);
   }
 }
