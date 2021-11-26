@@ -11,10 +11,10 @@
       "$ref": "user#/definitions/id"
     },
     "CompanyID": {
-      "$ref": "company#/definitions/id"
+      "$ref": "common#/definitions/ids"
     },
     "SiteID": {
-      "$ref": "site#/definitions/id"
+      "$ref": "common#/definitions/ids"
     },
     "ExcludeSitesOfUserID": {
       "type": "boolean",

@@ -1,5 +1,6 @@
-import { HttpSiteOwnerRequest, HttpSiteUserAdminRequest, HttpSitesRequest } from '../../../../types/requests/HttpSiteRequest';
+import { HttpSiteAssignUsersRequest, HttpSiteImageRequest, HttpSiteOwnerRequest, HttpSiteRequest, HttpSiteUserAdminRequest, HttpSitesRequest } from '../../../../types/requests/HttpSiteRequest';
 
+import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from '../../../../validator/SchemaValidator';
 import Site from '../../../../types/Site';
@@ -12,6 +13,9 @@ export default class SiteValidator extends SchemaValidator {
   private siteAdmin: Schema;
   private siteOwner: Schema;
   private sitesGet: Schema;
+  private siteAssignUsers: Schema;
+  private siteGet: Schema;
+  private siteGetImage: Schema;
 
   private constructor() {
     super('SiteValidator');
@@ -19,6 +23,9 @@ export default class SiteValidator extends SchemaValidator {
     this.siteAdmin = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site/site-admin.json`, 'utf8'));
     this.siteOwner = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site/site-owner.json`, 'utf8'));
     this.sitesGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site/sites-get.json`, 'utf8'));
+    this.siteAssignUsers = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site/site-users-assign.json`, 'utf8'));
+    this.siteGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site/site-get.json`, 'utf8'));
+    this.siteGetImage = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site/site-get-image.json`, 'utf8'));
   }
 
   public static getInstance(): SiteValidator {
@@ -42,5 +49,17 @@ export default class SiteValidator extends SchemaValidator {
 
   public validateSitesGetReq(data: Record<string, unknown>): HttpSitesRequest {
     return this.validate(this.sitesGet, data);
+  }
+
+  public validateSiteAssignUsersReq(data: Record<string, unknown>): HttpSiteAssignUsersRequest {
+    return this.validate(this.siteAssignUsers, data);
+  }
+
+  public validateSiteGetReq(data: Record<string, unknown>): HttpSiteRequest {
+    return this.validate(this.siteGet, data);
+  }
+
+  public validateSiteGetImageReq(data: Record<string, unknown>): HttpSiteImageRequest {
+    return this.validate(this.siteGetImage, data);
   }
 }
