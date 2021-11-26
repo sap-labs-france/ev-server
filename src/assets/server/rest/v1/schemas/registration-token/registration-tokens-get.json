@@ -1,0 +1,29 @@
+{
+  "$id": "registration-tokens-get",
+  "title": "Registration Tokens get Request",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "SiteAreaID": {
+      "$ref": "registration-token#/definitions/siteAreaID"
+    },
+    "Limit": {
+      "$ref": "common#/definitions/limit"
+    },
+    "SortFields": {
+      "$ref": "common#/definitions/sortFields"
+    },
+    "Skip": {
+      "$ref": "common#/definitions/skip"
+    },
+    "OnlyRecordCount": {
+      "$ref": "common#/definitions/onlyRecordCount"
+    },
+    "ProjectFields": {
+      "$ref": "common#/definitions/projectFields"
+    }
+  },
+  "required": [
+    "Limit"
+  ]
+}

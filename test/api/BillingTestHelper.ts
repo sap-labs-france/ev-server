@@ -4,7 +4,7 @@ import { BillingDataTransactionStop, BillingInvoice, BillingInvoiceStatus, Billi
 import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
 import ChargingStation, { ConnectorType } from '../../src/types/ChargingStation';
 import FeatureToggles, { Feature } from '../../src/utils/FeatureToggles';
-import PricingDefinition, { PricingDimension, PricingDimensions, PricingEntity, PricingRestriction } from '../../src/types/Pricing';
+import PricingDefinition, { DayOfWeek, PricingDimension, PricingDimensions, PricingEntity, PricingRestriction } from '../../src/types/Pricing';
 import chai, { assert, expect } from 'chai';
 
 import AsyncTaskStorage from '../../src/storage/mongodb/AsyncTaskStorage';
@@ -257,6 +257,59 @@ export default class BillingTestHelper {
           active: true
         }
       };
+    } else if (testMode === 'TODAY') {
+      dimensions = {
+        flatFee: {
+          price: 1.5, // Euro
+          active: true
+        },
+        energy: {
+          price: 1,
+          active: true
+        }
+      };
+      restrictions = {
+        daysOfWeek: [ moment().isoWeekday() ] // Sets today as the only day allowed for this pricing definition
+      };
+    } else if (testMode === 'OTHER_DAYS') {
+      dimensions = {
+        flatFee: {
+          price: 666, // Euro
+          active: true
+        },
+        energy: {
+          price: 666,
+          active: true
+        }
+      };
+      restrictions = {
+        // Sets all other days as the days allowed for this pricing definition
+        daysOfWeek: [ DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, DayOfWeek.SATURDAY, DayOfWeek.SUNDAY ].filter((day) => day !== moment().isoWeekday())
+      };
+    } else if (testMode === 'THIS_HOUR') {
+      dimensions = {
+        energy: {
+          price: 3,
+          active: true
+        }
+      };
+      restrictions = {
+        daysOfWeek: [ moment().isoWeekday() ], // Sets today as the only day allowed for this pricing definition
+        timeFrom: moment().format('HH:mm'), // From this hour
+        timeTo: moment().add(30, 'minutes').format('HH:mm'), // Validity for half an hour
+      };
+    } else if (testMode === 'NEXT_HOUR') {
+      dimensions = {
+        chargingTime: {
+          price: 5, // Euro per hour
+          active: true
+        },
+      };
+      restrictions = {
+        daysOfWeek: [ moment().isoWeekday() ], // Sets today as the only day allowed for this pricing definition
+        timeFrom: moment().add(30, 'minutes').format('HH:mm'), // Valid in half an hour
+        timeTo: moment().add(30 + 60, 'minutes').format('HH:mm'), // for one hour
+      };
     } else {
       dimensions = {
         energy: {
@@ -321,9 +374,9 @@ export default class BillingTestHelper {
 
   public async saveBillingSettings(billingSettings: BillingSettings) : Promise<void> {
     // TODO - rethink that part
-    const tenantBillingSettings = await this.adminUserService.settingApi.readAll({ 'Identifier': 'billing' });
-    expect(tenantBillingSettings.data.count).to.be.eq(1);
-    const componentSetting: SettingDB = tenantBillingSettings.data.result[0];
+    const tenantBillingSettings = await this.adminUserService.settingApi.readByIdentifier({ 'Identifier': 'billing' });
+    expect(tenantBillingSettings.data).to.not.be.null;
+    const componentSetting: SettingDB = tenantBillingSettings.data;
     componentSetting.content.type = BillingSettingsType.STRIPE;
     componentSetting.content.billing = billingSettings.billing;
     componentSetting.content.stripe = billingSettings.stripe;
@@ -518,11 +571,12 @@ export default class BillingTestHelper {
     // Set a default value
     connectorType = connectorType || ConnectorType.TYPE_2;
 
+    const tariffName = testMode;
     const tariff: Partial<PricingDefinition> = {
       entityID: chargingStation.id, // a pricing model for the site
       entityType: PricingEntity.CHARGING_STATION,
-      name: testMode,
-      description: 'Tariff for CS ' + chargingStation.id + ' - ' + testMode + ' - ' + connectorType,
+      name: tariffName,
+      description: 'Tariff for CS ' + chargingStation.id + ' - ' + tariffName + ' - ' + connectorType,
       staticRestrictions: {
         connectorType,
         validFrom: new Date(),
@@ -542,7 +596,7 @@ export default class BillingTestHelper {
     assert(response?.data?.entityName === chargingStation.id);
 
     // Create a 2nd one valid in the future with a stupid flat fee
-    tariff.name = tariff.name + ' - In the future';
+    tariff.name = tariffName + ' - In the future';
     tariff.staticRestrictions = {
       connectorType,
       validFrom: moment().add(10, 'years').toDate(),
@@ -556,7 +610,7 @@ export default class BillingTestHelper {
     assert(response?.data?.id, 'The ID should not be null');
 
     // Create a 3rd one valid in the past
-    tariff.name = tariff.name + ' - In the past';
+    tariff.name = tariffName + ' - In the past';
     tariff.staticRestrictions = {
       connectorType,
       validTo: moment().add(-1, 'hours').toDate(),

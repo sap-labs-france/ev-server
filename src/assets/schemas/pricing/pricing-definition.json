@@ -27,6 +27,11 @@
       "type": "string",
       "sanitize": "mongo"
     },
+    "dayOfWeek": {
+      "type": "number",
+      "sanitize": "mongo",
+      "enum": [ 1, 2, 3, 4, 5, 6, 7]
+    },
     "staticRestrictions": {
       "type": "object",
       "nullable": true,
@@ -54,8 +59,10 @@
             "T3C",
             "T1CCS",
             "D",
-            "U"
-          ]
+            "U",
+            null
+          ],
+          "nullable": true
         },
         "connectorPowerkW": {
           "type": "number",
@@ -67,6 +74,23 @@
       "type": "object",
       "nullable": true,
       "properties": {
+        "daysOfWeek": {
+          "type": "array",
+          "items": {
+            "$ref": "pricing-definition#/definitions/dayOfWeek"
+          }          ,
+          "nullable": true
+        },
+        "timeFrom": {
+          "type": "string",
+          "sanitize": "mongo",
+          "pattern": "^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$"
+        },
+        "timeTo": {
+          "type": "string",
+          "sanitize": "mongo",
+          "pattern": "^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$"
+        },
         "minEnergyKWh": {
           "type": "number",
           "sanitize": "mongo"

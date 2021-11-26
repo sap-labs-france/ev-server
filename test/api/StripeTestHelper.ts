@@ -118,9 +118,9 @@ export default class StripeTestHelper {
 
   public async saveBillingSettings(billingSettings: BillingSettings) : Promise<void> {
     // TODO - rethink that part
-    const tenantBillingSettings = await this.adminUserService.settingApi.readAll({ 'Identifier': 'billing' });
-    expect(tenantBillingSettings.data.count).to.be.eq(1);
-    const componentSetting: SettingDB = tenantBillingSettings.data.result[0];
+    const tenantBillingSettings = await this.adminUserService.settingApi.readByIdentifier({ 'Identifier': 'billing' });
+    expect(tenantBillingSettings.data).to.not.be.null;
+    const componentSetting: SettingDB = tenantBillingSettings.data;
     componentSetting.content.type = BillingSettingsType.STRIPE;
     componentSetting.content.billing = billingSettings.billing;
     componentSetting.content.stripe = billingSettings.stripe;

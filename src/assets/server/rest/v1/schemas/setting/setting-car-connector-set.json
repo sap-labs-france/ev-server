@@ -1,0 +1,104 @@
+{
+  "$id": "setting-car-connector-set",
+  "title": "Set Car Connector Settings",
+  "type": "object",
+  "properties": {
+    "content": {
+      "type": "object",
+      "properties": {
+        "carConnector": {
+          "type": "object",
+          "properties": {
+            "connections": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "sanitize": "mongo"
+                  },
+                  "name": {
+                    "type": "string",
+                    "sanitize": "mongo"
+                  },
+                  "description": {
+                    "type": "string",
+                    "sanitize": "mongo"
+                  },
+                  "type": {
+                    "type": "string",
+                    "sanitize": "mongo"
+                  },
+                  "mercedesConnection": {
+                    "type": "object",
+                    "properties": {
+                      "authenticationUrl": {
+                        "type": "string",
+                        "sanitize": "mongo"
+                      },
+                      "apiUrl": {
+                        "type": "string",
+                        "sanitize": "mongo"
+                      },
+                      "clientId": {
+                        "type": "string",
+                        "sanitize": "mongo"
+                      },
+                      "clientSecret": {
+                        "type": "string",
+                        "sanitize": "mongo"
+                      }
+                    }
+                  },
+                  "tronityConnection": {
+                    "type": "object",
+                    "properties": {
+                      "apiUrl": {
+                        "type": "string",
+                        "sanitize": "mongo"
+                      },
+                      "clientId": {
+                        "type": "string",
+                        "sanitize": "mongo"
+                      },
+                      "clientSecret": {
+                        "type": "string",
+                        "sanitize": "mongo"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "links": {
+          "$ref": "setting#/definitions/links"
+        },
+        "type": {
+          "type": "string",
+          "sanitize": "mongo",
+          "enum": ["carConnector"]
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "id": {
+      "$ref": "common#/definitions/id"
+    },
+    "identifier": {
+      "type": "string",
+      "sanitize": "mongo",
+      "enum": ["carConnector"]
+    },
+    "sensitiveData": {
+      "$ref": "setting#/definitions/sensitiveData"
+    }
+  },
+  "required": [
+    "identifier"
+  ]
+}
