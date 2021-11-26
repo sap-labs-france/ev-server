@@ -50,7 +50,6 @@ export default class PricingHelper {
     if (pricedData[dimensionType]) {
       if (!accumulatedData[dimensionType]) {
         const emptyDimensionData: PricedDimensionData = {
-          unitPrice: 0,
           quantity:0,
           amount: 0,
           roundedAmount: 0
