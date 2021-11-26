@@ -1,0 +1,20 @@
+{
+  "$id": "site-area-assign-assets",
+  "title": "Assign assets to a Site Area Request",
+  "type": "object",
+  "properties": {
+    "siteAreaID": {
+      "$ref": "common#/definitions/id"
+    },
+    "assetIDs": {
+      "type": "array",
+      "items": {
+        "$ref": "common#/definitions/id"
+      }
+    }
+  },
+  "required": [
+    "siteAreaID",
+    "assetIDs"
+  ]
+}
