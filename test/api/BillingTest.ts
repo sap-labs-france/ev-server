@@ -772,8 +772,33 @@ describe('Billing', function() {
           await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 17.37);
         });
 
-      });
 
+        it('should bill an invoice taking the Day of the week into account', async () => {
+          await billingTestHelper.initChargingStationContext2TestFastCharger('TODAY');
+          await billingTestHelper.initChargingStationContext2TestFastCharger('OTHER_DAYS');
+          // A tariff applied immediately
+          await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
+          const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
+          await billingTestHelper.assignPaymentMethod(userWithBillingData, 'tok_fr');
+          const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext);
+          assert(transactionID, 'transactionID should not be null');
+          // Check that we have a new invoice with an invoiceID and an invoiceNumber
+          await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 33.82);
+        });
+
+        it('should bill an invoice taking the Time into account', async () => {
+          await billingTestHelper.initChargingStationContext2TestFastCharger('NEXT_HOUR');
+          await billingTestHelper.initChargingStationContext2TestFastCharger('THIS_HOUR');
+          // A tariff applied immediately
+          await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
+          const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
+          await billingTestHelper.assignPaymentMethod(userWithBillingData, 'tok_fr');
+          const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext);
+          assert(transactionID, 'transactionID should not be null');
+          // Check that we have a new invoice with an invoiceID and an invoiceNumber
+          await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 55.22);
+        });
+      });
 
       describe('When basic user has a free access', () => {
         // eslint-disable-next-line @typescript-eslint/require-await

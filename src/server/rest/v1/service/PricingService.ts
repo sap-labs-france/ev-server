@@ -48,8 +48,8 @@ export default class PricingService {
     // Get the pricing definitions
     const pricingDefinitions = await PricingStorage.getPricingDefinitions(req.tenant,
       {
-        entityID: filteredRequest.entityID || null,
-        entityType: filteredRequest.entityType || null,
+        entityID: filteredRequest.EntityID || null,
+        entityType: filteredRequest.EntityType || null,
         withEntityInformation: filteredRequest?.WithEntityInformation,
         ...authorizationPricingDefinitionsFilter.filters
       }, {

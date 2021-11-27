@@ -19,19 +19,13 @@
       "sanitize": "mongo"
     },
     "LocLongitude": {
-      "type": "number",
-      "format": "longitude",
-      "sanitize": "mongo"
+      "$ref": "common#/definitions/LocLongitude"
     },
     "LocLatitude": {
-      "type": "number",
-      "format": "latitude",
-      "sanitize": "mongo"
+      "$ref": "common#/definitions/LocLatitude"
     },
     "LocMaxDistanceMeters": {
-      "type": "number",
-      "sanitize": "mongo",
-      "exclusiveMinimum": 0
+      "$ref": "common#/definitions/LocMaxDistanceMeters"
     },
     "Limit": {
       "$ref": "common#/definitions/limit"
