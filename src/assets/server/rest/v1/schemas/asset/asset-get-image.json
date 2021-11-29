@@ -1,0 +1,17 @@
+{
+  "$id": "asset-get-image",
+  "title": "Get Asset Image Request",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "asset#/definitions/id"
+    },
+    "TenantID": {
+      "$ref": "common#/definitions/id"
+    }
+  },
+  "required": [
+    "ID",
+    "TenantID"
+  ]
+}
