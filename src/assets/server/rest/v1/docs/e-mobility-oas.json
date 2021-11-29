@@ -7836,6 +7836,170 @@
         }
       }
     },
+    "/api/sites/{id}/users": {
+      "get": {
+        "description": "Retrieve site's users",
+        "tags": [
+          "Sites"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/siteID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Return site's user list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                      {
+                          "siteID": "###",
+                          "siteAdmin": false,
+                          "user": {
+                              "email": "###",
+                              "firstName": "###",
+                              "name": "###",
+                              "role": "A",
+                              "id": "###"
+                          }
+                      }
+                    ]
+                  }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/sites/{id}/assign": {
+      "get": {
+        "description": "Assign users to a site",
+        "tags": [
+          "Sites"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/siteID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "userIDs"
+                ],
+                "properties": {
+                  "userIDs": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Users successfully assigned",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                  }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/sites/{id}/unassign": {
+      "get": {
+        "description": "Unassign users from a site",
+        "tags": [
+          "Sites"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/siteID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "userIDs"
+                ],
+                "properties": {
+                  "userIDs": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Users successfully unassigned",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                  }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
     "/api/loggings": {
       "get": {
         "security": [
