@@ -302,6 +302,9 @@
             "$ref": "#/components/parameters/WithSite"
           },
           {
+            "$ref": "#/components/parameters/WithParentSiteArea"
+          },
+          {
             "$ref": "#/components/parameters/WithChargingStations"
           },
           {
@@ -428,6 +431,12 @@
           "403": {
             "$ref": "#/components/responses/ForbiddenError"
           },
+          "541": {
+            "$ref": "#/components/responses/SiteAreaHierarchyInconsistencyError"
+          },
+          "542": {
+            "$ref": "#/components/responses/SiteAreaHierarchyCircularStructureError"
+          },
           "500": {
             "$ref": "#/components/responses/BackendError"
           }
@@ -531,6 +540,12 @@
           "539": {
             "description": "One of the charging stations is not single phased"
           },
+          "541": {
+            "$ref": "#/components/responses/SiteAreaHierarchyInconsistencyError"
+          },
+          "542": {
+            "$ref": "#/components/responses/SiteAreaHierarchyCircularStructureError"
+          },
           "550": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
@@ -570,6 +585,9 @@
           },
           "500": {
             "$ref": "#/components/responses/BackendError"
+          },
+          "543": {
+            "$ref": "#/components/responses/SiteAreaHierarchyDependencyError"
           },
           "550": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
@@ -11515,6 +11533,15 @@
       },
       "InvalidCSVHeaderFormat": {
         "description": "Invalid CSV header format"
+      },
+      "SiteAreaHierarchyInconsistencyError": {
+        "description": "Property inconsistency in Site Area Tree"
+      },
+      "SiteAreaHierarchyCircularStructureError": {
+        "description": "Circular Structure in Site Area Tree"
+      },
+      "SiteAreaHierarchyDependencyError": {
+        "description": "Site Area has dependencies to other Site Areas"
       }
     },
     "schemas": {
@@ -11747,6 +11774,21 @@
             "type": "string"
           },
           "site": {
+            "type": "object",
+            "readOnly": true,
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "parentSiteAreaID": {
+            "type": "string"
+          },
+          "parentSiteArea": {
             "type": "object",
             "readOnly": true,
             "properties": {
@@ -13806,6 +13848,14 @@
         "in": "query",
         "name": "WithSiteArea",
         "description": "With site area attribute",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      "WithParentSiteArea": {
+        "in": "query",
+        "name": "WithParentSiteArea",
+        "description": "With parent site area parent attribute",
         "schema": {
           "type": "boolean"
         }

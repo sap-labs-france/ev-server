@@ -37,6 +37,11 @@
     "siteID": {
       "$ref": "common#/definitions/id"
     },
+    "parentSiteAreaID": {
+      "type": ["string", "null"],
+      "pattern": "^$|^[0-9a-fA-F]{24}$",
+      "sanitize": "mongo"
+    },
     "image": {
       "type": "string",
       "sanitize": "mongo"

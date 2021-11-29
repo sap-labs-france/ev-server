@@ -13,6 +13,10 @@
     "WithChargingStations": {
       "type": "boolean",
       "sanitize": "mongo"
+    },
+    "WithParentSiteArea": {
+      "type": "boolean",
+      "sanitize": "mongo"
     }
   },
   "required": [
