@@ -286,7 +286,32 @@ export default class BillingTestHelper {
         // Sets all other days as the days allowed for this pricing definition
         daysOfWeek: [ DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, DayOfWeek.SATURDAY, DayOfWeek.SUNDAY ].filter((day) => day !== moment().isoWeekday())
       };
-    } else if (testMode === 'THIS_HOUR') {
+    } else {
+      dimensions = {
+        energy: {
+          price: 0.50,
+          active: true
+        }
+      };
+    }
+    await this.createTariff4ChargingStation(testMode, this.chargingStationContext.getChargingStation(), dimensions, ConnectorType.COMBO_CCS, restrictions);
+    return this.chargingStationContext;
+  }
+
+  public async initChargingStationContext2TestTimeRestrictions(testMode = 'E', aParticularMoment: moment.Moment) : Promise<ChargingStationContext> {
+    // Charing Station Context
+    this.siteContext = this.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
+    this.siteAreaContext = this.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC);
+    this.chargingStationContext = this.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16 + '-' + ContextDefinition.SITE_CONTEXTS.SITE_BASIC + '-' + ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC);
+    assert(!!this.chargingStationContext, 'Charging station context should not be null');
+    // Make sure to take into account the Charging Station location and its timezone
+    const timezone = Utils.getTimezone(this.chargingStationContext.getChargingStation().coordinates);
+    // The moment has to be cloned to have stable tests results!
+    const atThatMoment = aParticularMoment.clone().tz(timezone);
+    // Let's create a pricing definition
+    let dimensions: PricingDimensions;
+    let restrictions: PricingRestriction;
+    if (testMode === 'FOR_HALF_AN_HOUR') {
       dimensions = {
         energy: {
           price: 3,
@@ -294,9 +319,9 @@ export default class BillingTestHelper {
         }
       };
       restrictions = {
-        daysOfWeek: [ moment().isoWeekday() ], // Sets today as the only day allowed for this pricing definition
-        timeFrom: moment().format('HH:mm'), // From this hour
-        timeTo: moment().add(30, 'minutes').format('HH:mm'), // Validity for half an hour
+        daysOfWeek: [ atThatMoment.isoWeekday() ], // Sets today as the only day allowed for this pricing definition
+        timeFrom: atThatMoment.format('HH:mm'), // From this hour
+        timeTo: atThatMoment.add(30, 'minutes').format('HH:mm'), // Validity for half an hour
       };
     } else if (testMode === 'NEXT_HOUR') {
       dimensions = {
@@ -306,16 +331,27 @@ export default class BillingTestHelper {
         },
       };
       restrictions = {
-        daysOfWeek: [ moment().isoWeekday() ], // Sets today as the only day allowed for this pricing definition
-        timeFrom: moment().add(30, 'minutes').format('HH:mm'), // Valid in half an hour
-        timeTo: moment().add(30 + 60, 'minutes').format('HH:mm'), // for one hour
+        daysOfWeek: [ atThatMoment.isoWeekday() ], // Sets today as the only day allowed for this pricing definition
+        timeFrom: atThatMoment.add(30, 'minutes').format('HH:mm'), // Valid in half an hour
+        timeTo: atThatMoment.add(30 + 60, 'minutes').format('HH:mm'), // for one hour
       };
-    } else {
+    } else { /* if (testMode === 'OTHER_HOURS') */
       dimensions = {
-        energy: {
-          price: 0.50,
+        flatFee: {
+          price: 0,
           active: true
-        }
+        },
+        energy: {
+          price: 666, // Weird value used to detect inconsistent pricing context resolution
+          active: true
+        },
+        chargingTime: {
+          price: 666, // Weird value used to detect inconsistent pricing context resolution
+          active: true
+        },
+      };
+      restrictions = {
+        daysOfWeek: [ atThatMoment.isoWeekday() ], // Sets today as the only day allowed for this pricing definition
       };
     }
     await this.createTariff4ChargingStation(testMode, this.chargingStationContext.getChargingStation(), dimensions, ConnectorType.COMBO_CCS, restrictions);
