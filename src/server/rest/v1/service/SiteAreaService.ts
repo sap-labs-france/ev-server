@@ -123,9 +123,9 @@ export default class SiteAreaService {
     // Check and Get Site Area
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
       req.tenant, req.user, siteAreaID, Action.DELETE, action);
-    const siteAreas = await SiteAreaStorage.getSiteAreas(req.tenant, { siteIDs: [siteArea.siteID] }, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'parentSiteAreaID', 'siteID', 'smartCharging', 'name']);
+    const siteAreas = await SiteAreaStorage.getSiteAreas(req.tenant, { siteIDs: [siteArea.siteID] }, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'parentSiteAreaID', 'siteID', 'smartCharging', 'name', 'voltage', 'numberOfPhases']);
     // Remove site area from array and check site area chain validity
-    UtilsService.checkIfSiteAreaTreeValid(siteAreas.result.filter((siteAreaToDelete) => siteAreaToDelete.id !== siteArea.id), req, action);
+    UtilsService.checkIfSiteAreaTreeValid(siteAreas.result, req, action, siteArea.id);
     // Delete
     await SiteAreaStorage.deleteSiteArea(req.tenant, siteArea.id);
     // Log
@@ -307,9 +307,10 @@ export default class SiteAreaService {
       createdBy: { id: req.user.id },
       createdOn: new Date()
     } as SiteArea;
-    const siteAreas = await SiteAreaStorage.getSiteAreas(req.tenant, { siteIDs: [newSiteArea.siteID] }, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'parentSiteAreaID', 'siteID', 'smartCharging', 'name']);
+    const siteAreas = await SiteAreaStorage.getSiteAreas(req.tenant, { siteIDs: [newSiteArea.siteID] }, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'parentSiteAreaID', 'siteID', 'smartCharging', 'name', 'voltage', 'numberOfPhases']);
     siteAreas.result.push({ id: newSiteArea.id, parentSiteAreaID: newSiteArea.parentSiteAreaID,
-      siteID: newSiteArea.siteID, smartCharging: newSiteArea.smartCharging } as SiteArea) ;
+      siteID: newSiteArea.siteID, smartCharging: newSiteArea.smartCharging,
+      voltage: newSiteArea.voltage, numberOfPhases: newSiteArea.numberOfPhases } as SiteArea) ;
     // Check site area chain validity
     UtilsService.checkIfSiteAreaTreeValid(siteAreas.result, req, action);
     // Save
@@ -373,13 +374,14 @@ export default class SiteAreaService {
         req.tenant, siteArea,
         { profilePurposeType: ChargingProfilePurposeType.TX_PROFILE });
     }
-    siteArea.siteID = filteredRequest.siteID;
     siteArea.smartCharging = filteredRequest.smartCharging;
     siteArea.accessControl = filteredRequest.accessControl;
     siteArea.parentSiteAreaID = filteredRequest.parentSiteAreaID;
-    const siteAreas = await SiteAreaStorage.getSiteAreas(req.tenant, { siteIDs: [siteArea.siteID] }, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'parentSiteAreaID', 'siteID', 'smartCharging', 'name']);
+    const siteAreas = await SiteAreaStorage.getSiteAreas(req.tenant, { siteIDs: [siteArea.siteID, filteredRequest.siteID] }, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'parentSiteAreaID', 'siteID', 'smartCharging', 'name', 'voltage', 'numberOfPhases']);
     const index = siteAreas.result.findIndex((siteAreaToChange) => siteAreaToChange.id === siteArea.id);
-    siteAreas.result[index] = { id: siteArea.id, parentSiteAreaID: siteArea.parentSiteAreaID, siteID: siteArea.siteID, smartCharging: siteArea.smartCharging } as SiteArea;
+    siteArea.siteID = filteredRequest.siteID;
+    siteAreas.result[index] = { id: siteArea.id, parentSiteAreaID: siteArea.parentSiteAreaID, siteID: siteArea.siteID, smartCharging: siteArea.smartCharging,
+      voltage: siteArea.voltage, numberOfPhases: siteArea.numberOfPhases } as SiteArea;
     // Check site area chain validity
     UtilsService.checkIfSiteAreaTreeValid(siteAreas.result, req, action);
     siteArea.lastChangedBy = { 'id': req.user.id };

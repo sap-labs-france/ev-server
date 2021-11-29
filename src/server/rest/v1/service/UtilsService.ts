@@ -5,6 +5,7 @@ import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
 import User, { UserRole, UserStatus } from '../../../../types/User';
+import _, { forEach } from 'lodash';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
@@ -40,7 +41,6 @@ import { TransactionInErrorType } from '../../../../types/InError';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
-import _ from 'lodash';
 import countries from 'i18n-iso-countries';
 import moment from 'moment';
 
@@ -1371,43 +1371,48 @@ export default class UtilsService {
     }
   }
 
-  public static checkIfSiteAreaTreeValid(siteAreaList: SiteArea[], req: Request, action: ServerAction):void {
+  public static checkIfSiteAreaTreeValid(siteAreaList: SiteArea[], req: Request, action: ServerAction, siteAreaToDelete?: string): void {
     let siteAreaTrees: SiteArea[];
-    try {
-      siteAreaTrees = Utils.buildSiteAreaTrees(siteAreaList);
-    } catch {
-      switch (action) {
-        case ServerAction.SITE_AREA_DELETE:
-          throw new AppError({
-            errorCode: HTTPError.SITE_AREA_HIERARCHY_DEPENDENCY_ERROR,
-            message: 'Site Area has dependencies to other site areas',
-            module: MODULE_NAME, method: 'checkIfSiteAreaTreeValid',
-            user: req.user.id
-          });
-        default:
+    const count = { value: 0 };
+    switch (action) {
+      case ServerAction.SITE_AREA_DELETE:
+        siteAreaList.forEach((siteArea) => {
+          if (siteArea.parentSiteAreaID === siteAreaToDelete) {
+            throw new AppError({
+              errorCode: HTTPError.SITE_AREA_HIERARCHY_DEPENDENCY_ERROR,
+              message: 'Site Area has dependencies to other site areas',
+              module: MODULE_NAME, method: 'checkIfSiteAreaTreeValid',
+              user: req.user.id
+            });
+          }
+        });
+        break;
+      default:
+        try {
+          siteAreaTrees = Utils.buildSiteAreaTrees(siteAreaList);
+        } catch {
           throw new AppError({
             errorCode: HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR,
             message: 'Property inconsistency in Site Area Tree',
             module: MODULE_NAME, method: 'checkIfSiteAreaTreeValid',
             user: req.user.id
           });
-      }
-    }
-    // Loop through trees to check validity
-    const count = { value: 0 };
-    for (const siteAreaTree of siteAreaTrees) {
-      // If no ID defined count elements to verify validity
-      count.value++;
-      this.countElementsOfSiteAreaTree(siteAreaTree, count);
-    }
-    // If site area list is the same length as elements in the tree, the tree is valid
-    if (count.value !== siteAreaList.length) {
-      throw new AppError({
-        errorCode: HTTPError.SITE_AREA_HIERARCHY_CIRCULAR_STRUCTURE_ERROR,
-        message: 'Circular Structure in Site Area Tree',
-        module: MODULE_NAME, method: 'checkIfSiteAreaTreeValid',
-        user: req.user.id
-      });
+        }
+        // Loop through trees to check validity
+        for (const siteAreaTree of siteAreaTrees) {
+          // If no ID defined count elements to verify validity
+          count.value++;
+          this.countElementsOfSiteAreaTree(siteAreaTree, count);
+        }
+        // If site area list is the same length as elements in the tree, the tree is valid
+        if (count.value !== siteAreaList.length) {
+          throw new AppError({
+            errorCode: HTTPError.SITE_AREA_HIERARCHY_CIRCULAR_STRUCTURE_ERROR,
+            message: 'Circular Structure in Site Area Tree',
+            module: MODULE_NAME, method: 'checkIfSiteAreaTreeValid',
+            user: req.user.id
+          });
+        }
     }
   }
 
