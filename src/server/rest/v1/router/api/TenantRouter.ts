@@ -19,7 +19,6 @@ export default class TenantRouter {
     this.buildRouteCreateTenant();
     this.buildRouteUpdateTenant();
     this.buildRouteDeleteTenant();
-    this.buildRouteGetTenantLogo();
     return this.router;
   }
 
@@ -51,13 +50,6 @@ export default class TenantRouter {
 
   private buildRouteDeleteTenant(): void {
     this.router.delete(`/${ServerRoute.REST_TENANT}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.query.ID = req.params.id;
-      await RouterUtils.handleServerAction(TenantService.handleDeleteTenant.bind(this), ServerAction.TENANT_DELETE, req, res, next);
-    });
-  }
-
-  private buildRouteGetTenantLogo(): void {
-    this.router.get(`/${ServerRoute.REST_TENANT_LOGO}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
       await RouterUtils.handleServerAction(TenantService.handleDeleteTenant.bind(this), ServerAction.TENANT_DELETE, req, res, next);
     });
