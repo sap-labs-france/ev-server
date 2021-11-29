@@ -18,7 +18,6 @@ export default class CompanyRouter {
     this.buildRouteCreateCompany();
     this.buildRouteUpdateCompany();
     this.buildRouteDeleteCompany();
-    this.buildRouteGetCompanyLogo();
     return this.router;
   }
 
@@ -52,13 +51,6 @@ export default class CompanyRouter {
     this.router.delete(`/${ServerRoute.REST_COMPANY}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
       await RouterUtils.handleServerAction(CompanyService.handleDeleteCompany.bind(this), ServerAction.COMPANY_DELETE, req, res, next);
-    });
-  }
-
-  private buildRouteGetCompanyLogo(): void {
-    this.router.get(`/${ServerRoute.REST_COMPANY_LOGO}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.query.ID = req.params.id;
-      await RouterUtils.handleServerAction(CompanyService.handleGetCompanyLogo.bind(this), ServerAction.COMPANY_LOGO, req, res, next);
     });
   }
 }
