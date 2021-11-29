@@ -202,7 +202,7 @@
         }
       }
     },
-    "/api/tenants/{tenantID}": {
+    "/api/tenants/{id}": {
       "get": {
         "description": "Retrieve a Tenant",
         "security": [
@@ -212,13 +212,7 @@
         ],
         "parameters": [
           {
-            "in": "path",
-            "name": "tenantID",
-            "description": "Tenant ID",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/tenantID"
           },
           {
             "$ref": "#/components/parameters/ProjectFields"
@@ -246,6 +240,9 @@
           },
           "500": {
             "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
       },
@@ -258,13 +255,7 @@
         ],
         "parameters": [
           {
-            "in": "path",
-            "name": "tenantID",
-            "description": "Tenant ID",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/tenantID"
           }
         ],
         "tags": [
@@ -282,6 +273,93 @@
           },
           "500": {
             "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "put": {
+        "description": "Update a Tenant",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/tenantID"
+          }
+        ],
+        "tags": [
+          "Tenant"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Tenant"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Return the found Tenant",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Tenant"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/tenants/{id}/logo": {
+      "get": {
+        "description": "Retrieve a Tenant logo",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/tenantID"
+          }
+        ],
+        "tags": [
+          "Tenant"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return the Tenant logo"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
       }
@@ -11521,7 +11599,6 @@
       "Tenant": {
         "type": "object",
         "required": [
-          "id",
           "name",
           "email",
           "subdomain"
@@ -11529,7 +11606,8 @@
         "properties": {
           "id": {
             "type": "string",
-            "example": "5be7fb271014d90008992347"
+            "example": "5be7fb271014d90008992347",
+            "readOnly": true
           },
           "name": {
             "type": "string",
@@ -14052,6 +14130,15 @@
         "in": "path",
         "name": "id",
         "description": "Registration token ID",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "tenantID": {
+        "in": "path",
+        "name": "id",
+        "description": "Tenant ID",
         "required": true,
         "schema": {
           "type": "string"

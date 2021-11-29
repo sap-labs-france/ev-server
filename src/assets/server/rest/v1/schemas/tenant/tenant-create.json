@@ -3,9 +3,6 @@
   "title": "Create one Tenant",
   "type": "object",
   "properties": {
-    "id": {
-      "$ref": "tenant#/definitions/id"
-    },
     "name": {
       "$ref": "tenant#/definitions/name"
     },
