@@ -12,6 +12,7 @@ import SiteAreaContext from './context/SiteAreaContext';
 import SiteContext from './context/SiteContext';
 import { StatusCodes } from 'http-status-codes';
 import TenantContext from './context/TenantContext';
+import { Voltage } from '../../src/types/ChargingStation';
 import chaiSubset from 'chai-subset';
 
 chai.use(chaiSubset);
@@ -516,6 +517,50 @@ describe('Site Area', function() {
           testData.newSiteArea, false
         );
         expect(response.status).to.equal(HTTPError.SITE_AREA_HIERARCHY_CIRCULAR_STRUCTURE_ERROR);
+      });
+
+      it('Should not be able to set undefined parent', async () => {
+        // Change entity
+        testData.newSubSubSiteArea.parentSiteAreaID = '5ce249a2372f0b1c8caf6532';
+        // Update
+        const response = await testData.userService.updateEntity(
+          testData.userService.siteAreaApi,
+          testData.newSubSubSiteArea, false
+        );
+        expect(response.status).to.equal(HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR);
+      });
+
+      it('Should not be able to update site in the site area chain', async () => {
+        // Change entity
+        testData.newSubSubSiteArea.siteID = '5ce249a2372f0b1c8caf6532';
+        // Update
+        const response = await testData.userService.updateEntity(
+          testData.userService.siteAreaApi,
+          testData.newSubSubSiteArea, false
+        );
+        expect(response.status).to.equal(HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR);
+      });
+
+      it('Should not be able to update number of phases in site area chain', async () => {
+        // Change entity
+        testData.newSubSubSiteArea.numberOfPhases = 1;
+        // Update
+        const response = await testData.userService.updateEntity(
+          testData.userService.siteAreaApi,
+          testData.newSubSubSiteArea, false
+        );
+        expect(response.status).to.equal(HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR);
+      });
+
+      it('Should not be able to update voltage in site area chain', async () => {
+        // Change entity
+        testData.newSubSubSiteArea.voltage = Voltage.VOLTAGE_110;
+        // Update
+        const response = await testData.userService.updateEntity(
+          testData.userService.siteAreaApi,
+          testData.newSubSubSiteArea, false
+        );
+        expect(response.status).to.equal(HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR);
       });
 
       it('Should not be able to delete root site area, which still has children', async () => {
