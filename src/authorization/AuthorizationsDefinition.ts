@@ -967,7 +967,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
         attributes: [
           'id', 'name', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
-          'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
+          'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn', 'tariffID'
         ],
       },
       { resource: Entity.SITE_AREA, action: Action.CREATE },
