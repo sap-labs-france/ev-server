@@ -1,0 +1,41 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
+import { ServerAction, ServerRoute } from '../../../../../types/Server';
+import express, { NextFunction, Request, Response } from 'express';
+
+import RouterUtils from '../RouterUtils';
+import SiteService from '../../service/SiteService';
+import sanitize from 'mongo-sanitize';
+
+export default class SiteRouter {
+  private router: express.Router;
+
+  public constructor() {
+    this.router = express.Router();
+  }
+
+  public buildRoutes(): express.Router {
+    this.buildRouteSites();
+    this.buildRouteSite();
+    this.buildRouteCreateSite();
+    return this.router;
+  }
+
+  private buildRouteSites(): void {
+    this.router.get(`/${ServerRoute.REST_SITES}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(SiteService.handleGetSites.bind(this), ServerAction.SITES, req, res, next);
+    });
+  }
+
+  private buildRouteSite(): void {
+    this.router.get(`/${ServerRoute.REST_SITE}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = sanitize(req.params.id);
+      await RouterUtils.handleServerAction(SiteService.handleGetSite.bind(this), ServerAction.SITE, req, res, next);
+    });
+  }
+
+  private buildRouteCreateSite(): void {
+    this.router.post(`/${ServerRoute.REST_SITES}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(SiteService.handleCreateSite.bind(this), ServerAction.SITE_CREATE, req, res, next);
+    });
+  }
+}

@@ -618,6 +618,9 @@ export enum ServerRoute {
   REST_SITE_AREA_ASSIGN_ASSETS = 'site-areas/:id/assets/assign',
   REST_SITE_AREA_REMOVE_ASSETS = 'site-areas/:id/assets/unassign',
 
+  REST_SITES = 'sites',
+  REST_SITE = 'sites/:id',
+
   // BILLING URLs for CRUD operations on PAYMENT METHODS
   REST_BILLING_PAYMENT_METHODS = 'users/:userID/payment-methods',
   REST_BILLING_PAYMENT_METHOD = 'users/:userID/payment-methods/:paymentMethodID',
