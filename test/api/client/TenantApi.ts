@@ -12,7 +12,7 @@ export default class TenantApi extends CrudApi {
     this._baseApi = baseApi;
   }
 
-  public async readById(id) {
+  public async readById(id: string) {
     return super.readById(id, this.buildRestEndpointUrl(ServerRoute.REST_TENANT, { id }));
   }
 
@@ -28,7 +28,7 @@ export default class TenantApi extends CrudApi {
     return super.update(data, this.buildRestEndpointUrl(ServerRoute.REST_TENANT, { id: data.id }));
   }
 
-  public async delete(id) {
+  public async delete(id: string) {
     return await this._authenticatedApi.send({
       method: 'DELETE',
       url: this.buildRestEndpointUrl(ServerRoute.REST_TENANT, { id }),
