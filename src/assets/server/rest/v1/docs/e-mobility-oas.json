@@ -153,9 +153,18 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Tenant"
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "number",
+                      "example": 1
+                    },
+                    "result": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Tenant"
+                      }
+                    }
                   }
                 }
               }
@@ -305,11 +314,11 @@
         },
         "responses": {
           "200": {
-            "description": "Return the found Tenant",
+            "description": "Tenant has been successfully updated",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Tenant"
+                "example": {
+                  "status": "Success"
                 }
               }
             }
