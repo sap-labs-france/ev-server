@@ -139,7 +139,7 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleAssignUsersToSite');
     // Filter request
-    const filteredRequest = SiteSecurity.filterAssignSiteUsers(req.body);
+    const filteredRequest = SiteValidator.getInstance().validateSiteAssignUsersReq(req.body);
     // Check and Get Site
     const site = await UtilsService.checkAndGetSiteAuthorization(
       req.tenant, req.user, filteredRequest.siteID, Action.READ, action);
@@ -210,7 +210,7 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.DELETE, Entity.SITE, MODULE_NAME, 'handleDeleteSite');
     // Filter request
-    const siteID = SiteSecurity.filterSiteRequestByID(req.query);
+    const siteID = SiteValidator.getInstance().validateSiteGetReq(req.query).ID;
     // Check and Get Site
     const site = await UtilsService.checkAndGetSiteAuthorization(
       req.tenant, req.user, siteID, Action.DELETE, action);
@@ -233,7 +233,7 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.READ, Entity.SITE, MODULE_NAME, 'handleGetSite');
     // Filter request
-    const filteredRequest = SiteSecurity.filterSiteRequest(req.query);
+    const filteredRequest = SiteValidator.getInstance().validateSiteGetReq(req.query);
     // Check and Get Site
     const site = await UtilsService.checkAndGetSiteAuthorization(
       req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {
@@ -302,7 +302,7 @@ export default class SiteService {
   public static async handleGetSiteImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // This endpoint is not protected, so no need to check user's access
     // Filter
-    const filteredRequest = SiteSecurity.filterSiteImageRequest(req.query);
+    const filteredRequest = SiteValidator.getInstance().validateSiteGetImageReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetSiteImage', req.user);
     if (!filteredRequest.TenantID) {
       // Object does not exist
