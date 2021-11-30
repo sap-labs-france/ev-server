@@ -23,6 +23,8 @@ export default class SiteRouter {
     this.buildRouteSetSiteAdmin();
     this.buildRouteSetSiteOwner();
     this.buildRouteUpdateSite();
+    this.buildRouteDeleteSite();
+    this.buildRouteGetSiteImage();
     return this.router;
   }
 
@@ -84,6 +86,20 @@ export default class SiteRouter {
     this.router.put(`/${ServerRoute.REST_SITE}`, async (req: Request, res: Response, next: NextFunction) => {
       req.body.id = req.params.id;
       await RouterUtils.handleServerAction(SiteService.handleUpdateSite.bind(this), ServerAction.SITE_UPDATE, req, res, next);
+    });
+  }
+
+  private buildRouteDeleteSite(): void {
+    this.router.delete(`/${ServerRoute.REST_SITE}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = req.params.id;
+      await RouterUtils.handleServerAction(SiteService.handleDeleteSite.bind(this), ServerAction.SITE_DELETE, req, res, next);
+    });
+  }
+
+  private buildRouteGetSiteImage(): void {
+    this.router.get(`/${ServerRoute.REST_SITE_IMAGE}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = req.params.id;
+      await RouterUtils.handleServerAction(SiteService.handleGetSiteImage.bind(this), ServerAction.SITE_IMAGE, req, res, next);
     });
   }
 }

@@ -56,8 +56,8 @@ export default class SiteApi extends CrudApi {
     return super.update(data, this.buildRestEndpointUrl(ServerRoute.REST_SITE, { id: data.id }));
   }
 
-  public async delete(id) {
-    return super.delete(id, '/client/api/SiteDelete');
+  public async delete(id: string) {
+    return super.delete(id, this.buildRestEndpointUrl(ServerRoute.REST_SITE, { id }));
   }
 
   public async assignSiteAdmin(siteID: string, userID: string) {
