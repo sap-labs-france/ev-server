@@ -121,6 +121,21 @@
     "language": {
       "type": "string",
       "sanitize": "mongo"
+    },
+    "LocLongitude": {
+      "type": "number",
+      "format": "longitude",
+      "sanitize": "mongo"
+    },
+    "LocLatitude": {
+      "type": "number",
+      "format": "latitude",
+      "sanitize": "mongo"
+    },
+    "LocMaxDistanceMeters": {
+      "type": "number",
+      "sanitize": "mongo",
+      "exclusiveMinimum": 0
     }
   }
 }
