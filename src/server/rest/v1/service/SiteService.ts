@@ -13,6 +13,7 @@ import Site from '../../../../types/Site';
 import { SiteDataResult } from '../../../../types/DataResult';
 import SiteSecurity from './security/SiteSecurity';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
+import SiteValidator from '../validator/SiteValidator';
 import { TenantComponents } from '../../../../types/Tenant';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import Utils from '../../../../utils/Utils';
@@ -27,7 +28,7 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleUpdateSiteUserAdmin');
     // Filter request
-    const filteredRequest = SiteSecurity.filterUpdateSiteUserAdminRequest(req.body);
+    const filteredRequest = SiteValidator.getInstance().validateSiteAdminReq(req.body);
     // Check mandatory fields
     if (!filteredRequest.userID) {
       throw new AppError({
@@ -87,7 +88,7 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleUpdateSiteOwner');
     // Filter request
-    const filteredRequest = SiteSecurity.filterUpdateSiteOwnerRequest(req.body);
+    const filteredRequest = SiteValidator.getInstance().validateSiteOwnerReq(req.body);
     // Check mandatory fields
     if (!filteredRequest.userID) {
       throw new AppError({
@@ -189,7 +190,7 @@ export default class SiteService {
     const users = await SiteStorage.getSiteUsers(req.tenant,
       {
         search: filteredRequest.Search,
-        siteIDs: [ filteredRequest.SiteID ],
+        siteIDs: [filteredRequest.SiteID],
         ...authorizationSiteUsersFilter.filters
       },
       {
@@ -249,7 +250,14 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.LIST, Entity.SITE, MODULE_NAME, 'handleGetSites');
     // Filter request
-    const filteredRequest = SiteSecurity.filterSitesRequest(req.query);
+    const filteredRequest = SiteValidator.getInstance().validateSitesGetReq(req.query);
+    // Create GPS Coordinates
+    if (filteredRequest.LocLongitude && filteredRequest.LocLatitude) {
+      filteredRequest.LocCoordinates = [
+        Utils.convertToFloat(filteredRequest.LocLongitude),
+        Utils.convertToFloat(filteredRequest.LocLatitude)
+      ];
+    }
     // Check dynamic auth
     const authorizationSitesFilter = await AuthorizationService.checkAndGetSitesAuthorizations(
       req.tenant, req.user, filteredRequest);
@@ -275,7 +283,7 @@ export default class SiteService {
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.SortFields,
+        sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       authorizationSitesFilter.projectFields
@@ -333,12 +341,12 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.CREATE, Entity.SITE, MODULE_NAME, 'handleCreateSite');
     // Filter request
-    const filteredRequest = SiteSecurity.filterSiteCreateRequest(req.body);
+    const filteredRequest = SiteValidator.getInstance().validateSiteCreateReq(req.body);
     // Check data is valid
     UtilsService.checkIfSiteValid(filteredRequest, req);
     // Get dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetSiteAuthorizations(
-      req.tenant, req.user, {}, Action.CREATE, filteredRequest as Site);
+      req.tenant, req.user, {}, Action.CREATE, filteredRequest);
     if (!authorizationFilter.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
