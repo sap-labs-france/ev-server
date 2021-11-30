@@ -1,0 +1,63 @@
+{
+  "$id": "setting-crypto-set",
+  "title": "Set Crypto Settings",
+  "type": "object",
+  "properties": {
+    "content": {
+      "type": "object",
+      "properties": {
+        "crypto": {
+          "type": "object",
+          "properties": {
+            "key": {
+              "type": "string",
+              "sanitize": "mongo"
+            },
+            "keyProperties": {
+              "type": "object",
+              "properties": {
+                "blockCypher": {
+                  "type": "string",
+                  "sanitize": "mongo"
+                },
+                "blockSize": {
+                  "type": "number",
+                  "sanitize": "mongo"
+                },
+                "operationMode": {
+                  "type": "string",
+                  "sanitize": "mongo"
+                }
+              }
+            }
+          }
+        },
+        "links": {
+          "$ref": "setting#/definitions/links"
+        },
+        "type": {
+          "type": "string",
+          "sanitize": "mongo",
+          "enum": ["crypto"]
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "id": {
+      "$ref": "common#/definitions/id"
+    },
+    "identifier": {
+      "type": "string",
+      "sanitize": "mongo",
+      "enum": ["crypto"]
+    },
+    "sensitiveData": {
+      "$ref": "setting#/definitions/sensitiveData"
+    }
+  },
+  "required": [
+    "identifier"
+  ]
+}

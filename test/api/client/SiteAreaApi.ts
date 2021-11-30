@@ -1,73 +1,62 @@
+import AuthenticatedBaseApi from './utils/AuthenticatedBaseApi';
 import CrudApi from './utils/CrudApi';
+import { Server } from 'http';
+import { ServerRoute } from '../../../src/types/Server';
 import TestConstants from './utils/TestConstants';
 
 export default class SiteAreaApi extends CrudApi {
-  public constructor(authenticatedApi) {
+  public constructor(authenticatedApi: AuthenticatedBaseApi) {
     super(authenticatedApi);
   }
 
-  public async readById(id) {
-    return super.readById(id, '/client/api/SiteArea');
+  public async readById(id: string) {
+    return super.readById(id, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREA, { id }));
   }
 
   public async readAll(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, '/client/api/SiteAreas');
+    return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREAS));
   }
 
   public async create(data) {
-    const siteArea = await super.create(data, '/client/api/SiteAreaCreate');
+    const siteArea = await super.create(data, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREAS));
     // Check User IDs
     if (data.chargeBoxIDs) {
       // Assign Chargers to Site
       await super.create({
-        siteAreaID: siteArea.data.id,
         chargingStationIDs: data.chargeBoxIDs
-      }, '/client/api/AddChargingStationsToSiteArea');
+      }, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREA_ASSIGN_CHARGING_STATIONS, { id: siteArea.data.id }));
     }
     return siteArea;
   }
 
   public async update(data) {
-    return super.update(data, '/client/api/SiteAreaUpdate');
+    return super.update(data, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREA, { id: data.id }));
   }
 
   public async delete(id) {
-    return super.delete(id, '/client/api/SiteAreaDelete');
+    return super.delete(id, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREA, { id }));
   }
 
-  public async readConsumption(SiteAreaId, StartDate, EndDate) {
+  public async readConsumption(SiteAreaID: string, StartDate: Date, EndDate: Date) {
     return super.read({
-      SiteAreaID: SiteAreaId,
       StartDate: StartDate,
       EndDate: EndDate
-    }, '/client/api/SiteAreaConsumption');
+    }, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREA_CONSUMPTION, { id: SiteAreaID }));
   }
 
-  public async assignChargingStations(SiteAreaId, ChargingStationIDs) {
-    return super.create({
-      siteAreaID: SiteAreaId,
-      chargingStationIDs: ChargingStationIDs
-    }, '/client/api/AddChargingStationsToSiteArea');
+  public async assignChargingStations(siteAreaID: string, chargingStationIDs: string[]) {
+    return super.update({ chargingStationIDs }, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREA_ASSIGN_CHARGING_STATIONS, { id: siteAreaID }));
   }
 
-  public async removeChargingStations(SiteAreaId, ChargingStationIDs) {
-    return super.create({
-      siteAreaID: SiteAreaId,
-      chargingStationIDs: ChargingStationIDs
-    }, '/client/api/RemoveChargingStationsFromSiteArea');
+  public async removeChargingStations(siteAreaID: string, chargingStationIDs: string[]) {
+    return super.update({ chargingStationIDs }, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREA_REMOVE_CHARGING_STATIONS, { id: siteAreaID }));
   }
 
-  public async assignAssets(SiteAreaId, ChargingStationIDs) {
-    return super.create({
-      siteAreaID: SiteAreaId,
-      assetIDs: ChargingStationIDs
-    }, '/client/api/AddAssetsToSiteArea');
+  public async assignAssets(siteAreaID: string, assetIDs: string[]) {
+    return super.update({ assetIDs }, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREA_ASSIGN_ASSETS, { id: siteAreaID }));
   }
 
-  public async removeAssets(SiteAreaId, ChargingStationIDs) {
-    return super.create({
-      siteAreaID: SiteAreaId,
-      assetIDs: ChargingStationIDs
-    }, '/client/api/RemoveAssetsFromSiteArea');
+  public async removeAssets(siteAreaID: string, assetIDs) {
+    return super.update({ assetIDs }, this.buildRestEndpointUrl(ServerRoute.REST_SITE_AREA_REMOVE_ASSETS, { id: siteAreaID }));
   }
 }

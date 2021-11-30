@@ -1,0 +1,67 @@
+{
+  "$id": "setting-smart-charging-set",
+  "title": "Set Smart Charging Settings",
+  "type": "object",
+  "properties": {
+    "content": {
+      "type": "object",
+      "properties": {
+        "sapSmartCharging": {
+          "type": "object",
+          "properties": {
+            "limitBufferAC" : {
+              "type": "number",
+              "sanitize": "mongo"
+            },
+            "limitBufferDC": {
+              "type": "number",
+              "sanitize": "mongo"
+            },
+            "optimizerUrl": {
+              "type": "string",
+              "sanitize": "mongo"
+            },
+            "password": {
+              "type": "string",
+              "sanitize": "mongo"
+            },
+            "stickyLimitation": {
+              "type": "boolean",
+              "sanitize": "mongo"
+            },
+            "user": {
+              "type": "string",
+              "sanitize": "mongo"
+            }
+          }
+        },
+        "type": {
+          "type": "string",
+          "sanitize": "mongo",
+          "enum": ["sapSmartCharging"]
+        }
+      },
+      "links": {
+        "$ref": "setting#/definitions/links"
+      },
+      "required": [
+        "type",
+        "sapSmartCharging"
+      ]
+    },
+    "id": {
+      "$ref": "common#/definitions/id"
+    },
+    "identifier": {
+      "type": "string",
+      "sanitize": "mongo",
+      "enum": ["smartCharging"]
+    },
+    "sensitiveData": {
+      "$ref": "setting#/definitions/sensitiveData"
+    }
+  },
+  "required": [
+    "identifier"
+  ]
+}

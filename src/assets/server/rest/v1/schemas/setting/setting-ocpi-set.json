@@ -1,0 +1,121 @@
+{
+  "$id": "setting-ocpi-set",
+  "title": "Set OCPI Settings",
+  "type": "object",
+  "properties": {
+    "content": {
+      "type": "object",
+      "properties": {
+        "ocpi": {
+          "type": "object",
+          "properties": {
+            "businessDetails": {
+              "type": "object",
+              "properties": {
+                "logo": {
+                  "type": "object",
+                  "properties": {
+                    "category": {
+                      "type": "string",
+                      "sanitize" : "mongo"
+                    },
+                    "height": {
+                      "type": "number",
+                      "sanitize": "mongo",
+                      "nullable": true
+                    },
+                    "thumbnail": {
+                      "type": "string",
+                      "sanitize": "mongo"
+                    },
+                    "type": {
+                      "type": "string",
+                      "sanitize": "mongo"
+                    },
+                    "url": {
+                      "type": "string",
+                      "sanitize": "mongo"
+                    },
+                    "width": {
+                      "type": "number",
+                      "sanitize": "mongo",
+                      "nullable": true
+                    }
+                  }
+                },
+                "name": {
+                  "type": "string",
+                  "sanitize": "mongo"
+                },
+                "website": {
+                  "type": "string",
+                  "sanitize": "mongo"
+                }
+              }
+            },
+            "cpo": {
+              "type": "object",
+              "properties": {
+                "countryCode": {
+                  "type": "string",
+                  "sanitize": "mongo"
+                },
+                "partyID": {
+                  "type": "string",
+                  "sanitize": "mongo"
+                }
+              }
+            },
+            "currency": {
+              "type": "string",
+              "sanitize": "mongo"
+            },
+            "emsp": {
+              "type": "object",
+              "properties": {
+                "countryCode": {
+                  "type": "string",
+                  "sanitize": "mongo"
+                },
+                "partyID": {
+                  "type": "string",
+                  "sanitize": "mongo"
+                }
+              }
+            },
+            "tariffID": {
+              "type": "string",
+              "sanitize": "mongo"
+            }
+          }
+        },
+        "links": {
+          "$ref": "setting#/definitions/links"
+        },
+        "type": {
+          "type": "string",
+          "sanitize": "mongo",
+          "enum": ["ocpi"]
+        }
+      },
+      "required": [
+        "type",
+        "ocpi"
+      ]
+    },
+    "id": {
+      "$ref": "common#/definitions/id"
+    },
+    "identifier": {
+      "type": "string",
+      "sanitize": "mongo",
+      "enum": ["ocpi"]
+    },
+    "sensitiveData": {
+      "$ref": "setting#/definitions/sensitiveData"
+    }
+  },
+  "required": [
+    "identifier"
+  ]
+}

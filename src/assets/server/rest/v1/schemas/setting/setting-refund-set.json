@@ -1,0 +1,79 @@
+{
+  "$id": "setting-refund-set",
+  "title": "Set Refund Settings",
+  "type": "object",
+  "properties": {
+    "content": {
+      "type": "object",
+      "properties": {
+        "concur": {
+          "type": "object",
+          "properties": {
+            "apiUrl": {
+              "type": "string",
+              "sanitize": "mongo"
+            },
+            "appUrl": {
+              "type": "string",
+              "sanitize": "mongo"
+            },
+            "authenticationUrl": {
+              "type": "string",
+              "sanitize": "mongo"
+            },
+            "clientId":  {
+              "type": "string",
+              "sanitize": "mongo"
+            },
+            "clientSecret": {
+              "type": "string",
+              "sanitize": "mongo"
+            },
+            "expenseTypeCode": {
+              "type": "string",
+              "sanitize": "mongo"
+            },
+            "paymentTypeId": {
+              "type": "string",
+              "sanitize": "mongo"
+            },
+            "policyId": {
+              "type": "string",
+              "sanitize": "mongo"
+            },
+            "reportName": {
+              "type": "string",
+              "sanitize": "mongo"
+            }
+          }
+        },
+        "links": {
+          "$ref": "setting#/definitions/links"
+        },
+        "type": {
+          "type": "string",
+          "sanitize": "mongo",
+          "enum": ["concur"]
+        }
+      },
+      "required": [
+        "type",
+        "concur"
+      ]
+    },
+    "id": {
+      "$ref": "common#/definitions/id"
+    },
+    "identifier": {
+      "type": "string",
+      "sanitize": "mongo",
+      "enum": ["refund"]
+    },
+    "sensitiveData": {
+      "$ref": "setting#/definitions/sensitiveData"
+    }
+  },
+  "required": [
+    "identifier"
+  ]
+}

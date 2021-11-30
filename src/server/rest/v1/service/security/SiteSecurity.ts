@@ -112,6 +112,7 @@ export default class SiteSecurity {
       name: sanitize(request.name),
       address: UtilsSecurity.filterAddressRequest(request.address),
       public: UtilsSecurity.filterBoolean(request.public),
+      tariffID: sanitize(request.tariffID),
       autoUserSiteAssignment: UtilsSecurity.filterBoolean(request.autoUserSiteAssignment),
       companyID: sanitize(request.companyID),
     } as Partial<Site>;
