@@ -25,6 +25,10 @@
       "description": "Tenant API"
     },
     {
+      "name": "Site Area",
+      "description": "Site Area API"
+    },
+    {
       "name": "Authentication",
       "description": "Authentication API"
     },
@@ -282,6 +286,676 @@
           },
           "500": {
             "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/site-areas": {
+      "get": {
+        "description": "Retrieve a list of Site Areas",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/WithSite"
+          },
+          {
+            "$ref": "#/components/parameters/WithChargingStations"
+          },
+          {
+            "in": "query",
+            "name": "WithAvailableChargers",
+            "description": "Request Site Areas with their available chargers",
+            "example": false,
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/SiteID"
+          },
+          {
+            "in": "query",
+            "name": "CompanyID",
+            "description": "Company ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Issuer"
+          },
+          {
+            "$ref": "#/components/parameters/LocLongitude"
+          },
+          {
+            "$ref": "#/components/parameters/LocLatitude"
+          },
+          {
+            "$ref": "#/components/parameters/LocMaxDistanceMeters"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Site Area"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return the site area list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "number",
+                      "example": 1
+                    },
+                    "result": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SiteArea"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      },
+      "post": {
+        "description": "Create a SiteArea",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SiteArea"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Site Area"
+        ],
+        "responses": {
+          "200": {
+            "description": "Site Area is created with success",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "success",
+                  "id": "###"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/site-areas/{id}": {
+      "get": {
+        "description": "Retrieve a Site Area",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/siteAreaID"
+          },
+          {
+            "$ref": "#/components/parameters/WithSite"
+          },
+          {
+            "$ref": "#/components/parameters/WithChargingStations"
+          }
+        ],
+        "tags": [
+          "Site Area"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return the site area",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteArea"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "put": {
+        "description": "Update a SiteArea",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/siteAreaID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SiteArea"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Site Area"
+        ],
+        "responses": {
+          "200": {
+            "description": "Site Area is updated with success",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "537": {
+            "description": "Error occurred while clearing Charging Profiles for Site Area"
+          },
+          "539": {
+            "description": "One of the charging stations is not single phased"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "delete": {
+        "description": "Delete a SiteArea",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/siteAreaID"
+          }
+        ],
+        "tags": [
+          "Site Area"
+        ],
+        "responses": {
+          "200": {
+            "description": "Site Area is deleted with success",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/site-areas/{id}/image": {
+      "get": {
+        "description": "Retrieve Site Area's image",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/siteAreaID"
+          },
+          {
+            "in": "query",
+            "name": "TenantID",
+            "description": "Tenant ID",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "tags": [
+          "Site Area"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return the image"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/site-areas/{id}/consumptions": {
+      "get": {
+        "description": "Retrieve Site Area consumptions",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/siteAreaID"
+          },
+          {
+            "in": "query",
+            "name": "StartDateTime",
+            "description": "Start Date (ISO format)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "EndDateTime",
+            "description": "End Date (ISO format)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Site Area"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return the site area's consumption",
+            "content": {
+              "application/json": {
+                "example": {
+                  "accessControl": true,
+                  "address": {
+                    "address1": "805 av. du Docteur Maurice Donat",
+                    "address2": "string",
+                    "postalCode": "06250",
+                    "city": "Mougins",
+                    "department": "Alpes Maritimes",
+                    "region": "PACA",
+                    "country": "France",
+                    "coordinates": [
+                      43,
+                      7
+                    ]
+                  },
+                  "createdBy": null,
+                  "issuer": true,
+                  "lastChangedBy": null,
+                  "maximumPower": 88320,
+                  "name": "###",
+                  "numberOfPhases": 3,
+                  "siteID": "###",
+                  "smartCharging": false,
+                  "voltage": 0,
+                  "id": "###",
+                  "values": [
+                    {
+                      "AssetConsumptionWatts": 0,
+                      "AssetConsumptionAmps": 0,
+                      "AssetProductionWatts": 0,
+                      "AssetProductionAmps": 0,
+                      "ChargingStationConsumptionWatts": 9000,
+                      "ChargingStationConsumptionAmps": 39.130434782608695,
+                      "NetConsumptionWatts": 9000,
+                      "NetConsumptionAmps": 39.130434782608695,
+                      "limitWatts": 88320,
+                      "limitAmps": null,
+                      "startedAt": "2020-01-02T11:00:00.000Z",
+                      "endedAt": "2020-01-02T11:00:00.000Z"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/site-areas/{id}/charging-stations/assign": {
+      "put": {
+        "description": "Assign charging stations to a Site Area",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/siteAreaID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "chargingStationIDs": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Site Area"
+        ],
+        "responses": {
+          "200": {
+            "description": "Charging stations assigned successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/site-areas/{id}/charging-stations/unassign": {
+      "put": {
+        "description": "Unassign charging stations from a Site Area",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/siteAreaID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "chargingStationIDs": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Site Area"
+        ],
+        "responses": {
+          "200": {
+            "description": "Charging stations unassigned successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/site-areas/{id}/assets/assign": {
+      "put": {
+        "description": "Assign assets to a Site Area",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/siteAreaID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "assetIDs": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Site Area"
+        ],
+        "responses": {
+          "200": {
+            "description": "Assets assigned successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/site-areas/{id}/assets/unassign": {
+      "put": {
+        "description": "Unassign assets from a Site Area",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/siteAreaID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "assetIDs": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Site Area"
+        ],
+        "responses": {
+          "200": {
+            "description": "Charging stations unassigned successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
       }
@@ -11530,6 +12204,147 @@
           }
         }
       },
+      "SiteArea": {
+        "type": "object",
+        "required": [
+          "name",
+          "siteID"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "readOnly": true
+          },
+          "accessControl": {
+            "type": "boolean"
+          },
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "createdBy": {
+            "$ref": "#/components/schemas/CreatedBy"
+          },
+          "createdOn": {
+            "$ref": "#/components/schemas/CreatedOn"
+          },
+          "issuer": {
+            "type": "boolean"
+          },
+          "lastChangedBy": {
+            "$ref": "#/components/schemas/LastChangedBy"
+          },
+          "maximumPower": {
+            "type": "number",
+            "minimum": 0
+          },
+          "name": {
+            "type": "string"
+          },
+          "numberOfPhases": {
+            "type": "number",
+            "enum": [
+              1,
+              3
+            ]
+          },
+          "siteID": {
+            "type": "string"
+          },
+          "site": {
+            "type": "object",
+            "readOnly": true,
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "connectorStats": {
+            "type": "object",
+            "readOnly": true,
+            "properties": {
+              "totalChargers": {
+                "type": "number"
+              },
+              "availableChargers": {
+                "type": "number"
+              },
+              "totalConnectors": {
+                "type": "number"
+              },
+              "chargingConnectors": {
+                "type": "number"
+              },
+              "suspendedConnectors": {
+                "type": "number"
+              },
+              "availableConnectors": {
+                "type": "number"
+              },
+              "unavailableConnectors": {
+                "type": "number"
+              },
+              "preparingConnectors": {
+                "type": "number"
+              },
+              "finishingConnectors": {
+                "type": "number"
+              },
+              "faultedConnectors": {
+                "type": "number"
+              }
+            }
+          },
+          "chargingStations": {
+            "type": "array",
+            "readOnly": true,
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "inactive": {
+                  "type": "boolean"
+                },
+                "public": {
+                  "type": "boolean"
+                },
+                "lastSeen": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "deleted": {
+                  "type": "boolean",
+                  "format": "date-time"
+                },
+                "connectors": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Connector"
+                  }
+                }
+              }
+            }
+          },
+          "smartCharging": {
+            "type": "boolean"
+          },
+          "voltage": {
+            "type": "number",
+            "enum": [
+              110,
+              230
+            ]
+          },
+          "image": {
+            "type": "string"
+          }
+        }
+      },
       "Address": {
         "type": "object",
         "properties": {
@@ -11573,20 +12388,24 @@
         }
       },
       "LastChangedBy": {
-        "type": "string"
+        "type": "string",
+        "readOnly": true
       },
       "LastChangedOn": {
         "type": "string",
         "format": "date-time",
-        "example": "2020-07-22T17:02:42.036Z"
+        "example": "2020-07-22T17:02:42.036Z",
+        "readOnly": true
       },
       "CreatedBy": {
-        "type": "string"
+        "type": "string",
+        "readOnly": true
       },
       "CreatedOn": {
         "type": "string",
         "format": "date-time",
-        "example": "2020-07-22T17:02:42.036Z"
+        "example": "2020-07-22T17:02:42.036Z",
+        "readOnly": true
       },
       "ChargingStation": {
         "type": "object",
@@ -11695,7 +12514,7 @@
             "type": "string"
           },
           "connectors": {
-            "type": "string"
+            "$ref": "#/components/schemas/Connector"
           },
           "remoteAuthorizations": {
             "type": "string"
@@ -11738,6 +12557,69 @@
             "type": "number",
             "example": 1
           },
+          "currentInstantWatt": {
+            "type": "number",
+            "readOnly": true
+          },
+          "currentStateOfCharge": {
+            "type": "number",
+            "readOnly": true
+          },
+          "currentTotalInactivitySecs": {
+            "type": "number",
+            "readOnly": true
+          },
+          "currentInactivityStatus": {
+            "type": "string",
+            "enum": [
+              "E",
+              "I",
+              "W"
+            ],
+            "readOnly": true
+          },
+          "currentTotalConsumptionWh": {
+            "type": "number",
+            "readOnly": true
+          },
+          "currentTransactionDate": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "currentTagID": {
+            "type": "string",
+            "readOnly": true
+          },
+          "currentTransactionID": {
+            "type": "string",
+            "readOnly": true
+          },
+          "currentUserID": {
+            "type": "string",
+            "readOnly": true
+          },
+          "status": {
+            "type": "string",
+            "readOnly": true
+          },
+          "errorCode": {
+            "type": "string",
+            "readOnly": true
+          },
+          "info": {
+            "type": "string",
+            "readOnly": true
+          },
+          "vendorErrorCode": {
+            "type": "string",
+            "readOnly": true
+          },
+          "statusLastChangedOn": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          },
           "power": {
             "type": "number"
           },
@@ -11763,6 +12645,10 @@
           },
           "amperage": {
             "type": "number"
+          },
+          "amperageLimit": {
+            "type": "number",
+            "readOnly": true
           },
           "currentType": {
             "type": "string",
@@ -13362,6 +14248,15 @@
           "example": false
         }
       },
+      "siteAreaID": {
+        "in": "path",
+        "name": "id",
+        "description": "Site Area ID",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
       "SiteAreaID": {
         "in": "query",
         "name": "SiteAreaID",
@@ -13506,6 +14401,14 @@
         "description": "Request Sites with their available chargers",
         "example": false,
         "required": false,
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      "WithChargingStations": {
+        "in": "query",
+        "name": "WithChargingStations",
+        "description": "With charging stations attribute",
         "schema": {
           "type": "boolean"
         }

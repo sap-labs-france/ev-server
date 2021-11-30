@@ -36,7 +36,8 @@ export default class PricingEngine {
     const resolvedPricingModel: ResolvedPricingModel = {
       pricerContext: {
         flatFeeAlreadyPriced: false,
-        sessionStartDate: transaction.timestamp
+        sessionStartDate: transaction.timestamp,
+        timezone: transaction.timezone
       },
       pricingDefinitions
     };

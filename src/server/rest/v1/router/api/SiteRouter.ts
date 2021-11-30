@@ -47,14 +47,14 @@ export default class SiteRouter {
 
   private buildRouteSiteAssignUsers(): void {
     this.router.put(`/${ServerRoute.REST_SITE_ADD_USERS}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.body.id = req.params.id;
+      req.body.siteID = req.params.id;
       await RouterUtils.handleServerAction(SiteService.handleAssignUsersToSite.bind(this), ServerAction.ADD_USERS_TO_SITE, req, res, next);
     });
   }
 
   private buildRouteSiteUnassignUsers(): void {
     this.router.put(`/${ServerRoute.REST_SITE_REMOVE_USERS}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.body.id = req.params.id;
+      req.body.siteID = req.params.id;
       await RouterUtils.handleServerAction(SiteService.handleAssignUsersToSite.bind(this), ServerAction.REMOVE_USERS_FROM_SITE, req, res, next);
     });
   }

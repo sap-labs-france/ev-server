@@ -96,8 +96,6 @@ export default class ContextProvider {
     if (tenantEntity.components && tenantEntity.components[TenantComponents.ORGANIZATION] &&
       tenantEntity.components[TenantComponents.ORGANIZATION].active) {
       siteAreaList = (await defaultAdminCentralServiceService.siteAreaApi.readAll({}, { limit: 0, skip: 0 })).data.result;
-      const asiteList = await defaultAdminCentralServiceService.siteApi.readAll({}, { limit: 0, skip: 0 });
-
       siteList = (await defaultAdminCentralServiceService.siteApi.readAll({}, { limit: 0, skip: 0 })).data.result;
       companyList = (await defaultAdminCentralServiceService.companyApi.readAll({}, { limit: 0, skip: 0 })).data.result;
       chargingStationList = (await defaultAdminCentralServiceService.chargingStationApi.readAll({}, TestConstants.DEFAULT_PAGING)).data.result;
