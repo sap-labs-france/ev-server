@@ -11,7 +11,6 @@ import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
 import { SiteDataResult } from '../../../../types/DataResult';
-import SiteSecurity from './security/SiteSecurity';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import SiteValidator from '../validator/SiteValidator';
 import { TenantComponents } from '../../../../types/Tenant';
@@ -170,7 +169,7 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleGetUsers');
     // Filter
-    const filteredRequest = SiteSecurity.filterSiteUsersRequest(req.query);
+    const filteredRequest = SiteValidator.getInstance().validateSiteGetUsersReq(req.query);
     // Check Site
     try {
       await UtilsService.checkAndGetSiteAuthorization(
@@ -196,7 +195,7 @@ export default class SiteService {
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.SortFields,
+        sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       authorizationSiteUsersFilter.projectFields
@@ -384,15 +383,15 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleUpdateSite');
     // Filter request
-    const filteredRequest = SiteSecurity.filterSiteUpdateRequest(req.body);
+    const filteredRequest = SiteValidator.getInstance().validateSiteUpdateReq(req.body);
     // Check data is valid
     UtilsService.checkIfSiteValid(filteredRequest, req);
     // Check and Get Site
     const site = await UtilsService.checkAndGetSiteAuthorization(
-      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest as Site);
+      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest);
     // Check and Get Company
     await UtilsService.checkAndGetCompanyAuthorization(
-      req.tenant, req.user, filteredRequest.companyID, Action.READ, action, filteredRequest as Site);
+      req.tenant, req.user, filteredRequest.companyID, Action.READ, action, filteredRequest);
     // Update
     site.name = filteredRequest.name;
     site.companyID = filteredRequest.companyID;
