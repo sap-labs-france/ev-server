@@ -66,6 +66,10 @@ export default class ConsumptionPricer {
   private checkTimeValidity(restrictions: PricingRestriction): boolean {
     // The time range restriction must consider the charging station timezone
     const timezone = this.pricingModel.pricerContext.timezone;
+    if (!timezone) {
+      // Charging station timezone is not known - time restrictions cannot be used in such context
+      return false;
+    }
     if (!Utils.isNullOrUndefined(restrictions.timeFrom)) {
       const hour = Utils.convertToInt(restrictions.timeFrom.slice(0, 2));
       const minute = Utils.convertToInt(restrictions.timeFrom.slice(3));
