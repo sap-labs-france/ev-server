@@ -52,7 +52,7 @@ export default class JsonWSConnection extends WSConnection {
   public async handleRequest(command: Command, commandPayload: Record<string, unknown> | string): Promise<any> {
     let result: any;
     // Check Command
-    if (!this.isValidOcppCommandFromRest(command)) {
+    if (!this.isValidOcppServerCommand(command)) {
       throw new BackendError({
         chargingStationID: this.getChargingStationID(),
         siteID: this.getSiteID(),
@@ -141,19 +141,19 @@ export default class JsonWSConnection extends WSConnection {
     }
   }
 
-  private isValidOcppCommandFromRest(command: Command): boolean {
+  private isValidOcppServerCommand(command: Command): boolean {
     // Only client request is allowed
     return [
-      Command.BOOT_NOTIFICATION,
       Command.AUTHORIZE,
-      Command.HEARTBEAT,
+      Command.BOOT_NOTIFICATION,
+      Command.DATA_TRANSFER,
       Command.DIAGNOSTICS_STATUS_NOTIFICATION,
       Command.FIRMWARE_STATUS_NOTIFICATION,
-      Command.STATUS_NOTIFICATION,
-      Command.START_TRANSACTION,
-      Command.STOP_TRANSACTION,
+      Command.HEARTBEAT,
       Command.METER_VALUES,
-      Command.DATA_TRANSFER,
+      Command.START_TRANSACTION,
+      Command.STATUS_NOTIFICATION,
+      Command.STOP_TRANSACTION,
     ].includes(command);
   }
 }
