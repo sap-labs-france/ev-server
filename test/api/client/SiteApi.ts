@@ -53,27 +53,25 @@ export default class SiteApi extends CrudApi {
   }
 
   public async update(data) {
-    return super.update(data, '/client/api/SiteUpdate');
+    return super.update(data, this.buildRestEndpointUrl(ServerRoute.REST_SITE, { id: data.id }));
   }
 
   public async delete(id) {
     return super.delete(id, '/client/api/SiteDelete');
   }
 
-  public async assignSiteAdmin(siteId, userId) {
+  public async assignSiteAdmin(siteID: string, userID: string) {
     return super.update({
-      siteID: siteId,
-      userID: userId,
+      userID: userID,
       siteAdmin: true
-    }, '/client/api/SiteUserAdmin');
+    }, this.buildRestEndpointUrl(ServerRoute.REST_SITE_ADMIN, { id: siteID }));
   }
 
-  public async assignSiteOwner(siteId, userId) {
+  public async assignSiteOwner(siteID: string, userID: string) {
     return super.update({
-      siteID: siteId,
-      userID: userId,
+      userID: userID,
       siteOwner: true
-    }, '/client/api/SiteOwner');
+    }, this.buildRestEndpointUrl(ServerRoute.REST_SITE_OWNER, { id: siteID }));
   }
 
 }
