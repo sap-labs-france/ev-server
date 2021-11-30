@@ -772,11 +772,16 @@ describe('Billing', function() {
           // Check that we have a new invoice with an invoiceID and an invoiceNumber
           await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 17.37);
         });
+      });
 
+      describe('Check Dynamic Restrictions on COMBO CCS - DC', () => {
+        // eslint-disable-next-line @typescript-eslint/require-await
+        before(async () => {
+        });
 
         it('should bill an invoice taking the Day of the week into account', async () => {
-          await billingTestHelper.initChargingStationContext2TestFastCharger('TODAY');
-          await billingTestHelper.initChargingStationContext2TestFastCharger('OTHER_DAYS');
+          await billingTestHelper.initChargingStationContext2TestDaysOfTheWeek('TODAY');
+          await billingTestHelper.initChargingStationContext2TestDaysOfTheWeek('OTHER_DAYS');
           // A tariff applied immediately
           await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
           const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
