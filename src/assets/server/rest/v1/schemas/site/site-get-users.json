@@ -1,0 +1,31 @@
+{
+  "$id": "site-get-users",
+  "title": "Get site users Request",
+  "type": "object",
+  "properties": {
+    "SiteID": {
+      "$ref": "site#/definitions/id"
+    },
+    "Search": {
+      "$ref": "common#/definitions/search"
+    },
+    "Limit": {
+      "$ref": "common#/definitions/limit"
+    },
+    "Skip": {
+      "$ref": "common#/definitions/skip"
+    },
+    "SortFields": {
+      "$ref": "common#/definitions/sortFields"
+    },
+    "ProjectFields": {
+      "$ref": "common#/definitions/projectFields"
+    },
+    "OnlyRecordCount": {
+      "$ref": "common#/definitions/onlyRecordCount"
+    }
+  },
+  "required": [
+    "SiteID"
+  ]
+}

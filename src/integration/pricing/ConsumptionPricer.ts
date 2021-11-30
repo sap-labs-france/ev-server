@@ -56,26 +56,36 @@ export default class ConsumptionPricer {
 
   private checkDayOfWeek(restrictions: PricingRestriction): boolean {
     if (!Utils.isNullOrUndefined(restrictions.daysOfWeek)) {
+      const timezone = this.pricingModel.pricerContext.timezone;
+      if (!timezone) {
+        // Charging station timezone is not known - 'days of the week' restrictions cannot be used in such context
+        return false;
+      }
       // ACHTUNG - moment.isoWeekday() - 1:MONDAY, 7: SUNDAY
-      return restrictions.daysOfWeek.includes(moment(this.consumptionData.startedAt).isoWeekday());
+      return restrictions.daysOfWeek.includes(moment(this.consumptionData.startedAt).tz(timezone).isoWeekday());
     }
     // No restrictions related to the day of the week
     return true;
   }
 
-
   private checkTimeValidity(restrictions: PricingRestriction): boolean {
+    // The time range restriction must consider the charging station timezone
+    const timezone = this.pricingModel.pricerContext.timezone;
+    if (!timezone) {
+      // Charging station timezone is not known - time restrictions cannot be used in such context
+      return false;
+    }
     if (!Utils.isNullOrUndefined(restrictions.timeFrom)) {
-      const hours = Utils.convertToInt(restrictions.timeFrom.slice(0, 2));
-      const minutes = Utils.convertToInt(restrictions.timeFrom.slice(3));
-      if (moment(this.consumptionData.startedAt).isBefore(new Date().setHours(hours, minutes))) {
+      const hour = Utils.convertToInt(restrictions.timeFrom.slice(0, 2));
+      const minute = Utils.convertToInt(restrictions.timeFrom.slice(3));
+      if (moment(this.consumptionData.startedAt).tz(timezone).isBefore(moment().tz(timezone).set({ hour, minute }))) {
         return false;
       }
     }
     if (!Utils.isNullOrUndefined(restrictions.timeTo)) {
-      const hours = Utils.convertToInt(restrictions.timeTo.slice(0, 2));
-      const minutes = Utils.convertToInt(restrictions.timeTo.slice(3));
-      if (moment(this.consumptionData.startedAt).isSameOrAfter(new Date().setHours(hours, minutes))) {
+      const hour = Utils.convertToInt(restrictions.timeTo.slice(0, 2));
+      const minute = Utils.convertToInt(restrictions.timeTo.slice(3));
+      if (moment(this.consumptionData.startedAt).tz(timezone).isSameOrAfter(moment().tz(timezone).set({ hour, minute }))) {
         return false;
       }
     }
