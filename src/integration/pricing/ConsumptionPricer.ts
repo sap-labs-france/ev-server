@@ -56,8 +56,13 @@ export default class ConsumptionPricer {
 
   private checkDayOfWeek(restrictions: PricingRestriction): boolean {
     if (!Utils.isNullOrUndefined(restrictions.daysOfWeek)) {
+      const timezone = this.pricingModel.pricerContext.timezone;
+      if (!timezone) {
+        // Charging station timezone is not known - 'days of the week' restrictions cannot be used in such context
+        return false;
+      }
       // ACHTUNG - moment.isoWeekday() - 1:MONDAY, 7: SUNDAY
-      return restrictions.daysOfWeek.includes(moment(this.consumptionData.startedAt).isoWeekday());
+      return restrictions.daysOfWeek.includes(moment(this.consumptionData.startedAt).tz(timezone).isoWeekday());
     }
     // No restrictions related to the day of the week
     return true;
