@@ -201,6 +201,7 @@ export interface AuthorizationActions {
   canCreate?: boolean;
   canUpdate?: boolean;
   canDelete?: boolean;
+  canListUsers?: boolean;
   projectFields?: string[];
   metadata?: Record<string, unknown>;
 }
