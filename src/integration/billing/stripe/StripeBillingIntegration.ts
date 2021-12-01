@@ -1051,10 +1051,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         begin: transaction.timestamp?.valueOf(),
       }
     };
-    if (FeatureToggles.isFeatureActive(Feature.BILLING_SHOW_SESSION_HEADER)) {
-      // To be clarified - do we put general information on top
-      billingInvoiceItem.headerDescription = this.buildLineItemDescription(transaction, true);
-    }
+    billingInvoiceItem.headerDescription = this.buildLineItemDescription(transaction, true);
     // Returns a item representing the complete charging session (energy + parking information)
     return billingInvoiceItem ;
   }
@@ -1244,10 +1241,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       duration = '';
     }
     // Get the translated line item description
-    let descriptionPattern = `billing.${dimensionType}-shortItemDescription`;
-    if (!FeatureToggles.isFeatureActive(Feature.BILLING_SHOW_SESSION_HEADER)) {
-      descriptionPattern = `billing.${dimensionType}-itemDescription`;
-    }
+    const descriptionPattern = `billing.${dimensionType}-shortItemDescription`;
     const description = i18nManager.translate(descriptionPattern, {
       sessionID,
       startDate,

@@ -7,7 +7,6 @@ export enum Feature {
   PRICING_NEW_MODEL,
   PRICING_CHECK_BACKWARD_COMPATIBILITY,
   BILLING_SHOW_PRICING_DETAIL,
-  BILLING_SHOW_SESSION_HEADER,
 }
 
 export default class FeatureToggles {
@@ -19,7 +18,6 @@ export default class FeatureToggles {
     Feature.PRICING_NEW_MODEL,
     // Feature.PRICING_CHECK_BACKWARD_COMPATIBILITY,
     // Feature.BILLING_SHOW_PRICING_DETAIL,
-    Feature.BILLING_SHOW_SESSION_HEADER,
   ];
 
   // Check whether the feature is active or not!
