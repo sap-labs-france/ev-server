@@ -230,7 +230,7 @@ export default class UserStorage {
       issuer: Utils.convertToBoolean(userToSave.issuer),
       name: userToSave.name,
       firstName: userToSave.firstName,
-      email: userToSave.email,
+      email: userToSave.email.toLowerCase(),
       phone: userToSave.phone,
       mobile: userToSave.mobile,
       locale: userToSave.locale,
@@ -602,7 +602,7 @@ export default class UserStorage {
     }
     // Email
     if (params.email) {
-      filters.email = params.email;
+      filters.email = { $regex: `^${params.email}$`, $options: 'i' };
     }
     // Password Reset Hash
     if (params.passwordResetHash) {
