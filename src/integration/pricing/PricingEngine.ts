@@ -87,7 +87,7 @@ export default class PricingEngine {
     ).map((pricingDefinition) =>
       PricingEngine.shrinkPricingDefinition(pricingDefinition)
     );
-    await Logging.logInfo({
+    await Logging.logDebug({
       tenantID: tenant.id,
       module: MODULE_NAME,
       action: ServerAction.PRICING,
