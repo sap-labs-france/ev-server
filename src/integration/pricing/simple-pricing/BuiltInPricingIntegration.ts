@@ -93,17 +93,15 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
 
   private async resolvePricingContext(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation): Promise<ResolvedPricingModel> {
     const resolvedPricingModel: ResolvedPricingModel = await PricingEngine.resolvePricingContext(tenant, transaction, chargingStation);
-    if (!resolvedPricingModel.pricingDefinitions?.length) {
-      resolvedPricingModel.pricingDefinitions = [ this.getDefaultPricingDefinition() ];
-    }
+    // Fallback when no pricing definition matches
+    resolvedPricingModel.pricingDefinitions.push(this.getDefaultPricingDefinition());
     return resolvedPricingModel;
   }
 
   private getDefaultPricingDefinition(): ResolvedPricingDefinition {
-    // Defaults to the simple pricing settings
     const simplePricingDefinition: ResolvedPricingDefinition = {
       name: 'No Tariff',
-      description: 'Default tariff when no pricing definition is found',
+      description: 'Tariff used when no other pricing definition matches',
       dimensions: {
         energy: {
           active: true,
