@@ -257,35 +257,6 @@ export default class BillingTestHelper {
           active: true
         }
       };
-    } else if (testMode === 'TODAY') {
-      dimensions = {
-        flatFee: {
-          price: 1.5, // Euro
-          active: true
-        },
-        energy: {
-          price: 1,
-          active: true
-        }
-      };
-      restrictions = {
-        daysOfWeek: [ moment().isoWeekday() ] // Sets today as the only day allowed for this pricing definition
-      };
-    } else if (testMode === 'OTHER_DAYS') {
-      dimensions = {
-        flatFee: {
-          price: 666, // Euro
-          active: true
-        },
-        energy: {
-          price: 666,
-          active: true
-        }
-      };
-      restrictions = {
-        // Sets all other days as the days allowed for this pricing definition
-        daysOfWeek: [ DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, DayOfWeek.SATURDAY, DayOfWeek.SUNDAY ].filter((day) => day !== moment().isoWeekday())
-      };
     } else {
       dimensions = {
         energy: {
@@ -298,13 +269,57 @@ export default class BillingTestHelper {
     return this.chargingStationContext;
   }
 
-  public async initChargingStationContext2TestTimeRestrictions(testMode = 'E', aParticularMoment: moment.Moment) : Promise<ChargingStationContext> {
-    // Charing Station Context
+  public async initChargingStationContext2TestDaysOfTheWeek(testMode = 'E') : Promise<ChargingStationContext> {
+    // Charging Station Context
     this.siteContext = this.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
     this.siteAreaContext = this.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC);
     this.chargingStationContext = this.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16 + '-' + ContextDefinition.SITE_CONTEXTS.SITE_BASIC + '-' + ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC);
     assert(!!this.chargingStationContext, 'Charging station context should not be null');
-    // Make sure to take into account the Charging Station location and its timezone
+    // Take into account the Charging Station location and its timezone
+    const timezone = Utils.getTimezone(this.chargingStationContext.getChargingStation().coordinates);
+    let dimensions: PricingDimensions;
+    let restrictions: PricingRestriction;
+    if (testMode === 'TODAY') {
+      dimensions = {
+        flatFee: {
+          price: 1.5, // Euro
+          active: true
+        },
+        energy: {
+          price: 1,
+          active: true
+        }
+      };
+      restrictions = {
+        daysOfWeek: [ moment().tz(timezone).isoWeekday() ] // Sets today as the only day allowed for this pricing definition
+      };
+    } else { // 'OTHER_DAYS')
+      dimensions = {
+        flatFee: {
+          price: 666, // Euro
+          active: true
+        },
+        energy: {
+          price: 666,
+          active: true
+        }
+      };
+      restrictions = {
+        // Sets all other days as the days allowed for this pricing definition
+        daysOfWeek: [ DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, DayOfWeek.SATURDAY, DayOfWeek.SUNDAY ].filter((day) => day !== moment().tz(timezone).isoWeekday())
+      };
+    }
+    await this.createTariff4ChargingStation(testMode, this.chargingStationContext.getChargingStation(), dimensions, ConnectorType.COMBO_CCS, restrictions);
+    return this.chargingStationContext;
+  }
+
+  public async initChargingStationContext2TestTimeRestrictions(testMode = 'E', aParticularMoment: moment.Moment) : Promise<ChargingStationContext> {
+    // Charging Station Context
+    this.siteContext = this.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
+    this.siteAreaContext = this.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC);
+    this.chargingStationContext = this.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16 + '-' + ContextDefinition.SITE_CONTEXTS.SITE_BASIC + '-' + ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC);
+    assert(!!this.chargingStationContext, 'Charging station context should not be null');
+    // Take into account the Charging Station location and its timezone
     const timezone = Utils.getTimezone(this.chargingStationContext.getChargingStation().coordinates);
     // The moment has to be cloned to have stable tests results!
     const atThatMoment = aParticularMoment.clone().tz(timezone);
@@ -435,10 +450,6 @@ export default class BillingTestHelper {
       assert(billingDataStop?.invoiceNumber === null, `Invoice Number should not yet been set - Invoice Number is: ${billingDataStop?.invoiceNumber}`);
     }
     if (expectedPrice) {
-      if (!FeatureToggles.isFeatureActive(Feature.PRICING_NEW_MODEL)
-        || FeatureToggles.isFeatureActive(Feature.PRICING_CHECK_BACKWARD_COMPATIBILITY)) {
-        expectedPrice = 32.32; // Expected price when using the Simple Pricing logic!
-      }
       // --------------------------------
       // Check transaction rounded price
       // --------------------------------
