@@ -268,9 +268,7 @@ export default class OCPPUtils {
             transaction.pricingSource = pricedConsumption.pricingSource;
             transaction.currentCumulatedPrice = pricedConsumption.amount;
             transaction.currentCumulatedRoundedPrice = pricedConsumption.roundedAmount;
-            if (FeatureToggles.isFeatureActive(Feature.PRICING_NEW_MODEL)) {
-              transaction.pricingModel = pricedConsumption.pricingModel;
-            }
+            transaction.pricingModel = pricedConsumption.pricingModel;
           }
           break;
         // Meter Values
