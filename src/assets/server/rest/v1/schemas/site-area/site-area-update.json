@@ -32,8 +32,7 @@
       "$ref": "site-area#/definitions/siteID"
     },
     "parentSiteAreaID": {
-      "$ref": "site-area#/definitions/parentSiteAreaID",
-      "default": null
+      "$ref": "site-area#/definitions/parentSiteAreaID"
     },
     "image": {
       "$ref": "site-area#/definitions/image"

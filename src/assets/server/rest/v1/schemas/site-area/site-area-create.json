@@ -19,8 +19,7 @@
       "$ref": "site-area#/definitions/voltage"
     },
     "smartCharging": {
-      "$ref": "site-area#/definitions/smartCharging",
-      "default": false
+      "$ref": "site-area#/definitions/smartCharging"
     },
     "accessControl": {
       "$ref": "site-area#/definitions/accessControl"
@@ -29,8 +28,7 @@
       "$ref": "site-area#/definitions/siteID"
     },
     "parentSiteAreaID": {
-      "$ref": "site-area#/definitions/parentSiteAreaID",
-      "default": null
+      "$ref": "site-area#/definitions/parentSiteAreaID"
     },
     "image": {
       "$ref": "site-area#/definitions/image"

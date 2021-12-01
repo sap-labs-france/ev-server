@@ -38,9 +38,10 @@
       "$ref": "common#/definitions/id"
     },
     "parentSiteAreaID": {
-      "type": ["string", "null"],
+      "type": "string",
       "pattern": "^$|^[0-9a-fA-F]{24}$",
-      "sanitize": "mongo"
+      "sanitize": "mongo",
+      "nullable": true
     },
     "image": {
       "type": "string",
