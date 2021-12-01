@@ -1,5 +1,4 @@
 /* eslint-disable max-len */
-import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import { PricedConsumption, PricingDimensions, PricingSource, ResolvedPricingDefinition, ResolvedPricingModel } from '../../../types/Pricing';
 
 import ChargingStation from '../../../types/ChargingStation';
@@ -96,15 +95,6 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
     const resolvedPricingModel: ResolvedPricingModel = await PricingEngine.resolvePricingContext(tenant, transaction, chargingStation);
     if (!resolvedPricingModel.pricingDefinitions?.length) {
       resolvedPricingModel.pricingDefinitions = [ this.getDefaultPricingDefinition() ];
-      await Logging.logWarning({
-        tenantID: this.tenant.id,
-        module: MODULE_NAME,
-        action: ServerAction.PRICING,
-        method: 'resolvePricingContext',
-        message: 'No pricing definition found - Simple Pricing logic will be used as a fallback',
-        detailedMessages: { resolvedPricingModel },
-        ...LoggingHelper.getTransactionProperties(transaction)
-      });
     }
     return resolvedPricingModel;
   }
@@ -112,17 +102,15 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
   private getDefaultPricingDefinition(): ResolvedPricingDefinition {
     // Defaults to the simple pricing settings
     const simplePricingDefinition: ResolvedPricingDefinition = {
-      // TODO - translate default tariff name
-      name: 'Default Tariff',
-      description: 'Tariff based on simple pricing settings',
+      name: 'No Tariff',
+      description: 'Default tariff when no pricing definition is found',
       dimensions: {
         energy: {
           active: true,
-          price: this.setting.price,
+          price: 0, // this.setting.price,
         }
       }
     };
     return simplePricingDefinition;
   }
-
 }
