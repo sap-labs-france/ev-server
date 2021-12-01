@@ -146,7 +146,8 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
 
   private async connect(): Promise<string> {
     // Get token from cache
-    let token = AssetTokenCache.getInstanceForTenant(this.tenant).getToken(this.connection.id);
+    const key = this.connection.id + this.connection.iothinkConnection.user + this.connection.iothinkConnection.password;
+    let token = AssetTokenCache.getInstanceForTenant(this.tenant).getToken(key);
     if (!token) {
       this.checkConnectionIsProvided();
       // Get a fresh token (if not found or expired)

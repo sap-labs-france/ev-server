@@ -311,7 +311,7 @@ describe('Asset', function() {
           testData.userService.assetApi,
           Factory.asset.build({
             siteAreaID: testData.newSiteArea.id,
-            assetType: 'PR'
+            assetType: 'PR',
           })
         );
         testData.createdAssets.push(testData.newAsset);
@@ -376,6 +376,7 @@ describe('Asset', function() {
 
       it('should not be able to retrieve latest consumption with incorrect credentials', async function() {
         if (!testData.pending) {
+          // Change entity
           const settingID = '0123456789abcdef';
           const url = config.get('assetConnectors.ioThink.url');
           const user = 'WrongUser';
