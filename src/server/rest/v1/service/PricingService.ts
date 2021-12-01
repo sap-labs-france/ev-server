@@ -182,7 +182,7 @@ export default class PricingService {
   }
 
   private static async checkAuthorizationAndGetSiteID(req: Request, action: ServerAction, filteredRequest: PricingDefinition): Promise<string> {
-    let siteID = null;
+    let siteID;
     let site: Site, siteArea: SiteArea, chargingStation: ChargingStation;
     switch (filteredRequest.entityType) {
       case PricingEntity.SITE:
@@ -198,7 +198,7 @@ export default class PricingService {
         siteID = chargingStation.siteID;
         break;
       default:
-        return null;
+        siteID = null;
     }
     return siteID;
   }
