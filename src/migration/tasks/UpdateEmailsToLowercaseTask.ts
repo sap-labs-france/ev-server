@@ -20,29 +20,22 @@ export default class UpdateEmailsToLowercaseTask extends MigrationTask {
   }
 
   async migrateTenant(tenant: Tenant): Promise<void> {
-    let updated = 0;
     // Get all the Users
-    const users = (await UserStorage.getUsers(tenant, {}, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'email'])).result;
-    if (!Utils.isEmptyArray(users)) {
-      for (const user of users) {
-        await global.database.getCollection<any>(tenant.id, 'users').updateOne(
-          { _id: DatabaseUtils.convertToObjectID(user.id) },
-          {
-            $set: {
-              email: user.email.toLowerCase(),
-            }
-          }
-        );
-        updated++;
-      }
-    }
+    const updateResult = await global.database.getCollection<any>(tenant.id, 'users').updateMany(
+      {},
+      [{
+        $set: {
+          email: { $toLower: '$email' },
+        }
+      }]
+    );
+    if (updateResult.modifiedCount > 0) {
     // Log in the default tenant
-    if (updated > 0) {
       await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'migrateTenant',
         action: ServerAction.MIGRATION,
-        message: `${updated} User(s) mail have been updated in Tenant ${Utils.buildTenantName(tenant)}`
+        message: `${updateResult.modifiedCount} User(s) mail have been updated in Tenant ${Utils.buildTenantName(tenant)}`
       });
     }
   }
