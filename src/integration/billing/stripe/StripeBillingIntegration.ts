@@ -1027,12 +1027,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   private convertToBillingInvoiceItem(transaction: Transaction) : BillingInvoiceItem {
-    if (FeatureToggles.isFeatureActive(Feature.PRICING_NEW_MODEL) && transaction.pricingModel) {
-      // Built-in Pricing
-      return this.convertPricingDataToBillingInvoiceItem(transaction);
-    }
-    // Simple Pricing - Do it the old way!
-    return this.convertSimplePricingToBillingInvoiceItem(transaction);
+    return this.convertPricingDataToBillingInvoiceItem(transaction);
   }
 
   private convertPricingDataToBillingInvoiceItem(transaction: Transaction) : BillingInvoiceItem {
@@ -1105,46 +1100,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
       parkingTime.taxes = taxes;
     }
     return pricingConsumptionData;
-  }
-
-  private convertSimplePricingToBillingInvoiceItem(transaction: Transaction) : BillingInvoiceItem {
-    // Destructuring transaction.stop
-    const { price: unitPrice, priceUnit: currency, roundedPrice, totalConsumptionWh, timestamp } = transaction.stop;
-    const transactionID = transaction.id;
-    const itemDescription = this.buildLineItemDescription(transaction);
-    const quantity = Utils.createDecimal(transaction.stop.totalConsumptionWh).toNumber(); // Wh
-    const amount = roundedPrice; // Total amount for the line item
-    // -------------------------------------------------------------------------------
-    const taxes = this.getTaxRateIds();
-    // Build a billing invoice item based on the transaction
-    const billingInvoiceItem: BillingInvoiceItem = {
-      transactionID,
-      currency,
-      pricingData: [{
-        energy: {
-          unitPrice,
-          itemDescription,
-          amount,
-          roundedAmount: Utils.createDecimal(amount).times(100).trunc().div(100).toNumber(),
-          quantity,
-          taxes
-        }
-      }],
-      metadata: {
-        // Let's keep track of the initial data for troubleshooting purposes
-        tenantID: this.tenant.id,
-        transactionID: transaction.id,
-        userID: transaction.userID,
-        unitPrice,
-        roundedPrice,
-        currency,
-        totalConsumptionWh,
-        begin: transaction.timestamp?.valueOf(),
-        end: timestamp?.valueOf()
-      }
-    };
-    // Returns a item representing the complete charging session (energy + parking information)
-    return billingInvoiceItem ;
   }
 
   public async billInvoiceItem(user: User, billingInvoiceItem: BillingInvoiceItem): Promise<BillingInvoice> {

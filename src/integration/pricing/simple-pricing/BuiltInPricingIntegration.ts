@@ -75,14 +75,10 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
       cumulatedAmount: 0,
       cumulatedRoundedAmount: 0,
     };
-    if (!FeatureToggles.isFeatureActive(Feature.PRICING_NEW_MODEL)) {
-      throw new Error('Unexpected situation - this layer should not be called in that context');
-    } else {
-      // New logic - get the amount from the priced data to avoid rounding issues
-      const { cumulatedAmount, cumulatedRoundedAmount } = this.computeCumulatedAmount(pricingModel);
-      pricedConsumption.cumulatedAmount = cumulatedAmount;
-      pricedConsumption.cumulatedRoundedAmount = cumulatedRoundedAmount;
-    }
+    // Get the amount from the priced data to avoid rounding issues
+    const { cumulatedAmount, cumulatedRoundedAmount } = this.computeCumulatedAmount(pricingModel);
+    pricedConsumption.cumulatedAmount = cumulatedAmount;
+    pricedConsumption.cumulatedRoundedAmount = cumulatedRoundedAmount;
     return Promise.resolve(pricedConsumption);
   }
 
