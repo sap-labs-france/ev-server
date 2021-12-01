@@ -40,9 +40,6 @@
           "$ref": "pricing-definition#/definitions/pricingDimension"
         }
       }
-    },
-    "siteID": {
-      "$ref": "common#/definitions/id"
     }
   },
   "required": [

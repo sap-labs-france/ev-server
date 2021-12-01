@@ -29,9 +29,9 @@ export default class PricingService {
     const filteredRequest = PricingValidator.getInstance().validatePricingDefinitionGet(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetPricingDefinition', req.user);
     // Check and get pricing
-    const pricing = await UtilsService.checkAndGetPricingDefinitionAuthorization(
+    const pricingDefinition = await UtilsService.checkAndGetPricingDefinitionAuthorization(
       req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, { withEntityInformation: filteredRequest.WithEntityInformation }, true);
-    res.json(pricing);
+    res.json(pricingDefinition);
     next();
   }
 
@@ -127,7 +127,7 @@ export default class PricingService {
     // Check Mandatory fields
     UtilsService.checkIfPricingDefinitionValid(filteredRequest, req);
     // Check and Get Pricing
-    const pricingDefinition: PricingDefinition = await UtilsService.checkAndGetPricingDefinitionAuthorization(
+    const pricingDefinition = await UtilsService.checkAndGetPricingDefinitionAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest);
     // Check authorization and get the site ID depending on the entity type
     const siteID = await PricingService.checkAuthorizationAndGetSiteID(req, action, filteredRequest);
@@ -164,17 +164,17 @@ export default class PricingService {
     // Filter
     const pricingDefinitionID = PricingValidator.getInstance().validatePricingDefinitionGet(req.query).ID.toString();
     // Check and Get Pricing
-    const pricing = await UtilsService.checkAndGetPricingDefinitionAuthorization(
+    const pricingDefinition = await UtilsService.checkAndGetPricingDefinitionAuthorization(
       req.tenant, req.user, pricingDefinitionID, Action.DELETE, action);
     // Delete
-    await PricingStorage.deletePricingDefinition(req.tenant, pricing.id);
+    await PricingStorage.deletePricingDefinition(req.tenant, pricingDefinition.id);
     // Log
     await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleDeletePricingDefinition',
       message: `Pricing model '${pricingDefinitionID}' has been deleted successfully`,
       action: action,
-      detailedMessages: { pricing }
+      detailedMessages: { pricingDefinition }
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
