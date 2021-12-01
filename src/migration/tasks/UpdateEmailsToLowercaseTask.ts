@@ -4,6 +4,7 @@ import MigrationTask from '../MigrationTask';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
+import { UpdateResult } from 'mongodb';
 import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
 
@@ -26,7 +27,7 @@ export default class UpdateEmailsToLowercaseTask extends MigrationTask {
           email: { $toLower: '$email' },
         }
       }]
-    );
+    ) as UpdateResult;
     if (updateResult.modifiedCount > 0) {
     // Log in the default tenant
       await Logging.logDebug({
