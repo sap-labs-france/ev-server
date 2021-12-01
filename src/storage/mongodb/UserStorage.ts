@@ -602,7 +602,7 @@ export default class UserStorage {
     }
     // Email
     if (params.email) {
-      filters.email = { $regex: `^${params.email}$`, $options: 'i' };
+      filters.email = params.email;
     }
     // Password Reset Hash
     if (params.passwordResetHash) {
