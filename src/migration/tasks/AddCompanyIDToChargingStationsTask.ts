@@ -1,25 +1,17 @@
 import Constants from '../../utils/Constants';
 import DatabaseUtils from '../../storage/mongodb/DatabaseUtils';
 import Logging from '../../utils/Logging';
-import MigrationTask from '../MigrationTask';
 import { ServerAction } from '../../types/Server';
 import SiteStorage from '../../storage/mongodb/SiteStorage';
 import Tenant from '../../types/Tenant';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
+import TenantMigrationTask from '../TenantMigrationTask';
 import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'AddCompanyIDPropertToChargingStationsTask';
 
-export default class AddCompanyIDToChargingStationsTask extends MigrationTask {
-  async migrate(): Promise<void> {
-    const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
-    for (const tenant of tenants.result) {
-      await this.migrateTenant(tenant);
-    }
-  }
-
-  async migrateTenant(tenant: Tenant): Promise<void> {
+export default class AddCompanyIDToChargingStationsTask extends TenantMigrationTask {
+  public async migrateTenant(tenant: Tenant): Promise<void> {
     let updated = 0;
     // Get all the Sites
     const sites = (await SiteStorage.getSites(tenant, {}, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'companyID'])).result;
@@ -66,15 +58,15 @@ export default class AddCompanyIDToChargingStationsTask extends MigrationTask {
     }
   }
 
-  getVersion(): string {
+  public getVersion(): string {
     return '1.0';
   }
 
-  getName(): string {
+  public getName(): string {
     return 'AddCompanyIDToChargingStationsTask';
   }
 
-  isAsynchronous(): boolean {
+  public isAsynchronous(): boolean {
     return true;
   }
 }
