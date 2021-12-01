@@ -53,6 +53,7 @@ export default interface PricingDefinition extends PricingDefinitionInternal, Cr
   id: string;
   entityID: string;
   entityType: PricingEntity;
+  siteID: string;
 }
 
 export interface PricingDimensions {
