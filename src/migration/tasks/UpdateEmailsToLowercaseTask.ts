@@ -1,23 +1,15 @@
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import MigrationTask from '../MigrationTask';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
+import TenantMigrationTask from '../TenantMigrationTask';
 import { UpdateResult } from 'mongodb';
 import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'UpdateEmailsToLowercaseTask';
 
-export default class UpdateEmailsToLowercaseTask extends MigrationTask {
-  public async migrate(): Promise<void> {
-    const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
-    for (const tenant of tenants.result) {
-      await this.migrateTenant(tenant);
-    }
-  }
-
+export default class UpdateEmailsToLowercaseTask extends TenantMigrationTask {
   public async migrateTenant(tenant: Tenant): Promise<void> {
     // Get all the Users
     const updateResult = await global.database.getCollection<any>(tenant.id, 'users').updateMany(
