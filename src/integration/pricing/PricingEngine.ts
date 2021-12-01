@@ -32,11 +32,22 @@ export default class PricingEngine {
       pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.COMPANY, transaction.companyID.toString()));
       pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.TENANT, tenant.id));
     }
+    if (!transaction.timezone) {
+      await Logging.logWarning({
+        tenantID: tenant.id,
+        module: MODULE_NAME,
+        action: ServerAction.PRICING,
+        method: 'resolvePricingContext',
+        message: 'Unexpected situation: The timezone of the transaction is unknown. Make sure the location of the charging station is properly set!',
+        ...LoggingHelper.getTransactionProperties(transaction)
+      });
+    }
     // Return the resolution result as a resolved pricing model
     const resolvedPricingModel: ResolvedPricingModel = {
       pricerContext: {
         flatFeeAlreadyPriced: false,
-        sessionStartDate: transaction.timestamp
+        sessionStartDate: transaction.timestamp,
+        timezone: transaction.timezone
       },
       pricingDefinitions
     };

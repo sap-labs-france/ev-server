@@ -1,0 +1,34 @@
+{
+  "$id": "site",
+  "definitions": {
+    "id": {
+      "$ref": "common#/definitions/id"
+    },
+    "name": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "address": {
+      "$ref": "common#/definitions/address"
+    },
+    "public": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "tariffID": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "autoUserSiteAssignment": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "companyID": {
+      "$ref": "company#/definitions/id"
+    },
+    "image": {
+      "type": "string",
+      "sanitize": "mongo"
+    }
+  }
+}
