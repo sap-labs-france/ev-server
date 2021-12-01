@@ -1,16 +1,19 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { NextFunction, Request, Response } from 'express';
+import PricingDefinition, { PricingEntity } from '../../../../types/Pricing';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AuthorizationService from './AuthorizationService';
+import ChargingStation from '../../../../types/ChargingStation';
 import Constants from '../../../../utils/Constants';
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
 import { PricingDataResult } from '../../../../types/DataResult';
-import PricingDefinition from '../../../../types/Pricing';
 import PricingStorage from '../../../../storage/mongodb/PricingStorage';
 import PricingValidator from '../validator/PricingValidator';
 import { ServerAction } from '../../../../types/Server';
+import Site from '../../../../types/Site';
+import SiteArea from '../../../../types/SiteArea';
 import { TenantComponents } from '../../../../types/Tenant';
 import UtilsService from './UtilsService';
 
@@ -90,9 +93,12 @@ export default class PricingService {
         module: MODULE_NAME, method: 'handleCreatePricingDefinition'
       });
     }
+    // Check authorization and get the site ID depending on the entity type
+    const siteID = await PricingService.checkAuthorizationAndGetSiteID(req, action, filteredRequest);
     // Create pricing
     const newPricingDefinition: PricingDefinition = {
       ...filteredRequest,
+      siteID,
       issuer: true,
       createdBy: { id: req.user.id },
       createdOn: new Date()
@@ -121,8 +127,10 @@ export default class PricingService {
     // Check Mandatory fields
     UtilsService.checkIfPricingDefinitionValid(filteredRequest, req);
     // Check and Get Pricing
-    const pricingDefinition = await UtilsService.checkAndGetPricingDefinitionAuthorization(
+    const pricingDefinition: PricingDefinition = await UtilsService.checkAndGetPricingDefinitionAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest);
+    // Check authorization and get the site ID depending on the entity type
+    const siteID = await PricingService.checkAuthorizationAndGetSiteID(req, action, filteredRequest);
     // Update
     pricingDefinition.entityID = filteredRequest.entityID;
     pricingDefinition.entityType = filteredRequest.entityType;
@@ -133,6 +141,7 @@ export default class PricingService {
     pricingDefinition.dimensions = filteredRequest.dimensions;
     pricingDefinition.lastChangedBy = { 'id': req.user.id };
     pricingDefinition.lastChangedOn = new Date();
+    pricingDefinition.siteID = siteID;
     // Update Pricing
     await PricingStorage.savePricingDefinition(req.tenant, pricingDefinition);
     // Log
@@ -172,4 +181,25 @@ export default class PricingService {
     next();
   }
 
+  private static async checkAuthorizationAndGetSiteID(req: Request, action: ServerAction, filteredRequest: PricingDefinition): Promise<string> {
+    let siteID = null;
+    let site: Site, siteArea: SiteArea, chargingStation: ChargingStation;
+    switch (filteredRequest.entityType) {
+      case PricingEntity.SITE:
+        site = await UtilsService.checkAndGetSiteAuthorization(req.tenant, req.user, filteredRequest.entityID, Action.READ, action);
+        siteID = site.id;
+        break;
+      case PricingEntity.SITE_AREA:
+        siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(req.tenant, req.user, filteredRequest.entityID, Action.READ, action);
+        siteID = siteArea.siteID;
+        break;
+      case PricingEntity.CHARGING_STATION:
+        chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(req.tenant, req.user, filteredRequest.entityID, action);
+        siteID = chargingStation.siteID;
+        break;
+      default:
+        return null;
+    }
+    return siteID;
+  }
 }
