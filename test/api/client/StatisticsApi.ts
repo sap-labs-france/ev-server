@@ -1,8 +1,10 @@
+import AuthenticatedBaseApi from './utils/AuthenticatedBaseApi';
 import CrudApi from './utils/CrudApi';
+import { ServerRoute } from '../../../src/types/Server';
 
 export default class StatisticsApi extends CrudApi {
 
-  public constructor(authenticatedApi) {
+  public constructor(authenticatedApi: AuthenticatedBaseApi) {
     super(authenticatedApi);
   }
 
@@ -27,51 +29,51 @@ export default class StatisticsApi extends CrudApi {
   }
 
   public async readAllYears() {
-    return super.read({}, '/client/api/TransactionYears');
+    return super.read({}, this.buildRestEndpointUrl(ServerRoute.REST_TRANSACTION_YEARS));
   }
 
   public async readChargingStationConsumption(params) {
-    return super.read(params, '/client/api/ChargingStationConsumptionStatistics');
+    return super.read(params, this.buildRestEndpointUrl(ServerRoute.REST_CHARGING_STATION_CONSUMPTION_STATISTICS));
   }
 
   public async readUserConsumption(params) {
-    return super.read(params, '/client/api/UserConsumptionStatistics');
+    return super.read(params, this.buildRestEndpointUrl(ServerRoute.REST_USER_CONSUMPTION_STATISTICS));
   }
 
   public async readChargingStationUsage(params) {
-    return super.read(params, '/client/api/ChargingStationUsageStatistics');
+    return super.read(params, this.buildRestEndpointUrl(ServerRoute.REST_CHARGING_STATION_USAGE_STATISTICS));
   }
 
   public async readUserUsage(params) {
-    return super.read(params, '/client/api/UserUsageStatistics');
+    return super.read(params, this.buildRestEndpointUrl(ServerRoute.REST_USER_USAGE_STATISTICS));
   }
 
   public async readChargingStationInactivity(params) {
-    return super.read(params, '/client/api/ChargingStationInactivityStatistics');
+    return super.read(params, this.buildRestEndpointUrl(ServerRoute.REST_CHARGING_STATION_INACTIVITY_STATISTICS));
   }
 
   public async readUserInactivity(params) {
-    return super.read(params, '/client/api/UserInactivityStatistics');
+    return super.read(params, this.buildRestEndpointUrl(ServerRoute.REST_USER_INACTIVITY_STATISTICS));
   }
 
   public async readChargingStationTransactions(params) {
-    return super.read(params, '/client/api/ChargingStationTransactionsStatistics');
+    return super.read(params, this.buildRestEndpointUrl(ServerRoute.REST_CHARGING_STATION_TRANSACTIONS_STATISTICS));
   }
 
   public async readUserTransactions(params) {
-    return super.read(params, '/client/api/UserTransactionsStatistics');
+    return super.read(params, this.buildRestEndpointUrl(ServerRoute.REST_USER_TRANSACTIONS_STATISTICS));
   }
 
   public async readChargingStationPricing(params) {
-    return super.read(params, '/client/api/ChargingStationPricingStatistics');
+    return super.read(params, this.buildRestEndpointUrl(ServerRoute.REST_CHARGING_STATION_PRICING_STATISTICS));
   }
 
   public async readUserPricing(params) {
-    return super.read(params, '/client/api/UserPricingStatistics');
+    return super.read(params, this.buildRestEndpointUrl(ServerRoute.REST_USER_PRICING_STATISTICS));
   }
 
   public async exportStatistics(params) {
-    return await super.read(params, '/client/api/StatisticsExport');
+    return await super.read(params, this.buildRestEndpointUrl(ServerRoute.REST_STATISTICS_EXPORT));
   }
 
 }

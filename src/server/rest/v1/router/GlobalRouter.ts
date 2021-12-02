@@ -16,6 +16,7 @@ import RegistrationTokenRouter from './api/RegistrationTokenRouter';
 import SettingRouter from './api/SettingRouter';
 import SiteAreaRouter from './api/SiteAreaRouter';
 import SiteRouter from './api/SiteRouter';
+import StatisticsRouter from './api/StatisticsRouter';
 import SwaggerRouter from './doc/SwaggerRouter';
 import TagRouter from './api/TagRouter';
 import TenantRouter from './api/TenantRouter';
@@ -64,6 +65,7 @@ export default class GlobalRouter {
         new SiteAreaRouter().buildRoutes(),
         new SettingRouter().buildRoutes(),
         new SiteRouter().buildRoutes(),
+        new StatisticsRouter().buildRoutes(),
         new TagRouter().buildRoutes(),
         new TenantRouter().buildRoutes(),
         new TransactionRouter().buildRoutes(),
