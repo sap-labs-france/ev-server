@@ -1,0 +1,20 @@
+{
+  "$id": "site-assign",
+  "title": "Assign / unassign users Request",
+  "type": "object",
+  "properties": {
+    "siteID": {
+      "$ref": "site#/definitions/id"
+    },
+    "userIDs": {
+      "type": "array",
+      "items": {
+        "$ref": "user#/definitions/id"
+      }
+    }
+  },
+  "required": [
+    "siteID",
+    "userIDs"
+  ]
+}

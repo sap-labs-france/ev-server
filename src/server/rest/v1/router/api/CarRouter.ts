@@ -16,7 +16,6 @@ export default class CarRouter {
     this.buildRouteGetCarCatalogs();
     this.buildRouteGetCarCatalog();
     this.buildRouteGetCarCatalogImages();
-    this.buildRouteGetCarCatalogImage();
     this.buildRouteCarCatalogsSynchronize();
     this.buildRouteGetCarMakers();
     this.buildRouteCreateCar();
@@ -44,13 +43,6 @@ export default class CarRouter {
     this.router.get(`/${ServerRoute.REST_CAR_CATALOG_IMAGES}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
       await RouterUtils.handleServerAction(CarService.handleGetCarCatalogImages.bind(this), ServerAction.CAR_CATALOG_IMAGES, req, res, next);
-    });
-  }
-
-  private buildRouteGetCarCatalogImage(): void {
-    this.router.get(`/${ServerRoute.REST_CAR_CATALOG_IMAGE}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.query.ID = req.params.id;
-      await RouterUtils.handleServerAction(CarService.handleGetCarCatalogImage.bind(this), ServerAction.CAR_CATALOG_IMAGE, req, res, next);
     });
   }
 

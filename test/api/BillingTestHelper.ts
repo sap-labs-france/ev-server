@@ -257,7 +257,29 @@ export default class BillingTestHelper {
           active: true
         }
       };
-    } else if (testMode === 'TODAY') {
+    } else {
+      dimensions = {
+        energy: {
+          price: 0.50,
+          active: true
+        }
+      };
+    }
+    await this.createTariff4ChargingStation(testMode, this.chargingStationContext.getChargingStation(), dimensions, ConnectorType.COMBO_CCS, restrictions);
+    return this.chargingStationContext;
+  }
+
+  public async initChargingStationContext2TestDaysOfTheWeek(testMode = 'E') : Promise<ChargingStationContext> {
+    // Charging Station Context
+    this.siteContext = this.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
+    this.siteAreaContext = this.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC);
+    this.chargingStationContext = this.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16 + '-' + ContextDefinition.SITE_CONTEXTS.SITE_BASIC + '-' + ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC);
+    assert(!!this.chargingStationContext, 'Charging station context should not be null');
+    // Take into account the Charging Station location and its timezone
+    const timezone = Utils.getTimezone(this.chargingStationContext.getChargingStation().coordinates);
+    let dimensions: PricingDimensions;
+    let restrictions: PricingRestriction;
+    if (testMode === 'TODAY') {
       dimensions = {
         flatFee: {
           price: 1.5, // Euro
@@ -269,9 +291,9 @@ export default class BillingTestHelper {
         }
       };
       restrictions = {
-        daysOfWeek: [ moment().isoWeekday() ] // Sets today as the only day allowed for this pricing definition
+        daysOfWeek: [ moment().tz(timezone).isoWeekday() ] // Sets today as the only day allowed for this pricing definition
       };
-    } else if (testMode === 'OTHER_DAYS') {
+    } else { // 'OTHER_DAYS')
       dimensions = {
         flatFee: {
           price: 666, // Euro
@@ -284,9 +306,27 @@ export default class BillingTestHelper {
       };
       restrictions = {
         // Sets all other days as the days allowed for this pricing definition
-        daysOfWeek: [ DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, DayOfWeek.SATURDAY, DayOfWeek.SUNDAY ].filter((day) => day !== moment().isoWeekday())
+        daysOfWeek: [ DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, DayOfWeek.SATURDAY, DayOfWeek.SUNDAY ].filter((day) => day !== moment().tz(timezone).isoWeekday())
       };
-    } else if (testMode === 'THIS_HOUR') {
+    }
+    await this.createTariff4ChargingStation(testMode, this.chargingStationContext.getChargingStation(), dimensions, ConnectorType.COMBO_CCS, restrictions);
+    return this.chargingStationContext;
+  }
+
+  public async initChargingStationContext2TestTimeRestrictions(testMode = 'E', aParticularMoment: moment.Moment) : Promise<ChargingStationContext> {
+    // Charging Station Context
+    this.siteContext = this.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
+    this.siteAreaContext = this.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC);
+    this.chargingStationContext = this.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16 + '-' + ContextDefinition.SITE_CONTEXTS.SITE_BASIC + '-' + ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC);
+    assert(!!this.chargingStationContext, 'Charging station context should not be null');
+    // Take into account the Charging Station location and its timezone
+    const timezone = Utils.getTimezone(this.chargingStationContext.getChargingStation().coordinates);
+    // The moment has to be cloned to have stable tests results!
+    const atThatMoment = aParticularMoment.clone().tz(timezone);
+    // Let's create a pricing definition
+    let dimensions: PricingDimensions;
+    let restrictions: PricingRestriction;
+    if (testMode === 'FOR_HALF_AN_HOUR') {
       dimensions = {
         energy: {
           price: 3,
@@ -294,9 +334,9 @@ export default class BillingTestHelper {
         }
       };
       restrictions = {
-        daysOfWeek: [ moment().isoWeekday() ], // Sets today as the only day allowed for this pricing definition
-        timeFrom: moment().format('HH:mm'), // From this hour
-        timeTo: moment().add(30, 'minutes').format('HH:mm'), // Validity for half an hour
+        daysOfWeek: [ atThatMoment.isoWeekday() ], // Sets today as the only day allowed for this pricing definition
+        timeFrom: atThatMoment.format('HH:mm'), // From this hour
+        timeTo: atThatMoment.add(30, 'minutes').format('HH:mm'), // Validity for half an hour
       };
     } else if (testMode === 'NEXT_HOUR') {
       dimensions = {
@@ -306,16 +346,27 @@ export default class BillingTestHelper {
         },
       };
       restrictions = {
-        daysOfWeek: [ moment().isoWeekday() ], // Sets today as the only day allowed for this pricing definition
-        timeFrom: moment().add(30, 'minutes').format('HH:mm'), // Valid in half an hour
-        timeTo: moment().add(30 + 60, 'minutes').format('HH:mm'), // for one hour
+        daysOfWeek: [ atThatMoment.isoWeekday() ], // Sets today as the only day allowed for this pricing definition
+        timeFrom: atThatMoment.add(30, 'minutes').format('HH:mm'), // Valid in half an hour
+        timeTo: atThatMoment.add(30 + 60, 'minutes').format('HH:mm'), // for one hour
       };
-    } else {
+    } else { /* if (testMode === 'OTHER_HOURS') */
       dimensions = {
-        energy: {
-          price: 0.50,
+        flatFee: {
+          price: 0,
           active: true
-        }
+        },
+        energy: {
+          price: 666, // Weird value used to detect inconsistent pricing context resolution
+          active: true
+        },
+        chargingTime: {
+          price: 666, // Weird value used to detect inconsistent pricing context resolution
+          active: true
+        },
+      };
+      restrictions = {
+        daysOfWeek: [ atThatMoment.isoWeekday() ], // Sets today as the only day allowed for this pricing definition
       };
     }
     await this.createTariff4ChargingStation(testMode, this.chargingStationContext.getChargingStation(), dimensions, ConnectorType.COMBO_CCS, restrictions);
@@ -399,10 +450,6 @@ export default class BillingTestHelper {
       assert(billingDataStop?.invoiceNumber === null, `Invoice Number should not yet been set - Invoice Number is: ${billingDataStop?.invoiceNumber}`);
     }
     if (expectedPrice) {
-      if (!FeatureToggles.isFeatureActive(Feature.PRICING_NEW_MODEL)
-        || FeatureToggles.isFeatureActive(Feature.PRICING_CHECK_BACKWARD_COMPATIBILITY)) {
-        expectedPrice = 32.32; // Expected price when using the Simple Pricing logic!
-      }
       // --------------------------------
       // Check transaction rounded price
       // --------------------------------

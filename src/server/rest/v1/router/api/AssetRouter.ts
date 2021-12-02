@@ -23,7 +23,6 @@ export default class AssetRouter {
     this.buildRouteGetAssetConsumptions();
     this.buildRouteUpdateAsset();
     this.buildRouteDeleteAsset();
-    this.buildRouteGetAssetImage();
     return this.router;
   }
 
@@ -91,13 +90,6 @@ export default class AssetRouter {
     this.router.delete(`/${ServerRoute.REST_ASSET}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
       await RouterUtils.handleServerAction(AssetService.handleDeleteAsset.bind(this), ServerAction.ASSET_DELETE, req, res, next);
-    });
-  }
-
-  private buildRouteGetAssetImage(): void {
-    this.router.get(`/${ServerRoute.REST_ASSET_IMAGE}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.query.ID = req.params.id;
-      await RouterUtils.handleServerAction(AssetService.handleGetAssetImage.bind(this), ServerAction.ASSET_IMAGE, req, res, next);
     });
   }
 }

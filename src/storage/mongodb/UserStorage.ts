@@ -230,7 +230,7 @@ export default class UserStorage {
       issuer: Utils.convertToBoolean(userToSave.issuer),
       name: userToSave.name,
       firstName: userToSave.firstName,
-      email: userToSave.email,
+      email: userToSave.email.toLowerCase(),
       phone: userToSave.phone,
       mobile: userToSave.mobile,
       locale: userToSave.locale,

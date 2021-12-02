@@ -19,6 +19,7 @@ import { UserInErrorType } from '../../src/types/InError';
 import chaiSubset from 'chai-subset';
 import config from '../config';
 import global from '../../src/types/GlobalType';
+import moment from 'moment';
 import responseHelper from '../helpers/responseHelper';
 
 chai.use(chaiSubset);
@@ -771,11 +772,16 @@ describe('Billing', function() {
           // Check that we have a new invoice with an invoiceID and an invoiceNumber
           await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 17.37);
         });
+      });
 
+      describe('Check Dynamic Restrictions on COMBO CCS - DC', () => {
+        // eslint-disable-next-line @typescript-eslint/require-await
+        before(async () => {
+        });
 
         it('should bill an invoice taking the Day of the week into account', async () => {
-          await billingTestHelper.initChargingStationContext2TestFastCharger('TODAY');
-          await billingTestHelper.initChargingStationContext2TestFastCharger('OTHER_DAYS');
+          await billingTestHelper.initChargingStationContext2TestDaysOfTheWeek('TODAY');
+          await billingTestHelper.initChargingStationContext2TestDaysOfTheWeek('OTHER_DAYS');
           // A tariff applied immediately
           await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
           const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
@@ -787,8 +793,10 @@ describe('Billing', function() {
         });
 
         it('should bill an invoice taking the Time into account', async () => {
-          await billingTestHelper.initChargingStationContext2TestFastCharger('NEXT_HOUR');
-          await billingTestHelper.initChargingStationContext2TestFastCharger('THIS_HOUR');
+          const atThatParticularMoment = moment();
+          await billingTestHelper.initChargingStationContext2TestTimeRestrictions('OTHER_HOURS', atThatParticularMoment);
+          await billingTestHelper.initChargingStationContext2TestTimeRestrictions('NEXT_HOUR', atThatParticularMoment);
+          await billingTestHelper.initChargingStationContext2TestTimeRestrictions('FOR_HALF_AN_HOUR', atThatParticularMoment);
           // A tariff applied immediately
           await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
           const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
