@@ -8,6 +8,7 @@ import ChargingStationService from '../../service/ChargingStationService';
 import CompanyService from '../../service/CompanyService';
 import RouterUtils from '../RouterUtils';
 import SiteAreaService from '../../service/SiteAreaService';
+import SiteService from '../../service/SiteService';
 import { StatusCodes } from 'http-status-codes';
 
 export default class UtilRouter {
@@ -24,6 +25,7 @@ export default class UtilRouter {
     this.buildRouteGetCompanyLogo();
     this.buildRouteGetSiteAreaImage();
     this.buildRouteChargingStationDownloadFirmware();
+    this.buildRouteGetSiteImage();
     return this.router;
   }
 
@@ -66,6 +68,13 @@ export default class UtilRouter {
     this.router.get(`/${ServerRoute.REST_CHARGING_STATIONS_DOWNLOAD_FIRMWARE}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
       await RouterUtils.handleServerAction(ChargingStationService.handleGetFirmware.bind(this), ServerAction.FIRMWARE_DOWNLOAD, req, res, next);
+    });
+  }
+
+  private buildRouteGetSiteImage(): void {
+    this.router.get(`/${ServerRoute.REST_SITE_IMAGE}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = req.params.id;
+      await RouterUtils.handleServerAction(SiteService.handleGetSiteImage.bind(this), ServerAction.SITE_IMAGE, req, res, next);
     });
   }
 }
