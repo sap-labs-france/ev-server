@@ -185,6 +185,10 @@ export default class PricingService {
     let siteID;
     let site: Site, siteArea: SiteArea, chargingStation: ChargingStation;
     switch (filteredRequest.entityType) {
+      case PricingEntity.COMPANY:
+        await UtilsService.checkAndGetCompanyAuthorization(req.tenant, req.user, filteredRequest.entityID, Action.READ, action);
+        siteID = null;
+        break;
       case PricingEntity.SITE:
         site = await UtilsService.checkAndGetSiteAuthorization(req.tenant, req.user, filteredRequest.entityID, Action.READ, action);
         siteID = site.id;
