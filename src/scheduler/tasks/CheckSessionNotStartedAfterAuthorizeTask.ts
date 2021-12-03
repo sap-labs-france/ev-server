@@ -23,7 +23,7 @@ export default class CheckSessionNotStartedAfterAuthorizeTask extends SchedulerT
         });
         if (notificationTransactionNotStarted.result && notificationTransactionNotStarted.result.length > 0) {
           for (const notification of notificationTransactionNotStarted.result) {
-            void NotificationHandler.sendSessionNotStarted(tenant,
+            await NotificationHandler.sendSessionNotStarted(tenant,
               `${notification.tagID}-${notification.authDate.toString()}`,
               notification.chargingStation, {
                 user: notification.user,

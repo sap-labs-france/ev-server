@@ -252,7 +252,7 @@ export default class AuthService {
       const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +
         '/verify-email?VerificationToken=' + verificationToken + '&Email=' + newUser.email;
       // Notify (Async)
-      void NotificationHandler.sendNewRegisteredUser(
+      await NotificationHandler.sendNewRegisteredUser(
         tenant,
         Utils.generateUUID(),
         newUser,
@@ -317,7 +317,7 @@ export default class AuthService {
     const evseDashboardResetPassURL = Utils.buildEvseURL(filteredRequest.tenant) +
       '/define-password?hash=' + resetHash;
     // Send Request Password (Async)
-    void NotificationHandler.sendRequestPassword(
+    await NotificationHandler.sendRequestPassword(
       tenant,
       Utils.generateUUID(),
       user,
@@ -535,7 +535,7 @@ export default class AuthService {
         'User account has been successfully verified but needs an admin to activate it',
       detailedMessages: { params: req.query }
     });
-    void NotificationHandler.sendAccountVerification(
+    await NotificationHandler.sendAccountVerification(
       tenant,
       Utils.generateUUID(),
       user,
@@ -572,7 +572,6 @@ export default class AuthService {
         action: action
       });
     }
-
     // Is valid captcha?
     const recaptchaURL = `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`;
     const response = await AxiosFactory.getAxiosInstance(tenant).get(recaptchaURL);
@@ -637,7 +636,7 @@ export default class AuthService {
       '/verify-email?VerificationToken=' + verificationToken + '&Email=' +
       user.email;
     // Send Verification Email (Async)
-    void NotificationHandler.sendVerificationEmail(
+    await NotificationHandler.sendVerificationEmail(
       tenant,
       Utils.generateUUID(),
       user,
