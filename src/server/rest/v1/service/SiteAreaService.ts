@@ -1,29 +1,29 @@
+import { Action, Entity } from '../../../../types/Authorization';
+import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-import moment from 'moment';
 
+import { ActionsResponse } from '../../../../types/GlobalType';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
-import SmartChargingFactory from '../../../../integration/smart-charging/SmartChargingFactory';
+import AuthorizationService from './AuthorizationService';
+import { ChargingProfilePurposeType } from '../../../../types/ChargingProfile';
+import Constants from '../../../../utils/Constants';
+import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
-import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
-import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
-import TenantStorage from '../../../../storage/mongodb/TenantStorage';
-import { Action, Entity } from '../../../../types/Authorization';
-import { ChargingProfilePurposeType } from '../../../../types/ChargingProfile';
-import { SiteAreaDataResult } from '../../../../types/DataResult';
-import { ActionsResponse } from '../../../../types/GlobalType';
-import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
+import Logging from '../../../../utils/Logging';
+import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
 import { ServerAction } from '../../../../types/Server';
 import SiteArea from '../../../../types/SiteArea';
-import { TenantComponents } from '../../../../types/Tenant';
-import Constants from '../../../../utils/Constants';
-import Logging from '../../../../utils/Logging';
-import Utils from '../../../../utils/Utils';
-import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
+import { SiteAreaDataResult } from '../../../../types/DataResult';
+import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteAreaValidator from '../validator/SiteAreaValidator';
-import AuthorizationService from './AuthorizationService';
+import SmartChargingFactory from '../../../../integration/smart-charging/SmartChargingFactory';
+import { TenantComponents } from '../../../../types/Tenant';
+import TenantStorage from '../../../../storage/mongodb/TenantStorage';
+import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
+import moment from 'moment';
 
 const MODULE_NAME = 'SiteAreaService';
 
@@ -151,7 +151,7 @@ export default class SiteAreaService {
         withSite: filteredRequest.WithSite,
         withChargingStations: filteredRequest.WithChargingStations,
         withImage: true,
-      }, true);
+      }, true, false);
     // Return
     res.json(siteArea);
     next();

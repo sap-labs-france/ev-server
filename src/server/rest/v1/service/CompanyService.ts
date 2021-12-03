@@ -56,7 +56,7 @@ export default class CompanyService {
     const company = await UtilsService.checkAndGetCompanyAuthorization(
       req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {
         withLogo: true
-      }, true);
+      }, true, false);
     res.json(company);
     next();
   }
