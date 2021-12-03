@@ -1,30 +1,29 @@
-import { Action, Entity } from '../../../../types/Authorization';
-import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
+import moment from 'moment';
 
-import { ActionsResponse } from '../../../../types/GlobalType';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
-import AuthorizationService from './AuthorizationService';
-import { ChargingProfilePurposeType } from '../../../../types/ChargingProfile';
-import Constants from '../../../../utils/Constants';
-import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
+import SmartChargingFactory from '../../../../integration/smart-charging/SmartChargingFactory';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
-import Logging from '../../../../utils/Logging';
-import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
+import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
+import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
+import TenantStorage from '../../../../storage/mongodb/TenantStorage';
+import { Action, Entity } from '../../../../types/Authorization';
+import { ChargingProfilePurposeType } from '../../../../types/ChargingProfile';
+import { SiteAreaDataResult } from '../../../../types/DataResult';
+import { ActionsResponse } from '../../../../types/GlobalType';
+import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { ServerAction } from '../../../../types/Server';
 import SiteArea from '../../../../types/SiteArea';
-import { SiteAreaDataResult } from '../../../../types/DataResult';
-import SiteAreaSecurity from './security/SiteAreaSecurity';
-import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
-import SiteAreaValidator from '../validator/SiteAreaValidator';
-import SmartChargingFactory from '../../../../integration/smart-charging/SmartChargingFactory';
 import { TenantComponents } from '../../../../types/Tenant';
-import TenantStorage from '../../../../storage/mongodb/TenantStorage';
+import Constants from '../../../../utils/Constants';
+import Logging from '../../../../utils/Logging';
 import Utils from '../../../../utils/Utils';
+import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
+import SiteAreaValidator from '../validator/SiteAreaValidator';
+import AuthorizationService from './AuthorizationService';
 import UtilsService from './UtilsService';
-import moment from 'moment';
 
 const MODULE_NAME = 'SiteAreaService';
 
