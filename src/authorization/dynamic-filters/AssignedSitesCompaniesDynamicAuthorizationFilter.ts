@@ -31,7 +31,6 @@ export default class AssignedSitesCompaniesDynamicAuthorizationFilter extends Dy
 
   public getApplicableEntities(): Entity[] {
     return [
-      Entity.COMPANY,
       Entity.COMPANY
     ];
   }
