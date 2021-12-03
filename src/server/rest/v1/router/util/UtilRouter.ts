@@ -10,6 +10,7 @@ import RouterUtils from '../RouterUtils';
 import SiteAreaService from '../../service/SiteAreaService';
 import SiteService from '../../service/SiteService';
 import { StatusCodes } from 'http-status-codes';
+import TenantService from '../../service/TenantService';
 
 export default class UtilRouter {
   private router: express.Router;
@@ -26,13 +27,21 @@ export default class UtilRouter {
     this.buildRouteGetSiteAreaImage();
     this.buildRouteChargingStationDownloadFirmware();
     this.buildRouteGetSiteImage();
+    this.buildRouteGetTenantLogo();
     return this.router;
   }
 
-  protected buildRoutePing(): void {
+  private buildRoutePing(): void {
     this.router.get(`/${ServerRoute.REST_PING}`, (req: Request, res: Response, next: NextFunction) => {
       res.sendStatus(StatusCodes.OK);
       next();
+    });
+  }
+
+  private buildRouteGetTenantLogo(): void {
+    this.router.get(`/${ServerRoute.REST_TENANT_LOGO}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = req.params.id;
+      await RouterUtils.handleServerAction(TenantService.handleGetTenantLogo.bind(this), ServerAction.TENANT_LOGO, req, res, next);
     });
   }
 

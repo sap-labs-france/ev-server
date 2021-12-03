@@ -1,8 +1,7 @@
 import { AuthorizationFilter, DynamicAuthorizationDataSourceName, Entity } from '../../types/Authorization';
-
-import DynamicAuthorizationFilter from '../DynamicAuthorizationFilter';
-import SitesAdminDynamicAuthorizationDataSource from '../dynamic-data-source/SitesAdminDynamicAuthorizationDataSource';
 import Utils from '../../utils/Utils';
+import SitesAdminDynamicAuthorizationDataSource from '../dynamic-data-source/SitesAdminDynamicAuthorizationDataSource';
+import DynamicAuthorizationFilter from '../DynamicAuthorizationFilter';
 
 export default class SitesAdminDynamicAuthorizationFilter extends DynamicAuthorizationFilter {
   public processFilter(authorizationFilters: AuthorizationFilter, extraFilters: Record<string, any>): void {
@@ -10,6 +9,8 @@ export default class SitesAdminDynamicAuthorizationFilter extends DynamicAuthori
     const sitesAdminDataSource = this.getDataSource(
       DynamicAuthorizationDataSourceName.SITES_ADMIN) as SitesAdminDynamicAuthorizationDataSource;
     const { siteIDs } = sitesAdminDataSource.getData();
+    // Clear
+    authorizationFilters.filters.siteIDs = [];
     // Check
     if (!Utils.isEmptyArray(siteIDs)) {
       // Force the filter
