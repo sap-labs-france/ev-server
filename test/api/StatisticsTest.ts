@@ -72,7 +72,7 @@ describe('Statistics', function() {
     expectedInactivity = StatisticsContext.CONSTANTS.IDLE_MINUTES / 60;
 
     expectedTransactions = 1;
-    expectedPricing = 1 * expectedConsumption;
+    expectedPricing = ContextDefinition.DEFAULT_PRICE * expectedConsumption;
   });
 
   afterEach(() => {

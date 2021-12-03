@@ -99,6 +99,12 @@ export default class ContextDefinition {
     },
   };
 
+
+  /**
+   * Price of the consumed energy - 1 Euros / kWh
+   */
+  static readonly DEFAULT_PRICE = 1;
+
   /**
    * Definition of the different contexts
    */
@@ -111,7 +117,7 @@ export default class ContextDefinition {
         content: {
           type: PricingSettingsType.SIMPLE,
           simple: {
-            price: 1,
+            price: ContextDefinition.DEFAULT_PRICE,
             currency: 'EUR'
           }
         },
@@ -218,7 +224,7 @@ export default class ContextDefinition {
         content: {
           type: PricingSettingsType.SIMPLE,
           simple: {
-            price: 1,
+            price: ContextDefinition.DEFAULT_PRICE,
             currency: 'EUR'
           }
         }
@@ -302,7 +308,7 @@ export default class ContextDefinition {
         content: {
           type: PricingSettingsType.SIMPLE,
           simple: {
-            price: 1,
+            price: ContextDefinition.DEFAULT_PRICE,
             currency: 'EUR'
           }
         }

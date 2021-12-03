@@ -226,7 +226,7 @@ export default class ContextBuilder {
             dimensions: {
               energy: {
                 active: true,
-                price: 1,
+                price: ContextDefinition.DEFAULT_PRICE,
               }
             }
           } as PricingDefinition;

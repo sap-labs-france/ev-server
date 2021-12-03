@@ -132,28 +132,6 @@ export default class CentralServerService {
     return this._authenticatedUser.email;
   }
 
-  public async updatePriceSetting(pricekWh: number, priceUnit: string) {
-    const settings = await this.settingApi.readAll({});
-    let newSetting = false;
-    let setting: SettingDB = settings.data.result.find((s) => s.identifier === 'pricing');
-    if (!setting) {
-      setting = {} as SettingDB;
-      setting.identifier = TenantComponents.PRICING;
-      newSetting = true;
-    }
-    setting.content = {
-      type: PricingSettingsType.SIMPLE,
-      simple: {
-        price: pricekWh,
-        currency: priceUnit
-      }
-    };
-    if (newSetting) {
-      return this.settingApi.create(setting);
-    }
-    return this.settingApi.update(setting);
-  }
-
   public async createEntity(entityApi, entity, performCheck = true) {
     // Create
     const response = await entityApi.create(entity);
