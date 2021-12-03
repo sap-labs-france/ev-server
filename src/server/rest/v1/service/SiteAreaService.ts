@@ -47,7 +47,6 @@ export default class SiteAreaService {
     } else {
       await SiteAreaStorage.removeAssetsFromSiteArea(req.tenant, filteredRequest.siteAreaID, assets.map((asset) => asset.id));
     }
-    // Log
     await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user,
@@ -56,7 +55,6 @@ export default class SiteAreaService {
       message: 'Site Area\'s Assets have been assigned successfully',
       action: action
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -108,7 +106,6 @@ export default class SiteAreaService {
       message: 'Site Area\'s Charging Stations have been assigned successfully',
       action: action
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -132,9 +129,7 @@ export default class SiteAreaService {
       message: `Site Area '${siteArea.name}' has been deleted successfully`,
       action: action,
       detailedMessages: { siteArea }
-    }
-    );
-    // Ok
+    });
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -152,7 +147,6 @@ export default class SiteAreaService {
         withChargingStations: filteredRequest.WithChargingStations,
         withImage: true,
       }, true, false);
-    // Return
     res.json(siteArea);
     next();
   }
@@ -230,7 +224,6 @@ export default class SiteAreaService {
     // Add Auth flags
     await AuthorizationService.addSiteAreasAuthorizations(req.tenant, req.user, siteAreas as SiteAreaDataResult,
       authorizationSiteAreasFilter);
-    // Return
     res.json(siteAreas);
     next();
   }
@@ -263,7 +256,6 @@ export default class SiteAreaService {
     });
     // Assign
     siteArea.values = consumptions;
-    // Return
     res.json(siteArea);
     next();
   }
@@ -307,7 +299,6 @@ export default class SiteAreaService {
       action: action,
       detailedMessages: { siteArea: newSiteArea }
     });
-    // Ok
     res.json(Object.assign({ id: newSiteArea.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
@@ -393,7 +384,6 @@ export default class SiteAreaService {
         }
       }, Constants.DELAY_SMART_CHARGING_EXECUTION_MILLIS);
     }
-    // Log
     await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateSiteArea',
@@ -410,7 +400,6 @@ export default class SiteAreaService {
         user: req.user, actionOnUser: req.user
       });
     }
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }

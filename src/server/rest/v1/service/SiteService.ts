@@ -21,7 +21,6 @@ import UtilsService from './UtilsService';
 const MODULE_NAME = 'SiteService';
 
 export default class SiteService {
-
   public static async handleUpdateSiteUserAdmin(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
@@ -70,7 +69,6 @@ export default class SiteService {
       req.tenant, req.user, filteredRequest.userID, Action.READ, action);
     // Update
     await SiteStorage.updateSiteUserAdmin(req.tenant, filteredRequest.siteID, filteredRequest.userID, filteredRequest.siteAdmin);
-    // Log
     await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, actionOnUser: user,
@@ -121,7 +119,6 @@ export default class SiteService {
       req.tenant, req.user, filteredRequest.userID, Action.READ, action);
     // Update
     await SiteStorage.updateSiteOwner(req.tenant, filteredRequest.siteID, filteredRequest.userID, filteredRequest.siteOwner);
-    // Log
     await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, actionOnUser: user,
@@ -151,7 +148,6 @@ export default class SiteService {
     } else {
       await SiteStorage.removeUsersFromSite(req.tenant, site.id, users.map((user) => user.id));
     }
-    // Log
     await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user,
@@ -215,7 +211,6 @@ export default class SiteService {
       req.tenant, req.user, siteID, Action.DELETE, action);
     // Delete
     await SiteStorage.deleteSite(req.tenant, site.id);
-    // Log
     await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteSite',
@@ -239,7 +234,6 @@ export default class SiteService {
         withCompany: filteredRequest.WithCompany,
         withImage: true,
       }, true, false);
-    // Return
     res.json(site);
     next();
   }
@@ -293,7 +287,6 @@ export default class SiteService {
     }
     // Add Auth flags
     await AuthorizationService.addSitesAuthorizations(req.tenant, req.user, sites as SiteDataResult, authorizationSitesFilter);
-    // Return
     res.json(sites);
     next();
   }
@@ -366,7 +359,6 @@ export default class SiteService {
     } as Site;
     // Save
     site.id = await SiteStorage.saveSite(req.tenant, site);
-    // Log
     await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleCreateSite',
@@ -428,7 +420,6 @@ export default class SiteService {
     site.lastChangedOn = new Date();
     // Save
     await SiteStorage.saveSite(req.tenant, site, Utils.objectHasProperty(filteredRequest, 'image') ? true : false);
-    // Log
     await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateSite',
