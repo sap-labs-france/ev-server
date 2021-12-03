@@ -54,7 +54,7 @@ choco install -y nodejs-lts mongodb python postman robot3t microsoft-build-tools
 
 ```shell
 brew tap mongodb/brew
-brew install node mongodb-community@4.2 python@3.9 postman robo-3t
+brew install node mongodb-community@4.4 python@3.9 postman robo-3t
 ```
 
 * Follow the rest of the setup below
