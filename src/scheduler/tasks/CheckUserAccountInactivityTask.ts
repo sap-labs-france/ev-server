@@ -12,8 +12,7 @@ import Utils from '../../utils/Utils';
 import moment from 'moment';
 
 export default class CheckUserAccountInactivityTask extends SchedulerTask {
-
-  async processTenant(tenant: Tenant, config: CheckUserAccountInactivityTaskConfig): Promise<void> {
+  public async processTenant(tenant: Tenant, config: CheckUserAccountInactivityTaskConfig): Promise<void> {
     // Get the lock
     const accountInactivityLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.USER, 'check-account-inactivity');
     if (await LockingManager.acquire(accountInactivityLock)) {

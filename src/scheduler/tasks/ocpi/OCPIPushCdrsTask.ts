@@ -17,8 +17,7 @@ import global from '../../../types/GlobalType';
 const MODULE_NAME = 'OCPIPushCdrsTask';
 
 export default class OCPIPushCdrsTask extends SchedulerTask {
-
-  async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
+  public async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     try {
       // Check if OCPI component is active
       if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {

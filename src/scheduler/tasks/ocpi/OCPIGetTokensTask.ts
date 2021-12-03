@@ -17,8 +17,7 @@ import Utils from '../../../utils/Utils';
 const MODULE_NAME = 'OCPIGetTokensTask';
 
 export default class OCPIGetTokensTask extends SchedulerTask {
-
-  async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
+  public async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     try {
       // Check if OCPI component is active
       if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
