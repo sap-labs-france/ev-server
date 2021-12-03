@@ -1,21 +1,22 @@
-import { AccountVerificationNotification, AdminAccountVerificationNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, VerificationEmailNotification } from '../../types/UserNotifications';
+import fs from 'fs';
+
+import ejs from 'ejs';
 import { Message, SMTPClient, SMTPError } from 'emailjs';
+import rfc2047 from 'rfc2047';
 
 import BackendError from '../../exception/BackendError';
-import Configuration from '../../utils/Configuration';
-import Constants from '../../utils/Constants';
 import EmailConfiguration from '../../types/configuration/EmailConfiguration';
-import Logging from '../../utils/Logging';
-import NotificationTask from '../NotificationTask';
+import global from '../../types/GlobalType';
 import { ServerAction } from '../../types/Server';
-import TemplateManager from '../../utils/TemplateManager';
 import Tenant from '../../types/Tenant';
 import User from '../../types/User';
+import { AccountVerificationNotification, AdminAccountVerificationNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, VerificationEmailNotification } from '../../types/UserNotifications';
+import Configuration from '../../utils/Configuration';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
+import TemplateManager from '../../utils/TemplateManager';
 import Utils from '../../utils/Utils';
-import ejs from 'ejs';
-import fs from 'fs';
-import global from '../../types/GlobalType';
-import rfc2047 from 'rfc2047';
+import NotificationTask from '../NotificationTask';
 
 const MODULE_NAME = 'EMailNotificationTask';
 
@@ -296,18 +297,14 @@ export default class EMailNotificationTask implements NotificationTask {
 
   private async prepareAndSendEmail(templateName: string, data: any, user: User, tenant: Tenant, severity: NotificationSeverity, useSmtpClientBackup = false): Promise<void> {
     try {
-      // Check users
       if (!user) {
-        // Error
         throw new BackendError({
           action: ServerAction.EMAIL_NOTIFICATION,
           module: MODULE_NAME, method: 'prepareAndSendEmail',
           message: `No User is provided for '${templateName}'`
         });
       }
-      // Check email
       if (!user.email) {
-        // Error
         throw new BackendError({
           actionOnUser: user,
           action: ServerAction.EMAIL_NOTIFICATION,
@@ -325,7 +322,6 @@ export default class EMailNotificationTask implements NotificationTask {
           message: `No Email template found for '${templateName}'`
         });
       }
-      // Render the localized template ---------------------------------------
       // Render the subject
       emailTemplate.subject = ejs.render(emailTemplate.subject, data);
       // Render the tenant name
@@ -340,9 +336,9 @@ export default class EMailNotificationTask implements NotificationTask {
       if (emailTemplate.body.header) {
         // Render the title
         emailTemplate.body.header.title = ejs.render(emailTemplate.body.header.title, data);
-        // Charge Angels Logo
+        // Render the left Logo
         emailTemplate.body.header.image.left.url = ejs.render(emailTemplate.body.header.image.left.url, data);
-        // Company Logo
+        // Render the right Logo
         emailTemplate.body.header.image.right.url = ejs.render(emailTemplate.body.header.image.right.url, data);
       }
       if (emailTemplate.body.beforeActionLines) {
@@ -368,8 +364,8 @@ export default class EMailNotificationTask implements NotificationTask {
           action.url = ejs.render(action.url, data);
         }
       }
+      // Render after Action
       if (emailTemplate.body.afterActionLines) {
-        // Render Lines After Action
         emailTemplate.body.afterActionLines =
           emailTemplate.body.afterActionLines.map((afterActionLine) => ejs.render(afterActionLine, data));
         // Remove extra empty lines

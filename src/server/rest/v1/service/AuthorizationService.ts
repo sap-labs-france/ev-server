@@ -321,6 +321,8 @@ export default class AuthorizationService {
     !tags.canExport && delete tags.canExport; // Optimize data over the net
     tags.canUnassign = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAG, Action.UNASSIGN, authorizationFilter);
     !tags.canUnassign && delete tags.canUnassign; // Optimize data over the net
+    tags.canListUsers = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.LIST, authorizationFilter);
+    !tags.canListUsers && delete tags.canListUsers; // Optimize data over the net
     tags.metadata = authorizationFilter.metadata;
     for (const tag of tags.result) {
       await AuthorizationService.addTagAuthorizations(tenant, userToken, tag, authorizationFilter);
@@ -347,6 +349,9 @@ export default class AuthorizationService {
       tag.canAssign = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.TAG, Action.ASSIGN, authorizationFilter, { TagID: tag.id }, tag);
       !tag.canAssign && delete tag.canAssign; // Optimize data over the net
+      tag.canListUsers = await AuthorizationService.canPerformAuthorizationAction(
+        tenant, userToken, Entity.USER, Action.LIST, authorizationFilter);
+      !tag.canListUsers && delete tag.canListUsers; // Optimize data over the net
     }
   }
 

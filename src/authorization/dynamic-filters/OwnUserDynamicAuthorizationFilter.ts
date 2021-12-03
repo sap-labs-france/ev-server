@@ -1,8 +1,7 @@
 import { AuthorizationFilter, DynamicAuthorizationDataSourceName, Entity } from '../../types/Authorization';
-
-import DynamicAuthorizationFilter from '../DynamicAuthorizationFilter';
-import OwnUserDynamicAuthorizationDataSource from '../dynamic-data-source/OwnUserDynamicAuthorizationDataSource';
 import Utils from '../../utils/Utils';
+import OwnUserDynamicAuthorizationDataSource from '../dynamic-data-source/OwnUserDynamicAuthorizationDataSource';
+import DynamicAuthorizationFilter from '../DynamicAuthorizationFilter';
 
 export default class OwnUserDynamicAuthorizationFilter extends DynamicAuthorizationFilter {
   public processFilter(authorizationFilters: AuthorizationFilter, extraFilters: Record<string, any>): void {
@@ -10,6 +9,8 @@ export default class OwnUserDynamicAuthorizationFilter extends DynamicAuthorizat
     const ownUserDataSource = this.getDataSource(
       DynamicAuthorizationDataSourceName.OWN_USER) as OwnUserDynamicAuthorizationDataSource;
     const { userID } = ownUserDataSource.getData();
+    // Clear
+    authorizationFilters.filters.userIDs = [];
     // Check
     if (userID) {
       // Force the filter

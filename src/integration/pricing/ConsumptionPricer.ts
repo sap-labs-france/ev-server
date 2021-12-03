@@ -20,7 +20,7 @@ export default class ConsumptionPricer {
       this.checkPricingDefinitionRestrictions(pricingDefinition)
     );
     // It does not make sense to apply several tariffs to a single consumption
-    this.actualPricingDefinitions = [ actualPricingDefinitions?.[0] ];
+    this.actualPricingDefinitions = [ actualPricingDefinitions[0] ];
   }
 
   public priceConsumption(): PricedConsumptionData {
