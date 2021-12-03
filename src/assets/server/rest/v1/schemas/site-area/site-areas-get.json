@@ -1,0 +1,59 @@
+{
+  "$id": "site-areas-get",
+  "title": "Get Site Areas Request",
+  "type": "object",
+  "properties": {
+    "WithSite": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "WithChargingStations": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "WithAvailableChargers": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "SiteID": {
+      "$ref": "common#/definitions/ids"
+    },
+    "CompanyID": {
+      "$ref": "common#/definitions/ids"
+    },
+    "Issuer": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "LocLongitude": {
+      "$ref": "common#/definitions/LocLongitude"
+    },
+    "LocLatitude": {
+      "$ref": "common#/definitions/LocLatitude"
+    },
+    "LocMaxDistanceMeters": {
+      "$ref": "common#/definitions/LocMaxDistanceMeters"
+    },
+    "Search": {
+      "$ref": "common#/definitions/search"
+    },
+    "SortFields": {
+      "$ref": "common#/definitions/sortFields"
+    },
+    "Limit": {
+      "$ref": "common#/definitions/limit"
+    },
+    "Skip": {
+      "$ref": "common#/definitions/skip"
+    },
+    "OnlyRecordCount": {
+      "$ref": "common#/definitions/onlyRecordCount"
+    },
+    "ProjectFields": {
+      "$ref": "common#/definitions/projectFields"
+    }
+  },
+  "required": [
+    "Limit"
+  ]
+}

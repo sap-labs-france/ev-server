@@ -1,5 +1,4 @@
 /* eslint-disable max-len */
-import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import { PricedConsumption, PricingDimensions, PricingSource, ResolvedPricingDefinition, ResolvedPricingModel } from '../../../types/Pricing';
 
 import ChargingStation from '../../../types/ChargingStation';
@@ -75,14 +74,10 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
       cumulatedAmount: 0,
       cumulatedRoundedAmount: 0,
     };
-    if (!FeatureToggles.isFeatureActive(Feature.PRICING_NEW_MODEL)) {
-      throw new Error('Unexpected situation - this layer should not be called in that context');
-    } else {
-      // New logic - get the amount from the priced data to avoid rounding issues
-      const { cumulatedAmount, cumulatedRoundedAmount } = this.computeCumulatedAmount(pricingModel);
-      pricedConsumption.cumulatedAmount = cumulatedAmount;
-      pricedConsumption.cumulatedRoundedAmount = cumulatedRoundedAmount;
-    }
+    // Get the amount from the priced data to avoid rounding issues
+    const { cumulatedAmount, cumulatedRoundedAmount } = this.computeCumulatedAmount(pricingModel);
+    pricedConsumption.cumulatedAmount = cumulatedAmount;
+    pricedConsumption.cumulatedRoundedAmount = cumulatedRoundedAmount;
     return Promise.resolve(pricedConsumption);
   }
 
@@ -98,35 +93,22 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
 
   private async resolvePricingContext(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation): Promise<ResolvedPricingModel> {
     const resolvedPricingModel: ResolvedPricingModel = await PricingEngine.resolvePricingContext(tenant, transaction, chargingStation);
-    if (!resolvedPricingModel.pricingDefinitions?.length) {
-      resolvedPricingModel.pricingDefinitions = [ this.getDefaultPricingDefinition() ];
-      await Logging.logWarning({
-        tenantID: this.tenant.id,
-        module: MODULE_NAME,
-        action: ServerAction.PRICING,
-        method: 'resolvePricingContext',
-        message: 'No pricing definition found - Simple Pricing logic will be used as a fallback',
-        detailedMessages: { resolvedPricingModel },
-        ...LoggingHelper.getTransactionProperties(transaction)
-      });
-    }
+    // Fallback when no pricing definition matches
+    resolvedPricingModel.pricingDefinitions.push(this.getDefaultPricingDefinition());
     return resolvedPricingModel;
   }
 
   private getDefaultPricingDefinition(): ResolvedPricingDefinition {
-    // Defaults to the simple pricing settings
     const simplePricingDefinition: ResolvedPricingDefinition = {
-      // TODO - translate default tariff name
-      name: 'Default Tariff',
-      description: 'Tariff based on simple pricing settings',
+      name: 'No Tariff',
+      description: 'Tariff used when no other pricing definition matches',
       dimensions: {
         energy: {
           active: true,
-          price: this.setting.price,
+          price: 0, // this.setting.price,
         }
       }
     };
     return simplePricingDefinition;
   }
-
 }

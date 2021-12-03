@@ -33,6 +33,8 @@ export default class SchemaValidator {
   private static oicpEndpointSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/oicp/oicp-endpoint.json`, 'utf8'));
   private static settingSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/setting/setting.json`, 'utf8'));
   private static registrationTokenSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/registration-token/registration-token.json`, 'utf8'));
+  private static siteAreasSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/site-area/site-area.json`, 'utf8'));
+  private static siteSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/site/site.json`, 'utf8'));
   private readonly ajv: Ajv;
 
   constructor(readonly moduleName: string,
@@ -71,7 +73,9 @@ export default class SchemaValidator {
       SchemaValidator.pricingDefinitionSchema,
       SchemaValidator.oicpEndpointSchema,
       SchemaValidator.settingSchema,
-      SchemaValidator.registrationTokenSchema
+      SchemaValidator.registrationTokenSchema,
+      SchemaValidator.siteAreasSchema,
+      SchemaValidator.siteSchema
     ]);
   }
 

@@ -1,0 +1,23 @@
+{
+  "$id": "site-area-get-consumption",
+  "title": "Get Site Area Consumption Request",
+  "type": "object",
+  "properties": {
+    "SiteAreaID": {
+      "$ref": "common#/definitions/id"
+    },
+    "StartDate": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "EndDate": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "SiteAreaID",
+    "StartDate",
+    "EndDate"
+  ]
+}
