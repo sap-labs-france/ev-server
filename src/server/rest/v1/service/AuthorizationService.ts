@@ -1,6 +1,6 @@
 import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity, SiteAreaAuthorizationActions, TagAuthorizationActions } from '../../../../types/Authorization';
 import { Car, CarCatalog } from '../../../../types/Car';
-import { CarCatalogDataResult, CarDataResult, CompanyDataResult, LogDataResult, PricingDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, UserDataResult } from '../../../../types/DataResult';
+import { CarCatalogDataResult, CarDataResult, CompanyDataResult, LogDataResult, PricingDefinitionDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, UserDataResult } from '../../../../types/DataResult';
 import { HttpCarCatalogRequest, HttpCarCatalogsRequest, HttpCarRequest, HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
 import { HttpChargingStationRequest, HttpChargingStationsRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
@@ -412,7 +412,7 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
-  public static async addPricingDefinitionsAuthorizations(tenant: Tenant, userToken: UserToken, dataResult: PricingDataResult, filter: AuthorizationFilter): Promise<void> {
+  public static async addPricingDefinitionsAuthorizations(tenant: Tenant, userToken: UserToken, dataResult: PricingDefinitionDataResult, filter: AuthorizationFilter): Promise<void> {
     // Add canCreate flag to root
     dataResult.canCreate = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.PRICING_DEFINITION, Action.CREATE, filter);

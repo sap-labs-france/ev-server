@@ -64,7 +64,7 @@ export default class PricingStorage {
   }
 
   public static async getPricingDefinition(tenant: Tenant, id: string,
-      params: { entityID?: string; entityType?: string; withEntityInformation?: boolean; siteIDs?: string[];} = {}, projectFields?: string[]): Promise<PricingDefinition> {
+      params: { entityID?: string; entityType?: PricingEntity; withEntityInformation?: boolean; siteIDs?: string[];} = {}, projectFields?: string[]): Promise<PricingDefinition> {
     const pricingDefinitionMDB = await PricingStorage.getPricingDefinitions(tenant, {
       siteIDs: params.siteIDs,
       pricingDefinitionIDs: [id],
@@ -76,7 +76,7 @@ export default class PricingStorage {
   }
 
   public static async getPricingDefinitions(tenant: Tenant,
-      params: { pricingDefinitionIDs?: string[], entityType?: string; entityID?: string; siteIDs?: string[]; withEntityInformation?: boolean; },
+      params: { pricingDefinitionIDs?: string[], entityType?: PricingEntity; entityID?: string; siteIDs?: string[]; withEntityInformation?: boolean; },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<PricingDefinition>> {
     const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant

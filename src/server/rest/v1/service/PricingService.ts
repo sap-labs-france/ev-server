@@ -8,7 +8,7 @@ import ChargingStation from '../../../../types/ChargingStation';
 import Constants from '../../../../utils/Constants';
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
-import { PricingDataResult } from '../../../../types/DataResult';
+import { PricingDefinitionDataResult } from '../../../../types/DataResult';
 import PricingStorage from '../../../../storage/mongodb/PricingStorage';
 import PricingValidator from '../validator/PricingValidator';
 import { ServerAction } from '../../../../types/Server';
@@ -62,16 +62,32 @@ export default class PricingService {
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       authorizationPricingDefinitionsFilter.projectFields
-    );
+    ) as PricingDefinitionDataResult;
     // Assign projected fields
     if (authorizationPricingDefinitionsFilter.projectFields) {
       pricingDefinitions.projectFields = authorizationPricingDefinitionsFilter.projectFields;
     }
     // Add Auth flags
-    await AuthorizationService.addPricingDefinitionsAuthorizations(req.tenant, req.user, pricingDefinitions as PricingDataResult, authorizationPricingDefinitionsFilter);
+    await AuthorizationService.addPricingDefinitionsAuthorizations(req.tenant, req.user, pricingDefinitions , authorizationPricingDefinitionsFilter);
+    // Alter the canCreate flag according to the pricing definition context
+    pricingDefinitions.canCreate = await PricingService.alterCanCreate(req, action, filteredRequest.EntityType, filteredRequest.EntityID, pricingDefinitions.canCreate);
     // Return
     res.json(pricingDefinitions);
     next();
+  }
+
+  public static async alterCanCreate(req: Request, action: ServerAction, entityType: PricingEntity, entityID: string, canCreate: boolean): Promise<boolean> {
+    try {
+    // Get the site ID for the current entity
+      const siteID = await PricingService.checkAuthorizationAndGetSiteID(req, action, entityType, entityID);
+      if (siteID) {
+        // TODO: To be clarified - Here we reuse the Site UPDATE permission to determine whether we can create a pricing definition or not
+        await UtilsService.checkAndGetSiteAuthorization(req.tenant, req.user, siteID, Action.UPDATE, action);
+      }
+    } catch (e) {
+      canCreate = false;
+    }
+    return canCreate;
   }
 
   public static async handleCreatePricingDefinition(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -94,7 +110,7 @@ export default class PricingService {
       });
     }
     // Check authorization and get the site ID depending on the entity type
-    const siteID = await PricingService.checkAuthorizationAndGetSiteID(req, action, filteredRequest);
+    const siteID = await PricingService.checkAuthorizationAndGetSiteID(req, action, filteredRequest.entityType, filteredRequest.entityID);
     // Create pricing
     const newPricingDefinition: PricingDefinition = {
       ...filteredRequest,
@@ -130,7 +146,7 @@ export default class PricingService {
     const pricingDefinition = await UtilsService.checkAndGetPricingDefinitionAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest);
     // Check authorization and get the site ID depending on the entity type
-    const siteID = await PricingService.checkAuthorizationAndGetSiteID(req, action, filteredRequest);
+    const siteID = await PricingService.checkAuthorizationAndGetSiteID(req, action, filteredRequest.entityType, filteredRequest.entityID);
     // Update
     pricingDefinition.entityID = filteredRequest.entityID;
     pricingDefinition.entityType = filteredRequest.entityType;
@@ -181,24 +197,24 @@ export default class PricingService {
     next();
   }
 
-  private static async checkAuthorizationAndGetSiteID(req: Request, action: ServerAction, filteredRequest: PricingDefinition): Promise<string> {
-    let siteID;
+  private static async checkAuthorizationAndGetSiteID(req: Request, action: ServerAction, entityType: PricingEntity, entityID: string): Promise<string> {
+    let siteID: string;
     let site: Site, siteArea: SiteArea, chargingStation: ChargingStation;
-    switch (filteredRequest.entityType) {
+    switch (entityType) {
       case PricingEntity.COMPANY:
-        await UtilsService.checkAndGetCompanyAuthorization(req.tenant, req.user, filteredRequest.entityID, Action.READ, action);
+        await UtilsService.checkAndGetCompanyAuthorization(req.tenant, req.user, entityID, Action.READ, action);
         siteID = null;
         break;
       case PricingEntity.SITE:
-        site = await UtilsService.checkAndGetSiteAuthorization(req.tenant, req.user, filteredRequest.entityID, Action.READ, action);
+        site = await UtilsService.checkAndGetSiteAuthorization(req.tenant, req.user, entityID, Action.READ, action);
         siteID = site.id;
         break;
       case PricingEntity.SITE_AREA:
-        siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(req.tenant, req.user, filteredRequest.entityID, Action.READ, action);
+        siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(req.tenant, req.user, entityID, Action.READ, action);
         siteID = siteArea.siteID;
         break;
       case PricingEntity.CHARGING_STATION:
-        chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(req.tenant, req.user, filteredRequest.entityID, action);
+        chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(req.tenant, req.user, entityID, action);
         siteID = chargingStation.siteID;
         break;
       default:
@@ -207,3 +223,4 @@ export default class PricingService {
     return siteID;
   }
 }
+
