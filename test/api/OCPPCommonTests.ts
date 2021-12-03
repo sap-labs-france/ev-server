@@ -6,6 +6,7 @@ import chai, { assert, expect } from 'chai';
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
 import Constants from '../../src/utils/Constants';
+import ContextDefinition from './context/ContextDefinition';
 import Factory from '../factories/Factory';
 import { OCPPStatus } from '../../src/types/ocpp/OCPPClient';
 import { StatusCodes } from 'http-status-codes';
@@ -29,7 +30,6 @@ export default class OCPPCommonTests {
   public centralUserService: CentralServerService;
 
   public currentPricingSetting;
-  public pricekWh = 2;
 
   public chargingStationConnector1: OCPPStatusNotificationRequest;
   public chargingStationConnector2: OCPPStatusNotificationRequest;
@@ -126,11 +126,6 @@ export default class OCPPCommonTests {
   }
 
   public async before(): Promise<void> {
-    const allSettings = await this.centralUserService.settingApi.readAll({});
-    this.currentPricingSetting = allSettings.data.result.find((s) => s.identifier === 'pricing');
-    if (this.currentPricingSetting) {
-      await this.centralUserService.updatePriceSetting(this.pricekWh, 'EUR');
-    }
     // Default Connector values
     this.chargingStationConnector1 = {
       connectorId: 1,
@@ -510,7 +505,7 @@ export default class OCPPCommonTests {
     for (let index = 0; index <= this.energyActiveImportMeterValues.length - 2; index++) {
       // Set new meter value
       currentCumulatedPrice = Utils.createDecimal(currentCumulatedPrice).plus(
-        Utils.computeSimplePrice(this.pricekWh, this.energyActiveImportMeterValues[index])).toNumber();
+        Utils.computeSimplePrice(ContextDefinition.DEFAULT_PRICE, this.energyActiveImportMeterValues[index])).toNumber();
       if (index === this.energyActiveImportMeterValues.length - 2) {
         this.totalPrice = currentCumulatedPrice;
       }
@@ -656,7 +651,7 @@ export default class OCPPCommonTests {
       }
     });
     // Check priced data
-    const totalTransactionPrice = Utils.computeSimplePrice(this.pricekWh, this.transactionTotalConsumptionWh);
+    const totalTransactionPrice = Utils.computeSimplePrice(ContextDefinition.DEFAULT_PRICE, this.transactionTotalConsumptionWh);
     assert(Utils.createDecimal(this.totalPrice).equals(totalTransactionPrice), `The total transaction price should be: ${totalTransactionPrice} - actual value is: ${this.totalPrice}`);
     // Check STOP priced data
     this.checkPricedTransactionData(transactionValidation.data);
@@ -691,7 +686,7 @@ export default class OCPPCommonTests {
       }
     });
     // Check priced data
-    const totalTransactionPrice = Utils.computeSimplePrice(this.pricekWh, this.transactionTotalConsumptionWh);
+    const totalTransactionPrice = Utils.computeSimplePrice(ContextDefinition.DEFAULT_PRICE, this.transactionTotalConsumptionWh);
     assert(this.totalPrice === totalTransactionPrice, `The total transaction price should be: ${totalTransactionPrice} - actual value is: ${this.totalPrice}`);
     // Check STOP priced data
     this.checkPricedTransactionData(response.data);
