@@ -340,7 +340,7 @@ const config = convict({
         default: 'https://api.kheiron-sp.io'
       },
       meterID: {
-        doc: 'Meter ID to connect asset to',
+        doc: 'Meter ID of asset',
         format: String,
         default: ''
       }

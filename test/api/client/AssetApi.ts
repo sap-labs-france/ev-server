@@ -40,9 +40,4 @@ export default class AssetApi extends CrudApi {
   public async retrieveLatestConsumption(id: string): Promise<any> {
     return super.read(id, this.buildRestEndpointUrl(ServerRoute.REST_ASSET_RETRIEVE_CONSUMPTION, { id }));
   }
-
-  // public async createConsumption(data: Consumption): Promise<any> {
-  //   return super.create(data, this.buildRestEndpointUrl(ServerRoute.REST_ASSET_CONSUMPTIONS));
-  // }
-
 }
