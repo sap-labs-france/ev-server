@@ -235,7 +235,7 @@ export default class SiteService {
       req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {
         withCompany: filteredRequest.WithCompany,
         withImage: true,
-      }, true, false);
+      }, true);
     res.json(site);
     next();
   }

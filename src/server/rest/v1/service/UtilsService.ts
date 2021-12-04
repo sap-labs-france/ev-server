@@ -158,7 +158,7 @@ export default class UtilsService {
   }
 
   public static async checkAndGetCompanyAuthorization(tenant: Tenant, userToken: UserToken, companyID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false, checkIssuer = true): Promise<Company> {
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Company> {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, companyID, MODULE_NAME, 'checkAndGetCompanyAuthorization', userToken);
     // Get dynamic auth
@@ -184,16 +184,6 @@ export default class UtilsService {
     );
     UtilsService.assertObjectExists(action, company, `Company ID '${companyID}' does not exist`,
       MODULE_NAME, 'checkAndGetCompanyAuthorization', userToken);
-    // External Company
-    if (checkIssuer && !company.issuer) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `Company '${company.name}' with ID '${company.id}' not issued by the organization`,
-        module: MODULE_NAME, method: 'checkAndGetCompanyAuthorization',
-        user: userToken,
-        action: action,
-      });
-    }
     // Assign projected fields
     if (authorizationFilter.projectFields) {
       company.projectFields = authorizationFilter.projectFields;
@@ -280,7 +270,7 @@ export default class UtilsService {
   }
 
   public static async checkAndGetSiteAuthorization(tenant: Tenant, userToken: UserToken, siteID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false, checkIssuer = true): Promise<Site> {
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Site> {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, siteID, MODULE_NAME, 'checkAndGetSiteAuthorization', userToken);
     // Get dynamic auth
@@ -306,16 +296,6 @@ export default class UtilsService {
     );
     UtilsService.assertObjectExists(action, site, `Site ID '${siteID}' does not exist`,
       MODULE_NAME, 'checkAndGetSiteAuthorization', userToken);
-    // External Site
-    if (checkIssuer && !site.issuer) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `Site '${site.name}' with ID '${site.id}' not issued by the organization`,
-        module: MODULE_NAME, method: 'checkAndGetSiteAuthorization',
-        user: userToken,
-        action: action
-      });
-    }
     // Assign projected fields
     if (authorizationFilter.projectFields) {
       site.projectFields = authorizationFilter.projectFields;
