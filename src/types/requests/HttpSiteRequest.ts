@@ -11,6 +11,7 @@ export interface HttpSitesRequest extends HttpDatabaseRequest {
   Search: string;
   Issuer: boolean;
   WithAvailableChargers: boolean;
+  SiteAdmin: boolean;
   WithCompany: boolean;
   UserID: string;
   CompanyID: string;

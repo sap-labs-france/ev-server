@@ -146,7 +146,7 @@ export default class SiteAreaService {
         withSite: filteredRequest.WithSite,
         withChargingStations: filteredRequest.WithChargingStations,
         withImage: true,
-      }, true, false);
+      }, true);
     res.json(siteArea);
     next();
   }
@@ -281,8 +281,7 @@ export default class SiteAreaService {
     }
     // Check Site auth
     await UtilsService.checkAndGetSiteAuthorization(
-      req.tenant, req.user, filteredRequest.siteID, Action.READ,
-      action);
+      req.tenant, req.user, filteredRequest.siteID, Action.UPDATE, action);
     // Create Site Area
     const newSiteArea: SiteArea = {
       ...filteredRequest,
@@ -315,7 +314,7 @@ export default class SiteAreaService {
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest, {
         withChargingStations: true,
-      }, false, true);
+      }, false);
     // Check Site auth
     await UtilsService.checkAndGetSiteAuthorization(
       req.tenant, req.user, filteredRequest.siteID, Action.READ, action);

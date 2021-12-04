@@ -148,8 +148,10 @@ export enum Action {
   UNASSIGN_USERS_TO_SITE = 'UnassignUsersToSite',
   ASSIGN_ASSETS_TO_SITE_AREA = 'AssignAssetsToSiteArea',
   UNASSIGN_ASSETS_TO_SITE_AREA = 'UnassignAssetsToSiteArea',
+  READ_ASSETS_FROM_SITE_AREA = 'ReadAssetsFromSiteArea',
   ASSIGN_CHARGING_STATIONS_TO_SITE_AREA = 'AssignChargingStationsToSiteArea',
   UNASSIGN_CHARGING_STATIONS_TO_SITE_AREA = 'UnassignChargingStationsToSiteArea',
+  READ_CHARGING_STATIONS_FROM_SITE_AREA = 'ReadChargingStationsFromSiteArea',
   EXPORT_OCPP_PARAMS = 'ExportOCPPParams',
   GENERATE_QR = 'GenerateQrCode',
 }
@@ -192,8 +194,10 @@ export interface TagAuthorizationActions extends AuthorizationActions {
 export interface SiteAreaAuthorizationActions extends AuthorizationActions {
   canAssignAssets?: boolean;
   canUnassignAssets?: boolean;
+  canReadAssets?: boolean;
   canAssignChargingStations?: boolean;
   canUnassignChargingStations?: boolean;
+  canReadChargingStations?: boolean;
   canExportOCPPParams?: boolean;
   canGenerateQrCode?: boolean;
 }

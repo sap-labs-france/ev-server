@@ -16,11 +16,12 @@ const MODULE_NAME = 'CompanyStorage';
 export default class CompanyStorage {
 
   public static async getCompany(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID,
-      params: { withLogo?: boolean; } = {},
+      params: { withLogo?: boolean; issuer?: boolean; } = {},
       projectFields?: string[]): Promise<Company> {
     const companiesMDB = await CompanyStorage.getCompanies(tenant, {
       companyIDs: [id],
       withLogo: params.withLogo,
+      issuer: params.issuer,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return companiesMDB.count === 1 ? companiesMDB.result[0] : null;
   }
@@ -117,8 +118,10 @@ export default class CompanyStorage {
     if (params.search) {
       filters.$or = [
         { 'name': { $regex: params.search, $options: 'i' } },
+        { 'address.postalCode': { $regex: params.search, $options: 'i' } },
         { 'address.city': { $regex: params.search, $options: 'i' } },
-        { 'address.country': { $regex: params.search, $options: 'i' } }
+        { 'address.region': { $regex: params.search, $options: 'i' } },
+        { 'address.country': { $regex: params.search, $options: 'i' } },
       ];
     }
     // Limit on Company for Basic Users
