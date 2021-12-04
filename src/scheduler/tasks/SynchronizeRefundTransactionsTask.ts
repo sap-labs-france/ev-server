@@ -15,7 +15,7 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'SynchronizeRefundTransactionsTask';
 
 export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
-  async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
+  public async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     if (!Utils.isTenantComponentActive(tenant, TenantComponents.REFUND)) {
       await Logging.logDebug({
         tenantID: tenant.id,

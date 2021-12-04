@@ -377,7 +377,17 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteAdmin', 'siteOwner', 'siteID'
         ]
       },
-      { resource: Entity.USERS_SITES, action: [Action.ASSIGN, Action.UNASSIGN] },
+      {
+        resource: Entity.USERS_SITES,
+        action: [Action.ASSIGN, Action.UNASSIGN, Action.READ],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['LocalIssuer']
+          }
+        },
+      },
       { resource: Entity.PAYMENT_METHOD, action: Action.LIST },
       { resource: Entity.PAYMENT_METHOD, action: [Action.READ, Action.CREATE, Action.DELETE] },
     ]
@@ -944,6 +954,17 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteAdmin', 'siteOwner', 'siteID'
         ]
+      },
+      {
+        resource: Entity.USERS_SITES,
+        action: Action.READ,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['LocalIssuer']
+          }
+        },
       },
       {
         resource: Entity.SITE, action: [Action.UPDATE],

@@ -404,7 +404,7 @@ export default class OCPPService {
       // Save
       await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
       // Notify
-      this.notifyStartTransaction(tenant, newTransaction, chargingStation, user);
+      await this.notifyStartTransaction(tenant, newTransaction, chargingStation, user);
       // Log
       await Logging.logInfo({
         tenantID: tenant.id,
@@ -510,7 +510,7 @@ export default class OCPPService {
       // Save the transaction
       await TransactionStorage.saveTransaction(tenant, transaction);
       // Notify User
-      this.notifyStopTransaction(tenant, chargingStation, transaction, user, alternateUser);
+      await this.notifyStopTransaction(tenant, chargingStation, transaction, user, alternateUser);
       // Recompute the Smart Charging Plan
       await this.triggerSmartChargingStopTransaction(tenant, chargingStation, transaction);
       await Logging.logInfo({
@@ -950,7 +950,7 @@ export default class OCPPService {
         message: `${Utils.buildConnectorInfo(connector.connectorId)} Error occurred: ${this.buildStatusNotification(statusNotification)}`
       });
       // Send Notification (Async)
-      void NotificationHandler.sendChargingStationStatusError(
+      await NotificationHandler.sendChargingStationStatusError(
         tenant,
         Utils.generateUUID(),
         chargingStation,
@@ -1159,12 +1159,12 @@ export default class OCPPService {
     }
   }
 
-  private notifyEndOfCharge(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction) {
+  private async notifyEndOfCharge(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction) {
     if (this.chargingStationConfig.notifEndOfChargeEnabled && transaction.user) {
       // Get the i18n lib
       const i18nManager = I18nManager.getInstanceForLocale(transaction.user.locale);
       // Notify (Async)
-      void NotificationHandler.sendEndOfCharge(
+      await NotificationHandler.sendEndOfCharge(
         tenant,
         transaction.id.toString() + '-EOC',
         transaction.user,
@@ -1187,12 +1187,12 @@ export default class OCPPService {
     }
   }
 
-  private notifyOptimalChargeReached(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction) {
+  private async notifyOptimalChargeReached(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction) {
     if (this.chargingStationConfig.notifBeforeEndOfChargeEnabled && transaction.user) {
       // Get the i18n lib
       const i18nManager = I18nManager.getInstanceForLocale(transaction.user.locale);
       // Notification Before End Of Charge (Async)
-      void NotificationHandler.sendOptimalChargeReached(
+      await NotificationHandler.sendOptimalChargeReached(
         tenant,
         transaction.id.toString() + '-OCR',
         transaction.user,
@@ -1222,11 +1222,11 @@ export default class OCPPService {
         // Check if battery is full (100%)
         if (transaction.currentStateOfCharge === 100) {
           // Send Notification
-          this.notifyEndOfCharge(tenant, chargingStation, transaction);
+          await this.notifyEndOfCharge(tenant, chargingStation, transaction);
         // Check if optimal charge has been reached (85%)
         } else if (transaction.currentStateOfCharge >= this.chargingStationConfig.notifBeforeEndOfChargePercent) {
           // Send Notification
-          this.notifyOptimalChargeReached(tenant, chargingStation, transaction);
+          await this.notifyOptimalChargeReached(tenant, chargingStation, transaction);
         }
       // No battery information: check last consumptions
       } else {
@@ -1245,7 +1245,7 @@ export default class OCPPService {
                consumption.limitAmps >= StaticLimitAmps.MIN_LIMIT_PER_PHASE * Utils.getNumberOfConnectedPhases(chargingStation, null, transaction.connectorId)));
             // Send Notification
             if (noConsumption) {
-              this.notifyEndOfCharge(tenant, chargingStation, transaction);
+              await this.notifyEndOfCharge(tenant, chargingStation, transaction);
             }
           }
         }
@@ -1451,9 +1451,9 @@ export default class OCPPService {
     } while (activeTransaction);
   }
 
-  private notifyStartTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, user: User) {
+  private async notifyStartTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, user: User) {
     if (user) {
-      void NotificationHandler.sendSessionStarted(
+      await NotificationHandler.sendSessionStarted(
         tenant,
         transaction.id.toString(),
         user,
@@ -1494,13 +1494,13 @@ export default class OCPPService {
     return transaction.tagID;
   }
 
-  private notifyStopTransaction(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction, user: User, alternateUser: User) {
+  private async notifyStopTransaction(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction, user: User, alternateUser: User) {
     // User provided?
     if (user) {
       // Get the i18n lib
       const i18nManager = I18nManager.getInstanceForLocale(user.locale);
       // Send Notification (Async)
-      void NotificationHandler.sendEndOfSession(
+      await NotificationHandler.sendEndOfSession(
         tenant,
         transaction.id.toString() + '-EOS',
         user,
@@ -1525,7 +1525,7 @@ export default class OCPPService {
       // Notify Signed Data
       if (transaction.stop.signedData !== '') {
         // Send Notification (Async)
-        void NotificationHandler.sendEndOfSignedSession(
+        await NotificationHandler.sendEndOfSignedSession(
           tenant,
           transaction.id.toString() + '-EOSS',
           user,
@@ -1846,8 +1846,8 @@ export default class OCPPService {
     return templateUpdateResult;
   }
 
-  private notifyBootNotification(tenant: Tenant, chargingStation: ChargingStation) {
-    void NotificationHandler.sendChargingStationRegistered(
+  private async notifyBootNotification(tenant: Tenant, chargingStation: ChargingStation) {
+    await NotificationHandler.sendChargingStationRegistered(
       tenant,
       Utils.generateUUID(),
       chargingStation,
