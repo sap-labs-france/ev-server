@@ -88,27 +88,23 @@ export default class AuthorizationService {
   }
 
   public static async addSiteAuthorizations(tenant: Tenant, userToken: UserToken, site: Site, authorizationFilter: AuthorizationFilter): Promise<void> {
-    if (!site.issuer) {
-      site.canRead = true;
-    } else {
-      site.canRead = true; // Always true as it should be filtered upfront
-      site.canDelete = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.SITE, Action.DELETE, authorizationFilter, { SiteID: site.id }, site);
-      site.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.SITE, Action.UPDATE, authorizationFilter, { SiteID: site.id }, site);
-      site.canExportOCPPParams = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.SITE_AREA, Action.EXPORT_OCPP_PARAMS, authorizationFilter, { SiteID: site.id }, site);
-      site.canGenerateQrCode = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.SITE_AREA, Action.GENERATE_QR, authorizationFilter, { SiteID: site.id }, site);
-      site.canAssignUsers = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.USERS_SITES, Action.ASSIGN, authorizationFilter, { SiteID: site.id }, site);
-      site.canUnassignUsers = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.USERS_SITES, Action.UNASSIGN, authorizationFilter, { SiteID: site.id }, site);
-      site.canReadUsers = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.USERS_SITES, Action.READ, authorizationFilter, { SiteID: site.id }, site);
-      // Optimize data over the net
-      Utils.removeCanPropertiesWithFalseValue(site);
-    }
+    site.canRead = true; // Always true as it should be filtered upfront
+    site.canDelete = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.SITE, Action.DELETE, authorizationFilter, { SiteID: site.id }, site);
+    site.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.SITE, Action.UPDATE, authorizationFilter, { SiteID: site.id }, site);
+    site.canExportOCPPParams = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.SITE_AREA, Action.EXPORT_OCPP_PARAMS, authorizationFilter, { SiteID: site.id }, site);
+    site.canGenerateQrCode = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.SITE_AREA, Action.GENERATE_QR, authorizationFilter, { SiteID: site.id }, site);
+    site.canAssignUsers = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.USERS_SITES, Action.ASSIGN, authorizationFilter, { SiteID: site.id }, site);
+    site.canUnassignUsers = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.USERS_SITES, Action.UNASSIGN, authorizationFilter, { SiteID: site.id }, site);
+    site.canReadUsers = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.USERS_SITES, Action.READ, authorizationFilter, { SiteID: site.id }, site);
+    // Optimize data over the net
+    Utils.removeCanPropertiesWithFalseValue(site);
   }
 
   public static async addLogsAuthorizations(tenant: Tenant, userToken: UserToken, logs: LogDataResult, authorizationFilter: AuthorizationFilter): Promise<void> {
@@ -366,17 +362,13 @@ export default class AuthorizationService {
   }
 
   public static async addCompanyAuthorizations(tenant: Tenant, userToken: UserToken, company: Company, authorizationFilter: AuthorizationFilter): Promise<void> {
-    if (!company.issuer) {
-      company.canRead = true;
-    } else {
-      company.canRead = true; // Always true as it should be filtered upfront
-      company.canDelete = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.COMPANY, Action.DELETE, authorizationFilter, { CompanyID: company.id }, company);
-      company.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.COMPANY, Action.UPDATE, authorizationFilter, { CompanyID: company.id }, company);
-      // Optimize data over the net
-      Utils.removeCanPropertiesWithFalseValue(company);
-    }
+    company.canRead = true; // Always true as it should be filtered upfront
+    company.canDelete = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.COMPANY, Action.DELETE, authorizationFilter, { CompanyID: company.id }, company);
+    company.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.COMPANY, Action.UPDATE, authorizationFilter, { CompanyID: company.id }, company);
+    // Optimize data over the net
+    Utils.removeCanPropertiesWithFalseValue(company);
   }
 
   public static async checkAndGetCompanyAuthorizations(tenant: Tenant, userToken: UserToken,
