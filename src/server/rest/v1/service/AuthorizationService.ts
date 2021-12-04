@@ -110,6 +110,9 @@ export default class AuthorizationService {
       site.canUnassignUsers = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.USERS_SITES, Action.UNASSIGN, authorizationFilter, { SiteID: site.id }, site);
       !site.canUnassignUsers && delete site.canUnassignUsers; // Optimize data over the net
+      site.canReadUsers = await AuthorizationService.canPerformAuthorizationAction(
+        tenant, userToken, Entity.USERS_SITES, Action.READ, authorizationFilter, { SiteID: site.id }, site);
+      !site.canReadUsers && delete site.canReadUsers; // Optimize data over the net
     }
   }
 
