@@ -723,7 +723,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       { resource: Entity.TRANSACTION, action: [Action.LIST, Action.EXPORT] },
       {
-        resource: Entity.TRANSACTION, action: [Action.READ],
+        resource: Entity.TRANSACTION, action: [Action.READ, Action.UPDATE],
         condition: {
           Fn: 'OR',
           args: [
@@ -1128,7 +1128,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
       },
       {
-        resource: Entity.TRANSACTION, action: [Action.READ],
+        resource: Entity.TRANSACTION, action: [Action.READ, Action.UPDATE],
         condition: {
           Fn: 'LIST_CONTAINS',
           args: { 'sitesAdmin': '$.site' }
