@@ -278,10 +278,13 @@ export default class SiteAreaStorage {
         $addFields: {
           image: {
             $concat: [
-              `${Utils.buildRestServerURL()}/client/util/SiteAreaImage?ID=`,
+              `${Utils.buildRestServerURL()}/v1/util/site-areas/`,
               { $toString: '$_id' },
-              `&TenantID=${tenant.id}&LastChangedOn=`,
-              { $toString: '$lastChangedOn' }
+              '/image',
+              `?TenantID=${tenant.id}`,
+              {
+                $ifNull: [{ $concat: ['&LastChangedOn=', { $toString: '$lastChangedOn' }] }, ''] // Only concat 'lastChangedOn' if not null
+              }
             ]
           }
         }
@@ -332,8 +335,7 @@ export default class SiteAreaStorage {
     // Ok
     return {
       projectFields: projectFields,
-      count: (siteAreasCountMDB.length > 0 ?
-        (siteAreasCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : siteAreasCountMDB[0].count) : 0),
+      count: DatabaseUtils.getCountFromDatabaseCount(siteAreasCountMDB[0]),
       result: siteAreas
     };
   }

@@ -3,6 +3,7 @@ import { AggregateOptions, ObjectId } from 'mongodb';
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
+import { DatabaseCount } from '../../types/GlobalType';
 import DbLookup from '../../types/database/DbLookup';
 import { OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
 import Tenant from '../../types/Tenant';
@@ -15,6 +16,16 @@ const FIXED_COLLECTIONS: string[] = ['tenants', 'migrations'];
 const MODULE_NAME = 'DatabaseUtils';
 
 export default class DatabaseUtils {
+  public static getCountFromDatabaseCount(databaseCount: DatabaseCount): number {
+    if (databaseCount) {
+      if (databaseCount.count === Constants.DB_RECORD_COUNT_CEIL) {
+        return -1;
+      }
+      return databaseCount.count;
+    }
+    return 0;
+  }
+
   public static isObjectID(id: string): boolean {
     return ObjectId.isValid(id);
   }
@@ -372,7 +383,9 @@ export default class DatabaseUtils {
   }
 
   public static convertToObjectID(id: string): ObjectId {
-    return new ObjectId(id);
+    if (id) {
+      return new ObjectId(id);
+    }
   }
 
   public static convertUserToObjectID(user: User | UserToken | string): ObjectId | null {

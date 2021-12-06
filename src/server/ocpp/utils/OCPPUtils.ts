@@ -1569,11 +1569,8 @@ export default class OCPPUtils {
     };
     let rebootRequired = false;
     // Get current OCPP parameters in DB
-    let currentOcppParameters: OcppParameter[];
-    const ocppParametersFromDB = await ChargingStationStorage.getOcppParameters(tenant, chargingStation.id);
-    if (ocppParametersFromDB.count > 0) {
-      currentOcppParameters = ocppParametersFromDB.result;
-    }
+    const currentOcppParameters =
+      (await ChargingStationStorage.getOcppParameters(tenant, chargingStation.id)).result;
     // Check
     if (Utils.isEmptyArray(chargingStation.ocppStandardParameters) && Utils.isEmptyArray(chargingStation.ocppVendorParameters)) {
       await Logging.logInfo({
