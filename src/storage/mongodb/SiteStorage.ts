@@ -442,10 +442,13 @@ export default class SiteStorage {
         $addFields: {
           image: {
             $concat: [
-              `${Utils.buildRestServerURL()}/client/util/SiteImage?ID=`,
+              `${Utils.buildRestServerURL()}/v1/util/sites/`,
               { $toString: '$_id' },
-              `&TenantID=${tenant.id}&LastChangedOn=`,
-              { $toString: '$lastChangedOn' }
+              '/image',
+              `?TenantID=${tenant.id}`,
+              {
+                $ifNull: [{ $concat: ['&LastChangedOn=', { $toString: '$lastChangedOn' }] }, ''] // Only concat 'lastChangedOn' if not null
+              }
             ]
           }
         }
