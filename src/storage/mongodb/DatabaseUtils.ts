@@ -371,14 +371,8 @@ export default class DatabaseUtils {
     }
   }
 
-  public static convertToObjectID(id: any): ObjectId {
-    let changedID: ObjectId = id;
-    // Check
-    if (typeof id === 'string') {
-      // Create Object
-      changedID = new ObjectId(id);
-    }
-    return changedID;
+  public static convertToObjectID(id: string): ObjectId {
+    return new ObjectId(id);
   }
 
   public static convertUserToObjectID(user: User | UserToken | string): ObjectId | null {
