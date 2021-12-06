@@ -1,0 +1,21 @@
+{
+  "$id": "carcatalog-images-get",
+  "title": "Get all the Car Catalog Images Request",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "type": "number",
+      "sanitize": "mongo"
+    },
+    "Limit": {
+      "$ref": "common#/definitions/limit"
+    },
+    "Skip": {
+      "$ref": "common#/definitions/skip"
+    }
+  },
+  "required": [
+    "ID",
+    "Limit"
+  ]
+}

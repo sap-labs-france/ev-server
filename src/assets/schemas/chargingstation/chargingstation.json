@@ -1,0 +1,284 @@
+{
+  "$id": "chargingstation",
+  "definitions": {
+    "id": {
+      "$ref": "common#/definitions/string-id"
+    },
+    "chargingProfile": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "sanitize": "mongo",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "chargingStationID": {
+          "$ref": "chargingstation#/definitions/id"
+        },
+        "connectorID": {
+          "$ref": "#/definitions/connector/properties/connectorId"
+        },
+        "chargePointID": {
+          "$ref": "#/definitions/chargePoint/properties/chargePointID"
+        },
+        "profile": {
+          "type": "object",
+          "properties": {
+            "chargingProfileId": {
+              "type": "number",
+              "sanitize": "mongo"
+            },
+            "transactionId": {
+              "$ref": "transaction#/definitions/id"
+            },
+            "stackLevel": {
+              "type": "number",
+              "sanitize": "mongo"
+            },
+            "chargingProfilePurpose": {
+              "type": "string",
+              "sanitize": "mongo",
+              "enum": [
+                "ChargePointMaxProfile",
+                "TxDefaultProfile",
+                "TxProfile"
+              ]
+            },
+            "chargingProfileKind": {
+              "type": "string",
+              "sanitize": "mongo",
+              "enum": [
+                "Absolute",
+                "Recurring",
+                "Relative"
+              ]
+            },
+            "recurrencyKind": {
+              "type": "string",
+              "sanitize": "mongo",
+              "enum": [
+                "Daily",
+                "Weekly"
+              ]
+            },
+            "validFrom": {
+              "type": "string",
+              "format": "date-time",
+              "sanitize": "mongo"
+            },
+            "validTo": {
+              "type": "string",
+              "format": "date-time",
+              "sanitize": "mongo"
+            },
+            "chargingSchedule": {
+              "type": "object",
+              "properties": {
+                "duration": {
+                  "type": "number",
+                  "sanitize": "mongo"
+                },
+                "startSchedule": {
+                  "type": "string",
+                  "format": "date-time",
+                  "sanitize": "mongo"
+                },
+                "chargingRateUnit": {
+                  "type": "string",
+                  "sanitize": "mongo",
+                  "enum": [
+                    "W",
+                    "A"
+                  ]
+                },
+                "chargingSchedulePeriod": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "startPeriod": {
+                        "type": "number",
+                        "sanitize": "mongo"
+                      },
+                      "limit": {
+                        "type": "number",
+                        "sanitize": "mongo"
+                      },
+                      "numberPhases": {
+                        "type": "number",
+                        "sanitize": "mongo"
+                      }
+                    },
+                    "required": [
+                      "startPeriod",
+                      "limit"
+                    ]
+                  }
+                },
+                "minChargeRate": {
+                  "type": "number",
+                  "sanitize": "mongo"
+                }
+              },
+              "required": [
+                "chargingRateUnit",
+                "chargingSchedulePeriod"
+              ]
+            }
+          },
+          "required": [
+            "chargingProfileId",
+            "stackLevel",
+            "chargingProfilePurpose",
+            "chargingProfileKind",
+            "chargingSchedule"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "connectorID",
+        "chargePointID",
+        "chargingStationID",
+        "profile"
+      ]
+    },
+    "connector": {
+      "type": "object",
+      "properties": {
+        "connectorId": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "type": {
+          "type": "string",
+          "sanitize": "mongo",
+          "enum": [
+            "T2",
+            "CCS",
+            "C",
+            "T1",
+            "T3C",
+            "T1CCS",
+            "D",
+            "U"
+          ]
+        },
+        "power": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "voltage": {
+          "type": "number",
+          "enum": [
+            110,
+            230
+          ],
+          "sanitize": "mongo"
+        },
+        "amperage": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "currentType": {
+          "type": "string",
+          "enum": [
+            "AC",
+            "DC"
+          ],
+          "sanitize": "mongo"
+        },
+        "numberOfConnectedPhase": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "phaseAssignmentToGrid": {
+          "type": "object",
+          "properties": {
+            "csPhaseL1": {
+              "type": "string",
+              "sanitize": "mongo"
+            },
+            "csPhaseL2": {
+              "type": "string",
+              "sanitize": "mongo"
+            },
+            "csPhaseL3": {
+              "type": "string",
+              "sanitize": "mongo"
+            }
+          }
+        }
+      },
+      "required": [
+        "connectorId"
+      ]
+    },
+    "chargePoint": {
+      "type": "object",
+      "properties": {
+        "chargePointID": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "currentType": {
+          "type": "string",
+          "enum": [
+            "AC",
+            "DC"
+          ],
+          "sanitize": "mongo"
+        },
+        "voltage": {
+          "type": "number",
+          "enum": [
+            110,
+            230
+          ],
+          "sanitize": "mongo"
+        },
+        "amperage": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "numberOfConnectedPhase": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "cannotChargeInParallel": {
+          "type": "boolean",
+          "sanitize": "mongo"
+        },
+        "sharePowerToAllConnectors": {
+          "type": "boolean",
+          "sanitize": "mongo"
+        },
+        "excludeFromPowerLimitation": {
+          "type": "boolean",
+          "sanitize": "mongo"
+        },
+        "ocppParamForPowerLimitation": {
+          "type": "string",
+          "sanitize": "mongo"
+        },
+        "power": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "efficiency": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "connectorIDs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/connector/properties/connectorId"
+          }
+        }
+      },
+      "required": [
+        "chargePointID"
+      ]
+    }
+  }
+}

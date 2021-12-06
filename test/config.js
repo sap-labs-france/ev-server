@@ -183,18 +183,6 @@ const config = convict({
       default: 1080,
     },
   },
-  wsClient: {
-    autoReconnectMaxRetries: {
-      doc: 'WebSocket client re-connection max retries.',
-      format: 'int',
-      default: 0,
-    },
-    autoReconnectTimeout: {
-      doc: 'WebSocket client re-connection timeout.',
-      format: 'int',
-      default: 0,
-    },
-  },
   axios: {
     timeout: {
       doc: 'Axios HTTP client connection timeout',

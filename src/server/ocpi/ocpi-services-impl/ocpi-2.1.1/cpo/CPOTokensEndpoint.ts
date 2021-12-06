@@ -3,7 +3,6 @@ import { NextFunction, Request, Response } from 'express';
 import AbstractEndpoint from '../../AbstractEndpoint';
 import AbstractOCPIService from '../../../AbstractOCPIService';
 import AppError from '../../../../../exception/AppError';
-import Constants from '../../../../../utils/Constants';
 import OCPIEndpoint from '../../../../../types/ocpi/OCPIEndpoint';
 import { OCPIResponse } from '../../../../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../../../../types/ocpi/OCPIStatusCode';
@@ -43,7 +42,6 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const tokenId = urlSegment.shift();
     if (!tokenId) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_GET_TOKEN,
         module: MODULE_NAME, method: 'getToken',
         errorCode: StatusCodes.BAD_REQUEST,
@@ -55,7 +53,6 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const token = await this.getToken(tenant, countryCode, partyId, tokenId);
     if (!token) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_GET_TOKEN,
         module: MODULE_NAME, method: 'getToken',
         errorCode: StatusCodes.BAD_REQUEST,
@@ -85,7 +82,6 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const tokenId = urlSegment.shift();
     if (!tokenId) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PUT_TOKEN,
         module: MODULE_NAME, method: 'putToken',
         errorCode: StatusCodes.BAD_REQUEST,
@@ -96,7 +92,6 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const token = req.body as OCPIToken;
     if (!token) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PUT_TOKEN,
         module: MODULE_NAME, method: 'putToken',
         errorCode: StatusCodes.BAD_REQUEST,
@@ -108,7 +103,6 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const tag = await TagStorage.getTag(tenant, tokenId, { withUser: true });
     if (!tag) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PUT_TOKEN,
         module: MODULE_NAME, method: 'putToken',
         errorCode: StatusCodes.BAD_REQUEST,
@@ -119,7 +113,6 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     }
     if (tag.issuer) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PUT_TOKEN,
         module: MODULE_NAME, method: 'putToken',
         errorCode: StatusCodes.NOT_FOUND,
@@ -130,7 +123,6 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     }
     if (tag.user?.issuer) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PUT_TOKEN,
         module: MODULE_NAME, method: 'putToken',
         errorCode: StatusCodes.NOT_FOUND,
@@ -142,7 +134,6 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const operator = OCPIUtils.buildOperatorName(countryCode, partyId);
     if (tag.user.name !== operator) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PUT_TOKEN,
         module: MODULE_NAME, method: 'putToken',
         errorCode: StatusCodes.CONFLICT,
@@ -166,7 +157,6 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const token = req.body as OCPIToken;
     if (!token) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PATCH_TOKEN,
         module: MODULE_NAME, method: 'patchToken',
         errorCode: StatusCodes.BAD_REQUEST,
@@ -178,7 +168,6 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const tag = await TagStorage.getTag(tenant, tokenId, { withUser: true });
     if (!tag?.ocpiToken || tag?.issuer) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PATCH_TOKEN,
         module: MODULE_NAME, method: 'patchToken',
         errorCode: StatusCodes.NOT_FOUND,
@@ -189,7 +178,6 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     }
     if (!tag.user) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PATCH_TOKEN,
         module: MODULE_NAME, method: 'patchToken',
         errorCode: StatusCodes.NOT_FOUND,
@@ -200,7 +188,6 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     }
     if (tag.user.issuer) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PATCH_TOKEN,
         module: MODULE_NAME, method: 'patchToken',
         errorCode: StatusCodes.NOT_FOUND,
@@ -212,7 +199,6 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const operator = OCPIUtils.buildOperatorName(countryCode, partyId);
     if (tag.user.name !== operator) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PATCH_TOKEN,
         module: MODULE_NAME, method: 'patchToken',
         errorCode: StatusCodes.CONFLICT,
@@ -249,7 +235,6 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     }
     if (!patched) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PATCH_TOKEN,
         module: MODULE_NAME, method: 'patchToken',
         errorCode: StatusCodes.BAD_REQUEST,

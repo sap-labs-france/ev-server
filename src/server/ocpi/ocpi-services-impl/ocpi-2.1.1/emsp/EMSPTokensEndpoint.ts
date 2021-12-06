@@ -64,7 +64,6 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     const tokenId = urlSegment.shift();
     if (!tokenId) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_AUTHORIZE_TOKEN,
         module: MODULE_NAME, method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
@@ -75,7 +74,6 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     const locationReference: OCPILocationReference = req.body;
     if (!locationReference) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_AUTHORIZE_TOKEN,
         module: MODULE_NAME, method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
@@ -85,7 +83,6 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     }
     if (!locationReference.evse_uids || locationReference.evse_uids.length === 0) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_AUTHORIZE_TOKEN,
         module: MODULE_NAME, method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
@@ -95,7 +92,6 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     }
     if (locationReference.evse_uids.length > 1) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_AUTHORIZE_TOKEN,
         module: MODULE_NAME, method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
@@ -107,7 +103,6 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
       tenant, locationReference.evse_uids[0]);
     if (!chargingStation) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_AUTHORIZE_TOKEN,
         module: MODULE_NAME, method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
@@ -118,7 +113,6 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     const tag = await TagStorage.getTag(tenant, tokenId, { withUser: true });
     if (!tag?.user) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_AUTHORIZE_TOKEN,
         module: MODULE_NAME, method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,

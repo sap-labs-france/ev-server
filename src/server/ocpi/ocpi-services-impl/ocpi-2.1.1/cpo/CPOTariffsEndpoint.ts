@@ -40,7 +40,6 @@ export default class CPOTariffsEndpoint extends AbstractEndpoint {
     const tariffs = await this.getAllTariffs(tenant, limit, offset, Utils.convertToDate(req.query.date_from), Utils.convertToDate(req.query.date_to));
     if (tariffs.count === 0) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'getTariffsRequest',
         action: ServerAction.OCPI_GET_TARIFFS,
         errorCode: HTTPError.GENERAL_ERROR,

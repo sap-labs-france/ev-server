@@ -23,6 +23,7 @@ export default class ChargingStationVendorFactory {
       case ChargerVendor.EVMETER:
       case ChargerVendor.INNOGY:
       case ChargerVendor.INGETEAM:
+      case ChargerVendor.INGETEAM_ENERGY:
       case ChargerVendor.IES:
       case ChargerVendor.WALLBOX_CHARGERS:
       case ChargerVendor.ENPLUS:
@@ -37,6 +38,7 @@ export default class ChargingStationVendorFactory {
       case ChargerVendor.ATESS:
       case ChargerVendor.SAP_LABS_FRANCE:
       case ChargerVendor.CIRCONTROL:
+      case ChargerVendor.CIRCONTROL_BIS:
       case ChargerVendor.JOINON:
       case ChargerVendor.LAFON_TECHNOLOGIES:
       case ChargerVendor.ALFEN:
@@ -52,6 +54,11 @@ export default class ChargingStationVendorFactory {
       case ChargerVendor.GREEN_MOTION:
       case ChargerVendor.NEXANS:
       case ChargerVendor.G2_MOBILITY:
+      case ChargerVendor.MEAECN:
+      case ChargerVendor.KOSTAD:
+      case ChargerVendor.KEMPOWER:
+      case ChargerVendor.GROWATT:
+      case ChargerVendor.SETEC:
         chargingStationVendorImpl = new DefaultChargingStationVendorIntegration(chargingStation);
         break;
     }

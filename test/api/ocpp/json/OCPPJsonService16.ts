@@ -1,11 +1,12 @@
 import { OCPP15MeterValuesRequest, OCPPAuthorizeRequest, OCPPAuthorizeResponse, OCPPBootNotificationRequest, OCPPBootNotificationResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPDiagnosticsStatusNotificationRequest, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequest, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequest, OCPPHeartbeatResponse, OCPPMeterValuesRequest, OCPPMeterValuesResponse, OCPPStartTransactionRequest, OCPPStartTransactionResponse, OCPPStatusNotificationRequest, OCPPStatusNotificationResponse, OCPPStopTransactionRequest, OCPPStopTransactionResponse, OCPPVersion } from '../../../../src/types/ocpp/OCPPServer';
 import { OCPPIncomingRequest, OCPPMessageType } from '../../../../src/types/ocpp/OCPPCommon';
-import { ServerAction, WSServerProtocol } from '../../../../src/types/Server';
 
+import { Command } from '../../../types/ChargingStation';
 import OCPPService from '../OCPPService';
 import Utils from '../../../../src/utils/Utils';
 import WSClient from '../../../../src/client/websocket/WSClient';
 import { WSClientOptions } from '../../../../src/types/WebSocket';
+import { WSServerProtocol } from '../../../../src/types/Server';
 import config from '../../../config';
 import { performance } from 'perf_hooks';
 
@@ -29,8 +30,6 @@ export default class OCPPJsonService16 extends OCPPService {
       const sentRequests = {};
       const wsClientOptions: WSClientOptions = {
         protocols: WSServerProtocol.OCPP16,
-        autoReconnectTimeout: config.get('wsClient').autoReconnectTimeout,
-        autoReconnectMaxRetries: config.get('wsClient').autoReconnectMaxRetries
       };
       const wsConnection = new WSClient(`${this.serverUrl}/${chargeBoxIdentity}`, wsClientOptions, false);
       // Opened
@@ -57,18 +56,18 @@ export default class OCPPJsonService16 extends OCPPService {
         const t1 = performance.now();
         try {
           // Parse the message
-          const [messageType, messageId, commandName, commandPayload]: OCPPIncomingRequest = JSON.parse(message.data) as OCPPIncomingRequest;
+          const [messageType, messageId, command, commandPayload]: OCPPIncomingRequest = JSON.parse(message.data) as OCPPIncomingRequest;
           // Check if this corresponds to a request
           if (messageType === OCPPMessageType.CALL_RESULT_MESSAGE && sentRequests[messageId]) {
             const response: any = {};
             // Set the data
             response.responseMessageId = messageId;
             response.executionTime = t1 - sentRequests[messageId].t0;
-            response.data = commandName;
+            response.data = command;
             // Respond to the request
             sentRequests[messageId].resolve(response);
           } else if (messageType === OCPPMessageType.CALL_MESSAGE) {
-            await this.handleRequest(chargeBoxIdentity, messageId, commandName, commandPayload);
+            await this.handleRequest(chargeBoxIdentity, messageId, command, commandPayload);
           }
         } catch (error) {
           reject(error);
@@ -77,9 +76,9 @@ export default class OCPPJsonService16 extends OCPPService {
     });
   }
 
-  public async handleRequest(chargeBoxIdentity: string, messageId: string, commandName: ServerAction, commandPayload: Record<string, unknown> | string): Promise<void> {
+  public async handleRequest(chargeBoxIdentity: string, messageId: string, command: Command, commandPayload: Record<string, unknown> | string): Promise<void> {
     let result = {};
-    const methodName = `handle${commandName}`;
+    const methodName = `handle${command}`;
     if (this.requestHandler && typeof this.requestHandler[methodName] === 'function') {
       result = await this.requestHandler[methodName](commandPayload);
     }

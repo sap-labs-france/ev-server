@@ -1,0 +1,24 @@
+{
+  "$id": "chargingstation-action-connector-unlock",
+  "title": "Unlock Connector",
+  "type": "object",
+  "properties": {
+    "chargingStationID": {
+      "$ref": "chargingstation#/definitions/id"
+    },
+    "args": {
+      "type": "object",
+      "properties": {
+        "connectorId": {
+          "$ref": "chargingstation#/definitions/connector/properties/connectorId"
+        }
+      },
+      "required": [
+        "connectorId"
+      ]
+    }
+  },
+  "required": [
+    "chargingStationID"
+  ]
+}

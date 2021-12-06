@@ -1,0 +1,21 @@
+{
+  "$id": "auth-verification-email-resend",
+  "title": "Resend verification Email",
+  "type": "object",
+  "properties": {
+    "email": {
+      "$ref": "user#/definitions/email"
+    },
+    "tenant": {
+      "$ref": "common#/definitions/authSubdomain"
+    },
+    "captcha": {
+      "$ref": "common#/definitions/captcha"
+    }
+  },
+  "required": [
+    "email",
+    "tenant",
+    "captcha"
+  ]
+}

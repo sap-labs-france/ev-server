@@ -12,6 +12,7 @@ import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage
 import Constants from '../../utils/Constants';
 import { HTTPError } from '../../types/HTTPError';
 import Logging from '../../utils/Logging';
+import LoggingHelper from '../../utils/LoggingHelper';
 import NotificationHandler from '../../notification/NotificationHandler';
 import { OCPILocationOptions } from '../../types/ocpi/OCPILocation';
 import OCPPStorage from '../../storage/mongodb/OCPPStorage';
@@ -55,7 +56,7 @@ export default class CpoOICPClient extends OICPClient {
     const options: OCPILocationOptions = {
       countryID: this.getLocalCountryCode(ServerAction.OICP_PUSH_SESSIONS),
       partyID: this.getLocalPartyID(ServerAction.OICP_PUSH_SESSIONS),
-      addChargeBoxID: true
+      addChargeBoxAndOrgIDs: true
     };
     // Get Site Area
     const siteArea = chargingStation.siteArea;
@@ -84,7 +85,9 @@ export default class CpoOICPClient extends OICPClient {
       tenantID: this.tenant.id,
       user: transaction.user,
       siteID: transaction.siteID,
-      source: transaction.chargeBoxID,
+      siteAreaID: transaction.siteAreaID,
+      companyID: transaction.companyID,
+      chargingStationID: transaction.chargeBoxID,
       action: ServerAction.OICP_PUSH_SESSIONS,
       message: `Start OICP Session ID '${transaction.id}'`,
       module: MODULE_NAME, method: 'startSession',
@@ -95,7 +98,10 @@ export default class CpoOICPClient extends OICPClient {
   public async updateSession(transaction: Transaction): Promise<void> {
     if (!transaction.oicpData || !transaction.oicpData.session) {
       throw new BackendError({
-        source: transaction.chargeBoxID,
+        chargingStationID: transaction.chargeBoxID,
+        siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
         action: ServerAction.OICP_PUSH_SESSIONS,
         message: 'OICP Session not started',
         module: MODULE_NAME, method: 'updateSession',
@@ -123,7 +129,10 @@ export default class CpoOICPClient extends OICPClient {
   public async stopSession(transaction: Transaction): Promise<void> {
     if (!transaction.oicpData) {
       throw new BackendError({
-        source: transaction.chargeBoxID,
+        chargingStationID: transaction.chargeBoxID,
+        siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
         action: ServerAction.OICP_PUSH_SESSIONS,
         message: `OICP data does not exists on Session ID '${transaction.id}'`,
         module: MODULE_NAME, method: 'stopSession',
@@ -132,7 +141,10 @@ export default class CpoOICPClient extends OICPClient {
     }
     if (!transaction.oicpData.session) {
       throw new BackendError({
-        source: transaction.chargeBoxID,
+        chargingStationID: transaction.chargeBoxID,
+        siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
         action: ServerAction.OICP_PUSH_SESSIONS,
         message: `OICP Session data does not exists on Session ID '${transaction.id}'`,
         module: MODULE_NAME, method: 'stopSession',
@@ -141,7 +153,10 @@ export default class CpoOICPClient extends OICPClient {
     }
     if (!transaction.stop) {
       throw new BackendError({
-        source: transaction.chargeBoxID,
+        chargingStationID: transaction.chargeBoxID,
+        siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
         action: ServerAction.OICP_PUSH_SESSIONS,
         message: `OICP Session ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') not yet stopped`,
         module: MODULE_NAME, method: 'stopSession',
@@ -164,7 +179,9 @@ export default class CpoOICPClient extends OICPClient {
       await Logging.logInfo({
         tenantID: this.tenant.id,
         siteID: transaction.siteID,
-        source: transaction.chargeBoxID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
+        chargingStationID: transaction.chargeBoxID,
         user: transaction.user,
         action: ServerAction.OICP_PUSH_SESSIONS,
         message: `OICP Session ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') has been stopped successfully`,
@@ -193,7 +210,7 @@ export default class CpoOICPClient extends OICPClient {
     const startTime = new Date().getTime();
     // Define get option
     const options: OCPILocationOptions = {
-      addChargeBoxID: true,
+      addChargeBoxAndOrgIDs: true,
       countryID: this.getLocalCountryCode(ServerAction.OICP_PUSH_EVSE_DATA),
       partyID: this.getLocalPartyID(ServerAction.OICP_PUSH_EVSE_DATA)
     };
@@ -281,8 +298,7 @@ export default class CpoOICPClient extends OICPClient {
     } while (!Utils.isEmptyArray(sites));
     // Send notification to admins
     if (result.failure > 0) {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      NotificationHandler.sendOICPPatchChargingStationsError(
+      await NotificationHandler.sendOICPPatchChargingStationsError(
         this.tenant,
         {
           evseDashboardURL: Utils.buildEvseURL(this.tenant.subdomain)
@@ -341,7 +357,7 @@ export default class CpoOICPClient extends OICPClient {
     const startTime = new Date().getTime();
     // Define get option
     const options: OCPILocationOptions = {
-      addChargeBoxID: true,
+      addChargeBoxAndOrgIDs: true,
       countryID: this.getLocalCountryCode(ServerAction.OICP_PUSH_EVSE_STATUSES),
       partyID: this.getLocalPartyID(ServerAction.OICP_PUSH_EVSE_STATUSES)
     };
@@ -408,8 +424,7 @@ export default class CpoOICPClient extends OICPClient {
                 }
                 if (result.failure > 0) {
                   // Send notification to admins
-                  // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                  NotificationHandler.sendOICPPatchChargingStationsStatusesError(
+                  await NotificationHandler.sendOICPPatchChargingStationsStatusesError(
                     this.tenant,
                     {
                       evseDashboardURL: Utils.buildEvseURL(this.tenant.subdomain)
@@ -460,7 +475,7 @@ export default class CpoOICPClient extends OICPClient {
   public async updateEVSEStatus(chargingStation: ChargingStation, connector: Connector): Promise<OICPAcknowledgment> {
     if (!chargingStation.siteAreaID && !chargingStation.siteArea) {
       throw new BackendError({
-        source: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.OICP_UPDATE_EVSE_STATUS,
         message: 'Charging Station must be associated to a site area',
         module: MODULE_NAME, method: 'updateEVSEStatus',
@@ -468,7 +483,7 @@ export default class CpoOICPClient extends OICPClient {
     }
     if (!chargingStation.issuer) {
       throw new BackendError({
-        source: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.OICP_UPDATE_EVSE_STATUS,
         message: 'Only charging Station issued locally can be exposed to Hubject',
         module: MODULE_NAME, method: 'updateEVSEStatus',
@@ -476,7 +491,7 @@ export default class CpoOICPClient extends OICPClient {
     }
     if (!chargingStation.public) {
       throw new BackendError({
-        source: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.OICP_UPDATE_EVSE_STATUS,
         message: 'Private charging Station cannot be exposed to Hubject',
         module: MODULE_NAME, method: 'updateEVSEStatus',
@@ -484,7 +499,7 @@ export default class CpoOICPClient extends OICPClient {
     }
     // Define get option
     const options: OCPILocationOptions = {
-      addChargeBoxID: true,
+      addChargeBoxAndOrgIDs: true,
       countryID: this.getLocalCountryCode(ServerAction.OICP_PUSH_EVSE_STATUSES),
       partyID: this.getLocalPartyID(ServerAction.OICP_PUSH_EVSE_STATUSES)
     };
@@ -703,7 +718,9 @@ export default class CpoOICPClient extends OICPClient {
       await Logging.logError({
         tenantID: this.tenant.id,
         siteID: transaction.siteID,
-        source: transaction.chargeBoxID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
+        chargingStationID: transaction.chargeBoxID,
         user: user,
         action: ServerAction.OICP_AUTHORIZE_STOP,
         message: this.buildOICPChargingNotificationErrorMessage(authorizeResponse, requestError),
@@ -719,7 +736,9 @@ export default class CpoOICPClient extends OICPClient {
       await Logging.logError({
         tenantID: this.tenant.id,
         siteID: transaction.siteID,
-        source: transaction.chargeBoxID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
+        chargingStationID: transaction.chargeBoxID,
         user: user,
         action: ServerAction.OICP_AUTHORIZE_STOP,
         module: MODULE_NAME, method: 'authorizeStop',
@@ -730,7 +749,9 @@ export default class CpoOICPClient extends OICPClient {
       await Logging.logInfo({
         tenantID: this.tenant.id,
         siteID: transaction.siteID,
-        source: transaction.chargeBoxID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
+        chargingStationID: transaction.chargeBoxID,
         user: user,
         action: ServerAction.OICP_AUTHORIZE_STOP,
         message: 'Stop Transaction has been authorized',
@@ -746,7 +767,10 @@ export default class CpoOICPClient extends OICPClient {
     let requestError: any;
     if (!transaction.oicpData) {
       throw new BackendError({
-        source: transaction.chargeBoxID,
+        chargingStationID: transaction.chargeBoxID,
+        siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
         action: ServerAction.OICP_PUSH_CDRS,
         message: `OICP data does not exists on Session ID '${transaction.id}'`,
         module: MODULE_NAME, method: 'pushCdr',
@@ -755,7 +779,10 @@ export default class CpoOICPClient extends OICPClient {
     }
     if (!transaction.oicpData.session) {
       throw new BackendError({
-        source: transaction.chargeBoxID,
+        chargingStationID: transaction.chargeBoxID,
+        siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
         action: ServerAction.OICP_PUSH_CDRS,
         message: `OICP Session data does not exists on Session ID '${transaction.id}'`,
         module: MODULE_NAME, method: 'pushCdr',
@@ -764,7 +791,10 @@ export default class CpoOICPClient extends OICPClient {
     }
     if (!transaction.stop) {
       throw new BackendError({
-        source: transaction.chargeBoxID,
+        chargingStationID: transaction.chargeBoxID,
+        siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
         action: ServerAction.OICP_PUSH_CDRS,
         message: `OICP Session ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') has not been stopped`,
         module: MODULE_NAME, method: 'pushCdr',
@@ -812,7 +842,9 @@ export default class CpoOICPClient extends OICPClient {
       await Logging.logError({
         tenantID: this.tenant.id,
         siteID: transaction.siteID,
-        source: transaction.chargeBoxID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
+        chargingStationID: transaction.chargeBoxID,
         user: transaction.user,
         action: ServerAction.OICP_PUSH_CDRS,
         message: this.buildOICPChargingNotificationErrorMessage(pushCdrResponse, requestError),
@@ -827,7 +859,9 @@ export default class CpoOICPClient extends OICPClient {
       await Logging.logInfo({
         tenantID: this.tenant.id,
         siteID: transaction.siteID,
-        source: transaction.chargeBoxID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
+        chargingStationID: transaction.chargeBoxID,
         user: transaction.user,
         action: ServerAction.OICP_PUSH_CDRS,
         message: `CDR of Session ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') has been pushed successfully`,
@@ -844,7 +878,10 @@ export default class CpoOICPClient extends OICPClient {
     // Check for input parameter
     if (!transaction.oicpData) {
       throw new BackendError({
-        source: transaction.chargeBoxID,
+        chargingStationID: transaction.chargeBoxID,
+        siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_START,
         message: `OICP data does not exists on Session ID '${transaction.id}'`,
         module: MODULE_NAME, method: 'sendChargingNotificationStart',
@@ -853,7 +890,10 @@ export default class CpoOICPClient extends OICPClient {
     }
     if (!transaction.oicpData.session) {
       throw new BackendError({
-        source: transaction.chargeBoxID,
+        chargingStationID: transaction.chargeBoxID,
+        siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_START,
         message: `OICP Session data does not exists on Session ID '${transaction.id}'`,
         module: MODULE_NAME, method: 'sendChargingNotificationStart',
@@ -889,7 +929,9 @@ export default class CpoOICPClient extends OICPClient {
       await Logging.logWarning({
         tenantID: this.tenant.id,
         siteID: transaction.siteID,
-        source: transaction.chargeBoxID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
+        chargingStationID: transaction.chargeBoxID,
         user: transaction.user,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_START,
         message: this.buildOICPChargingNotificationErrorMessage(notificationStartResponse, requestError),
@@ -904,7 +946,9 @@ export default class CpoOICPClient extends OICPClient {
       await Logging.logInfo({
         tenantID: this.tenant.id,
         siteID: transaction.siteID,
-        source: transaction.chargeBoxID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
+        chargingStationID: transaction.chargeBoxID,
         user: transaction.user,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_START,
         message: `Session ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') has been started successfully`,
@@ -921,7 +965,10 @@ export default class CpoOICPClient extends OICPClient {
       // Check for input parameter
       if (!transaction.oicpData) {
         throw new BackendError({
-          source: transaction.chargeBoxID,
+          chargingStationID: transaction.chargeBoxID,
+          siteID: transaction.siteID,
+          siteAreaID: transaction.siteAreaID,
+          companyID: transaction.companyID,
           action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_PROGRESS,
           message: `OICP data does not exists on Session ID '${transaction.id}'`,
           module: MODULE_NAME, method: 'sendChargingNotificationProgress',
@@ -930,7 +977,10 @@ export default class CpoOICPClient extends OICPClient {
       }
       if (!transaction.oicpData.session) {
         throw new BackendError({
-          source: transaction.chargeBoxID,
+          chargingStationID: transaction.chargeBoxID,
+          siteID: transaction.siteID,
+          siteAreaID: transaction.siteAreaID,
+          companyID: transaction.companyID,
           action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_PROGRESS,
           message: `OICP Session data does not exists on Session ID '${transaction.id}'`,
           module: MODULE_NAME, method: 'sendChargingNotificationProgress',
@@ -970,7 +1020,9 @@ export default class CpoOICPClient extends OICPClient {
         await Logging.logWarning({
           tenantID: this.tenant.id,
           siteID: transaction.siteID,
-          source: transaction.chargeBoxID,
+          siteAreaID: transaction.siteAreaID,
+          companyID: transaction.companyID,
+          chargingStationID: transaction.chargeBoxID,
           user: transaction.user,
           action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_PROGRESS,
           message: this.buildOICPChargingNotificationErrorMessage(notificationProgressResponse, requestError),
@@ -985,7 +1037,9 @@ export default class CpoOICPClient extends OICPClient {
         await Logging.logInfo({
           tenantID: this.tenant.id,
           siteID: transaction.siteID,
-          source: transaction.chargeBoxID,
+          siteAreaID: transaction.siteAreaID,
+          companyID: transaction.companyID,
+          chargingStationID: transaction.chargeBoxID,
           user: transaction.user,
           action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_PROGRESS,
           message: `Session ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') has been updated successfully`,
@@ -1002,7 +1056,10 @@ export default class CpoOICPClient extends OICPClient {
     // Check for input parameter
     if (!transaction.oicpData) {
       throw new BackendError({
-        source: transaction.chargeBoxID,
+        chargingStationID: transaction.chargeBoxID,
+        siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_END,
         message: `OICP data does not exists on Session ID '${transaction.id}'`,
         module: MODULE_NAME, method: 'sendChargingNotificationEnd',
@@ -1011,7 +1068,10 @@ export default class CpoOICPClient extends OICPClient {
     }
     if (!transaction.oicpData.session) {
       throw new BackendError({
-        source: transaction.chargeBoxID,
+        chargingStationID: transaction.chargeBoxID,
+        siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_END,
         message: `OICP Session data does not exists on Session ID '${transaction.id}'`,
         module: MODULE_NAME, method: 'sendChargingNotificationEnd',
@@ -1020,7 +1080,10 @@ export default class CpoOICPClient extends OICPClient {
     }
     if (!transaction.stop) {
       throw new BackendError({
-        source: transaction.chargeBoxID,
+        chargingStationID: transaction.chargeBoxID,
+        siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_END,
         message: `OICP Session ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') not stopped`,
         module: MODULE_NAME, method: 'sendChargingNotificationEnd',
@@ -1065,7 +1128,9 @@ export default class CpoOICPClient extends OICPClient {
       await Logging.logWarning({
         tenantID: this.tenant.id,
         siteID: transaction.siteID,
-        source: transaction.chargeBoxID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
+        chargingStationID: transaction.chargeBoxID,
         user: transaction.user,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_END,
         message: this.buildOICPChargingNotificationErrorMessage(notificationEndResponse, requestError),
@@ -1080,7 +1145,9 @@ export default class CpoOICPClient extends OICPClient {
       await Logging.logInfo({
         tenantID: this.tenant.id,
         siteID: transaction.siteID,
-        source: transaction.chargeBoxID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
+        chargingStationID: transaction.chargeBoxID,
         user: transaction.user,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_END,
         message: `Session ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') has been ended successfully`,
@@ -1097,7 +1164,10 @@ export default class CpoOICPClient extends OICPClient {
     // Check for input parameter
     if (!transaction.oicpData) {
       throw new BackendError({
-        source: transaction.chargeBoxID,
+        chargingStationID: transaction.chargeBoxID,
+        siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_ERROR,
         message: `OICP data does not exists on Session ID '${transaction.id}'`,
         module: MODULE_NAME, method: 'sendChargingNotificationError',
@@ -1106,7 +1176,10 @@ export default class CpoOICPClient extends OICPClient {
     }
     if (!transaction.oicpData.session) {
       throw new BackendError({
-        source: transaction.chargeBoxID,
+        chargingStationID: transaction.chargeBoxID,
+        siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_ERROR,
         message: `OICP Session data does not exists on Session ID '${transaction.id}'`,
         module: MODULE_NAME, method: 'sendChargingNotificationError',
@@ -1139,7 +1212,9 @@ export default class CpoOICPClient extends OICPClient {
       await Logging.logWarning({
         tenantID: this.tenant.id,
         siteID: transaction.siteID,
-        source: transaction.chargeBoxID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
+        chargingStationID: transaction.chargeBoxID,
         user: transaction.user,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_ERROR,
         message: this.buildOICPChargingNotificationErrorMessage(notificationErrorResponse, requestError),

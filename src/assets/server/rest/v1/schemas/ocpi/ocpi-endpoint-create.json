@@ -1,0 +1,38 @@
+{
+  "$id": "ocpi-endpoint-create",
+  "title": "OCPI Endpoint creation Request",
+  "type": "object",
+  "properties": {
+    "name": {
+      "$ref": "ocpi-endpoint#/definitions/name"
+    },
+    "role": {
+      "$ref": "ocpi-endpoint#/definitions/role"
+    },
+    "baseUrl": {
+      "$ref": "ocpi-endpoint#/definitions/baseUrl"
+    },
+    "countryCode": {
+      "$ref": "ocpi-endpoint#/definitions/countryCode"
+    },
+    "partyId": {
+      "$ref": "ocpi-endpoint#/definitions/partyId"
+    },
+    "localToken": {
+      "$ref": "ocpi-endpoint#/definitions/localToken"
+    },
+    "token": {
+      "$ref": "ocpi-endpoint#/definitions/token"
+    },
+    "backgroundPatchJob": {
+      "$ref": "ocpi-endpoint#/definitions/name"
+    }
+  },
+  "required": [
+    "name",
+    "role",
+    "baseUrl",
+    "localToken",
+    "token"
+  ]
+}

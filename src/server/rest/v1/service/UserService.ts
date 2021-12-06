@@ -1,19 +1,20 @@
-import { Action, Entity } from '../../../../types/Authorization';
+import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
 import { ActionsResponse, ImportStatus } from '../../../../types/GlobalType';
 import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
+import Busboy, { BusboyHeaders } from 'busboy';
 import { Car, CarType } from '../../../../types/Car';
 import { DataResult, UserDataResult } from '../../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
+import Tenant, { TenantComponents } from '../../../../types/Tenant';
 import User, { ImportedUser, UserRequiredImportProperties } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
-import AsyncTaskManager from '../../../../async-task/AsyncTaskManager';
+import AsyncTaskBuilder from '../../../../async-task/AsyncTaskBuilder';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
-import Busboy from 'busboy';
 import CSVError from 'csvtojson/v2/CSVError';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
 import Constants from '../../../../utils/Constants';
@@ -31,8 +32,6 @@ import { ServerAction } from '../../../../types/Server';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { StartTransactionErrorCode } from '../../../../types/Transaction';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
-import Tenant from '../../../../types/Tenant';
-import TenantComponents from '../../../../types/TenantComponents';
 import { UserInErrorType } from '../../../../types/InError';
 import UserNotifications from '../../../../types/UserNotifications';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
@@ -51,7 +50,7 @@ export default class UserService {
 
   public static async handleGetUserDefaultTagCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = UserValidator.getInstance().validateUserDefaultTagCar(req.query);
+    const filteredRequest = UserValidator.getInstance().validateUserDefaultTagCarGetReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.UserID, MODULE_NAME, 'handleGetUserDefaultTagCar', req.user);
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
@@ -60,24 +59,24 @@ export default class UserService {
     // Get the default Tag
     let tag = await TagStorage.getDefaultUserTag(req.tenant, user.id, {
       issuer: true
-    }, ['visualID', 'description', 'active']);
+    }, ['visualID', 'description', 'active', 'default']);
     if (!tag) {
       // Get the first active Tag
       tag = await TagStorage.getFirstActiveUserTag(req.tenant, user.id, {
         issuer: true
-      }, ['visualID', 'description', 'active']);
+      }, ['visualID', 'description', 'active', 'default']);
     }
     // Handle Car
     let car: Car;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
       // Get the default Car
       car = await CarStorage.getDefaultUserCar(req.tenant, filteredRequest.UserID, {},
-        ['id', 'type', 'licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion']
+        ['id', 'type', 'licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image', 'carCatalog.batteryCapacityFull', 'carCatalog.fastChargePowerMax', 'converter.powerWatts', 'converter.numberOfPhases', 'default']
       );
       if (!car) {
         // Get the first available car
         car = await CarStorage.getFirstAvailableUserCar(req.tenant, filteredRequest.UserID,
-          ['id', 'type', 'licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion']
+          ['id', 'type', 'licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image', 'carCatalog.batteryCapacityFull', 'carCatalog.fastChargePowerMax', 'converter.powerWatts', 'converter.numberOfPhases', 'default']
         );
       }
     }
@@ -92,9 +91,9 @@ export default class UserService {
 
   public static async handleAssignSitesToUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
-      Action.UPDATE, Entity.SITES, 'SiteService', 'handleAssignSitesToUser');
+      Action.UPDATE, Entity.SITE, 'SiteService', 'handleAssignSitesToUser');
     // Filter request
-    const filteredRequest = UserValidator.getInstance().validateUserAssignToSites(req.body);
+    const filteredRequest = UserValidator.getInstance().validateUserToSitesAssignReq(req.body);
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, filteredRequest.userID, Action.READ, action);
@@ -108,7 +107,7 @@ export default class UserService {
       await UserStorage.removeSitesFromUser(req.tenant, filteredRequest.userID, sites.map((site) => site.id));
     }
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user,
       module: MODULE_NAME,
@@ -121,7 +120,7 @@ export default class UserService {
 
   public static async handleDeleteUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const userID = UserValidator.getInstance().validateUserGetByID(req.query).ID.toString();
+    const userID = UserValidator.getInstance().validateUserByIDGetReq(req.query).ID.toString();
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, userID, Action.DELETE, action, null, {}, false, false);
@@ -129,7 +128,7 @@ export default class UserService {
     if (!user.issuer) {
       // Delete User
       await UserStorage.deleteUser(req.tenant, user.id);
-      await Logging.logSecurityInfo({
+      await Logging.logInfo({
         tenantID: req.user.tenantID,
         user: req.user, actionOnUser: user,
         module: MODULE_NAME, method: 'handleDeleteUser',
@@ -149,7 +148,7 @@ export default class UserService {
     // Delete User
     await UserStorage.deleteUser(req.tenant, user.id);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, actionOnUser: user,
       module: MODULE_NAME, method: 'handleDeleteUser',
@@ -163,21 +162,22 @@ export default class UserService {
   public static async handleUpdateUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     let statusHasChanged = false;
     // Filter
-    const filteredRequest = UserValidator.getInstance().validateUserUpdate({ ...req.params, ...req.body });
+    const filteredRequest = UserValidator.getInstance().validateUserUpdateReq({ ...req.params, ...req.body });
     // Check and Get User
     let user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest);
     // Check email already exists
-    const userWithEmail = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
-    if (userWithEmail && user.id !== userWithEmail.id) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
-        message: `Email '${filteredRequest.email}' already exists`,
-        module: MODULE_NAME, method: 'handleUpdateUser',
-        user: req.user,
-        action: action
-      });
+    if (filteredRequest.email) {
+      const userWithEmail = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
+      if (userWithEmail && user.id !== userWithEmail.id) {
+        throw new AppError({
+          errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
+          message: `Email '${filteredRequest.email}' already exists`,
+          module: MODULE_NAME, method: 'handleUpdateUser',
+          user: req.user,
+          action: action
+        });
+      }
     }
     // Check if Status has been changed
     if (filteredRequest.status && filteredRequest.status !== user.status) {
@@ -192,11 +192,15 @@ export default class UserService {
     user = {
       ...user,
       ...filteredRequest,
-      name: filteredRequest.name.toUpperCase(),
-      email: filteredRequest.email.toLowerCase(),
       lastChangedBy: lastChangedBy,
       lastChangedOn: lastChangedOn,
     };
+    if (filteredRequest.name) {
+      user.name = filteredRequest.name.toUpperCase();
+    }
+    if (filteredRequest.email) {
+      user.email = filteredRequest.email.toLowerCase();
+    }
     // Update User (override TagIDs because it's not of the same type as in filteredRequest)
     await UserStorage.saveUser(req.tenant, user, true);
     // Save User's password
@@ -211,27 +215,12 @@ export default class UserService {
           passwordBlockedUntil: null
         });
     }
-    // Only Admin can save these data
-    if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
-      // Save User's Status
-      if (filteredRequest.status) {
-        await UserStorage.saveUserStatus(req.tenant, user.id, filteredRequest.status);
-      }
-      // Save User's Role
-      if (filteredRequest.role) {
-        await UserStorage.saveUserRole(req.tenant, user.id, filteredRequest.role);
-      }
-      // Save Admin Data
-      if (Utils.objectHasProperty(filteredRequest, 'plateID')) {
-        const adminData: { plateID?: string; } = {};
-        adminData.plateID = filteredRequest.plateID || null;
-        await UserStorage.saveUserAdminData(req.tenant, user.id, adminData);
-      }
-    }
+    // Update User Admin Data
+    await UserService.updateUserAdminData(req.tenant, user, user.projectFields);
     // Update Billing
     await UserService.updateUserBilling(ServerAction.USER_UPDATE, req.tenant, req.user, user);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, actionOnUser: user,
       module: MODULE_NAME, method: 'handleUpdateUser',
@@ -241,7 +230,7 @@ export default class UserService {
     // Notify
     if (statusHasChanged && req.tenant.id !== Constants.DEFAULT_TENANT) {
       // Send notification (Async)
-      NotificationHandler.sendUserAccountStatusChanged(
+      await NotificationHandler.sendUserAccountStatusChanged(
         req.tenant,
         Utils.generateUUID(),
         user,
@@ -257,11 +246,10 @@ export default class UserService {
 
   public static async handleUpdateUserMobileToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = UserValidator.getInstance().validateUserUpdateMobileToken({ ...req.params, ...req.body });
+    const filteredRequest = UserValidator.getInstance().validateUserMobileTokenUpdateReq({ ...req.params, ...req.body });
     // Check Mandatory fields
     if (!filteredRequest.mobileToken) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'User\'s mobile token ID must be provided',
         module: MODULE_NAME, method: 'handleUpdateUserMobileToken',
@@ -278,7 +266,7 @@ export default class UserService {
       mobileOs: filteredRequest.mobileOS,
       mobileLastChangedOn: new Date()
     });
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: user,
       module: MODULE_NAME, method: 'handleUpdateUserMobileToken',
@@ -295,7 +283,7 @@ export default class UserService {
 
   public static async handleGetUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = UserValidator.getInstance().validateUserGetByID(req.query);
+    const filteredRequest = UserValidator.getInstance().validateUserByIDGetReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetUser', req.user);
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
@@ -308,7 +296,7 @@ export default class UserService {
 
   public static async handleGetUserImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const userID = UserValidator.getInstance().validateUserGetByID(req.query).ID.toString();
+    const userID = UserValidator.getInstance().validateUserByIDGetReq(req.query).ID.toString();
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, userID, Action.READ, action, null, null, null, false);
@@ -328,7 +316,7 @@ export default class UserService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.USER, MODULE_NAME, 'handleGetSites');
     // Filter
-    const filteredRequest = UserValidator.getInstance().validateUserGetSites(req.query);
+    const filteredRequest = UserValidator.getInstance().validateUserSitesGetReq(req.query);
     // Check User
     try {
       await UtilsService.checkAndGetUserAuthorization(
@@ -378,7 +366,7 @@ export default class UserService {
 
   public static async handleGetUsersInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = UserValidator.getInstance().validateUsersGetInError(req.query);
+    const filteredRequest = UserValidator.getInstance().validateUsersInErrorGetReq(req.query);
     // Get authorization filters
     const authorizationUserInErrorFilters = await AuthorizationService.checkAndGetUsersInErrorAuthorizations(
       req.tenant, req.user, filteredRequest);
@@ -411,7 +399,7 @@ export default class UserService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.IMPORT, entity: Entity.USERS,
+        action: Action.IMPORT, entity: Entity.USER,
         module: MODULE_NAME, method: 'handleImportUser'
       });
     }
@@ -419,7 +407,6 @@ export default class UserService {
     const importUsersLock = await LockingHelper.acquireImportUsersLock(req.tenant.id);
     if (!importUsersLock) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: action,
         errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
         module: MODULE_NAME, method: 'handleImportUsers',
@@ -440,7 +427,7 @@ export default class UserService {
       // Delete all previously imported users
       await UserStorage.deleteImportedUsers(req.tenant);
       // Get the stream
-      const busboy = new Busboy({ headers: req.headers });
+      const busboy = new Busboy({ headers: req.headers as BusboyHeaders });
       req.pipe(busboy);
       // Handle closed socket
       let connectionClosed = false;
@@ -483,7 +470,7 @@ export default class UserService {
               user.importedBy = importedBy;
               user.importedOn = importedOn;
               user.importedData = {
-                'autoActivateUserAtImport' : UtilsSecurity.filterBoolean(req.headers.autoactivateuseratimport)
+                'autoActivateUserAtImport': UtilsSecurity.filterBoolean(req.headers.autoactivateuseratimport)
               };
               // Import
               const importSuccess = await UserService.processUser(action, req, user, usersToBeImported);
@@ -534,7 +521,7 @@ export default class UserService {
                 `No User have been uploaded in ${executionDurationSecs}s`, req.user
               );
               // Create and Save async task
-              await AsyncTaskManager.createAndSaveAsyncTasks({
+              await AsyncTaskBuilder.createAndSaveAsyncTasks({
                 name: AsyncTasks.USERS_IMPORT,
                 action: ServerAction.USERS_IMPORT,
                 type: AsyncTaskType.TASK,
@@ -614,7 +601,7 @@ export default class UserService {
 
   public static async handleCreateUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = UserValidator.getInstance().validateUserCreate(req.body);
+    const filteredRequest = UserValidator.getInstance().validateUserCreateReq(req.body);
     // Check Mandatory fields
     UtilsService.checkIfUserValid(filteredRequest, null, req);
     // Get dynamic auth
@@ -632,7 +619,6 @@ export default class UserService {
     const foundUser = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
     if (foundUser) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
         message: `Email '${filteredRequest.email}' already exists`,
         module: MODULE_NAME, method: 'handleCreateUser',
@@ -662,45 +648,14 @@ export default class UserService {
           passwordBlockedUntil: null
         });
     }
-    // Only Admin can save these data
-    if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
-      // Save User Status
-      if (newUser.status) {
-        await UserStorage.saveUserStatus(req.tenant, newUser.id, newUser.status);
-      }
-      // Save User Role
-      if (newUser.role) {
-        await UserStorage.saveUserRole(req.tenant, newUser.id, newUser.role);
-      }
-      // Save Admin Data
-      if (newUser.plateID || Utils.objectHasProperty(newUser, 'notificationsActive')) {
-        const adminData: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications } = {};
-        if (newUser.plateID) {
-          adminData.plateID = newUser.plateID;
-        }
-        if (Utils.objectHasProperty(newUser, 'notificationsActive')) {
-          adminData.notificationsActive = newUser.notificationsActive;
-          if (newUser.notifications) {
-            adminData.notifications = newUser.notifications;
-          }
-        }
-        // Save User Admin data
-        await UserStorage.saveUserAdminData(req.tenant, newUser.id, adminData);
-      }
-    }
-    // Assign user to all sites with auto-assign flag set
-    const sites = await SiteStorage.getSites(req.tenant,
-      { withAutoUserAssignment: true },
-      Constants.DB_PARAMS_MAX_LIMIT
-    );
-    if (!Utils.isEmptyArray(sites.result)) {
-      const siteIDs = sites.result.map((site) => site.id);
-      await UserStorage.addSitesToUser(req.tenant, newUser.id, siteIDs);
-    }
+    // Update User Admin Data
+    await UserService.updateUserAdminData(req.tenant, newUser, authorizationFilter.projectFields);
+    // Assign Site to new User
+    await UserService.assignCreatedUserToSites(req.tenant, req.user, newUser, authorizationFilter);
     // Update Billing
     await UserService.updateUserBilling(ServerAction.USER_CREATE, req.tenant, req.user, newUser);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, actionOnUser: req.user,
       module: MODULE_NAME, method: 'handleCreateUser',
@@ -771,16 +726,19 @@ export default class UserService {
 
   private static async getUsers(req: Request): Promise<DataResult<User>> {
     // Filter
-    const filteredRequest = UserValidator.getInstance().validateUsersGet(req.query);
+    const filteredRequest = UserValidator.getInstance().validateUsersGetReq(req.query);
     // Get authorization filters
     const authorizationUsersFilters = await AuthorizationService.checkAndGetUsersAuthorizations(
       req.tenant, req.user, filteredRequest);
     if (!authorizationUsersFilters.authorized) {
       return Constants.DB_EMPTY_DATA_RESULT;
     }
-    // Get Tag IDs from Visual IDs
+    // Optimization: Get Tag IDs from Visual IDs
     if (filteredRequest.VisualTagID) {
-      const tagIDs = await TagStorage.getTags(req.tenant, { visualIDs: filteredRequest.VisualTagID.split('|') }, Constants.DB_PARAMS_MAX_LIMIT, ['userID']);
+      const tagIDs = await TagStorage.getTags(req.tenant, {
+        visualIDs: filteredRequest.VisualTagID.split('|')
+      },
+      Constants.DB_PARAMS_MAX_LIMIT, ['userID']);
       if (!Utils.isEmptyArray(tagIDs.result)) {
         const userIDs = _.uniq(tagIDs.result.map((tag) => tag.userID));
         filteredRequest.UserID = userIDs.join('|');
@@ -790,11 +748,13 @@ export default class UserService {
     const users = await UserStorage.getUsers(req.tenant,
       {
         search: filteredRequest.Search,
-        issuer: Utils.isBoolean(filteredRequest.Issuer) || filteredRequest.Issuer ? Utils.convertToBoolean(filteredRequest.Issuer) : null,
+        issuer: Utils.isBoolean(filteredRequest.Issuer) ? filteredRequest.Issuer : null,
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         userIDs: (filteredRequest.UserID ? filteredRequest.UserID.split('|') : null),
         roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
         statuses: (filteredRequest.Status ? filteredRequest.Status.split('|') : null),
+        technical: Utils.isBoolean(filteredRequest.Technical) ? filteredRequest.Technical : null,
+        freeAccess: Utils.isBoolean(filteredRequest.FreeAccess) ? filteredRequest.FreeAccess : null,
         excludeSiteID: filteredRequest.ExcludeSiteID,
         ...authorizationUsersFilters.filters
       },
@@ -806,6 +766,10 @@ export default class UserService {
       },
       authorizationUsersFilters.projectFields
     );
+    // Assign projected fields
+    if (authorizationUsersFilters.projectFields) {
+      users.projectFields = authorizationUsersFilters.projectFields;
+    }
     // Add Auth flags
     await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users as UserDataResult, authorizationUsersFilters);
     // Return
@@ -822,7 +786,7 @@ export default class UserService {
         siteIDs: importedUser.siteIDs
       };
       // Validate User data
-      UserValidator.getInstance().validateImportedUserCreation(newImportedUser);
+      UserValidator.getInstance().validateUserImportCreateReq(newImportedUser);
       // Set properties
       newImportedUser.importedBy = importedUser.importedBy;
       newImportedUser.importedOn = importedUser.importedOn;
@@ -870,21 +834,10 @@ export default class UserService {
     if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.BILLING)) {
       try {
         const billingImpl = await BillingFactory.getBillingImpl(tenant);
-        if (!billingImpl) {
-          throw new AppError({
-            source: Constants.CENTRAL_SERVER,
-            action: ServerAction.USER_DELETE,
-            errorCode: HTTPError.GENERAL_ERROR,
-            message: 'Billing service is not configured',
-            module: MODULE_NAME, method: 'checkAndDeleteUserBilling',
-            user: loggedUser, actionOnUser: user
-          });
-        }
-        if (user.billingData) {
+        if (billingImpl && user.billingData) {
           const userCanBeDeleted = await billingImpl.checkIfUserCanBeDeleted(user);
           if (!userCanBeDeleted) {
             throw new AppError({
-              source: Constants.CENTRAL_SERVER,
               action: ServerAction.USER_DELETE,
               errorCode: HTTPError.BILLING_DELETE_ERROR,
               message: 'User cannot be deleted due to billing constraints',
@@ -892,11 +845,10 @@ export default class UserService {
               user: loggedUser, actionOnUser: user
             });
           }
+          await billingImpl.deleteUser(user);
         }
-        await billingImpl.deleteUser(user);
       } catch (error) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           action: ServerAction.USER_DELETE,
           errorCode: HTTPError.BILLING_DELETE_ERROR,
           message: 'Error occurred in billing system',
@@ -979,6 +931,67 @@ export default class UserService {
             detailedMessages: { error: error.stack }
           });
         }
+      }
+    }
+  }
+
+  private static async assignCreatedUserToSites(tenant: Tenant, loggedUser: UserToken, user: User, authorizationFilter: AuthorizationFilter) {
+    // Assign user to sites
+    if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.ORGANIZATION)) {
+      let siteIDs = [];
+      if (!Utils.isEmptyArray(authorizationFilter.filters.siteIDs)) {
+        siteIDs = authorizationFilter.filters.siteIDs;
+      } else {
+        // Assign user to all sites with auto-assign flag set
+        const sites = await SiteStorage.getSites(tenant,
+          { withAutoUserAssignment: true },
+          Constants.DB_PARAMS_MAX_LIMIT
+        );
+        siteIDs = sites.result.map((site) => site.id);
+      }
+      await UserStorage.addSitesToUser(tenant, user.id, siteIDs);
+    }
+  }
+
+  private static async updateUserAdminData(tenant: Tenant, user: User, projectFields: string[]) {
+    // Save User Status
+    if (Utils.objectHasProperty(user, 'status') &&
+        projectFields.includes('status')) {
+      await UserStorage.saveUserStatus(tenant, user.id, user.status);
+    }
+    // Save User Role
+    if (Utils.objectHasProperty(user, 'role') &&
+        projectFields.includes('role')) {
+      await UserStorage.saveUserRole(tenant, user.id, user.role);
+    }
+    // Save Admin Data
+    if (projectFields.includes('plateID') ||
+        projectFields.includes('technical') ||
+        projectFields.includes('notificationsActive') ||
+        projectFields.includes('freeAccess')) {
+      const adminData: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications, technical?: boolean, freeAccess?: boolean } = {};
+      if (Utils.objectHasProperty(user, 'plateID') &&
+          projectFields.includes('plateID')) {
+        adminData.plateID = user.plateID || null;
+      }
+      if (Utils.objectHasProperty(user, 'technical') &&
+          projectFields.includes('technical')) {
+        adminData.technical = user.technical;
+      }
+      if (Utils.objectHasProperty(user, 'freeAccess') &&
+          projectFields.includes('freeAccess')) {
+        adminData.freeAccess = user.freeAccess;
+      }
+      if (Utils.objectHasProperty(user, 'notificationsActive') &&
+          projectFields.includes('notificationsActive')) {
+        adminData.notificationsActive = user.notificationsActive;
+        if (user.notifications) {
+          adminData.notifications = user.notifications;
+        }
+      }
+      // Save
+      if (!Utils.isEmptyArray(Object.keys(adminData))) {
+        await UserStorage.saveUserAdminData(tenant, user.id, adminData);
       }
     }
   }

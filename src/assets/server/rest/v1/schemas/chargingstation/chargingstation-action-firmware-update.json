@@ -1,0 +1,39 @@
+{
+  "$id": "chargingstation-action-firmware-update",
+  "title": "Update Charging Station firmware",
+  "type": "object",
+  "properties": {
+    "chargingStationID": {
+      "$ref": "chargingstation#/definitions/id"
+    },
+    "args": {
+      "type": "object",
+      "properties": {
+        "location": {
+          "type": "string",
+          "sanitize": "mongo"
+        },
+        "retries": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "retrieveDate": {
+          "type": "string",
+          "format": "date-time",
+          "sanitize": "mongo"
+        },
+        "retryInterval": {
+          "type": "number",
+          "sanitize": "mongo"
+        }
+      },
+      "required": [
+        "location",
+        "retrieveDate"
+      ]
+    }
+  },
+  "required": [
+    "chargingStationID"
+  ]
+}

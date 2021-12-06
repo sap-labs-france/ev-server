@@ -10,8 +10,7 @@ import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import Utils from '../../utils/Utils';
 
 export default class CheckSessionNotStartedAfterAuthorizeTask extends SchedulerTask {
-
-  async processTenant(tenant: Tenant, config: CheckSessionNotStartedAfterAuthorizeTaskConfig): Promise<void> {
+  public async processTenant(tenant: Tenant, config: CheckSessionNotStartedAfterAuthorizeTaskConfig): Promise<void> {
     // Get the lock
     const sessionNotStartedLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.CHARGING_STATION, 'session-not-started-after-authorize');
     if (await LockingManager.acquire(sessionNotStartedLock)) {
@@ -23,12 +22,17 @@ export default class CheckSessionNotStartedAfterAuthorizeTask extends SchedulerT
         });
         if (notificationTransactionNotStarted.result && notificationTransactionNotStarted.result.length > 0) {
           for (const notification of notificationTransactionNotStarted.result) {
-            await NotificationHandler.sendSessionNotStarted(tenant, notification.tagID + '-' + notification.authDate.toString(), notification.chargingStation, {
-              user: notification.user,
-              chargeBoxID: notification.chargingStation.id,
-              evseDashboardChargingStationURL: Utils.buildEvseChargingStationURL(tenant.subdomain, notification.chargingStation, '#all'),
-              evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
-            });
+            await NotificationHandler.sendSessionNotStarted(tenant,
+              `${notification.tagID}-${notification.authDate.toString()}`,
+              notification.chargingStation, {
+                user: notification.user,
+                chargeBoxID: notification.chargingStation.id,
+                siteID: notification.chargingStation.siteID,
+                siteAreaID: notification.chargingStation.siteAreaID,
+                companyID: notification.chargingStation.companyID,
+                evseDashboardChargingStationURL: Utils.buildEvseChargingStationURL(tenant.subdomain, notification.chargingStation, '#all'),
+                evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
+              });
           }
         }
       } catch (error) {

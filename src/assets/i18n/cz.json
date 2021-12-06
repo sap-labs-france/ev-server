@@ -3,6 +3,11 @@
       "generatedUser":"Generovat uživatele pro '{{email}}'",
       "chargingAtSiteArea":"Nabíjecí relace: {{sessionID}} - počáteční datum: {{startDate}} v {startTime} - spotřeba energie: {{totalConsumption}} kWh v {{siteAreaName}}",
       "chargingAtChargeBox":"Nabíjecí relace: {{sessionID}} - počáteční datum: {{startDate}} v {{startTime}} - spotřeba energie: {{totalConsumption}} kWh nabíjecí stanice {{chargeBoxID}}",
+      "header-itemDescription": "Session: {{sessionID}} - Start Date: {{startDate}} at {{startTime}} at charging station {{chargeBoxID}}",
+      "flatFee-shortItemDescription": "Flat Fee",
+      "energy-shortItemDescription": "Energy Consumption: {{quantity}} kWh",
+      "chargingTime-shortItemDescription": "Charging Time: {{duration}}",
+      "parkingTime-shortItemDescription": "Parking Time: {{duration}}"
    },
    "chargers":{
       "chargeBoxSN":"Nabíjecí stojan S/N",
@@ -75,10 +80,6 @@
       "oicpPatchChargingStationsError":{
          "title":"Odeslat nabíjecí stanice platformě Hubject",
          "body":"Převod stavů nabíjecí stanice na roamingovou platformu Hubject se u organizace '{{tenantName}}' nezdařil, zkontrolujte protokol"
-      },
-      "smtpError":{
-         "title":"Chyba e-mailového serveru",
-         "body":"Primární e-mailový server selhal u organizace '{{tenantName}}‘, zkontrolujte konfiguraci"
       },
       "optimalChargeReached":{
          "title":"Dosaženo optimálního nabití",

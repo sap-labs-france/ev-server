@@ -1,24 +1,23 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
+import { Car, CarCatalog } from '../../../../types/Car';
 import { CarCatalogDataResult, CarDataResult } from '../../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
+import Tenant, { TenantComponents } from '../../../../types/Tenant';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
-import AsyncTaskManager from '../../../../async-task/AsyncTaskManager';
+import AsyncTaskBuilder from '../../../../async-task/AsyncTaskBuilder';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
-import { Car } from '../../../../types/Car';
-import CarSecurity from './security/CarSecurity';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
+import CarValidator from '../validator/CarValidator';
 import Constants from '../../../../utils/Constants';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
-import Tenant from '../../../../types/Tenant';
-import TenantComponents from '../../../../types/TenantComponents';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 
@@ -29,10 +28,10 @@ export default class CarService {
     // Check if component is active
     if (!Authorizations.isSuperAdmin(req.user)) {
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
-        Action.LIST, Entity.CAR_CATALOGS, MODULE_NAME, 'handleGetCarCatalogs');
+        Action.LIST, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarCatalogs');
     }
     // Filter
-    const filteredRequest = CarSecurity.filterCarCatalogsRequest(req.query);
+    const filteredRequest = CarValidator.getInstance().validateCarCatalogsGetReq(req.query);
     // Check auth
     const authorizationCarCatalogsFilter = await AuthorizationService.checkAndGetCarCatalogsAuthorizations(req.tenant, req.user, filteredRequest);
     if (!authorizationCarCatalogsFilter.authorized) {
@@ -49,11 +48,15 @@ export default class CarService {
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.SortFields,
+        sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       authorizationCarCatalogsFilter.projectFields
     );
+    // Assign projected fields
+    if (authorizationCarCatalogsFilter.projectFields) {
+      carCatalogs.projectFields = authorizationCarCatalogsFilter.projectFields;
+    }
     // Add Auth flags
     await AuthorizationService.addCarCatalogsAuthorizationActions(req.tenant, req.user, carCatalogs as CarCatalogDataResult,
       authorizationCarCatalogsFilter);
@@ -69,7 +72,7 @@ export default class CarService {
         Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarCatalog');
     }
     // Filter
-    const filteredRequest = CarSecurity.filterCarCatalogRequest(req.query);
+    const filteredRequest = CarValidator.getInstance().validateCarCatalogGetReq(req.query);
     // Check and get Car Catalog
     const carCatalog = await UtilsService.checkAndGetCarCatalogAuthorization(
       req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, { withImage: true }, true);
@@ -80,7 +83,7 @@ export default class CarService {
   public static async handleGetCarCatalogImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Unprotected Endpoint: No JWT token is provided
     // Filter
-    const filteredRequest = CarSecurity.filterCarCatalogRequest(req.query);
+    const filteredRequest = CarValidator.getInstance().validateCarCatalogGetReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCarCatalogImage', req.user);
     // Get the car Image
     const carCatalog = await CarStorage.getCarCatalogImage(filteredRequest.ID);
@@ -109,7 +112,7 @@ export default class CarService {
         Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarCatalogImages');
     }
     // Filter
-    const filteredRequest = CarSecurity.filterCarCatalogImagesRequest(req.query);
+    const filteredRequest = CarValidator.getInstance().validateCarCatalogImagesGetReq(req.query);
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCarCatalogImages', req.user);
     // Check dynamic auth
@@ -138,14 +141,14 @@ export default class CarService {
     // Check if component is active
     if (!Authorizations.isSuperAdmin(req.user)) {
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
-        Action.SYNCHRONIZE, Entity.CAR_CATALOGS, MODULE_NAME, 'handleSynchronizeCarCatalogs');
+        Action.SYNCHRONIZE, Entity.CAR_CATALOG, MODULE_NAME, 'handleSynchronizeCarCatalogs');
     }
     // Check auth
     if (!await Authorizations.canSynchronizeCarCatalogs(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.SYNCHRONIZE, entity: Entity.CAR_CATALOGS,
+        action: Action.SYNCHRONIZE, entity: Entity.CAR_CATALOG,
         module: MODULE_NAME, method: 'handleSynchronizeCarCatalogs'
       });
     }
@@ -153,7 +156,6 @@ export default class CarService {
     const syncCarCatalogsLock = await LockingHelper.acquireSyncCarCatalogsLock(Constants.DEFAULT_TENANT);
     if (!syncCarCatalogsLock) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: action,
         errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
         module: MODULE_NAME, method: 'handleSynchronizeCarCatalogs',
@@ -163,7 +165,7 @@ export default class CarService {
     }
     try {
       // Create and Save async task
-      await AsyncTaskManager.createAndSaveAsyncTasks({
+      await AsyncTaskBuilder.createAndSaveAsyncTasks({
         name: AsyncTasks.SYNCHRONIZE_CAR_CATALOGS,
         action,
         type: AsyncTaskType.TASK,
@@ -186,7 +188,7 @@ export default class CarService {
         Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarMakers');
     }
     // Filter
-    const filteredRequest = CarSecurity.filterCarMakersRequest(req.query);
+    const filteredRequest = CarValidator.getInstance().validateCarMakersGetReq(req.query);
     // Check auth
     if (!await Authorizations.canListCarCatalogs(req.user)) {
       throw new AppAuthError({
@@ -207,20 +209,12 @@ export default class CarService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
       Action.CREATE, Entity.CAR, MODULE_NAME, 'handleCreateCar');
     // Filter
-    const filteredRequest = CarSecurity.filterCarCreateRequest(req.body);
+    const filteredRequest = CarValidator.getInstance().validateCarCreateReq(req.body);
     // Check
     UtilsService.checkIfCarValid(filteredRequest, req);
     // Check auth
-    const authorizationFilters = await AuthorizationService.checkAndGetCarAuthorizations(
+    await AuthorizationService.checkAndGetCarAuthorizations(
       req.tenant,req.user, {}, Action.CREATE, filteredRequest as Car);
-    if (!authorizationFilters.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.CREATE, entity: Entity.CAR,
-        module: MODULE_NAME, method: 'handleCreateCar'
-      });
-    }
     // Check and get Car Catalog
     await UtilsService.checkAndGetCarCatalogAuthorization(
       req.tenant, req.user, filteredRequest.carCatalogID, Action.READ, action, filteredRequest as Car);
@@ -229,7 +223,6 @@ export default class CarService {
       filteredRequest.licensePlate, filteredRequest.vin);
     if (car) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.CAR_ALREADY_EXIST_ERROR,
         message: `The Car with VIN: '${filteredRequest.vin}' and License plate: '${filteredRequest.licensePlate}' already exist`,
         user: req.user,
@@ -265,11 +258,12 @@ export default class CarService {
       userID: filteredRequest.userID,
       default: filteredRequest.default,
       converter: filteredRequest.converter,
+      carConnectorData: filteredRequest.carConnectorData,
       createdOn: new Date()
     };
     // Save
     newCar.id = await CarStorage.saveCar(req.tenant, newCar);
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleCreateCar',
       message: `Car with VIN '${newCar.vin}' and plate ID '${newCar.licensePlate}' has been created successfully`,
@@ -285,7 +279,7 @@ export default class CarService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
       Action.UPDATE, Entity.CAR, MODULE_NAME, 'handleUpdateCar');
     // Filter
-    const filteredRequest = CarSecurity.filterCarUpdateRequest(req.body);
+    const filteredRequest = CarValidator.getInstance().validateCarUpdateReq(req.body);
     // Check
     UtilsService.checkIfCarValid(filteredRequest, req);
     // Check and Get Car
@@ -300,7 +294,6 @@ export default class CarService {
         req.tenant, filteredRequest.licensePlate, filteredRequest.vin);
       if (sameCar) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.CAR_ALREADY_EXIST_ERROR,
           message: `Car with VIN '${filteredRequest.vin}' and License Plate '${filteredRequest.licensePlate}' already exists`,
           user: req.user,
@@ -343,6 +336,7 @@ export default class CarService {
     car.converter = filteredRequest.converter;
     car.userID = filteredRequest.userID;
     car.default = filteredRequest.default;
+    car.carConnectorData = filteredRequest.carConnectorData;
     car.lastChangedBy = { 'id': req.user.id };
     car.lastChangedOn = new Date();
     // Save
@@ -351,7 +345,7 @@ export default class CarService {
     if (setDefaultCarToOldUserID) {
       await CarService.setDefaultCarForUser(req.tenant, setDefaultCarToOldUserID);
     }
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateCar',
       message: `Car '${car.id}' has been updated successfully`,
@@ -365,9 +359,9 @@ export default class CarService {
   public static async handleGetCars(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
-      Action.LIST, Entity.CARS, MODULE_NAME, 'handleGetCars');
+      Action.LIST, Entity.CAR, MODULE_NAME, 'handleGetCars');
     // Filter
-    const filteredRequest = CarSecurity.filterCarsRequest(req.query);
+    const filteredRequest = CarValidator.getInstance().validateCarsGetReq(req.query);
     // Check auth
     const authorizationCarsFilter = await AuthorizationService.checkAndGetCarsAuthorizations(
       req.tenant, req.user, filteredRequest);
@@ -387,11 +381,15 @@ export default class CarService {
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.SortFields,
+        sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       authorizationCarsFilter.projectFields
     );
+    // Assign projected fields
+    if (authorizationCarsFilter.projectFields) {
+      cars.projectFields = authorizationCarsFilter.projectFields;
+    }
     // Add Auth flags
     await AuthorizationService.addCarsAuthorizations(
       req.tenant, req.user, cars as CarDataResult, authorizationCarsFilter);
@@ -404,7 +402,7 @@ export default class CarService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
       Action.READ, Entity.CAR, MODULE_NAME, 'handleGetCar');
     // Filter
-    const filteredRequest = CarSecurity.filterCarRequest(req.query);
+    const filteredRequest = CarValidator.getInstance().validateCarGetReq(req.query);
     // Check and get Car
     const car = await UtilsService.checkAndGetCarAuthorization(
       req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, { withUser: true }, true);
@@ -418,7 +416,7 @@ export default class CarService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
       Action.DELETE, Entity.CAR, MODULE_NAME, 'handleDeleteCar');
     // Filter
-    const carID = CarSecurity.filterCarRequest(req.query).ID;
+    const carID = CarValidator.getInstance().validateCarGetReq(req.query).ID;
     // Check and Get Car
     const car = await UtilsService.checkAndGetCarAuthorization(
       req.tenant, req.user, carID, Action.DELETE, action);
@@ -428,7 +426,7 @@ export default class CarService {
     if (car.default) {
       await CarService.setDefaultCarForUser(req.tenant, car.userID);
     }
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteCar',
       message: `Car '${Utils.buildCarName(car)}' has been deleted successfully`,

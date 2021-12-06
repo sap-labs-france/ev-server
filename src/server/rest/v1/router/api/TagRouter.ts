@@ -24,52 +24,52 @@ export default class TagRouter {
     return this.router;
   }
 
-  protected buildRouteTags(): void {
+  private buildRouteTags(): void {
     this.router.get(`/${ServerRoute.REST_TAGS}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(TagService.handleGetTags.bind(this), ServerAction.TAGS, req, res, next);
     });
   }
 
-  protected buildRouteTag(): void {
+  private buildRouteTag(): void {
     this.router.get(`/${ServerRoute.REST_TAG}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
       await RouterUtils.handleServerAction(TagService.handleGetTag.bind(this), ServerAction.TAG, req, res, next);
     });
   }
 
-  protected buildRouteCreateTag(): void {
+  private buildRouteCreateTag(): void {
     this.router.post(`/${ServerRoute.REST_TAGS}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
       await RouterUtils.handleServerAction(TagService.handleCreateTag.bind(this), ServerAction.TAG_CREATE, req, res, next);
     });
   }
 
-  protected buildRouteDeleteTag(): void {
+  private buildRouteDeleteTag(): void {
     this.router.delete(`/${ServerRoute.REST_TAG}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
       await RouterUtils.handleServerAction(TagService.handleDeleteTag.bind(this), ServerAction.TAG_DELETE, req, res, next);
     });
   }
 
-  protected buildRouteDeleteTags(): void {
+  private buildRouteDeleteTags(): void {
     this.router.delete(`/${ServerRoute.REST_TAGS}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(TagService.handleDeleteTags.bind(this), ServerAction.TAGS_DELETE, req, res, next);
     });
   }
 
-  protected buildRouteUpdateTag(): void {
+  private buildRouteUpdateTag(): void {
     this.router.put(`/${ServerRoute.REST_TAG}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(TagService.handleUpdateTag.bind(this), ServerAction.TAG_UPDATE, req, res, next);
     });
   }
 
-  protected buildRouteImportTag(): void {
+  private buildRouteImportTag(): void {
     this.router.post(`/${ServerRoute.REST_TAGS_IMPORT}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(TagService.handleImportTags.bind(this), ServerAction.TAGS_IMPORT, req, res, next);
     });
   }
 
-  protected buildRouteExportTag(): void {
+  private buildRouteExportTag(): void {
     this.router.get(`/${ServerRoute.REST_TAGS_EXPORT}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(TagService.handleExportTags.bind(this), ServerAction.TAGS_EXPORT, req, res, next);
     });

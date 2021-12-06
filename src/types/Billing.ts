@@ -1,4 +1,5 @@
 import { ActionsResponse } from './GlobalType';
+import { PricedConsumptionData } from './Pricing';
 import User from './User';
 
 export interface TransactionBillingData {
@@ -81,32 +82,19 @@ export interface BillingInvoice {
 }
 
 export interface BillingInvoiceItem {
-  description: string;
   transactionID: number;
-  pricingData: BillingPricingData;
-  taxes?: string[];
+  currency: string;
+  pricingData: PricedConsumptionData[]
+  headerDescription?: string,
   metadata?: {
     // Just a flat list of key/value pairs!
     [name: string]: string | number | null;
   }
-  parkingData?: BillingParkingData
-}
-
-export interface BillingParkingData {
-  description: string;
-  pricingData: BillingPricingData;
 }
 
 export interface BillingSessionData {
   transactionID: number;
-  description: string;
-  pricingData: BillingPricingData;
-}
-
-export interface BillingPricingData {
-  quantity: number;
-  amount: number;
-  currency: string;
+  pricingData: PricedConsumptionData[];
 }
 
 export enum BillingInvoiceStatus {
@@ -161,3 +149,4 @@ export interface BillingAdditionalData {
   session?: BillingSessionData,
   lastError?: BillingError,
 }
+

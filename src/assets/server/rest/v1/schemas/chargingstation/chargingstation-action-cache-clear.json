@@ -1,0 +1,13 @@
+{
+  "$id": "chargingstation-action-cache-clear",
+  "title": "Clear Cache",
+  "type": "object",
+  "properties": {
+    "chargingStationID": {
+      "$ref": "chargingstation#/definitions/id"
+    }
+  },
+  "required": [
+    "chargingStationID"
+  ]
+}

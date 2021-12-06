@@ -11,7 +11,7 @@ const addons = (addonsArg) => {
 
 module.exports = (env) => {
   // Get env config
-  const envConfig = require(`./build/webpack.${env}`);
+  const envConfig = require(env.prod ? `./build/webpack.prod` : `./build/webpack.dev`);
   // Merge configs
   const config = merge(commonConfig, envConfig, addons(env.addons));
   // Return it

@@ -1,0 +1,27 @@
+{
+  "$id": "chargingstation-power-limit",
+  "title": "Limit Charging Station power",
+  "type": "object",
+  "properties": {
+    "chargingStationID": {
+      "$ref": "chargingstation#/definitions/id"
+    },
+    "chargePointID": {
+      "$ref": "chargingstation#/definitions/chargePoint/properties/chargePointID"
+    },
+    "connectorId": {
+      "$ref": "chargingstation#/definitions/connector/properties/connectorId"
+    },
+    "ampLimitValue": {
+      "type": "number",
+      "sanitize": "mongo"
+    },
+    "forceUpdateChargingPlan": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    }
+  },
+  "required": [
+    "chargingStationID", "chargePointID", "connectorId", "ampLimitValue"
+  ]
+}

@@ -9,100 +9,96 @@ import PerformanceStorage from '../../storage/mongodb/PerformanceStorage';
 import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
+import global from './../../types/GlobalType';
 import moment from 'moment';
 
 const MODULE_NAME = 'LoggingDatabaseTableCleanupTask';
 
 export default class LoggingDatabaseTableCleanupTask extends SchedulerTask {
-  public async run(name: string, config: TaskConfig): Promise<void> {
-    // Delete
-    await this.deleteLogs(Constants.DEFAULT_TENANT, config);
-    // Delete Perfs Records
-    await this.deletePerformanceRecords(Constants.DEFAULT_TENANT, config);
-    // Call for all Tenants
-    await super.run(name, config);
+  public async beforeTaskRun(config: TaskConfig): Promise<void> {
+    // Delete Default Tenant Logs
+    await this.deleteLogs(Constants.DEFAULT_TENANT_OBJECT, config);
+    // Delete Default Tenant Perfs Records
+    await this.deletePerformanceRecords(Constants.DEFAULT_TENANT_OBJECT, config);
   }
 
-  async processTenant(tenant: Tenant, config: LoggingDatabaseTableCleanupTaskConfig): Promise<void> {
-    // Delete Logs
-    await this.deleteLogs(tenant.id, config);
+  public async processTenant(tenant: Tenant, config: LoggingDatabaseTableCleanupTaskConfig): Promise<void> {
+    // Delete Tenant Logs
+    await this.deleteLogs(tenant, config);
   }
 
-  private async deleteLogs(tenantID: string, config: LoggingDatabaseTableCleanupTaskConfig) {
+  private async deleteLogs(tenant: Tenant, config: LoggingDatabaseTableCleanupTaskConfig) {
     // Get the lock
-    const logsCleanUpLock = LockingManager.createExclusiveLock(tenantID, LockEntity.LOGGING, 'cleanup');
+    const logsCleanUpLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.LOGGING, 'cleanup');
     if (await LockingManager.acquire(logsCleanUpLock)) {
       try {
-        // Delete Standard Logs
-        const deleteUpToDate = moment().subtract(config.retentionPeriodWeeks, 'w').toDate();
+        const lastLogMDB = global.database.getCollection(tenant.id, 'logs').find({})
+          .sort({ timestamp: -1 })
+          .skip(10 * 1000 * 1000)
+          .limit(1)
+          .project({ timestamp: 1 });
+        const lastLog = await lastLogMDB.toArray();
+        let deleteUpToDate: Date;
+        if (lastLog.length > 0) {
+          deleteUpToDate = lastLog[0].timestamp as Date;
+        } else {
+          deleteUpToDate = moment().subtract(config.retentionPeriodWeeks, 'w').toDate();
+        }
         // Delete
-        let result = await LoggingStorage.deleteLogs(tenantID, deleteUpToDate);
-        // Ok?
+        const result = await LoggingStorage.deleteLogs(tenant, deleteUpToDate);
         if (result.acknowledged) {
-          await Logging.logSecurityInfo({
-            tenantID: tenantID,
+          await Logging.logInfo({
+            tenantID: tenant.id,
             action: ServerAction.LOGS_CLEANUP,
             module: MODULE_NAME, method: 'deleteLogs',
-            message: `${result.deletedCount} Log(s) have been deleted successfully before '${moment(deleteUpToDate).format('DD/MM/YYYY h:mm A')}'`
+            message: `${result.deletedCount} Log(s) have been deleted before '${moment(deleteUpToDate).format('DD/MM/YYYY h:mm A')}'`
           });
         } else {
           await Logging.logError({
-            tenantID: tenantID,
+            tenantID: tenant.id,
             action: ServerAction.LOGS_CLEANUP,
             module: MODULE_NAME, method: 'deleteLogs',
             message: `An error occurred when deleting Logs before '${moment(deleteUpToDate).format('DD/MM/YYYY h:mm A')}'`,
             detailedMessages: { result }
           });
         }
-        // Delete Security Logs
-        const securityDeleteUpToDate: Date = moment().subtract(config.securityRetentionPeriodWeeks, 'w').startOf('week').toDate();
-        // Delete
-        result = await LoggingStorage.deleteSecurityLogs(tenantID, securityDeleteUpToDate);
-        // Ok?
-        if (result.acknowledged) {
-          await Logging.logSecurityInfo({
-            tenantID: tenantID,
-            action: ServerAction.LOGS_CLEANUP,
-            module: MODULE_NAME, method: 'deleteLogs',
-            message: `${result.deletedCount} Security Log(s) have been deleted before '${moment(securityDeleteUpToDate).format('DD/MM/YYYY h:mm A')}'`
-          });
-        } else {
-          await Logging.logSecurityError({
-            tenantID: tenantID,
-            action: ServerAction.LOGS_CLEANUP,
-            module: MODULE_NAME, method: 'deleteLogs',
-            message: `An error occurred when deleting Security Logs before '${moment(securityDeleteUpToDate).format('DD/MM/YYYY h:mm A')}'`,
-            detailedMessages: { result }
-          });
-        }
       } catch (error) {
-        await Logging.logActionExceptionMessage(tenantID, ServerAction.LOGS_CLEANUP, error);
+        await Logging.logActionExceptionMessage(tenant.id, ServerAction.LOGS_CLEANUP, error);
       } finally {
         await LockingManager.release(logsCleanUpLock);
       }
     }
   }
 
-  private async deletePerformanceRecords(tenantID: string, config: LoggingDatabaseTableCleanupTaskConfig) {
+  private async deletePerformanceRecords(tenant: Tenant, config: LoggingDatabaseTableCleanupTaskConfig) {
     // Get the lock
-    const performanceCleanUpLock = LockingManager.createExclusiveLock(tenantID, LockEntity.PERFORMANCE, 'cleanup');
+    const performanceCleanUpLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.PERFORMANCE, 'cleanup');
     if (await LockingManager.acquire(performanceCleanUpLock)) {
       try {
-        // Delete Performance Records (keep only 2 weeks)
-        const deleteUpToDate = moment().subtract(2, 'w').toDate();
-        // Delete
+        const lastLogMDB = global.database.getCollection(tenant.id, 'performances').find({})
+          .sort({ timestamp: -1 })
+          .skip(100 * 1000 * 1000)
+          .limit(1)
+          .project({ timestamp: 1 });
+        const lastLog = await lastLogMDB.toArray();
+        let deleteUpToDate: Date;
+        if (lastLog.length > 0) {
+          deleteUpToDate = lastLog[0].timestamp as Date;
+        } else {
+          deleteUpToDate = moment().subtract(config.retentionPeriodWeeks, 'w').toDate();
+        }
+        // Delete Logs
         const result = await PerformanceStorage.deletePerformanceRecords({ deleteUpToDate });
-        // Ok?
         if (result.acknowledged) {
-          await Logging.logSecurityInfo({
-            tenantID: tenantID,
+          await Logging.logInfo({
+            tenantID: tenant.id,
             action: ServerAction.PERFORMANCES_CLEANUP,
             module: MODULE_NAME, method: 'deletePerformanceRecords',
-            message: `${result.deletedCount} Performance Record(s) have been deleted successfully before '${moment(deleteUpToDate).format('DD/MM/YYYY h:mm A')}'`
+            message: `${result.deletedCount} Performance Record(s) have been deleted before '${moment(deleteUpToDate).format('DD/MM/YYYY h:mm A')}'`
           });
         } else {
           await Logging.logError({
-            tenantID: tenantID,
+            tenantID: tenant.id,
             action: ServerAction.PERFORMANCES_CLEANUP,
             module: MODULE_NAME, method: 'deletePerformanceRecords',
             message: `An error occurred when deleting Performance Record(s) before '${moment(deleteUpToDate).format('DD/MM/YYYY h:mm A')}'`,
@@ -110,8 +106,7 @@ export default class LoggingDatabaseTableCleanupTask extends SchedulerTask {
           });
         }
       } catch (error) {
-        // Log error
-        await Logging.logActionExceptionMessage(tenantID, ServerAction.PERFORMANCES_CLEANUP, error);
+        await Logging.logActionExceptionMessage(tenant.id, ServerAction.PERFORMANCES_CLEANUP, error);
       } finally {
         // Release the lock
         await LockingManager.release(performanceCleanUpLock);
@@ -119,4 +114,3 @@ export default class LoggingDatabaseTableCleanupTask extends SchedulerTask {
     }
   }
 }
-

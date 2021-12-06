@@ -1,0 +1,47 @@
+{
+  "$id": "tag-import-create",
+  "title": "Tag importation",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "tag#/definitions/id"
+    },
+    "description": {
+      "$ref": "tag#/definitions/description"
+    },
+    "visualID": {
+      "$ref": "tag#/definitions/visualID"
+    },
+    "siteIDs": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "importedData": {
+      "type": "object",
+      "properties": {
+        "autoActivateUserAtImport": {
+          "type": "boolean",
+          "sanitize": "mongo"
+        },
+        "autoActivateTagAtImport": {
+          "type": "boolean",
+          "sanitize": "mongo"
+        }
+      }
+    },
+    "email": {
+      "$ref": "user#/definitions/email"
+    },
+    "name": {
+      "$ref": "user#/definitions/name"
+    },
+    "firstName": {
+      "$ref": "user#/definitions/firstName"
+    }
+  },
+  "required": [
+    "id",
+    "visualID",
+    "description"
+  ]
+}

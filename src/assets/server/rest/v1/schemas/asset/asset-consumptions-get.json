@@ -1,0 +1,25 @@
+{
+  "$id": "asset-consumptions-get",
+  "title": "Get Asset Consumptions by ID Request",
+  "type": "object",
+  "properties": {
+    "AssetID": {
+      "$ref": "asset#/definitions/id"
+    },
+    "StartDate": {
+      "type": "string",
+      "format": "date-time",
+      "sanitize": "mongo"
+    },
+    "EndDate": {
+      "type": "string",
+      "format": "date-time",
+      "sanitize": "mongo"
+    }
+  },
+  "required": [
+    "AssetID",
+    "StartDate",
+    "EndDate"
+  ]
+}

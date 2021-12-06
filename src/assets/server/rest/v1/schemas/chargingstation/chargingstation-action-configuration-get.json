@@ -1,0 +1,26 @@
+{
+  "$id": "chargingstation-action-configuration-get",
+  "title": "Get Configuration",
+  "type": "object",
+  "properties": {
+    "chargingStationID": {
+      "$ref": "chargingstation#/definitions/id"
+    },
+    "args": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "array",
+          "sanitize": "mongo",
+          "items": {
+            "type": "string",
+            "maxLength": 50
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "chargingStationID"
+  ]
+}

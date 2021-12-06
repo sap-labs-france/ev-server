@@ -1,16 +1,17 @@
-import Asset, { AssetType, WitDataSet } from '../../../types/Asset';
+import Asset, { AssetConnectionToken, AssetType, WitDataSet } from '../../../types/Asset';
 import { AssetConnectionSetting, AssetSetting } from '../../../types/Setting';
 
 import { AbstractCurrentConsumption } from '../../../types/Consumption';
 import AssetIntegration from '../AssetIntegration';
+import AssetTokenCache from '../AssetTokenCache';
 import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
 import BackendError from '../../../exception/BackendError';
-import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import Tenant from '../../../types/Tenant';
+import { URLSearchParams } from 'url';
 import Utils from '../../../utils/Utils';
 import moment from 'moment';
 
@@ -21,7 +22,7 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSetting> 
 
   public constructor(tenant: Tenant, settings: AssetSetting, connection: AssetConnectionSetting) {
     super(tenant, settings, connection);
-    this.axiosInstance = AxiosFactory.getAxiosInstance(tenant.id);
+    this.axiosInstance = AxiosFactory.getAxiosInstance(tenant);
   }
 
   public async checkConnection(): Promise<void> {
@@ -49,7 +50,6 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSetting> 
       );
       await Logging.logDebug({
         tenantID: this.tenant.id,
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
         message: `${asset.name} > WIT web service has been called successfully`,
         module: MODULE_NAME, method: 'retrieveConsumption',
@@ -58,7 +58,6 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSetting> 
       return this.filterConsumptionRequest(asset, response.data, manualCall);
     } catch (error) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'retrieveConsumption',
         action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
@@ -104,10 +103,19 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSetting> 
   }
 
   private async connect(): Promise<string> {
-    // Check if connection is initialized
-    this.checkConnectionIsProvided();
-    // Get credential params
-    const credentials = await this.getCredentialURLParams();
+    let token = AssetTokenCache.getInstanceForTenant(this.tenant).getToken(this.connection.id);
+    if (!token) {
+      // Check if connection is initialized
+      this.checkConnectionIsProvided();
+      token = await this.fetchAssetProviderToken(await this.getCredentialURLParams());
+      // Cache it for better performance
+      AssetTokenCache.getInstanceForTenant(this.tenant).setToken(this.connection.id, token);
+    }
+    return token.accessToken;
+  }
+
+  private async fetchAssetProviderToken(credentials: URLSearchParams): Promise<AssetConnectionToken> {
+    const now = new Date();
     // Send credentials to get the token
     const response = await Utils.executePromiseWithTimeout(5000,
       this.axiosInstance.post(`${this.connection.witConnection.authenticationUrl}/token`,
@@ -120,8 +128,14 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSetting> 
         }),
       `Time out error (5s) when getting the token with the connection URL '${this.connection.witConnection.authenticationUrl}/token'`
     );
-    // Return the Token
-    return response.data.access_token;
+    const expireTime = moment().add(response.data.expires_in, 'seconds').toDate();
+    return {
+      accessToken: response.data.access_token,
+      tokenType: response.data.token_type,
+      expiresIn: response.data.expires_in,
+      issued: now,
+      expires: expireTime,
+    };
   }
 
   private async getCredentialURLParams(): Promise<URLSearchParams> {
@@ -138,7 +152,6 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSetting> 
   private checkConnectionIsProvided(): void {
     if (!this.connection) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'checkConnectionIsProvided',
         action: ServerAction.CHECK_CONNECTION,

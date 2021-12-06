@@ -1,0 +1,20 @@
+{
+  "$id": "tag-visual-id-get",
+  "title": "Get a Tag by visual ID",
+  "type": "object",
+  "properties": {
+    "VisualID": {
+      "$ref": "tag#/definitions/visualID"
+    },
+    "WithUser": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "ProjectFields": {
+      "$ref": "common#/definitions/projectFields"
+    }
+  },
+  "required": [
+    "VisualID"
+  ]
+}

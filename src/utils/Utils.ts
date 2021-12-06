@@ -3,9 +3,11 @@ import { Car, CarCatalog } from '../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion, OCPPVersionURLPath } from '../types/ocpp/OCPPServer';
 import ChargingStation, { ChargePoint, ChargingStationEndpoint, Connector, ConnectorCurrentLimitSource, CurrentType, Voltage } from '../types/ChargingStation';
 import PerformanceRecord, { PerformanceRecordGroup } from '../types/Performance';
+import Tenant, { TenantComponentContent, TenantComponents } from '../types/Tenant';
 import Transaction, { CSPhasesUsed, InactivityStatus } from '../types/Transaction';
 import User, { UserRole, UserStatus } from '../types/User';
 import crypto, { CipherGCMTypes } from 'crypto';
+import global, { EntityData } from '../types/GlobalType';
 
 import Address from '../types/Address';
 import { AxiosError } from 'axios';
@@ -13,23 +15,17 @@ import BackendError from '../exception/BackendError';
 import Configuration from './Configuration';
 import ConnectorStats from '../types/ConnectorStats';
 import Constants from './Constants';
-import Cypher from './Cypher';
 import { Decimal } from 'decimal.js';
-import Logging from './Logging';
+import { Promise } from 'bluebird';
 import QRCode from 'qrcode';
 import { Request } from 'express';
 import { ServerAction } from '../types/Server';
 import Tag from '../types/Tag';
-import Tenant from '../types/Tenant';
-import TenantComponents from '../types/TenantComponents';
 import UserToken from '../types/UserToken';
 import { WebSocketCloseEventStatusString } from '../types/WebSocket';
 import _ from 'lodash';
 import bcrypt from 'bcryptjs';
-import cfenv from 'cfenv';
-import cluster from 'cluster';
 import fs from 'fs';
-import global from '../types/GlobalType';
 import http from 'http';
 import moment from 'moment';
 import os from 'os';
@@ -39,9 +35,27 @@ import tzlookup from 'tz-lookup';
 import { v4 as uuid } from 'uuid';
 import validator from 'validator';
 
-const MODULE_NAME = 'Utils';
-
 export default class Utils {
+  public static removeCanPropertiesWithFalseValue(entityData: EntityData): void {
+    if (entityData) {
+      for (const entityDataKey in entityData) {
+        if (entityDataKey.startsWith('can') && !entityData[entityDataKey]) {
+          delete entityData[entityDataKey];
+        }
+      }
+    }
+  }
+
+  public static convertBufferArrayToString(data: ArrayBuffer): string {
+    if (!data) {
+      return null;
+    }
+    if (data.byteLength === 0) {
+      return '';
+    }
+    return Buffer.from(data).toString();
+  }
+
   public static buildConnectorInfo(connectorID: number, transactionID?: number): string {
     let connectorInfo = `Connector ID '${connectorID}' >`;
     if (transactionID > 0) {
@@ -211,6 +225,15 @@ export default class Utils {
     return InactivityStatus.ERROR;
   }
 
+  public static areObjectPropertiesEqual(objCmp1: any = {}, objCmp2: any = {}, key: string): boolean {
+    // Check DB expireAfterSeconds index
+    if ((Utils.objectHasProperty(objCmp1, key) !== Utils.objectHasProperty(objCmp2, key)) ||
+        (objCmp1[key] !== objCmp2[key])) {
+      return false;
+    }
+    return true;
+  }
+
   public static objectHasProperty(obj: any, key: string): boolean {
     return _.has(obj, key);
   }
@@ -253,6 +276,15 @@ export default class Utils {
   public static isNullOrUndefined(obj: any): boolean {
     // eslint-disable-next-line no-eq-null, eqeqeq
     return obj == null;
+  }
+
+  public static objectAllPropertiesAreEqual(doc1: Record<string, any>, doc2: Record<string, any>, properties: string[]): boolean {
+    for (const property of properties) {
+      if ((doc1[property] !== doc2[property] && (!Utils.isNullOrUndefined(doc1[property]) || !Utils.isNullOrUndefined(doc2[property])))) {
+        return false;
+      }
+    }
+    return true;
   }
 
   public static getConnectorStatusesFromChargingStations(chargingStations: ChargingStation[]): ConnectorStats {
@@ -356,6 +388,8 @@ export default class Utils {
       return 'pt_PT';
     } else if (language === 'it') {
       return 'it_IT';
+    } else if (language === 'cz') {
+      return 'cz_CZ';
     }
     return Constants.DEFAULT_LOCALE;
   }
@@ -839,6 +873,10 @@ export default class Utils {
     return !Object.keys(obj).length;
   }
 
+  public static isNullOrEmptyString(str: string): boolean {
+    return str ? str.length === 0 : true;
+  }
+
   public static findDuplicatesInArray(arr: any[]): any[] {
     const sorted_arr = arr.slice().sort();
     const results: any[] = [];
@@ -909,7 +947,7 @@ export default class Utils {
   // Save the users in file
   public static saveFile(filename: string, content: string): void {
     // Save
-    fs.writeFileSync(path.join(__dirname, filename), content, 'UTF-8');
+    fs.writeFileSync(path.join(__dirname, filename), content, 'utf8');
   }
 
   public static getRandomInt(max: number, min = 0): number {
@@ -936,36 +974,13 @@ export default class Utils {
     return `${centralSystemFrontEndConfig.protocol}://${centralSystemFrontEndConfig.host}:${centralSystemFrontEndConfig.port}`;
   }
 
-  public static buildOCPPServerURL(tenantID: string, ocppVersion: OCPPVersion, ocppProtocol: OCPPProtocol, token?: string): string {
-    let ocppUrl: string;
-    if (Configuration.getJsonEndpointConfig().baseUrl && ocppProtocol === OCPPProtocol.JSON) {
-      ocppUrl = `${Configuration.getJsonEndpointConfig().baseUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}/${tenantID}`;
-      if (token) {
-        ocppUrl += `/${token}`;
-      }
-    } else if (Configuration.getWSDLEndpointConfig()?.baseUrl && ocppProtocol === OCPPProtocol.SOAP) {
-      ocppUrl = `${Configuration.getWSDLEndpointConfig().baseUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}?TenantID=${tenantID}`;
-      if (token) {
-        ocppUrl += `%26Token=${token}`;
-      }
-    }
-    return ocppUrl;
-  }
-
   public static buildOCPPServerSecureURL(tenantID: string, ocppVersion: OCPPVersion, ocppProtocol: OCPPProtocol, token?: string): string {
-    let ocppUrl: string;
-    if (Configuration.getJsonEndpointConfig().baseSecureUrl && ocppProtocol === OCPPProtocol.JSON) {
-      ocppUrl = `${Configuration.getJsonEndpointConfig().baseSecureUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}/${tenantID}`;
-      if (token) {
-        ocppUrl += `/${token}`;
-      }
-    } else if (Configuration.getWSDLEndpointConfig()?.baseSecureUrl && ocppProtocol === OCPPProtocol.SOAP) {
-      ocppUrl = `${Configuration.getWSDLEndpointConfig().baseSecureUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}?TenantID=${tenantID}`;
-      if (token) {
-        ocppUrl += `%26Token=${token}`;
-      }
+    switch (ocppProtocol) {
+      case OCPPProtocol.JSON:
+        return `${Configuration.getJsonEndpointConfig().baseSecureUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}/${tenantID}/${token}`;
+      case OCPPProtocol.SOAP:
+        return `${Configuration.getWSDLEndpointConfig().baseSecureUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}?TenantID=${tenantID}%26Token=${token}`;
     }
-    return ocppUrl;
   }
 
   public static getOCPPServerVersionURLPath(ocppVersion: OCPPVersion): string {
@@ -1048,12 +1063,12 @@ export default class Utils {
 
   public static roundTo(value: number, scale: number): number {
     const roundPower = Math.pow(10, scale);
-    return Math.round(value * roundPower) / roundPower;
+    return Utils.createDecimal(value).mul(roundPower).round().div(roundPower).toNumber();
   }
 
   public static truncTo(value: number, scale: number): number {
     const truncPower = Math.pow(10, scale);
-    return Math.trunc(value * truncPower) / truncPower;
+    return Utils.createDecimal(value).mul(truncPower).trunc().div(truncPower).toNumber();
   }
 
   public static firstLetterInUpperCase(value: string): string {
@@ -1068,20 +1083,7 @@ export default class Utils {
     if (Utils.isNullOrUndefined(object)) {
       return object;
     }
-    let cloneObject: T;
-    try {
-      cloneObject = _.cloneDeep(object);
-    } catch (error) {
-      void Logging.logError({
-        tenantID: Constants.DEFAULT_TENANT,
-        module: MODULE_NAME,
-        method: 'cloneObject',
-        action: ServerAction.LOGGING,
-        message: `Failed to clone object with error: ${error}`,
-        detailedMessages: { error }
-      });
-    }
-    return cloneObject;
+    return _.cloneDeep(object);
   }
 
   public static getConnectorLetterFromConnectorID(connectorID: number): string {
@@ -1106,7 +1108,7 @@ export default class Utils {
   }
 
   public static generateToken(email: string): string {
-    return Cypher.hash(`${crypto.randomBytes(256).toString('hex')}}~${new Date().toISOString()}~${email}`);
+    return Utils.hash(`${crypto.randomBytes(256).toString('hex')}}~${new Date().toISOString()}~${email}`);
   }
 
   public static getRoleNameFromRoleID(roleID: string): string {
@@ -1202,7 +1204,7 @@ export default class Utils {
   }
 
   public static hashPassword(password: string): string {
-    return Cypher.hash(password);
+    return Utils.hash(password);
   }
 
   public static isValidDate(date: any): boolean {
@@ -1248,26 +1250,26 @@ export default class Utils {
   }
 
   public static getChargingStationEndpoint() : ChargingStationEndpoint {
-    return Configuration.isCloudFoundry() ? ChargingStationEndpoint.SCP : ChargingStationEndpoint.AWS;
+    return ChargingStationEndpoint.AWS;
   }
 
   public static async generateQrCode(data: string) :Promise<string> {
     return await QRCode.toDataURL(data);
   }
 
-  public static createDefaultSettingContent(activeComponent: any, currentSettingContent: SettingDBContent): SettingDBContent {
-    switch (activeComponent.name) {
+  public static createDefaultSettingContent(componentName: string, activeComponentContent: TenantComponentContent, currentSettingContent: SettingDBContent): SettingDBContent {
+    switch (componentName) {
       // Pricing
       case TenantComponents.PRICING:
-        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
+        if (!currentSettingContent || currentSettingContent.type !== activeComponentContent.type) {
           // Create default settings
-          if (activeComponent.type === PricingSettingsType.SIMPLE) {
+          if (activeComponentContent.type === PricingSettingsType.SIMPLE) {
             // Simple Pricing
             return {
               'type': PricingSettingsType.SIMPLE,
               'simple': {}
             } as SettingDBContent;
-          } else if (activeComponent.type === PricingSettingsType.CONVERGENT_CHARGING) {
+          } else if (activeComponentContent.type === PricingSettingsType.CONVERGENT_CHARGING) {
             // SAP CC
             return {
               'type': PricingSettingsType.CONVERGENT_CHARGING,
@@ -1278,7 +1280,7 @@ export default class Utils {
         break;
       // Billing
       case TenantComponents.BILLING:
-        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
+        if (!currentSettingContent || currentSettingContent.type !== activeComponentContent.type) {
           // Only Stripe
           return {
             'type': BillingSettingsType.STRIPE,
@@ -1288,7 +1290,7 @@ export default class Utils {
         break;
       // Refund
       case TenantComponents.REFUND:
-        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
+        if (!currentSettingContent || currentSettingContent.type !== activeComponentContent.type) {
           // Only Concur
           return {
             'type': RefundSettingsType.CONCUR,
@@ -1298,7 +1300,7 @@ export default class Utils {
         break;
       // OCPI
       case TenantComponents.OCPI:
-        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
+        if (!currentSettingContent) {
           // Only Gireve
           return {
             'type': RoamingSettingsType.OCPI,
@@ -1308,7 +1310,7 @@ export default class Utils {
         break;
       // OICP
       case TenantComponents.OICP:
-        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
+        if (!currentSettingContent) {
           // Only Hubject
           return {
             'type': RoamingSettingsType.OICP,
@@ -1318,7 +1320,7 @@ export default class Utils {
         break;
       // SAC
       case TenantComponents.ANALYTICS:
-        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
+        if (!currentSettingContent || currentSettingContent.type !== activeComponentContent.type) {
           // Only SAP Analytics
           return {
             'type': AnalyticsSettingsType.SAC,
@@ -1328,7 +1330,7 @@ export default class Utils {
         break;
       // Smart Charging
       case TenantComponents.SMART_CHARGING:
-        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
+        if (!currentSettingContent || currentSettingContent.type !== activeComponentContent.type) {
           // Only SAP sapSmartCharging
           return {
             'type': SmartChargingContentType.SAP_SMART_CHARGING,
@@ -1373,8 +1375,7 @@ export default class Utils {
   }
 
   public static isPasswordValid(password: string): boolean {
-    // eslint-disable-next-line no-useless-escape
-    return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/''\$%\^&\*\.\?\-_\+\=\(\)])(?=.{8,})/.test(password);
+    return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,%&=_<>\/'\$\^\*\.\?\-\+\(\)])(?=.{8,})/.test(password);
   }
 
   public static isPhoneValid(phone: string): boolean {
@@ -1426,12 +1427,14 @@ export default class Utils {
     }
     // REST API
     if (url.startsWith('/client/api/') ||
-        url.startsWith('/client/util/') ||
+        url.startsWith('/v1/api/')) {
+      return PerformanceRecordGroup.REST_SECURED;
+    }
+    if (url.startsWith('/client/util/') ||
         url.startsWith('/client/auth/') ||
-        url.startsWith('/v1/api/') ||
         url.startsWith('/v1/util/') ||
         url.startsWith('/v1/auth/')) {
-      return PerformanceRecordGroup.REST;
+      return PerformanceRecordGroup.REST_PUBLIC;
     }
     // OCPI
     if (url.includes('ocpi')) {
@@ -1462,12 +1465,16 @@ export default class Utils {
       return PerformanceRecordGroup.IOTHINK;
     }
     // Lacroix
-    if (url.includes('esoflink')) {
+    if (url.includes('esoftlink ')) {
       return PerformanceRecordGroup.LACROIX;
     }
     // EV Database
     if (url.includes('ev-database')) {
       return PerformanceRecordGroup.EV_DATABASE;
+    }
+    // WIT
+    if (url.includes('wit-datacenter')) {
+      return PerformanceRecordGroup.WIT;
     }
     // SAP Smart Charging
     if (url.includes('smart-charging')) {
@@ -1477,43 +1484,59 @@ export default class Utils {
   }
 
   public static buildPerformanceRecord(params: {
-    tenantID: string; durationMs: number; sizeKb?: number; source?: string;
-    module: string; method: string; action: ServerAction|string; group?: PerformanceRecordGroup;
-    httpUrl?: string; httpMethod?: string; httpCode?: number; chargingStationID?: string,
+    tenantSubdomain?: string; durationMs?: number; resSizeKb?: number;
+    reqSizeKb?: number; action: ServerAction|string; group?: PerformanceRecordGroup;
+    httpUrl?: string; httpMethod?: string; httpResponseCode?: number; chargingStationID?: string,
   }): PerformanceRecord {
-    const cpuInfo = os.cpus();
-    return {
-      tenantID: params.tenantID,
+    const performanceRecord: PerformanceRecord = {
+      tenantSubdomain: params.tenantSubdomain,
       timestamp: new Date(),
-      durationMs: params.durationMs,
-      sizeKb: params.sizeKb,
-      host: Utils.getHostname(),
-      process: cluster.isWorker ? 'worker ' + cluster.worker.id.toString() : 'master',
-      processMemoryUsage: process.memoryUsage(),
-      processCPUUsage: process.cpuUsage(),
-      numberOfCPU: cpuInfo.length,
-      modelOfCPU: cpuInfo.length > 0 ? cpuInfo[0].model : '',
-      memoryTotalGb: Utils.createDecimal(os.totalmem()).div(Constants.ONE_BILLION).toNumber(),
-      memoryFreeGb: Utils.createDecimal(os.freemem()).div(Constants.ONE_BILLION).toNumber(),
-      loadAverageLastMin: os.loadavg()[0],
-      numberOfChargingStations: global.centralSystemJsonServer?.getNumberOfJsonConnections(),
-      source: params.source,
-      module: params.module,
-      method: params.method,
+      host: Utils.getHostName(),
       action: params.action,
-      chargingStationID: params.chargingStationID,
-      httpUrl: params.httpUrl,
-      httpMethod: params.httpMethod,
-      httpCode: params.httpCode,
-      group: params.group,
+      group: params.group
     };
+    if (params.durationMs) {
+      performanceRecord.durationMs = params.durationMs;
+    }
+    if (params.resSizeKb) {
+      performanceRecord.resSizeKb = params.resSizeKb;
+    }
+    if (params.reqSizeKb) {
+      performanceRecord.reqSizeKb = params.reqSizeKb;
+    }
+    if (params.chargingStationID) {
+      performanceRecord.chargingStationID = params.chargingStationID;
+    }
+    if (params.httpUrl) {
+      performanceRecord.httpUrl = params.httpUrl;
+    }
+    if (params.httpMethod) {
+      performanceRecord.httpMethod = params.httpMethod;
+    }
+    if (params.httpResponseCode) {
+      performanceRecord.httpResponseCode = params.httpResponseCode;
+    }
+    if (global.serverType) {
+      performanceRecord.server = global.serverType;
+    }
+    return performanceRecord;
   }
 
-  public static getHostname(): string {
-    return Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname();
+  public static getHostName(): string {
+    return os.hostname();
   }
 
-  // when exporting values
+  public static getHostIP(): string {
+    const hostname = Utils.getHostName();
+    if (hostname.startsWith('ip-')) {
+      const hostnameParts = hostname.split('-');
+      if (hostnameParts.length > 4) {
+        const lastIPDigit = hostnameParts[4].split('.')[0];
+        return `${hostnameParts[1]}.${hostnameParts[2]}.${hostnameParts[3]}.${lastIPDigit}`;
+      }
+    }
+  }
+
   public static escapeCsvValue(value: any): string {
     // add double quote start and end
     // replace double quotes inside value to double double quotes to display double quote correctly in csv editor
@@ -1523,5 +1546,38 @@ export default class Utils {
   // when importing values
   public static unescapeCsvValue(value: any): void {
     // double quotes are handle by csvToJson
+  }
+
+  public static async sanitizeCSVExport(data: any, tenantID: string): Promise<any> {
+    if (!data || typeof data === 'number' || typeof data === 'bigint' || typeof data === 'symbol' || Utils.isBoolean(data) || typeof data === 'function') {
+      return data;
+    }
+    // If the data is a string and starts with the csv characters initiating the formula parsing, then escape
+    if (typeof data === 'string') {
+      if (!Utils.isNullOrEmptyString(data)) {
+        data = data.replace(Constants.CSV_CHARACTERS_TO_ESCAPE, Constants.CSV_ESCAPING_CHARACTER + data);
+      }
+      return data;
+    }
+    // If the data is an array, apply the sanitizeCSVExport function for each item
+    if (Array.isArray(data)) {
+      const sanitizedData = [];
+      for (const item of data) {
+        sanitizedData.push(await Utils.sanitizeCSVExport(item, tenantID));
+      }
+      return sanitizedData;
+    }
+    // If the data is an object, apply the sanitizeCSVExport function for each attribute
+    if (typeof data === 'object') {
+      for (const key of Object.keys(data)) {
+        data[key] = await Utils.sanitizeCSVExport(data[key], tenantID);
+      }
+      return data;
+    }
+    return null;
+  }
+
+  public static hash(data: string): string {
+    return crypto.createHash('sha256').update(data).digest('hex');
   }
 }

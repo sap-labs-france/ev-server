@@ -138,6 +138,7 @@ export interface Car extends CreatedUpdatedProps, AuthorizationActions {
   default: boolean;
   type?: CarType;
   converter?: CarConverter;
+  carConnectorData?: CarConnectorData;
 }
 
 export interface CarConverter {
@@ -192,4 +193,9 @@ export interface CarCatalogConverter {
   chargePower: number;
   chargeTime: number;
   chargeSpeed: number;
+}
+
+export interface CarConnectorData {
+  carConnectorID?: string;
+  carConnectorMeterID?: string;
 }

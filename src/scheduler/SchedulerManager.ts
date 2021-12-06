@@ -1,4 +1,5 @@
 import AssetGetConsumptionTask from './tasks/AssetGetConsumptionTask';
+import AsyncTaskCheckTask from './tasks/AsyncTaskCheckTask';
 import BillingPeriodicOperationTask from './tasks/BillingPeriodicOperationTask';
 import CheckAndComputeSmartChargingTask from './tasks/CheckAndComputeSmartChargingTask';
 import CheckChargingStationTemplateTask from './tasks/CheckChargingStationTemplateTask';
@@ -61,6 +62,9 @@ export default class SchedulerManager {
         let schedulerTask: SchedulerTask;
         // Tasks
         switch (task.name) {
+          case 'AsyncTaskCheckTask':
+            schedulerTask = new AsyncTaskCheckTask();
+            break;
           case 'LoggingDatabaseTableCleanupTask':
             schedulerTask = new LoggingDatabaseTableCleanupTask();
             break;

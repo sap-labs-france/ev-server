@@ -1,5 +1,6 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
+import { IntegrationSettings, TechnicalSettings } from '../../../../types/Setting';
 import { NextFunction, Request, Response } from 'express';
 
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -11,8 +12,8 @@ import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
 import SettingSecurity from './security/SettingSecurity';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
+import SettingValidator from '../validator/SettingValidator';
 import { StatusCodes } from 'http-status-codes';
-import { TechnicalSettings } from '../../../../types/Setting';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 import _ from 'lodash';
@@ -41,7 +42,7 @@ export default class SettingService {
     // Delete
     await SettingStorage.deleteSetting(req.tenant, settingID);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteSetting',
       message: `Setting '${setting.identifier}' has been deleted successfully`,
@@ -76,7 +77,7 @@ export default class SettingService {
     Cypher.hashSensitiveDataInJSON(setting);
     // If Crypto Settings, hash key
     if (setting.identifier === 'crypto') {
-      setting.content.crypto.key = Cypher.hash(setting.content.crypto.key);
+      setting.content.crypto.key = Utils.hash(setting.content.crypto.key);
     }
     // Return
     res.json(setting);
@@ -106,7 +107,7 @@ export default class SettingService {
     Cypher.hashSensitiveDataInJSON(setting);
     // If Crypto Settings, hash key
     if (setting.identifier === 'crypto') {
-      setting.content.crypto.key = Cypher.hash(setting.content.crypto.key);
+      setting.content.crypto.key = Utils.hash(setting.content.crypto.key);
     }
     // Return
     res.json(setting);
@@ -119,7 +120,7 @@ export default class SettingService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.LIST, entity: Entity.SETTINGS,
+        action: Action.LIST, entity: Entity.SETTING,
         module: MODULE_NAME, method: 'handleGetSettings'
       });
     }
@@ -135,7 +136,7 @@ export default class SettingService {
       Cypher.hashSensitiveDataInJSON(setting);
       // If Crypto Settings, hash key
       if (setting.identifier === 'crypto') {
-        setting.content.crypto.key = Cypher.hash(setting.content.crypto.key);
+        setting.content.crypto.key = Utils.hash(setting.content.crypto.key);
       }
     }
     // Return
@@ -154,7 +155,7 @@ export default class SettingService {
       });
     }
     // Filter
-    const filteredRequest = SettingSecurity.filterSettingCreateRequest(req.body);
+    const filteredRequest = await SettingService.filterSetting(action, req, true);
     // Process the sensitive data if any
     await Cypher.encryptSensitiveDataInJSON(req.tenant, filteredRequest);
     // Update timestamp
@@ -163,7 +164,7 @@ export default class SettingService {
     // Save Setting
     filteredRequest.id = await SettingStorage.saveSettings(req.tenant, filteredRequest);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleCreateSetting',
       message: `Setting '${filteredRequest.identifier}' has been created successfully`,
@@ -176,9 +177,8 @@ export default class SettingService {
   }
 
   public static async handleUpdateSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Filter
-    const settingUpdate = SettingSecurity.filterSettingUpdateRequest(req.body);
-    UtilsService.assertIdIsProvided(action, settingUpdate.id, MODULE_NAME, 'handleUpdateSetting', req.user);
+    UtilsService.assertIdIsProvided(action, req.body.id, MODULE_NAME, 'handleUpdateSetting', req.user);
+    const filteredRequest = await SettingService.filterSetting(action, req, false);
     // Check auth
     if (!await Authorizations.canUpdateSetting(req.user)) {
       throw new AppAuthError({
@@ -186,60 +186,58 @@ export default class SettingService {
         user: req.user,
         action: Action.UPDATE, entity: Entity.SETTING,
         module: MODULE_NAME, method: 'handleUpdateSetting',
-        value: settingUpdate.id
+        value: filteredRequest.id
       });
     }
     // Get Setting
-    const setting = await SettingStorage.getSetting(req.tenant, settingUpdate.id);
-    UtilsService.assertObjectExists(action, setting, `Setting ID '${settingUpdate.id}' does not exist`,
+    const setting = await SettingStorage.getSetting(req.tenant, filteredRequest.id);
+    UtilsService.assertObjectExists(action, setting, `Setting ID '${filteredRequest.id as string}' does not exist`,
       MODULE_NAME, 'handleUpdateSetting', req.user);
     // Process the sensitive data if any
     // Preprocess the data to take care of updated values
-    if (settingUpdate.sensitiveData) {
-      if (!Array.isArray(settingUpdate.sensitiveData)) {
+    if (filteredRequest.sensitiveData) {
+      if (!Array.isArray(filteredRequest.sensitiveData)) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.CYPHER_INVALID_SENSITIVE_DATA_ERROR,
-          message: `The property 'sensitiveData' for Setting with ID '${settingUpdate.id}' is not an array`,
+          message: `The property 'sensitiveData' for Setting with ID '${filteredRequest.id as string}' is not an array`,
           module: MODULE_NAME,
           method: 'handleUpdateSetting',
           user: req.user
         });
       }
       // Process sensitive properties
-      for (const property of settingUpdate.sensitiveData) {
+      for (const property of filteredRequest.sensitiveData) {
         // Get the sensitive property from the request
-        const valueInRequest = _.get(settingUpdate, property);
+        const valueInRequest = _.get(filteredRequest, property);
         if (valueInRequest && valueInRequest.length > 0) {
           // Get the sensitive property from the DB
           const valueInDb = _.get(setting, property);
           if (valueInDb && valueInDb.length > 0) {
-            const hashedValueInDB = Cypher.hash(valueInDb);
+            const hashedValueInDB = Utils.hash(valueInDb);
             if (valueInRequest !== hashedValueInDB) {
               // Yes: Encrypt
-              _.set(settingUpdate, property, await Cypher.encrypt(req.tenant, valueInRequest));
+              _.set(filteredRequest, property, await Cypher.encrypt(req.tenant, valueInRequest));
             } else {
               // No: Put back the encrypted value
-              _.set(settingUpdate, property, valueInDb);
+              _.set(filteredRequest, property, valueInDb);
             }
           } else {
             // Value in db is empty then encrypt
-            _.set(settingUpdate, property, await Cypher.encrypt(req.tenant, valueInRequest));
+            _.set(filteredRequest, property, await Cypher.encrypt(req.tenant, valueInRequest));
           }
         }
       }
     } else {
-      settingUpdate.sensitiveData = [];
+      filteredRequest.sensitiveData = [];
     }
     // Update timestamp
     setting.lastChangedBy = { 'id': req.user.id };
     setting.lastChangedOn = new Date();
-    if (settingUpdate.identifier === TechnicalSettings.CRYPTO) {
+    if (filteredRequest.identifier === TechnicalSettings.CRYPTO) {
       // Check supported algorithm
       if (!Constants.CRYPTO_SUPPORTED_ALGORITHM.includes(
-        Utils.buildCryptoAlgorithm(settingUpdate.content.crypto.keyProperties))) {
+        Utils.buildCryptoAlgorithm(filteredRequest.content.crypto.keyProperties))) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.CRYPTO_ALGORITHM_NOT_SUPPORTED,
           message: 'Crypto algorithm not supported',
           module: MODULE_NAME, method: 'handleUpdateSetting',
@@ -247,10 +245,9 @@ export default class SettingService {
         });
       }
       // Check crypto key
-      const keyLength = settingUpdate.content.crypto.keyProperties.blockSize / 8;
-      if (settingUpdate.content.crypto.key.length !== keyLength) {
+      const keyLength = filteredRequest.content.crypto.keyProperties.blockSize / 8;
+      if (filteredRequest.content.crypto.key.length !== keyLength) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.CRYPTO_KEY_LENGTH_INVALID,
           message: 'Crypto key length is invalid',
           module: MODULE_NAME, method: 'handleUpdateSetting',
@@ -259,10 +256,9 @@ export default class SettingService {
       }
       // Check if config is valid
       try {
-        await Cypher.checkCryptoSettings(settingUpdate.content.crypto);
+        await Cypher.checkCryptoSettings(filteredRequest.content.crypto);
       } catch (error) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.CRYPTO_CHECK_FAILED,
           message: 'Crypto check failed to run: ' + error.message,
           module: MODULE_NAME, method: 'handleUpdateSetting',
@@ -272,38 +268,76 @@ export default class SettingService {
       // Check if migration is on-going
       if (setting.content.crypto.migrationToBeDone) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.CRYPTO_MIGRATION_IN_PROGRESS,
           message: 'Crypto migration is in progress',
           module: MODULE_NAME, method: 'handleUpdateSetting',
           user: req.user
         });
       } else {
-        if (Cypher.hash(settingUpdate.content.crypto.key) !== Cypher.hash(setting.content.crypto.key)) {
-          settingUpdate.content.crypto.migrationToBeDone = true;
+        if (Utils.hash(filteredRequest.content.crypto.key) !== Utils.hash(setting.content.crypto.key)) {
+          filteredRequest.content.crypto.migrationToBeDone = true;
         }
-        settingUpdate.content.crypto.formerKey = setting.content.crypto.key;
-        settingUpdate.content.crypto.formerKeyProperties = setting.content.crypto.keyProperties;
+        filteredRequest.content.crypto.formerKey = setting.content.crypto.key;
+        filteredRequest.content.crypto.formerKeyProperties = setting.content.crypto.keyProperties;
       }
     }
     // Update Setting
-    settingUpdate.id = await SettingStorage.saveSettings(req.tenant, settingUpdate);
+    filteredRequest.id = await SettingStorage.saveSettings(req.tenant, filteredRequest);
     // Crypto Setting handling
-    if (settingUpdate.identifier === TechnicalSettings.CRYPTO) {
-      if (settingUpdate.content.crypto.migrationToBeDone) {
+    if (filteredRequest.identifier === TechnicalSettings.CRYPTO) {
+      if (filteredRequest.content.crypto.migrationToBeDone) {
         await Cypher.handleCryptoSettingsChange(req.tenant);
       }
     }
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateSetting',
-      message: `Setting '${settingUpdate.id}' has been updated successfully`,
+      message: `Setting '${filteredRequest.id as string}' has been updated successfully`,
       action: action,
-      detailedMessages: { settingUpdate }
+      detailedMessages: { filteredRequest }
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
+  }
+
+  private static async filterSetting(action: ServerAction, req: Request, createSetting: boolean) {
+    let filteredRequest;
+    switch (req.body.identifier) {
+      // Filter
+      case IntegrationSettings.OCPI:
+        return SettingValidator.getInstance().validateSettingOCPISetReq(req.body);
+      case IntegrationSettings.OICP:
+        return SettingValidator.getInstance().validateSettingOICPSetReq(req.body);
+      case TechnicalSettings.CRYPTO:
+        return SettingValidator.getInstance().validateSettingCryptoSetReq(req.body);
+      case TechnicalSettings.USER:
+        return SettingValidator.getInstance().validateSettingUserSetReq(req.body);
+      case IntegrationSettings.SMART_CHARGING:
+        return SettingValidator.getInstance().validateSettingSmartChargingSetReq(req.body);
+      case IntegrationSettings.REFUND:
+        return SettingValidator.getInstance().validateSettingRefundSetReq(req.body);
+      case IntegrationSettings.PRICING:
+        return SettingValidator.getInstance().validateSettingPricingSetReq(req.body);
+      case IntegrationSettings.SAC:
+        return SettingValidator.getInstance().validateSettingAnalyticsSetReq(req.body);
+      case IntegrationSettings.ASSET:
+        return SettingValidator.getInstance().validateSettingAssetSetReq(req.body);
+      default:
+        if (createSetting) {
+          filteredRequest = SettingSecurity.filterSettingCreateRequest(req.body);
+        } else {
+          filteredRequest = SettingSecurity.filterSettingUpdateRequest(req.body);
+        }
+        await Logging.logDebug({
+          tenantID: req.user.tenantID,
+          user: req.user, module: MODULE_NAME, method: 'filterSetting',
+          message: `The property 'identifier' with value '${req.body.identifier as string}' for Setting with ID '${req.body.id as string}' has no dedicated schema (yet)`,
+          action: action,
+          detailedMessages: { filteredRequest }
+        });
+        return filteredRequest;
+    }
   }
 }

@@ -1,9 +1,10 @@
 {
+  "$id": "auth-eula",
   "title": "Eula Request",
   "type": "object",
   "properties": {
     "Language": {
-      "$ref": "common.json#/definitions/language"
+      "$ref": "common#/definitions/language"
     }
   }
 }

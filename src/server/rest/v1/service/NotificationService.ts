@@ -7,8 +7,8 @@ import Constants from '../../../../utils/Constants';
 import { EndUserErrorNotification } from '../../../../types/UserNotifications';
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import NotificationHandler from '../../../../notification/NotificationHandler';
-import NotificationSecurity from './security/NotificationSecurity';
 import NotificationStorage from '../../../../storage/mongodb/NotificationStorage';
+import NotificationValidator from '../validator/NotificationValidator';
 import { ServerAction } from '../../../../types/Server';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
@@ -19,7 +19,7 @@ const MODULE_NAME = 'NotificationService';
 export default class NotificationService {
   static async handleGetNotifications(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = NotificationSecurity.filterNotificationsRequest(req.query);
+    const filteredRequest = NotificationValidator.getInstance().validateNotificationsGetReq(req.query);
     // Check User
     let userProject: string[] = [];
     if ((await Authorizations.canListUsers(req.user)).authorized) {
@@ -44,7 +44,6 @@ export default class NotificationService {
       'id', 'timestamp', 'channel', 'sourceId', 'sourceDescr', 'chargeBoxID',
       ...userProject, ...chargingStationProject
     ]);
-    // Return
     res.json(notifications);
     next();
   }
@@ -60,9 +59,7 @@ export default class NotificationService {
       });
     }
     // Filter
-    const filteredRequest = NotificationSecurity.filterEndUserReportErrorRequest(req.body);
-    // Check if Notification is valid
-    UtilsService.checkIfEndUserErrorNotificationValid(filteredRequest, req);
+    const filteredRequest = NotificationValidator.getInstance().validateEndUserErrorReportReq(req.body);
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, req.user.id, Action.READ, action);
@@ -83,7 +80,6 @@ export default class NotificationService {
     };
     // Send Notification
     await NotificationHandler.sendEndUserErrorNotification(req.tenant, endUserErrorNotification);
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }

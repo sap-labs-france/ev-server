@@ -1,0 +1,26 @@
+{
+    "$id": "oicp-authorize-remote-stop-cpo-receive",
+    "properties": {
+        "CPOPartnerSessionID": {
+            "type": "string"
+        },
+        "EMPPartnerSessionID": {
+            "type": "string"
+        },
+        "EvseID": {
+            "type": "string"
+        },
+        "ProviderID": {
+            "type": "string"
+        },
+        "SessionID": {
+            "type": "string"
+        }
+    },
+    "required": [
+        "EvseID",
+        "ProviderID",
+        "SessionID"
+    ],
+    "type": "object"
+}

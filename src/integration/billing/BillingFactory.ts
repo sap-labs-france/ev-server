@@ -1,11 +1,11 @@
+import Tenant, { TenantComponents } from '../../types/Tenant';
+
 import BillingIntegration from './BillingIntegration';
 import { BillingSettingsType } from '../../types/Setting';
 import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import StripeBillingIntegration from './stripe/StripeBillingIntegration';
-import Tenant from '../../types/Tenant';
-import TenantComponents from '../../types/TenantComponents';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'BillingFactory';

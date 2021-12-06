@@ -6,7 +6,7 @@ export default interface DbLookup {
   foreignField: string;
   asField: string;
   objectIDFields?: string[];
-  projectedFields?: string[];
+  projectFields?: string[];
   count?: boolean;
   oneToOneCardinality?: boolean;
   oneToOneCardinalityNotNull?: boolean;

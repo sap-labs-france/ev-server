@@ -1,12 +1,12 @@
 {
+  "$id": "tags-delete",
   "title": "Delete several Tags",
-  "description": "",
   "type": "object",
   "properties": {
     "tagsIDs": {
       "type": "array",
       "items": {
-        "$ref": "tag.json#/definitions/id"
+        "$ref": "tag#/definitions/id"
       }
     }
   },

@@ -1,0 +1,14 @@
+{
+  "$id": "registration-token-by-id",
+  "title": "Registration Token by id Request",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "registration-token#/definitions/id"
+    }
+  },
+  "required": [
+    "ID"
+  ]
+}

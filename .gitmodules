@@ -2,27 +2,11 @@
 	path = src/assets/configs-aws
 	url = ../../sap-labs-france/ev-aws.git
 	branch = master
-[submodule "src/integration/pricing/convergent-charging"]
-	path = src/integration/pricing/convergent-charging
-	url = ../../sap-labs-france/ev-sap-pricing-convergent-charging.git
-	branch = master
-[submodule "src/integration/refund/concur"]
-	path = src/integration/refund/concur
-	url = ../../sap-labs-france/ev-sap-refund-concur.git
-	branch = master
-[submodule "src/integration/smart-charging/sap-smart-charging"]
-	path = src/integration/smart-charging/sap-smart-charging
-	url = ../../sap-labs-france/ev-sap-smart-charging.git
+[submodule "src/assets/configs-ci"]
+	path = src/assets/configs-ci
+	url = ../../sap-labs-france/ev-ci.git
 	branch = master
 [submodule "src/assets/charging-station-templates"]
 	path = src/assets/charging-station-templates
 	url = ../../sap-labs-france/ev-sap-charging-station-templates.git
 	branch = master
-[submodule "src/assets/configs-ci"]
-	path = src/assets/configs-ci
-	url = ../../sap-labs-france/ev-ci.git
-	branch = master
-[submodule "src/assets/configs-scp"]
-	path = src/assets/configs-scp
-	url = ../../sap-labs-france/ev-scp-config.git
-	branch = master-qa

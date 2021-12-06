@@ -1,12 +1,13 @@
 {
+  "$id": "user-get",
   "title": "Get a User by id",
   "type": "object",
-  "definitions": {
+  "properties": {
     "ID": {
-      "$ref": "common.json#/definitions/id"
+      "$ref": "user#/definitions/id"
     },
     "ProjectFields": {
-      "$ref": "common.json#/definitions/projectFields"
+      "$ref": "common#/definitions/projectFields"
     }
   },
   "required": [

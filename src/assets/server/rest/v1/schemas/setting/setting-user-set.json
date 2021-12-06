@@ -1,0 +1,47 @@
+{
+  "$id": "setting-user-set",
+  "title": "Set User Settings",
+  "type": "object",
+  "properties": {
+    "content": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "type": "object",
+          "properties": {
+            "autoActivateAccountAfterValidation" : {
+              "type": "boolean",
+              "sanitize": "mongo"
+            }
+          }
+        },
+        "type": {
+          "type": "string",
+          "sanitize": "mongo",
+          "enum": ["user"]
+        }
+      },
+      "links": {
+        "$ref": "setting#/definitions/links"
+      },
+      "required": [
+        "type",
+        "user"
+      ]
+    },
+    "id": {
+      "$ref": "common#/definitions/id"
+    },
+    "identifier": {
+      "type": "string",
+      "sanitize": "mongo",
+      "enum": ["user"]
+    },
+    "sensitiveData": {
+      "$ref": "setting#/definitions/sensitiveData"
+    }
+  },
+  "required": [
+    "identifier"
+  ]
+}

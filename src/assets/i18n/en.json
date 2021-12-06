@@ -2,7 +2,12 @@
   "billing": {
     "generatedUser": "Generated user for '{{email}}'",
     "chargingAtSiteArea": "Charging session: {{sessionID}} - Start Date: {{startDate}} at {startTime} - Energy Consumption: {{totalConsumption}} kWh at {{siteAreaName}}",
-    "chargingAtChargeBox": "Charging session: {{sessionID}} - Start Date: {{startDate}} at {{startTime}} - Energy Consumption: {{totalConsumption}} kWh at charging station {{chargeBoxID}}"
+    "chargingAtChargeBox": "Charging session: {{sessionID}} - Start Date: {{startDate}} at {{startTime}} - Energy Consumption: {{totalConsumption}} kWh at charging station {{chargeBoxID}}",
+    "header-itemDescription": "Session: {{sessionID}} - Start Date: {{startDate}} at {{startTime}} at charging station {{chargeBoxID}}",
+    "flatFee-shortItemDescription": "Flat Fee",
+    "energy-shortItemDescription": "Energy Consumption: {{quantity}} kWh",
+    "chargingTime-shortItemDescription": "Charging Time: {{duration}}",
+    "parkingTime-shortItemDescription": "Parking Time: {{duration}}"
   },
   "chargers": {
     "chargeBoxSN": "Charge Box S/N",
@@ -76,10 +81,6 @@
       "title": "Hubject Send Charging Stations",
       "body": "The transfer to the Hubject roaming platform of the charging station's data has failed in organization '{{tenantName}}', check the logs"
     },
-    "smtpError": {
-      "title": "Email Server Error",
-      "body": "The primary email server has failed in organization '{{tenantName}}', check the configuration"
-    },
     "optimalChargeReached": {
       "title": "Optimal Charge Reached",
       "body": "Your electric vehicle, which is connected to '{{chargeBoxID}}', connector '{{connectorId}}', reached its optimal charge (85%) in organization '{{tenantName}}'"
@@ -98,7 +99,7 @@
     },
     "unknownUserBadged": {
       "title": "Unknown User",
-      "body": "An unknown user has just badged on '{{chargeBoxID}}' with the badge ID '{{badgeID}}' in organization '{{tenantName}}'"
+      "body": "An unknown user has just badged on '{{chargeBoxID}}' with the RFID card ID '{{badgeID}}' in organization '{{tenantName}}'"
     },
     "chargingStationRegistered": {
       "title": "Charging Station Connected",
@@ -164,9 +165,9 @@
     "usage": "Usage (Hours)"
   },
   "tags": {
-    "id": "Badge ID",
-    "description": "Badge Description",
-    "virtualBadge": "Virtual Badge"
+    "id": "RFID Card ID",
+    "description": "RFID Card Description",
+    "virtualBadge": "Virtual RFID Card"
   },
   "transactions": {
     "totalConsumption": "Total Consumption (kW.h)",

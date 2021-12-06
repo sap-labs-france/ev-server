@@ -3,7 +3,6 @@ import { NextFunction, Request, Response } from 'express';
 import AbstractEndpoint from '../../AbstractEndpoint';
 import AbstractOCPIService from '../../../AbstractOCPIService';
 import AppError from '../../../../../exception/AppError';
-import Constants from '../../../../../utils/Constants';
 import { HTTPError } from '../../../../../types/HTTPError';
 import OCPIEndpoint from '../../../../../types/ocpi/OCPIEndpoint';
 import { OCPIResponse } from '../../../../../types/ocpi/OCPIResponse';
@@ -42,7 +41,6 @@ export default class EMSPTariffsEndpoint extends AbstractEndpoint {
     const tariffId = urlSegment.shift();
     if (!countryCode || !partyId || !tariffId) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_GET_TARIFF,
         module: MODULE_NAME, method: 'getTariffRequest',
         errorCode: HTTPError.GENERAL_ERROR,
@@ -58,7 +56,6 @@ export default class EMSPTariffsEndpoint extends AbstractEndpoint {
         tariff = OCPIUtilsService.convertSimplePricingSetting2OCPITariff(pricingSettings.simple);
       } else {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'getTariffRequest',
           action: ServerAction.OCPI_GET_TARIFF,
           errorCode: StatusCodes.BAD_REQUEST,

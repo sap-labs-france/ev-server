@@ -23,6 +23,7 @@ export default class Constants {
   public static readonly AMPERAGE_DETECTION_THRESHOLD = 0.5;
 
   public static readonly DB_RECORD_COUNT_DEFAULT = 100;
+  public static readonly DB_RECORD_COUNT_MAX_PAGE_LIMIT = 1000;
   public static readonly DB_RECORD_COUNT_CEIL = 500;
   public static readonly DB_RECORD_COUNT_NO_LIMIT = Number.MAX_SAFE_INTEGER;
   public static readonly DB_UNDETERMINED_NBR_OF_RECORDS = -1;
@@ -41,6 +42,7 @@ export default class Constants {
   public static readonly BATCH_PAGE_SIZE = 1000;
 
   public static readonly CHARGING_STATION_LOCK_SECS = 5;
+  public static readonly CHARGING_STATION_CONNECTION_LOCK_SECS = 5;
 
   public static readonly HEALTH_CHECK_ROUTE = '/health-check';
 
@@ -240,16 +242,12 @@ export default class Constants {
 
   public static readonly CHARGING_STATION_CONFIGURATION = 'Configuration';
 
-  public static readonly CENTRAL_SERVER = 'Central Server';
-
-  public static readonly OCPI_SERVER = 'OCPI Server';
   public static readonly OCPI_SEPARATOR = '*';
   public static readonly OCPI_RECORDS_LIMIT = 25;
   public static readonly OCPI_MAX_PARALLEL_REQUESTS = 2;
 
   public static readonly ROAMING_AUTHORIZATION_TIMEOUT_MINS = 2;
 
-  public static readonly OICP_SERVER = 'OICP Server';
 
   public static readonly MODULE_AXIOS = 'Axios';
   public static readonly MODULE_JSON_OCPP_SERVER_16 = 'OcppJ-16';
@@ -257,13 +255,8 @@ export default class Constants {
   public static readonly MODULE_SOAP_OCPP_SERVER_15 = 'OcppS-15';
   public static readonly MODULE_SOAP_OCPP_SERVER_16 = 'OcppS-16';
 
-  // OICP constants
   public static readonly OICP_PROGRESS_NOTIFICATION_MAX_INTERVAL = 300; // Hubject restriction: "Progress Notification can be sent only at interval of at least 300 seconds." (5 Minutes)
   public static readonly OICP_VIRTUAL_USER_EMAIL = 'virtual@oicp.com';
-  public static readonly OCPP_SERVER = 'OCPP Server';
-  public static readonly DATABASE_SERVER = 'Database Server';
-  public static readonly REST_SERVER = 'REST Server';
-  public static readonly AXIOS_CLIENT = 'Axios Client';
 
   public static readonly WITH_CHARGING_STATIONS = true; // Not used
   public static readonly WITHOUT_CHARGING_STATIONS = false; // Not used
@@ -283,8 +276,8 @@ export default class Constants {
   public static readonly PWD_NUMBER_RE = /([\d])/g; // Cannot store regex in enum
   public static readonly PWD_SPECIAL_CHAR_RE = /([!#$%^&*.?-])/g; // Cannot store regex in enum
 
-  public static readonly SUPPORTED_LOCALES = Object.freeze(['en_US', 'fr_FR', 'es_ES', 'de_DE', 'pt_PT', 'it_IT']);
-  public static readonly SUPPORTED_LANGUAGES = Object.freeze(['en', 'fr', 'es', 'de', 'pt', 'it']);
+  public static readonly SUPPORTED_LOCALES = Object.freeze(['en_US', 'fr_FR', 'es_ES', 'de_DE', 'pt_PT', 'it_IT', 'cs_CZ', 'en_AU']);
+  public static readonly SUPPORTED_LANGUAGES = Object.freeze(['en', 'fr', 'es', 'de', 'pt', 'it', 'cz']);
   public static readonly DEFAULT_LOCALE = 'en_US';
   public static readonly DEFAULT_LANGUAGE = 'en';
 
@@ -295,8 +288,12 @@ export default class Constants {
   public static readonly WS_RECONNECT_UNLIMITED = -1;
   public static readonly WS_DEFAULT_RECONNECT_MAX_RETRIES = -1;
   public static readonly WS_DEFAULT_RECONNECT_TIMEOUT = 30; // Seconds
+  public static readonly WS_CONNECTION_URL_RE = new RegExp(['^(?:(?:ws|wss)://)(?:\\S+)\\/(?:\\S+)\\/',
+    '(?:[0-9a-f]{24})\\/',
+    '([0-9a-f]{24})\\/',
+    '(?:\\S+)$'].join(''), 'ig');
 
-  public static readonly OCPP_SOCKET_TIMEOUT = 30000; // 30 sec
+  public static readonly OCPP_SOCKET_TIMEOUT = 10 * 1000;
   public static readonly OCPP_HEARTBEAT_KEYS = Object.freeze(['HeartbeatInterval', 'HeartBeatInterval']);
 
   public static readonly MAX_DATE = new Date('9999-12-31Z23:59:59:999');
@@ -307,13 +304,16 @@ export default class Constants {
   public static readonly REGEX_URL_PATTERN = /^(?:https?|wss?):\/\/((?:[\w-]+)(?:\.[\w-]+)*)(?:[\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?$/;
   public static readonly MAX_GPS_DISTANCE_METERS = 40000000; // Earth
 
+  public static readonly CSV_CHARACTERS_TO_ESCAPE = /^[+\-@=].*$/;
+  public static readonly CSV_ESCAPING_CHARACTER = '\'';
+
   public static readonly EXCEPTION_JSON_KEYS_IN_SENSITIVE_DATA = Object.freeze([
     'stack'
   ]);
 
   public static readonly SENSITIVE_DATA = Object.freeze([
     'firstName', 'name', 'repeatPassword', 'password', 'plainPassword','captcha', 'email', 'coordinates', 'latitude', 'longitude',
-    'Authorization', 'authorization', 'client_id', 'client_secret', 'refresh_token', 'localToken', 'Bearer',
+    'Authorization', 'authorization', 'client_id', 'client_secret', 'refresh_token', 'localToken', 'Bearer', 'auth_token', 'token'
   ]);
 
   public static readonly MONGO_USER_MASK = Object.freeze({
@@ -349,6 +349,8 @@ export default class Constants {
     'mobileOs': 0,
     'mobileToken': 0,
     'verifiedAt': 0,
+    'importedData': 0,
+    'billingData': 0
   });
 
   public static readonly DEFAULT_OCPP_16_CONFIGURATION: OcppParameter[] = Object.freeze([

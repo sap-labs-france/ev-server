@@ -1,0 +1,17 @@
+{
+  "$id": "asset-get",
+  "title": "Get Asset by ID Request",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "asset#/definitions/id"
+    },
+    "WithSiteArea": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    }
+  },
+  "required": [
+    "ID"
+  ]
+}

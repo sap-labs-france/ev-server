@@ -1,5 +1,6 @@
-import { ChargePointStatus, OCPPFirmwareStatus, OCPPPhase, OCPPProtocol, OCPPVersion, RegistrationStatus } from './ocpp/OCPPServer';
+import { ChargePointStatus, OCPPFirmwareStatus, OCPPPhase, OCPPProtocol, OCPPVersion } from './ocpp/OCPPServer';
 
+import { AuthorizationActions } from './Authorization';
 import { ChargingRateUnitType } from './ChargingProfile';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import { InactivityStatus } from './Transaction';
@@ -11,7 +12,7 @@ import Site from './Site';
 import SiteArea from './SiteArea';
 import User from './User';
 
-export default interface ChargingStation extends CreatedUpdatedProps {
+export default interface ChargingStation extends CreatedUpdatedProps, AuthorizationActions {
   id?: string;
   templateHash?: string;
   templateHashCapabilities?: string;
@@ -27,7 +28,6 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   chargePointModel: string;
   chargeBoxSerialNumber: string;
   chargePointVendor: string;
-  registrationStatus: RegistrationStatus;
   iccid: string;
   imsi: string;
   meterType: string;
@@ -37,10 +37,12 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   endpoint: string;
   ocppVersion: OCPPVersion;
   ocppProtocol: OCPPProtocol;
-  cfApplicationIDAndInstanceIndex: string;
+  cloudHostIP?: string;
+  cloudHostName?: string;
   lastSeen: Date;
   deleted: boolean;
   inactive: boolean;
+  tokenID: string;
   forceInactive: boolean;
   manualConfiguration?: boolean;
   lastReboot: Date;
@@ -122,6 +124,18 @@ export enum Command {
   GET_COMPOSITE_SCHEDULE = 'GetCompositeSchedule',
   CHANGE_AVAILABILITY = 'ChangeAvailability',
   UPDATE_FIRMWARE = 'UpdateFirmware',
+  BOOT_NOTIFICATION = 'BootNotification',
+  AUTHORIZE = 'Authorize',
+  HEARTBEAT = 'Heartbeat',
+  DIAGNOSTICS_STATUS_NOTIFICATION = 'DiagnosticsStatusNotification',
+  FIRMWARE_STATUS_NOTIFICATION = 'FirmwareStatusNotification',
+  STATUS_NOTIFICATION = 'StatusNotification',
+  START_TRANSACTION = 'StartTransaction',
+  STOP_TRANSACTION = 'StopTransaction',
+  METER_VALUES = 'MeterValues',
+  DATA_TRANSFER = 'DataTransfer',
+  RESERVE_NOW = 'ReserveNow',
+  CANCEL_RESERVATION = 'CancelReservation',
 }
 
 export enum StaticLimitAmps {
@@ -317,6 +331,7 @@ export enum ChargerVendor {
   EVMETER = 'EV Meter',
   INNOGY = 'innogy',
   INGETEAM = 'INGETEAM',
+  INGETEAM_ENERGY = 'INGETEAM ENERGY',
   EFACEC = 'pt.efacec',
   IES = 'IES',
   HDM = 'HDM',
@@ -333,6 +348,7 @@ export enum ChargerVendor {
   KEBA = 'Keba AG',
   SAP_LABS_FRANCE = 'SAP Labs France Caen',
   CIRCONTROL = 'CIRCONTROL',
+  CIRCONTROL_BIS = 'Circontrol',
   JOINON = 'JOINON',
   JOINT = 'Joint',
   NEXANS = 'Nexans',
@@ -340,5 +356,10 @@ export enum ChargerVendor {
   LAFON_TECHNOLOGIES = 'LAFON TECHNOLOGIES',
   TRITIUM = 'Tritium',
   GREEN_MOTION = 'Green Motion',
-  G2_MOBILITY = 'com.g2mobility'
+  G2_MOBILITY = 'com.g2mobility',
+  MEAECN = 'MEAECN',
+  KOSTAD = 'Kostad',
+  KEMPOWER = 'Kempower',
+  GROWATT = 'Growatt',
+  SETEC = 'SETEC-POWER'
 }

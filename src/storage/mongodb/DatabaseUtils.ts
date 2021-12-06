@@ -1,11 +1,11 @@
+import { AggregateOptions, ObjectId } from 'mongodb';
+
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import DbLookup from '../../types/database/DbLookup';
 import { OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
-import { ObjectId } from 'mongodb';
 import Tenant from '../../types/Tenant';
-import TenantStorage from './TenantStorage';
 import User from '../../types/User';
 import UserToken from '../../types/UserToken';
 import Utils from '../../utils/Utils';
@@ -15,6 +15,13 @@ const FIXED_COLLECTIONS: string[] = ['tenants', 'migrations'];
 const MODULE_NAME = 'DatabaseUtils';
 
 export default class DatabaseUtils {
+  public static isObjectID(id: string): boolean {
+    return ObjectId.isValid(id);
+  }
+
+  public static buildAggregateOptions(): AggregateOptions {
+    return { allowDiskUse: true };
+  }
 
   public static getFixedCollections(): string[] {
     return FIXED_COLLECTIONS;
@@ -123,8 +130,8 @@ export default class DatabaseUtils {
       JSON.parse(`{
         "$group": {
           "_id": {
-            "ïd": "$id",
-            "_ïd": "$_id"
+            "id": "$id",
+            "_id": "$_id"
           },
           "root": { "$first": "$$ROOT" },
           "${arrayName}": { "$push": "$${arrayName}" }
@@ -187,7 +194,7 @@ export default class DatabaseUtils {
       }
     }
     // Add Projected fields
-    DatabaseUtils.projectFields(pipeline, lookupParams.projectedFields);
+    DatabaseUtils.projectFields(pipeline, lookupParams.projectFields);
     // Create Lookup
     lookupParams.aggregation.push({
       $lookup: {
@@ -240,12 +247,12 @@ export default class DatabaseUtils {
     aggregation.push(DatabaseUtils.buildChargingStationInactiveFlagQuery());
   }
 
-  public static projectFields(aggregation: any[], projectedFields: string[], removedFields: string[] = []): void {
-    if (!Utils.isEmptyArray(projectedFields)) {
+  public static projectFields(aggregation: any[], projectFields: string[], removedFields: string[] = []): void {
+    if (!Utils.isEmptyArray(projectFields)) {
       const project = {
         $project: {}
       };
-      for (const projectedField of projectedFields) {
+      for (const projectedField of projectFields) {
         project.$project[projectedField] = 1;
       }
       for (const removedField of removedFields) {
@@ -364,14 +371,8 @@ export default class DatabaseUtils {
     }
   }
 
-  public static convertToObjectID(id: any): ObjectId {
-    let changedID: ObjectId = id;
-    // Check
-    if (typeof id === 'string') {
-      // Create Object
-      changedID = new ObjectId(id);
-    }
-    return changedID;
+  public static convertToObjectID(id: string): ObjectId {
+    return new ObjectId(id);
   }
 
   public static convertUserToObjectID(user: User | UserToken | string): ObjectId | null {
@@ -393,43 +394,9 @@ export default class DatabaseUtils {
     return userID;
   }
 
-  public static async checkTenant(tenantID: string): Promise<Tenant> {
-    if (!tenantID) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME,
-        method: 'checkTenant',
-        message: 'The Tenant ID is mandatory'
-      });
-    }
-    if (tenantID !== Constants.DEFAULT_TENANT) {
-      // Valid Object ID?
-      if (!ObjectId.isValid(tenantID)) {
-        throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME,
-          method: 'checkTenant',
-          message: `Invalid Tenant ID '${tenantID}'`
-        });
-      }
-      // Get the Tenant
-      const tenant = await TenantStorage.getTenant(tenantID);
-      if (!tenant) {
-        throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME,
-          method: 'checkTenant',
-          message: `Invalid Tenant ID '${tenantID}'`
-        });
-      }
-      return tenant;
-    }
-  }
-
   public static checkTenantObject(tenant: Tenant): void {
     if (!tenant) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'checkTenantObject',
         message: 'Invalid Tenant'

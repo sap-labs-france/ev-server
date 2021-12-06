@@ -14,6 +14,8 @@ import { HTTPError } from '../../../src/types/HTTPError';
 import LogsApi from './LogsApi';
 import MailApi from './MailApi';
 import OCPIEndpointApi from './OCPIEndpointApi';
+import OICPEndpointApi from './OICPEndpointApi';
+import PricingApi from './PricingApi';
 import RegistrationTokenApi from './RegistrationTokenApi';
 import SettingApi from './SettingApi';
 import SiteApi from './SiteApi';
@@ -21,8 +23,9 @@ import SiteAreaApi from './SiteAreaApi';
 import SmartChargingApi from './SmartChargingApi';
 import StatisticsApi from './StatisticsApi';
 import { StatusCodes } from 'http-status-codes';
+import TagApi from './TagApi';
 import TenantApi from './TenantApi';
-import TenantComponents from '../../../src/types/TenantComponents';
+import { TenantComponents } from '../../../src/types/Tenant';
 import TestConstants from './utils/TestConstants';
 import TransactionApi from './TransactionApi';
 import User from '../../../src/types/User';
@@ -44,11 +47,13 @@ export default class CentralServerService {
   public siteApi: SiteApi;
   public siteAreaApi: SiteAreaApi;
   public userApi: UserApi;
+  public tagApi: TagApi;
   public chargingStationApi: ChargingStationApi;
   public registrationApi: RegistrationTokenApi;
   public transactionApi: TransactionApi;
   public settingApi: SettingApi;
   public ocpiEndpointApi: OCPIEndpointApi;
+  public oicpEndpointApi: OICPEndpointApi;
   public authenticatedSuperAdminApi: AuthenticatedBaseApi;
   public authenticationApi: AuthenticationApi;
   public tenantApi: TenantApi;
@@ -56,11 +61,12 @@ export default class CentralServerService {
   public logsApi: LogsApi;
   public statisticsApi: StatisticsApi;
   public billingApi: BillingApi;
+  public pricingApi: PricingApi;
   public smartChargingApi: SmartChargingApi;
   public _baseApi: BaseApi;
   private _baseURL: string;
-  private _authenticatedUser: any;
-  private _authenticatedSuperAdmin: any;
+  private _authenticatedUser: Partial<User>;
+  private _authenticatedSuperAdmin: Partial<User>;
 
   public constructor(tenantSubdomain = null, user: Partial<User> = null, superAdminUser: Partial<User> = null) {
     this._baseURL = `${config.get('server.scheme')}://${config.get('server.host')}:${config.get('server.port')}`;
@@ -94,17 +100,20 @@ export default class CentralServerService {
     this.siteApi = new SiteApi(this.authenticatedApi);
     this.siteAreaApi = new SiteAreaApi(this.authenticatedApi);
     this.userApi = new UserApi(this.authenticatedApi);
+    this.tagApi = new TagApi(this.authenticatedApi);
     this.chargingStationApi = new ChargingStationApi(this.authenticatedApi, this._baseApi);
     this.transactionApi = new TransactionApi(this.authenticatedApi);
     this.settingApi = new SettingApi(this.authenticatedApi);
     this.logsApi = new LogsApi(this.authenticatedApi);
     this.ocpiEndpointApi = new OCPIEndpointApi(this.authenticatedApi);
+    this.oicpEndpointApi = new OICPEndpointApi(this.authenticatedApi);
     this.authenticationApi = new AuthenticationApi(this._baseApi);
     this.tenantApi = new TenantApi(this.authenticatedSuperAdminApi, this._baseApi);
     this.mailApi = new MailApi(new BaseApi(`http://${config.get('mailServer.host')}:${config.get('mailServer.port')}`));
     this.statisticsApi = new StatisticsApi(this.authenticatedApi);
     this.registrationApi = new RegistrationTokenApi(this.authenticatedApi);
     this.billingApi = new BillingApi(this.authenticatedApi);
+    this.pricingApi = new PricingApi(this.authenticatedApi);
     this.assetApi = new AssetApi(this.authenticatedApi);
     this.carApi = new CarApi(this.authenticatedApi);
     this.smartChargingApi = new SmartChargingApi(this.authenticatedApi);
@@ -119,30 +128,8 @@ export default class CentralServerService {
     return CentralServerService._defaultInstance;
   }
 
-  public getAuthenticatedUserEmail() {
+  public getAuthenticatedUserEmail(): string {
     return this._authenticatedUser.email;
-  }
-
-  public async updatePriceSetting(pricekWh, priceUnit) {
-    const settings = await this.settingApi.readAll({});
-    let newSetting = false;
-    let setting: SettingDB = settings.data.result.find((s) => s.identifier === 'pricing');
-    if (!setting) {
-      setting = {} as SettingDB;
-      setting.identifier = TenantComponents.PRICING;
-      newSetting = true;
-    }
-    setting.content = {
-      type: PricingSettingsType.SIMPLE,
-      simple: {
-        price: pricekWh,
-        currency: priceUnit
-      }
-    };
-    if (newSetting) {
-      return this.settingApi.create(setting);
-    }
-    return this.settingApi.update(setting);
   }
 
   public async createEntity(entityApi, entity, performCheck = true) {
@@ -186,10 +173,7 @@ export default class CentralServerService {
     // Check
     expect(entity).to.not.be.null;
     // Retrieve from the backend
-    const response = await entityApi.readAll({}, {
-      limit: TestConstants.UNLIMITED,
-      skip: 0
-    });
+    const response = await entityApi.readAll({}, TestConstants.DEFAULT_PAGING);
     // Check
     if (performCheck) {
       // Check
@@ -212,10 +196,7 @@ export default class CentralServerService {
     // Check
     expect(entity).to.not.be.null;
     // Retrieve from the backend
-    const response = await entityApi.readAll(params, {
-      limit: TestConstants.UNLIMITED,
-      skip: 0
-    });
+    const response = await entityApi.readAll(params, TestConstants.DEFAULT_PAGING);
     // Check
     if (performCheck) {
       // Check
@@ -296,7 +277,7 @@ export default class CentralServerService {
     return response;
   }
 
-  public async reconnect() {
+  public async reconnect(): Promise<void> {
     await this.authenticatedApi.authenticate(true);
   }
 }

@@ -1,0 +1,23 @@
+{
+  "$id": "tag-assign",
+  "title": "Tag assignment",
+  "type": "object",
+  "properties": {
+    "visualID": {
+      "$ref": "tag#/definitions/visualID"
+    },
+    "description": {
+      "$ref": "tag#/definitions/description"
+    },
+    "default": {
+      "$ref": "tag#/definitions/default"
+    },
+    "userID": {
+      "$ref": "tag#/definitions/userID"
+    }
+  },
+  "required": [
+    "visualID",
+    "userID"
+  ]
+}

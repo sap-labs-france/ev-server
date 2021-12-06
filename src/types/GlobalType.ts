@@ -3,7 +3,10 @@ import { Car, CarCatalog } from './Car';
 import ChargingStation from './ChargingStation';
 import Company from './Company';
 import JsonCentralSystemServer from '../server/ocpp/json/JsonCentralSystemServer';
+import { Log } from './Log';
 import MongoDBStorage from '../storage/mongodb/MongoDBStorage';
+import PricingDefinition from './Pricing';
+import { ServerType } from './Server';
 import Site from './Site';
 import SiteArea from './SiteArea';
 import SoapCentralSystemServer from '../server/ocpp/soap/SoapCentralSystemServer';
@@ -18,6 +21,21 @@ export interface Data {
   id: string;
 }
 
+export interface DatabaseCount {
+  count?: number;
+}
+
+export enum DatabaseDocumentChange {
+  INSERT = 'insert',
+  UPDATE = 'update',
+  REPLACE = 'replace',
+  DELETE = 'delete',
+  INVALIDATE = 'invalidate',
+  DROP = 'drop',
+  DROP_DATABASE = 'dropDatabase',
+  RENAME = 'rename',
+}
+
 export interface KeyValue {
   key: string;
   value: string;
@@ -28,6 +46,11 @@ export interface KeyValue {
 export interface Image {
   id: string;
   image: string;
+}
+
+export interface Logo {
+  id: string;
+  logo: string;
 }
 
 export interface GroupParams {
@@ -48,13 +71,15 @@ export enum ImportStatus {
   ERROR = 'E',
 }
 
-export type EntityDataType = Car|User|Company|Site|SiteArea|Tag|CarCatalog|ChargingStation;
+export type EntityData = Car|User|Company|Site|SiteArea|Tag|CarCatalog|ChargingStation|PricingDefinition|Log;
 
 interface TSGlobal extends Global {
   database: MongoDBStorage;
   appRoot: string;
   centralSystemJsonServer: JsonCentralSystemServer;
   centralSystemSoapServer: SoapCentralSystemServer;
+  serverType: ServerType;
+  Promise: any;
 }
 
 

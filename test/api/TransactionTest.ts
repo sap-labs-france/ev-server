@@ -52,7 +52,6 @@ describe('Transaction', function() {
 
       testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
       testData.transactionCommonTests.setChargingStation(testData.chargingStationContext);
-      await testData.transactionCommonTests.before();
     });
 
     after(async () => {
@@ -372,7 +371,6 @@ describe('Transaction', function() {
 
       testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
       testData.transactionCommonTests.setChargingStation(testData.chargingStationContext);
-      await testData.transactionCommonTests.before();
     });
 
     after(async () => {
@@ -575,7 +573,6 @@ describe('Transaction', function() {
 
       testData.chargingStationContext = testData.tenantContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.UNASSIGNED_OCPP16);
       testData.transactionCommonTests.setChargingStation(testData.chargingStationContext);
-      await testData.transactionCommonTests.before();
     });
 
     after(async () => {
@@ -726,6 +723,11 @@ describe('Transaction', function() {
 
       });
 
+      describe('Using function "exportTransactions"', () => {
+        it('Should export completed transactions', async () => {
+          await testData.transactionCommonTests.testExportTransactions({});
+        });
+      });
     });
 
     describe('Where admin user', () => {

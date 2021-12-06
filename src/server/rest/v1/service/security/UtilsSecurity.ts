@@ -4,7 +4,7 @@ import Utils from '../../../../../utils/Utils';
 import sanitize from 'mongo-sanitize';
 
 export default class UtilsSecurity {
-  static filterBoolean(value): boolean {
+  public static filterBoolean(value): boolean {
     let result = false;
     // Check boolean
     if (value) {
@@ -22,7 +22,7 @@ export default class UtilsSecurity {
     return result;
   }
 
-  static filterSort(request: any, filteredRequest): void {
+  public static filterSort(request: any, filteredRequest): void {
     // Exist?
     if (Utils.objectHasProperty(request, 'SortFields')) {
       // Sanitize
@@ -54,7 +54,7 @@ export default class UtilsSecurity {
     }
   }
 
-  static filterSkipAndLimit(request: any, filteredRequest: any): void {
+  public static filterSkipAndLimit(request: any, filteredRequest: any): void {
     // Limit
     UtilsSecurity.filterLimit(request, filteredRequest);
     // Skip
@@ -65,7 +65,7 @@ export default class UtilsSecurity {
     }
   }
 
-  static filterLimit(request: any, filteredRequest: any): void {
+  public static filterLimit(request: any, filteredRequest: any): void {
     // Exist?
     if (!Utils.objectHasProperty(request, 'Limit')) {
       // Default
@@ -82,7 +82,7 @@ export default class UtilsSecurity {
     }
   }
 
-  static filterSkip(request: any, filteredRequest: any): void {
+  public static filterSkip(request: any, filteredRequest: any): void {
     // Exist?
     if (!Utils.objectHasProperty(request, 'Skip')) {
       // Default
@@ -99,7 +99,7 @@ export default class UtilsSecurity {
     }
   }
 
-  static filterAddressRequest(address: Address): Address {
+  public static filterAddressRequest(address: Address): Address {
     const filteredAddress: Address = {} as Address;
     if (address) {
       filteredAddress.address1 = sanitize(address.address1);
@@ -114,7 +114,7 @@ export default class UtilsSecurity {
     return filteredAddress;
   }
 
-  static filterAddressCoordinatesRequest(address: Address): number[] {
+  public static filterAddressCoordinatesRequest(address: Address): number[] {
     if (address && Utils.objectHasProperty(address, 'coordinates') && !Utils.isEmptyArray(address.coordinates) && address.coordinates.length === 2) {
       return [
         sanitize(address.coordinates[0]),

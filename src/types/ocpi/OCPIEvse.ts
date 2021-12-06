@@ -12,7 +12,10 @@ export interface OCPIEvse {
     longitude: string;
   };
   last_updated: Date;
-  chargeBoxId?: string;
+  chargingStationID?: string;
+  siteID?: string;
+  siteAreaID?: string;
+  companyID?: string;
 }
 
 export enum OCPIEvseStatus {

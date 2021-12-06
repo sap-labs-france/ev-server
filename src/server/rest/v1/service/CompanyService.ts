@@ -5,13 +5,13 @@ import AppAuthError from '../../../../exception/AppAuthError';
 import AuthorizationService from './AuthorizationService';
 import Company from '../../../../types/Company';
 import { CompanyDataResult } from '../../../../types/DataResult';
-import CompanySecurity from './security/CompanySecurity';
 import CompanyStorage from '../../../../storage/mongodb/CompanyStorage';
+import CompanyValidator from '../validator/CompanyValidator';
 import Constants from '../../../../utils/Constants';
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
-import TenantComponents from '../../../../types/TenantComponents';
+import { TenantComponents } from '../../../../types/Tenant';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
@@ -19,28 +19,25 @@ import UtilsService from './UtilsService';
 const MODULE_NAME = 'CompanyService';
 
 export default class CompanyService {
-
   public static async handleDeleteCompany(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.DELETE, Entity.COMPANY, MODULE_NAME, 'handleDeleteCompany');
     // Filter
-    const companyID = CompanySecurity.filterCompanyRequestByID(req.query);
+    const companyID = CompanyValidator.getInstance().validateCompanyGetReq(req.query).ID;
     UtilsService.assertIdIsProvided(action, companyID, MODULE_NAME, 'handleDeleteCompany', req.user);
     // Check and Get Company
     const company = await UtilsService.checkAndGetCompanyAuthorization(
       req.tenant, req.user, companyID, Action.DELETE, action);
     // Delete
     await CompanyStorage.deleteCompany(req.tenant, company.id);
-    // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteCompany',
       message: `Company '${company.name}' has been deleted successfully`,
       action: action,
       detailedMessages: { company }
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -50,7 +47,7 @@ export default class CompanyService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.READ, Entity.COMPANY, MODULE_NAME, 'handleGetCompany');
     // Filter
-    const filteredRequest = CompanySecurity.filterCompanyRequest(req.query);
+    const filteredRequest = CompanyValidator.getInstance().validateCompanyGetReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCompany', req.user);
     // Check and Get Company
     const company = await UtilsService.checkAndGetCompanyAuthorization(
@@ -63,7 +60,7 @@ export default class CompanyService {
 
   public static async handleGetCompanyLogo(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = CompanySecurity.filterCompanyLogoRequest(req.query);
+    const filteredRequest = CompanyValidator.getInstance().validateCompanyLogoGetReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCompanyLogo', req.user);
     // Fetch Tenant Object by Tenant ID
     const tenant = await TenantStorage.getTenant(filteredRequest.TenantID);
@@ -92,9 +89,20 @@ export default class CompanyService {
   public static async handleGetCompanies(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
-      Action.LIST, Entity.COMPANIES, MODULE_NAME, 'handleGetCompanies');
+      Action.LIST, Entity.COMPANY, MODULE_NAME, 'handleGetCompanies');
+    // Maintain retro-compatibility
+    if (req.query.WithSites) {
+      req.query.WithSite = req.query.WithSites;
+    }
     // Filter
-    const filteredRequest = CompanySecurity.filterCompaniesRequest(req.query);
+    const filteredRequest = CompanyValidator.getInstance().validateCompaniesGetReq(req.query);
+    // Create GPS Coordinates
+    if (filteredRequest.LocLongitude && filteredRequest.LocLatitude) {
+      filteredRequest.LocCoordinates = [
+        Utils.convertToFloat(filteredRequest.LocLongitude),
+        Utils.convertToFloat(filteredRequest.LocLatitude)
+      ];
+    }
     // Check dynamic auth
     const authorizationCompaniesFilter = await AuthorizationService.checkAndGetCompaniesAuthorizations(
       req.tenant, req.user, filteredRequest);
@@ -107,7 +115,7 @@ export default class CompanyService {
       {
         search: filteredRequest.Search,
         issuer: filteredRequest.Issuer,
-        withSites: filteredRequest.WithSites,
+        withSite: filteredRequest.WithSite,
         withLogo: filteredRequest.WithLogo,
         locCoordinates: filteredRequest.LocCoordinates,
         locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,
@@ -116,14 +124,17 @@ export default class CompanyService {
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.SortFields,
+        sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       authorizationCompaniesFilter.projectFields
     );
+    // Assign projected fields
+    if (authorizationCompaniesFilter.projectFields) {
+      companies.projectFields = authorizationCompaniesFilter.projectFields;
+    }
     // Add Auth flags
     await AuthorizationService.addCompaniesAuthorizations(req.tenant, req.user, companies as CompanyDataResult, authorizationCompaniesFilter);
-    // Return
     res.json(companies);
     next();
   }
@@ -133,12 +144,10 @@ export default class CompanyService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.CREATE, Entity.COMPANY, MODULE_NAME, 'handleCreateCompany');
     // Filter
-    const filteredRequest = CompanySecurity.filterCompanyCreateRequest(req.body);
-    // Check
-    UtilsService.checkIfCompanyValid(filteredRequest, req);
+    const filteredRequest = CompanyValidator.getInstance().validateCompanyCreateReq(req.body);
     // Get dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetCompanyAuthorizations(
-      req.tenant, req.user, {}, Action.CREATE, filteredRequest as Company);
+      req.tenant, req.user, {}, Action.CREATE, filteredRequest);
     if (!authorizationFilter.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -156,15 +165,13 @@ export default class CompanyService {
     } as Company;
     // Save
     newCompany.id = await CompanyStorage.saveCompany(req.tenant, newCompany);
-    // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleCreateCompany',
       message: `Company '${newCompany.id}' has been created successfully`,
       action: action,
       detailedMessages: { company: newCompany }
     });
-    // Ok
     res.json(Object.assign({ id: newCompany.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
@@ -174,12 +181,10 @@ export default class CompanyService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.COMPANY, MODULE_NAME, 'handleUpdateCompany');
     // Filter
-    const filteredRequest = CompanySecurity.filterCompanyUpdateRequest(req.body);
-    // Check Mandatory fields
-    UtilsService.checkIfCompanyValid(filteredRequest, req);
+    const filteredRequest = CompanyValidator.getInstance().validateCompanyUpdateReq(req.body);
     // Check and Get Company
     const company = await UtilsService.checkAndGetCompanyAuthorization(
-      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest as Company);
+      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest);
     // Update
     company.name = filteredRequest.name;
     company.address = filteredRequest.address;
@@ -190,15 +195,13 @@ export default class CompanyService {
     company.lastChangedOn = new Date();
     // Update Company
     await CompanyStorage.saveCompany(req.tenant, company, Utils.objectHasProperty(filteredRequest, 'logo') ? true : false);
-    // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateCompany',
       message: `Company '${company.name}' has been updated successfully`,
       action: action,
       detailedMessages: { company }
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }

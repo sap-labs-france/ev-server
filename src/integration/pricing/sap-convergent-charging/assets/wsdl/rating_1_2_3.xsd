@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Published by JAX-WS RI at http://jax-ws.dev.java.net. RI's version is JAX-WS RI 2.1.6 in JDK 6.--><xs:schema version="1.0" targetNamespace="http://schema.provisioning.ws.highdeal.com/" xmlns:tns="http://schema.provisioning.ws.highdeal.com/" xmlns:ns2="http://contract.ws.highdeal.com/" xmlns:ns1="http://rating.ws.highdeal.com/" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import namespace="http://rating.ws.highdeal.com/" schemaLocation="rating_1_2.xsd"/>
+  <xs:import namespace="http://contract.ws.highdeal.com/" schemaLocation="rating_1_2_3_4.xsd"/>
+  <xs:element name="chargingContractCancelRequest" type="tns:CancelChargingContractRequest"/>
+  <xs:element name="chargingContractCancelResponse" type="tns:ContractOperationResponse"/>
+  <xs:element name="chargingContractFindRequest" type="tns:FindChargingContractRequest"/>
+  <xs:element name="chargingContractFindResponse" type="tns:FindChargingContractResponse"/>
+  <xs:element name="chargingContractMaintainBundleRequest" type="tns:ChargingContractMaintainBundleRequest"/>
+  <xs:element name="chargingContractMaintainBundleResponse" type="tns:ChargingContractMaintainBundleResponse"/>
+  <xs:element name="chargingContractMaintainMassRequest" type="tns:ChargingContractMaintainMassRequest"/>
+  <xs:element name="chargingContractMaintainMassResponse" type="tns:ChargingContractMaintainMassResponse"/>
+  <xs:element name="chargingContractMaintainRequest" type="tns:MaintainChargingContractRequest"/>
+  <xs:element name="chargingContractMaintainResponse" type="tns:ContractOperationResponse"/>
+  <xs:complexType name="ChargingContractMaintainBundleResponse">
+    <xs:complexContent>
+      <xs:extension base="ns1:Response">
+        <xs:sequence>
+          <xs:element name="chargingContractMaintainResponse" type="tns:ContractOperationResponse" form="qualified" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="ContractOperationResponse">
+    <xs:complexContent>
+      <xs:extension base="ns1:Response">
+        <xs:sequence>
+          <xs:element name="id" type="xs:string" minOccurs="0"/>
+          <xs:element name="reference" type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="ChargingContractMaintainMassResponse">
+    <xs:complexContent>
+      <xs:extension base="ns1:MassResponse">
+        <xs:sequence>
+          <xs:element name="chargingContractMaintainResponse" type="tns:ContractOperationResponse" form="qualified" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="FindChargingContractResponse">
+    <xs:complexContent>
+      <xs:extension base="ns1:SearchResponse">
+        <xs:sequence>
+          <xs:element name="chargingContract" type="ns2:ChargingContract" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="ChargingContractSearchFilter">
+    <xs:complexContent>
+      <xs:extension base="ns1:SearchFilter">
+        <xs:sequence>
+          <xs:element name="id" type="ns1:StringAttributeDescription" minOccurs="0"/>
+          <xs:element name="subscriberAccountId" type="ns1:StringAttributeDescription" minOccurs="0"/>
+          <xs:element name="additionalInfo" type="ns1:AdditionalAttributeDescription" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="ChargingContractMaintainBundleRequest">
+    <xs:sequence>
+      <xs:element name="chargingContractMaintainRequest" type="tns:MaintainChargingContractRequest" form="qualified" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="MaintainChargingContractRequest">
+    <xs:sequence>
+      <xs:element name="date" type="xs:anySimpleType"/>
+      <xs:element name="chargingContractRevision" type="ns2:ChargingContractRevision"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ChargingContractMaintainMassRequest">
+    <xs:sequence>
+      <xs:element name="chargingContractMaintainRequest" type="tns:MaintainChargingContractRequest" form="qualified" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="CancelChargingContractRequest">
+    <xs:sequence>
+      <xs:element name="id" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="FindChargingContractRequest">
+    <xs:sequence>
+      <xs:element name="chargingContractSearchFilter" type="tns:ChargingContractSearchFilter"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>

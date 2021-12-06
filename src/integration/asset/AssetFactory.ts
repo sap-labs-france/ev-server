@@ -1,4 +1,5 @@
 import { AssetConnectionType, AssetSetting } from '../../types/Setting';
+import Tenant, { TenantComponents } from '../../types/Tenant';
 
 import AssetIntegration from './AssetIntegration';
 import GreencomAssetIntegration from './greencom/GreencomAssetIntegration';
@@ -8,8 +9,6 @@ import Logging from '../../utils/Logging';
 import SchneiderAssetIntegration from './schneider/SchneiderAssetIntegration';
 import { ServerAction } from '../../types/Server';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
-import Tenant from '../../types/Tenant';
-import TenantComponents from '../../types/TenantComponents';
 import Utils from '../../utils/Utils';
 import WitAssetIntegration from './wit/WitAssetIntegration';
 

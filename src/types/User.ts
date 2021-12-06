@@ -41,6 +41,8 @@ export default interface User extends CreatedUpdatedProps, AuthorizationActions 
   importedData?: {
     autoActivateUserAtImport: boolean;
   };
+  technical?: boolean;
+  freeAccess?: boolean;
 }
 
 export interface UserSite {
@@ -86,4 +88,3 @@ export const UserRequiredImportProperties = [
   'firstName',
   'name'
 ];
-

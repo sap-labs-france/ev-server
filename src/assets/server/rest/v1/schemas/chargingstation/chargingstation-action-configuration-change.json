@@ -1,0 +1,36 @@
+{
+  "$id": "chargingstation-action-configuration-change",
+  "title": "Change Configuration",
+  "type": "object",
+  "properties": {
+    "chargingStationID": {
+      "$ref": "chargingstation#/definitions/id"
+    },
+    "args": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "sanitize": "mongo",
+          "maxLength": 50
+        },
+        "value": {
+          "type": "string",
+          "sanitize": "mongo",
+          "maxLength": 500
+        },
+        "custom": {
+          "type": "boolean",
+          "sanitize": "mongo"
+        }
+      },
+      "required": [
+        "key",
+        "value"
+      ]
+    }
+  },
+  "required": [
+    "chargingStationID"
+  ]
+}

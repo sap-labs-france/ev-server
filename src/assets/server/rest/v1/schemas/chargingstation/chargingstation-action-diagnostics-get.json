@@ -1,0 +1,43 @@
+{
+  "$id": "chargingstation-action-diagnostics-get",
+  "title": "Get Diagnostics",
+  "type": "object",
+  "properties": {
+    "chargingStationID": {
+      "$ref": "chargingstation#/definitions/id"
+    },
+    "args": {
+      "type": "object",
+      "properties": {
+        "location": {
+          "type": "string",
+          "sanitize": "mongo"
+        },
+        "retries": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "retryInterval": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "startTime": {
+          "type": "string",
+          "format": "date-time",
+          "sanitize": "mongo"
+        },
+        "stopTime": {
+          "type": "string",
+          "format": "date-time",
+          "sanitize": "mongo"
+        }
+      },
+      "required": [
+        "location"
+      ]
+    }
+  },
+  "required": [
+    "chargingStationID"
+  ]
+}

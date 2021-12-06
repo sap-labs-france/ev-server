@@ -182,7 +182,7 @@ export default class OICPUtils {
       const existingAuthorization = chargingStation.remoteAuthorizations.find(
         (authorization) => authorization.connectorId === connectorId && authorization.oicpIdentification);
       if (existingAuthorization) {
-        if (action === ServerAction.START_TRANSACTION) {
+        if (action === ServerAction.OCPP_START_TRANSACTION) {
           if (OICPUtils.isAuthorizationValid(existingAuthorization.timestamp)) {
             return {
               sessionId: existingAuthorization.id,

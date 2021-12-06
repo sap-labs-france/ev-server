@@ -13,6 +13,10 @@ export default class BackendError extends Error {
     user?: User|UserToken|string;
     actionOnUser?: User;
     detailedMessages?: any;
+    chargingStationID?: string;
+    siteID?: string;
+    siteAreaID?: string;
+    companyID?: string;
   }) {
     super(params.message);
   }

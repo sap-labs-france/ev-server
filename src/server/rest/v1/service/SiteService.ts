@@ -1,18 +1,21 @@
-import { Action, Entity } from '../../../../types/Authorization';
+import { Action, DynamicAuthorizationDataSourceName, Entity, SitesAdminDynamicAuthorizationDataSourceData } from '../../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
+import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../../utils/Constants';
+import DynamicAuthorizationFactory from '../../../../authorization/DynamicAuthorizationFactory';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
 import { SiteDataResult } from '../../../../types/DataResult';
-import SiteSecurity from './security/SiteSecurity';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
-import TenantComponents from '../../../../types/TenantComponents';
+import SiteValidator from '../validator/SiteValidator';
+import SitesAdminDynamicAuthorizationDataSource from '../../../../authorization/dynamic-data-source/SitesAdminDynamicAuthorizationDataSource';
+import { TenantComponents } from '../../../../types/Tenant';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
@@ -20,17 +23,15 @@ import UtilsService from './UtilsService';
 const MODULE_NAME = 'SiteService';
 
 export default class SiteService {
-
   public static async handleUpdateSiteUserAdmin(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleUpdateSiteUserAdmin');
     // Filter request
-    const filteredRequest = SiteSecurity.filterUpdateSiteUserAdminRequest(req.body);
+    const filteredRequest = SiteValidator.getInstance().validateSiteAdminReq(req.body);
     // Check mandatory fields
     if (!filteredRequest.userID) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The User ID must be provided',
         module: MODULE_NAME, method: 'handleUpdateSiteUserAdmin',
@@ -39,7 +40,6 @@ export default class SiteService {
     }
     if (!filteredRequest.siteID) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Site ID must be provided',
         module: MODULE_NAME, method: 'handleUpdateSiteUserAdmin',
@@ -48,7 +48,6 @@ export default class SiteService {
     }
     if (!Utils.objectHasProperty(filteredRequest, 'siteAdmin')) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Site Admin value must be provided',
         module: MODULE_NAME, method: 'handleUpdateSiteUserAdmin',
@@ -57,7 +56,6 @@ export default class SiteService {
     }
     if (req.user.id === filteredRequest.userID) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Cannot change the site Admin on the logged user',
         module: MODULE_NAME, method: 'handleUpdateSiteUserAdmin',
@@ -73,8 +71,7 @@ export default class SiteService {
       req.tenant, req.user, filteredRequest.userID, Action.READ, action);
     // Update
     await SiteStorage.updateSiteUserAdmin(req.tenant, filteredRequest.siteID, filteredRequest.userID, filteredRequest.siteAdmin);
-    // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, actionOnUser: user,
       module: MODULE_NAME, method: 'handleUpdateSiteUserAdmin',
@@ -90,11 +87,10 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleUpdateSiteOwner');
     // Filter request
-    const filteredRequest = SiteSecurity.filterUpdateSiteOwnerRequest(req.body);
+    const filteredRequest = SiteValidator.getInstance().validateSiteOwnerReq(req.body);
     // Check mandatory fields
     if (!filteredRequest.userID) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The User ID must be provided',
         module: MODULE_NAME, method: 'handleUpdateSiteOwner',
@@ -103,7 +99,6 @@ export default class SiteService {
     }
     if (!filteredRequest.siteID) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Site ID must be provided',
         module: MODULE_NAME, method: 'handleUpdateSiteOwner',
@@ -112,7 +107,6 @@ export default class SiteService {
     }
     if (!Utils.objectHasProperty(filteredRequest, 'siteOwner')) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Site Owner value must be provided',
         module: MODULE_NAME, method: 'handleUpdateSiteOwner',
@@ -127,8 +121,7 @@ export default class SiteService {
       req.tenant, req.user, filteredRequest.userID, Action.READ, action);
     // Update
     await SiteStorage.updateSiteOwner(req.tenant, filteredRequest.siteID, filteredRequest.userID, filteredRequest.siteOwner);
-    // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, actionOnUser: user,
       module: MODULE_NAME, method: 'handleUpdateSiteOwner',
@@ -144,7 +137,7 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleAssignUsersToSite');
     // Filter request
-    const filteredRequest = SiteSecurity.filterAssignSiteUsers(req.body);
+    const filteredRequest = SiteValidator.getInstance().validateSiteAssignUsersReq(req.body);
     // Check and Get Site
     const site = await UtilsService.checkAndGetSiteAuthorization(
       req.tenant, req.user, filteredRequest.siteID, Action.READ, action);
@@ -157,8 +150,7 @@ export default class SiteService {
     } else {
       await SiteStorage.removeUsersFromSite(req.tenant, site.id, users.map((user) => user.id));
     }
-    // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user,
       module: MODULE_NAME,
@@ -175,7 +167,7 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleGetUsers');
     // Filter
-    const filteredRequest = SiteSecurity.filterSiteUsersRequest(req.query);
+    const filteredRequest = SiteValidator.getInstance().validateSiteGetUsersReq(req.query);
     // Check Site
     try {
       await UtilsService.checkAndGetSiteAuthorization(
@@ -195,13 +187,13 @@ export default class SiteService {
     const users = await SiteStorage.getSiteUsers(req.tenant,
       {
         search: filteredRequest.Search,
-        siteIDs: [ filteredRequest.SiteID ],
+        siteIDs: [filteredRequest.SiteID],
         ...authorizationSiteUsersFilter.filters
       },
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.SortFields,
+        sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       authorizationSiteUsersFilter.projectFields
@@ -215,14 +207,13 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.DELETE, Entity.SITE, MODULE_NAME, 'handleDeleteSite');
     // Filter request
-    const siteID = SiteSecurity.filterSiteRequestByID(req.query);
+    const siteID = SiteValidator.getInstance().validateSiteGetReq(req.query).ID;
     // Check and Get Site
     const site = await UtilsService.checkAndGetSiteAuthorization(
       req.tenant, req.user, siteID, Action.DELETE, action);
     // Delete
     await SiteStorage.deleteSite(req.tenant, site.id);
-    // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteSite',
       message: `Site '${site.name}' has been deleted successfully`,
@@ -238,14 +229,13 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.READ, Entity.SITE, MODULE_NAME, 'handleGetSite');
     // Filter request
-    const filteredRequest = SiteSecurity.filterSiteRequest(req.query);
+    const filteredRequest = SiteValidator.getInstance().validateSiteGetReq(req.query);
     // Check and Get Site
     const site = await UtilsService.checkAndGetSiteAuthorization(
       req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {
         withCompany: filteredRequest.WithCompany,
         withImage: true,
       }, true);
-    // Return
     res.json(site);
     next();
   }
@@ -253,15 +243,29 @@ export default class SiteService {
   public static async handleGetSites(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
-      Action.LIST, Entity.SITES, MODULE_NAME, 'handleGetSites');
+      Action.LIST, Entity.SITE, MODULE_NAME, 'handleGetSites');
     // Filter request
-    const filteredRequest = SiteSecurity.filterSitesRequest(req.query);
+    const filteredRequest = SiteValidator.getInstance().validateSitesGetReq(req.query);
+    // Create GPS Coordinates
+    if (filteredRequest.LocLongitude && filteredRequest.LocLatitude) {
+      filteredRequest.LocCoordinates = [
+        Utils.convertToFloat(filteredRequest.LocLongitude),
+        Utils.convertToFloat(filteredRequest.LocLatitude)
+      ];
+    }
     // Check dynamic auth
     const authorizationSitesFilter = await AuthorizationService.checkAndGetSitesAuthorizations(
       req.tenant, req.user, filteredRequest);
     if (!authorizationSitesFilter.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
+    }
+    // Check Site Admin filter
+    if (filteredRequest.SiteAdmin) {
+      // Override Site IDs
+      const siteAdminDataSource = await DynamicAuthorizationFactory.getDynamicDataSource(
+        req.tenant, req.user, DynamicAuthorizationDataSourceName.SITES_ADMIN) as SitesAdminDynamicAuthorizationDataSource;
+      authorizationSitesFilter.filters = { ...authorizationSitesFilter.filters, ...siteAdminDataSource.getData() };
     }
     // Get the sites
     const sites = await SiteStorage.getSites(req.tenant,
@@ -281,14 +285,17 @@ export default class SiteService {
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.SortFields,
+        sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       authorizationSitesFilter.projectFields
     );
+    // Assign projected fields
+    if (authorizationSitesFilter.projectFields) {
+      sites.projectFields = authorizationSitesFilter.projectFields;
+    }
     // Add Auth flags
     await AuthorizationService.addSitesAuthorizations(req.tenant, req.user, sites as SiteDataResult, authorizationSitesFilter);
-    // Return
     res.json(sites);
     next();
   }
@@ -296,13 +303,12 @@ export default class SiteService {
   public static async handleGetSiteImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // This endpoint is not protected, so no need to check user's access
     // Filter
-    const filteredRequest = SiteSecurity.filterSiteImageRequest(req.query);
+    const filteredRequest = SiteValidator.getInstance().validateSiteGetImageReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetSiteImage', req.user);
     if (!filteredRequest.TenantID) {
       // Object does not exist
       throw new AppError({
         action,
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The ID must be provided',
         module: MODULE_NAME, method: 'handleGetSiteImage',
@@ -336,12 +342,12 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.CREATE, Entity.SITE, MODULE_NAME, 'handleCreateSite');
     // Filter request
-    const filteredRequest = SiteSecurity.filterSiteCreateRequest(req.body);
+    const filteredRequest = SiteValidator.getInstance().validateSiteCreateReq(req.body);
     // Check data is valid
     UtilsService.checkIfSiteValid(filteredRequest, req);
     // Get dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetSiteAuthorizations(
-      req.tenant, req.user, {}, Action.CREATE, filteredRequest as Site);
+      req.tenant, req.user, {}, Action.CREATE, filteredRequest);
     if (!authorizationFilter.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -362,8 +368,7 @@ export default class SiteService {
     } as Site;
     // Save
     site.id = await SiteStorage.saveSite(req.tenant, site);
-    // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleCreateSite',
       message: `Site '${site.name}' has been created successfully`,
@@ -379,20 +384,37 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleUpdateSite');
     // Filter request
-    const filteredRequest = SiteSecurity.filterSiteUpdateRequest(req.body);
+    const filteredRequest = SiteValidator.getInstance().validateSiteUpdateReq(req.body);
     // Check data is valid
     UtilsService.checkIfSiteValid(filteredRequest, req);
     // Check and Get Site
     const site = await UtilsService.checkAndGetSiteAuthorization(
-      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest as Site);
+      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest);
     // Check and Get Company
     await UtilsService.checkAndGetCompanyAuthorization(
-      req.tenant, req.user, filteredRequest.companyID, Action.READ, action, filteredRequest as Site);
+      req.tenant, req.user, filteredRequest.companyID, Action.READ, action, filteredRequest);
     // Update
     site.name = filteredRequest.name;
     site.companyID = filteredRequest.companyID;
     if (Utils.objectHasProperty(filteredRequest, 'public')) {
+      if (!filteredRequest.public) {
+        const publicChargingStations = await ChargingStationStorage.getChargingStations(req.tenant, {
+          siteIDs: [site.id],
+          public: true,
+        }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);
+        if (publicChargingStations.count > 0) {
+          throw new AppError({
+            errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
+            message: `Cannot set site ${site.name} to private as charging station ${publicChargingStations.result[0].id} under site is public`,
+            module: MODULE_NAME, method: 'handleUpdateSite',
+            user: req.user,
+          });
+        }
+      }
       site.public = filteredRequest.public;
+    }
+    if (Utils.objectHasProperty(filteredRequest, 'tariffID')) {
+      site.tariffID = filteredRequest.tariffID;
     }
     if (Utils.objectHasProperty(filteredRequest, 'autoUserSiteAssignment')) {
       site.autoUserSiteAssignment = filteredRequest.autoUserSiteAssignment;
@@ -407,8 +429,7 @@ export default class SiteService {
     site.lastChangedOn = new Date();
     // Save
     await SiteStorage.saveSite(req.tenant, site, Utils.objectHasProperty(filteredRequest, 'image') ? true : false);
-    // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateSite',
       message: `Site '${site.name}' has been updated successfully`,

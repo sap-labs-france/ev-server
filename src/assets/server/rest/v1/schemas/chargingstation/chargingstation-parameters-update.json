@@ -1,0 +1,55 @@
+{
+  "$id": "chargingstation-parameters-update",
+  "title": "Update Charging Station paramaters",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "chargingstation#/definitions/id"
+    },
+    "chargingStationUrl": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "maximumPower": {
+      "type": "number",
+      "sanitize": "mongo"
+    },
+    "excludeFromSmartCharging": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "forceInactive": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "manualConfiguration": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "public": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "siteAreaID": {
+      "$ref": "common#/definitions/id"
+    },
+    "coordinates": {
+      "$ref": "common#/definitions/address/properties/coordinates"
+    },
+    "connectors": {
+      "type": "array",
+      "items": {
+        "$ref": "chargingstation#/definitions/connector"
+      }
+    },
+    "chargePoints": {
+      "type": "array",
+      "items": {
+        "$ref": "chargingstation#/definitions/chargePoint"
+      }
+    }
+  },
+  "required": [
+    "id"
+  ]
+}

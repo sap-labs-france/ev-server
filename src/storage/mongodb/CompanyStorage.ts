@@ -1,4 +1,4 @@
-import global, { FilterParams } from '../../types/GlobalType';
+import global, { DatabaseCount, FilterParams, Logo } from '../../types/GlobalType';
 
 import Company from '../../types/Company';
 import Constants from '../../utils/Constants';
@@ -16,25 +16,26 @@ const MODULE_NAME = 'CompanyStorage';
 export default class CompanyStorage {
 
   public static async getCompany(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID,
-      params: { withLogo?: boolean; } = {},
+      params: { withLogo?: boolean; issuer?: boolean; } = {},
       projectFields?: string[]): Promise<Company> {
     const companiesMDB = await CompanyStorage.getCompanies(tenant, {
       companyIDs: [id],
       withLogo: params.withLogo,
+      issuer: params.issuer,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return companiesMDB.count === 1 ? companiesMDB.result[0] : null;
   }
 
-  public static async getCompanyLogo(tenant: Tenant, id: string): Promise<{ id: string; logo: string }> {
+  public static async getCompanyLogo(tenant: Tenant, id: string): Promise<Logo> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'getCompanyLogo');
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Read DB
-    const companyLogoMDB = await global.database.getCollection<{ _id: ObjectId; logo: string }>(tenant.id, 'companylogos')
+    const companyLogoMDB = await global.database.getCollection<Logo>(tenant.id, 'companylogos')
       .findOne({ _id: DatabaseUtils.convertToObjectID(id) });
     // Debug
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'getCompanyLogo', uniqueTimerID, companyLogoMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getCompanyLogo', startTime, { id }, companyLogoMDB);
     return {
       id: id,
       logo: companyLogoMDB ? companyLogoMDB.logo : null
@@ -43,7 +44,7 @@ export default class CompanyStorage {
 
   public static async saveCompany(tenant: Tenant, companyToSave: Company, saveLogo = true): Promise<string> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'saveCompany');
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Set
@@ -78,16 +79,16 @@ export default class CompanyStorage {
       await CompanyStorage.saveCompanyLogo(tenant, companyMDB._id.toString(), companyToSave.logo);
     }
     // Debug
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'saveCompany', uniqueTimerID, companyMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveCompany', startTime, companyMDB);
     return companyMDB._id.toString();
   }
 
   public static async getCompanies(tenant: Tenant,
-      params: { search?: string; issuer?: boolean; companyIDs?: string[]; withSites?: boolean; withLogo?: boolean;
+      params: { search?: string; issuer?: boolean; companyIDs?: string[]; withSite?: boolean; withLogo?: boolean;
         locCoordinates?: number[]; locMaxDistanceMeters?: number; } = {},
       dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Company>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'getCompanies');
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -117,8 +118,10 @@ export default class CompanyStorage {
     if (params.search) {
       filters.$or = [
         { 'name': { $regex: params.search, $options: 'i' } },
+        { 'address.postalCode': { $regex: params.search, $options: 'i' } },
         { 'address.city': { $regex: params.search, $options: 'i' } },
-        { 'address.country': { $regex: params.search, $options: 'i' } }
+        { 'address.region': { $regex: params.search, $options: 'i' } },
+        { 'address.country': { $regex: params.search, $options: 'i' } },
       ];
     }
     // Limit on Company for Basic Users
@@ -147,13 +150,13 @@ export default class CompanyStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const companiesCountMDB = await global.database.getCollection<DataResult<Company>>(tenant.id, 'companies')
-      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
+    const companiesCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'companies')
+      .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
-      await Logging.traceEnd(tenant.id, MODULE_NAME, 'getCompanies', uniqueTimerID, companiesCountMDB);
+      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getCompanies', startTime, aggregation, companiesCountMDB);
       return {
         count: (companiesCountMDB.length > 0 ? companiesCountMDB[0].count : 0),
         result: []
@@ -181,7 +184,7 @@ export default class CompanyStorage {
       $limit: (dbParams.limit > 0 && dbParams.limit < Constants.DB_RECORD_COUNT_CEIL) ? dbParams.limit : Constants.DB_RECORD_COUNT_CEIL
     });
     // Site
-    if (params.withSites) {
+    if (params.withSite) {
       DatabaseUtils.pushSiteLookupInAggregation(
         { tenantID: tenant.id, aggregation, localField: '_id', foreignField: 'companyID', asField: 'sites' });
     }
@@ -207,25 +210,23 @@ export default class CompanyStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const companiesMDB = await global.database.getCollection<any>(tenant.id, 'companies')
-      .aggregate(aggregation, {
-        allowDiskUse: true
-      })
+    const companiesMDB = await global.database.getCollection<Company>(tenant.id, 'companies')
+      .aggregate<Company>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'getCompanies', uniqueTimerID, companiesMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getCompanies', startTime, aggregation, companiesMDB);
     // Ok
     return {
       count: (companiesCountMDB.length > 0 ?
         (companiesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : companiesCountMDB[0].count) : 0),
       result: companiesMDB,
-      projectedFields: projectFields
+      projectFields: projectFields
     };
   }
 
   public static async deleteCompany(tenant: Tenant, id: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'deleteCompany');
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete sites associated with Company
@@ -237,12 +238,12 @@ export default class CompanyStorage {
     await global.database.getCollection<any>(tenant.id, 'companylogos')
       .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
     // Debug
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'deleteCompany', uniqueTimerID, { id });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteCompany', startTime, { id });
   }
 
   private static async saveCompanyLogo(tenant: Tenant, companyID: string, companyLogoToSave: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'saveCompanyLogo');
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Modify
@@ -251,6 +252,6 @@ export default class CompanyStorage {
       { $set: { logo: companyLogoToSave } },
       { upsert: true });
     // Debug
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'saveCompanyLogo', uniqueTimerID, companyLogoToSave);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveCompanyLogo', startTime, companyLogoToSave);
   }
 }

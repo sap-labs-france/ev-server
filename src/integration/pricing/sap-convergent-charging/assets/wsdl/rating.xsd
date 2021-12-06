@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Published by JAX-WS RI at http://jax-ws.dev.java.net. RI's version is JAX-WS RI 2.1.6 in JDK 6.--><xs:schema version="1.0" targetNamespace="http://suac.ws.highdeal.com/" xmlns:tns="http://suac.ws.highdeal.com/" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:complexType name="StateChangeAlert">
+    <xs:sequence>
+      <xs:element name="alertCode" type="xs:string"/>
+      <xs:element name="dayCount" type="xs:int" default="0" minOccurs="0"/>
+      <xs:element name="toStateCode" type="tns:PrepaidAccountState"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ExternalAccountReference">
+    <xs:sequence>
+      <xs:element name="subscriberAccountId" type="xs:string"/>
+      <xs:element name="externalAccountId" type="xs:string"/>
+      <xs:element name="additionalId" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="TaxInfoVAT">
+    <xs:sequence>
+      <xs:element name="taxCode" type="xs:string"/>
+      <xs:element name="customerCountryCode" type="xs:string" minOccurs="0"/>
+      <xs:element name="businessCategory" type="tns:VATBusinessCategory" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="StateSchedule">
+    <xs:sequence>
+      <xs:element name="item" type="tns:StateScheduleItem" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="StateScheduleItem">
+    <xs:sequence>
+      <xs:element name="stateCode" type="tns:PrepaidAccountStateSchedule"/>
+      <xs:element name="fromDate" type="xs:anySimpleType"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="TaxInfoEZTax">
+    <xs:sequence>
+      <xs:element name="origination" type="xs:string" minOccurs="0"/>
+      <xs:element name="termination" type="xs:string" minOccurs="0"/>
+      <xs:element name="serviceAddress" type="xs:string" minOccurs="0"/>
+      <xs:element name="customerType" type="tns:EZTaxCustomerType" minOccurs="0"/>
+      <xs:element name="incorporatedCode" type="tns:EZTaxIncorporatedCode" minOccurs="0"/>
+      <xs:element name="clientResale" type="tns:EZTaxClientResale" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="PrepaidAccount">
+    <xs:sequence>
+      <xs:element name="id" type="xs:string"/>
+      <xs:element name="subscriberAccountId" type="xs:string"/>
+      <xs:element name="description" type="xs:string" minOccurs="0"/>
+      <xs:element name="currencyCode" type="xs:string"/>
+      <xs:element name="emptyLimit" type="xs:decimal" default="0" minOccurs="0"/>
+      <xs:element name="balance" type="xs:decimal" minOccurs="0"/>
+      <xs:element name="currentState" type="tns:PrepaidAccountState" minOccurs="0"/>
+      <xs:element name="stateSchedule" type="tns:StateSchedule"/>
+      <xs:element name="amountAlert" type="tns:AmountAlert" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="stateChangeAlert" type="tns:StateChangeAlert" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="AmountAlert">
+    <xs:sequence>
+      <xs:element name="alertCode" type="xs:string"/>
+      <xs:element name="amountThreshold" type="xs:decimal"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="SubscriberAccount">
+    <xs:sequence>
+      <xs:element name="id" type="xs:string"/>
+      <xs:element name="subscriberId" type="xs:string"/>
+      <xs:element name="description" type="xs:string" minOccurs="0"/>
+      <xs:element name="noTax" type="xs:string" minOccurs="0"/>
+      <xs:element name="tax" type="tns:TaxInfo" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="TaxInfo">
+    <xs:sequence>
+      <xs:element name="mode" type="tns:AccountTaxationMode"/>
+      <xs:element name="vat" type="tns:TaxInfoVAT" minOccurs="0"/>
+      <xs:element name="ezTax" type="tns:TaxInfoEZTax" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="SubscriberAccountWithAccounts">
+    <xs:complexContent>
+      <xs:extension base="tns:SubscriberAccount">
+        <xs:sequence>
+          <xs:element name="externalAccount" type="tns:ExternalAccount" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="prepaidAccount" type="tns:PrepaidAccount" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="ExternalAccount">
+    <xs:sequence>
+      <xs:element name="id" type="xs:string"/>
+      <xs:element name="subscriberAccountId" type="xs:string"/>
+      <xs:element name="description" type="xs:string" minOccurs="0"/>
+      <xs:element name="additionalId" type="xs:string" minOccurs="0"/>
+      <xs:element name="currencyCode" type="xs:string" minOccurs="0"/>
+      <xs:element name="externalSystemCode" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="PrepaidAccountReference">
+    <xs:sequence>
+      <xs:element name="subscriberAccountId" type="xs:string"/>
+      <xs:element name="prepaidAccountId" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:simpleType name="PrepaidAccountState">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="active"/>
+      <xs:enumeration value="blocked"/>
+      <xs:enumeration value="locked"/>
+      <xs:enumeration value="closed"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="VATBusinessCategory">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="B2B"/>
+      <xs:enumeration value="B2C"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="PrepaidAccountStateSchedule">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="blocked"/>
+      <xs:enumeration value="locked"/>
+      <xs:enumeration value="closed"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="EZTaxCustomerType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="business"/>
+      <xs:enumeration value="industrial"/>
+      <xs:enumeration value="residentialCustomer"/>
+      <xs:enumeration value="seniorCitizen"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="EZTaxIncorporatedCode">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="inside"/>
+      <xs:enumeration value="outside"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="EZTaxClientResale">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="resale"/>
+      <xs:enumeration value="sale"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="AccountTaxationMode">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="vendorSubjectToPay"/>
+      <xs:enumeration value="buyerSubjectToPay"/>
+      <xs:enumeration value="buyerExempted"/>
+      <xs:enumeration value="noTax"/>
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>

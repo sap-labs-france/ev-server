@@ -17,7 +17,6 @@ export default class SynchronizeCarCatalogsAsyncTask extends AbstractAsyncTask {
         const carDatabaseImpl = await CarFactory.getCarImpl();
         if (!carDatabaseImpl) {
           throw new BackendError({
-            source: Constants.CENTRAL_SERVER,
             message: 'Car service is not configured',
             module: MODULE_NAME, method: 'executeAsyncTask'
           });

@@ -24,7 +24,6 @@ export default class TransactionCommonTests {
   public centralUserContext: any;
   public centralUserService: CentralServerService;
   public currentPricingSetting;
-  public pricekWh = 2;
   public transactionUser;
   public transactionUserService: CentralServerService;
 
@@ -57,14 +56,6 @@ export default class TransactionCommonTests {
     } else {
       this.transactionUserService = new CentralServerService(
         this.tenantContext.getTenant().subdomain, this.transactionUser);
-    }
-  }
-
-  public async before() {
-    const allSettings = await this.centralUserService.settingApi.readAll({});
-    this.currentPricingSetting = allSettings.data.result.find((s) => s.identifier === 'pricing');
-    if (this.currentPricingSetting) {
-      await this.centralUserService.updatePriceSetting(this.pricekWh, 'EUR');
     }
   }
 
@@ -107,7 +98,6 @@ export default class TransactionCommonTests {
     } else {
       expect(transactionResponse.status).eq(StatusCodes.FORBIDDEN);
       expect(transactionResponse.data).not.null;
-      expect(transactionResponse.data.message).eq(`Role Basic is not authorized to perform Read on Transaction '${response.transactionId}'`);
     }
   }
 
@@ -391,7 +381,7 @@ export default class TransactionCommonTests {
     expect(transactions.data.stats).to.containSubset({
       totalConsumptionWattHours: 2000,
       totalDurationSecs: 7200,
-      totalPrice: 4,
+      totalPrice: 2,
       totalInactivitySecs: 0,
       count: 2
     }
@@ -454,7 +444,7 @@ export default class TransactionCommonTests {
     expect(transactions.data.stats).to.containSubset({
       totalConsumptionWattHours: 2000,
       totalPriceRefund: 0,
-      totalPricePending: 4,
+      totalPricePending: 2,
       currency: 'EUR',
       countRefundTransactions: 0,
       countPendingTransactions: 2,
@@ -1032,12 +1022,12 @@ export default class TransactionCommonTests {
 
   public async testDeleteTransactionWithInvalidId() {
     const response = await this.transactionUserService.transactionApi.delete('&é"\'(§è!çà)');
-    expect(response.status).to.equal(StatusCodes.FORBIDDEN);
+    expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
   }
 
   public async testDeleteTransactionWithoutId() {
     const response = await this.transactionUserService.transactionApi.delete(null);
-    expect(response.status).to.equal(StatusCodes.FORBIDDEN);
+    expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
   }
 
   public async testDeleteStartedTransaction(allowed = true) {
@@ -1211,8 +1201,8 @@ export default class TransactionCommonTests {
         totalDurationSecs: 7 * 3600,
         totalInactivitySecs: 5 * 3600,
         inactivityStatus: InactivityStatus.ERROR,
-        price: 0.3,
-        roundedPrice: 0.3
+        price: 0.15,
+        roundedPrice: 0.15
       }
     });
   }
@@ -1372,5 +1362,15 @@ export default class TransactionCommonTests {
     expect(response.status).eq(StatusCodes.OK);
     expect(response.data).not.null;
     expect(responseFileArray.length).to.be.eql(transactionsToRefund.data.result.length);
+  }
+
+  public async testExportTransactions(params) {
+    const response = await this.centralUserService.transactionApi.exportTransactions(params);
+    const transactions = await this.centralUserService.transactionApi.readAllCompleted(params);
+    const responseFileArray = TestUtils.convertExportFileToObjectArray(response.data);
+
+    expect(response.status).eq(StatusCodes.OK);
+    expect(response.data).not.null;
+    expect(responseFileArray.length).to.be.eql(transactions.data.result.length);
   }
 }

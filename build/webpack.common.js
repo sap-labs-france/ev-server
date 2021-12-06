@@ -2,7 +2,6 @@
 const nodeExternals = require('webpack-node-externals');
 const commonPaths = require('./webpack.common.paths');
 const webpack = require('webpack');
-const WebpackShellPluginNext = require('webpack-shell-plugin-next');
 const CopyPlugin = require('copy-webpack-plugin');
 
 const config = {
@@ -10,10 +9,7 @@ const config = {
   devtool: 'source-map',
   target: 'node',
   node: {
-    console: false,
     global: false,
-    process: false,
-    Buffer: false,
     __filename: false,
     __dirname: false
   },
@@ -26,17 +22,12 @@ const config = {
     extensions: ['.ts', '.tsx', '.json']
   },
   plugins: [
-    new WebpackShellPluginNext({
-      onBuildStart: {
-        scripts: ['node src/componentsExport.js'],
-        blocking: true,
-        parallel: false,
-      },
+    new webpack.WatchIgnorePlugin({
+      paths: [
+        /\.js$/,
+        /\.d\.ts$/
+       ]
     }),
-    new webpack.WatchIgnorePlugin([
-      /\.js$/,
-      /\.d\.ts$/
-    ]),
     new webpack.ProgressPlugin(),
     new CopyPlugin({
       patterns: [

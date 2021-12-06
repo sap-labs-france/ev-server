@@ -4,9 +4,7 @@ export default interface CentralSystemRestServiceConfiguration extends CentralSy
   userTokenKey: string;
   userTokenLifetimeHours: number;
   userDemoTokenLifetimeDays: number;
-  socketIO?: boolean;
-  socketIOListNotificationIntervalSecs?: number;
-  socketIOSingleNotificationIntervalSecs?: number;
+  userTechnicalTokenLifetimeDays: number;
   passwordWrongNumberOfTrial: number;
   passwordBlockedWaitTimeMin: number;
   captchaSecretKey: string;

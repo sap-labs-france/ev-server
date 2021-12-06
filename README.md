@@ -1,18 +1,29 @@
-# Electric Vehicle Charging Station (EVSE) - Application Server
+# Open e-Mobility NodeJs Server
 
 ## Summary
 
-This application server (NodeJs) collects and stores the data (MongoDB) received from the Charging Stations via the OCPP protocol and exposes a REST service to an Angular front-end dashboard application ([EVSE-Dashboard](https://github.com/sap-labs-france/ev-dashboard)).
+This application server (NodeJs) collects and stores the data (MongoDB) received from the Charging Stations via the OCPP protocol and exposes a REST service to an Angular front-end dashboard application ([Open e-Mobility Angular Dashboard](https://github.com/sap-labs-france/ev-dashboard)).
 
 The application features:
 
-* Displays of the charging stations, their status and their delivered power in real time.
-* User management (create, update, delete, authorize, change role...)
-* Charging station charging curves in real time
-* Actions on charging stations: Reboot, Clear Cache, Stop Transaction, Unlock Connector...
-* Energy control: set the maximum energy delivered by the charging station
+* Charging Stations details and real-time statuses
+* Charging sessions curves in real time
+* Charging stations remote control (Reboot, Clear Cache, Stop Transaction, Unlock Connector)
+* Charging Station Template management: Zero configuration
+* User management
+* Badge management
+* Role management (ABAC)
+* Static Energy Management: Manually limit the charging station
+* Smart Charging with Assets, Fair Sharing, Peak Shaving, Cost Management and Phase Balancing
+* Realtime Asset Management (Building, Battery, Solar Panel) 
+* Billing with Stripe
+* Complex Pricing
+* Roaming integration (Gire, Hubject)
+* Refunding (SAP Concur)
+* Simple Statistics + Advanced Analytics (SAP Analytics)
+* Car Connector Management (Get the car's data to optimize the charging session)
 
-**Live demo here** <a href="https://slf.evse.cfapps.eu10.hana.ondemand.com/auth/login?email=demo.demo@sap.com&password=DeM*Us$r1" target="_blank">e-Mobility</a>
+**Contact the author** <a href="https://www.linkedin.com/in/serge-fabiano-a420a218/" target="_blank">Serge FABIANO</a>
 
 ## Installation
 
@@ -43,7 +54,7 @@ choco install -y nodejs-lts mongodb python postman robot3t microsoft-build-tools
 
 ```shell
 brew tap mongodb/brew
-brew install node mongodb-community@4.2 python@3.9 postman robo-3t
+brew install node mongodb-community@4.4 python@3.9 postman robo-3t
 ```
 
 * Follow the rest of the setup below
@@ -244,9 +255,7 @@ To set the end point, fill the following information in the **config.json** file
     "userTokenKey": "MySecureKeyToEncodeTokenAuth",
     "userTokenLifetimeHours": 12,
     "userDemoTokenLifetimeDays": 365,
-    "socketIO": true,
-    "socketIOListNotificationIntervalSecs": 5,
-    "socketIOSingleNotificationIntervalSecs": 1,
+    "userTechnicalTokenLifetimeDays": 365,
     "debug": false
   }
 ```
@@ -261,9 +270,7 @@ To set the end point, fill the following information in the **config.json** file
     "userTokenKey": "YourSecureKeyToEncodeTokenAuth",
     "userTokenLifetimeHours": 12,
     "userDemoTokenLifetimeDays": 365,
-    "socketIO": true,
-    "socketIOListNotificationIntervalSecs": 5,
-    "socketIOSingleNotificationIntervalSecs": 1,
+    "userTechnicalTokenLifetimeDays": 365,
     "debug": false
   }
 ```
@@ -348,6 +355,7 @@ The token key is provided is the **config.json** file:
     "userTokenKey": "MySecureKeyToEncodeTokenAuth",
     "userTokenLifetimeHours": 12,
     "userDemoTokenLifetimeDays": 365,
+    "userTechnicalTokenLifetimeDays": 365,
     ...
   }
 ```

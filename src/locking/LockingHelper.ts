@@ -1,7 +1,6 @@
 import Lock, { LockEntity } from '../types/Locking';
 
 import Asset from '../types/Asset';
-import AsyncTask from '../types/AsyncTask';
 import Constants from '../utils/Constants';
 import LockingManager from './LockingManager';
 import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
@@ -9,8 +8,24 @@ import OICPEndpoint from '../types/oicp/OICPEndpoint';
 import SiteArea from '../types/SiteArea';
 
 export default class LockingHelper {
-  public static async acquireAsyncTaskLock(tenantID: string, asyncTask: AsyncTask): Promise<Lock | null> {
-    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.ASYNC_TASK, `${asyncTask.id}`, 300);
+  public static async acquireAsyncTaskLock(tenantID: string, asyncTaskID: string): Promise<Lock | null> {
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.ASYNC_TASK, asyncTaskID, 15 * 60);
+    if (!(await LockingManager.acquire(lock))) {
+      return null;
+    }
+    return lock;
+  }
+
+  public static async acquireScheduledTaskLock(tenantID: string, scheduledTaskName: string): Promise<Lock | null> {
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.SCHEDULER_TASK, scheduledTaskName, 24 * 60 * 60);
+    if (!(await LockingManager.acquire(lock))) {
+      return null;
+    }
+    return lock;
+  }
+
+  public static async acquireAsyncTaskManagerLock(tenantID: string): Promise<Lock | null> {
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.ASYNC_TASK_MANAGER, 'async-task-manager', 24 * 60 * 60);
     if (!(await LockingManager.acquire(lock))) {
       return null;
     }

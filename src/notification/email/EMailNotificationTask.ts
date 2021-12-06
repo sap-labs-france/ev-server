@@ -1,22 +1,22 @@
-import { AccountVerificationNotification, AdminAccountVerificationNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, VerificationEmailNotification } from '../../types/UserNotifications';
+import fs from 'fs';
+
+import ejs from 'ejs';
 import { Message, SMTPClient, SMTPError } from 'emailjs';
+import rfc2047 from 'rfc2047';
 
 import BackendError from '../../exception/BackendError';
-import Configuration from '../../utils/Configuration';
-import Constants from '../../utils/Constants';
 import EmailConfiguration from '../../types/configuration/EmailConfiguration';
-import Logging from '../../utils/Logging';
-import NotificationHandler from '../NotificationHandler';
-import NotificationTask from '../NotificationTask';
+import global from '../../types/GlobalType';
 import { ServerAction } from '../../types/Server';
-import TemplateManager from '../../utils/TemplateManager';
 import Tenant from '../../types/Tenant';
 import User from '../../types/User';
+import { AccountVerificationNotification, AdminAccountVerificationNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, VerificationEmailNotification } from '../../types/UserNotifications';
+import Configuration from '../../utils/Configuration';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
+import TemplateManager from '../../utils/TemplateManager';
 import Utils from '../../utils/Utils';
-import ejs from 'ejs';
-import fs from 'fs';
-import global from '../../types/GlobalType';
-import rfc2047 from 'rfc2047';
+import NotificationTask from '../NotificationTask';
 
 const MODULE_NAME = 'EMailNotificationTask';
 
@@ -99,10 +99,6 @@ export default class EMailNotificationTask implements NotificationTask {
 
   public async sendVerificationEmailUserImport(data: VerificationEmailNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     return this.prepareAndSendEmail('verification-email-user-import', data, user, tenant, severity);
-  }
-
-  public async sendSmtpError(data: SmtpErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
-    return this.prepareAndSendEmail('smtp-error', data, user, tenant, severity, true);
   }
 
   public async sendOCPIPatchChargingStationsStatusesError(data: OCPIPatchChargingStationsStatusesErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
@@ -188,7 +184,10 @@ export default class EMailNotificationTask implements NotificationTask {
       // No suitable main SMTP server configuration found to send the email
       await Logging.logError({
         tenantID: tenant.id,
-        source: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
+        siteID: data?.siteID,
+        siteAreaID: data?.siteAreaID,
+        companyID: data?.companyID,
+        chargingStationID: data?.chargeBoxID,
         action: ServerAction.EMAIL_NOTIFICATION,
         module: MODULE_NAME, method: 'sendEmail',
         message: 'No suitable main SMTP server configuration found to send email',
@@ -200,7 +199,10 @@ export default class EMailNotificationTask implements NotificationTask {
     // No suitable backup SMTP server configuration found or activated to send the email
       await Logging.logError({
         tenantID: tenant.id,
-        source: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
+        siteID: data?.siteID,
+        siteAreaID: data?.siteAreaID,
+        companyID: data?.companyID,
+        chargingStationID: data?.chargeBoxID,
         action: ServerAction.EMAIL_NOTIFICATION,
         module: MODULE_NAME, method: 'sendEmail',
         message: 'No suitable backup SMTP server configuration found or activated to send email after an error on the main SMTP server',
@@ -228,7 +230,10 @@ export default class EMailNotificationTask implements NotificationTask {
       // Email sent successfully
       await Logging.logDebug({
         tenantID: tenant.id ? tenant.id : Constants.DEFAULT_TENANT,
-        source: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
+        siteID: data?.siteID,
+        siteAreaID: data?.siteAreaID,
+        companyID: data?.companyID,
+        chargingStationID: data?.chargeBoxID,
         action: ServerAction.EMAIL_NOTIFICATION,
         module: MODULE_NAME, method: 'sendEmail',
         actionOnUser: user,
@@ -244,7 +249,10 @@ export default class EMailNotificationTask implements NotificationTask {
       try {
         await Logging.logError({
           tenantID: tenant.id ? tenant.id : Constants.DEFAULT_TENANT,
-          source: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
+          siteID: data?.siteID,
+          siteAreaID: data?.siteAreaID,
+          companyID: data?.companyID,
+          chargingStationID: data?.chargeBoxID,
           action: ServerAction.EMAIL_NOTIFICATION,
           module: MODULE_NAME, method: 'sendEmail',
           message: `Error Sending Email (${rfc2047.decode(messageToSend.header.from.toString())}): '${rfc2047.decode(messageToSend.header.subject)}'`,
@@ -259,12 +267,13 @@ export default class EMailNotificationTask implements NotificationTask {
         });
       // For Unit Tests only: Tenant is deleted and email is not known thus this Logging statement is always failing with an invalid Tenant
       // eslint-disable-next-line no-empty
-      } catch (err) { }
-      let sendSmtpError = true;
+      } catch (err) {
+        // Ignore
+      }
+      let smtpFailed = true;
       if (error instanceof SMTPError) {
         const err: SMTPError = error;
         switch (err.smtp) {
-          // TODO: Add a fitting data structure to types to cope with SMTP returned codes
           case 421:
           case 432:
           case 450:
@@ -275,45 +284,29 @@ export default class EMailNotificationTask implements NotificationTask {
           case 510:
           case 511:
           case 550:
-            sendSmtpError = false;
+            smtpFailed = false;
             break;
         }
       }
-      // Notify on SMTP error
-      if (sendSmtpError) {
-        // TODO: Circular deps: src/notification/NotificationHandler.ts -> src/notification/email/EMailNotificationTask.ts -> src/notification/NotificationHandler.ts
-        await NotificationHandler.sendSmtpError(
-          tenant,
-          {
-            SMTPError: error,
-            evseDashboardURL: data.evseDashboardURL
-          }
-        );
-        if (!useSmtpClientBackup) {
-          await this.sendEmail(email, data, tenant, user, severity, true);
-        }
+      // Use email backup?
+      if (smtpFailed && !useSmtpClientBackup) {
+        await this.sendEmail(email, data, tenant, user, severity, true);
       }
     }
   }
 
   private async prepareAndSendEmail(templateName: string, data: any, user: User, tenant: Tenant, severity: NotificationSeverity, useSmtpClientBackup = false): Promise<void> {
     try {
-      // Check users
       if (!user) {
-        // Error
         throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
           action: ServerAction.EMAIL_NOTIFICATION,
           module: MODULE_NAME, method: 'prepareAndSendEmail',
           message: `No User is provided for '${templateName}'`
         });
       }
-      // Check email
       if (!user.email) {
-        // Error
         throw new BackendError({
           actionOnUser: user,
-          source: Constants.CENTRAL_SERVER,
           action: ServerAction.EMAIL_NOTIFICATION,
           module: MODULE_NAME, method: 'prepareAndSendEmail',
           message: `No email is provided for User for '${templateName}'`
@@ -324,13 +317,11 @@ export default class EMailNotificationTask implements NotificationTask {
       if (!emailTemplate) {
         // Error
         throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
           action: ServerAction.EMAIL_NOTIFICATION,
           module: MODULE_NAME, method: 'prepareAndSendEmail',
           message: `No Email template found for '${templateName}'`
         });
       }
-      // Render the localized template ---------------------------------------
       // Render the subject
       emailTemplate.subject = ejs.render(emailTemplate.subject, data);
       // Render the tenant name
@@ -345,9 +336,9 @@ export default class EMailNotificationTask implements NotificationTask {
       if (emailTemplate.body.header) {
         // Render the title
         emailTemplate.body.header.title = ejs.render(emailTemplate.body.header.title, data);
-        // Charge Angels Logo
+        // Render the left Logo
         emailTemplate.body.header.image.left.url = ejs.render(emailTemplate.body.header.image.left.url, data);
-        // Company Logo
+        // Render the right Logo
         emailTemplate.body.header.image.right.url = ejs.render(emailTemplate.body.header.image.right.url, data);
       }
       if (emailTemplate.body.beforeActionLines) {
@@ -373,8 +364,8 @@ export default class EMailNotificationTask implements NotificationTask {
           action.url = ejs.render(action.url, data);
         }
       }
+      // Render after Action
       if (emailTemplate.body.afterActionLines) {
-        // Render Lines After Action
         emailTemplate.body.afterActionLines =
           emailTemplate.body.afterActionLines.map((afterActionLine) => ejs.render(afterActionLine, data));
         // Remove extra empty lines
@@ -418,7 +409,10 @@ export default class EMailNotificationTask implements NotificationTask {
     } catch (error) {
       await Logging.logError({
         tenantID: tenant.id,
-        source: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
+        siteID: data?.siteID,
+        siteAreaID: data?.siteAreaID,
+        companyID: data?.companyID,
+        chargingStationID: data?.chargeBoxID,
         action: ServerAction.EMAIL_NOTIFICATION,
         module: MODULE_NAME, method: 'prepareAndSendEmail',
         message: 'Error in preparing email for user',

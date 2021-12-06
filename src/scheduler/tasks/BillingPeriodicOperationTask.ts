@@ -9,7 +9,7 @@ import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 
 export default class BillingPeriodicOperationTask extends SchedulerTask {
-  async processTenant(tenant: Tenant, /* taskConfig: BillingPeriodicOperationTaskConfig */): Promise<void> {
+  public async processTenant(tenant: Tenant, /* taskConfig: BillingPeriodicOperationTaskConfig */): Promise<void> {
     // Get the lock
     const billingLock = await LockingHelper.acquireBillingPeriodicOperationLock(tenant.id);
     if (billingLock) {

@@ -1,0 +1,8 @@
+{
+  "$id": "transaction",
+  "definitions": {
+    "id": {
+      "$ref": "common#/definitions/number-id"
+    }
+  }
+}

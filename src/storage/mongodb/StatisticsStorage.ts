@@ -12,7 +12,7 @@ export default class StatisticsStorage {
 
   static async getChargingStationStats(tenant: Tenant, params: StatisticFilter, groupBy: string): Promise<ChargingStationStats[]> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'getChargingStationStats');
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Build filter
@@ -123,17 +123,17 @@ export default class StatisticsStorage {
       $sort: { 'month': 1, 'unit': 1, 'chargeBox': 1 }
     });
     // Read DB
-    const chargingStationStatsMDB = await global.database.getCollection<any>(tenant.id, 'transactions')
-      .aggregate(aggregation, { allowDiskUse: true })
+    const chargingStationStatsMDB = await global.database.getCollection<ChargingStationStats>(tenant.id, 'transactions')
+      .aggregate<ChargingStationStats>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'getChargingStationStats', uniqueTimerID, chargingStationStatsMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getChargingStationStats', startTime, aggregation, chargingStationStatsMDB);
     return chargingStationStatsMDB;
   }
 
   static async getUserStats(tenant: Tenant, params: StatisticFilter, groupBy: string): Promise<UserStats[]> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'getUserStats');
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Build filter
@@ -253,11 +253,11 @@ export default class StatisticsStorage {
       $sort: { 'month': 1, 'unit': 1, 'userID': 1 } // Instead of chargeBox userID ?
     });
     // Read DB
-    const userStatsMDB = await global.database.getCollection<any>(tenant.id, 'transactions')
-      .aggregate(aggregation, { allowDiskUse: true })
+    const userStatsMDB = await global.database.getCollection<UserStats>(tenant.id, 'transactions')
+      .aggregate<UserStats>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'getUserStats', uniqueTimerID, userStatsMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getUserStats', startTime, aggregation, userStatsMDB);
     return userStatsMDB;
   }
 }

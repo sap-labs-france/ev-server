@@ -5,7 +5,6 @@ import AbstractOCPIService from '../../../AbstractOCPIService';
 import AppError from '../../../../../exception/AppError';
 import AxiosFactory from '../../../../../utils/AxiosFactory';
 import BackendError from '../../../../../exception/BackendError';
-import Constants from '../../../../../utils/Constants';
 import { HTTPError } from '../../../../../types/HTTPError';
 import Logging from '../../../../../utils/Logging';
 import OCPICredential from '../../../../../types/ocpi/OCPICredential';
@@ -49,7 +48,6 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       tenantID: tenant.id,
       action: ServerAction.OCPI_DELETE_CREDENTIALS,
       message: 'Received unregister',
-      source: Constants.CENTRAL_SERVER,
       module: MODULE_NAME, method: 'deleteCredentials',
       detailedMessages: { token }
     });
@@ -58,7 +56,6 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     // Check if ocpiEndpoint available
     if (!ocpiEndpoint || ocpiEndpoint.status === OCPIRegistrationStatus.UNREGISTERED) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'deleteCredentials',
         errorCode: StatusCodes.METHOD_NOT_ALLOWED,
         action: ServerAction.OCPI_DELETE_CREDENTIALS,
@@ -81,14 +78,12 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       tenantID: tenant.id,
       action: ServerAction.OCPI_POST_CREDENTIALS,
       message: 'Received credential object',
-      source: Constants.CENTRAL_SERVER,
       module: MODULE_NAME, method: 'postCredentials',
       detailedMessages: { credential }
     });
     // Check if valid
     if (!this.isValidOCPICredential(credential)) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'postCredentials',
         action: ServerAction.OCPI_POST_CREDENTIALS,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -106,7 +101,6 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       tenantID: tenant.id,
       action: ServerAction.OCPI_POST_CREDENTIALS,
       message: 'Received token',
-      source: Constants.CENTRAL_SERVER,
       module: MODULE_NAME, method: 'postCredentials',
       detailedMessages: { token }
     });
@@ -115,7 +109,6 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     // Check if ocpiEndpoint available
     if (!ocpiEndpoint) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'postCredentials',
         action: ServerAction.OCPI_POST_CREDENTIALS,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -134,7 +127,6 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       tenantID: tenant.id,
       action: ServerAction.OCPI_POST_CREDENTIALS,
       message: 'OCPI Server found and updated with credential object',
-      source: Constants.CENTRAL_SERVER,
       module: MODULE_NAME, method: 'postCredentials',
       detailedMessages: { ocpiEndpoint }
     });
@@ -142,7 +134,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     // Any error here should result in a 3001 Ocpi result exception based on the specification
     try {
       // Access versions API
-      let response = await AxiosFactory.getAxiosInstance(tenant.id).get(ocpiEndpoint.baseUrl, {
+      let response = await AxiosFactory.getAxiosInstance(tenant).get(ocpiEndpoint.baseUrl, {
         headers: {
           'Authorization': `Token ${ocpiEndpoint.token}`
         },
@@ -152,7 +144,6 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
         tenantID: tenant.id,
         action: ServerAction.OCPI_POST_CREDENTIALS,
         message: 'Available OCPI Versions',
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'postCredentials',
         detailedMessages: { versions: response.data }
       });
@@ -177,7 +168,6 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
             tenantID: tenant.id,
             action: ServerAction.OCPI_POST_CREDENTIALS,
             message: 'Correct OCPI version found',
-            source: Constants.CENTRAL_SERVER,
             module: MODULE_NAME, method: 'postCredentials',
             detailedMessages: `[${ocpiEndpoint.version}]:${ocpiEndpoint.versionUrl}`
           });
@@ -193,7 +183,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
         });
       }
       // Try to read endpoints
-      response = await AxiosFactory.getAxiosInstance(tenant.id).get(ocpiEndpoint.versionUrl, {
+      response = await AxiosFactory.getAxiosInstance(tenant).get(ocpiEndpoint.versionUrl, {
         headers: {
           'Authorization': `Token ${ocpiEndpoint.token}`
         }
@@ -203,7 +193,6 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
         tenantID: tenant.id,
         action: ServerAction.OCPI_POST_CREDENTIALS,
         message: 'Available OCPI services',
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'postCredentials',
         detailedMessages: { endpoints: response.data }
       });
@@ -220,7 +209,6 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       ocpiEndpoint.availableEndpoints = OCPIUtilsService.convertAvailableEndpoints(response.data.data);
     } catch (error) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'postCredentials',
         action: ServerAction.OCPI_POST_CREDENTIALS,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -243,7 +231,6 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       tenantID: tenant.id,
       action: ServerAction.OCPI_POST_CREDENTIALS,
       message: 'Response with credential object',
-      source: Constants.CENTRAL_SERVER,
       module: MODULE_NAME, method: 'postCredentials',
       detailedMessages: { respCredential }
     });

@@ -1,0 +1,36 @@
+{
+  "$id": "site-update",
+  "title": "Update site Request",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "site#/definitions/id"
+    },
+    "name": {
+      "$ref": "site#/definitions/name"
+    },
+    "address": {
+      "$ref": "site#/definitions/address"
+    },
+    "public": {
+      "$ref": "site#/definitions/public"
+    },
+    "tariffID": {
+      "$ref": "site#/definitions/tariffID"
+    },
+    "autoUserSiteAssignment": {
+      "$ref": "site#/definitions/autoUserSiteAssignment"
+    },
+    "companyID": {
+      "$ref": "site#/definitions/companyID"
+    },
+    "image": {
+      "$ref": "site#/definitions/image"
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "companyID"
+  ]
+}

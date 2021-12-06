@@ -1,7 +1,6 @@
-import global, { FilterParams } from '../../types/GlobalType';
+import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
-import Cypher from '../../utils/Cypher';
 import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
@@ -18,7 +17,7 @@ export default class NotificationStorage {
         sourceDescr?: string; additionalFilters?: any; chargeBoxID?: string },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Notification>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'getNotifications');
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -71,8 +70,8 @@ export default class NotificationStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const notificationsCountMDB = await global.database.getCollection<any>(tenant.id, 'notifications')
-      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
+    const notificationsCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'notifications')
+      .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
@@ -112,13 +111,11 @@ export default class NotificationStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const notificationsMDB = await global.database.getCollection<any>(tenant.id, 'notifications')
-      .aggregate(aggregation, {
-        allowDiskUse: true
-      })
+    const notificationsMDB = await global.database.getCollection<Notification>(tenant.id, 'notifications')
+      .aggregate<Notification>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Debug
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'getNotifications', uniqueTimerID, notificationsMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getNotifications', startTime, aggregation, notificationsMDB);
     // Ok
     return {
       count: (notificationsCountMDB.length > 0 ? notificationsCountMDB[0].count : 0),
@@ -128,11 +125,11 @@ export default class NotificationStorage {
 
   static async saveNotification(tenant: Tenant, notificationToSave: Partial<Notification>): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'saveNotification');
+    const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     const ocpiEndpointMDB: any = {
-      _id: Cypher.hash(`${notificationToSave.sourceId}~${notificationToSave.channel}`),
+      _id: Utils.hash(`${notificationToSave.sourceId}~${notificationToSave.channel}`),
       userID: DatabaseUtils.convertToObjectID(notificationToSave.userID),
       timestamp: Utils.convertToDate(notificationToSave.timestamp),
       channel: notificationToSave.channel,
@@ -145,6 +142,6 @@ export default class NotificationStorage {
     await global.database.getCollection<Notification>(tenant.id, 'notifications')
       .insertOne(ocpiEndpointMDB);
     // Debug
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'saveNotification', uniqueTimerID, ocpiEndpointMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveNotification', startTime, ocpiEndpointMDB);
   }
 }

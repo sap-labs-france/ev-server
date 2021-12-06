@@ -1,17 +1,28 @@
-import express, { NextFunction, Request, Response } from 'express';
-
 import AssetRouter from './api/AssetRouter';
 import AuthRouter from './auth/AuthRouter';
 import AuthService from '../service/AuthService';
 import BillingRouter from './api/BillingRouter';
+import CarRouter from './api/CarRouter';
 import ChargingStationRouter from './api/ChargingStationRouter';
-import { StatusCodes } from 'http-status-codes';
+import CompanyRouter from './api/CompanyRouter';
+import ConnectionRouter from './api/ConnectionRouter';
+import Logging from '../../../../utils/Logging';
+import LoggingRouter from './api/LoggingRouter';
+import NotificationRouter from './api/NotificationRouter';
+import OCPIEndpointRouter from './api/OCPIEndpointRouter';
+import OICPEndpointRouter from './api/OICPEndpointRouter';
+import PricingRouter from './api/PricingRouter';
+import RegistrationTokenRouter from './api/RegistrationTokenRouter';
+import SettingRouter from './api/SettingRouter';
+import SiteAreaRouter from './api/SiteAreaRouter';
+import SiteRouter from './api/SiteRouter';
 import SwaggerRouter from './doc/SwaggerRouter';
 import TagRouter from './api/TagRouter';
 import TenantRouter from './api/TenantRouter';
 import TransactionRouter from './api/TransactionRouter';
 import UserRouter from './api/UserRouter';
 import UtilRouter from './util/UtilRouter';
+import express from 'express';
 
 export default class GlobalRouter {
   private router: express.Router;
@@ -23,9 +34,8 @@ export default class GlobalRouter {
   public buildRoutes(): express.Router {
     this.buildRouteAuth();
     this.buildRouteAPI();
-    this.buildRouteUtils();
+    this.buildRouteUtil();
     this.buildRouteDocs();
-    this.buildUnknownRoute();
     return this.router;
   }
 
@@ -37,31 +47,35 @@ export default class GlobalRouter {
     this.router.use('/api',
       AuthService.authenticate(),
       AuthService.checkSessionHash.bind(this),
+      Logging.traceExpressRequest.bind(this),
       [
-        new ChargingStationRouter().buildRoutes(),
         new AssetRouter().buildRoutes(),
+        new BillingRouter().buildRoutes(),
+        new CarRouter().buildRoutes(),
+        new ChargingStationRouter().buildRoutes(),
+        new CompanyRouter().buildRoutes(),
+        new ConnectionRouter().buildRoutes(),
+        new LoggingRouter().buildRoutes(),
+        new NotificationRouter().buildRoutes(),
+        new OCPIEndpointRouter().buildRoutes(),
+        new OICPEndpointRouter().buildRoutes(),
+        new PricingRouter().buildRoutes(),
+        new RegistrationTokenRouter().buildRoutes(),
+        new SiteAreaRouter().buildRoutes(),
+        new SettingRouter().buildRoutes(),
+        new SiteRouter().buildRoutes(),
         new TagRouter().buildRoutes(),
         new TenantRouter().buildRoutes(),
         new TransactionRouter().buildRoutes(),
         new UserRouter().buildRoutes(),
-        new BillingRouter().buildRoutes(),
       ]);
   }
 
-  protected buildRouteUtils(): void {
-    this.router.use('/utils', new UtilRouter().buildRoutes());
+  protected buildRouteUtil(): void {
+    this.router.use('/util', new UtilRouter().buildRoutes());
   }
 
   protected buildRouteDocs(): void {
     this.router.use('/docs', new SwaggerRouter().buildRoutes());
-  }
-
-  protected buildUnknownRoute(): void {
-    this.router.use('*', (req: Request, res: Response, next: NextFunction) => {
-      if (!res.headersSent) {
-        res.sendStatus(StatusCodes.NOT_FOUND);
-        next();
-      }
-    });
   }
 }

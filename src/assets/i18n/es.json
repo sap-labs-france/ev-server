@@ -2,7 +2,12 @@
   "billing": {
     "generatedUser": "Usuario generado por '{{email}}'",
     "chargingAtSiteArea": "Sesión de carga: {{sessionID}} - Fecha de inicio: {{startDate}} a las {startTime} - Consumo de energía: {{totalConsumption}} kWh en {{siteAreaName}}",
-    "chargingAtChargeBox": "Sesión de carga: {{sessionID}} - Fecha de inicio: {{startDate}} a las {{startTime}} - Consumo de energía: {{totalConsumption}} kWh en la estación de recarga {{chargeBoxID}}"
+    "chargingAtChargeBox": "Sesión de carga: {{sessionID}} - Fecha de inicio: {{startDate}} a las {{startTime}} - Consumo de energía: {{totalConsumption}} kWh en la estación de recarga {{chargeBoxID}}",
+    "header-itemDescription": "Session: {{sessionID}} - Start Date: {{startDate}} at {{startTime}} at charging station {{chargeBoxID}}",
+    "flatFee-shortItemDescription": "Flat Fee",
+    "energy-shortItemDescription": "Energy Consumption: {{quantity}} kWh",
+    "chargingTime-shortItemDescription": "Charging Time: {{duration}}",
+    "parkingTime-shortItemDescription": "Parking Time: {{duration}}"
   },
   "chargers": {
     "chargeBoxSN": "Número de serie de la estación de carga",
@@ -75,10 +80,6 @@
     "oicpPatchChargingStationsError": {
       "title": "Hubject - Envío de estación de carga",
       "body": "La transferencia de información de la estación de carga a la plataforma de itinerancia de Hubject ha fallado en la organización '{{tenantName}}', verifique los registros"
-    },
-    "smtpError": {
-      "title": "Error del servidor de correo electrónico",
-      "body": "El servidor de correo electrónico principal ha fallado en la organización '{{tenantName}}', verifique la configuración"
     },
     "optimalChargeReached": {
       "title": "Carga óptima alcanzada",

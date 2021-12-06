@@ -1,0 +1,15 @@
+{
+  "$id": "company",
+  "definitions": {
+    "id": {
+      "$ref": "common#/definitions/id"
+    },
+    "name": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "address": {
+      "$ref": "common#/definitions/address"
+    }
+  }
+}

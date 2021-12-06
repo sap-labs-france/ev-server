@@ -1,0 +1,17 @@
+{
+  "$id": "transactions-user-assign",
+  "title": "Assign User to Transactions Request",
+  "type": "object",
+  "properties": {
+    "TagID": {
+      "$ref": "tag#/definitions/id"
+    },
+    "UserID": {
+      "$ref": "user#/definitions/id"
+    }
+  },
+  "required": [
+    "TagID",
+    "UserID"
+  ]
+}

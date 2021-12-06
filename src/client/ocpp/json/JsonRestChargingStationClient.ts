@@ -1,12 +1,12 @@
 import ChargingStation, { Command } from '../../../types/ChargingStation';
-import { OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPClearCacheCommandResult, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPStatus, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUpdateFirmwareCommandParam } from '../../../types/ocpp/OCPPClient';
+import { OCPPCancelReservationRequest, OCPPCancelReservationResponse, OCPPChangeAvailabilityRequest, OCPPChangeAvailabilityResponse, OCPPChangeConfigurationRequest, OCPPChangeConfigurationResponse, OCPPClearCacheResponse, OCPPClearChargingProfileRequest, OCPPClearChargingProfileResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPGetCompositeScheduleRequest, OCPPGetCompositeScheduleResponse, OCPPGetConfigurationRequest, OCPPGetConfigurationResponse, OCPPGetDiagnosticsRequest, OCPPGetDiagnosticsResponse, OCPPRemoteStartTransactionRequest, OCPPRemoteStartTransactionResponse, OCPPRemoteStopTransactionRequest, OCPPRemoteStopTransactionResponse, OCPPReserveNowRequest, OCPPReserveNowResponse, OCPPResetRequest, OCPPResetResponse, OCPPSetChargingProfileRequest, OCPPSetChargingProfileResponse, OCPPStatus, OCPPUnlockConnectorRequest, OCPPUnlockConnectorResponse, OCPPUpdateFirmwareRequest } from '../../../types/ocpp/OCPPClient';
 import { OCPPIncomingRequest, OCPPMessageType, OCPPOutgoingRequest } from '../../../types/ocpp/OCPPCommon';
 import { ServerAction, WSServerProtocol } from '../../../types/Server';
 
 import BackendError from '../../../exception/BackendError';
 import ChargingStationClient from '../ChargingStationClient';
-import Configuration from '../../../utils/Configuration';
 import Logging from '../../../utils/Logging';
+import LoggingHelper from '../../../utils/LoggingHelper';
 import Utils from '../../../utils/Utils';
 import WSClient from '../../websocket/WSClient';
 import { WSClientOptions } from '../../../types/WebSocket';
@@ -16,7 +16,7 @@ const MODULE_NAME = 'JsonRestChargingStationClient';
 export default class JsonRestChargingStationClient extends ChargingStationClient {
   private serverURL: string;
   private chargingStation: ChargingStation;
-  private requests: { [messageUID: string]: { resolve?: (result: Record<string, unknown> | string) => void; reject?: (error: Record<string, unknown>) => void; command: ServerAction } };
+  private requests: { [messageUID: string]: { resolve?: (result: Record<string, unknown> | string) => void; reject?: (error: Record<string, unknown>) => void; command: Command } };
   private wsConnection: WSClient;
   private tenantID: string;
 
@@ -27,201 +27,206 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     let chargingStationURL = chargingStation.chargingStationURL;
     if (!chargingStationURL) {
       throw new BackendError({
-        source: chargingStation.id,
-        module: MODULE_NAME,
-        method: 'constructor',
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
+        module: MODULE_NAME, method: 'constructor',
         message: 'Cannot access the Charging Station via a REST call because no URL is provided',
         detailedMessages: { chargingStation }
       });
     }
     // Check URL: remove starting and trailing '/'
     if (chargingStationURL.endsWith('/')) {
-      // Remove '/'
       chargingStationURL = chargingStationURL.substring(0, chargingStationURL.length - 1);
     }
-    // Keep
-    this.serverURL = `${chargingStationURL}/REST/${tenantID}/${chargingStation.id}`;
+    this.serverURL = `${chargingStationURL}/REST/${tenantID}/${chargingStation.tokenID}/${chargingStation.id}`;
     this.chargingStation = chargingStation;
     this.requests = {};
   }
 
-  public async remoteStartTransaction(params: OCPPRemoteStartTransactionCommandParam): Promise<OCPPRemoteStartTransactionCommandResult> {
+  public async remoteStartTransaction(params: OCPPRemoteStartTransactionRequest): Promise<OCPPRemoteStartTransactionResponse> {
     return this.sendMessage(this.buildRequest(Command.REMOTE_START_TRANSACTION, params));
   }
 
-  public async reset(params: OCPPResetCommandParam): Promise<OCPPResetCommandResult> {
+  public async reset(params: OCPPResetRequest): Promise<OCPPResetResponse> {
     return this.sendMessage(this.buildRequest(Command.RESET, params));
   }
 
-  public async clearCache(): Promise<OCPPClearCacheCommandResult> {
+  public async clearCache(): Promise<OCPPClearCacheResponse> {
     return this.sendMessage(this.buildRequest(Command.CLEAR_CACHE));
   }
 
-  public async getConfiguration(params: OCPPGetConfigurationCommandParam): Promise<OCPPGetConfigurationCommandResult> {
+  public async getConfiguration(params: OCPPGetConfigurationRequest): Promise<OCPPGetConfigurationResponse> {
     return this.sendMessage(this.buildRequest(Command.GET_CONFIGURATION, params));
   }
 
-  public async changeConfiguration(params: OCPPChangeConfigurationCommandParam): Promise<OCPPChangeConfigurationCommandResult> {
+  public async changeConfiguration(params: OCPPChangeConfigurationRequest): Promise<OCPPChangeConfigurationResponse> {
     return this.sendMessage(this.buildRequest(Command.CHANGE_CONFIGURATION, params));
   }
 
-  public async remoteStopTransaction(params: OCPPRemoteStopTransactionCommandParam): Promise<OCPPRemoteStopTransactionCommandResult> {
+  public async remoteStopTransaction(params: OCPPRemoteStopTransactionRequest): Promise<OCPPRemoteStopTransactionResponse> {
     return this.sendMessage(this.buildRequest(Command.REMOTE_STOP_TRANSACTION, params));
   }
 
-  public async unlockConnector(params: OCPPUnlockConnectorCommandParam): Promise<OCPPUnlockConnectorCommandResult> {
+  public async unlockConnector(params: OCPPUnlockConnectorRequest): Promise<OCPPUnlockConnectorResponse> {
     return this.sendMessage(this.buildRequest(Command.UNLOCK_CONNECTOR, params));
   }
 
-  public async setChargingProfile(params: OCPPSetChargingProfileCommandParam): Promise<OCPPSetChargingProfileCommandResult> {
+  public async setChargingProfile(params: OCPPSetChargingProfileRequest): Promise<OCPPSetChargingProfileResponse> {
     return this.sendMessage(this.buildRequest(Command.SET_CHARGING_PROFILE, params));
   }
 
-  public async getCompositeSchedule(params: OCPPGetCompositeScheduleCommandParam): Promise<OCPPGetCompositeScheduleCommandResult> {
+  public async getCompositeSchedule(params: OCPPGetCompositeScheduleRequest): Promise<OCPPGetCompositeScheduleResponse> {
     return this.sendMessage(this.buildRequest(Command.GET_COMPOSITE_SCHEDULE, params));
   }
 
-  public async clearChargingProfile(params: OCPPClearChargingProfileCommandParam): Promise<OCPPClearChargingProfileCommandResult> {
+  public async clearChargingProfile(params: OCPPClearChargingProfileRequest): Promise<OCPPClearChargingProfileResponse> {
     return this.sendMessage(this.buildRequest(Command.CLEAR_CHARGING_PROFILE, params));
   }
 
-  public async changeAvailability(params: OCPPChangeAvailabilityCommandParam): Promise<OCPPChangeAvailabilityCommandResult> {
+  public async changeAvailability(params: OCPPChangeAvailabilityRequest): Promise<OCPPChangeAvailabilityResponse> {
     return this.sendMessage(this.buildRequest(Command.CHANGE_AVAILABILITY, params));
   }
 
-  public async getDiagnostics(params: OCPPGetDiagnosticsCommandParam): Promise<OCPPGetDiagnosticsCommandResult> {
+  public async getDiagnostics(params: OCPPGetDiagnosticsRequest): Promise<OCPPGetDiagnosticsResponse> {
     return this.sendMessage(this.buildRequest(Command.GET_DIAGNOSTICS, params));
   }
 
-  public async updateFirmware(params: OCPPUpdateFirmwareCommandParam): Promise<void> {
+  public async updateFirmware(params: OCPPUpdateFirmwareRequest): Promise<void> {
     return this.sendMessage(this.buildRequest(Command.UPDATE_FIRMWARE, params));
   }
 
-  private async openConnection(): Promise<unknown> {
+  public async dataTransfer(params: OCPPDataTransferRequest): Promise<OCPPDataTransferResponse> {
+    return this.sendMessage(this.buildRequest(Command.DATA_TRANSFER, params));
+  }
+
+  public async reserveNow(params: OCPPReserveNowRequest): Promise<OCPPReserveNowResponse> {
+    return this.sendMessage(this.buildRequest(Command.RESERVE_NOW, params));
+  }
+
+  public async cancelReservation(params: OCPPCancelReservationRequest): Promise<OCPPCancelReservationResponse> {
+    return this.sendMessage(this.buildRequest(Command.CANCEL_RESERVATION, params));
+  }
+
+  private async openConnection(): Promise<any> {
     // Log
     await Logging.logInfo({
       tenantID: this.tenantID,
       siteID: this.chargingStation.siteID,
-      source: this.chargingStation.id,
-      action: ServerAction.WS_REST_CLIENT_CONNECTION_OPENED,
+      siteAreaID: this.chargingStation.siteAreaID,
+      companyID: this.chargingStation.companyID,
+      chargingStationID: this.chargingStation.id,
+      action: ServerAction.WS_REST_CLIENT_CONNECTION,
       module: MODULE_NAME, method: 'onOpen',
-      message: `Try to connect to '${this.serverURL}' ${Configuration.isCloudFoundry() ? ', CF Instance \'' + this.chargingStation.cfApplicationIDAndInstanceIndex + '\'' : ''}`
+      message: `Try to connect to '${this.serverURL}'...`
     });
-
     // Create Promise
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    return await new Promise((resolve, reject) => {
-      // Create WS
-      let WSOptions = {};
-      if (Configuration.isCloudFoundry()) {
-        WSOptions = {
-          protocol: WSServerProtocol.REST,
-          headers: { 'X-CF-APP-INSTANCE': this.chargingStation.cfApplicationIDAndInstanceIndex }
+    return new Promise((resolve, reject) => {
+      try {
+        // Create WS
+        const wsClientOptions: WSClientOptions = {
+          wsOptions: {
+            handshakeTimeout: 5000,
+          },
+          protocols: WSServerProtocol.REST,
+          logTenantID: this.tenantID
         };
-      } else {
-        WSOptions = {
-          protocol: WSServerProtocol.REST
+        // Create and Open the WS
+        this.wsConnection = new WSClient(this.serverURL, wsClientOptions);
+        // Opened
+        this.wsConnection.onopen = async () => {
+          await Logging.logInfo({
+            tenantID: this.tenantID,
+            siteID: this.chargingStation.siteID,
+            siteAreaID: this.chargingStation.siteAreaID,
+            companyID: this.chargingStation.companyID,
+            chargingStationID: this.chargingStation.id,
+            action: ServerAction.WS_REST_CLIENT_CONNECTION_OPENED,
+            module: MODULE_NAME, method: 'onOpen',
+            message: `Connection opened to '${this.serverURL}'`
+          });
+          // Connection is opened and ready to use
+          resolve();
         };
-      }
-      const wsClientOptions: WSClientOptions = {
-        WSOptions: WSOptions,
-        autoReconnectTimeout: Configuration.getWSClientConfig().autoReconnectTimeout,
-        autoReconnectMaxRetries: Configuration.getWSClientConfig().autoReconnectMaxRetries,
-        logTenantID: this.tenantID
-      };
-      this.wsConnection = new WSClient(this.serverURL, wsClientOptions);
-      // Opened
-      this.wsConnection.onopen = async () => {
-        // Log
-        await Logging.logInfo({
-          tenantID: this.tenantID,
-          siteID: this.chargingStation.siteID,
-          source: this.chargingStation.id,
-          action: ServerAction.WS_REST_CLIENT_CONNECTION_OPENED,
-          module: MODULE_NAME, method: 'onOpen',
-          message: `Connection opened to '${this.serverURL}'`
-        });
-        // Connection is opened and ready to use
-        resolve();
-      };
-      // Closed
-      this.wsConnection.onclose = async (code: number) => {
-        // Log
-        await Logging.logInfo({
-          tenantID: this.tenantID,
-          siteID: this.chargingStation.siteID,
-          source: this.chargingStation.id,
-          action: ServerAction.WS_REST_CLIENT_CONNECTION_CLOSED,
-          module: MODULE_NAME, method: 'onClose',
-          message: `Connection closed to '${this.serverURL}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`,
-          detailedMessages: { code }
-        });
-      };
-      // Handle Error Message
-      this.wsConnection.onerror = async (error: Error) => {
-        // Log
-        await Logging.logError({
-          tenantID: this.tenantID,
-          siteID: this.chargingStation.siteID,
-          source: this.chargingStation.id,
-          action: ServerAction.WS_REST_CLIENT_CONNECTION_ERROR,
-          module: MODULE_NAME, method: 'onError',
-          message: `Connection error to '${this.serverURL}: ${error.toString()}`,
-          detailedMessages: { error: error.stack }
-        });
-        // Terminate WS in error
-        this.terminateConnection();
-      };
-      // Handle Server Message
-      this.wsConnection.onmessage = async (message) => {
-        try {
-          // Parse the message
-          const [messageType, messageId, commandName, commandPayload, errorDetails]: OCPPIncomingRequest = JSON.parse(message.data) as OCPPIncomingRequest;
-          // Check if this corresponds to a request
-          if (this.requests[messageId]) {
-            // Check message type
-            if (messageType === OCPPMessageType.CALL_ERROR_MESSAGE) {
+        // Closed
+        this.wsConnection.onclose = async (code: number) => {
+          await Logging.logInfo({
+            tenantID: this.tenantID,
+            siteID: this.chargingStation.siteID,
+            siteAreaID: this.chargingStation.siteAreaID,
+            companyID: this.chargingStation.companyID,
+            chargingStationID: this.chargingStation.id,
+            action: ServerAction.WS_REST_CLIENT_CONNECTION_CLOSED,
+            module: MODULE_NAME, method: 'onClose',
+            message: `Connection closed to '${this.serverURL}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`,
+            detailedMessages: { code }
+          });
+        };
+        // Handle Error Message
+        this.wsConnection.onerror = async (error: Error) => {
+          await Logging.logError({
+            tenantID: this.tenantID,
+            siteID: this.chargingStation.siteID,
+            siteAreaID: this.chargingStation.siteAreaID,
+            companyID: this.chargingStation.companyID,
+            chargingStationID: this.chargingStation.id,
+            action: ServerAction.WS_REST_CLIENT_CONNECTION_ERROR,
+            module: MODULE_NAME, method: 'onError',
+            message: `Connection error to '${this.serverURL}: ${error?.message}`,
+            detailedMessages: { error: error.stack }
+          });
+          // Terminate WS in error
+          this.terminateConnection();
+          reject(new Error(`Error on opening Web Socket connection: ${error.message}'`));
+        };
+        // Handle Server Message
+        this.wsConnection.onmessage = async (message) => {
+          try {
+            // Parse the message
+            const [messageType, messageId, command, commandPayload, errorDetails]: OCPPIncomingRequest = JSON.parse(message.data) as OCPPIncomingRequest;
+            // Check if this corresponds to a request
+            if (this.requests[messageId]) {
+              // Check message type
+              if (messageType === OCPPMessageType.CALL_ERROR_MESSAGE) {
+                // Error message
+                await Logging.logError({
+                  tenantID: this.tenantID,
+                  siteID: this.chargingStation.siteID,
+                  siteAreaID: this.chargingStation.siteAreaID,
+                  companyID: this.chargingStation.companyID,
+                  chargingStationID: this.chargingStation.id,
+                  action: ServerAction.WS_REST_CLIENT_ERROR_RESPONSE,
+                  module: MODULE_NAME, method: 'onMessage',
+                  message: `${commandPayload.toString()}`,
+                  detailedMessages: { messageType, messageId, command, commandPayload, errorDetails }
+                });
+                // Resolve with error message
+                this.requests[messageId].reject({ status: OCPPStatus.REJECTED, error: [messageType, messageId, command, commandPayload, errorDetails] });
+              } else {
+                // Respond to the request
+                this.requests[messageId].resolve(command);
+              }
+              // Close WS
+              this.closeConnection();
+            } else {
               // Error message
               await Logging.logError({
                 tenantID: this.tenantID,
                 siteID: this.chargingStation.siteID,
-                source: this.chargingStation.id,
+                siteAreaID: this.chargingStation.siteAreaID,
+                companyID: this.chargingStation.companyID,
+                chargingStationID: this.chargingStation.id,
                 action: ServerAction.WS_REST_CLIENT_ERROR_RESPONSE,
                 module: MODULE_NAME, method: 'onMessage',
-                message: `${commandPayload.toString()}`,
-                detailedMessages: { messageType, messageId, commandName, commandPayload, errorDetails }
+                message: 'Received unknown message',
+                detailedMessages: { messageType, messageId, command, commandPayload, errorDetails }
               });
-              // Resolve with error message
-              this.requests[messageId].reject({ status: OCPPStatus.REJECTED, error: [messageType, messageId, commandName, commandPayload, errorDetails] });
-            } else {
-              // Respond to the request
-              this.requests[messageId].resolve(commandName);
             }
-            // Close WS
-            this.closeConnection();
-          } else {
-            // Error message
-            await Logging.logError({
-              tenantID: this.tenantID,
-              siteID: this.chargingStation.siteID,
-              source: this.chargingStation.id,
-              action: ServerAction.WS_REST_CLIENT_ERROR_RESPONSE,
-              module: MODULE_NAME, method: 'onMessage',
-              message: 'Received unknown message',
-              detailedMessages: { messageType, messageId, commandName, commandPayload, errorDetails }
-            });
+          } catch (error) {
+            await Logging.logException(error, ServerAction.WS_REST_CLIENT_MESSAGE, MODULE_NAME, 'onMessage', this.tenantID);
           }
-        } catch (error) {
-          // Log
-          await Logging.logException(
-            error,
-            ServerAction.WS_REST_CLIENT_MESSAGE,
-            this.chargingStation.id,
-            MODULE_NAME, 'onMessage',
-            this.tenantID
-          );
-        }
-      };
+        };
+      } catch (error) {
+        reject(new Error(`Unexpected error on opening Web Socket connection: ${error.message as string}'`));
+      }
     });
   }
 
@@ -244,21 +249,24 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
   private async sendMessage(request: OCPPOutgoingRequest): Promise<any> {
     // Return a promise
     // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
-    const promise = await new Promise(async (resolve, reject) => {
-      // Open WS Connection
-      await this.openConnection();
-      // Check if wsConnection is ready
-      if (this.wsConnection?.isConnectionOpen()) {
-        // Send
-        this.wsConnection.send(JSON.stringify(request));
-        // Set the resolve function
-        this.requests[request[1]] = { resolve, reject, command: request[2] };
-      } else {
-        // Reject it
-        return reject(`Socket is closed for message ${request[2]}`);
+    return new Promise(async (resolve, reject) => {
+      try {
+        // Open WS Connection
+        await this.openConnection();
+        // Check if wsConnection is ready
+        if (this.wsConnection?.isConnectionOpen()) {
+          // Send
+          this.wsConnection.send(JSON.stringify(request));
+          // Set the resolve function
+          this.requests[request[1]] = { resolve, reject, command: request[2] };
+        } else {
+          // Reject it
+          reject(new Error(`Socket is closed for message ${request[2]}`));
+        }
+      } catch (error) {
+        reject(new Error(`Unexpected error on request '${request[2]}': ${error.message}'`));
       }
     });
-    return promise;
   }
 
   private buildRequest(command, params = {}): OCPPOutgoingRequest {

@@ -1,18 +1,20 @@
 import { ChargePointErrorCode, ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPAuthorizeResponse, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequestExtended, OCPPHeartbeatResponse, OCPPLocation, OCPPMeasurand, OCPPMeterValue, OCPPMeterValuesRequest, OCPPMeterValuesRequestExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPPhase, OCPPProtocol, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPStopTransactionResponse, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion, RegistrationStatus } from '../../../types/ocpp/OCPPServer';
 import { ChargingProfilePurposeType, ChargingRateUnitType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargerVendor, Connector, ConnectorCurrentLimitSource, ConnectorType, CurrentType, StaticLimitAmps, TemplateUpdateResult } from '../../../types/ChargingStation';
-import { OCPPChangeConfigurationCommandResult, OCPPConfigurationStatus, OCPPRemoteStartStopStatus } from '../../../types/ocpp/OCPPClient';
+import { OCPPConfigurationStatus, OCPPRemoteStartStopStatus } from '../../../types/ocpp/OCPPClient';
+import Tenant, { TenantComponents } from '../../../types/Tenant';
 import Transaction, { InactivityStatus, TransactionAction } from '../../../types/Transaction';
 
 import { Action } from '../../../types/Authorization';
 import Authorizations from '../../../authorization/Authorizations';
 import BackendError from '../../../exception/BackendError';
+import CarConnectorFactory from '../../../integration/car-connector/CarConnectorFactory';
 import CarStorage from '../../../storage/mongodb/CarStorage';
 import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
+import Consumption from '../../../types/Consumption';
 import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
 import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
 import CpoOICPClient from '../../../client/oicp/CpoOICPClient';
@@ -20,9 +22,11 @@ import I18nManager from '../../../utils/I18nManager';
 import LockingHelper from '../../../locking/LockingHelper';
 import LockingManager from '../../../locking/LockingManager';
 import Logging from '../../../utils/Logging';
+import LoggingHelper from '../../../utils/LoggingHelper';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
+import OCPPCommon from '../utils/OCPPCommon';
 import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../utils/OCPPUtils';
@@ -33,9 +37,6 @@ import { ServerAction } from '../../../types/Server';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
 import Tag from '../../../types/Tag';
-import Tenant from '../../../types/Tenant';
-import TenantComponents from '../../../types/TenantComponents';
-import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
@@ -56,6 +57,8 @@ export default class OCPPService {
 
   public async handleBootNotification(headers: OCPPHeader, bootNotification: OCPPBootNotificationRequestExtended): Promise<OCPPBootNotificationResponse> {
     try {
+      const { tenant } = headers;
+      let { chargingStation } = headers;
       // Check
       OCPPValidation.getInstance().validateBootNotification(bootNotification);
       // Enrich Boot Notification
@@ -65,37 +68,22 @@ export default class OCPPService {
       // Check Charging Station
       if (!headers.chargeBoxIdentity) {
         throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
-          action: ServerAction.BOOT_NOTIFICATION,
+          action: ServerAction.OCPP_BOOT_NOTIFICATION,
           module: MODULE_NAME, method: 'handleBootNotification',
           message: 'Should have the required property \'chargeBoxIdentity\'!',
-          detailedMessages: { headers, bootNotification }
-        });
-      }
-      // Check Tenant
-      const tenant = await TenantStorage.getTenant(headers.tenantID);
-      if (!tenant) {
-        throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME, method: 'handleBootNotification',
-          message: `Tenant ID '${headers.tenantID}' does not exist!`
+          detailedMessages: { bootNotification }
         });
       }
       // Get Charging Station
-      let chargingStation = await ChargingStationStorage.getChargingStation(tenant, headers.chargeBoxIdentity, { issuer: true });
       if (!chargingStation) {
         // Create Charging Station
-        chargingStation = await this.checkAndCreateChargingStation(tenant, bootNotification, headers);
+        chargingStation = await this.createChargingStationFromBootNotification(tenant, bootNotification, headers);
       } else {
         // Check Charging Station
-        await this.checkExistingChargingStation(headers, chargingStation, bootNotification);
+        this.checkSameChargingStation(headers, chargingStation, bootNotification);
       }
       // Enrich Charging Station
-      this.enrichChargingStation(chargingStation, headers, bootNotification);
-      // Clear Firmware Status
-      if (chargingStation.firmwareUpdateStatus) {
-        await ChargingStationStorage.saveChargingStationFirmwareStatus(tenant, chargingStation.id, null);
-      }
+      await this.enrichChargingStationFromBootNotification(tenant, chargingStation, headers, bootNotification);
       // Apply Charging Station Template
       const templateUpdateResult = await this.applyChargingStationTemplate(tenant, chargingStation);
       // Save Charging Station
@@ -105,16 +93,15 @@ export default class OCPPService {
       // Send Notification (Async)
       this.notifyBootNotification(tenant, chargingStation);
       // Request OCPP configuration
-      this.requestOCPPConfigurationDelayed(tenant, chargingStation, templateUpdateResult, heartbeatIntervalSecs);
+      this.requestOCPPConfigurationAfterBootNotification(tenant, chargingStation, templateUpdateResult, heartbeatIntervalSecs);
       // Log
       await Logging.logInfo({
         tenantID: tenant.id,
-        siteID: chargingStation.siteID,
-        source: chargingStation.id,
-        action: ServerAction.BOOT_NOTIFICATION,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
+        action: ServerAction.OCPP_BOOT_NOTIFICATION,
         module: MODULE_NAME, method: 'handleBootNotification',
         message: 'Boot Notification has been accepted',
-        detailedMessages: { headers, bootNotification }
+        detailedMessages: { bootNotification }
       });
       // Accept
       return {
@@ -124,7 +111,7 @@ export default class OCPPService {
       };
     } catch (error) {
       this.addChargingStationToException(error, headers.chargeBoxIdentity);
-      await Logging.logActionExceptionMessage(headers.tenantID, ServerAction.BOOT_NOTIFICATION, error, { bootNotification });
+      await Logging.logActionExceptionMessage(headers.tenantID, ServerAction.OCPP_BOOT_NOTIFICATION, error, { bootNotification });
       // Reject
       return {
         status: RegistrationStatus.REJECTED,
@@ -136,48 +123,33 @@ export default class OCPPService {
 
   public async handleHeartbeat(headers: OCPPHeader, heartbeat: OCPPHeartbeatRequestExtended): Promise<OCPPHeartbeatResponse> {
     try {
-      // Get Charging Station
-      const { chargingStation, tenant, chargingStationLock } = await OCPPUtils.checkAndGetTenantAndChargingStation(headers);
-      try {
-        // Check
-        OCPPValidation.getInstance().validateHeartbeat(heartbeat);
-        // Replace IPs
-        chargingStation.currentIPAddress = headers.currentIPAddress;
-        // Set lastSeen
-        chargingStation.lastSeen = new Date();
-        // Set Heart Beat Object
-        heartbeat = {
-          chargeBoxID: chargingStation.id,
-          timestamp: new Date(),
-          timezone: Utils.getTimezone(chargingStation.coordinates)
-        };
-        // Save Charging Station lastSeen date
-        await ChargingStationStorage.saveChargingStationLastSeen(tenant, chargingStation.id, {
-          lastSeen: chargingStation.lastSeen,
-          currentIPAddress: chargingStation.currentIPAddress,
-        });
-        // Save Heart Beat
-        await OCPPStorage.saveHeartbeat(tenant, heartbeat);
-        // Log
-        await Logging.logDebug({
-          tenantID: tenant.id,
-          siteID: chargingStation.siteID,
-          source: chargingStation.id,
-          module: MODULE_NAME, method: 'handleHeartbeat',
-          action: ServerAction.HEARTBEAT,
-          message: `Heartbeat saved with IP '${chargingStation.currentIPAddress.toString()}'`,
-          detailedMessages: { headers, heartbeat }
-        });
-        return {
-          currentTime: chargingStation.lastSeen.toISOString()
-        };
-      } finally {
-        // Release lock
-        await LockingManager.release(chargingStationLock);
-      }
+      // Get the header infos
+      const { chargingStation, tenant } = headers;
+      // Check
+      OCPPValidation.getInstance().validateHeartbeat(heartbeat);
+      // Set Heart Beat Object
+      heartbeat = {
+        chargeBoxID: chargingStation.id,
+        timestamp: new Date(),
+        timezone: Utils.getTimezone(chargingStation.coordinates)
+      };
+      // Save Heart Beat
+      await OCPPStorage.saveHeartbeat(tenant, heartbeat);
+      // Log
+      await Logging.logInfo({
+        tenantID: tenant.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
+        module: MODULE_NAME, method: 'handleHeartbeat',
+        action: ServerAction.OCPP_HEARTBEAT,
+        message: 'Heartbeat saved',
+        detailedMessages: { heartbeat }
+      });
+      return {
+        currentTime: new Date().toISOString()
+      };
     } catch (error) {
       this.addChargingStationToException(error, headers.chargeBoxIdentity);
-      await Logging.logActionExceptionMessage(headers.tenantID, ServerAction.HEARTBEAT, error, { heartbeat });
+      await Logging.logActionExceptionMessage(headers.tenantID, ServerAction.OCPP_HEARTBEAT, error, { heartbeat });
       return {
         currentTime: new Date().toISOString()
       };
@@ -186,166 +158,149 @@ export default class OCPPService {
 
   public async handleStatusNotification(headers: OCPPHeader, statusNotification: OCPPStatusNotificationRequestExtended): Promise<OCPPStatusNotificationResponse> {
     try {
-      // Get charging station
-      const { chargingStation, tenant, chargingStationLock } = await OCPPUtils.checkAndGetTenantAndChargingStation(headers);
-      try {
-        // Check props
-        OCPPValidation.getInstance().validateStatusNotification(statusNotification);
-        // Set Header
-        this.enrichOCPPRequest(chargingStation, statusNotification, false);
-        // Skip connectorId = 0 case
-        if (statusNotification.connectorId <= 0) {
-          await Logging.logInfo({
-            tenantID: tenant.id,
-            siteID: chargingStation.siteID,
-            source: chargingStation.id,
-            action: ServerAction.STATUS_NOTIFICATION,
-            module: MODULE_NAME, method: 'handleStatusNotification',
-            message: `Connector ID '0' > ${this.buildStatusNotification(statusNotification)}, will be ignored (Connector ID = '0')`,
-            detailedMessages: { headers, statusNotification }
-          });
-          return {};
-        }
-        // Update only the given Connector ID
-        await this.processConnectorStatusNotification(tenant, chargingStation, statusNotification);
+      // Get the header infos
+      const { chargingStation, tenant } = headers;
+      // Check props
+      OCPPValidation.getInstance().validateStatusNotification(statusNotification);
+      // Set Header
+      this.enrichOCPPRequest(chargingStation, statusNotification, false);
+      // Skip connectorId = 0 case
+      if (statusNotification.connectorId <= 0) {
+        await Logging.logInfo({
+          tenantID: tenant.id,
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
+          action: ServerAction.OCPP_STATUS_NOTIFICATION,
+          module: MODULE_NAME, method: 'handleStatusNotification',
+          message: `Connector ID '0' > ${this.buildStatusNotification(statusNotification)}, will be ignored (Connector ID = '0')`,
+          detailedMessages: { statusNotification }
+        });
         return {};
-      } finally {
-        // Release lock
-        await LockingManager.release(chargingStationLock);
       }
+      // Update only the given Connector ID
+      await this.processConnectorStatusNotification(tenant, chargingStation, statusNotification);
+      return {};
     } catch (error) {
       this.addChargingStationToException(error, headers.chargeBoxIdentity);
-      await Logging.logActionExceptionMessage(headers.tenantID, ServerAction.STATUS_NOTIFICATION, error, { statusNotification });
+      await Logging.logActionExceptionMessage(headers.tenantID, ServerAction.OCPP_STATUS_NOTIFICATION, error, { statusNotification });
       return {};
     }
   }
 
   public async handleMeterValues(headers: OCPPHeader, meterValues: OCPPMeterValuesRequestExtended): Promise<OCPPMeterValuesResponse> {
     try {
-      // Get the charging station
-      const { chargingStation, tenant, chargingStationLock } = await OCPPUtils.checkAndGetTenantAndChargingStation(headers);
-      try {
-        // Check
-        await OCPPValidation.getInstance().validateMeterValues(tenant.id, chargingStation, meterValues);
-        // Normalize Meter Values
-        const normalizedMeterValues = this.normalizeMeterValues(chargingStation, meterValues);
-        // Handle Charging Station's specificities
-        this.filterMeterValuesOnSpecificChargingStations(tenant, chargingStation, normalizedMeterValues);
-        if (Utils.isEmptyArray(normalizedMeterValues.values)) {
-          await Logging.logDebug({
-            tenantID: tenant.id,
-            siteID: chargingStation.siteID,
-            source: chargingStation.id,
-            module: MODULE_NAME, method: 'handleMeterValues',
-            action: ServerAction.METER_VALUES,
-            message: 'No relevant Meter Values to save',
-            detailedMessages: { headers, meterValues }
-          });
-          return {};
-        }
-        // Get Transaction
-        const transaction = await this.getTransactionFromMeterValues(tenant, chargingStation, headers, meterValues);
-        // Save Meter Values
-        await OCPPStorage.saveMeterValues(tenant, normalizedMeterValues);
-        // Update Transaction
-        this.updateTransactionWithMeterValues(chargingStation, transaction, normalizedMeterValues.values);
-        // Create Consumptions
-        const consumptions = await OCPPUtils.createConsumptionsFromMeterValues(tenant, chargingStation, transaction, normalizedMeterValues.values);
-        // Price/Bill Transaction and Save them
-        for (const consumption of consumptions) {
-          // Update Transaction with Consumption
-          OCPPUtils.updateTransactionWithConsumption(chargingStation, transaction, consumption);
-          if (consumption.toPrice) {
-            // Pricing
-            await OCPPUtils.processTransactionPricing(tenant, transaction, chargingStation, consumption, TransactionAction.UPDATE);
-            // Billing
-            await OCPPUtils.processTransactionBilling(tenant, transaction, TransactionAction.UPDATE);
-          }
-          // Save
-          await ConsumptionStorage.saveConsumption(tenant, consumption);
-        }
-        // Get the phases really used from Meter Values (for AC single phase charger/car)
-        if (!transaction.phasesUsed &&
-            Utils.checkIfPhasesProvidedInTransactionInProgress(transaction) &&
-            transaction.numberOfMeterValues >= 1) {
-          transaction.phasesUsed = Utils.getUsedPhasesInTransactionInProgress(chargingStation, transaction);
-        }
-        // Roaming
-        await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, transaction.tag, TransactionAction.UPDATE);
-        // Save Transaction
-        await TransactionStorage.saveTransaction(tenant, transaction);
-        // Update Charging Station
-        await this.updateChargingStationWithTransaction(tenant, chargingStation, transaction);
-        // Handle End Of charge
-        await this.checkNotificationEndOfCharge(tenant, chargingStation, transaction);
-        // Save Charging Station
-        await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
-        // First Meter Value -> Trigger Smart Charging to adjust the limit
-        if (transaction.numberOfMeterValues === 1 && transaction.phasesUsed) {
-          // Yes: Trigger Smart Charging
-          await this.triggerSmartCharging(tenant, chargingStation);
-        }
-        // Log
-        await Logging.logInfo({
+      // Get the header infos
+      const { chargingStation, tenant } = headers;
+      // Check
+      await OCPPValidation.getInstance().validateMeterValues(tenant.id, chargingStation, meterValues);
+      // Normalize Meter Values
+      const normalizedMeterValues = this.normalizeMeterValues(chargingStation, meterValues);
+      // Handle Charging Station's specificities
+      this.filterMeterValuesOnSpecificChargingStations(tenant, chargingStation, normalizedMeterValues);
+      if (Utils.isEmptyArray(normalizedMeterValues.values)) {
+        await Logging.logDebug({
           tenantID: tenant.id,
-          siteID: chargingStation.siteID,
-          source: chargingStation.id,
-          action: ServerAction.METER_VALUES,
-          user: transaction.userID,
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
           module: MODULE_NAME, method: 'handleMeterValues',
-          message: `${Utils.buildConnectorInfo(meterValues.connectorId, meterValues.transactionId)}  MeterValue have been saved`,
-          detailedMessages: { headers, normalizedMeterValues }
+          action: ServerAction.OCPP_METER_VALUES,
+          message: 'No relevant Meter Values to save',
+          detailedMessages: { meterValues }
         });
-      } finally {
-        // Release lock
-        await LockingManager.release(chargingStationLock);
+        return {};
       }
+      // Get Transaction
+      const transaction = await this.getTransactionFromMeterValues(tenant, chargingStation, headers, meterValues);
+      // Save Meter Values
+      await OCPPStorage.saveMeterValues(tenant, normalizedMeterValues);
+      // Update Transaction
+      this.updateTransactionWithMeterValues(chargingStation, transaction, normalizedMeterValues.values);
+      // Create Consumptions
+      const consumptions = await OCPPUtils.createConsumptionsFromMeterValues(tenant, chargingStation, transaction, normalizedMeterValues.values);
+      // Handle current SOC
+      await this.processTransactionCar(tenant, transaction, chargingStation, consumptions[consumptions.length - 1], null, TransactionAction.UPDATE);
+      // Price/Bill Transaction and Save them
+      for (const consumption of consumptions) {
+        // Update Transaction with Consumption
+        OCPPUtils.updateTransactionWithConsumption(chargingStation, transaction, consumption);
+        if (consumption.toPrice) {
+          // Pricing
+          await OCPPUtils.processTransactionPricing(tenant, transaction, chargingStation, consumption, TransactionAction.UPDATE);
+          // Billing
+          await OCPPUtils.processTransactionBilling(tenant, transaction, TransactionAction.UPDATE);
+        }
+        // Save
+        await ConsumptionStorage.saveConsumption(tenant, consumption);
+      }
+      // Get the phases really used from Meter Values (for AC single phase charger/car)
+      if (!transaction.phasesUsed &&
+          Utils.checkIfPhasesProvidedInTransactionInProgress(transaction) &&
+          transaction.numberOfMeterValues >= 1) {
+        transaction.phasesUsed = Utils.getUsedPhasesInTransactionInProgress(chargingStation, transaction);
+      }
+      // Roaming
+      await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, transaction.tag, TransactionAction.UPDATE);
+      // Save Transaction
+      await TransactionStorage.saveTransaction(tenant, transaction);
+      // Update Charging Station
+      await this.updateChargingStationWithTransaction(tenant, chargingStation, transaction);
+      // Handle End Of charge
+      await this.checkNotificationEndOfCharge(tenant, chargingStation, transaction);
+      // Save Charging Station
+      await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
+      // First Meter Value -> Trigger Smart Charging to adjust the limit
+      if (transaction.numberOfMeterValues === 1 && transaction.phasesUsed) {
+        // Yes: Trigger Smart Charging
+        await this.triggerSmartCharging(tenant, chargingStation);
+      }
+      // Log
+      await Logging.logInfo({
+        tenantID: tenant.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
+        action: ServerAction.OCPP_METER_VALUES,
+        user: transaction.userID,
+        module: MODULE_NAME, method: 'handleMeterValues',
+        message: `${Utils.buildConnectorInfo(meterValues.connectorId, meterValues.transactionId)}  MeterValue have been saved`,
+        detailedMessages: { normalizedMeterValues }
+      });
     } catch (error) {
       this.addChargingStationToException(error, headers.chargeBoxIdentity);
-      await Logging.logActionExceptionMessage(headers.tenantID, ServerAction.METER_VALUES, error, { meterValues });
+      await Logging.logActionExceptionMessage(headers.tenantID, ServerAction.OCPP_METER_VALUES, error, { meterValues });
     }
     return {};
   }
 
   public async handleAuthorize(headers: OCPPHeader, authorize: OCPPAuthorizeRequestExtended): Promise<OCPPAuthorizeResponse> {
     try {
-      // Get the charging station
-      const { chargingStation, tenant, chargingStationLock } = await OCPPUtils.checkAndGetTenantAndChargingStation(headers);
-      try {
-        // Check props
-        OCPPValidation.getInstance().validateAuthorize(authorize);
-        // Check
-        const { user } = await Authorizations.isAuthorizedOnChargingStation(tenant, chargingStation,
-          authorize.idTag, ServerAction.AUTHORIZE, Action.AUTHORIZE);
-        // Check Billing Prerequisites
-        await OCPPUtils.checkBillingPrerequisites(tenant, ServerAction.AUTHORIZE, chargingStation, user);
-        // Enrich
-        this.enrichAuthorize(user, chargingStation, headers, authorize);
-        // Save
-        await OCPPStorage.saveAuthorize(tenant, authorize);
-        // Log
-        await Logging.logInfo({
-          tenantID: tenant.id,
-          siteID: chargingStation.siteID,
-          source: chargingStation.id,
-          module: MODULE_NAME, method: 'handleAuthorize',
-          action: ServerAction.AUTHORIZE, user: (authorize.user ? authorize.user : null),
-          message: `User has been authorized with Badge ID '${authorize.idTag}'`,
-          detailedMessages: { headers, authorize }
-        });
-        // Accepted
-        return {
-          idTagInfo: {
-            status: OCPPAuthorizationStatus.ACCEPTED
-          }
-        };
-      } finally {
-        // Release lock
-        await LockingManager.release(chargingStationLock);
-      }
+      // Get the header infos
+      const { chargingStation, tenant } = headers;
+      // Check props
+      OCPPValidation.getInstance().validateAuthorize(authorize);
+      // Check
+      const { user } = await Authorizations.isAuthorizedOnChargingStation(tenant, chargingStation,
+        authorize.idTag, ServerAction.OCPP_AUTHORIZE, Action.AUTHORIZE);
+      // Check Billing Prerequisites
+      await OCPPUtils.checkBillingPrerequisites(tenant, ServerAction.OCPP_AUTHORIZE, chargingStation, user);
+      // Enrich
+      this.enrichAuthorize(user, chargingStation, headers, authorize);
+      // Save
+      await OCPPStorage.saveAuthorize(tenant, authorize);
+      // Log
+      await Logging.logInfo({
+        tenantID: tenant.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
+        module: MODULE_NAME, method: 'handleAuthorize',
+        action: ServerAction.OCPP_AUTHORIZE, user: (authorize.user ? authorize.user : null),
+        message: `User has been authorized with Badge ID '${authorize.idTag}'`,
+        detailedMessages: { authorize }
+      });
+      // Accepted
+      return {
+        idTagInfo: {
+          status: OCPPAuthorizationStatus.ACCEPTED
+        }
+      };
     } catch (error) {
       this.addChargingStationToException(error, headers.chargeBoxIdentity);
-      await Logging.logActionExceptionMessage(headers.tenantID, ServerAction.AUTHORIZE, error, { authorize });
+      await Logging.logActionExceptionMessage(headers.tenantID, ServerAction.OCPP_AUTHORIZE, error, { authorize });
       // Rejected
       return {
         idTagInfo: {
@@ -357,142 +312,119 @@ export default class OCPPService {
 
   public async handleDiagnosticsStatusNotification(headers: OCPPHeader,
       diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequestExtended): Promise<OCPPDiagnosticsStatusNotificationResponse> {
+    // Get the header infos
+    const { chargingStation, tenant } = headers;
     try {
-      // Get the charging station
-      const { chargingStation, tenant, chargingStationLock } = await OCPPUtils.checkAndGetTenantAndChargingStation(headers);
-      try {
-        // Check props
-        OCPPValidation.getInstance().validateDiagnosticsStatusNotification(chargingStation, diagnosticsStatusNotification);
-        // Enrich
-        this.enrichOCPPRequest(chargingStation, diagnosticsStatusNotification);
-        // Save it
-        await OCPPStorage.saveDiagnosticsStatusNotification(tenant, diagnosticsStatusNotification);
-        // Log
-        await Logging.logInfo({
-          tenantID: tenant.id,
-          siteID: chargingStation.siteID,
-          source: chargingStation.id,
-          action: ServerAction.DIAGNOSTICS_STATUS_NOTIFICATION,
-          module: MODULE_NAME, method: 'handleDiagnosticsStatusNotification',
-          message: 'Diagnostics Status Notification has been saved',
-          detailedMessages: { headers, diagnosticsStatusNotification }
-        });
-        return {};
-      } finally {
-        // Release lock
-        await LockingManager.release(chargingStationLock);
-      }
+      // Check props
+      OCPPValidation.getInstance().validateDiagnosticsStatusNotification(chargingStation, diagnosticsStatusNotification);
+      // Enrich
+      this.enrichOCPPRequest(chargingStation, diagnosticsStatusNotification);
+      // Save it
+      await OCPPStorage.saveDiagnosticsStatusNotification(tenant, diagnosticsStatusNotification);
+      // Log
+      await Logging.logInfo({
+        tenantID: tenant.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
+        action: ServerAction.OCPP_DIAGNOSTICS_STATUS_NOTIFICATION,
+        module: MODULE_NAME, method: 'handleDiagnosticsStatusNotification',
+        message: 'Diagnostics Status Notification has been saved',
+        detailedMessages: { diagnosticsStatusNotification }
+      });
+      return {};
     } catch (error) {
       this.addChargingStationToException(error, headers.chargeBoxIdentity);
-      await Logging.logActionExceptionMessage(headers.tenantID, ServerAction.DIAGNOSTICS_STATUS_NOTIFICATION, error, { diagnosticsStatusNotification });
+      await Logging.logActionExceptionMessage(headers.tenantID, ServerAction.OCPP_DIAGNOSTICS_STATUS_NOTIFICATION, error, { diagnosticsStatusNotification });
       return {};
     }
   }
 
   public async handleFirmwareStatusNotification(headers: OCPPHeader,
       firmwareStatusNotification: OCPPFirmwareStatusNotificationRequestExtended): Promise<OCPPFirmwareStatusNotificationResponse> {
+    // Get the header infos
+    const { chargingStation, tenant } = headers;
     try {
-      // Get the charging station
-      const { chargingStation, tenant, chargingStationLock } = await OCPPUtils.checkAndGetTenantAndChargingStation(headers);
-      try {
-        // Check props
-        OCPPValidation.getInstance().validateFirmwareStatusNotification(chargingStation, firmwareStatusNotification);
-        // Enrich
-        this.enrichOCPPRequest(chargingStation, firmwareStatusNotification);
-        // Save the status to Charging Station
-        await ChargingStationStorage.saveChargingStationFirmwareStatus(tenant, chargingStation.id, firmwareStatusNotification.status);
-        // Save it
-        await OCPPStorage.saveFirmwareStatusNotification(tenant, firmwareStatusNotification);
-        // Log
-        await Logging.logInfo({
-          tenantID: tenant.id,
-          siteID: chargingStation.siteID,
-          source: chargingStation.id,
-          module: MODULE_NAME, method: 'handleFirmwareStatusNotification',
-          action: ServerAction.FIRMWARE_STATUS_NOTIFICATION,
-          message: `Firmware Status Notification '${firmwareStatusNotification.status}' has been saved`,
-          detailedMessages: { headers, firmwareStatusNotification }
-        });
-        return {};
-      } finally {
-        // Release lock
-        await LockingManager.release(chargingStationLock);
-      }
+      // Check props
+      OCPPValidation.getInstance().validateFirmwareStatusNotification(chargingStation, firmwareStatusNotification);
+      // Enrich
+      this.enrichOCPPRequest(chargingStation, firmwareStatusNotification);
+      // Save the status to Charging Station
+      await ChargingStationStorage.saveChargingStationFirmwareStatus(tenant, chargingStation.id, firmwareStatusNotification.status);
+      // Save it
+      await OCPPStorage.saveFirmwareStatusNotification(tenant, firmwareStatusNotification);
+      // Log
+      await Logging.logInfo({
+        tenantID: tenant.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
+        module: MODULE_NAME, method: 'handleFirmwareStatusNotification',
+        action: ServerAction.OCPP_FIRMWARE_STATUS_NOTIFICATION,
+        message: `Firmware Status Notification '${firmwareStatusNotification.status}' has been saved`,
+        detailedMessages: { firmwareStatusNotification }
+      });
+      return {};
     } catch (error) {
       this.addChargingStationToException(error, headers.chargeBoxIdentity);
-      await Logging.logActionExceptionMessage(headers.tenantID, ServerAction.FIRMWARE_STATUS_NOTIFICATION, error, { firmwareStatusNotification });
+      await Logging.logActionExceptionMessage(headers.tenantID, ServerAction.OCPP_FIRMWARE_STATUS_NOTIFICATION, error, { firmwareStatusNotification });
       return {};
     }
   }
 
   public async handleStartTransaction(headers: OCPPHeader, startTransaction: OCPPStartTransactionRequestExtended): Promise<OCPPStartTransactionResponse> {
     try {
-      // Get the charging station
-      const { chargingStation, tenant, chargingStationLock } = await OCPPUtils.checkAndGetTenantAndChargingStation(headers);
-      try {
-        // Check props
-        OCPPValidation.getInstance().validateStartTransaction(chargingStation, startTransaction);
-        // Enrich
-        this.enrichStartTransaction(tenant, startTransaction, chargingStation);
-        // Create Transaction
-        const newTransaction = await this.createTransaction(tenant, startTransaction);
-        // Check User
-        const { user, tag } = await Authorizations.isAuthorizedToStartTransaction(
-          tenant, chargingStation, startTransaction.tagID, newTransaction, ServerAction.START_TRANSACTION, Action.START_TRANSACTION);
-        if (user) {
-          startTransaction.userID = user.id;
-          newTransaction.userID = user.id;
-          newTransaction.user = user;
-          newTransaction.authorizationID = user.authorizationID;
-        }
-        // Cleanup ongoing Transaction
-        await this.stopOrDeleteActiveTransaction(tenant, chargingStation, startTransaction.connectorId);
-        // Car
-        await this.processCarTransaction(tenant, newTransaction, user);
-        // Pricing
-        await OCPPUtils.processTransactionPricing(tenant, newTransaction, chargingStation, null, TransactionAction.START);
-        // Billing
-        await OCPPUtils.processTransactionBilling(tenant, newTransaction, TransactionAction.START);
-        // Roaming
-        await OCPPUtils.processTransactionRoaming(tenant, newTransaction, chargingStation, tag, TransactionAction.START);
-        // Save it
-        await TransactionStorage.saveTransaction(tenant, newTransaction);
-        // Clean up
-        await this.updateChargingStationConnectorWithTransaction(tenant, newTransaction, chargingStation, user);
-        // Save
-        await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
-        // Notify
-        this.notifyStartTransaction(tenant, newTransaction, chargingStation, user);
-        // Log
-        await Logging.logInfo({
-          tenantID: tenant.id,
-          siteID: chargingStation.siteID,
-          source: chargingStation.id,
-          module: MODULE_NAME, method: 'handleStartTransaction',
-          action: ServerAction.START_TRANSACTION, user: user,
-          message: `${Utils.buildConnectorInfo(newTransaction.connectorId, newTransaction.id)} Transaction has been started successfully`,
-          detailedMessages: { transaction: newTransaction, startTransaction }
-        });
-        // Accepted
-        return {
-          transactionId: newTransaction.id,
-          idTagInfo: {
-            status: OCPPAuthorizationStatus.ACCEPTED
-          }
-        };
-      } catch (error) {
-        // Cleanup ongoing Transaction
-        await this.stopOrDeleteActiveTransaction(tenant, chargingStation, startTransaction.connectorId);
-        // Save
-        await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
-        throw error;
-      } finally {
-        // Release lock
-        await LockingManager.release(chargingStationLock);
+      // Get the header infos
+      const { chargingStation, tenant } = headers;
+      // Check props
+      OCPPValidation.getInstance().validateStartTransaction(chargingStation, startTransaction);
+      // Enrich
+      this.enrichStartTransaction(tenant, startTransaction, chargingStation);
+      // Create Transaction
+      const newTransaction = await this.createTransaction(tenant, startTransaction);
+      // Check User
+      const { user, tag } = await Authorizations.isAuthorizedToStartTransaction(
+        tenant, chargingStation, startTransaction.tagID, newTransaction, ServerAction.OCPP_START_TRANSACTION, Action.START_TRANSACTION);
+      if (user) {
+        startTransaction.userID = user.id;
+        newTransaction.userID = user.id;
+        newTransaction.user = user;
+        newTransaction.authorizationID = user.authorizationID;
       }
+      // Cleanup ongoing Transaction
+      await this.stopOrDeleteActiveTransaction(tenant, chargingStation, startTransaction.connectorId);
+      // Handle car and current SOC
+      await this.processTransactionCar(tenant, newTransaction, chargingStation, null, user, TransactionAction.START);
+      // Pricing
+      await OCPPUtils.processTransactionPricing(tenant, newTransaction, chargingStation, null, TransactionAction.START);
+      // Billing
+      await OCPPUtils.processTransactionBilling(tenant, newTransaction, TransactionAction.START);
+      // Roaming
+      await OCPPUtils.processTransactionRoaming(tenant, newTransaction, chargingStation, tag, TransactionAction.START);
+      // Save it
+      await TransactionStorage.saveTransaction(tenant, newTransaction);
+      // Clean up
+      await this.updateChargingStationConnectorWithTransaction(tenant, newTransaction, chargingStation, user);
+      // Save
+      await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
+      // Notify
+      await this.notifyStartTransaction(tenant, newTransaction, chargingStation, user);
+      // Log
+      await Logging.logInfo({
+        tenantID: tenant.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
+        module: MODULE_NAME, method: 'handleStartTransaction',
+        action: ServerAction.OCPP_START_TRANSACTION, user: user,
+        message: `${Utils.buildConnectorInfo(newTransaction.connectorId, newTransaction.id)} Transaction has been started successfully`,
+        detailedMessages: { transaction: newTransaction, startTransaction }
+      });
+      // Accepted
+      return {
+        transactionId: newTransaction.id,
+        idTagInfo: {
+          status: OCPPAuthorizationStatus.ACCEPTED
+        }
+      };
     } catch (error) {
+      // Log
       this.addChargingStationToException(error, headers.chargeBoxIdentity);
-      await Logging.logActionExceptionMessage(headers.tenantID, ServerAction.START_TRANSACTION, error, { startTransaction });
+      await Logging.logActionExceptionMessage(headers.tenantID, ServerAction.OCPP_START_TRANSACTION, error, { startTransaction });
       // Invalid
       return {
         transactionId: 0,
@@ -505,32 +437,26 @@ export default class OCPPService {
 
   public async handleDataTransfer(headers: OCPPHeader, dataTransfer: OCPPDataTransferRequestExtended): Promise<OCPPDataTransferResponse> {
     try {
-      // Get the charging station
-      const { chargingStation, tenant, chargingStationLock } = await OCPPUtils.checkAndGetTenantAndChargingStation(headers);
-      try {
-        // Check props
-        OCPPValidation.getInstance().validateDataTransfer(chargingStation, dataTransfer);
-        // Enrich
-        this.enrichOCPPRequest(chargingStation, dataTransfer);
-        // Save it
-        await OCPPStorage.saveDataTransfer(tenant, dataTransfer);
-        // Log
-        await Logging.logInfo({
-          tenantID: tenant.id,
-          siteID: chargingStation.siteID,
-          source: chargingStation.id,
-          module: MODULE_NAME, method: 'handleDataTransfer',
-          action: ServerAction.CHARGING_STATION_DATA_TRANSFER, message: 'Data Transfer has been saved',
-          detailedMessages: { headers, dataTransfer }
-        });
-        // Accepted
-        return {
-          status: OCPPDataTransferStatus.ACCEPTED
-        };
-      } finally {
-        // Release lock
-        await LockingManager.release(chargingStationLock);
-      }
+      // Get the header infos
+      const { chargingStation, tenant } = headers;
+      // Check props
+      OCPPValidation.getInstance().validateDataTransfer(chargingStation, dataTransfer);
+      // Enrich
+      this.enrichOCPPRequest(chargingStation, dataTransfer);
+      // Save it
+      await OCPPStorage.saveDataTransfer(tenant, dataTransfer);
+      // Log
+      await Logging.logInfo({
+        tenantID: tenant.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
+        module: MODULE_NAME, method: 'handleDataTransfer',
+        action: ServerAction.CHARGING_STATION_DATA_TRANSFER, message: 'Data Transfer has been saved',
+        detailedMessages: { dataTransfer }
+      });
+      // Accepted
+      return {
+        status: OCPPDataTransferStatus.ACCEPTED
+      };
     } catch (error) {
       this.addChargingStationToException(error, headers.chargeBoxIdentity);
       await Logging.logActionExceptionMessage(headers.tenantID, ServerAction.CHARGING_STATION_DATA_TRANSFER, error, { dataTransfer });
@@ -544,74 +470,68 @@ export default class OCPPService {
   public async handleStopTransaction(headers: OCPPHeader, stopTransaction: OCPPStopTransactionRequestExtended,
       isSoftStop = false, isStoppedByCentralSystem = false): Promise<OCPPStopTransactionResponse> {
     try {
-      // Get the charging station
-      const { chargingStation, tenant, chargingStationLock } = await OCPPUtils.checkAndGetTenantAndChargingStation(headers);
-      try {
-        // Check props
-        OCPPValidation.getInstance().validateStopTransaction(chargingStation, stopTransaction);
-        // Set header
-        this.enrichOCPPRequest(chargingStation, stopTransaction, false);
-        // Bypass Stop Transaction?
-        if (await this.bypassStopTransaction(tenant, chargingStation, headers, stopTransaction)) {
-          return {
-            idTagInfo: {
-              status: OCPPAuthorizationStatus.ACCEPTED
-            }
-          };
-        }
-        // Get Transaction
-        const transaction = await this.getTransactionFromStopTransaction(tenant, chargingStation, headers, stopTransaction);
-        // Get Tag ID that stopped the Transaction
-        const tagID = this.getStopTransactionTagId(stopTransaction, transaction);
-        // Transaction is stopped by central system?
-        const { user, alternateUser } = await this.checkAuthorizeStopTransactionAndGetUsers(
-          tenant, chargingStation, transaction, tagID, isStoppedByCentralSystem);
-        // Free the connector
-        OCPPUtils.clearChargingStationConnectorRuntimeData(chargingStation, transaction.connectorId);
-        // Save Charging Station
-        await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
-        // Soft Stop
-        this.checkSoftStopTransaction(transaction, stopTransaction, isSoftStop);
-        // Transaction End has already been received?
-        await this.checkAndApplyLastConsumptionInStopTransaction(tenant, chargingStation, transaction, stopTransaction);
-        // Signed Data
-        this.checkAndUpdateTransactionWithSignedDataInStopTransaction(transaction, stopTransaction);
-        // Update Transaction with Stop Transaction and Stop MeterValues
-        OCPPUtils.updateTransactionWithStopTransaction(transaction, chargingStation, stopTransaction, user, alternateUser, tagID);
-        // Bill
-        await OCPPUtils.processTransactionBilling(tenant, transaction, TransactionAction.STOP);
-        // Roaming
-        await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, transaction.tag, TransactionAction.STOP);
-        // Save the transaction
-        await TransactionStorage.saveTransaction(tenant, transaction);
-        // Notify User
-        this.notifyStopTransaction(tenant, chargingStation, transaction, user, alternateUser);
-        // Recompute the Smart Charging Plan
-        await this.triggerSmartChargingStopTransaction(tenant, chargingStation, transaction);
-        await Logging.logInfo({
-          tenantID: tenant.id,
-          siteID: chargingStation.siteID,
-          source: chargingStation.id,
-          module: MODULE_NAME, method: 'handleStopTransaction',
-          action: ServerAction.STOP_TRANSACTION,
-          user: alternateUser ?? (user ?? null),
-          actionOnUser: alternateUser ? (user ?? null) : null,
-          message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has been stopped successfully`,
-          detailedMessages: { headers, stopTransaction }
-        });
-        // Accepted
+      // Get the header infos
+      const { chargingStation, tenant } = headers;
+      // Check props
+      OCPPValidation.getInstance().validateStopTransaction(chargingStation, stopTransaction);
+      // Set header
+      this.enrichOCPPRequest(chargingStation, stopTransaction, false);
+      // Bypass Stop Transaction?
+      if (await this.bypassStopTransaction(tenant, chargingStation, headers, stopTransaction)) {
         return {
           idTagInfo: {
             status: OCPPAuthorizationStatus.ACCEPTED
           }
         };
-      } finally {
-        // Release lock
-        await LockingManager.release(chargingStationLock);
       }
+      // Get Transaction
+      const transaction = await this.getTransactionFromStopTransaction(tenant, chargingStation, headers, stopTransaction);
+      // Get Tag ID that stopped the Transaction
+      const tagID = this.getStopTransactionTagId(stopTransaction, transaction);
+      // Transaction is stopped by central system?
+      const { user, alternateUser } = await this.checkAuthorizeStopTransactionAndGetUsers(
+        tenant, chargingStation, transaction, tagID, isStoppedByCentralSystem);
+      // Free the connector
+      OCPPUtils.clearChargingStationConnectorRuntimeData(chargingStation, transaction.connectorId);
+      // Save Charging Station
+      await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
+      // Soft Stop
+      this.checkSoftStopTransaction(transaction, stopTransaction, isSoftStop);
+      // Transaction End has already been received?
+      await this.checkAndApplyLastConsumptionInStopTransaction(tenant, chargingStation, transaction, stopTransaction);
+      // Signed Data
+      this.checkAndUpdateTransactionWithSignedDataInStopTransaction(transaction, stopTransaction);
+      // Update Transaction with Stop Transaction and Stop MeterValues
+      OCPPUtils.updateTransactionWithStopTransaction(transaction, chargingStation, stopTransaction, user, alternateUser, tagID);
+      // Bill
+      await OCPPUtils.processTransactionBilling(tenant, transaction, TransactionAction.STOP);
+      // Roaming
+      await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, transaction.tag, TransactionAction.STOP);
+      // Save the transaction
+      await TransactionStorage.saveTransaction(tenant, transaction);
+      // Notify User
+      await this.notifyStopTransaction(tenant, chargingStation, transaction, user, alternateUser);
+      // Recompute the Smart Charging Plan
+      await this.triggerSmartChargingStopTransaction(tenant, chargingStation, transaction);
+      await Logging.logInfo({
+        tenantID: tenant.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
+        module: MODULE_NAME, method: 'handleStopTransaction',
+        action: ServerAction.OCPP_STOP_TRANSACTION,
+        user: alternateUser ?? (user ?? null),
+        actionOnUser: alternateUser ? (user ?? null) : null,
+        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has been stopped successfully`,
+        detailedMessages: { stopTransaction }
+      });
+      // Accepted
+      return {
+        idTagInfo: {
+          status: OCPPAuthorizationStatus.ACCEPTED
+        }
+      };
     } catch (error) {
       this.addChargingStationToException(error, headers.chargeBoxIdentity);
-      await Logging.logActionExceptionMessage(headers.tenantID, ServerAction.STOP_TRANSACTION, error, { stopTransaction });
+      await Logging.logActionExceptionMessage(headers.tenantID, ServerAction.OCPP_STOP_TRANSACTION, error, { stopTransaction });
       // Invalid
       return {
         idTagInfo: {
@@ -647,7 +567,7 @@ export default class OCPPService {
     if (!isStoppedByCentralSystem) {
       // Check and get the authorized Users
       const authorizedUsers = await Authorizations.isAuthorizedToStopTransaction(
-        tenant, chargingStation, transaction, tagId, ServerAction.STOP_TRANSACTION, Action.STOP_TRANSACTION);
+        tenant, chargingStation, transaction, tagId, ServerAction.OCPP_STOP_TRANSACTION, Action.STOP_TRANSACTION);
       user = authorizedUsers.user;
       alternateUser = authorizedUsers.alternateUser;
     } else {
@@ -657,10 +577,10 @@ export default class OCPPService {
     // Already Stopped?
     if (transaction.stop) {
       throw new BackendError({
-        source: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         module: MODULE_NAME, method: 'checkAuthorizeStopTransactionAndGetUsers',
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has already been stopped`,
-        action: ServerAction.STOP_TRANSACTION,
+        action: ServerAction.OCPP_STOP_TRANSACTION,
         user: (alternateUser ? alternateUser : user),
         actionOnUser: (alternateUser ? user : null),
         detailedMessages: { transaction }
@@ -682,10 +602,9 @@ export default class OCPPService {
         } catch (error) {
           await Logging.logError({
             tenantID: tenant.id,
-            siteID: chargingStation.siteID,
-            source: chargingStation.id,
+            ...LoggingHelper.getChargingStationProperties(chargingStation),
             module: MODULE_NAME, method: 'triggerSmartChargingStopTransaction',
-            action: ServerAction.STOP_TRANSACTION,
+            action: ServerAction.OCPP_STOP_TRANSACTION,
             message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Smart Charging exception occurred`,
             detailedMessages: { error: error.stack, transaction, chargingStation }
           });
@@ -708,7 +627,9 @@ export default class OCPPService {
         await Logging.logDebug({
           tenantID: tenant.id,
           siteID: transaction.siteID,
-          source: transaction.chargeBoxID,
+          siteAreaID: transaction.siteAreaID,
+          companyID: transaction.companyID,
+          chargingStationID: transaction.chargeBoxID,
           action: ServerAction.CHARGING_PROFILE_DELETE,
           message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} TX Charging Profile with ID '${chargingProfile.id}'`,
           module: MODULE_NAME, method: 'deleteAllTransactionTxProfile',
@@ -718,7 +639,9 @@ export default class OCPPService {
         await Logging.logError({
           tenantID: tenant.id,
           siteID: transaction.siteID,
-          source: transaction.chargeBoxID,
+          siteAreaID: transaction.siteAreaID,
+          companyID: transaction.companyID,
+          chargingStationID: transaction.chargeBoxID,
           action: ServerAction.CHARGING_PROFILE_DELETE,
           message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Cannot delete TX Charging Profile with ID '${chargingProfile.id}'`,
           module: MODULE_NAME, method: 'deleteAllTransactionTxProfile',
@@ -730,43 +653,44 @@ export default class OCPPService {
 
   private async processConnectorStatusNotification(tenant: Tenant, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended) {
     // Get Connector
-    const connector = await this.checkAndGetConnectorFromStatusNotification(tenant, chargingStation, statusNotification);
-    // Check last Transaction
-    await this.checkAndUpdateLastCompletedTransaction(tenant, chargingStation, statusNotification, connector);
-    // Update Connector
-    connector.connectorId = statusNotification.connectorId;
-    connector.status = statusNotification.status;
-    connector.errorCode = statusNotification.errorCode;
-    connector.info = statusNotification.info;
-    connector.vendorErrorCode = statusNotification.vendorErrorCode;
-    connector.statusLastChangedOn = new Date(statusNotification.timestamp);
-    // Save Status Notification
-    await OCPPStorage.saveStatusNotification(tenant, statusNotification);
-    // Process Roaming
-    await this.processStatusNotificationRoaming(tenant, chargingStation, connector);
-    // Sort connectors
-    if (!Utils.isEmptyArray(chargingStation?.connectors)) {
-      chargingStation.connectors.sort((connector1: Connector, connector2: Connector) =>
-        connector1?.connectorId - connector2?.connectorId);
+    const { connector, ignoreStatusNotification } =
+      await this.checkAndGetConnectorFromStatusNotification(tenant, chargingStation, statusNotification);
+    if (!ignoreStatusNotification) {
+      // Check last Transaction
+      await this.checkAndUpdateLastCompletedTransaction(tenant, chargingStation, statusNotification, connector);
+      // Update Connector
+      connector.connectorId = statusNotification.connectorId;
+      connector.status = statusNotification.status;
+      connector.errorCode = statusNotification.errorCode;
+      connector.info = statusNotification.info;
+      connector.vendorErrorCode = statusNotification.vendorErrorCode;
+      connector.statusLastChangedOn = new Date(statusNotification.timestamp);
+      // Save Status Notification
+      await OCPPStorage.saveStatusNotification(tenant, statusNotification);
+      // Process Roaming
+      await this.processStatusNotificationRoaming(tenant, chargingStation, connector);
+      // Sort connectors
+      if (!Utils.isEmptyArray(chargingStation?.connectors)) {
+        chargingStation.connectors.sort((connector1: Connector, connector2: Connector) =>
+          connector1?.connectorId - connector2?.connectorId);
+      }
+      // Save Charging Station
+      await ChargingStationStorage.saveChargingStationConnectors(tenant, chargingStation.id,
+        chargingStation.connectors, chargingStation.backupConnectors);
+      // Process Smart Charging
+      await this.processSmartChargingStatusNotification(tenant, chargingStation, connector);
+      // Log
+      await Logging.logInfo({
+        tenantID: tenant.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
+        module: MODULE_NAME, method: 'processConnectorStatusNotification',
+        action: ServerAction.OCPP_STATUS_NOTIFICATION,
+        message: `${Utils.buildConnectorInfo(statusNotification.connectorId, connector.currentTransactionID)} ${this.buildStatusNotification(statusNotification)} has been saved`,
+        detailedMessages: { statusNotification, connector }
+      });
+      // Notify Users
+      await this.notifyStatusNotification(tenant, chargingStation, connector, statusNotification);
     }
-    // Save Charging Station
-    await ChargingStationStorage.saveChargingStationConnectors(tenant, chargingStation.id,
-      chargingStation.connectors, chargingStation.backupConnectors);
-    await ChargingStationStorage.saveChargingStationLastSeen(tenant, chargingStation.id, { lastSeen: new Date() });
-    // Process Smart Charging
-    await this.processSmartChargingStatusNotification(tenant, chargingStation, connector);
-    // Log
-    await Logging.logInfo({
-      tenantID: tenant.id,
-      siteID: chargingStation.siteID,
-      source: chargingStation.id,
-      module: MODULE_NAME, method: 'processConnectorStatusNotification',
-      action: ServerAction.STATUS_NOTIFICATION,
-      message: `${Utils.buildConnectorInfo(statusNotification.connectorId, connector.currentTransactionID)} ${this.buildStatusNotification(statusNotification)} has been saved`,
-      detailedMessages: { statusNotification, connector }
-    });
-    // Notify Users
-    await this.notifyStatusNotification(tenant, chargingStation, connector, statusNotification);
   }
 
   private async processSmartChargingStatusNotification(tenant: Tenant, chargingStation: ChargingStation, connector: Connector): Promise<void> {
@@ -779,10 +703,9 @@ export default class OCPPService {
       } catch (error) {
         await Logging.logError({
           tenantID: tenant.id,
-          siteID: chargingStation.siteID,
-          source: chargingStation.id,
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
           module: MODULE_NAME, method: 'processSmartChargingStatusNotification',
-          action: ServerAction.STATUS_NOTIFICATION,
+          action: ServerAction.OCPP_STATUS_NOTIFICATION,
           message: `${Utils.buildConnectorInfo(connector.connectorId, connector.currentTransactionID)} Smart Charging exception occurred`,
           detailedMessages: { error: error.stack }
         });
@@ -805,7 +728,8 @@ export default class OCPPService {
   }
 
   private async checkAndGetConnectorFromStatusNotification(tenant: Tenant, chargingStation: ChargingStation,
-      statusNotification: OCPPStatusNotificationRequestExtended): Promise<Connector> {
+      statusNotification: OCPPStatusNotificationRequestExtended): Promise<{connector: Connector; ignoreStatusNotification: boolean;}> {
+    let ignoreStatusNotification = false;
     let foundConnector = Utils.getConnectorFromID(chargingStation, statusNotification.connectorId);
     if (!foundConnector) {
       // Check backup first
@@ -829,15 +753,26 @@ export default class OCPPService {
           type: ConnectorType.UNKNOWN
         };
         chargingStation.connectors.push(foundConnector);
-        // Enrich Charging Station's Connector
-        const chargingStationTemplate = await OCPPUtils.getChargingStationTemplate(chargingStation);
-        if (chargingStationTemplate) {
-          await OCPPUtils.enrichChargingStationConnectorWithTemplate(
-            tenant, chargingStation, statusNotification.connectorId, chargingStationTemplate);
-        }
       }
+      // Enrich Charging Station's Connector
+      const chargingStationTemplate = await OCPPUtils.getChargingStationTemplate(chargingStation);
+      if (chargingStationTemplate) {
+        await OCPPUtils.enrichChargingStationConnectorWithTemplate(
+          tenant, chargingStation, statusNotification.connectorId, chargingStationTemplate);
+      }
+    // Same Status Notification?
+    } else if (Utils.objectAllPropertiesAreEqual(statusNotification, foundConnector, ['status', 'info', 'errorCode', 'vendorErrorCode'])) {
+      ignoreStatusNotification = true;
+      await Logging.logWarning({
+        tenantID: tenant.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
+        action: ServerAction.OCPP_STATUS_NOTIFICATION,
+        module: MODULE_NAME, method: 'handleStatusNotification',
+        message: `${this.buildStatusNotification(statusNotification)} has not changed and will be ignored`,
+        detailedMessages: { foundConnector, statusNotification }
+      });
     }
-    return foundConnector;
+    return { connector: foundConnector, ignoreStatusNotification };
   }
 
   private async checkAndUpdateLastCompletedTransaction(tenant: Tenant, chargingStation: ChargingStation,
@@ -846,7 +781,7 @@ export default class OCPPService {
     if (statusNotification.status === ChargePointStatus.AVAILABLE) {
       // Get the last transaction
       const lastTransaction = await TransactionStorage.getLastTransactionFromChargingStation(
-        tenant, chargingStation.id, connector.connectorId);
+        tenant, chargingStation.id, connector.connectorId, { withUser: true });
       // Transaction completed
       if (lastTransaction?.stop) {
         // Check Inactivity
@@ -861,15 +796,14 @@ export default class OCPPService {
               const currentStatusNotifTimestamp = Utils.convertToDate(statusNotification.timestamp);
               // Diff
               lastTransaction.stop.extraInactivitySecs =
-                Math.floor((currentStatusNotifTimestamp.getTime() - transactionStopTimestamp.getTime()) / 1000);
+                Utils.createDecimal(currentStatusNotifTimestamp.getTime()).minus(transactionStopTimestamp.getTime()).div(1000).floor().toNumber();
               // Negative inactivity
               if (lastTransaction.stop.extraInactivitySecs < 0) {
                 await Logging.logWarning({
                   tenantID: tenant.id,
-                  siteID: chargingStation.siteID,
-                  source: chargingStation.id,
+                  ...LoggingHelper.getChargingStationProperties(chargingStation),
                   module: MODULE_NAME, method: 'checkAndUpdateLastCompletedTransaction',
-                  action: ServerAction.STATUS_NOTIFICATION,
+                  action: ServerAction.OCPP_STATUS_NOTIFICATION,
                   message: `${Utils.buildConnectorInfo(lastTransaction.connectorId, lastTransaction.id)} Extra Inactivity is negative and will be ignored: ${lastTransaction.stop.extraInactivitySecs} secs`,
                   detailedMessages: { statusNotification }
                 });
@@ -882,8 +816,7 @@ export default class OCPPService {
                 await OCPPUtils.buildExtraConsumptionInactivity(tenant, lastTransaction);
                 await Logging.logInfo({
                   tenantID: tenant.id,
-                  siteID: chargingStation.siteID,
-                  source: chargingStation.id,
+                  ...LoggingHelper.getChargingStationProperties(chargingStation),
                   user: lastTransaction.userID,
                   module: MODULE_NAME, method: 'checkAndUpdateLastCompletedTransaction',
                   action: ServerAction.EXTRA_INACTIVITY,
@@ -895,8 +828,7 @@ export default class OCPPService {
             } else {
               await Logging.logInfo({
                 tenantID: tenant.id,
-                siteID: chargingStation.siteID,
-                source: chargingStation.id,
+                ...LoggingHelper.getChargingStationProperties(chargingStation),
                 user: lastTransaction.userID,
                 module: MODULE_NAME, method: 'checkAndUpdateLastCompletedTransaction',
                 action: ServerAction.EXTRA_INACTIVITY,
@@ -921,10 +853,9 @@ export default class OCPPService {
       } else if (!Utils.isNullOrUndefined(lastTransaction)) {
         await Logging.logWarning({
           tenantID: tenant.id,
-          siteID: chargingStation.siteID,
-          source: chargingStation.id,
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
           module: MODULE_NAME, method: 'checkAndUpdateLastCompletedTransaction',
-          action: ServerAction.STATUS_NOTIFICATION,
+          action: ServerAction.OCPP_STATUS_NOTIFICATION,
           message: `${Utils.buildConnectorInfo(lastTransaction.connectorId, lastTransaction.id)} Received Status Notification '${statusNotification.status}' while a transaction is ongoing`,
           detailedMessages: { statusNotification }
         });
@@ -977,8 +908,7 @@ export default class OCPPService {
       } catch (error) {
         await Logging.logError({
           tenantID: tenant.id,
-          siteID: chargingStation.siteID,
-          source: chargingStation.id,
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
           module: MODULE_NAME, method: 'updateOCPIConnectorStatus',
           action: ServerAction.OCPI_PATCH_STATUS,
           message: `An error occurred while patching the charging station status of ${chargingStation.id}`,
@@ -997,8 +927,7 @@ export default class OCPPService {
     } catch (error) {
       await Logging.logError({
         tenantID: tenant.id,
-        siteID: chargingStation.siteID,
-        source: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         module: MODULE_NAME, method: 'updateOICPConnectorStatus',
         action: ServerAction.OICP_UPDATE_EVSE_STATUS,
         message: `An error occurred while updating the charging station status of ${chargingStation.id}`,
@@ -1015,19 +944,21 @@ export default class OCPPService {
       // Log
       await Logging.logError({
         tenantID: tenant.id,
-        siteID: chargingStation.siteID,
-        source: chargingStation.id,
-        action: ServerAction.STATUS_NOTIFICATION,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
+        action: ServerAction.OCPP_STATUS_NOTIFICATION,
         module: MODULE_NAME, method: 'notifyStatusNotification',
         message: `${Utils.buildConnectorInfo(connector.connectorId)} Error occurred: ${this.buildStatusNotification(statusNotification)}`
       });
       // Send Notification (Async)
-      NotificationHandler.sendChargingStationStatusError(
+      await NotificationHandler.sendChargingStationStatusError(
         tenant,
         Utils.generateUUID(),
         chargingStation,
         {
           chargeBoxID: chargingStation.id,
+          siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          companyID: chargingStation.companyID,
           connectorId: Utils.getConnectorLetterFromConnectorID(connector.connectorId),
           error: this.buildStatusNotification(statusNotification),
           evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
@@ -1211,15 +1142,12 @@ export default class OCPPService {
       // Set Transaction ID
       foundConnector.currentTransactionID = transaction.id;
       foundConnector.currentUserID = transaction.userID;
-      // Update lastSeen
-      chargingStation.lastSeen = new Date();
       // Log
       const instantPower = Utils.truncTo(Utils.createDecimal(foundConnector.currentInstantWatts).div(1000).toNumber(), 3);
       const totalConsumption = Utils.truncTo(Utils.createDecimal(foundConnector.currentTotalConsumptionWh).div(1000).toNumber(), 3);
       await Logging.logInfo({
         tenantID: tenant.id,
-        siteID: chargingStation.siteID,
-        source: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         module: MODULE_NAME, method: 'updateChargingStationWithTransaction',
         action: ServerAction.CONSUMPTION,
         user: transaction.userID,
@@ -1231,12 +1159,12 @@ export default class OCPPService {
     }
   }
 
-  private notifyEndOfCharge(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction) {
+  private async notifyEndOfCharge(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction) {
     if (this.chargingStationConfig.notifEndOfChargeEnabled && transaction.user) {
       // Get the i18n lib
       const i18nManager = I18nManager.getInstanceForLocale(transaction.user.locale);
       // Notify (Async)
-      NotificationHandler.sendEndOfCharge(
+      await NotificationHandler.sendEndOfCharge(
         tenant,
         transaction.id.toString() + '-EOC',
         transaction.user,
@@ -1245,6 +1173,9 @@ export default class OCPPService {
           user: transaction.user,
           transactionId: transaction.id,
           chargeBoxID: chargingStation.id,
+          siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          companyID: chargingStation.companyID,
           connectorId: Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
           totalConsumption: i18nManager.formatNumber(Math.round(transaction.currentTotalConsumptionWh / 10) / 100),
           stateOfCharge: transaction.currentStateOfCharge,
@@ -1256,12 +1187,12 @@ export default class OCPPService {
     }
   }
 
-  private notifyOptimalChargeReached(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction) {
+  private async notifyOptimalChargeReached(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction) {
     if (this.chargingStationConfig.notifBeforeEndOfChargeEnabled && transaction.user) {
       // Get the i18n lib
       const i18nManager = I18nManager.getInstanceForLocale(transaction.user.locale);
       // Notification Before End Of Charge (Async)
-      NotificationHandler.sendOptimalChargeReached(
+      await NotificationHandler.sendOptimalChargeReached(
         tenant,
         transaction.id.toString() + '-OCR',
         transaction.user,
@@ -1269,6 +1200,9 @@ export default class OCPPService {
         {
           user: transaction.user,
           chargeBoxID: chargingStation.id,
+          siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          companyID: chargingStation.companyID,
           transactionId: transaction.id,
           connectorId: Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
           totalConsumption: i18nManager.formatNumber(Math.round(transaction.currentTotalConsumptionWh / 10) / 100),
@@ -1288,11 +1222,11 @@ export default class OCPPService {
         // Check if battery is full (100%)
         if (transaction.currentStateOfCharge === 100) {
           // Send Notification
-          this.notifyEndOfCharge(tenant, chargingStation, transaction);
+          await this.notifyEndOfCharge(tenant, chargingStation, transaction);
         // Check if optimal charge has been reached (85%)
         } else if (transaction.currentStateOfCharge >= this.chargingStationConfig.notifBeforeEndOfChargePercent) {
           // Send Notification
-          this.notifyOptimalChargeReached(tenant, chargingStation, transaction);
+          await this.notifyOptimalChargeReached(tenant, chargingStation, transaction);
         }
       // No battery information: check last consumptions
       } else {
@@ -1311,7 +1245,7 @@ export default class OCPPService {
                consumption.limitAmps >= StaticLimitAmps.MIN_LIMIT_PER_PHASE * Utils.getNumberOfConnectedPhases(chargingStation, null, transaction.connectorId)));
             // Send Notification
             if (noConsumption) {
-              this.notifyEndOfCharge(tenant, chargingStation, transaction);
+              await this.notifyEndOfCharge(tenant, chargingStation, transaction);
             }
           }
         }
@@ -1356,10 +1290,9 @@ export default class OCPPService {
         if (meterValue.attribute && meterValue.attribute.context === OCPPReadingContext.SAMPLE_CLOCK) {
           await Logging.logWarning({
             tenantID: tenant.id,
-            siteID: chargingStation.siteID,
-            source: chargingStation.id,
+            ...LoggingHelper.getChargingStationProperties(chargingStation),
             module: MODULE_NAME, method: 'filterMeterValuesOnSpecificChargingStations',
-            action: ServerAction.METER_VALUES,
+            action: ServerAction.OCPP_METER_VALUES,
             message: `Removed Meter Value with attribute context '${OCPPReadingContext.SAMPLE_CLOCK}'`,
             detailedMessages: { meterValue }
           });
@@ -1374,6 +1307,9 @@ export default class OCPPService {
     // Create the normalized meter value
     const normalizedMeterValues: OCPPNormalizedMeterValues = {
       chargeBoxID: chargingStation.id,
+      siteID: chargingStation.siteID,
+      siteAreaID: chargingStation.siteAreaID,
+      companyID: chargingStation.companyID,
       values: []
     };
     // OCPP 1.5: transfer to OCPP 1.6 structure
@@ -1460,8 +1396,7 @@ export default class OCPPService {
           // No consumption: delete
           await Logging.logWarning({
             tenantID: tenant.id,
-            siteID: chargingStation.siteID,
-            source: chargingStation.id,
+            ...LoggingHelper.getChargingStationProperties(chargingStation),
             module: MODULE_NAME, method: 'stopOrDeleteActiveTransactions',
             action: ServerAction.CLEANUP_TRANSACTION,
             actionOnUser: activeTransaction.user,
@@ -1475,7 +1410,10 @@ export default class OCPPService {
           // Simulate a Stop Transaction
           const result = await this.handleStopTransaction({
             tenantID: tenant.id,
-            chargeBoxIdentity: activeTransaction.chargeBoxID
+            chargeBoxIdentity: activeTransaction.chargeBoxID,
+            companyID: activeTransaction.companyID,
+            siteID: activeTransaction.siteID,
+            siteAreaID: activeTransaction.siteAreaID,
           }, {
             chargeBoxID: activeTransaction.chargeBoxID,
             transactionId: activeTransaction.id,
@@ -1487,8 +1425,7 @@ export default class OCPPService {
             // Cannot stop it
             await Logging.logError({
               tenantID: tenant.id,
-              siteID: chargingStation.siteID,
-              source: chargingStation.id,
+              ...LoggingHelper.getChargingStationProperties(chargingStation),
               module: MODULE_NAME, method: 'stopOrDeleteActiveTransactions',
               action: ServerAction.CLEANUP_TRANSACTION,
               actionOnUser: activeTransaction.userID,
@@ -1499,8 +1436,7 @@ export default class OCPPService {
             // Stopped
             await Logging.logWarning({
               tenantID: tenant.id,
-              siteID: chargingStation.siteID,
-              source: chargingStation.id,
+              ...LoggingHelper.getChargingStationProperties(chargingStation),
               module: MODULE_NAME, method: 'stopOrDeleteActiveTransactions',
               action: ServerAction.CLEANUP_TRANSACTION,
               actionOnUser: activeTransaction.userID,
@@ -1515,9 +1451,9 @@ export default class OCPPService {
     } while (activeTransaction);
   }
 
-  private notifyStartTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, user: User) {
+  private async notifyStartTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, user: User) {
     if (user) {
-      NotificationHandler.sendSessionStarted(
+      await NotificationHandler.sendSessionStarted(
         tenant,
         transaction.id.toString(),
         user,
@@ -1526,6 +1462,9 @@ export default class OCPPService {
           'user': user,
           'transactionId': transaction.id,
           'chargeBoxID': chargingStation.id,
+          'siteID': chargingStation.siteID,
+          'siteAreaID': chargingStation.siteAreaID,
+          'companyID': chargingStation.companyID,
           'connectorId': Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
           'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain),
           'evseDashboardChargingStationURL': Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress')
@@ -1555,13 +1494,13 @@ export default class OCPPService {
     return transaction.tagID;
   }
 
-  private notifyStopTransaction(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction, user: User, alternateUser: User) {
+  private async notifyStopTransaction(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction, user: User, alternateUser: User) {
     // User provided?
     if (user) {
       // Get the i18n lib
       const i18nManager = I18nManager.getInstanceForLocale(user.locale);
       // Send Notification (Async)
-      NotificationHandler.sendEndOfSession(
+      await NotificationHandler.sendEndOfSession(
         tenant,
         transaction.id.toString() + '-EOS',
         user,
@@ -1571,6 +1510,9 @@ export default class OCPPService {
           alternateUser: (alternateUser ? alternateUser : null),
           transactionId: transaction.id,
           chargeBoxID: chargingStation.id,
+          siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          companyID: chargingStation.companyID,
           connectorId: Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
           totalConsumption: i18nManager.formatNumber(Math.round(transaction.stop.totalConsumptionWh / 10) / 100),
           totalDuration: this.buildTransactionDuration(transaction),
@@ -1583,7 +1525,7 @@ export default class OCPPService {
       // Notify Signed Data
       if (transaction.stop.signedData !== '') {
         // Send Notification (Async)
-        NotificationHandler.sendEndOfSignedSession(
+        await NotificationHandler.sendEndOfSignedSession(
           tenant,
           transaction.id.toString() + '-EOSS',
           user,
@@ -1654,38 +1596,77 @@ export default class OCPPService {
     } else {
       await Logging.logWarning({
         tenantID: tenant.id,
-        siteID: chargingStation.siteID,
-        source: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         module: MODULE_NAME, method: 'clearChargingStationConnectorRuntimeData',
-        action: ServerAction.START_TRANSACTION, user: user,
+        action: ServerAction.OCPP_START_TRANSACTION, user: user,
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Connector does not exist`
       });
     }
-    // Update lastSeen
-    chargingStation.lastSeen = new Date();
   }
 
-  private async processCarTransaction(tenant: Tenant, transaction: Transaction, user: User): Promise<void> {
-    if (Utils.isTenantComponentActive(tenant, TenantComponents.CAR) && user) {
-      // Check default car
-      if (user.lastSelectedCarID) {
-        transaction.carID = user.lastSelectedCarID;
-      } else {
-        // Get default car if any
-        const defaultCar = await CarStorage.getDefaultUserCar(tenant, user.id, {}, ['id', 'carCatalogID']);
-        if (defaultCar) {
-          transaction.carID = defaultCar.id;
-          transaction.carCatalogID = defaultCar.carCatalogID;
+  private async processTransactionCar(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, consumption: Consumption, user: User,
+      action: TransactionAction): Promise<void> {
+    let soc = null;
+    switch (action) {
+      case TransactionAction.START:
+        // Handle car in transaction start
+        if (Utils.isTenantComponentActive(tenant, TenantComponents.CAR) && user) {
+          // Check default car
+          if (user.lastSelectedCarID) {
+            transaction.carID = user.lastSelectedCarID;
+          } else {
+            // Get default car if any
+            const defaultCar = await CarStorage.getDefaultUserCar(tenant, user.id, {}, ['id', 'carCatalogID', 'vin', 'carConnectorData.carConnectorID', 'carConnectorData.carConnectorMeterID']);
+            if (defaultCar) {
+              transaction.carID = defaultCar.id;
+              transaction.carCatalogID = defaultCar.carCatalogID;
+              transaction.car = defaultCar;
+            }
+          }
+          // Set Car Catalog ID
+          if (transaction.carID && !transaction.carCatalogID) {
+            const car = await CarStorage.getCar(tenant, transaction.carID, {}, ['id', 'carCatalogID', 'vin', 'carConnectorData.carConnectorID', 'carConnectorData.carConnectorMeterID']);
+            transaction.carCatalogID = car?.carCatalogID;
+            transaction.car = car;
+          }
+          // Clear
+          await UserStorage.saveUserLastSelectedCarID(tenant, user.id, null);
+          // Handle SoC
+          soc = await this.getCurrentSoc(tenant, transaction, chargingStation);
+          if (soc) {
+            transaction.stateOfCharge = soc;
+          }
+        }
+        break;
+      case TransactionAction.UPDATE:
+        // Handle SoC
+        if (Utils.isNullOrUndefined(transaction.car) || Utils.isNullOrUndefined(consumption)) {
+          return;
+        }
+        // Reassignment not needed anymore with specific connector data in car object --> Coming with Tronity implementation
+        transaction.car.carCatalog = transaction.carCatalog;
+        soc = await this.getCurrentSoc(tenant, transaction, chargingStation);
+        if (soc) {
+          consumption.stateOfCharge = soc;
+        }
+        break;
+    }
+  }
+
+  private async getCurrentSoc(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation): Promise<number> {
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.CAR_CONNECTOR) && !Utils.isNullOrUndefined(transaction.car) &&
+    !Utils.isNullOrUndefined(transaction.car.carConnectorData?.carConnectorID) &&
+    Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId) === CurrentType.AC) {
+      const carImplementation = await CarConnectorFactory.getCarConnectorImpl(tenant, transaction.car.carConnectorData.carConnectorID);
+      if (carImplementation) {
+        try {
+          return await carImplementation.getCurrentSoC(transaction.car, transaction.userID);
+        } catch {
+          return null;
         }
       }
-      // Set Car Catalog ID
-      if (transaction.carID && !transaction.carCatalogID) {
-        const car = await CarStorage.getCar(tenant, transaction.carID, {}, ['id', 'carCatalogID']);
-        transaction.carCatalogID = car?.carCatalogID;
-      }
-      // Clear
-      await UserStorage.saveUserLastSelectedCarID(tenant, user.id, null);
     }
+    return null;
   }
 
   private addChargingStationToException(error: BackendError, chargingStationID: string): void {
@@ -1756,17 +1737,12 @@ export default class OCPPService {
     bootNotification.currentIPAddress = headers.currentIPAddress;
     bootNotification.ocppProtocol = headers.ocppProtocol;
     bootNotification.ocppVersion = headers.ocppVersion;
-    // Set the default
-    bootNotification.lastReboot = new Date();
-    bootNotification.lastSeen = bootNotification.lastReboot;
-    bootNotification.timestamp = bootNotification.lastReboot;
+    bootNotification.timestamp = new Date();
   }
 
-  private async checkAndCreateChargingStation(tenant: Tenant, bootNotification: OCPPBootNotificationRequestExtended, headers: OCPPHeader): Promise<ChargingStation> {
-    // Check connection Token
-    const token = await OCPPUtils.checkChargingStationConnectionToken(
-      ServerAction.BOOT_NOTIFICATION, tenant, headers.chargeBoxIdentity, headers.token, { headers, bootNotification });
-    // New Charging Station: Create
+  private async createChargingStationFromBootNotification(tenant: Tenant,
+      bootNotification: OCPPBootNotificationRequestExtended, headers: OCPPHeader): Promise<ChargingStation> {
+    // New Charging Station: Create (Token has already been checked and provided!)
     const newChargingStation = {} as ChargingStation;
     for (const key in bootNotification) {
       newChargingStation[key] = bootNotification[key];
@@ -1774,47 +1750,37 @@ export default class OCPPService {
     // Update props
     newChargingStation.createdOn = new Date();
     newChargingStation.issuer = true;
+    newChargingStation.tokenID = headers.tokenID;
     newChargingStation.powerLimitUnit = ChargingRateUnitType.AMPERE;
-    newChargingStation.registrationStatus = RegistrationStatus.ACCEPTED;
     // Assign to Site Area
-    if (token.siteAreaID) {
-      const siteArea = await SiteAreaStorage.getSiteArea(tenant, token.siteAreaID, { withSite: true });
+    if (headers.token.siteAreaID) {
+      const siteArea = await SiteAreaStorage.getSiteArea(tenant, headers.token.siteAreaID, { withSite: true });
       if (siteArea) {
         newChargingStation.companyID = siteArea.site?.companyID;
         newChargingStation.siteID = siteArea.siteID;
-        newChargingStation.siteAreaID = token.siteAreaID;
-        // Set the same coordinates
-        if (siteArea?.address?.coordinates?.length === 2) {
+        newChargingStation.siteAreaID = headers.token.siteAreaID;
+        // Set coordinates
+        if (siteArea.address?.coordinates?.length === 2) {
           newChargingStation.coordinates = siteArea.address.coordinates;
+        // Backup on Site's coordinates
+        } else if (siteArea.site?.address?.coordinates?.length === 2) {
+          newChargingStation.coordinates = siteArea.site.address.coordinates;
         }
       }
     }
     return newChargingStation;
   }
 
-  private async checkExistingChargingStation(headers: OCPPHeader, chargingStation: ChargingStation, bootNotification: OCPPBootNotificationRequestExtended) {
+  private checkSameChargingStation(headers: OCPPHeader, chargingStation: ChargingStation, bootNotification: OCPPBootNotificationRequestExtended) {
     // Existing Charging Station: Update
     // Check if same vendor and model
     if ((chargingStation.chargePointVendor !== bootNotification.chargePointVendor ||
          chargingStation.chargePointModel !== bootNotification.chargePointModel) ||
         (chargingStation.chargePointSerialNumber && bootNotification.chargePointSerialNumber &&
          chargingStation.chargePointSerialNumber !== bootNotification.chargePointSerialNumber)) {
-      // Not the same Charging Station
-      const isChargingStationOnline = moment().subtract(Configuration.getChargingStationConfig().maxLastSeenIntervalSecs, 'seconds').isSameOrBefore(chargingStation.lastSeen);
-      if (isChargingStationOnline && chargingStation.registrationStatus === RegistrationStatus.ACCEPTED) {
-        await Logging.logWarning({
-          tenantID: headers.tenantID,
-          siteID: chargingStation.siteID,
-          source: chargingStation.id,
-          action: ServerAction.BOOT_NOTIFICATION,
-          module: MODULE_NAME, method: 'checkExistingChargingStation',
-          message: 'Trying to connect a charging station matching an online charging station with identical chargeBoxID, registered boot notification and different attributes',
-          detailedMessages: { headers, bootNotification }
-        });
-      }
       throw new BackendError({
-        source: chargingStation.id,
-        action: ServerAction.BOOT_NOTIFICATION,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
+        action: ServerAction.OCPP_BOOT_NOTIFICATION,
         module: MODULE_NAME, method: 'checkExistingChargingStation',
         message: 'Boot Notification Rejected: Attribute mismatch: ' +
           (bootNotification.chargePointVendor !== chargingStation.chargePointVendor ?
@@ -1823,30 +1789,33 @@ export default class OCPPService {
             `Got chargePointModel='${bootNotification.chargePointModel}' but expected '${chargingStation.chargePointModel}'! ` : '') +
           (bootNotification.chargePointSerialNumber !== chargingStation.chargePointSerialNumber ?
             `Got chargePointSerialNumber='${bootNotification.chargePointSerialNumber ? bootNotification.chargePointSerialNumber : ''}' but expected '${chargingStation.chargePointSerialNumber ? chargingStation.chargePointSerialNumber : ''}'!` : ''),
-        detailedMessages: { headers, bootNotification }
+        detailedMessages: { bootNotification }
       });
     }
+  }
+
+  private async enrichChargingStationFromBootNotification(tenant: Tenant, chargingStation: ChargingStation, headers: OCPPHeader,
+      bootNotification: OCPPBootNotificationRequestExtended) {
+    // Set common params
+    chargingStation.ocppProtocol = bootNotification.ocppProtocol;
+    chargingStation.ocppVersion = bootNotification.ocppVersion;
+    chargingStation.currentIPAddress = bootNotification.currentIPAddress;
+    chargingStation.cloudHostIP = Utils.getHostIP();
+    chargingStation.cloudHostName = Utils.getHostName();
+    chargingStation.lastReboot = bootNotification.timestamp;
+    chargingStation.lastSeen = bootNotification.timestamp;
     chargingStation.chargePointSerialNumber = bootNotification.chargePointSerialNumber;
     chargingStation.chargeBoxSerialNumber = bootNotification.chargeBoxSerialNumber;
     chargingStation.firmwareVersion = bootNotification.firmwareVersion;
-    chargingStation.lastReboot = bootNotification.lastReboot;
-    chargingStation.registrationStatus = RegistrationStatus.ACCEPTED;
-    // Back again
     chargingStation.deleted = false;
-  }
-
-  private enrichChargingStation(chargingStation: ChargingStation, headers: OCPPHeader, bootNotification: OCPPBootNotificationRequestExtended) {
-    // Set common params
-    chargingStation.ocppVersion = headers.ocppVersion;
-    chargingStation.ocppProtocol = headers.ocppProtocol;
-    chargingStation.lastSeen = bootNotification.lastSeen;
-    chargingStation.currentIPAddress = bootNotification.currentIPAddress;
     // Set the Charging Station URL?
     if (headers.chargingStationURL) {
       chargingStation.chargingStationURL = headers.chargingStationURL;
     }
-    // Update CF Instance
-    chargingStation.cfApplicationIDAndInstanceIndex = Configuration.getCFApplicationIDAndInstanceIndex();
+    // Clear Firmware Status
+    if (chargingStation.firmwareUpdateStatus) {
+      await ChargingStationStorage.saveChargingStationFirmwareStatus(tenant, chargingStation.id, null);
+    }
     // Backup connectors
     if (!Utils.isEmptyArray(chargingStation.connectors)) {
       // Init array
@@ -1877,62 +1846,78 @@ export default class OCPPService {
     return templateUpdateResult;
   }
 
-  private notifyBootNotification(tenant: Tenant, chargingStation: ChargingStation) {
-    void NotificationHandler.sendChargingStationRegistered(
+  private async notifyBootNotification(tenant: Tenant, chargingStation: ChargingStation) {
+    await NotificationHandler.sendChargingStationRegistered(
       tenant,
       Utils.generateUUID(),
       chargingStation,
       {
         chargeBoxID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
         evseDashboardChargingStationURL: Utils.buildEvseChargingStationURL(tenant.subdomain, chargingStation, '#all')
       }
     );
   }
 
-  private requestOCPPConfigurationDelayed(tenant: Tenant, chargingStation: ChargingStation, templateUpdateResult: TemplateUpdateResult, heartbeatIntervalSecs: number) {
+  private requestOCPPConfigurationAfterBootNotification(tenant: Tenant, chargingStation: ChargingStation,
+      templateUpdateResult: TemplateUpdateResult, heartbeatIntervalSecs: number) {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     setTimeout(async () => {
-      let result: OCPPChangeConfigurationCommandResult;
       // Synchronize heartbeat interval OCPP parameter for charging stations that do not take into account its value in the boot notification response
-      let heartbeatIntervalOcppParamSet = false;
-      // Change one of the key
       for (const heartbeatOcppKey of Constants.OCPP_HEARTBEAT_KEYS) {
-        result = await OCPPUtils.requestChangeChargingStationOcppParameter(tenant, chargingStation, {
-          key: heartbeatOcppKey,
-          value: heartbeatIntervalSecs.toString()
-        }, false);
-        if (result.status === OCPPConfigurationStatus.ACCEPTED ||
-            result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
-          heartbeatIntervalOcppParamSet = true;
-          break;
+        try {
+          const result = await OCPPCommon.requestChangeChargingStationOcppParameter(tenant, chargingStation, {
+            key: heartbeatOcppKey,
+            value: heartbeatIntervalSecs.toString()
+          }, false);
+          if (result.status === OCPPConfigurationStatus.ACCEPTED ||
+              result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
+            break;
+          }
+          await Logging.logError({
+            tenantID: tenant.id,
+            ...LoggingHelper.getChargingStationProperties(chargingStation),
+            action: ServerAction.OCPP_BOOT_NOTIFICATION,
+            module: MODULE_NAME, method: 'requestOCPPConfigurationDelayed',
+            message: `Cannot set '${heartbeatOcppKey}' to '${heartbeatIntervalSecs.toString()}' secs`
+          });
+        } catch (error) {
+          await Logging.logError({
+            tenantID: tenant.id,
+            ...LoggingHelper.getChargingStationProperties(chargingStation),
+            action: ServerAction.OCPP_BOOT_NOTIFICATION,
+            module: MODULE_NAME, method: 'requestOCPPConfigurationDelayed',
+            message: `Cannot set '${heartbeatOcppKey}' to '${heartbeatIntervalSecs.toString()}' secs`,
+            detailedMessages: { error: error.stack }
+          });
         }
-      }
-      if (!heartbeatIntervalOcppParamSet) {
-        await Logging.logError({
-          tenantID: tenant.id,
-          action: ServerAction.BOOT_NOTIFICATION,
-          siteID: chargingStation.siteID,
-          source: chargingStation.id,
-          module: MODULE_NAME, method: 'requestOCPPConfigurationDelayed',
-          message: `Cannot set heartbeat interval OCPP Parameter on '${chargingStation.id}' in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
-          detailedMessages: { heartbeatIntervalSecs, chargingStation }
-        });
       }
       // Apply Charging Station Template OCPP configuration
       if (templateUpdateResult.ocppStandardUpdated || templateUpdateResult.ocppVendorUpdated) {
-        result = await OCPPUtils.applyTemplateOcppParametersToChargingStation(tenant, chargingStation);
-      }
-      if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
-        await Logging.logError({
-          tenantID: tenant.id,
-          action: ServerAction.BOOT_NOTIFICATION,
-          siteID: chargingStation.siteID,
-          source: chargingStation.id,
-          module: MODULE_NAME, method: 'requestOCPPConfigurationDelayed',
-          message: `Cannot request and save OCPP Parameters from '${chargingStation.id}' in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
-          detailedMessages: { result, chargingStation }
-        });
+        try {
+          const result = await OCPPUtils.applyTemplateOcppParametersToChargingStation(tenant, chargingStation);
+          if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
+            await Logging.logError({
+              tenantID: tenant.id,
+              ...LoggingHelper.getChargingStationProperties(chargingStation),
+              action: ServerAction.OCPP_BOOT_NOTIFICATION,
+              module: MODULE_NAME, method: 'requestOCPPConfigurationDelayed',
+              message: `Cannot apply Template OCPP Parameters: '${result.status}'`
+            });
+          }
+        } catch (error) {
+          await Logging.logError({
+            tenantID: tenant.id,
+            ...LoggingHelper.getChargingStationProperties(chargingStation),
+            action: ServerAction.OCPP_BOOT_NOTIFICATION,
+            module: MODULE_NAME, method: 'requestOCPPConfigurationDelayed',
+            message: `Cannot apply Template OCPP Parameters: ${error.message as string}`,
+            detailedMessages: { error: error.stack }
+          });
+        }
       }
     }, Constants.DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS);
   }
@@ -1941,7 +1926,7 @@ export default class OCPPService {
     // Enrich
     this.enrichOCPPRequest(chargingStation, authorize);
     // Roaming User
-    if (user && !user.issuer) {
+    if (user && !user.issuer && chargingStation.siteArea.accessControl) {
       // Authorization ID provided?
       if (user.authorizationID) {
         // Public Charging Station
@@ -1951,21 +1936,21 @@ export default class OCPPService {
         } else {
           throw new BackendError({
             user: user,
-            action: ServerAction.AUTHORIZE,
+            action: ServerAction.OCPP_AUTHORIZE,
             module: MODULE_NAME,
             method: 'enrichAuthorize',
             message: 'Cannot authorize a roaming user on a private charging station',
-            detailedMessages: { headers, authorize }
+            detailedMessages: { authorize }
           });
         }
       } else {
         throw new BackendError({
           user: user,
-          action: ServerAction.AUTHORIZE,
+          action: ServerAction.OCPP_AUTHORIZE,
           module: MODULE_NAME,
           method: 'enrichAuthorize',
           message: 'Authorization ID has not been supplied',
-          detailedMessages: { headers, authorize }
+          detailedMessages: { authorize }
         });
       }
     }
@@ -1977,11 +1962,9 @@ export default class OCPPService {
     // Enrich Request
     ocppRequest.chargeBoxID = chargingStation.id;
     ocppRequest.timezone = Utils.getTimezone(chargingStation.coordinates);
-    if (withTimeStamp) {
+    if (withTimeStamp && !ocppRequest.timestamp) {
       ocppRequest.timestamp = new Date();
     }
-    // Update Charging Station
-    chargingStation.lastSeen = new Date();
   }
 
   private async bypassStopTransaction(tenant: Tenant, chargingStation: ChargingStation,
@@ -1990,12 +1973,11 @@ export default class OCPPService {
     if (stopTransaction.transactionId === 0) {
       await Logging.logWarning({
         tenantID: tenant.id,
-        siteID: chargingStation.siteID,
-        source: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         module: MODULE_NAME, method: 'bypassStopTransaction',
-        action: ServerAction.STOP_TRANSACTION,
+        action: ServerAction.OCPP_STOP_TRANSACTION,
         message: 'Ignored Transaction ID = 0',
-        detailedMessages: { headers, stopTransaction }
+        detailedMessages: { stopTransaction }
       });
       return true;
     }
@@ -2006,79 +1988,91 @@ export default class OCPPService {
     // Handle Meter Value only for transaction
     if (!meterValues.transactionId) {
       throw new BackendError({
-        source: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         module: MODULE_NAME, method: 'getTransactionFromMeterValues',
         message: `${Utils.buildConnectorInfo(meterValues.connectorId)} Meter Values are not linked to a transaction and will be ignored`,
-        action: ServerAction.METER_VALUES,
-        detailedMessages: { headers, meterValues }
+        action: ServerAction.OCPP_METER_VALUES,
+        detailedMessages: { meterValues }
       });
     }
-    const transaction = await TransactionStorage.getTransaction(tenant, meterValues.transactionId, { withUser: true, withTag: true });
+    const transaction = await TransactionStorage.getTransaction(tenant, meterValues.transactionId, { withUser: true, withTag: true, withCar: true });
     if (!transaction) {
-      // Try a Remote Stop the Transaction
+      // Abort the ongoing Transaction
       if (meterValues.transactionId) {
-        // Get the OCPP Client
-        const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant, chargingStation);
-        if (!chargingStationClient) {
-          await Logging.logWarning({
-            tenantID: tenant.id,
-            siteID: chargingStation.siteID,
-            source: chargingStation.id,
-            module: MODULE_NAME, method: 'getTransactionFromMeterValues',
-            action: ServerAction.STOP_TRANSACTION,
-            message: `${Utils.buildConnectorInfo(meterValues.connectorId, meterValues.transactionId)} Charging Station is not connected to the backend, cannot send a Remote Stop Transaction on an unknown ongoing Transaction`,
-            detailedMessages: { headers, meterValues }
-          });
-        } else {
-          // Send Remote Stop
-          const result = await chargingStationClient.remoteStopTransaction({
-            transactionId: meterValues.transactionId
-          });
-          if (result.status === OCPPRemoteStartStopStatus.ACCEPTED) {
-            await Logging.logInfo({
-              tenantID: tenant.id,
-              siteID: chargingStation.siteID,
-              source: chargingStation.id,
-              module: MODULE_NAME, method: 'getTransactionFromMeterValues',
-              action: ServerAction.STOP_TRANSACTION,
-              message: `${Utils.buildConnectorInfo(meterValues.connectorId, meterValues.transactionId)} Transaction with unknown ID has been automatically remotely stopped`,
-              detailedMessages: { headers, meterValues }
-            });
-          } else {
-            await Logging.logWarning({
-              tenantID: tenant.id,
-              siteID: chargingStation.siteID,
-              source: chargingStation.id,
-              module: MODULE_NAME, method: 'getTransactionFromMeterValues',
-              action: ServerAction.STOP_TRANSACTION,
-              message: `${Utils.buildConnectorInfo(meterValues.connectorId, meterValues.transactionId)} Cannot send a Remote Stop Transaction on an unknown ongoing Transaction`,
-              detailedMessages: { headers, meterValues }
-            });
-          }
-        }
+        await this.abortOngoingTransactionInMeterValues(tenant, chargingStation, headers, meterValues);
       }
       // Unkown Transaction
       throw new BackendError({
-        source: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         module: MODULE_NAME, method: 'getTransactionFromMeterValues',
         message: `${Utils.buildConnectorInfo(meterValues.connectorId, meterValues.transactionId)} Transaction does not exist`,
-        action: ServerAction.METER_VALUES,
-        detailedMessages: { headers, meterValues }
+        action: ServerAction.OCPP_METER_VALUES,
+        detailedMessages: { meterValues }
+      });
+    }
+    // Transaction finished
+    if (transaction?.stop) {
+      // Abort the ongoing Transaction
+      await this.abortOngoingTransactionInMeterValues(tenant, chargingStation, headers, meterValues);
+      throw new BackendError({
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
+        module: MODULE_NAME, method: 'getTransactionFromMeterValues',
+        message: `${Utils.buildConnectorInfo(meterValues.connectorId, meterValues.transactionId)} Transaction has already been stopped`,
+        action: ServerAction.OCPP_METER_VALUES,
+        detailedMessages: { transaction, meterValues }
       });
     }
     // Received Meter Values after the Transaction End Meter Value
     if (transaction.transactionEndReceived) {
       await Logging.logWarning({
         tenantID: tenant.id,
-        siteID: chargingStation.siteID,
-        source: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         module: MODULE_NAME, method: 'getTransactionFromMeterValues',
-        action: ServerAction.METER_VALUES,
+        action: ServerAction.OCPP_METER_VALUES,
         message: `${Utils.buildConnectorInfo(meterValues.connectorId, meterValues.transactionId)} Meter Values received after the 'Transaction.End'`,
-        detailedMessages: { headers, meterValues }
+        detailedMessages: { meterValues }
       });
     }
     return transaction;
+  }
+
+  private async abortOngoingTransactionInMeterValues(tenant: Tenant, chargingStation: ChargingStation, headers: OCPPHeader, meterValues: OCPPMeterValuesRequest) {
+    // Get the OCPP Client
+    const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant, chargingStation);
+    if (!chargingStationClient) {
+      await Logging.logError({
+        tenantID: tenant.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
+        module: MODULE_NAME, method: 'abortOngoingTransactionInMeterValues',
+        action: ServerAction.OCPP_METER_VALUES,
+        message: `${Utils.buildConnectorInfo(meterValues.connectorId, meterValues.transactionId)} Charging Station is not connected to the backend, cannot send a Remote Stop Transaction on an ongoing Transaction`,
+        detailedMessages: { meterValues }
+      });
+    } else {
+      // Send Remote Stop
+      const result = await chargingStationClient.remoteStopTransaction({
+        transactionId: meterValues.transactionId
+      });
+      if (result.status === OCPPRemoteStartStopStatus.ACCEPTED) {
+        await Logging.logWarning({
+          tenantID: tenant.id,
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
+          module: MODULE_NAME, method: 'abortOngoingTransactionInMeterValues',
+          action: ServerAction.OCPP_METER_VALUES,
+          message: `${Utils.buildConnectorInfo(meterValues.connectorId, meterValues.transactionId)} Transaction has been automatically remotely stopped`,
+          detailedMessages: { meterValues }
+        });
+      } else {
+        await Logging.logError({
+          tenantID: tenant.id,
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
+          module: MODULE_NAME, method: 'abortOngoingTransactionInMeterValues',
+          action: ServerAction.OCPP_METER_VALUES,
+          message: `${Utils.buildConnectorInfo(meterValues.connectorId, meterValues.transactionId)} Cannot send a Remote Stop Transaction on an unknown ongoing Transaction`,
+          detailedMessages: { meterValues }
+        });
+      }
+    }
   }
 
   private async getTransactionFromStopTransaction(tenant: Tenant, chargingStation: ChargingStation,
@@ -2086,11 +2080,11 @@ export default class OCPPService {
     const transaction = await TransactionStorage.getTransaction(tenant, stopTransaction.transactionId, { withUser: true, withTag: true });
     if (!transaction) {
       throw new BackendError({
-        source: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         module: MODULE_NAME, method: 'getTransactionFromStopTransaction',
         message: `Transaction with ID '${stopTransaction.transactionId}' doesn't exist`,
-        action: ServerAction.STOP_TRANSACTION,
-        detailedMessages: { headers, stopTransaction }
+        action: ServerAction.OCPP_STOP_TRANSACTION,
+        detailedMessages: { stopTransaction }
       });
     }
     return transaction;
@@ -2132,9 +2126,8 @@ export default class OCPPService {
       if (transaction.lastConsumption.value !== stopTransaction.meterStop) {
         await Logging.logWarning({
           tenantID: tenant.id,
-          siteID: chargingStation.siteID,
-          source: chargingStation.id,
-          action: ServerAction.STOP_TRANSACTION,
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
+          action: ServerAction.OCPP_STOP_TRANSACTION,
           module: MODULE_NAME, method: 'checkAndApplyLastConsumptionInStopTransaction',
           message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction.End consumption '${transaction.lastConsumption.value}' differs from Stop Transaction '${stopTransaction.meterStop}'`,
           detailedMessages: { stopTransaction, transaction }

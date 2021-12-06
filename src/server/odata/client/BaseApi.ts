@@ -12,20 +12,20 @@ export default class BaseApi {
 
   async send(httpRequest: AxiosRequestConfig) {
     let httpResponse;
-    let tenantID = Constants.DEFAULT_TENANT;
+    let tenant = Constants.DEFAULT_TENANT_OBJECT;
     // Set the base URL
     httpRequest.baseURL = this.baseURL;
     // Set the Query String
     if (httpRequest.data && httpRequest.headers['Content-Type'] === 'application/x-www-form-urlencoded') {
       // Get the Tenant ID
-      const tenant = await TenantStorage.getTenantBySubdomain(httpRequest.data.tenant);
-      if (tenant) {
-        tenantID = tenant.id;
+      const foundTenant = await TenantStorage.getTenantBySubdomain(httpRequest.data.tenant);
+      if (foundTenant) {
+        tenant = foundTenant;
       }
       httpRequest.data = querystring.stringify(httpRequest.data);
     }
     try {
-      const axiosInstance = AxiosFactory.getAxiosInstance(tenantID);
+      const axiosInstance = AxiosFactory.getAxiosInstance(tenant);
       // Execute with Axios
       httpResponse = await axiosInstance(httpRequest);
     } catch (error) {

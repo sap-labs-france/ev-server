@@ -1,0 +1,144 @@
+{
+  "$id": "tenant-components",
+  "definitions": {
+    "components": {
+      "type": "object",
+      "properties": {
+        "ocpi": {
+          "type": "object",
+          "properties": {
+            "active": {
+              "type": "boolean",
+              "sanitize": "mongo"
+            },
+            "type": {
+              "type": "string",
+              "sanitize": "mongo"
+            }
+          }
+        },
+        "oicp": {
+          "type": "object",
+          "properties": {
+              "active": {
+                "type": "boolean",
+                "sanitize": "mongo" },
+              "type": {
+                "type": "string",
+                "sanitize": "mongo" }
+          }
+        },
+        "refund": {
+          "type": "object",
+          "properties": {
+            "active": {
+              "type": "boolean",
+              "sanitize": "mongo"
+            },
+            "type": {
+              "type": "string",
+              "sanitize": "mongo"
+            }
+          }
+        },
+        "pricing": {
+          "type": "object",
+          "properties": {
+            "active": {
+              "type": "boolean",
+              "sanitize": "mongo"
+            },
+            "type": {
+              "type": "string",
+              "sanitize": "mongo"
+            }
+          }
+        },
+        "billing": {
+          "type": "object",
+          "properties": {
+            "active": {
+              "type": "boolean",
+              "sanitize": "mongo"
+            },
+            "type": {
+              "type": "string",
+              "sanitize": "mongo"
+            }
+          }
+        },
+        "organization": {
+          "type": "object",
+          "properties": {
+            "active": {
+              "type": "boolean",
+              "sanitize": "mongo"
+            }
+          }
+        },
+        "statistics": {
+          "type": "object",
+          "properties": {
+            "active": {
+              "type": "boolean",
+              "sanitize": "mongo"
+            }
+          }
+        },
+        "analytics": {
+          "type": "object",
+          "properties": {
+            "active": {
+              "type": "boolean",
+              "sanitize": "mongo"
+            },
+            "type": {
+              "type": "string",
+              "sanitize": "mongo"
+            }
+          }
+        },
+        "smartCharging": {
+          "type": "object",
+          "properties": {
+            "active": {
+              "type": "boolean",
+              "sanitize": "mongo"
+            },
+            "type": {
+              "type": "string",
+              "sanitize": "mongo"
+            }
+          }
+        },
+        "asset": {
+          "type": "object",
+          "properties": {
+            "active": {
+              "type": "boolean",
+              "sanitize": "mongo"
+            }
+          }
+        },
+        "car": {
+          "type": "object",
+          "properties": {
+            "active": {
+              "type": "boolean",
+              "sanitize": "mongo"
+            }
+          }
+        },
+        "carConnector": {
+          "type": "object",
+          "properties": {
+            "active": {
+              "type": "boolean",
+              "sanitize": "mongo"
+            }
+          }
+        }
+      }
+    }
+  }
+}

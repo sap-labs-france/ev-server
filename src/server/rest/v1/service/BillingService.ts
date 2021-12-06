@@ -19,10 +19,11 @@ import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import { StatusCodes } from 'http-status-codes';
-import TenantComponents from '../../../../types/TenantComponents';
+import { TenantComponents } from '../../../../types/Tenant';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import User from '../../../../types/User';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
+import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 
 const MODULE_NAME = 'BillingService';
@@ -44,7 +45,6 @@ export default class BillingService {
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
         module: MODULE_NAME, method: 'handleClearBillingTestData',
@@ -99,7 +99,6 @@ export default class BillingService {
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
         module: MODULE_NAME, method: 'handleCheckBillingConnection',
@@ -132,17 +131,16 @@ export default class BillingService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        entity: Entity.USERS, action: Action.SYNCHRONIZE_BILLING_USERS,
+        entity: Entity.USER, action: Action.SYNCHRONIZE_BILLING_USERS,
         module: MODULE_NAME, method: 'handleSynchronizeUsers',
       });
     }
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.SYNCHRONIZE_BILLING_USERS, Entity.USERS, MODULE_NAME, 'handleSynchronizeUsers');
+      Action.SYNCHRONIZE_BILLING_USERS, Entity.USER, MODULE_NAME, 'handleSynchronizeUsers');
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
         module: MODULE_NAME, method: 'handleSynchronizeUsers',
@@ -166,7 +164,6 @@ export default class BillingService {
       }
     } else {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Cannot acquire lock',
         module: MODULE_NAME, method: 'handleSynchronizeUsers',
@@ -195,7 +192,6 @@ export default class BillingService {
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
         module: MODULE_NAME, method: 'handleSynchronizeUser',
@@ -219,7 +215,6 @@ export default class BillingService {
       }
     } else {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Cannot acquire lock',
         module: MODULE_NAME, method: 'handleSynchronizeUser',
@@ -248,7 +243,6 @@ export default class BillingService {
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
         module: MODULE_NAME, method: 'handleForceSynchronizeUser',
@@ -270,7 +264,6 @@ export default class BillingService {
       }
     } else {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Cannot acquire lock',
         module: MODULE_NAME, method: 'handleSynchronizeUser',
@@ -288,18 +281,17 @@ export default class BillingService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        entity: Entity.TAXES, action: Action.LIST,
+        entity: Entity.TAX, action: Action.LIST,
         module: MODULE_NAME, method: 'handleGetBillingTaxes',
       });
     }
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.LIST, Entity.TAXES, MODULE_NAME, 'handleGetBillingTaxes');
+      Action.LIST, Entity.TAX, MODULE_NAME, 'handleGetBillingTaxes');
     // Get Billing implementation from factory
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
         module: MODULE_NAME, method: 'handleGetBillingTaxes',
@@ -317,12 +309,12 @@ export default class BillingService {
   public static async handleGetInvoices(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.LIST, Entity.INVOICES, MODULE_NAME, 'handleGetInvoices');
+      Action.LIST, Entity.INVOICE, MODULE_NAME, 'handleGetInvoices');
     if (!await Authorizations.canListInvoicesBilling(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        entity: Entity.INVOICES, action: Action.LIST,
+        entity: Entity.INVOICE, action: Action.LIST,
         module: MODULE_NAME, method: 'handleGetInvoices',
       });
     }
@@ -361,7 +353,7 @@ export default class BillingService {
   public static async handleGetInvoice(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.LIST, Entity.INVOICES, MODULE_NAME, 'handleGetInvoice');
+      Action.LIST, Entity.INVOICE, MODULE_NAME, 'handleGetInvoice');
     // Filter
     const filteredRequest = BillingSecurity.filterGetInvoiceRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetInvoice', req.user);
@@ -396,13 +388,13 @@ export default class BillingService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        entity: Entity.INVOICES, action: Action.SYNCHRONIZE,
+        entity: Entity.INVOICE, action: Action.SYNCHRONIZE,
         module: MODULE_NAME, method: 'handleSynchronizeInvoices',
       });
     }
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.SYNCHRONIZE, Entity.INVOICES, MODULE_NAME, 'handleSynchronizeInvoices');
+      Action.SYNCHRONIZE, Entity.INVOICE, MODULE_NAME, 'handleSynchronizeInvoices');
     // Check user
     let user: User;
     if (!Authorizations.isAdmin(req.user)) {
@@ -416,7 +408,6 @@ export default class BillingService {
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
         module: MODULE_NAME, method: 'handleSynchronizeInvoices',
@@ -440,7 +431,6 @@ export default class BillingService {
       }
     } else {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Cannot acquire lock',
         module: MODULE_NAME, method: 'handleSynchronizeUserInvoices',
@@ -458,17 +448,16 @@ export default class BillingService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        entity: Entity.INVOICES, action: Action.SYNCHRONIZE,
+        entity: Entity.INVOICE, action: Action.SYNCHRONIZE,
         module: MODULE_NAME, method: 'handleForceSynchronizeUserInvoices',
       });
     }
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.SYNCHRONIZE, Entity.INVOICES, MODULE_NAME, 'handleForceSynchronizeUserInvoices');
+      Action.SYNCHRONIZE, Entity.INVOICE, MODULE_NAME, 'handleForceSynchronizeUserInvoices');
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
         module: MODULE_NAME, method: 'handleForceSynchronizeUserInvoices',
@@ -497,7 +486,6 @@ export default class BillingService {
       }
     } else {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Cannot acquire lock',
         module: MODULE_NAME, method: 'handleForceSynchronizeUserInvoices',
@@ -528,7 +516,6 @@ export default class BillingService {
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
         module: MODULE_NAME, method: 'handleBillingSetupPaymentMethod',
@@ -544,7 +531,7 @@ export default class BillingService {
     const paymentMethodId: string = filteredRequest.paymentMethodId;
     const operationResult: BillingOperationResult = await billingImpl.setupPaymentMethod(user, paymentMethodId);
     if (operationResult) {
-      console.log(operationResult);
+      Utils.isDevelopmentEnv() && Logging.logConsoleError(operationResult as unknown as string);
     }
     res.json(operationResult);
     next();
@@ -612,8 +599,7 @@ export default class BillingService {
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
+        errorCode: HTTPError.MISSING_SETTINGS,
         message: 'Billing service is not configured',
         module: MODULE_NAME, method: 'handleBillingGetPaymentMethods',
         action: action,
@@ -629,7 +615,6 @@ export default class BillingService {
     await Logging.logInfo({
       tenantID: req.user.tenantID,
       user,
-      source: Constants.CENTRAL_SERVER,
       action: ServerAction.BILLING_PAYMENT_METHODS,
       module: MODULE_NAME, method: 'getPaymentMethods',
       message: `Number of payment methods: ${paymentMethods?.length}`
@@ -660,7 +645,6 @@ export default class BillingService {
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
         module: MODULE_NAME, method: 'handleBillingDeletePaymentMethod',
@@ -675,7 +659,7 @@ export default class BillingService {
     // Invoke the billing implementation
     const operationResult: BillingOperationResult = await billingImpl.deletePaymentMethod(user, filteredRequest.paymentMethodId);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteSite',
       message: `Payment Method '${filteredRequest.paymentMethodId}' has been deleted successfully`,
@@ -709,7 +693,6 @@ export default class BillingService {
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
         module: MODULE_NAME, method: 'handleDownloadInvoice',
@@ -721,7 +704,6 @@ export default class BillingService {
     const buffer = await billingImpl.downloadInvoiceDocument(billingInvoice);
     if (!billingInvoice.number || !buffer) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Invoice document not found',
         module: MODULE_NAME, method: 'handleDownloadInvoice',
@@ -748,7 +730,6 @@ export default class BillingService {
     // Retrieve Tenant ID from the URL Query Parameters
     if (!filteredRequest.tenantID) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Unexpected situation - TenantID is not set',
         module: MODULE_NAME, method: 'handleBillingWebHook',
@@ -759,7 +740,6 @@ export default class BillingService {
     const tenant = await TenantStorage.getTenant(filteredRequest.tenantID);
     if (!tenant) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         action: action,
         module: MODULE_NAME, method: 'handleBillingWebHook',
@@ -769,7 +749,6 @@ export default class BillingService {
     const billingImpl = await BillingFactory.getBillingImpl(tenant);
     if (!billingImpl) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
         module: MODULE_NAME, method: 'handleBillingWebHook',
@@ -818,7 +797,7 @@ export default class BillingService {
       });
     }
     // Check
-    const newBillingProperties = BillingValidator.getInstance().validateUpdateBillingSetting({ ...req.params, ...req.body });
+    const newBillingProperties = BillingValidator.getInstance().validateBillingSettingUpdateReq({ ...req.params, ...req.body });
     // Load previous settings
     const billingSettings = await SettingStorage.getBillingSetting(req.tenant);
     UtilsService.assertObjectExists(action, billingSettings, 'Failed to load billing settings', MODULE_NAME, 'handleUpdateBillingSetting', req.user);
@@ -832,7 +811,6 @@ export default class BillingService {
     if (!newTransactionBillingState && previousTransactionBillingState) {
       // Attempt to switch it OFF
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: StatusCodes.METHOD_NOT_ALLOWED,
         message: 'Switching OFF the billing of transactions is forbidden',
         module: MODULE_NAME,
@@ -900,7 +878,6 @@ export default class BillingService {
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
         module: MODULE_NAME, method: 'checkActivationPrerequisites',

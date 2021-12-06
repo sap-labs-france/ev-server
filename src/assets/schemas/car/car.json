@@ -1,0 +1,89 @@
+{
+  "$id": "car",
+  "definitions": {
+    "id": {
+      "$ref": "common#/definitions/id"
+    },
+    "vin": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "licensePlate": {
+      "type": "string",
+      "sanitize": "mongo",
+      "pattern": "^[A-Z0-9- ]*$"
+    },
+    "carCatalogID": {
+      "type": "number",
+      "sanitize": "mongo"
+    },
+    "forced": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "type": {
+      "type": "string",
+      "sanitize": "mongo",
+      "enum": [
+        "P",
+        "C",
+        "PC"
+      ]
+    },
+    "userID": {
+      "$ref": "user#/definitions/id"
+    },
+    "default": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "converter": {
+      "type": "object",
+      "required": [
+        "amperagePerPhase",
+        "numberOfPhases",
+        "powerWatts",
+        "type"
+      ],
+      "properties": {
+        "amperagePerPhase": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "numberOfPhases": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "type": {
+          "type": "string",
+          "sanitize": "mongo",
+          "enum": [
+            "S",
+            "O",
+            "A"
+          ]
+        },
+        "powerWatts": {
+          "type": "number",
+          "sanitize": "mongo"
+        }
+      }
+    },
+    "carConnectorData": {
+      "type": "object",
+      "required": [
+        "carConnectorID"
+      ],
+      "properties": {
+        "carConnectorID": {
+          "type": ["string", "null"],
+          "sanitize": "mongo"
+        },
+        "carConnectorMeterID": {
+          "type": ["string", "null"],
+          "sanitize": "mongo"
+        }
+      }
+    }
+  }
+}

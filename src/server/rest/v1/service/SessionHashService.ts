@@ -2,7 +2,6 @@ import { NextFunction, Request, Response } from 'express';
 
 import AppError from '../../../../exception/AppError';
 import Constants from '../../../../utils/Constants';
-import Cypher from '../../../../utils/Cypher';
 import { HTTPError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
@@ -45,7 +44,6 @@ export default class SessionHashService {
       // Check User's Hash
       if (userHashID !== this.buildUserHashID(user)) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.USER_ACCOUNT_CHANGED,
           message: 'User has been updated and will be logged off',
           module: MODULE_NAME,
@@ -56,7 +54,6 @@ export default class SessionHashService {
       // Check Tenant's Hash
       if (tenantHashID !== this.buildTenantHashID(tenant)) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.TENANT_COMPONENT_CHANGED,
           message: 'Tenant has been updated and all users will be logged off',
           module: MODULE_NAME,
@@ -75,14 +72,14 @@ export default class SessionHashService {
   public static buildUserHashID(user: User): string {
     // Generate User Hash
     if (user) {
-      return Cypher.hash(`${Utils.getLanguageFromLocale(user.locale)}/${user.email}/${user.role}/${user.status}`);
+      return Utils.hash(`${Utils.getLanguageFromLocale(user.locale)}/${user.email}/${user.role}/${user.status}`);
     }
   }
 
   public static buildTenantHashID(tenant: Tenant): string {
     // Generate Tenant Hash
     if (tenant) {
-      return Cypher.hash(JSON.stringify(Utils.getTenantActiveComponents(tenant)));
+      return Utils.hash(JSON.stringify(Utils.getTenantActiveComponents(tenant)));
     }
   }
 }

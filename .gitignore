@@ -87,8 +87,3 @@ Thumbs.db
 # MTA
 *.mta
 mta_archives/
-
-# Optional components
-src/integration/refund/export/concur/index.ts
-src/integration/smart-charging/export/sap-smart-charging/index.ts
-src/integration/pricing/export/convergent-charging/index.ts

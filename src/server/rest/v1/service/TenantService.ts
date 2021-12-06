@@ -1,8 +1,8 @@
 import { Action, Entity } from '../../../../types/Authorization';
-import { CryptoSettings, CryptoSettingsType, SettingDB, SettingDBContent, TechnicalSettings, UserSettings, UserSettingsType } from '../../../../types/Setting';
+import { CryptoSettings, CryptoSettingsType, SettingDB, TechnicalSettings, UserSettings, UserSettingsType } from '../../../../types/Setting';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-import Tenant, { TenantLogo } from '../../../../types/Tenant';
+import Tenant, { TenantComponents, TenantLogo } from '../../../../types/Tenant';
 import User, { UserRole } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -13,6 +13,7 @@ import { LockEntity } from '../../../../types/Locking';
 import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
+import OCPIEndpointStorage from '../../../../storage/mongodb/OCPIEndpointStorage';
 import OICPEndpointStorage from '../../../../storage/mongodb/OICPEndpointStorage';
 import { OICPRole } from '../../../../types/oicp/OICPRole';
 import OICPUtils from '../../../oicp/OICPUtils';
@@ -25,7 +26,6 @@ import TenantValidator from '../validator/TenantValidator';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
-import { filter } from 'lodash';
 
 const MODULE_NAME = 'TenantService';
 
@@ -33,8 +33,8 @@ export default class TenantService {
 
   public static async handleDeleteTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Validate
-    const tenantID = TenantValidator.getInstance().validateTenantDeleteRequestSuperAdmin(req.query);
-    UtilsService.assertIdIsProvided(action, tenantID, MODULE_NAME, 'handleDeleteTenant', req.user);
+    const filteredRequest = TenantValidator.getInstance().validateTenantGetReq(req.query);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleDeleteTenant', req.user);
     // Check auth
     if (!await Authorizations.canDeleteTenant(req.user)) {
       throw new AppAuthError({
@@ -42,17 +42,16 @@ export default class TenantService {
         user: req.user,
         action: Action.DELETE, entity: Entity.TENANT,
         module: MODULE_NAME, method: 'handleDeleteTenant',
-        value: tenantID
+        value: filteredRequest.ID
       });
     }
     // Get
-    const tenant = await TenantStorage.getTenant(tenantID);
-    UtilsService.assertObjectExists(action, tenant, `Tenant ID '${tenantID}' does not exist`,
+    const tenant = await TenantStorage.getTenant(filteredRequest.ID);
+    UtilsService.assertObjectExists(action, tenant, `Tenant ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleDeleteTenant', req.user);
     // Check if current tenant
     if (tenant.id === req.user.tenantID) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `Your own tenant with id '${tenant.id}' cannot be deleted`,
         module: MODULE_NAME, method: 'handleDeleteTenant',
@@ -65,7 +64,7 @@ export default class TenantService {
     // Remove collection
     await TenantStorage.deleteTenantDB(tenant.id);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID, user: req.user,
       module: MODULE_NAME, method: 'handleDeleteTenant',
       message: `Tenant '${tenant.name}' has been deleted successfully`,
@@ -79,7 +78,7 @@ export default class TenantService {
 
   public static async handleGetTenantLogo(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Validate
-    const filteredRequest = TenantValidator.getInstance().validateGetLogoReqSuperAdmin(req.query);
+    const filteredRequest = TenantValidator.getInstance().validateLogoGetReq(req.query);
     // Get Logo
     let tenantLogo: TenantLogo;
     // Get the logo using ID
@@ -114,7 +113,7 @@ export default class TenantService {
 
   public static async handleGetTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Validate
-    const filteredRequest = TenantValidator.getInstance().validateTenantGetReqSuperAdmin(req.query);
+    const filteredRequest = TenantValidator.getInstance().validateTenantGetReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetTenant', req.user);
     // Check auth
     if (!await Authorizations.canReadTenant(req.user)) {
@@ -148,13 +147,13 @@ export default class TenantService {
 
   public static async handleGetTenants(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Validate
-    const filteredRequest = TenantValidator.getInstance().validateTenantsGetReqSuperAdmin(req.query);
+    const filteredRequest = TenantValidator.getInstance().validateTenantsGetReq(req.query);
     // Check auth
     if (!await Authorizations.canListTenants(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.LIST, entity: Entity.TENANTS,
+        action: Action.LIST, entity: Entity.TENANT,
         module: MODULE_NAME, method: 'handleGetTenants'
       });
     }
@@ -225,7 +224,7 @@ export default class TenantService {
 
   public static async handleCreateTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Validate
-    const filteredRequest = TenantValidator.getInstance().validateTenantCreateRequestSuperAdmin(req.body);
+    const filteredRequest = TenantValidator.getInstance().validateTenantCreateReq(req.body);
     // Check auth
     if (!await Authorizations.canCreateTenant(req.user)) {
       throw new AppAuthError({
@@ -239,7 +238,6 @@ export default class TenantService {
     const foundTenant = await TenantStorage.getTenantBySubdomain(filteredRequest.subdomain);
     if (foundTenant) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.TENANT_ALREADY_EXIST,
         message: `The tenant with subdomain '${filteredRequest.subdomain}' already exists`,
         module: MODULE_NAME, method: 'handleCreateTenant',
@@ -293,7 +291,7 @@ export default class TenantService {
       '/verify-email?VerificationToken=' + verificationToken + '&Email=' +
       tenantUser.email + '&ResetToken=' + resetHash;
     // Send Register User (Async)
-    NotificationHandler.sendNewRegisteredUser(
+    await NotificationHandler.sendNewRegisteredUser(
       tenant,
       Utils.generateUUID(),
       tenantUser,
@@ -305,7 +303,7 @@ export default class TenantService {
       }
     ).catch(() => { });
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID, user: req.user,
       module: MODULE_NAME, method: 'handleCreateTenant',
       message: `Tenant '${filteredRequest.name}' has been created successfully`,
@@ -319,7 +317,7 @@ export default class TenantService {
 
   public static async handleUpdateTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check
-    const filteredRequest = TenantValidator.getInstance().validateTenantUpdateRequestSuperAdmin(req.body);
+    const filteredRequest = TenantValidator.getInstance().validateTenantUpdateReq(req.body);
     // Check auth
     if (!await Authorizations.canUpdateTenant(req.user)) {
       throw new AppAuthError({
@@ -338,7 +336,6 @@ export default class TenantService {
     const foundTenant = await TenantStorage.getTenantBySubdomain(filteredRequest.subdomain);
     if (filteredRequest.subdomain !== tenant.subdomain && foundTenant) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.TENANT_ALREADY_EXIST,
         message: `The tenant with subdomain '${filteredRequest.subdomain}' already exists`,
         module: MODULE_NAME, method: 'handleCreateTenant',
@@ -353,7 +350,6 @@ export default class TenantService {
       const siteAreas = await SiteAreaStorage.getSiteAreas(tenant, { smartCharging: true }, Constants.DB_PARAMS_MAX_LIMIT);
       if (siteAreas.count !== 0) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.SMART_CHARGING_STILL_ACTIVE_FOR_SITE_AREA,
           message: 'Site Area(s) is/are still enabled for Smart Charging. Please deactivate it/them to disable Smart Charging in Tenant',
           module: MODULE_NAME,
@@ -381,7 +377,7 @@ export default class TenantService {
     // Update with components
     await TenantService.updateSettingsWithComponents(filteredRequest, req);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID, user: req.user,
       module: MODULE_NAME, method: 'handleUpdateTenant',
       message: `Tenant '${filteredRequest.name}' has been updated successfully`,
@@ -403,19 +399,25 @@ export default class TenantService {
         // Delete settings
         if (currentSetting) {
           await SettingStorage.deleteSetting(tenant, currentSetting.id);
+          // Delete deps
+          switch (componentName) {
+            case TenantComponents.OCPI:
+              await OCPIEndpointStorage.deleteOcpiEndpoints(tenant);
+              break;
+            case TenantComponents.OICP:
+              await OICPEndpointStorage.deleteOicpEndpoints(tenant);
+              break;
+          }
         }
         continue;
       }
       // Create
-      const newSettingContent: SettingDBContent = Utils.createDefaultSettingContent(
-        {
-          ...tenant.components[componentName],
-          name: componentName
-        }, (currentSetting ? currentSetting.content : null));
+      const newSettingContent = Utils.createDefaultSettingContent(
+        componentName, tenant.components[componentName], currentSetting?.content);
       if (newSettingContent) {
         // Create & Save
         if (!currentSetting) {
-          const newSetting: SettingDB = {
+          const newSetting = {
             identifier: componentName,
             content: newSettingContent
           } as SettingDB;
@@ -452,9 +454,9 @@ export default class TenantService {
         }
         // Delete Endpoints if component is inactive
         const oicpEndpoints = await OICPEndpointStorage.getOicpEndpoints(tenant, { role: OICPRole.CPO }, Constants.DB_PARAMS_MAX_LIMIT);
-        oicpEndpoints.result.forEach(async (oicpEndpoint) => {
+        for (const oicpEndpoint of oicpEndpoints.result) {
           await OICPEndpointStorage.deleteOicpEndpoint(tenant, oicpEndpoint.id);
-        });
+        }
       }
     }
   }

@@ -1,12 +1,13 @@
 {
+  "$id": "chargingstation-qrcode-generate",
   "title": "Generate QRCode for Charging Station",
   "type": "object",
   "properties": {
     "ChargingStationID": {
-      "$ref": "chargingstation.json#/definitions/id"
+      "$ref": "chargingstation#/definitions/id"
     },
     "ConnectorID": {
-      "$ref": "chargingstation.json#/definitions/connector/properties/connectorId"
+      "$ref": "chargingstation#/definitions/connector/properties/connectorId"
     }
   },
   "required": [

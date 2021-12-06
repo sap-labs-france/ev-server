@@ -1,0 +1,32 @@
+{
+  "$id": "user-sites-get",
+  "title": "Get User sites",
+  "type": "object",
+  "properties": {
+    "UserID": {
+      "$ref": "user#/definitions/id"
+    },
+    "Search": {
+      "$ref": "common#/definitions/search"
+    },
+    "Limit": {
+      "$ref": "common#/definitions/limit"
+    },
+    "SortFields": {
+      "$ref": "common#/definitions/sortFields"
+    },
+    "Skip": {
+      "$ref": "common#/definitions/skip"
+    },
+    "OnlyRecordCount": {
+      "$ref": "common#/definitions/onlyRecordCount"
+    },
+    "ProjectFields": {
+      "$ref": "common#/definitions/projectFields"
+    }
+  },
+  "required": [
+    "UserID",
+    "Limit"
+  ]
+}

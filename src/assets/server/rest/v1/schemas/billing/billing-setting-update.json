@@ -1,9 +1,10 @@
 {
+  "$id": "billing-setting-update",
   "title": "Update Billing Settings",
   "type": "object",
   "properties": {
     "id": {
-      "$ref": "common.json#/definitions/id"
+      "$ref": "common#/definitions/id"
     },
     "identifier": {
       "type": "string",
@@ -36,8 +37,7 @@
       "required": [
         "isTransactionBillingActivated",
         "immediateBillingAllowed",
-        "periodicBillingAllowed",
-        "taxID"
+        "periodicBillingAllowed"
       ]
     },
     "stripe": {

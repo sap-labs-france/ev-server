@@ -1,0 +1,14 @@
+{
+  "$id": "oicp-endpoint-by-id",
+  "title": "OICP Endpoint by id Request",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "oicp-endpoint#/definitions/id"
+    }
+  },
+  "required": [
+    "ID"
+  ]
+}

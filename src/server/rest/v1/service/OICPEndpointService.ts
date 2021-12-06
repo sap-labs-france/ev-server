@@ -9,13 +9,13 @@ import { HTTPAuthError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
 import OICPClientFactory from '../../../../client/oicp/OICPClientFactory';
 import OICPEndpoint from '../../../../types/oicp/OICPEndpoint';
-import OICPEndpointSecurity from './security/OICPEndpointSecurity';
 import OICPEndpointStorage from '../../../../storage/mongodb/OICPEndpointStorage';
+import OICPEndpointValidator from '../validator/OICPEndpointValidator';
 import { OICPRegistrationStatus } from '../../../../types/oicp/OICPRegistrationStatus';
 import { OICPStatusCode } from '../../../../types/oicp/OICPStatusCode';
 import { ServerAction } from '../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
-import TenantComponents from '../../../../types/TenantComponents';
+import { TenantComponents } from '../../../../types/Tenant';
 import UtilsService from './UtilsService';
 
 const MODULE_NAME = 'OICPEndpointService';
@@ -26,8 +26,7 @@ export default class OICPEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OICP,
       Action.DELETE, Entity.OICP_ENDPOINT, MODULE_NAME, 'handleDeleteOicpEndpoint');
     // Filter
-    const filteredRequest = OICPEndpointSecurity.filterOicpEndpointDeleteRequest(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleDeleteOicpEndpoint', req.user);
+    const filteredRequest = OICPEndpointValidator.getInstance().validateOICPEndpointGetReq(req.query);
     // Check auth
     if (!await Authorizations.canDeleteOicpEndpoint(req.user)) {
       throw new AppAuthError({
@@ -45,7 +44,7 @@ export default class OICPEndpointService {
     // Delete
     await OICPEndpointStorage.deleteOicpEndpoint(req.tenant, oicpEndpoint.id);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteOicpEndpoint',
       message: `Oicp Endpoint '${oicpEndpoint.name}' has been deleted successfully`,
@@ -57,7 +56,7 @@ export default class OICPEndpointService {
     next();
   }
 
-  public static async handleCreateOicpEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleCreateOicpEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OICP,
       Action.CREATE, Entity.OICP_ENDPOINT, MODULE_NAME, 'handleCreateOicpEndpoint');
@@ -73,7 +72,7 @@ export default class OICPEndpointService {
       });
     }
     // Filter
-    const filteredRequest = OICPEndpointSecurity.filterOicpEndpointCreateRequest(req.body);
+    const filteredRequest = OICPEndpointValidator.getInstance().validateOICPEndpointCreateReq(req.body);
     // Check Mandatory fields
     UtilsService.checkIfOICPEndpointValid(filteredRequest, req);
     const oicpEndpoint: OICPEndpoint = {
@@ -95,7 +94,7 @@ export default class OICPEndpointService {
     } as OICPEndpoint;
     const endpointID = await OICPEndpointStorage.saveOicpEndpoint(req.tenant, oicpEndpoint);
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleCreateOicpEndpoint',
       message: `Oicp Endpoint '${filteredRequest.name}' has been created successfully`,
@@ -112,7 +111,7 @@ export default class OICPEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OICP,
       Action.UPDATE, Entity.OICP_ENDPOINT, MODULE_NAME, 'handleUpdateOicpEndpoint');
     // Filter
-    const filteredRequest = OICPEndpointSecurity.filterOicpEndpointUpdateRequest(req.body);
+    const filteredRequest = OICPEndpointValidator.getInstance().validateOICPEndpointUpdateReq(req.body);
     // Check Mandatory fields
     UtilsService.checkIfOICPEndpointValid(filteredRequest, req);
     // Check auth
@@ -135,7 +134,7 @@ export default class OICPEndpointService {
     // Update OicpEndpoint
     await OICPEndpointStorage.saveOicpEndpoint(req.tenant, { ...oicpEndpoint, ...filteredRequest });
     // Log
-    await Logging.logSecurityInfo({
+    await Logging.logInfo({
       tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateOicpEndpoint',
       message: `Oicp Endpoint '${oicpEndpoint.name}' has been updated successfully`,
@@ -152,8 +151,7 @@ export default class OICPEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OICP,
       Action.READ, Entity.OICP_ENDPOINT, MODULE_NAME, 'handleGetOicpEndpoint');
     // Filter
-    const endpointID = OICPEndpointSecurity.filterOicpEndpointRequestByID(req.query);
-    UtilsService.assertIdIsProvided(action, endpointID, MODULE_NAME, 'handleGetOicpEndpoint', req.user);
+    const endpointID = OICPEndpointValidator.getInstance().validateOICPEndpointGetReq(req.query).ID;
     // Check auth
     if (!await Authorizations.canReadOicpEndpoint(req.user)) {
       throw new AppAuthError({
@@ -185,7 +183,7 @@ export default class OICPEndpointService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.LIST, entity: Entity.OICP_ENDPOINTS,
+        action: Action.LIST, entity: Entity.OICP_ENDPOINT,
         module: MODULE_NAME, method: 'handleGetOicpEndpoints'
       });
     }
@@ -195,7 +193,7 @@ export default class OICPEndpointService {
       userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName' ];
     }
     // Filter
-    const filteredRequest = OICPEndpointSecurity.filterOicpEndpointsRequest(req.query);
+    const filteredRequest = OICPEndpointValidator.getInstance().validateOICPEndpointsGetReq(req.query);
     // Get all oicpendpoints
     const oicpEndpoints = await OICPEndpointStorage.getOicpEndpoints(req.tenant,
       {
@@ -203,7 +201,7 @@ export default class OICPEndpointService {
       }, {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.SortFields,
+        sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       [
@@ -216,7 +214,7 @@ export default class OICPEndpointService {
     next();
   }
 
-  public static async handleSendEVSEStatusesOicpEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleSendEVSEStatusesOicpEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OICP,
       Action.READ, Entity.OICP_ENDPOINT, MODULE_NAME, 'handleSendEVSEStatusesOicpEndpoint');
@@ -232,11 +230,10 @@ export default class OICPEndpointService {
       });
     }
     // Filter
-    const filteredRequest = OICPEndpointSecurity.filterOicpEndpointSendEVSEStatusesRequest(req.body);
-    UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleSendEVSEStatusesOicpEndpoint', req.user);
+    const filteredRequest = OICPEndpointValidator.getInstance().validateOICPEndpointGetReq(req.params);
     // Get oicpEndpoint
-    const oicpEndpoint = await OICPEndpointStorage.getOicpEndpoint(req.tenant, filteredRequest.id);
-    UtilsService.assertObjectExists(action, oicpEndpoint, `OICP Endpoint ID '${filteredRequest.id}' does not exist`,
+    const oicpEndpoint = await OICPEndpointStorage.getOicpEndpoint(req.tenant, filteredRequest.ID);
+    UtilsService.assertObjectExists(action, oicpEndpoint, `OICP Endpoint ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleSendEVSEStatusesOicpEndpoint', req.user);
     // Build OICP Client
     const oicpClient = await OICPClientFactory.getCpoOicpClient(req.tenant, oicpEndpoint);
@@ -247,7 +244,7 @@ export default class OICPEndpointService {
     next();
   }
 
-  public static async handleSendEVSEsOicpEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleSendEVSEsOicpEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OICP,
       Action.READ, Entity.OICP_ENDPOINT, MODULE_NAME, 'handleSendEVSEsOicpEndpoint');
@@ -263,11 +260,10 @@ export default class OICPEndpointService {
       });
     }
     // Filter
-    const filteredRequest = OICPEndpointSecurity.filterOicpEndpointSendEVSEsRequest(req.body);
-    UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleSendEVSEsOicpEndpoint', req.user);
+    const filteredRequest = OICPEndpointValidator.getInstance().validateOICPEndpointGetReq(req.params);
     // Get oicpEndpoint
-    const oicpEndpoint = await OICPEndpointStorage.getOicpEndpoint(req.tenant, filteredRequest.id);
-    UtilsService.assertObjectExists(action, oicpEndpoint, `OICP Endpoint ID '${filteredRequest.id}' does not exist`,
+    const oicpEndpoint = await OICPEndpointStorage.getOicpEndpoint(req.tenant, filteredRequest.ID);
+    UtilsService.assertObjectExists(action, oicpEndpoint, `OICP Endpoint ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleSendEVSEsOicpEndpoint', req.user);
     // Build OICP Client
     const oicpClient = await OICPClientFactory.getCpoOicpClient(req.tenant, oicpEndpoint);
@@ -278,7 +274,7 @@ export default class OICPEndpointService {
     next();
   }
 
-  public static async handlePingOicpEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handlePingOicpEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OICP,
       Action.UPDATE, Entity.OICP_ENDPOINT, MODULE_NAME, 'handlePingOicpEndpoint');
@@ -294,7 +290,7 @@ export default class OICPEndpointService {
       });
     }
     // Filter
-    const filteredRequest = OICPEndpointSecurity.filterOicpEndpointPingRequest(req.body);
+    const filteredRequest = OICPEndpointValidator.getInstance().validateOICPEndpointPingReq(req.params);
     // Check Mandatory fields
     UtilsService.checkIfOICPEndpointValid(filteredRequest, req);
     // Get oicpEndpoint
@@ -306,20 +302,20 @@ export default class OICPEndpointService {
     // Check ping result
     if (pingResult.statusCode === OICPStatusCode.Code000) {
       // Log
-      await Logging.logSecurityInfo({
+      await Logging.logInfo({
         tenantID: req.tenant.id,
         user: req.user, module: MODULE_NAME, method: 'handlePingOicpEndpoint',
-        message: `Oicp Endpoint '${filteredRequest.name}' can be reached successfully`,
+        message: `Oicp Endpoint '${oicpEndpoint.name}' can be reached successfully`,
         action: action,
         detailedMessages: { pingResult }
       });
       res.json(Object.assign(pingResult, Constants.REST_RESPONSE_SUCCESS));
     } else {
       // Log
-      await Logging.logSecurityError({
+      await Logging.logError({
         tenantID: req.tenant.id,
         user: req.user, module: MODULE_NAME, method: 'handlePingOicpEndpoint',
-        message: `Oicp Endpoint '${filteredRequest.name}' cannot be reached`,
+        message: `Oicp Endpoint '${oicpEndpoint.name}' cannot be reached`,
         action: action,
         detailedMessages: { pingResult }
       });
@@ -342,11 +338,10 @@ export default class OICPEndpointService {
       });
     }
     // Filter
-    const filteredRequest = OICPEndpointSecurity.filterOicpEndpointRegisterRequest(req.body);
-    UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleUnregisterOicpEndpoint', req.user);
+    const filteredRequest = OICPEndpointValidator.getInstance().validateOICPEndpointGetReq(req.params);
     // Get OicpEndpoint
-    const oicpEndpoint = await OICPEndpointStorage.getOicpEndpoint(req.tenant, filteredRequest.id);
-    UtilsService.assertObjectExists(action, oicpEndpoint, `OICP Endpoint ID '${filteredRequest.id}' does not exist`,
+    const oicpEndpoint = await OICPEndpointStorage.getOicpEndpoint(req.tenant, filteredRequest.ID);
+    UtilsService.assertObjectExists(action, oicpEndpoint, `OICP Endpoint ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleUnregisterOicpEndpoint', req.user);
     // Build OICP Client
     const oicpClient = await OICPClientFactory.getOicpClient(req.tenant, oicpEndpoint);
@@ -355,7 +350,7 @@ export default class OICPEndpointService {
     // Check ping result
     if (result.statusCode === StatusCodes.OK) {
       // Log
-      await Logging.logSecurityInfo({
+      await Logging.logInfo({
         tenantID: req.tenant.id,
         user: req.user, module: MODULE_NAME, method: 'handleUnregisterOicpEndpoint',
         message: `Oicp Endpoint '${oicpEndpoint.name}' can be reached successfully`,
@@ -365,7 +360,7 @@ export default class OICPEndpointService {
       res.json(Object.assign(result, Constants.REST_RESPONSE_SUCCESS));
     } else {
       // Log
-      await Logging.logSecurityError({
+      await Logging.logError({
         tenantID: req.tenant.id,
         user: req.user, module: MODULE_NAME, method: 'handleUnregisterOicpEndpoint',
         message: `Oicp Endpoint '${oicpEndpoint.name}' cannot be reached`,
@@ -391,11 +386,10 @@ export default class OICPEndpointService {
       });
     }
     // Filter
-    const filteredRequest = OICPEndpointSecurity.filterOicpEndpointRegisterRequest(req.body);
-    UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleRegisterOicpEndpoint', req.user);
+    const filteredRequest = OICPEndpointValidator.getInstance().validateOICPEndpointGetReq(req.params);
     // Get OicpEndpoint
-    const oicpEndpoint = await OICPEndpointStorage.getOicpEndpoint(req.tenant, filteredRequest.id);
-    UtilsService.assertObjectExists(action, oicpEndpoint, `OICP Endpoint ID '${filteredRequest.id}' does not exist`,
+    const oicpEndpoint = await OICPEndpointStorage.getOicpEndpoint(req.tenant, filteredRequest.ID);
+    UtilsService.assertObjectExists(action, oicpEndpoint, `OICP Endpoint ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleRegisterOicpEndpoint', req.user);
     // Build OICP Client
     const oicpClient = await OICPClientFactory.getOicpClient(req.tenant, oicpEndpoint);
@@ -404,7 +398,7 @@ export default class OICPEndpointService {
     // Check ping result
     if (result.statusCode === StatusCodes.OK) {
       // Log
-      await Logging.logSecurityInfo({
+      await Logging.logInfo({
         tenantID: req.tenant.id,
         user: req.user, module: MODULE_NAME, method: 'handleRegisterOicpEndpoint',
         message: `Oicp Endpoint '${oicpEndpoint.name}' can be reached successfully`,
@@ -414,7 +408,7 @@ export default class OICPEndpointService {
       res.json(Object.assign(result, Constants.REST_RESPONSE_SUCCESS));
     } else {
       // Log
-      await Logging.logSecurityError({
+      await Logging.logError({
         tenantID: req.tenant.id,
         user: req.user, module: MODULE_NAME, method: 'handleRegisterOicpEndpoint',
         message: `Oicp Endpoint '${oicpEndpoint.name}' cannot be reached`,

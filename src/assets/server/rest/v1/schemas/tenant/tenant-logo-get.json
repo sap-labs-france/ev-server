@@ -1,0 +1,14 @@
+{
+  "$id": "tenant-logo-get",
+  "title": "Get one Tenant Logo",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "tenant#/definitions/id"
+    },
+    "Subdomain": {
+      "type": "string",
+      "sanitize": "mongo"
+    }
+  }
+}

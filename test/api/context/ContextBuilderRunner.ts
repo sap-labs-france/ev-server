@@ -1,7 +1,6 @@
 import chai, { expect } from 'chai';
 
 import ContextBuilder from './ContextBuilder';
-import { OCPPStatus } from '../../../src/types/ocpp/OCPPClient';
 
 // For Visual Studio it is recommended to install Mocha sidebar and Chai snippets
 // Mocha is the test framework and chai provides functions to check expectations

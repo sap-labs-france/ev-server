@@ -1,0 +1,130 @@
+{
+  "$id": "setting-sac-set",
+  "title": "Set SAP Analytics Settings",
+  "type": "object",
+  "properties": {
+    "content": {
+      "type": "object",
+      "properties": {
+        "oicp": {
+          "type": "object",
+          "properties": {
+            "businessDetails": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "sanitize": "mongo"
+                },
+                "website": {
+                  "type": "string",
+                  "sanitize": "mongo"
+                },
+                "logo": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "sanitize": "mongo"
+                    },
+                    "thumbnail": {
+                      "type": "string",
+                      "sanitize": "mongo"
+                    },
+                    "category": {
+                      "type": "string",
+                      "sanitize": "mongo"
+                    },
+                    "type": {
+                      "type": "string",
+                      "sanitize": "mongo"
+                    },
+                    "width": {
+                      "type": "number",
+                      "sanitize": "mongo"
+                    },
+                    "height": {
+                      "type": "number",
+                      "sanitize": "mongo"
+                    }
+                  }
+                }
+              }
+            },
+            "cpo": {
+              "type": "object",
+              "properties": {
+                "countryCode": {
+                  "type": "string",
+                  "sanitize": "mongo"
+                },
+                "partyID": {
+                  "type": "string",
+                  "sanitize": "mongo"
+                },
+                "key": {
+                  "type": "string",
+                  "sanitize": "mongo"
+                },
+                "cert": {
+                  "type": "string",
+                  "sanitize": "mongo"
+                }
+              }
+            },
+            "emsp": {
+              "type": "object",
+              "properties": {
+                "countryCode": {
+                  "type": "string",
+                  "sanitize": "mongo"
+                },
+                "partyID": {
+                  "type": "string",
+                  "sanitize": "mongo"
+                },
+                "key": {
+                  "type": "string",
+                  "sanitize": "mongo"
+                },
+                "cert": {
+                  "type": "string",
+                  "sanitize": "mongo"
+                }
+              }
+            },
+            "currency": {
+              "type": "string",
+              "sanitize": "mongo"
+            }
+          }
+        },
+        "type": {
+          "type": "string",
+          "sanitize": "mongo",
+          "enum": ["oicp"]
+        }
+      },
+      "links": {
+        "$ref": "setting#/definitions/links"
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "id": {
+      "$ref": "common#/definitions/id"
+    },
+    "identifier": {
+      "type": "string",
+      "sanitize": "mongo",
+      "enum": ["oicp"]
+    },
+    "sensitiveData": {
+      "$ref": "setting#/definitions/sensitiveData"
+    }
+  },
+  "required": [
+    "identifier"
+  ]
+}

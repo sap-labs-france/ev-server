@@ -1,5 +1,7 @@
+import Asset from '../../../src/types/Asset';
 import AuthenticatedBaseApi from './utils/AuthenticatedBaseApi';
 import CrudApi from './utils/CrudApi';
+import { ServerRoute } from '../../../src/types/Server';
 import TestConstants from './utils/TestConstants';
 
 export default class AssetApi extends CrudApi {
@@ -7,23 +9,27 @@ export default class AssetApi extends CrudApi {
     super(authenticatedApi);
   }
 
-  public async readById(id): Promise<any> {
-    return super.readById(id, '/client/api/Asset');
+  public async readById(id: string): Promise<any> {
+    return super.readById(id, this.buildRestEndpointUrl(ServerRoute.REST_ASSET, { id }));
   }
 
   public async readAll(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING): Promise<any> {
-    return super.readAll(params, paging, ordering, '/client/api/Assets');
+    return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(ServerRoute.REST_ASSETS));
   }
 
-  public async create(data): Promise<any> {
-    return super.create(data, '/client/api/AssetCreate');
+  public async create(data: Asset): Promise<any> {
+    return super.create(data, this.buildRestEndpointUrl(ServerRoute.REST_ASSETS));
   }
 
-  public async update(data: Promise<any>) {
-    return super.update(data, '/client/api/AssetUpdate');
+  public async update(data: Asset): Promise<any> {
+    return super.update(data, this.buildRestEndpointUrl(ServerRoute.REST_ASSET, { id: data.id }));
   }
 
-  public async delete(id): Promise<any> {
-    return super.delete(id, '/client/api/AssetDelete');
+  public async delete(id: string): Promise<any> {
+    return super.delete(id, this.buildRestEndpointUrl(ServerRoute.REST_ASSET, { id }));
+  }
+
+  public async readAllInError(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING): Promise<any> {
+    return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(ServerRoute.REST_ASSETS_IN_ERROR));
   }
 }

@@ -1,0 +1,19 @@
+{
+  "$id": "company-create",
+  "title": "Create a Company",
+  "type": "object",
+  "properties": {
+    "name": {
+      "$ref": "company#/definitions/name"
+    },
+    "address": {
+      "$ref": "company#/definitions/address"
+    },
+    "logo": {
+      "$ref": "common#/definitions/logo"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

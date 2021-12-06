@@ -1,17 +1,13 @@
-import { Action, Entity } from '../../../../types/Authorization';
+import { DataResult, LogDataResult } from '../../../../types/DataResult';
 import { NextFunction, Request, Response } from 'express';
 
-import AppAuthError from '../../../../exception/AppAuthError';
-import Authorizations from '../../../../authorization/Authorizations';
-import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
+import { Action } from '../../../../types/Authorization';
+import AuthorizationService from './AuthorizationService';
 import Constants from '../../../../utils/Constants';
-import { DataResult } from '../../../../types/DataResult';
-import { HTTPAuthError } from '../../../../types/HTTPError';
 import { Log } from '../../../../types/Log';
-import LoggingSecurity from './security/LoggingSecurity';
 import LoggingStorage from '../../../../storage/mongodb/LoggingStorage';
+import LoggingValidator from '../validator/LoggingValidator';
 import { ServerAction } from '../../../../types/Server';
-import TenantComponents from '../../../../types/TenantComponents';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 import moment from 'moment';
@@ -33,22 +29,11 @@ export default class LoggingService {
 
   public static async handleGetLog(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = LoggingSecurity.filterLogRequest(req.query);
-    // Check auth
-    if (!await Authorizations.canReadLog(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.READ, entity: Entity.LOGGING,
-        module: MODULE_NAME, method: 'handleGetLog'
-      });
-    }
-    // Get Log
-    const logging = await LoggingStorage.getLog(req.user.tenantID, filteredRequest.ID, [
-      'id', 'level', 'timestamp', 'type', 'source', 'host', 'process', 'action', 'message',
-      'user.name', 'user.firstName', 'actionOnUser.name', 'actionOnUser.firstName', 'hasDetailedMessages', 'detailedMessages'
-    ]);
-    res.json(logging);
+    const filteredRequest = LoggingValidator.getInstance().validateLoggingGetReq(req.query);
+    // Check and Get Log
+    const log = await UtilsService.checkAndGetLogAuthorization(
+      req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, null, true);
+    res.json(log);
     next();
   }
 
@@ -57,33 +42,33 @@ export default class LoggingService {
     // Header
     if (writeHeader) {
       headers = [
+        'level',
         'date',
         'time',
-        'level',
-        'type',
-        'action',
-        'message',
-        'method',
-        'module',
-        'source',
         'host',
-        'process'
+        'source',
+        'action',
+        'siteID',
+        'chargingStationID',
+        'module',
+        'method',
+        'message',
       ].join(Constants.CSV_SEPARATOR);
     }
     // Content
     const rows = loggings.map((log) => {
       const row = [
+        log.level,
         moment(log.timestamp).format('YYYY-MM-DD'),
         moment(log.timestamp).format('HH:mm:ss'),
-        log.level,
-        log.type,
-        log.action,
-        log.message,
-        log.method,
-        log.module,
-        log.source,
         log.host,
-        log.process
+        log.source,
+        log.action,
+        log.siteID,
+        log.chargingStationID,
+        log.module,
+        log.method,
+        log.message,
       ].map((value) => Utils.escapeCsvValue(value));
       return row;
     }).join(Constants.CR_LF);
@@ -91,59 +76,40 @@ export default class LoggingService {
   }
 
   private static async getLogs(req: Request): Promise<DataResult<Log>> {
-    // Check auth
-    if (!await Authorizations.canListLoggings(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.LIST, entity: Entity.LOGGINGS,
-        module: MODULE_NAME, method: 'getLogs'
-      });
-    }
     // Filter
-    const filteredRequest = LoggingSecurity.filterLogsRequest(req.query);
-    // Add filter for Site Admins
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && Authorizations.isSiteAdmin(req.user)) {
-      // Optimization: Retrieve Charging Stations to get the logs only for the Site Admin user
-      const chargingStations = await ChargingStationStorage.getChargingStations(req.tenant,
-        { siteIDs: req.user.sitesAdmin, withSiteArea: true }, Constants.DB_PARAMS_MAX_LIMIT);
-      // Check if Charging Station is already filtered
-      if (chargingStations.count === 0) {
-        filteredRequest.Source = '';
-      } else if (filteredRequest.Source && filteredRequest.Source.length > 0) {
-        // Filter only Site Admin Chargers
-        const sources = [];
-        for (const chargingStation of chargingStations.result) {
-          if (filteredRequest.Source.includes(chargingStation.id)) {
-            sources.push(chargingStation.id);
-          }
-        }
-        filteredRequest.Source = sources.join('|');
-      } else {
-        // Add all Site Admin Chargers in filter
-        filteredRequest.Source = chargingStations.result.map((chargingStation) => chargingStation.id).join('|');
-      }
+    const filteredRequest = LoggingValidator.getInstance().validateLoggingsGetReq(req.query);
+    // Check dynamic auth
+    const authorizationSitesFilter = await AuthorizationService.checkAndGetLoggingsAuthorizations(
+      req.tenant, req.user, filteredRequest);
+    if (!authorizationSitesFilter.authorized) {
+      return Constants.DB_EMPTY_DATA_RESULT;
     }
     // Get logs
-    const loggings = await LoggingStorage.getLogs(req.user.tenantID, {
+    const logs = await LoggingStorage.getLogs(req.tenant, {
       search: filteredRequest.Search,
       startDateTime: filteredRequest.StartDateTime,
       endDateTime: filteredRequest.EndDateTime,
       userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
+      siteIDs: filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null,
+      chargingStationIDs: filteredRequest.ChargingStationID ? filteredRequest.ChargingStationID.split('|') : null,
       hosts: filteredRequest.Host ? filteredRequest.Host.split('|') : null,
       levels: filteredRequest.Level ? filteredRequest.Level.split('|') : null,
-      type: filteredRequest.Type,
       sources: filteredRequest.Source ? filteredRequest.Source.split('|') : null,
       actions: filteredRequest.Action ? filteredRequest.Action.split('|') : null,
+      ...authorizationSitesFilter.filters
     }, {
       limit: filteredRequest.Limit,
       skip: filteredRequest.Skip,
-      sort: filteredRequest.SortFields,
+      sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
       onlyRecordCount: filteredRequest.OnlyRecordCount
-    }, [
-      'id', 'level', 'timestamp', 'type', 'source', 'host', 'process', 'action', 'message',
-      'user.name', 'user.firstName', 'actionOnUser.name', 'actionOnUser.firstName', 'hasDetailedMessages', 'method', 'module',
-    ]);
-    return loggings;
+    },
+    authorizationSitesFilter.projectFields);
+    // Assign projected fields
+    if (authorizationSitesFilter.projectFields) {
+      logs.projectFields = authorizationSitesFilter.projectFields;
+    }
+    // Add Auth flags
+    await AuthorizationService.addLogsAuthorizations(req.tenant, req.user, logs as LogDataResult, authorizationSitesFilter);
+    return logs;
   }
 }

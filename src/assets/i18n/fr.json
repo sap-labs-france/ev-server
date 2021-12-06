@@ -1,8 +1,13 @@
 {
   "billing": {
     "generatedUser": "Utilisateur généré pour '{{email}}'",
-    "chargingAtSiteArea": "Session : {{sessionID}} - Date : {{startDate}} à {startTime} - Energie Consommée : {{totalConsumption}} kWh sur le zone {{siteAreaName}}",
-    "chargingAtChargeBox": "Session : {{sessionID}} - Date : {{startDate}} à {{startTime}} - Energie Consommée : {{totalConsumption}} kWh à la borne {{chargeBoxID}}"
+    "chargingAtSiteArea": "Session : {{sessionID}} - Date : {{startDate}} à {startTime} - Energie Consommée : {{totalConsumption}} kWh sur la zone {{siteAreaName}}",
+    "chargingAtChargeBox": "Session : {{sessionID}} - Date : {{startDate}} à {{startTime}} - Energie Consommée : {{totalConsumption}} kWh à la borne {{chargeBoxID}}",
+    "header-itemDescription": "Session: {{sessionID}} - Date : {{startDate}} à {{startTime}} à la borne {{chargeBoxID}}",
+    "flatFee-shortItemDescription": "Frais fixes",
+    "energy-shortItemDescription": "Energie Consommée : {{quantity}} kWh",
+    "chargingTime-shortItemDescription": "Durée de la charge : {{duration}}",
+    "parkingTime-shortItemDescription": "Durée de stationnement: {{duration}}"
   },
   "chargers": {
     "chargeBoxSN": "Numéro de série de la borne",
@@ -75,10 +80,6 @@
     "oicpPatchChargingStationsError": {
       "title": "Hubject envoie des bornes",
       "body": "La mise à jour des bornes vers Hubject a échoué dans l'organisation '{{tenantName}}', vérifier les logs"
-    },
-    "smtpError": {
-      "title": "Erreur serveur email",
-      "body": "Le serveur d'email principal a échoué dans l'organisation '{{tenantName}}', vérifier la configuration"
     },
     "optimalChargeReached": {
       "title": "Charge optimale atteinte",

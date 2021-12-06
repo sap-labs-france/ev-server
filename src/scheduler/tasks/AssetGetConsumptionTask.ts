@@ -1,4 +1,5 @@
 import Consumption, { AbstractCurrentConsumption } from '../../types/Consumption';
+import Tenant, { TenantComponents } from '../../types/Tenant';
 
 import Asset from '../../types/Asset';
 import AssetFactory from '../../integration/asset/AssetFactory';
@@ -15,15 +16,13 @@ import { ServerAction } from '../../types/Server';
 import SiteArea from '../../types/SiteArea';
 import SmartChargingFactory from '../../integration/smart-charging/SmartChargingFactory';
 import { TaskConfig } from '../../types/TaskConfig';
-import Tenant from '../../types/Tenant';
-import TenantComponents from '../../types/TenantComponents';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
 
 const MODULE_NAME = 'AssetGetConsumptionTask';
 
 export default class AssetGetConsumptionTask extends SchedulerTask {
-  async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
+  public async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     // Check if Asset component is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.ASSET)) {
       const smartChargingActive = Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING);

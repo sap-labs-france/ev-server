@@ -1,3 +1,5 @@
+import Tenant, { TenantComponents } from '../../../types/Tenant';
+
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import LockingHelper from '../../../locking/LockingHelper';
 import LockingManager from '../../../locking/LockingManager';
@@ -7,8 +9,6 @@ import SchedulerTask from '../../SchedulerTask';
 import { ServerAction } from '../../../types/Server';
 import TagStorage from '../../../storage/mongodb/TagStorage';
 import { TaskConfig } from '../../../types/TaskConfig';
-import Tenant from '../../../types/Tenant';
-import TenantComponents from '../../../types/TenantComponents';
 import { TransactionAction } from '../../../types/Transaction';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import Utils from '../../../utils/Utils';
@@ -17,8 +17,7 @@ import global from '../../../types/GlobalType';
 const MODULE_NAME = 'OCPIPushCdrsTask';
 
 export default class OCPIPushCdrsTask extends SchedulerTask {
-
-  async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
+  public async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     try {
       // Check if OCPI component is active
       if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
@@ -28,7 +27,8 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
           try {
             // Get all finished Transaction with no CDR
             const transactionsMDB: {_id: number}[] = await global.database.getCollection<{_id: number}>(tenant.id, 'transactions')
-              .aggregate([
+              .aggregate<{_id: number}>(
+              [
                 {
                   $match: {
                     'stop': { $exists: true },

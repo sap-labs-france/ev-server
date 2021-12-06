@@ -1,0 +1,42 @@
+{
+  "$id": "ocpi-endpoint-update",
+  "title": "OCPI Endpoint update Request",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "ocpi-endpoint#/definitions/id"
+    },
+    "name": {
+      "$ref": "ocpi-endpoint#/definitions/name"
+    },
+    "role": {
+      "$ref": "ocpi-endpoint#/definitions/role"
+    },
+    "baseUrl": {
+      "$ref": "ocpi-endpoint#/definitions/baseUrl"
+    },
+    "countryCode": {
+      "$ref": "ocpi-endpoint#/definitions/countryCode"
+    },
+    "partyId": {
+      "$ref": "ocpi-endpoint#/definitions/partyId"
+    },
+    "localToken": {
+      "$ref": "ocpi-endpoint#/definitions/localToken"
+    },
+    "token": {
+      "$ref": "ocpi-endpoint#/definitions/token"
+    },
+    "backgroundPatchJob": {
+      "$ref": "ocpi-endpoint#/definitions/name"
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "role",
+    "baseUrl",
+    "localToken",
+    "token"
+  ]
+}

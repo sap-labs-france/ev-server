@@ -1,0 +1,19 @@
+{
+  "$id": "chargingstation-notifications-get",
+  "title": "Charging Station notification Request",
+  "type": "object",
+  "properties": {
+    "Limit": {
+      "$ref": "common#/definitions/limit"
+    },
+    "SortFields": {
+      "$ref": "common#/definitions/sortFields"
+    },
+    "Skip": {
+      "$ref": "common#/definitions/skip"
+    }
+  },
+  "required": [
+    "Limit"
+  ]
+}

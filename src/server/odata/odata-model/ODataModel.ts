@@ -1,6 +1,6 @@
 export default {
   namespace: 'eMobility',
-  entityTypes: {
+  entityType: {
     'Company': {
       'uniqueID': { 'type': 'Edm.String', key: true },
       'tenant': { 'type': 'Edm.String' },

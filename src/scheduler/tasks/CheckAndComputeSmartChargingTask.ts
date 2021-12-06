@@ -1,3 +1,5 @@
+import Tenant, { TenantComponents } from '../../types/Tenant';
+
 import Constants from '../../utils/Constants';
 import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
@@ -6,14 +8,12 @@ import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
 import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import SmartChargingFactory from '../../integration/smart-charging/SmartChargingFactory';
-import Tenant from '../../types/Tenant';
-import TenantComponents from '../../types/TenantComponents';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'CheckAndComputeSmartChargingTask';
 
 export default class CheckAndComputeSmartChargingTask extends SchedulerTask {
-  async processTenant(tenant: Tenant): Promise<void> {
+  public async processTenant(tenant: Tenant): Promise<void> {
     if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION) &&
       Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)) {
       // Get all site areas

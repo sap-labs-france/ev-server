@@ -4,6 +4,7 @@ import CentralServerService from './client/CentralServerService';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
+import OCPIEndpoint from '../../src/types/ocpi/OCPIEndpoint';
 import TenantContext from './context/TenantContext';
 import User from '../../src/types/User';
 import chaiSubset from 'chai-subset';
@@ -15,7 +16,7 @@ class TestData {
   public tenantContext: TenantContext;
   public centralUserContext: any;
   public userContext: User;
-  public newOcpiEndpoint: any;
+  public newOcpiEndpoint: OCPIEndpoint;
 }
 
 const testData: TestData = new TestData();

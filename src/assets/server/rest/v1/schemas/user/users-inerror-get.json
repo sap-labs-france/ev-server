@@ -1,7 +1,8 @@
 {
+  "$id": "users-inerror-get",
   "title": "Get Users in error",
   "type": "object",
-  "definitions": {
+  "properties": {
     "Roles": {
       "type": "string",
       "sanitize": "mongo",
@@ -13,19 +14,19 @@
       "pattern": "^((inactive_user|unassigned_user|inactive_user_account|failed_billing_synchro|no_billing_data)(\\||inactive_user|unassigned_user|inactive_user_account|failed_billing_synchro|no_billing_data)*)$"
     },
     "Search": {
-      "$ref": "common.json#/definitions/search"
+      "$ref": "common#/definitions/search"
     },
     "SortFields": {
-      "$ref": "common.json#/definitions/sortFields"
+      "$ref": "common#/definitions/sortFields"
     },
     "Skip": {
-      "$ref": "common.json#/definitions/skip"
+      "$ref": "common#/definitions/skip"
     },
     "OnlyRecordCount": {
-      "$ref": "common.json#/definitions/onlyRecordCount"
+      "$ref": "common#/definitions/onlyRecordCount"
     },
     "ProjectFields": {
-      "$ref": "common.json#/definitions/projectFields"
+      "$ref": "common#/definitions/projectFields"
     }
   },
   "required": []

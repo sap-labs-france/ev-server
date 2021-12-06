@@ -1,3 +1,4 @@
+import User, { UserRole } from '../../src/types/User';
 import chai, { assert, expect } from 'chai';
 
 import CentralServerService from '../api/client/CentralServerService';
@@ -6,17 +7,13 @@ import Constants from '../../src/utils/Constants';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
-import { HTTPError } from '../../src/types/HTTPError';
 import { ServerRoute } from '../../src/types/Server';
 import SiteContext from './context/SiteContext';
-import { StartTransactionErrorCode } from '../../src/types/Transaction';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../src/types/Tag';
 import TenantContext from './context/TenantContext';
 import TestUtils from './TestUtils';
-import User from '../../src/types/User';
 import chaiSubset from 'chai-subset';
-import moment from 'moment';
 import responseHelper from '../helpers/responseHelper';
 
 chai.use(chaiSubset);
@@ -85,13 +82,13 @@ describe('User', function() {
       testData.createdUsers = [];
       // Delete any created tag
       for (const tag of testData.createdTags) {
-        await testData.centralUserService.userApi.deleteTag(tag.id);
+        await testData.centralUserService.tagApi.deleteTag(tag.id);
 
       }
       testData.createdTags = [];
     });
 
-    describe('Where admin user', () => {
+    describe('When admin user', () => {
       before(() => {
         testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
         assert(testData.userContext, 'User context cannot be null');
@@ -170,65 +167,19 @@ describe('User', function() {
           );
         });
 
-        it('Should be able to create a tag for user', async () => {
-          testData.newTag = Factory.tag.build({ userID: testData.newUser.id });
-          const response = await testData.userService.userApi.createTag(testData.newTag);
-          expect(response.status).to.equal(StatusCodes.CREATED);
-          testData.createdTags.push(testData.newTag);
+        it('Should be able to update the user with a single attribute in the request', async () => {
+          // Update
+          await testData.userService.updateEntity(
+            testData.userService.userApi,
+            { id: testData.newUser.id, role: UserRole.ADMIN }
+          );
+
+          testData.newUser = (await testData.userService.getEntityById(
+            testData.userService.userApi,
+            testData.newUser,
+            false
+          )).data;
         });
-
-        it('Should be able to deactivate a badge', async () => {
-          testData.newTag.active = false;
-          const response = await testData.userService.userApi.updateTag(testData.newTag);
-          expect(response.status).to.equal(StatusCodes.OK);
-          const tag = (await testData.userService.userApi.readTag(testData.newTag.id)).data;
-          expect(tag.active).to.equal(false);
-        });
-
-        it('Should not be able to start a transaction with a deactivated badge', async () => {
-          const connectorId = 1;
-          const tagId = testData.newTag.id;
-          const meterStart = 180;
-          const startDate = moment();
-          const response = await testData.chargingStationContext.startTransaction(
-            connectorId, tagId, meterStart, startDate.toDate());
-          // eslint-disable-next-line @typescript-eslint/unbound-method
-          expect(response).to.be.transactionStatus('Invalid');
-        });
-
-        it('Should be able to delete a badge that has not been used', async () => {
-          testData.newTag = Factory.tag.build({ userID: testData.newUser.id });
-          let response = await testData.userService.userApi.createTag(testData.newTag);
-          expect(response.status).to.equal(StatusCodes.CREATED);
-          response = await testData.userService.userApi.deleteTag(testData.newTag.id);
-          expect(response.status).to.equal(StatusCodes.OK);
-          response = (await testData.userService.userApi.readTag(testData.newTag.id));
-          expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
-        });
-
-        it('Should be able to export tag list', async () => {
-          const response = await testData.userService.userApi.exportTags({});
-          const tags = await testData.userService.userApi.readTags({});
-          const responseFileArray = TestUtils.convertExportFileToObjectArray(response.data);
-
-          expect(response.status).eq(StatusCodes.OK);
-          expect(response.data).not.null;
-          // Verify we have as many tags inserted as tags in the export
-          expect(responseFileArray.length).to.be.eql(tags.data.result.length);
-        });
-
-        // // TODO: Need to verify the real logic, not only if we can import (read create) tags
-        // // Something like this ?
-        // it('Should be able to import tag list', async () => {
-        //   const response = await testData.tagService.insertTags(
-        //     tenantid,
-        //     user,
-        //     action,
-        //     tagsToBeImported,
-        //     result);
-        //   expect(response.status).to.equal(??);
-        //   testData.importedTags.push(tag);
-        // });
 
         it('Should be able to export users list', async () => {
           const response = await testData.userService.userApi.exportUsers({});
@@ -270,7 +221,7 @@ describe('User', function() {
         it('Should get the user default car tag', async () => {
           // Create a tag
           testData.newTag = Factory.tag.build({ userID: testData.newUser.id });
-          let response = await testData.userService.userApi.createTag(testData.newTag);
+          let response = await testData.userService.tagApi.createTag(testData.newTag);
           expect(response.status).to.equal(StatusCodes.CREATED);
           testData.createdTags.push(testData.newTag);
           // Retrieve it
@@ -296,9 +247,29 @@ describe('User', function() {
             testData.newUser
           );
         });
-      });
-      describe('Using function "readAllInError"', () => {
 
+        it('Should be able to set/unset the technical flag', async () => {
+          // Check the technical flag can be set
+          const response = await testData.userService.userApi.exportUsers({});
+          let users = await testData.userService.userApi.readAll({}, { limit: Constants.DB_RECORD_COUNT_MAX_PAGE_LIMIT, skip: 0 });
+          expect(response.status).eq(StatusCodes.OK);
+          expect(response.data).not.null;
+          expect(users.data.result.length).to.be.greaterThan(1);
+          const user1 = users.data.result[0];
+          user1.technical = true;
+          await testData.userService.userApi.update(user1);
+          users = await testData.userService.userApi.readAll({}, { limit: Constants.DB_RECORD_COUNT_MAX_PAGE_LIMIT, skip: 0 });
+          const user2 = users.data.result[0];
+          expect(user2.technical).eq(true);
+          // Unset technical flag.
+          user2.technical = false;
+          await testData.userService.userApi.update(user2);
+          users = await testData.userService.userApi.readAll({}, { limit: Constants.DB_RECORD_COUNT_MAX_PAGE_LIMIT, skip: 0 });
+          expect(user2.technical).eq(false);
+        });
+      });
+
+      describe('Using function "readAllInError"', () => {
         it('Should not find an active user in error', async () => {
           const user = await testData.userService.createEntity(
             testData.userService.userApi,
@@ -401,6 +372,76 @@ describe('User', function() {
 
     });
 
+  });
+
+  describe('With component Organization (utbilling)', () => {
+    before(async () => {
+      testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING);
+      testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+      testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT);
+      testData.centralUserService = new CentralServerService(
+        testData.tenantContext.getTenant().subdomain,
+        testData.centralUserContext
+      );
+      testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
+      testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
+    });
+
+    describe('Using various basic APIs', () => {
+
+
+      describe('When admin user', () => {
+        before(() => {
+          testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+          assert(testData.userContext, 'User context cannot be null');
+          if (testData.userContext === testData.centralUserContext) {
+            // Reuse the central user service (to avoid double login)
+            testData.userService = testData.centralUserService;
+          } else {
+            testData.userService = new CentralServerService(
+              testData.tenantContext.getTenant().subdomain,
+              testData.userContext
+            );
+          }
+          assert(!!testData.userService, 'User service cannot be null');
+        });
+
+        it('Should be able to set freeAccess flag on basic user', async () => {
+          const fakeUser = {
+            ...Factory.user.build(),
+          } as User;
+          fakeUser.issuer = true;
+          // Let's create a user
+          await testData.userService.createEntity(
+            testData.userService.userApi,
+            fakeUser
+          );
+          testData.createdUsers.push(fakeUser);
+          // Let's check that user exists with default freeAccess flag
+          const myUser = await testData.userService.userApi.readById(fakeUser.id);
+          expect(myUser).to.be.not.null;
+          expect(!!myUser.data.freeAccess).eq(false);
+          // Let's update the new user
+          fakeUser.freeAccess = true;
+          await testData.userService.updateEntity(
+            testData.userService.userApi,
+            fakeUser,
+            false
+          );
+          // Let's check that user exists with freeAccess flag
+          const myUser2 = await testData.userService.userApi.readById(fakeUser.id);
+          expect(myUser2).to.be.not.null;
+          expect(myUser2.data.freeAccess).to.be.eq(true);
+          // Let's delete the user
+          await testData.userService.deleteEntity(
+            testData.userService.userApi,
+            { id: testData.createdUsers[0].id }
+          );
+          testData.createdUsers.shift();
+        });
+
+      });
+    });
   });
 
 });

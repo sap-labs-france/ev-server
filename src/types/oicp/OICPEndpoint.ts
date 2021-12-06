@@ -1,9 +1,10 @@
 import CreatedUpdatedProps from '../CreatedUpdatedProps';
+import { OICPRole } from './OICPRole';
 import { OicpBusinessDetails } from '../Setting';
 
 export default interface OICPEndpoint extends CreatedUpdatedProps {
   id: string;
-  role: string;
+  role: OICPRole;
   name: string;
   baseUrl: string;
   countryCode: string;

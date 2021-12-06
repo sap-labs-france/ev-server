@@ -2,7 +2,6 @@ import User, { UserStatus } from './User';
 
 import ChargingStation from './ChargingStation';
 import NotificationTask from '../notification/NotificationTask';
-import { SMTPError } from 'emailjs';
 
 export default interface UserNotifications {
   sendSessionStarted: boolean;
@@ -16,7 +15,6 @@ export default interface UserNotifications {
   sendChargingStationRegistered: boolean;
   sendOcpiPatchStatusError: boolean;
   sendOicpPatchStatusError: boolean;
-  sendSmtpError: boolean;
   sendUserAccountInactivity: boolean;
   sendPreparingSessionNotStarted: boolean;
   sendOfflineChargingStations: boolean;
@@ -42,7 +40,6 @@ export type UserNotificationKeys =
  'sendChargingStationRegistered' |
  'sendOcpiPatchStatusError' |
  'sendOicpPatchStatusError' |
- 'sendSmtpError' |
  'sendUserAccountInactivity' |
  'sendPreparingSessionNotStarted' |
  'sendOfflineChargingStations' |
@@ -67,7 +64,6 @@ export enum UserNotificationType {
   OCPI_PATCH_STATUS_ERROR = 'OcpiPatchStatusError',
   OICP_PATCH_STATUS_ERROR = 'OicpPatchStatusError',
   OICP_PATCH_EVSE_ERROR = 'OicpPatchEvseError',
-  SMTP_ERROR = 'SmtpError',
   PREPARING_SESSION_NOT_STARTED = 'PreparingSessionNotStarted',
   USER_ACCOUNT_INACTIVITY = 'UserAccountInactivity',
   OFFLINE_CHARGING_STATION = 'OfflineChargingStation',
@@ -105,6 +101,9 @@ interface BaseNotification {
 export interface EndOfChargeNotification extends BaseNotification {
   user: User;
   transactionId: number;
+  siteID: string;
+  siteAreaID: string;
+  companyID: string;
   chargeBoxID: string;
   connectorId: string;
   totalConsumption: string;
@@ -117,6 +116,9 @@ export interface EndOfChargeNotification extends BaseNotification {
 export interface OptimalChargeReachedNotification extends BaseNotification {
   user: User;
   transactionId: number;
+  siteID: string;
+  siteAreaID: string;
+  companyID: string;
   chargeBoxID: string;
   connectorId: string;
   totalConsumption: string;
@@ -129,6 +131,9 @@ export interface EndOfSessionNotification extends BaseNotification {
   user: User;
   alternateUser: User;
   transactionId: number;
+  siteID: string;
+  siteAreaID: string;
+  companyID: string;
   chargeBoxID: string;
   connectorId: string;
   totalConsumption: string;
@@ -185,6 +190,9 @@ export interface VerificationEmailNotification extends BaseNotification {
 
 export interface ChargingStationStatusErrorNotification extends BaseNotification {
   chargeBoxID: string;
+  siteID: string;
+  siteAreaID: string;
+  companyID: string;
   connectorId: string;
   error: string;
   evseDashboardURL: string;
@@ -193,12 +201,18 @@ export interface ChargingStationStatusErrorNotification extends BaseNotification
 
 export interface ChargingStationRegisteredNotification extends BaseNotification {
   chargeBoxID: string;
+  siteID: string;
+  siteAreaID: string;
+  companyID: string;
   evseDashboardURL: string;
   evseDashboardChargingStationURL: string;
 }
 
 export interface UnknownUserBadgedNotification extends BaseNotification {
   chargeBoxID: string;
+  siteID: string;
+  siteAreaID: string;
+  companyID: string;
   badgeID: string;
   evseDashboardURL: string;
 }
@@ -206,15 +220,13 @@ export interface UnknownUserBadgedNotification extends BaseNotification {
 export interface TransactionStartedNotification extends BaseNotification {
   user: User;
   transactionId: number;
+  siteID: string;
+  siteAreaID: string;
+  companyID: string;
   chargeBoxID: string;
   connectorId: string;
   evseDashboardURL: string;
   evseDashboardChargingStationURL: string;
-}
-
-export interface SmtpErrorNotification extends BaseNotification {
-  SMTPError: SMTPError;
-  evseDashboardURL: string;
 }
 
 export interface OICPPatchChargingStationsErrorNotification extends BaseNotification {
@@ -239,6 +251,9 @@ export interface UserAccountInactivityNotification extends BaseNotification {
 export interface PreparingSessionNotStartedNotification extends BaseNotification {
   user: User;
   chargeBoxID: string;
+  siteID: string;
+  siteAreaID: string;
+  companyID: string;
   connectorId: string;
   startedOn: string;
   evseDashboardURL: string;
@@ -288,6 +303,9 @@ export interface CarCatalogSynchronizationFailedNotification extends BaseNotific
 export interface ComputeAndApplyChargingProfilesFailedNotification extends BaseNotification {
   siteAreaName: string;
   chargeBoxID: string;
+  siteID: string;
+  siteAreaID: string;
+  companyID: string;
   evseDashboardURL: string;
 }
 export interface NotificationSource {
@@ -310,6 +328,9 @@ export interface Notification {
 
 export interface SessionNotStartedNotification extends BaseNotification {
   chargeBoxID: string;
+  siteID: string;
+  siteAreaID: string;
+  companyID: string;
   user: User;
   evseDashboardURL: string;
   evseDashboardChargingStationURL: string;

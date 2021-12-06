@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import Tenant, { TenantComponents } from '../../types/Tenant';
 
 import AbstractEndpoint from './ocpi-services-impl/AbstractEndpoint';
 import AppAuthError from '../../exception/AppAuthError';
@@ -13,8 +14,6 @@ import { OCPIStatusCode } from '../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from './OCPIUtils';
 import { ServerAction } from '../../types/Server';
 import { StatusCodes } from 'http-status-codes';
-import Tenant from '../../types/Tenant';
-import TenantComponents from '../../types/TenantComponents';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
 
@@ -72,9 +71,6 @@ export default abstract class AbstractOCPIService {
     return `${this.role}/${this.version}/`;
   }
 
-  /**
-   * Return Version of OCPI Service
-   */
   public getVersion(): string {
     return this.version;
   }
@@ -86,7 +82,6 @@ export default abstract class AbstractOCPIService {
     const regexResult = /^\/\w*/g.exec(req.url);
     if (!regexResult) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'restService',
         message: 'Regex did not match.'
       });
@@ -107,13 +102,6 @@ export default abstract class AbstractOCPIService {
     next();
   }
 
-  /**
-   * Send Supported Endpoints
-   *
-   * @param req
-   * @param res
-   * @param next
-   */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public getSupportedEndpoints(req: TenantIdHoldingRequest, res: Response, next: NextFunction): void {
     const fullUrl = this.getServiceUrl(req);
@@ -127,21 +115,12 @@ export default abstract class AbstractOCPIService {
     res.json(OCPIUtils.success({ 'version': this.getVersion(), 'endpoints': supportedEndpoints }));
   }
 
-  /**
-   * Process Endpoint action
-   *
-   * @param action
-   * @param req
-   * @param res
-   * @param next
-   */
   public async processEndpointAction(action: ServerAction, req: TenantIdHoldingRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const registeredEndpoints = this.getRegisteredEndpoints();
       // Get token from header
       if (!req.headers || !req.headers.authorization) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'processEndpointAction',
           action: ServerAction.OCPI_ENDPOINT,
           errorCode: StatusCodes.UNAUTHORIZED,
@@ -156,7 +135,6 @@ export default abstract class AbstractOCPIService {
         decodedToken = JSON.parse(OCPIUtils.atob(token));
       } catch (error) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'processEndpointAction',
           action: ServerAction.OCPI_ENDPOINT,
           errorCode: StatusCodes.UNAUTHORIZED,
@@ -172,7 +150,6 @@ export default abstract class AbstractOCPIService {
       // Check if tenant is found
       if (!tenant) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'processEndpointAction',
           action: ServerAction.OCPI_ENDPOINT,
           errorCode: StatusCodes.UNAUTHORIZED,
@@ -182,7 +159,6 @@ export default abstract class AbstractOCPIService {
       }
       if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'processEndpointAction',
           action: ServerAction.OCPI_ENDPOINT,
           errorCode: StatusCodes.UNAUTHORIZED,
@@ -194,7 +170,6 @@ export default abstract class AbstractOCPIService {
       // Check if endpoint is found
       if (!ocpiEndpoint) {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'processEndpointAction',
           action: ServerAction.OCPI_ENDPOINT,
           errorCode: StatusCodes.UNAUTHORIZED,
@@ -209,7 +184,6 @@ export default abstract class AbstractOCPIService {
       if (endpoint) {
         await Logging.logDebug({
           tenantID: tenant.id,
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: action,
           message: `>> OCPI Request ${req.method} ${req.originalUrl}`,
           action: ServerAction.OCPI_ENDPOINT,
@@ -219,7 +193,6 @@ export default abstract class AbstractOCPIService {
         if (response) {
           await Logging.logDebug({
             tenantID: tenant.id,
-            source: Constants.CENTRAL_SERVER,
             module: MODULE_NAME, method: action,
             message: `<< OCPI Response ${req.method} ${req.originalUrl}`,
             action: ServerAction.OCPI_ENDPOINT,
@@ -229,7 +202,6 @@ export default abstract class AbstractOCPIService {
         } else {
           await Logging.logWarning({
             tenantID: tenant.id,
-            source: Constants.CENTRAL_SERVER,
             module: MODULE_NAME, method: action,
             message: `<< OCPI Endpoint ${req.method} ${req.originalUrl} not implemented`,
             action: ServerAction.OCPI_ENDPOINT
@@ -238,7 +210,6 @@ export default abstract class AbstractOCPIService {
         }
       } else {
         throw new AppError({
-          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'processEndpointAction',
           action: ServerAction.OCPI_ENDPOINT,
           errorCode: HTTPError.NOT_IMPLEMENTED_ERROR,
@@ -249,7 +220,6 @@ export default abstract class AbstractOCPIService {
     } catch (error) {
       await Logging.logError({
         tenantID: req.user && req.user.tenantID ? req.user.tenantID : Constants.DEFAULT_TENANT,
-        source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: action,
         message: `<< OCPI Response Error ${req.method} ${req.originalUrl}`,
         action: ServerAction.OCPI_ENDPOINT,

@@ -1,57 +1,66 @@
 {
+  "$id": "user-create",
   "title": "Create one User",
   "type": "object",
-  "definitions": {
+  "properties": {
     "name": {
-      "$ref": "user.json#/definitions/name"
+      "$ref": "user#/definitions/name"
     },
     "firstName": {
-      "$ref": "user.json#/definitions/firstName"
+      "$ref": "user#/definitions/firstName"
     },
     "email": {
-      "$ref": "user.json#/definitions/email"
+      "$ref": "user#/definitions/email"
     },
     "costCenter": {
-      "$ref": "user.json#/definitions/costCenter"
+      "$ref": "user#/definitions/costCenter"
     },
     "iNumber": {
-      "$ref": "user.json#/definitions/iNumber"
+      "$ref": "user#/definitions/iNumber"
     },
     "image": {
-      "$ref": "user.json#/definitions/image"
+      "$ref": "user#/definitions/image"
     },
     "mobile": {
-      "$ref": "user.json#/definitions/mobile"
+      "$ref": "user#/definitions/mobile"
     },
     "locale": {
-      "$ref": "user.json#/definitions/locale"
+      "$ref": "user#/definitions/locale"
     },
     "address": {
-      "$ref": "user.json#/definitions/address"
+      "$ref": "user#/definitions/address"
     },
     "password": {
-      "$ref": "user.json#/definitions/password"
+      "$ref": "user#/definitions/password"
     },
     "phone": {
-      "$ref": "user.json#/definitions/phone"
+      "$ref": "user#/definitions/phone"
     },
     "issuer": {
-      "$ref": "user.json#/definitions/issuer"
+      "$ref": "user#/definitions/issuer"
     },
     "notificationsActive": {
-      "$ref": "user.json#/definitions/notificationsActive"
+      "$ref": "user#/definitions/notificationsActive"
     },
     "notifications": {
-      "$ref": "user.json#/definitions/notifications"
+      "$ref": "user#/definitions/notifications"
     },
     "status": {
-      "$ref": "user.json#/definitions/status"
+      "$ref": "user#/definitions/status"
     },
     "plateID": {
-      "$ref": "user.json#/definitions/plateID"
+      "$ref": "user#/definitions/plateID"
     },
     "role": {
-      "$ref": "user.json#/definitions/role"
+      "$ref": "user#/definitions/role"
+    },
+    "technical": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "freeAccess": {
+      "type": "boolean",
+      "sanitize": "mongo"
     }
   },
   "required": [

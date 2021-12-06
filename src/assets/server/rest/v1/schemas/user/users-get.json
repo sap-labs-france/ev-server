@@ -1,21 +1,30 @@
 {
+  "$id": "users-get",
   "title": "Get Users",
   "type": "object",
-  "definitions": {
+  "properties": {
     "Issuer": {
       "type": "boolean",
       "sanitize": "mongo"
     },
     "SiteID": {
-      "$ref": "common.json#/definitions/ids"
+      "$ref": "common#/definitions/ids"
     },
     "UserID": {
-      "$ref": "user.json#/definitions/ids"
+      "$ref": "common#/definitions/ids"
     },
-    "Roles": {
+    "Role": {
       "type": "string",
       "sanitize": "mongo",
       "pattern": "^[SABD](\\|[SABD])*$"
+    },
+    "Technical": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "FreeAccess": {
+      "type": "boolean",
+      "sanitize": "mongo"
     },
     "Status": {
       "type": "string",
@@ -23,30 +32,32 @@
       "pattern": "^[PAIBL](\\|[PAIBL])*$"
     },
     "ExcludeSiteID": {
-      "$ref": "common.json#/definitions/ids"
+      "$ref": "common#/definitions/ids"
     },
     "VisualTagID": {
       "type": "string",
       "sanitize": "mongo"
     },
     "Search": {
-      "$ref": "common.json#/definitions/search"
+      "$ref": "common#/definitions/search"
     },
     "SortFields": {
-      "$ref": "common.json#/definitions/sortFields"
+      "$ref": "common#/definitions/sortFields"
     },
     "Limit": {
-      "$ref": "common.json#/definitions/limit"
+      "$ref": "common#/definitions/limit"
     },
     "Skip": {
-      "$ref": "common.json#/definitions/skip"
+      "$ref": "common#/definitions/skip"
     },
     "OnlyRecordCount": {
-      "$ref": "common.json#/definitions/onlyRecordCount"
+      "$ref": "common#/definitions/onlyRecordCount"
     },
     "ProjectFields": {
-      "$ref": "common.json#/definitions/projectFields"
+      "$ref": "common#/definitions/projectFields"
     }
   },
-  "required": []
+  "required": [
+    "Limit"
+  ]
 }

@@ -1,9 +1,10 @@
 import { AxiosInstance, AxiosResponse } from 'axios';
-import { CarConnectorConnectionSetting, CarConnectorConnectionType, CarConnectorSetting } from '../../../types/Setting';
+import { CarConnectorConnectionSetting, CarConnectorConnectionType, CarConnectorSettings } from '../../../types/Setting';
 import axiosRetry, { IAxiosRetryConfig } from 'axios-retry';
 
 import AxiosFactory from '../../../utils/AxiosFactory';
 import BackendError from '../../../exception/BackendError';
+import { Car } from '../../../types/Car';
 import CarConnectorIntegration from '../CarConnectorIntegration';
 import Connection from '../../../types/Connection';
 import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
@@ -18,7 +19,7 @@ import querystring from 'querystring';
 
 const MODULE_NAME = 'MercedesCarConnectorIntegration';
 
-export default class MercedesCarConnectorIntegration extends CarConnectorIntegration<CarConnectorSetting> {
+export default class MercedesCarConnectorIntegration extends CarConnectorIntegration<CarConnectorSettings> {
   private axiosInstance: AxiosInstance;
   private readonly axiosRetryConfiguration: IAxiosRetryConfig = {
     retries: 3,
@@ -28,7 +29,6 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
         if (error.config.method === 'post') {
           if (error.config.url.endsWith('/token.oauth2')) {
             throw new BackendError({
-              source: Constants.CENTRAL_SERVER,
               module: MODULE_NAME,
               method: 'retryDelay',
               message: `Unable to post token, response status ${error.response.status}, attempt ${retryCount}`,
@@ -41,7 +41,6 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
               payload: JSON.parse(error.config.data)
             };
             throw new BackendError({
-              source: Constants.CENTRAL_SERVER,
               module: MODULE_NAME,
               method: 'retryDelay',
               message: `Unable to post data on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`,
@@ -51,7 +50,6 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
           }
         } else {
           throw new BackendError({
-            source: Constants.CENTRAL_SERVER,
             module: MODULE_NAME,
             method: 'retryDelay',
             message: `Unable to make data request on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`,
@@ -59,19 +57,18 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
             detailedMessages: { response: error.response.data }
           });
         }
-      } catch (err) {
-        void Logging.logException(
-          err, ServerAction.CAR_CONNECTOR, Constants.CENTRAL_SERVER, MODULE_NAME, 'anonymous', this.tenant.id, null);
+      } catch (error) {
+        void Logging.logException(error, ServerAction.CAR_CONNECTOR, MODULE_NAME, 'anonymous', this.tenant.id);
       }
       return axiosRetry.exponentialDelay(retryCount);
     },
     shouldResetTimeout: true
   };
 
-  constructor(tenant: Tenant, settings: CarConnectorSetting, connection: CarConnectorConnectionSetting) {
+  constructor(tenant: Tenant, settings: CarConnectorSettings, connection: CarConnectorConnectionSetting) {
     super(tenant, settings, connection);
     // Get Axios
-    this.axiosInstance = AxiosFactory.getAxiosInstance(this.tenant.id,
+    this.axiosInstance = AxiosFactory.getAxiosInstance(this.tenant,
       {
         axiosRetryConfig: this.axiosRetryConfiguration,
       });
@@ -126,7 +123,6 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
       return connection;
     } catch (error) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         message: 'Mercedes access token not granted',
         module: MODULE_NAME,
         method: 'createConnection',
@@ -137,10 +133,37 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
     }
   }
 
-  public async getCurrentSoC(userID: string): Promise<number> {
-    // To be implemented
+  public async getCurrentSoC(car: Car, userID: string): Promise<number> {
     const connection = await this.getRefreshedConnection(userID);
-    return 0;
+    const request = `${this.connection.mercedesConnection.apiUrl}/vehicledata/v2/vehicles/${car.vin}/resources/soc`;
+    try {
+      // Get consumption
+      const response = await this.axiosInstance.get(
+        request,
+        {
+          headers: { 'Authorization': 'Bearer ' + connection.data.access_token }
+        }
+      );
+      await Logging.logDebug({
+        tenantID: this.tenant.id,
+        action: ServerAction.CAR_CONNECTOR,
+        message: `${car.vin} > Mercedes web service has been called successfully`,
+        module: MODULE_NAME, method: 'getCurrentSoC',
+        detailedMessages: { response: response.data }
+      });
+      if (response?.data?.soc?.value) {
+        return response.data.soc.value;
+      }
+      return null;
+    } catch (error) {
+      throw new BackendError({
+        module: MODULE_NAME,
+        method: 'getCurrentSoC',
+        action: ServerAction.CAR_CONNECTOR,
+        message: 'Error while retrieving the SOC',
+        detailedMessages: { request, error: error.stack }
+      });
+    }
   }
 
   private computeValidUntilAt(response: AxiosResponse) {
@@ -193,7 +216,6 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
       return connection;
     } catch (error) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         message: 'Mercedes access token not refreshed',
         module: MODULE_NAME,
         method: 'refreshToken',
@@ -208,7 +230,6 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
     let connection = await ConnectionStorage.getConnectionByConnectorIdAndUserId(this.tenant, CarConnectorConnectionType.MERCEDES, userID);
     if (!connection) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
         message: `The user does not have a connection to connector '${CarConnectorConnectionType.MERCEDES}'`,
         module: MODULE_NAME,
         method: 'getRefreshedConnection',

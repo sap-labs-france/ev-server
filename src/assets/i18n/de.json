@@ -2,7 +2,12 @@
   "billing": {
     "generatedUser": "Erstellter Benutzer für '{{email}}'",
     "chargingAtSiteArea": "Charging session: {{sessionID}} - Start Date: {{startDate}} at {startTime} - Energy Consumption: {{totalConsumption}} kWh at {{siteAreaName}}",
-    "chargingAtChargeBox": "Charging session: {{sessionID}} - Start Date: {{startDate}} at {{startTime}} - Energy Consumption: {{totalConsumption}} kWh at charging station {{chargeBoxID}}"
+    "chargingAtChargeBox": "Charging session: {{sessionID}} - Start Date: {{startDate}} at {{startTime}} - Energy Consumption: {{totalConsumption}} kWh at charging station {{chargeBoxID}}",
+    "header-itemDescription": "Session: {{sessionID}} - Start Date: {{startDate}} at {{startTime}} at charging station {{chargeBoxID}}",
+    "flatFee-shortItemDescription": "Flat Fee",
+    "energy-shortItemDescription": "Energy Consumption: {{quantity}} kWh",
+    "chargingTime-shortItemDescription": "Charging Time: {{duration}}",
+    "parkingTime-shortItemDescription": "Parking Time: {{duration}}"
   },
   "chargers": {
     "chargeBoxSN": "Seriennummer Ladestation",
@@ -75,10 +80,6 @@
     "oicpPatchChargingStationsError": {
       "title": "Senden der Hubject EVSE Daten",
       "body": "Die EVSE Daten der Ladestationen konnte nicht zur Hubject Roaming-Plattform übermittelt werden. Organisation: '{{tenantName}}', überprüfen Sie die Logs"
-    },
-    "smtpError": {
-      "title": "Email Server Error",
-      "body": "Das E-Mail Server ist fehlgeschlagen. Organisation: '{{tenantName}}', überprüfen Sie die Einstellungen"
     },
     "optimalChargeReached": {
       "title": "Optimale Ladung erreicht",

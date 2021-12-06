@@ -40,30 +40,6 @@ export default class UserApi extends CrudApi {
     return this.readAll({ Search: email });
   }
 
-  public async readTags(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(ServerRoute.REST_TAGS));
-  }
-
-  public async readTag(id) {
-    return super.read({ ID: id }, this.buildRestEndpointUrl(ServerRoute.REST_TAG, { id }));
-  }
-
-  public async updateTag(data) {
-    return super.update(data, this.buildRestEndpointUrl(ServerRoute.REST_TAG, { id: data.id }));
-  }
-
-  public async createTag(data) {
-    return super.create(data, this.buildRestEndpointUrl(ServerRoute.REST_TAGS));
-  }
-
-  public async deleteTag(id) {
-    return super.delete(id, this.buildRestEndpointUrl(ServerRoute.REST_TAG, { id }));
-  }
-
-  public async exportTags(params) {
-    return await super.read(params, this.buildRestEndpointUrl(ServerRoute.REST_TAGS_EXPORT));
-  }
-
   public async exportUsers(params) {
     return await super.read(params, this.buildRestEndpointUrl(ServerRoute.REST_USERS_EXPORT));
   }
