@@ -7,6 +7,7 @@ import Tenant, { TenantComponentContent, TenantComponents } from '../types/Tenan
 import Transaction, { CSPhasesUsed, InactivityStatus } from '../types/Transaction';
 import User, { UserRole, UserStatus } from '../types/User';
 import crypto, { CipherGCMTypes } from 'crypto';
+import global, { EntityData } from '../types/GlobalType';
 
 import Address from '../types/Address';
 import { AxiosError } from 'axios';
@@ -25,7 +26,6 @@ import { WebSocketCloseEventStatusString } from '../types/WebSocket';
 import _ from 'lodash';
 import bcrypt from 'bcryptjs';
 import fs from 'fs';
-import global from '../types/GlobalType';
 import http from 'http';
 import moment from 'moment';
 import os from 'os';
@@ -36,6 +36,15 @@ import { v4 as uuid } from 'uuid';
 import validator from 'validator';
 
 export default class Utils {
+  public static removeCanPropertiesWithFalseValue(entityData: EntityData): void {
+    if (entityData) {
+      for (const entityDataKey in entityData) {
+        if (entityDataKey.startsWith('can') && !entityData[entityDataKey]) {
+          delete entityData[entityDataKey];
+        }
+      }
+    }
+  }
 
   public static convertBufferArrayToString(data: ArrayBuffer): string {
     if (!data) {

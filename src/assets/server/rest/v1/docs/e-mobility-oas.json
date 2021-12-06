@@ -7787,6 +7787,15 @@
             }
           },
           {
+            "in": "query",
+            "name": "SiteAdmin",
+            "required": false,
+            "description": "Only site admin Sites",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
             "$ref": "#/components/parameters/WithCompany"
           },
           {

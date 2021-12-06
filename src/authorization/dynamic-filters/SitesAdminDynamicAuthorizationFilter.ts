@@ -1,10 +1,12 @@
 import { AuthorizationFilter, DynamicAuthorizationDataSourceName, Entity } from '../../types/Authorization';
-import Utils from '../../utils/Utils';
-import SitesAdminDynamicAuthorizationDataSource from '../dynamic-data-source/SitesAdminDynamicAuthorizationDataSource';
+
 import DynamicAuthorizationFilter from '../DynamicAuthorizationFilter';
+import { EntityData } from '../../types/GlobalType';
+import SitesAdminDynamicAuthorizationDataSource from '../dynamic-data-source/SitesAdminDynamicAuthorizationDataSource';
+import Utils from '../../utils/Utils';
 
 export default class SitesAdminDynamicAuthorizationFilter extends DynamicAuthorizationFilter {
-  public processFilter(authorizationFilters: AuthorizationFilter, extraFilters: Record<string, any>): void {
+  public processFilter(authorizationFilters: AuthorizationFilter, extraFilters: Record<string, any>, entityData?: EntityData): void {
     // Get Site IDs
     const sitesAdminDataSource = this.getDataSource(
       DynamicAuthorizationDataSourceName.SITES_ADMIN) as SitesAdminDynamicAuthorizationDataSource;

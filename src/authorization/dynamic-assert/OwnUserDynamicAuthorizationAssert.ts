@@ -1,9 +1,9 @@
 import DynamicAuthorizationAssert from '../DynamicAuthorizationAssert';
 import { Entity } from '../../types/Authorization';
-import { EntityDataType } from '../../types/GlobalType';
+import { EntityData } from '../../types/GlobalType';
 
 export default class OwnUserDynamicAuthorizationAssert extends DynamicAuthorizationAssert {
-  public processAssert(entityData: EntityDataType): boolean {
+  public processAssert(entityData: EntityData): boolean {
     if (entityData && entityData['userID'] && entityData['userID'] === this.userToken.id) {
       return true;
     }

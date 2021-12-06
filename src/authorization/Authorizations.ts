@@ -253,8 +253,21 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.REPORT, Action.READ);
   }
 
-  public static async canUpdateTransaction(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.TRANSACTION, Action.UPDATE);
+  public static async canUpdateTransaction(loggedUser: UserToken, transaction: Transaction): Promise<boolean> {
+    if (!transaction) {
+      return false;
+    }
+    const context: AuthorizationContext = {
+      user: transaction.userID,
+      owner: loggedUser.id,
+      tagIDs: loggedUser.tagIDs,
+      tagID: transaction.tagID,
+      site: transaction.siteID,
+      sites: loggedUser.sites,
+      sitesAdmin: loggedUser.sitesAdmin,
+      sitesOwner: loggedUser.sitesOwner
+    };
+    return Authorizations.canPerformAction(loggedUser, Entity.TRANSACTION, Action.UPDATE, context);
   }
 
   public static async canDeleteTransaction(loggedUser: UserToken): Promise<boolean> {

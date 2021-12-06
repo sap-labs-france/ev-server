@@ -1,4 +1,4 @@
-import { Action, Entity } from '../../../../types/Authorization';
+import { Action, DynamicAuthorizationDataSourceName, Entity, SitesAdminDynamicAuthorizationDataSourceData } from '../../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 
@@ -7,12 +7,14 @@ import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../../utils/Constants';
+import DynamicAuthorizationFactory from '../../../../authorization/DynamicAuthorizationFactory';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
 import { SiteDataResult } from '../../../../types/DataResult';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import SiteValidator from '../validator/SiteValidator';
+import SitesAdminDynamicAuthorizationDataSource from '../../../../authorization/dynamic-data-source/SitesAdminDynamicAuthorizationDataSource';
 import { TenantComponents } from '../../../../types/Tenant';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import Utils from '../../../../utils/Utils';
@@ -233,7 +235,7 @@ export default class SiteService {
       req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {
         withCompany: filteredRequest.WithCompany,
         withImage: true,
-      }, true, false);
+      }, true);
     res.json(site);
     next();
   }
@@ -257,6 +259,13 @@ export default class SiteService {
     if (!authorizationSitesFilter.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
+    }
+    // Check Site Admin filter
+    if (filteredRequest.SiteAdmin) {
+      // Override Site IDs
+      const siteAdminDataSource = await DynamicAuthorizationFactory.getDynamicDataSource(
+        req.tenant, req.user, DynamicAuthorizationDataSourceName.SITES_ADMIN) as SitesAdminDynamicAuthorizationDataSource;
+      authorizationSitesFilter.filters = { ...authorizationSitesFilter.filters, ...siteAdminDataSource.getData() };
     }
     // Get the sites
     const sites = await SiteStorage.getSites(req.tenant,
