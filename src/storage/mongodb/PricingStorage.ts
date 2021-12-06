@@ -34,6 +34,7 @@ export default class PricingStorage {
       staticRestrictions: pricingDefinition.staticRestrictions,
       restrictions: pricingDefinition.restrictions,
       dimensions: pricingDefinition.dimensions,
+      siteID: DatabaseUtils.convertToObjectID(pricingDefinition.siteID)
     };
     // Check Created/Last Changed By
     DatabaseUtils.addLastChangedCreatedProps(pricingDefinitionMDB, pricingDefinition);
@@ -63,8 +64,9 @@ export default class PricingStorage {
   }
 
   public static async getPricingDefinition(tenant: Tenant, id: string,
-      params: { entityID?: string; entityType?: string; withEntityInformation?: boolean } = {}, projectFields?: string[]): Promise<PricingDefinition> {
+      params: { entityID?: string; entityType?: PricingEntity; withEntityInformation?: boolean; siteIDs?: string[];} = {}, projectFields?: string[]): Promise<PricingDefinition> {
     const pricingDefinitionMDB = await PricingStorage.getPricingDefinitions(tenant, {
+      siteIDs: params.siteIDs,
       pricingDefinitionIDs: [id],
       entityID: params.entityID,
       entityType: params.entityType,
@@ -74,7 +76,7 @@ export default class PricingStorage {
   }
 
   public static async getPricingDefinitions(tenant: Tenant,
-      params: { pricingDefinitionIDs?: string[], entityType?: string; entityID?: string; withEntityInformation?: boolean; },
+      params: { pricingDefinitionIDs?: string[], entityType?: PricingEntity; entityID?: string; siteIDs?: string[]; withEntityInformation?: boolean; },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<PricingDefinition>> {
     const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
@@ -101,6 +103,12 @@ export default class PricingStorage {
       } else {
         filters.entityID = { $in: [DatabaseUtils.convertToObjectID(params.entityID)] };
       }
+    }
+    // Site
+    if (!Utils.isEmptyArray(params.siteIDs)) {
+      filters.siteID = {
+        $in: params.siteIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID))
+      };
     }
     // Remove deleted
     filters.deleted = { '$ne': true };

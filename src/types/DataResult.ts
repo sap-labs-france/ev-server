@@ -22,7 +22,7 @@ export interface DataResult<T> {
   metadata?: Record<string, AuthorizationDefinitionFieldMetadata>;
 }
 
-export interface PricingDataResult extends DataResult<PricingDefinition>{
+export interface PricingDefinitionDataResult extends DataResult<PricingDefinition>{
   canCreate: boolean;
 }
 

@@ -1,6 +1,6 @@
-import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity, SiteAreaAuthorizationActions, TagAuthorizationActions } from '../../../../types/Authorization';
+import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity, SiteAreaAuthorizationActions, SiteAuthorizationActions, TagAuthorizationActions } from '../../../../types/Authorization';
 import { Car, CarCatalog } from '../../../../types/Car';
-import { CarCatalogDataResult, CarDataResult, CompanyDataResult, LogDataResult, PricingDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, UserDataResult } from '../../../../types/DataResult';
+import { CarCatalogDataResult, CarDataResult, CompanyDataResult, LogDataResult, PricingDefinitionDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, UserDataResult } from '../../../../types/DataResult';
 import { HttpCarCatalogRequest, HttpCarCatalogsRequest, HttpCarRequest, HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
 import { HttpChargingStationRequest, HttpChargingStationsRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
@@ -47,6 +47,8 @@ export default class AuthorizationService {
         return authActions.canCreate;
       case Action.DELETE:
         return authActions.canDelete;
+      case Action.MAINTAIN_PRICING_DEFINITIONS:
+        return (authActions as SiteAuthorizationActions).canMaintainPricingDefinitions;
       case Action.UNASSIGN:
         return (authActions as TagAuthorizationActions).canUnassign;
       case Action.ASSIGN:
@@ -93,6 +95,8 @@ export default class AuthorizationService {
       tenant, userToken, Entity.SITE, Action.DELETE, authorizationFilter, { SiteID: site.id }, site);
     site.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.SITE, Action.UPDATE, authorizationFilter, { SiteID: site.id }, site);
+    site.canMaintainPricingDefinitions = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.SITE, Action.MAINTAIN_PRICING_DEFINITIONS, authorizationFilter, { SiteID: site.id }, site);
     site.canExportOCPPParams = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.SITE_AREA, Action.EXPORT_OCPP_PARAMS, authorizationFilter, { SiteID: site.id }, site);
     site.canGenerateQrCode = await AuthorizationService.canPerformAuthorizationAction(
@@ -391,7 +395,7 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
-  public static async addPricingDefinitionsAuthorizations(tenant: Tenant, userToken: UserToken, dataResult: PricingDataResult, filter: AuthorizationFilter): Promise<void> {
+  public static async addPricingDefinitionsAuthorizations(tenant: Tenant, userToken: UserToken, dataResult: PricingDefinitionDataResult, filter: AuthorizationFilter): Promise<void> {
     // Add canCreate flag to root
     dataResult.canCreate = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.PRICING_DEFINITION, Action.CREATE, filter);

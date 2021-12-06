@@ -198,7 +198,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.SITE,
         action: [
-          Action.CREATE, Action.UPDATE, Action.DELETE, Action.EXPORT_OCPP_PARAMS, Action.GENERATE_QR
+          Action.CREATE, Action.UPDATE, Action.DELETE, Action.EXPORT_OCPP_PARAMS, Action.GENERATE_QR, Action.MAINTAIN_PRICING_DEFINITIONS,
         ],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
@@ -305,6 +305,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.PRICING_DEFINITION, action: [Action.LIST],
         attributes: ['id', 'entityID', 'entityType', 'name', 'description', 'entityName',
           'staticRestrictions.validFrom', 'staticRestrictions.validTo', 'staticRestrictions.connectorType', 'staticRestrictions.connectorPowerkW',
+          'restrictions.daysOfWeek', 'restrictions.timeFrom', 'restrictions.timeTo',
           'restrictions.minEnergyKWh', 'restrictions.maxEnergyKWh', 'restrictions.minDurationSecs', 'restrictions.maxDurationSecs',
           'dimensions.flatFee.active', 'dimensions.flatFee.price', 'dimensions.flatFee.stepSize', 'dimensions.flatFee.pricedData',
           'dimensions.energy.active', 'dimensions.energy.price', 'dimensions.energy.stepSize', 'dimensions.energy.pricedData',
@@ -315,11 +316,13 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.PRICING_DEFINITION, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE],
         attributes: ['id', 'entityID', 'entityType', 'name', 'description', 'entityName',
           'staticRestrictions.validFrom', 'staticRestrictions.validTo', 'staticRestrictions.connectorType', 'staticRestrictions.connectorPowerkW',
+          'restrictions.daysOfWeek', 'restrictions.timeFrom', 'restrictions.timeTo',
           'restrictions.minEnergyKWh', 'restrictions.maxEnergyKWh', 'restrictions.minDurationSecs', 'restrictions.maxDurationSecs',
           'dimensions.flatFee.active', 'dimensions.flatFee.price', 'dimensions.flatFee.stepSize', 'dimensions.flatFee.pricedData',
           'dimensions.energy.active', 'dimensions.energy.price', 'dimensions.energy.stepSize', 'dimensions.energy.pricedData',
           'dimensions.chargingTime.active', 'dimensions.chargingTime.price', 'dimensions.chargingTime.stepSize', 'dimensions.chargingTime.pricedData',
-          'dimensions.parkingTime.active', 'dimensions.parkingTime.price', 'dimensions.parkingTime.stepSize', 'dimensions.parkingTime.pricedData',]
+          'dimensions.parkingTime.active', 'dimensions.parkingTime.price', 'dimensions.parkingTime.stepSize', 'dimensions.parkingTime.pricedData',
+        ]
       },
       { resource: Entity.BILLING, action: [Action.CHECK_CONNECTION, Action.CLEAR_BILLING_TEST_DATA] },
       { resource: Entity.TAX, action: [Action.LIST] },
@@ -976,7 +979,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       {
-        resource: Entity.SITE, action: [Action.UPDATE],
+        resource: Entity.SITE, action: [Action.UPDATE, Action.MAINTAIN_PRICING_DEFINITIONS],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
@@ -1237,6 +1240,42 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         }
       },
+      { resource: Entity.PRICING_DEFINITION, action: [Action.LIST],
+        attributes: ['id', 'entityID', 'entityType', 'name', 'description', 'entityName',
+          'staticRestrictions.validFrom', 'staticRestrictions.validTo', 'staticRestrictions.connectorType', 'staticRestrictions.connectorPowerkW',
+          'restrictions.daysOfWeek', 'restrictions.timeFrom', 'restrictions.timeTo',
+          'restrictions.minEnergyKWh', 'restrictions.maxEnergyKWh', 'restrictions.minDurationSecs', 'restrictions.maxDurationSecs',
+          'dimensions.flatFee.active', 'dimensions.flatFee.price', 'dimensions.flatFee.stepSize', 'dimensions.flatFee.pricedData',
+          'dimensions.energy.active', 'dimensions.energy.price', 'dimensions.energy.stepSize', 'dimensions.energy.pricedData',
+          'dimensions.chargingTime.active', 'dimensions.chargingTime.price', 'dimensions.chargingTime.stepSize', 'dimensions.chargingTime.pricedData',
+          'dimensions.parkingTime.active', 'dimensions.parkingTime.price', 'dimensions.parkingTime.stepSize', 'dimensions.parkingTime.pricedData',
+        ],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdmin']
+          }
+        },
+      },
+      { resource: Entity.PRICING_DEFINITION, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE],
+        attributes: ['id', 'entityID', 'entityType', 'name', 'description', 'entityName',
+          'staticRestrictions.validFrom', 'staticRestrictions.validTo', 'staticRestrictions.connectorType', 'staticRestrictions.connectorPowerkW',
+          'restrictions.daysOfWeek', 'restrictions.timeFrom', 'restrictions.timeTo',
+          'restrictions.minEnergyKWh', 'restrictions.maxEnergyKWh', 'restrictions.minDurationSecs', 'restrictions.maxDurationSecs',
+          'dimensions.flatFee.active', 'dimensions.flatFee.price', 'dimensions.flatFee.stepSize', 'dimensions.flatFee.pricedData',
+          'dimensions.energy.active', 'dimensions.energy.price', 'dimensions.energy.stepSize', 'dimensions.energy.pricedData',
+          'dimensions.chargingTime.active', 'dimensions.chargingTime.price', 'dimensions.chargingTime.stepSize', 'dimensions.chargingTime.pricedData',
+          'dimensions.parkingTime.active', 'dimensions.parkingTime.price', 'dimensions.parkingTime.stepSize', 'dimensions.parkingTime.pricedData',
+        ],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdmin']
+          }
+        },
+      },
     ]
   },
   siteOwner: {
@@ -1281,6 +1320,25 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         }
       },
       { resource: Entity.REPORT, action: [Action.READ] },
+      {
+        resource: Entity.PRICING_DEFINITION, action: Action.LIST,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesOwner', 'LocalIssuer']
+          }
+        },
+        attributes: ['id', 'entityID', 'entityType', 'name', 'description', 'entityName',
+          'staticRestrictions.validFrom', 'staticRestrictions.validTo', 'staticRestrictions.connectorType', 'staticRestrictions.connectorPowerkW',
+          'restrictions.daysOfWeek', 'restrictions.timeFrom', 'restrictions.timeTo',
+          'restrictions.minEnergyKWh', 'restrictions.maxEnergyKWh', 'restrictions.minDurationSecs', 'restrictions.maxDurationSecs',
+          'dimensions.flatFee.active', 'dimensions.flatFee.price', 'dimensions.flatFee.stepSize', 'dimensions.flatFee.pricedData',
+          'dimensions.energy.active', 'dimensions.energy.price', 'dimensions.energy.stepSize', 'dimensions.energy.pricedData',
+          'dimensions.chargingTime.active', 'dimensions.chargingTime.price', 'dimensions.chargingTime.stepSize', 'dimensions.chargingTime.pricedData',
+          'dimensions.parkingTime.active', 'dimensions.parkingTime.price', 'dimensions.parkingTime.stepSize', 'dimensions.parkingTime.pricedData',
+        ],
+      },
     ]
   },
 };
