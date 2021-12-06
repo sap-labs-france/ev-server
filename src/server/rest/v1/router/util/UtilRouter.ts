@@ -40,7 +40,6 @@ export default class UtilRouter {
 
   private buildRouteGetTenantLogo(): void {
     this.router.get(`/${ServerRoute.REST_TENANT_LOGO}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.query.ID = req.params.id;
       await RouterUtils.handleServerAction(TenantService.handleGetTenantLogo.bind(this), ServerAction.TENANT_LOGO, req, res, next);
     });
   }
