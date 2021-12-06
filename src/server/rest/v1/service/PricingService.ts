@@ -76,20 +76,6 @@ export default class PricingService {
     next();
   }
 
-  public static async alterCanCreate(req: Request, action: ServerAction, entityType: PricingEntity, entityID: string, canCreate: boolean): Promise<boolean> {
-    try {
-    // Get the site ID for the current entity
-      const siteID = await PricingService.checkAuthorizationAndGetSiteID(req, action, entityType, entityID);
-      if (siteID) {
-        // TODO: To be clarified - Here we reuse the Site UPDATE permission to determine whether we can create a pricing definition or not
-        await UtilsService.checkAndGetSiteAuthorization(req.tenant, req.user, siteID, Action.UPDATE, action);
-      }
-    } catch (e) {
-      canCreate = false;
-    }
-    return canCreate;
-  }
-
   public static async handleCreatePricingDefinition(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
@@ -221,6 +207,30 @@ export default class PricingService {
         siteID = null;
     }
     return siteID;
+  }
+
+  private static async alterCanCreate(req: Request, action: ServerAction, entityType: PricingEntity, entityID: string, canCreate: boolean): Promise<boolean> {
+    if (canCreate) {
+      try {
+        // Get the site ID for the current entity
+        const siteID = await PricingService.checkAuthorizationAndGetSiteID(req, action, entityType, entityID);
+        if (siteID) {
+          await UtilsService.checkAndGetSiteAuthorization(req.tenant, req.user, siteID, Action.MAINTAIN_PRICING_DEFINITIONS, action);
+        }
+      } catch (error) {
+        canCreate = false;
+        if (!(error instanceof AppAuthError)) {
+          await Logging.logError({
+            tenantID: req.user.tenantID,
+            user: req.user, module: MODULE_NAME, method: 'alterCanCreate',
+            message: 'Unexpected error while checking site access permissions',
+            action: action,
+            detailedMessages: { error: error.stack }
+          });
+        }
+      }
+    }
+    return canCreate;
   }
 }
 
