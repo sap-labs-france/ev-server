@@ -70,8 +70,7 @@ export default class LockingStorage {
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'getLocks', startTime, aggregation, locksMDB);
     // Ok
     return {
-      count: (locksCountMDB.length > 0 ?
-        (locksCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : locksCountMDB[0].count) : 0),
+      count: DatabaseUtils.getCountFromDatabaseCount(locksCountMDB[0]),
       result: locksMDB
     };
   }

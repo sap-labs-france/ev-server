@@ -108,10 +108,12 @@ export default class CarStorage {
             $cond: {
               if: { $gt: ['$image', null] }, then: {
                 $concat: [
-                  `${Utils.buildRestServerURL()}/client/util/CarCatalogImage?ID=`,
+                  `${Utils.buildRestServerURL()}/v1/util/car-catalogs/`,
                   { $toString: '$_id' },
-                  '&LastChangedOn=',
-                  { $toString: '$lastChangedOn' }
+                  '/image',
+                  {
+                    $ifNull: [{ $concat: ['?LastChangedOn=', { $toString: '$lastChangedOn' }] }, ''] // Only concat 'lastChangedOn' if not null
+                  }
                 ]
               }, else: null
             }
@@ -134,8 +136,7 @@ export default class CarStorage {
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'getCarCatalogs', startTime, aggregation, carCatalogs);
     // Ok
     return {
-      count: (carCatalogsCountMDB.length > 0 ?
-        (carCatalogsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : carCatalogsCountMDB[0].count) : 0),
+      count: DatabaseUtils.getCountFromDatabaseCount(carCatalogsCountMDB[0]),
       result: carCatalogs
     };
   }
@@ -408,8 +409,7 @@ export default class CarStorage {
     // Debug
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'getCarCatalogImages', startTime, aggregation, carCatalogImages);
     return {
-      count: (carCatalogImagesCountMDB.length > 0 ?
-        (carCatalogImagesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : carCatalogImagesCountMDB[0].count) : 0),
+      count: DatabaseUtils.getCountFromDatabaseCount(carCatalogImagesCountMDB[0]),
       result: carCatalogImages
     };
   }
@@ -686,10 +686,11 @@ export default class CarStorage {
             $cond: {
               if: { $gt: ['$carCatalog.image', null] }, then: {
                 $concat: [
-                  `${Utils.buildRestServerURL()}/client/util/CarCatalogImage?ID=`,
+                  `${Utils.buildRestServerURL()}/v1/util/car-catalogs/`,
                   '$carCatalog.id',
-                  '&LastChangedOn=',
-                  { $toString: '$carCatalog.lastChangedOn' }
+                  {
+                    $ifNull: [{ $concat: ['?LastChangedOn=', { $toString: '$carCatalog.lastChangedOn' }] }, ''] // Only concat 'lastChangedOn' if not null
+                  }
                 ]
               }, else: null
             }
@@ -713,8 +714,7 @@ export default class CarStorage {
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getCars', startTime, aggregation, cars);
     return {
-      count: (carsCountMDB.length > 0 ?
-        (carsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : carsCountMDB[0].count) : 0),
+      count: DatabaseUtils.getCountFromDatabaseCount(carsCountMDB[0]),
       result: cars
     };
   }
