@@ -89,7 +89,7 @@ export default class ChargingStationStorage {
     // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Validate
-    chargingStationTemplate = ChargingStationValidatorStorage.getInstance().validateChargingStationStorageTemplate(
+    chargingStationTemplate = ChargingStationValidatorStorage.getInstance().validateChargingStationTemplate(
       chargingStationTemplate as unknown as Record<string, unknown>);
     // Modify and return the modified document
     await global.database.getCollection<ChargingStationTemplate>(Constants.DEFAULT_TENANT, 'chargingstationtemplates').findOneAndReplace(
