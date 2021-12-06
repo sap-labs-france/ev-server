@@ -13,6 +13,7 @@ export enum IntegrationSettings {
   SMART_CHARGING = 'smartCharging',
   REFUND = 'refund',
   PRICING = 'pricing',
+  ASSET = 'asset'
 }
 
 export interface Setting extends CreatedUpdatedProps {

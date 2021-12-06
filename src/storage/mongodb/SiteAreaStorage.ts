@@ -77,7 +77,7 @@ export default class SiteAreaStorage {
   }
 
   public static async getSiteArea(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID,
-      params: { withSite?: boolean; withChargingStations?: boolean, withAvailableChargingStations?: boolean; withImage?: boolean } = {},
+      params: { withSite?: boolean; withChargingStations?: boolean; withAvailableChargingStations?: boolean; withImage?: boolean; issuer?: boolean; } = {},
       projectFields?: string[]): Promise<SiteArea> {
     const siteAreasMDB = await SiteAreaStorage.getSiteAreas(tenant, {
       siteAreaIDs: [id],
@@ -85,6 +85,7 @@ export default class SiteAreaStorage {
       withChargingStations: params.withChargingStations,
       withAvailableChargingStations: params.withAvailableChargingStations,
       withImage: params.withImage,
+      issuer: params.issuer,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return siteAreasMDB.count === 1 ? siteAreasMDB.result[0] : null;
   }
@@ -173,7 +174,11 @@ export default class SiteAreaStorage {
     // Otherwise check if search is present
     if (params.search) {
       filters.$or = [
-        { 'name': { $regex: params.search, $options: 'i' } }
+        { 'name': { $regex: params.search, $options: 'i' } },
+        { 'address.postalCode': { $regex: params.search, $options: 'i' } },
+        { 'address.city': { $regex: params.search, $options: 'i' } },
+        { 'address.region': { $regex: params.search, $options: 'i' } },
+        { 'address.country': { $regex: params.search, $options: 'i' } },
       ];
     }
     // Site Area

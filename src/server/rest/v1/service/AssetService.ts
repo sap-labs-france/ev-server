@@ -21,6 +21,7 @@ import SiteArea from '../../../../types/SiteArea';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import { StatusCodes } from 'http-status-codes';
 import { TenantComponents } from '../../../../types/Tenant';
+import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 import moment from 'moment';
@@ -433,10 +434,12 @@ export default class AssetService {
 
   public static async handleGetAssetImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = AssetValidator.getInstance().validateAssetGetReq(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetAssetImage', req.user);
-    // Get it
-    const assetImage = await AssetStorage.getAssetImage(req.tenant, filteredRequest.ID);
+    const filteredRequest = AssetValidator.getInstance().validateAssetGetImageReq(req.query);
+    // Get the tenant
+    const tenant = await TenantStorage.getTenant(filteredRequest.TenantID);
+    UtilsService.assertObjectExists(action, tenant, 'Tenant does not exist', MODULE_NAME, 'handleGetAssetImage', req.user);
+    // Get the image
+    const assetImage = await AssetStorage.getAssetImage(tenant, filteredRequest.ID);
     // Return
     if (assetImage?.image) {
       let header = 'image';

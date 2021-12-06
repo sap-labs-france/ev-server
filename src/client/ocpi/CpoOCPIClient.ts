@@ -65,6 +65,8 @@ export default class CpoOCPIClient extends OCPIClient {
       total: 0,
       logs: []
     };
+    // If partial (keep it global for logs)
+    const momentFrom = moment().utc().subtract(1, 'hours').startOf('hour');
     // EMSP Users
     const emspUsers = new Map<string, User>();
     // Perfs trace
@@ -72,7 +74,6 @@ export default class CpoOCPIClient extends OCPIClient {
     // Get tokens endpoint url
     let tokensUrl = this.getEndpointUrl('tokens', ServerAction.OCPI_PULL_TOKENS);
     if (partial) {
-      const momentFrom = moment().utc().subtract(1, 'hours').startOf('hour');
       tokensUrl = `${tokensUrl}?date_from=${momentFrom.format()}&limit=100`;
     } else {
       tokensUrl = `${tokensUrl}?limit=100`;
@@ -149,7 +150,7 @@ export default class CpoOCPIClient extends OCPIClient {
       }
       const executionDurationLoopSecs = (new Date().getTime() - startTimeLoop) / 1000;
       const executionDurationTotalLoopSecs = (new Date().getTime() - startTime) / 1000;
-      await Logging.logInfo({
+      await Logging.logDebug({
         tenantID: this.tenant.id,
         action: ServerAction.OCPI_PULL_TOKENS,
         message: `${numberOfTags.toString()} token(s) processed in ${executionDurationLoopSecs}s - Total of ${totalNumberOfToken} token(s) processed in ${executionDurationTotalLoopSecs}s`,
@@ -160,10 +161,10 @@ export default class CpoOCPIClient extends OCPIClient {
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
     await Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_PULL_TOKENS,
       MODULE_NAME, 'pullTokens', result,
-      `{{inSuccess}} token(s) were successfully pulled in ${executionDurationSecs}s`,
-      `{{inError}} token(s) failed to be pulled in ${executionDurationSecs}s`,
-      `{{inSuccess}} token(s) were successfully pulled and {{inError}} failed to be pulled in ${executionDurationSecs}s`,
-      'No tokens have been pulled'
+      `{{inSuccess}} token(s) were successfully pulled in ${executionDurationSecs}s ${partial ? 'from ' + momentFrom.format() : ''}`,
+      `{{inError}} token(s) failed to be pulled in ${executionDurationSecs}s ${partial ? 'from ' + momentFrom.format() : ''}`,
+      `{{inSuccess}} token(s) were successfully pulled and {{inError}} failed to be pulled in ${executionDurationSecs}s ${partial ? 'from ' + momentFrom.format() : ''}`,
+      `No tokens have been pulled ${partial ? 'from ' + momentFrom.format() : ''}`
     );
     return result;
   }
@@ -748,8 +749,7 @@ export default class CpoOCPIClient extends OCPIClient {
                 }
                 if (result.failure > 0) {
                   // Send notification to admins
-                  // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                  void NotificationHandler.sendOCPIPatchChargingStationsStatusesError(
+                  await NotificationHandler.sendOCPIPatchChargingStationsStatusesError(
                     this.tenant,
                     {
                       location: location.name,

@@ -22,21 +22,28 @@ export default class PricingEngine {
   public static async resolvePricingContext(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation): Promise<ResolvedPricingModel> {
     // Merge the pricing definitions from the different contexts
     const pricingDefinitions: ResolvedPricingDefinition[] = [];
-    if (FeatureToggles.isFeatureActive(Feature.PRICING_CHECK_BACKWARD_COMPATIBILITY)) {
-      // Do nothing - this should trigger a fallback to the simple pricing logic
-    } else {
-      // pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction.userID));
-      pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.CHARGING_STATION, transaction.chargeBoxID.toString()));
-      pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.SITE_AREA, transaction.siteAreaID.toString()));
-      pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.SITE, transaction.siteID.toString()));
-      pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.COMPANY, transaction.companyID.toString()));
-      pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.TENANT, tenant.id));
+    // pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction.userID));
+    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.CHARGING_STATION, transaction.chargeBoxID.toString()));
+    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.SITE_AREA, transaction.siteAreaID.toString()));
+    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.SITE, transaction.siteID.toString()));
+    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.COMPANY, transaction.companyID.toString()));
+    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.TENANT, tenant.id));
+    if (!transaction.timezone) {
+      await Logging.logWarning({
+        tenantID: tenant.id,
+        module: MODULE_NAME,
+        action: ServerAction.PRICING,
+        method: 'resolvePricingContext',
+        message: 'Unexpected situation: The timezone of the transaction is unknown. Make sure the location of the charging station is properly set!',
+        ...LoggingHelper.getTransactionProperties(transaction)
+      });
     }
     // Return the resolution result as a resolved pricing model
     const resolvedPricingModel: ResolvedPricingModel = {
       pricerContext: {
         flatFeeAlreadyPriced: false,
-        sessionStartDate: transaction.timestamp
+        sessionStartDate: transaction.timestamp,
+        timezone: transaction.timezone
       },
       pricingDefinitions
     };
@@ -76,7 +83,7 @@ export default class PricingEngine {
     ).map((pricingDefinition) =>
       PricingEngine.shrinkPricingDefinition(pricingDefinition)
     );
-    await Logging.logInfo({
+    await Logging.logDebug({
       tenantID: tenant.id,
       module: MODULE_NAME,
       action: ServerAction.PRICING,

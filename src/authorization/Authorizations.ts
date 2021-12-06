@@ -253,8 +253,21 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.REPORT, Action.READ);
   }
 
-  public static async canUpdateTransaction(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.TRANSACTION, Action.UPDATE);
+  public static async canUpdateTransaction(loggedUser: UserToken, transaction: Transaction): Promise<boolean> {
+    if (!transaction) {
+      return false;
+    }
+    const context: AuthorizationContext = {
+      user: transaction.userID,
+      owner: loggedUser.id,
+      tagIDs: loggedUser.tagIDs,
+      tagID: transaction.tagID,
+      site: transaction.siteID,
+      sites: loggedUser.sites,
+      sitesAdmin: loggedUser.sitesAdmin,
+      sitesOwner: loggedUser.sitesOwner
+    };
+    return Authorizations.canPerformAction(loggedUser, Entity.TRANSACTION, Action.UPDATE, context);
   }
 
   public static async canDeleteTransaction(loggedUser: UserToken): Promise<boolean> {
@@ -786,7 +799,7 @@ export default class Authorizations {
         return { user };
       }
       // Create the Tag as inactive and abort
-      this.notifyUnknownBadgeHasBeenUsedAndAbort(action, tenant, tagID, chargingStation);
+      await this.notifyUnknownBadgeHasBeenUsedAndAbort(action, tenant, tagID, chargingStation);
     }
     // Get Authorized User
     const user = await this.checkAndGetAuthorizedUserFromTag(action, tenant, chargingStation, transaction, tag, authAction);
@@ -970,7 +983,7 @@ export default class Authorizations {
     return user;
   }
 
-  private static notifyUnknownBadgeHasBeenUsedAndAbort(
+  private static async notifyUnknownBadgeHasBeenUsedAndAbort(
       action: ServerAction, tenant: Tenant, tagID: string, chargingStation: ChargingStation) {
     const tag: Tag = {
       id: tagID,
@@ -981,7 +994,7 @@ export default class Authorizations {
       default: false
     };
     // Notify (Async)
-    void NotificationHandler.sendUnknownUserBadged(
+    await NotificationHandler.sendUnknownUserBadged(
       tenant,
       Utils.generateUUID(),
       chargingStation,

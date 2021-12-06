@@ -2,14 +2,17 @@ import { AuthorizationFilter, DynamicAuthorizationDataSourceName, Entity } from 
 
 import AssignedSitesCompaniesDynamicAuthorizationDataSource from '../dynamic-data-source/AssignedSitesCompaniesDynamicAuthorizationDataSource';
 import DynamicAuthorizationFilter from '../DynamicAuthorizationFilter';
+import { EntityData } from '../../types/GlobalType';
 import Utils from '../../utils/Utils';
 
 export default class AssignedSitesCompaniesDynamicAuthorizationFilter extends DynamicAuthorizationFilter {
-  public processFilter(authorizationFilters: AuthorizationFilter, extraFilters: Record<string, any>): void {
+  public processFilter(authorizationFilters: AuthorizationFilter, extraFilters: Record<string, any>, entityData?: EntityData): void {
     // Get Company IDs
     const assignedSitesCompaniesDataSource = this.getDataSource(
       DynamicAuthorizationDataSourceName.ASSIGNED_SITES_COMPANIES) as AssignedSitesCompaniesDynamicAuthorizationDataSource;
     const { companyIDs } = assignedSitesCompaniesDataSource.getData();
+    // Clear
+    authorizationFilters.filters.companyIDs = [];
     // Check
     if (!Utils.isEmptyArray(companyIDs)) {
       // Force the filter
@@ -30,7 +33,6 @@ export default class AssignedSitesCompaniesDynamicAuthorizationFilter extends Dy
 
   public getApplicableEntities(): Entity[] {
     return [
-      Entity.COMPANY,
       Entity.COMPANY
     ];
   }

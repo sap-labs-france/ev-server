@@ -487,7 +487,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         Logging.logConsoleDebug(`** ${this.runningWSMessages} running WS Messages (Requests + Responses)`);
         Logging.logConsoleDebug(`** ${this.waitingWSMessages} queued WS Message(s)`);
         Logging.logConsoleDebug('=====================================');
-      }, 5 * 1000);
+      }, 30 * 1000);
     }
   }
 

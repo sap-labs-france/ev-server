@@ -6,6 +6,10 @@ export interface OCPIPeriod {
   period_begin: Date;
   period_end: Date;
 }
+// Begin of the regular period given in hours and minutes.
+// Must be in 24h format with leading zeros. Example:
+// “18:15”. Hour/Minute separator: “:” Regex:
+// [0-2][0-9]:[0-5][0-9]
 
 export interface OCPIDayPeriod {
   weekday: number;

@@ -32,6 +32,9 @@ export default class SchemaValidator {
   private static pricingDefinitionSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/pricing/pricing-definition.json`, 'utf8'));
   private static oicpEndpointSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/oicp/oicp-endpoint.json`, 'utf8'));
   private static settingSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/setting/setting.json`, 'utf8'));
+  private static registrationTokenSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/registration-token/registration-token.json`, 'utf8'));
+  private static siteAreasSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/site-area/site-area.json`, 'utf8'));
+  private static siteSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/site/site.json`, 'utf8'));
   private readonly ajv: Ajv;
 
   constructor(readonly moduleName: string,
@@ -55,20 +58,25 @@ export default class SchemaValidator {
     // Add custom Formatter
     this.addCustomFormatters();
     // Add common schema
-    this.ajv.addSchema(SchemaValidator.commonSchema);
-    this.ajv.addSchema(SchemaValidator.tenantSchema);
-    this.ajv.addSchema(SchemaValidator.tenantComponentSchema);
-    this.ajv.addSchema(SchemaValidator.chargingStationSchema);
-    this.ajv.addSchema(SchemaValidator.tagSchema);
-    this.ajv.addSchema(SchemaValidator.transactionSchema);
-    this.ajv.addSchema(SchemaValidator.userSchema);
-    this.ajv.addSchema(SchemaValidator.carSchema);
-    this.ajv.addSchema(SchemaValidator.assetSchema);
-    this.ajv.addSchema(SchemaValidator.companySchema);
-    this.ajv.addSchema(SchemaValidator.ocpiEndpointSchema);
-    this.ajv.addSchema(SchemaValidator.pricingDefinitionSchema);
-    this.ajv.addSchema(SchemaValidator.oicpEndpointSchema);
-    this.ajv.addSchema(SchemaValidator.settingSchema);
+    this.ajv.addSchema([
+      SchemaValidator.commonSchema,
+      SchemaValidator.tenantSchema,
+      SchemaValidator.tenantComponentSchema,
+      SchemaValidator.chargingStationSchema,
+      SchemaValidator.tagSchema,
+      SchemaValidator.transactionSchema,
+      SchemaValidator.userSchema,
+      SchemaValidator.carSchema,
+      SchemaValidator.assetSchema,
+      SchemaValidator.companySchema,
+      SchemaValidator.ocpiEndpointSchema,
+      SchemaValidator.pricingDefinitionSchema,
+      SchemaValidator.oicpEndpointSchema,
+      SchemaValidator.settingSchema,
+      SchemaValidator.registrationTokenSchema,
+      SchemaValidator.siteAreasSchema,
+      SchemaValidator.siteSchema
+    ]);
   }
 
   protected validate(schema: Schema, data: Record<string, unknown>): any {

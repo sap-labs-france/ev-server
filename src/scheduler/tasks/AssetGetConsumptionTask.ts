@@ -22,7 +22,7 @@ import moment from 'moment';
 const MODULE_NAME = 'AssetGetConsumptionTask';
 
 export default class AssetGetConsumptionTask extends SchedulerTask {
-  async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
+  public async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     // Check if Asset component is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.ASSET)) {
       const smartChargingActive = Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING);

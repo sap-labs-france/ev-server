@@ -20,7 +20,7 @@ export default class ConsumptionPricer {
       this.checkPricingDefinitionRestrictions(pricingDefinition)
     );
     // It does not make sense to apply several tariffs to a single consumption
-    this.actualPricingDefinitions = [ actualPricingDefinitions?.[0] ];
+    this.actualPricingDefinitions = [ actualPricingDefinitions[0] ];
   }
 
   public priceConsumption(): PricedConsumptionData {
@@ -41,23 +41,55 @@ export default class ConsumptionPricer {
 
   private checkPricingDefinitionRestrictions(pricingDefinition: ResolvedPricingDefinition) : ResolvedPricingDefinition {
     if (pricingDefinition.restrictions) {
-      if (!this.checkMinEnergy(pricingDefinition.restrictions)
+      if (!this.checkDayOfWeek(pricingDefinition.restrictions)
+        || !this.checkTimeValidity(pricingDefinition.restrictions)
+        || !this.checkMinEnergy(pricingDefinition.restrictions)
         || !this.checkMaxEnergy(pricingDefinition.restrictions)
         || !this.checkMinDuration(pricingDefinition.restrictions)
         || !this.checkMaxDuration(pricingDefinition.restrictions)) {
-        // ---------------------------------------------------
-        // TODO - additional restrictions may be checked here
-        // ---------------------------------------------------
-        // startTime?: string, // Start time of day, for example 13:30, valid from this time of the day. Must be in 24h format with leading zeros. Hour/Minute se
-        // endTime?: string, // End time of day, for example 19:45, valid until this time of the day. Same syntax as start_time
-        // startDate?: string, // Start date, for example: 2015-12-24, valid from this day
-        // endDate?: string, // End date, for example: 2015-12-27, valid until this day (excluding this day)
-        // daysOfWeek?: DayOfWeek[], // Which day(s) of the week this tariff is valid
         return null;
       }
     }
     // a definition matching the restrictions has been found
     return pricingDefinition;
+  }
+
+  private checkDayOfWeek(restrictions: PricingRestriction): boolean {
+    if (!Utils.isNullOrUndefined(restrictions.daysOfWeek)) {
+      const timezone = this.pricingModel.pricerContext.timezone;
+      if (!timezone) {
+        // Charging station timezone is not known - 'days of the week' restrictions cannot be used in such context
+        return false;
+      }
+      // ACHTUNG - moment.isoWeekday() - 1:MONDAY, 7: SUNDAY
+      return restrictions.daysOfWeek.includes(moment(this.consumptionData.startedAt).tz(timezone).isoWeekday());
+    }
+    // No restrictions related to the day of the week
+    return true;
+  }
+
+  private checkTimeValidity(restrictions: PricingRestriction): boolean {
+    // The time range restriction must consider the charging station timezone
+    const timezone = this.pricingModel.pricerContext.timezone;
+    if (!timezone) {
+      // Charging station timezone is not known - time restrictions cannot be used in such context
+      return false;
+    }
+    if (!Utils.isNullOrUndefined(restrictions.timeFrom)) {
+      const hour = Utils.convertToInt(restrictions.timeFrom.slice(0, 2));
+      const minute = Utils.convertToInt(restrictions.timeFrom.slice(3));
+      if (moment(this.consumptionData.startedAt).tz(timezone).isBefore(moment().tz(timezone).set({ hour, minute }))) {
+        return false;
+      }
+    }
+    if (!Utils.isNullOrUndefined(restrictions.timeTo)) {
+      const hour = Utils.convertToInt(restrictions.timeTo.slice(0, 2));
+      const minute = Utils.convertToInt(restrictions.timeTo.slice(3));
+      if (moment(this.consumptionData.startedAt).tz(timezone).isSameOrAfter(moment().tz(timezone).set({ hour, minute }))) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private checkMinEnergy(restrictions: PricingRestriction): boolean {

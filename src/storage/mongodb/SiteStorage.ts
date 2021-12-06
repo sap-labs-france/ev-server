@@ -17,11 +17,12 @@ const MODULE_NAME = 'SiteStorage';
 
 export default class SiteStorage {
   public static async getSite(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID,
-      params: { withCompany?: boolean, withImage?: boolean; } = {}, projectFields?: string[]): Promise<Site> {
+      params: { withCompany?: boolean, withImage?: boolean; issuer?: boolean; } = {}, projectFields?: string[]): Promise<Site> {
     const sitesMDB = await SiteStorage.getSites(tenant, {
       siteIDs: [id],
       withCompany: params.withCompany,
       withImage: params.withImage,
+      issuer: params.issuer,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return sitesMDB.count === 1 ? sitesMDB.result[0] : null;
   }
@@ -305,7 +306,7 @@ export default class SiteStorage {
   public static async getSites(tenant: Tenant,
       params: {
         search?: string; companyIDs?: string[]; withAutoUserAssignment?: boolean; siteIDs?: string[];
-        userID?: string; excludeSitesOfUserID?: boolean; issuer?: boolean; public?: boolean; name?: string;
+        userID?: string; excludeSitesOfUserID?: string; issuer?: boolean; public?: boolean; name?: string;
         withAvailableChargingStations?: boolean; withOnlyChargingStations?: boolean; withCompany?: boolean;
         locCoordinates?: number[]; locMaxDistanceMeters?: number; withImage?: boolean;
       } = {},
@@ -340,7 +341,11 @@ export default class SiteStorage {
     const filters: FilterParams = {};
     if (params.search) {
       filters.$or = [
-        { 'name': { $regex: params.search, $options: 'i' } }
+        { 'name': { $regex: params.search, $options: 'i' } },
+        { 'address.postalCode': { $regex: params.search, $options: 'i' } },
+        { 'address.city': { $regex: params.search, $options: 'i' } },
+        { 'address.region': { $regex: params.search, $options: 'i' } },
+        { 'address.country': { $regex: params.search, $options: 'i' } },
       ];
     }
     // Site Name

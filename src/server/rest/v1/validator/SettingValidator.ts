@@ -1,4 +1,4 @@
-import { HttpSettingBillingSetRequest, HttpSettingCryptoSetRequest, HttpSettingOCPISetRequest, HttpSettingOICPSetRequest, HttpSettingPricingSetRequest, HttpSettingRefundSetRequest, HttpSettingSacSetRequest, HttpSettingSmartChargingSetRequest, HttpSettingUserSetRequest } from '../../../../types/requests/HttpSettingRequest';
+import { HttpSettingAssetSetRequest, HttpSettingBillingSetRequest, HttpSettingCarConnectorSetRequest, HttpSettingCryptoSetRequest, HttpSettingOCPISetRequest, HttpSettingOICPSetRequest, HttpSettingPricingSetRequest, HttpSettingRefundSetRequest, HttpSettingSacSetRequest, HttpSettingSmartChargingSetRequest, HttpSettingUserSetRequest } from '../../../../types/requests/HttpSettingRequest';
 
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from '../../../../validator/SchemaValidator';
@@ -16,6 +16,8 @@ export default class SettingValidator extends SchemaValidator {
   private settingAnalyticsSet: Schema;
   private settingOICPSet: Schema;
   private settingBillingSet: Schema;
+  private settingAssetSet: Schema;
+  private settingCarConnectorSet: Schema;
 
   private constructor() {
     super('SettingValidator');
@@ -28,6 +30,8 @@ export default class SettingValidator extends SchemaValidator {
     this.settingAnalyticsSet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-analytics-set.json`, 'utf8'));
     this.settingOICPSet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-oicp-set.json`, 'utf8'));
     this.settingBillingSet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-billing-set.json`, 'utf8'));
+    this.settingAssetSet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-asset-set.json`, 'utf8'));
+    this.settingCarConnectorSet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-car-connector-set.json`, 'utf8'));
   }
 
   public static getInstance(): SettingValidator {
@@ -71,5 +75,13 @@ export default class SettingValidator extends SchemaValidator {
 
   public validateSettingBillingSetReq(data: Record<string, unknown>): HttpSettingBillingSetRequest {
     return this.validate(this.settingBillingSet, data);
+  }
+
+  public validateSettingAssetSetReq(data: Record<string, unknown>): HttpSettingAssetSetRequest {
+    return this.validate(this.settingAssetSet, data);
+  }
+
+  public validateSettingCarConnectorSetReq(data: Record<string, unknown>): HttpSettingCarConnectorSetRequest {
+    return this.validate(this.settingCarConnectorSet, data);
   }
 }

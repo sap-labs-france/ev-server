@@ -44,7 +44,6 @@ export default class NotificationService {
       'id', 'timestamp', 'channel', 'sourceId', 'sourceDescr', 'chargeBoxID',
       ...userProject, ...chargingStationProject
     ]);
-    // Return
     res.json(notifications);
     next();
   }
@@ -80,8 +79,7 @@ export default class NotificationService {
       evseDashboardURL: Utils.buildEvseURL(),
     };
     // Send Notification
-    void NotificationHandler.sendEndUserErrorNotification(req.tenant, endUserErrorNotification);
-    // Ok
+    await NotificationHandler.sendEndUserErrorNotification(req.tenant, endUserErrorNotification);
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }

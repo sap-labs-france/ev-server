@@ -407,7 +407,7 @@ export default class TransactionStorage {
     // Connector
     if (!Utils.isEmptyArray(params.connectorIDs)) {
       filters.connectorId = {
-        $in: params.connectorIDs.map((connectorID) => DatabaseUtils.convertToObjectID(connectorID))
+        $in: params.connectorIDs
       };
     }
     // Date provided?
@@ -962,7 +962,7 @@ export default class TransactionStorage {
     // Connectors
     if (!Utils.isEmptyArray(params.connectorIDs)) {
       match.connectorId = {
-        $in: params.connectorIDs.map((connectorID) => DatabaseUtils.convertToObjectID(connectorID))
+        $in: params.connectorIDs
       };
     }
     // Create Aggregation

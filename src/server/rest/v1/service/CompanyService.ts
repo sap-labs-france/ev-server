@@ -19,7 +19,6 @@ import UtilsService from './UtilsService';
 const MODULE_NAME = 'CompanyService';
 
 export default class CompanyService {
-
   public static async handleDeleteCompany(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
@@ -32,7 +31,6 @@ export default class CompanyService {
       req.tenant, req.user, companyID, Action.DELETE, action);
     // Delete
     await CompanyStorage.deleteCompany(req.tenant, company.id);
-    // Log
     await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteCompany',
@@ -40,7 +38,6 @@ export default class CompanyService {
       action: action,
       detailedMessages: { company }
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -138,7 +135,6 @@ export default class CompanyService {
     }
     // Add Auth flags
     await AuthorizationService.addCompaniesAuthorizations(req.tenant, req.user, companies as CompanyDataResult, authorizationCompaniesFilter);
-    // Return
     res.json(companies);
     next();
   }
@@ -169,7 +165,6 @@ export default class CompanyService {
     } as Company;
     // Save
     newCompany.id = await CompanyStorage.saveCompany(req.tenant, newCompany);
-    // Log
     await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleCreateCompany',
@@ -177,7 +172,6 @@ export default class CompanyService {
       action: action,
       detailedMessages: { company: newCompany }
     });
-    // Ok
     res.json(Object.assign({ id: newCompany.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
@@ -201,7 +195,6 @@ export default class CompanyService {
     company.lastChangedOn = new Date();
     // Update Company
     await CompanyStorage.saveCompany(req.tenant, company, Utils.objectHasProperty(filteredRequest, 'logo') ? true : false);
-    // Log
     await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateCompany',
@@ -209,7 +202,6 @@ export default class CompanyService {
       action: action,
       detailedMessages: { company }
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }

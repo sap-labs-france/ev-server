@@ -52,7 +52,7 @@ export default class Bootstrap {
     const startTimeGlobalMillis = await this.logAndGetStartTimeMillis('e-Mobility Server is starting...');
     try {
       // Setup i18n
-      await I18nManager.initialize();
+      I18nManager.initialize();
       Logging.logConsoleDebug(`NodeJS is started in '${process.env.NODE_ENV || 'development'}' mode`);
       // Get all configs
       Bootstrap.storageConfig = Configuration.getStorageConfig();
@@ -214,7 +214,7 @@ export default class Bootstrap {
           Bootstrap.centralRestServer = new CentralRestServer(Bootstrap.centralSystemRestConfig);
         }
         // Start it
-        await Bootstrap.centralRestServer.start();
+        Bootstrap.centralRestServer.start();
         serverTypes.push(ServerType.REST_SERVER);
       }
       // -------------------------------------------------------------------------
@@ -230,20 +230,20 @@ export default class Bootstrap {
               // Create implementation
               Bootstrap.SoapCentralSystemServer = new SoapCentralSystemServer(centralSystemConfig, Bootstrap.chargingStationConfig);
               // Start
-              await Bootstrap.SoapCentralSystemServer.start();
+              Bootstrap.SoapCentralSystemServer.start();
               serverTypes.push(ServerType.SOAP_SERVER);
               break;
             case CentralSystemImplementation.JSON:
               // Create implementation
               Bootstrap.JsonCentralSystemServer = new JsonCentralSystemServer(centralSystemConfig, Bootstrap.chargingStationConfig);
               // Start
-              await Bootstrap.JsonCentralSystemServer.start();
+              Bootstrap.JsonCentralSystemServer.start();
               serverTypes.push(ServerType.JSON_SERVER);
               break;
             // Not Found
             default:
               // eslint-disable-next-line no-console
-              Logging.logConsoleError(`Central System Server implementation '${centralSystemConfig.implementation}' not found!`);
+              Logging.logConsoleError(`Central System Server implementation '${centralSystemConfig.implementation as string}' not found!`);
           }
         }
       }
@@ -254,7 +254,7 @@ export default class Bootstrap {
         // Create server instance
         Bootstrap.ocpiServer = new OCPIServer(Bootstrap.ocpiConfig);
         // Start server instance
-        await Bootstrap.ocpiServer.start();
+        Bootstrap.ocpiServer.start();
         serverTypes.push(ServerType.OCPI_SERVER);
       }
       // -------------------------------------------------------------------------
@@ -264,7 +264,7 @@ export default class Bootstrap {
         // Create server instance
         Bootstrap.oicpServer = new OICPServer(Bootstrap.oicpConfig);
         // Start server instance
-        await Bootstrap.oicpServer.start();
+        Bootstrap.oicpServer.start();
         serverTypes.push(ServerType.OICP_SERVER);
       }
       // -------------------------------------------------------------------------
@@ -274,7 +274,7 @@ export default class Bootstrap {
         // Create server instance
         Bootstrap.oDataServer = new ODataServer(Bootstrap.oDataServerConfig);
         // Start server instance
-        await Bootstrap.oDataServer.start();
+        Bootstrap.oDataServer.start();
         serverTypes.push(ServerType.ODATA_SERVER);
       }
     } catch (error) {

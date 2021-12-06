@@ -562,6 +562,7 @@ export enum ServerRoute {
 
   REST_TENANTS = 'tenants',
   REST_TENANT = 'tenants/:id',
+  REST_TENANT_LOGO = 'tenants/logo',
 
   REST_COMPANIES = 'companies',
   REST_COMPANY = 'companies/:id',
@@ -604,6 +605,28 @@ export enum ServerRoute {
 
   REST_SETTINGS = 'settings',
   REST_SETTING = 'settings/:id',
+
+  REST_REGISTRATION_TOKENS = 'registration-tokens',
+  REST_REGISTRATION_TOKEN = 'registration-tokens/:id',
+  REST_REGISTRATION_TOKEN_REVOKE = 'registration-tokens/:id/revoke',
+
+  REST_SITE_AREAS = 'site-areas',
+  REST_SITE_AREA = 'site-areas/:id',
+  REST_SITE_AREA_CONSUMPTION = 'site-areas/:id/consumptions',
+  REST_SITE_AREA_IMAGE = 'site-areas/:id/image',
+  REST_SITE_AREA_ASSIGN_CHARGING_STATIONS = 'site-areas/:id/charging-stations/assign',
+  REST_SITE_AREA_REMOVE_CHARGING_STATIONS = 'site-areas/:id/charging-stations/unassign',
+  REST_SITE_AREA_ASSIGN_ASSETS = 'site-areas/:id/assets/assign',
+  REST_SITE_AREA_REMOVE_ASSETS = 'site-areas/:id/assets/unassign',
+
+  REST_SITES = 'sites',
+  REST_SITE = 'sites/:id',
+  REST_SITE_USERS = 'sites/:id/users',
+  REST_SITE_ADD_USERS = 'sites/:id/users/assign',
+  REST_SITE_REMOVE_USERS = 'sites/:id/users/unassign',
+  REST_SITE_ADMIN = 'sites/:id/users/admin',
+  REST_SITE_OWNER = 'sites/:id/users/owner',
+  REST_SITE_IMAGE = 'sites/:id/image',
 
   // BILLING URLs for CRUD operations on PAYMENT METHODS
   REST_BILLING_PAYMENT_METHODS = 'users/:userID/payment-methods',
