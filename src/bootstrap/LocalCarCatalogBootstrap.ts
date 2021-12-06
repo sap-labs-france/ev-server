@@ -32,7 +32,6 @@ export default class LocalCarCatalogBootstrap {
             // Save Car Catalog
             carCatalog.createdOn = new Date();
             carCatalog.lastChangedOn = carCatalog.createdOn;
-            await CarStorage.saveCarCatalog(carCatalog);
             // Create images
             if (!Utils.isEmptyArray(carCatalog.imageURLs)) {
               // Create thumb image
@@ -51,6 +50,7 @@ export default class LocalCarCatalogBootstrap {
                 await CarStorage.saveCarCatalogImage(carCatalog.id, base64Image);
               }
             }
+            await CarStorage.saveCarCatalog(carCatalog);
             created++;
           } catch (error) {
             const message = `Error while importing the local Car ID '${carCatalog.id}': ${error.message as string}`;
