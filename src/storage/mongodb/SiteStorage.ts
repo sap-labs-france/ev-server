@@ -306,7 +306,7 @@ export default class SiteStorage {
   public static async getSites(tenant: Tenant,
       params: {
         search?: string; companyIDs?: string[]; withAutoUserAssignment?: boolean; siteIDs?: string[];
-        userID?: string; excludeSitesOfUserID?: boolean; issuer?: boolean; public?: boolean; name?: string;
+        userID?: string; excludeSitesOfUserID?: string; issuer?: boolean; public?: boolean; name?: string;
         withAvailableChargingStations?: boolean; withOnlyChargingStations?: boolean; withCompany?: boolean;
         locCoordinates?: number[]; locMaxDistanceMeters?: number; withImage?: boolean;
       } = {},
