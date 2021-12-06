@@ -194,8 +194,7 @@ export default class SiteStorage {
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSitesUsers', startTime, aggregation, siteUsersMDB);
     return {
-      count: (usersCountMDB.length > 0 ?
-        (usersCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : usersCountMDB[0].count) : 0),
+      count: DatabaseUtils.getCountFromDatabaseCount(usersCountMDB[0]),
       result: siteUsersMDB
     };
   }
@@ -442,10 +441,13 @@ export default class SiteStorage {
         $addFields: {
           image: {
             $concat: [
-              `${Utils.buildRestServerURL()}/client/util/SiteImage?ID=`,
+              `${Utils.buildRestServerURL()}/v1/util/sites/`,
               { $toString: '$_id' },
-              `&TenantID=${tenant.id}&LastChangedOn=`,
-              { $toString: '$lastChangedOn' }
+              '/image',
+              `?TenantID=${tenant.id}`,
+              {
+                $ifNull: [{ $concat: ['&LastChangedOn=', { $toString: '$lastChangedOn' }] }, ''] // Only concat 'lastChangedOn' if not null
+              }
             ]
           }
         }
@@ -493,8 +495,7 @@ export default class SiteStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSites', startTime, aggregation, sites);
     return {
       projectFields: projectFields,
-      count: (sitesCountMDB.length > 0 ?
-        (sitesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : sitesCountMDB[0].count) : 0),
+      count: DatabaseUtils.getCountFromDatabaseCount(sitesCountMDB[0]),
       result: sites
     };
   }

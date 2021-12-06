@@ -147,8 +147,7 @@ export default class BillingStorage {
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getInvoices', startTime, aggregation, invoicesMDB);
     return {
-      count: (invoicesCountMDB.length > 0 ?
-        (invoicesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : invoicesCountMDB[0].count) : 0),
+      count: DatabaseUtils.getCountFromDatabaseCount(invoicesCountMDB[0]),
       result: invoicesMDB
     };
   }

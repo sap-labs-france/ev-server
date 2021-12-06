@@ -194,10 +194,13 @@ export default class CompanyStorage {
         $addFields: {
           logo: {
             $concat: [
-              `${Utils.buildRestServerURL()}/client/util/CompanyLogo?ID=`,
+              `${Utils.buildRestServerURL()}/v1/util/companies/`,
               { $toString: '$_id' },
-              `&TenantID=${tenant.id}&LastChangedOn=`,
-              { $toString: '$lastChangedOn' }
+              '/logo',
+              `?TenantID=${tenant.id}`,
+              {
+                $ifNull: [{ $concat: ['&LastChangedOn=', { $toString: '$lastChangedOn' }] }, ''] // Only concat 'lastChangedOn' if not null
+              }
             ]
           }
         }
@@ -217,8 +220,7 @@ export default class CompanyStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getCompanies', startTime, aggregation, companiesMDB);
     // Ok
     return {
-      count: (companiesCountMDB.length > 0 ?
-        (companiesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : companiesCountMDB[0].count) : 0),
+      count: DatabaseUtils.getCountFromDatabaseCount(companiesCountMDB[0]),
       result: companiesMDB,
       projectFields: projectFields
     };

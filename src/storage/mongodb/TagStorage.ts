@@ -213,8 +213,7 @@ export default class TagStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getImportedTags', startTime, aggregation, tagsImportMDB);
     // Ok
     return {
-      count: (tagsImportCountMDB.length > 0 ?
-        (tagsImportCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : tagsImportCountMDB[0].count) : 0),
+      count: DatabaseUtils.getCountFromDatabaseCount(tagsImportCountMDB[0]),
       result: tagsImportMDB
     };
   }
@@ -449,8 +448,7 @@ export default class TagStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getTags', startTime, aggregation, tagsMDB);
     // Ok
     return {
-      count: (tagsCountMDB.length > 0 ?
-        (tagsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : tagsCountMDB[0].count) : 0),
+      count: DatabaseUtils.getCountFromDatabaseCount(tagsCountMDB[0]),
       result: tagsMDB,
       projectFields: projectFields
     };

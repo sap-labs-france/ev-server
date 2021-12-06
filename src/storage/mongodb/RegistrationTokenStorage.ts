@@ -132,8 +132,7 @@ export default class RegistrationTokenStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getRegistrationTokens', startTime, aggregation, registrationTokens);
     // Ok
     return {
-      count: (registrationTokensCountMDB.length > 0 ?
-        (registrationTokensCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : registrationTokensCountMDB[0].count) : 0),
+      count: DatabaseUtils.getCountFromDatabaseCount(registrationTokensCountMDB[0]),
       result: registrationTokens
     };
   }

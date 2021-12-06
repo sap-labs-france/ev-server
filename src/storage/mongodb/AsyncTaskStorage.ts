@@ -129,8 +129,7 @@ export default class AsyncTaskStorage {
     // Debug
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'getAsyncTasks', startTime, aggregation, asyncTasksMDB);
     return {
-      count: (asyncTasksCountMDB.length > 0 ?
-        (asyncTasksCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : asyncTasksCountMDB[0].count) : 0),
+      count: DatabaseUtils.getCountFromDatabaseCount(asyncTasksCountMDB[0]),
       result: asyncTasksMDB
     };
   }
