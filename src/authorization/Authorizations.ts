@@ -737,7 +737,6 @@ export default class Authorizations {
   }
 
   public static async can(loggedUser: UserToken, entity: Entity, action: Action, context?: AuthorizationContext): Promise<AuthorizationResult> {
-    // Check
     const authDefinition = AuthorizationsManager.getInstance();
     const result = await authDefinition.canPerformAction(loggedUser.rolesACL, entity, action, context);
     if (!result.authorized && Authorizations.getConfiguration().debug) {
@@ -1106,7 +1105,6 @@ export default class Authorizations {
   }
 
   private static async canPerformAction(loggedUser: UserToken, entity: Entity, action: Action, context?: AuthorizationContext): Promise<boolean> {
-    // Check
     const authDefinition = AuthorizationsManager.getInstance();
     const authorized = await authDefinition.can(loggedUser.rolesACL, entity, action, context);
     if (!authorized && Authorizations.getConfiguration().debug) {

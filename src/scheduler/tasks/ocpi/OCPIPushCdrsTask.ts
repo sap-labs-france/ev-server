@@ -98,7 +98,6 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
                     await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, tag, TransactionAction.END);
                     // Save
                     await TransactionStorage.saveTransactionOcpiData(tenant, transaction.id, transaction.ocpiData);
-                    // Ok
                     await Logging.logInfo({
                       tenantID: tenant.id,
                       action: ServerAction.OCPI_PUSH_CDRS,

@@ -206,7 +206,6 @@ describe('Site Area', function() {
           testData.userService.siteAreaApi,
           testData.newSiteArea
         );
-        // Check
         expect(updatedSiteArea.name).to.equal(testData.newSiteArea.name);
       });
 

@@ -881,7 +881,6 @@ export default class Logging {
     log.timestamp = new Date();
     // Host
     log.host = Utils.getHostName();
-    // Check
     if (log.detailedMessages) {
       // Anonymize message
       if (!Utils.isDevelopmentEnv()) {

@@ -15,7 +15,6 @@ const MODULE_NAME = 'PricingStorage';
 export default class PricingStorage {
 
   public static async savePricingDefinition(tenant: Tenant, pricingDefinition: PricingDefinition): Promise<string> {
-    // Debug
     const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -43,13 +42,11 @@ export default class PricingStorage {
       { '_id': pricingDefinitionMDB._id },
       { $set: pricingDefinitionMDB },
       { upsert: true, returnDocument: 'after' });
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'savePricingDefinition', uniqueTimerID, pricingDefinitionMDB);
     return pricingDefinitionMDB._id.toString();
   }
 
   public static async deletePricingDefinition(tenant: Tenant, pricingDefinitionID: string): Promise<void> {
-    // Debug
     const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -59,7 +56,6 @@ export default class PricingStorage {
         '_id': DatabaseUtils.convertToObjectID(pricingDefinitionID),
       }
     );
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deletePricingDefinition', uniqueTimerID, { id: pricingDefinitionID });
   }
 
@@ -200,9 +196,7 @@ export default class PricingStorage {
     const pricingDefinitions = await global.database.getCollection<PricingDefinition>(tenant.id, 'pricingdefinitions')
       .aggregate<PricingDefinition>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getPricingDefinitions', uniqueTimerID, pricingDefinitions);
-    // Ok
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(pricingDefinitionsCountMDB[0]),
       result: pricingDefinitions,

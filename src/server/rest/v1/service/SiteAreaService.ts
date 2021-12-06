@@ -157,7 +157,6 @@ export default class SiteAreaService {
     // Get it
     const siteAreaImage = await SiteAreaStorage.getSiteAreaImage(
       await TenantStorage.getTenant(filteredRequest.TenantID), filteredRequest.ID);
-    // Return
     if (siteAreaImage?.image) {
       let header = 'image';
       let encoding: BufferEncoding = 'base64';

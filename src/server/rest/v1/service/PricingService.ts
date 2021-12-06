@@ -71,7 +71,6 @@ export default class PricingService {
     await AuthorizationService.addPricingDefinitionsAuthorizations(req.tenant, req.user, pricingDefinitions , authorizationPricingDefinitionsFilter);
     // Alter the canCreate flag according to the pricing definition context
     pricingDefinitions.canCreate = await PricingService.alterCanCreate(req, action, filteredRequest.EntityType, filteredRequest.EntityID, pricingDefinitions.canCreate);
-    // Return
     res.json(pricingDefinitions);
     next();
   }
@@ -82,7 +81,6 @@ export default class PricingService {
       Action.CREATE, Entity.PRICING_DEFINITION, MODULE_NAME, 'handleCreatePricingDefinition');
     // Filter
     const filteredRequest = PricingValidator.getInstance().validatePricingDefinitionCreate(req.body);
-    // Check
     UtilsService.checkIfPricingDefinitionValid(filteredRequest, req);
     // Get dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetPricingDefinitionAuthorizations(
@@ -115,7 +113,6 @@ export default class PricingService {
       action: action,
       detailedMessages: { pricingDefinition: newPricingDefinition }
     });
-    // Ok
     res.json(Object.assign({ id: newPricingDefinition.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
@@ -154,7 +151,6 @@ export default class PricingService {
       action: action,
       detailedMessages: { pricingDefinition }
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -178,7 +174,6 @@ export default class PricingService {
       action: action,
       detailedMessages: { pricingDefinition }
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }

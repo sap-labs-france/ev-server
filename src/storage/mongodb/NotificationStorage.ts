@@ -16,7 +16,6 @@ export default class NotificationStorage {
       params: { userID?: string; dateFrom?: Date; channel?: string; sourceId?: string;
         sourceDescr?: string; additionalFilters?: any; chargeBoxID?: string },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Notification>> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -114,9 +113,7 @@ export default class NotificationStorage {
     const notificationsMDB = await global.database.getCollection<Notification>(tenant.id, 'notifications')
       .aggregate<Notification>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getNotifications', startTime, aggregation, notificationsMDB);
-    // Ok
     return {
       count: (notificationsCountMDB.length > 0 ? notificationsCountMDB[0].count : 0),
       result: notificationsMDB
@@ -124,7 +121,6 @@ export default class NotificationStorage {
   }
 
   static async saveNotification(tenant: Tenant, notificationToSave: Partial<Notification>): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -141,7 +137,6 @@ export default class NotificationStorage {
     // Create
     await global.database.getCollection<Notification>(tenant.id, 'notifications')
       .insertOne(ocpiEndpointMDB);
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveNotification', startTime, ocpiEndpointMDB);
   }
 }

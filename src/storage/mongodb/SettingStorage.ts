@@ -29,7 +29,6 @@ export default class SettingStorage {
   }
 
   public static async saveSettings(tenant: Tenant, settingToSave: Partial<SettingDB>): Promise<string> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -63,7 +62,6 @@ export default class SettingStorage {
       settingFilter,
       { $set: settingMDB },
       { upsert: true, returnDocument: 'after' });
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveSettings', startTime, settingMDB);
     // Create
     return settingFilter._id.toString();
@@ -348,7 +346,6 @@ export default class SettingStorage {
   public static async getSettings(tenant: Tenant,
       params: {identifier?: string; settingID?: string, dateFrom?: Date, dateTo?: Date},
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SettingDB>> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -405,9 +402,7 @@ export default class SettingStorage {
     const settingsMDB = await global.database.getCollection<SettingDB>(tenant.id, 'settings')
       .aggregate<SettingDB>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSettings', startTime, aggregation, settingsMDB);
-    // Ok
     return {
       count: (settingsCountMDB.length > 0 ? settingsCountMDB[0].count : 0),
       result: settingsMDB
@@ -415,14 +410,12 @@ export default class SettingStorage {
   }
 
   public static async deleteSetting(tenant: Tenant, id: string): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete Component
     await global.database.getCollection<any>(tenant.id, 'settings')
       .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteSetting', startTime, { id });
   }
 

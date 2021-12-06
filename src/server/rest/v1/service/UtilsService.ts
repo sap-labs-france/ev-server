@@ -143,7 +143,6 @@ export default class UtilsService {
     if (authorizationFilter.metadata) {
       pricingDefinition.metadata = authorizationFilter.metadata;
     }
-    // Check
     const authorized = AuthorizationService.canPerformAction(pricingDefinition, authAction);
     if (!authorized) {
       throw new AppAuthError({
@@ -194,7 +193,6 @@ export default class UtilsService {
     }
     // Add actions
     await AuthorizationService.addCompanyAuthorizations(tenant, userToken, company, authorizationFilter);
-    // Check
     const authorized = AuthorizationService.canPerformAction(company, authAction);
     if (!authorized) {
       throw new AppAuthError({
@@ -255,7 +253,6 @@ export default class UtilsService {
     }
     // Add actions
     await AuthorizationService.addUserAuthorizations(tenant, userToken, user, authorizationFilter);
-    // Check
     const authorized = AuthorizationService.canPerformAction(user, authAction);
     if (!authorized) {
       throw new AppAuthError({
@@ -306,7 +303,6 @@ export default class UtilsService {
     }
     // Add actions
     await AuthorizationService.addSiteAuthorizations(tenant, userToken, site, authorizationFilter);
-    // Check
     const authorized = AuthorizationService.canPerformAction(site, authAction);
     if (!authorized) {
       throw new AppAuthError({
@@ -357,7 +353,6 @@ export default class UtilsService {
     }
     // Add actions
     AuthorizationService.addLogAuthorizations(tenant, userToken, log, authorizationFilter);
-    // Check
     const authorized = AuthorizationService.canPerformAction(log, authAction);
     if (!authorized) {
       throw new AppAuthError({
@@ -416,7 +411,6 @@ export default class UtilsService {
         module: MODULE_NAME, method: 'checkUserSitesAuthorization',
       });
     }
-    // Check
     for (const site of sites) {
       // External Site
       if (!site.issuer) {
@@ -477,7 +471,6 @@ export default class UtilsService {
         module: MODULE_NAME, method: 'checkSiteUsersAuthorization',
       });
     }
-    // Check
     for (const user of users) {
       // External User
       if (!user.issuer) {
@@ -536,7 +529,6 @@ export default class UtilsService {
         module: MODULE_NAME, method: 'checkSiteAreaAssetsAuthorization',
       });
     }
-    // Check
     for (const asset of assets) {
       // External Asset
       if (!asset.issuer) {
@@ -595,7 +587,6 @@ export default class UtilsService {
         module: MODULE_NAME, method: 'checkSiteAreaChargingStationsAuthorization',
       });
     }
-    // Check
     for (const chargingStation of chargingStations) {
       // External Charging Station
       if (!chargingStation.issuer) {
@@ -648,7 +639,6 @@ export default class UtilsService {
     }
     // Add actions
     await AuthorizationService.addSiteAreaAuthorizations(tenant, userToken, siteArea, authorizationFilter);
-    // Check
     const authorized = AuthorizationService.canPerformAction(siteArea, authAction);
     if (!authorized) {
       throw new AppAuthError({
@@ -699,7 +689,6 @@ export default class UtilsService {
     }
     // Add Actions
     await AuthorizationService.addCarAuthorizations(tenant, userToken, car, authorizationFilter);
-    // Check
     const authorized = AuthorizationService.canPerformAction(car, authAction);
     if (!authorized) {
       throw new AppAuthError({
@@ -750,7 +739,6 @@ export default class UtilsService {
     }
     // Add actions
     await AuthorizationService.addCarCatalogAuthorizations(tenant, userToken, carCatalog, authorizationFilter);
-    // Check
     const authorized = AuthorizationService.canPerformAction(carCatalog, authAction);
     if (!authorized) {
       throw new AppAuthError({
@@ -1828,7 +1816,6 @@ export default class UtilsService {
     }
     // Add actions
     await AuthorizationService.addTagAuthorizations(tenant, userToken, tag, authorizationFilter);
-    // Check
     const authorized = AuthorizationService.canPerformAction(tag, authAction);
     if (!authorized) {
       throw new AppAuthError({

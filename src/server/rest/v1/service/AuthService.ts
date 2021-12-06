@@ -282,7 +282,6 @@ export default class AuthService {
     // Check captcha
     const recaptchaURL = `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`;
     const response = await AxiosFactory.getAxiosInstance(tenant).get(recaptchaURL);
-    // Check
     if (!response.data.success) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
@@ -744,24 +743,20 @@ export default class AuthService {
   }
 
   public static async getTenantID(subdomain: string): Promise<string> {
-    // Check
     if (!subdomain) {
       return Constants.DEFAULT_TENANT;
     }
     // Get it
     const tenant = await TenantStorage.getTenantBySubdomain(subdomain);
-    // Return
     return (tenant ? tenant.id : null);
   }
 
   public static async getTenant(subdomain: string): Promise<Tenant> {
-    // Check
     if (!subdomain) {
       return Constants.DEFAULT_TENANT_OBJECT;
     }
     // Get it
     const tenant = await TenantStorage.getTenantBySubdomain(subdomain);
-    // Return
     return (tenant ? tenant : null);
   }
 

@@ -12,7 +12,6 @@ const MODULE_NAME = 'OCPPStorage';
 
 export default class OCPPStorage {
   public static async saveAuthorize(tenant: Tenant, authorize: OCPPAuthorizeRequestExtended): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -29,13 +28,11 @@ export default class OCPPStorage {
     // Insert
     await global.database.getCollection(tenant.id, 'authorizes')
       .insertOne(authorizeMDB);
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveAuthorize', startTime, authorizeMDB);
   }
 
   public static async getAuthorizes(tenant: Tenant, params: {dateFrom?: Date; chargeBoxID?: string; tagID?: string},
       dbParams: DbParams): Promise<DataResult<OCPPAuthorizeRequestExtended>> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -92,9 +89,7 @@ export default class OCPPStorage {
     const authorizesMDB = await global.database.getCollection<OCPPAuthorizeRequestExtended>(tenant.id, 'authorizes')
       .aggregate<OCPPAuthorizeRequestExtended>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getAuthorizes', startTime, aggregation, authorizesMDB);
-    // Ok
     return {
       count: (authorizesCountMDB.length > 0 ? authorizesCountMDB[0].count : 0),
       result: authorizesMDB
@@ -102,7 +97,6 @@ export default class OCPPStorage {
   }
 
   public static async saveHeartbeat(tenant: Tenant, heartbeat: OCPPHeartbeatRequestExtended): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -116,14 +110,12 @@ export default class OCPPStorage {
     };
     await global.database.getCollection(tenant.id, 'heartbeats')
       .insertOne(heartBeatMDB);
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveHeartbeat', startTime, heartBeatMDB);
   }
 
   public static async getStatusNotifications(tenant: Tenant,
       params: { dateFrom?: Date; chargeBoxID?: string; connectorId?: number; status?: string },
       dbParams: DbParams): Promise<DataResult<OCPPStatusNotificationRequestExtended>> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -183,9 +175,7 @@ export default class OCPPStorage {
     const statusNotificationsMDB = await global.database.getCollection<OCPPStatusNotificationRequestExtended>(tenant.id, 'statusnotifications')
       .aggregate<OCPPStatusNotificationRequestExtended>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getStatusNotifications', startTime, aggregation, statusNotificationsMDB);
-    // Ok
     return {
       count: (statusNotificationsCountMDB.length > 0 ? statusNotificationsCountMDB[0].count : 0),
       result: statusNotificationsMDB
@@ -195,7 +185,6 @@ export default class OCPPStorage {
   public static async getLastStatusNotifications(tenant: Tenant,
       params: { dateBefore?: string; chargeBoxID?: string; connectorId?: number; status?: string }):
       Promise<OCPPStatusNotificationRequestExtended[]> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -236,14 +225,11 @@ export default class OCPPStorage {
     const statusNotificationsMDB = await global.database.getCollection<OCPPStatusNotificationRequestExtended>(tenant.id, 'statusnotifications')
       .aggregate<OCPPStatusNotificationRequestExtended>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getLastStatusNotifications', startTime, aggregation, statusNotificationsMDB);
-    // Ok
     return statusNotificationsMDB;
   }
 
   public static async saveStatusNotification(tenant: Tenant, statusNotificationToSave: OCPPStatusNotificationRequestExtended): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Set
     const timestamp = Utils.convertToDate(statusNotificationToSave.timestamp);
@@ -264,12 +250,10 @@ export default class OCPPStorage {
     // Insert
     await global.database.getCollection(tenant.id, 'statusnotifications')
       .insertOne(statusNotificationMDB);
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveStatusNotification', startTime, statusNotificationMDB);
   }
 
   public static async saveDataTransfer(tenant: Tenant, dataTransfer: OCPPDataTransferRequestExtended): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -286,12 +270,10 @@ export default class OCPPStorage {
     };
     await global.database.getCollection(tenant.id, 'datatransfers')
       .insertOne(dataTransferMDB);
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveDataTransfer', startTime, dataTransferMDB);
   }
 
   public static async saveBootNotification(tenant: Tenant, bootNotification: OCPPBootNotificationRequestExtended): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -312,13 +294,11 @@ export default class OCPPStorage {
     };
     await global.database.getCollection(tenant.id, 'bootnotifications')
       .insertOne(bootNotificationMDB);
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveBootNotification', startTime, bootNotificationMDB);
   }
 
   public static async getBootNotifications(tenant: Tenant, params: {chargeBoxID?: string},
       dbParams: DbParams): Promise<DataResult<OCPPBootNotificationRequestExtended>> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -367,9 +347,7 @@ export default class OCPPStorage {
     const bootNotificationsMDB = await global.database.getCollection<OCPPBootNotificationRequestExtended>(tenant.id, 'bootnotifications')
       .aggregate<OCPPBootNotificationRequestExtended>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getBootNotifications', startTime, aggregation, bootNotificationsMDB);
-    // Ok
     return {
       count: (bootNotificationsCountMDB.length > 0 ? bootNotificationsCountMDB[0].count : 0),
       result: bootNotificationsMDB
@@ -377,7 +355,6 @@ export default class OCPPStorage {
   }
 
   public static async saveDiagnosticsStatusNotification(tenant: Tenant, diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequestExtended): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -392,12 +369,10 @@ export default class OCPPStorage {
     };
     await global.database.getCollection(tenant.id, 'diagnosticsstatusnotifications')
       .insertOne(diagnosticsStatusNotificationMDB);
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveDiagnosticsStatusNotification', startTime, diagnosticsStatusNotificationMDB);
   }
 
   public static async saveFirmwareStatusNotification(tenant: Tenant, firmwareStatusNotification: OCPPFirmwareStatusNotificationRequestExtended): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -412,14 +387,11 @@ export default class OCPPStorage {
     };
     await global.database.getCollection(tenant.id, 'firmwarestatusnotifications')
       .insertOne(firmwareStatusNotificationMDB);
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveFirmwareStatusNotification', startTime, firmwareStatusNotificationMDB);
   }
 
   public static async saveMeterValues(tenant: Tenant, meterValuesToSave: OCPPNormalizedMeterValues): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check
     DatabaseUtils.checkTenantObject(tenant);
     // Save all
     for (const meterValueToSave of meterValuesToSave.values) {
@@ -436,13 +408,11 @@ export default class OCPPStorage {
       // Execute
       await global.database.getCollection(tenant.id, 'metervalues').insertOne(meterValueMDB);
     }
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveMeterValues', startTime, meterValuesToSave);
   }
 
   public static async getMeterValues(tenant: Tenant, params: { transactionId: number },
       dbParams: DbParams): Promise<DataResult<OCPPNormalizedMeterValue>> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -486,9 +456,7 @@ export default class OCPPStorage {
     const meterValuesMDB = await global.database.getCollection<OCPPNormalizedMeterValue>(tenant.id, 'metervalues')
       .aggregate<OCPPNormalizedMeterValue>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getMeterValues', startTime, aggregation, meterValuesMDB);
-    // Ok
     return {
       count: (meterValuesCountMDB.length > 0 ? meterValuesCountMDB[0].count : 0),
       result: meterValuesMDB

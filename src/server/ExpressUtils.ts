@@ -32,7 +32,6 @@ export default class ExpressUtils {
       limit: bodyLimit
     }));
     app.use(useragent.express());
-    // Debug
     if (debug || Utils.isDevelopmentEnv()) {
       app.use(morgan((tokens, req: Request, res: Response) =>
         [

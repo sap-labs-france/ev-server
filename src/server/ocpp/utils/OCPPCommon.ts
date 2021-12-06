@@ -45,7 +45,6 @@ export default class OCPPCommon {
       });
       await OCPPCommon.triggerChargingStationReset(tenant, chargingStation, true);
     }
-    // Return
     return result;
   }
 
@@ -91,7 +90,6 @@ export default class OCPPCommon {
       }
       // Save configuration
       await ChargingStationStorage.saveOcppParameters(tenant, chargingStationOcppParameters);
-      // Ok
       await Logging.logInfo({
         tenantID: tenant.id,
         ...LoggingHelper.getChargingStationProperties(chargingStation),
@@ -164,7 +162,6 @@ export default class OCPPCommon {
     }
     // Get the configuration
     const result = await chargingStationClient.getConfiguration(params);
-    // Return
     return result;
   }
 }

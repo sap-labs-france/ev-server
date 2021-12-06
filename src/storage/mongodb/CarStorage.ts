@@ -27,7 +27,6 @@ export default class CarStorage {
   public static async getCarCatalogs(
       params: { search?: string; carCatalogIDs?: number[]; carMaker?: string[], withImage?: boolean; } = {},
       dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<CarCatalog>> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -133,9 +132,7 @@ export default class CarStorage {
     const carCatalogs = await global.database.getCollection<CarCatalog>(Constants.DEFAULT_TENANT, 'carcatalogs')
       .aggregate<CarCatalog>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
-    // Debug
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'getCarCatalogs', startTime, aggregation, carCatalogs);
-    // Ok
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(carCatalogsCountMDB[0]),
       result: carCatalogs
@@ -143,7 +140,6 @@ export default class CarStorage {
   }
 
   public static async saveCarCatalog(carToSave: CarCatalog): Promise<number> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Validate
     const carCatalog = CarValidatorStorage.getInstance().validateCarCatalog(
@@ -163,13 +159,11 @@ export default class CarStorage {
       carMDB,
       { upsert: true }
     );
-    // Debug
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'saveCarCatalog', startTime, carMDB);
     return carToSave.id;
   }
 
   public static async saveCarCatalogImage(id: number, carImageToSave: string): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Save new image
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogimages').findOneAndReplace(
@@ -177,28 +171,23 @@ export default class CarStorage {
       { carID: Utils.convertToInt(id), image: carImageToSave },
       { upsert: true }
     );
-    // Debug
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'saveCarImage', startTime, carImageToSave);
   }
 
   public static async deleteCarCatalogImages(id: number): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Delete car catalogs images
     await global.database.getCollection(Constants.DEFAULT_TENANT, 'carcatalogimages').deleteMany(
       { carID: id }
     );
-    // Debug
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'deleteCarImages', startTime, { carID: id });
   }
 
   public static async getCarCatalogImage(id: number): Promise<{ id: number; image: string }> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Read DB
     const carCatalogImageMDB = await global.database.getCollection<{ _id: number; image: string }>(Constants.DEFAULT_TENANT, 'carcatalogs')
       .findOne({ _id: id });
-    // Debug
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'getCarCatalogImage', startTime, { _id: id }, carCatalogImageMDB);
     return {
       id: id,
@@ -207,7 +196,6 @@ export default class CarStorage {
   }
 
   public static async getCarCatalogImages(id: number = Constants.UNKNOWN_NUMBER_ID, dbParams?: DbParams): Promise<DataResult<Image>> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -259,7 +247,6 @@ export default class CarStorage {
     const carCatalogImages = await global.database.getCollection<Image>(Constants.DEFAULT_TENANT, 'carcatalogimages')
       .aggregate<Image>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
-    // Debug
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'getCarCatalogImages', startTime, aggregation, carCatalogImages);
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(carCatalogImagesCountMDB[0]),
@@ -268,7 +255,6 @@ export default class CarStorage {
   }
 
   public static async getCarMakers(params: { search?: string } = {}, projectFields?: string[]): Promise<DataResult<CarMaker>> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Set the filters
     const filters: ({ $or?: any[] } | undefined) = {};
@@ -316,7 +302,6 @@ export default class CarStorage {
     const carMakersMDB = await global.database.getCollection<CarMaker>(Constants.DEFAULT_TENANT, 'carcatalogs')
       .aggregate<CarMaker>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
-    // Debug
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'getCarMakers', startTime, aggregation, carMakersMDB);
     return {
       count: carMakersMDB.length,
@@ -325,7 +310,6 @@ export default class CarStorage {
   }
 
   public static async saveCar(tenant: Tenant, carToSave: Car): Promise<string> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -359,7 +343,6 @@ export default class CarStorage {
       { $set: carMDB },
       { upsert: true, returnDocument: 'after' }
     );
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveCar', startTime, carMDB);
     return carMDB._id.toString();
   }
@@ -411,7 +394,6 @@ export default class CarStorage {
       } = {},
       dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Car>> {
     let withCarCatalog = true;
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -564,7 +546,6 @@ export default class CarStorage {
     const cars = await global.database.getCollection<Car>(tenant.id, 'cars')
       .aggregate<Car>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getCars', startTime, aggregation, cars);
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(carsCountMDB[0]),
@@ -587,22 +568,18 @@ export default class CarStorage {
   }
 
   public static async deleteCar(tenant: Tenant, carID: string): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Delete singular site area
     await global.database.getCollection(tenant.id, 'cars')
       .deleteOne({ '_id': DatabaseUtils.convertToObjectID(carID) });
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteCar', startTime, { carID });
   }
 
   public static async deleteCarCatalog(id: number): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Delete singular site area
     await global.database.getCollection(Constants.DEFAULT_TENANT, 'carcatalogs')
       .deleteOne({ '_id': id });
-    // Debug
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'deleteCarCatalog', startTime, { carID: id });
   }
 }
