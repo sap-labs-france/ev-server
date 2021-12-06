@@ -748,8 +748,7 @@ export default class UserStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getUsers', startTime, usersMDB);
     // Ok
     return {
-      count: (!Utils.isEmptyArray(usersCountMDB) ?
-        (usersCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : usersCountMDB[0].count) : 0),
+      count: DatabaseUtils.getCountFromDatabaseCount(usersCountMDB[0]),
       result: usersMDB,
       projectFields: projectFields
     };
@@ -850,8 +849,7 @@ export default class UserStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getImportedUsers', startTime, usersImportMDB);
     // Ok
     return {
-      count: (!Utils.isEmptyArray(usersImportCountMDB) ?
-        (usersImportCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : usersImportCountMDB[0].count) : 0),
+      count: DatabaseUtils.getCountFromDatabaseCount(usersImportCountMDB[0]),
       result: usersImportMDB
     };
   }
@@ -1075,8 +1073,7 @@ export default class UserStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getUserSites', startTime, siteUsersMDB);
     // Ok
     return {
-      count: (!Utils.isEmptyArray(sitesCountMDB) ?
-        (sitesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : sitesCountMDB[0].count) : 0),
+      count: DatabaseUtils.getCountFromDatabaseCount(sitesCountMDB[0]),
       result: siteUsersMDB,
       projectFields: projectFields
     };

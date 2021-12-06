@@ -332,8 +332,7 @@ export default class SiteAreaStorage {
     // Ok
     return {
       projectFields: projectFields,
-      count: (siteAreasCountMDB.length > 0 ?
-        (siteAreasCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : siteAreasCountMDB[0].count) : 0),
+      count: DatabaseUtils.getCountFromDatabaseCount(siteAreasCountMDB[0]),
       result: siteAreas
     };
   }

@@ -216,8 +216,7 @@ export default class AssetStorage {
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getAssets', startTime, aggregation, assetsMDB);
     return {
-      count: (assetsCountMDB.length > 0 ?
-        (assetsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : assetsCountMDB[0].count) : 0),
+      count: DatabaseUtils.getCountFromDatabaseCount(assetsCountMDB[0]),
       result: assetsMDB
     };
   }

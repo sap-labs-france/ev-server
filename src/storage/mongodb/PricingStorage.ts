@@ -196,8 +196,7 @@ export default class PricingStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getPricingDefinitions', uniqueTimerID, pricingDefinitions);
     // Ok
     return {
-      count: (pricingDefinitionsCountMDB.length > 0 ?
-        (pricingDefinitionsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : pricingDefinitionsCountMDB[0].count) : 0),
+      count: DatabaseUtils.getCountFromDatabaseCount(pricingDefinitionsCountMDB[0]),
       result: pricingDefinitions,
       projectFields
     };

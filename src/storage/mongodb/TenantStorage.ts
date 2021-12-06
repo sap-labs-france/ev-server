@@ -212,8 +212,7 @@ export default class TenantStorage {
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'getTenants', startTime, aggregation, tenantsMDB);
     // Ok
     return {
-      count: (tenantsCountMDB.length > 0 ?
-        (tenantsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : tenantsCountMDB[0].count) : 0),
+      count: DatabaseUtils.getCountFromDatabaseCount(tenantsCountMDB[0]),
       result: tenantsMDB
     };
   }

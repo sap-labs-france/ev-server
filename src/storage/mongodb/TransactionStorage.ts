@@ -762,7 +762,7 @@ export default class TransactionStorage {
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getTransactions', startTime, aggregation, transactionsMDB);
     return {
-      count: transactionCountMDB ? (transactionCountMDB.count === Constants.DB_RECORD_COUNT_CEIL ? -1 : transactionCountMDB.count) : 0,
+      count: DatabaseUtils.getCountFromDatabaseCount(transactionCountMDB),
       stats: transactionCountMDB ? transactionCountMDB : {},
       result: transactionsMDB
     };
@@ -892,7 +892,7 @@ export default class TransactionStorage {
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getRefundReports', startTime, aggregation, reportsMDB);
     return {
-      count: reportCountMDB ? (reportCountMDB.count === Constants.DB_RECORD_COUNT_CEIL ? -1 : reportCountMDB.count) : 0,
+      count: DatabaseUtils.getCountFromDatabaseCount(reportCountMDB),
       result: reportsMDB
     };
   }

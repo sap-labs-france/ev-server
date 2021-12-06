@@ -384,8 +384,7 @@ export default class ChargingStationStorage {
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getChargingStations', startTime, aggregation, chargingStationsMDB);
     return {
-      count: (chargingStationsCountMDB.length > 0 ?
-        (chargingStationsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : chargingStationsCountMDB[0].count) : 0),
+      count: DatabaseUtils.getCountFromDatabaseCount(chargingStationsCountMDB[0]),
       result: chargingStationsMDB
     };
   }
@@ -927,8 +926,7 @@ export default class ChargingStationStorage {
     // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getChargingProfiles', startTime, aggregation, chargingProfilesMDB);
     return {
-      count: (chargingProfilesCountMDB.length > 0 ?
-        (chargingProfilesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : chargingProfilesCountMDB[0].count) : 0),
+      count: DatabaseUtils.getCountFromDatabaseCount(chargingProfilesCountMDB[0]),
       result: chargingProfilesMDB
     };
   }
