@@ -108,10 +108,12 @@ export default class CarStorage {
             $cond: {
               if: { $gt: ['$image', null] }, then: {
                 $concat: [
-                  `${Utils.buildRestServerURL()}/client/util/CarCatalogImage?ID=`,
+                  `${Utils.buildRestServerURL()}/v1/util/car-catalogs/`,
                   { $toString: '$_id' },
-                  '&LastChangedOn=',
-                  { $toString: '$lastChangedOn' }
+                  '/image',
+                  {
+                    $ifNull: [{ $concat: ['?LastChangedOn=', { $toString: '$lastChangedOn' }] }, ''] // Only concat 'lastChangedOn' if not null
+                  }
                 ]
               }, else: null
             }
@@ -684,10 +686,11 @@ export default class CarStorage {
             $cond: {
               if: { $gt: ['$carCatalog.image', null] }, then: {
                 $concat: [
-                  `${Utils.buildRestServerURL()}/client/util/CarCatalogImage?ID=`,
+                  `${Utils.buildRestServerURL()}/v1/util/car-catalogs/`,
                   '$carCatalog.id',
-                  '&LastChangedOn=',
-                  { $toString: '$carCatalog.lastChangedOn' }
+                  {
+                    $ifNull: [{ $concat: ['?LastChangedOn=', { $toString: '$carCatalog.lastChangedOn' }] }, ''] // Only concat 'lastChangedOn' if not null
+                  }
                 ]
               }, else: null
             }
