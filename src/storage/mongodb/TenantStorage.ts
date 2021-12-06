@@ -190,10 +190,8 @@ export default class TenantStorage {
         $addFields: {
           logo: {
             $concat: [
-              `${Utils.buildRestServerURL()}/client/util/TenantLogo?ID=`,
-              { $toString: '$_id' },
-              '&LastChangedOn=',
-              { $toString: '$lastChangedOn' }
+              `${Utils.buildRestServerURL()}/v1/util/tenants/logo?ID=`,
+              { $toString: '$_id' }
             ]
           }
         }
