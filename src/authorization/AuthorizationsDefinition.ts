@@ -307,7 +307,6 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'staticRestrictions.validFrom', 'staticRestrictions.validTo', 'staticRestrictions.connectorType', 'staticRestrictions.connectorPowerkW',
           'restrictions.daysOfWeek', 'restrictions.timeFrom', 'restrictions.timeTo',
           'restrictions.minEnergyKWh', 'restrictions.maxEnergyKWh', 'restrictions.minDurationSecs', 'restrictions.maxDurationSecs',
-          'restrictions.daysOfWeek', 'restrictions.timeFrom', 'restrictions.timeTo',
           'dimensions.flatFee.active', 'dimensions.flatFee.price', 'dimensions.flatFee.stepSize', 'dimensions.flatFee.pricedData',
           'dimensions.energy.active', 'dimensions.energy.price', 'dimensions.energy.stepSize', 'dimensions.energy.pricedData',
           'dimensions.chargingTime.active', 'dimensions.chargingTime.price', 'dimensions.chargingTime.stepSize', 'dimensions.chargingTime.pricedData',
