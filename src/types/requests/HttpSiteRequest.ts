@@ -16,7 +16,7 @@ export interface HttpSitesRequest extends HttpDatabaseRequest {
   UserID: string;
   CompanyID: string;
   SiteID: string;
-  ExcludeSitesOfUserID: boolean;
+  ExcludeSitesOfUserID: string;
   LocLongitude?: number;
   LocLatitude?: number;
   LocCoordinates?: number[];
