@@ -191,7 +191,10 @@ export default class TenantStorage {
           logo: {
             $concat: [
               `${Utils.buildRestServerURL()}/v1/util/tenants/logo?ID=`,
-              { $toString: '$_id' }
+              { $toString: '$_id' },
+              {
+                $ifNull: [{ $concat: ['&LastChangedOn=', { $toString: '$lastChangedOn' }] }, ''] // Only concat 'lastChangedOn' if not null
+              }
             ]
           }
         }
