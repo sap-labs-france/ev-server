@@ -342,7 +342,7 @@
         }
       }
     },
-    "/api/tenants/{id}/logo": {
+    "/api/tenants/logo": {
       "get": {
         "description": "Retrieve a Tenant logo",
         "security": [
@@ -352,7 +352,15 @@
         ],
         "parameters": [
           {
-            "$ref": "#/components/parameters/tenantID"
+            "$ref": "#/components/parameters/TenantID"
+          },
+          {
+            "in": "query",
+            "name": "Subdomain",
+            "description": "Tenant subdomain",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "tags": [
@@ -14804,6 +14812,15 @@
         "name": "id",
         "description": "Tenant ID",
         "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "TenantID": {
+        "in": "query",
+        "name": "id",
+        "description": "Tenant ID",
+        "required": false,
         "schema": {
           "type": "string"
         }
