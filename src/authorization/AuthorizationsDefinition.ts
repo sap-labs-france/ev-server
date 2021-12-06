@@ -198,7 +198,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.SITE,
         action: [
-          Action.CREATE, Action.UPDATE, Action.DELETE, Action.EXPORT_OCPP_PARAMS, Action.GENERATE_QR
+          Action.CREATE, Action.UPDATE, Action.DELETE, Action.EXPORT_OCPP_PARAMS, Action.GENERATE_QR, Action.MAINTAIN_PRICING_DEFINITIONS,
         ],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
@@ -979,7 +979,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       {
-        resource: Entity.SITE, action: [Action.UPDATE],
+        resource: Entity.SITE, action: [Action.UPDATE, Action.MAINTAIN_PRICING_DEFINITIONS],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {

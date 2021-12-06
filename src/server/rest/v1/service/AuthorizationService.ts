@@ -93,6 +93,8 @@ export default class AuthorizationService {
       tenant, userToken, Entity.SITE, Action.DELETE, authorizationFilter, { SiteID: site.id }, site);
     site.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.SITE, Action.UPDATE, authorizationFilter, { SiteID: site.id }, site);
+    site.canMaintainPricingDefinitions = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.SITE, Action.MAINTAIN_PRICING_DEFINITIONS, authorizationFilter, { SiteID: site.id }, site);
     site.canExportOCPPParams = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.SITE_AREA, Action.EXPORT_OCPP_PARAMS, authorizationFilter, { SiteID: site.id }, site);
     site.canGenerateQrCode = await AuthorizationService.canPerformAuthorizationAction(

@@ -154,6 +154,7 @@ export enum Action {
   READ_CHARGING_STATIONS_FROM_SITE_AREA = 'ReadChargingStationsFromSiteArea',
   EXPORT_OCPP_PARAMS = 'ExportOCPPParams',
   GENERATE_QR = 'GenerateQrCode',
+  MAINTAIN_PRICING_DEFINITIONS = 'MaintainPricingDefinitions',
 }
 
 export interface AuthorizationContext {
@@ -208,6 +209,7 @@ export interface SiteAuthorizationActions extends AuthorizationActions {
   canReadUsers?: boolean;
   canExportOCPPParams?: boolean;
   canGenerateQrCode?: boolean;
+  canMaintainPricingDefinitions?: boolean;
 }
 
 export enum DynamicAuthorizationFilterName {
