@@ -15,7 +15,6 @@ const MODULE_NAME = 'PricingStorage';
 export default class PricingStorage {
 
   public static async savePricingDefinition(tenant: Tenant, pricingDefinition: PricingDefinition): Promise<string> {
-    // Debug
     const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -34,6 +33,7 @@ export default class PricingStorage {
       staticRestrictions: pricingDefinition.staticRestrictions,
       restrictions: pricingDefinition.restrictions,
       dimensions: pricingDefinition.dimensions,
+      siteID: DatabaseUtils.convertToObjectID(pricingDefinition.siteID)
     };
     // Check Created/Last Changed By
     DatabaseUtils.addLastChangedCreatedProps(pricingDefinitionMDB, pricingDefinition);
@@ -42,13 +42,11 @@ export default class PricingStorage {
       { '_id': pricingDefinitionMDB._id },
       { $set: pricingDefinitionMDB },
       { upsert: true, returnDocument: 'after' });
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'savePricingDefinition', uniqueTimerID, pricingDefinitionMDB);
     return pricingDefinitionMDB._id.toString();
   }
 
   public static async deletePricingDefinition(tenant: Tenant, pricingDefinitionID: string): Promise<void> {
-    // Debug
     const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -58,13 +56,13 @@ export default class PricingStorage {
         '_id': DatabaseUtils.convertToObjectID(pricingDefinitionID),
       }
     );
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deletePricingDefinition', uniqueTimerID, { id: pricingDefinitionID });
   }
 
   public static async getPricingDefinition(tenant: Tenant, id: string,
-      params: { entityID?: string; entityType?: string; withEntityInformation?: boolean } = {}, projectFields?: string[]): Promise<PricingDefinition> {
+      params: { entityID?: string; entityType?: PricingEntity; withEntityInformation?: boolean; siteIDs?: string[];} = {}, projectFields?: string[]): Promise<PricingDefinition> {
     const pricingDefinitionMDB = await PricingStorage.getPricingDefinitions(tenant, {
+      siteIDs: params.siteIDs,
       pricingDefinitionIDs: [id],
       entityID: params.entityID,
       entityType: params.entityType,
@@ -74,7 +72,7 @@ export default class PricingStorage {
   }
 
   public static async getPricingDefinitions(tenant: Tenant,
-      params: { pricingDefinitionIDs?: string[], entityType?: string; entityID?: string; withEntityInformation?: boolean; },
+      params: { pricingDefinitionIDs?: string[], entityType?: PricingEntity; entityID?: string; siteIDs?: string[]; withEntityInformation?: boolean; },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<PricingDefinition>> {
     const uniqueTimerID = Logging.traceDatabaseRequestStart();
     // Check Tenant
@@ -101,6 +99,12 @@ export default class PricingStorage {
       } else {
         filters.entityID = { $in: [DatabaseUtils.convertToObjectID(params.entityID)] };
       }
+    }
+    // Site
+    if (!Utils.isEmptyArray(params.siteIDs)) {
+      filters.siteID = {
+        $in: params.siteIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID))
+      };
     }
     // Remove deleted
     filters.deleted = { '$ne': true };
@@ -192,12 +196,9 @@ export default class PricingStorage {
     const pricingDefinitions = await global.database.getCollection<PricingDefinition>(tenant.id, 'pricingdefinitions')
       .aggregate<PricingDefinition>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getPricingDefinitions', uniqueTimerID, pricingDefinitions);
-    // Ok
     return {
-      count: (pricingDefinitionsCountMDB.length > 0 ?
-        (pricingDefinitionsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : pricingDefinitionsCountMDB[0].count) : 0),
+      count: DatabaseUtils.getCountFromDatabaseCount(pricingDefinitionsCountMDB[0]),
       result: pricingDefinitions,
       projectFields
     };

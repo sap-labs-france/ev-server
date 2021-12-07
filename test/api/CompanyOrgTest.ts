@@ -182,7 +182,6 @@ describe('Company', function() {
           testData.userService.companyApi,
           testData.newCompany
         );
-        // Check
         expect(updatedCompany.name).to.equal(testData.newCompany.name);
       });
 

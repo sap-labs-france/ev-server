@@ -475,7 +475,6 @@ describe('OCPI Service Tests (utocpi)', function() {
      */
     describe('Success cases', () => {
       it('Should create a new ocpiEndpoint', async () => {
-        // Check
         expect(testData.newOcpiEndpoint).to.not.be.null;
         // Create the entity
         testData.newOcpiEndpoint = await testData.centralUserService.createEntity(

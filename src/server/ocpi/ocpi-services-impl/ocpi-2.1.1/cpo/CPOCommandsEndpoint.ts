@@ -195,7 +195,6 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       tenant, chargingStation.id, chargingStation.remoteAuthorizations);
     // Called Async as the response to the eMSP is sent asynchronously and this request has to finish before the command returns
     void this.remoteStartTransaction(tenant, chargingStation, connector, startSession, ocpiEndpoint).catch(() => { });
-    // Ok
     return this.buildOCPIResponse(OCPICommandResponseType.ACCEPTED);
   }
 

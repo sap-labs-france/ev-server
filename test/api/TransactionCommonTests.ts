@@ -24,7 +24,6 @@ export default class TransactionCommonTests {
   public centralUserContext: any;
   public centralUserService: CentralServerService;
   public currentPricingSetting;
-  public pricekWh = 2;
   public transactionUser;
   public transactionUserService: CentralServerService;
 
@@ -57,14 +56,6 @@ export default class TransactionCommonTests {
     } else {
       this.transactionUserService = new CentralServerService(
         this.tenantContext.getTenant().subdomain, this.transactionUser);
-    }
-  }
-
-  public async before() {
-    const allSettings = await this.centralUserService.settingApi.readAll({});
-    this.currentPricingSetting = allSettings.data.result.find((s) => s.identifier === 'pricing');
-    if (this.currentPricingSetting) {
-      await this.centralUserService.updatePriceSetting(this.pricekWh, 'EUR');
     }
   }
 
@@ -390,7 +381,7 @@ export default class TransactionCommonTests {
     expect(transactions.data.stats).to.containSubset({
       totalConsumptionWattHours: 2000,
       totalDurationSecs: 7200,
-      totalPrice: 4,
+      totalPrice: 2,
       totalInactivitySecs: 0,
       count: 2
     }
@@ -453,7 +444,7 @@ export default class TransactionCommonTests {
     expect(transactions.data.stats).to.containSubset({
       totalConsumptionWattHours: 2000,
       totalPriceRefund: 0,
-      totalPricePending: 4,
+      totalPricePending: 2,
       currency: 'EUR',
       countRefundTransactions: 0,
       countPendingTransactions: 2,
@@ -1210,8 +1201,8 @@ export default class TransactionCommonTests {
         totalDurationSecs: 7 * 3600,
         totalInactivitySecs: 5 * 3600,
         inactivityStatus: InactivityStatus.ERROR,
-        price: 0.3,
-        roundedPrice: 0.3
+        price: 0.15,
+        roundedPrice: 0.15
       }
     });
   }

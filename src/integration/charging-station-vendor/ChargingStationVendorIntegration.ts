@@ -382,7 +382,6 @@ export default abstract class ChargingStationVendorIntegration {
           chargingProfile.connectorID === connectorID &&
           chargingProfile.profile.chargingProfilePurpose === ChargingProfilePurposeType.TX_PROFILE
         );
-        // Check
         let result = await this.getCurrentConnectorLimitFromProfiles(
           tenant, chargingStation, chargePoint, connectorID, txChargingProfiles);
         if (result) {
@@ -399,7 +398,6 @@ export default abstract class ChargingStationVendorIntegration {
             chargingProfile.profile.chargingProfilePurpose === ChargingProfilePurposeType.TX_DEFAULT_PROFILE
           );
         }
-        // Check
         result = await this.getCurrentConnectorLimitFromProfiles(
           tenant, chargingStation, chargePoint, connectorID, txDefaultChargingProfiles);
         if (result) {
@@ -410,7 +408,6 @@ export default abstract class ChargingStationVendorIntegration {
           chargingProfile.connectorID === connectorID &&
           chargingProfile.profile.chargingProfilePurpose === ChargingProfilePurposeType.CHARGE_POINT_MAX_PROFILE
         );
-        // Check
         result = await this.getCurrentConnectorLimitFromProfiles(
           tenant, chargingStation, chargePoint, connectorID, maxChargingProfiles);
         if (result) {

@@ -227,10 +227,9 @@ export default class UserService {
       message: 'User has been updated successfully',
       action: action
     });
-    // Notify
     if (statusHasChanged && req.tenant.id !== Constants.DEFAULT_TENANT) {
       // Send notification (Async)
-      void NotificationHandler.sendUserAccountStatusChanged(
+      await NotificationHandler.sendUserAccountStatusChanged(
         req.tenant,
         Utils.generateUUID(),
         user,
@@ -359,7 +358,6 @@ export default class UserService {
   }
 
   public static async handleGetUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Return
     res.json(await UserService.getUsers(req));
     next();
   }
@@ -772,7 +770,6 @@ export default class UserService {
     }
     // Add Auth flags
     await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users as UserDataResult, authorizationUsersFilters);
-    // Return
     return users;
   }
 

@@ -9,7 +9,6 @@ const MODULE_NAME = 'MigrationStorage';
 
 export default class MigrationStorage {
   static async getMigrations(): Promise<Migration[]> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     const aggregation = [];
     // Handle the ID
@@ -18,13 +17,11 @@ export default class MigrationStorage {
     const migrationsMDB = await global.database.getCollection<Migration>(Constants.DEFAULT_TENANT, 'migrations')
       .aggregate<Migration>(aggregation)
       .toArray();
-    // Debug
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'getMigrations', startTime, aggregation, migrationsMDB);
     return migrationsMDB;
   }
 
   static async saveMigration(migrationToSave: Migration): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Transfer
     const migrationMDB = {
@@ -38,7 +35,6 @@ export default class MigrationStorage {
     // Create
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'migrations')
       .insertOne(migrationMDB);
-    // Debug
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'saveMigration', startTime, migrationMDB);
   }
 }
