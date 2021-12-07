@@ -143,6 +143,9 @@
     },
     "sensitiveData": {
       "$ref": "setting#/definitions/sensitiveData"
+    },
+    "backupSensitiveData": {
+      "$ref": "setting#/definitions/backupSensitiveData"
     }
   },
   "required": [
