@@ -11,13 +11,6 @@ export default class SettingSecurity {
     return sanitize(request.ID);
   }
 
-  public static filterSettingRequest(request: any): HttpSettingRequest {
-    return {
-      ID: sanitize(request.ID),
-      ContentFilter: UtilsSecurity.filterBoolean(request.ContentFilter)
-    };
-  }
-
   public static filterSettingsRequest(request: any): HttpSettingsRequest {
     const filteredRequest: HttpSettingsRequest = {} as HttpSettingsRequest;
     filteredRequest.Identifier = sanitize(request.Identifier);

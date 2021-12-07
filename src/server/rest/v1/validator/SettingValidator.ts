@@ -1,4 +1,4 @@
-import { HttpSettingAssetSetRequest, HttpSettingBillingSetRequest, HttpSettingCarConnectorSetRequest, HttpSettingCryptoSetRequest, HttpSettingOCPISetRequest, HttpSettingOICPSetRequest, HttpSettingPricingSetRequest, HttpSettingRefundSetRequest, HttpSettingSacSetRequest, HttpSettingSmartChargingSetRequest, HttpSettingUserSetRequest } from '../../../../types/requests/HttpSettingRequest';
+import { HttpSettingAssetSetRequest, HttpSettingBillingSetRequest, HttpSettingByIdentifierRequest, HttpSettingCarConnectorSetRequest, HttpSettingCryptoSetRequest, HttpSettingOCPISetRequest, HttpSettingOICPSetRequest, HttpSettingPricingSetRequest, HttpSettingRefundSetRequest, HttpSettingRequest, HttpSettingSacSetRequest, HttpSettingSmartChargingSetRequest, HttpSettingUserSetRequest, HttpSettingsRequest } from '../../../../types/requests/HttpSettingRequest';
 
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from '../../../../validator/SchemaValidator';
@@ -7,6 +7,9 @@ import global from '../../../../types/GlobalType';
 
 export default class SettingValidator extends SchemaValidator {
   private static instance: SettingValidator|null = null;
+  private settingGetByID: Schema;
+  private settingGetByIdentifier: Schema;
+  private settingsGet: Schema;
   private settingOCPISet: Schema;
   private settingUserSet: Schema;
   private settingSmartChargingSet: Schema;
@@ -21,6 +24,9 @@ export default class SettingValidator extends SchemaValidator {
 
   private constructor() {
     super('SettingValidator');
+    this.settingGetByID = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-by-id.json`, 'utf8'));
+    this.settingGetByIdentifier = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-by-identifier.json`, 'utf8'));
+    this.settingsGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/settings-get.json`, 'utf8'));
     this.settingOCPISet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-ocpi-set.json`, 'utf8'));
     this.settingSmartChargingSet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-smart-charging-set.json`, 'utf8'));
     this.settingUserSet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-user-set.json`, 'utf8'));
@@ -39,6 +45,18 @@ export default class SettingValidator extends SchemaValidator {
       SettingValidator.instance = new SettingValidator();
     }
     return SettingValidator.instance;
+  }
+
+  public validateSettingGetByIDReq(data: Record<string, unknown>): HttpSettingRequest {
+    return this.validate(this.settingGetByID, data);
+  }
+
+  public validateSettingGetByIdentifierReq(data: Record<string, unknown>): HttpSettingByIdentifierRequest {
+    return this.validate(this.settingGetByIdentifier, data);
+  }
+
+  public validateSettingsGetReq(data: Record<string, unknown>): HttpSettingsRequest {
+    return this.validate(this.settingsGet, data);
   }
 
   public validateSettingOCPISetReq(data: Record<string, unknown>): HttpSettingOCPISetRequest {
