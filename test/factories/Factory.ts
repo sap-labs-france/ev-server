@@ -4,6 +4,7 @@ import CarFactory from './CarFactory';
 import ChargingStationFactory from './ChargingStationFactory';
 import CompanyFactory from './CompanyFactory';
 import OcpiEndpointsFactory from './OcpiEndpointsFactory';
+import OicpEndpointsFactory from './OicpEndpointsFactory';
 import RegistrationTokenFactory from './RegistrationTokenFactory';
 import SettingFactory from './SettingFactory';
 import SiteAreaFactory from './SiteAreaFactory';
@@ -23,6 +24,7 @@ export default abstract class Factory {
   public static tenant = TenantFactory;
   public static setting = SettingFactory;
   public static ocpiEndpoint = OcpiEndpointsFactory;
+  public static oicpEndpoint = OicpEndpointsFactory;
   public static car = CarFactory;
   public static tag = TagFactory;
   public static registrationToken = RegistrationTokenFactory;

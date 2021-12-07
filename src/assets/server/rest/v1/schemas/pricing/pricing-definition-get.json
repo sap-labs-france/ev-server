@@ -1,0 +1,23 @@
+{
+  "$id": "pricing-definition-get",
+  "title": "Get one pricing definition",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "pricing-definition#/definitions/id"
+    },
+    "entityID": {
+      "$ref": "pricing-definition#/definitions/entityID"
+    },
+    "entityType": {
+      "$ref": "pricing-definition#/definitions/entityType"
+    },
+    "WithEntityInformation": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    }
+  },
+  "required": [
+    "ID"
+  ]
+}

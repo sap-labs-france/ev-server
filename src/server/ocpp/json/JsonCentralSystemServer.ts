@@ -93,7 +93,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
           await wsConnection.onPong(ocppMessage);
         }
       }
-    }).any('/health-check', (res, req) => {
+    }).any('/health-check', (res: HttpResponse) => {
       res.end('OK');
     }).listen(this.centralSystemConfig.port, (token) => {
       if (token) {
@@ -104,11 +104,11 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     });
   }
 
-  public getChargingStationClient(tenant: Tenant, chargingStation: ChargingStation): ChargingStationClient {
+  public async getChargingStationClient(tenant: Tenant, chargingStation: ChargingStation): Promise<ChargingStationClient> {
     // Get the Json Web Socket
     const jsonWebSocket = this.jsonWSConnections.get(`${tenant.id}~${chargingStation.id}`);
     if (!jsonWebSocket) {
-      void Logging.logWarning({
+      await Logging.logWarning({
         tenantID: tenant.id,
         siteID: chargingStation.siteID,
         siteAreaID: chargingStation.siteAreaID,
@@ -291,7 +291,6 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       existingWSConnection = this.getJsonRestWSConnection(wsConnection.getID());
       action = ServerAction.WS_REST_CONNECTION_ERROR;
     }
-    // Check
     if (existingWSConnection) {
       const existingWSWrapper = existingWSConnection.getWS();
       if (!existingWSWrapper.closed) {
@@ -345,7 +344,6 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       this.runningWSMessages++;
       // OCPP Request?
       if (ocppMessageType === OCPPMessageType.CALL_MESSAGE) {
-        // Check
         if (!wsWrapper.closed) {
           // Get the WS connection
           const wsConnection = await this.getWSConnectionFromWebSocket(wsWrapper);
@@ -487,7 +485,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         Logging.logConsoleDebug(`** ${this.runningWSMessages} running WS Messages (Requests + Responses)`);
         Logging.logConsoleDebug(`** ${this.waitingWSMessages} queued WS Message(s)`);
         Logging.logConsoleDebug('=====================================');
-      }, 5 * 1000);
+      }, 30 * 1000);
     }
   }
 

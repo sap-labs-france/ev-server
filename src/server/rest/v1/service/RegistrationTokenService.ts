@@ -9,8 +9,8 @@ import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
 import Logging from '../../../../utils/Logging';
 import RegistrationToken from '../../../../types/RegistrationToken';
-import RegistrationTokenSecurity from './security/RegistrationTokenSecurity';
 import RegistrationTokenStorage from '../../../../storage/mongodb/RegistrationTokenStorage';
+import RegistrationTokenValidator from '../validator/RegistrationTokenValidator';
 import { ServerAction } from '../../../../types/Server';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import { TenantComponents } from '../../../../types/Tenant';
@@ -23,7 +23,7 @@ const MODULE_NAME = 'RegistrationTokenService';
 export default class RegistrationTokenService {
   static async handleCreateRegistrationToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = RegistrationTokenSecurity.filterRegistrationTokenCreateRequest(req.body);
+    const filteredRequest = RegistrationTokenValidator.getInstance().validateRegistrationTokenCreateReq(req.body);
     // Check Auth
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredRequest.siteAreaID) {
       // Get the Site Area
@@ -48,7 +48,6 @@ export default class RegistrationTokenService {
         module: MODULE_NAME, method: 'handleCreateRegistrationToken'
       });
     }
-    // Check
     if (!filteredRequest.description) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
@@ -82,15 +81,13 @@ export default class RegistrationTokenService {
     registrationToken.ocpp15SOAPSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_15, OCPPProtocol.SOAP, registrationToken.id);
     registrationToken.ocpp16SOAPSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.SOAP, registrationToken.id);
     registrationToken.ocpp16JSONSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.JSON, registrationToken.id);
-    // Ok
     res.json(Object.assign({ id: registrationToken.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 
   static async handleUpdateRegistrationToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = RegistrationTokenSecurity.filterRegistrationTokenUpdateRequest(req.body);
-    UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleUpdateRegistrationToken', req.user);
+    const filteredRequest = RegistrationTokenValidator.getInstance().validateRegistrationTokenUpdateReq(req.body);
     // Check Auth
     if (!await Authorizations.canUpdateRegistrationToken(req.user, filteredRequest.siteAreaID)) {
       // Not Authorized!
@@ -113,7 +110,6 @@ export default class RegistrationTokenService {
           MODULE_NAME, 'handleUpdateRegistrationToken', req.user);
       }
     }
-    // Check
     if (!filteredRequest.description) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
@@ -135,14 +131,12 @@ export default class RegistrationTokenService {
     registrationToken.ocpp15SOAPSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_15, OCPPProtocol.SOAP, registrationToken.id);
     registrationToken.ocpp16SOAPSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.SOAP, registrationToken.id);
     registrationToken.ocpp16JSONSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.JSON, registrationToken.id);
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
   static async handleDeleteRegistrationToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    const tokenID = RegistrationTokenSecurity.filterRegistrationTokenByIDRequest(req.query);
-    UtilsService.assertIdIsProvided(action, tokenID, MODULE_NAME, 'handleDeleteRegistrationToken', req.user);
+    const tokenID = RegistrationTokenValidator.getInstance().validateRegistrationTokenGetReq(req.query).ID;
     // Get Token
     const registrationToken = await RegistrationTokenStorage.getRegistrationToken(req.tenant, tokenID);
     UtilsService.assertObjectExists(action, registrationToken, `Registration Token ID '${tokenID}' does not exist`,
@@ -167,14 +161,12 @@ export default class RegistrationTokenService {
       message: `Registration token with ID '${tokenID}' has been deleted successfully`,
       action: action
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
   static async handleRevokeRegistrationToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    const tokenID = RegistrationTokenSecurity.filterRegistrationTokenByIDRequest(req.query);
-    UtilsService.assertIdIsProvided(action, tokenID, MODULE_NAME, 'handleDeleteRegistrationToken', req.user);
+    const tokenID = RegistrationTokenValidator.getInstance().validateRegistrationTokenGetReq(req.query).ID;
     // Get Token
     const registrationToken = await RegistrationTokenStorage.getRegistrationToken(req.tenant, tokenID);
     UtilsService.assertObjectExists(action, registrationToken, `Registration Token ID '${tokenID}' does not exist`,
@@ -211,7 +203,6 @@ export default class RegistrationTokenService {
       message: `Registration token with ID '${tokenID}' has been revoked successfully`,
       action: action
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -223,11 +214,11 @@ export default class RegistrationTokenService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.LIST, entity: Entity.TOKENS,
+        action: Action.LIST, entity: Entity.TOKEN,
         module: MODULE_NAME, method: 'handleGetRegistrationTokens'
       });
     }
-    const filteredRequest = RegistrationTokenSecurity.filterRegistrationTokensRequest(req.query);
+    const filteredRequest = RegistrationTokenValidator.getInstance().validateRegistrationTokensGetReq(req.query);
     // Check User
     let userProject: string[] = [];
     if ((await Authorizations.canListUsers(req.user)).authorized) {
@@ -242,7 +233,7 @@ export default class RegistrationTokenService {
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.SortFields,
+        sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       [
@@ -257,13 +248,12 @@ export default class RegistrationTokenService {
       registrationToken.ocpp16SOAPSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.SOAP, registrationToken.id);
       registrationToken.ocpp16JSONSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.JSON, registrationToken.id);
     }
-    // Ok
     res.json(registrationTokens);
     next();
   }
 
   static async handleGetRegistrationToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    const filteredRequest = RegistrationTokenSecurity.filterRegistrationTokenByIDRequest(req.query);
+    const filteredRequest = RegistrationTokenValidator.getInstance().validateRegistrationTokenGetReq(req.query).ID;
     // Check User
     let userProject: string[] = [];
     if ((await Authorizations.canListUsers(req.user)).authorized) {
@@ -293,7 +283,6 @@ export default class RegistrationTokenService {
     registrationToken.ocpp15SOAPSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_15, OCPPProtocol.SOAP, registrationToken.id);
     registrationToken.ocpp16SOAPSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.SOAP, registrationToken.id);
     registrationToken.ocpp16JSONSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.JSON, registrationToken.id);
-    // Ok
     res.json(registrationToken);
     next();
   }

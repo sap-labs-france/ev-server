@@ -37,8 +37,7 @@
       "required": [
         "isTransactionBillingActivated",
         "immediateBillingAllowed",
-        "periodicBillingAllowed",
-        "taxID"
+        "periodicBillingAllowed"
       ]
     },
     "stripe": {

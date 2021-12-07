@@ -2,7 +2,12 @@
   "billing": {
     "generatedUser": "Utenza generata per '{{email}}'",
     "chargingAtSiteArea": "Charging session: {{sessionID}} - Start Date: {{startDate}} at {startTime} - Energy Consumption: {{totalConsumption}} kWh at {{siteAreaName}}",
-    "chargingAtChargeBox": "Charging session: {{sessionID}} - Start Date: {{startDate}} at {{startTime}} - Energy Consumption: {{totalConsumption}} kWh at charging station {{chargeBoxID}}"
+    "chargingAtChargeBox": "Charging session: {{sessionID}} - Start Date: {{startDate}} at {{startTime}} - Energy Consumption: {{totalConsumption}} kWh at charging station {{chargeBoxID}}",
+    "header-itemDescription": "Session: {{sessionID}} - Start Date: {{startDate}} at {{startTime}} at charging station {{chargeBoxID}}",
+    "flatFee-shortItemDescription": "Flat Fee",
+    "energy-shortItemDescription": "Energy Consumption: {{quantity}} kWh",
+    "chargingTime-shortItemDescription": "Charging Time: {{duration}}",
+    "parkingTime-shortItemDescription": "Parking Time: {{duration}}"
   },
   "chargers": {
     "chargeBoxSN": "Charge Box S/N",

@@ -12,7 +12,6 @@ const MODULE_NAME = 'LockingStorage';
 
 export default class LockingStorage {
   public static async getLocks(params: { lockIDs?: string[]; }, dbParams: DbParams): Promise<DataResult<Lock>> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -66,12 +65,9 @@ export default class LockingStorage {
     const locksMDB = await global.database.getCollection<Lock>(Constants.DEFAULT_TENANT, 'locks')
       .aggregate<Lock>(aggregation)
       .toArray();
-    // Debug
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'getLocks', startTime, aggregation, locksMDB);
-    // Ok
     return {
-      count: (locksCountMDB.length > 0 ?
-        (locksCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : locksCountMDB[0].count) : 0),
+      count: DatabaseUtils.getCountFromDatabaseCount(locksCountMDB[0]),
       result: locksMDB
     };
   }
@@ -85,7 +81,6 @@ export default class LockingStorage {
   }
 
   public static async insertLock(lockToSave: Lock): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Transfer
     const lockMDB = {
@@ -101,28 +96,23 @@ export default class LockingStorage {
     // Create
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
       .insertOne(lockMDB);
-    // Debug
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'insertLock', startTime, lockToSave);
   }
 
   public static async deleteLock(id: string): Promise<boolean> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Delete
     const result = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
       .findOneAndDelete({ '_id': id });
-    // Debug
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'deleteLock', startTime, { id });
     return result.value !== null;
   }
 
   public static async deleteLockByHostname(hostname:string): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Delete
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
       .deleteMany({ 'hostname': hostname });
-    // Debug
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'deleteLockByHostname', startTime, { hostname });
   }
 }

@@ -11,6 +11,7 @@ import Consumption from '../../../types/Consumption';
 import { ConvergentChargingPricingSetting } from '../../../types/Setting';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
+import LoggingHelper from '../../../utils/LoggingHelper';
 import PricingIntegration from '../PricingIntegration';
 import { RateResult } from './model/RateResult';
 import { RefundStatus } from '../../../types/Refund';
@@ -19,6 +20,7 @@ import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import StatefulChargingService from './StatefulChargingService';
 import Tenant from '../../../types/Tenant';
 import Transaction from '../../../types/Transaction';
+import Utils from '../../../utils/Utils';
 import moment from 'moment-timezone';
 
 const MODULE_NAME = 'ConvergentChargingPricingIntegration';
@@ -76,6 +78,7 @@ export default class SapConvergentChargingPricingIntegration extends PricingInte
         cumulatedAmount: 0,
         currencyCode: rateResult.transactionsToReserve.getCurrencyCode(),
         roundedAmount: 0,
+        cumulatedRoundedAmount: 0,
         pricingSource: PricingSource.CONVERGENT_CHARGING
       };
     }
@@ -99,6 +102,7 @@ export default class SapConvergentChargingPricingIntegration extends PricingInte
       return {
         roundedAmount: rateResult.amountToConfirm,
         cumulatedAmount: rateResult.accumulatedAmount,
+        cumulatedRoundedAmount: Utils.truncTo(rateResult.accumulatedAmount,2),
         currencyCode: rateResult.transactionsToConfirm.getCurrencyCode(),
         amount: rateResult.transactionsToConfirm.getTotalUnroundedAmount(),
         pricingSource: PricingSource.CONVERGENT_CHARGING
@@ -123,6 +127,7 @@ export default class SapConvergentChargingPricingIntegration extends PricingInte
       return {
         roundedAmount: rateResult.amountToConfirm,
         cumulatedAmount: rateResult.accumulatedAmount,
+        cumulatedRoundedAmount: Utils.truncTo(rateResult.accumulatedAmount, 2),
         currencyCode: rateResult.transactionsToConfirm.getCurrencyCode(),
         amount: rateResult.transactionsToConfirm.getTotalUnroundedAmount(),
         pricingSource: PricingSource.CONVERGENT_CHARGING
@@ -137,10 +142,7 @@ export default class SapConvergentChargingPricingIntegration extends PricingInte
     const chargingStation: ChargingStation = await ChargingStationStorage.getChargingStation(this.tenant, transaction.chargeBoxID);
     await Logging.logError({
       tenantID: this.tenant.id,
-      siteID: chargingStation.siteID,
-      siteAreaID: chargingStation.siteAreaID,
-      companyID: chargingStation.companyID,
-      chargingStationID: chargingStation.id,
+      ...LoggingHelper.getChargingStationProperties(chargingStation),
       module: MODULE_NAME, method: 'handleError',
       action: action,
       message: chargingResult.message,
@@ -155,10 +157,7 @@ export default class SapConvergentChargingPricingIntegration extends PricingInte
         const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(this.tenant, chargingStation);
         if (!chargingStationClient) {
           throw new BackendError({
-            chargingStationID: chargingStation.id,
-            siteID: chargingStation.siteID,
-            siteAreaID: chargingStation.siteAreaID,
-            companyID: chargingStation.companyID,
+            ...LoggingHelper.getChargingStationProperties(chargingStation),
             action: action,
             module: MODULE_NAME, method: 'handleError',
             message: 'Charging Station is not connected to the backend',

@@ -14,7 +14,6 @@ const MODULE_NAME = 'RegistrationTokenStorage';
 
 export default class RegistrationTokenStorage {
   static async saveRegistrationToken(tenant: Tenant, registrationToken: RegistrationToken): Promise<string> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -22,7 +21,7 @@ export default class RegistrationTokenStorage {
     const registrationTokenMDB = {
       _id: registrationToken.id ? DatabaseUtils.convertToObjectID(registrationToken.id) : new ObjectId(),
       description: registrationToken.description,
-      siteAreaID: DatabaseUtils.convertToObjectID(registrationToken.siteAreaID),
+      siteAreaID: registrationToken.siteAreaID ? DatabaseUtils.convertToObjectID(registrationToken.siteAreaID) : null,
       expirationDate: Utils.convertToDate(registrationToken.expirationDate),
       revocationDate: Utils.convertToDate(registrationToken.revocationDate)
     };
@@ -34,7 +33,6 @@ export default class RegistrationTokenStorage {
       { $set: registrationTokenMDB },
       { upsert: true, returnDocument: 'after' }
     );
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveRegistrationToken', startTime, registrationTokenMDB);
     return registrationTokenMDB._id.toString();
   }
@@ -42,7 +40,6 @@ export default class RegistrationTokenStorage {
   static async getRegistrationTokens(tenant: Tenant,
       params: { tokenIDs?: string[]; siteIDs?: string[]; siteAreaID?: string } = {}, dbParams: DbParams, projectFields?: string[]):
       Promise<DataResult<RegistrationToken>> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -128,12 +125,9 @@ export default class RegistrationTokenStorage {
     const registrationTokens = await global.database.getCollection<RegistrationToken>(tenant.id, 'registrationtokens')
       .aggregate<RegistrationToken>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getRegistrationTokens', startTime, aggregation, registrationTokens);
-    // Ok
     return {
-      count: (registrationTokensCountMDB.length > 0 ?
-        (registrationTokensCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : registrationTokensCountMDB[0].count) : 0),
+      count: DatabaseUtils.getCountFromDatabaseCount(registrationTokensCountMDB[0]),
       result: registrationTokens
     };
   }
@@ -147,11 +141,9 @@ export default class RegistrationTokenStorage {
   }
 
   static async deleteRegistrationToken(tenant: Tenant, id: string): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     await global.database.getCollection<any>(tenant.id, 'registrationtokens')
       .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteRegistrationToken', startTime, { id });
   }
 }

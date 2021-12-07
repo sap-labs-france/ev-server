@@ -24,9 +24,7 @@ export default class TransactionStorage {
   }
 
   public static async deleteTransactions(tenant: Tenant, transactionsIDs: number[]): Promise<number> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check
     DatabaseUtils.checkTenantObject(tenant);
     // Delete
     const result = await global.database.getCollection<Transaction>(tenant.id, 'transactions')
@@ -36,15 +34,12 @@ export default class TransactionStorage {
       .deleteMany({ 'transactionId': { $in: transactionsIDs } });
     // Delete Consumptions
     await ConsumptionStorage.deleteConsumptions(tenant, transactionsIDs);
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteTransaction', startTime, { transactionsIDs });
     return result.deletedCount;
   }
 
   public static async saveTransaction(tenant: Tenant, transactionToSave: Transaction): Promise<number> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check
     DatabaseUtils.checkTenantObject(tenant);
     // ID not provided?
     if (!transactionToSave.id) {
@@ -69,6 +64,7 @@ export default class TransactionStorage {
       roundedPrice: Utils.convertToFloat(transactionToSave.roundedPrice),
       priceUnit: transactionToSave.priceUnit,
       pricingSource: transactionToSave.pricingSource,
+      pricingModel: transactionToSave.pricingModel,
       stateOfCharge: transactionToSave.stateOfCharge,
       timezone: transactionToSave.timezone,
       signedData: transactionToSave.signedData,
@@ -79,6 +75,7 @@ export default class TransactionStorage {
       currentTotalInactivitySecs: Utils.convertToInt(transactionToSave.currentTotalInactivitySecs),
       currentInactivityStatus: transactionToSave.currentInactivityStatus,
       currentCumulatedPrice: Utils.convertToFloat(transactionToSave.currentCumulatedPrice),
+      currentCumulatedRoundedPrice: Utils.convertToFloat(transactionToSave.currentCumulatedRoundedPrice),
       transactionEndReceived: Utils.convertToBoolean(transactionToSave.transactionEndReceived),
       currentInstantWatts: Utils.convertToFloat(transactionToSave.currentInstantWatts),
       currentInstantWattsL1: Utils.convertToFloat(transactionToSave.currentInstantWattsL1),
@@ -135,6 +132,7 @@ export default class TransactionStorage {
       delete transactionMDB.currentInstantWattsL3;
       delete transactionMDB.currentInstantWattsDC;
       delete transactionMDB.currentCumulatedPrice;
+      delete transactionMDB.currentCumulatedRoundedPrice;
       delete transactionMDB.currentSignedData;
       delete transactionMDB.currentStateOfCharge;
       delete transactionMDB.currentTotalConsumptionWh;
@@ -206,15 +204,12 @@ export default class TransactionStorage {
       { '_id': Utils.convertToInt(transactionToSave.id) },
       transactionMDB,
       { upsert: true });
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveTransaction', startTime, transactionMDB);
-    // Return
     return transactionToSave.id;
   }
 
   public static async saveTransactionOcpiData(tenant: Tenant, id: number,
       ocpiData: TransactionOcpiData): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -227,13 +222,11 @@ export default class TransactionStorage {
         }
       },
       { upsert: false });
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveTransactionOcpiData', startTime, ocpiData);
   }
 
   public static async saveTransactionOicpData(tenant: Tenant, id: number,
       oicpData: TransactionOicpData): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -246,13 +239,11 @@ export default class TransactionStorage {
         }
       },
       { upsert: false });
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveTransactionOicpData', startTime, oicpData);
   }
 
   public static async saveTransactionBillingData(tenant: Tenant, id: number,
       billingData: TransactionBillingData): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -265,13 +256,11 @@ export default class TransactionStorage {
         }
       },
       { upsert: false });
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveTransactionBillingData', startTime, billingData);
   }
 
   public static async saveTransactionRefundData(tenant: Tenant, id: number,
       refundData: TransactionRefundData): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -284,14 +273,11 @@ export default class TransactionStorage {
         }
       },
       { upsert: false });
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveTransactionRefundData', startTime, refundData);
   }
 
   public static async getTransactionYears(tenant: Tenant): Promise<Date[]> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check
     DatabaseUtils.checkTenantObject(tenant);
     const firstTransactionsMDB = await global.database.getCollection<Transaction>(tenant.id, 'transactions')
       .find({})
@@ -307,7 +293,6 @@ export default class TransactionStorage {
     for (let i = new Date(firstTransactionsMDB[0].timestamp).getFullYear(); i <= new Date().getFullYear(); i++) {
       transactionYears.push(i);
     }
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getTransactionYears', startTime, firstTransactionsMDB);
     return transactionYears;
   }
@@ -322,9 +307,7 @@ export default class TransactionStorage {
         statistics?: 'refund' | 'history' | 'ongoing'; refundStatus?: RefundStatus[]; withTag?: boolean; hasUserID?: boolean; withUser?: boolean; withCar?: boolean;
       },
       dbParams: DbParams, projectFields?: string[]): Promise<TransactionDataResult> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -404,7 +387,7 @@ export default class TransactionStorage {
     // Connector
     if (!Utils.isEmptyArray(params.connectorIDs)) {
       filters.connectorId = {
-        $in: params.connectorIDs.map((connectorID) => DatabaseUtils.convertToObjectID(connectorID))
+        $in: params.connectorIDs
       };
     }
     // Date provided?
@@ -530,6 +513,7 @@ export default class TransactionStorage {
             totalConsumptionWattHours: { $sum: '$currentTotalConsumptionWh' },
             totalDurationSecs: { $sum: '$currentTotalDurationSecs' },
             totalPrice: { $sum: '$currentCumulatedPrice' },
+            totalRoundedPrice: { $sum: '$currentCumulatedRoundedPrice' },
             totalInactivitySecs: { $sum:  '$currentTotalInactivitySecs' },
             currency: { $addToSet: '$priceUnit' },
             count: { $sum: 1 }
@@ -755,10 +739,9 @@ export default class TransactionStorage {
     const transactionsMDB = await global.database.getCollection<Transaction>(tenant.id, 'transactions')
       .aggregate<Transaction>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getTransactions', startTime, aggregation, transactionsMDB);
     return {
-      count: transactionCountMDB ? (transactionCountMDB.count === Constants.DB_RECORD_COUNT_CEIL ? -1 : transactionCountMDB.count) : 0,
+      count: DatabaseUtils.getCountFromDatabaseCount(transactionCountMDB),
       stats: transactionCountMDB ? transactionCountMDB : {},
       result: transactionsMDB
     };
@@ -767,9 +750,7 @@ export default class TransactionStorage {
   public static async getRefundReports(tenant: Tenant,
       params: { ownerID?: string; siteAdminIDs?: string[] },
       dbParams: DbParams, projectFields?: string[]): Promise<{ count: number; result: RefundReport[] }> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -885,10 +866,9 @@ export default class TransactionStorage {
     const reportsMDB = await global.database.getCollection<RefundReport>(tenant.id, 'transactions')
       .aggregate(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getRefundReports', startTime, aggregation, reportsMDB);
     return {
-      count: reportCountMDB ? (reportCountMDB.count === Constants.DB_RECORD_COUNT_CEIL ? -1 : reportCountMDB.count) : 0,
+      count: DatabaseUtils.getCountFromDatabaseCount(reportCountMDB),
       result: reportsMDB
     };
   }
@@ -899,9 +879,7 @@ export default class TransactionStorage {
         siteAreaIDs?: string[]; siteIDs?: string[]; startDateTime?: Date; endDateTime?: Date;
         withChargingStations?: boolean; errorType?: TransactionInErrorType[]; connectorIDs?: number[];
       }, dbParams: DbParams, projectFields?: string[]): Promise<DataResult<TransactionInError>> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -958,7 +936,7 @@ export default class TransactionStorage {
     // Connectors
     if (!Utils.isEmptyArray(params.connectorIDs)) {
       match.connectorId = {
-        $in: params.connectorIDs.map((connectorID) => DatabaseUtils.convertToObjectID(connectorID))
+        $in: params.connectorIDs
       };
     }
     // Create Aggregation
@@ -1047,7 +1025,6 @@ export default class TransactionStorage {
     const transactionsMDB = await global.database.getCollection<TransactionInError>(tenant.id, 'transactions')
       .aggregate<TransactionInError>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getTransactionsInError', startTime, aggregation, transactionsMDB);
     return {
       count: transactionsMDB.length,
@@ -1092,9 +1069,7 @@ export default class TransactionStorage {
   }
 
   public static async getActiveTransaction(tenant: Tenant, chargeBoxID: string, connectorId: number): Promise<Transaction> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check
     DatabaseUtils.checkTenantObject(tenant);
     const aggregation = [];
     // Filters
@@ -1125,16 +1100,13 @@ export default class TransactionStorage {
     const transactionsMDB = await global.database.getCollection<Transaction>(tenant.id, 'transactions')
       .aggregate<Transaction>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getActiveTransaction', startTime, aggregation, transactionsMDB);
     return transactionsMDB.length === 1 ? transactionsMDB[0] : null;
   }
 
   public static async getLastTransactionFromChargingStation(tenant: Tenant, chargeBoxID: string, connectorId: number,
       params: { withChargingStation?: boolean; withUser?: boolean; withTag?: boolean; } = {}): Promise<Transaction> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check
     DatabaseUtils.checkTenantObject(tenant);
     const aggregation = [];
     // Filters
@@ -1191,15 +1163,12 @@ export default class TransactionStorage {
     const transactionsMDB = await global.database.getCollection<Transaction>(tenant.id, 'transactions')
       .aggregate<Transaction>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getLastTransactionFromChargingStation', startTime, aggregation, transactionsMDB);
     return transactionsMDB.length === 1 ? transactionsMDB[0] : null;
   }
 
   public static async findAvailableID(tenant: Tenant): Promise<number> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check
     DatabaseUtils.checkTenantObject(tenant);
     let existingTransaction: Transaction;
     do {
@@ -1217,13 +1186,11 @@ export default class TransactionStorage {
         return id;
       }
     } while (existingTransaction);
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'findAvailableID', startTime, {});
   }
 
   public static async getNotStartedTransactions(tenant: Tenant,
       params: { checkPastAuthorizeMins: number; sessionShouldBeStartedAfterMins: number }): Promise<DataResult<NotifySessionNotStarted>> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -1327,7 +1294,6 @@ export default class TransactionStorage {
     const notifySessionNotStartedMDB = await global.database.getCollection<NotifySessionNotStarted>(tenant.id, 'authorizes')
       .aggregate<NotifySessionNotStarted>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getNotStartedTransactions', startTime, aggregation, notifySessionNotStartedMDB);
     return {
       count: notifySessionNotStartedMDB.length,

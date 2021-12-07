@@ -215,10 +215,8 @@ export default class LoggingStorage {
     const loggingsMDB = await global.database.getCollection<Log>(tenant.id, 'logs')
       .aggregate<Log>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
-    // Ok
     return {
-      count: (loggingsCountMDB.length > 0 ?
-        (loggingsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : loggingsCountMDB[0].count) : 0),
+      count: DatabaseUtils.getCountFromDatabaseCount(loggingsCountMDB[0]),
       result: loggingsMDB
     };
   }

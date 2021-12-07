@@ -5,6 +5,7 @@ import Constants from '../../utils/Constants';
 import { LockEntity } from '../../types/Locking';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
+import LoggingHelper from '../../utils/LoggingHelper';
 import NotificationHandler from '../../notification/NotificationHandler';
 import OCPPCommon from '../../server/ocpp/utils/OCPPCommon';
 import { OCPPGetConfigurationResponse } from '../../types/ocpp/OCPPClient';
@@ -17,7 +18,7 @@ import moment from 'moment';
 const MODULE_NAME = 'CheckOfflineChargingStationsTask';
 
 export default class CheckOfflineChargingStationsTask extends SchedulerTask {
-  async processTenant(tenant: Tenant, config: CheckOfflineChargingStationsTaskConfig): Promise<void> {
+  public async processTenant(tenant: Tenant, config: CheckOfflineChargingStationsTaskConfig): Promise<void> {
     // Get the lock
     const offlineChargingStationLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.CHARGING_STATION, 'offline-charging-station');
     if (await LockingManager.acquire(offlineChargingStationLock)) {
@@ -46,10 +47,7 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
             if (ocppHeartbeatConfiguration) {
               await Logging.logInfo({
                 tenantID: tenant.id,
-                siteID: chargingStation.siteID,
-                siteAreaID: chargingStation.siteAreaID,
-                companyID: chargingStation.companyID,
-                chargingStationID: chargingStation.id,
+                ...LoggingHelper.getChargingStationProperties(chargingStation),
                 action: ServerAction.OFFLINE_CHARGING_STATION,
                 module: MODULE_NAME, method: 'processTenant',
                 message: 'Offline charging station responded successfully to an OCPP command and will be ignored',
@@ -71,7 +69,7 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
           if (chargingStations.result.length > 0) {
             const chargingStationIDs = chargingStations.result.map((chargingStation) => chargingStation.id).join(', ');
             // Send notification
-            void NotificationHandler.sendOfflineChargingStations(
+            await NotificationHandler.sendOfflineChargingStations(
               tenant, {
                 chargeBoxIDs: chargingStationIDs,
                 evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)

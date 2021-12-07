@@ -81,9 +81,9 @@ class TestData {
   }
 
   public static async saveSmartChargingSettings(testData, sapSmartChargingSettings: SapSmartChargingSetting): Promise<void> {
-    const tenantSmartChargingSettings = await testData.userService.settingApi.readAll({ 'Identifier': 'smartCharging' });
-    expect(tenantSmartChargingSettings.data.count).to.be.eq(1);
-    const componentSetting: SettingDB = tenantSmartChargingSettings.data.result[0];
+    const tenantSmartChargingSettings = await testData.userService.settingApi.readByIdentifier({ 'Identifier': 'smartCharging' });
+    expect(tenantSmartChargingSettings.data).to.not.be.null;
+    const componentSetting: SettingDB = tenantSmartChargingSettings.data;
     componentSetting.content.type = SmartChargingSettingsType.SAP_SMART_CHARGING;
     componentSetting.content.sapSmartCharging = sapSmartChargingSettings;
     componentSetting.sensitiveData = ['content.password.secretKey'];

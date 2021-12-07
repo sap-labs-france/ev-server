@@ -14,6 +14,7 @@ import Constants from '../../utils/Constants';
 import Consumption from '../../types/Consumption';
 import ConsumptionStorage from '../../storage/mongodb/ConsumptionStorage';
 import Logging from '../../utils/Logging';
+import LoggingHelper from '../../utils/LoggingHelper';
 import NotificationHandler from '../../notification/NotificationHandler';
 import { OCPICdr } from '../../types/ocpi/OCPICdr';
 import OCPIClient from './OCPIClient';
@@ -64,6 +65,8 @@ export default class CpoOCPIClient extends OCPIClient {
       total: 0,
       logs: []
     };
+    // If partial (keep it global for logs)
+    const momentFrom = moment().utc().subtract(1, 'hours').startOf('hour');
     // EMSP Users
     const emspUsers = new Map<string, User>();
     // Perfs trace
@@ -71,7 +74,6 @@ export default class CpoOCPIClient extends OCPIClient {
     // Get tokens endpoint url
     let tokensUrl = this.getEndpointUrl('tokens', ServerAction.OCPI_PULL_TOKENS);
     if (partial) {
-      const momentFrom = moment().utc().subtract(1, 'hours').startOf('hour');
       tokensUrl = `${tokensUrl}?date_from=${momentFrom.format()}&limit=100`;
     } else {
       tokensUrl = `${tokensUrl}?limit=100`;
@@ -148,7 +150,7 @@ export default class CpoOCPIClient extends OCPIClient {
       }
       const executionDurationLoopSecs = (new Date().getTime() - startTimeLoop) / 1000;
       const executionDurationTotalLoopSecs = (new Date().getTime() - startTime) / 1000;
-      await Logging.logInfo({
+      await Logging.logDebug({
         tenantID: this.tenant.id,
         action: ServerAction.OCPI_PULL_TOKENS,
         message: `${numberOfTags.toString()} token(s) processed in ${executionDurationLoopSecs}s - Total of ${totalNumberOfToken} token(s) processed in ${executionDurationTotalLoopSecs}s`,
@@ -159,10 +161,10 @@ export default class CpoOCPIClient extends OCPIClient {
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
     await Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_PULL_TOKENS,
       MODULE_NAME, 'pullTokens', result,
-      `{{inSuccess}} token(s) were successfully pulled in ${executionDurationSecs}s`,
-      `{{inError}} token(s) failed to be pulled in ${executionDurationSecs}s`,
-      `{{inSuccess}} token(s) were successfully pulled and {{inError}} failed to be pulled in ${executionDurationSecs}s`,
-      'No tokens have been pulled'
+      `{{inSuccess}} token(s) were successfully pulled in ${executionDurationSecs}s ${partial ? 'from ' + momentFrom.format() : ''}`,
+      `{{inError}} token(s) failed to be pulled in ${executionDurationSecs}s ${partial ? 'from ' + momentFrom.format() : ''}`,
+      `{{inSuccess}} token(s) were successfully pulled and {{inError}} failed to be pulled in ${executionDurationSecs}s ${partial ? 'from ' + momentFrom.format() : ''}`,
+      `No tokens have been pulled ${partial ? 'from ' + momentFrom.format() : ''}`
     );
     return result;
   }
@@ -189,10 +191,7 @@ export default class CpoOCPIClient extends OCPIClient {
       });
     if (!response.data.data) {
       throw new BackendError({
-        chargingStationID: chargingStation.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.OCPI_AUTHORIZE_TOKEN,
         message: 'Invalid response from Post Authorize',
         module: MODULE_NAME, method: 'authorizeToken',
@@ -202,10 +201,7 @@ export default class CpoOCPIClient extends OCPIClient {
     const authorizationInfo = response.data.data as OCPIAuthorizationInfo;
     if (authorizationInfo.allowed !== OCPIAllowed.ALLOWED) {
       throw new BackendError({
-        chargingStationID: chargingStation.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.OCPI_AUTHORIZE_TOKEN,
         message: `OCPI Tag ID '${token.uid}' has been rejected`,
         module: MODULE_NAME, method: 'authorizeToken',
@@ -214,10 +210,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     if (!authorizationInfo.authorization_id) {
       throw new BackendError({
-        chargingStationID: chargingStation.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.OCPI_AUTHORIZE_TOKEN,
         message: `OCPI Tag ID '${token.uid}' has been rejected (no Authorization ID)`,
         module: MODULE_NAME, method: 'authorizeToken',
@@ -226,10 +219,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     await Logging.logInfo({
       tenantID: this.tenant.id,
-      siteID: chargingStation.siteID,
-      siteAreaID: chargingStation.siteAreaID,
-      companyID: chargingStation.companyID,
-      chargingStationID: chargingStation.id,
+      ...LoggingHelper.getChargingStationProperties(chargingStation),
       action: ServerAction.OCPI_AUTHORIZE_TOKEN,
       message: `OCPI Tag ID '${token.uid}' has been authorized successfully`,
       module: MODULE_NAME, method: 'authorizeToken',
@@ -274,10 +264,7 @@ export default class CpoOCPIClient extends OCPIClient {
     };
     await Logging.logInfo({
       tenantID: this.tenant.id,
-      siteID: chargingStation.siteID,
-      siteAreaID: chargingStation.siteAreaID,
-      companyID: chargingStation.companyID,
-      chargingStationID: chargingStation.id,
+      ...LoggingHelper.getChargingStationProperties(chargingStation),
       action: ServerAction.OCPI_START_SESSION,
       message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OCPI Transaction has been started successfully`,
       module: MODULE_NAME, method: 'startSession',
@@ -474,10 +461,7 @@ export default class CpoOCPIClient extends OCPIClient {
   public async updateChargingStationStatus(chargingStation: ChargingStation, status?: OCPIEvseStatus): Promise<void> {
     if (!chargingStation.siteAreaID) {
       throw new BackendError({
-        chargingStationID: chargingStation.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.OCPI_PATCH_STATUS,
         message: 'Charging Station must be associated to a Site Area',
         module: MODULE_NAME, method: 'removeChargingStation',
@@ -485,10 +469,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     if (!chargingStation.issuer) {
       throw new BackendError({
-        chargingStationID: chargingStation.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.OCPI_PATCH_STATUS,
         message: 'Only charging Station issued locally can be exposed to IOP',
         module: MODULE_NAME, method: 'removeChargingStation',
@@ -508,10 +489,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     await Logging.logInfo({
       tenantID: this.tenant.id,
-      siteID: chargingStation.siteID,
-      siteAreaID: chargingStation.siteAreaID,
-      companyID: chargingStation.companyID,
-      chargingStationID: chargingStation.id,
+      ...LoggingHelper.getChargingStationProperties(chargingStation),
       action: ServerAction.OCPI_PATCH_STATUS,
       message: 'Charging Station has been removed successfully',
       module: MODULE_NAME, method: 'removeChargingStation',
@@ -522,10 +500,7 @@ export default class CpoOCPIClient extends OCPIClient {
   public async patchChargingStationStatus(chargingStation: ChargingStation, connector: Connector): Promise<void> {
     if (!chargingStation.siteAreaID && !chargingStation.siteArea) {
       throw new BackendError({
-        chargingStationID: chargingStation.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.OCPI_PATCH_STATUS,
         message: 'Charging Station must be associated to a site area',
         module: MODULE_NAME, method: 'patchChargingStationStatus',
@@ -533,10 +508,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     if (!chargingStation.issuer) {
       throw new BackendError({
-        chargingStationID: chargingStation.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.OCPI_PATCH_STATUS,
         message: 'Only charging Station issued locally can be exposed to IOP',
         module: MODULE_NAME, method: 'patchChargingStationStatus',
@@ -544,10 +516,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     if (!chargingStation.public) {
       throw new BackendError({
-        chargingStationID: chargingStation.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.OCPI_PATCH_STATUS,
         message: 'Private charging Station cannot be exposed to IOP',
         module: MODULE_NAME, method: 'patchChargingStationStatus',
@@ -780,8 +749,7 @@ export default class CpoOCPIClient extends OCPIClient {
                 }
                 if (result.failure > 0) {
                   // Send notification to admins
-                  // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                  void NotificationHandler.sendOCPIPatchChargingStationsStatusesError(
+                  await NotificationHandler.sendOCPIPatchChargingStationsStatusesError(
                     this.tenant,
                     {
                       location: location.name,
@@ -858,10 +826,7 @@ export default class CpoOCPIClient extends OCPIClient {
     // Check for input parameter
     if (!locationId || !evseUID || !newStatus) {
       throw new BackendError({
-        chargingStationID: chargingStation.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
+        ...LoggingHelper.getChargingStationProperties(chargingStation as ChargingStation),
         action: ServerAction.OCPI_PATCH_STATUS,
         module: MODULE_NAME, method: 'patchEVSEStatus',
         message: 'Invalid parameters',
@@ -888,10 +853,7 @@ export default class CpoOCPIClient extends OCPIClient {
       });
     await Logging.logInfo({
       tenantID: this.tenant.id,
-      siteID: chargingStation.siteID,
-      siteAreaID: chargingStation.siteAreaID,
-      companyID: chargingStation.companyID,
-      chargingStationID: chargingStation.id,
+      ...LoggingHelper.getChargingStationProperties(chargingStation as ChargingStation),
       action: ServerAction.OCPI_PATCH_STATUS,
       message: `OCPI Charging Station ID '${evseUID}' has been patched successfully to '${newStatus}'`,
       module: MODULE_NAME, method: 'patchEVSEStatus',

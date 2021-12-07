@@ -2,7 +2,12 @@
    "billing":{
       "generatedUser":"Generovat uživatele pro '{{email}}'",
       "chargingAtSiteArea":"Nabíjecí relace: {{sessionID}} - počáteční datum: {{startDate}} v {startTime} - spotřeba energie: {{totalConsumption}} kWh v {{siteAreaName}}",
-      "chargingAtChargeBox":"Nabíjecí relace: {{sessionID}} - počáteční datum: {{startDate}} v {{startTime}} - spotřeba energie: {{totalConsumption}} kWh nabíjecí stanice {{chargeBoxID}}"
+      "chargingAtChargeBox":"Nabíjecí relace: {{sessionID}} - počáteční datum: {{startDate}} v {{startTime}} - spotřeba energie: {{totalConsumption}} kWh nabíjecí stanice {{chargeBoxID}}",
+      "header-itemDescription": "Session: {{sessionID}} - Start Date: {{startDate}} at {{startTime}} at charging station {{chargeBoxID}}",
+      "flatFee-shortItemDescription": "Flat Fee",
+      "energy-shortItemDescription": "Energy Consumption: {{quantity}} kWh",
+      "chargingTime-shortItemDescription": "Charging Time: {{duration}}",
+      "parkingTime-shortItemDescription": "Parking Time: {{duration}}"
    },
    "chargers":{
       "chargeBoxSN":"Nabíjecí stojan S/N",

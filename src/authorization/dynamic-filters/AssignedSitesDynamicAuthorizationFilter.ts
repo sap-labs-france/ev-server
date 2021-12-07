@@ -2,15 +2,17 @@ import { AuthorizationFilter, DynamicAuthorizationDataSourceName, Entity } from 
 
 import AssignedSitesDynamicAuthorizationDataSource from '../dynamic-data-source/AssignedSitesDynamicAuthorizationDataSource';
 import DynamicAuthorizationFilter from '../DynamicAuthorizationFilter';
+import { EntityData } from '../../types/GlobalType';
 import Utils from '../../utils/Utils';
 
 export default class AssignedSitesDynamicAuthorizationFilter extends DynamicAuthorizationFilter {
-  public processFilter(authorizationFilters: AuthorizationFilter, extraFilters: Record<string, any>): void {
+  public processFilter(authorizationFilters: AuthorizationFilter, extraFilters: Record<string, any>, entityData?: EntityData): void {
     // Get Site IDs
     const assignedSitesDataSource = this.getDataSource(
       DynamicAuthorizationDataSourceName.ASSIGNED_SITES) as AssignedSitesDynamicAuthorizationDataSource;
     const { siteIDs } = assignedSitesDataSource.getData();
-    // Check
+    // Clear
+    authorizationFilters.filters.siteIDs = [];
     if (!Utils.isEmptyArray(siteIDs)) {
       // Force the filter
       authorizationFilters.filters.siteIDs = siteIDs;
@@ -30,7 +32,7 @@ export default class AssignedSitesDynamicAuthorizationFilter extends DynamicAuth
 
   public getApplicableEntities(): Entity[] {
     return [
-      Entity.SITES
+      Entity.SITE
     ];
   }
 

@@ -1,0 +1,34 @@
+{
+  "$id": "oicp-endpoint-update",
+  "title": "OICP Endpoint update Request",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "oicp-endpoint#/definitions/id"
+    },
+    "name": {
+      "$ref": "oicp-endpoint#/definitions/name"
+    },
+    "role": {
+      "$ref": "oicp-endpoint#/definitions/role"
+    },
+    "baseUrl": {
+      "$ref": "oicp-endpoint#/definitions/baseUrl"
+    },
+    "countryCode": {
+      "$ref": "oicp-endpoint#/definitions/countryCode"
+    },
+    "partyId": {
+      "$ref": "oicp-endpoint#/definitions/partyId"
+    },
+    "backgroundPatchJob": {
+      "$ref": "oicp-endpoint#/definitions/name"
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "role",
+    "baseUrl"
+  ]
+}

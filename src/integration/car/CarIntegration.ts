@@ -29,11 +29,11 @@ export default abstract class CarIntegration {
           // Get thumbnail image
           externalCar.image = await this.getCarCatalogThumb(externalCar);
           // Delete old car catalogs images
-          await CarStorage.deleteCarImages(externalCar.id);
+          await CarStorage.deleteCarCatalogImages(externalCar.id);
           // Get images
           for (const imageURL of externalCar.imageURLs) {
             const image = await this.getCarCatalogImage(externalCar, imageURL);
-            await CarStorage.saveCarImage(externalCar.id, image);
+            await CarStorage.saveCarCatalogImage(externalCar.id, image);
           }
           // Create the images hash
           externalCar.imagesHash = externalCarImagesHash;
@@ -58,12 +58,12 @@ export default abstract class CarIntegration {
             // Get thumbnail image
             externalCar.image = await this.getCarCatalogThumb(externalCar);
             // Delete old car catalogs images
-            await CarStorage.deleteCarImages(externalCar.id);
+            await CarStorage.deleteCarCatalogImages(externalCar.id);
             // Get images
             for (const imageURL of externalCar.imageURLs) {
               // Get images
               const image = await this.getCarCatalogImage(externalCar, imageURL);
-              await CarStorage.saveCarImage(externalCar.id, image);
+              await CarStorage.saveCarCatalogImage(externalCar.id, image);
             }
             // Create the Hash
             externalCar.imagesHash = externalCarImagesHash;

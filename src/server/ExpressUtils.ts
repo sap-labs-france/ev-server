@@ -12,6 +12,7 @@ import helmet from 'helmet';
 import hpp from 'hpp';
 import locale from 'locale';
 import morgan from 'morgan';
+import useragent from 'express-useragent';
 
 bodyParserXml(bodyParser);
 
@@ -30,7 +31,7 @@ export default class ExpressUtils {
       extended: false,
       limit: bodyLimit
     }));
-    // Debug
+    app.use(useragent.express());
     if (debug || Utils.isDevelopmentEnv()) {
       app.use(morgan((tokens, req: Request, res: Response) =>
         [

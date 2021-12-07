@@ -1,4 +1,4 @@
-import { BillingAdditionalData, BillingError, BillingErrorCode, BillingErrorType, BillingInvoice, BillingInvoiceItem, BillingOperationResult, BillingSessionData } from '../../../types/Billing';
+import { BillingAdditionalData, BillingError, BillingErrorCode, BillingErrorType, BillingInvoice, BillingInvoiceItem, BillingSessionData } from '../../../types/Billing';
 
 import BillingStorage from '../../../storage/mongodb/BillingStorage';
 import Constants from '../../../utils/Constants';
@@ -32,7 +32,6 @@ export default class StripeHelpers {
     if (billingInvoiceItem) {
       session = {
         transactionID: billingInvoiceItem.transactionID,
-        description: billingInvoiceItem.description,
         pricingData: billingInvoiceItem.pricingData,
       };
     }

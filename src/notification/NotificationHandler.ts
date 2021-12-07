@@ -6,6 +6,7 @@ import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import EMailNotificationTask from './email/EMailNotificationTask';
 import Logging from '../utils/Logging';
+import LoggingHelper from '../utils/LoggingHelper';
 import NotificationStorage from '../storage/mongodb/NotificationStorage';
 import RemotePushNotificationTask from './remote-push-notification/RemotePushNotificationTask';
 import { ServerAction } from '../types/Server';
@@ -126,10 +127,7 @@ export default class NotificationHandler {
             } else {
               await Logging.logDebug({
                 tenantID: tenant.id,
-                chargingStationID: chargingStation.id,
-                companyID: chargingStation.companyID,
-                siteID: chargingStation.siteID,
-                siteAreaID: chargingStation.siteAreaID,
+                ...LoggingHelper.getChargingStationProperties(chargingStation),
                 module: MODULE_NAME, method: 'sendEndOfCharge',
                 action: ServerAction.END_OF_CHARGE,
                 user: user.id,
@@ -180,10 +178,7 @@ export default class NotificationHandler {
             } else {
               await Logging.logDebug({
                 tenantID: tenant.id,
-                chargingStationID: chargingStation.id,
-                companyID: chargingStation.companyID,
-                siteID: chargingStation.siteID,
-                siteAreaID: chargingStation.siteAreaID,
+                ...LoggingHelper.getChargingStationProperties(chargingStation),
                 module: MODULE_NAME, method: 'sendOptimalChargeReached',
                 action: ServerAction.OPTIMAL_CHARGE_REACHED,
                 user: user.id,
@@ -234,10 +229,7 @@ export default class NotificationHandler {
             } else {
               await Logging.logDebug({
                 tenantID: tenant.id,
-                chargingStationID: chargingStation.id,
-                companyID: chargingStation.companyID,
-                siteID: chargingStation.siteID,
-                siteAreaID: chargingStation.siteAreaID,
+                ...LoggingHelper.getChargingStationProperties(chargingStation),
                 module: MODULE_NAME, method: 'sendEndOfSession',
                 action: ServerAction.END_OF_SESSION,
                 user: user.id,
@@ -288,10 +280,7 @@ export default class NotificationHandler {
             } else {
               await Logging.logDebug({
                 tenantID: tenant.id,
-                chargingStationID: chargingStation.id,
-                companyID: chargingStation.companyID,
-                siteID: chargingStation.siteID,
-                siteAreaID: chargingStation.siteAreaID,
+                ...LoggingHelper.getChargingStationProperties(chargingStation),
                 module: MODULE_NAME, method: 'sendEndOfSignedSession',
                 action: ServerAction.END_OF_SESSION,
                 user: user.id,
@@ -572,10 +561,7 @@ export default class NotificationHandler {
               } else {
                 await Logging.logDebug({
                   tenantID: tenant.id,
-                  chargingStationID: chargingStation.id,
-                  companyID: chargingStation.companyID,
-                  siteID: chargingStation.siteID,
-                  siteAreaID: chargingStation.siteAreaID,
+                  ...LoggingHelper.getChargingStationProperties(chargingStation),
                   module: MODULE_NAME, method: 'sendChargingStationStatusError',
                   action: ServerAction.CHARGING_STATION_STATUS_ERROR,
                   message: `Notification via '${notificationSource.channel}' has already been sent`
@@ -696,10 +682,7 @@ export default class NotificationHandler {
             } else {
               await Logging.logDebug({
                 tenantID: tenant.id,
-                chargingStationID: chargingStation.id,
-                companyID: chargingStation.companyID,
-                siteID: chargingStation.siteID,
-                siteAreaID: chargingStation.siteAreaID,
+                ...LoggingHelper.getChargingStationProperties(chargingStation),
                 module: MODULE_NAME, method: 'sendSessionStarted',
                 action: ServerAction.TRANSACTION_STARTED,
                 user: user.id,
@@ -946,10 +929,7 @@ export default class NotificationHandler {
             } else {
               await Logging.logDebug({
                 tenantID: tenant.id,
-                chargingStationID: chargingStation.id,
-                companyID: chargingStation.companyID,
-                siteID: chargingStation.siteID,
-                siteAreaID: chargingStation.siteAreaID,
+                ...LoggingHelper.getChargingStationProperties(chargingStation),
                 module: MODULE_NAME, method: 'sendPreparingSessionNotStarted',
                 action: ServerAction.PREPARING_SESSION_NOT_STARTED,
                 user: user.id,
@@ -1241,10 +1221,7 @@ export default class NotificationHandler {
               } else {
                 await Logging.logDebug({
                   tenantID: tenant.id,
-                  chargingStationID: chargingStation.id,
-                  companyID: chargingStation.companyID,
-                  siteID: chargingStation.siteID,
-                  siteAreaID: chargingStation.siteAreaID,
+                  ...LoggingHelper.getChargingStationProperties(chargingStation),
                   module: MODULE_NAME, method: 'sendComputeAndApplyChargingProfilesFailed',
                   action: ServerAction.COMPUTE_AND_APPLY_CHARGING_PROFILES_FAILED,
                   message: `Notification via '${notificationSource.channel}' has already been sent`
@@ -1331,10 +1308,7 @@ export default class NotificationHandler {
             } else {
               await Logging.logDebug({
                 tenantID: tenant.id,
-                chargingStationID: chargingStation.id,
-                companyID: chargingStation.companyID,
-                siteID: chargingStation.siteID,
-                siteAreaID: chargingStation.siteAreaID,
+                ...LoggingHelper.getChargingStationProperties(chargingStation),
                 module: MODULE_NAME, method: 'sendSessionNotStarted',
                 action: ServerAction.SESSION_NOT_STARTED_AFTER_AUTHORIZE,
                 message: `Notification via '${notificationSource.channel}' has already been sent`

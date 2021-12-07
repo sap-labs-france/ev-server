@@ -51,7 +51,6 @@ export interface ConnectorMDB {
 export default class ChargingStationStorage {
 
   public static async getChargingStationTemplates(chargePointVendor?: string): Promise<ChargingStationTemplate[]> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Create Aggregation
     const aggregation = [];
@@ -69,34 +68,29 @@ export default class ChargingStationStorage {
         chargingStationTemplates.push(chargingStationTemplateMDB);
       }
     }
-    // Debug
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'getChargingStationTemplates', startTime, aggregation, chargingStationTemplatesMDB);
     return chargingStationTemplates;
   }
 
   public static async deleteChargingStationTemplates(): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Delete all records
     await global.database.getCollection<ChargingStationTemplate>(Constants.DEFAULT_TENANT, 'chargingstationtemplates').deleteMany(
       { qa: { $not: { $eq: true } } }
     );
-    // Debug
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'deleteChargingStationTemplates', startTime, { qa: { $not: { $eq: true } } });
   }
 
   public static async saveChargingStationTemplate(chargingStationTemplate: ChargingStationTemplate): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Validate
-    chargingStationTemplate = ChargingStationValidatorStorage.getInstance().validateChargingStationStorageTemplate(
+    chargingStationTemplate = ChargingStationValidatorStorage.getInstance().validateChargingStationTemplate(
       chargingStationTemplate as unknown as Record<string, unknown>);
     // Modify and return the modified document
     await global.database.getCollection<ChargingStationTemplate>(Constants.DEFAULT_TENANT, 'chargingstationtemplates').findOneAndReplace(
       { '_id': chargingStationTemplate.id },
       chargingStationTemplate,
       { upsert: true });
-    // Debug
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'saveChargingStationTemplate', startTime, chargingStationTemplate);
   }
 
@@ -152,7 +146,6 @@ export default class ChargingStationStorage {
         locCoordinates?: number[]; locMaxDistanceMeters?: number; public?: boolean;
       },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStation>> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -381,11 +374,9 @@ export default class ChargingStationStorage {
     const chargingStationsMDB = await global.database.getCollection<ChargingStation>(tenant.id, 'chargingstations')
       .aggregate<ChargingStation>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getChargingStations', startTime, aggregation, chargingStationsMDB);
     return {
-      count: (chargingStationsCountMDB.length > 0 ?
-        (chargingStationsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : chargingStationsCountMDB[0].count) : 0),
+      count: DatabaseUtils.getCountFromDatabaseCount(chargingStationsCountMDB[0]),
       result: chargingStationsMDB
     };
   }
@@ -393,7 +384,6 @@ export default class ChargingStationStorage {
   public static async getChargingStationsInError(tenant: Tenant,
       params: { search?: string; siteIDs?: string[]; siteAreaIDs: string[]; errorType?: string[] },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStationInError>> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -503,7 +493,6 @@ export default class ChargingStationStorage {
     const chargingStationsMDB = await global.database.getCollection<ChargingStation>(tenant.id, 'chargingstations')
       .aggregate<ChargingStation>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getChargingStationsInError', startTime, aggregation, chargingStationsMDB);
     return {
       count: chargingStationsMDB.length,
@@ -512,7 +501,6 @@ export default class ChargingStationStorage {
   }
 
   public static async saveChargingStation(tenant: Tenant, chargingStationToSave: ChargingStation): Promise<string> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -576,13 +564,11 @@ export default class ChargingStationStorage {
       { _id: chargingStationToSave.id },
       { $set: chargingStationMDB },
       { upsert: true });
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveChargingStation', startTime, chargingStationMDB);
     return chargingStationMDB._id;
   }
 
   public static async saveChargingStationConnectors(tenant: Tenant, id: string, connectors: Connector[], backupConnectors?: Connector[]): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -602,13 +588,11 @@ export default class ChargingStationStorage {
         $set: updatedProps
       },
       { upsert: true });
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveChargingStationConnectors', startTime, connectors);
   }
 
   public static async saveChargingStationOicpData(tenant: Tenant, id: string,
       oicpData: ChargingStationOicpData): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -621,13 +605,11 @@ export default class ChargingStationStorage {
         }
       },
       { upsert: false });
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveChargingStationOicpData', startTime, oicpData);
   }
 
   public static async saveChargingStationRuntimeData(tenant: Tenant, id: string,
       params: { lastSeen: Date; currentIPAddress?: string | string[]; tokenID?: string; cloudHostIP?: string; cloudHostName?: string; }): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -637,13 +619,11 @@ export default class ChargingStationStorage {
       { '_id': id },
       { $set: params },
       { upsert: true });
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveChargingStationLastSeen', startTime, params);
   }
 
   public static async saveChargingStationOcpiData(tenant: Tenant, id: string,
       ocpiData: ChargingStationOcpiData): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -656,13 +636,11 @@ export default class ChargingStationStorage {
         }
       },
       { upsert: false });
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveChargingStationOcpiData', startTime, ocpiData);
   }
 
   public static async saveChargingStationRemoteAuthorizations(tenant: Tenant, id: string,
       remoteAuthorizations: RemoteAuthorization[]): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -675,12 +653,10 @@ export default class ChargingStationStorage {
         }
       },
       { upsert: false });
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveChargingStationRemoteAuthorizations', startTime, remoteAuthorizations);
   }
 
   public static async saveChargingStationFirmwareStatus(tenant: Tenant, id: string, firmwareUpdateStatus: OCPPFirmwareStatus): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -689,12 +665,10 @@ export default class ChargingStationStorage {
       { '_id': id },
       { $set: { firmwareUpdateStatus } },
       { upsert: true });
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveChargingStationFirmwareStatus', startTime, firmwareUpdateStatus);
   }
 
   public static async deleteChargingStation(tenant: Tenant, id: string): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -707,7 +681,6 @@ export default class ChargingStationStorage {
     await global.database.getCollection<ChargingStation>(tenant.id, 'chargingstations')
       .findOneAndDelete({ '_id': id });
     // Keep the rest (boot notification, authorize...)
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteChargingStation', startTime, { id });
   }
 
@@ -717,7 +690,6 @@ export default class ChargingStationStorage {
     if (configuration) {
       // Get the value
       configuration.result.every((param) => {
-        // Check
         if (param.key === paramName) {
           value = param.value;
           return false;
@@ -729,7 +701,6 @@ export default class ChargingStationStorage {
   }
 
   static async saveOcppParameters(tenant: Tenant, parameters: ChargingStationOcppParameters): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -745,12 +716,10 @@ export default class ChargingStationStorage {
       upsert: true,
       returnDocument: 'after'
     });
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveOcppParameters', startTime, parameters);
   }
 
   public static async getOcppParameters(tenant: Tenant, id: string): Promise<DataResult<OcppParameter>> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -770,7 +739,6 @@ export default class ChargingStationStorage {
           return 0;
         });
       }
-      // Debug
       await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getOcppParameters', startTime, { id }, parametersMDB);
       return {
         count: parametersMDB.configuration.length,
@@ -799,7 +767,6 @@ export default class ChargingStationStorage {
         withSiteArea?: boolean; siteIDs?: string[];
       } = {},
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingProfile>> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -924,11 +891,9 @@ export default class ChargingStationStorage {
     const chargingProfilesMDB = await global.database.getCollection<ChargingProfile>(tenant.id, 'chargingprofiles')
       .aggregate<ChargingProfile>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getChargingProfiles', startTime, aggregation, chargingProfilesMDB);
     return {
-      count: (chargingProfilesCountMDB.length > 0 ?
-        (chargingProfilesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : chargingProfilesCountMDB[0].count) : 0),
+      count: DatabaseUtils.getCountFromDatabaseCount(chargingProfilesCountMDB[0]),
       result: chargingProfilesMDB
     };
   }
@@ -962,26 +927,22 @@ export default class ChargingStationStorage {
   }
 
   public static async deleteChargingProfile(tenant: Tenant, id: string): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete Charging Profile
     await global.database.getCollection<any>(tenant.id, 'chargingprofiles')
       .findOneAndDelete({ '_id': id });
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteChargingProfile', startTime, { id });
   }
 
   public static async deleteChargingProfiles(tenant: Tenant, chargingStationID: string): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete Charging Profiles
     await global.database.getCollection<any>(tenant.id, 'chargingprofiles')
       .findOneAndDelete({ 'chargingStationID': chargingStationID });
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteChargingProfiles', startTime, { chargingStationID });
   }
 

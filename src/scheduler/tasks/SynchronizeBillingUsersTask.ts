@@ -10,7 +10,7 @@ import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 
 export default class SynchronizeBillingUsersTask extends SchedulerTask {
-  async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
+  public async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     // Get the lock
     const billingLock = await LockingHelper.acquireBillingSyncUsersLock(tenant.id);
     if (billingLock) {
@@ -19,7 +19,7 @@ export default class SynchronizeBillingUsersTask extends SchedulerTask {
         if (billingImpl) {
           const synchronizeAction = await billingImpl.synchronizeUsers();
           if (synchronizeAction.inError > 0) {
-            void NotificationHandler.sendBillingSynchronizationFailed(
+            await NotificationHandler.sendBillingSynchronizationFailed(
               tenant,
               {
                 nbrUsersInError: synchronizeAction.inError,

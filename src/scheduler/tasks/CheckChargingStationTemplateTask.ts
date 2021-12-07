@@ -3,6 +3,7 @@ import Constants from '../../utils/Constants';
 import { LockEntity } from '../../types/Locking';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
+import LoggingHelper from '../../utils/LoggingHelper';
 import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
@@ -55,13 +56,10 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
       } catch (error) {
         await Logging.logError({
           tenantID: tenant.id,
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
           action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
-          siteID: chargingStation.siteID,
-          siteAreaID: chargingStation.siteAreaID,
-          companyID: chargingStation.companyID,
-          chargingStationID: chargingStation.id,
           module: MODULE_NAME, method: 'applyTemplateToChargingStations',
-          message: `Template update error in Tenant ${Utils.buildTenantName(tenant)}): ${error.message}`,
+          message: `Template update error in Tenant ${Utils.buildTenantName(tenant)}): ${error.message as string}`,
           detailedMessages: { error: error.stack }
         });
       }
