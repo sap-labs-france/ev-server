@@ -33,7 +33,7 @@
         "type": {
           "type": "string",
           "sanitize": "mongo",
-          "enum": ["billing"]
+          "enum": ["stripe"]
         }
       },
       "required": [

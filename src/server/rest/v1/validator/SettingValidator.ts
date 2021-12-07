@@ -18,6 +18,9 @@ export default class SettingValidator extends SchemaValidator {
   private settingBillingSet: Schema;
   private settingAssetSet: Schema;
   private settingCarConnectorSet: Schema;
+  private settingCarSet: Schema;
+  private settingOrganizationSet: Schema;
+  private settingStatisticsSet: Schema;
 
   private constructor() {
     super('SettingValidator');
@@ -32,6 +35,9 @@ export default class SettingValidator extends SchemaValidator {
     this.settingBillingSet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-billing-set.json`, 'utf8'));
     this.settingAssetSet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-asset-set.json`, 'utf8'));
     this.settingCarConnectorSet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-car-connector-set.json`, 'utf8'));
+    this.settingCarSet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-car-set.json`, 'utf8'));
+    this.settingOrganizationSet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-organization-set.json`, 'utf8'));
+    this.settingStatisticsSet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-statistics-set.json`, 'utf8'));
   }
 
   public static getInstance(): SettingValidator {
@@ -83,5 +89,17 @@ export default class SettingValidator extends SchemaValidator {
 
   public validateSettingCarConnectorSetReq(data: Record<string, unknown>): HttpSettingCarConnectorSetRequest {
     return this.validate(this.settingCarConnectorSet, data);
+  }
+
+  public validateSettingCarSetReq(data: Record<string, unknown>) {
+    return this.validate(this.settingCarSet, data);
+  }
+
+  public validateSettingOrganizationSetReq(data: Record<string, unknown>) {
+    return this.validate(this.settingOrganizationSet, data);
+  }
+
+  public validateSettingStatisticsSetReq(data: Record<string, unknown>) {
+    return this.validate(this.settingStatisticsSet, data);
   }
 }

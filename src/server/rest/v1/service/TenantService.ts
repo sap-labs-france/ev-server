@@ -288,7 +288,7 @@ export default class TenantService {
       '/verify-email?VerificationToken=' + verificationToken + '&Email=' +
       tenantUser.email + '&ResetToken=' + resetHash;
     // Send Register User (Async)
-    await NotificationHandler.sendNewRegisteredUser(
+    NotificationHandler.sendNewRegisteredUser(
       tenant,
       Utils.generateUUID(),
       tenantUser,
