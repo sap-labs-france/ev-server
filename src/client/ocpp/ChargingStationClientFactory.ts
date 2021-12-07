@@ -47,7 +47,6 @@ export default class ChargingStationClientFactory {
       }
       chargingClient = OCPIClientFactory.getChargingStationClient(tenant, chargingStation);
     }
-    // Check
     if (!chargingClient) {
       throw new BackendError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),

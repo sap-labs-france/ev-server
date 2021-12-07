@@ -38,9 +38,7 @@ export default class TenantStorage {
   }
 
   public static async saveTenant(tenantToSave: Partial<Tenant>, saveLogo = true): Promise<string> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check
     if (!tenantToSave.id && !tenantToSave.name) {
       throw new BackendError({
         module: MODULE_NAME,
@@ -93,17 +91,14 @@ export default class TenantStorage {
         { $set: { logo: tenantToSave.logo } },
         { upsert: true });
     }
-    // Debug
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'saveTenant', startTime, { tenant: tenantMDB, logo: tenantToSave.logo });
     return tenantFilter._id.toString();
   }
 
   public static async createTenantDB(tenantID: string): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Create tenant collections
     await global.database.checkAndCreateTenantDatabase(tenantID);
-    // Debug
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'createTenantDB', startTime, { tenantID });
   }
 
@@ -111,7 +106,6 @@ export default class TenantStorage {
   public static async getTenants(
       params: { tenantIDs?: string[]; tenantName?: string; tenantSubdomain?: string; search?: string, withLogo?: boolean },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Tenant>> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -190,10 +184,11 @@ export default class TenantStorage {
         $addFields: {
           logo: {
             $concat: [
-              `${Utils.buildRestServerURL()}/client/util/TenantLogo?ID=`,
+              `${Utils.buildRestServerURL()}/v1/util/tenants/logo?ID=`,
               { $toString: '$_id' },
-              '&LastChangedOn=',
-              { $toString: '$lastChangedOn' }
+              {
+                $ifNull: [{ $concat: ['&LastChangedOn=', { $toString: '$lastChangedOn' }] }, ''] // Only concat 'lastChangedOn' if not null
+              }
             ]
           }
         }
@@ -208,46 +203,37 @@ export default class TenantStorage {
     // Read DB
     const tenantsMDB = await global.database.getCollection<Tenant>(Constants.DEFAULT_TENANT, 'tenants')
       .aggregate<Tenant>(aggregation, DatabaseUtils.buildAggregateOptions()).toArray();
-    // Debug
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'getTenants', startTime, aggregation, tenantsMDB);
-    // Ok
     return {
-      count: (tenantsCountMDB.length > 0 ?
-        (tenantsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : tenantsCountMDB[0].count) : 0),
+      count: DatabaseUtils.getCountFromDatabaseCount(tenantsCountMDB[0]),
       result: tenantsMDB
     };
   }
 
   public static async deleteTenant(id: string): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Delete
     await global.database.getCollection<Tenant>(Constants.DEFAULT_TENANT, 'tenants')
       .findOneAndDelete({
         '_id': DatabaseUtils.convertToObjectID(id)
       });
-    // Debug
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'deleteTenant', startTime, { id });
   }
 
   public static async deleteTenantDB(id: string): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Delete
     await global.database.deleteTenantDatabase(id);
-    // Debug
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'deleteTenantDB', startTime, { id });
   }
 
   public static async getTenantLogo(tenant: Tenant): Promise<TenantLogo> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Read DB
     const tenantLogoMDB = await global.database.getCollection<{ _id: ObjectId; logo: string }>(Constants.DEFAULT_TENANT, 'tenantlogos')
       .findOne({ _id: DatabaseUtils.convertToObjectID(tenant.id) });
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getTenantLogo', startTime, { id: tenant.id }, tenantLogoMDB);
     return {
       id: tenant.id,

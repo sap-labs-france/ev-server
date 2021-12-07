@@ -149,7 +149,6 @@ export default class ConnectionService {
       message: `Connection to '${connection.connectorId}' has been deleted successfully`,
       action: action
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }

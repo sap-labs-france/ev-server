@@ -315,7 +315,6 @@ export default class EMailNotificationTask implements NotificationTask {
       // Fetch the template
       const emailTemplate = await TemplateManager.getInstanceForLocale(user.locale).getTemplate(templateName);
       if (!emailTemplate) {
-        // Error
         throw new BackendError({
           action: ServerAction.EMAIL_NOTIFICATION,
           module: MODULE_NAME, method: 'prepareAndSendEmail',

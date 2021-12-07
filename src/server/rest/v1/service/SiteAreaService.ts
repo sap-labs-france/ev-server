@@ -1,29 +1,29 @@
+import { Action, Entity } from '../../../../types/Authorization';
+import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-import moment from 'moment';
 
+import { ActionsResponse } from '../../../../types/GlobalType';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
-import SmartChargingFactory from '../../../../integration/smart-charging/SmartChargingFactory';
+import AuthorizationService from './AuthorizationService';
+import { ChargingProfilePurposeType } from '../../../../types/ChargingProfile';
+import Constants from '../../../../utils/Constants';
+import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
-import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
-import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
-import TenantStorage from '../../../../storage/mongodb/TenantStorage';
-import { Action, Entity } from '../../../../types/Authorization';
-import { ChargingProfilePurposeType } from '../../../../types/ChargingProfile';
-import { SiteAreaDataResult } from '../../../../types/DataResult';
-import { ActionsResponse } from '../../../../types/GlobalType';
-import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
+import Logging from '../../../../utils/Logging';
+import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
 import { ServerAction } from '../../../../types/Server';
 import SiteArea from '../../../../types/SiteArea';
-import { TenantComponents } from '../../../../types/Tenant';
-import Constants from '../../../../utils/Constants';
-import Logging from '../../../../utils/Logging';
-import Utils from '../../../../utils/Utils';
-import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
+import { SiteAreaDataResult } from '../../../../types/DataResult';
+import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteAreaValidator from '../validator/SiteAreaValidator';
-import AuthorizationService from './AuthorizationService';
+import SmartChargingFactory from '../../../../integration/smart-charging/SmartChargingFactory';
+import { TenantComponents } from '../../../../types/Tenant';
+import TenantStorage from '../../../../storage/mongodb/TenantStorage';
+import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
+import moment from 'moment';
 
 const MODULE_NAME = 'SiteAreaService';
 
@@ -47,7 +47,6 @@ export default class SiteAreaService {
     } else {
       await SiteAreaStorage.removeAssetsFromSiteArea(req.tenant, filteredRequest.siteAreaID, assets.map((asset) => asset.id));
     }
-    // Log
     await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user,
@@ -56,7 +55,6 @@ export default class SiteAreaService {
       message: 'Site Area\'s Assets have been assigned successfully',
       action: action
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -108,7 +106,6 @@ export default class SiteAreaService {
       message: 'Site Area\'s Charging Stations have been assigned successfully',
       action: action
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -132,9 +129,7 @@ export default class SiteAreaService {
       message: `Site Area '${siteArea.name}' has been deleted successfully`,
       action: action,
       detailedMessages: { siteArea }
-    }
-    );
-    // Ok
+    });
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -152,7 +147,6 @@ export default class SiteAreaService {
         withChargingStations: filteredRequest.WithChargingStations,
         withImage: true,
       }, true);
-    // Return
     res.json(siteArea);
     next();
   }
@@ -163,7 +157,6 @@ export default class SiteAreaService {
     // Get it
     const siteAreaImage = await SiteAreaStorage.getSiteAreaImage(
       await TenantStorage.getTenant(filteredRequest.TenantID), filteredRequest.ID);
-    // Return
     if (siteAreaImage?.image) {
       let header = 'image';
       let encoding: BufferEncoding = 'base64';
@@ -230,7 +223,6 @@ export default class SiteAreaService {
     // Add Auth flags
     await AuthorizationService.addSiteAreasAuthorizations(req.tenant, req.user, siteAreas as SiteAreaDataResult,
       authorizationSiteAreasFilter);
-    // Return
     res.json(siteAreas);
     next();
   }
@@ -263,7 +255,6 @@ export default class SiteAreaService {
     });
     // Assign
     siteArea.values = consumptions;
-    // Return
     res.json(siteArea);
     next();
   }
@@ -289,8 +280,7 @@ export default class SiteAreaService {
     }
     // Check Site auth
     await UtilsService.checkAndGetSiteAuthorization(
-      req.tenant, req.user, filteredRequest.siteID, Action.READ,
-      action);
+      req.tenant, req.user, filteredRequest.siteID, Action.UPDATE, action);
     // Create Site Area
     const newSiteArea: SiteArea = {
       ...filteredRequest,
@@ -307,7 +297,6 @@ export default class SiteAreaService {
       action: action,
       detailedMessages: { siteArea: newSiteArea }
     });
-    // Ok
     res.json(Object.assign({ id: newSiteArea.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
@@ -324,7 +313,7 @@ export default class SiteAreaService {
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest, {
         withChargingStations: true,
-      }, false, true);
+      }, false);
     // Check Site auth
     await UtilsService.checkAndGetSiteAuthorization(
       req.tenant, req.user, filteredRequest.siteID, Action.READ, action);
@@ -393,7 +382,6 @@ export default class SiteAreaService {
         }
       }, Constants.DELAY_SMART_CHARGING_EXECUTION_MILLIS);
     }
-    // Log
     await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateSiteArea',
@@ -410,7 +398,6 @@ export default class SiteAreaService {
         user: req.user, actionOnUser: req.user
       });
     }
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }

@@ -11,11 +11,12 @@ export interface HttpSitesRequest extends HttpDatabaseRequest {
   Search: string;
   Issuer: boolean;
   WithAvailableChargers: boolean;
+  SiteAdmin: boolean;
   WithCompany: boolean;
   UserID: string;
   CompanyID: string;
   SiteID: string;
-  ExcludeSitesOfUserID: boolean;
+  ExcludeSitesOfUserID: string;
   LocLongitude?: number;
   LocLatitude?: number;
   LocCoordinates?: number[];

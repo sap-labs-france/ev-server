@@ -16,9 +16,12 @@
     "SiteID": {
       "$ref": "common#/definitions/ids"
     },
-    "ExcludeSitesOfUserID": {
+    "SiteAdmin": {
       "type": "boolean",
       "sanitize": "mongo"
+    },
+    "ExcludeSitesOfUserID": {
+      "$ref": "user#/definitions/id"
     },
     "WithCompany": {
       "type": "boolean",

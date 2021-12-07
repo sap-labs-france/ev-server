@@ -1,13 +1,14 @@
 import { AuthorizationFilter, DynamicAuthorizationDataSourceData, DynamicAuthorizationDataSourceName, Entity } from '../types/Authorization';
 
 import DynamicAuthorizationDataSource from './DynamicAuthorizationDataSource';
+import { EntityData } from '../types/GlobalType';
 import Tenant from '../types/Tenant';
 import UserToken from '../types/UserToken';
 
 export default abstract class DynamicAuthorizationFilter {
   protected tenant: Tenant;
   protected userToken: UserToken;
-  protected negateFilter: boolean;
+  private negateFilter: boolean;
   private dataSources: Map<DynamicAuthorizationDataSourceName, DynamicAuthorizationDataSource<DynamicAuthorizationDataSourceData>> = new Map();
 
   public constructor(tenant: Tenant, user: UserToken, negateFilter: boolean) {
@@ -34,7 +35,7 @@ export default abstract class DynamicAuthorizationFilter {
   }
 
   public abstract processFilter(authorizationFilters: AuthorizationFilter,
-    extraFilters: Record<string, any>): void;
+    extraFilters: Record<string, any>, entityData?: EntityData): void;
 
   public abstract getApplicableEntities(): Entity[];
 

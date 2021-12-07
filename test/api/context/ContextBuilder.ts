@@ -1,4 +1,5 @@
 import ContextDefinition, { TenantDefinition } from './ContextDefinition';
+import PricingDefinition, { PricingEntity } from '../../../src/types/Pricing';
 import { SettingDB, SettingDBContent } from '../../../src/types/Setting';
 
 import AssetStorage from '../../../src/storage/mongodb/AssetStorage';
@@ -12,6 +13,7 @@ import OCPIEndpointStorage from '../../../src/storage/mongodb/OCPIEndpointStorag
 import { OCPIRegistrationStatus } from '../../../src/types/ocpi/OCPIRegistrationStatus';
 import { OCPIRole } from '../../../src/types/ocpi/OCPIRole';
 import OCPIUtils from '../../../src/server/ocpi/OCPIUtils';
+import PricingStorage from '../../../src/storage/mongodb/PricingStorage';
 import Site from '../../../src/types/Site';
 import SiteAreaStorage from '../../../src/storage/mongodb/SiteAreaStorage';
 import SiteContext from './SiteContext';
@@ -213,6 +215,22 @@ export default class ContextBuilder {
             token: 'TOIOP-OCPI-TOKEN-emsp-xxxx-xxxx-yyyy'
           } as OCPIEndpoint;
           await OCPIEndpointStorage.saveOcpiEndpoint(buildTenant, emspEndpoint);
+        } else if (componentSettingKey === TenantComponents.PRICING) {
+          // Create a default tariff (to replace the former Simple Pricing Logic)
+          const pricingDefinition: PricingDefinition = {
+            entityType: PricingEntity.TENANT,
+            entityID: buildTenant.id,
+            name: 'Main Tariff',
+            description: 'Tariff to emulate the former Simple Pricing Logic',
+            restrictions: null,
+            dimensions: {
+              energy: {
+                active: true,
+                price: ContextDefinition.DEFAULT_PRICE,
+              }
+            }
+          } as PricingDefinition;
+          await PricingStorage.savePricingDefinition(buildTenant, pricingDefinition);
         }
       }
     }

@@ -10,7 +10,7 @@ import { TaskConfig } from '../../types/TaskConfig';
 import Utils from '../../utils/Utils';
 
 export default class SynchronizeCarsTask extends SchedulerTask {
-  async run(name: string, config: TaskConfig): Promise<void> {
+  public async run(name: string, config: TaskConfig): Promise<void> {
     // Get the lock
     const syncCarCatalogLock = await LockingHelper.acquireSyncCarCatalogsLock(Constants.DEFAULT_TENANT);
     if (syncCarCatalogLock) {
@@ -19,7 +19,7 @@ export default class SynchronizeCarsTask extends SchedulerTask {
         if (carDatabaseImpl) {
           const synchronizeAction = await carDatabaseImpl.synchronizeCarCatalogs();
           if (synchronizeAction.inError > 0) {
-            void NotificationHandler.sendCarsSynchronizationFailed({
+            await NotificationHandler.sendCarsSynchronizationFailed({
               nbrCarsInError: synchronizeAction.inError,
               evseDashboardURL: Utils.buildEvseURL()
             });
