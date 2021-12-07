@@ -540,10 +540,11 @@ describe('Setting', function() {
         expect(response.status).to.equal(StatusCodes.OK);
       });
       it('Should be able to create a new setting', async () => {
-        // Delete a previous as they all already exist
+        // Delete a previous setting as they all already exist
         const read = await testData.centralService.settingApi.readByIdentifier({ Identifier: 'statistics' });
         expect(read.status).to.eq(StatusCodes.OK);
         await testData.centralService.settingApi.delete(read.data.id);
+        // Recreate it
         const settingData = {
           'identifier': 'statistics',
           'content': {}
@@ -559,7 +560,7 @@ describe('Setting', function() {
         expect(update.status).to.equal(StatusCodes.OK);
         let readUpdated = await testData.centralService.settingApi.readByIdentifier({ 'Identifier': 'pricing' });
         expect(readUpdated.data.content.type).to.equal('simple');
-        // Set back the type
+        // Set back the setting's type
         read.data.content.type = oldPricingType;
         update = await testData.centralService.settingApi.update(read.data);
         expect(update.status).to.equal(StatusCodes.OK);
