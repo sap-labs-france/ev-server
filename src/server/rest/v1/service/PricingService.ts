@@ -68,7 +68,7 @@ export default class PricingService {
       pricingDefinitions.projectFields = authorizationPricingDefinitionsFilter.projectFields;
     }
     // Add Auth flags
-    await AuthorizationService.addPricingDefinitionsAuthorizations(req.tenant, req.user, pricingDefinitions , authorizationPricingDefinitionsFilter);
+    await AuthorizationService.addPricingDefinitionsAuthorizations(req.tenant, req.user, pricingDefinitions, authorizationPricingDefinitionsFilter);
     // Alter the canCreate flag according to the pricing definition context
     pricingDefinitions.canCreate = await PricingService.alterCanCreate(req, action, filteredRequest.EntityType, filteredRequest.EntityID, pricingDefinitions.canCreate);
     res.json(pricingDefinitions);
@@ -126,21 +126,21 @@ export default class PricingService {
     // Check Mandatory fields
     UtilsService.checkIfPricingDefinitionValid(filteredRequest, req);
     // Check and Get Pricing
-    const pricingDefinition = await UtilsService.checkAndGetPricingDefinitionAuthorization(
+    let pricingDefinition = await UtilsService.checkAndGetPricingDefinitionAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest);
+    // Update timestamp
+    const lastChangedBy = { id: req.user.id };
+    const lastChangedOn = new Date();
     // Check authorization and get the site ID depending on the entity type
     const siteID = await PricingService.checkAuthorizationAndGetSiteID(req, action, filteredRequest.entityType, filteredRequest.entityID);
     // Update
-    pricingDefinition.entityID = filteredRequest.entityID;
-    pricingDefinition.entityType = filteredRequest.entityType;
-    pricingDefinition.name = filteredRequest.name;
-    pricingDefinition.description = filteredRequest.description;
-    pricingDefinition.staticRestrictions = filteredRequest.staticRestrictions;
-    pricingDefinition.restrictions = filteredRequest.restrictions;
-    pricingDefinition.dimensions = filteredRequest.dimensions;
-    pricingDefinition.lastChangedBy = { 'id': req.user.id };
-    pricingDefinition.lastChangedOn = new Date();
-    pricingDefinition.siteID = siteID;
+    pricingDefinition = {
+      ...pricingDefinition,
+      ...filteredRequest,
+      lastChangedBy,
+      lastChangedOn,
+      siteID
+    };
     // Update Pricing
     await PricingStorage.savePricingDefinition(req.tenant, pricingDefinition);
     // Log
