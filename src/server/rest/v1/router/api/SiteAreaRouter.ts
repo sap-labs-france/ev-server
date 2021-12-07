@@ -19,7 +19,6 @@ export default class SiteAreaRouter {
     this.buildRouteGetSiteAreaConsumption();
     this.buildRouteUpdateSiteArea();
     this.buildRouteDeleteSiteArea();
-    this.buildRouteGetSiteAreaImage();
     this.buildRouteAssignChargingStationsToSiteArea();
     this.buildRouteRemoveChargingStationsFromSiteArea();
     this.buildRouteAssignAssetsToSiteArea();
@@ -64,13 +63,6 @@ export default class SiteAreaRouter {
     this.router.delete(`/${ServerRoute.REST_SITE_AREA}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
       await RouterUtils.handleServerAction(SiteAreaService.handleDeleteSiteArea.bind(this), ServerAction.SITE_AREA_DELETE, req, res, next);
-    });
-  }
-
-  private buildRouteGetSiteAreaImage(): void {
-    this.router.get(`/${ServerRoute.REST_SITE_AREA_IMAGE}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.query.ID = req.params.id;
-      await RouterUtils.handleServerAction(SiteAreaService.handleGetSiteAreaImage.bind(this), ServerAction.SITE_AREA_IMAGE, req, res, next);
     });
   }
 

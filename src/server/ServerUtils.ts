@@ -37,10 +37,9 @@ export class ServerUtils {
         if (!Utils.isEmptyArray(serverConfig.sslCa)) {
           options.ca = [];
           // Add all
-          for (let i = 0; i < serverConfig.sslCa.length; i++) {
-            // FIXME: read certificates directly from config.json file. In the future: config for OICP in default tenant
-            if (serverConfig.sslCa[i]) {
-              options.ca.push(serverConfig.sslCa[i]);
+          for (const sslCa of serverConfig.sslCa) {
+            if (sslCa) {
+              options.ca.push(sslCa);
             }
           }
         } else {

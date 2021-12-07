@@ -49,7 +49,6 @@ export default class SettingService {
       action: action,
       detailedMessages: { setting }
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -79,7 +78,6 @@ export default class SettingService {
     if (setting.identifier === 'crypto') {
       setting.content.crypto.key = Utils.hash(setting.content.crypto.key);
     }
-    // Return
     res.json(setting);
     next();
   }
@@ -109,7 +107,6 @@ export default class SettingService {
     if (setting.identifier === 'crypto') {
       setting.content.crypto.key = Utils.hash(setting.content.crypto.key);
     }
-    // Return
     res.json(setting);
     next();
   }
@@ -139,7 +136,6 @@ export default class SettingService {
         setting.content.crypto.key = Utils.hash(setting.content.crypto.key);
       }
     }
-    // Return
     res.json(settings);
     next();
   }
@@ -171,7 +167,6 @@ export default class SettingService {
       action: action,
       detailedMessages: { params: filteredRequest }
     });
-    // Ok
     res.status(StatusCodes.OK).json(Object.assign({ id: filteredRequest.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
@@ -297,7 +292,6 @@ export default class SettingService {
       action: action,
       detailedMessages: { filteredRequest }
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }

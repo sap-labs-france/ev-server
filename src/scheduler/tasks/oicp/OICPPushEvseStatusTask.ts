@@ -1,4 +1,5 @@
 import { OICPPushEvseStatusTaskConfig, TaskConfig } from '../../../types/TaskConfig';
+import Tenant, { TenantComponents } from '../../../types/Tenant';
 
 import Constants from '../../../utils/Constants';
 import LockingHelper from '../../../locking/LockingHelper';
@@ -11,15 +12,12 @@ import { OICPRegistrationStatus } from '../../../types/oicp/OICPRegistrationStat
 import { OICPRole } from '../../../types/oicp/OICPRole';
 import SchedulerTask from '../../SchedulerTask';
 import { ServerAction } from '../../../types/Server';
-import Tenant from '../../../types/Tenant';
-import { TenantComponents } from '../../../types/Tenant';
 import Utils from '../../../utils/Utils';
 
 const MODULE_NAME = 'OICPPushEvseStatusTask';
 
 export default class OICPPushEvseStatusTask extends SchedulerTask {
-
-  async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
+  public async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     try {
       // Check if OICP component is active
       if (Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {

@@ -1,4 +1,4 @@
-import { CarCatalog, CarCatalogChargeAlternativeTable, CarCatalogChargeOptionTable, CarCatalogConverter } from '../../../types/Car';
+import { CarCatalog, CarCatalogConverter } from '../../../types/Car';
 
 import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
@@ -36,8 +36,8 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
     // Build result
     for (const data of response.data) {
       const chargeStandardTables: CarCatalogConverter[] = [];
-      const chargeAlternativeTables: CarCatalogChargeAlternativeTable[] = [];
-      const chargeOptionTables: CarCatalogChargeOptionTable[] = [];
+      const chargeAlternativeTables: CarCatalogConverter[] = [];
+      const chargeOptionTables: CarCatalogConverter[] = [];
       for (const chargeStandard of Object.keys(data.Charge_Standard_Table)) {
         const chargeStandardTable: CarCatalogConverter = {
           type: chargeStandard,
@@ -56,7 +56,7 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
       }
       if (data.Charge_Alternative_Table) {
         for (const chargeAlternative of Object.keys(data.Charge_Alternative_Table)) {
-          const chargeAlternativeTable: CarCatalogChargeAlternativeTable = {
+          const chargeAlternativeTable: CarCatalogConverter = {
             type: chargeAlternative,
             evsePhaseVolt: data.Charge_Standard_Table[chargeAlternative].EVSE_PhaseVolt,
             evsePhaseAmp: data.Charge_Standard_Table[chargeAlternative].EVSE_PhaseAmp,
@@ -73,7 +73,7 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
       }
       if (data.Charge_Option_Table) {
         for (const chargeOption of Object.keys(data.Charge_Option_Table)) {
-          const chargeAlternativeTable: CarCatalogChargeOptionTable = {
+          const chargeAlternativeTable: CarCatalogConverter = {
             type: chargeOption,
             evsePhaseVolt: data.Charge_Standard_Table[chargeOption].EVSE_PhaseVolt,
             evsePhaseAmp: data.Charge_Standard_Table[chargeOption].EVSE_PhaseAmp,

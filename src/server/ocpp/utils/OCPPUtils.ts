@@ -268,9 +268,7 @@ export default class OCPPUtils {
             transaction.pricingSource = pricedConsumption.pricingSource;
             transaction.currentCumulatedPrice = pricedConsumption.amount;
             transaction.currentCumulatedRoundedPrice = pricedConsumption.roundedAmount;
-            if (FeatureToggles.isFeatureActive(Feature.PRICING_NEW_MODEL)) {
-              transaction.pricingModel = pricedConsumption.pricingModel;
-            }
+            transaction.pricingModel = pricedConsumption.pricingModel;
           }
           break;
         // Meter Values
@@ -313,7 +311,6 @@ export default class OCPPUtils {
     }
     const billingImpl = await BillingFactory.getBillingImpl(tenant);
     if (billingImpl) {
-      // Check
       switch (action) {
         // Start Transaction
         case TransactionAction.START:
@@ -523,7 +520,6 @@ export default class OCPPUtils {
   }
 
   public static async rebuildTransactionSimplePricing(tenant: Tenant, transaction: Transaction, pricePerkWh?: number): Promise<void> {
-    // Check
     if (!transaction) {
       throw new BackendError({
         chargingStationID: transaction.chargeBoxID,
@@ -958,7 +954,6 @@ export default class OCPPUtils {
           moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
         consumption.toPrice = true;
       }
-      // Return
       return consumption;
     }
   }
@@ -1025,7 +1020,6 @@ export default class OCPPUtils {
       foundTemplate = chargingStationTemplate;
       // Browse filter for extra matching
       for (const filter in chargingStationTemplate.extraFilters) {
-        // Check
         if (Utils.objectHasProperty(chargingStation, filter)) {
           const filterValue: string = chargingStationTemplate.extraFilters[filter];
           if (!(new RegExp(filterValue).test(chargingStation[filter]))) {
@@ -1521,7 +1515,6 @@ export default class OCPPUtils {
       if (!chargingStation.tokenID) {
         chargingStation.tokenID = tokenID;
       }
-      // Check
       if (chargingStation.tokenID !== tokenID) {
         // Must have a valid connection Token
         token = await OCPPUtils.ensureChargingStationHasValidConnectionToken(action, tenant, chargingStationID, tokenID);
@@ -1571,12 +1564,8 @@ export default class OCPPUtils {
     };
     let rebootRequired = false;
     // Get current OCPP parameters in DB
-    let currentOcppParameters: OcppParameter[];
-    const ocppParametersFromDB = await ChargingStationStorage.getOcppParameters(tenant, chargingStation.id);
-    if (ocppParametersFromDB.count > 0) {
-      currentOcppParameters = ocppParametersFromDB.result;
-    }
-    // Check
+    const currentOcppParameters =
+      (await ChargingStationStorage.getOcppParameters(tenant, chargingStation.id)).result;
     if (Utils.isEmptyArray(chargingStation.ocppStandardParameters) && Utils.isEmptyArray(chargingStation.ocppVendorParameters)) {
       await Logging.logInfo({
         tenantID: tenant.id,

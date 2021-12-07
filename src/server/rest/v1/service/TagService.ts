@@ -86,7 +86,6 @@ export default class TagService {
         message: `Unable to unassign the Tag visualID '${filteredRequest.visualID}'`
       });
     }
-    // Return
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -114,7 +113,6 @@ export default class TagService {
         message: `Unable to delete the Tag ID '${filteredRequest.ID}'`
       });
     }
-    // Return
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -122,7 +120,6 @@ export default class TagService {
   public static async handleCreateTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = TagValidator.getInstance().validateTagCreateReq(req.body);
-    // Check
     UtilsService.checkIfUserTagIsValid(filteredRequest, req);
     // Get dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetTagAuthorizations(
@@ -320,7 +317,6 @@ export default class TagService {
   public static async handleUpdateTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = TagValidator.getInstance().validateTagUpdateReq({ ...req.params, ...req.body });
-    // Check
     UtilsService.checkIfUserTagIsValid(filteredRequest, req);
     // Check and Get Tag
     const tag = await UtilsService.checkAndGetTagAuthorization(req.tenant, req.user, filteredRequest.id, Action.UPDATE, action,
@@ -801,7 +797,6 @@ export default class TagService {
     }
     // Add Auth flags
     await AuthorizationService.addTagsAuthorizations(req.tenant, req.user, tags as TagDataResult, authorizationTagsFilters);
-    // Return
     return tags;
   }
 

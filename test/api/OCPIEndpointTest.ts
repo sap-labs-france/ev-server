@@ -36,7 +36,6 @@ describe('OCPI Endpoint (utocpi)', function() {
 
   describe('Success cases', () => {
     it('Should create a new Ocpi Endpoint', async () => {
-      // Check
       expect(testData.newOcpiEndpoint).to.not.be.null;
       // Create the entity
       testData.newOcpiEndpoint = await testData.centralUserService.createEntity(
@@ -72,7 +71,6 @@ describe('OCPI Endpoint (utocpi)', function() {
       // Check if the updated entity can be retrieved with its id
       const updatedOcpiEndpoint = await testData.centralUserService.getEntityById(
         testData.centralUserService.ocpiEndpointApi, testData.newOcpiEndpoint);
-      // Check
       expect(updatedOcpiEndpoint.name).to.equal(testData.newOcpiEndpoint.name);
     });
 

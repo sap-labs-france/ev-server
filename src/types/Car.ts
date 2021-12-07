@@ -7,8 +7,8 @@ export interface CarCatalog extends CreatedUpdatedProps, AuthorizationActions {
   vehicleModel: string;
   vehicleModelVersion?: string;
   availabilityStatus: string;
-  availabilityDateFrom: string;
-  availabilityDateTo?: string;
+  availabilityDateFrom: Date;
+  availabilityDateTo?: Date;
   priceFromDE?: number;
   priceFromDEEstimate: boolean;
   priceFromNL?: number;
@@ -70,13 +70,13 @@ export interface CarCatalog extends CreatedUpdatedProps, AuthorizationActions {
   chargeAlternativePhaseAmp: number;
   chargeAlternativeChargeTime: number;
   chargeAlternativeChargeSpeed: number;
-  chargeAlternativeTables: CarCatalogChargeAlternativeTable[];
+  chargeAlternativeTables: CarCatalogConverter[];
   chargeOptionPower?: number;
   chargeOptionPhase?: number;
   chargeOptionPhaseAmp?: number;
   chargeOptionChargeTime?: number;
   chargeOptionChargeSpeed?: number;
-  chargeOptionTables: CarCatalogChargeOptionTable[];
+  chargeOptionTables: CarCatalogConverter[];
   fastChargePlug?: string;
   fastChargePlugEstimate?: boolean;
   fastChargePlugLocation?: string;
@@ -157,34 +157,10 @@ export interface CarMaker {
   carMaker: string;
 }
 
-export interface CarCatalogChargeOptionTable {
-  type: string;
-  evsePhaseVolt?: number;
-  evsePhaseAmp?: number;
-  evsePhase?: number;
-  chargePhaseVolt?: number;
-  chargePhaseAmp?: number;
-  chargePhase?: number;
-  chargePower?: number;
-  chargeTime?: number;
-  chargeSpeed?: number;
-}
-export interface CarCatalogChargeAlternativeTable {
-  type: string;
-  evsePhaseVolt: number;
-  evsePhaseAmp: number;
-  evsePhase: number;
-  chargePhaseVolt: number;
-  chargePhaseAmp: number;
-  chargePhase: number;
-  chargePower: number;
-  chargeTime: number;
-  chargeSpeed: number;
-}
 export interface CarCatalogConverter {
   type: string;
   evsePhaseVolt: number;
-  evsePhaseVoltCalculated: number;
+  evsePhaseVoltCalculated?: number;
   evsePhaseAmp: number;
   evsePhase: number;
   chargePhaseVolt: number;

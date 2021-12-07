@@ -65,7 +65,6 @@ export default class Cypher {
     const encryptedData = await Cypher.encrypt(null, dataToEncrypt, false, cryptoSetting);
     // Decypher
     const decryptedData = await Cypher.decrypt(null, encryptedData, false, cryptoSetting);
-    // Check
     if (decryptedData !== dataToEncrypt) {
       throw new BackendError({
         message: 'Crypto algorithm check failed',

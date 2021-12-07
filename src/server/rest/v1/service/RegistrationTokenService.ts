@@ -48,7 +48,6 @@ export default class RegistrationTokenService {
         module: MODULE_NAME, method: 'handleCreateRegistrationToken'
       });
     }
-    // Check
     if (!filteredRequest.description) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
@@ -82,7 +81,6 @@ export default class RegistrationTokenService {
     registrationToken.ocpp15SOAPSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_15, OCPPProtocol.SOAP, registrationToken.id);
     registrationToken.ocpp16SOAPSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.SOAP, registrationToken.id);
     registrationToken.ocpp16JSONSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.JSON, registrationToken.id);
-    // Ok
     res.json(Object.assign({ id: registrationToken.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
@@ -112,7 +110,6 @@ export default class RegistrationTokenService {
           MODULE_NAME, 'handleUpdateRegistrationToken', req.user);
       }
     }
-    // Check
     if (!filteredRequest.description) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
@@ -134,7 +131,6 @@ export default class RegistrationTokenService {
     registrationToken.ocpp15SOAPSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_15, OCPPProtocol.SOAP, registrationToken.id);
     registrationToken.ocpp16SOAPSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.SOAP, registrationToken.id);
     registrationToken.ocpp16JSONSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.JSON, registrationToken.id);
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -165,7 +161,6 @@ export default class RegistrationTokenService {
       message: `Registration token with ID '${tokenID}' has been deleted successfully`,
       action: action
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -208,7 +203,6 @@ export default class RegistrationTokenService {
       message: `Registration token with ID '${tokenID}' has been revoked successfully`,
       action: action
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -254,7 +248,6 @@ export default class RegistrationTokenService {
       registrationToken.ocpp16SOAPSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.SOAP, registrationToken.id);
       registrationToken.ocpp16JSONSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.JSON, registrationToken.id);
     }
-    // Ok
     res.json(registrationTokens);
     next();
   }
@@ -290,7 +283,6 @@ export default class RegistrationTokenService {
     registrationToken.ocpp15SOAPSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_15, OCPPProtocol.SOAP, registrationToken.id);
     registrationToken.ocpp16SOAPSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.SOAP, registrationToken.id);
     registrationToken.ocpp16JSONSecureUrl = Utils.buildOCPPServerSecureURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.JSON, registrationToken.id);
-    // Ok
     res.json(registrationToken);
     next();
   }

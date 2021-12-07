@@ -31,6 +31,7 @@ export interface ConsumptionPricerContext {
   lastAbsorbedConsumption?: number, // IMPORTANT - used to price E when stepSize is set!
   lastAbsorbedChargingTime?: Date // IMPORTANT - used to price CT when stepSize is set!
   lastAbsorbedParkingTime?: Date, // IMPORTANT - used to price PT when stepSize is set!
+  timezone: string; // IMPORTANT - time range restrictions must consider the charging station location (and its time zone)
 }
 
 interface PricingDefinitionInternal {
@@ -52,6 +53,7 @@ export default interface PricingDefinition extends PricingDefinitionInternal, Cr
   id: string;
   entityID: string;
   entityType: PricingEntity;
+  siteID: string;
 }
 
 export interface PricingDimensions {

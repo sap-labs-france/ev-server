@@ -69,6 +69,10 @@
       "description": "Notifications API"
     },
     {
+      "name": "Sites",
+      "description": "Sites API"
+    },
+    {
       "name": "OCPI",
       "description": "OCPI API"
     },
@@ -153,9 +157,18 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Tenant"
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "number",
+                      "example": 1
+                    },
+                    "result": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Tenant"
+                      }
+                    }
                   }
                 }
               }
@@ -202,7 +215,7 @@
         }
       }
     },
-    "/api/tenants/{tenantID}": {
+    "/api/tenants/{id}": {
       "get": {
         "description": "Retrieve a Tenant",
         "security": [
@@ -212,13 +225,7 @@
         ],
         "parameters": [
           {
-            "in": "path",
-            "name": "tenantID",
-            "description": "Tenant ID",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/tenantID"
           },
           {
             "$ref": "#/components/parameters/ProjectFields"
@@ -246,6 +253,9 @@
           },
           "500": {
             "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
       },
@@ -258,13 +268,7 @@
         ],
         "parameters": [
           {
-            "in": "path",
-            "name": "tenantID",
-            "description": "Tenant ID",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/tenantID"
           }
         ],
         "tags": [
@@ -282,6 +286,101 @@
           },
           "500": {
             "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "put": {
+        "description": "Update a Tenant",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/tenantID"
+          }
+        ],
+        "tags": [
+          "Tenant"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Tenant"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tenant has been successfully updated",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/tenants/logo": {
+      "get": {
+        "description": "Retrieve a Tenant logo",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/TenantID"
+          },
+          {
+            "in": "query",
+            "name": "Subdomain",
+            "description": "Tenant subdomain",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Tenant"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return the Tenant logo"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
       }
@@ -7664,6 +7763,589 @@
         }
       }
     },
+    "/api/sites": {
+      "get": {
+        "description": "Retrieve a list of Sites",
+        "tags": [
+          "Sites"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Issuer"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/UserID"
+          },
+          {
+            "$ref": "#/components/parameters/CompanyID"
+          },
+          {
+            "$ref": "#/components/parameters/SiteID"
+          },
+          {
+            "in": "query",
+            "name": "ExcludeSitesOfUserID",
+            "required": false,
+            "description": "Exclude sites of user ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "SiteAdmin",
+            "required": false,
+            "description": "Only site admin Sites",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/WithCompany"
+          },
+          {
+            "$ref": "#/components/parameters/WithAvailableChargers"
+          },
+          {
+            "$ref": "#/components/parameters/LocLongitude"
+          },
+          {
+            "$ref": "#/components/parameters/LocLatitude"
+          },
+          {
+            "$ref": "#/components/parameters/LocMaxDistanceMeters"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Return site list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "number",
+                      "example": 1
+                    },
+                    "result": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Site"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      },
+      "post": {
+        "description": "Create a Site",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Site"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Sites"
+        ],
+        "responses": {
+          "200": {
+            "description": "Site has been created with success",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success",
+                  "id": "###"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/sites/{id}": {
+      "get": {
+        "description": "Retrieve a site",
+        "tags": [
+          "Sites"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/siteID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Return site",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Site"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Update a Site",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/siteID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Site"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Sites"
+        ],
+        "responses": {
+          "200": {
+            "description": "Site updated successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          },
+          "585": {
+            "description": "Cannot set site to private as one or several charging stations under site are public"
+          }
+        }
+      },
+      "delete": {
+        "description": "Delete a site",
+        "tags": [
+          "Sites"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/siteID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Site deleted successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/sites/{id}/users": {
+      "get": {
+        "description": "Retrieve site's users",
+        "tags": [
+          "Sites"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/siteID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Return site's user list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "siteID": "###",
+                      "siteAdmin": false,
+                      "user": {
+                        "email": "###",
+                        "firstName": "###",
+                        "name": "###",
+                        "role": "A",
+                        "id": "###"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/sites/{id}/assign": {
+      "get": {
+        "description": "Assign users to a site",
+        "tags": [
+          "Sites"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/siteID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "userIDs"
+                ],
+                "properties": {
+                  "userIDs": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Users successfully assigned",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/sites/{id}/unassign": {
+      "get": {
+        "description": "Unassign users from a site",
+        "tags": [
+          "Sites"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/siteID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "userIDs"
+                ],
+                "properties": {
+                  "userIDs": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Users successfully unassigned",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/sites/{id}/users/admin": {
+      "put": {
+        "description": "Set user as site admin",
+        "tags": [
+          "Sites"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/siteID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "userID",
+                  "siteAdmin"
+                ],
+                "properties": {
+                  "userID": {
+                    "type": "string"
+                  },
+                  "siteAdmin": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User successfully set/unset as site admin",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/sites/{id}/users/owner": {
+      "put": {
+        "description": "Set user as site owner",
+        "tags": [
+          "Sites"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/siteID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "userID",
+                  "siteOwner"
+                ],
+                "properties": {
+                  "userID": {
+                    "type": "string"
+                  },
+                  "siteAdmin": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User successfully set/unset as site owner",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/sites/{id}/image": {
+      "get": {
+        "description": "Retrieve site's image",
+        "tags": [
+          "Sites"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/siteID"
+          },
+          {
+            "in": "query",
+            "name": "TenantID",
+            "description": "Tenant ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Return site's image"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
     "/api/loggings": {
       "get": {
         "security": [
@@ -11521,7 +12203,6 @@
       "Tenant": {
         "type": "object",
         "required": [
-          "id",
           "name",
           "email",
           "subdomain"
@@ -11529,7 +12210,8 @@
         "properties": {
           "id": {
             "type": "string",
-            "example": "5be7fb271014d90008992347"
+            "example": "5be7fb271014d90008992347",
+            "readOnly": true
           },
           "name": {
             "type": "string",
@@ -12576,6 +13258,46 @@
           }
         }
       },
+      "Site": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "public": {
+            "type": "boolean"
+          },
+          "tariffID": {
+            "type": "string"
+          },
+          "autoUserSiteAssignment": {
+            "type": "boolean"
+          },
+          "companyID": {
+            "type": "string"
+          },
+          "image": {
+            "type": "string"
+          },
+          "createdOn": {
+            "$ref": "#/components/schemas/CreatedOn"
+          },
+          "lastChangedOn": {
+            "$ref": "#/components/schemas/LastChangedOn"
+          },
+          "issuer": {
+            "type": "boolean",
+            "readOnly": true
+          }
+        }
+      },
       "Notifications": {
         "type": "object",
         "properties": {
@@ -13539,6 +14261,15 @@
           "type": "string"
         }
       },
+      "siteID": {
+        "in": "path",
+        "name": "id",
+        "description": "Site ID",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
       "UserID": {
         "in": "query",
         "name": "UserID",
@@ -13842,6 +14573,16 @@
           "type": "boolean"
         }
       },
+      "WithAvailableChargers": {
+        "in": "query",
+        "name": "WithAvailableChargers",
+        "description": "Request Sites with their available chargers",
+        "example": false,
+        "required": false,
+        "schema": {
+          "type": "boolean"
+        }
+      },
       "WithChargingStations": {
         "in": "query",
         "name": "WithChargingStations",
@@ -14012,6 +14753,15 @@
           "type": "string"
         }
       },
+      "CompanyID": {
+        "in": "query",
+        "name": "id",
+        "description": "Company ID",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
       "companyID": {
         "in": "path",
         "name": "id",
@@ -14053,6 +14803,24 @@
         "name": "id",
         "description": "Registration token ID",
         "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "tenantID": {
+        "in": "path",
+        "name": "id",
+        "description": "Tenant ID",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "TenantID": {
+        "in": "query",
+        "name": "id",
+        "description": "Tenant ID",
+        "required": false,
         "schema": {
           "type": "string"
         }

@@ -43,7 +43,6 @@ export default class StatisticService {
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.CHARGING_STATION);
-    // Return
     res.json(transactions);
     next();
   }
@@ -73,7 +72,6 @@ export default class StatisticService {
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.CHARGING_STATION);
-    // Return
     res.json(transactions);
     next();
   }
@@ -103,7 +101,6 @@ export default class StatisticService {
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.CHARGING_STATION);
-    // Return
     res.json(transactions);
     next();
   }
@@ -133,7 +130,6 @@ export default class StatisticService {
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.CHARGING_STATION);
-    // Return
     res.json(transactions);
     next();
   }
@@ -163,7 +159,6 @@ export default class StatisticService {
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.CHARGING_STATION);
-    // Return
     res.json(transactions);
     next();
   }
@@ -193,7 +188,6 @@ export default class StatisticService {
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.USER);
-    // Return
     res.json(transactions);
     next();
   }
@@ -223,7 +217,6 @@ export default class StatisticService {
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.USER);
-    // Return
     res.json(transactions);
     next();
   }
@@ -253,7 +246,6 @@ export default class StatisticService {
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.USER);
-    // Return
     res.json(transactions);
     next();
   }
@@ -283,7 +275,6 @@ export default class StatisticService {
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.USER);
-    // Return
     res.json(transactions);
     next();
   }
@@ -313,7 +304,6 @@ export default class StatisticService {
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.USER);
-    // Return
     res.json(transactions);
     next();
   }

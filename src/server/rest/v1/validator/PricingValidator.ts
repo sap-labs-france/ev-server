@@ -27,11 +27,11 @@ export default class PricingValidator extends SchemaValidator {
     return PricingValidator.instance;
   }
 
-  public validatePricingDefinitionGet(data: Record<string, unknown>): Partial<HttpPricingDefinitionsRequest> {
+  public validatePricingDefinitionGet(data: Record<string, unknown>): HttpPricingDefinitionsRequest {
     return this.validate(this.pricingDefinitionGet, data);
   }
 
-  public validatePricingDefinitionsGet(data: Record<string, unknown>): Partial<HttpPricingDefinitionsRequest> {
+  public validatePricingDefinitionsGet(data: Record<string, unknown>): HttpPricingDefinitionsRequest {
     return this.validate(this.pricingDefinitionsGet, data);
   }
 
