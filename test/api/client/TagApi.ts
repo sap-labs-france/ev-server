@@ -12,7 +12,7 @@ export default class TagApi extends CrudApi {
     return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(ServerRoute.REST_TAGS));
   }
 
-  public async readTag(id) {
+  public async readTag(id: string) {
     return super.read({ ID: id }, this.buildRestEndpointUrl(ServerRoute.REST_TAG, { id }));
   }
 
@@ -21,18 +21,18 @@ export default class TagApi extends CrudApi {
   }
 
   public async assignTag(params?) {
-    return await super.update(params, '/client/api/TagAssign');
+    return await super.update(params, this.buildRestEndpointUrl(ServerRoute.REST_TAG_ASSIGN, { id: params.id }));
   }
 
   public async updateTagByVisualID(params?) {
-    return await super.update(params, '/client/api/TagUpdateByVisualID');
+    return await super.update(params, this.buildRestEndpointUrl(ServerRoute.REST_TAGS));
   }
 
   public async unassignTag(params?) {
-    return await super.update(params, '/client/api/TagUnassign');
+    return await super.update(params, this.buildRestEndpointUrl(ServerRoute.REST_TAG_UNASSIGN));
   }
 
-  public async readTagByVisualID(visualID) {
+  public async readTagByVisualID(visualID: string) {
     return super.read({ VisualID: visualID }, this.buildRestEndpointUrl(ServerRoute.REST_TAGS));
   }
 
@@ -40,7 +40,7 @@ export default class TagApi extends CrudApi {
     return super.create(data, this.buildRestEndpointUrl(ServerRoute.REST_TAGS));
   }
 
-  public async deleteTag(id) {
+  public async deleteTag(id: string) {
     return super.delete(id, this.buildRestEndpointUrl(ServerRoute.REST_TAG, { id }));
   }
 
