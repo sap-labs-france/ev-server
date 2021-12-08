@@ -91,12 +91,14 @@ export default class TagRouter {
 
   private buildRouteAssignTag(): void {
     this.router.put(`/${ServerRoute.REST_TAG_ASSIGN}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.body.visualID = req.params.id;
       await RouterUtils.handleServerAction(TagService.handleAssignTag.bind(this), ServerAction.TAG_ASSIGN, req, res, next);
     });
   }
 
   private buildRouteUnassignTag(): void {
     this.router.put(`/${ServerRoute.REST_TAG_UNASSIGN}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.body.visualID = req.params.id;
       await RouterUtils.handleServerAction(TagService.handleUnassignTag.bind(this), ServerAction.TAG_UNASSIGN, req, res, next);
     });
   }
