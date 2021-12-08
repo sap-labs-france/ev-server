@@ -107,7 +107,6 @@ describe('OICP Endpoint (utoicp)', function() {
       // Check if the updated entity can be retrieved with its id
       const updatedOcpiEndpoint = await testData.centralUserService.getEntityById(
         testData.centralUserService.oicpEndpointApi, testData.newOcpiEndpoint);
-      // Check
       expect(updatedOcpiEndpoint.name).to.equal(testData.newOcpiEndpoint.name);
     });
 

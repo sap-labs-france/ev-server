@@ -135,7 +135,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
     // Remember Charging Stations which were removed from Smart Charging
     this.excludedChargingStations.push(chargingStation.id);
     // Notify Admins
-    void NotificationHandler.sendComputeAndApplyChargingProfilesFailed(tenant, chargingStation,
+    await NotificationHandler.sendComputeAndApplyChargingProfilesFailed(tenant, chargingStation,
       { chargeBoxID: chargingProfile.chargingStationID,
         siteID: chargingProfile.chargingStation?.siteID,
         siteAreaID: chargingProfile.chargingStation?.siteAreaID,

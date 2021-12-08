@@ -13,7 +13,7 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'CheckAndComputeSmartChargingTask';
 
 export default class CheckAndComputeSmartChargingTask extends SchedulerTask {
-  async processTenant(tenant: Tenant): Promise<void> {
+  public async processTenant(tenant: Tenant): Promise<void> {
     if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION) &&
       Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)) {
       // Get all site areas

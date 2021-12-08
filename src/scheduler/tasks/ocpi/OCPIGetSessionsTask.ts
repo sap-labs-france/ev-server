@@ -1,3 +1,5 @@
+import Tenant, { TenantComponents } from '../../../types/Tenant';
+
 import Constants from '../../../utils/Constants';
 import LockingHelper from '../../../locking/LockingHelper';
 import LockingManager from '../../../locking/LockingManager';
@@ -10,15 +12,12 @@ import { OCPIRole } from '../../../types/ocpi/OCPIRole';
 import SchedulerTask from '../../SchedulerTask';
 import { ServerAction } from '../../../types/Server';
 import { TaskConfig } from '../../../types/TaskConfig';
-import Tenant from '../../../types/Tenant';
-import { TenantComponents } from '../../../types/Tenant';
 import Utils from '../../../utils/Utils';
 
 const MODULE_NAME = 'OCPIGetSessionsTask';
 
 export default class OCPIGetSessionsTask extends SchedulerTask {
-
-  async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
+  public async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     try {
       // Check if OCPI component is active
       if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {

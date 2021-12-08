@@ -223,7 +223,6 @@ export default class MongoDBStorage {
       const collections = await this.database.listCollections().toArray();
       // Check and Delete
       for (const collection of collections) {
-        // Check
         if (collection.name.startsWith(`${tenantID}.`)) {
           // Delete
           await this.database.collection(collection.name).drop();

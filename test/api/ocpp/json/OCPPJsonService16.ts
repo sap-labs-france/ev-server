@@ -144,7 +144,6 @@ export default class OCPPJsonService16 extends OCPPService {
   }
 
   private async send(chargeBoxIdentity: string, message: any): Promise<any> {
-    // Debug
     if (config.trace_logs) {
       console.debug('OCPP Request ====================================');
       console.debug({ chargeBoxIdentity, message });

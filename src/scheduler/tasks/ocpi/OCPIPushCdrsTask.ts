@@ -17,8 +17,7 @@ import global from '../../../types/GlobalType';
 const MODULE_NAME = 'OCPIPushCdrsTask';
 
 export default class OCPIPushCdrsTask extends SchedulerTask {
-
-  async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
+  public async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     try {
       // Check if OCPI component is active
       if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
@@ -99,7 +98,6 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
                     await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, tag, TransactionAction.END);
                     // Save
                     await TransactionStorage.saveTransactionOcpiData(tenant, transaction.id, transaction.ocpiData);
-                    // Ok
                     await Logging.logInfo({
                       tenantID: tenant.id,
                       action: ServerAction.OCPI_PUSH_CDRS,

@@ -38,7 +38,6 @@ export default abstract class BillingIntegration {
 
   public async synchronizeUsers(): Promise<BillingUserSynchronizeAction> {
     await this.checkConnection();
-    // Check
     const actionsDone: BillingUserSynchronizeAction = {
       inSuccess: 0,
       inError: 0
@@ -233,7 +232,7 @@ export default abstract class BillingIntegration {
         // Format amunt with currency symbol depending on locale
         const invoiceAmount = new Intl.NumberFormat(Utils.convertLocaleForCurrency(billingInvoice.user.locale), { style: 'currency', currency: billingInvoice.currency.toUpperCase() }).format(decimInvoiceAmount.toNumber());
         // Send async notification
-        void NotificationHandler.sendBillingNewInvoiceNotification(
+        await NotificationHandler.sendBillingNewInvoiceNotification(
           this.tenant,
           billingInvoice.id,
           billingInvoice.user,

@@ -1,17 +1,18 @@
 import { AuthorizationFilter, DynamicAuthorizationDataSourceName, Entity } from '../../types/Authorization';
-import Utils from '../../utils/Utils';
-import SitesOwnerDynamicAuthorizationDataSource from '../dynamic-data-source/SitesOwnerDynamicAuthorizationDataSource';
+
 import DynamicAuthorizationFilter from '../DynamicAuthorizationFilter';
+import { EntityData } from '../../types/GlobalType';
+import SitesOwnerDynamicAuthorizationDataSource from '../dynamic-data-source/SitesOwnerDynamicAuthorizationDataSource';
+import Utils from '../../utils/Utils';
 
 export default class SitesOwnerDynamicAuthorizationFilter extends DynamicAuthorizationFilter {
-  public processFilter(authorizationFilters: AuthorizationFilter, extraFilters: Record<string, any>): void {
+  public processFilter(authorizationFilters: AuthorizationFilter, extraFilters: Record<string, any>, entityData?: EntityData): void {
     // Get Site IDs
     const sitesOwnerDataSource = this.getDataSource(
       DynamicAuthorizationDataSourceName.SITES_OWNER) as SitesOwnerDynamicAuthorizationDataSource;
     const { siteIDs } = sitesOwnerDataSource.getData();
     // Clear
     authorizationFilters.filters.siteIDs = [];
-    // Check
     if (!Utils.isEmptyArray(siteIDs)) {
       // Force the filter
       authorizationFilters.filters.siteIDs = siteIDs;

@@ -217,7 +217,6 @@ describe('Site', function() {
           testData.userService.siteApi,
           testData.newSite
         );
-        // Check
         expect(updatedSite.name).to.equal(testData.newSite.name);
       });
 

@@ -54,7 +54,6 @@ export default class ChargingStationApi extends CrudApi {
   }
 
   public async checkConnector(chargingStation, connectorId, connectorData) {
-    // Check
     expect(chargingStation).to.not.be.null;
     // Always remove the timestamp
     delete connectorData.timestamp;
@@ -65,7 +64,6 @@ export default class ChargingStationApi extends CrudApi {
     expect(response.data.id).is.eql(chargingStation.id);
     // Check Connector
     const foundChargingStation = response.data;
-    // Check
     expect(foundChargingStation.connectors).to.not.be.null;
     expect(foundChargingStation.connectors[connectorId - 1]).to.include(connectorData);
   }

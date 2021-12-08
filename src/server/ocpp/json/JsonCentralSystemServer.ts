@@ -291,7 +291,6 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       existingWSConnection = this.getJsonRestWSConnection(wsConnection.getID());
       action = ServerAction.WS_REST_CONNECTION_ERROR;
     }
-    // Check
     if (existingWSConnection) {
       const existingWSWrapper = existingWSConnection.getWS();
       if (!existingWSWrapper.closed) {
@@ -345,7 +344,6 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       this.runningWSMessages++;
       // OCPP Request?
       if (ocppMessageType === OCPPMessageType.CALL_MESSAGE) {
-        // Check
         if (!wsWrapper.closed) {
           // Get the WS connection
           const wsConnection = await this.getWSConnectionFromWebSocket(wsWrapper);

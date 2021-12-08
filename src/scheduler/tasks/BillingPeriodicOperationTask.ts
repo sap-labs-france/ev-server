@@ -9,7 +9,7 @@ import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 
 export default class BillingPeriodicOperationTask extends SchedulerTask {
-  async processTenant(tenant: Tenant, /* taskConfig: BillingPeriodicOperationTaskConfig */): Promise<void> {
+  public async processTenant(tenant: Tenant, /* taskConfig: BillingPeriodicOperationTaskConfig */): Promise<void> {
     // Get the lock
     const billingLock = await LockingHelper.acquireBillingPeriodicOperationLock(tenant.id);
     if (billingLock) {
@@ -19,7 +19,7 @@ export default class BillingPeriodicOperationTask extends SchedulerTask {
           // Attempt to finalize and pay invoices
           const chargeActionResults = await billingImpl.chargeInvoices();
           if (chargeActionResults.inError > 0) {
-            void NotificationHandler.sendBillingPeriodicOperationFailed(
+            await NotificationHandler.sendBillingPeriodicOperationFailed(
               tenant,
               {
                 nbrInvoicesInError: chargeActionResults.inError,

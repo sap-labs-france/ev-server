@@ -11,7 +11,6 @@ const MODULE_NAME = 'StatisticsStorage';
 export default class StatisticsStorage {
 
   static async getChargingStationStats(tenant: Tenant, params: StatisticFilter, groupBy: string): Promise<ChargingStationStats[]> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -126,13 +125,11 @@ export default class StatisticsStorage {
     const chargingStationStatsMDB = await global.database.getCollection<ChargingStationStats>(tenant.id, 'transactions')
       .aggregate<ChargingStationStats>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getChargingStationStats', startTime, aggregation, chargingStationStatsMDB);
     return chargingStationStatsMDB;
   }
 
   static async getUserStats(tenant: Tenant, params: StatisticFilter, groupBy: string): Promise<UserStats[]> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
@@ -256,7 +253,6 @@ export default class StatisticsStorage {
     const userStatsMDB = await global.database.getCollection<UserStats>(tenant.id, 'transactions')
       .aggregate<UserStats>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getUserStats', startTime, aggregation, userStatsMDB);
     return userStatsMDB;
   }

@@ -21,7 +21,7 @@ import CompanyStorage from '../../../../storage/mongodb/CompanyStorage';
 import Constants from '../../../../utils/Constants';
 import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
-import { EntityDataType } from '../../../../types/GlobalType';
+import { EntityData } from '../../../../types/GlobalType';
 import { Log } from '../../../../types/Log';
 import Logging from '../../../../utils/Logging';
 import LoggingStorage from '../../../../storage/mongodb/LoggingStorage';
@@ -49,7 +49,7 @@ const MODULE_NAME = 'UtilsService';
 export default class UtilsService {
 
   public static async checkAndGetChargingStationAuthorization(tenant: Tenant, userToken: UserToken, chargingStationID: string,
-      action: ServerAction, entityData?: EntityDataType, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<ChargingStation> {
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<ChargingStation> {
     // Check static auth for reading Charging Station
     if (!await Authorizations.canReadChargingStation(userToken)) {
       throw new AppAuthError({
@@ -108,7 +108,7 @@ export default class UtilsService {
   }
 
   public static async checkAndGetPricingDefinitionAuthorization(tenant: Tenant, userToken: UserToken, pricingDefinitionID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityDataType, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<PricingDefinition> {
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<PricingDefinition> {
   // Check mandatory fields
     UtilsService.assertIdIsProvided(action, pricingDefinitionID, MODULE_NAME, 'checkAndGetPricingDefinitionAuthorization', userToken);
     // Get dynamic auth
@@ -143,7 +143,6 @@ export default class UtilsService {
     if (authorizationFilter.metadata) {
       pricingDefinition.metadata = authorizationFilter.metadata;
     }
-    // Check
     const authorized = AuthorizationService.canPerformAction(pricingDefinition, authAction);
     if (!authorized) {
       throw new AppAuthError({
@@ -158,7 +157,7 @@ export default class UtilsService {
   }
 
   public static async checkAndGetCompanyAuthorization(tenant: Tenant, userToken: UserToken, companyID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityDataType, additionalFilters: Record<string, any> = {}, applyProjectFields = false, checkIssuer = true): Promise<Company> {
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Company> {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, companyID, MODULE_NAME, 'checkAndGetCompanyAuthorization', userToken);
     // Get dynamic auth
@@ -184,16 +183,6 @@ export default class UtilsService {
     );
     UtilsService.assertObjectExists(action, company, `Company ID '${companyID}' does not exist`,
       MODULE_NAME, 'checkAndGetCompanyAuthorization', userToken);
-    // External Company
-    if (checkIssuer && !company.issuer) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `Company '${company.name}' with ID '${company.id}' not issued by the organization`,
-        module: MODULE_NAME, method: 'checkAndGetCompanyAuthorization',
-        user: userToken,
-        action: action,
-      });
-    }
     // Assign projected fields
     if (authorizationFilter.projectFields) {
       company.projectFields = authorizationFilter.projectFields;
@@ -204,7 +193,6 @@ export default class UtilsService {
     }
     // Add actions
     await AuthorizationService.addCompanyAuthorizations(tenant, userToken, company, authorizationFilter);
-    // Check
     const authorized = AuthorizationService.canPerformAction(company, authAction);
     if (!authorized) {
       throw new AppAuthError({
@@ -220,7 +208,7 @@ export default class UtilsService {
   }
 
   public static async checkAndGetUserAuthorization(tenant: Tenant, userToken: UserToken, userID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityDataType, additionalFilters: Record<string, any> = {}, applyProjectFields = false, checkIssuer = true): Promise<User> {
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false, checkIssuer = true): Promise<User> {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'checkAndGetUserAuthorization', userToken);
     // Get dynamic auth
@@ -265,7 +253,6 @@ export default class UtilsService {
     }
     // Add actions
     await AuthorizationService.addUserAuthorizations(tenant, userToken, user, authorizationFilter);
-    // Check
     const authorized = AuthorizationService.canPerformAction(user, authAction);
     if (!authorized) {
       throw new AppAuthError({
@@ -280,7 +267,7 @@ export default class UtilsService {
   }
 
   public static async checkAndGetSiteAuthorization(tenant: Tenant, userToken: UserToken, siteID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityDataType, additionalFilters: Record<string, any> = {}, applyProjectFields = false, checkIssuer = true): Promise<Site> {
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Site> {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, siteID, MODULE_NAME, 'checkAndGetSiteAuthorization', userToken);
     // Get dynamic auth
@@ -306,16 +293,6 @@ export default class UtilsService {
     );
     UtilsService.assertObjectExists(action, site, `Site ID '${siteID}' does not exist`,
       MODULE_NAME, 'checkAndGetSiteAuthorization', userToken);
-    // External Site
-    if (checkIssuer && !site.issuer) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `Site '${site.name}' with ID '${site.id}' not issued by the organization`,
-        module: MODULE_NAME, method: 'checkAndGetSiteAuthorization',
-        user: userToken,
-        action: action
-      });
-    }
     // Assign projected fields
     if (authorizationFilter.projectFields) {
       site.projectFields = authorizationFilter.projectFields;
@@ -326,7 +303,6 @@ export default class UtilsService {
     }
     // Add actions
     await AuthorizationService.addSiteAuthorizations(tenant, userToken, site, authorizationFilter);
-    // Check
     const authorized = AuthorizationService.canPerformAction(site, authAction);
     if (!authorized) {
       throw new AppAuthError({
@@ -342,7 +318,7 @@ export default class UtilsService {
   }
 
   public static async checkAndGetLogAuthorization(tenant: Tenant, userToken: UserToken, logID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityDataType, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Log> {
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Log> {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, logID, MODULE_NAME, 'checkAndGetLogAuthorization', userToken);
     // Get dynamic auth
@@ -377,7 +353,6 @@ export default class UtilsService {
     }
     // Add actions
     AuthorizationService.addLogAuthorizations(tenant, userToken, log, authorizationFilter);
-    // Check
     const authorized = AuthorizationService.canPerformAction(log, authAction);
     if (!authorized) {
       throw new AppAuthError({
@@ -436,7 +411,6 @@ export default class UtilsService {
         module: MODULE_NAME, method: 'checkUserSitesAuthorization',
       });
     }
-    // Check
     for (const site of sites) {
       // External Site
       if (!site.issuer) {
@@ -497,7 +471,6 @@ export default class UtilsService {
         module: MODULE_NAME, method: 'checkSiteUsersAuthorization',
       });
     }
-    // Check
     for (const user of users) {
       // External User
       if (!user.issuer) {
@@ -556,7 +529,6 @@ export default class UtilsService {
         module: MODULE_NAME, method: 'checkSiteAreaAssetsAuthorization',
       });
     }
-    // Check
     for (const asset of assets) {
       // External Asset
       if (!asset.issuer) {
@@ -615,7 +587,6 @@ export default class UtilsService {
         module: MODULE_NAME, method: 'checkSiteAreaChargingStationsAuthorization',
       });
     }
-    // Check
     for (const chargingStation of chargingStations) {
       // External Charging Station
       if (!chargingStation.issuer) {
@@ -632,7 +603,7 @@ export default class UtilsService {
   }
 
   public static async checkAndGetSiteAreaAuthorization(tenant: Tenant, userToken: UserToken, siteAreaID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityDataType, additionalFilters: Record<string, any> = {}, applyProjectFields = false, checkIssuer = true): Promise<SiteArea> {
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<SiteArea> {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, siteAreaID, MODULE_NAME, 'checkAndGetSiteAreaAuthorization', userToken);
     // Get dynamic auth
@@ -658,16 +629,6 @@ export default class UtilsService {
     );
     UtilsService.assertObjectExists(action, siteArea, `Site Area ID '${siteAreaID}' does not exist`,
       MODULE_NAME, 'checkAndGetSiteAreaAuthorization', userToken);
-    // External Site Area
-    if (checkIssuer && !siteArea.issuer) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `Site Area '${siteArea.name}' with ID '${siteArea.id}' not issued by the organization`,
-        module: MODULE_NAME, method: 'checkAndGetSiteAreaAuthorization',
-        user: userToken,
-        action: action
-      });
-    }
     // Assign projected fields
     if (authorizationFilter.projectFields) {
       siteArea.projectFields = authorizationFilter.projectFields;
@@ -678,7 +639,6 @@ export default class UtilsService {
     }
     // Add actions
     await AuthorizationService.addSiteAreaAuthorizations(tenant, userToken, siteArea, authorizationFilter);
-    // Check
     const authorized = AuthorizationService.canPerformAction(siteArea, authAction);
     if (!authorized) {
       throw new AppAuthError({
@@ -694,7 +654,7 @@ export default class UtilsService {
   }
 
   public static async checkAndGetCarAuthorization(tenant: Tenant, userToken: UserToken, carID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityDataType, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Car> {
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Car> {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, carID, MODULE_NAME, 'checkAndGetCarAuthorization', userToken);
     // Get dynamic auth
@@ -729,7 +689,6 @@ export default class UtilsService {
     }
     // Add Actions
     await AuthorizationService.addCarAuthorizations(tenant, userToken, car, authorizationFilter);
-    // Check
     const authorized = AuthorizationService.canPerformAction(car, authAction);
     if (!authorized) {
       throw new AppAuthError({
@@ -744,7 +703,7 @@ export default class UtilsService {
   }
 
   public static async checkAndGetCarCatalogAuthorization(tenant: Tenant, userToken: UserToken, carCatalogID: number, authAction: Action,
-      action: ServerAction, entityData?: EntityDataType, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<CarCatalog> {
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<CarCatalog> {
   // Check mandatory fields
     UtilsService.assertIdIsProvided(action, carCatalogID, MODULE_NAME, 'checkAndGetCarCatalogAuthorization', userToken);
     // Get dynamic auth
@@ -780,7 +739,6 @@ export default class UtilsService {
     }
     // Add actions
     await AuthorizationService.addCarCatalogAuthorizations(tenant, userToken, carCatalog, authorizationFilter);
-    // Check
     const authorized = AuthorizationService.canPerformAction(carCatalog, authAction);
     if (!authorized) {
       throw new AppAuthError({
@@ -795,13 +753,13 @@ export default class UtilsService {
   }
 
   public static async checkAndGetTagAuthorization(tenant: Tenant, userToken:UserToken, tagID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityDataType, additionalFilters: Record<string, any> = {}, applyProjectFields = false, checkIssuer = true): Promise<Tag> {
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false, checkIssuer = true): Promise<Tag> {
     return UtilsService.checkAndGetTagByXXXAuthorization(tenant, userToken, tagID, TagStorage.getTag.bind(this),
       authAction, action, entityData, additionalFilters, applyProjectFields, checkIssuer);
   }
 
   public static async checkAndGetTagByVisualIDAuthorization(tenant: Tenant, userToken:UserToken, tagID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityDataType, additionalFilters: Record<string, any> = {}, applyProjectFields = false, checkIssuer = true): Promise<Tag> {
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false, checkIssuer = true): Promise<Tag> {
     return UtilsService.checkAndGetTagByXXXAuthorization(tenant, userToken, tagID, TagStorage.getTagByVisualID.bind(this),
       authAction, action, entityData, additionalFilters, applyProjectFields, checkIssuer);
   }
@@ -1857,7 +1815,7 @@ export default class UtilsService {
 
   private static async checkAndGetTagByXXXAuthorization(tenant: Tenant, userToken:UserToken, id: string,
       getTagByXXX: (tenant: Tenant, id: string, params: any, projectedFileds: string[]) => Promise<Tag>, authAction: Action,
-      action: ServerAction, entityData?: EntityDataType, additionalFilters: Record<string, any> = {}, applyProjectFields = false, checkIssuer = true): Promise<Tag> {
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false, checkIssuer = true): Promise<Tag> {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, id, MODULE_NAME, 'checkAndGetTagByXXXAuthorization', userToken);
     // Get dynamic auth
@@ -1903,7 +1861,6 @@ export default class UtilsService {
     }
     // Add actions
     await AuthorizationService.addTagAuthorizations(tenant, userToken, tag, authorizationFilter);
-    // Check
     const authorized = AuthorizationService.canPerformAction(tag, authAction);
     if (!authorized) {
       throw new AppAuthError({
