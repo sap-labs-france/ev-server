@@ -33,7 +33,7 @@ export default class TagApi extends CrudApi {
   }
 
   public async readTagByVisualID(visualID) {
-    return super.read({ VisualID: visualID }, '/client/api/TagByVisualID');
+    return super.read({ VisualID: visualID }, this.buildRestEndpointUrl(ServerRoute.REST_TAGS));
   }
 
   public async createTag(data) {
