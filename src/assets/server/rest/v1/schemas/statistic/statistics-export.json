@@ -26,7 +26,8 @@
       "type": "string",
       "enum": [
         "year",
-        "month"
+        "month",
+        "total"
       ],
       "sanitize": "mongo"
     }
