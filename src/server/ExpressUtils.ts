@@ -1,4 +1,4 @@
-import express, { NextFunction, Request, Response } from 'express';
+import express, { Application, NextFunction, Request, Response } from 'express';
 
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
@@ -17,7 +17,7 @@ import useragent from 'express-useragent';
 bodyParserXml(bodyParser);
 
 export default class ExpressUtils {
-  public static initApplication(bodyLimit = '1mb', debug = false): express.Application {
+  public static initApplication(bodyLimit = '1mb', debug = false): Application {
     const app = express();
     // Secure the application
     app.use(helmet());

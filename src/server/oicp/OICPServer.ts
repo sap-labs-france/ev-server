@@ -1,4 +1,4 @@
-import { Application, NextFunction, Response } from 'express';
+import { Application, NextFunction, Request, Response } from 'express';
 
 import ExpressUtils from '../ExpressUtils';
 import Logging from '../../utils/Logging';
@@ -32,6 +32,15 @@ export default class OICPServer {
         } catch (error) {
           next(error);
         }
+      });
+    });
+    // Not found
+    this.expressApplication.use((req: Request, res: Response, next: NextFunction) => {
+      res.status(404);
+      res.format({
+        html: () => res.send(`404: ${req.url}`),
+        json: () => res.json({ error: `404: ${req.url}` }),
+        default: () => res.type('txt').send(`404: ${req.url}`)
       });
     });
     // Post init

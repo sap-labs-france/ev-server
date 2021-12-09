@@ -1,3 +1,5 @@
+import { Application, NextFunction, Request, Response } from 'express';
+
 import AuthService from './v1/service/AuthService';
 import CentralRestServerService from './CentralRestServerService';
 import CentralSystemRestServiceConfiguration from '../../types/configuration/CentralSystemRestServiceConfiguration';
@@ -6,7 +8,6 @@ import GlobalRouter from './v1/router/GlobalRouter';
 import Logging from '../../utils/Logging';
 import { ServerType } from '../../types/Server';
 import { ServerUtils } from '../ServerUtils';
-import express from 'express';
 import http from 'http';
 import sanitize from 'express-sanitizer';
 
@@ -15,7 +16,7 @@ const MODULE_NAME = 'CentralRestServer';
 export default class CentralRestServer {
   private static centralSystemRestConfig: CentralSystemRestServiceConfiguration;
   private static restHttpServer: http.Server;
-  private expressApplication: express.Application;
+  private expressApplication: Application;
 
   // Create the rest server
   constructor(centralSystemRestConfig: CentralSystemRestServiceConfiguration) {
@@ -37,16 +38,15 @@ export default class CentralRestServer {
     this.expressApplication.use('/client/util/:action',
       Logging.traceExpressRequest.bind(this),
       CentralRestServerService.restServiceUtil.bind(this));
-    // Unknwon Route
-    // TODO: Called before other routes: To Check
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    // this.expressApplication.use((req: Request, res: Response, next: NextFunction) => {
-    //   if (!res.headersSent) {
-    //     console.log(`Res status: ${res.statusCode}, url: ${req.url}`);
-    //     res.sendStatus(StatusCodes.NOT_FOUND);
-    //   }
-    //   next();
-    // });
+    // Not found
+    this.expressApplication.use((req: Request, res: Response, next: NextFunction) => {
+      res.status(404);
+      res.format({
+        html: () => res.send(`404: ${req.url}`),
+        json: () => res.json({ error: `404: ${req.url}` }),
+        default: () => res.type('txt').send(`404: ${req.url}`)
+      });
+    });
     // Post init
     ExpressUtils.postInitApplication(this.expressApplication);
     // Create HTTP server to serve the express app

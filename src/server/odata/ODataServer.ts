@@ -1,4 +1,4 @@
-import express, { NextFunction, Request, Response } from 'express';
+import { Application, NextFunction, Request, Response } from 'express';
 
 import Configuration from '../../utils/Configuration';
 import ExpressUtils from '../ExpressUtils';
@@ -14,7 +14,7 @@ const MODULE_NAME = 'ODataServer';
 
 export default class ODataServer {
   private oDataServerConfig: ODataServiceConfiguration;
-  private expressApplication: express.Application;
+  private expressApplication: Application;
 
   // Create the rest server
   constructor(oDataServerConfig: ODataServiceConfiguration) {
@@ -44,6 +44,15 @@ export default class ODataServer {
         }
       }
     );
+    // Not found
+    this.expressApplication.use((req: Request, res: Response, next: NextFunction) => {
+      res.status(404);
+      res.format({
+        html: () => res.send(`404: ${req.url}`),
+        json: () => res.json({ error: `404: ${req.url}` }),
+        default: () => res.type('txt').send(`404: ${req.url}`)
+      });
+    });
     // Post init
     ExpressUtils.postInitApplication(this.expressApplication);
   }
