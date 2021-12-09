@@ -27,7 +27,6 @@ const MODULE_NAME = 'UserStorage';
 export default class UserStorage {
   public static async getEndUserLicenseAgreement(tenant: Tenant, language = 'en'): Promise<Eula> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     let currentEulaHash: string;
     // Supported languages?
@@ -119,7 +118,6 @@ export default class UserStorage {
 
   public static async getUserImage(tenant: Tenant, id: string): Promise<Image> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Read DB
     const userImageMDB = await global.database.getCollection<{ _id: ObjectId; image: string }>(tenant.id, 'userimages')
@@ -132,7 +130,6 @@ export default class UserStorage {
 
   public static async removeSitesFromUser(tenant: Tenant, userID: string, siteIDs: string[]): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // User provided?
     if (userID) {
@@ -150,7 +147,6 @@ export default class UserStorage {
 
   public static async addSitesToUser(tenant: Tenant, userID: string, siteIDs: string[]): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // At least one Site
     if (!Utils.isEmptyArray(siteIDs)) {
@@ -172,7 +168,6 @@ export default class UserStorage {
 
   public static async addSiteToUser(tenant: Tenant, userID: string, siteID: string): Promise<string> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     const siteUserMDB = {
       '_id': Utils.hash(`${siteID}~${userID}`),
@@ -192,7 +187,6 @@ export default class UserStorage {
 
   public static async saveUser(tenant: Tenant, userToSave: User, saveImage = false): Promise<string> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Check if ID or email is provided
     if (!userToSave.id && !userToSave.email) {
@@ -326,7 +320,6 @@ export default class UserStorage {
 
   public static async deleteImportedUser(tenant: Tenant, importedUserID: string): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete
     await global.database.getCollection<any>(tenant.id, 'importedusers').deleteOne(
@@ -338,7 +331,6 @@ export default class UserStorage {
 
   public static async deleteImportedUsers(tenant: Tenant): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete
     await global.database.getCollection<any>(tenant.id, 'importedusers').deleteMany({});
@@ -351,7 +343,6 @@ export default class UserStorage {
         passwordBlockedUntil?: Date;
       }): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Modify and return the modified document
     await global.database.getCollection<any>(tenant.id, 'users').findOneAndUpdate(
@@ -362,7 +353,6 @@ export default class UserStorage {
 
   public static async saveUserStatus(tenant: Tenant, userID: string, status: UserStatus): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Modify and return the modified document
     await global.database.getCollection<any>(tenant.id, 'users').findOneAndUpdate(
@@ -371,21 +361,23 @@ export default class UserStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveUserStatus', startTime, { status });
   }
 
-  public static async saveUserLastSelectedCarID(tenant: Tenant, userID: string, lastSelectedCarID: string): Promise<void> {
+  public static async saveLastSelectedCarID(tenant: Tenant, userID: string, lastSelectedCarID: string, lastSelectedCar: boolean): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Modify and return the modified document
     await global.database.getCollection<any>(tenant.id, 'users').findOneAndUpdate(
       { '_id': DatabaseUtils.convertToObjectID(userID) },
-      { $set: { lastSelectedCarID } });
+      { $set: { lastSelectedCarID, lastSelectedCar } });
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveUserLastSelectedCarID', startTime, { lastSelectedCarID });
+  }
+
+  public static async clearLastSelectedCarID(tenant: Tenant, userID: string): Promise<void> {
+    return UserStorage.saveLastSelectedCarID(tenant, userID, null, false);
   }
 
   public static async saveUserMobileToken(tenant: Tenant, userID: string,
       params: { mobileToken: string; mobileOs: string; mobileLastChangedOn: Date }): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Modify and return the modified document
     await global.database.getCollection<any>(tenant.id, 'users').findOneAndUpdate(
@@ -397,7 +389,6 @@ export default class UserStorage {
   public static async saveUserMobilePhone(tenant: Tenant, userID: string,
       params: { mobile?: string; phone?: string; }): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Modify and return the modified document
     await global.database.getCollection<any>(tenant.id, 'users').findOneAndUpdate(
@@ -408,7 +399,6 @@ export default class UserStorage {
 
   public static async saveUserRole(tenant: Tenant, userID: string, role: string): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Modify and return the modified document
     await global.database.getCollection<any>(tenant.id, 'users').findOneAndUpdate(
@@ -420,7 +410,6 @@ export default class UserStorage {
   public static async saveUserEULA(tenant: Tenant, userID: string,
       params: { eulaAcceptedHash: string; eulaAcceptedOn: Date; eulaAcceptedVersion: number }): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Modify and return the modified document
     await global.database.getCollection<any>(tenant.id, 'users').findOneAndUpdate(
@@ -432,7 +421,6 @@ export default class UserStorage {
   public static async saveUserAccountVerification(tenant: Tenant, userID: string,
       params: { verificationToken?: string; verifiedAt?: Date }): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Modify and return the modified document
     await global.database.getCollection<any>(tenant.id, 'users').findOneAndUpdate(
@@ -444,7 +432,6 @@ export default class UserStorage {
   public static async saveUserAdminData(tenant: Tenant, userID: string,
       params: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications, technical?: boolean, freeAccess?: boolean }): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Set data
     const updatedUserMDB: any = {};
@@ -473,7 +460,6 @@ export default class UserStorage {
 
   public static async saveUserBillingData(tenant: Tenant, userID: string, billingData: BillingUserData): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     if (billingData) {
     // Set data
@@ -500,9 +486,7 @@ export default class UserStorage {
 
   public static async saveUserImage(tenant: Tenant, userID: string, userImageToSave: string): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
-    // Check if ID is provided
     if (!userID) {
       // ID must be provided!
       throw new BackendError({
@@ -528,7 +512,6 @@ export default class UserStorage {
       },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -710,7 +693,6 @@ export default class UserStorage {
 
   public static async getImportedUsersCount(tenant: Tenant): Promise<number> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Count documents
     const nbrOfDocuments = await global.database.getCollection<any>(tenant.id, 'importedusers').countDocuments();
@@ -722,7 +704,6 @@ export default class UserStorage {
       params: { status?: ImportStatus; search?: string },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ImportedUser>> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -807,7 +788,6 @@ export default class UserStorage {
       params: { search?: string; roles?: string[]; errorTypes?: string[] },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<UserInError>> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -902,7 +882,6 @@ export default class UserStorage {
 
   public static async deleteUser(tenant: Tenant, id: string): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete User Image
     await global.database.getCollection<any>(tenant.id, 'userimages')
@@ -926,7 +905,6 @@ export default class UserStorage {
       params: { search?: string; userIDs: string[]; siteAdmin?: boolean; siteOwner?: boolean },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteUser>> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);

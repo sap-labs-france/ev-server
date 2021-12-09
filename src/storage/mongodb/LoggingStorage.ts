@@ -10,7 +10,6 @@ import Utils from '../../utils/Utils';
 
 export default class LoggingStorage {
   public static async deleteLogs(tenant: Tenant, deleteUpToDate: Date): Promise<DeletedResult> {
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Build filter
     const filters: FilterParams = {};
@@ -67,7 +66,6 @@ export default class LoggingStorage {
     startDateTime?: Date; endDateTime?: Date; levels?: string[]; sources?: string[]; type?: string; actions?: string[];
     hosts?: string[]; userIDs?: string[]; siteIDs?: string[]; chargingStationIDs?: string[]; search?: string; logIDs?: string[];
   } = {}, dbParams: DbParams, projectFields: string[]): Promise<DataResult<Log>> {
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);

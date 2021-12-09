@@ -15,7 +15,6 @@ const MODULE_NAME = 'SiteAreaStorage';
 export default class SiteAreaStorage {
   public static async addAssetsToSiteArea(tenant: Tenant, siteArea: SiteArea, assetIDs: string[]): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Site Area provided?
     if (siteArea) {
@@ -37,7 +36,6 @@ export default class SiteAreaStorage {
 
   public static async removeAssetsFromSiteArea(tenant: Tenant, siteAreaID: string, assetIDs: string[]): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Site Area provided?
     if (siteAreaID) {
@@ -59,7 +57,6 @@ export default class SiteAreaStorage {
 
   public static async getSiteAreaImage(tenant: Tenant, id: string): Promise<Image> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Read DB
     const siteAreaImageMDB = await global.database.getCollection<{ _id: ObjectId; image: string }>(tenant.id, 'siteareaimages')
@@ -86,7 +83,6 @@ export default class SiteAreaStorage {
 
   public static async saveSiteArea(tenant: Tenant, siteAreaToSave: SiteArea, saveImage = false): Promise<string> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Set
     const siteAreaMDB: any = {
@@ -136,7 +132,6 @@ export default class SiteAreaStorage {
       } = {},
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteArea>> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -331,7 +326,6 @@ export default class SiteAreaStorage {
 
   public static async addChargingStationsToSiteArea(tenant: Tenant, siteArea: SiteArea, chargingStationIDs: string[]): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Site provided?
     if (siteArea) {
@@ -354,7 +348,6 @@ export default class SiteAreaStorage {
 
   public static async removeChargingStationsFromSiteArea(tenant: Tenant, siteAreaID: string, chargingStationIDs: string[]): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Site provided?
     if (siteAreaID) {
@@ -381,7 +374,6 @@ export default class SiteAreaStorage {
 
   public static async deleteSiteAreas(tenant: Tenant, siteAreaIDs: string[]): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Remove Charging Station's Site Area
     await global.database.getCollection<any>(tenant.id, 'chargingstations').updateMany(
@@ -406,7 +398,6 @@ export default class SiteAreaStorage {
 
   public static async deleteSiteAreasFromSites(tenant: Tenant, siteIDs: string[]): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Find site areas to delete
     const siteareas: string[] = (await global.database.getCollection<any>(tenant.id, 'siteareas')
@@ -419,7 +410,6 @@ export default class SiteAreaStorage {
 
   private static async saveSiteAreaImage(tenant: Tenant, siteAreaID: string, siteAreaImageToSave: string): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Modify
     await global.database.getCollection<any>(tenant.id, 'siteareaimages').findOneAndUpdate(

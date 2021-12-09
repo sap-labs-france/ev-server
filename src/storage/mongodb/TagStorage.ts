@@ -17,7 +17,6 @@ export default class TagStorage {
 
   public static async saveTag(tenant: Tenant, tag: Tag): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     const tagMDB = {
       _id: tag.id,
@@ -92,7 +91,6 @@ export default class TagStorage {
 
   public static async deleteImportedTag(tenant: Tenant, importedTagID: string): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete
     await global.database.getCollection<any>(tenant.id, 'importedtags').deleteOne(
@@ -104,7 +102,6 @@ export default class TagStorage {
 
   public static async deleteImportedTags(tenant: Tenant): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete
     await global.database.getCollection<any>(tenant.id, 'importedtags').deleteMany({});
@@ -113,7 +110,6 @@ export default class TagStorage {
 
   public static async getImportedTagsCount(tenant: Tenant): Promise<number> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Count documents
     const nbrOfDocuments = await global.database.getCollection<any>(tenant.id, 'importedtags').countDocuments();
@@ -125,7 +121,6 @@ export default class TagStorage {
       params: { status?: ImportStatus; search?: string },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ImportedTag>> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -221,7 +216,6 @@ export default class TagStorage {
 
   public static async deleteTag(tenant: Tenant, tagID: string): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete
     await global.database.getCollection<any>(tenant.id, 'tags').deleteOne(
@@ -234,7 +228,6 @@ export default class TagStorage {
 
   public static async deleteTagsByUser(tenant: Tenant, userID: string): Promise<number> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete
     const result = await global.database.getCollection<any>(tenant.id, 'tags').deleteMany(
@@ -298,7 +291,6 @@ export default class TagStorage {
       },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Tag>> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);

@@ -30,7 +30,6 @@ export default class SettingStorage {
 
   public static async saveSettings(tenant: Tenant, settingToSave: Partial<SettingDB>): Promise<string> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Check if ID is provided
     if (!settingToSave.id && !settingToSave.identifier) {
@@ -347,7 +346,6 @@ export default class SettingStorage {
       params: {identifier?: string; settingID?: string, dateFrom?: Date, dateTo?: Date},
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SettingDB>> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -411,7 +409,6 @@ export default class SettingStorage {
 
   public static async deleteSetting(tenant: Tenant, id: string): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete Component
     await global.database.getCollection<any>(tenant.id, 'settings')

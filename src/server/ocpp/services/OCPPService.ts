@@ -384,7 +384,7 @@ export default class OCPPService {
         newTransaction.authorizationID = user.authorizationID;
       }
       // Cleanup ongoing Transaction
-      await this.stopOrDeleteActiveTransaction(tenant, chargingStation, startTransaction.connectorId);
+      await this.processExistingTransaction(tenant, chargingStation, startTransaction.connectorId);
       // Handle car and current SOC
       await this.processTransactionCar(tenant, newTransaction, chargingStation, null, user, TransactionAction.START);
       // Pricing
@@ -1374,7 +1374,7 @@ export default class OCPPService {
     };
   }
 
-  private async stopOrDeleteActiveTransaction(tenant: Tenant, chargingStation: ChargingStation, connectorId: number) {
+  private async processExistingTransaction(tenant: Tenant, chargingStation: ChargingStation, connectorId: number) {
     let activeTransaction: Transaction, lastCheckedTransactionID: number;
     do {
       // Check if the charging station has already a transaction
@@ -1607,9 +1607,10 @@ export default class OCPPService {
           // Check default car
           if (user.lastSelectedCarID) {
             transaction.carID = user.lastSelectedCarID;
-          } else {
+          } else if (!user.lastSelectedCar) {
             // Get default car if any
-            const defaultCar = await CarStorage.getDefaultUserCar(tenant, user.id, {}, ['id', 'carCatalogID', 'vin', 'carConnectorData.carConnectorID', 'carConnectorData.carConnectorMeterID']);
+            const defaultCar = await CarStorage.getDefaultUserCar(tenant, user.id, {},
+              ['id', 'carCatalogID', 'vin', 'carConnectorData.carConnectorID', 'carConnectorData.carConnectorMeterID']);
             if (defaultCar) {
               transaction.carID = defaultCar.id;
               transaction.carCatalogID = defaultCar.carCatalogID;
@@ -1618,12 +1619,13 @@ export default class OCPPService {
           }
           // Set Car Catalog ID
           if (transaction.carID && !transaction.carCatalogID) {
-            const car = await CarStorage.getCar(tenant, transaction.carID, {}, ['id', 'carCatalogID', 'vin', 'carConnectorData.carConnectorID', 'carConnectorData.carConnectorMeterID']);
+            const car = await CarStorage.getCar(tenant, transaction.carID, {},
+              ['id', 'carCatalogID', 'vin', 'carConnectorData.carConnectorID', 'carConnectorData.carConnectorMeterID']);
             transaction.carCatalogID = car?.carCatalogID;
             transaction.car = car;
           }
           // Clear
-          await UserStorage.saveUserLastSelectedCarID(tenant, user.id, null);
+          await UserStorage.clearLastSelectedCarID(tenant, user.id);
           // Handle SoC
           soc = await this.getCurrentSoc(tenant, transaction, chargingStation);
           if (soc) {
