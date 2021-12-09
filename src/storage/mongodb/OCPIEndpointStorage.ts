@@ -29,7 +29,6 @@ export default class OCPIEndpointStorage {
 
   static async saveOcpiEndpoint(tenant: Tenant, ocpiEndpointToSave: OCPIEndpoint): Promise<string> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Check if name is provided
     if (!ocpiEndpointToSave.name) {
@@ -82,7 +81,6 @@ export default class OCPIEndpointStorage {
       params: { search?: string; role?: OCPIRole; ocpiEndpointIDs?: string[]; localToken?: string },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<OCPIEndpoint>> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -169,7 +167,6 @@ export default class OCPIEndpointStorage {
 
   static async deleteOcpiEndpoint(tenant: Tenant, id: string): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete OcpiEndpoint
     await global.database.getCollection<OCPIEndpoint>(tenant.id, 'ocpiendpoints')
@@ -179,7 +176,6 @@ export default class OCPIEndpointStorage {
 
   static async deleteOcpiEndpoints(tenant: Tenant): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete OcpiEndpoint
     await global.database.getCollection<OCPIEndpoint>(tenant.id, 'ocpiendpoints').deleteMany({});

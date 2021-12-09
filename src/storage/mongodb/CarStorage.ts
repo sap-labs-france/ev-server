@@ -311,7 +311,6 @@ export default class CarStorage {
 
   public static async saveCar(tenant: Tenant, carToSave: Car): Promise<string> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Set
     const carMDB: any = {
