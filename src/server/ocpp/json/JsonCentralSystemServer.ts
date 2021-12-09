@@ -518,7 +518,6 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         }
       }
     }
-    // Log
     if (validConnections.length || invalidConnections.length) {
       const message = `${validConnections.length} ${type} valid WS Connection pinged (${invalidConnections.length} invalid)`;
       this.isDebug() && Logging.logConsoleDebug(message);

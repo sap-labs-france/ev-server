@@ -34,15 +34,6 @@ export default class OICPServer {
         }
       });
     });
-    // Not found
-    this.expressApplication.use((req: Request, res: Response, next: NextFunction) => {
-      res.status(404);
-      res.format({
-        html: () => res.send(`404: ${req.url}`),
-        json: () => res.json({ error: `404: ${req.url}` }),
-        default: () => res.type('txt').send(`404: ${req.url}`)
-      });
-    });
     // Post init
     ExpressUtils.postInitApplication(this.expressApplication);
   }

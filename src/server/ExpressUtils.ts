@@ -56,11 +56,11 @@ export default class ExpressUtils {
     return app;
   }
 
-  public static postInitApplication(app: express.Application): void {
+  public static postInitApplication(expressApplication: Application): void {
     // Log Express Response
-    app.use(Logging.traceExpressResponse.bind(this));
+    expressApplication.use(Logging.traceExpressResponse.bind(this));
     // Error Handling
-    app.use(Logging.traceExpressError.bind(this));
+    expressApplication.use(Logging.traceExpressError.bind(this));
   }
 
   private static healthCheckService(req: Request, res: Response, next: NextFunction): void {

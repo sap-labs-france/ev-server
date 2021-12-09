@@ -8,6 +8,7 @@ import GlobalRouter from './v1/router/GlobalRouter';
 import Logging from '../../utils/Logging';
 import { ServerType } from '../../types/Server';
 import { ServerUtils } from '../ServerUtils';
+import SessionHashService from './v1/service/SessionHashService';
 import http from 'http';
 import sanitize from 'express-sanitizer';
 
@@ -33,20 +34,15 @@ export default class CentralRestServer {
     // Secured API
     this.expressApplication.use('/client/api/:action',
       AuthService.authenticate(),
-      CentralRestServerService.restServiceSecured.bind(this));
+      SessionHashService.checkUserAndTenantValidity.bind(this),
+      Logging.traceExpressRequest.bind(this),
+      CentralRestServerService.restServiceSecured.bind(this)
+    );
     // Util API
     this.expressApplication.use('/client/util/:action',
       Logging.traceExpressRequest.bind(this),
-      CentralRestServerService.restServiceUtil.bind(this));
-    // Not found
-    this.expressApplication.use((req: Request, res: Response, next: NextFunction) => {
-      res.status(404);
-      res.format({
-        html: () => res.send(`404: ${req.url}`),
-        json: () => res.json({ error: `404: ${req.url}` }),
-        default: () => res.type('txt').send(`404: ${req.url}`)
-      });
-    });
+      CentralRestServerService.restServiceUtil.bind(this)
+    );
     // Post init
     ExpressUtils.postInitApplication(this.expressApplication);
     // Create HTTP server to serve the express app
