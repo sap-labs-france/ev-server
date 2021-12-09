@@ -5,7 +5,8 @@
   "properties": {
     "Year": {
       "type": "number",
-      "sanitize": "mongo"
+      "sanitize": "mongo",
+      "default": 0
     },
     "StartDateTime": {
       "type": "string",
