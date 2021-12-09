@@ -15,7 +15,6 @@ const MODULE_NAME = 'RegistrationTokenStorage';
 export default class RegistrationTokenStorage {
   static async saveRegistrationToken(tenant: Tenant, registrationToken: RegistrationToken): Promise<string> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Set
     const registrationTokenMDB = {
@@ -41,7 +40,6 @@ export default class RegistrationTokenStorage {
       params: { tokenIDs?: string[]; siteIDs?: string[]; siteAreaID?: string } = {}, dbParams: DbParams, projectFields?: string[]):
       Promise<DataResult<RegistrationToken>> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);

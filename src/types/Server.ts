@@ -631,6 +631,19 @@ export enum ServerRoute {
   REST_SITE_OWNER = 'sites/:id/users/owner',
   REST_SITE_IMAGE = 'sites/:id/image',
 
+  REST_STATISTICS_EXPORT = 'statistics/action/export',
+  REST_CHARGING_STATION_CONSUMPTION_STATISTICS = 'statistics/charging-stations/consumption',
+  REST_CHARGING_STATION_USAGE_STATISTICS = 'statistics/charging-stations/usage',
+  REST_CHARGING_STATION_INACTIVITY_STATISTICS = 'statistics/charging-stations/inactivity',
+  REST_CHARGING_STATION_TRANSACTIONS_STATISTICS = 'statistics/charging-stations/transaction',
+  REST_CHARGING_STATION_PRICING_STATISTICS = 'statistics/charging-stations/pricing',
+  REST_USER_CONSUMPTION_STATISTICS = 'statistics/users/consumption',
+  REST_USER_USAGE_STATISTICS = 'statistics/users/usage',
+  REST_USER_INACTIVITY_STATISTICS = 'statistics/users/inactivity',
+  REST_USER_TRANSACTIONS_STATISTICS = 'statistics/users/transaction',
+  REST_USER_PRICING_STATISTICS = 'statistics/users/pricing',
+  REST_TRANSACTION_YEARS = 'statistics/transactions/years',
+
   // BILLING URLs for CRUD operations on PAYMENT METHODS
   REST_BILLING_PAYMENT_METHODS = 'users/:userID/payment-methods',
   REST_BILLING_PAYMENT_METHOD = 'users/:userID/payment-methods/:paymentMethodID',

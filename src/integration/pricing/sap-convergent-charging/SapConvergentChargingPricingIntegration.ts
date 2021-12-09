@@ -182,6 +182,13 @@ export default class SapConvergentChargingPricingIntegration extends PricingInte
                   chargingStation = await ChargingStationStorage.getChargingStation(this.tenant, transaction.chargeBoxID);
                   if (chargingStation) {
                     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(this.tenant, chargingStation);
+                    if (!chargingStationClient) {
+                      throw new BackendError({
+                        ...LoggingHelper.getChargingStationProperties(chargingStation),
+                        module: MODULE_NAME, method: 'handleError',
+                        message: 'Charging Station is not connected to the backend',
+                      });
+                    }
                     const profile = {
                       chargingProfileId: this.hashCode(notification.properties['computed.message']),
                       chargingProfilePurpose: ChargingProfilePurposeType.TX_PROFILE,

@@ -37,6 +37,7 @@ export default interface User extends CreatedUpdatedProps, AuthorizationActions 
   mobileToken: string;
   mobileLastChangedOn: Date;
   lastSelectedCarID?: string;
+  lastSelectedCar?: boolean;
   authorizationID?: string;
   importedData?: {
     autoActivateUserAtImport: boolean;
