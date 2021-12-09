@@ -523,6 +523,7 @@ export default class CarStorage {
                 $concat: [
                   `${Utils.buildRestServerURL()}/v1/util/car-catalogs/`,
                   '$carCatalog.id',
+                  '/image',
                   {
                     $ifNull: [{ $concat: ['?LastChangedOn=', { $toString: '$carCatalog.lastChangedOn' }] }, ''] // Only concat 'lastChangedOn' if not null
                   }
