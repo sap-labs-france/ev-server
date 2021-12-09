@@ -65,6 +65,7 @@ export interface TagDataResult extends DataResult<Tag> {
   canUnassign: boolean;
   canAssign: boolean;
   canListUsers: boolean;
+  canListSources: boolean;
 }
 
 export interface TransactionDataResult extends DataResult<Transaction> {
