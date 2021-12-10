@@ -538,6 +538,9 @@ export enum ServerRoute {
 
   REST_TAGS = 'tags',
   REST_TAG = 'tags/:id',
+  REST_TAG_ASSIGN = 'tags/:id/assign',
+  REST_TAG_UNASSIGN = 'tags/:id/unassign',
+  REST_TAGS_UNASSIGN = 'tags/unassign',
   REST_TAGS_IMPORT = 'tags/action/import',
   REST_TAGS_EXPORT = 'tags/action/export',
 
