@@ -12999,6 +12999,61 @@
           }
         }
       }
+    },
+    "/api/billing/taxes": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get billing taxes",
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return billing taxes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "example": "###"
+                      },
+                      "description": {
+                        "type": "string",
+                        "example": "###"
+                      },
+                      "displayName": {
+                        "type": "string",
+                        "example": "###"
+                      },
+                      "percentage": {
+                        "type": "number",
+                        "example": "20"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
     }
   },
   "components": {

@@ -666,7 +666,9 @@ export enum ServerRoute {
 
   // PRICING URLs for CRUD operations
   REST_PRICING_DEFINITIONS = 'pricing-definitions',
-  REST_PRICING_DEFINITION = 'pricing-definitions/:id'
+  REST_PRICING_DEFINITION = 'pricing-definitions/:id',
+
+  REST_BILLING_TAXES = 'billing/taxes',
 }
 
 export enum ServerProtocol {
