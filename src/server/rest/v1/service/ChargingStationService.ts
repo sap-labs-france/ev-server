@@ -1441,7 +1441,7 @@ export default class ChargingStationService {
       return { count: 0, result: [] };
     }
     // Get Charging Stations
-    const chargingStations = await ChargingStationStorage.getChargingStations(req.tenant,
+    return ChargingStationStorage.getChargingStations(req.tenant,
       {
         search: filteredRequest.Search,
         withNoSiteArea: filteredRequest.WithNoSiteArea,
@@ -1467,7 +1467,6 @@ export default class ChargingStationService {
       },
       projectFields
     );
-    return chargingStations;
   }
 
   private static convertOCPPParamsToCSV(ocppParams: OCPPParams, writeHeader = true): string {
@@ -1777,11 +1776,13 @@ export default class ChargingStationService {
     // Save Car selection
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
       if (filteredRequest.carID && filteredRequest.carID !== user.lastSelectedCarID) {
-        await UserStorage.saveUserLastSelectedCarID(req.tenant, user.id, filteredRequest.carID);
+        await UserStorage.saveLastSelectedCarID(req.tenant, user.id, filteredRequest.carID, true);
+      } else {
+        await UserStorage.clearLastSelectedCarID(req.tenant, user.id);
       }
     }
     // Execute it
-    return await chargingStationClient.remoteStartTransaction({
+    return chargingStationClient.remoteStartTransaction({
       connectorId: filteredRequest.args.connectorId,
       idTag: tag.id
     });

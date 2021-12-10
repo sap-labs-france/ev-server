@@ -412,6 +412,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.NOTIFICATION, action: Action.CREATE },
       { resource: Entity.PAYMENT_METHOD, action: Action.LIST },
       { resource: Entity.PAYMENT_METHOD, action: [Action.READ, Action.CREATE, Action.DELETE] },
+      { resource: Entity.SOURCE, action: Action.LIST },
     ]
   },
   basic: {
@@ -1276,6 +1277,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         },
       },
+      { resource: Entity.SOURCE, action: Action.LIST },
     ]
   },
   siteOwner: {

@@ -16,7 +16,6 @@ export default class PricingStorage {
 
   public static async savePricingDefinition(tenant: Tenant, pricingDefinition: PricingDefinition): Promise<string> {
     const uniqueTimerID = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     let entityID;
     if (pricingDefinition.entityType === PricingEntity.CHARGING_STATION) {
@@ -48,7 +47,6 @@ export default class PricingStorage {
 
   public static async deletePricingDefinition(tenant: Tenant, pricingDefinitionID: string): Promise<void> {
     const uniqueTimerID = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete
     await global.database.getCollection<any>(tenant.id, 'pricingdefinitions').deleteOne(
@@ -75,7 +73,6 @@ export default class PricingStorage {
       params: { pricingDefinitionIDs?: string[], entityType?: PricingEntity; entityID?: string; siteIDs?: string[]; withEntityInformation?: boolean; },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<PricingDefinition>> {
     const uniqueTimerID = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);

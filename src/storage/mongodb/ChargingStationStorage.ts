@@ -147,7 +147,6 @@ export default class ChargingStationStorage {
       },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStation>> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -385,7 +384,6 @@ export default class ChargingStationStorage {
       params: { search?: string; siteIDs?: string[]; siteAreaIDs: string[]; errorType?: string[] },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStationInError>> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -502,7 +500,6 @@ export default class ChargingStationStorage {
 
   public static async saveChargingStation(tenant: Tenant, chargingStationToSave: ChargingStation): Promise<string> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Remove old field
     delete chargingStationToSave['registrationStatus'];
@@ -570,7 +567,6 @@ export default class ChargingStationStorage {
 
   public static async saveChargingStationConnectors(tenant: Tenant, id: string, connectors: Connector[], backupConnectors?: Connector[]): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     const updatedProps: any = {};
     // Set connectors
@@ -594,7 +590,6 @@ export default class ChargingStationStorage {
   public static async saveChargingStationOicpData(tenant: Tenant, id: string,
       oicpData: ChargingStationOicpData): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Modify document
     await global.database.getCollection<ChargingStation>(tenant.id, 'chargingstations').findOneAndUpdate(
@@ -611,7 +606,6 @@ export default class ChargingStationStorage {
   public static async saveChargingStationRuntimeData(tenant: Tenant, id: string,
       params: { lastSeen: Date; currentIPAddress?: string | string[]; tokenID?: string; cloudHostIP?: string; cloudHostName?: string; }): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Set data
     // Modify document
@@ -625,7 +619,6 @@ export default class ChargingStationStorage {
   public static async saveChargingStationOcpiData(tenant: Tenant, id: string,
       ocpiData: ChargingStationOcpiData): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Modify document
     await global.database.getCollection<ChargingStation>(tenant.id, 'chargingstations').findOneAndUpdate(
@@ -642,7 +635,6 @@ export default class ChargingStationStorage {
   public static async saveChargingStationRemoteAuthorizations(tenant: Tenant, id: string,
       remoteAuthorizations: RemoteAuthorization[]): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Modify document
     await global.database.getCollection<ChargingStation>(tenant.id, 'chargingstations').findOneAndUpdate(
@@ -658,7 +650,6 @@ export default class ChargingStationStorage {
 
   public static async saveChargingStationFirmwareStatus(tenant: Tenant, id: string, firmwareUpdateStatus: OCPPFirmwareStatus): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Modify document
     await global.database.getCollection<ChargingStation>(tenant.id, 'chargingstations').findOneAndUpdate(
@@ -670,7 +661,6 @@ export default class ChargingStationStorage {
 
   public static async deleteChargingStation(tenant: Tenant, id: string): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete Configuration
     await global.database.getCollection<any>(tenant.id, 'configurations')
@@ -702,7 +692,6 @@ export default class ChargingStationStorage {
 
   static async saveOcppParameters(tenant: Tenant, parameters: ChargingStationOcppParameters): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Modify
     await global.database.getCollection<any>(tenant.id, 'configurations').findOneAndUpdate({
@@ -721,7 +710,6 @@ export default class ChargingStationStorage {
 
   public static async getOcppParameters(tenant: Tenant, id: string): Promise<DataResult<OcppParameter>> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Read DB
     const parametersMDB = await global.database.getCollection<ChargingStationOcppParameters>(tenant.id, 'configurations')
@@ -768,7 +756,6 @@ export default class ChargingStationStorage {
       } = {},
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingProfile>> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -900,7 +887,6 @@ export default class ChargingStationStorage {
 
   public static async saveChargingProfile(tenant: Tenant, chargingProfileToSave: ChargingProfile): Promise<string> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     const chargingProfileFilter: any = {};
     // Build Request
@@ -928,7 +914,6 @@ export default class ChargingStationStorage {
 
   public static async deleteChargingProfile(tenant: Tenant, id: string): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete Charging Profile
     await global.database.getCollection<any>(tenant.id, 'chargingprofiles')
@@ -938,7 +923,6 @@ export default class ChargingStationStorage {
 
   public static async deleteChargingProfiles(tenant: Tenant, chargingStationID: string): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete Charging Profiles
     await global.database.getCollection<any>(tenant.id, 'chargingprofiles')
