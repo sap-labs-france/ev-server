@@ -484,7 +484,6 @@ export default class TagService {
             }, async (error: CSVError) => {
               // Release the lock
               await LockingManager.release(importTagsLock);
-              // Log
               await Logging.logError({
                 tenantID: req.user.tenantID,
                 module: MODULE_NAME, method: 'handleImportTags',
@@ -509,7 +508,6 @@ export default class TagService {
               }
               // Release the lock
               await LockingManager.release(importTagsLock);
-              // Log
               const executionDurationSecs = Utils.truncTo((new Date().getTime() - startTime) / 1000, 2);
               await Logging.logActionsResponse(
                 req.user.tenantID, action,
@@ -557,7 +555,6 @@ export default class TagService {
             parser.on('error', async (error) => {
               // Release the lock
               await LockingManager.release(importTagsLock);
-              // Log
               await Logging.logError({
                 tenantID: req.user.tenantID,
                 module: MODULE_NAME, method: 'handleImportTags',
@@ -576,7 +573,6 @@ export default class TagService {
           } else {
             // Release the lock
             await LockingManager.release(importTagsLock);
-            // Log
             await Logging.logError({
               tenantID: req.user.tenantID,
               module: MODULE_NAME, method: 'handleImportTags',

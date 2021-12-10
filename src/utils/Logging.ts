@@ -265,7 +265,6 @@ export default class Logging {
       const sizeOfRequestDataKB = Utils.truncTo(Utils.createDecimal(
         sizeof({ headers: req.headers, query: req.query, body: req.body })
       ).div(1024).toNumber(), 2);
-      // Log
       const message = `Express HTTP Request << Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB << ${req.method} '${req.url}'`;
       Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
       await Logging.logDebug({
@@ -306,81 +305,78 @@ export default class Logging {
   public static traceExpressResponse(req: Request, res: Response, next: NextFunction): void {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     res.on('finish', async () => {
-      try {
-        // Get Tenant info
-        const tenantID = req['tenantID'] as string;
-        // Compute duration
-        let executionDurationMillis = 0;
-        if (req['timestamp']) {
-          executionDurationMillis = (new Date().getTime() - req['timestamp'].getTime());
-        }
-        let sizeOfResponseDataKB = 0;
-        if (res.getHeader('content-length')) {
-          sizeOfResponseDataKB = Utils.truncTo(
-            Utils.createDecimal(res.getHeader('content-length') as number).div(1024).toNumber(), 2);
-        }
-        const message = `Express HTTP Response >> ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB >> ${req.method}/${res.statusCode} '${req.url}'`;
-        Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
-        if (sizeOfResponseDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
-          const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB} KB, got ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB`);
-          await Logging.logWarning({
-            tenantID,
-            action: ServerAction.PERFORMANCES,
-            module: MODULE_NAME, method: 'logExpressResponse',
-            message: `${message}: ${error.message}`,
-            detailedMessages: { error: error.stack }
-          });
-          if (Utils.isDevelopmentEnv()) {
-            Logging.logConsoleWarning('====================================');
-            Logging.logConsoleWarning(`Tenant ID '${tenantID}'`);
-            Logging.logConsoleWarning(error.stack);
-            Logging.logConsoleWarning(message);
-            Logging.logConsoleWarning('====================================');
-          }
-        }
-        if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
-          const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms, got ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms`);
-          await Logging.logWarning({
-            tenantID,
-            action: ServerAction.PERFORMANCES,
-            module: MODULE_NAME, method: 'logExpressResponse',
-            message: `${message}: ${error.message}`,
-            detailedMessages: { error: error.stack }
-          });
-          if (Utils.isDevelopmentEnv()) {
-            Logging.logConsoleWarning('====================================');
-            Logging.logConsoleWarning(`Tenant ID '${tenantID}'`);
-            Logging.logConsoleWarning(error.stack);
-            Logging.logConsoleWarning(message);
-            Logging.logConsoleWarning('====================================');
-          }
-        }
-        await Logging.logDebug({
-          tenantID: tenantID,
-          user: req.user,
-          action: ServerAction.HTTP_RESPONSE,
-          message,
+      // Get Tenant info
+      const tenantID = req['tenantID'] as string;
+      // Compute duration
+      let executionDurationMillis = 0;
+      if (req['timestamp']) {
+        executionDurationMillis = (new Date().getTime() - req['timestamp'].getTime());
+      }
+      let sizeOfResponseDataKB = 0;
+      if (res.getHeader('content-length')) {
+        sizeOfResponseDataKB = Utils.truncTo(
+          Utils.createDecimal(res.getHeader('content-length') as number).div(1024).toNumber(), 2);
+      }
+      const message = `Express HTTP Response >> ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB >> ${req.method}/${res.statusCode} '${req.url}'`;
+      Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
+      if (sizeOfResponseDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
+        const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB} KB, got ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB`);
+        await Logging.logWarning({
+          tenantID,
+          action: ServerAction.PERFORMANCES,
           module: MODULE_NAME, method: 'logExpressResponse',
-          detailedMessages: {
-            request: req.url,
-            status: res.statusCode,
-            statusMessage: res.statusMessage,
-            headers: res.getHeaders(),
-          }
+          message: `${message}: ${error.message}`,
+          detailedMessages: { error: error.stack }
         });
-        if (req['performanceID']) {
-          const performanceRecord = {
-            id: req['performanceID'],
-            httpResponseCode: res.statusCode,
-            durationMs: executionDurationMillis,
-            resSizeKb: sizeOfResponseDataKB,
-          } as PerformanceRecord;
-          await PerformanceStorage.updatePerformanceRecord(performanceRecord);
+        if (Utils.isDevelopmentEnv()) {
+          Logging.logConsoleWarning('====================================');
+          Logging.logConsoleWarning(`Tenant ID '${tenantID}'`);
+          Logging.logConsoleWarning(error.stack);
+          Logging.logConsoleWarning(message);
+          Logging.logConsoleWarning('====================================');
         }
-      } finally {
-        next();
+      }
+      if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
+        const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms, got ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms`);
+        await Logging.logWarning({
+          tenantID,
+          action: ServerAction.PERFORMANCES,
+          module: MODULE_NAME, method: 'logExpressResponse',
+          message: `${message}: ${error.message}`,
+          detailedMessages: { error: error.stack }
+        });
+        if (Utils.isDevelopmentEnv()) {
+          Logging.logConsoleWarning('====================================');
+          Logging.logConsoleWarning(`Tenant ID '${tenantID}'`);
+          Logging.logConsoleWarning(error.stack);
+          Logging.logConsoleWarning(message);
+          Logging.logConsoleWarning('====================================');
+        }
+      }
+      await Logging.logDebug({
+        tenantID: tenantID,
+        user: req.user,
+        action: ServerAction.HTTP_RESPONSE,
+        message,
+        module: MODULE_NAME, method: 'logExpressResponse',
+        detailedMessages: {
+          request: req.url,
+          status: res.statusCode,
+          statusMessage: res.statusMessage,
+          headers: res.getHeaders(),
+        }
+      });
+      if (req['performanceID']) {
+        const performanceRecord = {
+          id: req['performanceID'],
+          httpResponseCode: res.statusCode,
+          durationMs: executionDurationMillis,
+          resSizeKb: sizeOfResponseDataKB,
+        } as PerformanceRecord;
+        await PerformanceStorage.updatePerformanceRecord(performanceRecord);
       }
     });
+    next();
   }
 
   public static async traceExpressError(error: Error, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -716,7 +712,6 @@ export default class Logging {
         'stack': exception.stack,
       };
     }
-    // Log
     await Logging.logError({
       tenantID: tenantID,
       chargingStationID: exception.params.chargingStationID,
@@ -745,7 +740,6 @@ export default class Logging {
         'stack': exception.stack,
       };
     }
-    // Log
     await Logging.logError({
       tenantID: tenantID,
       chargingStationID: exception.params.chargingStationID,
@@ -764,7 +758,6 @@ export default class Logging {
 
   // Used to check URL params (not in catch)
   private static async _logActionAppAuthExceptionMessage(tenantID: string, action: ServerAction, exception: AppAuthError, detailedMessages = {}): Promise<void> {
-    // Log
     await Logging.logError({
       tenantID: tenantID,
       user: exception.params.user,
@@ -828,7 +821,6 @@ export default class Logging {
     }
   }
 
-  // Log
   private static async _log(log: Log): Promise<string> {
     let moduleConfig = null;
     // Check Log Level
@@ -903,7 +895,6 @@ export default class Logging {
     }
     // Source
     log.source = global.serverType ?? ServerType.CENTRAL_SERVER;
-    // Log
     return LoggingStorage.saveLog(log.tenantID, log);
   }
 
@@ -971,7 +962,6 @@ export default class Logging {
       }
       return message;
     }
-    // Log
     await Logging.logError({
       tenantID: Constants.DEFAULT_TENANT,
       module: MODULE_NAME,
