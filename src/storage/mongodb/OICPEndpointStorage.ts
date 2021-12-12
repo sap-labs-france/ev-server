@@ -22,7 +22,6 @@ export default class OICPEndpointStorage {
 
   static async saveOicpEndpoint(tenant: Tenant, oicpEndpointToSave: OICPEndpoint): Promise<string> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Check if name is provided
     if (!oicpEndpointToSave.name) {
@@ -72,7 +71,6 @@ export default class OICPEndpointStorage {
       params: { search?: string; role?: string; oicpEndpointIDs?: string[]; localToken?: string },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<OICPEndpoint>> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -159,7 +157,6 @@ export default class OICPEndpointStorage {
 
   static async deleteOicpEndpoint(tenant: Tenant, id: string): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete OicpEndpoint
     await global.database.getCollection<any>(tenant.id, 'oicpendpoints')
@@ -169,7 +166,6 @@ export default class OICPEndpointStorage {
 
   static async deleteOicpEndpoints(tenant: Tenant): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete OicpEndpoint
     await global.database.getCollection<any>(tenant.id, 'oicpendpoints').deleteMany({});

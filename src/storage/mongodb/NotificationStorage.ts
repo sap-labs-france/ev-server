@@ -17,7 +17,6 @@ export default class NotificationStorage {
         sourceDescr?: string; additionalFilters?: any; chargeBoxID?: string },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Notification>> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -122,7 +121,6 @@ export default class NotificationStorage {
 
   static async saveNotification(tenant: Tenant, notificationToSave: Partial<Notification>): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     const ocpiEndpointMDB: any = {
       _id: Utils.hash(`${notificationToSave.sourceId}~${notificationToSave.channel}`),

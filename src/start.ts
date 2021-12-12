@@ -80,7 +80,6 @@ export default class Bootstrap {
       }
       // Connect to the Database
       await Bootstrap.database.start();
-      // Log
       await this.logDuration(startTimeMillis, 'Connected to the Database successfully');
 
       // -------------------------------------------------------------------------
@@ -90,7 +89,6 @@ export default class Bootstrap {
         startTimeMillis = await this.logAndGetStartTimeMillis('Migration is starting...');
         // Check and trigger migration (only master process can run the migration)
         await MigrationHandler.migrate();
-        // Log
         await this.logDuration(startTimeMillis, 'Migration has been run successfully');
       }
       // Listen to promise failure
@@ -112,7 +110,6 @@ export default class Bootstrap {
       startTimeMillis = await this.logAndGetStartTimeMillis('Server is starting...');
       // Start the Servers
       serverStarted = await Bootstrap.startServersListening();
-      // Log
       await this.logDuration(startTimeMillis, `Server ${serverStarted.join(', ')} has been started successfully`);
 
       // -------------------------------------------------------------------------
@@ -121,7 +118,6 @@ export default class Bootstrap {
       startTimeMillis = await this.logAndGetStartTimeMillis('Scheduler is starting...');
       // Start the Scheduler
       await SchedulerManager.init();
-      // Log
       await this.logDuration(startTimeMillis, 'Scheduler has been started successfully');
 
       // -------------------------------------------------------------------------
@@ -130,7 +126,6 @@ export default class Bootstrap {
       startTimeMillis = await this.logAndGetStartTimeMillis('Async Task manager is starting...');
       // Start the Async Manager
       await AsyncTaskManager.init();
-      // Log
       await this.logDuration(startTimeMillis, 'Async Task manager has been started successfully');
 
       // Update of manually uploaded data
@@ -141,7 +136,6 @@ export default class Bootstrap {
         startTimeMillis = await this.logAndGetStartTimeMillis('Charging Station templates is being updated...');
         // Load and Save the Charging Station templates
         await ChargingStationTemplateBootstrap.uploadChargingStationTemplatesFromFile();
-        // Log
         await this.logDuration(startTimeMillis, 'Charging Station templates have been updated successfully');
 
         // -------------------------------------------------------------------------
@@ -150,7 +144,6 @@ export default class Bootstrap {
         startTimeMillis = await this.logAndGetStartTimeMillis('Local car catalogs are being imported...');
         // Load and Save the Charging Station templates
         await LocalCarCatalogBootstrap.uploadLocalCarCatalogsFromFile();
-        // Log
         await this.logDuration(startTimeMillis, 'Local car catalogs has been imported successfully');
       }
 
@@ -160,7 +153,6 @@ export default class Bootstrap {
       } else {
         global.serverType = ServerType.CENTRAL_SERVER;
       }
-      // Log
       await this.logDuration(startTimeGlobalMillis, `${serverStarted.join(', ')} server has been started successfuly`, ServerAction.BOOTSTRAP_STARTUP);
     } catch (error) {
       Logging.logConsoleError(error);

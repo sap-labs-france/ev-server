@@ -13,7 +13,6 @@ const MODULE_NAME = 'OCPPStorage';
 export default class OCPPStorage {
   public static async saveAuthorize(tenant: Tenant, authorize: OCPPAuthorizeRequestExtended): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     const timestamp = Utils.convertToDate(authorize.timestamp);
     const authorizeMDB: any = {
@@ -34,7 +33,6 @@ export default class OCPPStorage {
   public static async getAuthorizes(tenant: Tenant, params: {dateFrom?: Date; chargeBoxID?: string; tagID?: string},
       dbParams: DbParams): Promise<DataResult<OCPPAuthorizeRequestExtended>> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -98,7 +96,6 @@ export default class OCPPStorage {
 
   public static async saveHeartbeat(tenant: Tenant, heartbeat: OCPPHeartbeatRequestExtended): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     const timestamp = Utils.convertToDate(heartbeat.timestamp);
     // Insert
@@ -117,7 +114,6 @@ export default class OCPPStorage {
       params: { dateFrom?: Date; chargeBoxID?: string; connectorId?: number; status?: string },
       dbParams: DbParams): Promise<DataResult<OCPPStatusNotificationRequestExtended>> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -186,7 +182,6 @@ export default class OCPPStorage {
       params: { dateBefore?: string; chargeBoxID?: string; connectorId?: number; status?: string }):
       Promise<OCPPStatusNotificationRequestExtended[]> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Set the filters
     const filters: FilterParams = {};
@@ -233,7 +228,6 @@ export default class OCPPStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     // Set
     const timestamp = Utils.convertToDate(statusNotificationToSave.timestamp);
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     const statusNotificationMDB: any = {
       _id: Utils.hash(`${statusNotificationToSave.chargeBoxID}~${statusNotificationToSave.connectorId}~${statusNotificationToSave.status}~${timestamp.toISOString()}`),
@@ -255,7 +249,6 @@ export default class OCPPStorage {
 
   public static async saveDataTransfer(tenant: Tenant, dataTransfer: OCPPDataTransferRequestExtended): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     const timestamp = Utils.convertToDate(dataTransfer.timestamp);
     // Insert
@@ -275,7 +268,6 @@ export default class OCPPStorage {
 
   public static async saveBootNotification(tenant: Tenant, bootNotification: OCPPBootNotificationRequestExtended): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     const timestamp = Utils.convertToDate(bootNotification.timestamp);
     // Insert
@@ -300,7 +292,6 @@ export default class OCPPStorage {
   public static async getBootNotifications(tenant: Tenant, params: {chargeBoxID?: string},
       dbParams: DbParams): Promise<DataResult<OCPPBootNotificationRequestExtended>> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -356,7 +347,6 @@ export default class OCPPStorage {
 
   public static async saveDiagnosticsStatusNotification(tenant: Tenant, diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequestExtended): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     const timestamp = Utils.convertToDate(diagnosticsStatusNotification.timestamp);
     // Insert
@@ -374,7 +364,6 @@ export default class OCPPStorage {
 
   public static async saveFirmwareStatusNotification(tenant: Tenant, firmwareStatusNotification: OCPPFirmwareStatusNotificationRequestExtended): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     const timestamp = Utils.convertToDate(firmwareStatusNotification.timestamp);
     // Insert
@@ -414,7 +403,6 @@ export default class OCPPStorage {
   public static async getMeterValues(tenant: Tenant, params: { transactionId: number },
       dbParams: DbParams): Promise<DataResult<OCPPNormalizedMeterValue>> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);

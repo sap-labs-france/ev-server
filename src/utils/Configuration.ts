@@ -48,7 +48,11 @@ export default class Configuration {
   }
 
   public static getFirebaseConfig(): FirebaseConfiguration {
-    return Configuration.getConfig().Firebase;
+    const firebaseConfiguration = Configuration.getConfig().Firebase;
+    if (firebaseConfiguration.privateKey) {
+      firebaseConfiguration.privateKey = firebaseConfiguration.privateKey.replace(/\\n/g, '\n');
+    }
+    return firebaseConfiguration;
   }
 
   public static getCentralSystemsConfig(): CentralSystemConfiguration[] {
