@@ -657,6 +657,8 @@ export enum ServerRoute {
   REST_BILLING_CHECK = 'billing/check',
   REST_BILLING_CLEAR_TEST_DATA = 'billing/clearTestData',
 
+  REST_BILLING_TAXES = 'billing/taxes',
+
   // BILLING URLs for CRUD operations on INVOICES
   REST_BILLING_INVOICES = 'invoices',
   REST_BILLING_INVOICE = 'invoices/:invoiceID',
