@@ -17,7 +17,6 @@ import chalk from 'chalk';
 const MODULE_NAME = 'RepairTransactionPricedAtZero';
 
 export default class RepairTransactionPricedAtZero extends TenantMigrationTask {
-
   pricingSettings: PricingSettings;
 
   private async loadSimplePricingSettings(tenant: Tenant): Promise<void> {
