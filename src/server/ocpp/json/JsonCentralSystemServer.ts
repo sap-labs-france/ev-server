@@ -97,9 +97,9 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       res.end('OK');
     }).listen(this.centralSystemConfig.port, (token) => {
       if (token) {
-        this.isDebug() && Logging.logConsoleDebug(`${ServerType.JSON_SERVER} Server listening on 'http://${this.centralSystemConfig.host}:${this.centralSystemConfig.port}'`);
+        Logging.logConsoleDebug(`${ServerType.JSON_SERVER} Server listening on 'http://${this.centralSystemConfig.host}:${this.centralSystemConfig.port}'`);
       } else {
-        this.isDebug() && Logging.logConsoleDebug(`${ServerType.JSON_SERVER} Server failed to listen on 'http://${this.centralSystemConfig.host}:${this.centralSystemConfig.port}'`);
+        Logging.logConsoleError(`${ServerType.JSON_SERVER} Server failed to listen on 'http://${this.centralSystemConfig.host}:${this.centralSystemConfig.port}'`);
       }
     });
   }
@@ -518,19 +518,18 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         }
       }
     }
-    // Log
     if (validConnections.length || invalidConnections.length) {
       const message = `${validConnections.length} ${type} valid WS Connection pinged (${invalidConnections.length} invalid)`;
       this.isDebug() && Logging.logConsoleDebug(message);
       if (invalidConnections.length) {
-        void Logging.logError({
+        await Logging.logError({
           tenantID: Constants.DEFAULT_TENANT,
           module: MODULE_NAME, method: 'checkAndCleanupWebSocket',
           action: ServerAction.WS_CONNECTION_PINGED,
           message, detailedMessages: { validConnections, invalidConnections }
         });
       } else {
-        void Logging.logInfo({
+        await Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT,
           module: MODULE_NAME, method: 'checkAndCleanupWebSocket',
           action: ServerAction.WS_CONNECTION_PINGED,

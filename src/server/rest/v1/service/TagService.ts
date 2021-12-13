@@ -275,7 +275,7 @@ export default class TagService {
 
   public static async handleUpdateTagByVisualID(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = TagValidator.getInstance().validateTagVisualIDUpdateReq({ ...req.params, ...req.body });
+    const filteredRequest = TagValidator.getInstance().validateTagVisualIDUpdateReq(req.body);
     // Check and Get Tag
     const tag = await UtilsService.checkAndGetTagByVisualIDAuthorization(req.tenant, req.user, filteredRequest.visualID, Action.UPDATE_BY_VISUAL_ID, action,
       filteredRequest, { withNbrTransactions: true, withUser: true });
@@ -484,7 +484,6 @@ export default class TagService {
             }, async (error: CSVError) => {
               // Release the lock
               await LockingManager.release(importTagsLock);
-              // Log
               await Logging.logError({
                 tenantID: req.user.tenantID,
                 module: MODULE_NAME, method: 'handleImportTags',
@@ -509,7 +508,6 @@ export default class TagService {
               }
               // Release the lock
               await LockingManager.release(importTagsLock);
-              // Log
               const executionDurationSecs = Utils.truncTo((new Date().getTime() - startTime) / 1000, 2);
               await Logging.logActionsResponse(
                 req.user.tenantID, action,
@@ -557,7 +555,6 @@ export default class TagService {
             parser.on('error', async (error) => {
               // Release the lock
               await LockingManager.release(importTagsLock);
-              // Log
               await Logging.logError({
                 tenantID: req.user.tenantID,
                 module: MODULE_NAME, method: 'handleImportTags',
@@ -576,7 +573,6 @@ export default class TagService {
           } else {
             // Release the lock
             await LockingManager.release(importTagsLock);
-            // Log
             await Logging.logError({
               tenantID: req.user.tenantID,
               module: MODULE_NAME, method: 'handleImportTags',

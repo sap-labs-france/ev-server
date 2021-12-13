@@ -37,7 +37,7 @@ export default class RegistrationTokenStorage {
   }
 
   static async getRegistrationTokens(tenant: Tenant,
-      params: { tokenIDs?: string[]; siteIDs?: string[]; siteAreaID?: string } = {}, dbParams: DbParams, projectFields?: string[]):
+      params: { search?: string; tokenIDs?: string[]; siteIDs?: string[]; siteAreaID?: string } = {}, dbParams: DbParams, projectFields?: string[]):
       Promise<DataResult<RegistrationToken>> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
@@ -56,6 +56,17 @@ export default class RegistrationTokenStorage {
     });
     // Set the filters
     const filters: FilterParams = {};
+    // Search
+    if (params.search) {
+      filters.$or = [
+        { 'description': { $regex: params.search, $options: 'i' } },
+      ];
+      if (DatabaseUtils.isObjectID(params.search)) {
+        filters.$or.push(
+          { '_id': DatabaseUtils.convertToObjectID(params.search) },
+        );
+      }
+    }
     // Build filter
     if (params.siteAreaID) {
       filters.siteAreaID = DatabaseUtils.convertToObjectID(params.siteAreaID);

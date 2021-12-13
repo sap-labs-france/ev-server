@@ -13,6 +13,7 @@ import OCPIEndpointRouter from './api/OCPIEndpointRouter';
 import OICPEndpointRouter from './api/OICPEndpointRouter';
 import PricingRouter from './api/PricingRouter';
 import RegistrationTokenRouter from './api/RegistrationTokenRouter';
+import SessionHashService from '../service/SessionHashService';
 import SettingRouter from './api/SettingRouter';
 import SiteAreaRouter from './api/SiteAreaRouter';
 import SiteRouter from './api/SiteRouter';
@@ -47,7 +48,7 @@ export default class GlobalRouter {
   protected buildRouteAPI(): void {
     this.router.use('/api',
       AuthService.authenticate(),
-      AuthService.checkSessionHash.bind(this),
+      SessionHashService.checkUserAndTenantValidity.bind(this),
       Logging.traceExpressRequest.bind(this),
       [
         new AssetRouter().buildRoutes(),

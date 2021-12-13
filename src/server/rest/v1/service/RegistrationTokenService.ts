@@ -227,6 +227,7 @@ export default class RegistrationTokenService {
     // Get the tokens
     const registrationTokens = await RegistrationTokenStorage.getRegistrationTokens(req.tenant,
       {
+        search: filteredRequest.Search,
         siteAreaID: filteredRequest.SiteAreaID,
         siteIDs: Authorizations.getAuthorizedSiteAdminIDs(req.user, null),
       },
