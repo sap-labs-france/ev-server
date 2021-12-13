@@ -504,13 +504,13 @@ export default class AuthorizationService {
     siteArea.canAssignAssets = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.SITE_AREA, Action.ASSIGN_ASSETS_TO_SITE_AREA, authorizationFilter, { SiteAreaID: siteArea.id, SiteID: siteArea.siteID }, siteArea);
     siteArea.canUnassignAssets = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.SITE_AREA, Action.UNASSIGN_ASSETS_TO_SITE_AREA, authorizationFilter, { SiteAreaID: siteArea.id, SiteID: siteArea.siteID }, siteArea);
+      tenant, userToken, Entity.SITE_AREA, Action.UNASSIGN_ASSETS_FROM_SITE_AREA, authorizationFilter, { SiteAreaID: siteArea.id, SiteID: siteArea.siteID }, siteArea);
     siteArea.canReadAssets = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.SITE_AREA, Action.READ_ASSETS_FROM_SITE_AREA, authorizationFilter, { SiteAreaID: siteArea.id, SiteID: siteArea.siteID }, siteArea);
     siteArea.canAssignChargingStations = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.SITE_AREA, Action.ASSIGN_CHARGING_STATIONS_TO_SITE_AREA, authorizationFilter, { SiteAreaID: siteArea.id, SiteID: siteArea.siteID }, siteArea);
     siteArea.canUnassignChargingStations = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.SITE_AREA, Action.UNASSIGN_CHARGING_STATIONS_TO_SITE_AREA, authorizationFilter, { SiteAreaID: siteArea.id, SiteID: siteArea.siteID }, siteArea);
+      tenant, userToken, Entity.SITE_AREA, Action.UNASSIGN_CHARGING_STATIONS_FROM_SITE_AREA, authorizationFilter, { SiteAreaID: siteArea.id, SiteID: siteArea.siteID }, siteArea);
     siteArea.canReadChargingStations = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.SITE_AREA, Action.READ_CHARGING_STATIONS_FROM_SITE_AREA, authorizationFilter, { SiteAreaID: siteArea.id, SiteID: siteArea.siteID }, siteArea);
     siteArea.canExportOCPPParams = await AuthorizationService.canPerformAuthorizationAction(
