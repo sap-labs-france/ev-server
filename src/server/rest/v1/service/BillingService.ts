@@ -491,7 +491,7 @@ export default class BillingService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.BILLING_SETUP_PAYMENT_METHOD, Entity.BILLING, MODULE_NAME, 'handleSetupSetupPaymentMethod');
     // Filter
-    const filteredRequest = BillingSecurity.filterSetupPaymentMethodRequest(req.body);
+    const filteredRequest = BillingValidator.getInstance().validateBillingSetupUserPaymentMethodReq(req.body);
     if (!await Authorizations.canCreatePaymentMethod(req.user, filteredRequest.userID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,

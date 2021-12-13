@@ -1,6 +1,6 @@
 {
   "$id": "billing-delete-payment-method",
-  "title": "Dele user payment method Request",
+  "title": "Delete user payment method Request",
   "type": "object",
   "properties": {
     "userID": {
