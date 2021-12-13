@@ -555,11 +555,12 @@ describe('Setting', function() {
       it('Should be able to update a setting', async () => {
         const read = await testData.centralService.settingApi.readByIdentifier({ 'Identifier': 'pricing' });
         const oldPricingType = read.data.content.type;
-        read.data.content.type = 'simple';
+        // Update the setting
+        read.data.content.type = 'convergentCharging';
         let update = await testData.centralService.settingApi.update(read.data);
         expect(update.status).to.equal(StatusCodes.OK);
         let readUpdated = await testData.centralService.settingApi.readByIdentifier({ 'Identifier': 'pricing' });
-        expect(readUpdated.data.content.type).to.equal('simple');
+        expect(readUpdated.data.content.type).to.equal('convergentCharging');
         // Set back the setting's type
         read.data.content.type = oldPricingType;
         update = await testData.centralService.settingApi.update(read.data);
