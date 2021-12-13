@@ -151,7 +151,7 @@ export default class SettingService {
       });
     }
     // Filter
-    const filteredRequest = SettingService.filterSetting(action, req) as SettingDB;
+    const filteredRequest = SettingService.filterSetting(action, req);
     // Process the sensitive data if any
     await Cypher.encryptSensitiveDataInJSON(req.tenant, filteredRequest);
     // Update timestamp
@@ -173,7 +173,7 @@ export default class SettingService {
 
   public static async handleUpdateSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     UtilsService.assertIdIsProvided(action, req.body.id, MODULE_NAME, 'handleUpdateSetting', req.user);
-    const filteredRequest = SettingService.filterSetting(action, req) as SettingDB;
+    const filteredRequest = SettingService.filterSetting(action, req);
     // Check auth
     if (!await Authorizations.canUpdateSetting(req.user)) {
       throw new AppAuthError({
@@ -296,7 +296,7 @@ export default class SettingService {
     next();
   }
 
-  private static filterSetting(action: ServerAction, req: Request) {
+  private static filterSetting(action: ServerAction, req: Request): SettingDB {
     switch (req.body.identifier) {
       // Filter
       case IntegrationSettings.OCPI:
