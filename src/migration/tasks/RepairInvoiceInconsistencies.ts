@@ -2,23 +2,16 @@ import BillingFactory from '../../integration/billing/BillingFactory';
 import BillingStorage from '../../storage/mongodb/BillingStorage';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import MigrationTask from '../MigrationTask';
 import { ServerAction } from '../../types/Server';
 import StripeBillingIntegration from '../../integration/billing/stripe/StripeBillingIntegration';
 import Tenant from '../../types/Tenant';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
+import TenantMigrationTask from '../TenantMigrationTask';
 import Utils from '../../utils/Utils';
 // import moment from 'moment';
 
 const MODULE_NAME = 'RepairInvoiceInconsistencies';
 
-export default class RepairInvoiceInconsistencies extends MigrationTask {
-  async migrate(): Promise<void> {
-    const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
-    for (const tenant of tenants.result) {
-      await this.migrateTenant(tenant);
-    }
-  }
+export default class RepairInvoiceInconsistencies extends TenantMigrationTask {
 
   async migrateTenant(tenant: Tenant): Promise<void> {
     try {
@@ -41,7 +34,6 @@ export default class RepairInvoiceInconsistencies extends MigrationTask {
         detailedMessages: { error: error.stack }
       });
     }
-
   }
 
   getVersion(): string {
