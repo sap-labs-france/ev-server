@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/member-ordering */
 import { PricingSettings, PricingSettingsType } from '../../types/Setting';
 import Tenant, { TenantComponents } from '../../types/Tenant';
 import global, { ActionsResponse } from '../../types/GlobalType';
@@ -18,43 +17,6 @@ const MODULE_NAME = 'RepairTransactionPricedAtZero';
 
 export default class RepairTransactionPricedAtZero extends TenantMigrationTask {
   pricingSettings: PricingSettings;
-
-  private async loadSimplePricingSettings(tenant: Tenant): Promise<void> {
-    if (Utils.isTenantComponentActive(tenant, TenantComponents.PRICING)) {
-      const pricingSettings = await SettingStorage.getPricingSettings(tenant);
-      if (pricingSettings?.type === PricingSettingsType.SIMPLE) {
-        this.pricingSettings = pricingSettings;
-      }
-    }
-  }
-
-  private async priceAllConsumptionsAgain(tenant: Tenant, transaction: Transaction): Promise<void> {
-    const pricePerkWh = this.pricingSettings.simple.price;
-    let cumulatedPrice = 0;
-    // Get the consumptions
-    const consumptionDataResult = await ConsumptionStorage.getTransactionConsumptions(tenant, { transactionId: transaction.id });
-    const consumptions = consumptionDataResult.result;
-    for (const consumption of consumptions) {
-      // Update the price
-      const amount = Utils.computeSimplePrice(pricePerkWh, consumption.consumptionWh);
-      cumulatedPrice = Utils.createDecimal(cumulatedPrice).plus(amount).toNumber();
-      consumption.amount = amount;
-      consumption.roundedAmount = Utils.truncTo(amount, 2);
-      consumption.cumulatedAmount = cumulatedPrice;
-      // Update the consumption
-      await ConsumptionStorage.saveConsumption(tenant, consumption);
-    }
-  }
-
-  private async priceTransactionAgain(tenant: Tenant, transaction: Transaction): Promise<void> {
-    const pricePerkWh = this.pricingSettings.simple.price;
-    // Apply simple pricing logic
-    const price = Utils.createDecimal(transaction.stop.totalConsumptionWh).mul(pricePerkWh).div(1000).toNumber();
-    transaction.stop.price = price;
-    transaction.stop.roundedPrice = Utils.truncTo(price, 2);
-    // Save
-    await TransactionStorage.saveTransaction(tenant, transaction);
-  }
 
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   public async migrateTenant(tenant: Tenant) {
@@ -148,5 +110,42 @@ export default class RepairTransactionPricedAtZero extends TenantMigrationTask {
 
   public isAsynchronous(): boolean {
     return true;
+  }
+
+  private async loadSimplePricingSettings(tenant: Tenant): Promise<void> {
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.PRICING)) {
+      const pricingSettings = await SettingStorage.getPricingSettings(tenant);
+      if (pricingSettings?.type === PricingSettingsType.SIMPLE) {
+        this.pricingSettings = pricingSettings;
+      }
+    }
+  }
+
+  private async priceAllConsumptionsAgain(tenant: Tenant, transaction: Transaction): Promise<void> {
+    const pricePerkWh = this.pricingSettings.simple.price;
+    let cumulatedPrice = 0;
+    // Get the consumptions
+    const consumptionDataResult = await ConsumptionStorage.getTransactionConsumptions(tenant, { transactionId: transaction.id });
+    const consumptions = consumptionDataResult.result;
+    for (const consumption of consumptions) {
+      // Update the price
+      const amount = Utils.computeSimplePrice(pricePerkWh, consumption.consumptionWh);
+      cumulatedPrice = Utils.createDecimal(cumulatedPrice).plus(amount).toNumber();
+      consumption.amount = amount;
+      consumption.roundedAmount = Utils.truncTo(amount, 2);
+      consumption.cumulatedAmount = cumulatedPrice;
+      // Update the consumption
+      await ConsumptionStorage.saveConsumption(tenant, consumption);
+    }
+  }
+
+  private async priceTransactionAgain(tenant: Tenant, transaction: Transaction): Promise<void> {
+    const pricePerkWh = this.pricingSettings.simple.price;
+    // Apply simple pricing logic
+    const price = Utils.createDecimal(transaction.stop.totalConsumptionWh).mul(pricePerkWh).div(1000).toNumber();
+    transaction.stop.price = price;
+    transaction.stop.roundedPrice = Utils.truncTo(price, 2);
+    // Save
+    await TransactionStorage.saveTransaction(tenant, transaction);
   }
 }
