@@ -303,7 +303,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       { resource: Entity.PRICING, action: [Action.READ, Action.UPDATE] },
       { resource: Entity.PRICING_DEFINITION, action: [Action.LIST],
-        attributes: ['id', 'entityID', 'entityType', 'name', 'description', 'entityName',
+        attributes: [
+          'id', 'entityID', 'entityType', 'name', 'description', 'entityName',
           'staticRestrictions.validFrom', 'staticRestrictions.validTo', 'staticRestrictions.connectorType', 'staticRestrictions.connectorPowerkW',
           'restrictions.daysOfWeek', 'restrictions.timeFrom', 'restrictions.timeTo',
           'restrictions.minEnergyKWh', 'restrictions.maxEnergyKWh', 'restrictions.minDurationSecs', 'restrictions.maxDurationSecs',
@@ -314,7 +315,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       { resource: Entity.PRICING_DEFINITION, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE],
-        attributes: ['id', 'entityID', 'entityType', 'name', 'description', 'entityName',
+        attributes: [
+          'id', 'entityID', 'entityType', 'name', 'description', 'entityName',
           'staticRestrictions.validFrom', 'staticRestrictions.validTo', 'staticRestrictions.connectorType', 'staticRestrictions.connectorPowerkW',
           'restrictions.daysOfWeek', 'restrictions.timeFrom', 'restrictions.timeTo',
           'restrictions.minEnergyKWh', 'restrictions.maxEnergyKWh', 'restrictions.minDurationSecs', 'restrictions.maxDurationSecs',
@@ -346,8 +348,21 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       { resource: Entity.SETTING, action: Action.LIST },
       { resource: Entity.SETTING, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE] },
-      { resource: Entity.TOKEN, action: Action.LIST },
-      { resource: Entity.TOKEN, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE] },
+      {
+        resource: Entity.REGISTRATION_TOKEN, action: Action.LIST,
+        attributes: [
+          'id', 'status', 'description', 'createdOn', 'lastChangedOn', 'expirationDate', 'revocationDate',
+          'siteAreaID', 'siteArea.name', 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
+        ]
+      },
+      {
+        resource: Entity.REGISTRATION_TOKEN, action: [Action.READ, Action.CREATE, Action.UPDATE],
+        attributes: [
+          'id', 'status', 'description', 'createdOn', 'lastChangedOn', 'expirationDate', 'revocationDate',
+          'siteAreaID', 'siteArea.name', 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
+        ]
+      },
+      { resource: Entity.REGISTRATION_TOKEN, action: [Action.DELETE, Action.REVOKE] },
       { resource: Entity.OCPI_ENDPOINT, action: Action.LIST },
       {
         resource: Entity.OCPI_ENDPOINT,
@@ -1167,11 +1182,62 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'user.name', 'user.firstName', 'actionOnUser.name', 'actionOnUser.firstName', 'hasDetailedMessages', 'detailedMessages'
         ]
       },
-      { resource: Entity.TOKEN, action: Action.LIST },
       {
-        resource: Entity.TOKEN,
-        action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE],
-        args: { 'sites': '$.site' }
+        resource: Entity.REGISTRATION_TOKEN, action: Action.LIST,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdmin'],
+            metadata: {
+              siteAreaID: {
+                mandatory: true,
+              }
+            }
+          }
+        },
+        attributes: [
+          'id', 'status', 'description', 'createdOn', 'lastChangedOn', 'expirationDate', 'revocationDate',
+          'siteAreaID', 'siteArea.name', 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
+        ]
+      },
+      {
+        resource: Entity.REGISTRATION_TOKEN, action: [Action.READ],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdmin'],
+          }
+        },
+        attributes: [
+          'id', 'status', 'description', 'createdOn', 'lastChangedOn', 'expirationDate', 'revocationDate',
+          'siteAreaID', 'siteArea.name', 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
+        ]
+      },
+      {
+        resource: Entity.REGISTRATION_TOKEN, action: [Action.CREATE, Action.UPDATE],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: ['SiteAreaMandatory'],
+            filters: ['SitesAdmin'],
+          },
+        },
+        attributes: [
+          'id', 'status', 'description', 'createdOn', 'lastChangedOn', 'expirationDate', 'revocationDate',
+          'siteAreaID', 'siteArea.name', 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
+        ]
+      },
+      {
+        resource: Entity.REGISTRATION_TOKEN, action: [Action.DELETE, Action.REVOKE],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdmin'],
+          }
+        },
       },
       {
         resource: Entity.TAG, action: [Action.LIST, Action.EXPORT],

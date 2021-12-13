@@ -98,7 +98,7 @@ export default class CarStorage {
     }
     // Limit
     aggregation.push({
-      $limit: (dbParams.limit > 0 && dbParams.limit < Constants.DB_RECORD_COUNT_CEIL) ? dbParams.limit : Constants.DB_RECORD_COUNT_CEIL
+      $limit: dbParams.limit
     });
     // Car Image
     if (params.withImage) {
@@ -498,7 +498,7 @@ export default class CarStorage {
     }
     // Limit
     aggregation.push({
-      $limit: (dbParams.limit > 0 && dbParams.limit < Constants.DB_RECORD_COUNT_CEIL) ? dbParams.limit : Constants.DB_RECORD_COUNT_CEIL
+      $limit: dbParams.limit
     });
     // Users
     if (params.withUser) {

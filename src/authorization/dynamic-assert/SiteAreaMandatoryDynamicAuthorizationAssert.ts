@@ -2,9 +2,9 @@ import DynamicAuthorizationAssert from '../DynamicAuthorizationAssert';
 import { Entity } from '../../types/Authorization';
 import { EntityData } from '../../types/GlobalType';
 
-export default class UserMandatoryDynamicAuthorizationAssert extends DynamicAuthorizationAssert {
+export default class SiteAreaMandatoryDynamicAuthorizationAssert extends DynamicAuthorizationAssert {
   public processAssert(entityData: EntityData): boolean {
-    if (entityData['userID']) {
+    if (entityData['siteAreaID']) {
       return true;
     }
     return false;
@@ -12,7 +12,7 @@ export default class UserMandatoryDynamicAuthorizationAssert extends DynamicAuth
 
   public getApplicableEntities(): Entity[] {
     return [
-      Entity.TAG
+      Entity.REGISTRATION_TOKEN
     ];
   }
 }

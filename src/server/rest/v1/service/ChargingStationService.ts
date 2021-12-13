@@ -69,8 +69,8 @@ export default class ChargingStationService {
         action: action
       });
     }
-    let siteArea: SiteArea = null;
     // Check the Site Area
+    let siteArea: SiteArea = null;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredRequest.siteAreaID) {
       siteArea = await SiteAreaStorage.getSiteArea(req.tenant, filteredRequest.siteAreaID, { withSite: true });
       UtilsService.assertObjectExists(action, siteArea, `Site Area ID '${filteredRequest.siteAreaID}' does not exist.`,
