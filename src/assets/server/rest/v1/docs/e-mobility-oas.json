@@ -13087,7 +13087,7 @@
                       "type": "object",
                       "properties": {
                         "type": {
-                          "type": "string"
+                          "$ref": "#/components/schemas/Setting/properties/content/properties/type"
                         },
                         "billing": {
                           "$ref": "#/components/schemas/Setting/properties/content/properties/billing"
@@ -13139,7 +13139,7 @@
                     "type": "object",
                     "properties": {
                       "type": {
-                        "type": "string"
+                        "$ref": "#/components/schemas/Setting/properties/content/properties/type"
                       },
                       "billing": {
                         "$ref": "#/components/schemas/Setting/properties/content/properties/billing"
