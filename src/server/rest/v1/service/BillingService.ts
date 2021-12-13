@@ -573,7 +573,7 @@ export default class BillingService {
 
   public static async handleBillingDeletePaymentMethod(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = BillingSecurity.filterDeletePaymentMethodRequest(req.body);
+    const filteredRequest = BillingValidator.getInstance().validateBillingDeleteUserPaymentMethodReq(req.body);
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.BILLING_PAYMENT_METHODS, Entity.BILLING, MODULE_NAME, 'handleBillingDeletePaymentMethod');

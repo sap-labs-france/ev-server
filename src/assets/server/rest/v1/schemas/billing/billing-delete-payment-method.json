@@ -1,0 +1,17 @@
+{
+  "$id": "billing-delete-payment-method",
+  "title": "Dele user payment method Request",
+  "type": "object",
+  "properties": {
+    "userID": {
+      "$ref": "common#/definitions/id"
+    },
+    "paymentMethodId": {
+      "$ref": "common#/definitions/id"
+    }
+  },
+  "required": [
+    "userID",
+    "paymentMethodId"
+  ]
+}

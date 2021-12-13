@@ -7184,6 +7184,57 @@
         }
       }
     },
+    "/api/users/{id}/payment-methods/{paymentMethodID}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Delete user's payment methods",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/userID"
+          },
+          {
+            "in": "path",
+            "name": "paymentMethodID",
+            "description": "Payment Method ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Delete user payment methods",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingOperationResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
     "/api/tags": {
       "get": {
         "security": [
@@ -15321,6 +15372,23 @@
           },
           "isDefault": {
             "type": "boolean"
+          }
+        }
+      },
+      "BillingOperationResult": {
+        "type": "object",
+        "required": [
+          "succeeded"
+        ],
+        "properties": {
+          "succeeded": {
+            "type": "boolean"
+          },
+          "error": {
+            "type": "object"
+          },
+          "internalData": {
+            "type": "object"
           }
         }
       }
