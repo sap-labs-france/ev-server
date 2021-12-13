@@ -21,7 +21,6 @@ export default class RepairTransactionPricedAtZero extends TenantMigrationTask {
 
   async loadSimplePricingSettings(tenant: Tenant): Promise<void> {
     if (Utils.isTenantComponentActive(tenant, TenantComponents.PRICING)) {
-      // Get the billing's settings
       const pricingSettings = await SettingStorage.getPricingSettings(tenant);
       if (pricingSettings?.type === PricingSettingsType.SIMPLE) {
         this.pricingSettings = pricingSettings;
@@ -81,8 +80,7 @@ export default class RepairTransactionPricedAtZero extends TenantMigrationTask {
           $project: { '_id': 1 }
         }
       ]).toArray();
-
-    // Get Simple Pricing Price
+    // Load Simple Pricing Settings
     await this.loadSimplePricingSettings(tenant);
     if (transactionsMDB.length > 0 && this.pricingSettings?.simple?.price > 0) {
       let message = `${transactionsMDB.length} Transaction(s) are going to be repaired in Tenant ${Utils.buildTenantName(tenant)}...`;
