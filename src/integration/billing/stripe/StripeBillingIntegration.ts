@@ -1607,6 +1607,53 @@ export default class StripeBillingIntegration extends BillingIntegration {
       { $set: updatedInvoiceMDB });
     // Debug
     const freshBillingInvoice = await BillingStorage.getInvoice(this.tenant, billingInvoice.id);
-    await this.updateTransactionsBillingData(freshBillingInvoice);
+    await this.repairTransactionsBillingData(freshBillingInvoice);
+  }
+
+  private async repairTransactionsBillingData(billingInvoice: BillingInvoice): Promise<void> {
+    // This method is ONLY USED when repairing invoices - c.f.: RepairInvoiceInconsistencies migration task
+    if (!billingInvoice.sessions) {
+      // This should not happen - but it happened once!
+      await Logging.logError({
+        tenantID: this.tenant.id,
+        action: ServerAction.BILLING,
+        actionOnUser: billingInvoice.user,
+        module: MODULE_NAME, method: 'repairTransactionsBillingData',
+        message: `Unexpected situation - Invoice ${billingInvoice.id} has no sessions attached to it`
+      });
+    }
+    await Promise.all(billingInvoice.sessions.map(async (session) => {
+      const transactionID = session.transactionID;
+      try {
+        const transaction = await TransactionStorage.getTransaction(this.tenant, Number(transactionID), {
+          withUser: true
+        });
+        // Update Billing Data
+        if (transaction?.billingData?.stop) {
+          transaction.billingData.stop.status = BillingStatus.BILLED,
+          transaction.billingData.stop.invoiceStatus = billingInvoice.status;
+          transaction.billingData.stop.invoiceNumber = billingInvoice.number;
+          transaction.billingData.lastUpdate = new Date();
+          // Add pricing data
+          if (!transaction.billingData.stop.invoiceItem && transaction.pricingModel) {
+            // Only set when the built-in pricing model was used
+            const invoiceItem = this.convertToBillingInvoiceItem(transaction);
+            transaction.billingData.stop.invoiceItem = this.shrinkInvoiceItem(invoiceItem);
+          }
+          // Save repaired billing data
+          await TransactionStorage.saveTransactionBillingData(this.tenant, transaction.id, transaction.billingData);
+        }
+      } catch (error) {
+        // Catch stripe errors and send the information back to the client
+        await Logging.logError({
+          tenantID: this.tenant.id,
+          action: ServerAction.BILLING,
+          actionOnUser: billingInvoice.user,
+          module: MODULE_NAME, method: 'repairTransactionsBillingData',
+          message: `Failed to update transaction billing data - transaction: ${transactionID}`,
+          detailedMessages: { error: error.stack }
+        });
+      }
+    }));
   }
 }
