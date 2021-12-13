@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/member-ordering */
 import { PricingSettings, PricingSettingsType } from '../../types/Setting';
 import Tenant, { TenantComponents } from '../../types/Tenant';
 import global, { ActionsResponse } from '../../types/GlobalType';
@@ -13,13 +14,13 @@ import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import Utils from '../../utils/Utils';
 import chalk from 'chalk';
 
-const TASK_NAME = 'RepairTransactionPricedAtZeroTask';
+const MODULE_NAME = 'RepairTransactionPricedAtZero';
 
 export default class RepairTransactionPricedAtZero extends TenantMigrationTask {
 
   pricingSettings: PricingSettings;
 
-  async loadSimplePricingSettings(tenant: Tenant): Promise<void> {
+  private async loadSimplePricingSettings(tenant: Tenant): Promise<void> {
     if (Utils.isTenantComponentActive(tenant, TenantComponents.PRICING)) {
       const pricingSettings = await SettingStorage.getPricingSettings(tenant);
       if (pricingSettings?.type === PricingSettingsType.SIMPLE) {
@@ -28,7 +29,7 @@ export default class RepairTransactionPricedAtZero extends TenantMigrationTask {
     }
   }
 
-  async priceAllConsumptionsAgain(tenant: Tenant, transaction: Transaction): Promise<void> {
+  private async priceAllConsumptionsAgain(tenant: Tenant, transaction: Transaction): Promise<void> {
     const pricePerkWh = this.pricingSettings.simple.price;
     let cumulatedPrice = 0;
     // Get the consumptions
@@ -46,7 +47,7 @@ export default class RepairTransactionPricedAtZero extends TenantMigrationTask {
     }
   }
 
-  async priceTransactionAgain(tenant: Tenant, transaction: Transaction): Promise<void> {
+  private async priceTransactionAgain(tenant: Tenant, transaction: Transaction): Promise<void> {
     const pricePerkWh = this.pricingSettings.simple.price;
     // Apply simple pricing logic
     const price = Utils.createDecimal(transaction.stop.totalConsumptionWh).mul(pricePerkWh).div(1000).toNumber();
@@ -57,7 +58,7 @@ export default class RepairTransactionPricedAtZero extends TenantMigrationTask {
   }
 
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-  async migrateTenant(tenant: Tenant) {
+  public async migrateTenant(tenant: Tenant) {
     const transactionsUpdated: ActionsResponse = {
       inError: 0,
       inSuccess: 0,
@@ -87,7 +88,7 @@ export default class RepairTransactionPricedAtZero extends TenantMigrationTask {
       await Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
-        module: TASK_NAME, method: 'migrateTenant',
+        module: MODULE_NAME, method: 'migrateTenant',
         message,
       });
       Utils.isDevelopmentEnv() && console.debug(chalk.yellow(`${new Date().toISOString()} - ${message}`));
@@ -98,7 +99,7 @@ export default class RepairTransactionPricedAtZero extends TenantMigrationTask {
           await Logging.logDebug({
             tenantID: Constants.DEFAULT_TENANT,
             action: ServerAction.MIGRATION,
-            module: TASK_NAME, method: 'migrateTenant',
+            module: MODULE_NAME, method: 'migrateTenant',
             message
           });
           Utils.isDevelopmentEnv() && console.debug(chalk.yellow(`${new Date().toISOString()} - ${message}`));
@@ -119,7 +120,7 @@ export default class RepairTransactionPricedAtZero extends TenantMigrationTask {
           await Logging.logError({
             tenantID: Constants.DEFAULT_TENANT,
             action: ServerAction.MIGRATION,
-            module: TASK_NAME, method: 'migrateTenant',
+            module: MODULE_NAME, method: 'migrateTenant',
             message: `> ${transactionsUpdated.inError + transactionsUpdated.inSuccess}/${transactionsMDB.length} - Cannot price transaction: '${transactionMDB._id}' in Tenant ${Utils.buildTenantName(tenant)}`,
             detailedMessages: { error: error.message, stack: error.stack }
           });
@@ -128,7 +129,7 @@ export default class RepairTransactionPricedAtZero extends TenantMigrationTask {
         const totalDurationSecs = Math.trunc((new Date().getTime() - timeTotalFrom) / 1000);
         // Log in the default tenant
         void Logging.logActionsResponse(Constants.DEFAULT_TENANT, ServerAction.MIGRATION,
-          TASK_NAME, 'migrateTenant', transactionsUpdated,
+          MODULE_NAME, 'migrateTenant', transactionsUpdated,
           `{{inSuccess}} transaction(s) were successfully processed in ${totalDurationSecs} secs in Tenant ${Utils.buildTenantName(tenant)}`,
           `{{inError}} transaction(s) failed to be processed in ${totalDurationSecs} secs in Tenant ${Utils.buildTenantName(tenant)}`,
           `{{inSuccess}} transaction(s) were successfully processed in ${totalDurationSecs} secs and {{inError}} failed to be processed in Tenant ${Utils.buildTenantName(tenant)}`,
@@ -138,15 +139,15 @@ export default class RepairTransactionPricedAtZero extends TenantMigrationTask {
     }
   }
 
-  getVersion(): string {
+  public getVersion(): string {
     return '1.0';
   }
 
-  getName(): string {
-    return TASK_NAME;
+  public getName(): string {
+    return 'RepairTransactionPricedAtZeroTask';
   }
 
-  isAsynchronous(): boolean {
+  public isAsynchronous(): boolean {
     return true;
   }
 }
