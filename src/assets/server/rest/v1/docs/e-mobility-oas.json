@@ -7125,6 +7125,65 @@
         }
       }
     },
+    "/api/users/{id}/payment-methods": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get user's payment methods",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/userID"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Retrieved user payment methods",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "number"
+                    },
+                    "result": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BillingPaymentMethod"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
     "/api/tags": {
       "get": {
         "security": [
@@ -15233,6 +15292,35 @@
               "type": "number",
               "description": "User name"
             }
+          }
+        }
+      },
+      "BillingPaymentMethod": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "readOnly": true
+          },
+          "brand": {
+            "type": "string"
+          },
+          "expiringOn": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "last4": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "createdOn": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "isDefault": {
+            "type": "boolean"
           }
         }
       }
