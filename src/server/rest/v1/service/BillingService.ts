@@ -59,7 +59,6 @@ export default class BillingService {
       await billingImpl.clearTestData();
       // Reset billing settings
       const newSettings = await billingImpl.resetConnectionSettings();
-      // Ok
       const operationResult: BillingOperationResult = {
         succeeded: true,
         internalData: newSettings
@@ -107,9 +106,7 @@ export default class BillingService {
       });
     }
     try {
-      // Check
       await billingImpl.checkConnection();
-      // Ok
       res.json(Object.assign({ connectionIsValid: true }, Constants.REST_RESPONSE_SUCCESS));
     } catch (error) {
       // Ko
@@ -171,7 +168,6 @@ export default class BillingService {
         user: req.user
       });
     }
-    // Ok
     res.json(Object.assign(synchronizeAction, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
@@ -222,7 +218,6 @@ export default class BillingService {
         user: req.user
       });
     }
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -271,7 +266,6 @@ export default class BillingService {
         user: req.user
       });
     }
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -301,7 +295,6 @@ export default class BillingService {
     }
     // Get taxes
     const taxes = await billingImpl.getTaxes();
-    // Return
     res.json(taxes);
     next();
   }
@@ -345,7 +338,6 @@ export default class BillingService {
         'id', 'number', 'status', 'amount', 'createdOn', 'currency', 'downloadable', 'sessions',
         ...userProject
       ]);
-    // Return
     res.json(invoices);
     next();
   }
@@ -378,7 +370,6 @@ export default class BillingService {
         module: MODULE_NAME, method: 'handleGetInvoice',
       });
     }
-    // Return
     res.json(invoice);
     next();
   }
@@ -437,7 +428,6 @@ export default class BillingService {
         user: req.user
       });
     }
-    // Ok
     res.json(Object.assign(synchronizeAction, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
@@ -492,7 +482,6 @@ export default class BillingService {
         user: req.user
       });
     }
-    // Ok
     res.json(Object.assign(synchronizeAction, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
@@ -620,7 +609,6 @@ export default class BillingService {
       message: `Payment Method '${filteredRequest.paymentMethodId}' has been deleted successfully`,
       action: action
     });
-    // Ok
     res.json(operationResult);
     next();
   }
@@ -733,7 +721,6 @@ export default class BillingService {
     const billingSettings: BillingSettings = await SettingStorage.getBillingSetting(req.tenant);
     UtilsService.assertObjectExists(action, billingSettings, 'Failed to load billing settings', MODULE_NAME, 'handleGetBillingSetting', req.user);
     UtilsService.hashSensitiveData(req.user.tenantID, billingSettings);
-    // Ok
     res.json(billingSettings);
     next();
   }
@@ -751,7 +738,6 @@ export default class BillingService {
         module: MODULE_NAME, method: 'handleUpdateBillingSetting',
       });
     }
-    // Check
     const newBillingProperties = BillingValidator.getInstance().validateBillingSettingUpdateReq({ ...req.params, ...req.body });
     // Load previous settings
     const billingSettings = await SettingStorage.getBillingSetting(req.tenant);
@@ -817,14 +803,12 @@ export default class BillingService {
     await SettingStorage.saveBillingSetting(req.tenant, billingSettings);
     // Post-process the activation of the billing feature
     if (postponeTransactionBillingActivation) {
-      // Check
       await BillingService.checkActivationPrerequisites(action, req);
       // Well - everything was Ok, activation is possible
       billingSettings.billing.isTransactionBillingActivated = true;
       // Save it again now that we are sure
       await SettingStorage.saveBillingSetting(req.tenant, billingSettings);
     }
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }

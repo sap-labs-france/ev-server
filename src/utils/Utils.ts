@@ -216,7 +216,6 @@ export default class Utils {
     }
     // Get Notification Interval
     const intervalMins = Utils.getEndOfChargeNotificationIntervalMins(chargingStation, connectorId);
-    // Check
     if (inactivitySecs < (intervalMins * 60)) {
       return InactivityStatus.INFO;
     } else if (inactivitySecs < (intervalMins * 60 * 2)) {
@@ -446,7 +445,6 @@ export default class Utils {
   }
 
   public static convertToDate(value: any): Date {
-    // Check
     if (!value) {
       return null;
     }
@@ -470,7 +468,6 @@ export default class Utils {
     if (typeof document !== 'object') {
       return true;
     }
-    // Check
     return Object.keys(document).length === 0;
   }
 
@@ -502,7 +499,6 @@ export default class Utils {
     if (Number.isSafeInteger(value)) {
       return value;
     }
-    // Check
     if (typeof value === 'string') {
       // Create Object
       changedValue = parseInt(value);
@@ -515,7 +511,6 @@ export default class Utils {
     if (!value) {
       return 0;
     }
-    // Check
     if (typeof value === 'string') {
       // Create Object
       changedValue = parseFloat(value);

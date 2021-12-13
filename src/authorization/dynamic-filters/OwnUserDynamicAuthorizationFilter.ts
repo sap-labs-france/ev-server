@@ -13,7 +13,6 @@ export default class OwnUserDynamicAuthorizationFilter extends DynamicAuthorizat
     const { userID } = ownUserDataSource.getData();
     // Clear
     authorizationFilters.filters.userIDs = [];
-    // Check
     if (userID) {
       // Force the filter
       authorizationFilters.filters.userIDs = [userID];

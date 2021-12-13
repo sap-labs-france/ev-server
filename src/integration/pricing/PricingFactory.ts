@@ -13,7 +13,6 @@ export default class PricingFactory {
     if (Utils.isTenantComponentActive(tenant, TenantComponents.PRICING)) {
       // Get the pricing settings
       const pricingSetting = await SettingStorage.getPricingSettings(tenant);
-      // Check
       if (pricingSetting) {
         let pricingIntegrationImpl = null;
         switch (pricingSetting.type) {

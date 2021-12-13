@@ -30,7 +30,6 @@ export default class RemotePushNotificationTask implements NotificationTask {
           }),
           databaseURL: this.firebaseConfig.databaseURL
         });
-        // Ok
         this.initialized = true;
       } catch (error) {
         void Logging.logError({

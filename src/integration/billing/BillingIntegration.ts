@@ -38,7 +38,6 @@ export default abstract class BillingIntegration {
 
   public async synchronizeUsers(): Promise<BillingUserSynchronizeAction> {
     await this.checkConnection();
-    // Check
     const actionsDone: BillingUserSynchronizeAction = {
       inSuccess: 0,
       inError: 0

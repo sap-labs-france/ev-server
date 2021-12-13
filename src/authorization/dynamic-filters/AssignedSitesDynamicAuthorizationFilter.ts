@@ -13,7 +13,6 @@ export default class AssignedSitesDynamicAuthorizationFilter extends DynamicAuth
     const { siteIDs } = assignedSitesDataSource.getData();
     // Clear
     authorizationFilters.filters.siteIDs = [];
-    // Check
     if (!Utils.isEmptyArray(siteIDs)) {
       // Force the filter
       authorizationFilters.filters.siteIDs = siteIDs;

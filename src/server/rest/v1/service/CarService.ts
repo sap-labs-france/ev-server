@@ -60,7 +60,6 @@ export default class CarService {
     // Add Auth flags
     await AuthorizationService.addCarCatalogsAuthorizationActions(req.tenant, req.user, carCatalogs as CarCatalogDataResult,
       authorizationCarCatalogsFilter);
-    // Return
     res.json(carCatalogs);
     next();
   }
@@ -132,7 +131,6 @@ export default class CarService {
       filteredRequest.ID,
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip }
     );
-    // Return
     res.json(carCatalogImages);
     next();
   }
@@ -210,7 +208,6 @@ export default class CarService {
       Action.CREATE, Entity.CAR, MODULE_NAME, 'handleCreateCar');
     // Filter
     const filteredRequest = CarValidator.getInstance().validateCarCreateReq(req.body);
-    // Check
     UtilsService.checkIfCarValid(filteredRequest, req);
     // Check auth
     await AuthorizationService.checkAndGetCarAuthorizations(
@@ -280,7 +277,6 @@ export default class CarService {
       Action.UPDATE, Entity.CAR, MODULE_NAME, 'handleUpdateCar');
     // Filter
     const filteredRequest = CarValidator.getInstance().validateCarUpdateReq(req.body);
-    // Check
     UtilsService.checkIfCarValid(filteredRequest, req);
     // Check and Get Car
     const car = await UtilsService.checkAndGetCarAuthorization(
@@ -406,7 +402,6 @@ export default class CarService {
     // Check and get Car
     const car = await UtilsService.checkAndGetCarAuthorization(
       req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, { withUser: true }, true);
-    // Return
     res.json(car);
     next();
   }

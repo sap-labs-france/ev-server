@@ -124,7 +124,7 @@ export default class EmspOCPIClient extends OCPIClient {
     if (!company) {
       company = {
         id: this.ocpiEndpoint.id,
-        name: this.ocpiEndpoint.name,
+        name: `${this.ocpiEndpoint.name} (${this.ocpiEndpoint.role})`,
         issuer: false,
         createdOn: new Date()
       } as Company;

@@ -335,7 +335,6 @@ export default class ChargingStationService {
   public static async handleChargingStationLimitPower(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationLimitPowerReq(req.body);
-    // Check
     if (!filteredRequest.chargePointID) {
       throw new AppError({
         chargingStationID: filteredRequest.chargingStationID,
@@ -716,7 +715,6 @@ export default class ChargingStationService {
     req.query.ChargeBoxID && (req.query.ChargingStationID = req.query.ChargeBoxID);
     // Filter
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationOcppParametersGetReq(req.query);
-    // Check
     UtilsService.assertIdIsProvided(action, filteredRequest.ChargingStationID, MODULE_NAME, 'handleGetChargingStationOcppParameters', req.user);
     // Get the Charging Station`
     const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, filteredRequest.ChargingStationID);
@@ -979,7 +977,6 @@ export default class ChargingStationService {
   public static async handleDownloadQrCodesPdf(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationQRCodeDownloadReq(req.query);
-    // Check
     if (!filteredRequest.SiteID && !filteredRequest.SiteAreaID && !filteredRequest.ChargingStationID) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
@@ -1048,7 +1045,6 @@ export default class ChargingStationService {
       },
       projectFields
     );
-    // Return
     res.json(chargingStations);
   }
 
@@ -1067,7 +1063,6 @@ export default class ChargingStationService {
     // Get all Status Notifications
     const statusNotifications = await OCPPStorage.getStatusNotifications(req.tenant, {},
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields) });
-    // Return
     res.json(statusNotifications);
     next();
   }
@@ -1139,7 +1134,6 @@ export default class ChargingStationService {
     // Get all Status Notifications
     const bootNotifications = await OCPPStorage.getBootNotifications(req.tenant, {},
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields) });
-    // Return
     res.json(bootNotifications);
     next();
   }
@@ -1389,7 +1383,6 @@ export default class ChargingStationService {
         user: req.user
       });
     }
-    // Check
     await smartCharging.checkConnection();
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
@@ -1448,7 +1441,7 @@ export default class ChargingStationService {
       return { count: 0, result: [] };
     }
     // Get Charging Stations
-    const chargingStations = await ChargingStationStorage.getChargingStations(req.tenant,
+    return ChargingStationStorage.getChargingStations(req.tenant,
       {
         search: filteredRequest.Search,
         withNoSiteArea: filteredRequest.WithNoSiteArea,
@@ -1474,7 +1467,6 @@ export default class ChargingStationService {
       },
       projectFields
     );
-    return chargingStations;
   }
 
   private static convertOCPPParamsToCSV(ocppParams: OCPPParams, writeHeader = true): string {
@@ -1784,11 +1776,13 @@ export default class ChargingStationService {
     // Save Car selection
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
       if (filteredRequest.carID && filteredRequest.carID !== user.lastSelectedCarID) {
-        await UserStorage.saveUserLastSelectedCarID(req.tenant, user.id, filteredRequest.carID);
+        await UserStorage.saveLastSelectedCarID(req.tenant, user.id, filteredRequest.carID, true);
+      } else {
+        await UserStorage.clearLastSelectedCarID(req.tenant, user.id);
       }
     }
     // Execute it
-    return await chargingStationClient.remoteStartTransaction({
+    return chargingStationClient.remoteStartTransaction({
       connectorId: filteredRequest.args.connectorId,
       idTag: tag.id
     });
@@ -1840,7 +1834,6 @@ export default class ChargingStationService {
       key: filteredRequest.args.key,
       value: filteredRequest.args.value
     });
-    // Check
     if (result.status === OCPPConfigurationStatus.ACCEPTED ||
         result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
       // Reboot?

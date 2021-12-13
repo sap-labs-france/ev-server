@@ -10,11 +10,9 @@ const MODULE_NAME = 'AsyncTaskBuilder';
 
 export default class AsyncTaskBuilder {
   public static async createAndSaveAsyncTasks(asyncTask: Omit<AsyncTask, 'id'>): Promise<void> {
-    // Check
     if (Utils.isNullOrUndefined(asyncTask)) {
       throw new Error('The asynchronous task must not be null');
     }
-    // Check
     if (Utils.isNullOrUndefined(asyncTask.name)) {
       throw new Error('The Name of the asynchronous task is mandatory');
     }

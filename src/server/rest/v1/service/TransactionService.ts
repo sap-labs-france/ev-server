@@ -229,7 +229,6 @@ export default class TransactionService {
           await OCPPUtils.processTransactionRoaming(req.tenant, transaction, chargingStation, transaction.tag, TransactionAction.END);
           // Save
           await TransactionStorage.saveTransactionOcpiData(req.tenant, transaction.id, transaction.ocpiData);
-          // Ok
           await Logging.logInfo({
             tenantID: req.user.tenantID,
             action: action,
@@ -264,7 +263,6 @@ export default class TransactionService {
           await OCPPUtils.processOICPTransaction(req.tenant, transaction, chargingStation, TransactionAction.END);
           // Save
           await TransactionStorage.saveTransactionOicpData(req.tenant, transaction.id, transaction.oicpData);
-          // Ok
           await Logging.logInfo({
             tenantID: req.user.tenantID,
             action: action,
@@ -565,7 +563,6 @@ export default class TransactionService {
         delete transaction.stop.tagID;
       }
     }
-    // Return
     res.json(transaction);
     next();
   }
@@ -591,7 +588,6 @@ export default class TransactionService {
       result.years = [];
       result.years.push(new Date().getFullYear());
     }
-    // Return
     res.json(transactionsYears);
     next();
   }
@@ -681,7 +677,6 @@ export default class TransactionService {
       onlyRecordCount: filteredRequest.OnlyRecordCount
     },
     ['id', ...userProject]);
-    // Return
     res.json(reports);
     next();
   }
@@ -742,7 +737,6 @@ export default class TransactionService {
     const transaction = await TransactionStorage.getTransaction(req.tenant, filteredRequest.ID, {}, ['id', 'ocpiData']);
     UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleExportTransactionOcpiCdr', req.user);
-    // Check
     if (!transaction?.ocpiData) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
@@ -815,7 +809,6 @@ export default class TransactionService {
       },
       projectFields
     );
-    // Return
     res.json(transactions);
     next();
   }
@@ -942,7 +935,6 @@ export default class TransactionService {
           // To Delete
           transactionsIDsToDelete.push(transactionID);
         }
-        // Ok
       } else {
         transactionsIDsToDelete.push(transactionID);
       }

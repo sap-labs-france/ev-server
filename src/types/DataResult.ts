@@ -22,7 +22,7 @@ export interface DataResult<T> {
   metadata?: Record<string, AuthorizationDefinitionFieldMetadata>;
 }
 
-export interface PricingDataResult extends DataResult<PricingDefinition>{
+export interface PricingDefinitionDataResult extends DataResult<PricingDefinition>{
   canCreate: boolean;
 }
 
@@ -65,6 +65,7 @@ export interface TagDataResult extends DataResult<Tag> {
   canUnassign: boolean;
   canAssign: boolean;
   canListUsers: boolean;
+  canListSources: boolean;
 }
 
 export interface TransactionDataResult extends DataResult<Transaction> {

@@ -44,7 +44,6 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
         const transactions = await TransactionStorage.getTransactions(tenant,
           { 'refundStatus': [RefundStatus.SUBMITTED] },
           { ...Constants.DB_PARAMS_MAX_LIMIT, sort: { 'userID': 1, 'refundData.reportId': 1 } });
-        // Check
         if (!Utils.isEmptyArray(transactions.result)) {
           // Process them
           await Logging.logInfo({

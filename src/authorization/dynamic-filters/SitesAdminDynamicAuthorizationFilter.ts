@@ -13,7 +13,6 @@ export default class SitesAdminDynamicAuthorizationFilter extends DynamicAuthori
     const { siteIDs } = sitesAdminDataSource.getData();
     // Clear
     authorizationFilters.filters.siteIDs = [];
-    // Check
     if (!Utils.isEmptyArray(siteIDs)) {
       // Force the filter
       authorizationFilters.filters.siteIDs = siteIDs;

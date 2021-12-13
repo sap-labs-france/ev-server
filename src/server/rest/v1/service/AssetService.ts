@@ -83,7 +83,6 @@ export default class AssetService {
     }, [ 'startedAt', 'instantWatts', 'instantAmps', 'limitWatts', 'limitAmps', 'endedAt', 'stateOfCharge' ]);
     // Assign
     asset.values = consumptions;
-    // Return
     res.json(asset);
     next();
   }
@@ -314,7 +313,6 @@ export default class AssetService {
     } else {
       // TODO: Return a specific HTTP code to tell the user that the consumption cannot be retrieved
     }
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -400,7 +398,6 @@ export default class AssetService {
       action: action,
       detailedMessages: { asset }
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -440,7 +437,6 @@ export default class AssetService {
     UtilsService.assertObjectExists(action, tenant, 'Tenant does not exist', MODULE_NAME, 'handleGetAssetImage', req.user);
     // Get the image
     const assetImage = await AssetStorage.getAssetImage(tenant, filteredRequest.ID);
-    // Return
     if (assetImage?.image) {
       let header = 'image';
       let encoding: BufferEncoding = 'base64';
@@ -558,7 +554,6 @@ export default class AssetService {
       action: action,
       detailedMessages: { asset: newAsset }
     });
-    // Ok
     res.json(Object.assign({ id: newAsset.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
@@ -588,7 +583,6 @@ export default class AssetService {
     }
     // Check email
     const asset = await AssetStorage.getAsset(req.tenant, filteredRequest.id);
-    // Check
     UtilsService.assertObjectExists(action, asset, `Site Area ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateAsset', req.user);
     if (!asset.issuer) {
@@ -630,7 +624,6 @@ export default class AssetService {
       action: action,
       detailedMessages: { asset }
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }

@@ -273,7 +273,6 @@ export default class TenantContext {
   }), connectorsDef = null, siteArea: SiteArea = null) {
     const ocppService = await this.getOCPPServiceForContextCreation(ocppVersion, siteArea?.id);
     const response = await ocppService.executeBootNotification(chargingStation.id, chargingStation);
-    // Check
     expect(response).to.not.be.null;
     expect(response.status).to.eql('Accepted');
     expect(response).to.have.property('currentTime');
@@ -359,7 +358,6 @@ export default class TenantContext {
   }), connectorsDef = null, siteArea: SiteArea = null) {
     const ocppService = await this.getOCPPServiceForContextCreation(ocppVersion, siteArea?.id);
     const response = await ocppService.executeBootNotification(chargingStation.id, chargingStation);
-    // Check
     expect(response).to.not.be.null;
     expect(response.status).to.eql('Accepted');
     expect(response).to.have.property('currentTime');
@@ -451,7 +449,6 @@ export default class TenantContext {
   }), connectorsDef = null, siteArea = null) {
     const ocppService = await this.getOCPPServiceForContextCreation(ocppVersion, siteArea?.id);
     const response = await ocppService.executeBootNotification(chargingStation.id, chargingStation);
-    // Check
     expect(response).to.not.be.null;
     expect(response.status).to.eql('Accepted');
     expect(response).to.have.property('currentTime');

@@ -68,7 +68,6 @@ export default class CompanyService {
       MODULE_NAME, 'handleGetCompanyLogo', req.user);
     // Get the Logo
     const companyLogo = await CompanyStorage.getCompanyLogo(tenant, filteredRequest.ID);
-    // Return
     if (companyLogo?.logo) {
       let header = 'image';
       let encoding: BufferEncoding = 'base64';
