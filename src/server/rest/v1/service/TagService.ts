@@ -275,7 +275,7 @@ export default class TagService {
 
   public static async handleUpdateTagByVisualID(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = TagValidator.getInstance().validateTagVisualIDUpdateReq({ ...req.params, ...req.body });
+    const filteredRequest = TagValidator.getInstance().validateTagVisualIDUpdateReq(req.body);
     // Check and Get Tag
     const tag = await UtilsService.checkAndGetTagByVisualIDAuthorization(req.tenant, req.user, filteredRequest.visualID, Action.UPDATE_BY_VISUAL_ID, action,
       filteredRequest, { withNbrTransactions: true, withUser: true });

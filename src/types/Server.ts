@@ -538,6 +538,9 @@ export enum ServerRoute {
 
   REST_TAGS = 'tags',
   REST_TAG = 'tags/:id',
+  REST_TAG_ASSIGN = 'tags/:id/assign',
+  REST_TAG_UNASSIGN = 'tags/:id/unassign',
+  REST_TAGS_UNASSIGN = 'tags/unassign',
   REST_TAGS_IMPORT = 'tags/action/import',
   REST_TAGS_EXPORT = 'tags/action/export',
 
@@ -653,6 +656,8 @@ export enum ServerRoute {
   REST_BILLING_SETTING = 'billing-setting', // GET and PUT
   REST_BILLING_CHECK = 'billing/check',
   REST_BILLING_CLEAR_TEST_DATA = 'billing/clearTestData',
+
+  REST_BILLING_TAXES = 'billing/taxes',
 
   // BILLING URLs for CRUD operations on INVOICES
   REST_BILLING_INVOICES = 'invoices',

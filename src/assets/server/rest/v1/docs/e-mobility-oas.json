@@ -7517,6 +7517,181 @@
         }
       }
     },
+    "/api/tags/{id}/assign": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Assign a Tag to a user",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/tagVisualID"
+          }
+        ],
+        "tags": [
+          "Tags"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "visualID",
+                  "userID"
+                ],
+                "properties": {
+                  "visualID": {
+                    "$ref": "#/components/schemas/Tag/properties/visualID"
+                  },
+                  "description": {
+                    "$ref": "#/components/schemas/Tag/properties/description"
+                  },
+                  "default": {
+                    "$ref": "#/components/schemas/Tag/properties/default"
+                  },
+                  "userID": {
+                    "$ref": "#/components/schemas/Tag/properties/userID"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tag successfully assigned",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success",
+                  "id": "###"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          },
+          "576": {
+            "description": "Tag already exists and assigned to another user"
+          },
+          "578": {
+            "description": "Tag with given visual ID does not match any badge"
+          },
+          "579": {
+            "description": "Tag with given visual ID is not active and cannot be assigned"
+          }
+        }
+      }
+    },
+    "/api/tags/{id}/unassign": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Unassign a Tag",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/tagVisualID"
+          }
+        ],
+        "tags": [
+          "Tags"
+        ],
+        "responses": {
+          "200": {
+            "description": "Tag successfully unassigned",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/tags/unassign": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Unassign several Tags",
+        "tags": [
+          "Tags"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "visualIDs": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Tag/properties/visualID"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tags successfully unassigned",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
     "/api/tags/action/import": {
       "post": {
         "security": [
@@ -12842,6 +13017,218 @@
           }
         }
       }
+    },
+    "/api/billing/taxes": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get billing taxes",
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return billing taxes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "example": "###"
+                      },
+                      "description": {
+                        "type": "string",
+                        "example": "###"
+                      },
+                      "displayName": {
+                        "type": "string",
+                        "example": "###"
+                      },
+                      "percentage": {
+                        "type": "number",
+                        "example": "20"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/billing/settings": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get billing settings",
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return billing settings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "$ref": "#/components/schemas/Setting/properties/id"
+                    },
+                    "identifier": {
+                      "$ref": "#/components/schemas/Setting/properties/identifier"
+                    },
+                    "sensitiveData": {
+                      "$ref": "#/components/schemas/Setting/properties/sensitiveData"
+                    },
+                    "content": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "$ref": "#/components/schemas/Setting/properties/content/properties/type"
+                        },
+                        "billing": {
+                          "$ref": "#/components/schemas/Setting/properties/content/properties/billing"
+                        },
+                        "stripe": {
+                          "$ref": "#/components/schemas/Setting/properties/content/properties/stripe"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Update billing settings",
+        "tags": [
+          "Billing"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "identifier": {
+                    "$ref": "#/components/schemas/Setting/properties/identifier"
+                  },
+                  "sensitiveData": {
+                    "$ref": "#/components/schemas/Setting/properties/sensitiveData"
+                  },
+                  "content": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "$ref": "#/components/schemas/Setting/properties/content/properties/type"
+                      },
+                      "billing": {
+                        "$ref": "#/components/schemas/Setting/properties/content/properties/billing"
+                      },
+                      "stripe": {
+                        "$ref": "#/components/schemas/Setting/properties/content/properties/stripe"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Billing settings successfully updated",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/billing/check": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Check the connection with the billing provider",
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Billing provider is reachable",
+            "content": {
+              "application/json": {
+                "example": {
+                  "connectionIsValid": true,
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -15355,6 +15742,15 @@
         "in": "path",
         "name": "id",
         "description": "Tag ID",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "tagVisualID": {
+        "in": "path",
+        "name": "id",
+        "description": "Tag Visual ID",
         "required": true,
         "schema": {
           "type": "string"

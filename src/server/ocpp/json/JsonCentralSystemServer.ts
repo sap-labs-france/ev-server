@@ -97,9 +97,9 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       res.end('OK');
     }).listen(this.centralSystemConfig.port, (token) => {
       if (token) {
-        this.isDebug() && Logging.logConsoleDebug(`${ServerType.JSON_SERVER} Server listening on 'http://${this.centralSystemConfig.host}:${this.centralSystemConfig.port}'`);
+        Logging.logConsoleDebug(`${ServerType.JSON_SERVER} Server listening on 'http://${this.centralSystemConfig.host}:${this.centralSystemConfig.port}'`);
       } else {
-        this.isDebug() && Logging.logConsoleDebug(`${ServerType.JSON_SERVER} Server failed to listen on 'http://${this.centralSystemConfig.host}:${this.centralSystemConfig.port}'`);
+        Logging.logConsoleError(`${ServerType.JSON_SERVER} Server failed to listen on 'http://${this.centralSystemConfig.host}:${this.centralSystemConfig.port}'`);
       }
     });
   }
