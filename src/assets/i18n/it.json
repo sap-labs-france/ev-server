@@ -99,7 +99,7 @@
     },
     "unknownUserBadged": {
       "title": "Utente Sconosciuto",
-      "body": "Un utente sconosciuto si è registrato su '{{chargeBoxID}}' con il badge ID '{{badgeID}}' nell'organizzazione '{{tenantName}}'"
+      "body": "Un utente sconosciuto si è registrato su '{{chargeBoxID}}' con il RFID '{{badgeID}}' nell'organizzazione '{{tenantName}}'"
     },
     "chargingStationRegistered": {
       "title": "Stazione di Ricarica Connessa",
@@ -165,7 +165,7 @@
     "usage": "Usage (Hours)"
   },
   "tags": {
-    "id": "Badge ID",
+    "id": "RFID",
     "description": "Badge Description",
     "virtualBadge": "Virtual Badge"
   },
