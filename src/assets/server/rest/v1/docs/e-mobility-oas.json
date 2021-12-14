@@ -7185,7 +7185,7 @@
       }
     },
     "/api/users/{id}/payment-methods/{paymentMethodID}": {
-      "get": {
+      "delete": {
         "security": [
           {
             "bearerAuth": []
