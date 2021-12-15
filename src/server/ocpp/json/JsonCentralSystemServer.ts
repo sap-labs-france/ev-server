@@ -66,7 +66,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         const reason = Utils.convertBufferArrayToString(message);
         // Close
         this.isDebug() && Logging.logConsoleDebug(`WS Closed received for '${ws.wsWrapper.url as string}'`);
-        await this.closeWebSocket(ws.wsWrapper, code, reason);
+        await this.closeWebSocket(ws.wsWrapper, code, reason, true);
       },
       ping: async (ws: WebSocket, message: ArrayBuffer) => {
         // Convert
@@ -459,9 +459,9 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     }
   }
 
-  private async closeWebSocket(wsWrapper: WSWrapper, code: WebSocketCloseEventStatusCode, reason: string): Promise<void> {
+  private async closeWebSocket(wsWrapper: WSWrapper, code: WebSocketCloseEventStatusCode, reason: string, fromCloseEvent = false): Promise<void> {
     // Keep status
-    wsWrapper.close(code, reason);
+    wsWrapper.close(code, reason, fromCloseEvent);
     // Check Json connection
     if (wsWrapper.jsonWSConnection) {
       this.removeJsonWSConnection(wsWrapper.jsonWSConnection);
