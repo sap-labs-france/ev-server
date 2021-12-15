@@ -397,7 +397,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
   }
 
   private async waitForWSLockToRelease(wsWrapper: WSWrapper, incomingConnection: boolean): Promise<boolean> {
-    let numberOfTrials = 20;
+    let numberOfTrials = 10;
     // Wait for init to handle multiple same WS Connection
     if (this.runningWSRequestsMessages[wsWrapper.url]) {
       await Logging.logWarning({
@@ -410,7 +410,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       // eslint-disable-next-line no-constant-condition
       while (true) {
         // Wait
-        await Utils.sleep(250);
+        await Utils.sleep(500);
         // Message has been processed
         if (!this.runningWSRequestsMessages[wsWrapper.url]) {
           await Logging.logInfo({
