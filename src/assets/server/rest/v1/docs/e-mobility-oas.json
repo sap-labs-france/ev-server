@@ -12999,6 +12999,218 @@
           }
         }
       }
+    },
+    "/api/billing/taxes": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get billing taxes",
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return billing taxes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "example": "###"
+                      },
+                      "description": {
+                        "type": "string",
+                        "example": "###"
+                      },
+                      "displayName": {
+                        "type": "string",
+                        "example": "###"
+                      },
+                      "percentage": {
+                        "type": "number",
+                        "example": "20"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/billing/settings": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get billing settings",
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return billing settings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "$ref": "#/components/schemas/Setting/properties/id"
+                    },
+                    "identifier": {
+                      "$ref": "#/components/schemas/Setting/properties/identifier"
+                    },
+                    "sensitiveData": {
+                      "$ref": "#/components/schemas/Setting/properties/sensitiveData"
+                    },
+                    "content": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "$ref": "#/components/schemas/Setting/properties/content/properties/type"
+                        },
+                        "billing": {
+                          "$ref": "#/components/schemas/Setting/properties/content/properties/billing"
+                        },
+                        "stripe": {
+                          "$ref": "#/components/schemas/Setting/properties/content/properties/stripe"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Update billing settings",
+        "tags": [
+          "Billing"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "identifier": {
+                    "$ref": "#/components/schemas/Setting/properties/identifier"
+                  },
+                  "sensitiveData": {
+                    "$ref": "#/components/schemas/Setting/properties/sensitiveData"
+                  },
+                  "content": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "$ref": "#/components/schemas/Setting/properties/content/properties/type"
+                      },
+                      "billing": {
+                        "$ref": "#/components/schemas/Setting/properties/content/properties/billing"
+                      },
+                      "stripe": {
+                        "$ref": "#/components/schemas/Setting/properties/content/properties/stripe"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Billing settings successfully updated",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/billing/check": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Check the connection with the billing provider",
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Billing provider is reachable",
+            "content": {
+              "application/json": {
+                "example": {
+                  "connectionIsValid": true,
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
     }
   },
   "components": {

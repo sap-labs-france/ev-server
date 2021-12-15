@@ -281,7 +281,7 @@ export default class OCPPService {
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         module: MODULE_NAME, method: 'handleAuthorize',
         action: ServerAction.OCPP_AUTHORIZE, user: (authorize.user ? authorize.user : null),
-        message: `User has been authorized with Badge ID '${authorize.idTag}'`,
+        message: `User has been authorized with RFID Card '${authorize.idTag}'`,
         detailedMessages: { authorize }
       });
       // Accepted
