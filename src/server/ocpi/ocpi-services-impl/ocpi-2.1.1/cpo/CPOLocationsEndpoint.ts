@@ -121,7 +121,7 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
     // Get site
     const site = await SiteStorage.getSite(tenant, locationId);
     if (site) {
-      return await OCPIUtilsService.convertSite2Location(tenant, site, options, true);
+      return await OCPIUtilsService.convertCPOSite2Location(tenant, site, options, true);
     }
   }
 

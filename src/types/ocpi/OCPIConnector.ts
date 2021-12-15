@@ -10,6 +10,7 @@ export interface OCPIConnector {
   voltage: OCPIVoltage;
   amperage: number;
   tariff_id?: string;
+  terms_and_conditions?: string;
   last_updated: Date;
 }
 

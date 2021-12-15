@@ -36,6 +36,7 @@ import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import { SimplePricingSetting } from '../../../../types/Setting';
 import Site from '../../../../types/Site';
+import SiteArea from '../../../../types/SiteArea';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
@@ -122,7 +123,7 @@ export default class OCPIUtilsService {
     // Convert Sites to Locations
     for (const site of sites.result) {
       ocpiLocationsResult.result.push(
-        await OCPIUtilsService.convertSite2Location(tenant, site, options, withChargingStations));
+        await OCPIUtilsService.convertCPOSite2Location(tenant, site, options, withChargingStations));
     }
     let nbrOfSites = sites.count;
     if (nbrOfSites === -1) {
@@ -171,7 +172,7 @@ export default class OCPIUtilsService {
     };
   }
 
-  public static async convertSite2Location(tenant: Tenant, site: Site,
+  public static async convertCPOSite2Location(tenant: Tenant, site: Site,
       options: OCPILocationOptions, withChargingStations: boolean): Promise<OCPILocation> {
     // Build object
     return {
@@ -191,6 +192,25 @@ export default class OCPIUtilsService {
       operator: await OCPIUtilsService.getOperatorBusinessDetails(tenant) ?? { name: 'Undefined' },
       last_updated: site.lastChangedOn ? site.lastChangedOn : site.createdOn,
       opening_times: this.buildOpeningTimes(tenant, site)
+    };
+  }
+
+  public static async convertEMSPSiteArea2Location(tenant: Tenant, siteArea: SiteArea): Promise<OCPILocation> {
+    // Becareful: Not the full Location can be rebuilt
+    return {
+      id: siteArea.id.split('*')[2],
+      type: OCPILocationType.UNKNOWN,
+      name: siteArea.name,
+      address: siteArea.address?.address1,
+      city: siteArea.address?.city,
+      postal_code: siteArea.address?.postalCode,
+      country: siteArea.address?.country,
+      coordinates: {
+        longitude: siteArea.address?.coordinates[0].toString(),
+        latitude: siteArea.address?.coordinates[1].toString()
+      },
+      operator: await OCPIUtilsService.getOperatorBusinessDetails(tenant) ?? { name: 'Undefined' },
+      last_updated: siteArea.lastChangedOn ? siteArea.lastChangedOn : siteArea.createdOn,
     };
   }
 
@@ -821,7 +841,7 @@ export default class OCPIUtilsService {
     } else {
       connectors = chargingStation.connectors.filter((connector) => connector !== null);
     }
-    const evses = connectors.map((connector) => {
+    return connectors.map((connector) => {
       const evse: OCPIEvse = {
         uid: OCPIUtils.buildEvseUID(chargingStation, connector),
         evse_id: RoamingUtils.buildEvseID(options.countryID, options.partyID,
@@ -845,8 +865,6 @@ export default class OCPIUtilsService {
       }
       return evse;
     });
-    // Return all evses
-    return evses;
   }
 
   private static convertChargingStation2UniqueEvse(tenant: Tenant, chargingStation: ChargingStation,
