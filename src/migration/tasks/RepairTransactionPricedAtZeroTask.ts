@@ -30,8 +30,8 @@ export default class RepairTransactionPricedAtZero extends TenantMigrationTask {
       .aggregate([
         {
           $match: {
-            'timestamp': { $gt: new Date('2021-12-07') },
-            'stop.timestamp': { $lt: new Date('2021-12-09') },
+            'timestamp': { $gt: new Date('2021-11-24') },
+            'stop.timestamp': { $lt: new Date('2021-12-15') },
             'stop.price': 0,
             'stop.totalConsumptionWh': { $gt: 0 } ,
             'stop.pricingSource': 'simple',
@@ -101,7 +101,7 @@ export default class RepairTransactionPricedAtZero extends TenantMigrationTask {
   }
 
   public getVersion(): string {
-    return '1.0';
+    return '1.1';
   }
 
   public getName(): string {
