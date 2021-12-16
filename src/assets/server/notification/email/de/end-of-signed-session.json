@@ -13,7 +13,7 @@
         "value": "<%- connectorId %>"
       },
       {
-        "label": "Badge ID",
+        "label": "RFID",
         "value": "<%- tagId %>"
       },
       {

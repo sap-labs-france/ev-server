@@ -165,7 +165,7 @@
     "usage": "Nutzung (Stunden)"
   },
   "tags": {
-    "id": "Badge ID",
+    "id": "RFID",
     "description": "Badge Beschreibung",
     "virtualBadge": "Virtueller Badge"
   },
