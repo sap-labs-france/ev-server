@@ -275,6 +275,12 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         action, module: MODULE_NAME, method: 'checkAndReferenceWSConnection',
         message: `WS Connection - Opened: '${wsConnection.getURL()}'`
       });
+      await Logging.logInfo({
+        tenantID: Constants.DEFAULT_TENANT,
+        chargingStationID: wsConnection.getChargingStationID(),
+        action, module: MODULE_NAME, method: 'checkAndReferenceWSConnection',
+        message: `WS Connection - Opened: '${wsConnection.getURL()}'`
+      });
     }
     return wsConnection;
   }
@@ -394,12 +400,20 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       action, module: MODULE_NAME, method: 'logWSConnectionClosed',
       message, detailedMessages: { code: errorCode, message: errorMessage }
     });
+    await Logging.logInfo({
+      tenantID: Constants.DEFAULT_TENANT,
+      chargingStationID: wsConnection.getChargingStationID(),
+      action, module: MODULE_NAME, method: 'logWSConnectionClosed',
+      message, detailedMessages: { code: errorCode, message: errorMessage }
+    });
   }
 
   private async waitForWSLockToRelease(wsWrapper: WSWrapper, incomingConnection: boolean): Promise<boolean> {
-    let numberOfTrials = 10;
     // Wait for init to handle multiple same WS Connection
     if (this.runningWSRequestsMessages[wsWrapper.url]) {
+      const maxNumberOfTrials = 10;
+      let numberOfTrials = 0;
+      const timeStart = Date.now();
       await Logging.logWarning({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.WS_CONNECTION,
@@ -411,26 +425,27 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       while (true) {
         // Wait
         await Utils.sleep(500);
+        numberOfTrials++;
         // Message has been processed
         if (!this.runningWSRequestsMessages[wsWrapper.url]) {
           await Logging.logInfo({
             tenantID: Constants.DEFAULT_TENANT,
             action: ServerAction.WS_CONNECTION,
             module: MODULE_NAME, method: 'waitForWSLockToRelease',
-            message: `WS ${incomingConnection ? 'Connection' : 'Request'} - Lock acquired successfully for '${wsWrapper.url}'`
+            message: `WS ${incomingConnection ? 'Connection' : 'Request'} - Lock acquired successfully after ${numberOfTrials} trial(s) and ${(Date.now() - timeStart) / 1000} secs for '${wsWrapper.url}'`
           });
+          // Free the lock
           this.waitingWSMessages--;
           break;
         }
         // Handle remaining trial
-        numberOfTrials--;
-        if (numberOfTrials <= 0) {
+        if (numberOfTrials >= maxNumberOfTrials) {
           // Abnormal situation: The lock should not be taken for so long!
           await Logging.logError({
             tenantID: Constants.DEFAULT_TENANT,
             action: ServerAction.WS_CONNECTION,
             module: MODULE_NAME, method: 'waitForWSLockToRelease',
-            message: `WS ${incomingConnection ? 'Connection' : 'Request'} - Cannot acquire the lock - Lock freed (force) for '${wsWrapper.url}'`
+            message: `WS ${incomingConnection ? 'Connection' : 'Request'} - Cannot acquire the lock after ${numberOfTrials} trial(s) and ${(Date.now() - timeStart) / 1000} secs - Lock is freed anyway for '${wsWrapper.url}'`
           });
           // Free the lock
           this.waitingWSMessages--;
