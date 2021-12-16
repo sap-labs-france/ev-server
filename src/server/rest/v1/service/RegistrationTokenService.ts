@@ -26,7 +26,7 @@ export default class RegistrationTokenService {
     // Check the Site Area
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredRequest.siteAreaID) {
       await UtilsService.checkAndGetSiteAreaAuthorization(
-        req.tenant, req.user, filteredRequest.siteAreaID, Action.READ, action, filteredRequest, null, false);
+        req.tenant, req.user, filteredRequest.siteAreaID, Action.UPDATE, action, filteredRequest, null, false);
     }
     // Get dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetRegistrationTokenAuthorizations(
