@@ -221,7 +221,7 @@
     "chai-subset": "^1.6.0",
     "circular-dependency-plugin": "^5.2.2",
     "clean-webpack-plugin": "^4.0.0",
-    "clinic": "^9.0.0",
+    "clinic": "^10.0.0",
     "convict": "^6.2.0",
     "copy-webpack-plugin": "^9.0.1",
     "cross-env": "^7.0.3",
