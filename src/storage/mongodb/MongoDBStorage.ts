@@ -333,7 +333,7 @@ export default class MongoDBStorage {
             { fields: { level: 1, timestamp: 1 } },
             { fields: { source: 1, timestamp: 1 } },
             { fields: { host: 1, timestamp: 1 } },
-            { fields: { message: 'text' } },
+            { fields: { message: 'text', source: 'text', chargingStationID: 'text' } },
           ]);
         } finally {
           // Release the database creation Lock

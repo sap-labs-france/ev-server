@@ -434,7 +434,7 @@ export default class DatabaseUtils {
             {
               $gte: [
                 { $divide: [{ $subtract: [new Date(), '$lastSeen'] }, 1000] },
-                Configuration.getChargingStationConfig().heartbeatIntervalOCPPSSecs * 2
+                Configuration.getChargingStationConfig().heartbeatIntervalOCPPJSecs * 2
               ]
             }
           ]

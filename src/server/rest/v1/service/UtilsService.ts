@@ -1465,7 +1465,7 @@ export default class UtilsService {
   }
 
   public static checkIfUserTagIsValid(tag: Partial<Tag>, req: Request): void {
-    // Check badge ID
+    // Check RFID Card
     if (!tag.id) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
