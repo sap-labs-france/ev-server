@@ -582,7 +582,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         });
       }
     } else {
-      this.isDebug() && Logging.logConsoleDebug('No Web Socket connection to ping');
+      this.isDebug() && Logging.logConsoleDebug(`No ${type} Web Socket connection to ping`);
     }
   }
 }
