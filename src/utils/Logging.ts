@@ -68,7 +68,7 @@ export default class Logging {
       }
     }
     if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
-      const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms, got ${executionDurationMillis} ms`);
+      const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms`);
       await Logging.logWarning({
         tenantID: tenant.id,
         action: ServerAction.PERFORMANCES,
@@ -92,6 +92,48 @@ export default class Logging {
         reqSizeKb: sizeOfRequestDataKB,
         resSizeKb: sizeOfResponseDataKB,
         action: `${module}.${method}`
+      })
+    );
+  }
+
+  public static traceNotificationStart(): number {
+    return Date.now();
+  }
+
+  public static async traceNotificationEnd(tenant: Tenant, module: string, method: string, timeStartMillis: number,
+      templateName: string, data: any, userID: string): Promise<void> {
+    // Compute duration if provided
+    const executionDurationMillis = new Date().getTime() - timeStartMillis;
+    const sizeOfRequestDataKB = Utils.truncTo(Utils.createDecimal(
+      sizeof(data)).div(1024).toNumber(), 2);
+    const message = `${module}.${method} - ${templateName} - ${executionDurationMillis.toString()} ms - Data ${sizeOfRequestDataKB} KB`;
+    Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
+    if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
+      const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms`);
+      await Logging.logWarning({
+        tenantID: tenant.id,
+        action: ServerAction.PERFORMANCES,
+        module, method,
+        message: `${message}: ${error.message}`,
+        detailedMessages: { error: error.stack }
+      });
+      if (Utils.isDevelopmentEnv()) {
+        Logging.logConsoleWarning('====================================');
+        Logging.logConsoleWarning(`Tenant ID '${tenant.id}'`);
+        Logging.logConsoleWarning(error.stack);
+        Logging.logConsoleWarning(message);
+        Logging.logConsoleWarning('====================================');
+      }
+    }
+    await PerformanceStorage.savePerformanceRecord(
+      Utils.buildPerformanceRecord({
+        tenantSubdomain: tenant.subdomain,
+        group: PerformanceRecordGroup.NOTIFICATION,
+        durationMs: executionDurationMillis,
+        reqSizeKb: sizeOfRequestDataKB,
+        resSizeKb: 0,
+        action: `${module}.${method}.${templateName}`,
+        userID
       })
     );
   }
@@ -642,7 +684,7 @@ export default class Logging {
     const message = `${direction} OCPP Request '${action}' on '${chargingStationID}' has been processed ${executionDurationMillis ? 'in ' + executionDurationMillis.toString() + ' ms' : ''} - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB`;
     Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
     if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
-      const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms, got ${executionDurationMillis} ms`);
+      const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms`);
       await Logging.logWarning({
         tenantID: tenant?.id,
         action: ServerAction.PERFORMANCES,
