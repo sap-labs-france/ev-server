@@ -6,18 +6,14 @@ import CentralSystemFrontEndConfiguration from '../types/configuration/CentralSy
 import CentralSystemRestServiceConfiguration from '../types/configuration/CentralSystemRestServiceConfiguration';
 import CentralSystemServerConfiguration from '../types/configuration/CentralSystemServerConfiguration';
 import ChargingStationConfiguration from '../types/configuration/ChargingStationConfiguration';
-import ChargingStationTemplatesConfiguration from '../types/configuration/ChargingStationTemplatesConfiguration';
 import { Configuration as ConfigurationData } from '../types/configuration/Configuration';
 import Constants from './Constants';
 import CryptoConfiguration from '../types/configuration/CryptoConfiguration';
 import EVDatabaseConfiguration from '../types/configuration/EVDatabaseConfiguration';
 import EmailConfiguration from '../types/configuration/EmailConfiguration';
 import FirebaseConfiguration from '../types/configuration/FirebaseConfiguration';
-import HealthCheckConfiguration from '../types/configuration/HealthCheckConfiguration';
 import JsonEndpointConfiguration from '../types/configuration/JsonEndpointConfiguration';
-import { LogLevel } from '../types/Log';
 import LoggingConfiguration from '../types/configuration/LoggingConfiguration';
-import LoggingStorage from '../storage/mongodb/LoggingStorage';
 import MigrationConfiguration from '../types/configuration/MigrationConfiguration';
 import NotificationConfiguration from '../types/configuration/NotificationConfiguration';
 import OCPIEndpointConfiguration from '../types/configuration/OCPIEndpointConfiguration';
@@ -26,7 +22,6 @@ import ODataServiceConfiguration from '../types/configuration/ODataServiceConfig
 import OICPEndpointConfiguration from '../types/configuration/OICPEndpointConfiguration';
 import OICPServiceConfiguration from '../types/configuration/OICPServiceConfiguration';
 import SchedulerConfiguration from '../types/configuration/SchedulerConfiguration';
-import { ServerAction } from '../types/Server';
 import StorageConfiguration from '../types/configuration/StorageConfiguration';
 import WSDLEndpointConfiguration from '../types/configuration/WSDLEndpointConfiguration';
 import chalk from 'chalk';
@@ -42,90 +37,149 @@ export default class Configuration {
   private constructor() {}
 
   public static getCryptoConfig(): CryptoConfiguration {
-    return Configuration.getConfig().Crypto;
+    const crypto = Configuration.getConfig().Crypto;
+    if (!Configuration.isUndefined('Crypto', crypto)) {
+      return crypto;
+    }
   }
 
   public static getSchedulerConfig(): SchedulerConfiguration {
-    return Configuration.getConfig().Scheduler;
+    const scheduler = Configuration.getConfig().Scheduler;
+    if (!Configuration.isUndefined('Scheduler', scheduler)) {
+      return scheduler;
+    }
   }
 
   public static getAsyncTaskConfig(): AsyncTaskConfiguration {
-    return Configuration.getConfig().AsyncTask;
+    const asyncTask = Configuration.getConfig().AsyncTask;
+    if (!Configuration.isUndefined('AsyncTask', asyncTask)) {
+      return asyncTask;
+    }
   }
 
   public static getFirebaseConfig(): FirebaseConfiguration {
     const firebaseConfiguration = Configuration.getConfig().Firebase;
-    if (firebaseConfiguration.privateKey) {
-      firebaseConfiguration.privateKey = firebaseConfiguration.privateKey.replace(/\\n/g, '\n');
+    if (!Configuration.isUndefined('Firebase', firebaseConfiguration)) {
+      if (firebaseConfiguration.privateKey) {
+        firebaseConfiguration.privateKey = firebaseConfiguration.privateKey.replace(/\\n/g, '\n');
+      }
+      return firebaseConfiguration;
     }
-    return firebaseConfiguration;
   }
 
   public static getCentralSystemsConfig(): CentralSystemConfiguration[] {
-    return Configuration.getConfig().CentralSystems;
+    const centralSystems = Configuration.getConfig().CentralSystems;
+    if (!Configuration.isUndefined('CentralSystems', centralSystems)) {
+      return centralSystems;
+    }
   }
 
   public static getNotificationConfig(): NotificationConfiguration {
-    return Configuration.getConfig().Notification;
+    const notification = Configuration.getConfig().Notification;
+    if (!Configuration.isUndefined('Notification', notification)) {
+      return notification;
+    }
   }
 
   public static getAuthorizationConfig(): AuthorizationConfiguration {
-    return Configuration.getConfig().Authorization;
+    const authorization = Configuration.getConfig().Authorization;
+    if (!Configuration.isUndefined('Authorization', authorization)) {
+      return authorization;
+    }
   }
 
   public static getCentralSystemRestServiceConfig(): CentralSystemRestServiceConfiguration {
-    return Configuration.getConfig().CentralSystemRestService;
+    const centralSystemRestService = Configuration.getConfig().CentralSystemRestService;
+    if (!Configuration.isUndefined('CentralSystemRestService', centralSystemRestService)) {
+      return centralSystemRestService;
+    }
   }
 
   public static getOCPIServiceConfig(): OCPIServiceConfiguration {
-    return Configuration.getConfig().OCPIService;
+    const ocpiService = Configuration.getConfig().OCPIService;
+    if (!Configuration.isUndefined('OCPIService', ocpiService)) {
+      return ocpiService;
+    }
   }
 
   public static getOICPServiceConfig(): OICPServiceConfiguration {
-    return Configuration.getConfig().OICPService;
+    const oicpService = Configuration.getConfig().OICPService;
+    if (!Configuration.isUndefined('OICPService', oicpService)) {
+      return oicpService;
+    }
   }
 
   public static getODataServiceConfig(): ODataServiceConfiguration {
-    return Configuration.getConfig().ODataService;
+    const odataService = Configuration.getConfig().ODataService;
+    if (!Configuration.isUndefined('ODataService', odataService)) {
+      return odataService;
+    }
   }
 
   public static getCentralSystemRestServerConfig(): CentralSystemServerConfiguration {
-    return Configuration.getConfig().CentralSystemServer;
+    const centralSystemServer = Configuration.getConfig().CentralSystemServer;
+    if (!Configuration.isUndefined('CentralSystemServer', centralSystemServer)) {
+      return centralSystemServer;
+    }
   }
 
   public static getWSDLEndpointConfig(): WSDLEndpointConfiguration {
-    return Configuration.getConfig().WSDLEndpoint;
+    const wsdlEndpoint = Configuration.getConfig().WSDLEndpoint;
+    if (!Configuration.isUndefined('WSDLEndpoint', wsdlEndpoint)) {
+      return wsdlEndpoint;
+    }
   }
 
   public static getJsonEndpointConfig(): JsonEndpointConfiguration {
-    return Configuration.getConfig().JsonEndpoint;
+    const jsonEndpoint = Configuration.getConfig().JsonEndpoint;
+    if (!Configuration.isUndefined('JsonEndpoint', jsonEndpoint)) {
+      return jsonEndpoint;
+    }
   }
 
   public static getOCPIEndpointConfig(): OCPIEndpointConfiguration {
-    return Configuration.getConfig().OCPIEndpoint;
+    const ocpiEndpoint = Configuration.getConfig().OCPIEndpoint;
+    if (!Configuration.isUndefined('OCPIEndpoint', ocpiEndpoint)) {
+      return ocpiEndpoint;
+    }
   }
 
   public static getOICPEndpointConfig(): OICPEndpointConfiguration {
-    return Configuration.getConfig().OICPEndpoint;
+    const oicpPEndpoint = Configuration.getConfig().OICPEndpoint;
+    if (!Configuration.isUndefined('OICPEndpoint', oicpPEndpoint)) {
+      return oicpPEndpoint;
+    }
   }
 
   public static getCentralSystemFrontEndConfig(): CentralSystemFrontEndConfiguration {
-    return Configuration.getConfig().CentralSystemFrontEnd;
+    const centralSystemFrontEnd = Configuration.getConfig().CentralSystemFrontEnd;
+    if (!Configuration.isUndefined('CentralSystemFrontEnd', centralSystemFrontEnd)) {
+      return centralSystemFrontEnd;
+    }
   }
 
   public static getEmailConfig(): EmailConfiguration {
-    if (Configuration.isUndefined('Email.disableBackup', Configuration.getConfig().Email.disableBackup)) {
-      Configuration.getConfig().Email.disableBackup = false;
+    const email = Configuration.getConfig().Email;
+    if (!Configuration.isUndefined('Email', email)) {
+      if (Configuration.isUndefined('Email.disableBackup', email.disableBackup)) {
+        email.disableBackup = false;
+      }
+      return email;
     }
-    return Configuration.getConfig().Email;
   }
 
   public static getEVDatabaseConfig(): EVDatabaseConfiguration {
-    return Configuration.getConfig().EVDatabase;
+    const evDatabase = Configuration.getConfig().EVDatabase;
+    if (!Configuration.isUndefined('EVDatabase', evDatabase)) {
+      return evDatabase;
+    }
   }
 
   public static getStorageConfig(): StorageConfiguration {
-    return Configuration.getConfig().Storage;
+    const storage = Configuration.getConfig().Storage;
+    if (!Configuration.isUndefined('Storage', storage)) {
+      return storage;
+    }
   }
 
   public static getChargingStationConfig(): ChargingStationConfiguration {
@@ -141,55 +195,41 @@ export default class Configuration {
       if (Configuration.isUndefined('ChargingStation.pingIntervalOCPPJSecs', chargingStationConfiguration.pingIntervalOCPPJSecs)) {
         chargingStationConfiguration.pingIntervalOCPPJSecs = 60;
       }
+      if (Configuration.isUndefined('ChargingStation.monitoringIntervalOCPPJSecs', chargingStationConfiguration.monitoringIntervalOCPPJSecs)) {
+        chargingStationConfiguration.monitoringIntervalOCPPJSecs = 600;
+      }
     }
     return chargingStationConfiguration;
   }
 
   public static getLoggingConfig(): LoggingConfiguration {
-    return Configuration.getConfig().Logging;
-  }
-
-  public static getHealthCheckConfig(): HealthCheckConfiguration {
-    if (Configuration.isUndefined('HealthCheck', Configuration.getConfig().HealthCheck)) {
-      Configuration.getConfig().HealthCheck = {} as HealthCheckConfiguration;
+    const logging = Configuration.getConfig().Logging;
+    if (!Configuration.isUndefined('Logging', logging)) {
+      return logging;
     }
-    if (Configuration.isUndefined('HealthCheck.enabled', Configuration.getConfig().HealthCheck.enabled)) {
-      Configuration.getConfig().HealthCheck.enabled = true;
-    }
-    return Configuration.getConfig().HealthCheck;
   }
 
   public static getMigrationConfig(): MigrationConfiguration {
-    if (Configuration.isUndefined('Migration', Configuration.getConfig().Migration)) {
-      Configuration.getConfig().Migration = {} as MigrationConfiguration;
+    const migration = Configuration.getConfig().Migration;
+    if (!Configuration.isUndefined('Migration', migration)) {
+      if (Configuration.isUndefined('Migration.active', Configuration.getConfig().Migration.active)) {
+        migration.active = false;
+      }
+      return migration;
     }
-    if (Configuration.isUndefined('Migration.active', Configuration.getConfig().Migration.active)) {
-      Configuration.getConfig().Migration.active = false;
-    }
-    return Configuration.getConfig().Migration;
-  }
-
-  public static getChargingStationTemplatesConfig(): ChargingStationTemplatesConfiguration {
-    if (Configuration.isUndefined('ChargingStationTemplates', Configuration.getConfig().ChargingStationTemplates)) {
-      Configuration.getConfig().ChargingStationTemplates = {} as ChargingStationTemplatesConfiguration;
-    }
-    if (Configuration.isUndefined('ChargingStationTemplates.templatesFilePath', Configuration.getConfig().ChargingStationTemplates.templatesFilePath)) {
-      Configuration.getConfig().ChargingStationTemplates.templatesFilePath = `${global.appRoot}/assets/charging-station-templates/charging-stations.json`;
-    }
-    return Configuration.getConfig().ChargingStationTemplates;
   }
 
   public static getAxiosConfig(): AxiosConfiguration {
-    if (Configuration.isUndefined('Axios', Configuration.getConfig().Axios)) {
-      Configuration.getConfig().Axios = {} as AxiosConfiguration;
+    const axios = Configuration.getConfig().Axios;
+    if (!Configuration.isUndefined('Axios', axios)) {
+      if (Configuration.isUndefined('Axios.timeout', axios.timeout)) {
+        axios.timeout = Constants.AXIOS_DEFAULT_TIMEOUT;
+      }
+      if (Configuration.isUndefined('Axios.retries', axios.retries)) {
+        axios.retries = 0;
+      }
+      return axios;
     }
-    if (Configuration.isUndefined('Axios.timeout', Configuration.getConfig().Axios.timeout)) {
-      Configuration.getConfig().Axios.timeout = Constants.AXIOS_DEFAULT_TIMEOUT;
-    }
-    if (Configuration.isUndefined('Axios.retries', Configuration.getConfig().Axios.retries)) {
-      Configuration.getConfig().Axios.retries = 0;
-    }
-    return Configuration.getConfig().Axios;
   }
 
   private static getConfig(): ConfigurationData {
@@ -203,13 +243,6 @@ export default class Configuration {
   private static isUndefined(name: string, value: any): boolean {
     if (typeof value === 'undefined') {
       console.error(chalk.red(`Missing property '${name}' in config.json`));
-      void LoggingStorage.saveLog(Constants.DEFAULT_TENANT, {
-        level: LogLevel.WARNING,
-        timestamp: new Date(),
-        module: MODULE_NAME, method: 'propertyIsUndefined',
-        action: ServerAction.MISSING_CONFIGURATION,
-        message: `Missing property '${name}' in config.json`
-      });
       return true;
     }
     return false;

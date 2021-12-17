@@ -534,7 +534,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         Logging.logConsoleDebug(`** ${this.waitingWSMessages} queued WS Message(s)`);
         Logging.logConsoleDebug('=====================================');
       }
-    }, 30 * 60 * 1000);
+    }, Configuration.getChargingStationConfig().monitoringIntervalOCPPJSecs * 1000);
   }
 
   private checkAndCleanupAllWebSockets() {

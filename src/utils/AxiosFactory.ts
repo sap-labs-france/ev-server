@@ -18,7 +18,7 @@ export default class AxiosFactory {
     instanceConfiguration = instanceConfiguration ?? {};
     instanceConfiguration.axiosConfig = instanceConfiguration.axiosConfig ?? {} as AxiosRequestConfig;
     // Set timeout
-    instanceConfiguration.axiosConfig.timeout = instanceConfiguration.axiosConfig.timeout ?? Configuration.getAxiosConfig().timeout;
+    instanceConfiguration.axiosConfig.timeout = instanceConfiguration.axiosConfig.timeout ?? Configuration.getAxiosConfig()?.timeout;
     // Get from map
     let axiosInstance = this.axiosInstances.get(tenant.id);
     if (!axiosInstance) {
@@ -50,7 +50,7 @@ export default class AxiosFactory {
 
   private static applyAxiosRetryConfiguration(axiosInstance: AxiosInstance, axiosRetryConfig?: IAxiosRetryConfig) {
     axiosRetryConfig = axiosRetryConfig ?? {} as IAxiosRetryConfig;
-    axiosRetryConfig.retries = axiosRetryConfig.retries ?? Configuration.getAxiosConfig().retries;
+    axiosRetryConfig.retries = axiosRetryConfig.retries ?? Configuration.getAxiosConfig()?.retries;
     axiosRetryConfig.retryCondition = axiosRetryConfig.retryCondition ?? AxiosFactory.isNetworkOrDefaultIdempotentRequestError.bind(this);
     axiosRetryConfig.retryDelay = axiosRetryConfig.retryDelay ?? axiosRetry.exponentialDelay.bind(this);
     axiosRetry(axiosInstance, axiosRetryConfig);

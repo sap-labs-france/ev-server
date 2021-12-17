@@ -2,6 +2,7 @@ export default interface ChargingStationConfiguration {
   heartbeatIntervalOCPPSSecs: number;
   heartbeatIntervalOCPPJSecs: number;
   pingIntervalOCPPJSecs: number;
+  monitoringIntervalOCPPJSecs: number;
   checkEndOfChargeNotificationAfterMin: number;
   notifBeforeEndOfChargeEnabled: boolean;
   notifBeforeEndOfChargePercent: number;

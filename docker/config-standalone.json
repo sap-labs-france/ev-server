@@ -79,6 +79,7 @@
     "heartbeatIntervalOCPPSSecs": 180,
     "heartbeatIntervalOCPPJSecs": 3600,
     "pingIntervalOCPPJSecs": 60,
+    "monitoringIntervalOCPPJSecs": 600,
     "checkEndOfChargeNotificationAfterMin": 5,
     "notifBeforeEndOfChargePercent": 85,
     "notifBeforeEndOfChargeEnabled": true,

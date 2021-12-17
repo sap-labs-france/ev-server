@@ -85,7 +85,7 @@ export default class Bootstrap {
       // -------------------------------------------------------------------------
       // Start DB Migration
       // -------------------------------------------------------------------------
-      if (Bootstrap.migrationConfig.active) {
+      if (Bootstrap.migrationConfig?.active) {
         startTimeMillis = await this.logAndGetStartTimeMillis('Migration is starting...');
         // Check and trigger migration (only master process can run the migration)
         await MigrationHandler.migrate();
