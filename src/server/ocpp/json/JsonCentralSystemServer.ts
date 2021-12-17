@@ -207,12 +207,12 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       // Check Json connection
       if (wsWrapper.url.startsWith('/OCPP16')) {
         // Create and Initialize WS Connection
-        wsConnection = await this.checkAndReferenceWSConnection(WSServerProtocol.OCPP16, wsWrapper);
+        wsConnection = await this.checkAndKeepWSConnection(WSServerProtocol.OCPP16, wsWrapper);
       }
       // Check Rest connection
       if (wsWrapper.url.startsWith('/REST')) {
         // Create and Initialize WS Connection
-        wsConnection = await this.checkAndReferenceWSConnection(WSServerProtocol.REST, wsWrapper);
+        wsConnection = await this.checkAndKeepWSConnection(WSServerProtocol.REST, wsWrapper);
       }
       if (!wsConnection) {
         throw new BackendError({
@@ -229,7 +229,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     }
   }
 
-  private async checkAndReferenceWSConnection(protocol: WSServerProtocol, wsWrapper: WSWrapper): Promise<WSConnection> {
+  private async checkAndKeepWSConnection(protocol: WSServerProtocol, wsWrapper: WSWrapper): Promise<WSConnection> {
     let wsConnection: WSConnection;
     let action: ServerAction;
     // Set the protocol

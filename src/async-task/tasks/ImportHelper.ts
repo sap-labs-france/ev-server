@@ -167,7 +167,7 @@ export default class ImportHelper {
       '/verify-email?VerificationToken=' + verificationToken + '&Email=' + user.email + '&ResetToken=' + resetHash;
     // Send activate account link
     await NotificationHandler.sendVerificationEmailUserImport(
-      tenant.id,
+      tenant,
       Utils.generateUUID(),
       user,
       {

@@ -495,11 +495,10 @@ export default class NotificationHandler {
     }
   }
 
-  public static async sendVerificationEmailUserImport(tenantID: string, notificationID: string, user: User,
+  public static async sendVerificationEmailUserImport(tenant: Tenant, notificationID: string, user: User,
       sourceData: VerificationEmailNotification): Promise<void> {
-    if (tenantID !== Constants.DEFAULT_TENANT) {
+    if (tenant.id !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
-      const tenant = await TenantStorage.getTenant(tenantID, { withLogo: true });
       sourceData.tenantLogoURL = tenant.logo;
       // For each Sources
       for (const notificationSource of NotificationHandler.notificationSources) {
@@ -513,7 +512,7 @@ export default class NotificationHandler {
             await notificationSource.notificationTask.sendVerificationEmailUserImport(
               sourceData, user, tenant, NotificationSeverity.INFO);
           } catch (error) {
-            await Logging.logActionExceptionMessage(tenantID, ServerAction.VERIFICATION_EMAIL_USER_IMPORT, error);
+            await Logging.logActionExceptionMessage(tenant.id, ServerAction.VERIFICATION_EMAIL_USER_IMPORT, error);
           }
         }
       }
