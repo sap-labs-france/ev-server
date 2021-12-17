@@ -749,7 +749,7 @@ export default class CpoOCPIClient extends OCPIClient {
                 }
                 if (result.failure > 0) {
                   // Send notification to admins
-                  await NotificationHandler.sendOCPIPatchChargingStationsStatusesError(
+                  void NotificationHandler.sendOCPIPatchChargingStationsStatusesError(
                     this.tenant,
                     {
                       location: location.name,

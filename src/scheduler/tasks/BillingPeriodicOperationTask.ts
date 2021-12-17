@@ -19,7 +19,7 @@ export default class BillingPeriodicOperationTask extends SchedulerTask {
           // Attempt to finalize and pay invoices
           const chargeActionResults = await billingImpl.chargeInvoices();
           if (chargeActionResults.inError > 0) {
-            await NotificationHandler.sendBillingPeriodicOperationFailed(
+            void NotificationHandler.sendBillingPeriodicOperationFailed(
               tenant,
               {
                 nbrInvoicesInError: chargeActionResults.inError,

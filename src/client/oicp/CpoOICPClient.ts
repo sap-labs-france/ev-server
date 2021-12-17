@@ -298,7 +298,7 @@ export default class CpoOICPClient extends OICPClient {
     } while (!Utils.isEmptyArray(sites));
     // Send notification to admins
     if (result.failure > 0) {
-      await NotificationHandler.sendOICPPatchChargingStationsError(
+      void NotificationHandler.sendOICPPatchChargingStationsError(
         this.tenant,
         {
           evseDashboardURL: Utils.buildEvseURL(this.tenant.subdomain)
@@ -424,7 +424,7 @@ export default class CpoOICPClient extends OICPClient {
                 }
                 if (result.failure > 0) {
                   // Send notification to admins
-                  await NotificationHandler.sendOICPPatchChargingStationsStatusesError(
+                  void NotificationHandler.sendOICPPatchChargingStationsStatusesError(
                     this.tenant,
                     {
                       evseDashboardURL: Utils.buildEvseURL(this.tenant.subdomain)
