@@ -18,7 +18,7 @@ export default class AxiosFactory {
     instanceConfiguration = instanceConfiguration ?? {};
     instanceConfiguration.axiosConfig = instanceConfiguration.axiosConfig ?? {} as AxiosRequestConfig;
     // Set timeout
-    instanceConfiguration.axiosConfig.timeout = instanceConfiguration.axiosConfig.timeout ?? Configuration.getAxiosConfig()?.timeout;
+    instanceConfiguration.axiosConfig.timeout = instanceConfiguration.axiosConfig.timeout ?? Configuration.getAxiosConfig()?.timeoutSecs * 1000;
     // Get from map
     let axiosInstance = this.axiosInstances.get(tenant.id);
     if (!axiosInstance) {

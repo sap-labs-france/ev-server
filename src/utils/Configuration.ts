@@ -222,8 +222,8 @@ export default class Configuration {
   public static getAxiosConfig(): AxiosConfiguration {
     const axios = Configuration.getConfig().Axios;
     if (!Configuration.isUndefined('Axios', axios)) {
-      if (Configuration.isUndefined('Axios.timeout', axios.timeout)) {
-        axios.timeout = Constants.AXIOS_DEFAULT_TIMEOUT;
+      if (Configuration.isUndefined('Axios.timeoutSecs', axios.timeoutSecs)) {
+        axios.timeoutSecs = Constants.AXIOS_DEFAULT_TIMEOUT_SECS;
       }
       if (Configuration.isUndefined('Axios.retries', axios.retries)) {
         axios.retries = 0;

@@ -87,6 +87,10 @@
     "replicaSet": "rs0",
     "debug": false
   },
+  "Axios": {
+    "retries": 0,
+    "timeoutSecs": 30
+  },
   "Email": {
     "from": "donotreply@charge-angels.fr",
     "admins": [

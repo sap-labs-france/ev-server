@@ -109,6 +109,10 @@
     "clientX509CertURL": "",
     "databaseURL": ""
   },
+  "Axios": {
+    "retries": 0,
+    "timeoutSecs": 30
+  },
   "Email": {
     "smtp": {
       "from": "",
