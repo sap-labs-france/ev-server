@@ -1084,7 +1084,15 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'user.id', 'user.name', 'user.firstName', 'userID'
         ],
       },
-      { resource: Entity.CAR, action: Action.CREATE },
+      { resource: Entity.CAR, action: Action.CREATE,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdmin']
+          }
+        },
+      },
       {
         resource: Entity.CAR, action: Action.READ,
         condition: {
