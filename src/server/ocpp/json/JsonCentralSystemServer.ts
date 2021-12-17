@@ -34,7 +34,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
   public constructor(centralSystemConfig: CentralSystemConfiguration, chargingStationConfig: ChargingStationConfiguration) {
     super(centralSystemConfig, chargingStationConfig);
     // Start job to clean WS connections
-    this.checkAndCleanupWSConnections();
+    this.checkAndCleanupAllWebSockets();
     // Monitor WS activity
     this.monitorWSConnections();
   }
@@ -537,14 +537,14 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     }, 30 * 60 * 1000);
   }
 
-  private checkAndCleanupWSConnections() {
+  private checkAndCleanupAllWebSockets() {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     setInterval(async () => {
       // Check Json connections
       await this.checkAndCleanupWebSockets(this.jsonWSConnections, 'Json');
       // Check Rest connections
       await this.checkAndCleanupWebSockets(this.jsonRestWSConnections, 'Rest');
-    }, Configuration.getChargingStationConfig().heartbeatIntervalOCPPJSecs * 1000);
+    }, Configuration.getChargingStationConfig().pingIntervalOCPPJSecs * 1000);
   }
 
   private async checkAndCleanupWebSockets(wsConnections: Map<string, WSConnection>, type: 'Json'|'Rest') {

@@ -127,27 +127,14 @@ export default class Configuration {
     const chargingStationConfiguration: ChargingStationConfiguration = Configuration.getConfig().ChargingStation;
     if (!Configuration.isUndefined(chargingStationConfiguration)) {
       if (Configuration.isUndefined(chargingStationConfiguration.heartbeatIntervalOCPPSSecs)) {
-        if (!Configuration.isUndefined(chargingStationConfiguration.heartbeatIntervalSecs)) {
-          chargingStationConfiguration.heartbeatIntervalOCPPSSecs = chargingStationConfiguration.heartbeatIntervalSecs;
-        } else {
-          chargingStationConfiguration.heartbeatIntervalOCPPSSecs = 180;
-        }
+        chargingStationConfiguration.heartbeatIntervalOCPPSSecs = 60;
       }
       if (Configuration.isUndefined(chargingStationConfiguration.heartbeatIntervalOCPPJSecs)) {
-        if (!Configuration.isUndefined(chargingStationConfiguration.heartbeatIntervalSecs)) {
-          chargingStationConfiguration.heartbeatIntervalOCPPJSecs = chargingStationConfiguration.heartbeatIntervalSecs;
-        } else {
-          chargingStationConfiguration.heartbeatIntervalOCPPJSecs = 3600;
-        }
+        chargingStationConfiguration.heartbeatIntervalOCPPJSecs = 120;
       }
-      if (Configuration.isUndefined(chargingStationConfiguration.maxLastSeenIntervalSecs)) {
-        if (!Configuration.isUndefined(chargingStationConfiguration.heartbeatIntervalSecs)) {
-          chargingStationConfiguration.maxLastSeenIntervalSecs = 3 * chargingStationConfiguration.heartbeatIntervalSecs;
-        } else {
-          chargingStationConfiguration.maxLastSeenIntervalSecs = 540;
-        }
+      if (Configuration.isUndefined(chargingStationConfiguration.pingIntervalOCPPJSecs)) {
+        chargingStationConfiguration.pingIntervalOCPPJSecs = 60;
       }
-      delete chargingStationConfiguration.heartbeatIntervalSecs;
     }
     return chargingStationConfiguration;
   }
