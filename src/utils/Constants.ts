@@ -293,7 +293,7 @@ export default class Constants {
     '([0-9a-f]{24})\\/',
     '(?:\\S+)$'].join(''), 'ig');
 
-  public static readonly OCPP_SOCKET_TIMEOUT = 10 * 1000;
+  public static readonly OCPP_SOCKET_TIMEOUT_MILLIS = 10 * 1000;
   public static readonly OCPP_HEARTBEAT_KEYS = Object.freeze(['HeartbeatInterval', 'HeartBeatInterval']);
 
   public static readonly MAX_DATE = new Date('9999-12-31Z23:59:59:999');
