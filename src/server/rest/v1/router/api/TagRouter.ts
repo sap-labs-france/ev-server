@@ -19,14 +19,22 @@ export default class TagRouter {
     this.buildRouteDeleteTag();
     this.buildRouteDeleteTags();
     this.buildRouteUpdateTag();
+    this.buildRouteUpdateTagByVisualID();
     this.buildRouteImportTag();
     this.buildRouteExportTag();
+    this.buildRouteAssignTag();
+    this.buildRouteUnassignTag();
+    this.buildRouteUnassignTags();
     return this.router;
   }
 
   private buildRouteTags(): void {
     this.router.get(`/${ServerRoute.REST_TAGS}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(TagService.handleGetTags.bind(this), ServerAction.TAGS, req, res, next);
+      if (req.query.VisualID) {
+        await RouterUtils.handleServerAction(TagService.handleGetTagByVisualID.bind(this), ServerAction.TAG_BY_VISUAL_ID, req, res, next);
+      } else {
+        await RouterUtils.handleServerAction(TagService.handleGetTags.bind(this), ServerAction.TAGS, req, res, next);
+      }
     });
   }
 
@@ -63,6 +71,12 @@ export default class TagRouter {
     });
   }
 
+  private buildRouteUpdateTagByVisualID(): void {
+    this.router.put(`/${ServerRoute.REST_TAGS}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(TagService.handleUpdateTagByVisualID.bind(this), ServerAction.TAG_UPDATE_BY_VISUAL_ID, req, res, next);
+    });
+  }
+
   private buildRouteImportTag(): void {
     this.router.post(`/${ServerRoute.REST_TAGS_IMPORT}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(TagService.handleImportTags.bind(this), ServerAction.TAGS_IMPORT, req, res, next);
@@ -72,6 +86,26 @@ export default class TagRouter {
   private buildRouteExportTag(): void {
     this.router.get(`/${ServerRoute.REST_TAGS_EXPORT}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(TagService.handleExportTags.bind(this), ServerAction.TAGS_EXPORT, req, res, next);
+    });
+  }
+
+  private buildRouteAssignTag(): void {
+    this.router.put(`/${ServerRoute.REST_TAG_ASSIGN}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.body.visualID = req.params.id;
+      await RouterUtils.handleServerAction(TagService.handleAssignTag.bind(this), ServerAction.TAG_ASSIGN, req, res, next);
+    });
+  }
+
+  private buildRouteUnassignTag(): void {
+    this.router.put(`/${ServerRoute.REST_TAG_UNASSIGN}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.body.visualID = req.params.id;
+      await RouterUtils.handleServerAction(TagService.handleUnassignTag.bind(this), ServerAction.TAG_UNASSIGN, req, res, next);
+    });
+  }
+
+  private buildRouteUnassignTags(): void {
+    this.router.put(`/${ServerRoute.REST_TAGS_UNASSIGN}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(TagService.handleUnassignTags.bind(this), ServerAction.TAGS_UNASSIGN, req, res, next);
     });
   }
 }

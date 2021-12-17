@@ -15,9 +15,7 @@ const MODULE_NAME = 'PricingStorage';
 export default class PricingStorage {
 
   public static async savePricingDefinition(tenant: Tenant, pricingDefinition: PricingDefinition): Promise<string> {
-    // Debug
     const uniqueTimerID = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     let entityID;
     if (pricingDefinition.entityType === PricingEntity.CHARGING_STATION) {
@@ -34,6 +32,7 @@ export default class PricingStorage {
       staticRestrictions: pricingDefinition.staticRestrictions,
       restrictions: pricingDefinition.restrictions,
       dimensions: pricingDefinition.dimensions,
+      siteID: DatabaseUtils.convertToObjectID(pricingDefinition.siteID)
     };
     // Check Created/Last Changed By
     DatabaseUtils.addLastChangedCreatedProps(pricingDefinitionMDB, pricingDefinition);
@@ -42,15 +41,12 @@ export default class PricingStorage {
       { '_id': pricingDefinitionMDB._id },
       { $set: pricingDefinitionMDB },
       { upsert: true, returnDocument: 'after' });
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'savePricingDefinition', uniqueTimerID, pricingDefinitionMDB);
     return pricingDefinitionMDB._id.toString();
   }
 
   public static async deletePricingDefinition(tenant: Tenant, pricingDefinitionID: string): Promise<void> {
-    // Debug
     const uniqueTimerID = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete
     await global.database.getCollection<any>(tenant.id, 'pricingdefinitions').deleteOne(
@@ -58,26 +54,25 @@ export default class PricingStorage {
         '_id': DatabaseUtils.convertToObjectID(pricingDefinitionID),
       }
     );
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deletePricingDefinition', uniqueTimerID, { id: pricingDefinitionID });
   }
 
   public static async getPricingDefinition(tenant: Tenant, id: string,
-      params: { entityIDs?: string[]; entityTypes?: string[]; withEntityInformation?: boolean } = {}, projectFields?: string[]): Promise<PricingDefinition> {
+      params: { entityID?: string; entityType?: PricingEntity; withEntityInformation?: boolean; siteIDs?: string[];} = {}, projectFields?: string[]): Promise<PricingDefinition> {
     const pricingDefinitionMDB = await PricingStorage.getPricingDefinitions(tenant, {
+      siteIDs: params.siteIDs,
       pricingDefinitionIDs: [id],
-      entityIDs: params.entityIDs,
-      entityTypes: params.entityTypes,
+      entityID: params.entityID,
+      entityType: params.entityType,
       withEntityInformation: params.withEntityInformation
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return pricingDefinitionMDB.count === 1 ? pricingDefinitionMDB.result[0] : null;
   }
 
   public static async getPricingDefinitions(tenant: Tenant,
-      params: { pricingDefinitionIDs?: string[], entityIDs?: string[]; entityTypes?: string[]; withEntityInformation?: boolean; },
+      params: { pricingDefinitionIDs?: string[], entityType?: PricingEntity; entityID?: string; siteIDs?: string[]; withEntityInformation?: boolean; },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<PricingDefinition>> {
     const uniqueTimerID = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -95,8 +90,18 @@ export default class PricingStorage {
       };
     }
     // Context IDs
-    if (!Utils.isEmptyArray(params.entityIDs)) {
-      filters.entityID = { $in: params.entityIDs };
+    if (!Utils.isNullOrEmptyString(params.entityID)) {
+      if (params.entityType === PricingEntity.CHARGING_STATION) {
+        filters.entityID = { $in: [params.entityID] };
+      } else {
+        filters.entityID = { $in: [DatabaseUtils.convertToObjectID(params.entityID)] };
+      }
+    }
+    // Site
+    if (!Utils.isEmptyArray(params.siteIDs)) {
+      filters.siteID = {
+        $in: params.siteIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID))
+      };
     }
     // Remove deleted
     filters.deleted = { '$ne': true };
@@ -113,7 +118,7 @@ export default class PricingStorage {
     }
     // Count Records
     const pricingDefinitionsCountMDB = await global.database.getCollection<any>(tenant.id, 'pricingdefinitions')
-      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
+      .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
@@ -186,16 +191,11 @@ export default class PricingStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const pricingDefinitions = await global.database.getCollection<PricingDefinition>(tenant.id, 'pricingdefinitions')
-      .aggregate<PricingDefinition>(aggregation, {
-      allowDiskUse: true
-    })
+      .aggregate<PricingDefinition>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getPricingDefinitions', uniqueTimerID, pricingDefinitions);
-    // Ok
     return {
-      count: (pricingDefinitionsCountMDB.length > 0 ?
-        (pricingDefinitionsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : pricingDefinitionsCountMDB[0].count) : 0),
+      count: DatabaseUtils.getCountFromDatabaseCount(pricingDefinitionsCountMDB[0]),
       result: pricingDefinitions,
       projectFields
     };

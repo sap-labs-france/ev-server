@@ -174,8 +174,12 @@ export default class TransactionService {
     const filteredRequest = TransactionValidator.getInstance().validateTransactionCdrPushReq(req.body);
     // Check Mandatory fields
     UtilsService.assertIdIsProvided(action, filteredRequest.transactionId, MODULE_NAME, 'handlePushTransactionCdr', req.user);
+    // Check Transaction
+    const transaction = await TransactionStorage.getTransaction(req.tenant, filteredRequest.transactionId, { withUser: true, withTag: true });
+    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.transactionId}' does not exist`,
+      MODULE_NAME, 'handlePushTransactionCdr', req.user);
     // Check auth
-    if (!await Authorizations.canUpdateTransaction(req.user)) {
+    if (!await Authorizations.canUpdateTransaction(req.user, transaction)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -184,10 +188,6 @@ export default class TransactionService {
         value: filteredRequest.transactionId.toString()
       });
     }
-    // Check Transaction
-    const transaction = await TransactionStorage.getTransaction(req.tenant, filteredRequest.transactionId, { withUser: true, withTag: true });
-    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.transactionId}' does not exist`,
-      MODULE_NAME, 'handlePushTransactionCdr', req.user);
     // Check Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, transaction.chargeBoxID);
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${transaction.chargeBoxID}' does not exist`,
@@ -229,7 +229,6 @@ export default class TransactionService {
           await OCPPUtils.processTransactionRoaming(req.tenant, transaction, chargingStation, transaction.tag, TransactionAction.END);
           // Save
           await TransactionStorage.saveTransactionOcpiData(req.tenant, transaction.id, transaction.ocpiData);
-          // Ok
           await Logging.logInfo({
             tenantID: req.user.tenantID,
             action: action,
@@ -264,7 +263,6 @@ export default class TransactionService {
           await OCPPUtils.processOICPTransaction(req.tenant, transaction, chargingStation, TransactionAction.END);
           // Save
           await TransactionStorage.saveTransactionOicpData(req.tenant, transaction.id, transaction.oicpData);
-          // Ok
           await Logging.logInfo({
             tenantID: req.user.tenantID,
             action: action,
@@ -330,8 +328,12 @@ export default class TransactionService {
     const transactionId = TransactionValidator.getInstance().validateTransactionGetReq(req.body).ID;
     // Transaction Id is mandatory
     UtilsService.assertIdIsProvided(action, transactionId, MODULE_NAME, 'handleTransactionSoftStop', req.user);
+    // Get Transaction
+    const transaction = await TransactionStorage.getTransaction(req.tenant, transactionId);
+    UtilsService.assertObjectExists(action, transaction, `Transaction ID ${transactionId} does not exist`,
+      MODULE_NAME, 'handleTransactionSoftStop', req.user);
     // Check auth
-    if (!await Authorizations.canUpdateTransaction(req.user)) {
+    if (!await Authorizations.canUpdateTransaction(req.user, transaction)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -340,10 +342,6 @@ export default class TransactionService {
         value: transactionId.toString()
       });
     }
-    // Get Transaction
-    const transaction = await TransactionStorage.getTransaction(req.tenant, transactionId);
-    UtilsService.assertObjectExists(action, transaction, `Transaction ID ${transactionId} does not exist`,
-      MODULE_NAME, 'handleTransactionSoftStop', req.user);
     // Get the Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, transaction.chargeBoxID, { withSiteArea: true });
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${transaction.chargeBoxID}' does not exist`,
@@ -565,7 +563,6 @@ export default class TransactionService {
         delete transaction.stop.tagID;
       }
     }
-    // Return
     res.json(transaction);
     next();
   }
@@ -591,7 +588,6 @@ export default class TransactionService {
       result.years = [];
       result.years.push(new Date().getFullYear());
     }
-    // Return
     res.json(transactionsYears);
     next();
   }
@@ -681,7 +677,6 @@ export default class TransactionService {
       onlyRecordCount: filteredRequest.OnlyRecordCount
     },
     ['id', ...userProject]);
-    // Return
     res.json(reports);
     next();
   }
@@ -742,7 +737,6 @@ export default class TransactionService {
     const transaction = await TransactionStorage.getTransaction(req.tenant, filteredRequest.ID, {}, ['id', 'ocpiData']);
     UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleExportTransactionOcpiCdr', req.user);
-    // Check
     if (!transaction?.ocpiData) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
@@ -815,7 +809,6 @@ export default class TransactionService {
       },
       projectFields
     );
-    // Return
     res.json(transactions);
     next();
   }
@@ -942,7 +935,6 @@ export default class TransactionService {
           // To Delete
           transactionsIDsToDelete.push(transactionID);
         }
-        // Ok
       } else {
         transactionsIDsToDelete.push(transactionID);
       }

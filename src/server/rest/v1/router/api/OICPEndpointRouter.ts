@@ -41,14 +41,14 @@ export default class OICPEndpointRouter {
 
   private buildRouteOicpEndpointSendEvseStatuses(): void {
     this.router.put(`/${ServerRoute.REST_OICP_ENDPOINT_SEND_EVSE_STATUSES}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.body.id = req.params.id;
+      req.params.ID = req.params.id;
       await RouterUtils.handleServerAction(OICPEndpointService.handleSendEVSEStatusesOicpEndpoint.bind(this), ServerAction.OICP_ENDPOINT_SEND_EVSE_STATUSES, req, res, next);
     });
   }
 
   private buildRouteOicpEndpointSendEvses(): void {
     this.router.put(`/${ServerRoute.REST_OICP_ENDPOINT_SEND_EVSES}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.body.id = req.params.id;
+      req.params.ID = req.params.id;
       await RouterUtils.handleServerAction(OICPEndpointService.handleSendEVSEsOicpEndpoint.bind(this), ServerAction.OICP_ENDPOINT_SEND_EVSES, req, res, next);
     });
   }
@@ -75,14 +75,14 @@ export default class OICPEndpointRouter {
 
   private buildRouteOicpEndpointUnregister(): void {
     this.router.put(`/${ServerRoute.REST_OICP_ENDPOINT_UNREGISTER}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.body.id = req.params.id;
+      req.params.ID = req.params.id;
       await RouterUtils.handleServerAction(OICPEndpointService.handleUnregisterOicpEndpoint.bind(this), ServerAction.OICP_ENDPOINT_UNREGISTER, req, res, next);
     });
   }
 
   private buildRouteOicpEndpointRegister(): void {
     this.router.put(`/${ServerRoute.REST_OICP_ENDPOINT_REGISTER}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.body.id = req.params.id;
+      req.params.ID = req.params.id;
       await RouterUtils.handleServerAction(OICPEndpointService.handleRegisterOicpEndpoint.bind(this), ServerAction.OICP_ENDPOINT_REGISTER, req, res, next);
     });
   }

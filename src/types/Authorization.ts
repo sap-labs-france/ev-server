@@ -92,6 +92,7 @@ export enum Entity {
   NOTIFICATION = 'Notification',
   TAG = 'Tag',
   PAYMENT_METHOD = 'PaymentMethod',
+  SOURCE = 'Source',
 }
 
 export enum Action {
@@ -148,10 +149,13 @@ export enum Action {
   UNASSIGN_USERS_TO_SITE = 'UnassignUsersToSite',
   ASSIGN_ASSETS_TO_SITE_AREA = 'AssignAssetsToSiteArea',
   UNASSIGN_ASSETS_TO_SITE_AREA = 'UnassignAssetsToSiteArea',
+  READ_ASSETS_FROM_SITE_AREA = 'ReadAssetsFromSiteArea',
   ASSIGN_CHARGING_STATIONS_TO_SITE_AREA = 'AssignChargingStationsToSiteArea',
   UNASSIGN_CHARGING_STATIONS_TO_SITE_AREA = 'UnassignChargingStationsToSiteArea',
+  READ_CHARGING_STATIONS_FROM_SITE_AREA = 'ReadChargingStationsFromSiteArea',
   EXPORT_OCPP_PARAMS = 'ExportOCPPParams',
   GENERATE_QR = 'GenerateQrCode',
+  MAINTAIN_PRICING_DEFINITIONS = 'MaintainPricingDefinitions',
 }
 
 export interface AuthorizationContext {
@@ -178,6 +182,7 @@ export interface AuthorizationActions {
   canCreate?: boolean;
   canUpdate?: boolean;
   canDelete?: boolean;
+  canListUsers?: boolean;
   projectFields?: string[];
   metadata?: Record<string, unknown>;
 }
@@ -191,8 +196,10 @@ export interface TagAuthorizationActions extends AuthorizationActions {
 export interface SiteAreaAuthorizationActions extends AuthorizationActions {
   canAssignAssets?: boolean;
   canUnassignAssets?: boolean;
+  canReadAssets?: boolean;
   canAssignChargingStations?: boolean;
   canUnassignChargingStations?: boolean;
+  canReadChargingStations?: boolean;
   canExportOCPPParams?: boolean;
   canGenerateQrCode?: boolean;
 }
@@ -200,8 +207,10 @@ export interface SiteAreaAuthorizationActions extends AuthorizationActions {
 export interface SiteAuthorizationActions extends AuthorizationActions {
   canAssignUsers?: boolean;
   canUnassignUsers?: boolean;
+  canReadUsers?: boolean;
   canExportOCPPParams?: boolean;
   canGenerateQrCode?: boolean;
+  canMaintainPricingDefinitions?: boolean;
 }
 
 export enum DynamicAuthorizationFilterName {

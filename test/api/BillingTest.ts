@@ -19,6 +19,7 @@ import { UserInErrorType } from '../../src/types/InError';
 import chaiSubset from 'chai-subset';
 import config from '../config';
 import global from '../../src/types/GlobalType';
+import moment from 'moment';
 import responseHelper from '../helpers/responseHelper';
 
 chai.use(chaiSubset);
@@ -308,7 +309,7 @@ describe('Billing', function() {
         });
 
         it('Should connect to Billing Provider', async () => {
-          const response = await billingTestHelper.userService.billingApi.testConnection({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING);
+          const response = await billingTestHelper.userService.billingApi.testConnection();
           expect(response.data.connectionIsValid).to.be.true;
           expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
         });
@@ -428,7 +429,7 @@ describe('Billing', function() {
         });
 
         it('Should not be able to test connection to Billing Provider', async () => {
-          const response = await billingTestHelper.userService.billingApi.testConnection({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING);
+          const response = await billingTestHelper.userService.billingApi.testConnection();
           expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
         });
 
@@ -771,9 +772,41 @@ describe('Billing', function() {
           // Check that we have a new invoice with an invoiceID and an invoiceNumber
           await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 17.37);
         });
-
       });
 
+      describe('Check Dynamic Restrictions on COMBO CCS - DC', () => {
+        // eslint-disable-next-line @typescript-eslint/require-await
+        before(async () => {
+        });
+
+        it('should bill an invoice taking the Day of the week into account', async () => {
+          await billingTestHelper.initChargingStationContext2TestDaysOfTheWeek('TODAY');
+          await billingTestHelper.initChargingStationContext2TestDaysOfTheWeek('OTHER_DAYS');
+          // A tariff applied immediately
+          await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
+          const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
+          await billingTestHelper.assignPaymentMethod(userWithBillingData, 'tok_fr');
+          const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext);
+          assert(transactionID, 'transactionID should not be null');
+          // Check that we have a new invoice with an invoiceID and an invoiceNumber
+          await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 33.82);
+        });
+
+        it('should bill an invoice taking the Time into account', async () => {
+          const atThatParticularMoment = moment();
+          await billingTestHelper.initChargingStationContext2TestTimeRestrictions('OTHER_HOURS', atThatParticularMoment);
+          await billingTestHelper.initChargingStationContext2TestTimeRestrictions('NEXT_HOUR', atThatParticularMoment);
+          await billingTestHelper.initChargingStationContext2TestTimeRestrictions('FOR_HALF_AN_HOUR', atThatParticularMoment);
+          // A tariff applied immediately
+          await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
+          const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
+          await billingTestHelper.assignPaymentMethod(userWithBillingData, 'tok_fr');
+          const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext);
+          assert(transactionID, 'transactionID should not be null');
+          // Check that we have a new invoice with an invoiceID and an invoiceNumber
+          await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 55.22);
+        });
+      });
 
       describe('When basic user has a free access', () => {
         // eslint-disable-next-line @typescript-eslint/require-await

@@ -3,6 +3,7 @@ import { AggregateOptions, ObjectId } from 'mongodb';
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
+import { DatabaseCount } from '../../types/GlobalType';
 import DbLookup from '../../types/database/DbLookup';
 import { OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
 import Tenant from '../../types/Tenant';
@@ -15,6 +16,16 @@ const FIXED_COLLECTIONS: string[] = ['tenants', 'migrations'];
 const MODULE_NAME = 'DatabaseUtils';
 
 export default class DatabaseUtils {
+  public static getCountFromDatabaseCount(databaseCount: DatabaseCount): number {
+    if (databaseCount) {
+      if (databaseCount.count === Constants.DB_RECORD_COUNT_CEIL) {
+        return -1;
+      }
+      return databaseCount.count;
+    }
+    return 0;
+  }
+
   public static isObjectID(id: string): boolean {
     return ObjectId.isValid(id);
   }
@@ -371,14 +382,10 @@ export default class DatabaseUtils {
     }
   }
 
-  public static convertToObjectID(id: any): ObjectId {
-    let changedID: ObjectId = id;
-    // Check
-    if (typeof id === 'string') {
-      // Create Object
-      changedID = new ObjectId(id);
+  public static convertToObjectID(id: string): ObjectId {
+    if (id) {
+      return new ObjectId(id);
     }
-    return changedID;
   }
 
   public static convertUserToObjectID(user: User | UserToken | string): ObjectId | null {
@@ -420,7 +427,7 @@ export default class DatabaseUtils {
             {
               $gte: [
                 { $divide: [{ $subtract: [new Date(), '$lastSeen'] }, 1000] },
-                Configuration.getChargingStationConfig().heartbeatIntervalOCPPSSecs * 2
+                Configuration.getChargingStationConfig().heartbeatIntervalOCPPJSecs * 2
               ]
             }
           ]

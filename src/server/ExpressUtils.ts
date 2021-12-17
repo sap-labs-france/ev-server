@@ -1,4 +1,4 @@
-import express, { NextFunction, Request, Response } from 'express';
+import express, { Application, NextFunction, Request, Response } from 'express';
 
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
@@ -17,7 +17,7 @@ import useragent from 'express-useragent';
 bodyParserXml(bodyParser);
 
 export default class ExpressUtils {
-  public static initApplication(bodyLimit = '1mb', debug = false): express.Application {
+  public static initApplication(bodyLimit = '1mb', debug = false): Application {
     const app = express();
     // Secure the application
     app.use(helmet());
@@ -32,7 +32,6 @@ export default class ExpressUtils {
       limit: bodyLimit
     }));
     app.use(useragent.express());
-    // Debug
     if (debug || Utils.isDevelopmentEnv()) {
       app.use(morgan((tokens, req: Request, res: Response) =>
         [
@@ -57,11 +56,11 @@ export default class ExpressUtils {
     return app;
   }
 
-  public static postInitApplication(app: express.Application): void {
+  public static postInitApplication(expressApplication: Application): void {
     // Log Express Response
-    app.use(Logging.traceExpressResponse.bind(this));
+    expressApplication.use(Logging.traceExpressResponse.bind(this));
     // Error Handling
-    app.use(Logging.traceExpressError.bind(this));
+    expressApplication.use(Logging.traceExpressError.bind(this));
   }
 
   private static healthCheckService(req: Request, res: Response, next: NextFunction): void {

@@ -57,6 +57,7 @@ export default class ChargingStationVendorFactory {
       case ChargerVendor.MEAECN:
       case ChargerVendor.KOSTAD:
       case ChargerVendor.KEMPOWER:
+      case ChargerVendor.GROWATT:
       case ChargerVendor.SETEC:
         chargingStationVendorImpl = new DefaultChargingStationVendorIntegration(chargingStation);
         break;

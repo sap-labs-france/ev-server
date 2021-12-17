@@ -31,6 +31,7 @@ export interface ConsumptionPricerContext {
   lastAbsorbedConsumption?: number, // IMPORTANT - used to price E when stepSize is set!
   lastAbsorbedChargingTime?: Date // IMPORTANT - used to price CT when stepSize is set!
   lastAbsorbedParkingTime?: Date, // IMPORTANT - used to price PT when stepSize is set!
+  timezone: string; // IMPORTANT - time range restrictions must consider the charging station location (and its time zone)
 }
 
 interface PricingDefinitionInternal {
@@ -52,6 +53,7 @@ export default interface PricingDefinition extends PricingDefinitionInternal, Cr
   id: string;
   entityID: string;
   entityType: PricingEntity;
+  siteID: string;
 }
 
 export interface PricingDimensions {
@@ -76,12 +78,9 @@ export interface PricingStaticRestriction {
 }
 
 export interface PricingRestriction {
-  // TODO - first Pricing implementation - some options are not yet supported
-  // startDate?: string, // Start date, for example: 2015-12-24, valid from this day
-  // endDate?: string, // End date, for example: 2015-12-27, valid until this day (excluding this day)
-  // startTime?: string, // Start time of day, for example 13:30, valid from this time of the day. Must be in 24h format with leading zeros. Hour/Minute se
-  // endTime?: string, // End time of day, for example 19:45, valid until this time of the day. Same syntax as start_time
-  // daysOfWeek?: DayOfWeek[], // Which day(s) of the week this tariff is valid
+  daysOfWeek?: DayOfWeek[], // Which day(s) of the week this tariff is valid
+  timeFrom?: string, // Valid from this time of the day
+  timeTo?: string, // Valid until this time of the day
   minEnergyKWh?: number; // Minimum used energy in kWh, for example 20, valid from this amount of energy is used
   maxEnergyKWh?: number; // Maximum used energy in kWh, for example 50, valid until this amount of energy is used
   minDurationSecs?: number; // Minimum duration in seconds, valid for a duration from x seconds
@@ -124,7 +123,7 @@ export interface PricedConsumptionData {
 }
 
 export interface PricedDimensionData {
-  unitPrice: number;
+  unitPrice?: number;
   amount: number;
   roundedAmount: number;
   quantity: number;

@@ -15,6 +15,7 @@ import { BillingSettings } from '../../../types/Setting';
 import BillingStorage from '../../../storage/mongodb/BillingStorage';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
+import DatabaseUtils from '../../../storage/mongodb/DatabaseUtils';
 import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
 import LoggingHelper from '../../../utils/LoggingHelper';
@@ -890,7 +891,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
       tax_rates,
       // quantity: 1, //Cannot be set separately
       amount: Utils.createDecimal(dimensionData.roundedAmount).times(100).toNumber(),
-      metadata: { ...billingInvoiceItem?.metadata }
+      metadata: {
+        dimension,
+        ...billingInvoiceItem?.metadata
+      }
     };
     if (!parameters.invoice) {
       // STRIPE throws an exception when invoice is set to null.
@@ -1024,12 +1028,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   private convertToBillingInvoiceItem(transaction: Transaction) : BillingInvoiceItem {
-    if (FeatureToggles.isFeatureActive(Feature.PRICING_NEW_MODEL) && transaction.pricingModel) {
-      // Built-in Pricing
-      return this.convertPricingDataToBillingInvoiceItem(transaction);
-    }
-    // Simple Pricing - Do it the old way!
-    return this.convertSimplePricingToBillingInvoiceItem(transaction);
+    return this.convertPricingDataToBillingInvoiceItem(transaction);
   }
 
   private convertPricingDataToBillingInvoiceItem(transaction: Transaction) : BillingInvoiceItem {
@@ -1048,10 +1047,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         begin: transaction.timestamp?.valueOf(),
       }
     };
-    if (FeatureToggles.isFeatureActive(Feature.BILLING_SHOW_SESSION_HEADER)) {
-      // To be clarified - do we put general information on top
-      billingInvoiceItem.headerDescription = this.buildLineItemDescription(transaction, true);
-    }
+    billingInvoiceItem.headerDescription = this.buildLineItemDescription(transaction, true);
     // Returns a item representing the complete charging session (energy + parking information)
     return billingInvoiceItem ;
   }
@@ -1105,46 +1101,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
       parkingTime.taxes = taxes;
     }
     return pricingConsumptionData;
-  }
-
-  private convertSimplePricingToBillingInvoiceItem(transaction: Transaction) : BillingInvoiceItem {
-    // Destructuring transaction.stop
-    const { price: unitPrice, priceUnit: currency, roundedPrice, totalConsumptionWh, timestamp } = transaction.stop;
-    const transactionID = transaction.id;
-    const itemDescription = this.buildLineItemDescription(transaction);
-    const quantity = Utils.createDecimal(transaction.stop.totalConsumptionWh).toNumber(); // Wh
-    const amount = roundedPrice; // Total amount for the line item
-    // -------------------------------------------------------------------------------
-    const taxes = this.getTaxRateIds();
-    // Build a billing invoice item based on the transaction
-    const billingInvoiceItem: BillingInvoiceItem = {
-      transactionID,
-      currency,
-      pricingData: [{
-        energy: {
-          unitPrice,
-          itemDescription,
-          amount,
-          roundedAmount: Utils.createDecimal(amount).times(100).trunc().div(100).toNumber(),
-          quantity,
-          taxes
-        }
-      }],
-      metadata: {
-        // Let's keep track of the initial data for troubleshooting purposes
-        tenantID: this.tenant.id,
-        transactionID: transaction.id,
-        userID: transaction.userID,
-        unitPrice,
-        roundedPrice,
-        currency,
-        totalConsumptionWh,
-        begin: transaction.timestamp?.valueOf(),
-        end: timestamp?.valueOf()
-      }
-    };
-    // Returns a item representing the complete charging session (energy + parking information)
-    return billingInvoiceItem ;
   }
 
   public async billInvoiceItem(user: User, billingInvoiceItem: BillingInvoiceItem): Promise<BillingInvoice> {
@@ -1241,10 +1197,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       duration = '';
     }
     // Get the translated line item description
-    let descriptionPattern = `billing.${dimensionType}-shortItemDescription`;
-    if (!FeatureToggles.isFeatureActive(Feature.BILLING_SHOW_SESSION_HEADER)) {
-      descriptionPattern = `billing.${dimensionType}-itemDescription`;
-    }
+    const descriptionPattern = `billing.${dimensionType}-shortItemDescription`;
     const description = i18nManager.translate(descriptionPattern, {
       sessionID,
       startDate,
@@ -1570,5 +1523,137 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
     // Let's return the check results!
     return errorCodes;
+  }
+
+  public async repairInvoice(billingInvoice: BillingInvoice): Promise<void> {
+    await this.checkConnection();
+    const transactions = new Map<string, { transactionID: number, description?: string, pricingData: any }>();
+    const stripeInvoice: Stripe.Invoice = await this.stripe.invoices.retrieve(billingInvoice.invoiceID);
+    const stripeInvoiceItems = await this.stripe.invoiceItems.list({
+      invoice: stripeInvoice.id
+    });
+    //
+    // ACHTUNG - SIMPLE PRICING
+    // "sessions" : [
+    //   {
+    //       "transactionID" : 1884157429,
+    //       "description" : "Session de recharge: 1884157429 - ...",
+    //       "pricingData" : {
+    //           "quantity" : 0.211,
+    //           "amount" : 3.37,
+    //           "currency" : "EUR"
+    //       }
+    //   }
+    // ]
+    //
+    // ACHTUNG - BUILT-IN PRICING
+    // "sessions" : [
+    //   {
+    //       "transactionID" : 1745843057,
+    //       "pricingData" : [
+    //           {
+    //               "energy" : {
+    //                   "unitPrice" : 0,
+    //                   "quantity" : 32325,
+    //                   "amount" : 32.325,
+    //                   "roundedAmount" : 32.32,
+    //                   "itemDescription" : "Energy Consumption: 32.325 kWh",
+    //                   "taxes" : []
+    //               }
+    //           }
+    //       ]
+    //   },
+    for (const stripeInvoiceItem of stripeInvoiceItems.data) {
+      const transactionID = stripeInvoiceItem.metadata?.transactionID;
+      if (transactionID) {
+        // The metadata provides the ID of the session that has been billed
+        // ACHTUNG - with the new pricing engine we may have an item per pricing dimensions!
+        if (!transactions.has(transactionID)) {
+          if (stripeInvoiceItem.metadata.totalConsumptionWh) {
+            // Legacy mode - Simple Pricing!
+            transactions.set(transactionID, {
+              transactionID: Utils.convertToInt(transactionID),
+              description: stripeInvoiceItem.description,
+              pricingData: {
+                quantity: Utils.createDecimal(Utils.convertToFloat(stripeInvoiceItem.metadata.totalConsumptionWh)).div(1000).toNumber(),
+                amount: Utils.createDecimal(stripeInvoiceItem.amount).div(100).toNumber(),
+                currency: stripeInvoiceItem.metadata.priceUnit
+              }
+            });
+          } else {
+            // New pricing engine
+            const transaction = await TransactionStorage.getTransaction(this.tenant, Utils.convertToInt(transactionID), {
+              withUser: true,
+              withChargingStation: true
+            });
+            const pricingData: PricedConsumptionData[] = this.extractTransactionPricingData(transaction);
+            transactions.set(transactionID, {
+              transactionID: Utils.convertToInt(transactionID),
+              pricingData
+            });
+          }
+        }
+      }
+    }
+    // Now we know the sessions
+    const sessions = Array.from(transactions.values());
+    DatabaseUtils.checkTenantObject(this.tenant);
+    // Set data
+    const updatedInvoiceMDB: any = {
+      sessions,
+    };
+    await global.database.getCollection(this.tenant.id, 'invoices').findOneAndUpdate(
+      { '_id': DatabaseUtils.convertToObjectID(billingInvoice.id) },
+      { $set: updatedInvoiceMDB });
+    // Debug
+    const freshBillingInvoice = await BillingStorage.getInvoice(this.tenant, billingInvoice.id);
+    await this.repairTransactionsBillingData(freshBillingInvoice);
+  }
+
+  private async repairTransactionsBillingData(billingInvoice: BillingInvoice): Promise<void> {
+    // This method is ONLY USED when repairing invoices - c.f.: RepairInvoiceInconsistencies migration task
+    if (!billingInvoice.sessions) {
+      // This should not happen - but it happened once!
+      await Logging.logError({
+        tenantID: this.tenant.id,
+        action: ServerAction.BILLING,
+        actionOnUser: billingInvoice.user,
+        module: MODULE_NAME, method: 'repairTransactionsBillingData',
+        message: `Unexpected situation - Invoice ${billingInvoice.id} has no sessions attached to it`
+      });
+    }
+    await Promise.all(billingInvoice.sessions.map(async (session) => {
+      const transactionID = session.transactionID;
+      try {
+        const transaction = await TransactionStorage.getTransaction(this.tenant, Number(transactionID), {
+          withUser: true
+        });
+        // Update Billing Data
+        if (transaction?.billingData?.stop) {
+          transaction.billingData.stop.status = BillingStatus.BILLED,
+          transaction.billingData.stop.invoiceStatus = billingInvoice.status;
+          transaction.billingData.stop.invoiceNumber = billingInvoice.number;
+          transaction.billingData.lastUpdate = new Date();
+          // Add pricing data
+          if (!transaction.billingData.stop.invoiceItem && transaction.pricingModel) {
+            // Only set when the built-in pricing model was used
+            const invoiceItem = this.convertToBillingInvoiceItem(transaction);
+            transaction.billingData.stop.invoiceItem = this.shrinkInvoiceItem(invoiceItem);
+          }
+          // Save repaired billing data
+          await TransactionStorage.saveTransactionBillingData(this.tenant, transaction.id, transaction.billingData);
+        }
+      } catch (error) {
+        // Catch stripe errors and send the information back to the client
+        await Logging.logError({
+          tenantID: this.tenant.id,
+          action: ServerAction.BILLING,
+          actionOnUser: billingInvoice.user,
+          module: MODULE_NAME, method: 'repairTransactionsBillingData',
+          message: `Failed to update transaction billing data - transaction: ${transactionID}`,
+          detailedMessages: { error: error.stack }
+        });
+      }
+    }));
   }
 }

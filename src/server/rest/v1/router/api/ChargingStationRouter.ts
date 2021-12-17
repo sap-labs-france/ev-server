@@ -18,7 +18,6 @@ export default class ChargingStationRouter {
     this.buildRouteChargingStationsExport();
     this.buildRouteChargingStationGetChargingProfiles();
     this.buildRouteChargingStationRequestOCPPParameters();
-    this.buildRouteChargingStationDownloadFirmware();
     this.buildRouteChargingStationDeleteChargingProfile();
     this.buildRouteChargingStationUpdateChargingProfile();
     this.buildRouteChargingStationCreateChargingProfile();
@@ -223,13 +222,6 @@ export default class ChargingStationRouter {
   private buildRouteChargingStationsExport(): void {
     this.router.get(`/${ServerRoute.REST_CHARGING_STATIONS_EXPORT}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(ChargingStationService.handleExportChargingStations.bind(this), ServerAction.CHARGING_STATIONS_EXPORT, req, res, next);
-    });
-  }
-
-  private buildRouteChargingStationDownloadFirmware(): void {
-    this.router.get(`/${ServerRoute.REST_CHARGING_STATIONS_DOWNLOAD_FIRMWARE}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.query.ID = req.params.id;
-      await RouterUtils.handleServerAction(ChargingStationService.handleGetFirmware.bind(this), ServerAction.FIRMWARE_DOWNLOAD, req, res, next);
     });
   }
 

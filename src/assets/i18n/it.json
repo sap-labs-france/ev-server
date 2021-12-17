@@ -3,10 +3,6 @@
     "generatedUser": "Utenza generata per '{{email}}'",
     "chargingAtSiteArea": "Charging session: {{sessionID}} - Start Date: {{startDate}} at {startTime} - Energy Consumption: {{totalConsumption}} kWh at {{siteAreaName}}",
     "chargingAtChargeBox": "Charging session: {{sessionID}} - Start Date: {{startDate}} at {{startTime}} - Energy Consumption: {{totalConsumption}} kWh at charging station {{chargeBoxID}}",
-    "flatFee-itemDescription": "Session: {{sessionID}} - Start Date: {{startDate}} at {{startTime}} at charging station {{chargeBoxID}} - Flat Fee",
-    "energy-itemDescription": "Session: {{sessionID}} - Start Date: {{startDate}} at {{startTime}} at charging station {{chargeBoxID}} - Energy Consumption: {{quantity}} kWh",
-    "chargingTime-itemDescription": "Session: {{sessionID}} - Start Date: {{startDate}} at {{startTime}} at charging station {{chargeBoxID}} - Charging Time: {{duration}}",
-    "parkingTime-itemDescription": "Session: {{sessionID}} - Start Date: {{startDate}} at {{startTime}} at charging station {{chargeBoxID}} - Parking Time: {{duration}}",
     "header-itemDescription": "Session: {{sessionID}} - Start Date: {{startDate}} at {{startTime}} at charging station {{chargeBoxID}}",
     "flatFee-shortItemDescription": "Flat Fee",
     "energy-shortItemDescription": "Energy Consumption: {{quantity}} kWh",
@@ -103,7 +99,7 @@
     },
     "unknownUserBadged": {
       "title": "Utente Sconosciuto",
-      "body": "Un utente sconosciuto si è registrato su '{{chargeBoxID}}' con il badge ID '{{badgeID}}' nell'organizzazione '{{tenantName}}'"
+      "body": "Un utente sconosciuto si è registrato su '{{chargeBoxID}}' con il RFID '{{badgeID}}' nell'organizzazione '{{tenantName}}'"
     },
     "chargingStationRegistered": {
       "title": "Stazione di Ricarica Connessa",
@@ -169,7 +165,7 @@
     "usage": "Usage (Hours)"
   },
   "tags": {
-    "id": "Badge ID",
+    "id": "RFID",
     "description": "Badge Description",
     "virtualBadge": "Virtual Badge"
   },

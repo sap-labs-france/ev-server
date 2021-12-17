@@ -132,32 +132,9 @@ export default class CentralServerService {
     return this._authenticatedUser.email;
   }
 
-  public async updatePriceSetting(pricekWh: number, priceUnit: string) {
-    const settings = await this.settingApi.readAll({});
-    let newSetting = false;
-    let setting: SettingDB = settings.data.result.find((s) => s.identifier === 'pricing');
-    if (!setting) {
-      setting = {} as SettingDB;
-      setting.identifier = TenantComponents.PRICING;
-      newSetting = true;
-    }
-    setting.content = {
-      type: PricingSettingsType.SIMPLE,
-      simple: {
-        price: pricekWh,
-        currency: priceUnit
-      }
-    };
-    if (newSetting) {
-      return this.settingApi.create(setting);
-    }
-    return this.settingApi.update(setting);
-  }
-
   public async createEntity(entityApi, entity, performCheck = true) {
     // Create
     const response = await entityApi.create(entity);
-    // Check
     if (performCheck) {
       expect(response.status).to.equal(StatusCodes.OK);
       expect(response.data).not.null;
@@ -178,7 +155,6 @@ export default class CentralServerService {
     // Retrieve it from the backend
     const response = await entityApi.readById(entity.id);
 
-    // Check
     if (performCheck) {
       // Check if ok
       expect(response.status).to.equal(StatusCodes.OK);
@@ -192,13 +168,10 @@ export default class CentralServerService {
   }
 
   public async checkEntityInList(entityApi, entity, performCheck = true) {
-    // Check
     expect(entity).to.not.be.null;
     // Retrieve from the backend
     const response = await entityApi.readAll({}, TestConstants.DEFAULT_PAGING);
-    // Check
     if (performCheck) {
-      // Check
       expect(response.status).to.equal(StatusCodes.OK);
       // Contains props
       expect(response.data).to.have.property('count');
@@ -215,13 +188,10 @@ export default class CentralServerService {
   }
 
   public async checkEntityInListWithParams(entityApi, entity, params = {}, performCheck = true) {
-    // Check
     expect(entity).to.not.be.null;
     // Retrieve from the backend
     const response = await entityApi.readAll(params, TestConstants.DEFAULT_PAGING);
-    // Check
     if (performCheck) {
-      // Check
       expect(response.status).to.equal(StatusCodes.OK);
       // Contains props
       expect(response.data).to.have.property('count');
@@ -237,11 +207,9 @@ export default class CentralServerService {
   }
 
   public async deleteEntity(entityApi, entity, performCheck = true) {
-    // Check
     expect(entity).to.not.be.null;
     // Delete it in the backend
     const response = await entityApi.delete(entity.id);
-    // Check
     if (performCheck) {
       expect(response.status).to.equal(StatusCodes.OK);
       expect(response.data.status).to.eql('Success');
@@ -253,13 +221,10 @@ export default class CentralServerService {
   }
 
   public async updateEntity(entityApi, entity, performCheck = true) {
-    // Check
     expect(entity).to.not.be.null;
     // Delete it in the backend
     const response = await entityApi.update(entity);
-    // Check
     if (performCheck) {
-      // Check
       expect(response.status).to.equal(StatusCodes.OK);
       expect(response.data.status).to.eql('Success');
       return response;
@@ -269,11 +234,9 @@ export default class CentralServerService {
   }
 
   public async checkDeletedEntityById(entityApi, entity, performCheck = true) {
-    // Check
     expect(entity).to.not.be.null;
     // Create it in the backend
     const response = await entityApi.readById(entity.id);
-    // Check
     if (performCheck) {
       // Check if not found
       expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
@@ -284,13 +247,10 @@ export default class CentralServerService {
   }
 
   public async revokeEntity(entityApi, entity, performCheck = true) {
-    // Check
     expect(entity).to.not.be.null;
     // Delete it in the backend
     const response = await entityApi.revoke(entity.id);
-    // Check
     if (performCheck) {
-      // Check
       expect(response.status).to.equal(StatusCodes.OK);
       expect(response.data.status).to.eql('Success');
       return response;

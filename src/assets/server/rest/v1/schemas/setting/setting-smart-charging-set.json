@@ -41,14 +41,16 @@
           "enum": ["sapSmartCharging"]
         }
       },
+      "links": {
+        "$ref": "setting#/definitions/links"
+      },
       "required": [
         "type",
         "sapSmartCharging"
       ]
     },
     "id": {
-      "type": "string",
-      "sanitize": "mongo"
+      "$ref": "common#/definitions/id"
     },
     "identifier": {
       "type": "string",
@@ -56,17 +58,10 @@
       "enum": ["smartCharging"]
     },
     "sensitiveData": {
-      "type": "array",
-      "nullable": true,
-      "items": {
-        "type": "string",
-        "sanitize": "mongo"
-      }
+      "$ref": "setting#/definitions/sensitiveData"
     }
   },
   "required": [
-    "id",
-    "identifier",
-    "content"
+    "identifier"
   ]
 }

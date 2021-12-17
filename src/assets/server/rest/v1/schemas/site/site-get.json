@@ -1,0 +1,20 @@
+{
+  "$id": "site-get",
+  "title": "Get site Request",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "common#/definitions/id"
+    },
+    "WithCompany": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "ProjectFields": {
+      "$ref": "common#/definitions/projectFields"
+    }
+  },
+  "required": [
+    "ID"
+  ]
+}

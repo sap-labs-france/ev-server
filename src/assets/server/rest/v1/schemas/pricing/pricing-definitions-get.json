@@ -3,10 +3,10 @@
   "title": "Get Pricing Definitions Request",
   "type": "object",
   "properties": {
-    "entityID": {
+    "EntityID": {
       "$ref": "pricing-definition#/definitions/entityID"
     },
-    "entityType": {
+    "EntityType": {
       "$ref": "pricing-definition#/definitions/entityType"
     },
     "Search": {

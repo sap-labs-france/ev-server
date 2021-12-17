@@ -15,7 +15,6 @@ import moment from 'moment';
 const MODULE_NAME = 'LoggingDatabaseTableCleanupTask';
 
 export default class LoggingDatabaseTableCleanupTask extends SchedulerTask {
-
   public async beforeTaskRun(config: TaskConfig): Promise<void> {
     // Delete Default Tenant Logs
     await this.deleteLogs(Constants.DEFAULT_TENANT_OBJECT, config);
@@ -23,7 +22,7 @@ export default class LoggingDatabaseTableCleanupTask extends SchedulerTask {
     await this.deletePerformanceRecords(Constants.DEFAULT_TENANT_OBJECT, config);
   }
 
-  async processTenant(tenant: Tenant, config: LoggingDatabaseTableCleanupTaskConfig): Promise<void> {
+  public async processTenant(tenant: Tenant, config: LoggingDatabaseTableCleanupTaskConfig): Promise<void> {
     // Delete Tenant Logs
     await this.deleteLogs(tenant, config);
   }

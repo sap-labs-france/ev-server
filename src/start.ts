@@ -5,12 +5,12 @@ import AsyncTaskManager from './async-task/AsyncTaskManager';
 import CentralRestServer from './server/rest/CentralRestServer';
 import CentralSystemRestServiceConfiguration from './types/configuration/CentralSystemRestServiceConfiguration';
 import ChargingStationConfiguration from './types/configuration/ChargingStationConfiguration';
-import ChargingStationStorage from './storage/mongodb/ChargingStationStorage';
-import { ChargingStationTemplate } from './types/ChargingStation';
+import ChargingStationTemplateBootstrap from './bootstrap/ChargingStationTemplateBootstrap';
 import Configuration from './utils/Configuration';
 import Constants from './utils/Constants';
 import I18nManager from './utils/I18nManager';
 import JsonCentralSystemServer from './server/ocpp/json/JsonCentralSystemServer';
+import LocalCarCatalogBootstrap from './bootstrap/LocalCarCatalogBootstrap';
 import Logging from './utils/Logging';
 import MigrationConfiguration from './types/configuration/MigrationConfiguration';
 import MigrationHandler from './migration/MigrationHandler';
@@ -25,7 +25,6 @@ import SchedulerManager from './scheduler/SchedulerManager';
 import SoapCentralSystemServer from './server/ocpp/soap/SoapCentralSystemServer';
 import StorageConfiguration from './types/configuration/StorageConfiguration';
 import Utils from './utils/Utils';
-import fs from 'fs';
 import global from './types/GlobalType';
 
 const MODULE_NAME = 'Bootstrap';
@@ -53,7 +52,7 @@ export default class Bootstrap {
     const startTimeGlobalMillis = await this.logAndGetStartTimeMillis('e-Mobility Server is starting...');
     try {
       // Setup i18n
-      await I18nManager.initialize();
+      I18nManager.initialize();
       Logging.logConsoleDebug(`NodeJS is started in '${process.env.NODE_ENV || 'development'}' mode`);
       // Get all configs
       Bootstrap.storageConfig = Configuration.getStorageConfig();
@@ -81,7 +80,6 @@ export default class Bootstrap {
       }
       // Connect to the Database
       await Bootstrap.database.start();
-      // Log
       await this.logDuration(startTimeMillis, 'Connected to the Database successfully');
 
       // -------------------------------------------------------------------------
@@ -91,7 +89,6 @@ export default class Bootstrap {
         startTimeMillis = await this.logAndGetStartTimeMillis('Migration is starting...');
         // Check and trigger migration (only master process can run the migration)
         await MigrationHandler.migrate();
-        // Log
         await this.logDuration(startTimeMillis, 'Migration has been run successfully');
       }
       // Listen to promise failure
@@ -113,7 +110,6 @@ export default class Bootstrap {
       startTimeMillis = await this.logAndGetStartTimeMillis('Server is starting...');
       // Start the Servers
       serverStarted = await Bootstrap.startServersListening();
-      // Log
       await this.logDuration(startTimeMillis, `Server ${serverStarted.join(', ')} has been started successfully`);
 
       // -------------------------------------------------------------------------
@@ -122,7 +118,6 @@ export default class Bootstrap {
       startTimeMillis = await this.logAndGetStartTimeMillis('Scheduler is starting...');
       // Start the Scheduler
       await SchedulerManager.init();
-      // Log
       await this.logDuration(startTimeMillis, 'Scheduler has been started successfully');
 
       // -------------------------------------------------------------------------
@@ -131,17 +126,26 @@ export default class Bootstrap {
       startTimeMillis = await this.logAndGetStartTimeMillis('Async Task manager is starting...');
       // Start the Async Manager
       await AsyncTaskManager.init();
-      // Log
       await this.logDuration(startTimeMillis, 'Async Task manager has been started successfully');
 
-      // -------------------------------------------------------------------------
-      // Update Charging Station Templates
-      // -------------------------------------------------------------------------
-      startTimeMillis = await this.logAndGetStartTimeMillis('Charging Station templates is being updated...');
-      // Load and Save the Charging Station templates
-      await this.updateChargingStationTemplatesFromFile();
-      // Log
-      await this.logDuration(startTimeMillis, 'Charging Station templates have been updated successfully');
+      // Update of manually uploaded data
+      if (Bootstrap.migrationConfig.active) {
+        // -------------------------------------------------------------------------
+        // Update Charging Station Templates
+        // -------------------------------------------------------------------------
+        startTimeMillis = await this.logAndGetStartTimeMillis('Charging Station templates is being updated...');
+        // Load and Save the Charging Station templates
+        await ChargingStationTemplateBootstrap.uploadChargingStationTemplatesFromFile();
+        await this.logDuration(startTimeMillis, 'Charging Station templates have been updated successfully');
+
+        // -------------------------------------------------------------------------
+        // Import Local Car Catalogs
+        // -------------------------------------------------------------------------
+        startTimeMillis = await this.logAndGetStartTimeMillis('Local car catalogs are being imported...');
+        // Load and Save the Charging Station templates
+        await LocalCarCatalogBootstrap.uploadLocalCarCatalogsFromFile();
+        await this.logDuration(startTimeMillis, 'Local car catalogs has been imported successfully');
+      }
 
       // Keep the server names globally
       if (serverStarted.length === 1) {
@@ -149,7 +153,6 @@ export default class Bootstrap {
       } else {
         global.serverType = ServerType.CENTRAL_SERVER;
       }
-      // Log
       await this.logDuration(startTimeGlobalMillis, `${serverStarted.join(', ')} server has been started successfuly`, ServerAction.BOOTSTRAP_STARTUP);
     } catch (error) {
       Logging.logConsoleError(error);
@@ -160,36 +163,6 @@ export default class Bootstrap {
         message: `Unexpected exception in ${serverStarted.join(', ')}`,
         detailedMessages: { error: error.stack }
       });
-    }
-  }
-
-  private static async updateChargingStationTemplatesFromFile(): Promise<void> {
-    // Read File
-    let chargingStationTemplates: ChargingStationTemplate[];
-    try {
-      chargingStationTemplates = JSON.parse(fs.readFileSync(Configuration.getChargingStationTemplatesConfig().templatesFilePath, 'utf8'));
-    } catch (error) {
-      await Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, ServerAction.UPDATE_CHARGING_STATION_TEMPLATES, error);
-      return;
-    }
-    // Delete all previous templates
-    await ChargingStationStorage.deleteChargingStationTemplates();
-    // Update Templates
-    for (const chargingStationTemplate of chargingStationTemplates) {
-      try {
-        // Set the hashes
-        chargingStationTemplate.hash = Utils.hash(JSON.stringify(chargingStationTemplate));
-        chargingStationTemplate.hashTechnical = Utils.hash(JSON.stringify(chargingStationTemplate.technical));
-        chargingStationTemplate.hashCapabilities = Utils.hash(JSON.stringify(chargingStationTemplate.capabilities));
-        chargingStationTemplate.hashOcppStandard = Utils.hash(JSON.stringify(chargingStationTemplate.ocppStandardParameters));
-        chargingStationTemplate.hashOcppVendor = Utils.hash(JSON.stringify(chargingStationTemplate.ocppVendorParameters));
-        // Save
-        await ChargingStationStorage.saveChargingStationTemplate(chargingStationTemplate);
-      } catch (error) {
-        error.message = `Charging Station Template ID '${chargingStationTemplate.id}' is not valid: ${error.message as string}`;
-        await Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, ServerAction.UPDATE_CHARGING_STATION_TEMPLATES, error);
-        Utils.isDevelopmentEnv() && Logging.logConsoleError(error.message);
-      }
     }
   }
 
@@ -233,7 +206,7 @@ export default class Bootstrap {
           Bootstrap.centralRestServer = new CentralRestServer(Bootstrap.centralSystemRestConfig);
         }
         // Start it
-        await Bootstrap.centralRestServer.start();
+        Bootstrap.centralRestServer.start();
         serverTypes.push(ServerType.REST_SERVER);
       }
       // -------------------------------------------------------------------------
@@ -249,20 +222,20 @@ export default class Bootstrap {
               // Create implementation
               Bootstrap.SoapCentralSystemServer = new SoapCentralSystemServer(centralSystemConfig, Bootstrap.chargingStationConfig);
               // Start
-              await Bootstrap.SoapCentralSystemServer.start();
+              Bootstrap.SoapCentralSystemServer.start();
               serverTypes.push(ServerType.SOAP_SERVER);
               break;
             case CentralSystemImplementation.JSON:
               // Create implementation
               Bootstrap.JsonCentralSystemServer = new JsonCentralSystemServer(centralSystemConfig, Bootstrap.chargingStationConfig);
               // Start
-              await Bootstrap.JsonCentralSystemServer.start();
+              Bootstrap.JsonCentralSystemServer.start();
               serverTypes.push(ServerType.JSON_SERVER);
               break;
             // Not Found
             default:
               // eslint-disable-next-line no-console
-              Logging.logConsoleError(`Central System Server implementation '${centralSystemConfig.implementation}' not found!`);
+              Logging.logConsoleError(`Central System Server implementation '${centralSystemConfig.implementation as string}' not found!`);
           }
         }
       }
@@ -273,7 +246,7 @@ export default class Bootstrap {
         // Create server instance
         Bootstrap.ocpiServer = new OCPIServer(Bootstrap.ocpiConfig);
         // Start server instance
-        await Bootstrap.ocpiServer.start();
+        Bootstrap.ocpiServer.start();
         serverTypes.push(ServerType.OCPI_SERVER);
       }
       // -------------------------------------------------------------------------
@@ -283,7 +256,7 @@ export default class Bootstrap {
         // Create server instance
         Bootstrap.oicpServer = new OICPServer(Bootstrap.oicpConfig);
         // Start server instance
-        await Bootstrap.oicpServer.start();
+        Bootstrap.oicpServer.start();
         serverTypes.push(ServerType.OICP_SERVER);
       }
       // -------------------------------------------------------------------------
@@ -293,7 +266,7 @@ export default class Bootstrap {
         // Create server instance
         Bootstrap.oDataServer = new ODataServer(Bootstrap.oDataServerConfig);
         // Start server instance
-        await Bootstrap.oDataServer.start();
+        Bootstrap.oDataServer.start();
         serverTypes.push(ServerType.ODATA_SERVER);
       }
     } catch (error) {

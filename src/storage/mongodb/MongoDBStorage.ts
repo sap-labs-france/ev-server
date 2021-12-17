@@ -223,7 +223,6 @@ export default class MongoDBStorage {
       const collections = await this.database.listCollections().toArray();
       // Check and Delete
       for (const collection of collections) {
-        // Check
         if (collection.name.startsWith(`${tenantID}.`)) {
           // Delete
           await this.database.collection(collection.name).drop();
@@ -334,7 +333,7 @@ export default class MongoDBStorage {
             { fields: { level: 1, timestamp: 1 } },
             { fields: { source: 1, timestamp: 1 } },
             { fields: { host: 1, timestamp: 1 } },
-            { fields: { message: 'text' } },
+            { fields: { message: 'text', source: 'text', chargingStationID: 'text' } },
           ]);
         } finally {
           // Release the database creation Lock

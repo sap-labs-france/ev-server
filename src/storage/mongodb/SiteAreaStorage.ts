@@ -14,9 +14,7 @@ const MODULE_NAME = 'SiteAreaStorage';
 
 export default class SiteAreaStorage {
   public static async addAssetsToSiteArea(tenant: Tenant, siteArea: SiteArea, assetIDs: string[]): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Site Area provided?
     if (siteArea) {
@@ -33,14 +31,11 @@ export default class SiteAreaStorage {
           });
       }
     }
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'addAssetsToSiteArea', startTime, assetIDs);
   }
 
   public static async removeAssetsFromSiteArea(tenant: Tenant, siteAreaID: string, assetIDs: string[]): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Site Area provided?
     if (siteAreaID) {
@@ -57,19 +52,15 @@ export default class SiteAreaStorage {
           });
       }
     }
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'removeAssetsFromSiteArea', startTime, assetIDs);
   }
 
   public static async getSiteAreaImage(tenant: Tenant, id: string): Promise<Image> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Read DB
     const siteAreaImageMDB = await global.database.getCollection<{ _id: ObjectId; image: string }>(tenant.id, 'siteareaimages')
       .findOne({ _id: DatabaseUtils.convertToObjectID(id) });
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSiteAreaImage', startTime, { id }, siteAreaImageMDB);
     return {
       id: id, image: siteAreaImageMDB ? siteAreaImageMDB.image : null
@@ -77,7 +68,7 @@ export default class SiteAreaStorage {
   }
 
   public static async getSiteArea(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID,
-      params: { withSite?: boolean; withChargingStations?: boolean, withAvailableChargingStations?: boolean; withImage?: boolean } = {},
+      params: { withSite?: boolean; withChargingStations?: boolean; withAvailableChargingStations?: boolean; withImage?: boolean; issuer?: boolean; } = {},
       projectFields?: string[]): Promise<SiteArea> {
     const siteAreasMDB = await SiteAreaStorage.getSiteAreas(tenant, {
       siteAreaIDs: [id],
@@ -85,14 +76,13 @@ export default class SiteAreaStorage {
       withChargingStations: params.withChargingStations,
       withAvailableChargingStations: params.withAvailableChargingStations,
       withImage: params.withImage,
+      issuer: params.issuer,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return siteAreasMDB.count === 1 ? siteAreasMDB.result[0] : null;
   }
 
   public static async saveSiteArea(tenant: Tenant, siteAreaToSave: SiteArea, saveImage = false): Promise<string> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Set
     const siteAreaMDB: any = {
@@ -130,7 +120,6 @@ export default class SiteAreaStorage {
     if (saveImage) {
       await SiteAreaStorage.saveSiteAreaImage(tenant, siteAreaMDB._id.toString(), siteAreaToSave.image);
     }
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveSiteArea', startTime, siteAreaMDB);
     return siteAreaMDB._id.toString();
   }
@@ -142,9 +131,7 @@ export default class SiteAreaStorage {
         locCoordinates?: number[]; locMaxDistanceMeters?: number; smartCharging?: boolean; withImage?: boolean;
       } = {},
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteArea>> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -173,7 +160,11 @@ export default class SiteAreaStorage {
     // Otherwise check if search is present
     if (params.search) {
       filters.$or = [
-        { 'name': { $regex: params.search, $options: 'i' } }
+        { 'name': { $regex: params.search, $options: 'i' } },
+        { 'address.postalCode': { $regex: params.search, $options: 'i' } },
+        { 'address.city': { $regex: params.search, $options: 'i' } },
+        { 'address.region': { $regex: params.search, $options: 'i' } },
+        { 'address.country': { $regex: params.search, $options: 'i' } },
       ];
     }
     // Site Area
@@ -273,10 +264,13 @@ export default class SiteAreaStorage {
         $addFields: {
           image: {
             $concat: [
-              `${Utils.buildRestServerURL()}/client/util/SiteAreaImage?ID=`,
+              `${Utils.buildRestServerURL()}/v1/util/site-areas/`,
               { $toString: '$_id' },
-              `&TenantID=${tenant.id}&LastChangedOn=`,
-              { $toString: '$lastChangedOn' }
+              '/image',
+              `?TenantID=${tenant.id}`,
+              {
+                $ifNull: [{ $concat: ['&LastChangedOn=', { $toString: '$lastChangedOn' }] }, ''] // Only concat 'lastChangedOn' if not null
+              }
             ]
           }
         }
@@ -322,21 +316,16 @@ export default class SiteAreaStorage {
         siteAreas.push(siteAreaMDB);
       }
     }
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSiteAreas', startTime, aggregation, siteAreasMDB);
-    // Ok
     return {
       projectFields: projectFields,
-      count: (siteAreasCountMDB.length > 0 ?
-        (siteAreasCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : siteAreasCountMDB[0].count) : 0),
+      count: DatabaseUtils.getCountFromDatabaseCount(siteAreasCountMDB[0]),
       result: siteAreas
     };
   }
 
   public static async addChargingStationsToSiteArea(tenant: Tenant, siteArea: SiteArea, chargingStationIDs: string[]): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Site provided?
     if (siteArea) {
@@ -354,14 +343,11 @@ export default class SiteAreaStorage {
           });
       }
     }
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'addChargingStationsToSiteArea', startTime, chargingStationIDs);
   }
 
   public static async removeChargingStationsFromSiteArea(tenant: Tenant, siteAreaID: string, chargingStationIDs: string[]): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Site provided?
     if (siteAreaID) {
@@ -379,7 +365,6 @@ export default class SiteAreaStorage {
           });
       }
     }
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'removeChargingStationsFromSiteArea', startTime, chargingStationIDs);
   }
 
@@ -388,9 +373,7 @@ export default class SiteAreaStorage {
   }
 
   public static async deleteSiteAreas(tenant: Tenant, siteAreaIDs: string[]): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Remove Charging Station's Site Area
     await global.database.getCollection<any>(tenant.id, 'chargingstations').updateMany(
@@ -410,14 +393,11 @@ export default class SiteAreaStorage {
     await global.database.getCollection<any>(tenant.id, 'sitesareaimages').deleteMany(
       { '_id': { $in: siteAreaIDs.map((ID) => DatabaseUtils.convertToObjectID(ID)) } }
     );
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteSiteAreas', startTime, siteAreaIDs);
   }
 
   public static async deleteSiteAreasFromSites(tenant: Tenant, siteIDs: string[]): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Find site areas to delete
     const siteareas: string[] = (await global.database.getCollection<any>(tenant.id, 'siteareas')
@@ -425,14 +405,11 @@ export default class SiteAreaStorage {
       .project({ _id: 1 }).toArray()).map((idWrapper): string => idWrapper._id.toString());
     // Delete site areas
     await SiteAreaStorage.deleteSiteAreas(tenant, siteareas);
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteSiteAreasFromSites', startTime, siteIDs);
   }
 
   private static async saveSiteAreaImage(tenant: Tenant, siteAreaID: string, siteAreaImageToSave: string): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Modify
     await global.database.getCollection<any>(tenant.id, 'siteareaimages').findOneAndUpdate(
@@ -440,7 +417,6 @@ export default class SiteAreaStorage {
       { $set: { image: siteAreaImageToSave } },
       { upsert: true, returnDocument: 'after' }
     );
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveSiteAreaImage', startTime, siteAreaImageToSave);
   }
 }

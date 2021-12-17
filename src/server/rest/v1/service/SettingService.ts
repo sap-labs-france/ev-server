@@ -49,7 +49,6 @@ export default class SettingService {
       action: action,
       detailedMessages: { setting }
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -79,7 +78,6 @@ export default class SettingService {
     if (setting.identifier === 'crypto') {
       setting.content.crypto.key = Utils.hash(setting.content.crypto.key);
     }
-    // Return
     res.json(setting);
     next();
   }
@@ -109,7 +107,6 @@ export default class SettingService {
     if (setting.identifier === 'crypto') {
       setting.content.crypto.key = Utils.hash(setting.content.crypto.key);
     }
-    // Return
     res.json(setting);
     next();
   }
@@ -139,7 +136,6 @@ export default class SettingService {
         setting.content.crypto.key = Utils.hash(setting.content.crypto.key);
       }
     }
-    // Return
     res.json(settings);
     next();
   }
@@ -155,7 +151,7 @@ export default class SettingService {
       });
     }
     // Filter
-    const filteredRequest = SettingSecurity.filterSettingCreateRequest(req.body);
+    const filteredRequest = await SettingService.filterSetting(action, req, true);
     // Process the sensitive data if any
     await Cypher.encryptSensitiveDataInJSON(req.tenant, filteredRequest);
     // Update timestamp
@@ -171,44 +167,13 @@ export default class SettingService {
       action: action,
       detailedMessages: { params: filteredRequest }
     });
-    // Ok
     res.status(StatusCodes.OK).json(Object.assign({ id: filteredRequest.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 
   public static async handleUpdateSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    let filteredRequest: any;
     UtilsService.assertIdIsProvided(action, req.body.id, MODULE_NAME, 'handleUpdateSetting', req.user);
-    switch (req.body.identifier) {
-      // Filter
-      case IntegrationSettings.OCPI:
-        filteredRequest = SettingValidator.getInstance().validateSettingOCPISetReq(req.body);
-        break;
-      case TechnicalSettings.CRYPTO:
-        filteredRequest = SettingValidator.getInstance().validateSettingCryptoSetReq(req.body);
-        break;
-      case TechnicalSettings.USER:
-        filteredRequest = SettingValidator.getInstance().validateSettingUserSetReq(req.body);
-        break;
-      case IntegrationSettings.SMART_CHARGING:
-        filteredRequest = SettingValidator.getInstance().validateSettingSmartChargingSetReq(req.body);
-        break;
-      case IntegrationSettings.REFUND:
-        filteredRequest = SettingValidator.getInstance().validateSettingRefundSetReq(req.body);
-        break;
-      case IntegrationSettings.PRICING:
-        filteredRequest = SettingValidator.getInstance().validateSettingPricingSetReq(req.body);
-        break;
-      default:
-        filteredRequest = SettingSecurity.filterSettingUpdateRequest(req.body);
-        await Logging.logDebug({
-          tenantID: req.user.tenantID,
-          user: req.user, module: MODULE_NAME, method: 'handleUpdateSetting',
-          message: `The property 'identifier' with value '${req.body.identifier as string}' for Setting with ID '${req.body.id as string}' has no dedicated schema (yet)`,
-          action: action,
-          detailedMessages: { filteredRequest }
-        });
-    }
+    const filteredRequest = await SettingService.filterSetting(action, req, false);
     // Check auth
     if (!await Authorizations.canUpdateSetting(req.user)) {
       throw new AppAuthError({
@@ -327,8 +292,46 @@ export default class SettingService {
       action: action,
       detailedMessages: { filteredRequest }
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
+  }
+
+  private static async filterSetting(action: ServerAction, req: Request, createSetting: boolean) {
+    let filteredRequest;
+    switch (req.body.identifier) {
+      // Filter
+      case IntegrationSettings.OCPI:
+        return SettingValidator.getInstance().validateSettingOCPISetReq(req.body);
+      case IntegrationSettings.OICP:
+        return SettingValidator.getInstance().validateSettingOICPSetReq(req.body);
+      case TechnicalSettings.CRYPTO:
+        return SettingValidator.getInstance().validateSettingCryptoSetReq(req.body);
+      case TechnicalSettings.USER:
+        return SettingValidator.getInstance().validateSettingUserSetReq(req.body);
+      case IntegrationSettings.SMART_CHARGING:
+        return SettingValidator.getInstance().validateSettingSmartChargingSetReq(req.body);
+      case IntegrationSettings.REFUND:
+        return SettingValidator.getInstance().validateSettingRefundSetReq(req.body);
+      case IntegrationSettings.PRICING:
+        return SettingValidator.getInstance().validateSettingPricingSetReq(req.body);
+      case IntegrationSettings.SAC:
+        return SettingValidator.getInstance().validateSettingAnalyticsSetReq(req.body);
+      case IntegrationSettings.ASSET:
+        return SettingValidator.getInstance().validateSettingAssetSetReq(req.body);
+      default:
+        if (createSetting) {
+          filteredRequest = SettingSecurity.filterSettingCreateRequest(req.body);
+        } else {
+          filteredRequest = SettingSecurity.filterSettingUpdateRequest(req.body);
+        }
+        await Logging.logDebug({
+          tenantID: req.user.tenantID,
+          user: req.user, module: MODULE_NAME, method: 'filterSetting',
+          message: `The property 'identifier' with value '${req.body.identifier as string}' for Setting with ID '${req.body.id as string}' has no dedicated schema (yet)`,
+          action: action,
+          detailedMessages: { filteredRequest }
+        });
+        return filteredRequest;
+    }
   }
 }

@@ -14,15 +14,13 @@ const MODULE_NAME = 'RegistrationTokenStorage';
 
 export default class RegistrationTokenStorage {
   static async saveRegistrationToken(tenant: Tenant, registrationToken: RegistrationToken): Promise<string> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Set
     const registrationTokenMDB = {
       _id: registrationToken.id ? DatabaseUtils.convertToObjectID(registrationToken.id) : new ObjectId(),
       description: registrationToken.description,
-      siteAreaID: DatabaseUtils.convertToObjectID(registrationToken.siteAreaID),
+      siteAreaID: registrationToken.siteAreaID ? DatabaseUtils.convertToObjectID(registrationToken.siteAreaID) : null,
       expirationDate: Utils.convertToDate(registrationToken.expirationDate),
       revocationDate: Utils.convertToDate(registrationToken.revocationDate)
     };
@@ -34,17 +32,14 @@ export default class RegistrationTokenStorage {
       { $set: registrationTokenMDB },
       { upsert: true, returnDocument: 'after' }
     );
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveRegistrationToken', startTime, registrationTokenMDB);
     return registrationTokenMDB._id.toString();
   }
 
   static async getRegistrationTokens(tenant: Tenant,
-      params: { tokenIDs?: string[]; siteIDs?: string[]; siteAreaID?: string } = {}, dbParams: DbParams, projectFields?: string[]):
+      params: { search?: string; tokenIDs?: string[]; siteIDs?: string[]; siteAreaID?: string } = {}, dbParams: DbParams, projectFields?: string[]):
       Promise<DataResult<RegistrationToken>> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -61,6 +56,17 @@ export default class RegistrationTokenStorage {
     });
     // Set the filters
     const filters: FilterParams = {};
+    // Search
+    if (params.search) {
+      filters.$or = [
+        { 'description': { $regex: params.search, $options: 'i' } },
+      ];
+      if (DatabaseUtils.isObjectID(params.search)) {
+        filters.$or.push(
+          { '_id': DatabaseUtils.convertToObjectID(params.search) },
+        );
+      }
+    }
     // Build filter
     if (params.siteAreaID) {
       filters.siteAreaID = DatabaseUtils.convertToObjectID(params.siteAreaID);
@@ -128,12 +134,9 @@ export default class RegistrationTokenStorage {
     const registrationTokens = await global.database.getCollection<RegistrationToken>(tenant.id, 'registrationtokens')
       .aggregate<RegistrationToken>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getRegistrationTokens', startTime, aggregation, registrationTokens);
-    // Ok
     return {
-      count: (registrationTokensCountMDB.length > 0 ?
-        (registrationTokensCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : registrationTokensCountMDB[0].count) : 0),
+      count: DatabaseUtils.getCountFromDatabaseCount(registrationTokensCountMDB[0]),
       result: registrationTokens
     };
   }
@@ -147,11 +150,9 @@ export default class RegistrationTokenStorage {
   }
 
   static async deleteRegistrationToken(tenant: Tenant, id: string): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     await global.database.getCollection<any>(tenant.id, 'registrationtokens')
       .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteRegistrationToken', startTime, { id });
   }
 }

@@ -19,7 +19,9 @@ export default class WSWrapper {
   public jsonWSConnection: JsonWSConnection;
   public jsonRestWSConnection: JsonRestWSConnection;
   public remoteAddress: string;
-  public registrationTimestamp: Date;
+  public firstConnectionDate: Date;
+  public lastPingDate: Date;
+  public lastPongDate: Date;
 
   private ws: WebSocket;
 
@@ -27,7 +29,7 @@ export default class WSWrapper {
     this.ws = ws;
     this.url = ws.url;
     this.remoteAddress = Utils.convertBufferArrayToString(ws.getRemoteAddressAsText()).toString();
-    this.registrationTimestamp = new Date();
+    this.firstConnectionDate = new Date();
   }
 
   public send(message: RecognizedString, isBinary?: boolean, compress?: boolean): boolean {
@@ -40,13 +42,16 @@ export default class WSWrapper {
     return this.ws.getBufferedAmount();
   }
 
-  public close(code: number, shortMessage: RecognizedString): void {
+  public close(code: number, shortMessage: RecognizedString, fromCloseEvent = false): void {
     if (!this.closed) {
       this.closed = true;
       try {
-        this.ws.end(code, shortMessage);
+        // Already clsoed?
+        if (!fromCloseEvent) {
+          this.ws.end(code, shortMessage);
+        }
       } catch (error) {
-        console.log(`Error closing ${error?.message as string}`);
+        console.log(`Error closing WS: ${error?.message as string}`);
       }
     }
   }
@@ -62,7 +67,7 @@ export default class WSWrapper {
 
   private checkWSClosed(): void {
     if (this.closed) {
-      throw new Error(`WS Comnection - Closed: '${this.ws.url as string}'`);
+      throw new Error(`WS Connection - Closed: '${this.ws.url as string}'`);
     }
   }
 }

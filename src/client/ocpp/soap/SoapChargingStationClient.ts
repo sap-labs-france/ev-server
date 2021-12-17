@@ -74,7 +74,6 @@ export default class SoapChargingStationClient extends ChargingStationClient {
           scsc.client = client;
           // Set endpoint
           scsc.client.setEndpoint(scsc.chargingStation.chargingStationURL);
-          // Ok
           fulfill(scsc);
         }
       });

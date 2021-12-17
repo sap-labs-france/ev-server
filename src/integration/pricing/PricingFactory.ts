@@ -1,4 +1,3 @@
-import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
 import { PricingSetting, PricingSettingsType } from '../../types/Setting';
 import Tenant, { TenantComponents } from '../../types/Tenant';
 
@@ -6,7 +5,6 @@ import BuiltInPricingIntegration from './simple-pricing/BuiltInPricingIntegratio
 import PricingIntegration from './PricingIntegration';
 import SapConvergentChargingPricingIntegration from './sap-convergent-charging/SapConvergentChargingPricingIntegration';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
-import SimplePricingIntegration from './simple-pricing/SimplePricingIntegration';
 import Utils from '../../utils/Utils';
 
 export default class PricingFactory {
@@ -15,7 +13,6 @@ export default class PricingFactory {
     if (Utils.isTenantComponentActive(tenant, TenantComponents.PRICING)) {
       // Get the pricing settings
       const pricingSetting = await SettingStorage.getPricingSettings(tenant);
-      // Check
       if (pricingSetting) {
         let pricingIntegrationImpl = null;
         switch (pricingSetting.type) {
@@ -25,13 +22,8 @@ export default class PricingFactory {
             break;
           // Simple Pricing
           case PricingSettingsType.SIMPLE:
-            if (FeatureToggles.isFeatureActive(Feature.PRICING_NEW_MODEL)) {
-              // Simple Pricing implementation
-              pricingIntegrationImpl = new BuiltInPricingIntegration(tenant, pricingSetting.simple);
-            } else {
-              // Built-in Pricing implementation
-              pricingIntegrationImpl = new SimplePricingIntegration(tenant, pricingSetting.simple);
-            }
+            // Simple Pricing implementation
+            pricingIntegrationImpl = new BuiltInPricingIntegration(tenant, pricingSetting.simple);
             break;
         }
         return pricingIntegrationImpl;

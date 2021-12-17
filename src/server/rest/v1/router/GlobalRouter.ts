@@ -12,6 +12,12 @@ import NotificationRouter from './api/NotificationRouter';
 import OCPIEndpointRouter from './api/OCPIEndpointRouter';
 import OICPEndpointRouter from './api/OICPEndpointRouter';
 import PricingRouter from './api/PricingRouter';
+import RegistrationTokenRouter from './api/RegistrationTokenRouter';
+import SessionHashService from '../service/SessionHashService';
+import SettingRouter from './api/SettingRouter';
+import SiteAreaRouter from './api/SiteAreaRouter';
+import SiteRouter from './api/SiteRouter';
+import StatisticsRouter from './api/StatisticsRouter';
 import SwaggerRouter from './doc/SwaggerRouter';
 import TagRouter from './api/TagRouter';
 import TenantRouter from './api/TenantRouter';
@@ -42,10 +48,11 @@ export default class GlobalRouter {
   protected buildRouteAPI(): void {
     this.router.use('/api',
       AuthService.authenticate(),
-      AuthService.checkSessionHash.bind(this),
+      SessionHashService.checkUserAndTenantValidity.bind(this),
       Logging.traceExpressRequest.bind(this),
       [
         new AssetRouter().buildRoutes(),
+        new BillingRouter().buildRoutes(),
         new CarRouter().buildRoutes(),
         new ChargingStationRouter().buildRoutes(),
         new CompanyRouter().buildRoutes(),
@@ -54,12 +61,16 @@ export default class GlobalRouter {
         new NotificationRouter().buildRoutes(),
         new OCPIEndpointRouter().buildRoutes(),
         new OICPEndpointRouter().buildRoutes(),
+        new PricingRouter().buildRoutes(),
+        new RegistrationTokenRouter().buildRoutes(),
+        new SiteAreaRouter().buildRoutes(),
+        new SettingRouter().buildRoutes(),
+        new SiteRouter().buildRoutes(),
+        new StatisticsRouter().buildRoutes(),
         new TagRouter().buildRoutes(),
         new TenantRouter().buildRoutes(),
         new TransactionRouter().buildRoutes(),
         new UserRouter().buildRoutes(),
-        new BillingRouter().buildRoutes(),
-        new PricingRouter().buildRoutes(),
       ]);
   }
 

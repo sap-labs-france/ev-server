@@ -30,7 +30,6 @@ export enum AsyncTaskStatus {
   ERROR = 'E',
 }
 
-
 export enum AsyncTasks {
   BILL_TRANSACTION = 'BillTransactionAsyncTask',
   TAGS_IMPORT = 'TagsImportAsyncTask',

@@ -90,6 +90,9 @@
             }
           }
         },
+        "links": {
+          "$ref": "setting#/definitions/links"
+        },
         "type": {
           "type": "string",
           "sanitize": "mongo",
@@ -102,8 +105,7 @@
       ]
     },
     "id": {
-      "type": "string",
-      "sanitize": "mongo"
+      "$ref": "common#/definitions/id"
     },
     "identifier": {
       "type": "string",
@@ -111,17 +113,10 @@
       "enum": ["ocpi"]
     },
     "sensitiveData": {
-      "type": "array",
-      "nullable": true,
-      "items": {
-        "type": "string",
-        "sanitize": "mongo"
-      }
+      "$ref": "setting#/definitions/sensitiveData"
     }
   },
   "required": [
-    "id",
-    "identifier",
-    "content"
+    "identifier"
   ]
 }

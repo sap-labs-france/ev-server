@@ -1,5 +1,6 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
+import { Car, CarCatalog } from '../../../../types/Car';
 import { CarCatalogDataResult, CarDataResult } from '../../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
@@ -10,7 +11,6 @@ import AppError from '../../../../exception/AppError';
 import AsyncTaskBuilder from '../../../../async-task/AsyncTaskBuilder';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
-import { Car } from '../../../../types/Car';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
 import CarValidator from '../validator/CarValidator';
 import Constants from '../../../../utils/Constants';
@@ -60,7 +60,6 @@ export default class CarService {
     // Add Auth flags
     await AuthorizationService.addCarCatalogsAuthorizationActions(req.tenant, req.user, carCatalogs as CarCatalogDataResult,
       authorizationCarCatalogsFilter);
-    // Return
     res.json(carCatalogs);
     next();
   }
@@ -132,7 +131,6 @@ export default class CarService {
       filteredRequest.ID,
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip }
     );
-    // Return
     res.json(carCatalogImages);
     next();
   }
@@ -210,19 +208,10 @@ export default class CarService {
       Action.CREATE, Entity.CAR, MODULE_NAME, 'handleCreateCar');
     // Filter
     const filteredRequest = CarValidator.getInstance().validateCarCreateReq(req.body);
-    // Check
     UtilsService.checkIfCarValid(filteredRequest, req);
     // Check auth
-    const authorizationFilters = await AuthorizationService.checkAndGetCarAuthorizations(
+    await AuthorizationService.checkAndGetCarAuthorizations(
       req.tenant,req.user, {}, Action.CREATE, filteredRequest as Car);
-    if (!authorizationFilters.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.CREATE, entity: Entity.CAR,
-        module: MODULE_NAME, method: 'handleCreateCar'
-      });
-    }
     // Check and get Car Catalog
     await UtilsService.checkAndGetCarCatalogAuthorization(
       req.tenant, req.user, filteredRequest.carCatalogID, Action.READ, action, filteredRequest as Car);
@@ -288,7 +277,6 @@ export default class CarService {
       Action.UPDATE, Entity.CAR, MODULE_NAME, 'handleUpdateCar');
     // Filter
     const filteredRequest = CarValidator.getInstance().validateCarUpdateReq(req.body);
-    // Check
     UtilsService.checkIfCarValid(filteredRequest, req);
     // Check and Get Car
     const car = await UtilsService.checkAndGetCarAuthorization(
@@ -414,7 +402,6 @@ export default class CarService {
     // Check and get Car
     const car = await UtilsService.checkAndGetCarAuthorization(
       req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, { withUser: true }, true);
-    // Return
     res.json(car);
     next();
   }

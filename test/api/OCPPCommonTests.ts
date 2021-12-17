@@ -6,6 +6,7 @@ import chai, { assert, expect } from 'chai';
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
 import Constants from '../../src/utils/Constants';
+import ContextDefinition from './context/ContextDefinition';
 import Factory from '../factories/Factory';
 import { OCPPStatus } from '../../src/types/ocpp/OCPPClient';
 import { StatusCodes } from 'http-status-codes';
@@ -29,7 +30,6 @@ export default class OCPPCommonTests {
   public centralUserService: CentralServerService;
 
   public currentPricingSetting;
-  public pricekWh = 2;
 
   public chargingStationConnector1: OCPPStatusNotificationRequest;
   public chargingStationConnector2: OCPPStatusNotificationRequest;
@@ -126,11 +126,6 @@ export default class OCPPCommonTests {
   }
 
   public async before(): Promise<void> {
-    const allSettings = await this.centralUserService.settingApi.readAll({});
-    this.currentPricingSetting = allSettings.data.result.find((s) => s.identifier === 'pricing');
-    if (this.currentPricingSetting) {
-      await this.centralUserService.updatePriceSetting(this.pricekWh, 'EUR');
-    }
     // Default Connector values
     this.chargingStationConnector1 = {
       connectorId: 1,
@@ -272,7 +267,6 @@ export default class OCPPCommonTests {
     const foundChargingStation = await this.chargingStationContext.readChargingStation();
     expect(foundChargingStation.status).to.equal(StatusCodes.OK);
     expect(foundChargingStation.data.id).is.eql(this.chargingStationContext.getChargingStation().id);
-    // Check
     expect(foundChargingStation.data.connectors).to.not.be.null;
     expect(foundChargingStation.data.connectors[0]).to.include({
       status: this.chargingStationConnector1.status,
@@ -290,7 +284,6 @@ export default class OCPPCommonTests {
     this.chargingStationConnector1.timestamp = new Date().toISOString();
     // Update
     let response = await this.chargingStationContext.setConnectorStatus(this.chargingStationConnector1);
-    // Check
     expect(response).to.eql({});
     // To be sure send a heartbeat
     response = await this.chargingStationContext.sendHeartbeat();
@@ -313,14 +306,12 @@ export default class OCPPCommonTests {
     this.chargingStationConnector1.timestamp = new Date().toISOString();
     // Update
     response = await this.chargingStationContext.setConnectorStatus(this.chargingStationConnector1);
-    // Check
     expect(response).to.eql({});
   }
 
   public async testHeartbeat(): Promise<void> {
     // Update Status of Connector 1
     const response = await this.chargingStationContext.sendHeartbeat();
-    // Check
     expect(response).to.have.property('currentTime');
   }
 
@@ -333,13 +324,11 @@ export default class OCPPCommonTests {
   }
 
   public async testDataTransfer(): Promise<void> {
-    // Check
     const response = await this.chargingStationContext.transferData({
       'vendorId': 'Schneider Electric',
       'messageId': 'Detection loop',
       'data': '{\\"connectorId\\":2,\\"name\\":\\"Vehicle\\",\\"state\\":\\"0\\",\\"timestamp\\":\\"2018-08-08T10:21:11Z:\\"}',
     });
-    // Check
     expect(response).to.have.property('status');
     expect(response.status).to.equal(OCPPStatus.ACCEPTED);
   }
@@ -428,7 +417,6 @@ export default class OCPPCommonTests {
       this.transactionStartTime);
     // Check if the Transaction exists
     this.newTransaction = (await this.centralUserService.transactionApi.readById(secondTransactionId)).data;
-    // Check
     expect(this.newTransaction).to.not.be.null;
     expect(this.newTransaction.id).to.not.equal(transactionId);
   }
@@ -510,7 +498,7 @@ export default class OCPPCommonTests {
     for (let index = 0; index <= this.energyActiveImportMeterValues.length - 2; index++) {
       // Set new meter value
       currentCumulatedPrice = Utils.createDecimal(currentCumulatedPrice).plus(
-        Utils.computeSimplePrice(this.pricekWh, this.energyActiveImportMeterValues[index])).toNumber();
+        Utils.computeSimplePrice(ContextDefinition.DEFAULT_PRICE, this.energyActiveImportMeterValues[index])).toNumber();
       if (index === this.energyActiveImportMeterValues.length - 2) {
         this.totalPrice = currentCumulatedPrice;
       }
@@ -624,7 +612,6 @@ export default class OCPPCommonTests {
     // Stop the Transaction
     const stopTransactionResponse = await this.chargingStationContext.stopTransaction(this.newTransaction.id,
       this.transactionStopUser.tags[0].id, this.energyActiveImportEndMeterValue, this.transactionCurrentTime);
-    // Check
     expect(stopTransactionResponse).to.have.property('idTagInfo');
     expect(stopTransactionResponse.idTagInfo.status).to.equal(OCPPStatus.ACCEPTED);
     // Set the connector to Available
@@ -656,7 +643,7 @@ export default class OCPPCommonTests {
       }
     });
     // Check priced data
-    const totalTransactionPrice = Utils.computeSimplePrice(this.pricekWh, this.transactionTotalConsumptionWh);
+    const totalTransactionPrice = Utils.computeSimplePrice(ContextDefinition.DEFAULT_PRICE, this.transactionTotalConsumptionWh);
     assert(Utils.createDecimal(this.totalPrice).equals(totalTransactionPrice), `The total transaction price should be: ${totalTransactionPrice} - actual value is: ${this.totalPrice}`);
     // Check STOP priced data
     this.checkPricedTransactionData(transactionValidation.data);
@@ -691,7 +678,7 @@ export default class OCPPCommonTests {
       }
     });
     // Check priced data
-    const totalTransactionPrice = Utils.computeSimplePrice(this.pricekWh, this.transactionTotalConsumptionWh);
+    const totalTransactionPrice = Utils.computeSimplePrice(ContextDefinition.DEFAULT_PRICE, this.transactionTotalConsumptionWh);
     assert(this.totalPrice === totalTransactionPrice, `The total transaction price should be: ${totalTransactionPrice} - actual value is: ${this.totalPrice}`);
     // Check STOP priced data
     this.checkPricedTransactionData(response.data);
@@ -704,7 +691,6 @@ export default class OCPPCommonTests {
       const value = response.data.values[i];
       // Sum
       transactionCumulatedConsumption += this.energyActiveImportMeterValues[i];
-      // Check
       if (this.chargingStationContext.getChargingStation().ocppVersion === OCPPVersion.VERSION_15) {
         const instantWatts = this.energyActiveImportMeterValues[i] * (3600 / this.meterValueIntervalSecs);
         expect(value).to.include({
@@ -1110,7 +1096,6 @@ export default class OCPPCommonTests {
 
   private async testAuthorize(tagId, expectedStatus) {
     const response = await this.chargingStationContext.authorize(tagId);
-    // Check
     expect(response).to.have.property('idTagInfo');
     expect(response.idTagInfo.status).to.equal(expectedStatus);
   }
