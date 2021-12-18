@@ -12,7 +12,7 @@ export default class AuthorizationValidatorStorage extends SchemaValidator {
     super('AuthorizationValidatorStorage', {
       strict: false, // When 'true', it fails with anyOf required fields: https://github.com/ajv-validator/ajv/issues/1571
       allErrors: true,
-      removeAdditional: true, // 'all' fails with anyOf documents: Manually added 'additionalProperties: false' in schema due filtering of data in anyOf/oneOf/allOf array (it's standard): https://github.com/ajv-validator/ajv/issues/1784
+      removeAdditional: false, // 'all' fails with anyOf documents: Manually added 'additionalProperties: false' in schema due filtering of data in anyOf/oneOf/allOf array (it's standard): https://github.com/ajv-validator/ajv/issues/1784
       allowUnionTypes: true,
       coerceTypes: true,
       verbose: true,
