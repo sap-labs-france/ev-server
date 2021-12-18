@@ -1521,10 +1521,19 @@ export default class Utils {
   }
 
   public static getHostName(): string {
+    // K8s
+    if (process.env.POD_NAME) {
+      return process.env.POD_NAME;
+    }
     return os.hostname();
   }
 
   public static getHostIP(): string {
+    // K8s
+    if (process.env.POD_IP) {
+      return process.env.POD_IP;
+    }
+    // AWS
     const hostname = Utils.getHostName();
     if (hostname.startsWith('ip-')) {
       const hostnameParts = hostname.split('-');
