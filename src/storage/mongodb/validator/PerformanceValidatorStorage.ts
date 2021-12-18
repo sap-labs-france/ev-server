@@ -27,7 +27,7 @@ export default class PerformanceValidatorStorage extends SchemaValidator {
     return PerformanceValidatorStorage.instance;
   }
 
-  public validatePerformance(data: Record<string, unknown>): PerformanceRecord {
+  public validatePerformance(data: any): PerformanceRecord {
     return this.validate(this.performance, data);
   }
 }

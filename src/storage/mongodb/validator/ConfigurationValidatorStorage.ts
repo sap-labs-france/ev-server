@@ -27,7 +27,7 @@ export default class ConfigurationValidatorStorage extends SchemaValidator {
     return ConfigurationValidatorStorage.instance;
   }
 
-  public validateConfiguration(data: Record<string, unknown>): Configuration {
+  public validateConfiguration(data: any): Configuration {
     return this.validate(this.configuration, data);
   }
 }

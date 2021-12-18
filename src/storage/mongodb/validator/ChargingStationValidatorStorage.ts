@@ -27,7 +27,7 @@ export default class ChargingStationValidatorStorage extends SchemaValidator {
     return ChargingStationValidatorStorage.instance;
   }
 
-  public validateChargingStationTemplate(data: Record<string, unknown>): ChargingStationTemplate {
+  public validateChargingStationTemplate(data: any): ChargingStationTemplate {
     return this.validate(this.chargingStationTemplate, data);
   }
 }

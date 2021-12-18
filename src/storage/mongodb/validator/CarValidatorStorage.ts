@@ -27,7 +27,7 @@ export default class CarValidatorStorage extends SchemaValidator {
     return CarValidatorStorage.instance;
   }
 
-  public validateCarCatalog(data: Record<string, unknown>): ChargingStationTemplate {
+  public validateCarCatalog(data: any): ChargingStationTemplate {
     return this.validate(this.carCatalog, data);
   }
 }

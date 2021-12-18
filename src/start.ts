@@ -116,10 +116,7 @@ export default class Bootstrap {
       // -------------------------------------------------------------------------
       // Start all the Servers
       // -------------------------------------------------------------------------
-      startTimeMillis = await this.logAndGetStartTimeMillis('Server is starting...');
-      // Start the Servers
-      serverStarted = await Bootstrap.startServersListening();
-      await this.logDuration(startTimeMillis, `Server ${serverStarted.join(', ')} has been started successfully`);
+      serverStarted = await Bootstrap.startServers();
 
       // -------------------------------------------------------------------------
       // Init the Scheduler
@@ -207,7 +204,7 @@ export default class Bootstrap {
     }
   }
 
-  private static async startServersListening(): Promise<ServerType[]> {
+  private static async startServers(): Promise<ServerType[]> {
     const serverTypes: ServerType[] = [];
     try {
       // -------------------------------------------------------------------------
