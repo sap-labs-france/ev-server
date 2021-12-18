@@ -55,15 +55,22 @@
     "timeoutSecs": 30
   },
   "Email": {
-    "from": "donotreply@charge-angels.fr",
-    "admins": [
-      "fabiano.serge@chargeangels.fr"
-    ],
+    "disableBackup": false,
     "smtp": {
+      "from": "e-mobility@sap.com",
       "host": "mailserver",
-      "port": 1025,
+      "port": 587,
       "secure": false,
-      "requireTLS": false,
+      "requireTLS": true,
+      "user": "evse-mail-user",
+      "password": "evse-mail-pwd"
+    },
+    "smtpBackup": {
+      "from": "e-mobility@sap.com",
+      "host": "mailserver",
+      "port": 587,
+      "secure": false,
+      "requireTLS": true,
       "user": "evse-mail-user",
       "password": "evse-mail-pwd"
     }

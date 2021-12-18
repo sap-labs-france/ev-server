@@ -128,6 +128,7 @@
     "timeoutSecs": 30
   },
   "Email": {
+    "disableBackup": false,
     "smtp": {
       "from": "",
       "host": "",
