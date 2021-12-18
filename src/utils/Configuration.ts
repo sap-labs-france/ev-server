@@ -235,6 +235,14 @@ export default class Configuration {
 
   private static getConfig(): ConfigurationData {
     if (!Configuration.config) {
+      const fileExists = fs.existsSync('/config/sonfig.json');
+      console.log('fileExists', fileExists);
+      if (fileExists) {
+        console.log(fs.readFileSync('/config/sonfig.json', 'utf8'));
+      }
+      console.log('POD_NAME', process.env.POD_NAME);
+      console.log('POD_NAMESPACE', process.env.POD_NAMESPACE);
+      console.log('POD_IP', process.env.POD_IP);
       const config = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/config.json`, 'utf8')) as ConfigurationData;
       Configuration.config = ConfigurationValidatorStorage.getInstance().validateConfiguration(
         config as unknown as Record<string, unknown>);
