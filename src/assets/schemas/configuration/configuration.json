@@ -185,12 +185,6 @@
         "passwordBlockedWaitTimeMin": {
           "type": "integer"
         },
-        "captchaSecretKeyUnitTests": {
-          "type": "string"
-        },
-        "captchaSecretKeyUI": {
-          "type": "string"
-        },
         "captchaSecretKey": {
           "type": "string"
         },
@@ -208,8 +202,6 @@
         "userTechnicalTokenLifetimeDays",
         "passwordWrongNumberOfTrial",
         "passwordBlockedWaitTimeMin",
-        "captchaSecretKeyUnitTests",
-        "captchaSecretKeyUI",
         "captchaSecretKey",
         "debug"
       ]
