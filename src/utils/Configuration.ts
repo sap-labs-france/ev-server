@@ -235,10 +235,10 @@ export default class Configuration {
 
   private static getConfig(): ConfigurationData {
     if (!Configuration.config) {
-      const fileExists = fs.existsSync('/config/sonfig.json');
+      const fileExists = fs.existsSync('/config/config.json');
       console.log('fileExists', fileExists);
       if (fileExists) {
-        console.log(fs.readFileSync('/config/sonfig.json', 'utf8'));
+        console.log(fs.readFileSync('/config/config.json', 'utf8'));
       }
       console.log('POD_NAME', process.env.POD_NAME);
       console.log('POD_NAMESPACE', process.env.POD_NAMESPACE);
