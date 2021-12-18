@@ -1,0 +1,634 @@
+{
+  "$id": "config",
+  "title": "e-Mobility Configuration",
+  "type": "object",
+  "properties": {
+    "Migration": {
+      "type": "object",
+      "properties": {
+        "active": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "active"
+      ]
+    },
+    "Crypto": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "algorithm": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "algorithm"
+      ]
+    },
+    "EVDatabase": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "url",
+        "key"
+      ]
+    },
+    "OICPService": {
+      "type": "object",
+      "properties": {
+        "protocol": {
+          "type": "string"
+        },
+        "host": {
+          "type": "string"
+        },
+        "port": {
+          "type": "integer"
+        },
+        "debug": {
+          "type": "boolean"
+        },
+        "externalProtocol": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocol",
+        "host",
+        "port",
+        "debug",
+        "externalProtocol"
+      ]
+    },
+    "ODataService": {
+      "type": "object",
+      "properties": {
+        "protocol": {
+          "type": "string"
+        },
+        "host": {
+          "type": "string"
+        },
+        "port": {
+          "type": "integer"
+        },
+        "externalProtocol": {
+          "type": "string"
+        },
+        "debug": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "protocol",
+        "host",
+        "port",
+        "externalProtocol",
+        "debug"
+      ]
+    },
+    "CentralSystemServer": {
+      "type": "object",
+      "properties": {
+        "protocol": {
+          "type": "string"
+        },
+        "host": {
+          "type": "string"
+        },
+        "port": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "protocol",
+        "host",
+        "port"
+      ]
+    },
+    "CentralSystems": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["ocpp"]
+          },
+          "implementation": {
+            "type": "string",
+            "enum": ["soap", "json"]
+          },
+          "protocol": {
+            "type": "string",
+            "enum": ["http", "https", "ws", "wss"]
+          },
+          "host": {
+            "type": "string"
+          },
+          "port": {
+            "type": "integer"
+          },
+          "debug": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "type",
+          "implementation",
+          "protocol",
+          "host",
+          "port",
+          "debug"
+        ]
+      }
+    },
+    "CentralSystemRestService": {
+      "type": "object",
+      "properties": {
+        "protocol": {
+          "type": "string",
+          "enum": ["http", "https"]
+        },
+        "host": {
+          "type": "string"
+        },
+        "port": {
+          "type": "integer"
+        },
+        "userTokenKey": {
+          "type": "string"
+        },
+        "userTokenLifetimeHours": {
+          "type": "integer"
+        },
+        "userDemoTokenLifetimeDays": {
+          "type": "integer"
+        },
+        "userTechnicalTokenLifetimeDays": {
+          "type": "integer"
+        },
+        "passwordWrongNumberOfTrial": {
+          "type": "integer"
+        },
+        "passwordBlockedWaitTimeMin": {
+          "type": "integer"
+        },
+        "captchaSecretKeyUnitTests": {
+          "type": "string"
+        },
+        "captchaSecretKeyUI": {
+          "type": "string"
+        },
+        "captchaSecretKey": {
+          "type": "string"
+        },
+        "debug": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "protocol",
+        "host",
+        "port",
+        "userTokenKey",
+        "userTokenLifetimeHours",
+        "userDemoTokenLifetimeDays",
+        "userTechnicalTokenLifetimeDays",
+        "passwordWrongNumberOfTrial",
+        "passwordBlockedWaitTimeMin",
+        "captchaSecretKeyUnitTests",
+        "captchaSecretKeyUI",
+        "captchaSecretKey",
+        "debug"
+      ]
+    },
+    "CentralSystemFrontEnd": {
+      "type": "object",
+      "properties": {
+        "protocol": {
+          "type": "string",
+          "enum": ["http", "https"]
+        },
+        "host": {
+          "type": "string"
+        },
+        "port": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "protocol",
+        "host",
+        "port"
+      ]
+    },
+    "WSDLEndpoint": {
+      "type": "object",
+      "properties": {
+        "baseSecureUrl": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "baseSecureUrl"
+      ]
+    },
+    "JsonEndpoint": {
+      "type": "object",
+      "properties": {
+        "baseSecureUrl": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "baseSecureUrl"
+      ]
+    },
+    "OCPIEndpoint": {
+      "type": "object",
+      "properties": {
+        "baseUrl": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "baseUrl"
+      ]
+    },
+    "OICPEndpoint": {
+      "type": "object",
+      "properties": {
+        "baseUrl": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "baseUrl"
+      ]
+    },
+    "Storage": {
+      "type": "object",
+      "properties": {
+        "implementation": {
+          "type": "string"
+        },
+        "uri": {
+          "type": "string"
+        },
+        "poolSize": {
+          "type": "integer"
+        },
+        "debug": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "implementation",
+        "uri",
+        "poolSize",
+        "debug"
+      ]
+    },
+    "OCPIService": {
+      "type": "object",
+      "properties": {
+        "protocol": {
+          "type": "string",
+          "enum": ["http", "https"]
+        },
+        "host": {
+          "type": "string"
+        },
+        "port": {
+          "type": "integer"
+        },
+        "debug": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "protocol",
+        "host",
+        "port",
+        "debug"
+      ]
+    },
+    "Notification": {
+      "type": "object",
+      "properties": {
+        "Email": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "enabled"
+          ]
+        },
+        "RemotePushNotification": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "enabled"
+          ]
+        }
+      },
+      "required": [
+        "Email",
+        "RemotePushNotification"
+      ]
+    },
+    "Firebase": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "projectID": {
+          "type": "string"
+        },
+        "privateKeyID": {
+          "type": "string"
+        },
+        "privateKey": {
+          "type": "string"
+        },
+        "clientEmail": {
+          "type": "string"
+        },
+        "clientID": {
+          "type": "string"
+        },
+        "authURI": {
+          "type": "string"
+        },
+        "tokenURI": {
+          "type": "string"
+        },
+        "authProviderX509CertURL": {
+          "type": "string"
+        },
+        "clientX509CertURL": {
+          "type": "string"
+        },
+        "databaseURL": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "projectID",
+        "privateKeyID",
+        "privateKey",
+        "clientEmail",
+        "clientID",
+        "authURI",
+        "tokenURI",
+        "authProviderX509CertURL",
+        "clientX509CertURL",
+        "databaseURL"
+      ]
+    },
+    "Axios": {
+      "type": "object",
+      "properties": {
+        "retries": {
+          "type": "integer"
+        },
+        "timeoutSecs": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "retries",
+        "timeoutSecs"
+      ]
+    },
+    "Email": {
+      "type": "object",
+      "properties": {
+        "disableBackup": {
+          "type": "boolean"
+        },
+        "smtp": {
+          "type": "object",
+          "properties": {
+            "from": {
+              "type": "string"
+            },
+            "host": {
+              "type": "string"
+            },
+            "port": {
+              "type": "integer"
+            },
+            "secure": {
+              "type": "boolean"
+            },
+            "requireTLS": {
+              "type": "boolean"
+            },
+            "user": {
+              "type": "string"
+            },
+            "password": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "from",
+            "host",
+            "port",
+            "secure",
+            "requireTLS",
+            "user",
+            "password"
+          ]
+        },
+        "smtpBackup": {
+          "type": "object",
+          "properties": {
+            "from": {
+              "type": "string"
+            },
+            "host": {
+              "type": "string"
+            },
+            "port": {
+              "type": "integer"
+            },
+            "secure": {
+              "type": "boolean"
+            },
+            "requireTLS": {
+              "type": "boolean"
+            },
+            "user": {
+              "type": "string"
+            },
+            "password": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "from",
+            "host",
+            "port",
+            "secure",
+            "requireTLS",
+            "user",
+            "password"
+          ]
+        }
+      },
+      "required": [
+        "disableBackup",
+        "smtp",
+        "smtpBackup"
+      ]
+    },
+    "Authorization": {
+      "type": "object",
+      "properties": {
+        "debug": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "debug"
+      ]
+    },
+    "ChargingStation": {
+      "type": "object",
+      "properties": {
+        "heartbeatIntervalOCPPSSecs": {
+          "type": "integer"
+        },
+        "heartbeatIntervalOCPPJSecs": {
+          "type": "integer"
+        },
+        "pingIntervalOCPPJSecs": {
+          "type": "integer"
+        },
+        "monitoringIntervalOCPPJSecs": {
+          "type": "integer"
+        },
+        "notifBeforeEndOfChargeEnabled": {
+          "type": "boolean"
+        },
+        "notifBeforeEndOfChargePercent": {
+          "type": "integer"
+        },
+        "notifEndOfChargeEnabled": {
+          "type": "boolean"
+        },
+        "notifStopTransactionAndUnlockConnector": {
+          "type": "boolean"
+        },
+        "maxLastSeenIntervalSecs": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "heartbeatIntervalOCPPSSecs",
+        "heartbeatIntervalOCPPJSecs",
+        "pingIntervalOCPPJSecs",
+        "monitoringIntervalOCPPJSecs",
+        "notifBeforeEndOfChargeEnabled",
+        "notifBeforeEndOfChargePercent",
+        "notifEndOfChargeEnabled",
+        "notifStopTransactionAndUnlockConnector",
+        "maxLastSeenIntervalSecs"
+      ]
+    },
+    "AsyncTask": {
+      "type": "object",
+      "properties": {
+        "active": {
+          "type": "boolean"
+        },
+        "nbrTasksInParallel": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "active",
+        "nbrTasksInParallel"
+      ]
+    },
+    "Scheduler": {
+      "type": "object",
+      "properties": {
+        "active": {
+          "type": "boolean"
+        },
+        "tasks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "active": {
+                "type": "boolean"
+              },
+              "periodicity": {
+                "type": "string"
+              },
+              "config": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "name",
+              "active",
+              "periodicity"
+            ]
+          }
+        }
+      },
+      "required": [
+        "active",
+        "tasks"
+      ]
+    },
+    "Logging": {
+      "type": "object",
+      "properties": {
+        "logLevel": {
+          "type": "string",
+          "enum": ["NONE", "D", "I", "W", "E"]
+        },
+        "trace": {
+          "type": "boolean"
+        },
+        "moduleDetails": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "logLevel",
+        "trace"
+      ]
+    }
+  }
+}
