@@ -216,16 +216,13 @@
   },
   "Logging": {
     "logLevel": "D",
-    "consoleLogLevel": "NONE",
     "trace": true,
     "moduleDetails": {
       "ChargingStation": {
-        "logLevel": "DEFAULT",
-        "consoleLogLevel": "DEFAULT"
+        "logLevel": "DEFAULT"
       },
       "Authorizations": {
-        "logLevel": "DEFAULT",
-        "consoleLogLevel": "DEFAULT"
+        "logLevel": "DEFAULT"
       }
     }
   }
