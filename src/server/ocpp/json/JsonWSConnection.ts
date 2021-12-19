@@ -128,8 +128,9 @@ export default class JsonWSConnection extends WSConnection {
   }
 
   private async updateChargingStationLastSeen(): Promise<void> {
-    // Update once every 60s
-    if (!this.lastSeen || (Date.now() - this.lastSeen.getTime()) > Constants.LAST_SEEN_UPDATE_INTERVAL_MILLIS) {
+    // Update once every ping interval / 2
+    if (!this.lastSeen ||
+        (Date.now() - this.lastSeen.getTime()) > (Configuration.getChargingStationConfig().pingIntervalOCPPJSecs * 1000 / 2)) {
       // Update last seen
       this.lastSeen = new Date();
       const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenant(),

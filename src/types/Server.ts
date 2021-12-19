@@ -91,6 +91,8 @@ export enum ServerAction {
 
   OFFLINE_CHARGING_STATION = 'OfflineChargingStation',
 
+  MISSING_CONFIGURATION = 'MissingConfiguration',
+
   LOGS_CLEANUP = 'LogsCleanup',
   PERFORMANCES_CLEANUP = 'PerformancesCleanup',
   PERFORMANCES = 'Performances',

@@ -34,6 +34,7 @@ export enum PerformanceRecordGroup {
   WIT = 'wit',
   SAP_SMART_CHARGING = 'sap-smart-charging',
   SAP_CONCUR = 'sap-concur',
+  NOTIFICATION = 'notification',
   UNKNOWN = 'unknown',
 }
 

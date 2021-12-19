@@ -34,7 +34,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
   public constructor(centralSystemConfig: CentralSystemConfiguration, chargingStationConfig: ChargingStationConfiguration) {
     super(centralSystemConfig, chargingStationConfig);
     // Start job to clean WS connections
-    this.checkAndCleanupWSConnections();
+    this.checkAndCleanupAllWebSockets();
     // Monitor WS activity
     this.monitorWSConnections();
   }
@@ -207,12 +207,12 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       // Check Json connection
       if (wsWrapper.url.startsWith('/OCPP16')) {
         // Create and Initialize WS Connection
-        wsConnection = await this.checkAndReferenceWSConnection(WSServerProtocol.OCPP16, wsWrapper);
+        wsConnection = await this.checkAndKeepWSConnection(WSServerProtocol.OCPP16, wsWrapper);
       }
       // Check Rest connection
       if (wsWrapper.url.startsWith('/REST')) {
         // Create and Initialize WS Connection
-        wsConnection = await this.checkAndReferenceWSConnection(WSServerProtocol.REST, wsWrapper);
+        wsConnection = await this.checkAndKeepWSConnection(WSServerProtocol.REST, wsWrapper);
       }
       if (!wsConnection) {
         throw new BackendError({
@@ -229,7 +229,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     }
   }
 
-  private async checkAndReferenceWSConnection(protocol: WSServerProtocol, wsWrapper: WSWrapper): Promise<WSConnection> {
+  private async checkAndKeepWSConnection(protocol: WSServerProtocol, wsWrapper: WSWrapper): Promise<WSConnection> {
     let wsConnection: WSConnection;
     let action: ServerAction;
     // Set the protocol
@@ -534,17 +534,17 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         Logging.logConsoleDebug(`** ${this.waitingWSMessages} queued WS Message(s)`);
         Logging.logConsoleDebug('=====================================');
       }
-    }, 30 * 60 * 1000);
+    }, Configuration.getChargingStationConfig().monitoringIntervalOCPPJSecs * 1000);
   }
 
-  private checkAndCleanupWSConnections() {
+  private checkAndCleanupAllWebSockets() {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     setInterval(async () => {
       // Check Json connections
       await this.checkAndCleanupWebSockets(this.jsonWSConnections, 'Json');
       // Check Rest connections
       await this.checkAndCleanupWebSockets(this.jsonRestWSConnections, 'Rest');
-    }, Configuration.getChargingStationConfig().heartbeatIntervalOCPPJSecs * 1000);
+    }, Configuration.getChargingStationConfig().pingIntervalOCPPJSecs * 1000);
   }
 
   private async checkAndCleanupWebSockets(wsConnections: Map<string, WSConnection>, type: 'Json'|'Rest') {
@@ -582,7 +582,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         });
       }
     } else {
-      this.isDebug() && Logging.logConsoleDebug('No Web Socket connection to ping');
+      this.isDebug() && Logging.logConsoleDebug(`No ${type} Web Socket connection to ping`);
     }
   }
 }

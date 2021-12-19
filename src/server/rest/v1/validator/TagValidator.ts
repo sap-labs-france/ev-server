@@ -43,7 +43,7 @@ export default class TagValidator extends SchemaValidator {
   }
 
   public validateImportedTagCreateReq(data: ImportedTag): void {
-    return this.validate(this.tagImportCreate, data as unknown as Record<string, unknown>);
+    return this.validate(this.tagImportCreate, data);
   }
 
   public validateTagCreateReq(data: Record<string, unknown>): Tag {
