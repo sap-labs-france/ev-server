@@ -27,8 +27,8 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     let jsonServerURL: string;
     // Check K8s
     if (process.env.POD_NAME && chargingStation.cloudHostIP) {
-      // Use K8s IP, always in wss
-      jsonServerURL = `wss://${chargingStation.cloudHostIP}`;
+      // Use K8s internal IP, always in ws
+      jsonServerURL = `ws://${chargingStation.cloudHostIP}`;
       console.log('jsonServerURL K8s', jsonServerURL);
     } else {
       jsonServerURL = chargingStation.chargingStationURL;
