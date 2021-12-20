@@ -16,11 +16,6 @@
       },
       "sanitize": "mongo"
     },
-    "backupSensitiveData": {
-      "type": "object",
-      "sanitize": "mongo",
-      "nullable": true
-    },
     "links": {
       "type": "array",
       "items": {
