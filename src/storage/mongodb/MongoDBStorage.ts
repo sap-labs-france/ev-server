@@ -277,7 +277,7 @@ export default class MongoDBStorage {
     // Keep a global reference
     global.database = this;
     // Check Database only when migration is active
-    if (this.migrationConfig.active) {
+    if (this.migrationConfig?.active) {
       await this.checkDatabase();
     }
     Logging.logConsoleDebug(`Connected to '${this.dbConfig.implementation}' successfully`);
@@ -333,7 +333,7 @@ export default class MongoDBStorage {
             { fields: { level: 1, timestamp: 1 } },
             { fields: { source: 1, timestamp: 1 } },
             { fields: { host: 1, timestamp: 1 } },
-            { fields: { message: 'text' } },
+            { fields: { message: 'text', source: 'text', chargingStationID: 'text' } },
           ]);
         } finally {
           // Release the database creation Lock

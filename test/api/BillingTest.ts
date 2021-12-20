@@ -309,7 +309,7 @@ describe('Billing', function() {
         });
 
         it('Should connect to Billing Provider', async () => {
-          const response = await billingTestHelper.userService.billingApi.testConnection({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING);
+          const response = await billingTestHelper.userService.billingApi.testConnection();
           expect(response.data.connectionIsValid).to.be.true;
           expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
         });
@@ -429,7 +429,7 @@ describe('Billing', function() {
         });
 
         it('Should not be able to test connection to Billing Provider', async () => {
-          const response = await billingTestHelper.userService.billingApi.testConnection({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING);
+          const response = await billingTestHelper.userService.billingApi.testConnection();
           expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
         });
 

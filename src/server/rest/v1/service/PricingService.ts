@@ -95,6 +95,10 @@ export default class PricingService {
     }
     // Check authorization and get the site ID depending on the entity type
     const siteID = await PricingService.checkAuthorizationAndGetSiteID(req, action, filteredRequest.entityType, filteredRequest.entityID);
+    // Check that the pricing definitions can be changed for that site
+    if (siteID) {
+      await UtilsService.checkAndGetSiteAuthorization(req.tenant, req.user, siteID, Action.MAINTAIN_PRICING_DEFINITIONS, action);
+    }
     // Create pricing
     const newPricingDefinition: PricingDefinition = {
       ...filteredRequest,
@@ -133,6 +137,10 @@ export default class PricingService {
     const lastChangedOn = new Date();
     // Check authorization and get the site ID depending on the entity type
     const siteID = await PricingService.checkAuthorizationAndGetSiteID(req, action, filteredRequest.entityType, filteredRequest.entityID);
+    // Check that the pricing definitions can be changed for that site
+    if (siteID) {
+      await UtilsService.checkAndGetSiteAuthorization(req.tenant, req.user, siteID, Action.MAINTAIN_PRICING_DEFINITIONS, action);
+    }
     // Update
     pricingDefinition = {
       ...pricingDefinition,
@@ -164,6 +172,12 @@ export default class PricingService {
     // Check and Get Pricing
     const pricingDefinition = await UtilsService.checkAndGetPricingDefinitionAuthorization(
       req.tenant, req.user, pricingDefinitionID, Action.DELETE, action);
+    // Check authorization and get the site ID depending on the entity type
+    const siteID = await PricingService.checkAuthorizationAndGetSiteID(req, action, pricingDefinition.entityType, pricingDefinition.entityID);
+    // Check that the pricing definitions can be changed for that site
+    if (siteID) {
+      await UtilsService.checkAndGetSiteAuthorization(req.tenant, req.user, siteID, Action.MAINTAIN_PRICING_DEFINITIONS, action);
+    }
     // Delete
     await PricingStorage.deletePricingDefinition(req.tenant, pricingDefinition.id);
     // Log

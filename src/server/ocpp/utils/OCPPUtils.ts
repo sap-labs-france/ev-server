@@ -61,38 +61,39 @@ export default class OCPPUtils {
     // Check Token
     if (!tokenID) {
       throw new BackendError({
-        chargingStationID: chargingStationID,
-        action, module: MODULE_NAME, method: 'ensureChargingStationHasValidConnectionToken',
-        message: 'Token ID is required, request rejected!',
+        action, chargingStationID,
+        module: MODULE_NAME, method: 'ensureChargingStationHasValidConnectionToken',
+        message: `Token ID is required in ${Utils.buildTenantName(tenant)}!`,
       });
     }
     if (!DatabaseUtils.isObjectID(tokenID)) {
       throw new BackendError({
         action, chargingStationID,
         module: MODULE_NAME, method: 'ensureChargingStationHasValidConnectionToken',
-        message: `The Token ID '${tokenID}' is invalid, request rejected!`
+        message: `The Token ID '${tokenID}' is invalid in ${Utils.buildTenantName(tenant)}!`
       });
     }
     // Get the Token
     const token = await RegistrationTokenStorage.getRegistrationToken(tenant, tokenID);
     if (!token) {
       throw new BackendError({
-        chargingStationID: chargingStationID,
-        action, module: MODULE_NAME, method: 'ensureChargingStationHasValidConnectionToken',
-        message: `Token ID '${tokenID}' has not been found, request rejected!`,
+        action, chargingStationID,
+        module: MODULE_NAME, method: 'ensureChargingStationHasValidConnectionToken',
+        message: `Token ID '${tokenID}' has not been found in ${Utils.buildTenantName(tenant)}!`,
       });
     }
     if (!token.expirationDate || moment().isAfter(token.expirationDate)) {
       throw new BackendError({
-        chargingStationID: chargingStationID,
-        action, module: MODULE_NAME, method: 'ensureChargingStationHasValidConnectionToken',
-        message: `Token ID '${tokenID}' has expired, request rejected!`,
+        action, chargingStationID,
+        module: MODULE_NAME, method: 'ensureChargingStationHasValidConnectionToken',
+        message: `Token ID '${tokenID}' has expired in ${Utils.buildTenantName(tenant)}!`,
       });
     }
     if (token.revocationDate && moment().isAfter(token.revocationDate)) {
       throw new BackendError({
-        action, module: MODULE_NAME, method: 'ensureChargingStationHasValidConnectionToken',
-        message: `Token ID '${tokenID}' has been revoked, request rejected!`,
+        action, chargingStationID,
+        module: MODULE_NAME, method: 'ensureChargingStationHasValidConnectionToken',
+        message: `Token ID '${tokenID}' has been revoked in ${Utils.buildTenantName(tenant)}!`,
       });
     }
     return token;
@@ -1444,14 +1445,14 @@ export default class OCPPUtils {
       throw new BackendError({
         action,
         module: MODULE_NAME, method: 'checkChargingStationOcppParameters',
-        message: 'The Charging Station ID is mandatory, request rejected!'
+        message: 'The Charging Station ID is mandatory!'
       });
     }
     if (!Utils.isChargingStationIDValid(chargingStationID)) {
       throw new BackendError({
         action, chargingStationID,
         module: MODULE_NAME, method: 'checkChargingStationOcppParameters',
-        message: `The Charging Station ID '${chargingStationID}' is invalid, request rejected!`
+        message: `The Charging Station ID '${chargingStationID}' is invalid!`
       });
     }
     // Check Tenant
@@ -1459,14 +1460,14 @@ export default class OCPPUtils {
       throw new BackendError({
         action, chargingStationID,
         module: MODULE_NAME, method: 'checkChargingStationOcppParameters',
-        message: 'The Tenant ID is mandatory, request rejected!'
+        message: 'The Tenant ID is mandatory!'
       });
     }
     if (!DatabaseUtils.isObjectID(tenantID)) {
       throw new BackendError({
         action, chargingStationID,
         module: MODULE_NAME, method: 'checkChargingStationOcppParameters',
-        message: `The Tenant ID '${tenantID}' is invalid, request rejected!`
+        message: `The Tenant ID '${tenantID}' is invalid!`
       });
     }
     // Check Token
@@ -1474,7 +1475,7 @@ export default class OCPPUtils {
       throw new BackendError({
         action, chargingStationID,
         module: MODULE_NAME, method: 'checkChargingStationOcppParameters',
-        message: 'The Token ID is mandatory, request rejected!'
+        message: 'The Token ID is mandatory!'
       });
     }
   }
@@ -1490,7 +1491,7 @@ export default class OCPPUtils {
       throw new BackendError({
         chargingStationID,
         module: MODULE_NAME, method: 'checkAndGetChargingStationData',
-        message: `Tenant ID '${tenantID}' does not exist, request rejected!`
+        message: `Tenant ID '${tenantID}' does not exist!`
       });
     }
     // Get the Charging Station
@@ -1507,7 +1508,7 @@ export default class OCPPUtils {
           chargingStationID,
           module: MODULE_NAME,
           method: 'checkAndGetChargingStationData',
-          message: 'Charging Station does not exist, request rejected!'
+          message: 'Charging Station does not exist!'
         });
       }
     } else {
@@ -1533,7 +1534,7 @@ export default class OCPPUtils {
           ...LoggingHelper.getChargingStationProperties(chargingStation),
           module: MODULE_NAME,
           method: 'checkAndGetChargingStationData',
-          message: 'Charging Station has been deleted, request rejected!'
+          message: 'Charging Station has been deleted!'
         });
       }
       // Inactive?
@@ -1542,7 +1543,7 @@ export default class OCPPUtils {
           ...LoggingHelper.getChargingStationProperties(chargingStation),
           module: MODULE_NAME,
           method: 'checkAndGetChargingStationData',
-          message: 'Charging Station has been forced as inactive, request rejected!'
+          message: 'Charging Station has been forced as inactive!'
         });
       }
       // Save Charging Station lastSeen date

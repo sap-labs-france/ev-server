@@ -24,20 +24,27 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     super();
     this.tenantID = tenantID;
     // Get URL
-    let chargingStationURL = chargingStation.chargingStationURL;
-    if (!chargingStationURL) {
-      throw new BackendError({
-        ...LoggingHelper.getChargingStationProperties(chargingStation),
-        module: MODULE_NAME, method: 'constructor',
-        message: 'Cannot access the Charging Station via a REST call because no URL is provided',
-        detailedMessages: { chargingStation }
-      });
+    let jsonServerURL: string;
+    // Check K8s
+    if (process.env.POD_NAME && chargingStation.cloudHostIP) {
+      // Use K8s internal IP, always in ws
+      jsonServerURL = `ws://${chargingStation.cloudHostIP}`;
+    } else {
+      jsonServerURL = chargingStation.chargingStationURL;
+      if (!jsonServerURL) {
+        throw new BackendError({
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
+          module: MODULE_NAME, method: 'constructor',
+          message: 'Cannot access the Charging Station via a REST call because no URL is provided',
+          detailedMessages: { chargingStation }
+        });
+      }
     }
     // Check URL: remove starting and trailing '/'
-    if (chargingStationURL.endsWith('/')) {
-      chargingStationURL = chargingStationURL.substring(0, chargingStationURL.length - 1);
+    if (jsonServerURL.endsWith('/')) {
+      jsonServerURL = jsonServerURL.substring(0, jsonServerURL.length - 1);
     }
-    this.serverURL = `${chargingStationURL}/REST/${tenantID}/${chargingStation.tokenID}/${chargingStation.id}`;
+    this.serverURL = `${jsonServerURL}/REST/${tenantID}/${chargingStation.tokenID}/${chargingStation.id}`;
     this.chargingStation = chargingStation;
     this.requests = {};
   }

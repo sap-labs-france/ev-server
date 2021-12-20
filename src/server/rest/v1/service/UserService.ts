@@ -228,8 +228,8 @@ export default class UserService {
       action: action
     });
     if (statusHasChanged && req.tenant.id !== Constants.DEFAULT_TENANT) {
-      // Send notification (Async)
-      await NotificationHandler.sendUserAccountStatusChanged(
+      // Notify
+      void NotificationHandler.sendUserAccountStatusChanged(
         req.tenant,
         Utils.generateUUID(),
         user,

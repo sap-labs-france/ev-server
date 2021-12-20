@@ -1,0 +1,34 @@
+{
+  "$id": "statistic",
+  "title": "Get statistics Request",
+  "type": "object",
+  "properties": {
+    "Year": {
+      "type": "number",
+      "sanitize": "mongo",
+      "default": 0
+    },
+    "StartDateTime": {
+      "type": "string",
+      "format": "date-time",
+      "sanitize": "mongo"
+    },
+    "EndDateTime": {
+      "type": "string",
+      "format": "date-time",
+      "sanitize": "mongo"
+    },
+    "SiteAreaID": {
+      "$ref": "common#/definitions/ids"
+    },
+    "ChargingStationID": {
+      "$ref": "common#/definitions/string-ids"
+    },
+    "UserID": {
+      "$ref": "common#/definitions/ids"
+    },
+    "SiteID": {
+      "$ref": "common#/definitions/ids"
+    }
+  }
+}

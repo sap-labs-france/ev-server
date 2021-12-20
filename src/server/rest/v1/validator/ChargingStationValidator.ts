@@ -196,7 +196,7 @@ export default class ChargingStationValidator extends SchemaValidator {
   }
 
   public validateChargingProfileCreateReq(data: ChargingProfile): ChargingProfile {
-    return this.validate(this.chargingProfileCreate, data as unknown as Record<string, unknown>);
+    return this.validate(this.chargingProfileCreate, data);
   }
 
   public validateChargingProfileDeleteReq(data: Record<string, unknown>): HttpChargingStationRequest {

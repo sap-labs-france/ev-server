@@ -79,7 +79,7 @@ export default class SchemaValidator {
     ]);
   }
 
-  protected validate(schema: Schema, data: Record<string, unknown>): any {
+  protected validate(schema: Schema, data: any): any {
     let fnValidate: ValidateFunction<unknown>;
     if (!schema.$id) {
       if (this.isDevelopmentEnv()) {
@@ -180,7 +180,7 @@ export default class SchemaValidator {
     }
   }
 
-  private checkOriginalSchema(originalSchema: string, validatedSchema: Record<string, unknown>): void {
+  private checkOriginalSchema(originalSchema: string, validatedSchema: any): void {
     if (this.isDevelopmentEnv() && originalSchema !== JSON.stringify(validatedSchema)) {
       this.logConsoleError('====================================');
       this.logConsoleError('Data changed after schema validation');

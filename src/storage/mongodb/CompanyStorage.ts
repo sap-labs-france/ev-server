@@ -28,7 +28,6 @@ export default class CompanyStorage {
 
   public static async getCompanyLogo(tenant: Tenant, id: string): Promise<Logo> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Read DB
     const companyLogoMDB = await global.database.getCollection<Logo>(tenant.id, 'companylogos')
@@ -42,7 +41,6 @@ export default class CompanyStorage {
 
   public static async saveCompany(tenant: Tenant, companyToSave: Company, saveLogo = true): Promise<string> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Set
     const companyMDB: any = {
@@ -84,7 +82,6 @@ export default class CompanyStorage {
         locCoordinates?: number[]; locMaxDistanceMeters?: number; } = {},
       dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Company>> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -176,7 +173,7 @@ export default class CompanyStorage {
     }
     // Limit
     aggregation.push({
-      $limit: (dbParams.limit > 0 && dbParams.limit < Constants.DB_RECORD_COUNT_CEIL) ? dbParams.limit : Constants.DB_RECORD_COUNT_CEIL
+      $limit: dbParams.limit
     });
     // Site
     if (params.withSite) {
@@ -221,7 +218,6 @@ export default class CompanyStorage {
 
   public static async deleteCompany(tenant: Tenant, id: string): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete sites associated with Company
     await SiteStorage.deleteCompanySites(tenant, id);
@@ -236,7 +232,6 @@ export default class CompanyStorage {
 
   private static async saveCompanyLogo(tenant: Tenant, companyID: string, companyLogoToSave: string): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Modify
     await global.database.getCollection<any>(tenant.id, 'companylogos').findOneAndUpdate(

@@ -29,6 +29,8 @@ import OICPEndpoint from '../../../../types/oicp/OICPEndpoint';
 import PDFDocument from 'pdfkit';
 import PricingDefinition from '../../../../types/Pricing';
 import PricingStorage from '../../../../storage/mongodb/PricingStorage';
+import RegistrationToken from '../../../../types/RegistrationToken';
+import RegistrationTokenStorage from '../../../../storage/mongodb/RegistrationTokenStorage';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
@@ -154,6 +156,55 @@ export default class UtilsService {
       });
     }
     return pricingDefinition;
+  }
+
+  public static async checkAndGetRegistrationTokenAuthorization(tenant: Tenant, userToken: UserToken, registrationTokenID: string, authAction: Action,
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<RegistrationToken> {
+    // Check mandatory fields
+    UtilsService.assertIdIsProvided(action, registrationTokenID, MODULE_NAME, 'checkAndGetRegistrationTokenAuthorization', userToken);
+    // Get dynamic auth
+    const authorizationFilter = await AuthorizationService.checkAndGetRegistrationTokenAuthorizations(
+      tenant, userToken, { ID: registrationTokenID }, authAction, entityData);
+    if (!authorizationFilter.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: authAction, entity: Entity.REGISTRATION_TOKEN,
+        module: MODULE_NAME, method: 'checkAndGetRegistrationTokenAuthorization',
+        value: registrationTokenID,
+      });
+    }
+    // Get Registration Token
+    const registrationToken = await RegistrationTokenStorage.getRegistrationToken(tenant, registrationTokenID,
+      {
+        ...additionalFilters,
+        ...authorizationFilter.filters
+      },
+      applyProjectFields ? authorizationFilter.projectFields : null
+    );
+    UtilsService.assertObjectExists(action, registrationToken, `Registration Token ID '${registrationTokenID}' does not exist`,
+      MODULE_NAME, 'checkAndGetRegistrationTokenAuthorization', userToken);
+    // Assign projected fields
+    if (authorizationFilter.projectFields) {
+      registrationToken.projectFields = authorizationFilter.projectFields;
+    }
+    // Assign Metadata
+    if (authorizationFilter.metadata) {
+      registrationToken.metadata = authorizationFilter.metadata;
+    }
+    // Add actions
+    await AuthorizationService.addRegistrationTokenAuthorizations(tenant, userToken, registrationToken, authorizationFilter);
+    const authorized = AuthorizationService.canPerformAction(registrationToken, authAction);
+    if (!authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: authAction, entity: Entity.REGISTRATION_TOKEN,
+        module: MODULE_NAME, method: 'checkAndGetRegistrationTokenAuthorization',
+        value: registrationTokenID,
+      });
+    }
+    return registrationToken;
   }
 
   public static async checkAndGetCompanyAuthorization(tenant: Tenant, userToken: UserToken, companyID: string, authAction: Action,
@@ -1420,7 +1471,7 @@ export default class UtilsService {
   }
 
   public static checkIfUserTagIsValid(tag: Partial<Tag>, req: Request): void {
-    // Check badge ID
+    // Check RFID Card
     if (!tag.id) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,

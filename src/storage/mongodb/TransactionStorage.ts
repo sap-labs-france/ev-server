@@ -211,7 +211,6 @@ export default class TransactionStorage {
   public static async saveTransactionOcpiData(tenant: Tenant, id: number,
       ocpiData: TransactionOcpiData): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Modify document
     await global.database.getCollection<Transaction>(tenant.id, 'transactions').findOneAndUpdate(
@@ -228,7 +227,6 @@ export default class TransactionStorage {
   public static async saveTransactionOicpData(tenant: Tenant, id: number,
       oicpData: TransactionOicpData): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Modify document
     await global.database.getCollection<Transaction>(tenant.id, 'transactions').findOneAndUpdate(
@@ -245,7 +243,6 @@ export default class TransactionStorage {
   public static async saveTransactionBillingData(tenant: Tenant, id: number,
       billingData: TransactionBillingData): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Modify document
     await global.database.getCollection<Transaction>(tenant.id, 'transactions').findOneAndUpdate(
@@ -262,7 +259,6 @@ export default class TransactionStorage {
   public static async saveTransactionRefundData(tenant: Tenant, id: number,
       refundData: TransactionRefundData): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Modify document
     await global.database.getCollection<Transaction>(tenant.id, 'transactions').findOneAndUpdate(
@@ -1192,7 +1188,6 @@ export default class TransactionStorage {
   public static async getNotStartedTransactions(tenant: Tenant,
       params: { checkPastAuthorizeMins: number; sessionShouldBeStartedAfterMins: number }): Promise<DataResult<NotifySessionNotStarted>> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Compute the date some minutes ago
     const authorizeStartDate = moment().subtract(params.checkPastAuthorizeMins, 'minutes').toDate();

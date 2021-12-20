@@ -68,7 +68,7 @@ export default class Logging {
       }
     }
     if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
-      const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms, got ${executionDurationMillis} ms`);
+      const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms`);
       await Logging.logWarning({
         tenantID: tenant.id,
         action: ServerAction.PERFORMANCES,
@@ -96,28 +96,70 @@ export default class Logging {
     );
   }
 
+  public static traceNotificationStart(): number {
+    return Date.now();
+  }
+
+  public static async traceNotificationEnd(tenant: Tenant, module: string, method: string, timeStartMillis: number,
+      templateName: string, data: any, userID: string): Promise<void> {
+    // Compute duration if provided
+    const executionDurationMillis = new Date().getTime() - timeStartMillis;
+    const sizeOfRequestDataKB = Utils.truncTo(Utils.createDecimal(
+      sizeof(data)).div(1024).toNumber(), 2);
+    const message = `${module}.${method} - ${templateName} - ${executionDurationMillis.toString()} ms - Data ${sizeOfRequestDataKB} KB`;
+    Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
+    if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
+      const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms`);
+      await Logging.logWarning({
+        tenantID: tenant.id,
+        action: ServerAction.PERFORMANCES,
+        module, method,
+        message: `${message}: ${error.message}`,
+        detailedMessages: { error: error.stack }
+      });
+      if (Utils.isDevelopmentEnv()) {
+        Logging.logConsoleWarning('====================================');
+        Logging.logConsoleWarning(`Tenant ID '${tenant.id}'`);
+        Logging.logConsoleWarning(error.stack);
+        Logging.logConsoleWarning(message);
+        Logging.logConsoleWarning('====================================');
+      }
+    }
+    await PerformanceStorage.savePerformanceRecord(
+      Utils.buildPerformanceRecord({
+        tenantSubdomain: tenant.subdomain,
+        group: PerformanceRecordGroup.NOTIFICATION,
+        durationMs: executionDurationMillis,
+        reqSizeKb: sizeOfRequestDataKB,
+        resSizeKb: 0,
+        action: `${module}.${method}.${templateName}`,
+        userID
+      })
+    );
+  }
+
   public static async logDebug(log: Log): Promise<string> {
     log.level = LogLevel.DEBUG;
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    return Logging._log(log);
+    return Logging.log(log);
   }
 
   public static async logInfo(log: Log): Promise<string> {
     log.level = LogLevel.INFO;
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    return Logging._log(log);
+    return Logging.log(log);
   }
 
   public static async logWarning(log: Log): Promise<string> {
     log.level = LogLevel.WARNING;
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    return Logging._log(log);
+    return Logging.log(log);
   }
 
   public static async logError(log: Log): Promise<string> {
     log.level = LogLevel.ERROR;
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    return Logging._log(log);
+    return Logging.log(log);
   }
 
   public static logConsoleError(message: string): void {
@@ -265,7 +307,6 @@ export default class Logging {
       const sizeOfRequestDataKB = Utils.truncTo(Utils.createDecimal(
         sizeof({ headers: req.headers, query: req.query, body: req.body })
       ).div(1024).toNumber(), 2);
-      // Log
       const message = `Express HTTP Request << Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB << ${req.method} '${req.url}'`;
       Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
       await Logging.logDebug({
@@ -306,81 +347,78 @@ export default class Logging {
   public static traceExpressResponse(req: Request, res: Response, next: NextFunction): void {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     res.on('finish', async () => {
-      try {
-        // Get Tenant info
-        const tenantID = req['tenantID'] as string;
-        // Compute duration
-        let executionDurationMillis = 0;
-        if (req['timestamp']) {
-          executionDurationMillis = (new Date().getTime() - req['timestamp'].getTime());
-        }
-        let sizeOfResponseDataKB = 0;
-        if (res.getHeader('content-length')) {
-          sizeOfResponseDataKB = Utils.truncTo(
-            Utils.createDecimal(res.getHeader('content-length') as number).div(1024).toNumber(), 2);
-        }
-        const message = `Express HTTP Response >> ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB >> ${req.method}/${res.statusCode} '${req.url}'`;
-        Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
-        if (sizeOfResponseDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
-          const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB} KB, got ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB`);
-          await Logging.logWarning({
-            tenantID,
-            action: ServerAction.PERFORMANCES,
-            module: MODULE_NAME, method: 'logExpressResponse',
-            message: `${message}: ${error.message}`,
-            detailedMessages: { error: error.stack }
-          });
-          if (Utils.isDevelopmentEnv()) {
-            Logging.logConsoleWarning('====================================');
-            Logging.logConsoleWarning(`Tenant ID '${tenantID}'`);
-            Logging.logConsoleWarning(error.stack);
-            Logging.logConsoleWarning(message);
-            Logging.logConsoleWarning('====================================');
-          }
-        }
-        if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
-          const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms, got ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms`);
-          await Logging.logWarning({
-            tenantID,
-            action: ServerAction.PERFORMANCES,
-            module: MODULE_NAME, method: 'logExpressResponse',
-            message: `${message}: ${error.message}`,
-            detailedMessages: { error: error.stack }
-          });
-          if (Utils.isDevelopmentEnv()) {
-            Logging.logConsoleWarning('====================================');
-            Logging.logConsoleWarning(`Tenant ID '${tenantID}'`);
-            Logging.logConsoleWarning(error.stack);
-            Logging.logConsoleWarning(message);
-            Logging.logConsoleWarning('====================================');
-          }
-        }
-        await Logging.logDebug({
-          tenantID: tenantID,
-          user: req.user,
-          action: ServerAction.HTTP_RESPONSE,
-          message,
+      // Get Tenant info
+      const tenantID = req['tenantID'] as string;
+      // Compute duration
+      let executionDurationMillis = 0;
+      if (req['timestamp']) {
+        executionDurationMillis = (new Date().getTime() - req['timestamp'].getTime());
+      }
+      let sizeOfResponseDataKB = 0;
+      if (res.getHeader('content-length')) {
+        sizeOfResponseDataKB = Utils.truncTo(
+          Utils.createDecimal(res.getHeader('content-length') as number).div(1024).toNumber(), 2);
+      }
+      const message = `Express HTTP Response >> ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB >> ${req.method}/${res.statusCode} '${req.url}'`;
+      Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
+      if (sizeOfResponseDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
+        const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB} KB, got ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB`);
+        await Logging.logWarning({
+          tenantID,
+          action: ServerAction.PERFORMANCES,
           module: MODULE_NAME, method: 'logExpressResponse',
-          detailedMessages: {
-            request: req.url,
-            status: res.statusCode,
-            statusMessage: res.statusMessage,
-            headers: res.getHeaders(),
-          }
+          message: `${message}: ${error.message}`,
+          detailedMessages: { error: error.stack }
         });
-        if (req['performanceID']) {
-          const performanceRecord = {
-            id: req['performanceID'],
-            httpResponseCode: res.statusCode,
-            durationMs: executionDurationMillis,
-            resSizeKb: sizeOfResponseDataKB,
-          } as PerformanceRecord;
-          await PerformanceStorage.updatePerformanceRecord(performanceRecord);
+        if (Utils.isDevelopmentEnv()) {
+          Logging.logConsoleWarning('====================================');
+          Logging.logConsoleWarning(`Tenant ID '${tenantID}'`);
+          Logging.logConsoleWarning(error.stack);
+          Logging.logConsoleWarning(message);
+          Logging.logConsoleWarning('====================================');
         }
-      } finally {
-        next();
+      }
+      if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
+        const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms, got ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms`);
+        await Logging.logWarning({
+          tenantID,
+          action: ServerAction.PERFORMANCES,
+          module: MODULE_NAME, method: 'logExpressResponse',
+          message: `${message}: ${error.message}`,
+          detailedMessages: { error: error.stack }
+        });
+        if (Utils.isDevelopmentEnv()) {
+          Logging.logConsoleWarning('====================================');
+          Logging.logConsoleWarning(`Tenant ID '${tenantID}'`);
+          Logging.logConsoleWarning(error.stack);
+          Logging.logConsoleWarning(message);
+          Logging.logConsoleWarning('====================================');
+        }
+      }
+      await Logging.logDebug({
+        tenantID: tenantID,
+        user: req.user,
+        action: ServerAction.HTTP_RESPONSE,
+        message,
+        module: MODULE_NAME, method: 'logExpressResponse',
+        detailedMessages: {
+          request: req.url,
+          status: res.statusCode,
+          statusMessage: res.statusMessage,
+          headers: res.getHeaders(),
+        }
+      });
+      if (req['performanceID']) {
+        const performanceRecord = {
+          id: req['performanceID'],
+          httpResponseCode: res.statusCode,
+          durationMs: executionDurationMillis,
+          resSizeKb: sizeOfResponseDataKB,
+        } as PerformanceRecord;
+        await PerformanceStorage.updatePerformanceRecord(performanceRecord);
       }
     });
+    next();
   }
 
   public static async traceExpressError(error: Error, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -544,13 +582,14 @@ export default class Logging {
   public static async logException(exception: Error, action: ServerAction,
       module: string, method: string, tenantID: string, user?: UserToken | User | string): Promise<void> {
     if (exception instanceof AppAuthError) {
-      await Logging._logActionAppAuthExceptionMessage(tenantID, action, exception);
+      await Logging.logActionAppAuthException(tenantID, action, exception);
     } else if (exception instanceof AppError) {
-      await Logging._logActionAppExceptionMessage(tenantID, action, exception);
+      await Logging.logActionAppException(tenantID, action, exception);
     } else if (exception instanceof BackendError) {
-      await Logging._logActionBackendExceptionMessage(tenantID, action, exception);
+      await Logging.logActionBackendException(tenantID, action, exception);
     } else {
-      await Logging.logError(Logging._buildLog(exception, action, module, method, tenantID, user));
+      await Logging.logError(
+        Logging.buildLogError(action, module, method, tenantID, user, exception));
     }
   }
 
@@ -558,15 +597,15 @@ export default class Logging {
   public static async logActionExceptionMessage(tenantID: string, action: ServerAction, exception: Error, detailedMessages = {}): Promise<void> {
     // Log App Error
     if (exception instanceof AppError) {
-      await Logging._logActionAppExceptionMessage(tenantID, action, exception, detailedMessages);
+      await Logging.logActionAppException(tenantID, action, exception, detailedMessages);
     // Log Backend Error
     } else if (exception instanceof BackendError) {
-      await Logging._logActionBackendExceptionMessage(tenantID, action, exception, detailedMessages);
+      await Logging.logActionBackendException(tenantID, action, exception, detailedMessages);
     // Log Auth Error
     } else if (exception instanceof AppAuthError) {
-      await Logging._logActionAppAuthExceptionMessage(tenantID, action, exception, detailedMessages);
+      await Logging.logActionAppAuthException(tenantID, action, exception, detailedMessages);
     } else {
-      await Logging._logActionExceptionMessage(tenantID, action, exception, detailedMessages);
+      await Logging.logActionException(tenantID, action, exception, detailedMessages);
     }
   }
 
@@ -583,18 +622,18 @@ export default class Logging {
     let statusCode;
     // Log App Error
     if (exception instanceof AppError) {
-      await Logging._logActionAppExceptionMessage(tenantID, action, exception);
+      await Logging.logActionAppException(tenantID, action, exception);
       statusCode = exception.params.errorCode;
     // Log Backend Error
     } else if (exception instanceof BackendError) {
-      await Logging._logActionBackendExceptionMessage(tenantID, action, exception);
+      await Logging.logActionBackendException(tenantID, action, exception);
       statusCode = HTTPError.GENERAL_ERROR;
     // Log Auth Error
     } else if (exception instanceof AppAuthError) {
-      await Logging._logActionAppAuthExceptionMessage(tenantID, action, exception);
+      await Logging.logActionAppAuthException(tenantID, action, exception);
       statusCode = exception.params.errorCode;
     } else {
-      await Logging._logActionExceptionMessage(tenantID, action, exception);
+      await Logging.logActionException(tenantID, action, exception);
     }
     // Send error
     res.status(statusCode ? statusCode : HTTPError.GENERAL_ERROR).send({
@@ -645,7 +684,7 @@ export default class Logging {
     const message = `${direction} OCPP Request '${action}' on '${chargingStationID}' has been processed ${executionDurationMillis ? 'in ' + executionDurationMillis.toString() + ' ms' : ''} - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB`;
     Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
     if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
-      const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms, got ${executionDurationMillis} ms`);
+      const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms`);
       await Logging.logWarning({
         tenantID: tenant?.id,
         action: ServerAction.PERFORMANCES,
@@ -692,7 +731,7 @@ export default class Logging {
     }
   }
 
-  private static async _logActionExceptionMessage(tenantID: string, action: ServerAction, exception: any, detailedMessages = {}): Promise<void> {
+  private static async logActionException(tenantID: string, action: ServerAction, exception: any, detailedMessages = {}): Promise<void> {
     await Logging.logError({
       tenantID: tenantID,
       user: exception.user,
@@ -704,7 +743,7 @@ export default class Logging {
     });
   }
 
-  private static async _logActionAppExceptionMessage(tenantID: string, action: ServerAction, exception: AppError, detailedMessages = {}): Promise<void> {
+  private static async logActionAppException(tenantID: string, action: ServerAction, exception: AppError, detailedMessages = {}): Promise<void> {
     // Add Exception stack
     if (exception.params.detailedMessages) {
       exception.params.detailedMessages = {
@@ -716,7 +755,6 @@ export default class Logging {
         'stack': exception.stack,
       };
     }
-    // Log
     await Logging.logError({
       tenantID: tenantID,
       chargingStationID: exception.params.chargingStationID,
@@ -733,7 +771,7 @@ export default class Logging {
     });
   }
 
-  private static async _logActionBackendExceptionMessage(tenantID: string, action: ServerAction, exception: BackendError, detailedMessages = {}): Promise<void> {
+  private static async logActionBackendException(tenantID: string, action: ServerAction, exception: BackendError, detailedMessages = {}): Promise<void> {
     // Add Exception stack
     if (exception.params.detailedMessages) {
       exception.params.detailedMessages = {
@@ -745,7 +783,6 @@ export default class Logging {
         'stack': exception.stack,
       };
     }
-    // Log
     await Logging.logError({
       tenantID: tenantID,
       chargingStationID: exception.params.chargingStationID,
@@ -763,8 +800,7 @@ export default class Logging {
   }
 
   // Used to check URL params (not in catch)
-  private static async _logActionAppAuthExceptionMessage(tenantID: string, action: ServerAction, exception: AppAuthError, detailedMessages = {}): Promise<void> {
-    // Log
+  private static async logActionAppAuthException(tenantID: string, action: ServerAction, exception: AppAuthError, detailedMessages = {}): Promise<void> {
     await Logging.logError({
       tenantID: tenantID,
       user: exception.params.user,
@@ -784,39 +820,8 @@ export default class Logging {
     });
   }
 
-  private static _buildLog(error, action: ServerAction, module: string,
-      method: string, tenantID: string, user: UserToken | User | string): Log {
-    const tenant = tenantID ? tenantID : Constants.DEFAULT_TENANT;
-    if (error.params) {
-      return {
-        user: user,
-        tenantID: tenant,
-        actionOnUser: error.params.actionOnUser,
-        module: module, method: method,
-        action: action,
-        message: error.message,
-        detailedMessages: {
-          details: error.params.detailedMessages,
-          error: error.stack
-        }
-      };
-    }
-    return {
-      user: user,
-      tenantID: tenant,
-      actionOnUser: error.actionOnUser,
-      module: module, method: method,
-      action: action,
-      message: error.message,
-      detailedMessages: {
-        details: error.detailedMessages,
-        stack: error.stack
-      }
-    };
-  }
-
   // Used to check URL params (not in catch)
-  private static _format(detailedMessage: any): string {
+  private static format(detailedMessage: any): string {
     // JSON?
     if (typeof detailedMessage === 'object') {
       try {
@@ -828,8 +833,7 @@ export default class Logging {
     }
   }
 
-  // Log
-  private static async _log(log: Log): Promise<string> {
+  private static async log(log: Log): Promise<string> {
     let moduleConfig = null;
     // Check Log Level
     const loggingConfig = Logging.getConfiguration();
@@ -892,7 +896,7 @@ export default class Logging {
         log.detailedMessages = [log.detailedMessages];
       }
       // Format
-      log.detailedMessages = Logging._format(log.detailedMessages);
+      log.detailedMessages = Logging.format(log.detailedMessages);
     }
     // First char always in Uppercase
     if (typeof log.message === 'string' && log.message && log.message.length > 0) {
@@ -901,9 +905,7 @@ export default class Logging {
     if (!log.tenantID || log.tenantID === '') {
       log.tenantID = Constants.DEFAULT_TENANT;
     }
-    // Source
-    log.source = global.serverType ?? ServerType.CENTRAL_SERVER;
-    // Log
+    // Save
     return LoggingStorage.saveLog(log.tenantID, log);
   }
 
@@ -971,7 +973,6 @@ export default class Logging {
       }
       return message;
     }
-    // Log
     await Logging.logError({
       tenantID: Constants.DEFAULT_TENANT,
       module: MODULE_NAME,
@@ -981,5 +982,36 @@ export default class Logging {
       detailedMessages: { message }
     });
     return null;
+  }
+
+  private static buildLogError(action: ServerAction, module: string,
+      method: string, tenantID: string, user: UserToken | User | string, error: any): Log {
+    const tenant = tenantID ? tenantID : Constants.DEFAULT_TENANT;
+    if (error.params) {
+      return {
+        user: user,
+        tenantID: tenant,
+        actionOnUser: error.params.actionOnUser,
+        module: module, method: method,
+        action: action,
+        message: error.message,
+        detailedMessages: {
+          details: error.params.detailedMessages,
+          error: error.stack
+        }
+      };
+    }
+    return {
+      user: user,
+      tenantID: tenant,
+      actionOnUser: error.actionOnUser,
+      module: module, method: method,
+      action: action,
+      message: error.message,
+      detailedMessages: {
+        details: error.detailedMessages,
+        stack: error.stack
+      }
+    };
   }
 }
