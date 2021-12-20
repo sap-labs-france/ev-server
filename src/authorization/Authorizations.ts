@@ -798,7 +798,7 @@ export default class Authorizations {
         return { user };
       }
       // Create the Tag as inactive and abort
-      await this.notifyUnknownBadgeHasBeenUsedAndAbort(action, tenant, tagID, chargingStation);
+      void this.notifyUnknownBadgeHasBeenUsedAndAbort(action, tenant, tagID, chargingStation);
     }
     // Get Authorized User
     const user = await this.checkAndGetAuthorizedUserFromTag(action, tenant, chargingStation, transaction, tag, authAction);
@@ -982,7 +982,7 @@ export default class Authorizations {
     return user;
   }
 
-  private static async notifyUnknownBadgeHasBeenUsedAndAbort(
+  private static notifyUnknownBadgeHasBeenUsedAndAbort(
       action: ServerAction, tenant: Tenant, tagID: string, chargingStation: ChargingStation) {
     const tag: Tag = {
       id: tagID,
@@ -993,7 +993,7 @@ export default class Authorizations {
       default: false
     };
     // Notify (Async)
-    await NotificationHandler.sendUnknownUserBadged(
+    void NotificationHandler.sendUnknownUserBadged(
       tenant,
       Utils.generateUUID(),
       chargingStation,

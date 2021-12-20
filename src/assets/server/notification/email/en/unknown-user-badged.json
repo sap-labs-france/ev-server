@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Dear Administrator,",
       "",
-      "An unknown user has just badged on <strong>'<%- chargeBoxID %>'</strong> with the badge ID <strong>'<%- badgeID %>'</strong>."
+      "An unknown user has just badged on <strong>'<%- chargeBoxID %>'</strong> with the RFID Card <strong>'<%- badgeID %>'</strong>."
     ],
     "afterActionLines": [
       "Best Regards,",

@@ -30,18 +30,18 @@ export default class RegistrationTokenValidator extends SchemaValidator {
   }
 
   public validateRegistrationTokenCreateReq(data: Record<string, unknown>): RegistrationToken {
-    return this.validate(this.registrationTokenCreate, data as unknown as Record<string, unknown>);
+    return this.validate(this.registrationTokenCreate, data);
   }
 
   public validateRegistrationTokenGetReq(data: Record<string, unknown>): HttpRegistrationTokenRequest {
-    return this.validate(this.registrationTokenGetByID, data as unknown as Record<string, unknown>);
+    return this.validate(this.registrationTokenGetByID, data);
   }
 
   public validateRegistrationTokensGetReq(data: Record<string, unknown>): HttpRegistrationTokensRequest {
-    return this.validate(this.registrationTokensGet, data as unknown as Record<string, unknown>);
+    return this.validate(this.registrationTokensGet, data);
   }
 
   public validateRegistrationTokenUpdateReq(data: Record<string, unknown>): RegistrationToken {
-    return this.validate(this.registrationTokenUpdate, data as unknown as Record<string, unknown>);
+    return this.validate(this.registrationTokenUpdate, data);
   }
 }

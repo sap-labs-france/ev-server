@@ -69,7 +69,7 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
           if (chargingStations.result.length > 0) {
             const chargingStationIDs = chargingStations.result.map((chargingStation) => chargingStation.id).join(', ');
             // Send notification
-            await NotificationHandler.sendOfflineChargingStations(
+            void NotificationHandler.sendOfflineChargingStations(
               tenant, {
                 chargeBoxIDs: chargingStationIDs,
                 evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
