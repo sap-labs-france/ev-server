@@ -1,5 +1,3 @@
-import { HttpSettingAssetSetRequest, HttpSettingBillingSetRequest, HttpSettingCarConnectorSetRequest, HttpSettingCryptoSetRequest, HttpSettingOCPISetRequest, HttpSettingOICPSetRequest, HttpSettingPricingSetRequest, HttpSettingRefundSetRequest, HttpSettingSacSetRequest, HttpSettingSmartChargingSetRequest, HttpSettingUserSetRequest } from '../../../../types/requests/HttpSettingRequest';
-
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from '../../../../validator/SchemaValidator';
 import { SettingDB } from '../../../../types/Setting';
