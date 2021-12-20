@@ -173,7 +173,7 @@ export default class CompanyStorage {
     }
     // Limit
     aggregation.push({
-      $limit: (dbParams.limit > 0 && dbParams.limit < Constants.DB_RECORD_COUNT_CEIL) ? dbParams.limit : Constants.DB_RECORD_COUNT_CEIL
+      $limit: dbParams.limit
     });
     // Site
     if (params.withSite) {
