@@ -122,7 +122,7 @@
     "express": "^4.17.1",
     "express-sanitizer": "^1.0.6",
     "express-useragent": "^1.0.15",
-    "firebase-admin": "^10.0.0",
+    "firebase-admin": "^10.0.1",
     "helmet": "^4.6.0",
     "hpp": "^0.2.3",
     "http-status-codes": "^2.1.4",
