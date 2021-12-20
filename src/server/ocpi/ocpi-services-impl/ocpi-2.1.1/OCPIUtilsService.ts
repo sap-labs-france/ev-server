@@ -1021,24 +1021,24 @@ export default class OCPIUtilsService {
         return 'Tarif_Standard';
     }
     // Connector?
-    if (connector.tariffID) {
+    if (!Utils.isNullOrEmptyString(connector.tariffID)) {
       return connector.tariffID;
     }
     // Charging Station?
-    if (chargingStation.tariffID) {
+    if (!Utils.isNullOrEmptyString(chargingStation.tariffID)) {
       return chargingStation.tariffID;
     }
     // Site Area?
-    if (chargingStation.siteArea?.tariffID) {
+    if (!Utils.isNullOrEmptyString(chargingStation.siteArea?.tariffID)) {
       return chargingStation.siteArea.tariffID;
     }
     // Site?
-    if (chargingStation.site?.tariffID) {
+    if (!Utils.isNullOrEmptyString(chargingStation.site?.tariffID)) {
       return chargingStation.site.tariffID;
     }
     // Tenant?
     const ocpiSettings = await SettingStorage.getOCPISettings(tenant);
-    if (ocpiSettings?.ocpi?.tariffID) {
+    if (!Utils.isNullOrEmptyString(ocpiSettings?.ocpi?.tariffID)) {
       return ocpiSettings.ocpi.tariffID;
     }
     // Default.
