@@ -42,7 +42,7 @@ export default class UserValidator extends SchemaValidator {
   }
 
   public validateUserImportCreateReq(data: ImportedUser): void {
-    this.validate(this.userImportCreate, data as unknown as Record<string, unknown>);
+    this.validate(this.userImportCreate, data);
   }
 
   public validateUserCreateReq(data: Record<string, unknown>): User {

@@ -77,7 +77,7 @@ export default class LoggingDatabaseTableCleanupTask extends SchedulerTask {
       try {
         const lastLogMDB = global.database.getCollection(tenant.id, 'performances').find({})
           .sort({ timestamp: -1 })
-          .skip(100 * 1000 * 1000)
+          .skip(25 * 1000 * 1000)
           .limit(1)
           .project({ timestamp: 1 });
         const lastLog = await lastLogMDB.toArray();

@@ -85,8 +85,7 @@ export default class ChargingStationStorage {
   public static async saveChargingStationTemplate(chargingStationTemplate: ChargingStationTemplate): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     // Validate
-    chargingStationTemplate = ChargingStationValidatorStorage.getInstance().validateChargingStationTemplate(
-      chargingStationTemplate as unknown as Record<string, unknown>);
+    chargingStationTemplate = ChargingStationValidatorStorage.getInstance().validateChargingStationTemplate(chargingStationTemplate);
     // Modify and return the modified document
     await global.database.getCollection<ChargingStationTemplate>(Constants.DEFAULT_TENANT, 'chargingstationtemplates').findOneAndReplace(
       { '_id': chargingStationTemplate.id },

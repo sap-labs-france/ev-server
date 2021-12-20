@@ -12,7 +12,7 @@ export default class CarValidatorStorage extends SchemaValidator {
     super('CarValidatorStorage', {
       strict: false, // When 'true', it fails with anyOf required fields: https://github.com/ajv-validator/ajv/issues/1571
       allErrors: true,
-      removeAdditional: false, // 'all' fails with anyOf documents: Manually added 'additionalProperties: false' in schema due filtering of data in anyOf/oneOf/allOf array (it's standard): https://github.com/ajv-validator/ajv/issues/1784
+      removeAdditional: true, // 'all' fails with anyOf documents: Manually added 'additionalProperties: false' in schema due filtering of data in anyOf/oneOf/allOf array (it's standard): https://github.com/ajv-validator/ajv/issues/1784
       allowUnionTypes: true,
       coerceTypes: true,
       verbose: true,
@@ -27,7 +27,7 @@ export default class CarValidatorStorage extends SchemaValidator {
     return CarValidatorStorage.instance;
   }
 
-  public validateCarCatalog(data: Record<string, unknown>): ChargingStationTemplate {
+  public validateCarCatalog(data: any): ChargingStationTemplate {
     return this.validate(this.carCatalog, data);
   }
 }

@@ -426,8 +426,8 @@ export default class DatabaseUtils {
             { $eq: ['$firmwareUpdateStatus', OCPPFirmwareStatus.INSTALLING] },
             {
               $gte: [
-                { $divide: [{ $subtract: [new Date(), '$lastSeen'] }, 1000] },
-                Configuration.getChargingStationConfig().heartbeatIntervalOCPPJSecs * 2
+                { $subtract: [new Date(), '$lastSeen'] },
+                Configuration.getChargingStationConfig().pingIntervalOCPPJSecs * 2 * 1000
               ]
             }
           ]

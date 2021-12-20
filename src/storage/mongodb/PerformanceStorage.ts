@@ -14,8 +14,7 @@ export default class PerformanceStorage {
       delete performanceRecord.tenantSubdomain;
     }
     // Validate
-    performanceRecord = PerformanceValidatorStorage.getInstance().validatePerformance(
-      performanceRecord as unknown as Record<string, unknown>);
+    performanceRecord = PerformanceValidatorStorage.getInstance().validatePerformance(performanceRecord);
     // Insert
     const result = await global.database.getCollection(Constants.DEFAULT_TENANT, 'performances')
       .insertOne(performanceRecord);
@@ -26,8 +25,7 @@ export default class PerformanceStorage {
 
   public static async updatePerformanceRecord(performanceRecord: PerformanceRecord): Promise<void> {
     // Validate
-    performanceRecord = PerformanceValidatorStorage.getInstance().validatePerformance(
-      performanceRecord as unknown as Record<string, unknown>);
+    performanceRecord = PerformanceValidatorStorage.getInstance().validatePerformance(performanceRecord);
     // Convert to ObjectID
     performanceRecord['_id'] = DatabaseUtils.convertToObjectID(performanceRecord.id);
     delete performanceRecord.id;
