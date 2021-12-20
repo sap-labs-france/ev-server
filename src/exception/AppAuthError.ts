@@ -21,6 +21,6 @@ export default class AppAuthError extends Error {
     inactiveComponent?: TenantComponents,
     actionOnUser?: User|UserToken|string;
   }) {
-    super(`${params.inactiveComponent ? 'Component \'' + params.inactiveComponent + '\' is not active - ' : ''}Role '${params.user.rolesACL.join(', ')}' is not authorized to perform ${params.action} on ${params.entity}${(params.value ? ' \'' + params.value + '\'' : '')}`);
+    super(`${params.inactiveComponent ? 'Component \'' + params.inactiveComponent + '\' is not active - ' : ''}Role '${params.user.rolesACL.join(', ')}' is not authorized to perform '${params.action}' on '${params.entity}'${(params.value ? ' with ID \'' + params.value + '\'' : '')}`);
   }
 }

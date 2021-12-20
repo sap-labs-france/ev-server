@@ -15,6 +15,7 @@ import OwnUserDynamicAuthorizationAssert from './dynamic-assert/OwnUserDynamicAu
 import OwnUserDynamicAuthorizationDataSource from './dynamic-data-source/OwnUserDynamicAuthorizationDataSource';
 import OwnUserDynamicAuthorizationFilter from './dynamic-filters/OwnUserDynamicAuthorizationFilter';
 import PoolCarDynamicAuthorizationAssert from './dynamic-assert/PoolCarDynamicAuthorizationAssert';
+import SiteAreaMandatoryDynamicAuthorizationAssert from './dynamic-assert/SiteAreaMandatoryDynamicAuthorizationAssert';
 import SitesAdminDynamicAuthorizationDataSource from './dynamic-data-source/SitesAdminDynamicAuthorizationDataSource';
 import SitesAdminDynamicAuthorizationFilter from './dynamic-filters/SitesAdminDynamicAuthorizationFilter';
 import SitesOwnerDynamicAuthorizationDataSource from './dynamic-data-source/SitesOwnerDynamicAuthorizationDataSource';
@@ -87,6 +88,9 @@ export default class DynamicAuthorizationFactory {
         break;
       case DynamicAuthorizationAssertName.USER_MANDATORY:
         dynamicAssert = new UserMandatoryDynamicAuthorizationAssert(tenant, userToken, negateAssert);
+        break;
+      case DynamicAuthorizationAssertName.SITE_AREA_MANDATORY:
+        dynamicAssert = new SiteAreaMandatoryDynamicAuthorizationAssert(tenant, userToken, negateAssert);
         break;
     }
     return dynamicAssert;
