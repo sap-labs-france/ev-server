@@ -125,6 +125,10 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     return jsonWebSocket.getChargingStationClient();
   }
 
+  public hasChargingStationConnected(tenant: Tenant, chargingStation: ChargingStation): boolean {
+    return this.jsonWSConnections.has(`${tenant.id}~${chargingStation.id}`);
+  }
+
   private async onUpgrade(res: uWS.HttpResponse, req: uWS.HttpRequest, context: uWS.us_socket_context_t) {
     // Check for WS connection over HTTP
     try {
