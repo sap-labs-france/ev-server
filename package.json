@@ -163,7 +163,7 @@
     "uuid": "^8.3.2",
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.6.0",
     "validator": "^13.7.0",
-    "ws": "^8.2.2"
+    "ws": "^8.3.0"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.4",
