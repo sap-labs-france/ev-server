@@ -154,7 +154,7 @@
     "role-acl": "^4.5.4",
     "simple-odata-server": "^1.1.2",
     "source-map-support": "^0.5.20",
-    "stripe": "^8.191.0",
+    "stripe": "^8.194.0",
     "strong-soap": "^3.3.1",
     "swagger-ui-express": "^4.3.0",
     "tslib": "^2.2.0",
