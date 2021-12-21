@@ -148,6 +148,7 @@ export interface HttpChargingStationReservationCancelRequest {
 export interface HttpChargingStationStartTransactionRequest extends HttpChargingStationCommandRequest {
   carID?: string,
   userID?: string,
+  remoteStart?: boolean,
   args: {
     tagID?: string,
     visualTagID?: string,

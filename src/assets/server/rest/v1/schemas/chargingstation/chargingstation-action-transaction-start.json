@@ -9,6 +9,9 @@
     "carID": {
       "$ref": "common#/definitions/id"
     },
+    "remoteStart": {
+      "type": "boolean"
+    },
     "userID": {
       "$ref": "common#/definitions/id"
     },

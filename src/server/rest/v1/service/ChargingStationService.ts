@@ -1774,10 +1774,10 @@ export default class ChargingStationService {
     Authorizations.isChargingStationValidInOrganization(action, req.tenant, chargingStation);
     // Save Car selection
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
-      if (filteredRequest.carID && filteredRequest.carID !== user.lastSelectedCarID) {
+      if (filteredRequest.remoteStart && filteredRequest.carID && filteredRequest.carID !== user.lastSelectedCarID) {
         await UserStorage.saveLastSelectedCarID(req.tenant, user.id, filteredRequest.carID, true);
       } else {
-        await UserStorage.clearLastSelectedCarID(req.tenant, user.id);
+        await UserStorage.clearLastSelectedCarID(req.tenant, user.id, filteredRequest.remoteStart);
       }
     }
     // Execute it
@@ -1792,7 +1792,7 @@ export default class ChargingStationService {
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(
       req.tenant, filteredRequest.args.transactionId, { withUser: true });
-    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.args.transactionId }' does not exist`,
+    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.args.transactionId}' does not exist`,
       MODULE_NAME, 'handleAction', req.user);
     // Get default Tag
     const tags = await TagStorage.getTags(req.tenant, { userIDs: [req.user.id], active: true }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);
