@@ -263,6 +263,23 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
+  public static async checkAndGetAssetsInErrorAuthorizations(tenant: Tenant, userToken: UserToken,
+    filteredRequest?: HttpAssetsRequest): Promise<AuthorizationFilter> {
+  const authorizationFilters: AuthorizationFilter = {
+    filters: {},
+    dataSources: new Map(),
+    projectFields: [],
+    authorized: false,
+  };
+  // Check static & dynamic authorization
+  await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.ASSET, Action.IN_ERROR,
+    authorizationFilters, filteredRequest, null, true);
+  return authorizationFilters;
+}
+
+
+  
+
   public static async checkAndGetUserAuthorizations(tenant: Tenant, userToken: UserToken,
       filteredRequest: Partial<HttpUserRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
     return AuthorizationService.checkAndGetEntityAuthorizations(

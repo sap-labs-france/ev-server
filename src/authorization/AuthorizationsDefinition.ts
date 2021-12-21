@@ -340,12 +340,16 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Action.CHECK_CONNECTION, Action.RETRIEVE_CONSUMPTION, Action.CREATE_CONSUMPTION]
       },
       {
-        resource: Entity.ASSET, action: [Action.LIST, Action.IN_ERROR],
+        resource: Entity.ASSET, action: Action.LIST,
         attributes: [
           'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteID', 'assetType', 'coordinates',
           'dynamicAsset', 'usesPushAPI', 'connectionID', 'meterID', 'currentInstantWatts', 'currentStateOfCharge', 'issuer'
         ]
       },
+      {
+        resource: Entity.ASSET, action: Action.IN_ERROR,
+        attributes: ['id', 'name', 'errorCodeDetails', 'errorCode']
+      },      
       { resource: Entity.SETTING, action: Action.LIST },
       { resource: Entity.SETTING, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE] },
       {
@@ -1030,21 +1034,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ],
       },
       {
-        resource: Entity.ASSET, action: Action.LIST,
-        condition: {
-          Fn: 'custom:dynamicAuthorizations',
-          args: {
-            asserts: [],
-            filters: ['AssignedSites', 'LocalIssuer']
-          }
-        },
-        attributes: [
-          'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteID', 'assetType', 'coordinates',
-          'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts', 'currentStateOfCharge'
-        ],
-      },
-      {
-        resource: Entity.ASSET, action: Action.READ,
+        resource: Entity.ASSET, action: [Action.LIST, Action.READ],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {

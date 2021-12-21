@@ -50,7 +50,7 @@ export default class AssetService {
     }
     // Get it
     const asset = await AssetStorage.getAsset(req.tenant, filteredRequest.AssetID, {},
-      [ 'id', 'name' ]
+      ['id', 'name']
     );
     UtilsService.assertObjectExists(action, asset, `Asset ID '${filteredRequest.AssetID}' does not exist`,
       MODULE_NAME, 'handleGetAssetConsumption', req.user);
@@ -66,7 +66,7 @@ export default class AssetService {
     }
     // Check dates order
     if (filteredRequest.StartDate && filteredRequest.EndDate &&
-        moment(filteredRequest.StartDate).isAfter(moment(filteredRequest.EndDate))) {
+      moment(filteredRequest.StartDate).isAfter(moment(filteredRequest.EndDate))) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
         message: `The requested start date '${filteredRequest.StartDate.toISOString()}' is after the end date '${filteredRequest.EndDate.toISOString()}' `,
@@ -80,7 +80,7 @@ export default class AssetService {
       assetID: filteredRequest.AssetID,
       startDate: filteredRequest.StartDate,
       endDate: filteredRequest.EndDate
-    }, [ 'startedAt', 'instantWatts', 'instantAmps', 'limitWatts', 'limitAmps', 'endedAt', 'stateOfCharge' ]);
+    }, ['startedAt', 'instantWatts', 'instantAmps', 'limitWatts', 'limitAmps', 'endedAt', 'stateOfCharge']);
     // Assign
     asset.values = consumptions;
     res.json(asset);
@@ -121,7 +121,7 @@ export default class AssetService {
     }
     // Check dates order
     if (filteredRequest.startedAt && filteredRequest.endedAt &&
-        !moment(filteredRequest.endedAt).isAfter(moment(filteredRequest.startedAt))) {
+      !moment(filteredRequest.endedAt).isAfter(moment(filteredRequest.startedAt))) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
         message: `The requested start date '${moment(filteredRequest.startedAt).toISOString()}' is after the end date '${moment(filteredRequest.endedAt).toISOString()}' `,
@@ -318,22 +318,22 @@ export default class AssetService {
   }
 
   public static async handleGetAssetsInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.LIST, Entity.ASSET, MODULE_NAME, 'handleGetAssetsInError');
-    // Check auth
-    if (!await Authorizations.canListAssetsInError(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.IN_ERROR, entity: Entity.ASSET,
-        module: MODULE_NAME, method: 'handleGetAssetsInError'
-      });
-    }
+
     // Filter
     const filteredRequest = AssetValidator.getInstance().validateAssetsGetReq(req.query);
-    // Build error type
-    const errorType = (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : [AssetInErrorType.MISSING_SITE_AREA]);
+
+    // Check dynamic auth
+    const authorizationAssetsFilter = await AuthorizationService.checkAndGetAssetsInErrorAuthorizations(
+      req.tenant, req.user, filteredRequest);
+    if (!authorizationAssetsFilter.authorized) {
+      UtilsService.sendEmptyDataResult(res, next);
+      return;
+    }
+
     // Get the assets
     const assets = await AssetStorage.getAssetsInError(req.tenant,
       {
@@ -341,14 +341,16 @@ export default class AssetService {
         search: filteredRequest.Search,
         siteAreaIDs: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
-        errorType
+        errorType: (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : [AssetInErrorType.MISSING_SITE_AREA]),
+        ...authorizationAssetsFilter.filters
       },
-      { limit: filteredRequest.Limit,
+      {
+        limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      [ 'id', 'name', 'errorCodeDetails', 'errorCode' ]
+      authorizationAssetsFilter.projectFields
     );
     res.json(assets);
     next();
@@ -455,27 +457,22 @@ export default class AssetService {
   }
 
   public static async handleGetAssets(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.LIST, Entity.ASSET, MODULE_NAME, 'handleGetAssets');
-    // Check auth
-    if (!await Authorizations.canListAssets(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.LIST, entity: Entity.ASSET,
-        module: MODULE_NAME, method: 'handleGetAssets'
-      });
-    }
+
     // Filter
     const filteredRequest = AssetValidator.getInstance().validateAssetsGetReq(req.query);
-    // Get authorization filters
-    const authorizationAssetsFilters = await AuthorizationService.checkAndGetAssetsAuthorizations(
+
+    // Check dynamic auth
+    const authorizationAssetsFilter = await AuthorizationService.checkAndGetAssetsAuthorizations(
       req.tenant, req.user, filteredRequest);
-    if (!authorizationAssetsFilters.authorized) {
+    if (!authorizationAssetsFilter.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
+
     // Get the assets
     const assets = await AssetStorage.getAssets(req.tenant,
       {
@@ -486,7 +483,7 @@ export default class AssetService {
         withSiteArea: filteredRequest.WithSiteArea,
         withNoSiteArea: filteredRequest.WithNoSiteArea,
         dynamicOnly: filteredRequest.DynamicOnly,
-        ...authorizationAssetsFilters.filters
+        ...authorizationAssetsFilter.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -494,7 +491,7 @@ export default class AssetService {
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      authorizationAssetsFilters.projectFields
+      authorizationAssetsFilter.projectFields
     );
     res.json(assets);
     next();
@@ -600,7 +597,7 @@ export default class AssetService {
     asset.name = filteredRequest.name;
     asset.siteAreaID = filteredRequest.siteAreaID;
     asset.siteID = siteArea ? siteArea.siteID : null,
-    asset.assetType = filteredRequest.assetType;
+      asset.assetType = filteredRequest.assetType;
     asset.excludeFromSmartCharging = filteredRequest.excludeFromSmartCharging;
     asset.variationThresholdPercent = filteredRequest.variationThresholdPercent;
     asset.fluctuationPercent = filteredRequest.fluctuationPercent;
