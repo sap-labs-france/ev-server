@@ -13565,6 +13565,9 @@
           "smartCharging": {
             "type": "boolean"
           },
+          "tariffID": {
+            "type": "string"
+          },
           "voltage": {
             "type": "number",
             "enum": [
