@@ -245,8 +245,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.SITE_AREA,
         action: [
           Action.CREATE, Action.UPDATE, Action.DELETE, Action.ASSIGN_ASSETS_TO_SITE_AREA,
-          Action.UNASSIGN_ASSETS_TO_SITE_AREA, Action.ASSIGN_CHARGING_STATIONS_TO_SITE_AREA,
-          Action.UNASSIGN_CHARGING_STATIONS_TO_SITE_AREA, Action.EXPORT_OCPP_PARAMS, Action.GENERATE_QR,
+          Action.UNASSIGN_ASSETS_FROM_SITE_AREA, Action.ASSIGN_CHARGING_STATIONS_TO_SITE_AREA,
+          Action.UNASSIGN_CHARGING_STATIONS_FROM_SITE_AREA, Action.EXPORT_OCPP_PARAMS, Action.GENERATE_QR,
           Action.READ_ASSETS_FROM_SITE_AREA
         ],
         condition: {
@@ -303,7 +303,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       { resource: Entity.PRICING, action: [Action.READ, Action.UPDATE] },
       { resource: Entity.PRICING_DEFINITION, action: [Action.LIST],
-        attributes: ['id', 'entityID', 'entityType', 'name', 'description', 'entityName',
+        attributes: [
+          'id', 'entityID', 'entityType', 'name', 'description', 'entityName',
           'staticRestrictions.validFrom', 'staticRestrictions.validTo', 'staticRestrictions.connectorType', 'staticRestrictions.connectorPowerkW',
           'restrictions.daysOfWeek', 'restrictions.timeFrom', 'restrictions.timeTo',
           'restrictions.minEnergyKWh', 'restrictions.maxEnergyKWh', 'restrictions.minDurationSecs', 'restrictions.maxDurationSecs',
@@ -314,7 +315,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       { resource: Entity.PRICING_DEFINITION, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE],
-        attributes: ['id', 'entityID', 'entityType', 'name', 'description', 'entityName',
+        attributes: [
+          'id', 'entityID', 'entityType', 'name', 'description', 'entityName',
           'staticRestrictions.validFrom', 'staticRestrictions.validTo', 'staticRestrictions.connectorType', 'staticRestrictions.connectorPowerkW',
           'restrictions.daysOfWeek', 'restrictions.timeFrom', 'restrictions.timeTo',
           'restrictions.minEnergyKWh', 'restrictions.maxEnergyKWh', 'restrictions.minDurationSecs', 'restrictions.maxDurationSecs',
@@ -346,8 +348,21 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       { resource: Entity.SETTING, action: Action.LIST },
       { resource: Entity.SETTING, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE] },
-      { resource: Entity.TOKEN, action: Action.LIST },
-      { resource: Entity.TOKEN, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE] },
+      {
+        resource: Entity.REGISTRATION_TOKEN, action: Action.LIST,
+        attributes: [
+          'id', 'status', 'description', 'createdOn', 'lastChangedOn', 'expirationDate', 'revocationDate',
+          'siteAreaID', 'siteArea.name', 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
+        ]
+      },
+      {
+        resource: Entity.REGISTRATION_TOKEN, action: [Action.READ, Action.CREATE, Action.UPDATE],
+        attributes: [
+          'id', 'status', 'description', 'createdOn', 'lastChangedOn', 'expirationDate', 'revocationDate',
+          'siteAreaID', 'siteArea.name', 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
+        ]
+      },
+      { resource: Entity.REGISTRATION_TOKEN, action: [Action.DELETE, Action.REVOKE] },
       { resource: Entity.OCPI_ENDPOINT, action: Action.LIST },
       {
         resource: Entity.OCPI_ENDPOINT,
@@ -418,7 +433,22 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   basic: {
     grants: [
       {
-        resource: Entity.USER, action: [Action.READ, Action.UPDATE],
+        resource: Entity.USER, action: Action.READ,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser']
+          }
+        },
+        attributes: [
+          'id', 'name', 'firstName', 'email', 'role', 'issuer', 'locale',
+          'notificationsActive', 'notifications', 'phone', 'mobile',
+          'iNumber', 'costCenter', 'address'
+        ]
+      },
+      {
+        resource: Entity.USER, action: Action.UPDATE,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
@@ -472,7 +502,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ],
       },
       {
-        resource: Entity.CAR, action: Action.CREATE,
+        resource: Entity.CAR, action: [Action.CREATE, Action.UPDATE],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
@@ -505,16 +535,6 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['OwnUser']
-          }
-        }
-      },
-      {
-        resource: Entity.CAR, action: Action.UPDATE,
-        condition: {
-          Fn: 'custom:dynamicAuthorizations',
-          args: {
-            asserts: ['-PoolCar', 'OwnUser'],
             filters: ['OwnUser']
           }
         }
@@ -629,7 +649,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'createdOn', 'chargeBoxSerialNumber', 'chargePointSerialNumber', 'powerLimitUnit'
         ]
       },
-      { resource: Entity.CHARGING_STATION, action: [Action.READ] },
+      { resource: Entity.CHARGING_STATION, action: Action.READ },
       {
         resource: Entity.CHARGING_STATION,
         action: [Action.REMOTE_START_TRANSACTION, Action.AUTHORIZE, Action.START_TRANSACTION],
@@ -648,6 +668,17 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
             }
           ]
         }
+      },
+      {
+        resource: Entity.CHARGING_STATION,
+        action: [Action.REMOTE_STOP_TRANSACTION, Action.STOP_TRANSACTION],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['AssignedSites', 'LocalIssuer']
+          }
+        },
       },
       {
         resource: Entity.TAG, action: Action.LIST,
@@ -678,7 +709,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ],
       },
       {
-        resource: Entity.TAG, action: Action.UNASSIGN,
+        resource: Entity.TAG, action: [Action.UNASSIGN, Action.UPDATE_BY_VISUAL_ID],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
@@ -688,42 +719,11 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         }
       },
       {
-        resource: Entity.TAG, action: Action.UNASSIGN,
-        condition: {
-          Fn: 'custom:dynamicAuthorizations',
-          args: {
-            asserts: ['OwnUser'],
-            filters: ['OwnUser'],
-          }
-        }
-      },
-      {
-        resource: Entity.TAG, action: Action.UPDATE_BY_VISUAL_ID,
-        condition: {
-          Fn: 'custom:dynamicAuthorizations',
-          args: {
-            asserts: ['OwnUser'],
-            filters: ['OwnUser'],
-          }
-        }
-      },
-      {
         resource: Entity.TAG, action: Action.ASSIGN,
         attributes: [
           'userID', 'description', 'visualID', 'default',
           'user.name', 'user.firstName', 'user.email', 'createdOn', 'lastChangedOn'
         ]
-      },
-      {
-        resource: Entity.CHARGING_STATION,
-        action: [Action.REMOTE_STOP_TRANSACTION, Action.STOP_TRANSACTION],
-        condition: {
-          Fn: 'custom:dynamicAuthorizations',
-          args: {
-            asserts: [],
-            filters: ['AssignedSites', 'LocalIssuer']
-          }
-        },
       },
       { resource: Entity.TRANSACTION, action: [Action.LIST, Action.EXPORT] },
       {
@@ -897,16 +897,6 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         }
       },
       {
-        resource: Entity.TAG, action: [Action.UNASSIGN],
-        condition: {
-          Fn: 'custom:dynamicAuthorizations',
-          args: {
-            asserts: [],
-            filters: ['ExcludeAction']
-          }
-        }
-      },
-      {
         resource: Entity.USER, action: Action.LIST,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
@@ -1014,7 +1004,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.SITE_AREA,
         action: [
-          Action.UPDATE, Action.DELETE, Action.UNASSIGN_ASSETS_TO_SITE_AREA, Action.UNASSIGN_CHARGING_STATIONS_TO_SITE_AREA
+          Action.UPDATE, Action.DELETE, Action.UNASSIGN_ASSETS_FROM_SITE_AREA, Action.UNASSIGN_CHARGING_STATIONS_FROM_SITE_AREA
         ],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
@@ -1084,7 +1074,15 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'user.id', 'user.name', 'user.firstName', 'userID'
         ],
       },
-      { resource: Entity.CAR, action: Action.CREATE },
+      { resource: Entity.CAR, action: Action.CREATE,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+      },
       {
         resource: Entity.CAR, action: Action.READ,
         condition: {
@@ -1167,11 +1165,62 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'user.name', 'user.firstName', 'actionOnUser.name', 'actionOnUser.firstName', 'hasDetailedMessages', 'detailedMessages'
         ]
       },
-      { resource: Entity.TOKEN, action: Action.LIST },
       {
-        resource: Entity.TOKEN,
-        action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE],
-        args: { 'sites': '$.site' }
+        resource: Entity.REGISTRATION_TOKEN, action: Action.LIST,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdmin'],
+            metadata: {
+              siteAreaID: {
+                mandatory: true,
+              }
+            }
+          }
+        },
+        attributes: [
+          'id', 'status', 'description', 'createdOn', 'lastChangedOn', 'expirationDate', 'revocationDate',
+          'siteAreaID', 'siteArea.name', 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
+        ]
+      },
+      {
+        resource: Entity.REGISTRATION_TOKEN, action: [Action.READ],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdmin'],
+          }
+        },
+        attributes: [
+          'id', 'status', 'description', 'createdOn', 'lastChangedOn', 'expirationDate', 'revocationDate',
+          'siteAreaID', 'siteArea.name', 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
+        ]
+      },
+      {
+        resource: Entity.REGISTRATION_TOKEN, action: [Action.CREATE, Action.UPDATE],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: ['SiteAreaMandatory'],
+            filters: ['SitesAdmin'],
+          },
+        },
+        attributes: [
+          'id', 'status', 'description', 'createdOn', 'lastChangedOn', 'expirationDate', 'revocationDate',
+          'siteAreaID', 'siteArea.name', 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
+        ]
+      },
+      {
+        resource: Entity.REGISTRATION_TOKEN, action: [Action.DELETE, Action.REVOKE],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdmin'],
+          }
+        },
       },
       {
         resource: Entity.TAG, action: [Action.LIST, Action.EXPORT],
@@ -1241,7 +1290,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         }
       },
-      { resource: Entity.PRICING_DEFINITION, action: [Action.LIST],
+      { resource: Entity.PRICING_DEFINITION, action: Action.LIST,
         attributes: ['id', 'entityID', 'entityType', 'name', 'description', 'entityName',
           'staticRestrictions.validFrom', 'staticRestrictions.validTo', 'staticRestrictions.connectorType', 'staticRestrictions.connectorPowerkW',
           'restrictions.daysOfWeek', 'restrictions.timeFrom', 'restrictions.timeTo',

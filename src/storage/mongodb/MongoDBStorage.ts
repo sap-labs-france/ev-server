@@ -277,7 +277,7 @@ export default class MongoDBStorage {
     // Keep a global reference
     global.database = this;
     // Check Database only when migration is active
-    if (this.migrationConfig.active) {
+    if (this.migrationConfig?.active) {
       await this.checkDatabase();
     }
     Logging.logConsoleDebug(`Connected to '${this.dbConfig.implementation}' successfully`);

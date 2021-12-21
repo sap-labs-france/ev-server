@@ -35,7 +35,7 @@ export default class SiteAreaService {
     // Filter request
     const filteredRequest = SiteAreaValidator.getInstance().validateSiteAreaAssignAssetsReq(req.body);
     // Check and Get Site Area
-    const authAction = action === ServerAction.ADD_ASSET_TO_SITE_AREA ? Action.ASSIGN_ASSETS_TO_SITE_AREA : Action.UNASSIGN_ASSETS_TO_SITE_AREA;
+    const authAction = action === ServerAction.ADD_ASSET_TO_SITE_AREA ? Action.ASSIGN_ASSETS_TO_SITE_AREA : Action.UNASSIGN_ASSETS_FROM_SITE_AREA;
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
       req.tenant, req.user, filteredRequest.siteAreaID, authAction, action);
     // Check and Get Assets
@@ -66,7 +66,7 @@ export default class SiteAreaService {
     // Filter request
     const filteredRequest = SiteAreaValidator.getInstance().validateSiteAreaAssignChargingStationsReq(req.body);
     // Check and Get Site Area
-    const authAction = action === ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA ? Action.ASSIGN_CHARGING_STATIONS_TO_SITE_AREA : Action.UNASSIGN_CHARGING_STATIONS_TO_SITE_AREA;
+    const authAction = action === ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA ? Action.ASSIGN_CHARGING_STATIONS_TO_SITE_AREA : Action.UNASSIGN_CHARGING_STATIONS_FROM_SITE_AREA;
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
       req.tenant, req.user, filteredRequest.siteAreaID, authAction, action, null, { withSite: true });
     // Check and Get Charging Stations

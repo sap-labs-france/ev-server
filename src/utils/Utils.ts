@@ -1480,9 +1480,9 @@ export default class Utils {
   }
 
   public static buildPerformanceRecord(params: {
-    tenantSubdomain?: string; durationMs?: number; resSizeKb?: number;
-    reqSizeKb?: number; action: ServerAction|string; group?: PerformanceRecordGroup;
-    httpUrl?: string; httpMethod?: string; httpResponseCode?: number; chargingStationID?: string,
+    tenantSubdomain?: string; durationMs?: number; resSizeKb?: number; reqSizeKb?: number;
+    action: ServerAction|string; group?: PerformanceRecordGroup; httpUrl?: string;
+    httpMethod?: string; httpResponseCode?: number; chargingStationID?: string, userID?: string
   }): PerformanceRecord {
     const performanceRecord: PerformanceRecord = {
       tenantSubdomain: params.tenantSubdomain,
@@ -1512,6 +1512,9 @@ export default class Utils {
     if (params.httpResponseCode) {
       performanceRecord.httpResponseCode = params.httpResponseCode;
     }
+    if (params.userID) {
+      performanceRecord.userID = params.userID;
+    }
     if (global.serverType) {
       performanceRecord.server = global.serverType;
     }
@@ -1519,10 +1522,19 @@ export default class Utils {
   }
 
   public static getHostName(): string {
+    // K8s
+    if (process.env.POD_NAME) {
+      return process.env.POD_NAME;
+    }
     return os.hostname();
   }
 
   public static getHostIP(): string {
+    // K8s
+    if (process.env.POD_IP) {
+      return process.env.POD_IP;
+    }
+    // AWS
     const hostname = Utils.getHostName();
     if (hostname.startsWith('ip-')) {
       const hostnameParts = hostname.split('-');

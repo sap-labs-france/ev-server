@@ -15,9 +15,7 @@ export default class Constants {
   public static readonly PERF_MAX_DATA_VOLUME_KB = 512;
   public static readonly PERF_MAX_RESPONSE_TIME_MILLIS = 1000;
 
-  public static readonly AXIOS_DEFAULT_TIMEOUT = 60000;
-
-  public static readonly LAST_SEEN_UPDATE_INTERVAL_MILLIS = 60000;
+  public static readonly AXIOS_DEFAULT_TIMEOUT_SECS = 30;
 
   public static readonly DC_CHARGING_STATION_DEFAULT_EFFICIENCY_PERCENT = 80;
   public static readonly AMPERAGE_DETECTION_THRESHOLD = 0.5;

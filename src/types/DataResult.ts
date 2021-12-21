@@ -5,6 +5,7 @@ import { AuthorizationDefinitionFieldMetadata } from './Authorization';
 import Company from './Company';
 import { Log } from './Log';
 import PricingDefinition from './Pricing';
+import RegistrationToken from './RegistrationToken';
 import Site from './Site';
 import SiteArea from './SiteArea';
 import Tag from './Tag';
@@ -26,9 +27,14 @@ export interface PricingDefinitionDataResult extends DataResult<PricingDefinitio
   canCreate: boolean;
 }
 
+export interface RegistrationTokenDataResult extends DataResult<RegistrationToken> {
+  canCreate: boolean;
+}
+
 export interface CompanyDataResult extends DataResult<Company>{
   canCreate: boolean;
 }
+
 export interface SiteDataResult extends DataResult<Site>{
   canCreate: boolean;
   canAssignUsers: boolean;

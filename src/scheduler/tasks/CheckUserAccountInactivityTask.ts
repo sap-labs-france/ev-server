@@ -29,7 +29,7 @@ export default class CheckUserAccountInactivityTask extends SchedulerTask {
         for (const user of users.result) {
           // Notification
           moment.locale(user.locale);
-          await NotificationHandler.sendUserAccountInactivity(
+          void NotificationHandler.sendUserAccountInactivity(
             tenant,
             user,
             {

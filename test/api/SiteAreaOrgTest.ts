@@ -352,7 +352,7 @@ describe('Site Area', function() {
           testData.userService.siteAreaApi,
           testData.siteAreaWithoutSiteAdmin, false
         );
-        expect(response.status).to.equal(StatusCodes.FORBIDDEN);
+        expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
       });
 
       it('Should be able to update the site area if he is site admin', async () => {
@@ -410,7 +410,7 @@ describe('Site Area', function() {
         expect(chargingStations.status).to.equal(StatusCodes.OK);
         const response = await testData.userService.siteAreaApi.removeChargingStations(
           testData.siteAreaWithoutSiteAdmin.id, [chargingStations.data.result[0].id]);
-        expect(response.status).to.equal(StatusCodes.FORBIDDEN);
+        expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
       });
 
       it('Should not be able to assign Assets to SiteArea', async () => {
@@ -422,7 +422,7 @@ describe('Site Area', function() {
       it('Should not be able to remove Assets from SiteArea', async () => {
         const response = await testData.userService.siteAreaApi.removeAssets(
           testData.siteAreaWithoutSiteAdmin.id, [testData.testAsset.id]);
-        expect(response.status).to.equal(StatusCodes.FORBIDDEN);
+        expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
       });
 
       it('Should be able to remove ChargingStations from SiteArea if he is SiteAdmin', async () => {
@@ -447,7 +447,7 @@ describe('Site Area', function() {
           testData.siteAreaWithoutSiteAdmin,
           false
         );
-        expect(response.status).to.equal(HTTPAuthError.FORBIDDEN);
+        expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
       });
 
       it('Should be able to delete the created site area if he is site admin', async () => {

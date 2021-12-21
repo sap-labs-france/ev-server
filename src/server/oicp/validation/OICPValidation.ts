@@ -25,10 +25,10 @@ export default class OICPValidation extends SchemaValidator {
   }
 
   public validateRemoteStart(remoteStart: OICPAuthorizeRemoteStartCpoReceive): void {
-    this.validate(this.remoteStartRequest, remoteStart as unknown as Record<string, unknown>);
+    this.validate(this.remoteStartRequest, remoteStart);
   }
 
   public validateRemoteStop(remoteStop: OICPAuthorizeRemoteStopCpoReceive): void {
-    this.validate(this.remoteStopRequest, remoteStop as unknown as Record<string, unknown>);
+    this.validate(this.remoteStopRequest, remoteStop);
   }
 }
