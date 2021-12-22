@@ -68,7 +68,7 @@ export default class SiteAreaStorage {
   }
 
   public static async getSiteArea(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID,
-      params: { withSite?: boolean; withChargingStations?: boolean; withAvailableChargingStations?: boolean; withImage?: boolean; issuer?: boolean; } = {},
+      params: { withSite?: boolean; withChargingStations?: boolean; withAvailableChargingStations?: boolean; withImage?: boolean; siteIDs?: string[]; issuer?: boolean; } = {},
       projectFields?: string[]): Promise<SiteArea> {
     const siteAreasMDB = await SiteAreaStorage.getSiteAreas(tenant, {
       siteAreaIDs: [id],
@@ -76,6 +76,7 @@ export default class SiteAreaStorage {
       withChargingStations: params.withChargingStations,
       withAvailableChargingStations: params.withAvailableChargingStations,
       withImage: params.withImage,
+      siteIDs: params.siteIDs,
       issuer: params.issuer,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return siteAreasMDB.count === 1 ? siteAreasMDB.result[0] : null;
