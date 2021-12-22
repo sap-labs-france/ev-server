@@ -336,8 +336,18 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.INVOICE, action: [Action.LIST] },
       { resource: Entity.INVOICE, action: [Action.DOWNLOAD, Action.READ] },
       {
-        resource: Entity.ASSET, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE,
+        resource: Entity.ASSET, action: [Action.CREATE, Action.READ, Action.DELETE,
           Action.CHECK_CONNECTION, Action.RETRIEVE_CONSUMPTION, Action.CREATE_CONSUMPTION]
+      },
+      {
+        resource: Entity.ASSET, action: Action.UPDATE,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['LocalIssuer']
+          }
+        }
       },
       {
         resource: Entity.ASSET, action: Action.LIST,

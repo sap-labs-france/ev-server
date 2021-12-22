@@ -549,10 +549,11 @@ export default class AssetService {
       Action.UPDATE, Entity.ASSET, MODULE_NAME, 'handleUpdateAsset');
     // Filter
     const filteredRequest = AssetValidator.getInstance().validateAssetUpdateReq(req.body);
-
-
-    // Check auth
-    if (!await Authorizations.canUpdateAsset(req.user)) {
+    UtilsService.checkIfAssetValid(filteredRequest, req);
+    // Get dynamic auth
+    const authorizationFilter = await AuthorizationService.checkAndGetAssetAuthorizations(
+      req.tenant, req.user, Action.UPDATE, {}, filteredRequest);
+    if (!authorizationFilter.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -561,36 +562,28 @@ export default class AssetService {
         value: filteredRequest.id
       });
     }
-
-    // Check Site Area
+    // Check Site Area authorization
     let siteArea: SiteArea = null;
-    if (filteredRequest.siteAreaID) {
-      siteArea = await SiteAreaStorage.getSiteArea(req.tenant, filteredRequest.siteAreaID);
-      UtilsService.assertObjectExists(action, siteArea, `Site Area ID '${filteredRequest.siteAreaID}' does not exist`,
-        MODULE_NAME, 'handleUpdateAsset', req.user);
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredRequest.siteAreaID) {
+      siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
+        req.tenant, req.user, filteredRequest.siteAreaID, Action.UPDATE, action, filteredRequest, null, false);
     }
-
-    // Check email
-    const asset = await AssetStorage.getAsset(req.tenant, filteredRequest.id);
-    UtilsService.assertObjectExists(action, asset, `Site Area ID '${filteredRequest.id}' does not exist`,
+    // Get asset
+    const asset = await AssetStorage.getAsset(req.tenant,
+      filteredRequest.id,
+      {
+        ...authorizationFilter.filters
+      },
+      authorizationFilter.projectFields
+    );
+    UtilsService.assertObjectExists(action, asset, `Asset ID '${filteredRequest.id}' cannot be modified`,
       MODULE_NAME, 'handleUpdateAsset', req.user);
-    if (!asset.issuer) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `Asset '${asset.id}' not issued by the organization`,
-        module: MODULE_NAME, method: 'handleUpdateAsset',
-        user: req.user,
-        action: action
-      });
-    }
-
-    // Check Mandatory fields
-    UtilsService.checkIfAssetValid(filteredRequest, req);
-
+    // Update Asset values and persist
     // Update
     asset.name = filteredRequest.name;
     asset.siteAreaID = filteredRequest.siteAreaID;
-    asset.siteID = siteArea ? siteArea.siteID : null, asset.assetType = filteredRequest.assetType;
+    asset.siteID = siteArea ? siteArea.siteID : null;
+    asset.assetType = filteredRequest.assetType;
     asset.excludeFromSmartCharging = filteredRequest.excludeFromSmartCharging;
     asset.variationThresholdPercent = filteredRequest.variationThresholdPercent;
     asset.fluctuationPercent = filteredRequest.fluctuationPercent;
@@ -603,10 +596,7 @@ export default class AssetService {
     asset.meterID = filteredRequest.meterID;
     asset.lastChangedBy = { 'id': req.user.id };
     asset.lastChangedOn = new Date();
-
-    // Update Asset
     await AssetStorage.saveAsset(req.tenant, asset);
-
     // Log
     await Logging.logInfo({
       tenantID: req.user.tenantID,
