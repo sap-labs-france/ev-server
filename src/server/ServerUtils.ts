@@ -3,7 +3,6 @@ import http, { IncomingMessage, ServerResponse } from 'http';
 
 import { AddressInfo } from 'net';
 import CentralSystemServerConfiguration from '../types/configuration/CentralSystemServerConfiguration';
-import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 import { StatusCodes } from 'http-status-codes';
@@ -86,7 +85,7 @@ export class ServerUtils {
   }
 
   private static defaultHttpServerRequestListener(req: IncomingMessage, res: ServerResponse): void {
-    if (Configuration.getHealthCheckConfig().enabled && req.url === Constants.HEALTH_CHECK_ROUTE) {
+    if (req.url === Constants.HEALTH_CHECK_ROUTE) {
       res.writeHead(StatusCodes.OK);
       res.end();
     } else {

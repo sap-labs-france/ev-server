@@ -184,7 +184,7 @@ export default class AssetStorage {
     }
     // Limit
     aggregation.push({
-      $limit: (dbParams.limit > 0 && dbParams.limit < Constants.DB_RECORD_COUNT_CEIL) ? dbParams.limit : Constants.DB_RECORD_COUNT_CEIL
+      $limit: dbParams.limit
     });
     // Site Area
     if (params.withSiteArea) {
@@ -280,7 +280,7 @@ export default class AssetStorage {
     }
     // Limit
     aggregation.push({
-      $limit: (dbParams.limit > 0 && dbParams.limit < Constants.DB_RECORD_COUNT_CEIL) ? dbParams.limit : Constants.DB_RECORD_COUNT_CEIL
+      $limit: dbParams.limit
     });
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);

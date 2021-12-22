@@ -69,8 +69,8 @@ export default class ChargingStationService {
         action: action
       });
     }
-    let siteArea: SiteArea = null;
     // Check the Site Area
+    let siteArea: SiteArea = null;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredRequest.siteAreaID) {
       siteArea = await SiteAreaStorage.getSiteArea(req.tenant, filteredRequest.siteAreaID, { withSite: true });
       UtilsService.assertObjectExists(action, siteArea, `Site Area ID '${filteredRequest.siteAreaID}' does not exist.`,
@@ -1421,7 +1421,6 @@ export default class ChargingStationService {
         'chargePointModel', 'chargePointSerialNumber', 'chargeBoxSerialNumber', 'connectors.connectorId', 'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode',
         'connectors.currentTotalConsumptionWh', 'connectors.currentInstantWatts', 'connectors.currentStateOfCharge', 'connectors.info', 'connectors.vendorErrorCode',
         'connectors.currentTransactionID', 'connectors.currentTotalInactivitySecs', 'connectors.currentTagID', 'chargePoints', 'lastReboot', 'createdOn',
-        'connectors.user.name', 'connectors.user.firstName', 'connectors.user.id',
         ...userProject
       ];
     } else {

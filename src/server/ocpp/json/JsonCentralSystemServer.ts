@@ -34,7 +34,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
   public constructor(centralSystemConfig: CentralSystemConfiguration, chargingStationConfig: ChargingStationConfiguration) {
     super(centralSystemConfig, chargingStationConfig);
     // Start job to clean WS connections
-    this.checkAndCleanupWSConnections();
+    this.checkAndCleanupAllWebSockets();
     // Monitor WS activity
     this.monitorWSConnections();
   }
@@ -125,6 +125,10 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     return jsonWebSocket.getChargingStationClient();
   }
 
+  public hasChargingStationConnected(tenant: Tenant, chargingStation: ChargingStation): boolean {
+    return this.jsonWSConnections.has(`${tenant.id}~${chargingStation.id}`);
+  }
+
   private async onUpgrade(res: uWS.HttpResponse, req: uWS.HttpRequest, context: uWS.us_socket_context_t) {
     // Check for WS connection over HTTP
     try {
@@ -207,12 +211,12 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       // Check Json connection
       if (wsWrapper.url.startsWith('/OCPP16')) {
         // Create and Initialize WS Connection
-        wsConnection = await this.checkAndReferenceWSConnection(WSServerProtocol.OCPP16, wsWrapper);
+        wsConnection = await this.checkAndKeepWSConnection(WSServerProtocol.OCPP16, wsWrapper);
       }
       // Check Rest connection
       if (wsWrapper.url.startsWith('/REST')) {
         // Create and Initialize WS Connection
-        wsConnection = await this.checkAndReferenceWSConnection(WSServerProtocol.REST, wsWrapper);
+        wsConnection = await this.checkAndKeepWSConnection(WSServerProtocol.REST, wsWrapper);
       }
       if (!wsConnection) {
         throw new BackendError({
@@ -229,7 +233,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     }
   }
 
-  private async checkAndReferenceWSConnection(protocol: WSServerProtocol, wsWrapper: WSWrapper): Promise<WSConnection> {
+  private async checkAndKeepWSConnection(protocol: WSServerProtocol, wsWrapper: WSWrapper): Promise<WSConnection> {
     let wsConnection: WSConnection;
     let action: ServerAction;
     // Set the protocol
@@ -271,6 +275,12 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         siteID: wsConnection.getSiteID(),
         siteAreaID: wsConnection.getSiteAreaID(),
         companyID: wsConnection.getCompanyID(),
+        chargingStationID: wsConnection.getChargingStationID(),
+        action, module: MODULE_NAME, method: 'checkAndReferenceWSConnection',
+        message: `WS Connection - Opened: '${wsConnection.getURL()}'`
+      });
+      await Logging.logInfo({
+        tenantID: Constants.DEFAULT_TENANT,
         chargingStationID: wsConnection.getChargingStationID(),
         action, module: MODULE_NAME, method: 'checkAndReferenceWSConnection',
         message: `WS Connection - Opened: '${wsConnection.getURL()}'`
@@ -394,12 +404,20 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       action, module: MODULE_NAME, method: 'logWSConnectionClosed',
       message, detailedMessages: { code: errorCode, message: errorMessage }
     });
+    await Logging.logInfo({
+      tenantID: Constants.DEFAULT_TENANT,
+      chargingStationID: wsConnection.getChargingStationID(),
+      action, module: MODULE_NAME, method: 'logWSConnectionClosed',
+      message, detailedMessages: { code: errorCode, message: errorMessage }
+    });
   }
 
   private async waitForWSLockToRelease(wsWrapper: WSWrapper, incomingConnection: boolean): Promise<boolean> {
-    let numberOfTrials = 10;
     // Wait for init to handle multiple same WS Connection
     if (this.runningWSRequestsMessages[wsWrapper.url]) {
+      const maxNumberOfTrials = 10;
+      let numberOfTrials = 0;
+      const timeStart = Date.now();
       await Logging.logWarning({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.WS_CONNECTION,
@@ -411,26 +429,27 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       while (true) {
         // Wait
         await Utils.sleep(500);
+        numberOfTrials++;
         // Message has been processed
         if (!this.runningWSRequestsMessages[wsWrapper.url]) {
           await Logging.logInfo({
             tenantID: Constants.DEFAULT_TENANT,
             action: ServerAction.WS_CONNECTION,
             module: MODULE_NAME, method: 'waitForWSLockToRelease',
-            message: `WS ${incomingConnection ? 'Connection' : 'Request'} - Lock acquired successfully for '${wsWrapper.url}'`
+            message: `WS ${incomingConnection ? 'Connection' : 'Request'} - Lock acquired successfully after ${numberOfTrials} trial(s) and ${(Date.now() - timeStart) / 1000} secs for '${wsWrapper.url}'`
           });
+          // Free the lock
           this.waitingWSMessages--;
           break;
         }
         // Handle remaining trial
-        numberOfTrials--;
-        if (numberOfTrials <= 0) {
+        if (numberOfTrials >= maxNumberOfTrials) {
           // Abnormal situation: The lock should not be taken for so long!
           await Logging.logError({
             tenantID: Constants.DEFAULT_TENANT,
             action: ServerAction.WS_CONNECTION,
             module: MODULE_NAME, method: 'waitForWSLockToRelease',
-            message: `WS ${incomingConnection ? 'Connection' : 'Request'} - Cannot acquire the lock - Lock freed (force) for '${wsWrapper.url}'`
+            message: `WS ${incomingConnection ? 'Connection' : 'Request'} - Cannot acquire the lock after ${numberOfTrials} trial(s) and ${(Date.now() - timeStart) / 1000} secs - Lock is freed anyway for '${wsWrapper.url}'`
           });
           // Free the lock
           this.waitingWSMessages--;
@@ -519,17 +538,17 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         Logging.logConsoleDebug(`** ${this.waitingWSMessages} queued WS Message(s)`);
         Logging.logConsoleDebug('=====================================');
       }
-    }, 30 * 60 * 1000);
+    }, Configuration.getChargingStationConfig().monitoringIntervalOCPPJSecs * 1000);
   }
 
-  private checkAndCleanupWSConnections() {
+  private checkAndCleanupAllWebSockets() {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     setInterval(async () => {
       // Check Json connections
       await this.checkAndCleanupWebSockets(this.jsonWSConnections, 'Json');
       // Check Rest connections
       await this.checkAndCleanupWebSockets(this.jsonRestWSConnections, 'Rest');
-    }, Configuration.getChargingStationConfig().heartbeatIntervalOCPPJSecs * 1000);
+    }, Configuration.getChargingStationConfig().pingIntervalOCPPJSecs * 1000);
   }
 
   private async checkAndCleanupWebSockets(wsConnections: Map<string, WSConnection>, type: 'Json'|'Rest') {
@@ -567,7 +586,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         });
       }
     } else {
-      this.isDebug() && Logging.logConsoleDebug('No Web Socket connection to ping');
+      this.isDebug() && Logging.logConsoleDebug(`No ${type} Web Socket connection to ping`);
     }
   }
 }

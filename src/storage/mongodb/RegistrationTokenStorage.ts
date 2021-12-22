@@ -37,8 +37,8 @@ export default class RegistrationTokenStorage {
   }
 
   static async getRegistrationTokens(tenant: Tenant,
-      params: { search?: string; tokenIDs?: string[]; siteIDs?: string[]; siteAreaID?: string } = {}, dbParams: DbParams, projectFields?: string[]):
-      Promise<DataResult<RegistrationToken>> {
+      params: { search?: string; tokenIDs?: string[]; siteIDs?: string[]; siteAreaIDs?: string[] } = {},
+      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<RegistrationToken>> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -68,16 +68,18 @@ export default class RegistrationTokenStorage {
       }
     }
     // Build filter
-    if (params.siteAreaID) {
-      filters.siteAreaID = DatabaseUtils.convertToObjectID(params.siteAreaID);
-    }
-    // Build filter
     if (!Utils.isEmptyArray(params.tokenIDs)) {
       filters._id = {
         $in: params.tokenIDs.map((tokenID) => DatabaseUtils.convertToObjectID(tokenID))
       };
     }
-    // Sites
+    // Site Area
+    if (!Utils.isEmptyArray(params.siteAreaIDs)) {
+      filters.siteAreaID = {
+        $in: params.siteAreaIDs.map((siteAreaID) => DatabaseUtils.convertToObjectID(siteAreaID))
+      };
+    }
+    // Site
     if (!Utils.isEmptyArray(params.siteIDs)) {
       filters['siteArea.siteID'] = {
         $in: params.siteIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID))
@@ -124,7 +126,7 @@ export default class RegistrationTokenStorage {
     }
     // Limit
     aggregation.push({
-      $limit: (dbParams.limit > 0 && dbParams.limit < Constants.DB_RECORD_COUNT_CEIL) ? dbParams.limit : Constants.DB_RECORD_COUNT_CEIL
+      $limit: dbParams.limit
     });
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenant.id, aggregation);
@@ -142,9 +144,11 @@ export default class RegistrationTokenStorage {
   }
 
   static async getRegistrationToken(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID,
+      params: { siteIDs?: string[]; } = {},
       projectFields?: string[]): Promise<RegistrationToken> {
     const registrationTokensMDB = await RegistrationTokenStorage.getRegistrationTokens(tenant, {
-      tokenIDs: [id]
+      tokenIDs: [id],
+      siteIDs: params.siteIDs,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return registrationTokensMDB.count === 1 ? registrationTokensMDB.result[0] : null;
   }
