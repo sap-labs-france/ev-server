@@ -318,14 +318,11 @@ export default class AssetService {
   }
 
   public static async handleGetAssetsInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.LIST, Entity.ASSET, MODULE_NAME, 'handleGetAssetsInError');
-
     // Filter
     const filteredRequest = AssetValidator.getInstance().validateAssetsGetReq(req.query);
-
     // Check dynamic auth
     const authorizationAssetsInErrorFilter = await AuthorizationService.checkAndGetAssetsInErrorAuthorizations(
       req.tenant, req.user, filteredRequest);
@@ -333,7 +330,6 @@ export default class AssetService {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
-
     // Get the assets
     const assets = await AssetStorage.getAssetsInError(req.tenant,
       {
@@ -414,7 +410,7 @@ export default class AssetService {
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetAsset', req.user);
     // Check dynamic auth
     const authorizationAssetFilter = await AuthorizationService.checkAndGetAssetAuthorizations(
-      req.tenant, req.user, filteredRequest);
+      req.tenant, req.user, Action.READ, filteredRequest);
     if (!authorizationAssetFilter.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
@@ -504,42 +500,31 @@ export default class AssetService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.CREATE, Entity.ASSET, MODULE_NAME, 'handleCreateAsset');
-    // Check auth
-    if (!await Authorizations.canCreateAsset(req.user)) {
+    // Check request is valid
+    const filteredAssetRequest = AssetValidator.getInstance().validateAssetCreateReq(req.body);
+    UtilsService.checkIfAssetValid(filteredAssetRequest, req);
+    // Get dynamic auth
+    const authorizationFilter = await AuthorizationService.checkAndGetAssetAuthorizations(
+      req.tenant, req.user, Action.CREATE, {}, filteredAssetRequest);
+    if (!authorizationFilter.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.CREATE, entity: Entity.ASSET,
-        module: MODULE_NAME, method: 'handleCreateAsset'
+        action: Action.CREATE, entity: Entity.TAG,
+        module: MODULE_NAME, method: 'handleCreateTag'
       });
     }
-    // Filter
-    const filteredRequest = AssetValidator.getInstance().validateAssetCreateReq(req.body);
-    // Check Asset
-    UtilsService.checkIfAssetValid(filteredRequest, req);
-    // Check Site Area
+    // Check Site Area authorization
     let siteArea: SiteArea = null;
-    if (filteredRequest.siteAreaID) {
-      siteArea = await SiteAreaStorage.getSiteArea(req.tenant, filteredRequest.siteAreaID);
-      UtilsService.assertObjectExists(action, siteArea, `Site Area ID '${filteredRequest.siteAreaID}' does not exist`,
-        MODULE_NAME, 'handleCreateAsset', req.user);
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredAssetRequest.siteAreaID) {
+      siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
+        req.tenant, req.user, filteredAssetRequest.siteAreaID, Action.UPDATE, action, filteredAssetRequest, null, false);
     }
     // Create asset
     const newAsset: Asset = {
-      name: filteredRequest.name,
-      siteAreaID: filteredRequest.siteAreaID,
+      ...filteredAssetRequest,
       siteID: siteArea ? siteArea.siteID : null,
       issuer: true,
-      assetType: filteredRequest.assetType,
-      excludeFromSmartCharging: filteredRequest.excludeFromSmartCharging,
-      fluctuationPercent: filteredRequest.fluctuationPercent,
-      staticValueWatt: filteredRequest.staticValueWatt,
-      coordinates: filteredRequest.coordinates,
-      image: filteredRequest.image,
-      dynamicAsset: filteredRequest.dynamicAsset,
-      usesPushAPI: filteredRequest.usesPushAPI,
-      connectionID: filteredRequest.connectionID,
-      meterID: filteredRequest.meterID,
       createdBy: { id: req.user.id },
       createdOn: new Date()
     } as Asset;
