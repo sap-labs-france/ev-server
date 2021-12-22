@@ -7,7 +7,8 @@
       "$ref": "common#/definitions/id"
     },
     "paymentMethodId": {
-      "$ref": "common#/definitions/id"
+      "type": "string",
+      "sanitize": "mongo"
     }
   },
   "required": [
