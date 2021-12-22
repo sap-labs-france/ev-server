@@ -327,9 +327,9 @@ export default class AssetService {
     const filteredRequest = AssetValidator.getInstance().validateAssetsGetReq(req.query);
 
     // Check dynamic auth
-    const authorizationAssetsFilter = await AuthorizationService.checkAndGetAssetsInErrorAuthorizations(
+    const authorizationAssetsInErrorFilter = await AuthorizationService.checkAndGetAssetsInErrorAuthorizations(
       req.tenant, req.user, filteredRequest);
-    if (!authorizationAssetsFilter.authorized) {
+    if (!authorizationAssetsInErrorFilter.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
@@ -342,7 +342,7 @@ export default class AssetService {
         siteAreaIDs: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         errorType: (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : [AssetInErrorType.MISSING_SITE_AREA]),
-        ...authorizationAssetsFilter.filters
+        ...authorizationAssetsInErrorFilter.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -350,7 +350,7 @@ export default class AssetService {
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      authorizationAssetsFilter.projectFields
+      authorizationAssetsInErrorFilter.projectFields
     );
     res.json(assets);
     next();
@@ -412,19 +412,22 @@ export default class AssetService {
     const filteredRequest = AssetValidator.getInstance().validateAssetGetReq(req.query);
     // ID is mandatory
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetAsset', req.user);
-    // Check auth
-    if (!await Authorizations.canReadAsset(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.READ, entity: Entity.ASSET,
-        module: MODULE_NAME, method: 'handleGetAsset',
-        value: filteredRequest.ID
-      });
+    // Check dynamic auth
+    const authorizationAssetFilter = await AuthorizationService.checkAndGetAssetAuthorizations(
+      req.tenant, req.user, filteredRequest);
+    if (!authorizationAssetFilter.authorized) {
+      UtilsService.sendEmptyDataResult(res, next);
+      return;
     }
     // Get it
-    const asset = await AssetStorage.getAsset(req.tenant, filteredRequest.ID,
-      { withSiteArea: filteredRequest.WithSiteArea });
+    const asset = await AssetStorage.getAsset(req.tenant,
+      filteredRequest.ID,
+      {
+        withSiteArea: filteredRequest.WithSiteArea,
+        ...authorizationAssetFilter.filters
+      },
+      authorizationAssetFilter.projectFields
+    );
     UtilsService.assertObjectExists(action, asset, `Asset ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetAsset', req.user);
     res.json(asset);
@@ -561,6 +564,8 @@ export default class AssetService {
       Action.UPDATE, Entity.ASSET, MODULE_NAME, 'handleUpdateAsset');
     // Filter
     const filteredRequest = AssetValidator.getInstance().validateAssetUpdateReq(req.body);
+
+
     // Check auth
     if (!await Authorizations.canUpdateAsset(req.user)) {
       throw new AppAuthError({
@@ -571,6 +576,7 @@ export default class AssetService {
         value: filteredRequest.id
       });
     }
+
     // Check Site Area
     let siteArea: SiteArea = null;
     if (filteredRequest.siteAreaID) {
@@ -578,6 +584,7 @@ export default class AssetService {
       UtilsService.assertObjectExists(action, siteArea, `Site Area ID '${filteredRequest.siteAreaID}' does not exist`,
         MODULE_NAME, 'handleUpdateAsset', req.user);
     }
+
     // Check email
     const asset = await AssetStorage.getAsset(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, asset, `Site Area ID '${filteredRequest.id}' does not exist`,
@@ -591,13 +598,14 @@ export default class AssetService {
         action: action
       });
     }
+
     // Check Mandatory fields
     UtilsService.checkIfAssetValid(filteredRequest, req);
+
     // Update
     asset.name = filteredRequest.name;
     asset.siteAreaID = filteredRequest.siteAreaID;
-    asset.siteID = siteArea ? siteArea.siteID : null,
-      asset.assetType = filteredRequest.assetType;
+    asset.siteID = siteArea ? siteArea.siteID : null, asset.assetType = filteredRequest.assetType;
     asset.excludeFromSmartCharging = filteredRequest.excludeFromSmartCharging;
     asset.variationThresholdPercent = filteredRequest.variationThresholdPercent;
     asset.fluctuationPercent = filteredRequest.fluctuationPercent;
@@ -610,8 +618,10 @@ export default class AssetService {
     asset.meterID = filteredRequest.meterID;
     asset.lastChangedBy = { 'id': req.user.id };
     asset.lastChangedOn = new Date();
+
     // Update Asset
     await AssetStorage.saveAsset(req.tenant, asset);
+
     // Log
     await Logging.logInfo({
       tenantID: req.user.tenantID,

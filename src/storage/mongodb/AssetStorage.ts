@@ -15,10 +15,11 @@ const MODULE_NAME = 'AssetStorage';
 
 export default class AssetStorage {
   public static async getAsset(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID,
-      params: { withSiteArea?: boolean } = {}, projectFields?: string[]): Promise<Asset> {
+    params: { withSiteArea?: boolean, siteIDs?: string[]; } = {}, projectFields?: string[]): Promise<Asset> {
     const assetsMDB = await AssetStorage.getAssets(tenant, {
       assetIDs: [id],
-      withSiteArea: params.withSiteArea
+      withSiteArea: params.withSiteArea,
+      siteIDs: params.siteIDs
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return assetsMDB.count === 1 ? assetsMDB.result[0] : null;
   }
@@ -51,7 +52,7 @@ export default class AssetStorage {
       excludeFromSmartCharging: Utils.convertToBoolean(assetToSave.excludeFromSmartCharging),
       variationThresholdPercent: Utils.convertToFloat(assetToSave.variationThresholdPercent),
       powerWattsLastSmartChargingRun: Utils.convertToFloat(assetToSave.powerWattsLastSmartChargingRun),
-      fluctuationPercent:  Utils.convertToFloat(assetToSave.fluctuationPercent),
+      fluctuationPercent: Utils.convertToFloat(assetToSave.fluctuationPercent),
       staticValueWatt: Utils.convertToFloat(assetToSave.staticValueWatt),
       dynamicAsset: Utils.convertToBoolean(assetToSave.dynamicAsset),
       usesPushAPI: Utils.convertToBoolean(assetToSave.usesPushAPI),
@@ -96,9 +97,11 @@ export default class AssetStorage {
   }
 
   public static async getAssets(tenant: Tenant,
-      params: { search?: string; assetIDs?: string[]; siteAreaIDs?: string[]; siteIDs?: string[]; withSiteArea?: boolean;
-        withNoSiteArea?: boolean; dynamicOnly?: boolean; issuer?: boolean; } = {},
-      dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Asset>> {
+    params: {
+      search?: string; assetIDs?: string[]; siteAreaIDs?: string[]; siteIDs?: string[]; withSiteArea?: boolean;
+      withNoSiteArea?: boolean; dynamicOnly?: boolean; issuer?: boolean;
+    } = {},
+    dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Asset>> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -213,8 +216,8 @@ export default class AssetStorage {
   }
 
   public static async getAssetsInError(tenant: Tenant,
-      params: { search?: string; siteAreaIDs?: string[]; siteIDs?: string[]; errorType?: string[]; issuer?: boolean } = {},
-      dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Asset>> {
+    params: { search?: string; siteAreaIDs?: string[]; siteIDs?: string[]; errorType?: string[]; issuer?: boolean } = {},
+    dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Asset>> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
