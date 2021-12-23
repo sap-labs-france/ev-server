@@ -339,10 +339,15 @@ export default class StripeBillingIntegration extends BillingIntegration {
       userID, invoiceID, customerID, liveMode, number, amount, amountPaid, currency, createdOn, downloadUrl, downloadable: !!downloadUrl,
       status: status as BillingInvoiceStatus, payInvoiceUrl,
     };
-    // Let's persist the up-to-date data
+    // Let's persist the invoice with up-to-date data
     const freshInvoiceId = await BillingStorage.saveInvoice(this.tenant, invoiceToSave);
-    // TODO - perf improvement? - can't we just reuse
-    const freshBillingInvoice = await BillingStorage.getInvoice(this.tenant, freshInvoiceId);
+    // Let's get a clean invoice instance
+    let freshBillingInvoice = await BillingStorage.getInvoice(this.tenant, freshInvoiceId);
+    if (!freshBillingInvoice) {
+      // This should not happen - but it happened several times - so let's wait a bit and try again
+      await Utils.sleep(2000);
+      freshBillingInvoice = await BillingStorage.getInvoice(this.tenant, freshInvoiceId);
+    }
     return freshBillingInvoice;
   }
 
@@ -443,7 +448,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Let's replicate some information on our side
     billingInvoice = await this.synchronizeAsBillingInvoice(stripeInvoice, false);
     if (!billingInvoice) {
-      // This should not happen - but it happened once!
       throw new Error(`Unexpected situation - failed to synchronize ${stripeInvoice.id} - the invoice is null`);
     }
     await StripeHelpers.updateInvoiceAdditionalData(this.tenant, billingInvoice, operationResult);
@@ -1156,6 +1160,9 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
     // Let's replicate some information on our side
     const billingInvoice = await this.synchronizeAsBillingInvoice(stripeInvoice, false);
+    if (!billingInvoice) {
+      throw new Error(`Unexpected situation - failed to synchronize ${stripeInvoice.id} - the invoice is null`);
+    }
     // We have now a Billing Invoice - Let's update it with details about the last operation result
     await StripeHelpers.updateInvoiceAdditionalData(this.tenant, billingInvoice, operationResult, billingInvoiceItem);
     // Return the billing invoice
