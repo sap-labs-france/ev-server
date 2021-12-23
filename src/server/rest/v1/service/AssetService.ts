@@ -269,8 +269,8 @@ export default class AssetService {
     // Filter
     const filteredRequest = AssetValidator.getInstance().validateAssetsGetReq(req.query);
     // Check dynamic auth
-    const authorizationAssetsInErrorFilter = await AuthorizationService.checkAndGetAssetsInErrorAuthorizations(
-      req.tenant, req.user, filteredRequest);
+    const authorizationAssetsInErrorFilter = await AuthorizationService.checkAndGetAssetsAuthorizations(
+      req.tenant, req.user, Action.IN_ERROR, filteredRequest);
     // Get the assets
     const assets = await AssetStorage.getAssetsInError(req.tenant,
       {
@@ -375,7 +375,7 @@ export default class AssetService {
     const filteredRequest = AssetValidator.getInstance().validateAssetsGetReq(req.query);
     // Check dynamic auth
     const authorizationAssetsFilter = await AuthorizationService.checkAndGetAssetsAuthorizations(
-      req.tenant, req.user, filteredRequest);
+      req.tenant, req.user, Action.LIST, filteredRequest);
     // Get the assets
     const assets = await AssetStorage.getAssets(req.tenant,
       {

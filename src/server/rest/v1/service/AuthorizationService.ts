@@ -250,7 +250,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetAssetsAuthorizations(tenant: Tenant, userToken: UserToken,
-    filteredRequest?: HttpAssetsRequest): Promise<AuthorizationFilter> {
+    authAction: Action, filteredRequest?: HttpAssetsRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -258,7 +258,7 @@ export default class AuthorizationService {
       authorized: false,
     };
     // Check static & dynamic authorization
-    await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.ASSET, Action.LIST,
+    await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.ASSET, authAction,
       authorizationFilters, filteredRequest, null, true);
     return authorizationFilters;
   }
@@ -276,23 +276,6 @@ export default class AuthorizationService {
       authorizationFilters, filteredRequest, entityData, true);
     return authorizationFilters;
   }
-
-  public static async checkAndGetAssetsInErrorAuthorizations(tenant: Tenant, userToken: UserToken,
-    filteredRequest?: HttpAssetsRequest): Promise<AuthorizationFilter> {
-    const authorizationFilters: AuthorizationFilter = {
-      filters: {},
-      dataSources: new Map(),
-      projectFields: [],
-      authorized: false,
-    };
-    // Check static & dynamic authorization
-    await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.ASSET, Action.IN_ERROR,
-      authorizationFilters, filteredRequest, null, true);
-    return authorizationFilters;
-  }
-
-
-
 
   public static async checkAndGetUserAuthorizations(tenant: Tenant, userToken: UserToken,
     filteredRequest: Partial<HttpUserRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
