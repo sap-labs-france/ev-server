@@ -122,7 +122,7 @@ export default class SiteAreaService {
       req.tenant, req.user, siteAreaID, Action.DELETE, action);
     const siteAreas = await SiteAreaStorage.getSiteAreas(req.tenant, { siteIDs: [siteArea.siteID] }, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'parentSiteAreaID', 'siteID', 'smartCharging', 'name', 'voltage', 'numberOfPhases']);
     // Remove site area from array and check site area chain validity
-    UtilsService.checkIfSiteAreaTreeValid(siteAreas.result, req, action, siteArea.id);
+    UtilsService.checkIfSiteAreaHasDependencies(siteArea.id, siteAreas.result, req);
     // Delete
     await SiteAreaStorage.deleteSiteArea(req.tenant, siteArea.id);
     // Log
@@ -298,7 +298,7 @@ export default class SiteAreaService {
       siteID: newSiteArea.siteID, smartCharging: newSiteArea.smartCharging,
       voltage: newSiteArea.voltage, numberOfPhases: newSiteArea.numberOfPhases } as SiteArea) ;
     // Check site area chain validity
-    UtilsService.checkIfSiteAreaTreeValid(siteAreas.result, req, action);
+    UtilsService.checkIfSiteAreaTreeValid(siteAreas.result, req);
     // Save
     newSiteArea.id = await SiteAreaStorage.saveSiteArea(req.tenant, newSiteArea, true);
     await Logging.logInfo({
@@ -368,7 +368,7 @@ export default class SiteAreaService {
     siteAreas.result[index] = { id: siteArea.id, parentSiteAreaID: siteArea.parentSiteAreaID, siteID: siteArea.siteID, smartCharging: siteArea.smartCharging,
       voltage: siteArea.voltage, numberOfPhases: siteArea.numberOfPhases } as SiteArea;
     // Check site area chain validity
-    UtilsService.checkIfSiteAreaTreeValid(siteAreas.result, req, action);
+    UtilsService.checkIfSiteAreaTreeValid(siteAreas.result, req);
     siteArea.lastChangedBy = { 'id': req.user.id };
     siteArea.lastChangedOn = new Date();
     // Save
