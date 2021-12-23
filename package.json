@@ -200,7 +200,7 @@
     "@types/moment-timezone": "^0.5.30",
     "@types/mongo-sanitize": "^1.0.1",
     "@types/mustache": "^4.1.2",
-    "@types/node": "^16.11.8",
+    "@types/node": "^17.0.4",
     "@types/node-cron": "^2.0.3",
     "@types/passport": "^1.0.7",
     "@types/passport-jwt": "^3.0.6",
