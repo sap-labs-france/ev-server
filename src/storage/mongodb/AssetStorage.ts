@@ -15,11 +15,14 @@ const MODULE_NAME = 'AssetStorage';
 
 export default class AssetStorage {
   public static async getAsset(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID,
-    params: { withSiteArea?: boolean, siteIDs?: string[]; } = {}, projectFields?: string[]): Promise<Asset> {
+    params: { withSiteArea?: boolean, siteIDs?: string[], issuer?: boolean, dynamicOnly?: boolean, usesPushAPI?:boolean } = {}, projectFields?: string[]): Promise<Asset> {
     const assetsMDB = await AssetStorage.getAssets(tenant, {
       assetIDs: [id],
       withSiteArea: params.withSiteArea,
-      siteIDs: params.siteIDs
+      siteIDs: params.siteIDs,
+      issuer: params.issuer,
+      dynamicOnly: params.dynamicOnly,
+      usesPushAPI: params.usesPushAPI
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return assetsMDB.count === 1 ? assetsMDB.result[0] : null;
   }
@@ -99,7 +102,7 @@ export default class AssetStorage {
   public static async getAssets(tenant: Tenant,
     params: {
       search?: string; assetIDs?: string[]; siteAreaIDs?: string[]; siteIDs?: string[]; withSiteArea?: boolean;
-      withNoSiteArea?: boolean; dynamicOnly?: boolean; issuer?: boolean;
+      withNoSiteArea?: boolean; dynamicOnly?: boolean; issuer?: boolean; usesPushAPI?: boolean;
     } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Asset>> {
     const startTime = Logging.traceDatabaseRequestStart();
@@ -139,8 +142,12 @@ export default class AssetStorage {
       };
     }
     // Dynamic Asset
-    if (params.dynamicOnly) {
-      filters.dynamicAsset = true;
+    if (params.dynamicOnly && Utils.isBoolean(params.dynamicOnly)) {
+      filters.dynamicAsset = params.dynamicOnly;
+    }
+    // Push API
+    if(params.usesPushAPI && Utils.isBoolean(params.usesPushAPI)) {
+      filters.usesPushAPI = params.usesPushAPI;
     }
     // Limit on Asset for Basic Users
     if (!Utils.isEmptyArray(params.assetIDs)) {
