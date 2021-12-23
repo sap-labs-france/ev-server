@@ -359,7 +359,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.ASSET, action: Action.IN_ERROR,
         attributes: ['id', 'name', 'errorCodeDetails', 'errorCode']
-      },      
+      },
       { resource: Entity.SETTING, action: Action.LIST },
       { resource: Entity.SETTING, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE] },
       {
