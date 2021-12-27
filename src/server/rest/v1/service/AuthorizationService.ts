@@ -1,6 +1,6 @@
 import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity } from '../../../../types/Authorization';
+import { AssetDataResult, CarCatalogDataResult, CarDataResult, CompanyDataResult, LogDataResult, PricingDefinitionDataResult, RegistrationTokenDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, UserDataResult } from '../../../../types/DataResult';
 import { Car, CarCatalog } from '../../../../types/Car';
-import { CarCatalogDataResult, CarDataResult, CompanyDataResult, LogDataResult, PricingDefinitionDataResult, RegistrationTokenDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, UserDataResult } from '../../../../types/DataResult';
 import { HttpCarCatalogRequest, HttpCarCatalogsRequest, HttpCarRequest, HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
 import { HttpChargingStationRequest, HttpChargingStationsRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
@@ -14,6 +14,7 @@ import Tenant, { TenantComponents } from '../../../../types/Tenant';
 import User, { UserRole } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
+import Asset from '../../../../types/Asset';
 import AssetStorage from '../../../../storage/mongodb/AssetStorage';
 import Authorizations from '../../../../authorization/Authorizations';
 import Company from '../../../../types/Company';
@@ -275,6 +276,29 @@ export default class AuthorizationService {
     await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.ASSET, authAction,
       authorizationFilters, filteredRequest, entityData, true);
     return authorizationFilters;
+  }
+
+  public static async addAssetsAuthorizations(tenant: Tenant, userToken: UserToken, assets: AssetDataResult, authorizationFilter: AuthorizationFilter): Promise<void> {
+    // Add Meta Data
+    assets.metadata = authorizationFilter.metadata;
+    // Add Authorizations
+    assets.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.ASSET, Action.CREATE, authorizationFilter);
+    for (const asset of assets.result) {
+      await AuthorizationService.addAssetAuthorizations(tenant, userToken, asset, authorizationFilter);
+    }
+  }
+
+  public static async addAssetAuthorizations(tenant: Tenant, userToken: UserToken, asset: Asset, authorizationFilter: AuthorizationFilter): Promise<void> {
+    asset.canRead = true; // Always true as it should be filtered upfront
+    asset.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.ASSET, Action.DELETE, authorizationFilter, {}, asset);
+    asset.canUpdate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.ASSET, Action.UPDATE, authorizationFilter, {}, asset);
+    asset.canRetrieveConsumption = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.ASSET, Action.RETRIEVE_CONSUMPTION, authorizationFilter, {}, asset);
+    asset.canReadConsumption = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.ASSET, Action.READ_CONSUMPTION, authorizationFilter, {}, asset);
+    // Not used in dashboard
+    // asset.canCreateConsumption = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.ASSET, Action.CREATE_CONSUMPTION, authorizationFilter, {}, asset);
+    asset.canCheckConnection = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.ASSET, Action.CHECK_CONNECTION, authorizationFilter, {}, asset);
+    // Optimize data over the net
+    Utils.removeCanPropertiesWithFalseValue(asset);
   }
 
   public static async checkAndGetUserAuthorizations(tenant: Tenant, userToken: UserToken,

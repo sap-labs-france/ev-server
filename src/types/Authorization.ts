@@ -138,6 +138,7 @@ export enum Action {
   CHECK_CONNECTION = 'CheckConnection',
   CLEAR_BILLING_TEST_DATA = 'ClearBillingTestData',
   RETRIEVE_CONSUMPTION = 'RetrieveConsumption',
+  READ_CONSUMPTION = 'ReadConsumption',
   CREATE_CONSUMPTION = 'CreateConsumption',
   PING = 'Ping',
   GENERATE_LOCAL_TOKEN = 'GenerateLocalToken',
@@ -196,6 +197,13 @@ export interface RegistrationTokenAuthorizationActions extends AuthorizationActi
   canRevoke?: boolean;
 }
 
+export interface AssetAuthorizationActions extends AuthorizationActions {
+  canRetrieveConsumption?:boolean;
+  canReadConsumption?:boolean;
+  canCreateConsumption?:boolean;
+  canCheckConnection?:boolean;
+}
+
 export interface SiteAreaAuthorizationActions extends AuthorizationActions {
   canAssignAssets?: boolean;
   canUnassignAssets?: boolean;
@@ -224,6 +232,8 @@ export enum DynamicAuthorizationFilterName {
   OWN_USER = 'OwnUser',
   LOCAL_ISSUER = 'LocalIssuer',
   EXCLUDE_ACTION = 'ExcludeAction',
+  DYNAMIC_ASSET = 'DynamicAsset',
+  USES_PUSH_API = 'UsesPushAPI'
 }
 
 export enum DynamicAuthorizationAssertName {

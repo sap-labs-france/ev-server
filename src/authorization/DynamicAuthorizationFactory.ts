@@ -5,6 +5,7 @@ import AssignedSitesCompaniesDynamicAuthorizationFilter from './dynamic-filters/
 import AssignedSitesDynamicAuthorizationDataSource from './dynamic-data-source/AssignedSitesDynamicAuthorizationDataSource';
 import AssignedSitesDynamicAuthorizationFilter from './dynamic-filters/AssignedSitesDynamicAuthorizationFilter';
 import BasicUserDynamicAuthorizationAssert from './dynamic-assert/BasicUserDynamicAuthorizationAssert';
+import DynamicAssetDynamicAuthorizationFilter from './dynamic-filters/DynamicAssetDynamicAuthorizationFilter';
 import DynamicAuthorizationAssert from './DynamicAuthorizationAssert';
 import DynamicAuthorizationDataSource from './DynamicAuthorizationDataSource';
 import DynamicAuthorizationFilter from './DynamicAuthorizationFilter';
@@ -23,6 +24,7 @@ import SitesOwnerDynamicAuthorizationFilter from './dynamic-filters/SitesOwnerDy
 import Tenant from '../types/Tenant';
 import UserMandatoryDynamicAuthorizationAssert from './dynamic-assert/UserMandatoryDynamicAuthorizationAssert';
 import UserToken from '../types/UserToken';
+import UsesPushAPIDynamicAuthorizationFilter from './dynamic-filters/UsesPushAPIDynamicAuthorizationFilter';
 
 export default class DynamicAuthorizationFactory {
   public static async getDynamicFilter(tenant: Tenant, userToken: UserToken,
@@ -58,6 +60,12 @@ export default class DynamicAuthorizationFactory {
         break;
       case DynamicAuthorizationFilterName.LOCAL_ISSUER:
         dynamicFilter = new LocalIssuerDynamicAuthorizationFilter(tenant, userToken, negateFilter);
+        break;
+      case DynamicAuthorizationFilterName.DYNAMIC_ASSET:
+        dynamicFilter = new DynamicAssetDynamicAuthorizationFilter(tenant, userToken, negateFilter);
+        break;
+      case DynamicAuthorizationFilterName.USES_PUSH_API:
+        dynamicFilter = new UsesPushAPIDynamicAuthorizationFilter(tenant, userToken, negateFilter);
         break;
     }
     // Init Data Source

@@ -302,7 +302,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       { resource: Entity.PRICING, action: [Action.READ, Action.UPDATE] },
-      { resource: Entity.PRICING_DEFINITION, action: [Action.LIST],
+      {
+        resource: Entity.PRICING_DEFINITION, action: [Action.LIST],
         attributes: [
           'id', 'entityID', 'entityType', 'name', 'description', 'entityName',
           'staticRestrictions.validFrom', 'staticRestrictions.validTo', 'staticRestrictions.connectorType', 'staticRestrictions.connectorPowerkW',
@@ -314,7 +315,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'dimensions.parkingTime.active', 'dimensions.parkingTime.price', 'dimensions.parkingTime.stepSize', 'dimensions.parkingTime.pricedData',
         ]
       },
-      { resource: Entity.PRICING_DEFINITION, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE],
+      {
+        resource: Entity.PRICING_DEFINITION, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE],
         attributes: [
           'id', 'entityID', 'entityType', 'name', 'description', 'entityName',
           'staticRestrictions.validFrom', 'staticRestrictions.validTo', 'staticRestrictions.connectorType', 'staticRestrictions.connectorPowerkW',
@@ -337,10 +339,30 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.INVOICE, action: [Action.DOWNLOAD, Action.READ] },
       {
         resource: Entity.ASSET, action: [Action.CREATE, Action.READ,
-          Action.CHECK_CONNECTION, Action.RETRIEVE_CONSUMPTION, Action.CREATE_CONSUMPTION]
+        Action.CHECK_CONNECTION, Action.CREATE_CONSUMPTION]
       },
       {
-        resource: Entity.ASSET, action: [Action.UPDATE,Action.DELETE],
+        resource: Entity.ASSET, action: Action.READ_CONSUMPTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['DynamicAsset']
+          }
+        }
+      },
+      {
+        resource: Entity.ASSET, action: Action.RETRIEVE_CONSUMPTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['DynamicAsset', '-UsesPushAPI']
+          }
+        }
+      },
+      {
+        resource: Entity.ASSET, action: [Action.UPDATE, Action.DELETE],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
@@ -797,6 +819,16 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       { resource: Entity.ASSET, action: Action.READ },
+      {
+        resource: Entity.ASSET, action: Action.READ_CONSUMPTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['DynamicAsset']
+          }
+        }
+      },
       { resource: Entity.SETTING, action: Action.READ },
       {
         resource: Entity.CAR_CATALOG, action: Action.LIST,
@@ -1058,6 +1090,20 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ],
       },
       {
+        resource: Entity.ASSET, action: Action.READ_CONSUMPTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['DynamicAsset']
+          }
+        },
+        attributes: [
+          'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteID', 'assetType', 'coordinates',
+          'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts', 'currentStateOfCharge'
+        ],
+      },
+      {
         resource: Entity.CAR, action: Action.LIST,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
@@ -1074,7 +1120,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'user.id', 'user.name', 'user.firstName', 'userID'
         ],
       },
-      { resource: Entity.CAR, action: Action.CREATE,
+      {
+        resource: Entity.CAR, action: Action.CREATE,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
@@ -1113,9 +1160,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.CHARGING_STATION,
         action: [Action.UPDATE, Action.DELETE, Action.RESET, Action.CLEAR_CACHE, Action.GET_CONFIGURATION,
-          Action.CHANGE_CONFIGURATION, Action.SET_CHARGING_PROFILE, Action.GET_COMPOSITE_SCHEDULE,
-          Action.CLEAR_CHARGING_PROFILE, Action.GET_DIAGNOSTICS, Action.UPDATE_FIRMWARE, Action.REMOTE_STOP_TRANSACTION,
-          Action.STOP_TRANSACTION, Action.EXPORT, Action.CHANGE_AVAILABILITY],
+        Action.CHANGE_CONFIGURATION, Action.SET_CHARGING_PROFILE, Action.GET_COMPOSITE_SCHEDULE,
+        Action.CLEAR_CHARGING_PROFILE, Action.GET_DIAGNOSTICS, Action.UPDATE_FIRMWARE, Action.REMOTE_STOP_TRANSACTION,
+        Action.STOP_TRANSACTION, Action.EXPORT, Action.CHANGE_AVAILABILITY],
         condition: {
           Fn: 'LIST_CONTAINS',
           args: { 'sitesAdmin': '$.site' }
@@ -1290,7 +1337,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         }
       },
-      { resource: Entity.PRICING_DEFINITION, action: Action.LIST,
+      {
+        resource: Entity.PRICING_DEFINITION, action: Action.LIST,
         attributes: ['id', 'entityID', 'entityType', 'name', 'description', 'entityName',
           'staticRestrictions.validFrom', 'staticRestrictions.validTo', 'staticRestrictions.connectorType', 'staticRestrictions.connectorPowerkW',
           'restrictions.daysOfWeek', 'restrictions.timeFrom', 'restrictions.timeTo',
@@ -1308,7 +1356,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         },
       },
-      { resource: Entity.PRICING_DEFINITION, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE],
+      {
+        resource: Entity.PRICING_DEFINITION, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE],
         attributes: ['id', 'entityID', 'entityType', 'name', 'description', 'entityName',
           'staticRestrictions.validFrom', 'staticRestrictions.validTo', 'staticRestrictions.connectorType', 'staticRestrictions.connectorPowerkW',
           'restrictions.daysOfWeek', 'restrictions.timeFrom', 'restrictions.timeTo',

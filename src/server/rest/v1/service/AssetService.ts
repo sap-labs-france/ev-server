@@ -4,6 +4,7 @@ import Tenant, { TenantComponents } from '../../../../types/Tenant';
 
 import AppError from '../../../../exception/AppError';
 import Asset from '../../../../types/Asset';
+import { AssetDataResult } from '../../../../types/DataResult';
 import AssetFactory from '../../../../integration/asset/AssetFactory';
 import { AssetInErrorType } from '../../../../types/InError';
 import AssetStorage from '../../../../storage/mongodb/AssetStorage';
@@ -30,18 +31,19 @@ export default class AssetService {
   public static async handleGetAssetConsumption(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
-      Action.READ, Entity.ASSET, MODULE_NAME, 'handleGetAssetConsumption');
+      Action.READ_CONSUMPTION, Entity.ASSET, MODULE_NAME, 'handleGetAssetConsumption');
     // Filter
     const filteredRequest = AssetValidator.getInstance().validateAssetGetConsumptionsReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.AssetID, MODULE_NAME,
       'handleGetAssetConsumption', req.user);
-    // Check dynamic auth
-    const authorizationAssetFilter = await AuthorizationService.checkAndGetAssetAuthorizations(req.tenant, req.user, Action.READ, {});
+    // Check action authorization before querying storage
+    const staticAuthorizationAssetFilter = await AuthorizationService.checkAndGetAssetAuthorizations(req.tenant, req.user, Action.READ_CONSUMPTION, {});
     // Get asset
-    const asset = await AssetService.getAssetFromStorage(req.tenant, filteredRequest.AssetID, {}, authorizationAssetFilter);
+    const asset = await AssetService.getAssetFromStorage(req.tenant, filteredRequest.AssetID, { dynamicOnly: true }, staticAuthorizationAssetFilter);
     UtilsService.assertObjectExists(action, asset, `Asset ID '${filteredRequest.AssetID}' cannot be retrieved`,
       MODULE_NAME, 'handleGetAssetConsumption', req.user);
-
+    // Check dynamic auth
+    await AuthorizationService.checkAndGetAssetAuthorizations(req.tenant, req.user, Action.READ_CONSUMPTION, {}, asset);
     // Check dates
     if (!filteredRequest.StartDate || !filteredRequest.EndDate) {
       throw new AppError({
@@ -83,12 +85,14 @@ export default class AssetService {
     const filteredRequest = AssetValidator.getInstance().validateAssetConsumptionCreateReq({ ...req.query, ...req.body });
     UtilsService.assertIdIsProvided(action, filteredRequest.assetID, MODULE_NAME,
       'handleCreateAssetConsumption', req.user);
-    // Check dynamic auth
-    const authorizationAssetFilter = await AuthorizationService.checkAndGetAssetAuthorizations(req.tenant, req.user, Action.CREATE_CONSUMPTION, {});
+    // Check static auth before querying storage
+    const staticAuthorizationAssetFilter = await AuthorizationService.checkAndGetAssetAuthorizations(req.tenant, req.user, Action.CREATE_CONSUMPTION, {});
     // Get Asset
-    const asset = await AssetService.getAssetFromStorage(req.tenant, filteredRequest.assetID, { withSiteArea: true }, authorizationAssetFilter);
+    const asset = await AssetService.getAssetFromStorage(req.tenant, filteredRequest.assetID, { withSiteArea: true }, staticAuthorizationAssetFilter);
     UtilsService.assertObjectExists(action, asset, `Asset ID '${filteredRequest.assetID}' cannot be retrieved to create consumption`,
       MODULE_NAME, 'handleCreateAssetConsumption', req.user);
+    // Check dynamic auth
+    await AuthorizationService.checkAndGetAssetAuthorizations(req.tenant, req.user, Action.CREATE_CONSUMPTION, {}, asset);
     // Check if connection ID exists
     if (!Utils.isNullOrUndefined(asset.connectionID)) {
       throw new AppError({
@@ -165,7 +169,6 @@ export default class AssetService {
     next();
   }
 
-
   public static async handleCheckAssetConnection(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
@@ -214,13 +217,15 @@ export default class AssetService {
     // Filter request
     const assetID = AssetValidator.getInstance().validateAssetGetReq(req.query).ID;
     UtilsService.assertIdIsProvided(action, assetID, MODULE_NAME, 'handleRetrieveConsumption', req.user);
-    // Check dynamic auth
-    const authorizationAssetFilter = await AuthorizationService.checkAndGetAssetAuthorizations(
+    // Check static auth before querying storage
+    const staticAuthorizationAssetFilter = await AuthorizationService.checkAndGetAssetAuthorizations(
       req.tenant, req.user, Action.RETRIEVE_CONSUMPTION, {});
     // Get
-    const asset = await AssetService.getAssetFromStorage(req.tenant, assetID, { dynamicOnly: true, usesPushAPI: false }, authorizationAssetFilter);
+    const asset = await AssetService.getAssetFromStorage(req.tenant, assetID, { dynamicOnly: true, usesPushAPI: false }, staticAuthorizationAssetFilter);
     UtilsService.assertObjectExists(action, asset, `Asset ID '${assetID}' consumption cannot be retrieved`,
       MODULE_NAME, 'handleRetrieveConsumption', req.user);
+    // Dynamic auth
+    await AuthorizationService.checkAndGetAssetAuthorizations(req.tenant, req.user, Action.RETRIEVE_CONSUMPTION, {}, asset);
     // Get asset factory
     const assetImpl = await AssetFactory.getAssetImpl(req.tenant, asset.connectionID);
     if (!assetImpl) {
@@ -289,6 +294,9 @@ export default class AssetService {
       },
       authorizationAssetsInErrorFilter.projectFields
     );
+    // Add Auth flags
+    await AuthorizationService.addAssetsAuthorizations(
+      req.tenant, req.user, assets as AssetDataResult, authorizationAssetsInErrorFilter);
     res.json(assets);
     next();
   }
@@ -301,13 +309,15 @@ export default class AssetService {
     const filteredRequest = AssetValidator.getInstance().validateAssetGetReq(req.query);
     // Check Mandatory fields
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleDeleteAsset', req.user);
-    // Check dynamic auth
-    const authorizationAssetFilter = await AuthorizationService.checkAndGetAssetAuthorizations(
+    // Check static auth before querying storage
+    const staticAuthorizationAssetFilter = await AuthorizationService.checkAndGetAssetAuthorizations(
       req.tenant, req.user, Action.DELETE, filteredRequest);
     // Get
-    const asset = await AssetService.getAssetFromStorage(req.tenant, filteredRequest.ID, { withSiteArea: filteredRequest.WithSiteArea }, authorizationAssetFilter);
+    const asset = await AssetService.getAssetFromStorage(req.tenant, filteredRequest.ID, { withSiteArea: filteredRequest.WithSiteArea }, staticAuthorizationAssetFilter);
     UtilsService.assertObjectExists(action, asset, `Asset ID '${filteredRequest.ID}' cannot be deleted`,
       MODULE_NAME, 'handleDeleteAsset', req.user);
+    // Dynamic auth
+    await AuthorizationService.checkAndGetAssetAuthorizations(req.tenant, req.user, Action.DELETE, filteredRequest, asset);
     // Delete
     await AssetStorage.deleteAsset(req.tenant, asset.id);
     // Log
@@ -331,13 +341,15 @@ export default class AssetService {
     const filteredRequest = AssetValidator.getInstance().validateAssetGetReq(req.query);
     // ID is mandatory
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetAsset', req.user);
-    // Check dynamic auth
-    const authorizationAssetFilter = await AuthorizationService.checkAndGetAssetAuthorizations(
+    // Check action authorization before querying storage
+    const staticAuthorizationAssetFilter = await AuthorizationService.checkAndGetAssetAuthorizations(
       req.tenant, req.user, Action.READ, filteredRequest);
     // Get it
-    const asset = await AssetService.getAssetFromStorage(req.tenant, filteredRequest.ID, { withSiteArea: filteredRequest.WithSiteArea }, authorizationAssetFilter);
+    const asset = await AssetService.getAssetFromStorage(req.tenant, filteredRequest.ID, { withSiteArea: filteredRequest.WithSiteArea }, staticAuthorizationAssetFilter);
     UtilsService.assertObjectExists(action, asset, `Asset ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetAsset', req.user);
+    // Dynamic auth
+    await AuthorizationService.checkAndGetAssetAuthorizations(req.tenant, req.user, Action.READ, filteredRequest, asset);
     res.json(asset);
     next();
   }
@@ -396,6 +408,9 @@ export default class AssetService {
       },
       authorizationAssetsFilter.projectFields
     );
+    // Add Auth flags
+    await AuthorizationService.addAssetsAuthorizations(
+      req.tenant, req.user, assets as AssetDataResult, authorizationAssetsFilter);
     res.json(assets);
     next();
   }
@@ -445,9 +460,8 @@ export default class AssetService {
     // Filter
     const filteredRequest = AssetValidator.getInstance().validateAssetUpdateReq(req.body);
     UtilsService.checkIfAssetValid(filteredRequest, req);
-    // Get dynamic auth
-    const authorizationFilter = await AuthorizationService.checkAndGetAssetAuthorizations(
-      req.tenant, req.user, Action.UPDATE, {}, filteredRequest);
+    // Check action authorization before querying storage
+    const staticAuthorizationFilter = await AuthorizationService.checkAndGetAssetAuthorizations(req.tenant, req.user, Action.UPDATE, {}, filteredRequest);
     // Check Site Area authorization
     let siteArea: SiteArea = null;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredRequest.siteAreaID) {
@@ -455,9 +469,11 @@ export default class AssetService {
         req.tenant, req.user, filteredRequest.siteAreaID, Action.UPDATE, action, filteredRequest, null, false);
     }
     // Get asset
-    const asset = await AssetService.getAssetFromStorage(req.tenant, filteredRequest.id, {}, authorizationFilter);
+    const asset = await AssetService.getAssetFromStorage(req.tenant, filteredRequest.id, {}, staticAuthorizationFilter);
     UtilsService.assertObjectExists(action, asset, `Asset ID '${filteredRequest.id}' cannot be modified`,
       MODULE_NAME, 'handleUpdateAsset', req.user);
+    // Check dynamic auth
+    await AuthorizationService.checkAndGetAssetAuthorizations(req.tenant, req.user, Action.UPDATE, {}, asset);
     // Update Asset values and persist
     asset.name = filteredRequest.name;
     asset.siteAreaID = filteredRequest.siteAreaID;
