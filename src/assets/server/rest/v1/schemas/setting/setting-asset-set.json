@@ -1,0 +1,151 @@
+{
+  "$id": "setting-asset-set",
+  "title": "Set Assets Settings",
+  "type": "object",
+  "properties": {
+    "content": {
+      "type": "object",
+      "properties": {
+        "asset": {
+          "type": "object",
+          "properties": {
+            "connections": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "sanitize": "mongo"
+                  },
+                  "name": {
+                    "type": "string",
+                    "sanitize": "mongo"
+                  },
+                  "description": {
+                    "type": "string",
+                    "sanitize": "mongo"
+                  },
+                  "url": {
+                    "type": "string",
+                    "sanitize": "mongo"
+                  },
+                  "type": {
+                    "type": "string",
+                    "sanitize": "mongo"
+                  },
+                  "refreshIntervalMins": {
+                    "type": "string",
+                    "sanitize": "mongo"
+                  },
+                  "schneiderConnection": {
+                    "type": "object",
+                    "properties": {
+                      "user": {
+                        "type": "string",
+                        "sanitize": "mongo"
+                      },
+                      "password": {
+                        "type": "string",
+                        "sanitize": "mongo"
+                      }
+                    }
+                  },
+                  "greenComConnection": {
+                    "type": "object",
+                    "properties": {
+                      "clientId": {
+                        "type": "string",
+                        "sanitize": "mongo"
+                      },
+                      "clientSecret": {
+                        "type": "string",
+                        "sanitize": "mongo"
+                      }
+                    }
+                  },
+                  "iothinkConnection": {
+                    "type": "object",
+                    "properties": {
+                      "user": {
+                        "type": "string",
+                        "sanitize": "mongo"
+                      },
+                      "password": {
+                        "type": "string",
+                        "sanitize": "mongo"
+                      }
+                    }
+                  },
+                  "witConnection": {
+                    "type": "object",
+                    "properties": {
+                      "authenticationUrl": {
+                        "type": "string",
+                        "sanitize": "mongo"
+                      },
+                      "clientId": {
+                        "type": "string",
+                        "sanitize": "mongo"
+                      },
+                      "clientSecret": {
+                        "type": "string",
+                        "sanitize": "mongo"
+                      },
+                      "user": {
+                        "type": "string",
+                        "sanitize": "mongo"
+                      },
+                      "password": {
+                        "type": "string",
+                        "sanitize": "mongo"
+                      }
+                    }
+                  },
+                  "lacroix": {
+                    "type": "object",
+                    "properties": {
+                      "user": {
+                        "type": "string",
+                        "sanitize": "mongo"
+                      },
+                      "password": {
+                        "type": "string",
+                        "sanitize": "mongo"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "links": {
+          "$ref": "setting#/definitions/links"
+        },
+        "type": {
+          "type": "string",
+          "sanitize": "mongo",
+          "enum": ["asset"]
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "id": {
+      "$ref": "common#/definitions/id"
+    },
+    "identifier": {
+      "type": "string",
+      "sanitize": "mongo",
+      "enum": ["asset"]
+    },
+    "sensitiveData": {
+      "$ref": "setting#/definitions/sensitiveData"
+    }
+  },
+  "required": [
+    "identifier"
+  ]
+}

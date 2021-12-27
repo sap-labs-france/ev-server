@@ -1,0 +1,187 @@
+{
+   "billing":{
+      "generatedUser":"Generovat uživatele pro '{{email}}'",
+      "chargingAtSiteArea":"Nabíjecí relace: {{sessionID}} - počáteční datum: {{startDate}} v {startTime} - spotřeba energie: {{totalConsumption}} kWh v {{siteAreaName}}",
+      "chargingAtChargeBox":"Nabíjecí relace: {{sessionID}} - počáteční datum: {{startDate}} v {{startTime}} - spotřeba energie: {{totalConsumption}} kWh nabíjecí stanice {{chargeBoxID}}",
+      "header-itemDescription": "Session: {{sessionID}} - Start Date: {{startDate}} at {{startTime}} at charging station {{chargeBoxID}}",
+      "flatFee-shortItemDescription": "Flat Fee",
+      "energy-shortItemDescription": "Energy Consumption: {{quantity}} kWh",
+      "chargingTime-shortItemDescription": "Charging Time: {{duration}}",
+      "parkingTime-shortItemDescription": "Parking Time: {{duration}}"
+   },
+   "chargers":{
+      "chargeBoxSN":"Nabíjecí stojan S/N",
+      "chargePointSN":"Nabíjecí místo S/N",
+      "chargingStation":"Nabíjecí stanice",
+      "connector":"Konektor",
+      "firmwareVersion":"Verze firmwaru",
+      "lastReboot":"Poslední restart",
+      "lastSeen":"Naposledy zobrazeno",
+      "maxPower":"Maximální výkon (W)",
+      "model":"Model",
+      "numberOfConnectors":"Počet konektorů",
+      "ocppProtocol":"Protokol OCPP",
+      "ocppVersion":"Verze OCPP",
+      "powerLimitUnit":"Limit výkonu jednotky",
+      "timezone":"Časové pásmo nabíjecích stanic",
+      "vendor":"Prodejce"
+   },
+   "general":{
+      "changedBy":"Změněno uživatelem",
+      "changedOn":"Změněno dne",
+      "createdOn":"Vytvořeno dne",
+      "date":"Datum",
+      "endDate":"Datum ukončení",
+      "endTime":"Čas ukončení",
+      "invalidDate":"Neplatné datum",
+      "invalidTime":"Neplatný čas",
+      "latitude":"Zeměpisná šířka",
+      "longitude":"Zeměpisná délka",
+      "month":"Měsíc",
+      "name":"Jméno",
+      "price":"Cena",
+      "priceUnit":"Cenová jednotka",
+      "site":"Parkoviště",
+      "siteArea":"Sekce parkoviště",
+      "startDate":"Počáteční datum",
+      "startTime":"Počáteční čas",
+      "time":"Čas",
+      "value":"Hodnota",
+      "year":"Rok"
+   },
+   "loggings":{
+      "action":"Akce",
+      "host":"Hostitel",
+      "level":"Úroveň",
+      "message":"Zpráva",
+      "method":"Způsob",
+      "module":"Modul",
+      "process":"Proces",
+      "source":"Zdroj",
+      "type":"Typ"
+   },
+   "notifications":{
+      "sessionNotStarted":{
+         "title":"Relace nezahájena",
+         "body":"Prokázali jste se kartou/čipem na nabíjecí stanici '{{chargeBoxID}}', ale relace nebyla zahájena"
+      },
+      "sessionStarted":{
+         "title":"Relace zahájena",
+         "body":"Vaše relace na nabíjecí stanici '{{chargeBoxID}}', konektor '{{connectorId}}', byla úspěšně zahájena u organizace '{{tenantName}}'"
+      },
+      "ocpiPatchChargingStationsStatusesError":{
+         "title":"Odeslat stavy pomocí roamingu",
+         "body":"Převod stavů nabíjecí stanice na roamingovou platformu se u lokality '{{location}}‘ organizace '{{tenantName}}‘ nezdařil, zkontrolujte protokol"
+      },
+      "oicpPatchChargingStationsStatusesError":{
+         "title":"Odeslat stavy platformě Hubject",
+         "body":"Převod stavů nabíjecí stanice  na roamingovou platformu Hubject se u organizace '{{tenantName}}' nezdařil, zkontrolujte protokol"
+      },
+      "oicpPatchChargingStationsError":{
+         "title":"Odeslat nabíjecí stanice platformě Hubject",
+         "body":"Převod stavů nabíjecí stanice na roamingovou platformu Hubject se u organizace '{{tenantName}}' nezdařil, zkontrolujte protokol"
+      },
+      "optimalChargeReached":{
+         "title":"Dosaženo optimálního nabití",
+         "body":"Vaše elektrické vozidlo, které je připojeno k nabíjecí stanici '{{chargeBoxID}}', konektor '{{connectorId}}', dosáhlo u organizace '{{tenantName}}' optimálního nabití (85 %) "
+      },
+      "endOfCharge":{
+         "title":"Nabíjení skončeno",
+         "body":"Vaše elektrické vozidlo, které je připojeno k nabíjecí stanici '{{chargeBoxID}}', konektor '{{connectorId}}', právě dokončilo nabíjení u organizace '{{tenantName}}'"
+      },
+      "endOfSession":{
+         "title":"Relace skončena",
+         "body":"Vaše relace na nabíjecí stanici '{{chargeBoxID}}', konektor '{{connectorId}}', právě skončila u organizace '{{tenantName}}'"
+      },
+      "chargingStationStatusError":{
+         "title":"Vadná nabíjecí stanice",
+         "body":"Došlo k chybě na nabíjecí stanici '{{chargeBoxID}}', konektor '{{connectorId}}', organizace '{{tenantName}}': {{error}"
+      },
+      "unknownUserBadged":{
+         "title":"Neznámý uživatel",
+         "body":"Neznámý uživatel se prokázal kartou/čipem s ID '{{badgeID}}' na nabíjecí stanici '{{chargeBoxID}}' organizace {{tenantName}}"
+      },
+      "chargingStationRegistered":{
+         "title":"Nabíjecí stanice připojena",
+         "body":"Nabíjecí stanice '{{chargeBoxID}}' se právě připojila k centrálnímu serveru organizace '{{tenantName}}"
+      },
+      "userAccountStatusChanged":{
+         "title":"Účet {{status}}",
+         "activated":"aktivován",
+         "suspended":"pozastaven",
+         "body":"Váš účet byl {status}} správcem organizace '{{tenantName}}'"
+      },
+      "userAccountInactivity":{
+         "title":"Uživatelský účet",
+         "body":"Váš účet u organizace '{{tenantName}}' byl neaktivní od {{lastLogin}}. Uvědomte  si prosím, že z důvodů dodržování předpisů budou účty neaktivní po dobu 6 měsíců vymazány"
+      },
+      "preparingSessionNotStarted":{
+         "title":"Relace nezahájena",
+         "body":"Relace nezahájena na nabíjecí stanici '{{chargeBoxID}}', konektor '{{connectorId}}', organizace '{{tenantName}}'"
+      },
+      "offlineChargingStation":{
+         "title":"Nabíjecí stanice offline",
+         "body":"Následující nabíjecí stanice organizace {{tenantName}}‘ jsou offline: {{chargeBoxIDs}"
+      },
+      "billingUserSynchronizationFailed":{
+         "title":"Synchronizace uživatele se nezdařila",
+         "body":"Nelze synchronizovat počet {{nbrUsersInError}} uživatelů s poskytovatelem fakturační služby v organizaci '{{tenantName}}'"
+      },
+      "billingInvoiceSynchronizationFailed":{
+         "title":"Synchronizace faktury se nezdařila",
+         "body":"Nelze synchronizovat počet {{nbrUsersInError}} faktur s poskytovatelem fakturační služby v organizaci '{{tenantName}}'"
+      },
+      "billingPeriodicOperationFailed":{
+         "title":"Periodické fakturační operace",
+         "body":"Zpracování počtu {{nbrInvoicesInError}} faktur se nezdařilo. Organizace '{{tenantName}}'"
+      },
+      "computeAndApplyChargingProfilesFailed":{
+         "title":"Nabíjecí profily selhaly",
+         "body":"Nelze nastavit nabíjecí profily na nabíjecí stanici '{{chargeBoxID}}‘ v sekci parkoviště '{{siteAreaName}}' organizace '{{tenantName}}'"
+      },
+      "billingNewInvoicePaid":{
+         "title":"Nová faktura zaplacena",
+         "body":"Vaše faktura (č. {{invoiceNumber}}) ve výši {{amount}} € byla zaplacena a je nyní k dispozici"
+      },
+      "billingNewInvoiceOpen":{
+         "title":"Nová faktura k zaplacení",
+         "body":"Nová faktura (č. {{invoiceNumber}}) ve výši {{amount}} € je nyní k dispozici. Zkontrolujte prosím svůj e-mail kvůli dokončení platby"
+      },
+      "endUserErrorNotification":{
+         "title":"Uživatel oznámil chybu",
+         "body":"Uživatel '{{userName}}' oznámil: '{{errorTitle}}' - '{{errorDescription}}' v organizaci '{{tenantName}}'"
+      },
+      "accountVerificationNotification":{
+         "title":"Účet ověřen",
+         "bodyVerified":"Váš účet byl úspěšně ověřen. Správce váš účet zkontroluje a bude ho aktivovat.",
+         "bodyVerifiedAndActivated":"Váš účet byl úspěšně ověřen a aktivován."
+      }
+   },
+   "siteArea":"Sekce parkoviště",
+   "statistics":{
+      "consumption":"Spotřeba (kWh)",
+      "inactivity":"Nečinnost (hodiny)",
+      "numberOfSessions":"Počet relací",
+      "usage":"Využití (hodiny)"
+   },
+   "tags":{
+      "id":"ID karty/čipu",
+      "description":"Popis karty/čipu",
+      "virtualBadge":"Virtuální karta/čip"
+   },
+   "transactions":{
+      "totalConsumption":"Celková spotřeba (kWh)",
+      "totalDuration":"Celková doba trvání (min.)",
+      "totalInactivity":"Celková nečinnost (min.)"
+   },
+   "users":{
+      "email":"E-mail",
+      "eulaAcceptedOn":"EULA přijata dne",
+      "firstName":"První jméno",
+      "id":"ID",
+      "role":"Role",
+      "status":"Stav",
+      "user":"Uživatel",
+      "userID":"ID uživatele"
+   }
+}

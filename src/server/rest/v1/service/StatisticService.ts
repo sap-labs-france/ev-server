@@ -9,8 +9,8 @@ import Constants from '../../../../utils/Constants';
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import HttpStatisticsRequest from '../../../../types/requests/HttpStatisticRequest';
 import { ServerAction } from '../../../../types/Server';
-import StatisticSecurity from './security/StatisticSecurity';
 import StatisticsStorage from '../../../../storage/mongodb/StatisticsStorage';
+import StatisticsValidator from '../validator/StatisticsValidator';
 import { TenantComponents } from '../../../../types/Tenant';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
@@ -23,18 +23,18 @@ export default class StatisticService {
   static async handleGetChargingStationConsumptionStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
-      Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetChargingStationConsumptionStatistics');
+      Action.LIST, Entity.TRANSACTION, MODULE_NAME, 'handleGetChargingStationConsumptionStatistics');
     // Check auth
     if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.LIST, entity: Entity.TRANSACTIONS,
+        action: Action.LIST, entity: Entity.TRANSACTION,
         module: MODULE_NAME, method: 'handleGetChargingStationConsumptionStatistics'
       });
     }
     // Filter
-    const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
+    const filteredRequest = StatisticsValidator.getInstance().validateStatisticsGet(req.query);
     // Build filter
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
@@ -43,7 +43,6 @@ export default class StatisticService {
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.CHARGING_STATION);
-    // Return
     res.json(transactions);
     next();
   }
@@ -51,20 +50,20 @@ export default class StatisticService {
   static async handleGetChargingStationUsageStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
-      Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetChargingStationUsageStatistics');
+      Action.LIST, Entity.TRANSACTION, MODULE_NAME, 'handleGetChargingStationUsageStatistics');
     // Check auth
     if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST,
-        entity: Entity.TRANSACTIONS,
+        entity: Entity.TRANSACTION,
         module: MODULE_NAME,
         method: 'handleGetChargingStationUsageStatistics'
       });
     }
     // Filter
-    const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
+    const filteredRequest = StatisticsValidator.getInstance().validateStatisticsGet(req.query);
     // Build filter
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
@@ -73,7 +72,6 @@ export default class StatisticService {
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.CHARGING_STATION);
-    // Return
     res.json(transactions);
     next();
   }
@@ -81,20 +79,20 @@ export default class StatisticService {
   static async handleGetChargingStationInactivityStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
-      Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetChargingStationInactivityStatistics');
+      Action.LIST, Entity.TRANSACTION, MODULE_NAME, 'handleGetChargingStationInactivityStatistics');
     // Check auth
     if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST,
-        entity: Entity.TRANSACTIONS,
+        entity: Entity.TRANSACTION,
         module: MODULE_NAME,
         method: 'handleGetChargingStationInactivityStatistics'
       });
     }
     // Filter
-    const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
+    const filteredRequest = StatisticsValidator.getInstance().validateStatisticsGet(req.query);
     // Build filter
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
@@ -103,7 +101,6 @@ export default class StatisticService {
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.CHARGING_STATION);
-    // Return
     res.json(transactions);
     next();
   }
@@ -111,20 +108,20 @@ export default class StatisticService {
   static async handleGetChargingStationTransactionsStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
-      Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetChargingStationTransactionsStatistics');
+      Action.LIST, Entity.TRANSACTION, MODULE_NAME, 'handleGetChargingStationTransactionsStatistics');
     // Check auth
     if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST,
-        entity: Entity.TRANSACTIONS,
+        entity: Entity.TRANSACTION,
         module: MODULE_NAME,
         method: 'handleGetChargingStationTransactionsStatistics'
       });
     }
     // Filter
-    const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
+    const filteredRequest = StatisticsValidator.getInstance().validateStatisticsGet(req.query);
     // Build filter
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
@@ -133,7 +130,6 @@ export default class StatisticService {
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.CHARGING_STATION);
-    // Return
     res.json(transactions);
     next();
   }
@@ -141,20 +137,20 @@ export default class StatisticService {
   static async handleGetChargingStationPricingStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
-      Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetChargingStationPricingStatistics');
+      Action.LIST, Entity.TRANSACTION, MODULE_NAME, 'handleGetChargingStationPricingStatistics');
     // Check auth
     if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST,
-        entity: Entity.TRANSACTIONS,
+        entity: Entity.TRANSACTION,
         module: MODULE_NAME,
         method: 'handleGetChargingStationPricingStatistics'
       });
     }
     // Filter
-    const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
+    const filteredRequest = StatisticsValidator.getInstance().validateStatisticsGet(req.query);
     // Build filter
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
@@ -163,7 +159,6 @@ export default class StatisticService {
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.CHARGING_STATION);
-    // Return
     res.json(transactions);
     next();
   }
@@ -171,20 +166,20 @@ export default class StatisticService {
   static async handleGetUserConsumptionStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
-      Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetUserConsumptionStatistics');
+      Action.LIST, Entity.TRANSACTION, MODULE_NAME, 'handleGetUserConsumptionStatistics');
     // Check auth
     if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST,
-        entity: Entity.TRANSACTIONS,
+        entity: Entity.TRANSACTION,
         module: MODULE_NAME,
         method: 'handleGetUserConsumptionStatistics'
       });
     }
     // Filter
-    const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
+    const filteredRequest = StatisticsValidator.getInstance().validateStatisticsGet(req.query);
     // Build filter
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
@@ -193,7 +188,6 @@ export default class StatisticService {
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.USER);
-    // Return
     res.json(transactions);
     next();
   }
@@ -201,20 +195,20 @@ export default class StatisticService {
   static async handleGetUserUsageStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
-      Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetUserUsageStatistics');
+      Action.LIST, Entity.TRANSACTION, MODULE_NAME, 'handleGetUserUsageStatistics');
     // Check auth
     if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST,
-        entity: Entity.TRANSACTIONS,
+        entity: Entity.TRANSACTION,
         module: MODULE_NAME,
         method: 'handleGetUserUsageStatistics'
       });
     }
     // Filter
-    const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
+    const filteredRequest = StatisticsValidator.getInstance().validateStatisticsGet(req.query);
     // Build filter
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
@@ -223,7 +217,6 @@ export default class StatisticService {
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.USER);
-    // Return
     res.json(transactions);
     next();
   }
@@ -231,20 +224,20 @@ export default class StatisticService {
   static async handleGetUserInactivityStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
-      Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetUserInactivityStatistics');
+      Action.LIST, Entity.TRANSACTION, MODULE_NAME, 'handleGetUserInactivityStatistics');
     // Check auth
     if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST,
-        entity: Entity.TRANSACTIONS,
+        entity: Entity.TRANSACTION,
         module: MODULE_NAME,
         method: 'handleGetUserInactivityStatistics'
       });
     }
     // Filter
-    const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
+    const filteredRequest = StatisticsValidator.getInstance().validateStatisticsGet(req.query);
     // Build filter
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
@@ -253,7 +246,6 @@ export default class StatisticService {
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.USER);
-    // Return
     res.json(transactions);
     next();
   }
@@ -261,20 +253,20 @@ export default class StatisticService {
   static async handleGetUserTransactionsStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
-      Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetUserTransactionsStatistics');
+      Action.LIST, Entity.TRANSACTION, MODULE_NAME, 'handleGetUserTransactionsStatistics');
     // Check auth
     if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST,
-        entity: Entity.TRANSACTIONS,
+        entity: Entity.TRANSACTION,
         module: MODULE_NAME,
         method: 'handleGetUserTransactionsStatistics'
       });
     }
     // Filter
-    const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
+    const filteredRequest = StatisticsValidator.getInstance().validateStatisticsGet(req.query);
     // Build filter
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
@@ -283,7 +275,6 @@ export default class StatisticService {
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.USER);
-    // Return
     res.json(transactions);
     next();
   }
@@ -291,20 +282,20 @@ export default class StatisticService {
   static async handleGetUserPricingStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
-      Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetUserPricingStatistics');
+      Action.LIST, Entity.TRANSACTION, MODULE_NAME, 'handleGetUserPricingStatistics');
     // Check auth
     if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST,
-        entity: Entity.TRANSACTIONS,
+        entity: Entity.TRANSACTION,
         module: MODULE_NAME,
         method: 'handleGetUserPricingStatistics'
       });
     }
     // Filter
-    const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
+    const filteredRequest = StatisticsValidator.getInstance().validateStatisticsGet(req.query);
     // Build filter
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
@@ -313,7 +304,6 @@ export default class StatisticService {
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.USER);
-    // Return
     res.json(transactions);
     next();
   }
@@ -321,20 +311,20 @@ export default class StatisticService {
   static async handleExportStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
-      Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleExportStatistics');
+      Action.LIST, Entity.TRANSACTION, MODULE_NAME, 'handleExportStatistics');
     // Check auth
     if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST,
-        entity: Entity.TRANSACTIONS,
+        entity: Entity.TRANSACTION,
         module: MODULE_NAME,
         method: 'handleExportStatistics'
       });
     }
     // Filter
-    const filteredRequest = StatisticSecurity.filterExportStatisticsRequest(req.query);
+    const filteredRequest = StatisticsValidator.getInstance().validateStatisticsExport(req.query);
     // Build filter
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Decisions
@@ -399,16 +389,16 @@ export default class StatisticService {
       filter.endDateTime = filteredRequest.EndDateTime;
     }
     // Site
-    if (filteredRequest.SiteIDs) {
-      filter.siteIDs = filteredRequest.SiteIDs;
+    if (filteredRequest.SiteID) {
+      filter.siteIDs = filteredRequest.SiteID.split('|');
     }
     // Site Area
-    if (filteredRequest.SiteAreaIDs) {
-      filter.siteAreaIDs = filteredRequest.SiteAreaIDs;
+    if (filteredRequest.SiteAreaID) {
+      filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
     }
     // Charge Box
-    if (filteredRequest.ChargingStationIDs) {
-      filter.chargeBoxIDs = filteredRequest.ChargingStationIDs;
+    if (filteredRequest.ChargingStationID) {
+      filter.chargeBoxIDs = filteredRequest.ChargingStationID.split('|');
     }
     // User
     if (Authorizations.isBasic(loggedUser)) {
@@ -419,8 +409,8 @@ export default class StatisticService {
         // Only for current user
         filter.userIDs = [loggedUser.id];
       }
-    } else if (!Authorizations.isBasic(loggedUser) && filteredRequest.UserIDs) {
-      filter.userIDs = filteredRequest.UserIDs;
+    } else if (!Authorizations.isBasic(loggedUser) && filteredRequest.UserID) {
+      filter.userIDs = filteredRequest.UserID.split('|');
     }
     return filter;
   }

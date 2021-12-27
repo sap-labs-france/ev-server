@@ -33,9 +33,7 @@ export default class BillingStorage {
         startDateTime?: Date; endDateTime?: Date; liveMode?: boolean
       } = {},
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<BillingInvoice>> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -144,17 +142,14 @@ export default class BillingStorage {
     const invoicesMDB = await global.database.getCollection<BillingInvoice>(tenant.id, 'invoices')
       .aggregate<BillingInvoice>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getInvoices', startTime, aggregation, invoicesMDB);
     return {
-      count: (invoicesCountMDB.length > 0 ?
-        (invoicesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : invoicesCountMDB[0].count) : 0),
+      count: DatabaseUtils.getCountFromDatabaseCount(invoicesCountMDB[0]),
       result: invoicesMDB
     };
   }
 
   public static async saveInvoice(tenant: Tenant, invoiceToSave: BillingInvoice): Promise<string> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
     // Build Request
     // Properties to save
@@ -181,15 +176,12 @@ export default class BillingStorage {
       { $set: invoiceMDB },
       { upsert: true, returnDocument: 'after' }
     );
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveInvoice', startTime, invoiceMDB);
     return invoiceMDB._id.toString();
   }
 
   public static async updateInvoiceAdditionalData(tenant: Tenant, invoiceToUpdate: BillingInvoice, additionalData: BillingAdditionalData): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Preserve the previous list of sessions
     const sessions: BillingSessionData[] = invoiceToUpdate.sessions || [];
@@ -204,31 +196,24 @@ export default class BillingStorage {
     await global.database.getCollection(tenant.id, 'invoices').findOneAndUpdate(
       { '_id': DatabaseUtils.convertToObjectID(invoiceToUpdate.id) },
       { $set: updatedInvoiceMDB });
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveInvoiceAdditionalData', startTime, updatedInvoiceMDB);
   }
 
   public static async deleteInvoice(tenant: Tenant, id: string): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete the Invoice
     await global.database.getCollection<BillingInvoice>(tenant.id, 'invoices')
       .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteInvoice', startTime, { id });
   }
 
   public static async deleteInvoiceByInvoiceID(tenant: Tenant, id: string): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete the Invoice
     await global.database.getCollection<BillingInvoice>(tenant.id, 'invoices')
       .findOneAndDelete({ 'invoiceID': id });
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteInvoiceByInvoiceID', startTime, { id });
   }
 }

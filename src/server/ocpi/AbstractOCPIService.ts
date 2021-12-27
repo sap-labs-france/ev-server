@@ -28,28 +28,20 @@ export default abstract class AbstractOCPIService {
 
   private endpoints: Map<string, AbstractEndpoint> = new Map<string, AbstractEndpoint>();
 
-  // Create OCPI Service
   protected constructor(
       private readonly ocpiRestConfig: OCPIServiceConfiguration,
       private readonly role: string,
       private readonly version: string) {
   }
 
-  /**
-   * Register Endpoint to this service
-   *
-   * @param {AbstractEndpoint} endpoint
-   */
   public registerEndpoint(endpoint: AbstractEndpoint): void {
     this.endpoints.set(endpoint.getIdentifier(), endpoint);
   }
 
-  // Get All Registered Endpoint
   public getRegisteredEndpoints(): Map<string, AbstractEndpoint> {
     return this.endpoints;
   }
 
-  // Return based URL of OCPI Service
   public getServiceUrl(req: Request): string {
     const baseUrl = this.getBaseUrl(req);
     const path = this.getPath();
@@ -57,16 +49,13 @@ export default abstract class AbstractOCPIService {
     return `${baseUrl}${path}`;
   }
 
-  // Get BaseUrl ${protocol}://${host}
   public getBaseUrl(req: Request): string {
-    const protocol = (this.ocpiRestConfig.externalProtocol ? this.ocpiRestConfig.externalProtocol : 'https');
     // Get host from the req
     const host = req.get('host');
     // Return Service url
-    return `${protocol}://${host}`;
+    return `https://${host}`;
   }
 
-  // Get Relative path of the service
   public getPath(): string {
     return `${this.role}/${this.version}/`;
   }
@@ -75,7 +64,6 @@ export default abstract class AbstractOCPIService {
     return this.version;
   }
 
-  // Rest Service Implementation
   public async restService(req: TenantIdHoldingRequest, res: Response, next: NextFunction): Promise<void> {
     // Parse the action
     // FIXME: use a express request parameter instead of using regexp to parse the request URL

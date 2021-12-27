@@ -8,9 +8,13 @@ import Logging from '../utils/Logging';
 import MigrationStorage from '../storage/mongodb/MigrationStorage';
 import MigrationTask from './MigrationTask';
 import RemoveDuplicateTagVisualIDsTask from './tasks/RemoveDuplicateTagVisualIDsTask';
+import RepairInvoiceInconsistencies from './tasks/RepairInvoiceInconsistencies';
+import RepairTransactionPricedAtZero from './tasks/RepairTransactionPricedAtZeroTask';
 import RestoreDataIntegrityInSiteUsersTask from './tasks/RestoreDataIntegrityInSiteUsersTask';
 import { ServerAction } from '../types/Server';
-import chalk from 'chalk';
+import SimplePricingMigrationTask from './tasks/MigrateSimplePricing';
+import UpdateEmailsToLowercaseTask from './tasks/UpdateEmailsToLowercaseTask';
+import Utils from '../utils/Utils';
 import moment from 'moment';
 
 const MODULE_NAME = 'MigrationHandler';
@@ -33,7 +37,6 @@ export default class MigrationHandler {
         const migrationTasks = MigrationHandler.createMigrationTasks();
         // Get the already done migrations from the DB
         const migrationTasksCompleted = await MigrationStorage.getMigrations();
-        // Check
         for (const migrationTask of migrationTasks) {
           // Check if not already done
           const foundMigrationTaskCompleted = migrationTasksCompleted.find((migrationTaskCompleted) =>
@@ -45,7 +48,6 @@ export default class MigrationHandler {
           if (foundMigrationTaskCompleted) {
             continue;
           }
-          // Check
           if (migrationTask.isAsynchronous() && processAsyncTasksOnly) {
             // Execute Async
             await MigrationHandler.executeTask(migrationTask);
@@ -90,6 +92,10 @@ export default class MigrationHandler {
     currentMigrationTasks.push(new AddCompanyIDToChargingStationsTask());
     currentMigrationTasks.push(new RestoreDataIntegrityInSiteUsersTask());
     currentMigrationTasks.push(new AddUserIDToCarsTask());
+    currentMigrationTasks.push(new RepairInvoiceInconsistencies());
+    currentMigrationTasks.push(new SimplePricingMigrationTask());
+    currentMigrationTasks.push(new RepairTransactionPricedAtZero());
+    currentMigrationTasks.push(new UpdateEmailsToLowercaseTask());
     return currentMigrationTasks;
   }
 
@@ -104,7 +110,7 @@ export default class MigrationHandler {
         message: logMsg
       });
       // Log in the console also
-      console.log(logMsg);
+      Utils.isDevelopmentEnv() && Logging.logConsoleDebug(logMsg);
       // Start time and date
       const startTaskTime = moment();
       const startDate = new Date();
@@ -128,7 +134,7 @@ export default class MigrationHandler {
         message: logMsg
       });
       // Log in the console also
-      console.log(logMsg);
+      Utils.isDevelopmentEnv() && Logging.logConsoleDebug(logMsg);
     } catch (error) {
       const logMsg = `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has failed with error: ${error.message as string}`;
       await Logging.logError({
@@ -138,7 +144,7 @@ export default class MigrationHandler {
         message: logMsg,
         detailedMessages: { error: error.stack }
       });
-      console.error(chalk.red(logMsg));
+      Logging.logConsoleError(logMsg);
     }
   }
 }

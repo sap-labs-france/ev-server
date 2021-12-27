@@ -8,6 +8,7 @@ import CompanyStorage from '../../storage/mongodb/CompanyStorage';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import Logging from '../../utils/Logging';
+import LoggingHelper from '../../utils/LoggingHelper';
 import { OCPICdr } from '../../types/ocpi/OCPICdr';
 import OCPIClient from './OCPIClient';
 import { OCPICommandResponse } from '../../types/ocpi/OCPICommandResponse';
@@ -123,7 +124,7 @@ export default class EmspOCPIClient extends OCPIClient {
     if (!company) {
       company = {
         id: this.ocpiEndpoint.id,
-        name: this.ocpiEndpoint.name,
+        name: `${this.ocpiEndpoint.name} (${this.ocpiEndpoint.role})`,
         issuer: false,
         createdOn: new Date()
       } as Company;
@@ -447,11 +448,8 @@ export default class EmspOCPIClient extends OCPIClient {
     const tag = await TagStorage.getTag(this.tenant, tagID, { withUser: true });
     if (!tag || !tag.issuer || !tag.active) {
       throw new BackendError({
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.OCPI_START_SESSION,
-        chargingStationID: chargingStation.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
         message: `${Utils.buildConnectorInfo(connectorID)} OCPI Remote Start Session is not available for Tag ID '${tagID}'`,
         module: MODULE_NAME, method: 'remoteStartSession',
         detailedMessages: { tag: tag }
@@ -459,11 +457,8 @@ export default class EmspOCPIClient extends OCPIClient {
     }
     if (!tag.user || !tag.user.issuer) {
       throw new BackendError({
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.OCPI_START_SESSION,
-        chargingStationID: chargingStation.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
         message: `${Utils.buildConnectorInfo(connectorID)} OCPI Remote Start Session is not available for user with Tag ID '${tagID}'`,
         module: MODULE_NAME, method: 'remoteStartSession',
         detailedMessages: { user: tag.user }
@@ -501,11 +496,8 @@ export default class EmspOCPIClient extends OCPIClient {
       });
     await Logging.logDebug({
       tenantID: this.tenant.id,
+      ...LoggingHelper.getChargingStationProperties(chargingStation),
       action: ServerAction.OCPI_START_SESSION,
-      siteID: chargingStation.siteID,
-      siteAreaID: chargingStation.siteAreaID,
-      companyID: chargingStation.companyID,
-      chargingStationID: chargingStation.id,
       message: `${Utils.buildConnectorInfo(connectorID)} OCPI Remote Start session response status '${response.status}'`,
       module: MODULE_NAME, method: 'remoteStartSession',
       detailedMessages: { remoteStart, response: response.data }

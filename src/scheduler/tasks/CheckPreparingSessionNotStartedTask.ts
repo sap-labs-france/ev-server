@@ -14,8 +14,7 @@ import Utils from '../../utils/Utils';
 import moment from 'moment';
 
 export default class CheckPreparingSessionNotStartedTask extends SchedulerTask {
-
-  async processTenant(tenant: Tenant, config: CheckPreparingSessionNotStartedTaskConfig): Promise<void> {
+  public async processTenant(tenant: Tenant, config: CheckPreparingSessionNotStartedTaskConfig): Promise<void> {
     // Get the lock
     const sessionNotStartedLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.CHARGING_STATION, 'preparing-session-not-started');
     if (await LockingManager.acquire(sessionNotStartedLock)) {

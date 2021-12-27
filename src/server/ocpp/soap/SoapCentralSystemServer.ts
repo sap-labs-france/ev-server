@@ -1,3 +1,5 @@
+import { ServerAction, ServerType } from '../../../types/Server';
+
 import CentralSystemConfiguration from '../../../types/configuration/CentralSystemConfiguration';
 import CentralSystemServer from '../CentralSystemServer';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
@@ -5,7 +7,6 @@ import Constants from '../../../utils/Constants';
 import ExpressUtils from '../../ExpressUtils';
 import Logging from '../../../utils/Logging';
 import { OCPPVersion } from '../../../types/ocpp/OCPPServer';
-import { ServerAction } from '../../../types/Server';
 import { ServerUtils } from '../../ServerUtils';
 import Utils from '../../../utils/Utils';
 import centralSystemService15 from './services/SoapCentralSystemService15';
@@ -40,11 +41,10 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
   start(): void {
     // Make it global for SOAP Services
     global.centralSystemSoapServer = this;
-    ServerUtils.startHttpServer(this.centralSystemConfig, this.httpServer, MODULE_NAME, 'OCPP-S');
+    ServerUtils.startHttpServer(this.centralSystemConfig, this.httpServer, MODULE_NAME, ServerType.SOAP_SERVER);
     // Create Soap Servers
     // OCPP 1.5 -----------------------------------------
     const soapServer15 = soap.listen(this.httpServer, `/${Utils.getOCPPServerVersionURLPath(OCPPVersion.VERSION_15)}`, centralSystemService15, this.readWsdl('OCPPCentralSystemService15.wsdl'));
-    // Log
     if (this.centralSystemConfig.debug) {
       // Listen
       soapServer15.log = async (type, data) => {
@@ -57,7 +57,6 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
     }
     // OCPP 1.6 -----------------------------------------
     const soapServer16 = soap.listen(this.httpServer, `/${Utils.getOCPPServerVersionURLPath(OCPPVersion.VERSION_16)}`, centralSystemService16, this.readWsdl('OCPPCentralSystemService16.wsdl'));
-    // Log
     if (this.centralSystemConfig.debug) {
       // Listen
       soapServer16.log = async (type, data) => {
@@ -77,7 +76,6 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
   }
 
   private async handleSoapServerMessage(ocppVersion: OCPPVersion, request: any, methodName: string) {
-    // Log
     await Logging.logDebug({
       tenantID: Constants.DEFAULT_TENANT, module: MODULE_NAME,
       method: 'handleSoapServerMessage',
@@ -90,7 +88,6 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
   private async handleSoapServerLog(ocppVersion: OCPPVersion, type: string, data: any) {
     // Do not log 'Info'
     if (type === 'replied') {
-      // Log
       await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT, module: MODULE_NAME,
         method: 'handleSoapServerLog',

@@ -20,6 +20,7 @@ export default interface Site extends CreatedUpdatedProps, SiteAuthorizationActi
   distanceMeters?: number;
   public?: boolean;
   openingTimes?: OpeningTimes;
+  tariffID?: string;
 }
 
 export interface SiteUser {

@@ -71,7 +71,6 @@ export default class TenantService {
       action: action,
       detailedMessages: { tenant }
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -140,7 +139,6 @@ export default class TenantService {
     );
     UtilsService.assertObjectExists(action, tenant, `Tenant ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetTenant', req.user);
-    // Return
     res.json(tenant);
     next();
   }
@@ -153,7 +151,7 @@ export default class TenantService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.LIST, entity: Entity.TENANTS,
+        action: Action.LIST, entity: Entity.TENANT,
         module: MODULE_NAME, method: 'handleGetTenants'
       });
     }
@@ -177,7 +175,6 @@ export default class TenantService {
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields) },
       projectFields);
-    // Return
     res.json(tenants);
     next();
   }
@@ -290,7 +287,7 @@ export default class TenantService {
     const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.subdomain) +
       '/verify-email?VerificationToken=' + verificationToken + '&Email=' +
       tenantUser.email + '&ResetToken=' + resetHash;
-    // Send Register User (Async)
+    // Notify
     void NotificationHandler.sendNewRegisteredUser(
       tenant,
       Utils.generateUUID(),
@@ -310,13 +307,11 @@ export default class TenantService {
       action: action,
       detailedMessages: { params: filteredRequest }
     });
-    // Ok
     res.status(StatusCodes.OK).json(Object.assign({ id: filteredRequest.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 
   public static async handleUpdateTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check
     const filteredRequest = TenantValidator.getInstance().validateTenantUpdateReq(req.body);
     // Check auth
     if (!await Authorizations.canUpdateTenant(req.user)) {
@@ -384,7 +379,6 @@ export default class TenantService {
       action: action,
       detailedMessages: { tenant }
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }

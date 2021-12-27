@@ -7,6 +7,7 @@ import Tenant, { TenantComponentContent, TenantComponents } from '../types/Tenan
 import Transaction, { CSPhasesUsed, InactivityStatus } from '../types/Transaction';
 import User, { UserRole, UserStatus } from '../types/User';
 import crypto, { CipherGCMTypes } from 'crypto';
+import global, { EntityData } from '../types/GlobalType';
 
 import Address from '../types/Address';
 import { AxiosError } from 'axios';
@@ -25,7 +26,6 @@ import { WebSocketCloseEventStatusString } from '../types/WebSocket';
 import _ from 'lodash';
 import bcrypt from 'bcryptjs';
 import fs from 'fs';
-import global from '../types/GlobalType';
 import http from 'http';
 import moment from 'moment';
 import os from 'os';
@@ -36,6 +36,26 @@ import { v4 as uuid } from 'uuid';
 import validator from 'validator';
 
 export default class Utils {
+  public static removeCanPropertiesWithFalseValue(entityData: EntityData): void {
+    if (entityData) {
+      for (const entityDataKey in entityData) {
+        if (entityDataKey.startsWith('can') && !entityData[entityDataKey]) {
+          delete entityData[entityDataKey];
+        }
+      }
+    }
+  }
+
+  public static convertBufferArrayToString(data: ArrayBuffer): string {
+    if (!data) {
+      return null;
+    }
+    if (data.byteLength === 0) {
+      return '';
+    }
+    return Buffer.from(data).toString();
+  }
+
   public static buildConnectorInfo(connectorID: number, transactionID?: number): string {
     let connectorInfo = `Connector ID '${connectorID}' >`;
     if (transactionID > 0) {
@@ -196,7 +216,6 @@ export default class Utils {
     }
     // Get Notification Interval
     const intervalMins = Utils.getEndOfChargeNotificationIntervalMins(chargingStation, connectorId);
-    // Check
     if (inactivitySecs < (intervalMins * 60)) {
       return InactivityStatus.INFO;
     } else if (inactivitySecs < (intervalMins * 60 * 2)) {
@@ -426,7 +445,6 @@ export default class Utils {
   }
 
   public static convertToDate(value: any): Date {
-    // Check
     if (!value) {
       return null;
     }
@@ -450,7 +468,6 @@ export default class Utils {
     if (typeof document !== 'object') {
       return true;
     }
-    // Check
     return Object.keys(document).length === 0;
   }
 
@@ -482,7 +499,6 @@ export default class Utils {
     if (Number.isSafeInteger(value)) {
       return value;
     }
-    // Check
     if (typeof value === 'string') {
       // Create Object
       changedValue = parseInt(value);
@@ -495,7 +511,6 @@ export default class Utils {
     if (!value) {
       return 0;
     }
-    // Check
     if (typeof value === 'string') {
       // Create Object
       changedValue = parseFloat(value);
@@ -954,36 +969,13 @@ export default class Utils {
     return `${centralSystemFrontEndConfig.protocol}://${centralSystemFrontEndConfig.host}:${centralSystemFrontEndConfig.port}`;
   }
 
-  public static buildOCPPServerURL(tenantID: string, ocppVersion: OCPPVersion, ocppProtocol: OCPPProtocol, token?: string): string {
-    let ocppUrl: string;
-    if (Configuration.getJsonEndpointConfig().baseUrl && ocppProtocol === OCPPProtocol.JSON) {
-      ocppUrl = `${Configuration.getJsonEndpointConfig().baseUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}/${tenantID}`;
-      if (token) {
-        ocppUrl += `/${token}`;
-      }
-    } else if (Configuration.getWSDLEndpointConfig()?.baseUrl && ocppProtocol === OCPPProtocol.SOAP) {
-      ocppUrl = `${Configuration.getWSDLEndpointConfig().baseUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}?TenantID=${tenantID}`;
-      if (token) {
-        ocppUrl += `%26Token=${token}`;
-      }
-    }
-    return ocppUrl;
-  }
-
   public static buildOCPPServerSecureURL(tenantID: string, ocppVersion: OCPPVersion, ocppProtocol: OCPPProtocol, token?: string): string {
-    let ocppUrl: string;
-    if (Configuration.getJsonEndpointConfig().baseSecureUrl && ocppProtocol === OCPPProtocol.JSON) {
-      ocppUrl = `${Configuration.getJsonEndpointConfig().baseSecureUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}/${tenantID}`;
-      if (token) {
-        ocppUrl += `/${token}`;
-      }
-    } else if (Configuration.getWSDLEndpointConfig()?.baseSecureUrl && ocppProtocol === OCPPProtocol.SOAP) {
-      ocppUrl = `${Configuration.getWSDLEndpointConfig().baseSecureUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}?TenantID=${tenantID}`;
-      if (token) {
-        ocppUrl += `%26Token=${token}`;
-      }
+    switch (ocppProtocol) {
+      case OCPPProtocol.JSON:
+        return `${Configuration.getJsonEndpointConfig().baseSecureUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}/${tenantID}/${token}`;
+      case OCPPProtocol.SOAP:
+        return `${Configuration.getWSDLEndpointConfig().baseSecureUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}?TenantID=${tenantID}%26Token=${token}`;
     }
-    return ocppUrl;
   }
 
   public static getOCPPServerVersionURLPath(ocppVersion: OCPPVersion): string {
@@ -1487,9 +1479,9 @@ export default class Utils {
   }
 
   public static buildPerformanceRecord(params: {
-    tenantSubdomain?: string; durationMs?: number; resSizeKb?: number;
-    reqSizeKb?: number; action: ServerAction|string; group?: PerformanceRecordGroup;
-    httpUrl?: string; httpMethod?: string; httpResponseCode?: number; chargingStationID?: string,
+    tenantSubdomain?: string; durationMs?: number; resSizeKb?: number; reqSizeKb?: number;
+    action: ServerAction|string; group?: PerformanceRecordGroup; httpUrl?: string;
+    httpMethod?: string; httpResponseCode?: number; chargingStationID?: string, userID?: string
   }): PerformanceRecord {
     const performanceRecord: PerformanceRecord = {
       tenantSubdomain: params.tenantSubdomain,
@@ -1519,6 +1511,9 @@ export default class Utils {
     if (params.httpResponseCode) {
       performanceRecord.httpResponseCode = params.httpResponseCode;
     }
+    if (params.userID) {
+      performanceRecord.userID = params.userID;
+    }
     if (global.serverType) {
       performanceRecord.server = global.serverType;
     }
@@ -1526,10 +1521,19 @@ export default class Utils {
   }
 
   public static getHostName(): string {
+    // K8s
+    if (process.env.POD_NAME) {
+      return process.env.POD_NAME;
+    }
     return os.hostname();
   }
 
   public static getHostIP(): string {
+    // K8s
+    if (process.env.POD_IP) {
+      return process.env.POD_IP;
+    }
+    // AWS
     const hostname = Utils.getHostName();
     if (hostname.startsWith('ip-')) {
       const hostnameParts = hostname.split('-');

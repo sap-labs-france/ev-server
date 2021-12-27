@@ -1,0 +1,45 @@
+{
+  "$id": "site-area",
+  "definitions": {
+    "id": {
+      "$ref": "common#/definitions/id"
+    },
+    "name": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "address": {
+      "$ref": "common#/definitions/address"
+    },
+    "maximumPower": {
+      "type": "number",
+      "sanitize": "mongo",
+      "minimum": 0
+    },
+    "numberOfPhases": {
+      "type": "number",
+      "sanitize": "mongo",
+      "enum": [1, 3]
+    },
+    "voltage": {
+      "type": "number",
+      "sanitize": "mongo",
+      "enum": [110, 230]
+    },
+    "smartCharging": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "accessControl": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "siteID": {
+      "$ref": "common#/definitions/id"
+    },
+    "image": {
+      "type": "string",
+      "sanitize": "mongo"
+    }
+  }
+}

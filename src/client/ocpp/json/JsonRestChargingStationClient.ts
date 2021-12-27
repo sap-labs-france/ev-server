@@ -6,6 +6,7 @@ import { ServerAction, WSServerProtocol } from '../../../types/Server';
 import BackendError from '../../../exception/BackendError';
 import ChargingStationClient from '../ChargingStationClient';
 import Logging from '../../../utils/Logging';
+import LoggingHelper from '../../../utils/LoggingHelper';
 import Utils from '../../../utils/Utils';
 import WSClient from '../../websocket/WSClient';
 import { WSClientOptions } from '../../../types/WebSocket';
@@ -23,24 +24,27 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     super();
     this.tenantID = tenantID;
     // Get URL
-    let chargingStationURL = chargingStation.chargingStationURL;
-    if (!chargingStationURL) {
-      throw new BackendError({
-        chargingStationID: chargingStation.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
-        module: MODULE_NAME,
-        method: 'constructor',
-        message: 'Cannot access the Charging Station via a REST call because no URL is provided',
-        detailedMessages: { chargingStation }
-      });
+    let jsonServerURL: string;
+    // Check K8s
+    if (process.env.POD_NAME && chargingStation.cloudHostIP) {
+      // Use K8s internal IP, always in ws
+      jsonServerURL = `ws://${chargingStation.cloudHostIP}`;
+    } else {
+      jsonServerURL = chargingStation.chargingStationURL;
+      if (!jsonServerURL) {
+        throw new BackendError({
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
+          module: MODULE_NAME, method: 'constructor',
+          message: 'Cannot access the Charging Station via a REST call because no URL is provided',
+          detailedMessages: { chargingStation }
+        });
+      }
     }
     // Check URL: remove starting and trailing '/'
-    if (chargingStationURL.endsWith('/')) {
-      chargingStationURL = chargingStationURL.substring(0, chargingStationURL.length - 1);
+    if (jsonServerURL.endsWith('/')) {
+      jsonServerURL = jsonServerURL.substring(0, jsonServerURL.length - 1);
     }
-    this.serverURL = `${chargingStationURL}/REST/${tenantID}/${chargingStation.tokenID}/${chargingStation.id}`;
+    this.serverURL = `${jsonServerURL}/REST/${tenantID}/${chargingStation.tokenID}/${chargingStation.id}`;
     this.chargingStation = chargingStation;
     this.requests = {};
   }
@@ -127,9 +131,9 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         // Create WS
         const wsClientOptions: WSClientOptions = {
           wsOptions: {
-            protocol: WSServerProtocol.REST,
             handshakeTimeout: 5000,
           },
+          protocols: WSServerProtocol.REST,
           logTenantID: this.tenantID
         };
         // Create and Open the WS
@@ -173,7 +177,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             chargingStationID: this.chargingStation.id,
             action: ServerAction.WS_REST_CLIENT_CONNECTION_ERROR,
             module: MODULE_NAME, method: 'onError',
-            message: `Connection error to '${this.serverURL}: ${error.toString()}`,
+            message: `Connection error to '${this.serverURL}: ${error?.message}`,
             detailedMessages: { error: error.stack }
           });
           // Terminate WS in error
@@ -228,7 +232,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           }
         };
       } catch (error) {
-        reject(new Error(`Unexpected error on opening Web Socket connection: ${error.message}'`));
+        reject(new Error(`Unexpected error on opening Web Socket connection: ${error.message as string}'`));
       }
     });
   }

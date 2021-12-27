@@ -1,0 +1,50 @@
+{
+  "$id": "setting-analytics-set",
+  "title": "Set Analytics Settings",
+  "type": "object",
+  "properties": {
+    "content": {
+      "type": "object",
+      "properties": {
+        "sac": {
+          "type": "object",
+          "properties": {
+            "mainUrl": {
+              "type": "string",
+              "sanitize": "mongo"
+            },
+            "timezone": {
+              "type": "string",
+              "sanitize": "mongo"
+            }
+          }
+        },
+        "links": {
+          "$ref": "setting#/definitions/links"
+        },
+        "type": {
+          "type": "string",
+          "sanitize": "mongo",
+          "enum": ["sac"]
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "id": {
+      "$ref": "common#/definitions/id"
+    },
+    "identifier": {
+      "type": "string",
+      "sanitize": "mongo",
+      "enum": ["sac"]
+    },
+    "sensitiveData": {
+      "$ref": "setting#/definitions/sensitiveData"
+    }
+  },
+  "required": [
+    "identifier"
+  ]
+}

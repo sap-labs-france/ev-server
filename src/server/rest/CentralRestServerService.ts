@@ -13,7 +13,6 @@ import OCPIEndpointService from './v1/service/OCPIEndpointService';
 import OICPEndpointService from './v1/service/OICPEndpointService';
 import RegistrationTokenService from './v1/service/RegistrationTokenService';
 import { ServerAction } from '../../types/Server';
-import SessionHashService from './v1/service/SessionHashService';
 import SettingService from './v1/service/SettingService';
 import SiteAreaService from './v1/service/SiteAreaService';
 import SiteService from './v1/service/SiteService';
@@ -311,10 +310,6 @@ export default class CentralRestServerService {
   public static async restServiceSecured(req: Request, res: Response, next: NextFunction): Promise<void> {
     // Parse the action
     const action = req.params.action as ServerAction;
-    // Check if User has been updated and require new login
-    if ((await SessionHashService.areTokenUserAndTenantStillValid(req, res, next))) {
-      return;
-    }
     // Check HTTP Verbs
     if (!['POST', 'GET', 'PUT', 'DELETE'].includes(req.method)) {
       await Logging.logActionExceptionMessageAndSendResponse(
@@ -322,7 +317,6 @@ export default class CentralRestServerService {
       return;
     }
     try {
-      await Logging.traceExpressRequest(req, res, next);
       // Get the action
       const handleRequest = RequestMapper.getInstanceFromHTTPVerb(req.method).getActionFromPath(action);
       // Execute

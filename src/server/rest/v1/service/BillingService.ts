@@ -23,6 +23,7 @@ import { TenantComponents } from '../../../../types/Tenant';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import User from '../../../../types/User';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
+import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 
 const MODULE_NAME = 'BillingService';
@@ -58,7 +59,6 @@ export default class BillingService {
       await billingImpl.clearTestData();
       // Reset billing settings
       const newSettings = await billingImpl.resetConnectionSettings();
-      // Ok
       const operationResult: BillingOperationResult = {
         succeeded: true,
         internalData: newSettings
@@ -106,9 +106,7 @@ export default class BillingService {
       });
     }
     try {
-      // Check
       await billingImpl.checkConnection();
-      // Ok
       res.json(Object.assign({ connectionIsValid: true }, Constants.REST_RESPONSE_SUCCESS));
     } catch (error) {
       // Ko
@@ -130,13 +128,13 @@ export default class BillingService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        entity: Entity.USERS, action: Action.SYNCHRONIZE_BILLING_USERS,
+        entity: Entity.USER, action: Action.SYNCHRONIZE_BILLING_USERS,
         module: MODULE_NAME, method: 'handleSynchronizeUsers',
       });
     }
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.SYNCHRONIZE_BILLING_USERS, Entity.USERS, MODULE_NAME, 'handleSynchronizeUsers');
+      Action.SYNCHRONIZE_BILLING_USERS, Entity.USER, MODULE_NAME, 'handleSynchronizeUsers');
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
@@ -170,7 +168,6 @@ export default class BillingService {
         user: req.user
       });
     }
-    // Ok
     res.json(Object.assign(synchronizeAction, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
@@ -221,7 +218,6 @@ export default class BillingService {
         user: req.user
       });
     }
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -270,7 +266,6 @@ export default class BillingService {
         user: req.user
       });
     }
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -280,13 +275,13 @@ export default class BillingService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        entity: Entity.TAXES, action: Action.LIST,
+        entity: Entity.TAX, action: Action.LIST,
         module: MODULE_NAME, method: 'handleGetBillingTaxes',
       });
     }
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.LIST, Entity.TAXES, MODULE_NAME, 'handleGetBillingTaxes');
+      Action.LIST, Entity.TAX, MODULE_NAME, 'handleGetBillingTaxes');
     // Get Billing implementation from factory
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
@@ -300,7 +295,6 @@ export default class BillingService {
     }
     // Get taxes
     const taxes = await billingImpl.getTaxes();
-    // Return
     res.json(taxes);
     next();
   }
@@ -308,12 +302,12 @@ export default class BillingService {
   public static async handleGetInvoices(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.LIST, Entity.INVOICES, MODULE_NAME, 'handleGetInvoices');
+      Action.LIST, Entity.INVOICE, MODULE_NAME, 'handleGetInvoices');
     if (!await Authorizations.canListInvoicesBilling(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        entity: Entity.INVOICES, action: Action.LIST,
+        entity: Entity.INVOICE, action: Action.LIST,
         module: MODULE_NAME, method: 'handleGetInvoices',
       });
     }
@@ -344,7 +338,6 @@ export default class BillingService {
         'id', 'number', 'status', 'amount', 'createdOn', 'currency', 'downloadable', 'sessions',
         ...userProject
       ]);
-    // Return
     res.json(invoices);
     next();
   }
@@ -352,7 +345,7 @@ export default class BillingService {
   public static async handleGetInvoice(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.LIST, Entity.INVOICES, MODULE_NAME, 'handleGetInvoice');
+      Action.LIST, Entity.INVOICE, MODULE_NAME, 'handleGetInvoice');
     // Filter
     const filteredRequest = BillingSecurity.filterGetInvoiceRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetInvoice', req.user);
@@ -377,7 +370,6 @@ export default class BillingService {
         module: MODULE_NAME, method: 'handleGetInvoice',
       });
     }
-    // Return
     res.json(invoice);
     next();
   }
@@ -387,13 +379,13 @@ export default class BillingService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        entity: Entity.INVOICES, action: Action.SYNCHRONIZE,
+        entity: Entity.INVOICE, action: Action.SYNCHRONIZE,
         module: MODULE_NAME, method: 'handleSynchronizeInvoices',
       });
     }
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.SYNCHRONIZE, Entity.INVOICES, MODULE_NAME, 'handleSynchronizeInvoices');
+      Action.SYNCHRONIZE, Entity.INVOICE, MODULE_NAME, 'handleSynchronizeInvoices');
     // Check user
     let user: User;
     if (!Authorizations.isAdmin(req.user)) {
@@ -437,7 +429,6 @@ export default class BillingService {
         user: req.user
       });
     }
-    // Ok
     res.json(Object.assign(synchronizeAction, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
@@ -447,13 +438,13 @@ export default class BillingService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        entity: Entity.INVOICES, action: Action.SYNCHRONIZE,
+        entity: Entity.INVOICE, action: Action.SYNCHRONIZE,
         module: MODULE_NAME, method: 'handleForceSynchronizeUserInvoices',
       });
     }
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.SYNCHRONIZE, Entity.INVOICES, MODULE_NAME, 'handleForceSynchronizeUserInvoices');
+      Action.SYNCHRONIZE, Entity.INVOICE, MODULE_NAME, 'handleForceSynchronizeUserInvoices');
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
@@ -492,7 +483,6 @@ export default class BillingService {
         user: req.user
       });
     }
-    // Ok
     res.json(Object.assign(synchronizeAction, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
@@ -531,6 +521,9 @@ export default class BillingService {
     const setItAsDefault = (filteredRequest.keepDefaultUnchanged === true) ? false : true;
     // Invoke the billing implementation
     const operationResult: BillingOperationResult = await billingImpl.setupPaymentMethod(user, paymentMethodId, setItAsDefault);
+    if (operationResult) {
+      Utils.isDevelopmentEnv() && Logging.logConsoleError(operationResult as unknown as string);
+    }
     await Logging.logInfo({
       tenantID: req.user.tenantID,
       actionOnUser: user,
@@ -556,17 +549,6 @@ export default class BillingService {
         module: MODULE_NAME, method: 'handleBillingInvoicePayment'
       });
     }
-    // Get the billing impl
-    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
-    if (!billingImpl) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Billing service is not configured',
-        module: MODULE_NAME, method: 'handleBillingInvoicePayment',
-        action: action,
-        user: req.user
-      });
-    }
     // Verify invoice exists
     const billingInvoice: BillingInvoice = await BillingStorage.getInvoice(req.tenant, filteredRequest.invoiceID);
     UtilsService.assertObjectExists(action, billingInvoice, `Invoice ID '${filteredRequest.invoiceID}' does not exist`,
@@ -579,6 +561,17 @@ export default class BillingService {
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Unexpected situation - user ID does not match the invoice information',
         module: MODULE_NAME, method: 'handleBillingInvoicePayment',
+        action: action,
+        user: req.user
+      });
+    }
+    // Get the billing impl
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
+    if (!billingImpl) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Billing service is not configured',
+        module: MODULE_NAME, method: 'handleBillingSetupPaymentMethod',
         action: action,
         user: req.user
       });
@@ -682,7 +675,6 @@ export default class BillingService {
       message: `Payment Method '${filteredRequest.paymentMethodId}' has been deleted successfully`,
       action: action
     });
-    // Ok
     res.json(operationResult);
     next();
   }
@@ -795,7 +787,6 @@ export default class BillingService {
     const billingSettings: BillingSettings = await SettingStorage.getBillingSetting(req.tenant);
     UtilsService.assertObjectExists(action, billingSettings, 'Failed to load billing settings', MODULE_NAME, 'handleGetBillingSetting', req.user);
     UtilsService.hashSensitiveData(req.user.tenantID, billingSettings);
-    // Ok
     res.json(billingSettings);
     next();
   }
@@ -813,7 +804,6 @@ export default class BillingService {
         module: MODULE_NAME, method: 'handleUpdateBillingSetting',
       });
     }
-    // Check
     const newBillingProperties = BillingValidator.getInstance().validateBillingSettingUpdateReq({ ...req.params, ...req.body });
     // Load previous settings
     const billingSettings = await SettingStorage.getBillingSetting(req.tenant);
@@ -879,14 +869,12 @@ export default class BillingService {
     await SettingStorage.saveBillingSetting(req.tenant, billingSettings);
     // Post-process the activation of the billing feature
     if (postponeTransactionBillingActivation) {
-      // Check
       await BillingService.checkActivationPrerequisites(action, req);
       // Well - everything was Ok, activation is possible
       billingSettings.billing.isTransactionBillingActivated = true;
       // Save it again now that we are sure
       await SettingStorage.saveBillingSetting(req.tenant, billingSettings);
     }
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }

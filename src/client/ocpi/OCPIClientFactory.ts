@@ -21,7 +21,6 @@ export default class OCPIClientFactory {
     // Check if OCPI component is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
       const ocpiSettings = await SettingStorage.getOCPISettings(tenant);
-      // Check
       if (!ocpiSettings && ocpiSettings.ocpi) {
         await Logging.logError({
           tenantID: tenant.id,

@@ -15,9 +15,7 @@ export default class Constants {
   public static readonly PERF_MAX_DATA_VOLUME_KB = 512;
   public static readonly PERF_MAX_RESPONSE_TIME_MILLIS = 1000;
 
-  public static readonly AXIOS_DEFAULT_TIMEOUT = 60000;
-
-  public static readonly LAST_SEEN_UPDATE_INTERVAL_MILLIS = 60000;
+  public static readonly AXIOS_DEFAULT_TIMEOUT_SECS = 30;
 
   public static readonly DC_CHARGING_STATION_DEFAULT_EFFICIENCY_PERCENT = 80;
   public static readonly AMPERAGE_DETECTION_THRESHOLD = 0.5;
@@ -276,8 +274,8 @@ export default class Constants {
   public static readonly PWD_NUMBER_RE = /([\d])/g; // Cannot store regex in enum
   public static readonly PWD_SPECIAL_CHAR_RE = /([!#$%^&*.?-])/g; // Cannot store regex in enum
 
-  public static readonly SUPPORTED_LOCALES = Object.freeze(['en_US', 'fr_FR', 'es_ES', 'de_DE', 'pt_PT', 'it_IT', 'cz_CZ']);
-  public static readonly SUPPORTED_LANGUAGES = Object.freeze(['en', 'fr', 'es', 'de', 'pt', 'it', 'cz']);
+  public static readonly SUPPORTED_LOCALES = Object.freeze(['en_US', 'fr_FR', 'es_ES', 'de_DE', 'pt_PT', 'it_IT', 'cs_CZ', 'en_AU']);
+  public static readonly SUPPORTED_LANGUAGES = Object.freeze(['en', 'fr', 'es', 'de', 'pt', 'it', 'cs']);
   public static readonly DEFAULT_LOCALE = 'en_US';
   public static readonly DEFAULT_LANGUAGE = 'en';
 
@@ -293,7 +291,7 @@ export default class Constants {
     '([0-9a-f]{24})\\/',
     '(?:\\S+)$'].join(''), 'ig');
 
-  public static readonly OCPP_SOCKET_TIMEOUT = 10 * 1000;
+  public static readonly OCPP_SOCKET_TIMEOUT_MILLIS = 10 * 1000;
   public static readonly OCPP_HEARTBEAT_KEYS = Object.freeze(['HeartbeatInterval', 'HeartBeatInterval']);
 
   public static readonly MAX_DATE = new Date('9999-12-31Z23:59:59:999');
@@ -349,6 +347,8 @@ export default class Constants {
     'mobileOs': 0,
     'mobileToken': 0,
     'verifiedAt': 0,
+    'importedData': 0,
+    'billingData': 0
   });
 
   public static readonly DEFAULT_OCPP_16_CONFIGURATION: OcppParameter[] = Object.freeze([

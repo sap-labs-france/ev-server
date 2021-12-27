@@ -368,6 +368,7 @@ export default class OCPIUtilsService {
       case ChargePointStatus.CHARGING:
         return OCPIEvseStatus.CHARGING;
       case ChargePointStatus.FAULTED:
+      case ChargePointStatus.UNAVAILABLE:
         return OCPIEvseStatus.INOPERATIVE;
       case ChargePointStatus.PREPARING:
       case ChargePointStatus.SUSPENDED_EV:

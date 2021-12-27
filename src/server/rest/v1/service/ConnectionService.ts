@@ -62,7 +62,7 @@ export default class ConnectionService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.LIST, entity: Entity.CONNECTIONS,
+        action: Action.LIST, entity: Entity.CONNECTION,
         module: MODULE_NAME, method: 'handleGetConnections'
       });
     }
@@ -149,7 +149,6 @@ export default class ConnectionService {
       message: `Connection to '${connection.connectorId}' has been deleted successfully`,
       action: action
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }

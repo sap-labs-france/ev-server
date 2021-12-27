@@ -34,7 +34,7 @@ export interface AuthorizationDefinitionConditionArgs {
 
 export interface AuthorizationDefinitionFieldMetadata {
   visible: boolean;
-  enabled: string;
+  enabled: boolean;
   mandatory: boolean;
   values: string[]|boolean[]|number[],
   defaultValue: string|boolean|number,
@@ -64,57 +64,34 @@ export interface Grant {
 
 export enum Entity {
   SITE = 'Site',
-  SITES = 'Sites',
   SITE_AREA = 'SiteArea',
-  SITE_AREAS = 'SiteAreas',
   COMPANY = 'Company',
-  COMPANIES = 'Companies',
   CHARGING_STATION = 'ChargingStation',
-  CHARGING_STATIONS = 'ChargingStations',
   TENANT = 'Tenant',
-  TENANTS = 'Tenants',
   TRANSACTION = 'Transaction',
-  TRANSACTIONS = 'Transactions',
-  TRANSACTION_METER_VALUES = 'MeterValues',
-  TRANSACTION_STOP = 'Stop',
   REPORT = 'Report',
   USER = 'User',
-  USERS = 'Users',
   USERS_SITES = 'UsersSites',
-  LOGGINGS = 'Loggings',
   LOGGING = 'Logging',
   PRICING = 'Pricing',
+  PRICING_DEFINITION = 'PricingDefinition',
   BILLING = 'Billing',
   SETTING = 'Setting',
-  SETTINGS = 'Settings',
-  TOKENS = 'Tokens',
-  TOKEN = 'Token',
   ASYNC_TASK = 'AsyncTask',
-  ASYNC_TASKS = 'AsyncTasks',
   OCPI_ENDPOINT = 'OcpiEndpoint',
-  OCPI_ENDPOINTS = 'OcpiEndpoints',
   OICP_ENDPOINT = 'OicpEndpoint',
-  OICP_ENDPOINTS = 'OicpEndpoints',
   CONNECTION = 'Connection',
-  CONNECTIONS = 'Connections',
   ASSET = 'Asset',
-  ASSETS = 'Assets',
   CAR_CATALOG = 'CarCatalog',
-  CAR_CATALOGS = 'CarCatalogs',
   CAR = 'Car',
-  CARS = 'Cars',
   INVOICE = 'Invoice',
-  INVOICES = 'Invoices',
-  TAXES = 'Taxes',
+  TAX = 'Tax',
   REGISTRATION_TOKEN = 'RegistrationToken',
-  REGISTRATION_TOKENS = 'RegistrationTokens',
   CHARGING_PROFILE = 'ChargingProfile',
-  CHARGING_PROFILES = 'ChargingProfiles',
   NOTIFICATION = 'Notification',
-  TAGS = 'Tags',
   TAG = 'Tag',
   PAYMENT_METHOD = 'PaymentMethod',
-  PAYMENT_METHODS = 'PaymentMethods',
+  SOURCE = 'Source',
 }
 
 export enum Action {
@@ -123,6 +100,7 @@ export enum Action {
   UPDATE = 'Update',
   UPDATE_BY_VISUAL_ID = 'UpdateByVisualID',
   REPLACE = 'Replace',
+  REVOKE = 'Revoke',
   DELETE = 'Delete',
   LOGOUT = 'Logout',
   LOGIN = 'Login',
@@ -169,14 +147,17 @@ export enum Action {
   DOWNLOAD = 'Download',
   PAY = 'Pay',
   IMPORT = 'Import',
-  ASSIGN_USERS_TO_SITE = 'AssignUsersToSite',
-  UNASSIGN_USERS_TO_SITE = 'UnassignUsersToSite',
-  ASSIGN_ASSETS_TO_SITE_AREA = 'AssignAssetsToSiteArea',
-  UNASSIGN_ASSETS_TO_SITE_AREA = 'UnassignAssetsToSiteArea',
-  ASSIGN_CHARGING_STATIONS_TO_SITE_AREA = 'AssignChargingStationsToSiteArea',
-  UNASSIGN_CHARGING_STATIONS_TO_SITE_AREA = 'UnassignChargingStationsToSiteArea',
+  ASSIGN_USERS_TO_SITE = 'AssignUsers',
+  UNASSIGN_USERS_FROM_SITE = 'UnassignUsers',
+  ASSIGN_ASSETS_TO_SITE_AREA = 'AssignAssets',
+  UNASSIGN_ASSETS_FROM_SITE_AREA = 'UnassignAssets',
+  READ_ASSETS_FROM_SITE_AREA = 'ReadAssets',
+  ASSIGN_CHARGING_STATIONS_TO_SITE_AREA = 'AssignChargingStations',
+  UNASSIGN_CHARGING_STATIONS_FROM_SITE_AREA = 'UnassignChargingStations',
+  READ_CHARGING_STATIONS_FROM_SITE_AREA = 'ReadChargingStationsFromSiteArea',
   EXPORT_OCPP_PARAMS = 'ExportOCPPParams',
   GENERATE_QR = 'GenerateQrCode',
+  MAINTAIN_PRICING_DEFINITIONS = 'MaintainPricingDefinitions',
 }
 
 export interface AuthorizationContext {
@@ -200,9 +181,9 @@ export interface AuthorizationContext {
 
 export interface AuthorizationActions {
   canRead?: boolean;
-  canCreate?: boolean;
   canUpdate?: boolean;
   canDelete?: boolean;
+  canListUsers?: boolean;
   projectFields?: string[];
   metadata?: Record<string, unknown>;
 }
@@ -213,11 +194,17 @@ export interface TagAuthorizationActions extends AuthorizationActions {
   canUpdateByVisualID?: boolean;
 }
 
+export interface RegistrationTokenAuthorizationActions extends AuthorizationActions {
+  canRevoke?: boolean;
+}
+
 export interface SiteAreaAuthorizationActions extends AuthorizationActions {
   canAssignAssets?: boolean;
   canUnassignAssets?: boolean;
+  canReadAssets?: boolean;
   canAssignChargingStations?: boolean;
   canUnassignChargingStations?: boolean;
+  canReadChargingStations?: boolean;
   canExportOCPPParams?: boolean;
   canGenerateQrCode?: boolean;
 }
@@ -225,8 +212,10 @@ export interface SiteAreaAuthorizationActions extends AuthorizationActions {
 export interface SiteAuthorizationActions extends AuthorizationActions {
   canAssignUsers?: boolean;
   canUnassignUsers?: boolean;
+  canReadUsers?: boolean;
   canExportOCPPParams?: boolean;
   canGenerateQrCode?: boolean;
+  canMaintainPricingDefinitions?: boolean;
 }
 
 export enum DynamicAuthorizationFilterName {
@@ -242,7 +231,9 @@ export enum DynamicAuthorizationFilterName {
 export enum DynamicAuthorizationAssertName {
   POOL_CAR = 'PoolCar',
   OWN_USER = 'OwnUser',
-  BASIC_USER = 'BasicUser'
+  BASIC_USER = 'BasicUser',
+  USER_MANDATORY = 'UserMandatory',
+  SITE_AREA_MANDATORY = 'SiteAreaMandatory',
 }
 
 export enum DynamicAuthorizationDataSourceName {

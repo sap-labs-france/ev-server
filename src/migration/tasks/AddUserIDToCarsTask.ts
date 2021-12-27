@@ -1,23 +1,15 @@
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import MigrationTask from '../MigrationTask';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
+import TenantMigrationTask from '../TenantMigrationTask';
 import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'AddCompanyIDPropertToChargingStationsTask';
 
-export default class AddUserIDToCarsTask extends MigrationTask {
-  async migrate(): Promise<void> {
-    const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
-    for (const tenant of tenants.result) {
-      await this.migrateTenant(tenant);
-    }
-  }
-
-  async migrateTenant(tenant: Tenant): Promise<void> {
+export default class AddUserIDToCarsTask extends TenantMigrationTask {
+  public async migrateTenant(tenant: Tenant): Promise<void> {
     let updated = 0;
     // Get all the Car Users
     const carUsers = await global.database.getCollection<any>(tenant.id, 'carusers').find({})
@@ -52,15 +44,15 @@ export default class AddUserIDToCarsTask extends MigrationTask {
     }
   }
 
-  getVersion(): string {
+  public getVersion(): string {
     return '1.0';
   }
 
-  getName(): string {
+  public getName(): string {
     return 'AddUserIDToCarsTask';
   }
 
-  isAsynchronous(): boolean {
+  public isAsynchronous(): boolean {
     return true;
   }
 }

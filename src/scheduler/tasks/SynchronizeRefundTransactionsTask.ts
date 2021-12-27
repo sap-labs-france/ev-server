@@ -15,7 +15,7 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'SynchronizeRefundTransactionsTask';
 
 export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
-  async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
+  public async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     if (!Utils.isTenantComponentActive(tenant, TenantComponents.REFUND)) {
       await Logging.logDebug({
         tenantID: tenant.id,
@@ -44,7 +44,6 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
         const transactions = await TransactionStorage.getTransactions(tenant,
           { 'refundStatus': [RefundStatus.SUBMITTED] },
           { ...Constants.DB_PARAMS_MAX_LIMIT, sort: { 'userID': 1, 'refundData.reportId': 1 } });
-        // Check
         if (!Utils.isEmptyArray(transactions.result)) {
           // Process them
           await Logging.logInfo({

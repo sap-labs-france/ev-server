@@ -3,6 +3,7 @@ import { OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPP
 import BackendError from '../../../exception/BackendError';
 import ChargingStation from '../../../types/ChargingStation';
 import Logging from '../../../utils/Logging';
+import LoggingHelper from '../../../utils/LoggingHelper';
 import Schema from '../../../types/validator/Schema';
 import SchemaValidator from '../../../validator/SchemaValidator';
 import { ServerAction } from '../../../types/Server';
@@ -47,15 +48,15 @@ export default class OCPPValidation extends SchemaValidator {
     if (!statusNotification.timestamp || new Date(statusNotification.timestamp).getFullYear() === new Date(0).getFullYear()) {
       statusNotification.timestamp = new Date().toISOString();
     }
-    this.validate(this.statusNotificationRequest, statusNotification as unknown as Record<string, unknown>);
+    this.validate(this.statusNotificationRequest, statusNotification);
   }
 
   public validateAuthorize(authorize: OCPPAuthorizeRequestExtended): void {
-    this.validate(this.authorizeRequest, authorize as unknown as Record<string, unknown>);
+    this.validate(this.authorizeRequest, authorize);
   }
 
   public validateBootNotification(bootNotification: OCPPBootNotificationRequestExtended): void {
-    this.validate(this.bootNotificationRequest, bootNotification as unknown as Record<string, unknown>);
+    this.validate(this.bootNotificationRequest, bootNotification);
   }
 
   public validateDiagnosticsStatusNotification(chargingStation: ChargingStation,
@@ -67,14 +68,11 @@ export default class OCPPValidation extends SchemaValidator {
   }
 
   public validateStartTransaction(chargingStation: ChargingStation, startTransaction: OCPPStartTransactionRequestExtended): void {
-    this.validate(this.startTransactionRequest, startTransaction as unknown as Record<string, unknown>);
+    this.validate(this.startTransactionRequest, startTransaction);
     // Check Connector ID
     if (!Utils.getConnectorFromID(chargingStation, startTransaction.connectorId)) {
       throw new BackendError({
-        chargingStationID: chargingStation.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         module: MODULE_NAME, method: 'validateStartTransaction',
         message: `The Connector ID '${startTransaction.connectorId}' is invalid`,
         action: ServerAction.OCPP_START_TRANSACTION
@@ -87,9 +85,9 @@ export default class OCPPValidation extends SchemaValidator {
 
   public validateStopTransaction(chargingStation: ChargingStation, stopTransaction: OCPPStopTransactionRequestExtended): void {
     if (chargingStation.ocppVersion === OCPPVersion.VERSION_16) {
-      this.validate(this.stopTransactionRequest16, stopTransaction as unknown as Record<string, unknown>);
+      this.validate(this.stopTransactionRequest16, stopTransaction);
     } else {
-      this.validate(this.stopTransactionRequest15, stopTransaction as unknown as Record<string, unknown>);
+      this.validate(this.stopTransactionRequest15, stopTransaction);
     }
   }
 
@@ -101,10 +99,7 @@ export default class OCPPValidation extends SchemaValidator {
       // KEBA: Connector ID must be > 0 according to OCPP
       await Logging.logWarning({
         tenantID: tenantID,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
-        chargingStationID: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         module: MODULE_NAME, method: 'validateMeterValues',
         action: ServerAction.OCPP_METER_VALUES,
         message: 'Connector ID must not be \'0\' and has been reset to \'1\''
@@ -117,10 +112,7 @@ export default class OCPPValidation extends SchemaValidator {
     if (!foundConnector) {
       await Logging.logWarning({
         tenantID: tenantID,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
-        chargingStationID: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         module: MODULE_NAME, method: 'validateMeterValues',
         action: ServerAction.OCPP_METER_VALUES,
         message: `Connector ID '${meterValues.connectorId}' not found in charging station for transaction '${meterValues.transactionId}'`
@@ -138,10 +130,7 @@ export default class OCPPValidation extends SchemaValidator {
           // No: Log that the transaction ID will be reused
           await Logging.logWarning({
             tenantID: tenantID,
-            siteID: chargingStation.siteID,
-            siteAreaID: chargingStation.siteAreaID,
-            companyID: chargingStation.companyID,
-            chargingStationID: chargingStation.id,
+            ...LoggingHelper.getChargingStationProperties(chargingStation),
             module: MODULE_NAME, method: 'validateMeterValues',
             action: ServerAction.OCPP_METER_VALUES,
             message: `Transaction ID '${meterValues.transactionId}' not found but retrieved from StartTransaction '${connectorTransactionID}'`
@@ -155,10 +144,7 @@ export default class OCPPValidation extends SchemaValidator {
       // Yes: Use Connector's Transaction ID
       await Logging.logWarning({
         tenantID: tenantID,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
-        chargingStationID: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         module: MODULE_NAME, method: 'validateMeterValues',
         action: ServerAction.OCPP_METER_VALUES,
         message: `Transaction ID is not provided but retrieved from StartTransaction '${connectorTransactionID}'`

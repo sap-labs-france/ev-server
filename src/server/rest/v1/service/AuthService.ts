@@ -58,13 +58,6 @@ export default class AuthService {
     return passport.authenticate('jwt', { session: false });
   }
 
-  public static async checkSessionHash(req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check if User has been updated and require new login
-    if (!await SessionHashService.areTokenUserAndTenantStillValid(req, res, next)) {
-      next();
-    }
-  }
-
   public static async handleLogIn(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = AuthValidator.getInstance().validateAuthSignInReq(req.body);
@@ -238,7 +231,6 @@ export default class AuthService {
         await UserStorage.addSitesToUser(tenant, newUser.id, siteIDs);
       }
     }
-    // Log
     await Logging.logInfo({
       tenantID: tenant.id,
       user: newUser, action: action,
@@ -282,7 +274,6 @@ export default class AuthService {
     // Check captcha
     const recaptchaURL = `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`;
     const response = await AxiosFactory.getAxiosInstance(tenant).get(recaptchaURL);
-    // Check
     if (!response.data.success) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
@@ -305,7 +296,6 @@ export default class AuthService {
     const resetHash = Utils.generateUUID();
     // Init Password info
     await UserStorage.saveUserPassword(tenant, user.id, { passwordResetHash: resetHash });
-    // Log
     await Logging.logInfo({
       tenantID: tenant.id,
       user: user, action: action,
@@ -316,7 +306,7 @@ export default class AuthService {
     // Send notification
     const evseDashboardResetPassURL = Utils.buildEvseURL(filteredRequest.tenant) +
       '/define-password?hash=' + resetHash;
-    // Send Request Password (Async)
+    // Notify
     void NotificationHandler.sendRequestPassword(
       tenant,
       Utils.generateUUID(),
@@ -352,7 +342,6 @@ export default class AuthService {
     if (user.status === UserStatus.LOCKED) {
       await UserStorage.saveUserStatus(tenant, user.id, UserStatus.ACTIVE);
     }
-    // Log
     await Logging.logInfo({
       tenantID: tenant.id,
       user: user, action: action,
@@ -525,7 +514,6 @@ export default class AuthService {
     // Save User Verification Account
     await UserStorage.saveUserAccountVerification(tenant, user.id,
       { verificationToken: null, verifiedAt: new Date() });
-    // Log
     await Logging.logInfo({
       tenantID: tenant.id,
       user: user, action: action,
@@ -535,6 +523,7 @@ export default class AuthService {
         'User account has been successfully verified but needs an admin to activate it',
       detailedMessages: { params: req.query }
     });
+    // Notify
     void NotificationHandler.sendAccountVerification(
       tenant,
       Utils.generateUUID(),
@@ -572,7 +561,6 @@ export default class AuthService {
         action: action
       });
     }
-
     // Is valid captcha?
     const recaptchaURL = `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`;
     const response = await AxiosFactory.getAxiosInstance(tenant).get(recaptchaURL);
@@ -622,7 +610,6 @@ export default class AuthService {
       // Get existing verificationToken
       verificationToken = user.verificationToken;
     }
-    // Log
     await Logging.logInfo({
       tenantID: tenant.id,
       user: user,
@@ -636,7 +623,7 @@ export default class AuthService {
     const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +
       '/verify-email?VerificationToken=' + verificationToken + '&Email=' +
       user.email;
-    // Send Verification Email (Async)
+    // Notify
     void NotificationHandler.sendVerificationEmail(
       tenant,
       Utils.generateUUID(),
@@ -673,7 +660,6 @@ export default class AuthService {
           passwordWrongNbrTrials,
           passwordBlockedUntil: moment().add(_centralSystemRestConfig.passwordBlockedWaitTimeMin, 'm').toDate()
         });
-      // Log
       throw new AppError({
         errorCode: HTTPError.USER_ACCOUNT_LOCKED_ERROR,
         message: 'User is locked',
@@ -685,7 +671,6 @@ export default class AuthService {
     } else {
       // Save User Nbr Password Trials
       await UserStorage.saveUserPassword(tenant, user.id, { passwordWrongNbrTrials });
-      // Log
       throw new AppError({
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User failed to log in, ${_centralSystemRestConfig.passwordWrongNumberOfTrial - user.passwordWrongNbrTrials} trial(s) remaining`,
@@ -745,24 +730,20 @@ export default class AuthService {
   }
 
   public static async getTenantID(subdomain: string): Promise<string> {
-    // Check
     if (!subdomain) {
       return Constants.DEFAULT_TENANT;
     }
     // Get it
     const tenant = await TenantStorage.getTenantBySubdomain(subdomain);
-    // Return
     return (tenant ? tenant.id : null);
   }
 
   public static async getTenant(subdomain: string): Promise<Tenant> {
-    // Check
     if (!subdomain) {
       return Constants.DEFAULT_TENANT_OBJECT;
     }
     // Get it
     const tenant = await TenantStorage.getTenantBySubdomain(subdomain);
-    // Return
     return (tenant ? tenant : null);
   }
 
@@ -820,11 +801,27 @@ export default class AuthService {
             user: user
           });
       }
+      // Check Technical users
+      if (user.technical && AuthService.isLoggedFromUserDevice(req)) {
+        // No authorized to log
+        throw new AppError({
+          errorCode: HTTPError.TECHNICAL_USER_CANNOT_LOG_TO_UI_ERROR,
+          message: 'Technical user cannot log in to UI but only B2B',
+          module: MODULE_NAME,
+          method: 'checkUserLogin',
+          user: user
+        });
+      }
       // Login OK
       await AuthService.userLoginSucceeded(action, tenant, user, req, res, next);
     } else {
       // Login KO
       await AuthService.userLoginWrongPassword(action, tenant, user, req, res, next);
     }
+  }
+
+  private static isLoggedFromUserDevice(req: Request) {
+    return req.useragent.isMobile ||
+      req.useragent.isDesktop;
   }
 }

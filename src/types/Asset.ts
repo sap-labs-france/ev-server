@@ -96,3 +96,13 @@ export enum LacroixPeriods {
   ONE_HOUR = '1h',
   ONE_DAY = 'day',
 }
+
+export interface AssetConnectionToken {
+  accessToken: string,
+  tokenType?: string,
+  expiresIn?: number,
+  userName?: string,
+  issued?: Date,
+  expires: Date,
+}
+

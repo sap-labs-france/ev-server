@@ -1,11 +1,11 @@
-import ChargingStation, { Command } from '../../../types/ChargingStation';
 import { OCPPCancelReservationRequest, OCPPCancelReservationResponse, OCPPChangeAvailabilityRequest, OCPPChangeAvailabilityResponse, OCPPChangeConfigurationRequest, OCPPChangeConfigurationResponse, OCPPClearCacheResponse, OCPPClearChargingProfileRequest, OCPPClearChargingProfileResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPGetCompositeScheduleRequest, OCPPGetCompositeScheduleResponse, OCPPGetConfigurationRequest, OCPPGetConfigurationResponse, OCPPGetDiagnosticsRequest, OCPPGetDiagnosticsResponse, OCPPRemoteStartTransactionRequest, OCPPRemoteStartTransactionResponse, OCPPRemoteStopTransactionRequest, OCPPRemoteStopTransactionResponse, OCPPReserveNowRequest, OCPPReserveNowResponse, OCPPResetRequest, OCPPResetResponse, OCPPSetChargingProfileRequest, OCPPSetChargingProfileResponse, OCPPUnlockConnectorRequest, OCPPUnlockConnectorResponse, OCPPUpdateFirmwareRequest } from '../../../types/ocpp/OCPPClient';
 
 import ChargingStationClient from '../../ocpp/ChargingStationClient';
+import { Command } from '../../../types/ChargingStation';
 import JsonWSConnection from '../../../server/ocpp/json/JsonWSConnection';
 import Logging from '../../../utils/Logging';
 import { OCPPMessageType } from '../../../types/ocpp/OCPPCommon';
-import { ServerAction } from '../../../types/Server';
+import OCPPUtils from '../../../server/ocpp/utils/OCPPUtils';
 import Tenant from '../../../types/Tenant';
 import Utils from '../../../utils/Utils';
 
@@ -24,6 +24,9 @@ export default class JsonChargingStationClient extends ChargingStationClient {
     this.wsConnection = wsConnection;
     this.tenant = tenant;
     this.chargingStationID = chargingStationID;
+    this.companyID = wsConnection.getCompanyID();
+    this.siteID = wsConnection.getSiteID();
+    this.siteAreaID = wsConnection.getSiteAreaID();
   }
 
   getChargingStationID(): string {
@@ -94,22 +97,16 @@ export default class JsonChargingStationClient extends ChargingStationClient {
     return this.sendMessage(Command.CANCEL_RESERVATION, params);
   }
 
-  public setChargingStationDetails(chargingStation: ChargingStation): void {
-    this.siteID = chargingStation?.siteID;
-    this.siteAreaID = chargingStation?.siteAreaID;
-    this.companyID = chargingStation?.companyID;
-  }
-
   private async sendMessage(command: Command, params: any): Promise<any> {
     // Trace
     const performanceTracingData = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant, this.chargingStationID,
-      `ChargingStation${command}` as ServerAction, params, '<<',
+      OCPPUtils.buildServerActionFromOcppCommand(command), params, '<<',
       { siteAreaID: this.siteAreaID, siteID: this.siteID, companyID: this.companyID });
     // Execute
     const result = await this.wsConnection.sendMessage(Utils.generateUUID(), OCPPMessageType.CALL_MESSAGE, command, params);
     // Trace
     await Logging.traceOcppMessageResponse(MODULE_NAME, this.tenant, this.chargingStationID,
-      `ChargingStation${command}` as ServerAction, params, result, '>>',
+      OCPPUtils.buildServerActionFromOcppCommand(command), params, result, '>>',
       { siteAreaID: this.siteAreaID, siteID: this.siteID, companyID: this.companyID },
       performanceTracingData
     );

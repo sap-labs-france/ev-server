@@ -1,6 +1,7 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { ActionsResponse, ImportStatus } from '../../../../types/GlobalType';
 import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
+import Busboy, { BusboyHeaders } from 'busboy';
 import { DataResult, TagDataResult } from '../../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
@@ -12,7 +13,6 @@ import AppError from '../../../../exception/AppError';
 import AsyncTaskBuilder from '../../../../async-task/AsyncTaskBuilder';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
-import Busboy from 'busboy';
 import CSVError from 'csvtojson/v2/CSVError';
 import Constants from '../../../../utils/Constants';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
@@ -86,7 +86,6 @@ export default class TagService {
         message: `Unable to unassign the Tag visualID '${filteredRequest.visualID}'`
       });
     }
-    // Return
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -114,7 +113,6 @@ export default class TagService {
         message: `Unable to delete the Tag ID '${filteredRequest.ID}'`
       });
     }
-    // Return
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -122,7 +120,6 @@ export default class TagService {
   public static async handleCreateTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = TagValidator.getInstance().validateTagCreateReq(req.body);
-    // Check
     UtilsService.checkIfUserTagIsValid(filteredRequest, req);
     // Get dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetTagAuthorizations(
@@ -278,7 +275,7 @@ export default class TagService {
 
   public static async handleUpdateTagByVisualID(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = TagValidator.getInstance().validateTagVisualIDUpdateReq({ ...req.params, ...req.body });
+    const filteredRequest = TagValidator.getInstance().validateTagVisualIDUpdateReq(req.body);
     // Check and Get Tag
     const tag = await UtilsService.checkAndGetTagByVisualIDAuthorization(req.tenant, req.user, filteredRequest.visualID, Action.UPDATE_BY_VISUAL_ID, action,
       filteredRequest, { withNbrTransactions: true, withUser: true });
@@ -320,7 +317,6 @@ export default class TagService {
   public static async handleUpdateTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = TagValidator.getInstance().validateTagUpdateReq({ ...req.params, ...req.body });
-    // Check
     UtilsService.checkIfUserTagIsValid(filteredRequest, req);
     // Check and Get Tag
     const tag = await UtilsService.checkAndGetTagAuthorization(req.tenant, req.user, filteredRequest.id, Action.UPDATE, action,
@@ -401,7 +397,7 @@ export default class TagService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.IMPORT, entity: Entity.TAGS,
+        action: Action.IMPORT, entity: Entity.TAG,
         module: MODULE_NAME, method: 'handleImportTags'
       });
     }
@@ -429,7 +425,7 @@ export default class TagService {
       // Delete all previously imported tags
       await TagStorage.deleteImportedTags(req.tenant);
       // Get the stream
-      const busboy = new Busboy({ headers: req.headers });
+      const busboy = new Busboy({ headers: req.headers as BusboyHeaders });
       req.pipe(busboy);
       // Handle closed socket
       let connectionClosed = false;
@@ -488,7 +484,6 @@ export default class TagService {
             }, async (error: CSVError) => {
               // Release the lock
               await LockingManager.release(importTagsLock);
-              // Log
               await Logging.logError({
                 tenantID: req.user.tenantID,
                 module: MODULE_NAME, method: 'handleImportTags',
@@ -513,7 +508,6 @@ export default class TagService {
               }
               // Release the lock
               await LockingManager.release(importTagsLock);
-              // Log
               const executionDurationSecs = Utils.truncTo((new Date().getTime() - startTime) / 1000, 2);
               await Logging.logActionsResponse(
                 req.user.tenantID, action,
@@ -561,7 +555,6 @@ export default class TagService {
             parser.on('error', async (error) => {
               // Release the lock
               await LockingManager.release(importTagsLock);
-              // Log
               await Logging.logError({
                 tenantID: req.user.tenantID,
                 module: MODULE_NAME, method: 'handleImportTags',
@@ -580,7 +573,6 @@ export default class TagService {
           } else {
             // Release the lock
             await LockingManager.release(importTagsLock);
-            // Log
             await Logging.logError({
               tenantID: req.user.tenantID,
               module: MODULE_NAME, method: 'handleImportTags',
@@ -609,7 +601,7 @@ export default class TagService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.IMPORT, entity: Entity.TAGS,
+        action: Action.IMPORT, entity: Entity.TAG,
         module: MODULE_NAME, method: 'handleImportTags'
       });
     }
@@ -801,7 +793,6 @@ export default class TagService {
     }
     // Add Auth flags
     await AuthorizationService.addTagsAuthorizations(req.tenant, req.user, tags as TagDataResult, authorizationTagsFilters);
-    // Return
     return tags;
   }
 

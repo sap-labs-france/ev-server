@@ -19,20 +19,17 @@ import UtilsService from './UtilsService';
 const MODULE_NAME = 'CompanyService';
 
 export default class CompanyService {
-
   public static async handleDeleteCompany(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.DELETE, Entity.COMPANY, MODULE_NAME, 'handleDeleteCompany');
     // Filter
     const companyID = CompanyValidator.getInstance().validateCompanyGetReq(req.query).ID;
-    UtilsService.assertIdIsProvided(action, companyID, MODULE_NAME, 'handleDeleteCompany', req.user);
     // Check and Get Company
     const company = await UtilsService.checkAndGetCompanyAuthorization(
       req.tenant, req.user, companyID, Action.DELETE, action);
     // Delete
     await CompanyStorage.deleteCompany(req.tenant, company.id);
-    // Log
     await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteCompany',
@@ -40,7 +37,6 @@ export default class CompanyService {
       action: action,
       detailedMessages: { company }
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -51,7 +47,6 @@ export default class CompanyService {
       Action.READ, Entity.COMPANY, MODULE_NAME, 'handleGetCompany');
     // Filter
     const filteredRequest = CompanyValidator.getInstance().validateCompanyGetReq(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCompany', req.user);
     // Check and Get Company
     const company = await UtilsService.checkAndGetCompanyAuthorization(
       req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {
@@ -64,14 +59,12 @@ export default class CompanyService {
   public static async handleGetCompanyLogo(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = CompanyValidator.getInstance().validateCompanyLogoGetReq(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCompanyLogo', req.user);
     // Fetch Tenant Object by Tenant ID
     const tenant = await TenantStorage.getTenant(filteredRequest.TenantID);
     UtilsService.assertObjectExists(action, tenant, `Tenant ID '${filteredRequest.TenantID}' does not exist`,
       MODULE_NAME, 'handleGetCompanyLogo', req.user);
     // Get the Logo
     const companyLogo = await CompanyStorage.getCompanyLogo(tenant, filteredRequest.ID);
-    // Return
     if (companyLogo?.logo) {
       let header = 'image';
       let encoding: BufferEncoding = 'base64';
@@ -92,11 +85,7 @@ export default class CompanyService {
   public static async handleGetCompanies(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
-      Action.LIST, Entity.COMPANIES, MODULE_NAME, 'handleGetCompanies');
-    // Maintain retro-compatibility
-    if (req.query.WithSites) {
-      req.query.WithSite = req.query.WithSites;
-    }
+      Action.LIST, Entity.COMPANY, MODULE_NAME, 'handleGetCompanies');
     // Filter
     const filteredRequest = CompanyValidator.getInstance().validateCompaniesGetReq(req.query);
     // Create GPS Coordinates
@@ -138,7 +127,6 @@ export default class CompanyService {
     }
     // Add Auth flags
     await AuthorizationService.addCompaniesAuthorizations(req.tenant, req.user, companies as CompanyDataResult, authorizationCompaniesFilter);
-    // Return
     res.json(companies);
     next();
   }
@@ -169,7 +157,6 @@ export default class CompanyService {
     } as Company;
     // Save
     newCompany.id = await CompanyStorage.saveCompany(req.tenant, newCompany);
-    // Log
     await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleCreateCompany',
@@ -177,7 +164,6 @@ export default class CompanyService {
       action: action,
       detailedMessages: { company: newCompany }
     });
-    // Ok
     res.json(Object.assign({ id: newCompany.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
@@ -201,7 +187,6 @@ export default class CompanyService {
     company.lastChangedOn = new Date();
     // Update Company
     await CompanyStorage.saveCompany(req.tenant, company, Utils.objectHasProperty(filteredRequest, 'logo') ? true : false);
-    // Log
     await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateCompany',
@@ -209,7 +194,6 @@ export default class CompanyService {
       action: action,
       detailedMessages: { company }
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }

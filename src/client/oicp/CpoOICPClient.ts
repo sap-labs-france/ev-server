@@ -12,6 +12,7 @@ import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage
 import Constants from '../../utils/Constants';
 import { HTTPError } from '../../types/HTTPError';
 import Logging from '../../utils/Logging';
+import LoggingHelper from '../../utils/LoggingHelper';
 import NotificationHandler from '../../notification/NotificationHandler';
 import { OCPILocationOptions } from '../../types/ocpi/OCPILocation';
 import OCPPStorage from '../../storage/mongodb/OCPPStorage';
@@ -474,10 +475,7 @@ export default class CpoOICPClient extends OICPClient {
   public async updateEVSEStatus(chargingStation: ChargingStation, connector: Connector): Promise<OICPAcknowledgment> {
     if (!chargingStation.siteAreaID && !chargingStation.siteArea) {
       throw new BackendError({
-        chargingStationID: chargingStation.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.OICP_UPDATE_EVSE_STATUS,
         message: 'Charging Station must be associated to a site area',
         module: MODULE_NAME, method: 'updateEVSEStatus',
@@ -485,10 +483,7 @@ export default class CpoOICPClient extends OICPClient {
     }
     if (!chargingStation.issuer) {
       throw new BackendError({
-        chargingStationID: chargingStation.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.OICP_UPDATE_EVSE_STATUS,
         message: 'Only charging Station issued locally can be exposed to Hubject',
         module: MODULE_NAME, method: 'updateEVSEStatus',
@@ -496,10 +491,7 @@ export default class CpoOICPClient extends OICPClient {
     }
     if (!chargingStation.public) {
       throw new BackendError({
-        chargingStationID: chargingStation.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.OICP_UPDATE_EVSE_STATUS,
         message: 'Private charging Station cannot be exposed to Hubject',
         module: MODULE_NAME, method: 'updateEVSEStatus',

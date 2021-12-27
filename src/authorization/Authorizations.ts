@@ -12,6 +12,7 @@ import Constants from '../utils/Constants';
 import CpoOCPIClient from '../client/ocpi/CpoOCPIClient';
 import CpoOICPClient from '../client/oicp/CpoOICPClient';
 import Logging from '../utils/Logging';
+import LoggingHelper from '../utils/LoggingHelper';
 import NotificationHandler from '../notification/NotificationHandler';
 import OCPIClientFactory from '../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../types/ocpi/OCPIRole';
@@ -216,7 +217,7 @@ export default class Authorizations {
   }
 
   public static async canListLoggings(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.LOGGINGS, Action.LIST);
+    return Authorizations.canPerformAction(loggedUser, Entity.LOGGING, Action.LIST);
   }
 
   public static async canReadLog(loggedUser: UserToken): Promise<boolean> {
@@ -224,11 +225,11 @@ export default class Authorizations {
   }
 
   public static async canListTransactions(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.TRANSACTIONS, Action.LIST);
+    return Authorizations.canPerformAction(loggedUser, Entity.TRANSACTION, Action.LIST);
   }
 
   public static async canListTransactionsInError(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.TRANSACTIONS, Action.IN_ERROR);
+    return Authorizations.canPerformAction(loggedUser, Entity.TRANSACTION, Action.IN_ERROR);
   }
 
   public static async canReadTransaction(loggedUser: UserToken, transaction: Transaction): Promise<boolean> {
@@ -252,8 +253,21 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.REPORT, Action.READ);
   }
 
-  public static async canUpdateTransaction(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.TRANSACTION, Action.UPDATE);
+  public static async canUpdateTransaction(loggedUser: UserToken, transaction: Transaction): Promise<boolean> {
+    if (!transaction) {
+      return false;
+    }
+    const context: AuthorizationContext = {
+      user: transaction.userID,
+      owner: loggedUser.id,
+      tagIDs: loggedUser.tagIDs,
+      tagID: transaction.tagID,
+      site: transaction.siteID,
+      sites: loggedUser.sites,
+      sitesAdmin: loggedUser.sitesAdmin,
+      sitesOwner: loggedUser.sitesOwner
+    };
+    return Authorizations.canPerformAction(loggedUser, Entity.TRANSACTION, Action.UPDATE, context);
   }
 
   public static async canDeleteTransaction(loggedUser: UserToken): Promise<boolean> {
@@ -261,11 +275,11 @@ export default class Authorizations {
   }
 
   public static async canListChargingStations(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_STATIONS, Action.LIST);
+    return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_STATION, Action.LIST);
   }
 
   public static async canListChargingStationsInError(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_STATIONS, Action.IN_ERROR);
+    return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_STATION, Action.IN_ERROR);
   }
 
   public static async canPerformActionOnChargingStation(loggedUser: UserToken, action: Action, chargingStation: ChargingStation, context?: AuthorizationContext): Promise<boolean> {
@@ -321,15 +335,15 @@ export default class Authorizations {
   }
 
   public static async canListUsers(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
-    return Authorizations.can(loggedUser, Entity.USERS, Action.LIST, authContext);
+    return Authorizations.can(loggedUser, Entity.USER, Action.LIST, authContext);
   }
 
   public static async canListUsersInErrors(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
-    return Authorizations.can(loggedUser, Entity.USERS, Action.IN_ERROR, authContext);
+    return Authorizations.can(loggedUser, Entity.USER, Action.IN_ERROR, authContext);
   }
 
   public static async canListTags(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.TAGS, Action.LIST);
+    return Authorizations.canPerformAction(loggedUser, Entity.TAG, Action.LIST);
   }
 
   public static async canReadTag(loggedUser: UserToken): Promise<boolean> {
@@ -349,11 +363,11 @@ export default class Authorizations {
   }
 
   public static async canImportTags(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
-    return Authorizations.can(loggedUser, Entity.TAGS, Action.IMPORT, authContext);
+    return Authorizations.can(loggedUser, Entity.TAG, Action.IMPORT, authContext);
   }
 
   public static async canExportTags(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
-    return Authorizations.can(loggedUser, Entity.TAGS, Action.EXPORT, authContext);
+    return Authorizations.can(loggedUser, Entity.TAG, Action.EXPORT, authContext);
   }
 
   public static async canReadUser(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
@@ -365,7 +379,7 @@ export default class Authorizations {
   }
 
   public static async canImportUsers(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
-    return Authorizations.can(loggedUser, Entity.USERS, Action.IMPORT, authContext);
+    return Authorizations.can(loggedUser, Entity.USER, Action.IMPORT, authContext);
   }
 
   public static async canUpdateUser(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
@@ -377,7 +391,7 @@ export default class Authorizations {
   }
 
   public static async canListSites(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
-    return Authorizations.can(loggedUser, Entity.SITES, Action.LIST, authContext);
+    return Authorizations.can(loggedUser, Entity.SITE, Action.LIST, authContext);
   }
 
   public static async canReadSite(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
@@ -397,7 +411,7 @@ export default class Authorizations {
   }
 
   public static async canListSettings(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.SETTINGS, Action.LIST);
+    return Authorizations.canPerformAction(loggedUser, Entity.SETTING, Action.LIST);
   }
 
   public static async canReadSetting(loggedUser: UserToken, context?: AuthorizationContext): Promise<boolean> {
@@ -417,39 +431,39 @@ export default class Authorizations {
   }
 
   public static async canCreateRegistrationToken(loggedUser: UserToken, siteID: string): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.TOKEN, Action.CREATE, {
+    return Authorizations.canPerformAction(loggedUser, Entity.REGISTRATION_TOKEN, Action.CREATE, {
       site: siteID,
       sites: loggedUser.sitesAdmin
     });
   }
 
   public static async canReadRegistrationToken(loggedUser: UserToken, siteID: string): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.TOKEN, Action.READ, {
+    return Authorizations.canPerformAction(loggedUser, Entity.REGISTRATION_TOKEN, Action.READ, {
       site: siteID,
       sites: loggedUser.sitesAdmin
     });
   }
 
   public static async canDeleteRegistrationToken(loggedUser: UserToken, siteID: string): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.TOKEN, Action.DELETE, {
+    return Authorizations.canPerformAction(loggedUser, Entity.REGISTRATION_TOKEN, Action.DELETE, {
       site: siteID,
       sites: loggedUser.sitesAdmin
     });
   }
 
   public static async canUpdateRegistrationToken(loggedUser: UserToken, siteID: string): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.TOKEN, Action.UPDATE, {
+    return Authorizations.canPerformAction(loggedUser, Entity.REGISTRATION_TOKEN, Action.UPDATE, {
       site: siteID,
       sites: loggedUser.sitesAdmin
     });
   }
 
   public static async canListRegistrationTokens(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.TOKENS, Action.LIST);
+    return Authorizations.canPerformAction(loggedUser, Entity.REGISTRATION_TOKEN, Action.LIST);
   }
 
   public static async canListOcpiEndpoints(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.OCPI_ENDPOINTS, Action.LIST);
+    return Authorizations.canPerformAction(loggedUser, Entity.OCPI_ENDPOINT, Action.LIST);
   }
 
   public static async canReadOcpiEndpoint(loggedUser: UserToken): Promise<boolean> {
@@ -485,7 +499,7 @@ export default class Authorizations {
   }
 
   public static async canListOicpEndpoints(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.OICP_ENDPOINTS, Action.LIST);
+    return Authorizations.canPerformAction(loggedUser, Entity.OICP_ENDPOINT, Action.LIST);
   }
 
   public static async canReadOicpEndpoint(loggedUser: UserToken): Promise<boolean> {
@@ -517,7 +531,7 @@ export default class Authorizations {
   }
 
   public static async canListChargingProfiles(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_PROFILES, Action.LIST);
+    return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_PROFILE, Action.LIST);
   }
 
   public static async canReadChargingProfile(loggedUser: UserToken, siteID: string): Promise<boolean> {
@@ -532,11 +546,11 @@ export default class Authorizations {
   }
 
   public static async canListCarCatalogs(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.CAR_CATALOGS, Action.LIST);
+    return Authorizations.canPerformAction(loggedUser, Entity.CAR_CATALOG, Action.LIST);
   }
 
   public static async canListCars(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.CARS, Action.LIST);
+    return Authorizations.canPerformAction(loggedUser, Entity.CAR, Action.LIST);
   }
 
   public static async canSynchronizeCarCatalogs(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
@@ -548,11 +562,11 @@ export default class Authorizations {
   }
 
   public static async canListAssets(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.ASSETS, Action.LIST);
+    return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.LIST);
   }
 
   public static async canListAssetsInError(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.ASSETS, Action.IN_ERROR);
+    return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.IN_ERROR);
   }
 
   public static async canReadAsset(loggedUser: UserToken): Promise<boolean> {
@@ -572,7 +586,7 @@ export default class Authorizations {
   }
 
   public static async canListTenants(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.TENANTS, Action.LIST);
+    return Authorizations.canPerformAction(loggedUser, Entity.TENANT, Action.LIST);
   }
 
   public static async canReadTenant(loggedUser: UserToken): Promise<boolean> {
@@ -606,15 +620,15 @@ export default class Authorizations {
   }
 
   public static async canListConnections(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.CONNECTIONS, Action.LIST);
+    return Authorizations.canPerformAction(loggedUser, Entity.CONNECTION, Action.LIST);
   }
 
-  public static async canReadPricing(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.PRICING, Action.READ);
+  public static async canReadPricingDefinition(loggedUser: UserToken): Promise<boolean> {
+    return Authorizations.canPerformAction(loggedUser, Entity.PRICING_DEFINITION, Action.READ);
   }
 
-  public static async canUpdatePricing(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.PRICING, Action.UPDATE);
+  public static async canUpdatePricingModel(loggedUser: UserToken): Promise<boolean> {
+    return Authorizations.canPerformAction(loggedUser, Entity.PRICING_DEFINITION, Action.UPDATE);
   }
 
   public static async canClearBillingTestData(loggedUser: UserToken): Promise<boolean> {
@@ -626,7 +640,7 @@ export default class Authorizations {
   }
 
   public static async canSynchronizeUsersBilling(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
-    return Authorizations.can(loggedUser, Entity.USERS, Action.SYNCHRONIZE_BILLING_USERS, authContext);
+    return Authorizations.can(loggedUser, Entity.USER, Action.SYNCHRONIZE_BILLING_USERS, authContext);
   }
 
   public static async canSynchronizeUserBilling(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
@@ -634,11 +648,11 @@ export default class Authorizations {
   }
 
   public static async canReadTaxesBilling(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.TAXES, Action.LIST);
+    return Authorizations.canPerformAction(loggedUser, Entity.TAX, Action.LIST);
   }
 
   public static async canListInvoicesBilling(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.INVOICES, Action.LIST);
+    return Authorizations.canPerformAction(loggedUser, Entity.INVOICE, Action.LIST);
   }
 
   public static async canReadInvoiceBilling(loggedUser: UserToken, userID: string): Promise<boolean> {
@@ -647,7 +661,7 @@ export default class Authorizations {
   }
 
   public static async canSynchronizeInvoicesBilling(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.INVOICES, Action.SYNCHRONIZE);
+    return Authorizations.canPerformAction(loggedUser, Entity.INVOICE, Action.SYNCHRONIZE);
   }
 
   public static async canCreateTransactionInvoice(loggedUser: UserToken): Promise<boolean> {
@@ -728,7 +742,6 @@ export default class Authorizations {
   }
 
   public static async can(loggedUser: UserToken, entity: Entity, action: Action, context?: AuthorizationContext): Promise<AuthorizationResult> {
-    // Check
     const authDefinition = AuthorizationsManager.getInstance();
     const result = await authDefinition.canPerformAction(loggedUser.rolesACL, entity, action, context);
     if (!result.authorized && Authorizations.getConfiguration().debug) {
@@ -748,10 +761,7 @@ export default class Authorizations {
       // Check Site Area
       if (!chargingStation.siteAreaID || !chargingStation.siteArea) {
         throw new BackendError({
-          chargingStationID: chargingStation.id,
-          siteID: chargingStation.siteID,
-          siteAreaID: chargingStation.siteAreaID,
-          companyID: chargingStation.companyID,
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
           action: action,
           module: MODULE_NAME, method: 'isTagIDAuthorizedOnChargingStation',
           message: `Charging Station '${chargingStation.id}' is not assigned to a Site Area!`,
@@ -761,10 +771,7 @@ export default class Authorizations {
       // Check Site
       if (!chargingStation.siteID) {
         throw new BackendError({
-          chargingStationID: chargingStation.id,
-          siteID: chargingStation.siteID,
-          siteAreaID: chargingStation.siteAreaID,
-          companyID: chargingStation.companyID,
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
           action: action,
           module: MODULE_NAME, method: 'isTagIDAuthorizedOnChargingStation',
           message: `Site Area '${chargingStation.siteArea.name}' is not assigned to a Site!`,
@@ -796,7 +803,7 @@ export default class Authorizations {
         return { user };
       }
       // Create the Tag as inactive and abort
-      this.notifyUnknownBadgeHasBeenUsedAndAbort(action, tenant, tagID, chargingStation);
+      void this.notifyUnknownBadgeHasBeenUsedAndAbort(action, tenant, tagID, chargingStation);
     }
     // Get Authorized User
     const user = await this.checkAndGetAuthorizedUserFromTag(action, tenant, chargingStation, transaction, tag, authAction);
@@ -912,10 +919,7 @@ export default class Authorizations {
           // Check Tag ID
           if (remoteAuthorization.tagId === tag.ocpiToken?.uid) {
             await Logging.logDebug({
-              siteID: chargingStation.siteID,
-              siteAreaID: chargingStation.siteAreaID,
-              companyID: chargingStation.companyID,
-              chargingStationID: chargingStation.id,
+              ...LoggingHelper.getChargingStationProperties(chargingStation),
               tenantID: tenant.id, action,
               message: `${Utils.buildConnectorInfo(connector.connectorId, transaction?.id)} Valid Remote Authorization found for Tag ID '${tag.ocpiToken.uid}'`,
               module: MODULE_NAME, method: 'checkOCPIAuthorizedUser',
@@ -946,10 +950,7 @@ export default class Authorizations {
     // User status
     if (user.status !== UserStatus.ACTIVE) {
       throw new BackendError({
-        chargingStationID: chargingStation.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: action,
         message: `User with Tag ID '${tag.id}' is not Active ('${Utils.getStatusDescription(user.status)}')`,
         module: MODULE_NAME,
@@ -973,10 +974,7 @@ export default class Authorizations {
       };
       if (!await Authorizations.canPerformActionOnChargingStation(userToken, authAction, chargingStation, context)) {
         throw new BackendError({
-          chargingStationID: chargingStation.id,
-          siteID: chargingStation.siteID,
-          siteAreaID: chargingStation.siteAreaID,
-          companyID: chargingStation.companyID,
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
           action: action,
           message: `User with Tag ID '${tag.id}' is not authorized to perform the action '${authAction}'`,
           module: MODULE_NAME,
@@ -1014,10 +1012,7 @@ export default class Authorizations {
       }
     ).catch(() => { });
     throw new BackendError({
-      chargingStationID: chargingStation.id,
-      siteID: chargingStation.siteID,
-      siteAreaID: chargingStation.siteAreaID,
-      companyID: chargingStation.companyID,
+      ...LoggingHelper.getChargingStationProperties(chargingStation),
       action: action,
       module: MODULE_NAME, method: 'notifyUnknownBadgeHasBeenUsedAndAbort',
       message: `Tag ID '${tagID}' is unknown`,
@@ -1057,10 +1052,7 @@ export default class Authorizations {
       // Inactive Tag
       if (!tag.active) {
         throw new BackendError({
-          chargingStationID: chargingStation.id,
-          siteID: chargingStation.siteID,
-          siteAreaID: chargingStation.siteAreaID,
-          companyID: chargingStation.companyID,
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
           action: action,
           message: `Tag ID '${tagID}' is not active`,
           module: MODULE_NAME, method: 'checkAndGetAuthorizedTag',
@@ -1071,10 +1063,7 @@ export default class Authorizations {
       // No User
       if (!tag.user) {
         throw new BackendError({
-          chargingStationID: chargingStation.id,
-          siteID: chargingStation.siteID,
-          siteAreaID: chargingStation.siteAreaID,
-          companyID: chargingStation.companyID,
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
           action: action,
           message: `Tag ID '${tagID}' is not assigned to a User`,
           module: MODULE_NAME, method: 'checkAndGetAuthorizedTag',
@@ -1121,7 +1110,6 @@ export default class Authorizations {
   }
 
   private static async canPerformAction(loggedUser: UserToken, entity: Entity, action: Action, context?: AuthorizationContext): Promise<boolean> {
-    // Check
     const authDefinition = AuthorizationsManager.getInstance();
     const authorized = await authDefinition.can(loggedUser.rolesACL, entity, action, context);
     if (!authorized && Authorizations.getConfiguration().debug) {

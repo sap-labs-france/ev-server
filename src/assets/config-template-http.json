@@ -48,15 +48,13 @@
     "protocol": "http",
     "host": "localhost",
     "port": 9090,
-    "debug": false,
-    "externalProtocol": "http"
+    "debug": false
   },
   "OICPService": {
     "protocol": "http",
     "host": "localhost",
     "port": 9080,
-    "debug": false,
-    "externalProtocol": "http"
+    "debug": false
   },
   "CentralSystemServer": {
     "protocol": "http",
@@ -67,14 +65,13 @@
     "protocol": "http",
     "host": "localhost",
     "port": 9292,
-    "debug": false,
-    "externalProtocol": "http"
+    "debug": false
   },
   "WSDLEndpoint": {
-    "baseUrl": ""
+    "baseSecureUrl": ""
   },
   "JsonEndpoint": {
-    "baseUrl": ""
+    "baseSecureUrl": ""
   },
   "OCPIEndpoint": {
     "baseUrl": ""
@@ -109,7 +106,12 @@
     "clientX509CertURL": "",
     "databaseURL": ""
   },
+  "Axios": {
+    "retries": 0,
+    "timeoutSecs": 30
+  },
   "Email": {
+    "disableBackup": false,
     "smtp": {
       "from": "",
       "host": "",
@@ -135,6 +137,8 @@
   "ChargingStation": {
     "heartbeatIntervalOCPPSSecs": 60,
     "heartbeatIntervalOCPPJSecs": 3600,
+    "pingIntervalOCPPJSecs": 60,
+    "monitoringIntervalOCPPJSecs": 600,
     "notifBeforeEndOfChargeEnabled": true,
     "notifBeforeEndOfChargePercent": 85,
     "notifEndOfChargeEnabled": true,
@@ -167,16 +171,13 @@
   },
   "Logging": {
     "logLevel": "D",
-    "consoleLogLevel": "NONE",
     "trace": false,
     "moduleDetails": {
       "ChargingStation": {
-        "logLevel": "DEFAULT",
-        "consoleLogLevel": "DEFAULT"
+        "logLevel": "DEFAULT"
       },
       "Authorizations": {
-        "logLevel": "DEFAULT",
-        "consoleLogLevel": "DEFAULT"
+        "logLevel": "DEFAULT"
       }
     }
   }

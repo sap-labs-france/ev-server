@@ -34,9 +34,9 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
   public async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
       case 'PATCH':
-        return await this.patchLocationRequest(req, res, next, tenant, ocpiEndpoint);
+        return this.patchLocationRequest(req, res, next, tenant, ocpiEndpoint);
       case 'PUT':
-        return await this.putLocationRequest(req, res, next, tenant, ocpiEndpoint);
+        return this.putLocationRequest(req, res, next, tenant, ocpiEndpoint);
     }
   }
 

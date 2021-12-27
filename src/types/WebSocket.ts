@@ -20,6 +20,12 @@ export const WebSocketCloseEventStatusString: Record<WebSocketCloseEventStatusCo
   1015: 'TLS Handshake'
 });
 
+export interface WebSocketPingResult {
+  ok: boolean;
+  errorCode?: WebSocketCloseEventStatusCode;
+  errorMessage?: string;
+}
+
 export enum WebSocketCloseEventStatusCode {
   CLOSE_NORMAL = 1000,
   CLOSE_GOING_AWAY = 1001,

@@ -51,7 +51,6 @@ describe('Authentication Service (utall)', function() {
       // Check Login
       const response = await CentralServerService.defaultInstance.authenticationApi.login(
         testData.adminEmail, testData.adminPassword, true, testData.adminTenant);
-      // Check
       expect(response.status).to.be.eql(StatusCodes.OK);
       expect(response.data).to.have.property('token');
       expect(response.data.token).to.be.a('string');
@@ -68,7 +67,6 @@ describe('Authentication Service (utall)', function() {
       // Check Login
       const newUser = UserFactory.buildRegisterUser();
       let response = await CentralServerService.defaultInstance.authenticationApi.registerUser(newUser, testData.adminTenant);
-      // Check
       expect(response.status).to.be.eql(StatusCodes.OK);
       expect(response.data).to.have.property('status', 'Success');
       testData.createdUsersAdminTenant.push(newUser);
@@ -81,7 +79,7 @@ describe('Authentication Service (utall)', function() {
       expect(response.status).to.be.eql(StatusCodes.OK);
       expect(response.data).to.have.property('count', 1);
       expect(response.data.result).to.have.lengthOf(1);
-      expect(user).to.have.property('email', newUser.email);
+      expect(user).to.have.property('email', newUser.email.toLowerCase());
       expect(user).to.have.property('name', newUser.name);
       expect(user).to.have.property('firstName', newUser.firstName);
       expect(user).to.have.property('status', 'P');
@@ -105,7 +103,6 @@ describe('Authentication Service (utall)', function() {
       user.name = 'NEW NAME';
       // Update
       response = await CentralServerService.defaultInstance.userApi.update(user);
-      // Check
       expect(response.status).to.equal(StatusCodes.OK);
       expect(response.data.status).to.eql('Success');
     });
@@ -113,7 +110,6 @@ describe('Authentication Service (utall)', function() {
     it('Should be possible to register a new user on the default tenant', async () => {
       const newUser = UserFactory.buildRegisterUser();
       let response = await CentralServerService.defaultInstance.authenticationApi.registerUser(newUser, null);
-      // Check
       expect(response.status).to.be.eql(StatusCodes.OK);
       expect(response.data).to.have.property('status', 'Success');
 
@@ -131,7 +127,7 @@ describe('Authentication Service (utall)', function() {
       expect(response.data).to.have.property('count', 1);
       const user = response.data.result[0];
       testData.createdUsersDefaultTenant.push(user);
-      expect(user).to.have.property('email', newUser.email);
+      expect(user).to.have.property('email', newUser.email.toLowerCase());
       expect(user).to.have.property('name', newUser.name);
       expect(user).to.have.property('firstName', newUser.firstName);
       expect(user).to.have.property('status', 'P');
@@ -143,14 +139,12 @@ describe('Authentication Service (utall)', function() {
         CentralServerService.defaultInstance.userApi, UserFactory.build());
       testData.createdUsersAdminTenant.push(newUser);
       const response = await CentralServerService.defaultInstance.authenticationApi.resetUserPassword(newUser.email, testData.adminTenant);
-      // Check
       expect(response.status).to.be.eql(StatusCodes.OK);
       expect(response.data).to.have.property('status', 'Success');
     });
 
     it('Should be possible to retrieve tenant EULA', async () => {
       const response = await CentralServerService.defaultInstance.authenticationApi.getEula('');
-      // Check
       expect(response.status).to.be.eql(StatusCodes.OK);
       expect(response.data).to.have.property('text');
     });
@@ -236,7 +230,6 @@ describe('Authentication Service (utall)', function() {
       const newUser = UserFactory.buildRegisterUser();
       delete newUser.password;
       const response = await CentralServerService.defaultInstance.authenticationApi.registerUser(newUser, testData.adminTenant);
-      // Check
       expect(response.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
       expect(response.data).to.not.have.property('token');
     });
@@ -246,7 +239,6 @@ describe('Authentication Service (utall)', function() {
       const newUser = UserFactory.buildRegisterUser();
       newUser.password = '';
       const response = await CentralServerService.defaultInstance.authenticationApi.registerUser(newUser, testData.adminTenant);
-      // Check
       expect(response.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
       expect(response.data).to.not.have.property('token');
     });
@@ -256,7 +248,6 @@ describe('Authentication Service (utall)', function() {
       const newUser = UserFactory.buildRegisterUser();
       newUser.password = '1234';
       const response = await CentralServerService.defaultInstance.authenticationApi.registerUser(newUser, testData.adminTenant);
-      // Check
       expect(response.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
       expect(response.data).to.not.have.property('token');
     });
@@ -264,7 +255,6 @@ describe('Authentication Service (utall)', function() {
     it('Should not allow authentication of known user with wrong password', async () => {
       // Call
       const response = await CentralServerService.defaultInstance.authenticationApi.login(testData.adminEmail, 'A_M4tch1ng_P4ssw0rd', true);
-      // Check
       expect(response.status).to.be.eql(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
       expect(response.data).to.not.have.property('token');
     });
@@ -273,7 +263,6 @@ describe('Authentication Service (utall)', function() {
       // Call
       const response = await CentralServerService.defaultInstance.authenticationApi.login(
         testData.adminEmail, null, true, testData.adminTenant);
-      // Check
       expect(response.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
       expect(response.data).to.not.have.property('token');
     });
@@ -282,7 +271,6 @@ describe('Authentication Service (utall)', function() {
       // Call
       const response = await CentralServerService.defaultInstance.authenticationApi.login(
         testData.adminEmail, testData.adminPassword, false, testData.adminTenant);
-      // Check
       expect(response.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
       expect(response.data).to.not.have.property('token');
     });
@@ -291,7 +279,6 @@ describe('Authentication Service (utall)', function() {
       // Call
       const response = await CentralServerService.defaultInstance.authenticationApi.login(
         testData.adminEmail, testData.adminPassword, null, testData.adminTenant);
-      // Check
       expect(response.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
       expect(response.data).to.not.have.property('token');
     });
@@ -300,7 +287,6 @@ describe('Authentication Service (utall)', function() {
       // Call
       const response = await CentralServerService.defaultInstance.authenticationApi.login(
         null, testData.adminPassword, true, testData.adminTenant);
-      // Check
       expect(response.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
       expect(response.data).to.not.have.property('token');
     });

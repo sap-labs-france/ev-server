@@ -16,7 +16,6 @@ export default class CarRouter {
     this.buildRouteGetCarCatalogs();
     this.buildRouteGetCarCatalog();
     this.buildRouteGetCarCatalogImages();
-    this.buildRouteGetCarCatalogImage();
     this.buildRouteCarCatalogsSynchronize();
     this.buildRouteGetCarMakers();
     this.buildRouteCreateCar();
@@ -27,72 +26,65 @@ export default class CarRouter {
     return this.router;
   }
 
-  protected buildRouteGetCarCatalogs(): void {
+  private buildRouteGetCarCatalogs(): void {
     this.router.get(`/${ServerRoute.REST_CAR_CATALOGS}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(CarService.handleGetCarCatalogs.bind(this), ServerAction.CAR_CATALOGS, req, res, next);
     });
   }
 
-  protected buildRouteGetCarCatalog(): void {
+  private buildRouteGetCarCatalog(): void {
     this.router.get(`/${ServerRoute.REST_CAR_CATALOG}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
       await RouterUtils.handleServerAction(CarService.handleGetCarCatalog.bind(this), ServerAction.CAR_CATALOG, req, res, next);
     });
   }
 
-  protected buildRouteGetCarCatalogImages(): void {
+  private buildRouteGetCarCatalogImages(): void {
     this.router.get(`/${ServerRoute.REST_CAR_CATALOG_IMAGES}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
       await RouterUtils.handleServerAction(CarService.handleGetCarCatalogImages.bind(this), ServerAction.CAR_CATALOG_IMAGES, req, res, next);
     });
   }
 
-  protected buildRouteGetCarCatalogImage(): void {
-    this.router.get(`/${ServerRoute.REST_CAR_CATALOG_IMAGE}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.query.ID = req.params.id;
-      await RouterUtils.handleServerAction(CarService.handleGetCarCatalogImage.bind(this), ServerAction.CAR_CATALOG_IMAGE, req, res, next);
-    });
-  }
-
-  protected buildRouteCarCatalogsSynchronize(): void {
+  private buildRouteCarCatalogsSynchronize(): void {
     this.router.put(`/${ServerRoute.REST_CAR_CATALOG_SYNCHRONIZE}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(CarService.handleSynchronizeCarCatalogs.bind(this), ServerAction.CAR_CATALOG_SYNCHRONIZATION, req, res, next);
     });
   }
 
-  protected buildRouteGetCarMakers(): void {
+  private buildRouteGetCarMakers(): void {
     this.router.get(`/${ServerRoute.REST_CAR_MAKERS}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(CarService.handleGetCarMakers.bind(this), ServerAction.CAR_MAKERS, req, res, next);
     });
   }
 
-  protected buildRouteCreateCar(): void {
+  private buildRouteCreateCar(): void {
     this.router.post(`/${ServerRoute.REST_CARS}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(CarService.handleCreateCar.bind(this), ServerAction.CAR_CREATE, req, res, next);
     });
   }
 
-  protected buildRouteGetCars(): void {
+  private buildRouteGetCars(): void {
     this.router.get(`/${ServerRoute.REST_CARS}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(CarService.handleGetCars.bind(this), ServerAction.CARS, req, res, next);
     });
   }
 
-  protected buildRouteGetCar(): void {
+  private buildRouteGetCar(): void {
     this.router.get(`/${ServerRoute.REST_CAR}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
       await RouterUtils.handleServerAction(CarService.handleGetCar.bind(this), ServerAction.CAR, req, res, next);
     });
   }
 
-  protected buildRouteUpdateCar(): void {
+  private buildRouteUpdateCar(): void {
     this.router.put(`/${ServerRoute.REST_CAR}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
       await RouterUtils.handleServerAction(CarService.handleUpdateCar.bind(this), ServerAction.CAR_UPDATE, req, res, next);
     });
   }
 
-  protected buildRouteDeleteCar(): void {
+  private buildRouteDeleteCar(): void {
     this.router.delete(`/${ServerRoute.REST_CAR}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
       await RouterUtils.handleServerAction(CarService.handleDeleteCar.bind(this), ServerAction.CAR_DELETE, req, res, next);

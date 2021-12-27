@@ -54,8 +54,7 @@
     "sslKey": "",
     "sslCert": "",
     "sslCa": [],
-    "debug": false,
-    "externalProtocol": "https"
+    "debug": false
   },
   "OICPService": {
     "protocol": "https",
@@ -66,8 +65,7 @@
     "sslCa": [
       "**insert certificate in PEM format**"
     ],
-    "debug": false,
-    "externalProtocol": "https"
+    "debug": false
   },
   "CentralSystemServer": {
     "protocol": "https",
@@ -81,14 +79,13 @@
     "sslKey": "",
     "sslCert": "",
     "sslCa": [],
-    "debug": false,
-    "externalProtocol": "https"
+    "debug": false
   },
   "WSDLEndpoint": {
-    "baseUrl": ""
+    "baseSecureUrl": ""
   },
   "JsonEndpoint": {
-    "baseUrl": ""
+    "baseSecureUrl": ""
   },
   "OCPIEndpoint": {
     "baseUrl": ""
@@ -123,7 +120,12 @@
     "clientX509CertURL": "",
     "databaseURL": ""
   },
+  "Axios": {
+    "retries": 0,
+    "timeoutSecs": 30
+  },
   "Email": {
+    "disableBackup": false,
     "smtp": {
       "from": "",
       "host": "",
@@ -149,6 +151,8 @@
   "ChargingStation": {
     "heartbeatIntervalOCPPSSecs": 60,
     "heartbeatIntervalOCPPJSecs": 3600,
+    "pingIntervalOCPPJSecs": 60,
+    "monitoringIntervalOCPPJSecs": 600,
     "notifBeforeEndOfChargeEnabled": true,
     "notifBeforeEndOfChargePercent": 85,
     "notifEndOfChargeEnabled": true,
@@ -181,16 +185,13 @@
   },
   "Logging": {
     "logLevel": "D",
-    "consoleLogLevel": "NONE",
     "trace": false,
     "moduleDetails": {
       "ChargingStation": {
-        "logLevel": "DEFAULT",
-        "consoleLogLevel": "DEFAULT"
+        "logLevel": "DEFAULT"
       },
       "Authorizations": {
-        "logLevel": "DEFAULT",
-        "consoleLogLevel": "DEFAULT"
+        "logLevel": "DEFAULT"
       }
     }
   }

@@ -10,6 +10,7 @@ import { ChargePointStatus } from '../../../../../types/ocpp/OCPPServer';
 import ChargingStationClientFactory from '../../../../../client/ocpp/ChargingStationClientFactory';
 import ChargingStationStorage from '../../../../../storage/mongodb/ChargingStationStorage';
 import Logging from '../../../../../utils/Logging';
+import LoggingHelper from '../../../../../utils/LoggingHelper';
 import { OCPICommandType } from '../../../../../types/ocpi/OCPICommandType';
 import OCPIEndpoint from '../../../../../types/ocpi/OCPIEndpoint';
 import { OCPIResponse } from '../../../../../types/ocpi/OCPIResponse';
@@ -128,11 +129,8 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     if (!connector) {
       await Logging.logError({
         tenantID: tenant.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.OCPI_START_SESSION,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
-        chargingStationID: chargingStation.id,
         message: `${Utils.buildConnectorInfo(connectorID)} Connector not found`,
         module: MODULE_NAME, method: 'remoteStartSession',
         detailedMessages: { connectorID, chargingStation, startSession }
@@ -142,11 +140,8 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     if (!chargingStation.issuer || !chargingStation.public) {
       await Logging.logError({
         tenantID: tenant.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.OCPI_START_SESSION,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
-        chargingStationID: chargingStation.id,
         message: `Charging Station ID '${startSession.evse_uid}' is either not public or local to the tenant`,
         module: MODULE_NAME, method: 'remoteStartSession',
         detailedMessages: { chargingStation, startSession }
@@ -157,11 +152,8 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
         connector.status !== ChargePointStatus.PREPARING) {
       await Logging.logError({
         tenantID: tenant.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.OCPI_STOP_SESSION,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
-        chargingStationID: chargingStation.id,
         message: `Charging Station ID '${chargingStation.id}' is not available (status is '${connector.status}')`,
         module: MODULE_NAME, method: 'remoteStartSession',
         detailedMessages: { chargingStation, startSession }
@@ -177,10 +169,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       if (OCPIUtils.isAuthorizationValid(existingAuthorization.timestamp)) {
         await Logging.logError({
           tenantID: tenant.id,
-          siteID: chargingStation.siteID,
-          siteAreaID: chargingStation.siteAreaID,
-          companyID: chargingStation.companyID,
-          chargingStationID: chargingStation.id,
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
           action: ServerAction.OCPI_START_SESSION,
           message: `Remote authorization already exists for Charging Station '${chargingStation.id}' and Connector ID ${connector.connectorId}`,
           module: MODULE_NAME, method: 'remoteStartSession',
@@ -206,7 +195,6 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       tenant, chargingStation.id, chargingStation.remoteAuthorizations);
     // Called Async as the response to the eMSP is sent asynchronously and this request has to finish before the command returns
     void this.remoteStartTransaction(tenant, chargingStation, connector, startSession, ocpiEndpoint).catch(() => { });
-    // Ok
     return this.buildOCPIResponse(OCPICommandResponseType.ACCEPTED);
   }
 
@@ -313,10 +301,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     if (!chargingStationClient) {
       await Logging.logError({
         tenantID: tenant.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
-        chargingStationID: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.OCPI_START_SESSION,
         message: 'Charging Station is not connected to the backend',
         module: MODULE_NAME, method: 'remoteStartTransaction',
@@ -340,10 +325,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     if (!chargingStationClient) {
       await Logging.logError({
         tenantID: tenant.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
-        chargingStationID: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.OCPI_STOP_SESSION,
         message: 'Charging Station is not connected to the backend',
         module: MODULE_NAME, method: 'remoteStopTransaction',

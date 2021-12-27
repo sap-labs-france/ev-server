@@ -16,19 +16,42 @@ export default class TenantRouter {
   public buildRoutes(): express.Router {
     this.buildRouteTenants();
     this.buildRouteTenant();
+    this.buildRouteCreateTenant();
+    this.buildRouteUpdateTenant();
+    this.buildRouteDeleteTenant();
     return this.router;
   }
 
-  protected buildRouteTenants(): void {
+  private buildRouteTenants(): void {
     this.router.get(`/${ServerRoute.REST_TENANTS}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(TenantService.handleGetTenants.bind(this), ServerAction.TENANTS, req, res, next);
     });
   }
 
-  protected buildRouteTenant(): void {
+  private buildRouteTenant(): void {
     this.router.get(`/${ServerRoute.REST_TENANT}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = sanitize(req.params.id);
       await RouterUtils.handleServerAction(TenantService.handleGetTenant.bind(this), ServerAction.TENANT, req, res, next);
+    });
+  }
+
+  private buildRouteCreateTenant(): void {
+    this.router.post(`/${ServerRoute.REST_TENANTS}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(TenantService.handleCreateTenant.bind(this), ServerAction.TENANT_CREATE, req, res, next);
+    });
+  }
+
+  private buildRouteUpdateTenant(): void {
+    this.router.put(`/${ServerRoute.REST_TENANT}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.body.id = req.params.id;
+      await RouterUtils.handleServerAction(TenantService.handleUpdateTenant.bind(this), ServerAction.TENANT_UPDATE, req, res, next);
+    });
+  }
+
+  private buildRouteDeleteTenant(): void {
+    this.router.delete(`/${ServerRoute.REST_TENANT}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = req.params.id;
+      await RouterUtils.handleServerAction(TenantService.handleDeleteTenant.bind(this), ServerAction.TENANT_DELETE, req, res, next);
     });
   }
 }

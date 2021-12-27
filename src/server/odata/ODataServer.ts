@@ -1,4 +1,4 @@
-import express, { NextFunction, Request, Response } from 'express';
+import { Application, NextFunction, Request, Response } from 'express';
 
 import Configuration from '../../utils/Configuration';
 import ExpressUtils from '../ExpressUtils';
@@ -7,13 +7,14 @@ import ODataRestAdapter from './ODataRestAdapter';
 import ODataSchema from './odata-schema/ODataSchema';
 import ODataServerFactory from '../odata/ODataServerFactory';
 import ODataServiceConfiguration from '../../types/configuration/ODataServiceConfiguration';
+import { ServerType } from '../../types/Server';
 import { ServerUtils } from '../ServerUtils';
 
 const MODULE_NAME = 'ODataServer';
 
 export default class ODataServer {
   private oDataServerConfig: ODataServiceConfiguration;
-  private expressApplication: express.Application;
+  private expressApplication: Application;
 
   // Create the rest server
   constructor(oDataServerConfig: ODataServiceConfiguration) {
@@ -49,7 +50,8 @@ export default class ODataServer {
 
   // Start the server
   start(): void {
-    ServerUtils.startHttpServer(this.oDataServerConfig, ServerUtils.createHttpServer(this.oDataServerConfig, this.expressApplication), MODULE_NAME, 'OData');
+    ServerUtils.startHttpServer(this.oDataServerConfig,
+      ServerUtils.createHttpServer(this.oDataServerConfig, this.expressApplication), MODULE_NAME, ServerType.ODATA_SERVER);
   }
 }
 

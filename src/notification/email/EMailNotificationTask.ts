@@ -295,19 +295,18 @@ export default class EMailNotificationTask implements NotificationTask {
   }
 
   private async prepareAndSendEmail(templateName: string, data: any, user: User, tenant: Tenant, severity: NotificationSeverity, useSmtpClientBackup = false): Promise<void> {
+    let startTime: number;
+    let emailContent = {} as EmailNotificationMessage;
     try {
-      // Check users
+      startTime = Logging.traceNotificationStart();
       if (!user) {
-        // Error
         throw new BackendError({
           action: ServerAction.EMAIL_NOTIFICATION,
           module: MODULE_NAME, method: 'prepareAndSendEmail',
           message: `No User is provided for '${templateName}'`
         });
       }
-      // Check email
       if (!user.email) {
-        // Error
         throw new BackendError({
           actionOnUser: user,
           action: ServerAction.EMAIL_NOTIFICATION,
@@ -318,14 +317,12 @@ export default class EMailNotificationTask implements NotificationTask {
       // Fetch the template
       const emailTemplate = await TemplateManager.getInstanceForLocale(user.locale).getTemplate(templateName);
       if (!emailTemplate) {
-        // Error
         throw new BackendError({
           action: ServerAction.EMAIL_NOTIFICATION,
           module: MODULE_NAME, method: 'prepareAndSendEmail',
           message: `No Email template found for '${templateName}'`
         });
       }
-      // Render the localized template ---------------------------------------
       // Render the subject
       emailTemplate.subject = ejs.render(emailTemplate.subject, data);
       // Render the tenant name
@@ -340,9 +337,9 @@ export default class EMailNotificationTask implements NotificationTask {
       if (emailTemplate.body.header) {
         // Render the title
         emailTemplate.body.header.title = ejs.render(emailTemplate.body.header.title, data);
-        // Charge Angels Logo
+        // Render the left Logo
         emailTemplate.body.header.image.left.url = ejs.render(emailTemplate.body.header.image.left.url, data);
-        // Company Logo
+        // Render the right Logo
         emailTemplate.body.header.image.right.url = ejs.render(emailTemplate.body.header.image.right.url, data);
       }
       if (emailTemplate.body.beforeActionLines) {
@@ -368,8 +365,8 @@ export default class EMailNotificationTask implements NotificationTask {
           action.url = ejs.render(action.url, data);
         }
       }
+      // Render after Action
       if (emailTemplate.body.afterActionLines) {
-        // Render Lines After Action
         emailTemplate.body.afterActionLines =
           emailTemplate.body.afterActionLines.map((afterActionLine) => ejs.render(afterActionLine, data));
         // Remove extra empty lines
@@ -403,13 +400,14 @@ export default class EMailNotificationTask implements NotificationTask {
         htmlTemp = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/body-html.template`, 'utf8'), emailTemplate);
       }
       const html = htmlTemp;
-      // Send the email
-      await this.sendEmail({
+      emailContent = {
         to: user.email,
         subject: subject,
         text: html,
         html: html
-      }, data, tenant, user, severity, useSmtpClientBackup);
+      };
+      // Send the email
+      await this.sendEmail(emailContent, data, tenant, user, severity, useSmtpClientBackup);
     } catch (error) {
       await Logging.logError({
         tenantID: tenant.id,
@@ -423,6 +421,8 @@ export default class EMailNotificationTask implements NotificationTask {
         actionOnUser: user,
         detailedMessages: { error: error.stack }
       });
+    } finally {
+      await Logging.traceNotificationEnd(tenant, MODULE_NAME, 'prepareAndSendEmail', startTime, templateName, emailContent, user.id);
     }
   }
 

@@ -2,7 +2,12 @@
   "billing": {
     "generatedUser": "Utilizador criado para '{{email}}'",
     "chargingAtSiteArea": "Charging session: {{sessionID}} - Start Date: {{startDate}} at {startTime} - Energy Consumption: {{totalConsumption}} kWh at {{siteAreaName}}",
-    "chargingAtChargeBox": "Charging session: {{sessionID}} - Start Date: {{startDate}} at {{startTime}} - Energy Consumption: {{totalConsumption}} kWh at charging station {{chargeBoxID}}"
+    "chargingAtChargeBox": "Charging session: {{sessionID}} - Start Date: {{startDate}} at {{startTime}} - Energy Consumption: {{totalConsumption}} kWh at charging station {{chargeBoxID}}",
+    "header-itemDescription": "Session: {{sessionID}} - Start Date: {{startDate}} at {{startTime}} at charging station {{chargeBoxID}}",
+    "flatFee-shortItemDescription": "Flat Fee",
+    "energy-shortItemDescription": "Energy Consumption: {{quantity}} kWh",
+    "chargingTime-shortItemDescription": "Charging Time: {{duration}}",
+    "parkingTime-shortItemDescription": "Parking Time: {{duration}}"
   },
   "chargers": {
     "chargeBoxSN": "Charge Box S/N",
@@ -94,7 +99,7 @@
     },
     "unknownUserBadged": {
       "title": "Utilizador Desconhecido",
-      "body": "Um utilizador desconhecido acabou de utilizar o'{{chargeBoxID}}' com o badge ID '{{badgeID}}' no'{{tenantName}}'"
+      "body": "Um utilizador desconhecido acabou de utilizar o'{{chargeBoxID}}' com o RFID '{{badgeID}}' no'{{tenantName}}'"
     },
     "chargingStationRegistered": {
       "title": "Estação de Carregamento Connectada",
@@ -160,7 +165,7 @@
     "usage": "Usage (Hours)"
   },
   "tags": {
-    "id": "Badge ID",
+    "id": "RFID",
     "description": "Badge Description",
     "virtualBadge": "Virtual Badge"
   },

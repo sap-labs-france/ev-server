@@ -38,7 +38,6 @@ export default abstract class BillingIntegration {
 
   public async synchronizeUsers(): Promise<BillingUserSynchronizeAction> {
     await this.checkConnection();
-    // Check
     const actionsDone: BillingUserSynchronizeAction = {
       inSuccess: 0,
       inError: 0
@@ -256,6 +255,7 @@ export default abstract class BillingIntegration {
       await Logging.logError({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_TRANSACTION,
+        actionOnUser: billingInvoice.user,
         module: MODULE_NAME, method: 'sendInvoiceNotification',
         message: `Failed to send notification for invoice '${billingInvoice.id}'`,
         detailedMessages: { error: error.stack }
@@ -592,7 +592,7 @@ export default abstract class BillingIntegration {
 
   abstract getTaxes(): Promise<BillingTax[]>;
 
-  abstract billInvoiceItem(user: User, billingInvoiceItems: BillingInvoiceItem, idemPotencyKey?: string): Promise<BillingInvoice>;
+  abstract billInvoiceItem(user: User, billingInvoiceItems: BillingInvoiceItem): Promise<BillingInvoice>;
 
   abstract downloadInvoiceDocument(invoice: BillingInvoice): Promise<Buffer>;
 

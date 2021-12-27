@@ -6,6 +6,7 @@ import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationCl
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
+import LoggingHelper from '../../../utils/LoggingHelper';
 import { ServerAction } from '../../../types/Server';
 import Tenant from '../../../types/Tenant';
 import Utils from '../../../utils/Utils';
@@ -19,10 +20,7 @@ export default class OCPPCommon {
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant, chargingStation);
     if (!chargingStationClient) {
       throw new BackendError({
-        chargingStationID: chargingStation.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
         module: MODULE_NAME, method: 'requestChangeChargingStationOcppParameter',
         message: 'Charging Station is not connected to the backend',
@@ -30,7 +28,7 @@ export default class OCPPCommon {
     }
     // Apply the configuration change
     const result = await chargingStationClient.changeConfiguration(params);
-    const isValidResultStatus: boolean = result.status === OCPPConfigurationStatus.ACCEPTED || result.status === OCPPConfigurationStatus.REBOOT_REQUIRED;
+    const isValidResultStatus = (result.status === OCPPConfigurationStatus.ACCEPTED) || (result.status === OCPPConfigurationStatus.REBOOT_REQUIRED);
     // Request the new Configuration?
     if (saveChange && isValidResultStatus) {
       // Request and save it
@@ -39,10 +37,7 @@ export default class OCPPCommon {
     if (triggerConditionalReset && result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
       await Logging.logInfo({
         tenantID: tenant.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
-        chargingStationID: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
         module: MODULE_NAME, method: 'requestChangeChargingStationOcppParameter',
         message: `Reboot triggered due to change of OCPP Parameter '${params.key}' to '${params.value}'`,
@@ -50,7 +45,6 @@ export default class OCPPCommon {
       });
       await OCPPCommon.triggerChargingStationReset(tenant, chargingStation, true);
     }
-    // Return
     return result;
   }
 
@@ -60,10 +54,7 @@ export default class OCPPCommon {
       const ocppConfiguration = await OCPPCommon.requestChargingStationOcppParameters(tenant, chargingStation, {});
       await Logging.logDebug({
         tenantID: tenant.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
-        chargingStationID: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
         module: MODULE_NAME, method: 'requestAndSaveChargingStationOcppParameters',
         message: 'Get charging station OCPP parameters successfully',
@@ -99,13 +90,9 @@ export default class OCPPCommon {
       }
       // Save configuration
       await ChargingStationStorage.saveOcppParameters(tenant, chargingStationOcppParameters);
-      // Ok
       await Logging.logInfo({
         tenantID: tenant.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
-        chargingStationID: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
         module: MODULE_NAME, method: 'requestAndSaveChargingStationOcppParameters',
         message: 'Save charging station OCPP parameters successfully'
@@ -123,10 +110,7 @@ export default class OCPPCommon {
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant, chargingStation);
     if (!chargingStationClient) {
       throw new BackendError({
-        chargingStationID: chargingStation.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.CHARGING_STATION_RESET,
         module: MODULE_NAME, method: 'triggerChargingStationReset',
         message: 'Charging Station is not connected to the backend',
@@ -136,10 +120,7 @@ export default class OCPPCommon {
     if (resetResult.status === OCPPResetStatus.REJECTED) {
       await Logging.logError({
         tenantID: tenant.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
-        chargingStationID: chargingStation.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.CHARGING_STATION_RESET,
         module: MODULE_NAME, method: 'triggerChargingStationReset',
         message: `Error at ${resetType} Rebooting charging station`,
@@ -147,10 +128,7 @@ export default class OCPPCommon {
       if (hardResetFallback && resetType !== OCPPResetType.HARD) {
         await Logging.logInfo({
           tenantID: tenant.id,
-          siteID: chargingStation.siteID,
-          siteAreaID: chargingStation.siteAreaID,
-          companyID: chargingStation.companyID,
-          chargingStationID: chargingStation.id,
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
           action: ServerAction.CHARGING_STATION_RESET,
           module: MODULE_NAME, method: 'triggerChargingStationReset',
           message: `Conditional ${OCPPResetType.HARD} Reboot requested`,
@@ -159,10 +137,7 @@ export default class OCPPCommon {
         if (resetResult.status === OCPPResetStatus.REJECTED) {
           await Logging.logError({
             tenantID: tenant.id,
-            siteID: chargingStation.siteID,
-            siteAreaID: chargingStation.siteAreaID,
-            companyID: chargingStation.companyID,
-            chargingStationID: chargingStation.id,
+            ...LoggingHelper.getChargingStationProperties(chargingStation),
             action: ServerAction.CHARGING_STATION_RESET,
             module: MODULE_NAME, method: 'triggerChargingStationReset',
             message: `Error at ${OCPPResetType.HARD} Rebooting charging station`,
@@ -179,10 +154,7 @@ export default class OCPPCommon {
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant, chargingStation);
     if (!chargingStationClient) {
       throw new BackendError({
-        chargingStationID: chargingStation.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.CHARGING_STATION_REQUEST_OCPP_PARAMETERS,
         module: MODULE_NAME, method: 'requestChargingStationOcppParameters',
         message: 'Charging Station is not connected to the backend',
@@ -190,7 +162,6 @@ export default class OCPPCommon {
     }
     // Get the configuration
     const result = await chargingStationClient.getConfiguration(params);
-    // Return
     return result;
   }
 }

@@ -1,3 +1,4 @@
+import ChargingStation from '../../types/ChargingStation';
 import Consumption from '../../types/Consumption';
 import { PricedConsumption } from '../../types/Pricing';
 import { PricingSetting } from '../../types/Setting';
@@ -17,9 +18,9 @@ export default abstract class PricingIntegration<T extends PricingSetting> {
     return this.setting;
   }
 
-  public abstract startSession(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption>;
+  public abstract startSession(transaction: Transaction, consumptionData: Consumption, chargingStation?: ChargingStation): Promise<PricedConsumption>;
 
-  public abstract updateSession(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption>;
+  public abstract updateSession(transaction: Transaction, consumptionData: Consumption, chargingStation?: ChargingStation): Promise<PricedConsumption>;
 
-  public abstract stopSession(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption>;
+  public abstract stopSession(transaction: Transaction, consumptionData: Consumption, chargingStation?: ChargingStation): Promise<PricedConsumption>;
 }

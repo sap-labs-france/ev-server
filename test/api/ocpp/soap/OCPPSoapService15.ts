@@ -95,7 +95,6 @@ export default class OCPPSoapService15 extends OCPPService {
   private async initSOAPClient() {
     // Client options
     const options = {};
-    // Check
     if (!this.client) {
       // Create the Promise
       this.client = await new Promise(function(resolve, reject) {

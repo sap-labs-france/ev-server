@@ -1,5 +1,5 @@
 import { Entity } from '../types/Authorization';
-import { EntityDataType } from '../types/GlobalType';
+import { EntityData } from '../types/GlobalType';
 import Tenant from '../types/Tenant';
 import UserToken from '../types/UserToken';
 
@@ -18,7 +18,7 @@ export default abstract class DynamicAuthorizationAssert {
     return this.negateAssert;
   }
 
-  public abstract processAssert(entityData: EntityDataType): boolean;
+  public abstract processAssert(entityData: EntityData): boolean;
 
   public abstract getApplicableEntities(): Entity[];
 }

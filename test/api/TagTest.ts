@@ -330,11 +330,10 @@ describe('Tag', function() {
 
       describe('Using various basic APIs', () => {
 
-        it('Should be able to create a badge for a user', async () => {
+        it('Should not be able to create a badge without a user', async () => {
           testData.newTag = Factory.tag.build();
           const response = await testData.userService.tagApi.createTag(testData.newTag);
-          expect(response.status).to.equal(StatusCodes.CREATED);
-          testData.createdTags.push(testData.newTag);
+          expect(response.status).to.equal(StatusCodes.FORBIDDEN);
         });
 
         it('Should be not be able to read badge of user not assigned to his site', async () => {

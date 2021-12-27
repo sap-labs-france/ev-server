@@ -30,7 +30,6 @@ export default class RemotePushNotificationTask implements NotificationTask {
           }),
           databaseURL: this.firebaseConfig.databaseURL
         });
-        // Ok
         this.initialized = true;
       } catch (error) {
         void Logging.logError({
@@ -436,61 +435,68 @@ export default class RemotePushNotificationTask implements NotificationTask {
 
   private async sendRemotePushNotificationToUser(tenant: Tenant, notificationType: UserNotificationType,
       title: string, body: string, user: User, data?: Record<string, string>, severity?: NotificationSeverity): Promise<void> {
-    // Checks
-    if (!this.initialized) {
-      return Promise.resolve();
+    let startTime: number;
+    let message = {} as admin.messaging.MessagingPayload;
+    try {
+      startTime = Logging.traceNotificationStart();
+      // Checks
+      if (!this.initialized) {
+        return Promise.resolve();
+      }
+      if (!user || !user.mobileToken || user.mobileToken.length === 0) {
+        await Logging.logDebug({
+          tenantID: tenant.id,
+          siteID: data?.siteID,
+          siteAreaID: data?.siteAreaID,
+          companyID: data?.companyID,
+          chargingStationID: data?.chargeBoxID,
+          action: ServerAction.REMOTE_PUSH_NOTIFICATION,
+          module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
+          message: `'${notificationType}': No mobile token found for this User`,
+          actionOnUser: user.id,
+          detailedMessages: { title, body }
+        });
+        // Send nothing
+        return Promise.resolve();
+      }
+      // Create message
+      message = this.createMessage(tenant, notificationType, title, body, data, severity);
+      // Send message
+      admin.messaging().sendToDevice(
+        user.mobileToken,
+        message,
+        { priority: 'high', timeToLive: 60 * 60 * 24 }
+      ).then((response) => {
+        // Response is a message ID string.
+        void Logging.logDebug({
+          tenantID: tenant.id,
+          siteID: data?.siteID,
+          siteAreaID: data?.siteAreaID,
+          companyID: data?.companyID,
+          chargingStationID: data?.chargeBoxID,
+          action: ServerAction.REMOTE_PUSH_NOTIFICATION,
+          module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
+          message: `Notification Sent: '${notificationType}' - '${title}'`,
+          actionOnUser: user.id,
+          detailedMessages: { message, response }
+        });
+      }).catch((error: Error) => {
+        void Logging.logError({
+          tenantID: tenant.id,
+          siteID: data?.siteID,
+          siteAreaID: data?.siteAreaID,
+          companyID: data?.companyID,
+          chargingStationID: data?.chargeBoxID,
+          action: ServerAction.REMOTE_PUSH_NOTIFICATION,
+          module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
+          message: `Error when sending Notification: '${notificationType}' - '${error.message}'`,
+          actionOnUser: user.id,
+          detailedMessages: { error: error.stack, message }
+        });
+      });
+    } finally {
+      await Logging.traceNotificationEnd(tenant, MODULE_NAME, 'sendRemotePushNotificationToUser', startTime, notificationType, message, user.id);
     }
-    if (!user || !user.mobileToken || user.mobileToken.length === 0) {
-      await Logging.logDebug({
-        tenantID: tenant.id,
-        siteID: data?.siteID,
-        siteAreaID: data?.siteAreaID,
-        companyID: data?.companyID,
-        chargingStationID: data?.chargeBoxID,
-        action: ServerAction.REMOTE_PUSH_NOTIFICATION,
-        module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
-        message: `'${notificationType}': No mobile token found for this User`,
-        actionOnUser: user.id,
-        detailedMessages: { title, body }
-      });
-      // Send nothing
-      return Promise.resolve();
-    }
-    // Create message
-    const message = this.createMessage(tenant, notificationType, title, body, data, severity);
-    // Send message
-    admin.messaging().sendToDevice(
-      user.mobileToken,
-      message,
-      { priority: 'high', timeToLive: 60 * 60 * 24 }
-    ).then((response) => {
-      // Response is a message ID string.
-      void Logging.logDebug({
-        tenantID: tenant.id,
-        siteID: data?.siteID,
-        siteAreaID: data?.siteAreaID,
-        companyID: data?.companyID,
-        chargingStationID: data?.chargeBoxID,
-        action: ServerAction.REMOTE_PUSH_NOTIFICATION,
-        module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
-        message: `Notification Sent: '${notificationType}' - '${title}'`,
-        actionOnUser: user.id,
-        detailedMessages: { message, response }
-      });
-    }).catch((error: Error) => {
-      void Logging.logError({
-        tenantID: tenant.id,
-        siteID: data?.siteID,
-        siteAreaID: data?.siteAreaID,
-        companyID: data?.companyID,
-        chargingStationID: data?.chargeBoxID,
-        action: ServerAction.REMOTE_PUSH_NOTIFICATION,
-        module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
-        message: `Error when sending Notification: '${notificationType}' - '${error.message}'`,
-        actionOnUser: user.id,
-        detailedMessages: { error: error.stack, message }
-      });
-    });
   }
 
   private createMessage(tenant: Tenant, notificationType: UserNotificationType, title: string, body: string,

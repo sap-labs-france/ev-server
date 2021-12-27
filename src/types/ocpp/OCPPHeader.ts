@@ -1,7 +1,6 @@
 import { OCPPProtocol, OCPPVersion } from './OCPPServer';
 
 import ChargingStation from '../ChargingStation';
-import Lock from '../Locking';
 import RegistrationToken from '../RegistrationToken';
 import Tenant from '../Tenant';
 
@@ -16,7 +15,6 @@ export interface OCPPHeader {
   currentIPAddress?: string | string[];
   tenantID: string;
   tenant?: Tenant;
-  lock?: Lock;
   token?: RegistrationToken;
   tokenID?: string;
   chargingStationURL?: string;
