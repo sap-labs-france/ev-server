@@ -349,7 +349,9 @@ export default class AssetService {
     UtilsService.assertObjectExists(action, asset, `Asset ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetAsset', req.user);
     // Dynamic auth
-    await AuthorizationService.checkAndGetAssetAuthorizations(req.tenant, req.user, Action.READ, filteredRequest, asset);
+    const authorizationAssetsFilter = await AuthorizationService.checkAndGetAssetAuthorizations(req.tenant, req.user, Action.READ, filteredRequest, asset);
+    // Add authorizations flags
+    await AuthorizationService.addAssetAuthorizations(req.tenant, req.user, asset, authorizationAssetsFilter);
     res.json(asset);
     next();
   }
