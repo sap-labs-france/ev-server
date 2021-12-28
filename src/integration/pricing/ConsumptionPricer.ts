@@ -1,9 +1,9 @@
 import { DimensionType, PricedConsumptionData, PricedDimensionData, PricingDimension, PricingRestriction, ResolvedPricingDefinition, ResolvedPricingModel } from '../../types/Pricing';
+import moment, { Moment } from 'moment';
 
 import Consumption from '../../types/Consumption';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
-import moment from 'moment';
 
 export default class ConsumptionPricer {
 
@@ -70,28 +70,38 @@ export default class ConsumptionPricer {
 
   private checkTimeValidity(restrictions: PricingRestriction): boolean {
     // The time range restriction must consider the charging station timezone
-    const timezone = this.pricingModel.pricerContext.timezone;
-    if (!Utils.isNullOrUndefined(restrictions.timeFrom)) {
-      if (!timezone) {
-        // Charging station timezone is not known - time restrictions cannot be used in such context
-        return false;
-      }
-      const hour = Utils.convertToInt(restrictions.timeFrom.slice(0, 2));
-      const minute = Utils.convertToInt(restrictions.timeFrom.slice(3));
-      if (moment(this.consumptionData.startedAt).tz(timezone).isBefore(moment().tz(timezone).set({ hour, minute }))) {
-        return false;
-      }
+    if (Utils.isNullOrUndefined(restrictions.timeFrom) && Utils.isNullOrUndefined(restrictions.timeTo)) {
+      // No time restrictions
+      return true;
     }
-    if (!Utils.isNullOrUndefined(restrictions.timeTo)) {
-      if (!timezone) {
-        // Charging station timezone is not known - time restrictions cannot be used in such context
-        return false;
-      }
-      const hour = Utils.convertToInt(restrictions.timeTo.slice(0, 2));
-      const minute = Utils.convertToInt(restrictions.timeTo.slice(3));
-      if (moment(this.consumptionData.startedAt).tz(timezone).isSameOrAfter(moment().tz(timezone).set({ hour, minute }))) {
-        return false;
-      }
+    // The time range has to consider the time zone of the charging station
+    const timezone = this.pricingModel.pricerContext.timezone;
+    if (!timezone) {
+      // Charging station timezone is not known - time restrictions cannot be used in such context
+      return false;
+    }
+    // Normalize time range restrictions - both limits must be set!
+    const timeFrom = moment(restrictions.timeFrom || '00:00', 'HH:mm');
+    const timeTo = moment(restrictions.timeTo || '00:00', 'HH:mm');
+    // Normalize limits for the current timezone
+    const dateMin = moment().tz(timezone).set({ hour: timeFrom.get('hour'), minute: timeFrom.get('minute') });
+    const dateMax = moment().tz(timezone).set({ hour: timeTo.get('hour'), minute: timeTo.get('minute') });
+    // Regular time range or not?
+    const spanTwoDays = timeTo.isBefore(timeFrom);
+    if (spanTwoDays) {
+      // Time range spanning two days - e.g.: - Time range from 20:00 to 08:00
+      return !this.isConsumptionBetween(timezone, moment(this.consumptionData.startedAt), dateMax, dateMin);
+    }
+    // Regular time range - e.g.: - Time range from 08:00 to 20:00
+    return this.isConsumptionBetween(timezone, moment(this.consumptionData.startedAt), dateMin, dateMax);
+  }
+
+  private isConsumptionBetween(timezone:string, consumptionStartDate: Moment, dateMin: Moment, dateMax: Moment) {
+    if (moment(consumptionStartDate).tz(timezone).isBefore(dateMin)) {
+      return false;
+    }
+    if (moment(consumptionStartDate).tz(timezone).isSameOrAfter(dateMax)) {
+      return false;
     }
     return true;
   }
