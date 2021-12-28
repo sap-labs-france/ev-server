@@ -792,7 +792,7 @@ describe('Billing', function() {
           await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 33.82);
         });
 
-        it('should bill an invoice taking the Time into account', async () => {
+        it('should bill an invoice taking the Time Range into account', async () => {
           const atThatParticularMoment = moment();
           await billingTestHelper.initChargingStationContext2TestTimeRestrictions('OTHER_HOURS', atThatParticularMoment);
           await billingTestHelper.initChargingStationContext2TestTimeRestrictions('NEXT_HOUR', atThatParticularMoment);
@@ -806,6 +806,21 @@ describe('Billing', function() {
           // Check that we have a new invoice with an invoiceID and an invoiceNumber
           await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 55.22);
         });
+
+        it('should bill an invoice taking a reverted Time Range into account', async () => {
+          const atThatParticularMoment = moment();
+          await billingTestHelper.initChargingStationContext2TestTimeRestrictions('REVERTED_TIME_RANGE', atThatParticularMoment);
+          await billingTestHelper.initChargingStationContext2TestTimeRestrictions('NO_TIME_RESTRICTIONS', atThatParticularMoment);
+          // A tariff applied immediately
+          await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
+          const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
+          await billingTestHelper.assignPaymentMethod(userWithBillingData, 'tok_fr');
+          const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext);
+          assert(transactionID, 'transactionID should not be null');
+          // Check that we have a new invoice with an invoiceID and an invoiceNumber
+          await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 16.16);
+        });
+
       });
 
       describe('When basic user has a free access', () => {

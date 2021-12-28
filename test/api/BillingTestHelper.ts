@@ -326,7 +326,29 @@ export default class BillingTestHelper {
     // Let's create a pricing definition
     let dimensions: PricingDimensions;
     let restrictions: PricingRestriction;
-    if (testMode === 'FOR_HALF_AN_HOUR') {
+    if (testMode === 'REVERTED_TIME_RANGE') {
+      dimensions = {
+        energy: {
+          price: 666,
+          active: true
+        }
+      };
+      restrictions = {
+        daysOfWeek: [ atThatMoment.isoWeekday() ], // Sets today as the only day allowed for this pricing definition
+        timeFrom: atThatMoment.add(30 + 60, 'minutes').format('HH:mm'), // Validity for half an hour
+        timeTo: atThatMoment.format('HH:mm'), // From this hour
+      };
+    } else if (testMode === 'NO_TIME_RESTRICTIONS') {
+      dimensions = {
+        energy: {
+          price: 0.50,
+          active: true
+        }
+      };
+      restrictions = {
+        daysOfWeek: [ atThatMoment.isoWeekday() ], // Sets today as the only day allowed for this pricing definition
+      };
+    } else if (testMode === 'FOR_HALF_AN_HOUR') {
       dimensions = {
         energy: {
           price: 3,
