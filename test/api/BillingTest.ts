@@ -804,7 +804,7 @@ describe('Billing', function() {
           const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext);
           assert(transactionID, 'transactionID should not be null');
           // Check that we have a new invoice with an invoiceID and an invoiceNumber
-          await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 55.22);
+          await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 59.99);
         });
 
         it('should bill an invoice taking a reverted Time Range into account', async () => {

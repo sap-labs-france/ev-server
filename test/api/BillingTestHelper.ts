@@ -363,7 +363,7 @@ export default class BillingTestHelper {
     } else if (testMode === 'NEXT_HOUR') {
       dimensions = {
         chargingTime: {
-          price: 5, // Euro per hour
+          price: 30, // Euro per hour
           active: true
         },
       };
