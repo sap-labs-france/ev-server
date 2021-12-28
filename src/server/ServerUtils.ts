@@ -6,7 +6,6 @@ import CentralSystemServerConfiguration from '../types/configuration/CentralSyst
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 import { StatusCodes } from 'http-status-codes';
-import Utils from '../utils/Utils';
 import https from 'https';
 
 export class ServerUtils {
@@ -30,22 +29,6 @@ export class ServerUtils {
     if (serverConfig.protocol === ServerProtocol.HTTPS || serverConfig.protocol === ServerProtocol.WSS) {
       // Create the options
       const options: https.ServerOptions = {};
-      // Intermediate cert?
-      if (serverConfig.sslCa) {
-        // Array?
-        if (!Utils.isEmptyArray(serverConfig.sslCa)) {
-          options.ca = [];
-          // Add all
-          for (const sslCa of serverConfig.sslCa) {
-            if (sslCa) {
-              options.ca.push(sslCa);
-            }
-          }
-        } else {
-          // Add one
-          options.ca = serverConfig.sslCa;
-        }
-      }
       // Https server
       httpServer = https.createServer(options, requestListener);
     } else {
