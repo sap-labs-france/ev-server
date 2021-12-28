@@ -200,7 +200,6 @@ export interface RegistrationTokenAuthorizationActions extends AuthorizationActi
 export interface AssetAuthorizationActions extends AuthorizationActions {
   canRetrieveConsumption?:boolean;
   canReadConsumption?:boolean;
-  canCreateConsumption?:boolean;
   canCheckConnection?:boolean;
 }
 

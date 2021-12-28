@@ -339,7 +339,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.INVOICE, action: [Action.DOWNLOAD, Action.READ] },
       {
         resource: Entity.ASSET, action: [Action.CREATE, Action.READ,
-        Action.CHECK_CONNECTION, Action.CREATE_CONSUMPTION]
+          Action.CHECK_CONNECTION, Action.CREATE_CONSUMPTION]
       },
       {
         resource: Entity.ASSET, action: Action.READ_CONSUMPTION,
@@ -1160,9 +1160,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.CHARGING_STATION,
         action: [Action.UPDATE, Action.DELETE, Action.RESET, Action.CLEAR_CACHE, Action.GET_CONFIGURATION,
-        Action.CHANGE_CONFIGURATION, Action.SET_CHARGING_PROFILE, Action.GET_COMPOSITE_SCHEDULE,
-        Action.CLEAR_CHARGING_PROFILE, Action.GET_DIAGNOSTICS, Action.UPDATE_FIRMWARE, Action.REMOTE_STOP_TRANSACTION,
-        Action.STOP_TRANSACTION, Action.EXPORT, Action.CHANGE_AVAILABILITY],
+          Action.CHANGE_CONFIGURATION, Action.SET_CHARGING_PROFILE, Action.GET_COMPOSITE_SCHEDULE,
+          Action.CLEAR_CHARGING_PROFILE, Action.GET_DIAGNOSTICS, Action.UPDATE_FIRMWARE, Action.REMOTE_STOP_TRANSACTION,
+          Action.STOP_TRANSACTION, Action.EXPORT, Action.CHANGE_AVAILABILITY],
         condition: {
           Fn: 'LIST_CONTAINS',
           args: { 'sitesAdmin': '$.site' }
