@@ -1,9 +1,9 @@
-import { DimensionType, PricedConsumptionData, PricedDimensionData, PricingDimension, PricingRestriction, ResolvedPricingDefinition, ResolvedPricingModel } from '../../types/Pricing';
-import moment, { Moment } from 'moment';
+import { DimensionType, PricedConsumptionData, PricedDimensionData, PricingDimension, PricingRestriction, PricingTimeLimit, ResolvedPricingDefinition, ResolvedPricingModel } from '../../types/Pricing';
 
 import Consumption from '../../types/Consumption';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
+import moment from 'moment';
 
 export default class ConsumptionPricer {
 
@@ -81,29 +81,11 @@ export default class ConsumptionPricer {
       return false;
     }
     // Normalize time range restrictions - both limits must be set!
-    const timeFrom = moment(restrictions.timeFrom || '00:00', 'HH:mm');
-    const timeTo = moment(restrictions.timeTo || '00:00', 'HH:mm');
-    // Normalize limits for the current timezone
-    const dateMin = moment().tz(timezone).set({ hour: timeFrom.get('hour'), minute: timeFrom.get('minute') });
-    const dateMax = moment().tz(timezone).set({ hour: timeTo.get('hour'), minute: timeTo.get('minute') });
-    // Regular time range or not?
-    const spanTwoDays = timeTo.isBefore(timeFrom);
-    if (spanTwoDays) {
-      // Time range spanning two days - e.g.: - Time range from 20:00 to 08:00
-      return !this.isConsumptionBetween(timezone, moment(this.consumptionData.startedAt), dateMax, dateMin);
-    }
-    // Regular time range - e.g.: - Time range from 08:00 to 20:00
-    return this.isConsumptionBetween(timezone, moment(this.consumptionData.startedAt), dateMin, dateMax);
-  }
-
-  private isConsumptionBetween(timezone:string, consumptionStartDate: Moment, dateMin: Moment, dateMax: Moment) {
-    if (moment(consumptionStartDate).tz(timezone).isBefore(dateMin)) {
-      return false;
-    }
-    if (moment(consumptionStartDate).tz(timezone).isSameOrAfter(dateMax)) {
-      return false;
-    }
-    return true;
+    const timeFrom = PricingTimeLimit.parseTime(restrictions.timeFrom || '00:00');
+    const timeTo = PricingTimeLimit.parseTime(restrictions.timeTo || '00:00');
+    // Time of the consumption in its timezone
+    const consumptionStartTime = PricingTimeLimit.parseTime(moment(this.consumptionData.startedAt).tz(timezone).format('HH:mm:ss'));
+    return consumptionStartTime.isBetween(timeFrom, timeTo);
   }
 
   private checkMinEnergy(restrictions: PricingRestriction): boolean {
