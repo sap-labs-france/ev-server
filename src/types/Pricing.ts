@@ -164,11 +164,7 @@ export class PricingTimeLimit {
     return (this.hour > aTimeLimit.hour);
   }
 
-  isAfter(aTimeLimit: PricingTimeLimit): boolean {
-    return this.isGreaterThan(aTimeLimit);
-  }
-
-  isSameOrBefore(aTimeLimit: PricingTimeLimit): boolean {
+  isSameOrLowerThan(aTimeLimit: PricingTimeLimit): boolean {
     return !this.isGreaterThan(aTimeLimit);
   }
 
@@ -182,11 +178,7 @@ export class PricingTimeLimit {
     return (this.hour < aTimeLimit.hour);
   }
 
-  isBefore(aTimeLimit: PricingTimeLimit): boolean {
-    return this.isLowerThan(aTimeLimit);
-  }
-
-  isSameOrAfter(aTimeLimit: PricingTimeLimit): boolean {
+  isSameOrGreaterThan(aTimeLimit: PricingTimeLimit): boolean {
     return !this.isLowerThan(aTimeLimit);
   }
 
@@ -195,9 +187,9 @@ export class PricingTimeLimit {
     const spanTwoDays = timeTo.isLowerThan(timeFrom);
     if (spanTwoDays) {
       // Time range spanning two days - e.g.: - Time range from 20:00 to 08:00
-      return !(this.isAfter(timeTo) || this.isSameOrBefore(timeFrom));
+      return !this.isBetween(timeTo, timeFrom); // Let's check the opposite
     }
     // Regular time range - e.g.: - Time range from 08:00 to 20:00
-    return this.isSameOrAfter(timeFrom) && this.isBefore(timeTo);
+    return this.isSameOrGreaterThan(timeFrom) && this.isLowerThan(timeTo);
   }
 }

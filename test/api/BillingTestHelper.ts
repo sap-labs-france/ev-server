@@ -326,19 +326,7 @@ export default class BillingTestHelper {
     // Let's create a pricing definition
     let dimensions: PricingDimensions;
     let restrictions: PricingRestriction;
-    if (testMode === 'REVERTED_TIME_RANGE') {
-      dimensions = {
-        energy: {
-          price: 666,
-          active: true
-        }
-      };
-      restrictions = {
-        daysOfWeek: [ atThatMoment.isoWeekday() ], // Sets today as the only day allowed for this pricing definition
-        timeFrom: atThatMoment.add(30 + 60, 'minutes').format('HH:mm'), // Validity for half an hour
-        timeTo: atThatMoment.format('HH:mm'), // From this hour
-      };
-    } else if (testMode === 'NO_TIME_RESTRICTIONS') {
+    if (testMode === 'FROM_23:59') {
       dimensions = {
         energy: {
           price: 0.50,
@@ -347,6 +335,8 @@ export default class BillingTestHelper {
       };
       restrictions = {
         daysOfWeek: [ atThatMoment.isoWeekday() ], // Sets today as the only day allowed for this pricing definition
+        timeFrom: '23:59', // Specific test to check the behavior when timeFrom is lower than timeTo
+        timeTo: atThatMoment.add(60 + 30, 'minutes').format('HH:mm'), // Validity for the whole session
       };
     } else if (testMode === 'FOR_HALF_AN_HOUR') {
       dimensions = {

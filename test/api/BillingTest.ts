@@ -809,8 +809,8 @@ describe('Billing', function() {
 
         it('should bill an invoice taking a reverted Time Range into account', async () => {
           const atThatParticularMoment = moment();
-          await billingTestHelper.initChargingStationContext2TestTimeRestrictions('REVERTED_TIME_RANGE', atThatParticularMoment);
-          await billingTestHelper.initChargingStationContext2TestTimeRestrictions('NO_TIME_RESTRICTIONS', atThatParticularMoment);
+          await billingTestHelper.initChargingStationContext2TestTimeRestrictions('OTHER_HOURS', atThatParticularMoment);
+          await billingTestHelper.initChargingStationContext2TestTimeRestrictions('FROM_23:59', atThatParticularMoment);
           // A tariff applied immediately
           await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
           const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
