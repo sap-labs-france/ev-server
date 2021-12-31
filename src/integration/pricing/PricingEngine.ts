@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
-import PricingDefinition, { PricedConsumptionData, PricingEntity, PricingStaticRestriction, ResolvedPricingDefinition, ResolvedPricingModel } from '../../types/Pricing';
+import PricingDefinition, { DimensionType, PricedConsumptionData, PricingDimensions, PricingEntity, PricingStaticRestriction, ResolvedPricingDefinition, ResolvedPricingModel } from '../../types/Pricing';
 
 import ChargingStation from '../../types/ChargingStation';
 import Constants from '../../utils/Constants';
@@ -8,6 +8,7 @@ import Consumption from '../../types/Consumption';
 import ConsumptionPricer from './ConsumptionPricer';
 import Logging from '../../utils/Logging';
 import LoggingHelper from '../../utils/LoggingHelper';
+import PricingHelper from './PricingHelper';
 import PricingStorage from '../../storage/mongodb/PricingStorage';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
@@ -61,7 +62,12 @@ export default class PricingEngine {
 
   public static priceConsumption(tenant: Tenant, pricingModel: ResolvedPricingModel, consumptionData: Consumption): PricedConsumptionData {
     const consumptionPricer = new ConsumptionPricer(tenant, pricingModel, consumptionData);
-    return consumptionPricer.priceConsumption();
+    const pricedConsumptionData = consumptionPricer.priceConsumption();
+    const consumptionWh = consumptionData?.consumptionWh || 0;
+    if (consumptionWh > 0) {
+      PricingEngine.withdrawParkingTimeConsumption(pricingModel);
+    }
+    return pricedConsumptionData;
   }
 
   public static extractFinalPricingData(pricingModel: ResolvedPricingModel): PricedConsumptionData[] {
@@ -187,5 +193,23 @@ export default class PricingEngine {
     }
     // Nothing to bill for the current pricing definition
     return null;
+  }
+
+  private static withdrawParkingTimeConsumption(pricingModel: ResolvedPricingModel): void {
+    const allDimensionsWithParkingTime: PricingDimensions[] = [];
+    pricingModel.pricingDefinitions.forEach((pricingDefinition) => {
+      if (pricingDefinition.dimensions.parkingTime) {
+        allDimensionsWithParkingTime.push(pricingDefinition.dimensions);
+      }
+    });
+    // Determine the already priced parking time
+    const pricedParkingTime = PricingHelper.accumulatePricingDimension(allDimensionsWithParkingTime, DimensionType.PARKING_TIME);
+    if (pricedParkingTime.cumulatedAmount > 0) {
+      // Let's withdraw it
+      allDimensionsWithParkingTime.forEach((pricingDimension) => {
+        // Reset the parking time dimension
+        delete pricingDimension[DimensionType.PARKING_TIME].pricedData;
+      });
+    }
   }
 }

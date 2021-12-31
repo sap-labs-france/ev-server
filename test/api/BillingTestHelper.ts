@@ -207,7 +207,7 @@ export default class BillingTestHelper {
           active: true
         }
       };
-    } else if (testMode === 'E-After30mins') {
+    } else if (testMode === 'E-After30mins+PT') {
       // Create a second tariff with a different pricing strategy
       dimensions = {
         energy: {

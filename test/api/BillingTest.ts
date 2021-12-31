@@ -703,7 +703,7 @@ describe('Billing', function() {
           const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext);
           assert(transactionID, 'transactionID should not be null');
           // Check that we have a new invoice with an invoiceID and an invoiceNumber
-          await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 6.49);
+          await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 5.66);
         });
 
         it('should bill the CT(STEP)+PT(STEP) on COMBO CCS - DC', async () => {
@@ -714,7 +714,7 @@ describe('Billing', function() {
           const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext);
           assert(transactionID, 'transactionID should not be null');
           // Check that we have a new invoice with an invoiceID and an invoiceNumber
-          await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 11.00);
+          await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 10.00);
         });
 
         it('should bill the ENERGY + PT(STEP) on COMBO CCS - DC', async () => {
@@ -725,14 +725,14 @@ describe('Billing', function() {
           const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext);
           assert(transactionID, 'transactionID should not be null');
           // Check that we have a new invoice with an invoiceID and an invoiceNumber
-          await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 19.49);
+          await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 18.16);
         });
 
         it('should bill the FF+E with 2 tariffs on COMBO CCS - DC', async () => {
           // A first Tariff for the ENERGY Only
           await billingTestHelper.initChargingStationContext2TestFastCharger('FF+E');
           // A second Tariff applied after 30 mins!
-          await billingTestHelper.initChargingStationContext2TestFastCharger('E-After30mins');
+          await billingTestHelper.initChargingStationContext2TestFastCharger('E-After30mins+PT');
           // A tariff applied immediately
           await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
           const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
@@ -740,7 +740,7 @@ describe('Billing', function() {
           const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext);
           assert(transactionID, 'transactionID should not be null');
           // Check that we have a new invoice with an invoiceID and an invoiceNumber
-          await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 24.63);
+          await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 22.96);
         });
 
         it('should bill the FF+E(STEP)+E(STEP) with 2 tariffs on COMBO CCS - DC', async () => {
