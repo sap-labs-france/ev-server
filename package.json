@@ -140,7 +140,7 @@
     "moment-timezone": "^0.5.34",
     "mongo-sanitize": "^1.1.0",
     "mongo-uri-builder": "^4.0.0",
-    "mongodb": "^4.1.3",
+    "mongodb": "^4.2.2",
     "morgan": "^1.10.0",
     "mustache": "^4.2.0",
     "node-cron": "^3.0.0",
