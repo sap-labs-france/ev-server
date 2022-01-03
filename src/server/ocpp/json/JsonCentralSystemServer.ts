@@ -94,8 +94,23 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
           await wsConnection.onPong(ocppMessage);
         }
       }
-    }).any('/health-check', (res: HttpResponse) => {
-      res.end('OK');
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    }).any(Constants.HEALTH_CHECK_ROUTE, async (res: HttpResponse) => {
+      res.onAborted(() => {
+        res.aborted = true;
+      });
+      const pingSuccess = await global.database.ping();
+      if (!res.aborted) {
+        if (pingSuccess) {
+          res.end('OK');
+        } else {
+          res.writeStatus('500');
+          res.end('KO');
+        }
+      }
+    }).any('/*', (res: HttpResponse) => {
+      res.writeStatus('404');
+      res.end();
     }).listen(this.centralSystemConfig.port, (token) => {
       if (token) {
         Logging.logConsoleDebug(`${ServerType.JSON_SERVER} Server listening on 'http://${this.centralSystemConfig.host}:${this.centralSystemConfig.port}'`);
