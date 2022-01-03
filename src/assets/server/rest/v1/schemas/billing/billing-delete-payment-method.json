@@ -1,0 +1,18 @@
+{
+  "$id": "billing-delete-payment-method",
+  "title": "Delete user payment method Request",
+  "type": "object",
+  "properties": {
+    "userID": {
+      "$ref": "common#/definitions/id"
+    },
+    "paymentMethodId": {
+      "type": "string",
+      "sanitize": "mongo"
+    }
+  },
+  "required": [
+    "userID",
+    "paymentMethodId"
+  ]
+}
