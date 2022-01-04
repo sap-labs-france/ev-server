@@ -1,83 +1,11 @@
+import ConsumptionPricer, { ConsumptionChunk } from './ConsumptionPricer';
 import { DimensionType, PricedConsumptionData, PricedDimensionData, PricingDimension, PricingRestriction, PricingTimeLimit, ResolvedPricingDefinition, ResolvedPricingModel } from '../../types/Pricing';
 
 import Consumption from '../../types/Consumption';
-import ConsumptionPricer from './ConsumptionPricer';
-import PricingHelper from './PricingHelper';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
 
-interface ConsumptionChunk{
-  startedAt: Date;
-  endedAt: Date;
-  consumptionWh: number;
-  cumulatedConsumptionWh: number;
-  totalDurationSecs: number;
-  totalInactivitySecs: number;
-}
-
-export default class ConsumptionChunkGenerator {
-  consumptionPricer: ConsumptionPricer;
-  constructor(consumptionPricer: ConsumptionPricer) {
-    this.consumptionPricer = consumptionPricer;
-  }
-
-  public priceConsumption(): PricedConsumptionData {
-    let accumulatedConsumptionData: PricedConsumptionData = {};
-    for (const consumptionChunk of this.generateChunk()) {
-      const pricedData = this.priceConsumptionChunk(consumptionChunk);
-      accumulatedConsumptionData = PricingHelper.accumulatePricedConsumption([ accumulatedConsumptionData, pricedData ]);
-    }
-    return accumulatedConsumptionData;
-  }
-
-  private priceConsumptionChunk(consumptionChunk: ConsumptionChunk): PricedConsumptionData {
-    const consumptionChunkPricer = new ConsumptionChunkPricer(this.consumptionPricer, consumptionChunk);
-    return consumptionChunkPricer.priceConsumptionChunk();
-  }
-
-  private * generateChunk(): IterableIterator<ConsumptionChunk> {
-    const consumptionData = this.consumptionPricer.consumptionData;
-    const startedAt = moment(consumptionData.startedAt);
-    const endedAt = moment(consumptionData.endedAt);
-    const durationSecs = endedAt.diff(startedAt, 'seconds');
-    if (durationSecs <= 60) {
-      yield ConsumptionChunkPricer.convertToConsumptionChunk(consumptionData);
-    } else {
-      // Well - we got data for more than 1 minute! - we need to handle chunks!
-      const nbSeconds = endedAt.diff(startedAt, 'seconds');
-      let secondsAlreadyPriced = 0;
-      let chunkCumulatedConsumptionWh = Utils.createDecimal(consumptionData.cumulatedConsumptionWh).minus(consumptionData.consumptionWh);
-      let chunkTotalDurationSecs = Utils.createDecimal(consumptionData.totalDurationSecs).minus(durationSecs);
-      while (secondsAlreadyPriced < nbSeconds) {
-        // Number of seconds for the current chunk
-        const secondsToPrice = Utils.minValue(nbSeconds - secondsAlreadyPriced, 60);
-        // Chunk dates
-        const chunkStartedAt = moment(startedAt).add(secondsAlreadyPriced, 'seconds');
-        const chunkEndedAt = moment(startedAt).add(secondsAlreadyPriced + secondsToPrice, 'seconds');
-        // Chunk consumption
-        const chunkConsumptionWh = Utils.createDecimal(consumptionData.consumptionWh).mul(secondsToPrice).divToInt(nbSeconds);
-        // Chunk accumulated data
-        chunkCumulatedConsumptionWh = chunkCumulatedConsumptionWh.add(chunkConsumptionWh);
-        chunkTotalDurationSecs = chunkTotalDurationSecs.plus(secondsToPrice);
-        // Create the consumption chunk
-        const consumptionChunk = {
-          startedAt: chunkStartedAt.toDate(),
-          endedAt: chunkEndedAt.toDate(),
-          consumptionWh: chunkConsumptionWh.toNumber(),
-          cumulatedConsumptionWh: chunkCumulatedConsumptionWh.toNumber(),
-          totalDurationSecs: chunkTotalDurationSecs.toNumber(),
-          totalInactivitySecs: 0 // TO BE CLARIFIED
-        };
-        // Number of seconds already priced
-        secondsAlreadyPriced += secondsToPrice;
-        // Production of the chunk
-        yield consumptionChunk;
-      }
-    }
-  }
-}
-
-class ConsumptionChunkPricer {
+export default class ConsumptionChunkPricer {
   consumptionPricer: ConsumptionPricer;
   consumptionChunk: ConsumptionChunk;
   actualPricingDefinitions: ResolvedPricingDefinition[];
