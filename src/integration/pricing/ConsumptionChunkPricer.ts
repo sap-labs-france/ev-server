@@ -414,7 +414,6 @@ class ConsumptionChunkPricer {
     // Is there a step size
     if (pricingDimension.stepSize) {
       // Price the charging time only when charging!
-      // TODO - to be clarified - do we pay the first step before consuming it or not?
       const timeSpent = moment(this.consumptionChunk.endedAt).diff(moment(lastStepDate), 'seconds');
       const nbSteps = Utils.createDecimal(timeSpent).divToInt(pricingDimension.stepSize).toNumber();
       if (nbSteps > 0) {
