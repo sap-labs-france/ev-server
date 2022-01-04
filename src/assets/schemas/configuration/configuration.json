@@ -58,17 +58,13 @@
         },
         "debug": {
           "type": "boolean"
-        },
-        "externalProtocol": {
-          "type": "string"
         }
       },
       "required": [
         "protocol",
         "host",
         "port",
-        "debug",
-        "externalProtocol"
+        "debug"
       ]
     },
     "ODataService": {
@@ -83,9 +79,6 @@
         "port": {
           "type": "integer"
         },
-        "externalProtocol": {
-          "type": "string"
-        },
         "debug": {
           "type": "boolean"
         }
@@ -94,7 +87,6 @@
         "protocol",
         "host",
         "port",
-        "externalProtocol",
         "debug"
       ]
     },

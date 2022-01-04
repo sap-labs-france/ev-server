@@ -1,12 +1,10 @@
 import { ServerAction, ServerProtocol, ServerType } from '../types/Server';
-import http, { IncomingMessage, ServerResponse } from 'http';
 
 import { AddressInfo } from 'net';
 import CentralSystemServerConfiguration from '../types/configuration/CentralSystemServerConfiguration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
-import { StatusCodes } from 'http-status-codes';
-import Utils from '../utils/Utils';
+import http from 'http';
 import https from 'https';
 
 export class ServerUtils {
@@ -23,29 +21,12 @@ export class ServerUtils {
     Logging.logConsoleDebug(logMsg);
   }
 
-  public static createHttpServer(serverConfig: CentralSystemServerConfiguration,
-      requestListener: http.RequestListener = ServerUtils.defaultHttpServerRequestListener.bind(this)): http.Server {
+  public static createHttpServer(serverConfig: CentralSystemServerConfiguration, requestListener: http.RequestListener): http.Server {
     let httpServer: http.Server;
     // Create the HTTP server
     if (serverConfig.protocol === ServerProtocol.HTTPS || serverConfig.protocol === ServerProtocol.WSS) {
       // Create the options
       const options: https.ServerOptions = {};
-      // Intermediate cert?
-      if (serverConfig.sslCa) {
-        // Array?
-        if (!Utils.isEmptyArray(serverConfig.sslCa)) {
-          options.ca = [];
-          // Add all
-          for (const sslCa of serverConfig.sslCa) {
-            if (sslCa) {
-              options.ca.push(sslCa);
-            }
-          }
-        } else {
-          // Add one
-          options.ca = serverConfig.sslCa;
-        }
-      }
       // Https server
       httpServer = https.createServer(options, requestListener);
     } else {
@@ -82,15 +63,5 @@ export class ServerUtils {
 
   private static getHttpServerAddress(httpServer: http.Server): string {
     return (httpServer.address() as AddressInfo).address;
-  }
-
-  private static defaultHttpServerRequestListener(req: IncomingMessage, res: ServerResponse): void {
-    if (req.url === Constants.HEALTH_CHECK_ROUTE) {
-      res.writeHead(StatusCodes.OK);
-      res.end();
-    } else {
-      res.writeHead(StatusCodes.BAD_REQUEST);
-      res.end('Unsupported request\n');
-    }
   }
 }
