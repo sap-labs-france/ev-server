@@ -1615,7 +1615,7 @@ export default class OCPPService {
             transaction.car = car;
           }
           // Clear
-          await UserStorage.clearLastSelectedCarID(tenant, user.id, false);
+          await UserStorage.saveLastSelectedCarID(tenant, user.id, null, false);
           // Handle SoC
           soc = await this.getCurrentSoc(tenant, transaction, chargingStation);
           if (soc) {

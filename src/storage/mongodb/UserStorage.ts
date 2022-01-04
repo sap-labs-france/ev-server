@@ -371,10 +371,6 @@ export default class UserStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveUserLastSelectedCarID', startTime, { lastSelectedCarID });
   }
 
-  public static async clearLastSelectedCarID(tenant: Tenant, userID: string, lastSelectedCar: boolean): Promise<void> {
-    return UserStorage.saveLastSelectedCarID(tenant, userID, null, lastSelectedCar);
-  }
-
   public static async saveUserMobileToken(tenant: Tenant, userID: string,
       params: { mobileToken: string; mobileOs: string; mobileLastChangedOn: Date }): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
