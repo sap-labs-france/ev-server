@@ -78,7 +78,6 @@ export default class ConsumptionChunkGenerator {
 }
 
 class ConsumptionChunkPricer {
-
   consumptionPricer: ConsumptionPricer;
   consumptionChunk: ConsumptionChunk;
   actualPricingDefinitions: ResolvedPricingDefinition[];
@@ -196,7 +195,6 @@ class ConsumptionChunkPricer {
       if (Utils.createDecimal(this.consumptionChunk.totalDurationSecs).lessThan(restrictions.minDurationSecs)) {
         return false;
       }
-      return true;
     }
     return true;
   }
