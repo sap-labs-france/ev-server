@@ -1,11 +1,10 @@
 import { ServerAction, ServerProtocol, ServerType } from '../types/Server';
-import http, { IncomingMessage, ServerResponse } from 'http';
 
 import { AddressInfo } from 'net';
 import CentralSystemServerConfiguration from '../types/configuration/CentralSystemServerConfiguration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
-import { StatusCodes } from 'http-status-codes';
+import http from 'http';
 import https from 'https';
 
 export class ServerUtils {
@@ -22,8 +21,7 @@ export class ServerUtils {
     Logging.logConsoleDebug(logMsg);
   }
 
-  public static createHttpServer(serverConfig: CentralSystemServerConfiguration,
-      requestListener: http.RequestListener = ServerUtils.defaultHttpServerRequestListener.bind(this)): http.Server {
+  public static createHttpServer(serverConfig: CentralSystemServerConfiguration, requestListener: http.RequestListener): http.Server {
     let httpServer: http.Server;
     // Create the HTTP server
     if (serverConfig.protocol === ServerProtocol.HTTPS || serverConfig.protocol === ServerProtocol.WSS) {
@@ -65,15 +63,5 @@ export class ServerUtils {
 
   private static getHttpServerAddress(httpServer: http.Server): string {
     return (httpServer.address() as AddressInfo).address;
-  }
-
-  private static defaultHttpServerRequestListener(req: IncomingMessage, res: ServerResponse): void {
-    if (req.url === Constants.HEALTH_CHECK_ROUTE) {
-      res.writeHead(StatusCodes.OK);
-      res.end();
-    } else {
-      res.writeHead(StatusCodes.BAD_REQUEST);
-      res.end('Unsupported request\n');
-    }
   }
 }
