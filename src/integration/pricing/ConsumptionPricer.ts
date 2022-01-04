@@ -1,4 +1,4 @@
-import { PricedConsumptionData, ResolvedPricingDefinition, ResolvedPricingModel } from '../../types/Pricing';
+import { PricedConsumptionData, ResolvedPricingModel } from '../../types/Pricing';
 
 import Consumption from '../../types/Consumption';
 import ConsumptionChunkPricer from './ConsumptionChunkPricer';
@@ -17,10 +17,9 @@ export interface ConsumptionChunk{
 }
 
 export default class ConsumptionPricer {
-  tenant: Tenant;
-  pricingModel: ResolvedPricingModel;
-  consumptionData: Consumption;
-  actualPricingDefinitions: ResolvedPricingDefinition[];
+  private tenant: Tenant;
+  private pricingModel: ResolvedPricingModel;
+  private consumptionData: Consumption;
 
   constructor(tenant: Tenant, pricingModel: ResolvedPricingModel, consumptionData: Consumption) {
     this.tenant = tenant;
@@ -52,7 +51,14 @@ export default class ConsumptionPricer {
     const endedAt = moment(consumptionData.endedAt);
     const durationSecs = endedAt.diff(startedAt, 'seconds');
     if (durationSecs <= 60) {
-      yield ConsumptionChunkPricer.convertToConsumptionChunk(consumptionData);
+      yield {
+        startedAt: consumptionData.startedAt,
+        endedAt: consumptionData.endedAt,
+        consumptionWh: consumptionData.consumptionWh,
+        cumulatedConsumptionWh: consumptionData.cumulatedConsumptionWh,
+        totalDurationSecs: consumptionData.totalDurationSecs,
+        totalInactivitySecs: consumptionData.totalInactivitySecs
+      };
     } else {
       // Well - we got data for more than 1 minute! - we need to handle chunks!
       const nbSeconds = endedAt.diff(startedAt, 'seconds');

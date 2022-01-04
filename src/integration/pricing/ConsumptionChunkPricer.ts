@@ -1,14 +1,13 @@
 import ConsumptionPricer, { ConsumptionChunk } from './ConsumptionPricer';
 import { DimensionType, PricedConsumptionData, PricedDimensionData, PricingDimension, PricingRestriction, PricingTimeLimit, ResolvedPricingDefinition, ResolvedPricingModel } from '../../types/Pricing';
 
-import Consumption from '../../types/Consumption';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
 
 export default class ConsumptionChunkPricer {
-  consumptionPricer: ConsumptionPricer;
-  consumptionChunk: ConsumptionChunk;
-  actualPricingDefinitions: ResolvedPricingDefinition[];
+  private consumptionPricer: ConsumptionPricer;
+  private consumptionChunk: ConsumptionChunk;
+  private actualPricingDefinitions: ResolvedPricingDefinition[];
 
   constructor(consumptionPricer: ConsumptionPricer, consumptionChunk: ConsumptionChunk) {
     this.consumptionPricer = consumptionPricer;
@@ -18,21 +17,6 @@ export default class ConsumptionChunkPricer {
     );
     // It does not make sense to apply several tariffs to a single consumption
     this.actualPricingDefinitions = [ actualPricingDefinitions[0] ];
-  }
-
-  public static convertToConsumptionChunk(consumptionData: Consumption): ConsumptionChunk {
-    return {
-      startedAt: consumptionData.startedAt,
-      endedAt: consumptionData.endedAt,
-      consumptionWh: consumptionData.consumptionWh,
-      cumulatedConsumptionWh: consumptionData.cumulatedConsumptionWh,
-      totalDurationSecs: consumptionData.totalDurationSecs,
-      totalInactivitySecs: consumptionData.totalInactivitySecs
-    };
-  }
-
-  public getPricingModel(): ResolvedPricingModel {
-    return this.consumptionPricer.getPricingModel();
   }
 
   public priceConsumptionChunk(): PricedConsumptionData {
@@ -49,6 +33,10 @@ export default class ConsumptionChunkPricer {
       parkingTime
     };
     return pricingConsumptionData;
+  }
+
+  private getPricingModel(): ResolvedPricingModel {
+    return this.consumptionPricer.getPricingModel();
   }
 
   private checkPricingDefinitionRestrictions(pricingDefinition: ResolvedPricingDefinition) : ResolvedPricingDefinition {
