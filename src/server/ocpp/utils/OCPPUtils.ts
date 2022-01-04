@@ -909,7 +909,7 @@ export default class OCPPUtils {
       } else if (OCPPUtils.isEnergyActiveImportMeterValue(meterValue)) {
         // Complete consumption
         consumption.startedAt = Utils.convertToDate(lastConsumption.timestamp);
-        const diffSecs = Utils.createDecimal(moment(meterValue.timestamp).diff(lastConsumption.timestamp, 'milliseconds')).div(1000).toNumber();
+        const durationSecs = Utils.createDecimal(moment(meterValue.timestamp).diff(lastConsumption.timestamp, 'milliseconds')).div(1000).toNumber();
         // Handle current Connector limitation
         await OCPPUtils.addConnectorLimitationToConsumption(tenant, chargingStation, transaction.connectorId, consumption);
         // Handle current Site Area limitation
@@ -943,7 +943,8 @@ export default class OCPPUtils {
           if (consumption.limitSource !== ConnectorCurrentLimitSource.CHARGING_PROFILE ||
               consumption.limitAmps >= StaticLimitAmps.MIN_LIMIT_PER_PHASE * Utils.getNumberOfConnectedPhases(chargingStation, null, transaction.connectorId)) {
             // Update inactivity
-            transaction.currentTotalInactivitySecs = Utils.createDecimal(transaction.currentTotalInactivitySecs).plus(diffSecs).toNumber();
+            transaction.currentTotalInactivitySecs = Utils.createDecimal(transaction.currentTotalInactivitySecs).plus(durationSecs).toNumber();
+            consumption.inactivitySecs = durationSecs;
             consumption.totalInactivitySecs = transaction.currentTotalInactivitySecs;
           }
         }
