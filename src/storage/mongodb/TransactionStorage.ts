@@ -27,7 +27,7 @@ export default class TransactionStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Delete
-    const result = await global.database.getCollection<Transaction>(tenant.id, 'transactions')
+    const result = await global.database.getCollection<any>(tenant.id, 'transactions')
       .deleteMany({ '_id': { $in: transactionsIDs } });
     // Delete Meter Values
     await global.database.getCollection<any>(tenant.id, 'metervalues')
@@ -213,7 +213,7 @@ export default class TransactionStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Modify document
-    await global.database.getCollection<Transaction>(tenant.id, 'transactions').findOneAndUpdate(
+    await global.database.getCollection<any>(tenant.id, 'transactions').findOneAndUpdate(
       { '_id': id },
       {
         $set: {
@@ -229,7 +229,7 @@ export default class TransactionStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Modify document
-    await global.database.getCollection<Transaction>(tenant.id, 'transactions').findOneAndUpdate(
+    await global.database.getCollection<any>(tenant.id, 'transactions').findOneAndUpdate(
       { '_id': id },
       {
         $set: {
@@ -245,7 +245,7 @@ export default class TransactionStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Modify document
-    await global.database.getCollection<Transaction>(tenant.id, 'transactions').findOneAndUpdate(
+    await global.database.getCollection<any>(tenant.id, 'transactions').findOneAndUpdate(
       { '_id': id },
       {
         $set: {
@@ -261,7 +261,7 @@ export default class TransactionStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Modify document
-    await global.database.getCollection<Transaction>(tenant.id, 'transactions').findOneAndUpdate(
+    await global.database.getCollection<any>(tenant.id, 'transactions').findOneAndUpdate(
       { '_id': id },
       {
         $set: {

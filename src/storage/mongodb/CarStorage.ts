@@ -577,7 +577,7 @@ export default class CarStorage {
   public static async deleteCarCatalog(id: number): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     // Delete singular site area
-    await global.database.getCollection(Constants.DEFAULT_TENANT, 'carcatalogs')
+    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogs')
       .deleteOne({ '_id': id });
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'deleteCarCatalog', startTime, { carID: id });
   }
