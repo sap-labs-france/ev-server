@@ -1,4 +1,4 @@
-import express, { NextFunction, Request, Response } from 'express';
+import { Application, NextFunction, Request, Response } from 'express';
 
 import Configuration from '../../utils/Configuration';
 import ExpressUtils from '../ExpressUtils';
@@ -14,7 +14,7 @@ const MODULE_NAME = 'ODataServer';
 
 export default class ODataServer {
   private oDataServerConfig: ODataServiceConfiguration;
-  private expressApplication: express.Application;
+  private expressApplication: Application;
 
   // Create the rest server
   constructor(oDataServerConfig: ODataServiceConfiguration) {

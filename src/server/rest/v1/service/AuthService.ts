@@ -58,13 +58,6 @@ export default class AuthService {
     return passport.authenticate('jwt', { session: false });
   }
 
-  public static async checkSessionHash(req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check if User has been updated and require new login
-    if (!await SessionHashService.areTokenUserAndTenantStillValid(req, res, next)) {
-      next();
-    }
-  }
-
   public static async handleLogIn(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = AuthValidator.getInstance().validateAuthSignInReq(req.body);
@@ -238,7 +231,6 @@ export default class AuthService {
         await UserStorage.addSitesToUser(tenant, newUser.id, siteIDs);
       }
     }
-    // Log
     await Logging.logInfo({
       tenantID: tenant.id,
       user: newUser, action: action,
@@ -252,7 +244,7 @@ export default class AuthService {
       const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +
         '/verify-email?VerificationToken=' + verificationToken + '&Email=' + newUser.email;
       // Notify (Async)
-      await NotificationHandler.sendNewRegisteredUser(
+      void NotificationHandler.sendNewRegisteredUser(
         tenant,
         Utils.generateUUID(),
         newUser,
@@ -304,7 +296,6 @@ export default class AuthService {
     const resetHash = Utils.generateUUID();
     // Init Password info
     await UserStorage.saveUserPassword(tenant, user.id, { passwordResetHash: resetHash });
-    // Log
     await Logging.logInfo({
       tenantID: tenant.id,
       user: user, action: action,
@@ -315,8 +306,8 @@ export default class AuthService {
     // Send notification
     const evseDashboardResetPassURL = Utils.buildEvseURL(filteredRequest.tenant) +
       '/define-password?hash=' + resetHash;
-    // Send Request Password (Async)
-    await NotificationHandler.sendRequestPassword(
+    // Notify
+    void NotificationHandler.sendRequestPassword(
       tenant,
       Utils.generateUUID(),
       user,
@@ -351,7 +342,6 @@ export default class AuthService {
     if (user.status === UserStatus.LOCKED) {
       await UserStorage.saveUserStatus(tenant, user.id, UserStatus.ACTIVE);
     }
-    // Log
     await Logging.logInfo({
       tenantID: tenant.id,
       user: user, action: action,
@@ -524,7 +514,6 @@ export default class AuthService {
     // Save User Verification Account
     await UserStorage.saveUserAccountVerification(tenant, user.id,
       { verificationToken: null, verifiedAt: new Date() });
-    // Log
     await Logging.logInfo({
       tenantID: tenant.id,
       user: user, action: action,
@@ -534,7 +523,8 @@ export default class AuthService {
         'User account has been successfully verified but needs an admin to activate it',
       detailedMessages: { params: req.query }
     });
-    await NotificationHandler.sendAccountVerification(
+    // Notify
+    void NotificationHandler.sendAccountVerification(
       tenant,
       Utils.generateUUID(),
       user,
@@ -620,7 +610,6 @@ export default class AuthService {
       // Get existing verificationToken
       verificationToken = user.verificationToken;
     }
-    // Log
     await Logging.logInfo({
       tenantID: tenant.id,
       user: user,
@@ -634,8 +623,8 @@ export default class AuthService {
     const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +
       '/verify-email?VerificationToken=' + verificationToken + '&Email=' +
       user.email;
-    // Send Verification Email (Async)
-    await NotificationHandler.sendVerificationEmail(
+    // Notify
+    void NotificationHandler.sendVerificationEmail(
       tenant,
       Utils.generateUUID(),
       user,
@@ -671,7 +660,6 @@ export default class AuthService {
           passwordWrongNbrTrials,
           passwordBlockedUntil: moment().add(_centralSystemRestConfig.passwordBlockedWaitTimeMin, 'm').toDate()
         });
-      // Log
       throw new AppError({
         errorCode: HTTPError.USER_ACCOUNT_LOCKED_ERROR,
         message: 'User is locked',
@@ -683,7 +671,6 @@ export default class AuthService {
     } else {
       // Save User Nbr Password Trials
       await UserStorage.saveUserPassword(tenant, user.id, { passwordWrongNbrTrials });
-      // Log
       throw new AppError({
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User failed to log in, ${_centralSystemRestConfig.passwordWrongNumberOfTrial - user.passwordWrongNbrTrials} trial(s) remaining`,

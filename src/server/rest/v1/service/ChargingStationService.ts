@@ -69,8 +69,8 @@ export default class ChargingStationService {
         action: action
       });
     }
-    let siteArea: SiteArea = null;
     // Check the Site Area
+    let siteArea: SiteArea = null;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredRequest.siteAreaID) {
       siteArea = await SiteAreaStorage.getSiteArea(req.tenant, filteredRequest.siteAreaID, { withSite: true });
       UtilsService.assertObjectExists(action, siteArea, `Site Area ID '${filteredRequest.siteAreaID}' does not exist.`,
@@ -1421,7 +1421,6 @@ export default class ChargingStationService {
         'chargePointModel', 'chargePointSerialNumber', 'chargeBoxSerialNumber', 'connectors.connectorId', 'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode',
         'connectors.currentTotalConsumptionWh', 'connectors.currentInstantWatts', 'connectors.currentStateOfCharge', 'connectors.info', 'connectors.vendorErrorCode',
         'connectors.currentTransactionID', 'connectors.currentTotalInactivitySecs', 'connectors.currentTagID', 'chargePoints', 'lastReboot', 'createdOn',
-        'connectors.user.name', 'connectors.user.firstName', 'connectors.user.id',
         ...userProject
       ];
     } else {
@@ -1441,7 +1440,7 @@ export default class ChargingStationService {
       return { count: 0, result: [] };
     }
     // Get Charging Stations
-    const chargingStations = await ChargingStationStorage.getChargingStations(req.tenant,
+    return ChargingStationStorage.getChargingStations(req.tenant,
       {
         search: filteredRequest.Search,
         withNoSiteArea: filteredRequest.WithNoSiteArea,
@@ -1467,7 +1466,6 @@ export default class ChargingStationService {
       },
       projectFields
     );
-    return chargingStations;
   }
 
   private static convertOCPPParamsToCSV(ocppParams: OCPPParams, writeHeader = true): string {
@@ -1777,11 +1775,13 @@ export default class ChargingStationService {
     // Save Car selection
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
       if (filteredRequest.carID && filteredRequest.carID !== user.lastSelectedCarID) {
-        await UserStorage.saveUserLastSelectedCarID(req.tenant, user.id, filteredRequest.carID);
+        await UserStorage.saveLastSelectedCarID(req.tenant, user.id, filteredRequest.carID, true);
+      } else {
+        await UserStorage.clearLastSelectedCarID(req.tenant, user.id);
       }
     }
     // Execute it
-    return await chargingStationClient.remoteStartTransaction({
+    return chargingStationClient.remoteStartTransaction({
       connectorId: filteredRequest.args.connectorId,
       idTag: tag.id
     });

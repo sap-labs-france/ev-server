@@ -1,4 +1,4 @@
-import { Application, NextFunction, Response } from 'express';
+import { Application, NextFunction, Request, Response } from 'express';
 
 import ExpressUtils from '../ExpressUtils';
 import Logging from '../../utils/Logging';

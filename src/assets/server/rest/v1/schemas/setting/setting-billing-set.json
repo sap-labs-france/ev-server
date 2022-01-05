@@ -27,13 +27,30 @@
             }
           }
         },
+        "stripe": {
+          "type": "object",
+          "properties": {
+            "url": {
+              "type": "string",
+              "sanitize": "mongo"
+            },
+            "secretKey": {
+              "type": "string",
+              "sanitize": "mongo"
+            },
+            "publicKey": {
+              "type": "string",
+              "sanitize": "mongo"
+            }
+          }
+        },
         "links": {
           "$ref": "setting#/definitions/links"
         },
         "type": {
           "type": "string",
           "sanitize": "mongo",
-          "enum": ["billing"]
+          "enum": ["stripe"]
         }
       },
       "required": [

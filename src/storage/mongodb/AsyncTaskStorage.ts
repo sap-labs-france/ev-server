@@ -111,7 +111,7 @@ export default class AsyncTaskStorage {
     }
     // Limit
     aggregation.push({
-      $limit: (dbParams.limit > 0 && dbParams.limit < Constants.DB_RECORD_COUNT_CEIL) ? dbParams.limit : Constants.DB_RECORD_COUNT_CEIL
+      $limit: dbParams.limit
     });
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);

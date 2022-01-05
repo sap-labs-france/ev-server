@@ -42,13 +42,16 @@ export default class WSWrapper {
     return this.ws.getBufferedAmount();
   }
 
-  public close(code: number, shortMessage: RecognizedString): void {
+  public close(code: number, shortMessage: RecognizedString, fromCloseEvent = false): void {
     if (!this.closed) {
       this.closed = true;
       try {
-        this.ws.end(code, shortMessage);
+        // Already clsoed?
+        if (!fromCloseEvent) {
+          this.ws.end(code, shortMessage);
+        }
       } catch (error) {
-        console.log(`Error closing ${error?.message as string}`);
+        console.log(`Error closing WS: ${error?.message as string}`);
       }
     }
   }
@@ -64,7 +67,7 @@ export default class WSWrapper {
 
   private checkWSClosed(): void {
     if (this.closed) {
-      throw new Error(`WS Comnection - Closed: '${this.ws.url as string}'`);
+      throw new Error(`WS Connection - Closed: '${this.ws.url as string}'`);
     }
   }
 }

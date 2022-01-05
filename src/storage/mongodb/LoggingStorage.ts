@@ -5,12 +5,12 @@ import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import { Log } from '../../types/Log';
+import { ServerType } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 
 export default class LoggingStorage {
   public static async deleteLogs(tenant: Tenant, deleteUpToDate: Date): Promise<DeletedResult> {
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Build filter
     const filters: FilterParams = {};
@@ -38,7 +38,7 @@ export default class LoggingStorage {
       companyID: DatabaseUtils.convertToObjectID(logToSave.companyID),
       siteID: DatabaseUtils.convertToObjectID(logToSave.siteID),
       siteAreaID: DatabaseUtils.convertToObjectID(logToSave.siteAreaID),
-      source: logToSave.source,
+      source: global.serverType ?? ServerType.CENTRAL_SERVER,
       host: logToSave.host ? logToSave.host : Utils.getHostName(),
       timestamp: Utils.convertToDate(logToSave.timestamp),
       module: logToSave.module,
@@ -67,7 +67,6 @@ export default class LoggingStorage {
     startDateTime?: Date; endDateTime?: Date; levels?: string[]; sources?: string[]; type?: string; actions?: string[];
     hosts?: string[]; userIDs?: string[]; siteIDs?: string[]; chargingStationIDs?: string[]; search?: string; logIDs?: string[];
   } = {}, dbParams: DbParams, projectFields: string[]): Promise<DataResult<Log>> {
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);

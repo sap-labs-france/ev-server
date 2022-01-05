@@ -1,6 +1,7 @@
 import CentralSystemConfiguration, { CentralSystemImplementation } from './types/configuration/CentralSystemConfiguration';
 import { ServerAction, ServerType } from './types/Server';
 
+import AsyncTaskConfiguration from './types/configuration/AsyncTaskConfiguration';
 import AsyncTaskManager from './async-task/AsyncTaskManager';
 import CentralRestServer from './server/rest/CentralRestServer';
 import CentralSystemRestServiceConfiguration from './types/configuration/CentralSystemRestServiceConfiguration';
@@ -21,6 +22,7 @@ import ODataServer from './server/odata/ODataServer';
 import ODataServiceConfiguration from './types/configuration/ODataServiceConfiguration';
 import OICPServer from './server/oicp/OICPServer';
 import OICPServiceConfiguration from './types/configuration/OICPServiceConfiguration';
+import SchedulerConfiguration from './types/configuration/SchedulerConfiguration';
 import SchedulerManager from './scheduler/SchedulerManager';
 import SoapCentralSystemServer from './server/ocpp/soap/SoapCentralSystemServer';
 import StorageConfiguration from './types/configuration/StorageConfiguration';
@@ -45,6 +47,8 @@ export default class Bootstrap {
   private static oDataServer: ODataServer;
   private static database: MongoDBStorage;
   private static migrationConfig: MigrationConfiguration;
+  private static asyncTaskConfig: AsyncTaskConfiguration;
+  private static schedulerConfig: SchedulerConfiguration;
 
   public static async start(): Promise<void> {
     let serverStarted: ServerType[] = [];
@@ -63,6 +67,23 @@ export default class Bootstrap {
       Bootstrap.oicpConfig = Configuration.getOICPServiceConfig();
       Bootstrap.oDataServerConfig = Configuration.getODataServiceConfig();
       Bootstrap.migrationConfig = Configuration.getMigrationConfig();
+      Bootstrap.asyncTaskConfig = Configuration.getAsyncTaskConfig();
+      Bootstrap.schedulerConfig = Configuration.getSchedulerConfig();
+
+      // -------------------------------------------------------------------------
+      // Listen to promise failure
+      // -------------------------------------------------------------------------
+      process.on('unhandledRejection', (reason: any, p: any): void => {
+        // eslint-disable-next-line no-console
+        Logging.logConsoleError(`Unhandled Rejection: ${p?.toString()}, reason: ${reason as string}`);
+        void Logging.logError({
+          tenantID: Constants.DEFAULT_TENANT,
+          action: ServerAction.UNKNOWN_ACTION,
+          module: MODULE_NAME, method: 'start',
+          message: `Unhandled Rejection: ${(reason ? (reason.message ?? reason) : 'Not provided')}`,
+          detailedMessages: (reason ? reason.stack : null)
+        });
+      });
 
       // -------------------------------------------------------------------------
       // Connect to the DB
@@ -80,68 +101,51 @@ export default class Bootstrap {
       }
       // Connect to the Database
       await Bootstrap.database.start();
-      // Log
       await this.logDuration(startTimeMillis, 'Connected to the Database successfully');
 
       // -------------------------------------------------------------------------
       // Start DB Migration
       // -------------------------------------------------------------------------
-      if (Bootstrap.migrationConfig.active) {
+      if (Bootstrap.migrationConfig?.active) {
         startTimeMillis = await this.logAndGetStartTimeMillis('Migration is starting...');
         // Check and trigger migration (only master process can run the migration)
         await MigrationHandler.migrate();
-        // Log
         await this.logDuration(startTimeMillis, 'Migration has been run successfully');
       }
-      // Listen to promise failure
-      process.on('unhandledRejection', (reason: any, p: any): void => {
-        // eslint-disable-next-line no-console
-        Logging.logConsoleError(`Unhandled Rejection: ${p?.toString()}, reason: ${reason as string}`);
-        void Logging.logError({
-          tenantID: Constants.DEFAULT_TENANT,
-          action: ServerAction.UNKNOWN_ACTION,
-          module: MODULE_NAME, method: 'start',
-          message: `Unhandled Rejection: ${(reason ? (reason.message ?? reason) : 'Not provided')}`,
-          detailedMessages: (reason ? reason.stack : null)
-        });
-      });
 
       // -------------------------------------------------------------------------
       // Start all the Servers
       // -------------------------------------------------------------------------
-      startTimeMillis = await this.logAndGetStartTimeMillis('Server is starting...');
-      // Start the Servers
-      serverStarted = await Bootstrap.startServersListening();
-      // Log
-      await this.logDuration(startTimeMillis, `Server ${serverStarted.join(', ')} has been started successfully`);
+      serverStarted = await Bootstrap.startServers();
 
       // -------------------------------------------------------------------------
       // Init the Scheduler
       // -------------------------------------------------------------------------
-      startTimeMillis = await this.logAndGetStartTimeMillis('Scheduler is starting...');
-      // Start the Scheduler
-      await SchedulerManager.init();
-      // Log
-      await this.logDuration(startTimeMillis, 'Scheduler has been started successfully');
+      if (Bootstrap.schedulerConfig?.active) {
+        startTimeMillis = await this.logAndGetStartTimeMillis('Scheduler is starting...');
+        // Start the Scheduler
+        await SchedulerManager.init(Bootstrap.schedulerConfig);
+        await this.logDuration(startTimeMillis, 'Scheduler has been started successfully');
+      }
 
       // -------------------------------------------------------------------------
       // Init the Async Task
       // -------------------------------------------------------------------------
-      startTimeMillis = await this.logAndGetStartTimeMillis('Async Task manager is starting...');
-      // Start the Async Manager
-      await AsyncTaskManager.init();
-      // Log
-      await this.logDuration(startTimeMillis, 'Async Task manager has been started successfully');
+      if (Bootstrap.asyncTaskConfig?.active) {
+        startTimeMillis = await this.logAndGetStartTimeMillis('Async Task manager is starting...');
+        // Start the Async Manager
+        await AsyncTaskManager.init(Bootstrap.asyncTaskConfig);
+        await this.logDuration(startTimeMillis, 'Async Task manager has been started successfully');
+      }
 
       // Update of manually uploaded data
-      if (Bootstrap.migrationConfig.active) {
+      if (Bootstrap.migrationConfig?.active) {
         // -------------------------------------------------------------------------
         // Update Charging Station Templates
         // -------------------------------------------------------------------------
         startTimeMillis = await this.logAndGetStartTimeMillis('Charging Station templates is being updated...');
         // Load and Save the Charging Station templates
         await ChargingStationTemplateBootstrap.uploadChargingStationTemplatesFromFile();
-        // Log
         await this.logDuration(startTimeMillis, 'Charging Station templates have been updated successfully');
 
         // -------------------------------------------------------------------------
@@ -150,7 +154,6 @@ export default class Bootstrap {
         startTimeMillis = await this.logAndGetStartTimeMillis('Local car catalogs are being imported...');
         // Load and Save the Charging Station templates
         await LocalCarCatalogBootstrap.uploadLocalCarCatalogsFromFile();
-        // Log
         await this.logDuration(startTimeMillis, 'Local car catalogs has been imported successfully');
       }
 
@@ -160,7 +163,6 @@ export default class Bootstrap {
       } else {
         global.serverType = ServerType.CENTRAL_SERVER;
       }
-      // Log
       await this.logDuration(startTimeGlobalMillis, `${serverStarted.join(', ')} server has been started successfuly`, ServerAction.BOOTSTRAP_STARTUP);
     } catch (error) {
       Logging.logConsoleError(error);
@@ -202,7 +204,7 @@ export default class Bootstrap {
     }
   }
 
-  private static async startServersListening(): Promise<ServerType[]> {
+  private static async startServers(): Promise<ServerType[]> {
     const serverTypes: ServerType[] = [];
     try {
       // -------------------------------------------------------------------------

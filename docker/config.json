@@ -52,15 +52,13 @@
     "protocol": "http",
     "host": "server",
     "port": 9090,
-    "debug": false,
-    "externalProtocol": "http"
+    "debug": false
   },
   "ODataService": {
     "protocol": "http",
     "host": "server",
     "port": 9292,
-    "debug": false,
-    "externalProtocol": "http"
+    "debug": false
   },
   "WSDLEndpoint": {
     "baseUrl": "http://server:8000"
@@ -87,16 +85,27 @@
     "replicaSet": "rs0",
     "debug": false
   },
+  "Axios": {
+    "retries": 0,
+    "timeoutSecs": 30
+  },
   "Email": {
-    "from": "donotreply@charge-angels.fr",
-    "admins": [
-      "fabiano.serge@chargeangels.fr"
-    ],
+    "disableBackup": false,
     "smtp": {
+      "from": "e-mobility@sap.com",
       "host": "mailserver",
-      "port": 1025,
+      "port": 587,
       "secure": false,
-      "requireTLS": false,
+      "requireTLS": true,
+      "user": "evse-mail-user",
+      "password": "evse-mail-pwd"
+    },
+    "smtpBackup": {
+      "from": "e-mobility@sap.com",
+      "host": "mailserver",
+      "port": 587,
+      "secure": false,
+      "requireTLS": true,
       "user": "evse-mail-user",
       "password": "evse-mail-pwd"
     }
@@ -115,6 +124,8 @@
   "ChargingStation": {
     "heartbeatIntervalOCPPSSecs": 180,
     "heartbeatIntervalOCPPJSecs": 3600,
+    "pingIntervalOCPPJSecs": 60,
+    "monitoringIntervalOCPPJSecs": 600,
     "checkEndOfChargeNotificationAfterMin": 5,
     "notifBeforeEndOfChargePercent": 85,
     "notifBeforeEndOfChargeEnabled": true,
@@ -240,16 +251,13 @@
   },
   "Logging": {
     "logLevel": "D",
-    "consoleLogLevel": "NONE",
     "trace": true,
     "moduleDetails": {
       "ChargingStation": {
-        "logLevel": "DEFAULT",
-        "consoleLogLevel": "DEFAULT"
+        "logLevel": "DEFAULT"
       },
       "Authorizations": {
-        "logLevel": "DEFAULT",
-        "consoleLogLevel": "DEFAULT"
+        "logLevel": "DEFAULT"
       }
     }
   }
