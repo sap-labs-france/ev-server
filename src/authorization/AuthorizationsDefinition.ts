@@ -1076,7 +1076,22 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ],
       },
       {
-        resource: Entity.ASSET, action: [Action.LIST, Action.READ],
+        resource: Entity.ASSET, action: Action.LIST,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['AssignedSites', 'LocalIssuer']
+          }
+        },
+        attributes: [
+          'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteID', 'assetType', 'coordinates',
+          'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts', 'currentStateOfCharge', 'excludeFromSmartCharging',
+          'staticValueWatt', 'variationThresholdPercent', 'fluctuationPercent'
+        ],
+      },
+      {
+        resource: Entity.ASSET, action: Action.READ,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
@@ -1096,7 +1111,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['DynamicAsset']
+            filters: ['AssignedSites', 'LocalIssuer','DynamicAsset']
           }
         },
         attributes: [
