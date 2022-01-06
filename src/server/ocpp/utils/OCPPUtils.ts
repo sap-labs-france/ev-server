@@ -367,7 +367,7 @@ export default class OCPPUtils {
             });
           }
           break;
-        // Stop Transaction (potentially we will have two calls the second is for the extra inactivity)
+        // Stop Transaction - Extra inactivity is not yet known
         case TransactionAction.STOP:
           try {
             // Delegate
@@ -392,6 +392,7 @@ export default class OCPPUtils {
             });
           }
           break;
+        // End Transaction - Extra inactivity is now known
         case TransactionAction.END:
           try {
             // Delegate

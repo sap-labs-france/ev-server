@@ -935,19 +935,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
         };
       }
     }
-    // Create and Save async task
-    // await AsyncTaskBuilder.createAndSaveAsyncTasks({
-    //   name: AsyncTasks.BILL_TRANSACTION,
-    //   action: ServerAction.BILLING_TRANSACTION,
-    //   type: AsyncTaskType.TASK,
-    //   tenantID: this.tenant.id,
-    //   parameters: {
-    //     transactionID: String(transaction.id),
-    //     userID: transaction.userID
-    //   },
-    //   module: MODULE_NAME,
-    //   method: 'stopTransaction',
-    // });
     // Inform the calling layer that the operation has been postponed
     return {
       status: BillingStatus.PENDING
