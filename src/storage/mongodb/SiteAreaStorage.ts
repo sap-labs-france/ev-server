@@ -130,9 +130,10 @@ export default class SiteAreaStorage {
 
   public static async getSiteAreas(tenant: Tenant,
       params: {
-        siteAreaIDs?: string[]; search?: string; siteIDs?: string[]; companyIDs?: string[]; withSite?: boolean, withParentSiteArea?: boolean; issuer?: boolean; name?: string;
-        withChargingStations?: boolean; withOnlyChargingStations?: boolean; withAvailableChargingStations?: boolean; ChargingStationConnectorStatuses?: string[];
-        locCoordinates?: number[]; locMaxDistanceMeters?: number; smartCharging?: boolean; withImage?: boolean; withAssets?: boolean; withNoParentSiteArea?: boolean
+        siteAreaIDs?: string[]; search?: string; siteIDs?: string[]; parentSiteAreaIDs?: string[]; companyIDs?: string[]; withSite?: boolean, withParentSiteArea?: boolean;
+        issuer?: boolean; name?: string; withChargingStations?: boolean; withOnlyChargingStations?: boolean; withAvailableChargingStations?: boolean;
+        ChargingStationConnectorStatuses?: string[]; locCoordinates?: number[]; locMaxDistanceMeters?: number; smartCharging?: boolean; withImage?: boolean; withAssets?: boolean;
+        withNoParentSiteArea?: boolean
       } = {},
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteArea>> {
     const startTime = Logging.traceDatabaseRequestStart();
@@ -175,6 +176,12 @@ export default class SiteAreaStorage {
     if (!Utils.isEmptyArray(params.siteAreaIDs)) {
       filters._id = {
         $in: params.siteAreaIDs.map((siteAreaID) => DatabaseUtils.convertToObjectID(siteAreaID))
+      };
+    }
+    // Parent Site Area
+    if (!Utils.isEmptyArray(params.parentSiteAreaIDs)) {
+      filters.parentSiteAreaID = {
+        $in: params.parentSiteAreaIDs.map((parentSiteAreaID) => DatabaseUtils.convertToObjectID(parentSiteAreaID))
       };
     }
     // Site

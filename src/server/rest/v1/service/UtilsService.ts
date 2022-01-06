@@ -5,7 +5,7 @@ import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
 import User, { UserRole, UserStatus } from '../../../../types/User';
-import _, { forEach } from 'lodash';
+import _, { add, forEach } from 'lodash';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
@@ -1380,24 +1380,38 @@ export default class UtilsService {
     }
   }
 
-  public static checkIfSiteAreaHasDependencies(siteAreaToCheck: string, siteAreaList: SiteArea[], req: Request): void {
-    siteAreaList.forEach((siteArea) => {
-      if (siteArea.parentSiteAreaID === siteAreaToCheck) {
-        throw new AppError({
-          errorCode: HTTPError.SITE_AREA_HIERARCHY_DEPENDENCY_ERROR,
-          message: 'Site Area has dependencies to other site areas',
-          module: MODULE_NAME, method: 'checkIfSiteAreaTreeValid',
-          user: req.user.id
-        });
-      }
-    });
+  public static async checkIfSiteAreaHasDependencies(siteAreaToCheck: string, req: Request): Promise<void> {
+    const result = await SiteAreaStorage.getSiteAreas(req.tenant, { parentSiteAreaIDs: [siteAreaToCheck] }, Constants.DB_PARAMS_COUNT_ONLY);
+    if (result.count > 0) {
+      throw new AppError({
+        errorCode: HTTPError.SITE_AREA_HIERARCHY_DEPENDENCY_ERROR,
+        message: 'Site Area has dependencies to other site areas',
+        module: MODULE_NAME, method: 'checkIfSiteAreaTreeValid',
+        user: req.user.id
+      });
+    }
   }
 
-  public static checkIfSiteAreaTreeValid(siteAreaList: SiteArea[], req: Request): void {
+  public static async checkIfSiteAreaTreeValid(siteArea: SiteArea, req: Request, additionalSiteID: string = null): Promise<void> {
+    const siteIDs = [siteArea.siteID];
+    if (additionalSiteID) {
+      siteIDs.push(additionalSiteID);
+    }
+    const siteAreas = await SiteAreaStorage.getSiteAreas(req.tenant, { siteIDs: siteIDs }, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'parentSiteAreaID', 'siteID', 'smartCharging', 'name', 'voltage', 'numberOfPhases']);
+    // Check if site area exists or is currently created
+    if (siteArea.id) {
+      const index = siteAreas.result.findIndex((siteAreaToChange) => siteAreaToChange.id === siteArea.id);
+      siteAreas.result[index] = { id: siteArea.id, parentSiteAreaID: siteArea.parentSiteAreaID, siteID: siteArea.siteID, smartCharging: siteArea.smartCharging,
+        voltage: siteArea.voltage, numberOfPhases: siteArea.numberOfPhases } as SiteArea;
+    } else {
+      siteAreas.result.push({ id: null, parentSiteAreaID: siteArea.parentSiteAreaID,
+        siteID: siteArea.siteID, smartCharging: siteArea.smartCharging,
+        voltage: siteArea.voltage, numberOfPhases: siteArea.numberOfPhases } as SiteArea) ;
+    }
     let siteAreaTrees: SiteArea[];
     const count = { value: 0 };
     try {
-      siteAreaTrees = Utils.buildSiteAreaTrees(siteAreaList);
+      siteAreaTrees = Utils.buildSiteAreaTrees(siteAreas.result);
     } catch {
       throw new AppError({
         errorCode: HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR,
@@ -1413,7 +1427,7 @@ export default class UtilsService {
       this.countElementsOfSiteAreaTree(siteAreaTree, count);
     }
     // If site area list is the same length as elements in the tree, the tree is valid
-    if (count.value !== siteAreaList.length) {
+    if (count.value !== siteAreas.result.length) {
       throw new AppError({
         errorCode: HTTPError.SITE_AREA_HIERARCHY_CIRCULAR_STRUCTURE_ERROR,
         message: 'Circular Structure in Site Area Tree',
