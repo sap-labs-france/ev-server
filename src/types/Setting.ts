@@ -9,11 +9,16 @@ export enum TechnicalSettings {
 export enum IntegrationSettings {
   OCPI = 'ocpi',
   OICP = 'oicp',
-  SAC = 'sapAnalytics',
+  ANALYTICS = 'analytics',
   SMART_CHARGING = 'smartCharging',
   REFUND = 'refund',
   PRICING = 'pricing',
-  ASSET = 'asset'
+  ASSET = 'asset',
+  CAR_CONNECTOR = 'carConnector',
+  BILLING = 'billing',
+  CAR = 'car',
+  ORGANIZATION = 'organization',
+  STATISTICS = 'statistics'
 }
 
 export interface Setting extends CreatedUpdatedProps {

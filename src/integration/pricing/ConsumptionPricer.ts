@@ -1,4 +1,4 @@
-import { DimensionType, PricedConsumptionData, PricedDimensionData, PricingDimension, PricingRestriction, ResolvedPricingDefinition, ResolvedPricingModel } from '../../types/Pricing';
+import { DimensionType, PricedConsumptionData, PricedDimensionData, PricingDimension, PricingRestriction, PricingTimeLimit, ResolvedPricingDefinition, ResolvedPricingModel } from '../../types/Pricing';
 
 import Consumption from '../../types/Consumption';
 import Tenant from '../../types/Tenant';
@@ -70,30 +70,22 @@ export default class ConsumptionPricer {
 
   private checkTimeValidity(restrictions: PricingRestriction): boolean {
     // The time range restriction must consider the charging station timezone
+    if (Utils.isNullOrUndefined(restrictions.timeFrom) && Utils.isNullOrUndefined(restrictions.timeTo)) {
+      // No time restrictions
+      return true;
+    }
+    // The time range has to consider the time zone of the charging station
     const timezone = this.pricingModel.pricerContext.timezone;
-    if (!Utils.isNullOrUndefined(restrictions.timeFrom)) {
-      if (!timezone) {
-        // Charging station timezone is not known - time restrictions cannot be used in such context
-        return false;
-      }
-      const hour = Utils.convertToInt(restrictions.timeFrom.slice(0, 2));
-      const minute = Utils.convertToInt(restrictions.timeFrom.slice(3));
-      if (moment(this.consumptionData.startedAt).tz(timezone).isBefore(moment().tz(timezone).set({ hour, minute }))) {
-        return false;
-      }
+    if (!timezone) {
+      // Charging station timezone is not known - time restrictions cannot be used in such context
+      return false;
     }
-    if (!Utils.isNullOrUndefined(restrictions.timeTo)) {
-      if (!timezone) {
-        // Charging station timezone is not known - time restrictions cannot be used in such context
-        return false;
-      }
-      const hour = Utils.convertToInt(restrictions.timeTo.slice(0, 2));
-      const minute = Utils.convertToInt(restrictions.timeTo.slice(3));
-      if (moment(this.consumptionData.startedAt).tz(timezone).isSameOrAfter(moment().tz(timezone).set({ hour, minute }))) {
-        return false;
-      }
-    }
-    return true;
+    // Normalize time range restrictions - both limits must be set!
+    const timeFrom = PricingTimeLimit.parseTime(restrictions.timeFrom || '00:00');
+    const timeTo = PricingTimeLimit.parseTime(restrictions.timeTo || '00:00');
+    // Time of the consumption in its timezone
+    const consumptionStartTime = PricingTimeLimit.parseTime(moment(this.consumptionData.startedAt).tz(timezone).format('HH:mm:ss'));
+    return consumptionStartTime.isBetween(timeFrom, timeTo);
   }
 
   private checkMinEnergy(restrictions: PricingRestriction): boolean {
@@ -211,20 +203,20 @@ export default class ConsumptionPricer {
       if (consumptionWh > 0) {
         const pricedData = this.priceTimeDimension(dimensionToPrice, this.getAbsorbedChargingTime());
         if (pricedData) {
-          this.absorbedChargingTime();
+          this.absorbChargingTime();
         }
         return this.enrichPricedData(pricedData, activePricingDefinition);
       }
     }
     // IMPORTANT!
-    this.absorbedChargingTime();
+    this.absorbChargingTime();
   }
 
   private getAbsorbedChargingTime() {
     return this.pricingModel.pricerContext.lastAbsorbedChargingTime || this.pricingModel.pricerContext.sessionStartDate;
   }
 
-  private absorbedChargingTime() {
+  private absorbChargingTime() {
     // Mark the charging time as already priced - to avoid pricing it twice
     // This may happen when combining several tariffs in a single session
     this.pricingModel.pricerContext.lastAbsorbedChargingTime = this.consumptionData.endedAt;
@@ -237,25 +229,24 @@ export default class ConsumptionPricer {
       const totalInactivitySecs = this.consumptionData?.totalInactivitySecs || 0;
       const cumulatedConsumptionDataWh = this.consumptionData?.cumulatedConsumptionWh || 0;
       const consumptionWh = this.consumptionData?.consumptionWh || 0;
-      // Price the parking time only it makes sense - NOT during the warmup!
+      // Price the parking time only when it makes sense - NOT during the warmup!
       if (totalInactivitySecs > 0 && cumulatedConsumptionDataWh > 0 && consumptionWh <= 0) {
-        // TODO - to be clarified - do we pay the first step before consuming it or not?
         const pricedData = this.priceTimeDimension(dimensionToPrice, this.getAbsorbedParkingTime());
         if (pricedData) {
-          this.absorbedParkingTime();
+          this.absorbParkingTime();
         }
         return this.enrichPricedData(pricedData, activePricingDefinition);
       }
     }
     // IMPORTANT!
-    this.absorbedParkingTime();
+    this.absorbParkingTime();
   }
 
   private getAbsorbedParkingTime() {
     return this.pricingModel.pricerContext.lastAbsorbedParkingTime || this.pricingModel.pricerContext.sessionStartDate;
   }
 
-  private absorbedParkingTime() {
+  private absorbParkingTime() {
     // Mark the parking time as already priced - to avoid pricing it twice
     // This may happen when combining several tariffs in a single session
     this.pricingModel.pricerContext.lastAbsorbedParkingTime = this.consumptionData.endedAt;

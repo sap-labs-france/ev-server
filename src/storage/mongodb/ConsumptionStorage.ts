@@ -638,6 +638,7 @@ export default class ConsumptionStorage {
       instantVoltsL2: Utils.convertToFloat(consumption.instantVoltsL2),
       instantVoltsL3: Utils.convertToFloat(consumption.instantVoltsL3),
       instantVoltsDC: Utils.convertToFloat(consumption.instantVoltsDC),
+      inactivitySecs: Utils.convertToInt(consumption.inactivitySecs),
       totalInactivitySecs: Utils.convertToInt(consumption.totalInactivitySecs),
       totalDurationSecs: Utils.convertToInt(consumption.totalDurationSecs),
       stateOfCharge: !Utils.isNullOrUndefined(consumption.stateOfCharge) ? Utils.convertToInt(consumption.stateOfCharge) : null,
