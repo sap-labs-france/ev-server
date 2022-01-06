@@ -800,7 +800,7 @@ export default class OCPPService {
                 lastTransaction.stop.inactivityStatus = Utils.getInactivityStatusLevel(chargingStation, lastTransaction.connectorId,
                   lastTransaction.stop.totalInactivitySecs + lastTransaction.stop.extraInactivitySecs);
                 // Build extra inactivity consumption
-                await OCPPUtils.buildExtraConsumptionInactivity(tenant, lastTransaction);
+                await OCPPUtils.buildExtraConsumptionInactivity(tenant, chargingStation, lastTransaction);
                 await Logging.logInfo({
                   tenantID: tenant.id,
                   ...LoggingHelper.getChargingStationProperties(chargingStation),

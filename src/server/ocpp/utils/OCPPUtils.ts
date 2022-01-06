@@ -195,7 +195,7 @@ export default class OCPPUtils {
     }
   }
 
-  public static async buildExtraConsumptionInactivity(tenant: Tenant, transaction: Transaction): Promise<boolean> {
+  public static async buildExtraConsumptionInactivity(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction): Promise<boolean> {
     // Extra inactivity
     if (transaction.stop.extraInactivitySecs > 0) {
       // Get the last Consumption
@@ -218,6 +218,10 @@ export default class OCPPUtils {
         lastConsumption.instantWattsL1 = 0;
         lastConsumption.instantWattsL2 = 0;
         lastConsumption.instantWattsL3 = 0;
+        // Pricing
+        await OCPPUtils.processTransactionPricing(tenant, transaction, chargingStation, lastConsumption, TransactionAction.UPDATE);
+        // Billing
+        await OCPPUtils.processTransactionBilling(tenant, transaction, TransactionAction.END);
         // Save
         await ConsumptionStorage.saveConsumption(tenant, lastConsumption);
         // Update the Stop transaction data
@@ -373,11 +377,35 @@ export default class OCPPUtils {
             });
           }
           break;
-        // Stop Transaction
+        // Stop Transaction (potentially we will have two calls the second is for the extra inactivity)
         case TransactionAction.STOP:
           try {
             // Delegate
             const billingDataStop: BillingDataTransactionStop = await billingImpl.stopTransaction(transaction);
+            // Update
+            if (transaction.billingData) {
+              transaction.billingData.stop = billingDataStop;
+              transaction.billingData.lastUpdate = new Date();
+            }
+          } catch (error) {
+            const message = `Billing - stopTransaction failed - transaction ID '${transaction.id}'`;
+            await Logging.logError({
+              tenantID: tenant.id,
+              siteID: transaction.siteID,
+              siteAreaID: transaction.siteAreaID,
+              companyID: transaction.companyID,
+              chargingStationID: transaction.chargeBoxID,
+              user: transaction.userID,
+              action: ServerAction.BILLING_TRANSACTION,
+              module: MODULE_NAME, method: 'processTransactionBilling',
+              message, detailedMessages: { error: error.stack }
+            });
+          }
+          break;
+        case TransactionAction.END:
+          try {
+            // Delegate
+            const billingDataStop: BillingDataTransactionStop = await billingImpl.endTransaction(transaction);
             // Update
             if (transaction.billingData) {
               transaction.billingData.stop = billingDataStop;

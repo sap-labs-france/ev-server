@@ -2,8 +2,8 @@
 import AsyncTask, { AsyncTaskStatus } from '../../src/types/AsyncTask';
 import { BillingDataTransactionStop, BillingInvoice, BillingInvoiceStatus, BillingStatus, BillingUser } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
+import { ChargePointErrorCode, ChargePointStatus, OCPPStatusNotificationRequest } from '../../src/types/ocpp/OCPPServer';
 import ChargingStation, { ConnectorType } from '../../src/types/ChargingStation';
-import FeatureToggles, { Feature } from '../../src/utils/FeatureToggles';
 import PricingDefinition, { DayOfWeek, PricingDimension, PricingDimensions, PricingEntity, PricingRestriction } from '../../src/types/Pricing';
 import chai, { assert, expect } from 'chai';
 
@@ -489,7 +489,18 @@ export default class BillingTestHelper {
     return roundedPrice;
   }
 
-  public async generateTransaction(user: any, expectedStatus = 'Accepted'): Promise<number> {
+  public async sendStatusNotification(connectorId: number, timestamp: Date, status: ChargePointStatus): Promise<void> {
+    const occpStatusFinishing: OCPPStatusNotificationRequest = {
+      connectorId,
+      status,
+      errorCode: ChargePointErrorCode.NO_ERROR,
+      timestamp: timestamp.toISOString()
+    };
+    await this.chargingStationContext.setConnectorStatus(occpStatusFinishing);
+  }
+
+
+  public async generateTransaction(user: any, expectedStatus = 'Accepted', withExtraNotificationStatus = true): Promise<number> {
 
     const meterStart = 0;
     const meterStop = 32325; // Unit: Wh
@@ -504,6 +515,8 @@ export default class BillingTestHelper {
     const tagId = user.tags[0].id;
     // # Begin
     const startDate = moment();
+    // Let's send an OCCP status notification to simulate some extra inactivities
+    await this.sendStatusNotification(connectorId, startDate.toDate(), ChargePointStatus.PREPARING);
     const startTransactionResponse = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
     expect(startTransactionResponse).to.be.transactionStatus(expectedStatus);
     const transactionId = startTransactionResponse.transactionId;
@@ -546,9 +559,12 @@ export default class BillingTestHelper {
     if (expectedStatus === 'Accepted') {
       const stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate.toDate());
       expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
+      // Let's send an OCCP status notification to simulate some extra inactivities
+      await this.sendStatusNotification(connectorId, stopDate.clone().add(29, 'minutes').toDate(), ChargePointStatus.FINISHING);
+      await this.sendStatusNotification(connectorId, stopDate.clone().add(30, 'minutes').toDate(), ChargePointStatus.AVAILABLE);
+      // Give some time to the asyncTask to bill the transaction
+      await this.waitForAsyncTasks();
     }
-    // Give some time to the asyncTask to bill the transaction
-    await this.waitForAsyncTasks();
     return transactionId;
   }
 

@@ -936,6 +936,51 @@ export default class StripeBillingIntegration extends BillingIntegration {
       }
     }
     // Create and Save async task
+    // await AsyncTaskBuilder.createAndSaveAsyncTasks({
+    //   name: AsyncTasks.BILL_TRANSACTION,
+    //   action: ServerAction.BILLING_TRANSACTION,
+    //   type: AsyncTaskType.TASK,
+    //   tenantID: this.tenant.id,
+    //   parameters: {
+    //     transactionID: String(transaction.id),
+    //     userID: transaction.userID
+    //   },
+    //   module: MODULE_NAME,
+    //   method: 'stopTransaction',
+    // });
+    // Inform the calling layer that the operation has been postponed
+    return {
+      status: BillingStatus.PENDING
+    };
+  }
+
+  public async endTransaction(transaction: Transaction): Promise<BillingDataTransactionStop> {
+    // Check whether the billing was activated on start transaction
+    if (!transaction.billingData?.withBillingActive) {
+      return {
+        status: BillingStatus.UNBILLED
+      };
+    }
+    // Do not bill suspicious StopTransaction events
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_CHECK_THRESHOLD_ON_STOP) && !Utils.isDevelopmentEnv()) {
+      // Suspicious StopTransaction may occur after a 'Housing temperature approaching limit' error on some charging stations
+      const timeSpent = this.computeTimeSpentInSeconds(transaction);
+      // TODO - make it part of the pricing or billing settings!
+      if (timeSpent < 60 /* seconds */ || transaction.stop.totalConsumptionWh < 1000 /* 1kWh */) {
+        await Logging.logWarning({
+          tenantID: this.tenant.id,
+          user: transaction.userID,
+          action: ServerAction.BILLING_TRANSACTION,
+          module: MODULE_NAME, method: 'endTransaction',
+          message: `Transaction data is suspicious - billing operation has been aborted - transaction ID: ${transaction.id}`,
+          ...LoggingHelper.getTransactionProperties(transaction)
+        });
+        return {
+          status: BillingStatus.UNBILLED
+        };
+      }
+    }
+    // Create and Save async task
     await AsyncTaskBuilder.createAndSaveAsyncTasks({
       name: AsyncTasks.BILL_TRANSACTION,
       action: ServerAction.BILLING_TRANSACTION,
@@ -946,7 +991,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         userID: transaction.userID
       },
       module: MODULE_NAME,
-      method: 'stopTransaction',
+      method: 'endTransaction',
     });
     // Inform the calling layer that the operation has been postponed
     return {
