@@ -50,11 +50,10 @@ export default abstract class AbstractOCPIService {
   }
 
   public getBaseUrl(req: Request): string {
-    const protocol = (this.ocpiRestConfig.externalProtocol ? this.ocpiRestConfig.externalProtocol : 'https');
     // Get host from the req
     const host = req.get('host');
     // Return Service url
-    return `${protocol}://${host}`;
+    return `https://${host}`;
   }
 
   public getPath(): string {

@@ -52,15 +52,13 @@
     "protocol": "http",
     "host": "server",
     "port": 9090,
-    "debug": false,
-    "externalProtocol": "http"
+    "debug": false
   },
   "ODataService": {
     "protocol": "http",
     "host": "server",
     "port": 9292,
-    "debug": false,
-    "externalProtocol": "http"
+    "debug": false
   },
   "WSDLEndpoint": {
     "baseUrl": "http://server:8000"

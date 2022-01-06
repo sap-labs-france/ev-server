@@ -2,9 +2,8 @@ import { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { Log, LogLevel } from '../types/Log';
 import { NextFunction, Request, Response } from 'express';
 import PerformanceRecord, { PerformanceRecordGroup, PerformanceTracingData } from '../types/Performance';
-import { ServerAction, ServerType } from '../types/Server';
-import global, { ActionsResponse } from '../types/GlobalType';
 
+import { ActionsResponse } from '../types/GlobalType';
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
 import BackendError from '../exception/BackendError';
@@ -17,6 +16,7 @@ import { OCPIResult } from '../types/ocpi/OCPIResult';
 import { OCPPStatus } from '../types/ocpp/OCPPClient';
 import { OICPResult } from '../types/oicp/OICPResult';
 import PerformanceStorage from '../storage/mongodb/PerformanceStorage';
+import { ServerAction } from '../types/Server';
 import Tenant from '../types/Tenant';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
