@@ -800,7 +800,20 @@ export default class OCPPService {
                 lastTransaction.stop.inactivityStatus = Utils.getInactivityStatusLevel(chargingStation, lastTransaction.connectorId,
                   lastTransaction.stop.totalInactivitySecs + lastTransaction.stop.extraInactivitySecs);
                 // Build extra inactivity consumption
-                await OCPPUtils.buildExtraConsumptionInactivity(tenant, chargingStation, lastTransaction);
+                const lastConsumption = await OCPPUtils.buildExtraConsumptionInactivity(tenant, chargingStation, lastTransaction);
+                if (lastConsumption) {
+                  // Pricing of the extra inactivity
+                  if (lastConsumption?.toPrice) {
+                    await OCPPUtils.processTransactionPricing(tenant, lastTransaction, chargingStation, lastConsumption, TransactionAction.END);
+                  }
+                  // Save the last consumption
+                  await ConsumptionStorage.saveConsumption(tenant, lastConsumption);
+                }
+                // Update transaction stop
+                lastTransaction.stop.timestamp = lastConsumption.endedAt;
+                lastTransaction.stop.totalDurationSecs = moment.duration(moment(lastTransaction.stop.timestamp).diff(lastTransaction.timestamp)).asSeconds();
+                lastTransaction.stop.price = lastTransaction.currentCumulatedPrice;
+                lastTransaction.stop.roundedPrice = lastTransaction.currentCumulatedRoundedPrice;
                 await Logging.logInfo({
                   tenantID: tenant.id,
                   ...LoggingHelper.getChargingStationProperties(chargingStation),
@@ -835,6 +848,8 @@ export default class OCPPService {
         if (lastTransaction.oicpData?.session) {
           await this.checkAndSendOICPTransactionCdr(tenant, lastTransaction, chargingStation, lastTransaction.tag);
         }
+        // Billing - We now know the extra inactivity - the invoice can be generated
+        await OCPPUtils.processTransactionBilling(tenant, lastTransaction, TransactionAction.END);
         // Save
         await TransactionStorage.saveTransaction(tenant, lastTransaction);
       } else if (!Utils.isNullOrUndefined(lastTransaction)) {

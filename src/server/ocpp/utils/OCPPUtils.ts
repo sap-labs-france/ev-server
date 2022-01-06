@@ -195,7 +195,7 @@ export default class OCPPUtils {
     }
   }
 
-  public static async buildExtraConsumptionInactivity(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction): Promise<boolean> {
+  public static async buildExtraConsumptionInactivity(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction): Promise<Consumption> {
     // Extra inactivity
     if (transaction.stop.extraInactivitySecs > 0) {
       // Get the last Consumption
@@ -218,21 +218,11 @@ export default class OCPPUtils {
         lastConsumption.instantWattsL1 = 0;
         lastConsumption.instantWattsL2 = 0;
         lastConsumption.instantWattsL3 = 0;
-        // Pricing
-        await OCPPUtils.processTransactionPricing(tenant, transaction, chargingStation, lastConsumption, TransactionAction.UPDATE);
-        // Billing
-        await OCPPUtils.processTransactionBilling(tenant, transaction, TransactionAction.END);
-        // Save
-        await ConsumptionStorage.saveConsumption(tenant, lastConsumption);
-        // Update the Stop transaction data
-        transaction.stop.timestamp = lastConsumption.endedAt;
-        transaction.stop.totalDurationSecs = Utils.createDecimal(
-          Math.floor((transaction.stop.timestamp.getTime() - transaction.timestamp.getTime()))).div(1000).toNumber();
-        transaction.stop.extraInactivityComputed = true;
-        return true;
+        lastConsumption.toPrice = true;
+        return lastConsumption;
       }
     }
-    return false;
+    return null;
   }
 
   public static async processTransactionPricing(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation,
@@ -291,8 +281,8 @@ export default class OCPPUtils {
             transaction.currentCumulatedRoundedPrice = pricedConsumption.cumulatedRoundedAmount;
           }
           break;
-        // Stop Transaction
-        case TransactionAction.STOP:
+        // Stop/End Transaction
+        case TransactionAction.STOP, TransactionAction.END:
           // Set
           pricedConsumption = await pricingImpl.stopSession(transaction, consumption, chargingStation);
           if (pricedConsumption) {
@@ -982,6 +972,8 @@ export default class OCPPUtils {
         consumption.totalDurationSecs = !transaction.stop ?
           moment.duration(moment(meterValue.timestamp).diff(moment(transaction.timestamp))).asSeconds() :
           moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
+        consumption.cumulatedAmount = transaction.currentCumulatedPrice;
+        consumption.pricingSource = transaction.pricingSource;
         consumption.toPrice = true;
       }
       return consumption;
