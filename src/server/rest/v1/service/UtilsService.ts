@@ -379,10 +379,9 @@ export default class UtilsService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: authAction, entity: Entity.SITE,
+        action: authAction, entity: Entity.ASSET,
         module: MODULE_NAME, method: 'checkAndGetAssetAuthorization',
         value: assetID,
-        siteID: assetID,
       });
     }
     // Retrieve Asset from storage
@@ -414,10 +413,9 @@ export default class UtilsService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: authAction, entity: Entity.SITE,
+        action: authAction, entity: Entity.ASSET,
         module: MODULE_NAME, method: 'checkAndGetAssetAuthorization',
         value: assetID,
-        siteID: assetID,
       });
     }
     return asset;
