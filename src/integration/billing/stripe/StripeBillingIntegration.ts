@@ -942,17 +942,23 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   public async endTransaction(transaction: Transaction): Promise<BillingDataTransactionStop> {
+    // Make sure we don't get called when the invoice is already billed
+    if (transaction.billingData?.stop?.status === BillingStatus.BILLED) {
+      throw new Error('Operation aborted - unexpected situation - the session has already been billed');
+    }
+    if (!transaction.stop?.extraInactivityComputed) {
+      throw new Error('Operation aborted - unexpected situation - the extra inactivity is not yet known');
+    }
     // Check whether the billing was activated on start transaction
     if (!transaction.billingData?.withBillingActive) {
       return {
         status: BillingStatus.UNBILLED
       };
     }
-    // Do not bill suspicious StopTransaction events
+    // Do not bill sessions with suspicious data
     if (FeatureToggles.isFeatureActive(Feature.BILLING_CHECK_THRESHOLD_ON_STOP) && !Utils.isDevelopmentEnv()) {
-      // Suspicious StopTransaction may occur after a 'Housing temperature approaching limit' error on some charging stations
+      // Suspicious data may occur after a 'Housing temperature approaching limit' error on some charging stations
       const timeSpent = this.computeTimeSpentInSeconds(transaction);
-      // TODO - make it part of the pricing or billing settings!
       if (timeSpent < 60 /* seconds */ || transaction.stop.totalConsumptionWh < 1000 /* 1kWh */) {
         await Logging.logWarning({
           tenantID: this.tenant.id,

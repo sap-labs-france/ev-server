@@ -808,21 +808,21 @@ export default class OCPPService {
                   }
                   // Save the last consumption
                   await ConsumptionStorage.saveConsumption(tenant, lastConsumption);
+                  // Update transaction stop
+                  lastTransaction.stop.timestamp = lastConsumption.endedAt;
+                  lastTransaction.stop.totalDurationSecs = moment.duration(moment(lastTransaction.stop.timestamp).diff(lastTransaction.timestamp)).asSeconds();
+                  lastTransaction.stop.price = lastTransaction.currentCumulatedPrice;
+                  lastTransaction.stop.roundedPrice = lastTransaction.currentCumulatedRoundedPrice;
+                  await Logging.logInfo({
+                    tenantID: tenant.id,
+                    ...LoggingHelper.getChargingStationProperties(chargingStation),
+                    user: lastTransaction.userID,
+                    module: MODULE_NAME, method: 'checkAndUpdateLastCompletedTransaction',
+                    action: ServerAction.EXTRA_INACTIVITY,
+                    message: `${Utils.buildConnectorInfo(lastTransaction.connectorId, lastTransaction.id)} Extra Inactivity of ${lastTransaction.stop.extraInactivitySecs} secs has been added`,
+                    detailedMessages: { statusNotification, connector, lastTransaction }
+                  });
                 }
-                // Update transaction stop
-                lastTransaction.stop.timestamp = lastConsumption.endedAt;
-                lastTransaction.stop.totalDurationSecs = moment.duration(moment(lastTransaction.stop.timestamp).diff(lastTransaction.timestamp)).asSeconds();
-                lastTransaction.stop.price = lastTransaction.currentCumulatedPrice;
-                lastTransaction.stop.roundedPrice = lastTransaction.currentCumulatedRoundedPrice;
-                await Logging.logInfo({
-                  tenantID: tenant.id,
-                  ...LoggingHelper.getChargingStationProperties(chargingStation),
-                  user: lastTransaction.userID,
-                  module: MODULE_NAME, method: 'checkAndUpdateLastCompletedTransaction',
-                  action: ServerAction.EXTRA_INACTIVITY,
-                  message: `${Utils.buildConnectorInfo(lastTransaction.connectorId, lastTransaction.id)} Extra Inactivity of ${lastTransaction.stop.extraInactivitySecs} secs has been added`,
-                  detailedMessages: { statusNotification, connector, lastTransaction }
-                });
               }
             // No extra inactivity
             } else {
@@ -838,6 +838,8 @@ export default class OCPPService {
             }
             // Flag
             lastTransaction.stop.extraInactivityComputed = true;
+            // Billing - We now know the extra inactivity - the invoice can be generated
+            await OCPPUtils.processTransactionBilling(tenant, lastTransaction, TransactionAction.END);
           }
         }
         // OCPI: Post the CDR
@@ -848,8 +850,6 @@ export default class OCPPService {
         if (lastTransaction.oicpData?.session) {
           await this.checkAndSendOICPTransactionCdr(tenant, lastTransaction, chargingStation, lastTransaction.tag);
         }
-        // Billing - We now know the extra inactivity - the invoice can be generated
-        await OCPPUtils.processTransactionBilling(tenant, lastTransaction, TransactionAction.END);
         // Save
         await TransactionStorage.saveTransaction(tenant, lastTransaction);
       } else if (!Utils.isNullOrUndefined(lastTransaction)) {
