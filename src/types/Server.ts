@@ -438,6 +438,7 @@ export enum ServerAction {
   BILLING_CHARGE_INVOICE = 'BillingChargeInvoice',
   BILLING_WEB_HOOK = 'BillingWebHook',
   BILLING_TEST_DATA_CLEANUP = 'BillingTestDataCleanup',
+  BILLING_BILL_PENDING_TRANSACTION = 'BillingBillPendingTransaction',
 
   PRICING = 'Pricing',
   PRICING_DEFINITION = 'PricingDefinition',
