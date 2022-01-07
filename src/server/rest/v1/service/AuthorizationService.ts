@@ -1,6 +1,7 @@
 import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity } from '../../../../types/Authorization';
 import { AssetDataResult, CarCatalogDataResult, CarDataResult, CompanyDataResult, LogDataResult, PricingDefinitionDataResult, RegistrationTokenDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, UserDataResult } from '../../../../types/DataResult';
 import { Car, CarCatalog } from '../../../../types/Car';
+import { HttpAssetRequest, HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
 import { HttpCarCatalogRequest, HttpCarCatalogsRequest, HttpCarRequest, HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
 import { HttpChargingStationRequest, HttpChargingStationsRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
@@ -22,7 +23,6 @@ import Constants from '../../../../utils/Constants';
 import DynamicAuthorizationFactory from '../../../../authorization/DynamicAuthorizationFactory';
 import { EntityData } from '../../../../types/GlobalType';
 import { HTTPAuthError } from '../../../../types/HTTPError';
-import { HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
 import { HttpLogRequest } from '../../../../types/requests/HttpLoggingRequest';
 import { HttpRegistrationTokenRequest } from '../../../../types/requests/HttpRegistrationToken';
 import { Log } from '../../../../types/Log';
@@ -265,17 +265,9 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetAssetAuthorizations(tenant: Tenant, userToken: UserToken, authAction: Action,
-      filteredRequest: Partial<HttpCompaniesRequest>, entityData?: EntityData): Promise<AuthorizationFilter> {
-    const authorizationFilters: AuthorizationFilter = {
-      filters: {},
-      dataSources: new Map(),
-      projectFields: [],
-      authorized: false,
-    };
-    // Check static & dynamic authorization
-    await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.ASSET, authAction,
-      authorizationFilters, filteredRequest, entityData, true);
-    return authorizationFilters;
+      filteredRequest: Partial<HttpAssetRequest>, entityData?: EntityData): Promise<AuthorizationFilter> {
+    return AuthorizationService.checkAndGetEntityAuthorizations(
+      tenant, Entity.ASSET, userToken, filteredRequest, filteredRequest.ID ? { AssetID: filteredRequest.ID } : {}, authAction, entityData);
   }
 
   public static async addAssetsAuthorizations(tenant: Tenant, userToken: UserToken, assets: AssetDataResult, authorizationFilter: AuthorizationFilter): Promise<void> {
@@ -292,9 +284,12 @@ export default class AuthorizationService {
     asset.canRead = true; // Always true as it should be filtered upfront
     asset.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.ASSET, Action.DELETE, authorizationFilter, {}, asset);
     asset.canUpdate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.ASSET, Action.UPDATE, authorizationFilter, {}, asset);
-    asset.canRetrieveConsumption = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.ASSET, Action.RETRIEVE_CONSUMPTION, authorizationFilter, {}, asset);
-    asset.canReadConsumption = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.ASSET, Action.READ_CONSUMPTION, authorizationFilter, {}, asset);
     asset.canCheckConnection = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.ASSET, Action.CHECK_CONNECTION, authorizationFilter, {}, asset);
+    // Additional auth rules based on asset attributes
+    asset.canRetrieveConsumption = asset.dynamicAsset && !asset.usesPushAPI &&
+      await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.ASSET, Action.RETRIEVE_CONSUMPTION, authorizationFilter, {}, asset);
+    asset.canReadConsumption = asset.dynamicAsset &&
+      await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.ASSET, Action.READ_CONSUMPTION, authorizationFilter, {}, asset);
     // Optimize data over the net
     Utils.removeCanPropertiesWithFalseValue(asset);
   }

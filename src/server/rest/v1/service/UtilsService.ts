@@ -368,6 +368,61 @@ export default class UtilsService {
     return site;
   }
 
+  public static async checkAndGetAssetAuthorization(tenant: Tenant, userToken: UserToken, assetID: string, authAction: Action,
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Asset> {
+    // Check mandatory fields failsafe, should already be done in the json schema validation for each request
+    UtilsService.assertIdIsProvided(action, assetID, MODULE_NAME, 'checkAndGetAssetAuthorization', userToken);
+    // Retrieve authorization for action
+    const authorizationFilter = await AuthorizationService.checkAndGetAssetAuthorizations(tenant, userToken, authAction, { ID: assetID }, entityData);
+    // In certain cases the authorization filter will pass
+    if (!authorizationFilter.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: authAction, entity: Entity.SITE,
+        module: MODULE_NAME, method: 'checkAndGetAssetAuthorization',
+        value: assetID,
+        siteID: assetID,
+      });
+    }
+    // Retrieve Asset from storage
+    const asset = await AssetStorage.getAsset(tenant,
+      assetID,
+      {
+        ...additionalFilters,
+        ...authorizationFilter.filters
+      },
+      applyProjectFields ? authorizationFilter.projectFields : null
+    );
+    // Check object not empty
+    UtilsService.assertObjectExists(action, asset, `Asset ID '${assetID}' cannot be retrieved`,
+      MODULE_NAME, 'checkAndGetAssetAuthorization', userToken);
+
+    // Assign projected fields
+    if (authorizationFilter.projectFields) {
+      asset.projectFields = authorizationFilter.projectFields;
+    }
+    // Assign Metadata
+    if (authorizationFilter.metadata) {
+      asset.metadata = authorizationFilter.metadata;
+    }
+    // Add entity authorization
+    await AuthorizationService.addAssetAuthorizations(tenant, userToken, asset, authorizationFilter);
+    // Check authorization on retrieved entity
+    const authorized = AuthorizationService.canPerformAction(asset, authAction);
+    if (!authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: authAction, entity: Entity.SITE,
+        module: MODULE_NAME, method: 'checkAndGetAssetAuthorization',
+        value: assetID,
+        siteID: assetID,
+      });
+    }
+    return asset;
+  }
+
   public static async checkAndGetLogAuthorization(tenant: Tenant, userToken: UserToken, logID: string, authAction: Action,
       action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Log> {
     // Check mandatory fields

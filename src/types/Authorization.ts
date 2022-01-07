@@ -231,8 +231,6 @@ export enum DynamicAuthorizationFilterName {
   OWN_USER = 'OwnUser',
   LOCAL_ISSUER = 'LocalIssuer',
   EXCLUDE_ACTION = 'ExcludeAction',
-  DYNAMIC_ASSET = 'DynamicAsset',
-  USES_PUSH_API = 'UsesPushAPI'
 }
 
 export enum DynamicAuthorizationAssertName {
