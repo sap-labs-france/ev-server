@@ -1409,7 +1409,7 @@ export default class UtilsService {
         voltage: siteArea.voltage, numberOfPhases: siteArea.numberOfPhases } as SiteArea) ;
     }
     let siteAreaTrees: SiteArea[];
-    const count = { value: 0 };
+    let count = 0;
     try {
       siteAreaTrees = Utils.buildSiteAreaTrees(siteAreas.result);
     } catch {
@@ -1423,11 +1423,10 @@ export default class UtilsService {
     // Loop through trees to check validity
     for (const siteAreaTree of siteAreaTrees) {
       // If no ID defined count elements to verify validity
-      count.value++;
-      this.countElementsOfSiteAreaTree(siteAreaTree, count);
+      count += this.countElementsOfSiteAreaTree(siteAreaTree);
     }
     // If site area list is the same length as elements in the tree, the tree is valid
-    if (count.value !== siteAreas.result.length) {
+    if (count !== siteAreas.result.length) {
       throw new AppError({
         errorCode: HTTPError.SITE_AREA_HIERARCHY_CIRCULAR_STRUCTURE_ERROR,
         message: 'Circular Structure in Site Area Tree',
@@ -1937,12 +1936,16 @@ export default class UtilsService {
     return tag;
   }
 
-  private static countElementsOfSiteAreaTree(siteAreaTree: Partial<SiteArea>, count: { value: number }) {
+  private static countElementsOfSiteAreaTree(siteAreaTree: Partial<SiteArea>, count = -1) {
+    if (count < 0) {
+      count = 0 ;
+    }
+    count++;
     if (!Utils.isEmptyArray(siteAreaTree.siteAreaChildren)) {
       for (const child of siteAreaTree.siteAreaChildren) {
-        count.value++;
-        this.countElementsOfSiteAreaTree(child, count);
+        count += this.countElementsOfSiteAreaTree(child), count;
       }
     }
+    return count;
   }
 }

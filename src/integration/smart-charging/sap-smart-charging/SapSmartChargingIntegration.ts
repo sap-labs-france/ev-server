@@ -66,7 +66,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
     // Get all site areas of Site to build site area tree
     const siteAreas = await SiteAreaStorage.getSiteAreas(this.tenant,
       { siteIDs: [sourceSiteArea.siteID], withChargingStations: true, withAssets: true,
-        ChargingStationConnectorStatuses: [ChargePointStatus.CHARGING, ChargePointStatus.SUSPENDED_EVSE] },
+        chargingStationConnectorStatuses: [ChargePointStatus.CHARGING, ChargePointStatus.SUSPENDED_EVSE] },
       Constants.DB_PARAMS_MAX_LIMIT);
     // Build site area tree, which contains the source site area
     const rootSiteArea = Utils.buildSiteAreaTree(sourceSiteArea.id, siteAreas.result);

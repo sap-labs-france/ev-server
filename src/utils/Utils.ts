@@ -1607,12 +1607,12 @@ export default class Utils {
   public static buildSiteAreaTrees(siteAreaList: SiteArea[]): SiteArea[] {
     // Hash Table helper
     const hashTable = Object.create(null);
-    siteAreaList.forEach((siteArea) => {
+    for (const siteArea of siteAreaList) {
       hashTable[siteArea.id] = { ...siteArea, siteAreaChildren: [] } as SiteArea;
-    });
+    }
     const siteAreaTrees: SiteArea[] = [];
     // Build tree
-    siteAreaList.forEach((siteArea) => {
+    for (const siteArea of siteAreaList) {
       if (!Utils.isNullOrUndefined(siteArea.parentSiteAreaID)) {
         // Check if site area chain is meeting the constraints
         if (!Utils.isNullOrUndefined(hashTable[siteArea.parentSiteAreaID]) &&
@@ -1629,7 +1629,7 @@ export default class Utils {
         // If no parent ID is defined push root site area to array
         siteAreaTrees.push(hashTable[siteArea.id]);
       }
-    });
+    }
     return siteAreaTrees;
   }
 

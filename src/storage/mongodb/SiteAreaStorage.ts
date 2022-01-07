@@ -1,5 +1,6 @@
 import global, { DatabaseCount, FilterParams, Image } from '../../types/GlobalType';
 
+import { ChargePointStatus } from '../../types/ocpp/OCPPServer';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
@@ -132,8 +133,8 @@ export default class SiteAreaStorage {
       params: {
         siteAreaIDs?: string[]; search?: string; siteIDs?: string[]; parentSiteAreaIDs?: string[]; companyIDs?: string[]; withSite?: boolean, withParentSiteArea?: boolean;
         issuer?: boolean; name?: string; withChargingStations?: boolean; withOnlyChargingStations?: boolean; withAvailableChargingStations?: boolean;
-        ChargingStationConnectorStatuses?: string[]; locCoordinates?: number[]; locMaxDistanceMeters?: number; smartCharging?: boolean; withImage?: boolean; withAssets?: boolean;
-        withNoParentSiteArea?: boolean
+        chargingStationConnectorStatuses?: ChargePointStatus[]; locCoordinates?: number[]; locMaxDistanceMeters?: number; smartCharging?: boolean; withImage?: boolean;
+        withAssets?: boolean; withNoParentSiteArea?: boolean
       } = {},
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteArea>> {
     const startTime = Logging.traceDatabaseRequestStart();
@@ -211,7 +212,7 @@ export default class SiteAreaStorage {
       filters.name = params.name;
     }
     if (params.withNoParentSiteArea) {
-      filters.parentSiteAreaID = null;
+      filters.parentSiteAreaID = { $ne: true };
     }
     // Filters
     if (filters) {
@@ -276,8 +277,8 @@ export default class SiteAreaStorage {
     if (params.withChargingStations || params.withOnlyChargingStations || params.withAvailableChargingStations) {
       let pipelineMatch = {};
       const additionalPipeline = [];
-      if (params.ChargingStationConnectorStatuses) {
-        pipelineMatch = { ['connectors.status'] : { $in: params.ChargingStationConnectorStatuses } };
+      if (!Utils.isEmptyArray(params.chargingStationConnectorStatuses)) {
+        pipelineMatch = { ['connectors.status'] : { $in: params.chargingStationConnectorStatuses } };
         additionalPipeline.push({
           '$addFields': {
             'connectors': {
@@ -285,7 +286,7 @@ export default class SiteAreaStorage {
                 input: '$connectors',
                 as: 'connector',
                 cond: {
-                  $in: ['$$connector.status', params.ChargingStationConnectorStatuses]
+                  $in: ['$$connector.status', params.chargingStationConnectorStatuses]
                 }
               }
             }
