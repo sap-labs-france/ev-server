@@ -1016,7 +1016,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       {
         resource: Entity.SITE_AREA,
-        action: [Action.READ_ASSETS_FROM_SITE_AREA],
+        action: [Action.READ, Action.READ_ASSETS_FROM_SITE_AREA],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
@@ -1026,7 +1026,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
         attributes: [
           'id', 'name', 'issuer', 'image', 'address', 'maximumPower', 'numberOfPhases',
-          'voltage', 'smartCharging', 'accessControl', 'connectorStats', 'siteID', 'site.name'
+          'voltage', 'smartCharging', 'accessControl', 'connectorStats', 'siteID', 'site.name', 'site.public', 'tariffID'
         ],
       },
       {
