@@ -764,8 +764,7 @@ export default class OCPPService {
   private async checkAndUpdateLastCompletedTransaction(tenant: Tenant, chargingStation: ChargingStation,
       statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector) {
     // Check last transaction
-    if (statusNotification.status === ChargePointStatus.AVAILABLE ||
-        statusNotification.status === ChargePointStatus.PREPARING) {
+    if (statusNotification.status === ChargePointStatus.AVAILABLE) {
       // Get the last transaction
       const lastTransaction = await TransactionStorage.getLastTransactionFromChargingStation(
         tenant, chargingStation.id, connector.connectorId, { withUser: true });
