@@ -253,7 +253,7 @@ export default class AuthService {
           'evseDashboardURL': Utils.buildEvseURL(filteredRequest.tenant),
           'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
         }
-      ).catch(() => { });
+      );
     }
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
@@ -315,7 +315,7 @@ export default class AuthService {
         'evseDashboardURL': Utils.buildEvseURL(filteredRequest.tenant),
         'evseDashboardResetPassURL': evseDashboardResetPassURL
       }
-    ).catch(() => { });
+    );
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -532,7 +532,7 @@ export default class AuthService {
         'userStatus': userStatus,
         'evseDashboardURL': Utils.buildEvseURL(filteredRequest.Tenant),
       }
-    ).catch(() => { });
+    );
     res.json({ status: 'Success', userStatus });
     next();
   }
@@ -632,7 +632,7 @@ export default class AuthService {
         'evseDashboardURL': Utils.buildEvseURL(filteredRequest.tenant),
         'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
       }
-    ).catch(() => { });
+    );
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }

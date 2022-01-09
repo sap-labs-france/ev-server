@@ -195,7 +195,7 @@ export default class EMailNotificationTask implements NotificationTask {
       return;
     }
     if (useSmtpClientBackup && !this.smtpBackupClientInstance) {
-    // No suitable backup SMTP server configuration found or activated to send the email
+      // No suitable backup SMTP server configuration found or activated to send the email
       await Logging.logError({
         tenantID: tenant.id,
         siteID: data?.siteID,
