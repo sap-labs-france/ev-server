@@ -260,6 +260,7 @@ export default class EMailNotificationTask implements NotificationTask {
             from: rfc2047.decode(messageToSend.header.from.toString()),
             to: rfc2047.decode(messageToSend.header.to.toString()),
             subject: rfc2047.decode(messageToSend.header.subject),
+            smtpError: error.smtp,
             error: error.stack,
             content: email.html
           }
