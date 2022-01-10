@@ -1126,7 +1126,7 @@ export default class Utils {
   }
 
   public static async hashPasswordBcrypt(password: string): Promise<string> {
-    return await new Promise((fulfill, reject) => {
+    return new Promise((fulfill, reject) => {
       // Generate a salt with 15 rounds
       bcrypt.genSalt(10, (error, salt) => {
         // Hash
@@ -1143,7 +1143,7 @@ export default class Utils {
   }
 
   public static async checkPasswordBCrypt(password: string, hash: string): Promise<boolean> {
-    return await new Promise((fulfill, reject) => {
+    return new Promise((fulfill, reject) => {
       // Compare
       bcrypt.compare(password, hash, (err, match) => {
         // Error?

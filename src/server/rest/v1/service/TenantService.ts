@@ -298,7 +298,7 @@ export default class TenantService {
         'evseDashboardURL': Utils.buildEvseURL(filteredRequest.subdomain),
         'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
       }
-    ).catch(() => { });
+    );
     // Log
     await Logging.logInfo({
       tenantID: req.user.tenantID, user: req.user,

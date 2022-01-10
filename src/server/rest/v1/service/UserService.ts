@@ -237,7 +237,7 @@ export default class UserService {
           'user': user,
           'evseDashboardURL': Utils.buildEvseURL(req.tenant.subdomain)
         }
-      ).catch(() => { });
+      );
     }
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
