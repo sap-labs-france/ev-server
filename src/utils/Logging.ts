@@ -61,7 +61,7 @@ export default class Logging {
       });
       if (Utils.isDevelopmentEnv()) {
         Logging.logConsoleWarning('====================================');
-        Logging.logConsoleWarning(`Tenant ID '${tenant.id}'`);
+        Logging.logConsoleWarning(`Tenant ID '${tenant.id ? tenant.id : Constants.DEFAULT_TENANT}'`);
         Logging.logConsoleWarning(error.stack);
         Logging.logConsoleWarning(message);
         Logging.logConsoleWarning('====================================');
@@ -78,7 +78,7 @@ export default class Logging {
       });
       if (Utils.isDevelopmentEnv()) {
         Logging.logConsoleWarning('====================================');
-        Logging.logConsoleWarning(`Tenant ID '${tenant.id}'`);
+        Logging.logConsoleWarning(`Tenant ID '${tenant.id ? tenant.id : Constants.DEFAULT_TENANT}'`);
         Logging.logConsoleWarning(error.stack);
         Logging.logConsoleWarning(message);
         Logging.logConsoleWarning('====================================');
@@ -119,7 +119,7 @@ export default class Logging {
       });
       if (Utils.isDevelopmentEnv()) {
         Logging.logConsoleWarning('====================================');
-        Logging.logConsoleWarning(`Tenant ID '${tenant.id}'`);
+        Logging.logConsoleWarning(`Tenant ID '${tenant.id ? tenant.id : Constants.DEFAULT_TENANT}'`);
         Logging.logConsoleWarning(error.stack);
         Logging.logConsoleWarning(message);
         Logging.logConsoleWarning('====================================');
@@ -372,7 +372,7 @@ export default class Logging {
         });
         if (Utils.isDevelopmentEnv()) {
           Logging.logConsoleWarning('====================================');
-          Logging.logConsoleWarning(`Tenant ID '${tenantID}'`);
+          Logging.logConsoleWarning(`Tenant ID '${tenantID ? tenantID : Constants.DEFAULT_TENANT}'`);
           Logging.logConsoleWarning(error.stack);
           Logging.logConsoleWarning(message);
           Logging.logConsoleWarning('====================================');
@@ -389,7 +389,7 @@ export default class Logging {
         });
         if (Utils.isDevelopmentEnv()) {
           Logging.logConsoleWarning('====================================');
-          Logging.logConsoleWarning(`Tenant ID '${tenantID}'`);
+          Logging.logConsoleWarning(`Tenant ID '${tenantID ? tenantID : Constants.DEFAULT_TENANT}'`);
           Logging.logConsoleWarning(error.stack);
           Logging.logConsoleWarning(message);
           Logging.logConsoleWarning('====================================');
@@ -483,7 +483,7 @@ export default class Logging {
       });
       if (Utils.isDevelopmentEnv()) {
         Logging.logConsoleWarning('====================================');
-        Logging.logConsoleWarning(`Tenant ID '${tenant.id}'`);
+        Logging.logConsoleWarning(`Tenant ID '${tenant.id ? tenant.id : Constants.DEFAULT_TENANT}'`);
         Logging.logConsoleWarning(error.stack);
         Logging.logConsoleWarning(message);
         Logging.logConsoleWarning('====================================');
@@ -500,7 +500,7 @@ export default class Logging {
       });
       if (Utils.isDevelopmentEnv()) {
         Logging.logConsoleWarning('====================================');
-        Logging.logConsoleWarning(`Tenant ID '${tenant.id}'`);
+        Logging.logConsoleWarning(`Tenant ID '${tenant.id ? tenant.id : Constants.DEFAULT_TENANT}'`);
         Logging.logConsoleWarning(error.stack);
         Logging.logConsoleWarning(message);
         Logging.logConsoleWarning('====================================');
@@ -694,7 +694,7 @@ export default class Logging {
       });
       if (Utils.isDevelopmentEnv()) {
         Logging.logConsoleWarning('====================================');
-        Logging.logConsoleWarning(`Tenant ID '${tenant?.id}'`);
+        Logging.logConsoleWarning(`Tenant ID '${tenant?.id ? tenant.id : Constants.DEFAULT_TENANT}'`);
         Logging.logConsoleWarning(error.stack);
         Logging.logConsoleWarning(message);
         Logging.logConsoleWarning('====================================');
