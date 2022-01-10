@@ -794,37 +794,28 @@ export default class OCPPService {
                   detailedMessages: { statusNotification }
                 });
                 lastTransaction.stop.extraInactivitySecs = 0;
-              } else {
+              } else if (lastTransaction.stop.extraInactivitySecs > 0) {
                 // Fix the Inactivity severity
-                lastTransaction.stop.inactivityStatus = Utils.getInactivityStatusLevel(chargingStation, lastTransaction.connectorId,
-                  lastTransaction.stop.totalInactivitySecs + lastTransaction.stop.extraInactivitySecs);
+                lastTransaction.stop.inactivityStatus = Utils.getInactivityStatusLevel(chargingStation,
+                  lastTransaction.connectorId,
+                  lastTransaction.stop.totalInactivitySecs + lastTransaction.stop.extraInactivitySecs
+                );
                 // Build extra inactivity consumption
-                const lastConsumption = await OCPPUtils.buildExtraConsumptionInactivity(tenant, chargingStation, lastTransaction);
-                if (lastConsumption) {
-                  // Pricing of the extra inactivity
-                  if (lastConsumption?.toPrice) {
-                    await OCPPUtils.processTransactionPricing(tenant, lastTransaction, chargingStation, lastConsumption, TransactionAction.END);
-                  }
-                  // Save the last consumption
-                  await ConsumptionStorage.saveConsumption(tenant, lastConsumption);
-                  // Update transaction stop
-                  lastTransaction.stop.timestamp = lastConsumption.endedAt;
-                  lastTransaction.stop.totalDurationSecs = moment.duration(moment(lastTransaction.stop.timestamp).diff(lastTransaction.timestamp)).asSeconds();
-                  lastTransaction.stop.price = lastTransaction.currentCumulatedPrice;
-                  lastTransaction.stop.roundedPrice = lastTransaction.currentCumulatedRoundedPrice;
-                  await Logging.logInfo({
-                    tenantID: tenant.id,
-                    ...LoggingHelper.getChargingStationProperties(chargingStation),
-                    user: lastTransaction.userID,
-                    module: MODULE_NAME, method: 'checkAndUpdateLastCompletedTransaction',
-                    action: ServerAction.EXTRA_INACTIVITY,
-                    message: `${Utils.buildConnectorInfo(lastTransaction.connectorId, lastTransaction.id)} Extra Inactivity of ${lastTransaction.stop.extraInactivitySecs} secs has been added`,
-                    detailedMessages: { statusNotification, connector, lastTransaction }
-                  });
-                }
+                await OCPPUtils.buildAndPriceExtraConsumptionInactivity(tenant, chargingStation, lastTransaction);
+                await Logging.logInfo({
+                  tenantID: tenant.id,
+                  ...LoggingHelper.getChargingStationProperties(chargingStation),
+                  user: lastTransaction.userID,
+                  module: MODULE_NAME, method: 'checkAndUpdateLastCompletedTransaction',
+                  action: ServerAction.EXTRA_INACTIVITY,
+                  message: `${Utils.buildConnectorInfo(lastTransaction.connectorId, lastTransaction.id)} Extra Inactivity of ${lastTransaction.stop.extraInactivitySecs} secs has been added`,
+                  detailedMessages: { statusNotification, connector, lastTransaction }
+                });
+              } else {
+                // No extra inactivity
               }
-            // No extra inactivity
             } else {
+              // No extra inactivity - connector status is not set to FINISHING
               await Logging.logInfo({
                 tenantID: tenant.id,
                 ...LoggingHelper.getChargingStationProperties(chargingStation),
@@ -837,10 +828,10 @@ export default class OCPPService {
             }
             // Flag
             lastTransaction.stop.extraInactivityComputed = true;
-            // Billing - We now know the extra inactivity - the invoice can be generated
-            await OCPPUtils.processTransactionBilling(tenant, lastTransaction, TransactionAction.END);
           }
         }
+        // Billing
+        await OCPPUtils.processTransactionBilling(tenant, lastTransaction, TransactionAction.END);
         // OCPI: Post the CDR
         if (lastTransaction.ocpiData?.session) {
           await this.checkAndSendOCPITransactionCdr(tenant, lastTransaction, chargingStation, lastTransaction.tag);

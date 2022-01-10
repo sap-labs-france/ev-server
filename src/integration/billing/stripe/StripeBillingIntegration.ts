@@ -936,12 +936,26 @@ export default class StripeBillingIntegration extends BillingIntegration {
       };
     }
     if (transaction.billingData?.stop?.status === BillingStatus.BILLED) {
-      // Make sure we don't get called when the invoice is already billed
-      throw new Error('Operation aborted - unexpected situation - the session has already been billed');
+      await Logging.logWarning({
+        tenantID: this.tenant.id,
+        action: ServerAction.BILLING_TRANSACTION,
+        module: MODULE_NAME, method: 'endTransaction',
+        message: 'Operation aborted - unexpected situation - the session has already been billed'
+      });
+      return {
+        status: transaction.billingData?.stop?.status
+      };
     }
     if (!transaction.stop?.extraInactivityComputed) {
-      // This should not happen
-      throw new Error('Operation aborted - unexpected situation - the extra inactivity is not yet known');
+      await Logging.logWarning({
+        tenantID: this.tenant.id,
+        action: ServerAction.BILLING_TRANSACTION,
+        module: MODULE_NAME, method: 'endTransaction',
+        message: 'Operation aborted - unexpected situation - the extra inactivity is not yet known'
+      });
+      return {
+        status: transaction.billingData?.stop?.status
+      };
     }
     if (transaction.billingData?.stop?.status === BillingStatus.UNBILLED) {
       // Make sure to preserve the decision made during the STOP transaction

@@ -195,6 +195,23 @@ export default class OCPPUtils {
     }
   }
 
+  public static async buildAndPriceExtraConsumptionInactivity(tenant: Tenant, chargingStation: ChargingStation, lastTransaction: Transaction): Promise<void> {
+    const lastConsumption = await OCPPUtils.buildExtraConsumptionInactivity(tenant, chargingStation, lastTransaction);
+    if (lastConsumption) {
+      // Pricing of the extra inactivity
+      if (lastConsumption?.toPrice) {
+        await OCPPUtils.processTransactionPricing(tenant, lastTransaction, chargingStation, lastConsumption, TransactionAction.END);
+      }
+      // Save the last consumption
+      await ConsumptionStorage.saveConsumption(tenant, lastConsumption);
+      // Update transaction stop
+      lastTransaction.stop.timestamp = lastConsumption.endedAt;
+      lastTransaction.stop.totalDurationSecs = moment.duration(moment(lastTransaction.stop.timestamp).diff(lastTransaction.timestamp)).asSeconds();
+      lastTransaction.stop.price = lastTransaction.currentCumulatedPrice;
+      lastTransaction.stop.roundedPrice = lastTransaction.currentCumulatedRoundedPrice;
+    }
+  }
+
   public static async buildExtraConsumptionInactivity(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction): Promise<Consumption> {
     // Extra inactivity
     if (transaction.stop.extraInactivitySecs > 0) {

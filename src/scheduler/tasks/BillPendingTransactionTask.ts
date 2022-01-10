@@ -3,7 +3,6 @@ import Tenant, { TenantComponents } from '../../types/Tenant';
 import BillingFactory from '../../integration/billing/BillingFactory';
 import { BillingStatus } from '../../types/Billing';
 import { ChargePointStatus } from '../../types/ocpp/OCPPServer';
-import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
@@ -56,7 +55,7 @@ export default class BillPendingTransactionTask extends SchedulerTask {
                   if (transactionLock) {
                     try {
                     // Get Transaction
-                      const transaction = await TransactionStorage.getTransaction(tenant, transactionMDB._id, { withUser: true });
+                      const transaction = await TransactionStorage.getTransaction(tenant, transactionMDB._id, { withUser: true, withChargingStation: true });
                       if (!transaction) {
                         await Logging.logError({
                           tenantID: tenant.id,
@@ -67,7 +66,7 @@ export default class BillPendingTransactionTask extends SchedulerTask {
                         continue;
                       }
                       // Get Charging Station
-                      const chargingStation = await ChargingStationStorage.getChargingStation(tenant, transaction.chargeBoxID);
+                      const chargingStation = transaction.chargeBox;
                       if (!chargingStation) {
                         await Logging.logError({
                           tenantID: tenant.id,
@@ -131,14 +130,14 @@ export default class BillPendingTransactionTask extends SchedulerTask {
                         detailedMessages: { error: error.stack, transaction: transactionMDB }
                       });
                     } finally {
-                    // Release the lock
+                      // Release the lock
                       await LockingManager.release(transactionLock);
                     }
                   }
                 }
               }
             } finally {
-            // Release the lock
+              // Release the lock
               await LockingManager.release(lock);
             }
           }
