@@ -19,6 +19,7 @@ import { DataResult } from '../../../../types/DataResult';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
+import LoggingHelper from '../../../../utils/LoggingHelper';
 import { OCPPAuthorizationStatus } from '../../../../types/ocpp/OCPPServer';
 import OCPPService from '../../../../server/ocpp/services/OCPPService';
 import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
@@ -360,6 +361,16 @@ export default class TransactionService {
         action: action,
       });
     } else {
+      const connector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
+      if (connector.currentTransactionID === transaction.id) {
+        throw new AppError({
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Cannot stop an ongoing Transaction`,
+          module: MODULE_NAME, method: 'handleTransactionSoftStop',
+          user: req.user, action: action
+        });
+      }
       // Stop Transaction
       const result = await new OCPPService(Configuration.getChargingStationConfig()).handleStopTransaction(
         {
@@ -382,6 +393,7 @@ export default class TransactionService {
       );
       if (result.idTagInfo?.status !== OCPPAuthorizationStatus.ACCEPTED) {
         throw new AppError({
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
           errorCode: HTTPError.GENERAL_ERROR,
           message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction cannot be stopped`,
           module: MODULE_NAME, method: 'handleTransactionSoftStop',
@@ -392,6 +404,7 @@ export default class TransactionService {
         tenantID: req.user.tenantID,
         user: req.user, actionOnUser: transaction.userID,
         module: MODULE_NAME, method: 'handleTransactionSoftStop',
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has been stopped successfully`,
         action: action,
         detailedMessages: { result }
