@@ -298,8 +298,9 @@ export default class OCPPUtils {
             transaction.currentCumulatedRoundedPrice = pricedConsumption.cumulatedRoundedAmount;
           }
           break;
-        // Stop/End Transaction
-        case TransactionAction.STOP, TransactionAction.END:
+        // Stop, End Transaction
+        case TransactionAction.STOP:
+        case TransactionAction.END:
           // Set
           pricedConsumption = await pricingImpl.stopSession(transaction, consumption, chargingStation);
           if (pricedConsumption) {
