@@ -2,6 +2,7 @@ import Tenant, { TenantComponents } from '../../types/Tenant';
 
 import BillingFactory from '../../integration/billing/BillingFactory';
 import { BillingStatus } from '../../types/Billing';
+import { ChargePointStatus } from '../../types/ocpp/OCPPServer';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
@@ -32,6 +33,7 @@ export default class BillPendingTransactionTask extends SchedulerTask {
                 .aggregate<{_id: number}>(
                 [
                   {
+                    // Sessions with a PENDING billing status and with a unknown extra inactivity
                     $match: {
                       'stop': { $exists: true },
                       'stop.extraInactivityComputed': false,
@@ -50,7 +52,6 @@ export default class BillPendingTransactionTask extends SchedulerTask {
                   message: `The billing of ${transactionsMDB.length} transactions is pending`,
                 });
                 for (const transactionMDB of transactionsMDB) {
-                  // TODO - How to avoid conflict with regular billing process
                   const transactionLock = await LockingHelper.acquireBillPendingTransactionLock(tenant.id, transactionMDB._id);
                   if (transactionLock) {
                     try {
@@ -61,16 +62,7 @@ export default class BillPendingTransactionTask extends SchedulerTask {
                           tenantID: tenant.id,
                           action: ServerAction.BILLING_BILL_PENDING_TRANSACTION,
                           module: MODULE_NAME, method: 'processTenant',
-                          message: `Transaction ID '${transactionMDB._id}' not found`,
-                        });
-                        continue;
-                      }
-                      if (transaction.billingData?.stop?.status !== BillingStatus.PENDING) {
-                        await Logging.logInfo({
-                          tenantID: tenant.id,
-                          action: ServerAction.BILLING_BILL_PENDING_TRANSACTION,
-                          module: MODULE_NAME, method: 'processTenant',
-                          message: `Transaction ID '${transactionMDB._id}' is not pending anymore`,
+                          message: `Transaction '${transactionMDB._id}' not found`,
                         });
                         continue;
                       }
@@ -81,15 +73,40 @@ export default class BillPendingTransactionTask extends SchedulerTask {
                           tenantID: tenant.id,
                           action: ServerAction.BILLING_BILL_PENDING_TRANSACTION,
                           module: MODULE_NAME, method: 'processTenant',
-                          message: `Charging Station ID '${transaction.chargeBoxID}' not found`,
+                          message: `Charging Station '${transaction.chargeBoxID}' not found`,
                         });
                         continue;
                       }
-                      // TODO - the transaction is stopped - Is there a need to check connector status???
-                      // const connector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
-                      // if (connector?.status === ChargePointStatus.FINISHING) {
-                      //   continue;
-                      // }
+                      // Check for the last transaction
+                      const lastTransaction = await TransactionStorage.getLastTransactionFromChargingStation(tenant, transaction.chargeBoxID, transaction.connectorId);
+                      if (transaction.id === lastTransaction?.id) {
+                        // Avoid conflict with a session which is still in progress
+                        const connector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
+                        if (connector.status !== ChargePointStatus.AVAILABLE) {
+                          // Do nothing - connector is being used
+                          continue;
+                        }
+                      }
+                      // Check for the billing status
+                      if (transaction.billingData?.stop?.status !== BillingStatus.PENDING) {
+                        await Logging.logWarning({
+                          tenantID: tenant.id,
+                          action: ServerAction.BILLING_BILL_PENDING_TRANSACTION,
+                          module: MODULE_NAME, method: 'processTenant',
+                          message: `Transaction '${transactionMDB._id}' is not pending anymore`,
+                        });
+                        continue;
+                      }
+                      // Avoid billing again!
+                      if (transaction.billingData?.stop?.invoiceID) {
+                        await Logging.logWarning({
+                          tenantID: tenant.id,
+                          action: ServerAction.BILLING_BILL_PENDING_TRANSACTION,
+                          module: MODULE_NAME, method: 'processTenant',
+                          message: `Unexpected situation - Transaction '${transactionMDB._id}' has already been billed`,
+                        });
+                        continue;
+                      }
                       // Pricing - Nothing to do - no extra activity has been added
                       transaction.stop.extraInactivityComputed = true;
                       transaction.stop.extraInactivitySecs = 0;

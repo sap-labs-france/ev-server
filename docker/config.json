@@ -170,7 +170,7 @@
       {
         "name": "BillPendingTransactionTask",
         "active": false,
-        "periodicity": "* * * * *",
+        "periodicity": "*/15 * * * *",
         "config": {}
       },
       {
