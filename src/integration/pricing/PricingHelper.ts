@@ -58,7 +58,8 @@ export default class PricingHelper {
       }
       accumulatedData[dimensionType].quantity = Utils.createDecimal(accumulatedData[dimensionType].quantity).plus(pricedData[dimensionType].quantity).toNumber();
       accumulatedData[dimensionType].amount = Utils.createDecimal(accumulatedData[dimensionType].amount).plus(pricedData[dimensionType].amount).toNumber();
-      accumulatedData[dimensionType].roundedAmount = Utils.createDecimal(accumulatedData[dimensionType].roundedAmount).plus(pricedData[dimensionType].roundedAmount).toNumber();
+      // accumulatedData[dimensionType].roundedAmount = Utils.createDecimal(accumulatedData[dimensionType].roundedAmount).plus(pricedData[dimensionType].roundedAmount).toNumber();
+      accumulatedData[dimensionType].roundedAmount = Utils.truncTo(accumulatedData[dimensionType].amount, 2);
     }
   }
 }
