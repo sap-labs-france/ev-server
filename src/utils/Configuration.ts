@@ -24,6 +24,7 @@ import OICPEndpointConfiguration from '../types/configuration/OICPEndpointConfig
 import OICPServiceConfiguration from '../types/configuration/OICPServiceConfiguration';
 import SchedulerConfiguration from '../types/configuration/SchedulerConfiguration';
 import StorageConfiguration from '../types/configuration/StorageConfiguration';
+import TraceConfiguration from '../types/configuration/TraceConfiguration';
 import WSDLEndpointConfiguration from '../types/configuration/WSDLEndpointConfiguration';
 import chalk from 'chalk';
 import fs from 'fs';
@@ -231,6 +232,35 @@ export default class Configuration {
       }
       return axios;
     }
+  }
+
+  public static getTraceConfig(): TraceConfiguration {
+    let trace = Configuration.getConfig().Trace;
+    if (Configuration.isUndefined('Trace', trace)) {
+      trace = {
+        traceIngressHttp: false,
+        traceEgressHttp: false,
+        traceOcpp: false,
+        traceDatabase: false,
+        traceNotification: false,
+      };
+    }
+    if (Configuration.isUndefined('Trace.traceIngressHttp', trace.traceIngressHttp)) {
+      trace.traceIngressHttp = false;
+    }
+    if (Configuration.isUndefined('Trace.traceEgressHttp', trace.traceEgressHttp)) {
+      trace.traceEgressHttp = false;
+    }
+    if (Configuration.isUndefined('Trace.traceOcpp', trace.traceOcpp)) {
+      trace.traceOcpp = false;
+    }
+    if (Configuration.isUndefined('Trace.traceDatabase', trace.traceDatabase)) {
+      trace.traceDatabase = false;
+    }
+    if (Configuration.isUndefined('Trace.traceNotification', trace.traceNotification)) {
+      trace.traceNotification = false;
+    }
+    return trace;
   }
 
   private static getConfig(): ConfigurationData {

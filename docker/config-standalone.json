@@ -220,16 +220,14 @@
       }
     ]
   },
+  "Trace": {
+    "traceIngressHttp": false,
+    "traceEgressHttp": false,
+    "traceOcpp": false,
+    "traceDatabase": false,
+    "traceNotification": false
+  },
   "Logging": {
-    "logLevel": "D",
-    "trace": true,
-    "moduleDetails": {
-      "ChargingStation": {
-        "logLevel": "DEFAULT"
-      },
-      "Authorizations": {
-        "logLevel": "DEFAULT"
-      }
-    }
+    "logLevel": "D"
   }
 }

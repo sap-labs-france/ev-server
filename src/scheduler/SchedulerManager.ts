@@ -167,6 +167,10 @@ export default class SchedulerManager {
   }
 
   private static runTask(task: SchedulerTask, taskConfiguration: SchedulerTaskConfiguration): void {
+    // Set default config
+    if (!taskConfiguration.config) {
+      taskConfiguration.config = {};
+    }
     // Do not wait for the task result
     void task.run(taskConfiguration.name, taskConfiguration.config);
   }
