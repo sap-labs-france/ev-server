@@ -946,22 +946,19 @@ export default class StripeBillingIntegration extends BillingIntegration {
         status: transaction.billingData?.stop?.status
       };
     }
-    if (!transaction.stop?.extraInactivityComputed) {
-      await Logging.logWarning({
-        tenantID: this.tenant.id,
-        action: ServerAction.BILLING_TRANSACTION,
-        module: MODULE_NAME, method: 'endTransaction',
-        message: 'Operation aborted - unexpected situation - the extra inactivity is not yet known'
-      });
-      return {
-        status: transaction.billingData?.stop?.status
-      };
-    }
     if (transaction.billingData?.stop?.status === BillingStatus.UNBILLED) {
       // Make sure to preserve the decision made during the STOP transaction
       return {
         status: BillingStatus.UNBILLED
       };
+    }
+    if (!transaction.stop?.extraInactivityComputed) {
+      await Logging.logWarning({
+        tenantID: this.tenant.id,
+        action: ServerAction.BILLING_TRANSACTION,
+        module: MODULE_NAME, method: 'endTransaction',
+        message: 'Unexpected situation - end transaction is being called while the extra inactivity is not yet known'
+      });
     }
     // Create and Save async task
     await AsyncTaskBuilder.createAndSaveAsyncTasks({

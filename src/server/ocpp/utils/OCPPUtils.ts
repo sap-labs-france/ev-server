@@ -287,34 +287,34 @@ export default class OCPPUtils {
         case TransactionAction.UPDATE:
           // Set
           pricedConsumption = await pricingImpl.updateSession(transaction, consumption, chargingStation);
-          if (pricedConsumption) {
-            // Update consumption
-            consumption.amount = pricedConsumption.amount;
-            consumption.roundedAmount = pricedConsumption.roundedAmount;
-            consumption.currencyCode = pricedConsumption.currencyCode;
-            consumption.pricingSource = pricedConsumption.pricingSource;
-            consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
-            transaction.currentCumulatedPrice = consumption.cumulatedAmount;
-            transaction.currentCumulatedRoundedPrice = pricedConsumption.cumulatedRoundedAmount;
-          }
+          OCPPUtils.updateCumulatedAmounts(transaction, consumption, pricedConsumption);
           break;
         // Stop, End Transaction
         case TransactionAction.STOP:
-        case TransactionAction.END:
           // Set
           pricedConsumption = await pricingImpl.stopSession(transaction, consumption, chargingStation);
-          if (pricedConsumption) {
-            // Update consumption
-            consumption.amount = pricedConsumption.amount;
-            consumption.roundedAmount = pricedConsumption.roundedAmount;
-            consumption.currencyCode = pricedConsumption.currencyCode;
-            consumption.pricingSource = pricedConsumption.pricingSource;
-            consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
-            transaction.currentCumulatedPrice = consumption.cumulatedAmount;
-            transaction.currentCumulatedRoundedPrice = pricedConsumption.cumulatedRoundedAmount;
-          }
+          OCPPUtils.updateCumulatedAmounts(transaction, consumption, pricedConsumption);
+          break;
+        case TransactionAction.END:
+          // Set
+          pricedConsumption = await pricingImpl.endSession(transaction, consumption, chargingStation);
+          OCPPUtils.updateCumulatedAmounts(transaction, consumption, pricedConsumption);
           break;
       }
+    }
+  }
+
+  public static updateCumulatedAmounts(transaction: Transaction, consumption: Consumption, pricedConsumption: PricedConsumption): void {
+    if (pricedConsumption) {
+      // Update consumption
+      consumption.amount = pricedConsumption.amount;
+      consumption.roundedAmount = pricedConsumption.roundedAmount;
+      consumption.currencyCode = pricedConsumption.currencyCode;
+      consumption.pricingSource = pricedConsumption.pricingSource;
+      consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
+      // Update transaction
+      transaction.currentCumulatedPrice = consumption.cumulatedAmount;
+      transaction.currentCumulatedRoundedPrice = pricedConsumption.cumulatedRoundedAmount;
     }
   }
 

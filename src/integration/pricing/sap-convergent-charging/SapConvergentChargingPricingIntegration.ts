@@ -116,6 +116,32 @@ export default class SapConvergentChargingPricingIntegration extends PricingInte
     const siteArea = await SiteAreaStorage.getSiteArea(this.tenant, transaction.siteAreaID);
     const sessionId = this.computeSessionId(transaction, consumptionData);
     const chargeableItemProperties = this.consumptionToChargeableItemProperties(transaction, consumptionData);
+    chargeableItemProperties.push(new ChargeableItemProperty('status', Type.string, 'end'));
+    const confirmationItem = new ConfirmationItem(this.setting.chargeableItemName, chargeableItemProperties);
+    const request = new StopRateRequest(confirmationItem, sessionId, siteArea.name, consumptionData.userID, 'confirmed',
+      'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING');
+    const result = await this.statefulChargingService.execute(request);
+    if (result.data.stopRateResult) {
+      const rateResult = new RateResult(result.data.stopRateResult);
+      await this.handleAlertNotification(transaction, consumptionData, rateResult);
+      return {
+        roundedAmount: rateResult.amountToConfirm,
+        cumulatedAmount: rateResult.accumulatedAmount,
+        cumulatedRoundedAmount: Utils.truncTo(rateResult.accumulatedAmount, 2),
+        currencyCode: rateResult.transactionsToConfirm.getCurrencyCode(),
+        amount: rateResult.transactionsToConfirm.getTotalUnroundedAmount(),
+        pricingSource: PricingSource.CONVERGENT_CHARGING
+      };
+    }
+    await this.handleError(transaction, ServerAction.UPDATE_TRANSACTION, consumptionData, result);
+    return null;
+  }
+
+  public async endSession(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption> {
+    await this.initConnection();
+    const siteArea = await SiteAreaStorage.getSiteArea(this.tenant, transaction.siteAreaID);
+    const sessionId = this.computeSessionId(transaction, consumptionData);
+    const chargeableItemProperties = this.consumptionToChargeableItemProperties(transaction, consumptionData);
     chargeableItemProperties.push(new ChargeableItemProperty('status', Type.string, 'stop'));
     const confirmationItem = new ConfirmationItem(this.setting.chargeableItemName, chargeableItemProperties);
     const request = new StopRateRequest(confirmationItem, sessionId, siteArea.name, consumptionData.userID, 'confirmed',
