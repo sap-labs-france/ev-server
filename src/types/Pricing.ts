@@ -1,6 +1,7 @@
 import { AuthorizationActions } from './Authorization';
 import { ConnectorType } from './ChargingStation';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
+import Decimal from 'decimal.js';
 import Utils from '../utils/Utils';
 
 export enum PricingEntity {
@@ -124,7 +125,7 @@ export interface PricedConsumptionData {
 
 export interface PricedDimensionData {
   unitPrice?: number;
-  amount: number;
+  amount: number | Decimal; // Very important - switch to Decimal as soon as possible to preserve precision
   roundedAmount: number;
   quantity: number;
   stepSize?: number;

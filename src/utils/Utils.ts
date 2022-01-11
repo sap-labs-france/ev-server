@@ -546,9 +546,12 @@ export default class Utils {
     return Utils.convertToFloat((Utils.createDecimal(wattHours).div(1000)));
   }
 
-  public static createDecimal(value: number): Decimal {
+  public static createDecimal(value: number | Decimal): Decimal {
     if (Utils.isNullOrUndefined(value)) {
       value = 0;
+    }
+    if (value instanceof Decimal) {
+      return value;
     }
     return new Decimal(value);
   }
@@ -1065,7 +1068,7 @@ export default class Utils {
     return Decimal.min(value1, value2).toNumber();
   }
 
-  public static truncTo(value: number, scale: number): number {
+  public static truncTo(value: number | Decimal, scale: number): number {
     const truncPower = Math.pow(10, scale);
     return Utils.createDecimal(value).mul(truncPower).trunc().div(truncPower).toNumber();
   }
