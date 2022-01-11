@@ -81,7 +81,8 @@ export default class ConsumptionPricer {
         const chunkStartedAt = moment(startedAt).add(secondsAlreadyPriced, 'seconds');
         const chunkEndedAt = moment(startedAt).add(secondsAlreadyPriced + secondsToPrice, 'seconds');
         // Chunk consumption
-        const chunkConsumptionWh = Utils.createDecimal(consumptionData.consumptionWh).mul(secondsToPrice).divToInt(nbSeconds);
+        // const chunkConsumptionWh = Utils.createDecimal(consumptionData.consumptionWh).mul(secondsToPrice).divToInt(nbSeconds);
+        const chunkConsumptionWh = Utils.createDecimal(consumptionData.consumptionWh).mul(secondsToPrice).div(nbSeconds); // Keep the precision here!
         // Chunk accumulated data
         chunkCumulatedConsumptionWh = chunkCumulatedConsumptionWh.add(chunkConsumptionWh);
         chunkTotalDurationSecs = chunkTotalDurationSecs.plus(secondsToPrice);
