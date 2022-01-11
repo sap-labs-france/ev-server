@@ -64,7 +64,7 @@ export default class ConsumptionPricer {
       // Well - we got data for more than 1 minute! - we need to handle chunks!
       const nbSeconds = endedAt.diff(startedAt, 'seconds');
       let secondsAlreadyPriced = 0;
-      let inactivityToPrice;
+      let inactivityToPrice: number;
       let chunkCumulatedConsumptionWh = Utils.createDecimal(consumptionData.cumulatedConsumptionWh).minus(consumptionData.consumptionWh);
       let chunkTotalDurationSecs = Utils.createDecimal(consumptionData.totalDurationSecs).minus(durationSecs);
       let chunkTotalInactivitySecs = Utils.createDecimal(consumptionData.totalInactivitySecs).minus(inactivitySecs);
