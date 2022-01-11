@@ -125,7 +125,8 @@ export interface PricedConsumptionData {
 
 export interface PricedDimensionData {
   unitPrice?: number;
-  amount: number | Decimal; // Very important - switch to Decimal as soon as possible to preserve precision
+  amountAsDecimal: number | Decimal // Very important - preserve maximal precision
+  amount: number;
   roundedAmount: number;
   quantity: number;
   stepSize?: number;
