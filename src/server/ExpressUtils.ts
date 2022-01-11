@@ -1,6 +1,5 @@
 import express, { Application, NextFunction, Request, Response } from 'express';
 
-import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 import { StatusCodes } from 'http-status-codes';
@@ -61,7 +60,12 @@ export default class ExpressUtils {
     expressApplication.use(Logging.traceExpressError.bind(this));
   }
 
-  private static healthCheckService(req: Request, res: Response, next: NextFunction): void {
-    res.sendStatus(StatusCodes.OK);
+  private static async healthCheckService(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const pingSuccess = await global.database.ping();
+    if (pingSuccess) {
+      res.sendStatus(StatusCodes.OK);
+    } else {
+      res.sendStatus(StatusCodes.INTERNAL_SERVER_ERROR);
+    }
   }
 }

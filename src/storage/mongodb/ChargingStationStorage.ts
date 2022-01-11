@@ -86,7 +86,7 @@ export default class ChargingStationStorage {
     // Validate
     chargingStationTemplate = ChargingStationValidatorStorage.getInstance().validateChargingStationTemplate(chargingStationTemplate);
     // Modify and return the modified document
-    await global.database.getCollection<ChargingStationTemplate>(Constants.DEFAULT_TENANT, 'chargingstationtemplates').findOneAndReplace(
+    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'chargingstationtemplates').findOneAndReplace(
       { '_id': chargingStationTemplate.id },
       chargingStationTemplate,
       { upsert: true });
@@ -591,7 +591,7 @@ export default class ChargingStationStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Modify document
-    await global.database.getCollection<ChargingStation>(tenant.id, 'chargingstations').findOneAndUpdate(
+    await global.database.getCollection<any>(tenant.id, 'chargingstations').findOneAndUpdate(
       { '_id': id },
       {
         $set: {
@@ -608,7 +608,7 @@ export default class ChargingStationStorage {
     DatabaseUtils.checkTenantObject(tenant);
     // Set data
     // Modify document
-    await global.database.getCollection<ChargingStation>(tenant.id, 'chargingstations').findOneAndUpdate(
+    await global.database.getCollection<any>(tenant.id, 'chargingstations').findOneAndUpdate(
       { '_id': id },
       { $set: params },
       { upsert: true });
@@ -620,7 +620,7 @@ export default class ChargingStationStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Modify document
-    await global.database.getCollection<ChargingStation>(tenant.id, 'chargingstations').findOneAndUpdate(
+    await global.database.getCollection<any>(tenant.id, 'chargingstations').findOneAndUpdate(
       { '_id': id },
       {
         $set: {
@@ -636,7 +636,7 @@ export default class ChargingStationStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Modify document
-    await global.database.getCollection<ChargingStation>(tenant.id, 'chargingstations').findOneAndUpdate(
+    await global.database.getCollection<any>(tenant.id, 'chargingstations').findOneAndUpdate(
       { '_id': id },
       {
         $set: {
@@ -651,7 +651,7 @@ export default class ChargingStationStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Modify document
-    await global.database.getCollection<ChargingStation>(tenant.id, 'chargingstations').findOneAndUpdate(
+    await global.database.getCollection<any>(tenant.id, 'chargingstations').findOneAndUpdate(
       { '_id': id },
       { $set: { firmwareUpdateStatus } },
       { upsert: true });
@@ -667,7 +667,7 @@ export default class ChargingStationStorage {
     // Delete Charging Profiles
     await ChargingStationStorage.deleteChargingProfiles(tenant, id);
     // Delete Charging Station
-    await global.database.getCollection<ChargingStation>(tenant.id, 'chargingstations')
+    await global.database.getCollection<any>(tenant.id, 'chargingstations')
       .findOneAndDelete({ '_id': id });
     // Keep the rest (boot notification, authorize...)
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteChargingStation', startTime, { id });
@@ -711,8 +711,8 @@ export default class ChargingStationStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Read DB
-    const parametersMDB = await global.database.getCollection<ChargingStationOcppParameters>(tenant.id, 'configurations')
-      .findOne({ '_id': id });
+    const parametersMDB = await global.database.getCollection<any>(tenant.id, 'configurations')
+      .findOne({ '_id': id }) as ChargingStationOcppParameters;
     if (parametersMDB) {
       // Sort
       if (parametersMDB.configuration) {
@@ -748,11 +748,9 @@ export default class ChargingStationStorage {
   }
 
   public static async getChargingProfiles(tenant: Tenant,
-      params: {
-        search?: string; chargingStationIDs?: string[]; connectorID?: number; chargingProfileID?: string;
+      params: { search?: string; chargingStationIDs?: string[]; connectorID?: number; chargingProfileID?: string;
         profilePurposeType?: ChargingProfilePurposeType; transactionId?: number; withChargingStation?: boolean;
-        withSiteArea?: boolean; siteIDs?: string[];
-      } = {},
+        withSiteArea?: boolean; siteIDs?: string[]; } = {},
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingProfile>> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);

@@ -38,7 +38,7 @@
     "identifier": {
       "type": "string",
       "sanitize": "mongo",
-      "enum": ["sac"]
+      "enum": ["analytics"]
     },
     "sensitiveData": {
       "$ref": "setting#/definitions/sensitiveData"

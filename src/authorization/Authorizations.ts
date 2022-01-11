@@ -1009,7 +1009,7 @@ export default class Authorizations {
         badgeID: tagID,
         evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
       }
-    ).catch(() => { });
+    );
     throw new BackendError({
       ...LoggingHelper.getChargingStationProperties(chargingStation),
       action: action,

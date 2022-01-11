@@ -15,7 +15,6 @@ import I18nManager from '../../../../utils/I18nManager';
 import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
 import { ServerAction } from '../../../../types/Server';
-import SessionHashService from './SessionHashService';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { StatusCodes } from 'http-status-codes';
@@ -254,7 +253,7 @@ export default class AuthService {
           'evseDashboardURL': Utils.buildEvseURL(filteredRequest.tenant),
           'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
         }
-      ).catch(() => { });
+      );
     }
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
@@ -316,7 +315,7 @@ export default class AuthService {
         'evseDashboardURL': Utils.buildEvseURL(filteredRequest.tenant),
         'evseDashboardResetPassURL': evseDashboardResetPassURL
       }
-    ).catch(() => { });
+    );
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -533,7 +532,7 @@ export default class AuthService {
         'userStatus': userStatus,
         'evseDashboardURL': Utils.buildEvseURL(filteredRequest.Tenant),
       }
-    ).catch(() => { });
+    );
     res.json({ status: 'Success', userStatus });
     next();
   }
@@ -633,7 +632,7 @@ export default class AuthService {
         'evseDashboardURL': Utils.buildEvseURL(filteredRequest.tenant),
         'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
       }
-    ).catch(() => { });
+    );
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
