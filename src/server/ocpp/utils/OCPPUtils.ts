@@ -214,14 +214,18 @@ export default class OCPPUtils {
 
   public static async buildExtraConsumptionInactivity(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction): Promise<Consumption> {
     // Extra inactivity
-    if (transaction.stop.extraInactivitySecs > 0) {
+    const extraInactivitySecs = transaction.stop?.extraInactivitySecs || 0;
+    if (extraInactivitySecs > 0) {
       // Get the last Consumption
       const lastConsumption = await ConsumptionStorage.getLastTransactionConsumption(tenant, { transactionId: transaction.id });
       if (lastConsumption) {
         delete lastConsumption.id;
         // Create the extra consumption with inactivity
         lastConsumption.startedAt = transaction.stop.timestamp;
-        lastConsumption.endedAt = moment(transaction.stop.timestamp).add(transaction.stop.extraInactivitySecs, 's').toDate();
+        lastConsumption.endedAt = moment(transaction.stop.timestamp).add(extraInactivitySecs, 's').toDate();
+        lastConsumption.inactivitySecs = extraInactivitySecs;
+        lastConsumption.totalDurationSecs = Utils.createDecimal(lastConsumption.totalDurationSecs).add(extraInactivitySecs).toNumber();
+        lastConsumption.totalInactivitySecs = Utils.createDecimal(lastConsumption.totalInactivitySecs).add(extraInactivitySecs).toNumber();
         // Set inactivity
         lastConsumption.consumptionAmps = 0;
         lastConsumption.consumptionWh = 0;
