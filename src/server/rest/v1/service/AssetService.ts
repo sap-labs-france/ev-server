@@ -223,7 +223,12 @@ export default class AssetService {
         await AssetStorage.saveAsset(req.tenant, asset);
       }
     } else {
-      // TODO: Return a specific HTTP code to tell the user that the consumption cannot be retrieved
+      throw new AppError({
+        errorCode: HTTPError.CANNOT_RETRIEVE_CONSUMPTION,
+        message: 'Consumption cannot be retrieved',
+        user: req.user,
+        module: MODULE_NAME, method: 'handleRetrieveConsumption'
+      });
     }
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
