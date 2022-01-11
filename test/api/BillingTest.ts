@@ -732,7 +732,7 @@ describe('Billing', function() {
           // A first Tariff for the ENERGY Only
           await billingTestHelper.initChargingStationContext2TestFastCharger('FF+E');
           // A second Tariff applied after 30 mins!
-          await billingTestHelper.initChargingStationContext2TestFastCharger('E-After30mins');
+          await billingTestHelper.initChargingStationContext2TestFastCharger('E-After30mins+PT');
           // A tariff applied immediately
           await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
           const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
