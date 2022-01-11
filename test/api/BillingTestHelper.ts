@@ -207,7 +207,7 @@ export default class BillingTestHelper {
           active: true
         }
       };
-    } else if (testMode === 'E-After30mins') {
+    } else if (testMode === 'E-After30mins+PT') {
       // Create a second tariff with a different pricing strategy
       dimensions = {
         energy: {
@@ -533,23 +533,32 @@ export default class BillingTestHelper {
       cumulated += meterValueRampUp;
       await this.sendConsumptionMeterValue(connectorId, transactionId, currentTime, cumulated);
     }
-    // Phase #2 - high consumption
-    for (let index = 0; index < 20; index++) {
+    // Phase #2 - high consumption - 3 minutes
+    for (let index = 0; index < 3; index++) {
       cumulated += meterValueHighConsumption;
       await this.sendConsumptionMeterValue(connectorId, transactionId, currentTime, cumulated);
     }
-    // Phase #2 - no consumption
+    // Phase #2 - high consumption - a single consumption for 14 minutes (sent in one shot to simulate charge@home network issues)
+    const minutes = 14;
+    cumulated += Utils.createDecimal(meterValueHighConsumption).mul(minutes).toNumber();
+    await this.sendConsumptionMeterValue(connectorId, transactionId, currentTime, cumulated, minutes);
+    // Phase #2 - high consumption - 3 minutes
+    for (let index = 0; index < 3; index++) {
+      cumulated += meterValueHighConsumption;
+      await this.sendConsumptionMeterValue(connectorId, transactionId, currentTime, cumulated);
+    }
+    // Phase #4 - no consumption
     for (let index = 0; index < 5; index++) {
       cumulated += meterValuePoorConsumption;
       await this.sendConsumptionMeterValue(connectorId, transactionId, currentTime, cumulated);
     }
-    // Phase #3 - phase out
+    // Phase #5 - phase out
     for (let index = 0; index < 10; index++) {
       cumulated = Math.min(meterStop, cumulated += meterValuePhaseOut);
       await this.sendConsumptionMeterValue(connectorId, transactionId, currentTime, cumulated);
     }
     assert(cumulated === meterStop, 'Inconsistent meter values - cumulated energy should equal meterStop - ' + cumulated);
-    // Phase #4 - parking time
+    // Phase #6 - parking time
     for (let index = 0; index < 4; index++) {
       // cumulated += 0; // Parking time - not charging anymore
       await this.sendConsumptionMeterValue(connectorId, transactionId, currentTime, meterStop);
@@ -568,8 +577,8 @@ export default class BillingTestHelper {
     return transactionId;
   }
 
-  public async sendConsumptionMeterValue(connectorId: number, transactionId: number, currentTime: moment.Moment, energyActiveImportMeterValue: number): Promise<void> {
-    currentTime.add(1, 'minute');
+  public async sendConsumptionMeterValue(connectorId: number, transactionId: number, currentTime: moment.Moment, energyActiveImportMeterValue: number, interval = 1): Promise<void> {
+    currentTime.add(interval, 'minute');
     const meterValueResponse = await this.chargingStationContext.sendConsumptionMeterValue(
       connectorId,
       transactionId,
