@@ -829,10 +829,10 @@ export default class OCPPService {
             }
             // Flag
             lastTransaction.stop.extraInactivityComputed = true;
+            // Billing - We now know the extra inactivity - the invoice can be generated
+            await OCPPUtils.processTransactionBilling(tenant, lastTransaction, TransactionAction.END);
           }
         }
-        // Billing
-        await OCPPUtils.processTransactionBilling(tenant, lastTransaction, TransactionAction.END);
         // OCPI: Post the CDR
         if (lastTransaction.ocpiData?.session && !lastTransaction.ocpiData?.cdr) {
           await this.checkAndSendOCPITransactionCdr(tenant, lastTransaction, chargingStation, lastTransaction.tag);
