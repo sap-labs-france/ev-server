@@ -828,11 +828,11 @@ export default class OCPPService {
           }
         }
         // OCPI: Post the CDR
-        if (lastTransaction.ocpiData?.session) {
+        if (lastTransaction.ocpiData?.session && !lastTransaction.ocpiData?.cdr) {
           await this.checkAndSendOCPITransactionCdr(tenant, lastTransaction, chargingStation, lastTransaction.tag);
         }
         // OICP: Post the CDR
-        if (lastTransaction.oicpData?.session) {
+        if (lastTransaction.oicpData?.session && !lastTransaction.oicpData?.cdr) {
           await this.checkAndSendOICPTransactionCdr(tenant, lastTransaction, chargingStation, lastTransaction.tag);
         }
         // Save
