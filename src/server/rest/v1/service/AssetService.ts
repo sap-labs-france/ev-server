@@ -15,6 +15,7 @@ import Constants from '../../../../utils/Constants';
 import Consumption from '../../../../types/Consumption';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
 import Logging from '../../../../utils/Logging';
+import LoggingHelper from '../../../../utils/LoggingHelper';
 import OCPPUtils from '../../../../server/ocpp/utils/OCPPUtils';
 import { ServerAction } from '../../../../types/Server';
 import SiteArea from '../../../../types/SiteArea';
@@ -42,6 +43,7 @@ export default class AssetService {
     if (!filteredRequest.StartDate || !filteredRequest.EndDate) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
+        ...LoggingHelper.getAssetProperties(asset),
         message: 'Start date and end date must be provided',
         module: MODULE_NAME, method: 'handleGetAssetConsumption',
         user: req.user,
@@ -72,6 +74,7 @@ export default class AssetService {
     // Check if connection ID exists
     if (!Utils.isNullOrUndefined(asset.connectionID)) {
       throw new AppError({
+        ...LoggingHelper.getAssetProperties(asset),
         errorCode: HTTPError.GENERAL_ERROR,
         message: `The asset '${asset.name}' has a defined connection. The push API can not be used`,
         module: MODULE_NAME, method: 'handleCreateAssetConsumption',
@@ -86,6 +89,7 @@ export default class AssetService {
     if (!Utils.isNullOrUndefined(lastConsumption)) {
       if (moment(filteredRequest.startedAt).isBefore(moment(lastConsumption.endedAt))) {
         throw new AppError({
+          ...LoggingHelper.getAssetProperties(asset),
           errorCode: HTTPError.GENERAL_ERROR,
           message: `The start date '${moment(filteredRequest.startedAt).toISOString()}' of the pushed consumption is before the end date '${moment(lastConsumption.endedAt).toISOString()}' of the latest asset consumption`,
           module: MODULE_NAME, method: 'handleCreateAssetConsumption',
@@ -184,14 +188,13 @@ export default class AssetService {
     // Filter request
     const assetID = AssetValidator.getInstance().validateAssetGetReq(req.query).ID;
     // Check and get Asset
-    const asset = await UtilsService.checkAndGetAssetAuthorization(req.tenant, req.user, assetID, Action.RETRIEVE_CONSUMPTION, action, null,
-      { }, true);
-    UtilsService.assertObjectExists(action, asset, `Asset ID '${assetID}' consumption cannot be retrieved`,
-      MODULE_NAME, 'handleRetrieveConsumption', req.user);
+    const asset = await UtilsService.checkAndGetAssetAuthorization(
+      req.tenant, req.user, assetID, Action.RETRIEVE_CONSUMPTION, action, null, {}, true);
     // Get asset factory
     const assetImpl = await AssetFactory.getAssetImpl(req.tenant, asset.connectionID);
     if (!assetImpl) {
       throw new AppError({
+        ...LoggingHelper.getAssetProperties(asset),
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Asset service is not configured',
         module: MODULE_NAME, method: 'handleRetrieveConsumption',
@@ -224,6 +227,7 @@ export default class AssetService {
       }
     } else {
       throw new AppError({
+        ...LoggingHelper.getAssetProperties(asset),
         errorCode: HTTPError.CANNOT_RETRIEVE_CONSUMPTION,
         message: 'Consumption cannot be retrieved',
         user: req.user,
@@ -278,11 +282,13 @@ export default class AssetService {
     // Filter
     const filteredRequest = AssetValidator.getInstance().validateAssetGetReq(req.query);
     // Check and get Asset
-    const asset = await UtilsService.checkAndGetAssetAuthorization(req.tenant, req.user, filteredRequest.ID, Action.DELETE, action, null, { withSiteArea: filteredRequest.WithSiteArea });
+    const asset = await UtilsService.checkAndGetAssetAuthorization(req.tenant, req.user, filteredRequest.ID,
+      Action.DELETE, action, null, { withSiteArea: filteredRequest.WithSiteArea });
     // Delete
     await AssetStorage.deleteAsset(req.tenant, asset.id);
     // Log
     await Logging.logInfo({
+      ...LoggingHelper.getAssetProperties(asset),
       tenantID: req.user.tenantID,
       user: req.user,
       module: MODULE_NAME, method: 'handleDeleteAsset',
@@ -408,6 +414,7 @@ export default class AssetService {
     // Log
     await Logging.logInfo({
       tenantID: req.user.tenantID,
+      ...LoggingHelper.getAssetProperties(newAsset),
       user: req.user,
       module: MODULE_NAME, method: 'handleCreateAsset',
       message: `Asset '${newAsset.id}' has been created successfully`,
@@ -453,6 +460,7 @@ export default class AssetService {
     await AssetStorage.saveAsset(req.tenant, asset);
     // Log
     await Logging.logInfo({
+      ...LoggingHelper.getAssetProperties(asset),
       tenantID: req.user.tenantID,
       user: req.user,
       module: MODULE_NAME, method: 'handleUpdateAsset',

@@ -1,3 +1,4 @@
+import Asset from '../types/Asset';
 import ChargingStation from '../types/ChargingStation';
 import { Log } from '../types/Log';
 import Transaction from '../types/Transaction';
@@ -20,6 +21,13 @@ export default class LoggingHelper {
       siteAreaID: chargingStation.siteAreaID,
       companyID: chargingStation.companyID,
       chargingStationID: chargingStation.id,
+    };
+  }
+
+  public static getAssetProperties(asset: Asset): { siteID: string; siteAreaID: string; } {
+    return {
+      siteID: asset.siteID,
+      siteAreaID: asset.siteAreaID,
     };
   }
 }
