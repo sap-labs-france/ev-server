@@ -15,10 +15,12 @@ const MODULE_NAME = 'AssetStorage';
 
 export default class AssetStorage {
   public static async getAsset(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID,
-      params: { withSiteArea?: boolean } = {}, projectFields?: string[]): Promise<Asset> {
+      params: { withSiteArea?: boolean, siteIDs?: string[], issuer?: boolean } = {}, projectFields?: string[]): Promise<Asset> {
     const assetsMDB = await AssetStorage.getAssets(tenant, {
       assetIDs: [id],
-      withSiteArea: params.withSiteArea
+      withSiteArea: params.withSiteArea,
+      siteIDs: params.siteIDs,
+      issuer: params.issuer
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return assetsMDB.count === 1 ? assetsMDB.result[0] : null;
   }
@@ -51,7 +53,7 @@ export default class AssetStorage {
       excludeFromSmartCharging: Utils.convertToBoolean(assetToSave.excludeFromSmartCharging),
       variationThresholdPercent: Utils.convertToFloat(assetToSave.variationThresholdPercent),
       powerWattsLastSmartChargingRun: Utils.convertToFloat(assetToSave.powerWattsLastSmartChargingRun),
-      fluctuationPercent:  Utils.convertToFloat(assetToSave.fluctuationPercent),
+      fluctuationPercent: Utils.convertToFloat(assetToSave.fluctuationPercent),
       staticValueWatt: Utils.convertToFloat(assetToSave.staticValueWatt),
       dynamicAsset: Utils.convertToBoolean(assetToSave.dynamicAsset),
       usesPushAPI: Utils.convertToBoolean(assetToSave.usesPushAPI),
@@ -136,8 +138,8 @@ export default class AssetStorage {
       };
     }
     // Dynamic Asset
-    if (params.dynamicOnly) {
-      filters.dynamicAsset = true;
+    if (params.dynamicOnly && Utils.isBoolean(params.dynamicOnly)) {
+      filters.dynamicAsset = params.dynamicOnly;
     }
     // Limit on Asset for Basic Users
     if (!Utils.isEmptyArray(params.assetIDs)) {
