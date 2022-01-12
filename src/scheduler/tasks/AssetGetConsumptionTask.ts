@@ -127,7 +127,7 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
   }
 
   private async triggerSmartCharging(tenant: Tenant, siteArea: SiteArea) {
-    const siteAreaLock = await LockingHelper.acquireSiteAreaSmartChargingLock(tenant.id, siteArea, 30);
+    const siteAreaLock = await LockingHelper.acquireSiteAreaSmartChargingLock(tenant.id, siteArea);
     if (siteAreaLock) {
       try {
         const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenant);
