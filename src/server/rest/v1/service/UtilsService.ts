@@ -1328,6 +1328,89 @@ export default class UtilsService {
     }
   }
 
+  public static checkIfTenantValid(tenant: Partial<Tenant>, req: Request): void {
+    if (req.method !== 'POST' && !tenant.id) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Tenant ID is mandatory',
+        module: MODULE_NAME, method: 'checkIfTenantValid',
+        user: req.user.id
+      });
+    }
+    if (!tenant.name) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Tenant Name is mandatory',
+        module: MODULE_NAME, method: 'checkIfTenantValid',
+        user: req.user.id
+      });
+    }
+    if (!tenant.components) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Tenant Components is mandatory',
+        module: MODULE_NAME, method: 'checkIfTenantValid',
+        user: req.user.id
+      });
+    }
+    if (!tenant.components) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Tenant Components is mandatory',
+        module: MODULE_NAME, method: 'checkIfTenantValid',
+        user: req.user.id
+      });
+    }
+    if (tenant.components.oicp?.active && tenant.components.ocpi?.active) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'OICP and OCPI Components cannot be both active',
+        module: MODULE_NAME, method: 'checkIfTenantValid',
+        user: req.user.id
+      });
+    }
+    if (tenant.components.refund?.active && !tenant.components.pricing?.active) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Refund cannot be active without the Pricing component',
+        module: MODULE_NAME, method: 'checkIfTenantValid',
+        user: req.user.id
+      });
+    }
+    if (tenant.components.billing?.active && !tenant.components.pricing?.active) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Billing cannot be active without the Pricing component',
+        module: MODULE_NAME, method: 'checkIfTenantValid',
+        user: req.user.id
+      });
+    }
+    if (tenant.components.smartCharging?.active && !tenant.components.organization?.active) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Smart Charging cannot be active without the Organization component',
+        module: MODULE_NAME, method: 'checkIfTenantValid',
+        user: req.user.id
+      });
+    }
+    if (tenant.components.asset?.active && !tenant.components.organization?.active) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Asset cannot be active without the Organization component',
+        module: MODULE_NAME, method: 'checkIfTenantValid',
+        user: req.user.id
+      });
+    }
+    if (tenant.components.carConnector?.active && !tenant.components.car?.active) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Car Connector cannot be active without the Car component',
+        module: MODULE_NAME, method: 'checkIfTenantValid',
+        user: req.user.id
+      });
+    }
+  }
+
   public static checkIfSiteAreaValid(siteArea: Partial<SiteArea>, req: Request): void {
     if (req.method !== 'POST' && !siteArea.id) {
       throw new AppError({
