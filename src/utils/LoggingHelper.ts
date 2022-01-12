@@ -1,6 +1,8 @@
 import Asset from '../types/Asset';
 import ChargingStation from '../types/ChargingStation';
 import { Log } from '../types/Log';
+import Site from '../types/Site';
+import SiteArea from '../types/SiteArea';
 import Transaction from '../types/Transaction';
 
 export default class LoggingHelper {
@@ -28,6 +30,20 @@ export default class LoggingHelper {
     return {
       siteID: asset.siteID,
       siteAreaID: asset.siteAreaID,
+    };
+  }
+
+  public static getSiteProperties(site: Site): { siteID: string; companyID: string; } {
+    return {
+      siteID: site.id,
+      companyID: site.companyID,
+    };
+  }
+
+  public static getSiteAreaProperties(siteArea: SiteArea): { siteID: string; siteAreaID: string; } {
+    return {
+      siteAreaID: siteArea.id,
+      siteID: siteArea.siteID,
     };
   }
 }

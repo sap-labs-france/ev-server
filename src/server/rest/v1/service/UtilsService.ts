@@ -23,6 +23,7 @@ import { DataResult } from '../../../../types/DataResult';
 import { EntityData } from '../../../../types/GlobalType';
 import { Log } from '../../../../types/Log';
 import Logging from '../../../../utils/Logging';
+import LoggingHelper from '../../../../utils/LoggingHelper';
 import LoggingStorage from '../../../../storage/mongodb/LoggingStorage';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import OICPEndpoint from '../../../../types/oicp/OICPEndpoint';
@@ -93,7 +94,8 @@ export default class UtilsService {
         message: `ChargingStation Id '${chargingStation.id}' not issued by the organization`,
         module: MODULE_NAME, method: 'checkAndGetChargingStationAuthorization',
         user: userToken,
-        action: action
+        action: action,
+        ...LoggingHelper.getChargingStationProperties(chargingStation)
       });
     }
     // Deleted?
@@ -103,7 +105,8 @@ export default class UtilsService {
         message: `ChargingStation with ID '${chargingStation.id}' is logically deleted`,
         module: MODULE_NAME,
         method: 'checkAndGetChargingStationAuthorization',
-        user: userToken
+        user: userToken,
+        ...LoggingHelper.getChargingStationProperties(chargingStation)
       });
     }
     return chargingStation;
@@ -362,7 +365,7 @@ export default class UtilsService {
         action: authAction, entity: Entity.SITE,
         module: MODULE_NAME, method: 'checkAndGetSiteAuthorization',
         value: siteID,
-        siteID: siteID,
+        ...LoggingHelper.getSiteProperties(site)
       });
     }
     return site;
@@ -373,7 +376,8 @@ export default class UtilsService {
     // Check mandatory fields failsafe, should already be done in the json schema validation for each request
     UtilsService.assertIdIsProvided(action, assetID, MODULE_NAME, 'checkAndGetAssetAuthorization', userToken);
     // Retrieve authorization for action
-    const authorizationFilter = await AuthorizationService.checkAndGetAssetAuthorizations(tenant, userToken, authAction, { ID: assetID }, entityData);
+    const authorizationFilter = await AuthorizationService.checkAndGetAssetAuthorizations(
+      tenant, userToken, authAction, { ID: assetID }, entityData);
     // In certain cases the authorization filter will pass
     if (!authorizationFilter.authorized) {
       throw new AppAuthError({
@@ -396,7 +400,6 @@ export default class UtilsService {
     // Check object not empty
     UtilsService.assertObjectExists(action, asset, `Asset ID '${assetID}' cannot be retrieved`,
       MODULE_NAME, 'checkAndGetAssetAuthorization', userToken);
-
     // Assign projected fields
     if (authorizationFilter.projectFields) {
       asset.projectFields = authorizationFilter.projectFields;
@@ -416,6 +419,7 @@ export default class UtilsService {
         action: authAction, entity: Entity.ASSET,
         module: MODULE_NAME, method: 'checkAndGetAssetAuthorization',
         value: assetID,
+        ...LoggingHelper.getAssetProperties(asset)
       });
     }
     return asset;
@@ -472,7 +476,7 @@ export default class UtilsService {
 
   public static async checkUserSitesAuthorization(tenant: Tenant, userToken: UserToken, user: User, siteIDs: string[],
       action: ServerAction, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Site[]> {
-  // Check mandatory fields
+    // Check mandatory fields
     UtilsService.assertIdIsProvided(action, user.id, MODULE_NAME, 'checkUserSitesAuthorization', userToken);
     if (Utils.isEmptyArray(siteIDs)) {
       throw new AppError({
@@ -751,7 +755,7 @@ export default class UtilsService {
         action: authAction, entity: Entity.SITE_AREA,
         module: MODULE_NAME, method: 'checkAndGetSiteAreaAuthorization',
         value: siteAreaID,
-        siteAreaID: siteAreaID,
+        ...LoggingHelper.getSiteAreaProperties(siteArea)
       });
     }
     return siteArea;
