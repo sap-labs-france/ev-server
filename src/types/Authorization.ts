@@ -138,6 +138,7 @@ export enum Action {
   CHECK_CONNECTION = 'CheckConnection',
   CLEAR_BILLING_TEST_DATA = 'ClearBillingTestData',
   RETRIEVE_CONSUMPTION = 'RetrieveConsumption',
+  READ_CONSUMPTION = 'ReadConsumption',
   CREATE_CONSUMPTION = 'CreateConsumption',
   PING = 'Ping',
   GENERATE_LOCAL_TOKEN = 'GenerateLocalToken',
@@ -194,6 +195,12 @@ export interface TagAuthorizationActions extends AuthorizationActions {
 
 export interface RegistrationTokenAuthorizationActions extends AuthorizationActions {
   canRevoke?: boolean;
+}
+
+export interface AssetAuthorizationActions extends AuthorizationActions {
+  canRetrieveConsumption?:boolean;
+  canReadConsumption?:boolean;
+  canCheckConnection?:boolean;
 }
 
 export interface SiteAreaAuthorizationActions extends AuthorizationActions {
