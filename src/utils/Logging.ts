@@ -668,9 +668,11 @@ export default class Logging {
       await Logging.logActionException(tenantID, action, exception);
     }
     // Send error
-    res.status(statusCode ? statusCode : HTTPError.GENERAL_ERROR).send({
-      'message': Utils.hideShowMessage(exception.message)
-    });
+    if (!res.headersSent) {
+      res.status(statusCode ? statusCode : HTTPError.GENERAL_ERROR).send({
+        'message': Utils.hideShowMessage(exception.message)
+      });
+    }
     next();
   }
 
