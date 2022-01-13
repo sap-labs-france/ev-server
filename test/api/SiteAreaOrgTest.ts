@@ -526,7 +526,12 @@ describe('Site Area', function() {
           testData.userService.siteAreaApi,
           testData.newSubSubSiteArea, false
         );
-        expect(response.status).to.equal(HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR);
+        expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+        const newSubSubSiteAreaResponse = testData.newSubSubSiteArea = await testData.userService.getEntityById(
+          testData.userService.siteAreaApi,
+          testData.newSubSubSiteArea, false
+        );
+        testData.newSubSubSiteArea = newSubSubSiteAreaResponse.data;
       });
 
       it('Should not be able to update site in the site area chain', async () => {
@@ -538,6 +543,11 @@ describe('Site Area', function() {
           testData.newSubSubSiteArea, false
         );
         expect(response.status).to.equal(HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR);
+        const newSubSubSiteAreaResponse = await testData.userService.getEntityById(
+          testData.userService.siteAreaApi,
+          testData.newSubSubSiteArea, false
+        );
+        testData.newSubSubSiteArea = newSubSubSiteAreaResponse.data;
       });
 
       it('Should not be able to update number of phases in site area chain', async () => {
@@ -549,6 +559,11 @@ describe('Site Area', function() {
           testData.newSubSubSiteArea, false
         );
         expect(response.status).to.equal(HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR);
+        const newSubSubSiteAreaResponse = await testData.userService.getEntityById(
+          testData.userService.siteAreaApi,
+          testData.newSubSubSiteArea, false
+        );
+        testData.newSubSubSiteArea = newSubSubSiteAreaResponse.data;
       });
 
       it('Should not be able to update voltage in site area chain', async () => {
@@ -560,6 +575,11 @@ describe('Site Area', function() {
           testData.newSubSubSiteArea, false
         );
         expect(response.status).to.equal(HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR);
+        const newSubSubSiteAreaResponse = await testData.userService.getEntityById(
+          testData.userService.siteAreaApi,
+          testData.newSubSubSiteArea, false
+        );
+        testData.newSubSubSiteArea = newSubSubSiteAreaResponse.data;
       });
 
       it('Should not be able to delete root site area, which still has children', async () => {

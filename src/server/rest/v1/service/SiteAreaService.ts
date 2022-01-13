@@ -285,6 +285,11 @@ export default class SiteAreaService {
     // Check Site auth
     await UtilsService.checkAndGetSiteAuthorization(
       req.tenant, req.user, filteredRequest.siteID, Action.UPDATE, action);
+    if (filteredRequest.parentSiteAreaID) {
+      // Check parent site area auth
+      await UtilsService.checkAndGetSiteAreaAuthorization(
+        req.tenant, req.user, filteredRequest.parentSiteAreaID, Action.UPDATE, action);
+    }
     // Create Site Area
     const newSiteArea: SiteArea = {
       ...filteredRequest,
@@ -323,6 +328,11 @@ export default class SiteAreaService {
     // Check Site auth
     await UtilsService.checkAndGetSiteAuthorization(
       req.tenant, req.user, filteredRequest.siteID, Action.READ, action);
+    if (filteredRequest.parentSiteAreaID) {
+      // Check parent site area auth
+      await UtilsService.checkAndGetSiteAreaAuthorization(
+        req.tenant, req.user, filteredRequest.parentSiteAreaID, Action.UPDATE, action);
+    }
     // Update
     siteArea.name = filteredRequest.name;
     siteArea.address = filteredRequest.address;
