@@ -681,6 +681,10 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.RETRIEVE_CONSUMPTION);
   }
 
+  public static async canReadAssetConsumption(loggedUser: UserToken): Promise<boolean> {
+    return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.READ_CONSUMPTION);
+  }
+
   public static async canCreateAssetConsumption(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.CREATE_CONSUMPTION);
   }
@@ -1005,7 +1009,7 @@ export default class Authorizations {
         badgeID: tagID,
         evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
       }
-    ).catch(() => { });
+    );
     throw new BackendError({
       ...LoggingHelper.getChargingStationProperties(chargingStation),
       action: action,

@@ -281,6 +281,15 @@ export default class ContextDefinition {
     id: 'aaaaaaaaaaaaaaaaaaaaaaa7',
     subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_FUNDING,
     componentSettings: {
+      pricing: {
+        content: {
+          type: PricingSettingsType.SIMPLE,
+          simple: {
+            price: ContextDefinition.DEFAULT_PRICE,
+            currency: 'EUR'
+          }
+        }
+      },
       refund: {
         content: {
           type: RefundSettingsType.CONCUR,

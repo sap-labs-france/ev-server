@@ -1062,6 +1062,10 @@ export default class Utils {
     return Utils.createDecimal(value).mul(roundPower).round().div(roundPower).toNumber();
   }
 
+  public static minValue(value1: number, value2: number): number {
+    return Decimal.min(value1, value2).toNumber();
+  }
+
   public static truncTo(value: number, scale: number): number {
     const truncPower = Math.pow(10, scale);
     return Utils.createDecimal(value).mul(truncPower).trunc().div(truncPower).toNumber();

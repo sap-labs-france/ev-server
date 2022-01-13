@@ -23,7 +23,7 @@ export default class CheckAndComputeSmartChargingTask extends SchedulerTask {
       const rootSiteAreas = Utils.buildSiteAreaTrees(siteAreas.result);
       // Get Site Area
       for (const siteArea of rootSiteAreas) {
-        const siteAreaLock = await LockingHelper.acquireSiteAreaSmartChargingLock(tenant.id, siteArea, 30);
+        const siteAreaLock = await LockingHelper.acquireSiteAreaSmartChargingLock(tenant.id, siteArea);
         if (siteAreaLock) {
           try {
             // Get implementation
