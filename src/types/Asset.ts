@@ -1,9 +1,10 @@
 import Consumption, { AbstractCurrentConsumption } from './Consumption';
 
+import { AssetAuthorizationActions } from './Authorization';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import SiteArea from './SiteArea';
 
-export default interface Asset extends CreatedUpdatedProps, AbstractCurrentConsumption {
+export default interface Asset extends CreatedUpdatedProps, AbstractCurrentConsumption, AssetAuthorizationActions {
   id: string;
   name: string;
   siteAreaID: string;

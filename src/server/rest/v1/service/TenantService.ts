@@ -231,6 +231,8 @@ export default class TenantService {
         module: MODULE_NAME, method: 'handleCreateTenant'
       });
     }
+    // Check Tenant
+    UtilsService.checkIfTenantValid(filteredRequest, req);
     // Get the Tenant with ID (subdomain)
     const foundTenant = await TenantStorage.getTenantBySubdomain(filteredRequest.subdomain);
     if (foundTenant) {
@@ -323,6 +325,8 @@ export default class TenantService {
         value: filteredRequest.id
       });
     }
+    // Check Tenant
+    UtilsService.checkIfTenantValid(filteredRequest, req);
     // Get
     const tenant = await TenantStorage.getTenant(filteredRequest.id);
     UtilsService.assertObjectExists(action, tenant, `Tenant ID '${filteredRequest.id}' does not exist`,
