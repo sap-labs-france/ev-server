@@ -17,7 +17,7 @@ export default class LockingHelper {
   }
 
   public static async acquireScheduledTaskLock(tenantID: string, scheduledTaskName: string): Promise<Lock | null> {
-    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.SCHEDULER_TASK, scheduledTaskName, 24 * 60 * 60);
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.SCHEDULER_TASK, scheduledTaskName, 15 * 60);
     if (!(await LockingManager.acquire(lock))) {
       return null;
     }
