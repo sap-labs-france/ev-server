@@ -468,13 +468,13 @@ export default class NotificationHandler {
           try {
             // Check notification
             const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
-              tenant, notificationSource.channel, ServerAction.VERIFICATION_EMAIL,
+              tenant, notificationSource.channel, ServerAction.VERIFY_EMAIL,
               null, user.id, { intervalMins: 10 });
             // Notified?
             if (!hasBeenNotified) {
               // Save
               await NotificationHandler.saveNotification(
-                tenant, notificationSource.channel, notificationID, ServerAction.VERIFICATION_EMAIL, { user });
+                tenant, notificationSource.channel, notificationID, ServerAction.VERIFY_EMAIL, { user });
               // Send
               void notificationSource.notificationTask.sendVerificationEmail(
                 sourceData, user, tenant, NotificationSeverity.INFO);
@@ -482,13 +482,13 @@ export default class NotificationHandler {
               await Logging.logDebug({
                 tenantID: tenant.id,
                 module: MODULE_NAME, method: 'sendVerificationEmail',
-                action: ServerAction.VERIFICATION_EMAIL,
+                action: ServerAction.VERIFY_EMAIL,
                 user: user.id,
                 message: `Notification via '${notificationSource.channel}' has already been sent`
               });
             }
           } catch (error) {
-            await Logging.logActionExceptionMessage(tenant.id, ServerAction.VERIFICATION_EMAIL, error);
+            await Logging.logActionExceptionMessage(tenant.id, ServerAction.VERIFY_EMAIL, error);
           }
         }
       }

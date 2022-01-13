@@ -5,23 +5,24 @@ import { NextFunction, Request, Response } from 'express';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import Asset from '../../../../types/Asset';
+import { AssetDataResult } from '../../../../types/DataResult';
 import AssetFactory from '../../../../integration/asset/AssetFactory';
 import { AssetInErrorType } from '../../../../types/InError';
 import AssetStorage from '../../../../storage/mongodb/AssetStorage';
 import AssetValidator from '../validator/AssetValidator';
 import AuthorizationService from './AuthorizationService';
-import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
 import Consumption from '../../../../types/Consumption';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
 import Logging from '../../../../utils/Logging';
+import LoggingHelper from '../../../../utils/LoggingHelper';
 import OCPPUtils from '../../../../server/ocpp/utils/OCPPUtils';
 import { ServerAction } from '../../../../types/Server';
 import SiteArea from '../../../../types/SiteArea';
-import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import { StatusCodes } from 'http-status-codes';
 import { TenantComponents } from '../../../../types/Tenant';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
+import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 import moment from 'moment';
@@ -33,31 +34,16 @@ export default class AssetService {
   public static async handleGetAssetConsumption(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
-      Action.LIST, Entity.ASSET, MODULE_NAME, 'handleGetAssetConsumption');
+      Action.READ_CONSUMPTION, Entity.ASSET, MODULE_NAME, 'handleGetAssetConsumption');
     // Filter
     const filteredRequest = AssetValidator.getInstance().validateAssetGetConsumptionsReq(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.AssetID, MODULE_NAME,
-      'handleGetAssetConsumption', req.user);
-    // Check auth
-    if (!await Authorizations.canReadAsset(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.READ, entity: Entity.ASSET,
-        module: MODULE_NAME, method: 'handleGetAsset',
-        value: filteredRequest.AssetID
-      });
-    }
-    // Get it
-    const asset = await AssetStorage.getAsset(req.tenant, filteredRequest.AssetID, {},
-      [ 'id', 'name' ]
-    );
-    UtilsService.assertObjectExists(action, asset, `Asset ID '${filteredRequest.AssetID}' does not exist`,
-      MODULE_NAME, 'handleGetAssetConsumption', req.user);
+    // Check and get Asset
+    const asset = await UtilsService.checkAndGetAssetAuthorization(req.tenant, req.user, filteredRequest.AssetID, Action.READ_CONSUMPTION, action, null, {}, true);
     // Check dates
     if (!filteredRequest.StartDate || !filteredRequest.EndDate) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
+        ...LoggingHelper.getAssetProperties(asset),
         message: 'Start date and end date must be provided',
         module: MODULE_NAME, method: 'handleGetAssetConsumption',
         user: req.user,
@@ -65,22 +51,13 @@ export default class AssetService {
       });
     }
     // Check dates order
-    if (filteredRequest.StartDate && filteredRequest.EndDate &&
-        moment(filteredRequest.StartDate).isAfter(moment(filteredRequest.EndDate))) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `The requested start date '${filteredRequest.StartDate.toISOString()}' is after the end date '${filteredRequest.EndDate.toISOString()}' `,
-        module: MODULE_NAME, method: 'handleGetAssetConsumption',
-        user: req.user,
-        action: action
-      });
-    }
+    AssetService.checkDateOrder(filteredRequest.StartDate, filteredRequest.EndDate, req.user, action, 'handleGetAssetConsumption');
     // Get the ConsumptionValues
     const consumptions = await ConsumptionStorage.getAssetConsumptions(req.tenant, {
       assetID: filteredRequest.AssetID,
       startDate: filteredRequest.StartDate,
       endDate: filteredRequest.EndDate
-    }, [ 'startedAt', 'instantWatts', 'instantAmps', 'limitWatts', 'limitAmps', 'endedAt', 'stateOfCharge' ]);
+    }, asset.projectFields);
     // Assign
     asset.values = consumptions;
     res.json(asset);
@@ -89,29 +66,15 @@ export default class AssetService {
 
   public static async handleCreateAssetConsumption(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
-      Action.CREATE_CONSUMPTION, Entity.ASSET, MODULE_NAME, 'handleCreateAssetConsumption');
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET, Action.CREATE_CONSUMPTION, Entity.ASSET, MODULE_NAME, 'handleCreateAssetConsumption');
     // Validate request
     const filteredRequest = AssetValidator.getInstance().validateAssetConsumptionCreateReq({ ...req.query, ...req.body });
-    UtilsService.assertIdIsProvided(action, filteredRequest.assetID, MODULE_NAME,
-      'handleCreateAssetConsumption', req.user);
-    // Check auth
-    if (!await Authorizations.canCreateAssetConsumption(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.CREATE_CONSUMPTION, entity: Entity.ASSET,
-        module: MODULE_NAME, method: 'handleCreateAssetConsumption',
-        value: filteredRequest.assetID
-      });
-    }
-    // Get Asset
-    const asset = await AssetStorage.getAsset(req.tenant, filteredRequest.assetID, { withSiteArea: true });
-    UtilsService.assertObjectExists(action, asset, `Asset ID '${filteredRequest.assetID}' does not exist`,
-      MODULE_NAME, 'handleCreateAssetConsumption', req.user);
+    // Check and get Asset
+    const asset = await UtilsService.checkAndGetAssetAuthorization(req.tenant, req.user, filteredRequest.assetID, Action.CREATE_CONSUMPTION, action, null, { withSiteArea: true });
     // Check if connection ID exists
     if (!Utils.isNullOrUndefined(asset.connectionID)) {
       throw new AppError({
+        ...LoggingHelper.getAssetProperties(asset),
         errorCode: HTTPError.GENERAL_ERROR,
         message: `The asset '${asset.name}' has a defined connection. The push API can not be used`,
         module: MODULE_NAME, method: 'handleCreateAssetConsumption',
@@ -120,21 +83,13 @@ export default class AssetService {
       });
     }
     // Check dates order
-    if (filteredRequest.startedAt && filteredRequest.endedAt &&
-        !moment(filteredRequest.endedAt).isAfter(moment(filteredRequest.startedAt))) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `The requested start date '${moment(filteredRequest.startedAt).toISOString()}' is after the end date '${moment(filteredRequest.endedAt).toISOString()}' `,
-        module: MODULE_NAME, method: 'handleCreateAssetConsumption',
-        user: req.user,
-        action: action
-      });
-    }
+    AssetService.checkDateOrder(filteredRequest.startedAt, filteredRequest.endedAt, req.user, action, 'handleCreateAssetConsumption');
     // Get latest consumption and check dates
     const lastConsumption = await ConsumptionStorage.getLastAssetConsumption(req.tenant, { assetID: filteredRequest.assetID });
     if (!Utils.isNullOrUndefined(lastConsumption)) {
       if (moment(filteredRequest.startedAt).isBefore(moment(lastConsumption.endedAt))) {
         throw new AppError({
+          ...LoggingHelper.getAssetProperties(asset),
           errorCode: HTTPError.GENERAL_ERROR,
           message: `The start date '${moment(filteredRequest.startedAt).toISOString()}' of the pushed consumption is before the end date '${moment(lastConsumption.endedAt).toISOString()}' of the latest asset consumption`,
           module: MODULE_NAME, method: 'handleCreateAssetConsumption',
@@ -185,13 +140,14 @@ export default class AssetService {
     next();
   }
 
-
   public static async handleCheckAssetConnection(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.CHECK_CONNECTION, Entity.ASSET, MODULE_NAME, 'handleCheckAssetConnection');
-    // Filter request
+    // Filter request, NOTE: ID in this request is a connection ID not an Asset ID
     const filteredRequest = AssetValidator.getInstance().validateAssetCheckConnectionReq(req.query);
+    // Check dynamic auth
+    await AuthorizationService.checkAndGetAssetsAuthorizations(req.tenant, req.user, Action.CHECK_CONNECTION);
     // Get asset connection type
     const assetImpl = await AssetFactory.getAssetImpl(req.tenant, filteredRequest.ID);
     // Asset has unknown connection type
@@ -202,15 +158,6 @@ export default class AssetService {
         module: MODULE_NAME, method: 'handleCheckAssetConnection',
         action: action,
         user: req.user
-      });
-    }
-    // Is authorized to check connection ?
-    if (!await Authorizations.canCheckAssetConnection(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.CHECK_CONNECTION, entity: Entity.ASSET,
-        module: MODULE_NAME, method: 'handleCheckAssetConnection'
       });
     }
     try {
@@ -238,48 +185,16 @@ export default class AssetService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.RETRIEVE_CONSUMPTION, Entity.ASSET, MODULE_NAME, 'handleRetrieveConsumption');
-    // Is authorized to check connection ?
-    if (!await Authorizations.canRetrieveAssetConsumption(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        entity: Entity.ASSET, action: Action.RETRIEVE_CONSUMPTION,
-        module: MODULE_NAME, method: 'handleRetrieveConsumption'
-      });
-    }
     // Filter request
     const assetID = AssetValidator.getInstance().validateAssetGetReq(req.query).ID;
-    UtilsService.assertIdIsProvided(action, assetID, MODULE_NAME, 'handleRetrieveConsumption', req.user);
-    // Get
-    const asset = await AssetStorage.getAsset(req.tenant, assetID);
-    UtilsService.assertObjectExists(action, asset, `Asset ID '${assetID}' does not exist`,
-      MODULE_NAME, 'handleRetrieveConsumption', req.user);
-    // Dynamic asset ?
-    if (!asset.dynamicAsset) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        module: MODULE_NAME, method: 'handleRetrieveConsumption',
-        action: action,
-        user: req.user,
-        message: 'This Asset is not dynamic, no consumption can be retrieved',
-        detailedMessages: { asset }
-      });
-    }
-    // Uses Push API
-    if (asset.usesPushAPI) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        module: MODULE_NAME, method: 'handleRetrieveConsumption',
-        action: action,
-        user: req.user,
-        message: 'This Asset is using the push API, no consumption can be retrieved',
-        detailedMessages: { asset }
-      });
-    }
+    // Check and get Asset
+    const asset = await UtilsService.checkAndGetAssetAuthorization(
+      req.tenant, req.user, assetID, Action.RETRIEVE_CONSUMPTION, action, null, {}, true);
     // Get asset factory
     const assetImpl = await AssetFactory.getAssetImpl(req.tenant, asset.connectionID);
     if (!assetImpl) {
       throw new AppError({
+        ...LoggingHelper.getAssetProperties(asset),
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Asset service is not configured',
         module: MODULE_NAME, method: 'handleRetrieveConsumption',
@@ -311,7 +226,13 @@ export default class AssetService {
         await AssetStorage.saveAsset(req.tenant, asset);
       }
     } else {
-      // TODO: Return a specific HTTP code to tell the user that the consumption cannot be retrieved
+      throw new AppError({
+        ...LoggingHelper.getAssetProperties(asset),
+        errorCode: HTTPError.CANNOT_RETRIEVE_CONSUMPTION,
+        message: 'Consumption cannot be retrieved',
+        user: req.user,
+        module: MODULE_NAME, method: 'handleRetrieveConsumption'
+      });
     }
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
@@ -321,19 +242,14 @@ export default class AssetService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.LIST, Entity.ASSET, MODULE_NAME, 'handleGetAssetsInError');
-    // Check auth
-    if (!await Authorizations.canListAssetsInError(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.IN_ERROR, entity: Entity.ASSET,
-        module: MODULE_NAME, method: 'handleGetAssetsInError'
-      });
-    }
     // Filter
     const filteredRequest = AssetValidator.getInstance().validateAssetsGetReq(req.query);
-    // Build error type
-    const errorType = (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : [AssetInErrorType.MISSING_SITE_AREA]);
+    // Check dynamic auth
+    const authorizationAssetsInErrorFilter = await AuthorizationService.checkAndGetAssetsAuthorizations(req.tenant, req.user, Action.IN_ERROR, filteredRequest);
+    if (!authorizationAssetsInErrorFilter.authorized) {
+      UtilsService.sendEmptyDataResult(res, next);
+      return;
+    }
     // Get the assets
     const assets = await AssetStorage.getAssetsInError(req.tenant,
       {
@@ -341,15 +257,20 @@ export default class AssetService {
         search: filteredRequest.Search,
         siteAreaIDs: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
-        errorType
+        errorType: (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : [AssetInErrorType.MISSING_SITE_AREA]),
+        ...authorizationAssetsInErrorFilter.filters
       },
-      { limit: filteredRequest.Limit,
+      {
+        limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      [ 'id', 'name', 'errorCodeDetails', 'errorCode' ]
+      authorizationAssetsInErrorFilter.projectFields
     );
+    // Add Auth flags
+    await AuthorizationService.addAssetsAuthorizations(
+      req.tenant, req.user, assets as AssetDataResult, authorizationAssetsInErrorFilter);
     res.json(assets);
     next();
   }
@@ -360,37 +281,14 @@ export default class AssetService {
       Action.DELETE, Entity.ASSET, MODULE_NAME, 'handleDeleteAsset');
     // Filter
     const filteredRequest = AssetValidator.getInstance().validateAssetGetReq(req.query);
-    // Check Mandatory fields
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleDeleteAsset', req.user);
-    // Check auth
-    if (!await Authorizations.canDeleteAsset(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.DELETE, entity: Entity.ASSET,
-        module: MODULE_NAME, method: 'handleDeleteAsset',
-        value: filteredRequest.ID
-      });
-    }
-    // Get
-    const asset = await AssetStorage.getAsset(req.tenant, filteredRequest.ID,
-      { withSiteArea: filteredRequest.WithSiteArea });
-    // Found?
-    UtilsService.assertObjectExists(action, asset, `Asset ID '${filteredRequest.ID}' does not exist`,
-      MODULE_NAME, 'handleDeleteAsset', req.user);
-    if (!asset.issuer) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `Asset '${asset.id}' not issued by the organization`,
-        module: MODULE_NAME, method: 'handleUpdateAsset',
-        user: req.user,
-        action: action
-      });
-    }
+    // Check and get Asset
+    const asset = await UtilsService.checkAndGetAssetAuthorization(req.tenant, req.user, filteredRequest.ID,
+      Action.DELETE, action, null, { withSiteArea: filteredRequest.WithSiteArea });
     // Delete
     await AssetStorage.deleteAsset(req.tenant, asset.id);
     // Log
     await Logging.logInfo({
+      ...LoggingHelper.getAssetProperties(asset),
       tenantID: req.user.tenantID,
       user: req.user,
       module: MODULE_NAME, method: 'handleDeleteAsset',
@@ -408,29 +306,15 @@ export default class AssetService {
       Action.READ, Entity.ASSET, MODULE_NAME, 'handleGetAsset');
     // Filter
     const filteredRequest = AssetValidator.getInstance().validateAssetGetReq(req.query);
-    // ID is mandatory
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetAsset', req.user);
-    // Check auth
-    if (!await Authorizations.canReadAsset(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.READ, entity: Entity.ASSET,
-        module: MODULE_NAME, method: 'handleGetAsset',
-        value: filteredRequest.ID
-      });
-    }
-    // Get it
-    const asset = await AssetStorage.getAsset(req.tenant, filteredRequest.ID,
-      { withSiteArea: filteredRequest.WithSiteArea });
-    UtilsService.assertObjectExists(action, asset, `Asset ID '${filteredRequest.ID}' does not exist`,
-      MODULE_NAME, 'handleGetAsset', req.user);
+    // Check and get Asset
+    const asset = await UtilsService.checkAndGetAssetAuthorization(req.tenant, req.user, filteredRequest.ID, Action.READ, action, null,
+      { withSiteArea: filteredRequest.WithSiteArea }, true);
     res.json(asset);
     next();
   }
 
   public static async handleGetAssetImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Filter
+    // This endpoint is not protected, so no need to check user's access
     const filteredRequest = AssetValidator.getInstance().validateAssetGetImageReq(req.query);
     // Get the tenant
     const tenant = await TenantStorage.getTenant(filteredRequest.TenantID);
@@ -458,21 +342,12 @@ export default class AssetService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.LIST, Entity.ASSET, MODULE_NAME, 'handleGetAssets');
-    // Check auth
-    if (!await Authorizations.canListAssets(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.LIST, entity: Entity.ASSET,
-        module: MODULE_NAME, method: 'handleGetAssets'
-      });
-    }
     // Filter
     const filteredRequest = AssetValidator.getInstance().validateAssetsGetReq(req.query);
-    // Get authorization filters
-    const authorizationAssetsFilters = await AuthorizationService.checkAndGetAssetsAuthorizations(
-      req.tenant, req.user, filteredRequest);
-    if (!authorizationAssetsFilters.authorized) {
+    // Check dynamic auth
+    const authorizationAssetsFilter = await AuthorizationService.checkAndGetAssetsAuthorizations(
+      req.tenant, req.user, Action.LIST, filteredRequest);
+    if (!authorizationAssetsFilter.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
@@ -486,7 +361,7 @@ export default class AssetService {
         withSiteArea: filteredRequest.WithSiteArea,
         withNoSiteArea: filteredRequest.WithNoSiteArea,
         dynamicOnly: filteredRequest.DynamicOnly,
-        ...authorizationAssetsFilters.filters
+        ...authorizationAssetsFilter.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -494,8 +369,11 @@ export default class AssetService {
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      authorizationAssetsFilters.projectFields
+      authorizationAssetsFilter.projectFields
     );
+    // Add Auth flags
+    await AuthorizationService.addAssetsAuthorizations(
+      req.tenant, req.user, assets as AssetDataResult, authorizationAssetsFilter);
     res.json(assets);
     next();
   }
@@ -504,8 +382,12 @@ export default class AssetService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.CREATE, Entity.ASSET, MODULE_NAME, 'handleCreateAsset');
-    // Check auth
-    if (!await Authorizations.canCreateAsset(req.user)) {
+    // Check request is valid
+    const filteredAssetRequest = AssetValidator.getInstance().validateAssetCreateReq(req.body);
+    UtilsService.checkIfAssetValid(filteredAssetRequest, req);
+    // Check authorizations for current action attempt
+    const authorizationFilter = await AuthorizationService.checkAndGetAssetAuthorizations(req.tenant, req.user, Action.CREATE, {}, filteredAssetRequest);
+    if (!authorizationFilter.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -513,33 +395,17 @@ export default class AssetService {
         module: MODULE_NAME, method: 'handleCreateAsset'
       });
     }
-    // Filter
-    const filteredRequest = AssetValidator.getInstance().validateAssetCreateReq(req.body);
-    // Check Asset
-    UtilsService.checkIfAssetValid(filteredRequest, req);
-    // Check Site Area
+    // Check Site Area authorization
     let siteArea: SiteArea = null;
-    if (filteredRequest.siteAreaID) {
-      siteArea = await SiteAreaStorage.getSiteArea(req.tenant, filteredRequest.siteAreaID);
-      UtilsService.assertObjectExists(action, siteArea, `Site Area ID '${filteredRequest.siteAreaID}' does not exist`,
-        MODULE_NAME, 'handleCreateAsset', req.user);
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredAssetRequest.siteAreaID) {
+      siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
+        req.tenant, req.user, filteredAssetRequest.siteAreaID, Action.UPDATE, action, filteredAssetRequest, null, false);
     }
     // Create asset
     const newAsset: Asset = {
-      name: filteredRequest.name,
-      siteAreaID: filteredRequest.siteAreaID,
+      ...filteredAssetRequest,
       siteID: siteArea ? siteArea.siteID : null,
       issuer: true,
-      assetType: filteredRequest.assetType,
-      excludeFromSmartCharging: filteredRequest.excludeFromSmartCharging,
-      fluctuationPercent: filteredRequest.fluctuationPercent,
-      staticValueWatt: filteredRequest.staticValueWatt,
-      coordinates: filteredRequest.coordinates,
-      image: filteredRequest.image,
-      dynamicAsset: filteredRequest.dynamicAsset,
-      usesPushAPI: filteredRequest.usesPushAPI,
-      connectionID: filteredRequest.connectionID,
-      meterID: filteredRequest.meterID,
       createdBy: { id: req.user.id },
       createdOn: new Date()
     } as Asset;
@@ -548,6 +414,7 @@ export default class AssetService {
     // Log
     await Logging.logInfo({
       tenantID: req.user.tenantID,
+      ...LoggingHelper.getAssetProperties(newAsset),
       user: req.user,
       module: MODULE_NAME, method: 'handleCreateAsset',
       message: `Asset '${newAsset.id}' has been created successfully`,
@@ -564,42 +431,19 @@ export default class AssetService {
       Action.UPDATE, Entity.ASSET, MODULE_NAME, 'handleUpdateAsset');
     // Filter
     const filteredRequest = AssetValidator.getInstance().validateAssetUpdateReq(req.body);
-    // Check auth
-    if (!await Authorizations.canUpdateAsset(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        entity: Entity.ASSET, action: Action.UPDATE,
-        module: MODULE_NAME, method: 'handleUpdateAsset',
-        value: filteredRequest.id
-      });
-    }
-    // Check Site Area
-    let siteArea: SiteArea = null;
-    if (filteredRequest.siteAreaID) {
-      siteArea = await SiteAreaStorage.getSiteArea(req.tenant, filteredRequest.siteAreaID);
-      UtilsService.assertObjectExists(action, siteArea, `Site Area ID '${filteredRequest.siteAreaID}' does not exist`,
-        MODULE_NAME, 'handleUpdateAsset', req.user);
-    }
-    // Check email
-    const asset = await AssetStorage.getAsset(req.tenant, filteredRequest.id);
-    UtilsService.assertObjectExists(action, asset, `Site Area ID '${filteredRequest.id}' does not exist`,
-      MODULE_NAME, 'handleUpdateAsset', req.user);
-    if (!asset.issuer) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `Asset '${asset.id}' not issued by the organization`,
-        module: MODULE_NAME, method: 'handleUpdateAsset',
-        user: req.user,
-        action: action
-      });
-    }
-    // Check Mandatory fields
     UtilsService.checkIfAssetValid(filteredRequest, req);
-    // Update
+    // Check Site Area authorization
+    let siteArea: SiteArea = null;
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredRequest.siteAreaID) {
+      siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
+        req.tenant, req.user, filteredRequest.siteAreaID, Action.UPDATE, action, filteredRequest, null, false);
+    }
+    // Check and get asset
+    const asset = await UtilsService.checkAndGetAssetAuthorization(req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest);
+    // Update Asset values and persist
     asset.name = filteredRequest.name;
     asset.siteAreaID = filteredRequest.siteAreaID;
-    asset.siteID = siteArea ? siteArea.siteID : null,
+    asset.siteID = siteArea ? siteArea.siteID : null;
     asset.assetType = filteredRequest.assetType;
     asset.excludeFromSmartCharging = filteredRequest.excludeFromSmartCharging;
     asset.variationThresholdPercent = filteredRequest.variationThresholdPercent;
@@ -613,10 +457,10 @@ export default class AssetService {
     asset.meterID = filteredRequest.meterID;
     asset.lastChangedBy = { 'id': req.user.id };
     asset.lastChangedOn = new Date();
-    // Update Asset
     await AssetStorage.saveAsset(req.tenant, asset);
     // Log
     await Logging.logInfo({
+      ...LoggingHelper.getAssetProperties(asset),
       tenantID: req.user.tenantID,
       user: req.user,
       module: MODULE_NAME, method: 'handleUpdateAsset',
@@ -626,5 +470,19 @@ export default class AssetService {
     });
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
+  }
+
+  private static checkDateOrder(startSate: Date, endDate: Date, user: UserToken, action: ServerAction, methodName: string): void {
+    // Check dates order
+    if (startSate && endDate &&
+      !moment(endDate).isAfter(moment(startSate))) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `The requested start date '${moment(startSate).toISOString()}' is after the end date '${moment(endDate).toISOString()}' `,
+        module: MODULE_NAME, method: methodName,
+        user: user,
+        action: action
+      });
+    }
   }
 }
