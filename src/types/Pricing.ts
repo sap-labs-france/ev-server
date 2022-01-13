@@ -123,9 +123,12 @@ export interface PricedConsumptionData {
   chargingTime?: PricedDimensionData;
 }
 
+// Very important - preserve maximal precision - Decimal type is persisted as an object in the DB
+export type PricingAmount = Decimal.Value;
+
 export interface PricedDimensionData {
   unitPrice?: number;
-  amountAsDecimal: number | Decimal // Very important - preserve maximal precision
+  amountAsDecimal: PricingAmount
   amount: number;
   roundedAmount: number;
   quantity: number;

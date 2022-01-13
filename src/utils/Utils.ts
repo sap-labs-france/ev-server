@@ -546,14 +546,19 @@ export default class Utils {
     return Utils.convertToFloat((Utils.createDecimal(wattHours).div(1000)));
   }
 
-  public static createDecimal(value: number | Decimal): Decimal {
+  public static createDecimal(value: Decimal.Value): Decimal {
     if (Utils.isNullOrUndefined(value)) {
       value = 0;
     }
     if (value instanceof Decimal) {
       return value;
     }
-    return new Decimal(value);
+    // --------------------------------------------------------------------------------------------
+    // Decimals are serialized as object in the DB
+    // The Decimal constructor is able to deserialized these Decimal representations.
+    // However the type declaration does not expose this constructor - so we need to explicit cast
+    // --------------------------------------------------------------------------------------------
+    return new Decimal(value as Decimal.Value);
   }
 
   public static getChargePointFromID(chargingStation: ChargingStation, chargePointID: number): ChargePoint {
@@ -1068,7 +1073,7 @@ export default class Utils {
     return Decimal.min(value1, value2).toNumber();
   }
 
-  public static truncTo(value: number | Decimal, scale: number): number {
+  public static truncTo(value: Decimal.Value, scale: number): number {
     const truncPower = Math.pow(10, scale);
     return Utils.createDecimal(value).mul(truncPower).trunc().div(truncPower).toNumber();
   }
