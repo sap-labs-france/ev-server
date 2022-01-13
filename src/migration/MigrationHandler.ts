@@ -80,7 +80,7 @@ export default class MigrationHandler {
     // Process async tasks one by one
     if (!processAsyncTasksOnly) {
       setTimeout(() => {
-        MigrationHandler.migrate(true).catch(() => { });
+        MigrationHandler.migrate(true);
       }, 5000);
     }
   }

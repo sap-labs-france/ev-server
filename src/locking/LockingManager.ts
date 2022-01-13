@@ -1,6 +1,7 @@
 import Lock, { LockEntity, LockType } from '../types/Locking';
 
 import BackendError from '../exception/BackendError';
+import Constants from '../utils/Constants';
 import LockingStorage from '../storage/mongodb/LockingStorage';
 import Logging from '../utils/Logging';
 import { ServerAction } from '../types/Server';
@@ -137,9 +138,8 @@ export default class LockingManager {
           return;
         } catch {
           // Wait before trying to get the next lock
-          const lockWaitTimeMillis = 250 + Math.trunc(Math.random() * 750);
-          Utils.isDevelopmentEnv() && Logging.logConsoleWarning(`>> Lock failed, Wait for ${lockWaitTimeMillis}ms, lock '${lock.tenantID}~${lock.entity}~${lock.key}`);
-          await Utils.sleep(lockWaitTimeMillis);
+          Utils.isDevelopmentEnv() && Logging.logConsoleWarning(`>> Lock failed, Wait for ${Constants.LOCK_WAIT_MILLIS}ms, lock '${lock.tenantID}~${lock.entity}~${lock.key}`);
+          await Utils.sleep(Constants.LOCK_WAIT_MILLIS);
         }
       } while (Date.now() < timeoutDateMs);
       throw Error(`Lock acquisition timeout ${timeoutSecs} secs reached`);

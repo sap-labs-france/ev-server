@@ -1,3 +1,5 @@
+import SchedulerConfiguration, { SchedulerTaskConfiguration } from '../types/configuration/SchedulerConfiguration';
+
 import AssetGetConsumptionTask from './tasks/AssetGetConsumptionTask';
 import AsyncTaskCheckTask from './tasks/AsyncTaskCheckTask';
 import BillingPeriodicOperationTask from './tasks/BillingPeriodicOperationTask';
@@ -22,14 +24,12 @@ import OCPIPushCdrsTask from './tasks/ocpi/OCPIPushCdrsTask';
 import OCPIPushEVSEStatusesTask from './tasks/ocpi/OCPIPushEVSEStatusesTask';
 import OICPPushEvseDataTask from './tasks/oicp/OICPPushEvseDataTask';
 import OICPPushEvseStatusTask from './tasks/oicp/OICPPushEvseStatusTask';
-import SchedulerConfiguration from '../types/configuration/SchedulerConfiguration';
 import SchedulerTask from './SchedulerTask';
 import { ServerAction } from '../types/Server';
 import SynchronizeBillingInvoicesTask from './tasks/SynchronizeBillingInvoicesTask';
 import SynchronizeBillingUsersTask from './tasks/SynchronizeBillingUsersTask';
 import SynchronizeCarsTask from './tasks/SynchronizeCarsTask';
 import SynchronizeRefundTransactionsTask from './tasks/SynchronizeRefundTransactionsTask';
-import Utils from '../utils/Utils';
 import cron from 'node-cron';
 
 const MODULE_NAME = 'SchedulerManager';
@@ -151,15 +151,7 @@ export default class SchedulerManager {
           });
       }
       if (schedulerTask) {
-        // Handle number of instances
-        let numberOfInstance = 1;
-        if (Utils.objectHasProperty(task, 'numberOfInstance')) {
-          numberOfInstance = task.numberOfInstance;
-        }
-        // Register
-        for (let i = 0; i < numberOfInstance; i++) {
-          cron.schedule(task.periodicity, async (): Promise<void> => await schedulerTask.run(task.name, task.config));
-        }
+        cron.schedule(task.periodicity, () => SchedulerManager.runTask(schedulerTask, task));
         await Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT,
           action: ServerAction.SCHEDULER,
@@ -168,5 +160,14 @@ export default class SchedulerManager {
         });
       }
     }
+  }
+
+  private static runTask(task: SchedulerTask, taskConfiguration: SchedulerTaskConfiguration): void {
+    // Set default config
+    if (!taskConfiguration.config) {
+      taskConfiguration.config = {};
+    }
+    // Do not wait for the task result
+    void task.run(taskConfiguration.name, taskConfiguration.config);
   }
 }
