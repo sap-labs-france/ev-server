@@ -1,6 +1,7 @@
 import { AuthorizationActions } from './Authorization';
 import { ConnectorType } from './ChargingStation';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
+import Decimal from 'decimal.js';
 import Utils from '../utils/Utils';
 
 export enum PricingEntity {
@@ -122,8 +123,12 @@ export interface PricedConsumptionData {
   chargingTime?: PricedDimensionData;
 }
 
+// Very important - preserve maximal precision - Decimal type is persisted as an object in the DB
+export type PricingAmount = Decimal.Value;
+
 export interface PricedDimensionData {
   unitPrice?: number;
+  amountAsDecimal: PricingAmount
   amount: number;
   roundedAmount: number;
   quantity: number;
