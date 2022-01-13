@@ -824,15 +824,6 @@ export default class AuthorizationService {
           if (dynamicFilter.isNegateFilter()) {
             authorizationFilters.authorized = !authorizationFilters.authorized;
           }
-          if (!authorizationFilters.authorized) {
-            await Logging.logError({
-              tenantID: tenant.id,
-              user: userToken,
-              module: MODULE_NAME, method: 'processDynamicFilters',
-              message: `Dynamic Authorization '${filterToProcess}' did not allow to perform '${authAction}' on '${authEntity}'`,
-              action: ServerAction.AUTHORIZATIONS
-            });
-          }
           authorized = authorized || authorizationFilters.authorized;
         }
         // Assign
@@ -913,13 +904,6 @@ export default class AuthorizationService {
           module: MODULE_NAME, method: 'canPerformAuthorizationAction',
         });
       }
-      await Logging.logError({
-        tenantID: tenant.id,
-        user: userToken,
-        module: MODULE_NAME, method: 'canPerformAuthorizationAction',
-        action: ServerAction.AUTHORIZATIONS,
-        message: `Role '${userToken.rolesACL.join(', ')}' is not authorized to perform '${authAction}' on '${authEntity}'`,
-      });
       return false;
     }
     // Process Dynamic Filters
