@@ -6,18 +6,17 @@ import global from '../../../types/GlobalType';
 
 export default class ConfigurationValidatorStorage extends SchemaValidator {
   private static instance: ConfigurationValidatorStorage | null = null;
-  private configuration: Schema;
+  private configuration: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/configuration/configuration.json`, 'utf8'));
 
   private constructor() {
     super('ConfigurationValidatorStorage', {
-      strict: false, // When 'true', it fails with anyOf required fields: https://github.com/ajv-validator/ajv/issues/1571
+      strict: true,
       allErrors: true,
-      removeAdditional: true, // 'all' fails with anyOf documents: Manually added 'additionalProperties: false' in schema due filtering of data in anyOf/oneOf/allOf array (it's standard): https://github.com/ajv-validator/ajv/issues/1784
+      removeAdditional: 'all',
       allowUnionTypes: true,
       coerceTypes: true,
       verbose: true,
     });
-    this.configuration = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/configuration/configuration.json`, 'utf8'));
   }
 
   public static getInstance(): ConfigurationValidatorStorage {

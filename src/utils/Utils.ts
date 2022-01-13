@@ -1061,6 +1061,10 @@ export default class Utils {
     return Utils.createDecimal(value).mul(roundPower).round().div(roundPower).toNumber();
   }
 
+  public static minValue(value1: number, value2: number): number {
+    return Decimal.min(value1, value2).toNumber();
+  }
+
   public static truncTo(value: number, scale: number): number {
     const truncPower = Math.pow(10, scale);
     return Utils.createDecimal(value).mul(truncPower).trunc().div(truncPower).toNumber();
@@ -1122,7 +1126,7 @@ export default class Utils {
   }
 
   public static async hashPasswordBcrypt(password: string): Promise<string> {
-    return await new Promise((fulfill, reject) => {
+    return new Promise((fulfill, reject) => {
       // Generate a salt with 15 rounds
       bcrypt.genSalt(10, (error, salt) => {
         // Hash
@@ -1139,7 +1143,7 @@ export default class Utils {
   }
 
   public static async checkPasswordBCrypt(password: string, hash: string): Promise<boolean> {
-    return await new Promise((fulfill, reject) => {
+    return new Promise((fulfill, reject) => {
       // Compare
       bcrypt.compare(password, hash, (err, match) => {
         // Error?

@@ -302,7 +302,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       { resource: Entity.PRICING, action: [Action.READ, Action.UPDATE] },
-      { resource: Entity.PRICING_DEFINITION, action: [Action.LIST],
+      {
+        resource: Entity.PRICING_DEFINITION, action: [Action.LIST],
         attributes: [
           'id', 'entityID', 'entityType', 'name', 'description', 'entityName',
           'staticRestrictions.validFrom', 'staticRestrictions.validTo', 'staticRestrictions.connectorType', 'staticRestrictions.connectorPowerkW',
@@ -314,7 +315,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'dimensions.parkingTime.active', 'dimensions.parkingTime.price', 'dimensions.parkingTime.stepSize', 'dimensions.parkingTime.pricedData',
         ]
       },
-      { resource: Entity.PRICING_DEFINITION, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE],
+      {
+        resource: Entity.PRICING_DEFINITION, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE],
         attributes: [
           'id', 'entityID', 'entityType', 'name', 'description', 'entityName',
           'staticRestrictions.validFrom', 'staticRestrictions.validTo', 'staticRestrictions.connectorType', 'staticRestrictions.connectorPowerkW',
@@ -336,15 +338,54 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.INVOICE, action: [Action.LIST] },
       { resource: Entity.INVOICE, action: [Action.DOWNLOAD, Action.READ, Action.PAY] },
       {
-        resource: Entity.ASSET, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE,
-          Action.CHECK_CONNECTION, Action.RETRIEVE_CONSUMPTION, Action.CREATE_CONSUMPTION]
+        resource: Entity.ASSET, action: [Action.CREATE, Action.READ,
+          Action.CHECK_CONNECTION, Action.CREATE_CONSUMPTION]
       },
       {
-        resource: Entity.ASSET, action: [Action.LIST, Action.IN_ERROR],
+        resource: Entity.ASSET, action: Action.READ_CONSUMPTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+        attributes: [
+          'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteID', 'assetType', 'coordinates',
+          'dynamicAsset', 'usesPushAPI', 'connectionID', 'meterID', 'currentInstantWatts', 'currentStateOfCharge', 'issuer',
+          'startedAt', 'instantWatts', 'instantAmps', 'limitWatts', 'limitAmps', 'endedAt', 'stateOfCharge'
+        ]
+      },
+      {
+        resource: Entity.ASSET, action: Action.RETRIEVE_CONSUMPTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        }
+      },
+      {
+        resource: Entity.ASSET, action: [Action.UPDATE, Action.DELETE],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['LocalIssuer']
+          }
+        }
+      },
+      {
+        resource: Entity.ASSET, action: Action.LIST,
         attributes: [
           'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteID', 'assetType', 'coordinates',
           'dynamicAsset', 'usesPushAPI', 'connectionID', 'meterID', 'currentInstantWatts', 'currentStateOfCharge', 'issuer'
         ]
+      },
+      {
+        resource: Entity.ASSET, action: Action.IN_ERROR,
+        attributes: ['id', 'name', 'errorCodeDetails', 'errorCode']
       },
       { resource: Entity.SETTING, action: Action.LIST },
       { resource: Entity.SETTING, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE] },
@@ -783,6 +824,21 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       { resource: Entity.ASSET, action: Action.READ },
+      {
+        resource: Entity.ASSET, action: Action.READ_CONSUMPTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+        attributes: [
+          'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteID', 'assetType', 'coordinates',
+          'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts', 'currentStateOfCharge',
+          'startedAt', 'instantWatts', 'instantAmps', 'limitWatts', 'limitAmps', 'endedAt', 'stateOfCharge'
+        ]
+      },
       { resource: Entity.SETTING, action: Action.READ },
       {
         resource: Entity.CAR_CATALOG, action: Action.LIST,
@@ -1040,7 +1096,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
         attributes: [
           'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteID', 'assetType', 'coordinates',
-          'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts', 'currentStateOfCharge'
+          'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts', 'currentStateOfCharge', 'excludeFromSmartCharging',
+          'staticValueWatt', 'variationThresholdPercent', 'fluctuationPercent'
         ],
       },
       {
@@ -1054,7 +1111,23 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
         attributes: [
           'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteID', 'assetType', 'coordinates',
-          'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts', 'currentStateOfCharge'
+          'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts', 'currentStateOfCharge', 'excludeFromSmartCharging',
+          'staticValueWatt', 'variationThresholdPercent', 'fluctuationPercent'
+        ],
+      },
+      {
+        resource: Entity.ASSET, action: Action.READ_CONSUMPTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['AssignedSites', 'LocalIssuer']
+          }
+        },
+        attributes: [
+          'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteID', 'assetType', 'coordinates',
+          'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts', 'currentStateOfCharge',
+          'startedAt', 'instantWatts', 'instantAmps', 'limitWatts', 'limitAmps', 'endedAt', 'stateOfCharge'
         ],
       },
       {
@@ -1074,7 +1147,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'user.id', 'user.name', 'user.firstName', 'userID'
         ],
       },
-      { resource: Entity.CAR, action: Action.CREATE,
+      {
+        resource: Entity.CAR, action: Action.CREATE,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
@@ -1290,7 +1364,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         }
       },
-      { resource: Entity.PRICING_DEFINITION, action: Action.LIST,
+      {
+        resource: Entity.PRICING_DEFINITION, action: Action.LIST,
         attributes: ['id', 'entityID', 'entityType', 'name', 'description', 'entityName',
           'staticRestrictions.validFrom', 'staticRestrictions.validTo', 'staticRestrictions.connectorType', 'staticRestrictions.connectorPowerkW',
           'restrictions.daysOfWeek', 'restrictions.timeFrom', 'restrictions.timeTo',
@@ -1308,7 +1383,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         },
       },
-      { resource: Entity.PRICING_DEFINITION, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE],
+      {
+        resource: Entity.PRICING_DEFINITION, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE],
         attributes: ['id', 'entityID', 'entityType', 'name', 'description', 'entityName',
           'staticRestrictions.validFrom', 'staticRestrictions.validTo', 'staticRestrictions.connectorType', 'staticRestrictions.connectorPowerkW',
           'restrictions.daysOfWeek', 'restrictions.timeFrom', 'restrictions.timeTo',

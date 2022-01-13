@@ -7,7 +7,7 @@ import StripeBillingIntegration from '../../integration/billing/stripe/StripeBil
 import Tenant from '../../types/Tenant';
 import TenantMigrationTask from '../TenantMigrationTask';
 import Utils from '../../utils/Utils';
-// import moment from 'moment';
+import moment from 'moment';
 
 const MODULE_NAME = 'RepairInvoiceInconsistencies';
 
@@ -37,7 +37,7 @@ export default class RepairInvoiceInconsistencies extends TenantMigrationTask {
   }
 
   getVersion(): string {
-    return '1.0';
+    return '1.1';
   }
 
   getName(): string {
@@ -53,6 +53,7 @@ export default class RepairInvoiceInconsistencies extends TenantMigrationTask {
     const limit = Constants.BATCH_PAGE_SIZE;
     const filter = {
       // startDateTime: moment().date(0).date(1).startOf('day').toDate() // 1st day of the previous month 00:00:00 (AM)
+      startDateTime: moment('01/12/2021', 'DD/MM/YYYY').toDate()
     };
     const sort = { createdOn: 1 };
     let skip = 0;

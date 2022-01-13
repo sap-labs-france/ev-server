@@ -492,7 +492,7 @@ export default class BillingService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.BILLING_SETUP_PAYMENT_METHOD, Entity.BILLING, MODULE_NAME, 'handleSetupSetupPaymentMethod');
     // Filter
-    const filteredRequest = BillingSecurity.filterSetupPaymentMethodRequest(req.body);
+    const filteredRequest = BillingValidator.getInstance().validateBillingSetupUserPaymentMethodReq(req.body);
     if (!await Authorizations.canCreatePaymentMethod(req.user, filteredRequest.userID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -593,7 +593,7 @@ export default class BillingService {
 
   public static async handleBillingGetPaymentMethods(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = BillingSecurity.filterPaymentMethodsRequest(req.query);
+    const filteredRequest = BillingValidator.getInstance().validateBillingGetUserPaymentMethodsReq(req.query);
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.BILLING_PAYMENT_METHODS, Entity.BILLING, MODULE_NAME, 'handleBillingGetPaymentMethods');
@@ -639,7 +639,7 @@ export default class BillingService {
 
   public static async handleBillingDeletePaymentMethod(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = BillingSecurity.filterDeletePaymentMethodRequest(req.body);
+    const filteredRequest = BillingValidator.getInstance().validateBillingDeleteUserPaymentMethodReq(req.body);
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.BILLING_PAYMENT_METHODS, Entity.BILLING, MODULE_NAME, 'handleBillingDeletePaymentMethod');

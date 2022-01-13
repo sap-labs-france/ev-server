@@ -17,7 +17,7 @@ export default class LockingHelper {
   }
 
   public static async acquireScheduledTaskLock(tenantID: string, scheduledTaskName: string): Promise<Lock | null> {
-    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.SCHEDULER_TASK, scheduledTaskName, 24 * 60 * 60);
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.SCHEDULER_TASK, scheduledTaskName, 15 * 60);
     if (!(await LockingManager.acquire(lock))) {
       return null;
     }
@@ -25,16 +25,16 @@ export default class LockingHelper {
   }
 
   public static async acquireAsyncTaskManagerLock(tenantID: string): Promise<Lock | null> {
-    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.ASYNC_TASK_MANAGER, 'async-task-manager', 24 * 60 * 60);
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.ASYNC_TASK_MANAGER, 'async-task-manager', 15 * 60);
     if (!(await LockingManager.acquire(lock))) {
       return null;
     }
     return lock;
   }
 
-  public static async acquireSiteAreaSmartChargingLock(tenantID: string, siteArea: SiteArea, timeoutSecs: number): Promise<Lock | null> {
-    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.SITE_AREA, `${siteArea.id}-smart-charging`, 180);
-    if (!(await LockingManager.acquire(lock, timeoutSecs))) {
+  public static async acquireSiteAreaSmartChargingLock(tenantID: string, siteArea: SiteArea): Promise<Lock | null> {
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.SITE_AREA, `${siteArea.id}-smart-charging`, 3 * 60);
+    if (!(await LockingManager.acquire(lock, Constants.SMART_CHARGING_LOCK_SECS))) {
       return null;
     }
     return lock;
