@@ -375,6 +375,24 @@
         },
         "databaseURL": {
           "type": "string"
+        },
+        "tenants": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "tenantID": {
+                "type": "string"
+              },
+              "configuration": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "tenantID",
+              "configuration"
+            ]
+          }
         }
       },
       "required": [

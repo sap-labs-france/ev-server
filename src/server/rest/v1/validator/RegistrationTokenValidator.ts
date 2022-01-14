@@ -8,18 +8,14 @@ import global from '../../../../types/GlobalType';
 
 export default class RegistrationTokenValidator extends SchemaValidator {
   private static instance: RegistrationTokenValidator | null = null;
-  private registrationTokenCreate: Schema;
-  private registrationTokenGetByID: Schema;
-  private registrationTokensGet: Schema;
-  private registrationTokenUpdate: Schema;
+  private registrationTokenCreate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/registration-token/registration-token-create.json`, 'utf8'));
+  private registrationTokenGetByID: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/registration-token/registration-token-by-id.json`, 'utf8'));
+  private registrationTokensGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/registration-token/registration-tokens-get.json`, 'utf8'));
+  private registrationTokenUpdate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/registration-token/registration-token-update.json`, 'utf8'));
 
 
   private constructor() {
     super('RegistrationTokenValidator');
-    this.registrationTokenCreate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/registration-token/registration-token-create.json`, 'utf8'));
-    this.registrationTokenGetByID = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/registration-token/registration-token-by-id.json`, 'utf8'));
-    this.registrationTokensGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/registration-token/registration-tokens-get.json`, 'utf8'));
-    this.registrationTokenUpdate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/registration-token/registration-token-update.json`, 'utf8'));
   }
 
   public static getInstance(): RegistrationTokenValidator {

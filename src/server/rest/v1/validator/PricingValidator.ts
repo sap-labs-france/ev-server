@@ -7,17 +7,13 @@ import global from '../../../../types/GlobalType';
 
 export default class PricingValidator extends SchemaValidator {
   private static instance: PricingValidator|null = null;
-  private pricingDefinitionGet: Schema;
-  private pricingDefinitionsGet: Schema;
-  private pricingDefinitionCreate: Schema;
-  private pricingDefinitionUpdate: Schema;
+  private pricingDefinitionGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/pricing/pricing-definition-get.json`, 'utf8'));
+  private pricingDefinitionsGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/pricing/pricing-definitions-get.json`, 'utf8'));
+  private pricingDefinitionCreate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/pricing/pricing-definition-create.json`, 'utf8'));
+  private pricingDefinitionUpdate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/pricing/pricing-definition-update.json`, 'utf8'));
 
   private constructor() {
     super('PricingValidator');
-    this.pricingDefinitionGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/pricing/pricing-definition-get.json`, 'utf8'));
-    this.pricingDefinitionsGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/pricing/pricing-definitions-get.json`, 'utf8'));
-    this.pricingDefinitionCreate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/pricing/pricing-definition-create.json`, 'utf8'));
-    this.pricingDefinitionUpdate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/pricing/pricing-definition-update.json`, 'utf8'));
   }
 
   public static getInstance(): PricingValidator {
