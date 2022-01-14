@@ -255,45 +255,23 @@ export default class OCPPUtils {
       switch (action) {
         // Start Transaction
         case TransactionAction.START:
-          // Build first Dummy consumption for pricing the Start Transaction
-          if (!consumption) {
-            consumption = await OCPPUtils.createConsumptionFromMeterValue(
-              tenant, chargingStation, transaction,
-              { timestamp: transaction.timestamp, value: transaction.meterStart },
-              {
-                id: Utils.getRandomIntSafe().toString(),
-                chargeBoxID: transaction.chargeBoxID,
-                siteID: transaction.siteID,
-                siteAreaID: transaction.siteAreaID,
-                companyID: transaction.companyID,
-                connectorId: transaction.connectorId,
-                transactionId: transaction.id,
-                timestamp: transaction.timestamp,
-                value: transaction.meterStart,
-                attribute: Constants.OCPP_ENERGY_ACTIVE_IMPORT_REGISTER_ATTRIBUTE
-              }
-            );
-          }
-          // Set
           pricedConsumption = await pricingImpl.startSession(transaction, consumption, chargingStation);
           if (pricedConsumption) {
+            OCPPUtils.updateCumulatedAmounts(transaction, consumption, pricedConsumption);
             // Set the initial pricing
             transaction.price = pricedConsumption.amount;
             transaction.roundedPrice = pricedConsumption.roundedAmount;
             transaction.priceUnit = pricedConsumption.currencyCode;
             transaction.pricingSource = pricedConsumption.pricingSource;
-            transaction.currentCumulatedPrice = pricedConsumption.amount;
-            transaction.currentCumulatedRoundedPrice = pricedConsumption.roundedAmount;
+            // Set the actual pricing model after the resolution of the context
             transaction.pricingModel = pricedConsumption.pricingModel;
           }
           break;
-        // Meter Values
         case TransactionAction.UPDATE:
           // Set
           pricedConsumption = await pricingImpl.updateSession(transaction, consumption, chargingStation);
           OCPPUtils.updateCumulatedAmounts(transaction, consumption, pricedConsumption);
           break;
-        // Stop, End Transaction
         case TransactionAction.STOP:
           // Set
           pricedConsumption = await pricingImpl.stopSession(transaction, consumption, chargingStation);
@@ -830,6 +808,23 @@ export default class OCPPUtils {
     // Sort consumptions by date
     consumptions.sort((a,b) => a.startedAt.getTime() - b.startedAt.getTime());
     return consumptions;
+  }
+
+  public static async createFirstConsumption(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction): Promise<Consumption> {
+    const lastConsumption: { value: number; timestamp: Date } = { timestamp: transaction.timestamp, value: transaction.meterStart };
+    const meterValue: OCPPNormalizedMeterValue = {
+      id: Utils.getRandomIntSafe().toString(),
+      chargeBoxID: transaction.chargeBoxID,
+      siteID: transaction.siteID,
+      siteAreaID: transaction.siteAreaID,
+      companyID: transaction.companyID,
+      connectorId: transaction.connectorId,
+      transactionId: transaction.id,
+      timestamp: transaction.timestamp,
+      value: transaction.meterStart,
+      attribute: Constants.OCPP_ENERGY_ACTIVE_IMPORT_REGISTER_ATTRIBUTE
+    };
+    return await OCPPUtils.createConsumptionFromMeterValue(tenant, chargingStation, transaction, lastConsumption, meterValue);
   }
 
   public static async createConsumptionFromMeterValue(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction,
