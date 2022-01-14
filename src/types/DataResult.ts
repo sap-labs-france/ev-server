@@ -1,6 +1,7 @@
 import { Car, CarCatalog } from './Car';
 import Transaction, { TransactionStats } from './Transaction';
 
+import Asset from './Asset';
 import { AuthorizationDefinitionFieldMetadata } from './Authorization';
 import Company from './Company';
 import { Log } from './Log';
@@ -23,7 +24,7 @@ export interface DataResult<T> {
   metadata?: Record<string, AuthorizationDefinitionFieldMetadata>;
 }
 
-export interface PricingDefinitionDataResult extends DataResult<PricingDefinition>{
+export interface PricingDefinitionDataResult extends DataResult<PricingDefinition> {
   canCreate: boolean;
 }
 
@@ -31,17 +32,17 @@ export interface RegistrationTokenDataResult extends DataResult<RegistrationToke
   canCreate: boolean;
 }
 
-export interface CompanyDataResult extends DataResult<Company>{
+export interface CompanyDataResult extends DataResult<Company> {
   canCreate: boolean;
 }
 
-export interface SiteDataResult extends DataResult<Site>{
+export interface SiteDataResult extends DataResult<Site> {
   canCreate: boolean;
   canAssignUsers: boolean;
   canUnassignUsers: boolean;
 }
 
-export interface LogDataResult extends DataResult<Log>{
+export interface LogDataResult extends DataResult<Log> {
   canExport: boolean;
 }
 
@@ -91,4 +92,10 @@ export interface TransactionRefundDataResult {
     totalPricePending: number;
     currency: string;
   };
+}
+
+export interface AssetDataResult extends DataResult<Asset> {
+  canCreate: boolean;
+  canListSites: boolean;
+  canListSiteAreas: boolean;
 }

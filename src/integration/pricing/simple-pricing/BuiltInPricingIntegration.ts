@@ -53,6 +53,20 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
     return pricedConsumption;
   }
 
+  public async endSession(transaction: Transaction, consumptionData: Consumption, chargingStation: ChargingStation): Promise<PricedConsumption> {
+    const pricedConsumption = await this.computePrice(transaction, consumptionData, chargingStation);
+    await Logging.logInfo({
+      tenantID: this.tenant.id,
+      module: MODULE_NAME,
+      action: ServerAction.PRICING,
+      method: 'endSession',
+      message: `Session END - Transaction: ${transaction.id} - Accumulated amount: ${pricedConsumption.cumulatedRoundedAmount} ${pricedConsumption.currencyCode}`,
+      detailedMessages: { pricedConsumption },
+      ...LoggingHelper.getTransactionProperties(transaction)
+    });
+    return pricedConsumption;
+  }
+
   private async computePrice(transaction: Transaction, consumptionData: Consumption, chargingStation: ChargingStation): Promise<PricedConsumption> {
     let pricingModel = transaction.pricingModel;
     if (!pricingModel) {

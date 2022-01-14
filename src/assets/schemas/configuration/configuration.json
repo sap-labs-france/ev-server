@@ -375,6 +375,24 @@
         },
         "databaseURL": {
           "type": "string"
+        },
+        "tenants": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "tenantID": {
+                "type": "string"
+              },
+              "configuration": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "tenantID",
+              "configuration"
+            ]
+          }
         }
       },
       "required": [
@@ -595,23 +613,43 @@
         "tasks"
       ]
     },
+    "Trace": {
+      "type": "object",
+      "properties": {
+        "traceIngressHttp": {
+          "type": "boolean"
+        },
+        "traceEgressHttp": {
+          "type": "boolean"
+        },
+        "traceOcpp": {
+          "type": "boolean"
+        },
+        "traceDatabase": {
+          "type": "boolean"
+        },
+        "traceNotification": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "traceIngressHttp",
+        "traceEgressHttp",
+        "traceOcpp",
+        "traceDatabase",
+        "traceNotification"
+      ]
+    },
     "Logging": {
       "type": "object",
       "properties": {
         "logLevel": {
           "type": "string",
           "enum": ["NONE", "D", "I", "W", "E"]
-        },
-        "trace": {
-          "type": "boolean"
-        },
-        "moduleDetails": {
-          "type": "object"
         }
       },
       "required": [
-        "logLevel",
-        "trace"
+        "logLevel"
       ]
     }
   }

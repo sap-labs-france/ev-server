@@ -456,7 +456,7 @@ export default class MongoDBStorage {
           // Delete the index
           if (!foundIndex) {
             if (Utils.isDevelopmentEnv()) {
-              const message = `Drop index '${databaseIndex.name}' in collection ${tenantCollectionName}`;
+              const message = `Drop index '${databaseIndex.name as string}' in collection ${tenantCollectionName}`;
               Utils.isDevelopmentEnv() && Logging.logConsoleDebug(message);
               await Logging.logInfo({
                 tenantID: Constants.DEFAULT_TENANT,
@@ -468,7 +468,7 @@ export default class MongoDBStorage {
             try {
               await this.database.collection(tenantCollectionName).dropIndex(databaseIndex.key);
             } catch (error) {
-              const message = `Error in dropping index '${databaseIndex.name}' in '${tenantCollectionName}': ${error.message}`;
+              const message = `Error in dropping index '${databaseIndex.name as string}' in '${tenantCollectionName}': ${error.message as string}`;
               Logging.logConsoleError(message);
               await Logging.logError({
                 tenantID: Constants.DEFAULT_TENANT,

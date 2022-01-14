@@ -795,12 +795,14 @@ export default class OCPPService {
                   detailedMessages: { statusNotification }
                 });
                 lastTransaction.stop.extraInactivitySecs = 0;
-              } else {
+              } else if (lastTransaction.stop.extraInactivitySecs > 0) {
                 // Fix the Inactivity severity
-                lastTransaction.stop.inactivityStatus = Utils.getInactivityStatusLevel(chargingStation, lastTransaction.connectorId,
-                  lastTransaction.stop.totalInactivitySecs + lastTransaction.stop.extraInactivitySecs);
+                lastTransaction.stop.inactivityStatus = Utils.getInactivityStatusLevel(chargingStation,
+                  lastTransaction.connectorId,
+                  lastTransaction.stop.totalInactivitySecs + lastTransaction.stop.extraInactivitySecs
+                );
                 // Build extra inactivity consumption
-                await OCPPUtils.buildExtraConsumptionInactivity(tenant, lastTransaction);
+                await OCPPUtils.buildAndPriceExtraConsumptionInactivity(tenant, chargingStation, lastTransaction);
                 await Logging.logInfo({
                   tenantID: tenant.id,
                   ...LoggingHelper.getChargingStationProperties(chargingStation),
@@ -810,9 +812,11 @@ export default class OCPPService {
                   message: `${Utils.buildConnectorInfo(lastTransaction.connectorId, lastTransaction.id)} Extra Inactivity of ${lastTransaction.stop.extraInactivitySecs} secs has been added`,
                   detailedMessages: { statusNotification, connector, lastTransaction }
                 });
+              } else {
+                // No extra inactivity
               }
-            // No extra inactivity
             } else {
+              // No extra inactivity - connector status is not set to FINISHING
               await Logging.logInfo({
                 tenantID: tenant.id,
                 ...LoggingHelper.getChargingStationProperties(chargingStation),
@@ -825,14 +829,16 @@ export default class OCPPService {
             }
             // Flag
             lastTransaction.stop.extraInactivityComputed = true;
+            // Billing - We now know the extra inactivity - the invoice can be generated
+            await OCPPUtils.processTransactionBilling(tenant, lastTransaction, TransactionAction.END);
           }
         }
         // OCPI: Post the CDR
-        if (lastTransaction.ocpiData?.session) {
+        if (lastTransaction.ocpiData?.session && !lastTransaction.ocpiData?.cdr) {
           await this.checkAndSendOCPITransactionCdr(tenant, lastTransaction, chargingStation, lastTransaction.tag);
         }
         // OICP: Post the CDR
-        if (lastTransaction.oicpData?.session) {
+        if (lastTransaction.oicpData?.session && !lastTransaction.oicpData?.cdr) {
           await this.checkAndSendOICPTransactionCdr(tenant, lastTransaction, chargingStation, lastTransaction.tag);
         }
         // Save
@@ -950,7 +956,7 @@ export default class OCPPService {
           evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
           evseDashboardChargingStationURL: Utils.buildEvseChargingStationURL(tenant.subdomain, chargingStation, '#inerror')
         }
-      ).catch(() => { });
+      );
     }
   }
 
@@ -1168,7 +1174,7 @@ export default class OCPPService {
           evseDashboardChargingStationURL: Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress'),
           evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
         }
-      ).catch(() => { });
+      );
     }
   }
 
@@ -1195,7 +1201,7 @@ export default class OCPPService {
           evseDashboardChargingStationURL: Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress'),
           evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
         }
-      ).catch(() => { });
+      );
     }
   }
 
@@ -1452,7 +1458,7 @@ export default class OCPPService {
           'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain),
           'evseDashboardChargingStationURL': Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress')
         }
-      ).catch(() => { });
+      );
     }
   }
 
@@ -1504,7 +1510,7 @@ export default class OCPPService {
           evseDashboardChargingStationURL: Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#history'),
           evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
         }
-      ).catch(() => { });
+      );
       // Notify Signed Data
       if (transaction.stop.signedData !== '') {
         // Send Notification (Async)
@@ -1537,7 +1543,7 @@ export default class OCPPService {
             endSignedData: transaction.stop.signedData,
             evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
           }
-        ).catch(() => { });
+        );
       }
     }
   }
@@ -1548,7 +1554,7 @@ export default class OCPPService {
       // Get Site Area
       const siteArea = await SiteAreaStorage.getSiteArea(tenant, chargingStation.siteAreaID);
       if (siteArea && siteArea.smartCharging) {
-        const siteAreaLock = await LockingHelper.acquireSiteAreaSmartChargingLock(tenant.id, siteArea, 30);
+        const siteAreaLock = await LockingHelper.acquireSiteAreaSmartChargingLock(tenant.id, siteArea);
         if (siteAreaLock) {
           try {
             const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenant);

@@ -195,16 +195,37 @@ export default class OCPPUtils {
     }
   }
 
-  public static async buildExtraConsumptionInactivity(tenant: Tenant, transaction: Transaction): Promise<boolean> {
+  public static async buildAndPriceExtraConsumptionInactivity(tenant: Tenant, chargingStation: ChargingStation, lastTransaction: Transaction): Promise<void> {
+    const lastConsumption = await OCPPUtils.buildExtraConsumptionInactivity(tenant, chargingStation, lastTransaction);
+    if (lastConsumption) {
+      // Pricing of the extra inactivity
+      if (lastConsumption?.toPrice) {
+        await OCPPUtils.processTransactionPricing(tenant, lastTransaction, chargingStation, lastConsumption, TransactionAction.END);
+      }
+      // Save the last consumption
+      await ConsumptionStorage.saveConsumption(tenant, lastConsumption);
+      // Update transaction stop
+      lastTransaction.stop.timestamp = lastConsumption.endedAt;
+      lastTransaction.stop.totalDurationSecs = moment.duration(moment(lastTransaction.stop.timestamp).diff(lastTransaction.timestamp)).asSeconds();
+      lastTransaction.stop.price = lastTransaction.currentCumulatedPrice;
+      lastTransaction.stop.roundedPrice = lastTransaction.currentCumulatedRoundedPrice;
+    }
+  }
+
+  public static async buildExtraConsumptionInactivity(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction): Promise<Consumption> {
     // Extra inactivity
-    if (transaction.stop.extraInactivitySecs > 0) {
+    const extraInactivitySecs = transaction.stop?.extraInactivitySecs || 0;
+    if (extraInactivitySecs > 0) {
       // Get the last Consumption
       const lastConsumption = await ConsumptionStorage.getLastTransactionConsumption(tenant, { transactionId: transaction.id });
       if (lastConsumption) {
         delete lastConsumption.id;
         // Create the extra consumption with inactivity
         lastConsumption.startedAt = transaction.stop.timestamp;
-        lastConsumption.endedAt = moment(transaction.stop.timestamp).add(transaction.stop.extraInactivitySecs, 's').toDate();
+        lastConsumption.endedAt = moment(transaction.stop.timestamp).add(extraInactivitySecs, 's').toDate();
+        lastConsumption.inactivitySecs = extraInactivitySecs;
+        lastConsumption.totalDurationSecs = Utils.createDecimal(lastConsumption.totalDurationSecs).add(extraInactivitySecs).toNumber();
+        lastConsumption.totalInactivitySecs = Utils.createDecimal(lastConsumption.totalInactivitySecs).add(extraInactivitySecs).toNumber();
         // Set inactivity
         lastConsumption.consumptionAmps = 0;
         lastConsumption.consumptionWh = 0;
@@ -218,17 +239,11 @@ export default class OCPPUtils {
         lastConsumption.instantWattsL1 = 0;
         lastConsumption.instantWattsL2 = 0;
         lastConsumption.instantWattsL3 = 0;
-        // Save
-        await ConsumptionStorage.saveConsumption(tenant, lastConsumption);
-        // Update the Stop transaction data
-        transaction.stop.timestamp = lastConsumption.endedAt;
-        transaction.stop.totalDurationSecs = Utils.createDecimal(
-          Math.floor((transaction.stop.timestamp.getTime() - transaction.timestamp.getTime()))).div(1000).toNumber();
-        transaction.stop.extraInactivityComputed = true;
-        return true;
+        lastConsumption.toPrice = true;
+        return lastConsumption;
       }
     }
-    return false;
+    return null;
   }
 
   public static async processTransactionPricing(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation,
@@ -276,33 +291,34 @@ export default class OCPPUtils {
         case TransactionAction.UPDATE:
           // Set
           pricedConsumption = await pricingImpl.updateSession(transaction, consumption, chargingStation);
-          if (pricedConsumption) {
-            // Update consumption
-            consumption.amount = pricedConsumption.amount;
-            consumption.roundedAmount = pricedConsumption.roundedAmount;
-            consumption.currencyCode = pricedConsumption.currencyCode;
-            consumption.pricingSource = pricedConsumption.pricingSource;
-            consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
-            transaction.currentCumulatedPrice = consumption.cumulatedAmount;
-            transaction.currentCumulatedRoundedPrice = pricedConsumption.cumulatedRoundedAmount;
-          }
+          OCPPUtils.updateCumulatedAmounts(transaction, consumption, pricedConsumption);
           break;
-        // Stop Transaction
+        // Stop, End Transaction
         case TransactionAction.STOP:
           // Set
           pricedConsumption = await pricingImpl.stopSession(transaction, consumption, chargingStation);
-          if (pricedConsumption) {
-            // Update consumption
-            consumption.amount = pricedConsumption.amount;
-            consumption.roundedAmount = pricedConsumption.roundedAmount;
-            consumption.currencyCode = pricedConsumption.currencyCode;
-            consumption.pricingSource = pricedConsumption.pricingSource;
-            consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
-            transaction.currentCumulatedPrice = consumption.cumulatedAmount;
-            transaction.currentCumulatedRoundedPrice = pricedConsumption.cumulatedRoundedAmount;
-          }
+          OCPPUtils.updateCumulatedAmounts(transaction, consumption, pricedConsumption);
+          break;
+        case TransactionAction.END:
+          // Set
+          pricedConsumption = await pricingImpl.endSession(transaction, consumption, chargingStation);
+          OCPPUtils.updateCumulatedAmounts(transaction, consumption, pricedConsumption);
           break;
       }
+    }
+  }
+
+  public static updateCumulatedAmounts(transaction: Transaction, consumption: Consumption, pricedConsumption: PricedConsumption): void {
+    if (pricedConsumption) {
+      // Update consumption
+      consumption.amount = pricedConsumption.amount;
+      consumption.roundedAmount = pricedConsumption.roundedAmount;
+      consumption.currencyCode = pricedConsumption.currencyCode;
+      consumption.pricingSource = pricedConsumption.pricingSource;
+      consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
+      // Update transaction
+      transaction.currentCumulatedPrice = consumption.cumulatedAmount;
+      transaction.currentCumulatedRoundedPrice = pricedConsumption.cumulatedRoundedAmount;
     }
   }
 
@@ -373,11 +389,36 @@ export default class OCPPUtils {
             });
           }
           break;
-        // Stop Transaction
+        // Stop Transaction - Extra inactivity is not yet known
         case TransactionAction.STOP:
           try {
             // Delegate
             const billingDataStop: BillingDataTransactionStop = await billingImpl.stopTransaction(transaction);
+            // Update
+            if (transaction.billingData) {
+              transaction.billingData.stop = billingDataStop;
+              transaction.billingData.lastUpdate = new Date();
+            }
+          } catch (error) {
+            const message = `Billing - stopTransaction failed - transaction ID '${transaction.id}'`;
+            await Logging.logError({
+              tenantID: tenant.id,
+              siteID: transaction.siteID,
+              siteAreaID: transaction.siteAreaID,
+              companyID: transaction.companyID,
+              chargingStationID: transaction.chargeBoxID,
+              user: transaction.userID,
+              action: ServerAction.BILLING_TRANSACTION,
+              module: MODULE_NAME, method: 'processTransactionBilling',
+              message, detailedMessages: { error: error.stack }
+            });
+          }
+          break;
+        // End Transaction - Extra inactivity is now known
+        case TransactionAction.END:
+          try {
+            // Delegate
+            const billingDataStop: BillingDataTransactionStop = await billingImpl.endTransaction(transaction);
             // Update
             if (transaction.billingData) {
               transaction.billingData.stop = billingDataStop;
@@ -909,7 +950,7 @@ export default class OCPPUtils {
       } else if (OCPPUtils.isEnergyActiveImportMeterValue(meterValue)) {
         // Complete consumption
         consumption.startedAt = Utils.convertToDate(lastConsumption.timestamp);
-        const diffSecs = Utils.createDecimal(moment(meterValue.timestamp).diff(lastConsumption.timestamp, 'milliseconds')).div(1000).toNumber();
+        const durationSecs = Utils.createDecimal(moment(meterValue.timestamp).diff(lastConsumption.timestamp, 'milliseconds')).div(1000).toNumber();
         // Handle current Connector limitation
         await OCPPUtils.addConnectorLimitationToConsumption(tenant, chargingStation, transaction.connectorId, consumption);
         // Handle current Site Area limitation
@@ -943,7 +984,8 @@ export default class OCPPUtils {
           if (consumption.limitSource !== ConnectorCurrentLimitSource.CHARGING_PROFILE ||
               consumption.limitAmps >= StaticLimitAmps.MIN_LIMIT_PER_PHASE * Utils.getNumberOfConnectedPhases(chargingStation, null, transaction.connectorId)) {
             // Update inactivity
-            transaction.currentTotalInactivitySecs = Utils.createDecimal(transaction.currentTotalInactivitySecs).plus(diffSecs).toNumber();
+            transaction.currentTotalInactivitySecs = Utils.createDecimal(transaction.currentTotalInactivitySecs).plus(durationSecs).toNumber();
+            consumption.inactivitySecs = durationSecs;
             consumption.totalInactivitySecs = transaction.currentTotalInactivitySecs;
           }
         }
@@ -953,6 +995,8 @@ export default class OCPPUtils {
         consumption.totalDurationSecs = !transaction.stop ?
           moment.duration(moment(meterValue.timestamp).diff(moment(transaction.timestamp))).asSeconds() :
           moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
+        consumption.cumulatedAmount = transaction.currentCumulatedPrice;
+        consumption.pricingSource = transaction.pricingSource;
         consumption.toPrice = true;
       }
       return consumption;

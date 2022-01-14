@@ -268,7 +268,6 @@ export enum ServerAction {
   NEW_REGISTERED_USER = 'NewRegisteredUser',
   UNKNOWN_USER_BADGED = 'UnknownUserBadged',
   TRANSACTION_STARTED = 'TransactionStarted',
-  VERIFICATION_EMAIL = 'VerificationEmail',
   VERIFICATION_EMAIL_USER_IMPORT = 'VerificationEmailUserImport',
   PATCH_EVSE_STATUS_ERROR = 'PatchEVSEStatusError',
   PATCH_EVSE_ERROR = 'PatchEVSEError',
@@ -438,6 +437,7 @@ export enum ServerAction {
   BILLING_CHARGE_INVOICE = 'BillingChargeInvoice',
   BILLING_WEB_HOOK = 'BillingWebHook',
   BILLING_TEST_DATA_CLEANUP = 'BillingTestDataCleanup',
+  BILLING_BILL_PENDING_TRANSACTION = 'BillingBillPendingTransaction',
 
   PRICING = 'Pricing',
   PRICING_DEFINITION = 'PricingDefinition',

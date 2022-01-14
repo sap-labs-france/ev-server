@@ -84,8 +84,7 @@
               }
             },
             "tariffID": {
-              "type": "string",
-              "sanitize": "mongo"
+              "$ref": "common#/definitions/tariff-id"
             }
           }
         },

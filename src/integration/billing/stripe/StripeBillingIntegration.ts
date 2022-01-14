@@ -917,23 +917,48 @@ export default class StripeBillingIntegration extends BillingIntegration {
       };
     }
     // Do not bill suspicious StopTransaction events
-    if (FeatureToggles.isFeatureActive(Feature.BILLING_CHECK_THRESHOLD_ON_STOP) && !Utils.isDevelopmentEnv()) {
-      // Suspicious StopTransaction may occur after a 'Housing temperature approaching limit' error on some charging stations
-      const timeSpent = this.computeTimeSpentInSeconds(transaction);
-      // TODO - make it part of the pricing or billing settings!
-      if (timeSpent < 60 /* seconds */ || transaction.stop.totalConsumptionWh < 1000 /* 1kWh */) {
-        await Logging.logWarning({
-          tenantID: this.tenant.id,
-          user: transaction.userID,
-          action: ServerAction.BILLING_TRANSACTION,
-          module: MODULE_NAME, method: 'stopTransaction',
-          message: `Transaction data is suspicious - billing operation has been aborted - transaction ID: ${transaction.id}`,
-          ...LoggingHelper.getTransactionProperties(transaction)
-        });
-        return {
-          status: BillingStatus.UNBILLED
-        };
-      }
+    if (!await this.checkBillingDataThreshold(transaction)) {
+      return {
+        status: BillingStatus.UNBILLED
+      };
+    }
+    // Inform the calling layer that the billing operation has been postponed
+    return {
+      status: BillingStatus.PENDING
+    };
+  }
+
+  public async endTransaction(transaction: Transaction): Promise<BillingDataTransactionStop> {
+    // Check whether the billing was activated on start transaction
+    if (!transaction.billingData?.withBillingActive) {
+      return {
+        status: BillingStatus.UNBILLED
+      };
+    }
+    if (transaction.billingData?.stop?.status === BillingStatus.BILLED) {
+      await Logging.logWarning({
+        tenantID: this.tenant.id,
+        action: ServerAction.BILLING_TRANSACTION,
+        module: MODULE_NAME, method: 'endTransaction',
+        message: 'Operation aborted - unexpected situation - the session has already been billed'
+      });
+      return {
+        status: transaction.billingData?.stop?.status
+      };
+    }
+    if (transaction.billingData?.stop?.status === BillingStatus.UNBILLED) {
+      // Make sure to preserve the decision made during the STOP transaction
+      return {
+        status: BillingStatus.UNBILLED
+      };
+    }
+    if (!transaction.stop?.extraInactivityComputed) {
+      await Logging.logWarning({
+        tenantID: this.tenant.id,
+        action: ServerAction.BILLING_TRANSACTION,
+        module: MODULE_NAME, method: 'endTransaction',
+        message: 'Unexpected situation - end transaction is being called while the extra inactivity is not yet known'
+      });
     }
     // Create and Save async task
     await AsyncTaskBuilder.createAndSaveAsyncTasks({
@@ -946,12 +971,35 @@ export default class StripeBillingIntegration extends BillingIntegration {
         userID: transaction.userID
       },
       module: MODULE_NAME,
-      method: 'stopTransaction',
+      method: 'endTransaction',
     });
     // Inform the calling layer that the operation has been postponed
     return {
       status: BillingStatus.PENDING
     };
+  }
+
+  private async checkBillingDataThreshold(transaction: Transaction): Promise<boolean> {
+    // Do not bill suspicious StopTransaction events
+    if (!Utils.isDevelopmentEnv()) {
+    // Suspicious StopTransaction may occur after a 'Housing temperature approaching limit' error on some charging stations
+      const timeSpent = this.computeTimeSpentInSeconds(transaction);
+      // TODO - make it part of the pricing or billing settings!
+      if (timeSpent < 60 /* seconds */ || transaction.stop.totalConsumptionWh < 1000 /* 1kWh */) {
+        await Logging.logWarning({
+          tenantID: this.tenant.id,
+          user: transaction.userID,
+          action: ServerAction.BILLING_TRANSACTION,
+          module: MODULE_NAME, method: 'stopTransaction',
+          message: `Transaction data is suspicious - billing operation has been aborted - transaction ID: ${transaction.id}`,
+          ...LoggingHelper.getTransactionProperties(transaction)
+        });
+        // Abort the billing process - thresholds are not met!
+        return false;
+      }
+    }
+    // billing data sounds correct
+    return true;
   }
 
   public async billTransaction(transaction: Transaction): Promise<BillingDataTransactionStop> {

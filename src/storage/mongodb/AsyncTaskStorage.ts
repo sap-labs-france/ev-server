@@ -144,7 +144,7 @@ export default class AsyncTaskStorage {
   public static async deleteAsyncTask(id: string): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     // Delete the AsyncTask
-    await global.database.getCollection<AsyncTask>(Constants.DEFAULT_TENANT, 'asynctasks')
+    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'asynctasks')
       .findOneAndDelete({ '_id': id });
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'deleteAsyncTask', startTime, { id });
   }
