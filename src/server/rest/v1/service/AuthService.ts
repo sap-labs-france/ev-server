@@ -148,10 +148,11 @@ export default class AuthService {
         module: MODULE_NAME,
         method: 'handleRegisterUser'
       });
-    } else if (response.data.score < 0.5) {
+    }
+    if (response.data.score < 0.25) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The captcha score is too low',
+        message: `The captcha score is too low, got ${response.data.score as string} but expected 0.25`,
         module: MODULE_NAME,
         method: 'handleRegisterUser'
       });
