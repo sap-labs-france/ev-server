@@ -7,14 +7,11 @@ import global from '../../../types/GlobalType';
 
 export default class OICPValidation extends SchemaValidator {
   private static instance: OICPValidation|null = null;
-
-  private remoteStartRequest: Schema;
-  private remoteStopRequest: Schema;
+  private remoteStartRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/oicp/schemas/oicp-authorize-remote-start-cpo-receive.json`, 'utf8'));
+  private remoteStopRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/oicp/schemas/oicp-authorize-remote-stop-cpo-receive.json`, 'utf8'));
 
   private constructor() {
     super('OICPValidation');
-    this.remoteStartRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/oicp/schemas/oicp-authorize-remote-start-cpo-receive.json`, 'utf8'));
-    this.remoteStopRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/oicp/schemas/oicp-authorize-remote-stop-cpo-receive.json`, 'utf8'));
   }
 
   public static getInstance(): OICPValidation {

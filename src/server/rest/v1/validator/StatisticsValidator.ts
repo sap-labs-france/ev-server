@@ -6,13 +6,11 @@ import global from '../../../../types/GlobalType';
 
 export default class StatisticsValidator extends SchemaValidator {
   private static instance: StatisticsValidator|null = null;
-  private statisticsGet: Schema;
-  private statisticsExport: Schema;
+  private statisticsGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/statistic/statistics-get.json`, 'utf8'));
+  private statisticsExport: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/statistic/statistics-export.json`, 'utf8'));
 
   private constructor() {
     super('StatisticsValidator');
-    this.statisticsGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/statistic/statistics-get.json`, 'utf8'));
-    this.statisticsExport = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/statistic/statistics-export.json`, 'utf8'));
   }
 
   public static getInstance(): StatisticsValidator {
