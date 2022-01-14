@@ -33,6 +33,7 @@ class TestData {
   public createdAssets: Asset[] = [];
   public ioThinkAssetConnectorID: string;
   public pending: boolean;
+  public settings: SettingDB;
 }
 
 const testData: TestData = new TestData();
@@ -73,6 +74,12 @@ const createOrUpdateSettings = async (settingID: string, url: string, user: stri
   const settingsUpdated = await testData.centralUserService.settingApi.readAll({});
   const settingUpdated: SettingDB = settingsUpdated.data.result.find((s) => s.identifier === TenantComponents.ASSET);
   return settingUpdated;
+};
+
+const deleteAssetSettings = async (setting: SettingDB) => {
+  if (setting) {
+    await testData.centralUserService.settingApi.delete(setting);
+  }
 };
 
 describe('Asset', function() {
@@ -400,8 +407,8 @@ describe('Asset', function() {
         const url = config.get('assetConnectors.ioThink.url');
         const user = config.get('assetConnectors.ioThink.user');
         const password = config.get('assetConnectors.ioThink.password');
-        const settingUpdated = await createOrUpdateSettings(settingID, url, user, password);
-        expect(settingUpdated.content.asset.connections[0].id).to.be.eq(settingID);
+        testData.settings = await createOrUpdateSettings(settingID, url, user, password);
+        expect(testData.settings.content.asset.connections[0].id).to.be.eq(settingID);
         testData.ioThinkAssetConnectorID = settingID;
       });
 
@@ -434,10 +441,14 @@ describe('Asset', function() {
         const url = config.get('assetConnectors.ioThink.url');
         const user = 'WrongUser';
         const password = 'WrongPassword';
-        const settingUpdated = await createOrUpdateSettings(settingID, url, user, password);
-        expect(settingUpdated.content.asset.connections[0].id).to.be.eq(settingID);
+        testData.settings = await createOrUpdateSettings(settingID, url, user, password);
+        expect(testData.settings.content.asset.connections[0].id).to.be.eq(settingID);
         const response = await testData.centralUserService.assetApi.retrieveLatestConsumption(testData.newAsset.id);
         expect(response.status).to.be.eq(StatusCodes.INTERNAL_SERVER_ERROR);
+      });
+
+      after(async () => {
+        await deleteAssetSettings(testData.settings);
       });
     });
   });
