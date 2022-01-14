@@ -16,8 +16,7 @@
       "sanitize": "mongo"
     },
     "tariffID": {
-      "type": "string",
-      "sanitize": "mongo"
+      "$ref": "common#/definitions/tariff-id"
     },
     "autoUserSiteAssignment": {
       "type": "boolean",
