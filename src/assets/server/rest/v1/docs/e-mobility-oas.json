@@ -5143,6 +5143,9 @@
                     "type": "boolean",
                     "example": false
                   },
+                  "tariffID": {
+                    "type": "string"
+                  },
                   "siteAreaID": {
                     "type": "string",
                     "example": ""
@@ -13875,6 +13878,9 @@
           "public": {
             "type": "boolean"
           },
+          "tariffID": {
+            "type": "string"
+          },
           "siteAreaID": {
             "type": "string"
           },
@@ -14116,6 +14122,9 @@
                 "example": "L3"
               }
             }
+          },
+          "tariffID": {
+            "type": "string"
           }
         }
       },

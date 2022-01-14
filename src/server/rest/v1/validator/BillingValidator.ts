@@ -8,17 +8,13 @@ import global from '../../../../types/GlobalType';
 
 export default class BillingValidator extends SchemaValidator {
   private static instance: BillingValidator|null = null;
-  private billingSettingUpdate: Schema;
-  private billingGetUserPaymentMethods: Schema;
-  private billingDeleteUserPaymentMethod: Schema;
-  private billingSetupUserPaymentMethod: Schema;
+  private billingSettingUpdate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-setting-update.json`, 'utf8'));
+  private billingGetUserPaymentMethods: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-payment-methods-get.json`, 'utf8'));
+  private billingDeleteUserPaymentMethod: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-delete-payment-method.json`, 'utf8'));
+  private billingSetupUserPaymentMethod: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-setup-payment-method.json`, 'utf8'));
 
   private constructor() {
     super('BillingValidator');
-    this.billingSettingUpdate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-setting-update.json`, 'utf8'));
-    this.billingGetUserPaymentMethods = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-payment-methods-get.json`, 'utf8'));
-    this.billingDeleteUserPaymentMethod = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-delete-payment-method.json`, 'utf8'));
-    this.billingSetupUserPaymentMethod = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-setup-payment-method.json`, 'utf8'));
   }
 
   public static getInstance(): BillingValidator {

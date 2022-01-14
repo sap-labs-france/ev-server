@@ -46,6 +46,7 @@ export interface ConnectorMDB {
   currentType: CurrentType;
   chargePointID: number;
   phaseAssignmentToGrid: PhaseAssignmentToGrid;
+  tariffID?: string;
 }
 
 export default class ChargingStationStorage {
@@ -552,6 +553,7 @@ export default class ChargingStationStorage {
       capabilities: chargingStationToSave.capabilities,
       ocppStandardParameters: chargingStationToSave.ocppStandardParameters,
       ocppVendorParameters: chargingStationToSave.ocppVendorParameters,
+      tariffID: chargingStationToSave.tariffID,
     };
     // Add Created/LastChanged By
     DatabaseUtils.addLastChangedCreatedProps(chargingStationMDB, chargingStationToSave);
@@ -1015,6 +1017,7 @@ export default class ChargingStationStorage {
         numberOfConnectedPhase: connector.numberOfConnectedPhase,
         currentType: connector.currentType,
         chargePointID: connector.chargePointID,
+        tariffID: connector.tariffID,
         phaseAssignmentToGrid: connector.phaseAssignmentToGrid &&
           {
             csPhaseL1: connector.phaseAssignmentToGrid.csPhaseL1,
