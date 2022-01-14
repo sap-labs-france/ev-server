@@ -431,9 +431,9 @@ export default class OCPIUtilsService {
     const evses: OCPIEvse[] = [];
     // Convert charging stations to evse(s)
     const chargingStations = await ChargingStationStorage.getChargingStations(tenant,
-      { ...dbFilters, siteIDs: [ siteID ], public: true, issuer: true, withSiteArea: true },
+      { ...dbFilters, siteIDs: [ siteID ], public: true, issuer: true, withSiteArea: true, withSite: true },
       dbParams ?? Constants.DB_PARAMS_MAX_LIMIT,
-      [ 'id', 'chargePoints', 'connectors', 'coordinates', 'lastSeen', 'siteAreaID', 'siteID', 'companyID' ]);
+      [ 'id', 'chargePoints', 'connectors', 'coordinates', 'tariffID', 'lastSeen', 'siteAreaID', 'siteID', 'companyID', 'siteArea', 'site' ]);
     for (const chargingStation of chargingStations.result) {
       const chargingStationEvses: OCPIEvse[] = [];
       if (!Utils.isEmptyArray(chargingStation.chargePoints)) {
@@ -937,7 +937,28 @@ export default class OCPIUtilsService {
 
   private static async buildTariffID(tenant: Tenant, chargingStation: ChargingStation, connector: Connector): Promise<string> {
     const defaultTariff = 'Default';
-    // OLD rules (give time to customers to maintain their corresponding objects)
+    // Connector?
+    if (!Utils.isNullOrEmptyString(connector.tariffID)) {
+      return connector.tariffID;
+    }
+    // Charging Station?
+    if (!Utils.isNullOrEmptyString(chargingStation.tariffID)) {
+      return chargingStation.tariffID;
+    }
+    // Site Area?
+    if (!Utils.isNullOrEmptyString(chargingStation.siteArea?.tariffID)) {
+      return chargingStation.siteArea.tariffID;
+    }
+    // Site?
+    if (!Utils.isNullOrEmptyString(chargingStation.site?.tariffID)) {
+      return chargingStation.site.tariffID;
+    }
+    // Tenant?
+    const ocpiSettings = await SettingStorage.getOCPISettings(tenant);
+    if (!Utils.isNullOrEmptyString(ocpiSettings?.ocpi?.tariffID)) {
+      return ocpiSettings.ocpi.tariffID;
+    }
+    // Backup rules (give time to customers to maintain their corresponding objects)
     switch (tenant?.id) {
       // Station-e
       case '60633bb1834fed0016310189':
@@ -1019,27 +1040,6 @@ export default class OCPIUtilsService {
       // eChargeNow
       case '60b9f4336493830016c9a68c':
         return 'Tarif_Standard';
-    }
-    // Connector?
-    if (!Utils.isNullOrEmptyString(connector.tariffID)) {
-      return connector.tariffID;
-    }
-    // Charging Station?
-    if (!Utils.isNullOrEmptyString(chargingStation.tariffID)) {
-      return chargingStation.tariffID;
-    }
-    // Site Area?
-    if (!Utils.isNullOrEmptyString(chargingStation.siteArea?.tariffID)) {
-      return chargingStation.siteArea.tariffID;
-    }
-    // Site?
-    if (!Utils.isNullOrEmptyString(chargingStation.site?.tariffID)) {
-      return chargingStation.site.tariffID;
-    }
-    // Tenant?
-    const ocpiSettings = await SettingStorage.getOCPISettings(tenant);
-    if (!Utils.isNullOrEmptyString(ocpiSettings?.ocpi?.tariffID)) {
-      return ocpiSettings.ocpi.tariffID;
     }
     // Default
     return defaultTariff;
