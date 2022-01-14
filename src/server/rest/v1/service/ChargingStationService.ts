@@ -165,8 +165,10 @@ export default class ChargingStationService {
       }
       chargingStation.public = filteredRequest.public;
     }
-    if (Utils.objectHasProperty(filteredRequest, 'tariffID')) {
-      chargingStation.tariffID = filteredRequest.tariffID;
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
+      if (Utils.objectHasProperty(filteredRequest, 'tariffID')) {
+        chargingStation.tariffID = filteredRequest.tariffID;
+      }
     }
     if (Utils.objectHasProperty(filteredRequest, 'excludeFromSmartCharging')) {
       chargingStation.excludeFromSmartCharging = filteredRequest.excludeFromSmartCharging;
@@ -217,7 +219,11 @@ export default class ChargingStationService {
           connector.numberOfConnectedPhase = filteredConnector.numberOfConnectedPhase;
         }
         connector.phaseAssignmentToGrid = filteredConnector.phaseAssignmentToGrid;
-        connector.tariffID = filteredConnector.tariffID;
+        if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
+          if (Utils.objectHasProperty(filteredConnector, 'tariffID')) {
+            connector.tariffID = filteredConnector.tariffID;
+          }
+        }
       }
     }
     // Manual Config
