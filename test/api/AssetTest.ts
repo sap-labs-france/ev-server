@@ -76,9 +76,10 @@ const createOrUpdateSettings = async (settingID: string, url: string, user: stri
   return settingUpdated;
 };
 
-const deleteAssetSettings = async (setting: SettingDB) => {
+const deleteAssetConnectorSettings = async (setting: SettingDB) => {
   if (setting) {
-    await testData.centralUserService.settingApi.delete(setting);
+    setting.content.asset.connections = [];
+    await testData.centralUserService.settingApi.update(setting);
   }
 };
 
@@ -448,7 +449,7 @@ describe('Asset', function() {
       });
 
       after(async () => {
-        await deleteAssetSettings(testData.settings);
+        await deleteAssetConnectorSettings(testData.settings);
       });
     });
   });
