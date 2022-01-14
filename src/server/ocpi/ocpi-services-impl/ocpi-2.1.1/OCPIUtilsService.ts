@@ -1041,7 +1041,7 @@ export default class OCPIUtilsService {
     if (!Utils.isNullOrEmptyString(ocpiSettings?.ocpi?.tariffID)) {
       return ocpiSettings.ocpi.tariffID;
     }
-    // Default.
+    // Default
     return defaultTariff;
   }
 
