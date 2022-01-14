@@ -232,7 +232,7 @@ export default class CpoOCPIClient extends OCPIClient {
     // Get tokens endpoint url
     const sessionsUrl = `${this.getEndpointUrl('sessions', ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalCountryCode(ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalPartyID(ServerAction.OCPI_PUSH_SESSIONS)}/${transaction.id.toString()}`;
     const site = await SiteStorage.getSite(this.tenant, chargingStation.siteID);
-    const ocpiLocation: OCPILocation = this.convertChargingStationToOCPILocation(this.tenant, site, chargingStation,
+    const ocpiLocation: OCPILocation = await this.convertChargingStationToOCPILocation(this.tenant, site, chargingStation,
       transaction.connectorId, this.getLocalCountryCode(ServerAction.OCPI_PUSH_SESSIONS), this.getLocalPartyID(ServerAction.OCPI_PUSH_SESSIONS));
     // Build payload
     const ocpiSession: OCPISession = {
@@ -1080,14 +1080,14 @@ export default class CpoOCPIClient extends OCPIClient {
     return chargingPeriods;
   }
 
-  private convertChargingStationToOCPILocation(tenant: Tenant, site: Site, chargingStation: ChargingStation,
-      connectorId: number, countryId: string, partyId: string): OCPILocation {
+  private async convertChargingStationToOCPILocation(tenant: Tenant, site: Site, chargingStation: ChargingStation,
+      connectorId: number, countryId: string, partyId: string): Promise<OCPILocation> {
     const connectors: OCPIConnector[] = [];
     let status: ChargePointStatus;
     const connector = Utils.getConnectorFromID(chargingStation, connectorId);
     let chargePoint;
     if (connector) {
-      connectors.push(OCPIUtilsService.convertConnector2OCPIConnector(tenant, chargingStation, connector, countryId, partyId));
+      connectors.push(await OCPIUtilsService.convertConnector2OCPIConnector(tenant, chargingStation, connector, countryId, partyId));
       status = connector.status;
       chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
     }

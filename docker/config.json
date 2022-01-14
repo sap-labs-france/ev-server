@@ -168,6 +168,12 @@
         "config": {}
       },
       {
+        "name": "BillPendingTransactionTask",
+        "active": false,
+        "periodicity": "*/15 * * * *",
+        "config": {}
+      },
+      {
         "name": "LoggingDatabaseTableCleanupTask",
         "active": true,
         "periodicity": "0 0 * * 1",

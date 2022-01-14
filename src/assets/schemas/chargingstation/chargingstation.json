@@ -208,6 +208,9 @@
               "sanitize": "mongo"
             }
           }
+        },
+        "tariffID": {
+          "$ref": "common#/definitions/tariff-id"
         }
       },
       "required": [
