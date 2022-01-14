@@ -275,6 +275,8 @@ export default class AuthorizationService {
     assets.metadata = authorizationFilter.metadata;
     // Add Authorizations
     assets.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.ASSET, Action.CREATE, authorizationFilter);
+    assets.canListSites = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE, Action.LIST, authorizationFilter);
+    assets.canListSiteAreas = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.LIST, authorizationFilter);
     for (const asset of assets.result) {
       await AuthorizationService.addAssetAuthorizations(tenant, userToken, asset, authorizationFilter);
     }
