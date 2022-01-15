@@ -342,23 +342,15 @@ export default class OCPPUtils {
           } catch (error) {
             const message = `Billing - startTransaction failed - transaction ID '${transaction.id}'`;
             await Logging.logError({
+              ...LoggingHelper.getTransactionProperties(transaction),
               tenantID: tenant.id,
-              siteID: transaction.siteID,
-              siteAreaID: transaction.siteAreaID,
-              companyID: transaction.companyID,
-              chargingStationID: transaction.chargeBoxID,
-              user: transaction.userID,
               action: ServerAction.BILLING_TRANSACTION,
               module: MODULE_NAME, method: 'processTransactionBilling',
               message, detailedMessages: { error: error.stack }
             });
             // Prevent from starting a transaction when Billing prerequisites are not met
             throw new BackendError({
-              chargingStationID: transaction.chargeBoxID,
-              siteID: transaction.siteID,
-              siteAreaID: transaction.siteAreaID,
-              companyID: transaction.companyID,
-              user: transaction.user,
+              ...LoggingHelper.getTransactionProperties(transaction),
               action: ServerAction.BILLING_TRANSACTION,
               module: MODULE_NAME, method: 'processTransactionBilling',
               message, detailedMessages: { error: error.stack }
@@ -377,12 +369,8 @@ export default class OCPPUtils {
           } catch (error) {
             const message = `Billing - updateTransaction failed - transaction ID '${transaction.id}'`;
             await Logging.logError({
+              ...LoggingHelper.getTransactionProperties(transaction),
               tenantID: tenant.id,
-              siteID: transaction.siteID,
-              siteAreaID: transaction.siteAreaID,
-              companyID: transaction.companyID,
-              chargingStationID: transaction.chargeBoxID,
-              user: transaction.userID,
               action: ServerAction.BILLING_TRANSACTION,
               module: MODULE_NAME, method: 'processTransactionBilling',
               message, detailedMessages: { error: error.stack }
@@ -402,12 +390,8 @@ export default class OCPPUtils {
           } catch (error) {
             const message = `Billing - stopTransaction failed - transaction ID '${transaction.id}'`;
             await Logging.logError({
+              ...LoggingHelper.getTransactionProperties(transaction),
               tenantID: tenant.id,
-              siteID: transaction.siteID,
-              siteAreaID: transaction.siteAreaID,
-              companyID: transaction.companyID,
-              chargingStationID: transaction.chargeBoxID,
-              user: transaction.userID,
               action: ServerAction.BILLING_TRANSACTION,
               module: MODULE_NAME, method: 'processTransactionBilling',
               message, detailedMessages: { error: error.stack }
@@ -427,12 +411,8 @@ export default class OCPPUtils {
           } catch (error) {
             const message = `Billing - stopTransaction failed - transaction ID '${transaction.id}'`;
             await Logging.logError({
+              ...LoggingHelper.getTransactionProperties(transaction),
               tenantID: tenant.id,
-              siteID: transaction.siteID,
-              siteAreaID: transaction.siteAreaID,
-              companyID: transaction.companyID,
-              chargingStationID: transaction.chargeBoxID,
-              user: transaction.userID,
               action: ServerAction.BILLING_TRANSACTION,
               module: MODULE_NAME, method: 'processTransactionBilling',
               message, detailedMessages: { error: error.stack }
@@ -564,10 +544,7 @@ export default class OCPPUtils {
   public static async rebuildTransactionSimplePricing(tenant: Tenant, transaction: Transaction, pricePerkWh?: number): Promise<void> {
     if (!transaction) {
       throw new BackendError({
-        chargingStationID: transaction.chargeBoxID,
-        siteID: transaction.siteID,
-        siteAreaID: transaction.siteAreaID,
-        companyID: transaction.companyID,
+        ...LoggingHelper.getTransactionProperties(transaction),
         action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
         module: MODULE_NAME, method: 'rebuildTransactionSimplePricing',
         message: 'Transaction does not exist',
@@ -575,10 +552,7 @@ export default class OCPPUtils {
     }
     if (!transaction.stop) {
       throw new BackendError({
-        chargingStationID: transaction.chargeBoxID,
-        siteID: transaction.siteID,
-        siteAreaID: transaction.siteAreaID,
-        companyID: transaction.companyID,
+        ...LoggingHelper.getTransactionProperties(transaction),
         action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
         module: MODULE_NAME, method: 'rebuildTransactionSimplePricing',
         message: `Transaction ID '${transaction.id}' is in progress`,
@@ -586,10 +560,7 @@ export default class OCPPUtils {
     }
     if (transaction.stop.pricingSource !== PricingSettingsType.SIMPLE) {
       throw new BackendError({
-        chargingStationID: transaction.chargeBoxID,
-        siteID: transaction.siteID,
-        siteAreaID: transaction.siteAreaID,
-        companyID: transaction.companyID,
+        ...LoggingHelper.getTransactionProperties(transaction),
         action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
         module: MODULE_NAME, method: 'rebuildTransactionSimplePricing',
         message: `Transaction ID '${transaction.id}' was not priced with simple pricing`,
@@ -2142,11 +2113,7 @@ export default class OCPPUtils {
     // Check User
     if (!transaction.user) {
       throw new BackendError({
-        chargingStationID: transaction.chargeBoxID,
-        siteID: transaction.siteID,
-        siteAreaID: transaction.siteAreaID,
-        companyID: transaction.companyID,
-        user: transaction.user,
+        ...LoggingHelper.getTransactionProperties(transaction),
         action,
         module: MODULE_NAME, method: 'processOCPITransaction',
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} User does not exist`
@@ -2154,11 +2121,7 @@ export default class OCPPUtils {
     }
     if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
       throw new BackendError({
-        chargingStationID: transaction.chargeBoxID,
-        siteID: transaction.siteID,
-        siteAreaID: transaction.siteAreaID,
-        companyID: transaction.companyID,
-        user: transaction.user,
+        ...LoggingHelper.getTransactionProperties(transaction),
         action,
         module: MODULE_NAME, method: 'processOCPITransaction',
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OCPI Component is not active in this Tenant`
@@ -2166,11 +2129,7 @@ export default class OCPPUtils {
     }
     if (transaction.user.issuer) {
       throw new BackendError({
-        chargingStationID: transaction.chargeBoxID,
-        siteID: transaction.siteID,
-        siteAreaID: transaction.siteAreaID,
-        companyID: transaction.companyID,
-        user: transaction.user,
+        ...LoggingHelper.getTransactionProperties(transaction),
         action,
         module: MODULE_NAME, method: 'processOCPITransaction',
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} User does not belong to the local organization`
@@ -2179,11 +2138,7 @@ export default class OCPPUtils {
     const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
     if (!ocpiClient) {
       throw new BackendError({
-        chargingStationID: transaction.chargeBoxID,
-        siteID: transaction.siteID,
-        siteAreaID: transaction.siteAreaID,
-        companyID: transaction.companyID,
-        user: transaction.user,
+        ...LoggingHelper.getTransactionProperties(transaction),
         action,
         module: MODULE_NAME, method: 'processOCPITransaction',
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OCPI component requires at least one CPO endpoint to ${transactionAction} a Transaction`
@@ -2194,11 +2149,7 @@ export default class OCPPUtils {
         // Check Authorization
         if (!transaction.authorizationID) {
           throw new BackendError({
-            chargingStationID: transaction.chargeBoxID,
-            siteID: transaction.siteID,
-            siteAreaID: transaction.siteAreaID,
-            companyID: transaction.companyID,
-            user: transaction.user,
+            ...LoggingHelper.getTransactionProperties(transaction),
             action: action,
             module: MODULE_NAME, method: 'processOCPITransaction',
             message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Tag ID '${transaction.tagID}' is not authorized`
