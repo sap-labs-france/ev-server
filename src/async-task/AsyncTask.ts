@@ -3,10 +3,12 @@ import AsyncTask from '../types/AsyncTask';
 const MODULE_NAME = 'AbstractAsyncTask';
 
 export default abstract class AbstractAsyncTask {
-  protected asyncTask: AsyncTask;
+  private asyncTask: AsyncTask;
+  private correlationID: string;
 
-  public constructor(asyncTask: AsyncTask) {
+  public constructor(asyncTask: AsyncTask, correlationID: string) {
     this.asyncTask = asyncTask;
+    this.correlationID = correlationID;
   }
 
   public async run(): Promise<void> {
@@ -18,10 +20,18 @@ export default abstract class AbstractAsyncTask {
     await this.afterAsyncTaskRun();
   }
 
-  public async beforeAsyncTaskRun(): Promise<void> {
+  public getAsyncTask(): AsyncTask {
+    return this.asyncTask;
   }
 
-  public async afterAsyncTaskRun(): Promise<void> {
+  public getCorrelationID(): string {
+    return this.correlationID;
+  }
+
+  protected async beforeAsyncTaskRun(): Promise<void> {
+  }
+
+  protected async afterAsyncTaskRun(): Promise<void> {
   }
 
   protected abstract executeAsyncTask(): Promise<void>;

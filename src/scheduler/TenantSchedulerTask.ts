@@ -17,7 +17,7 @@ export default abstract class TenantSchedulerTask extends SchedulerTask {
     // Process them
     for (const tenant of tenants.result) {
       const tenantCorrelationID = Utils.generateShortNonUniqueID();
-      const startMigrationTimeInTenant = moment();
+      const startTimeInTenant = moment();
       await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.SCHEDULER,
@@ -54,28 +54,28 @@ export default abstract class TenantSchedulerTask extends SchedulerTask {
         });
       }
       // Log Total Processing Time in Tenant
-      const totalMigrationTimeSecsInTenant = moment.duration(moment().diff(startMigrationTimeInTenant)).asSeconds();
+      const totalTimeSecsInTenant = moment.duration(moment().diff(startTimeInTenant)).asSeconds();
       await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.SCHEDULER,
         module: MODULE_NAME, method: 'processTask',
-        message: `The Task '${this.getName()}~${this.getCorrelationID()}~${tenantCorrelationID}' has been run successfully in ${totalMigrationTimeSecsInTenant} secs for Tenant ${Utils.buildTenantName(tenant)}`
+        message: `The Task '${this.getName()}~${this.getCorrelationID()}~${tenantCorrelationID}' has been run successfully in ${totalTimeSecsInTenant} secs for Tenant ${Utils.buildTenantName(tenant)}`
       });
       await Logging.logDebug({
         tenantID: tenant.id,
         action: ServerAction.SCHEDULER,
         module: MODULE_NAME, method: 'processTask',
-        message: `The Task '${this.getName()}~${this.getCorrelationID()}~${tenantCorrelationID}' has been run successfully in ${totalMigrationTimeSecsInTenant} secs`
+        message: `The Task '${this.getName()}~${this.getCorrelationID()}~${tenantCorrelationID}' has been run successfully in ${totalTimeSecsInTenant} secs`
       });
     }
   }
 
-  public async beforeProcessTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
+  protected async beforeProcessTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
   }
 
-  public async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
+  protected async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
   }
 
-  public async afterProcessTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
+  protected async afterProcessTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
   }
 }

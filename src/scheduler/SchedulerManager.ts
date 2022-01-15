@@ -62,6 +62,7 @@ export default class SchedulerManager {
       }
       const schedulerTask = await SchedulerManager.createTask(task.name);
       if (schedulerTask) {
+        // Register task to cron engine
         cron.schedule(task.periodicity, () => SchedulerManager.runTask(schedulerTask, task));
         await Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT,
@@ -145,7 +146,7 @@ export default class SchedulerManager {
         await Logging.logError({
           tenantID: Constants.DEFAULT_TENANT,
           action: ServerAction.SCHEDULER,
-          module: MODULE_NAME, method: 'init',
+          module: MODULE_NAME, method: 'createTask',
           message: `The task '${name}' is unknown`
         });
     }

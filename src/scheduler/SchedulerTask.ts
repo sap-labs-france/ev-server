@@ -20,7 +20,7 @@ export default abstract class SchedulerTask {
     const scheduledTaskLock = await LockingHelper.acquireScheduledTaskLock(Constants.DEFAULT_TENANT, name);
     if (scheduledTaskLock) {
       try {
-        const startMigrationTime = moment();
+        const startTime = moment();
         await Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT,
           action: ServerAction.SCHEDULER,
@@ -44,12 +44,12 @@ export default abstract class SchedulerTask {
           });
         }
         // Log Total Processing Time
-        const totalMigrationTimeSecs = moment.duration(moment().diff(startMigrationTime)).asSeconds();
+        const totalTimeSecs = moment.duration(moment().diff(startTime)).asSeconds();
         await Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT,
           action: ServerAction.SCHEDULER,
           module: MODULE_NAME, method: 'run',
-          message: `The Task '${name}~${this.correlationID}' has been run in ${totalMigrationTimeSecs} secs`
+          message: `The Task '${name}~${this.correlationID}' has been run in ${totalTimeSecs} secs`
         });
       } finally {
         // Release lock
@@ -66,11 +66,11 @@ export default abstract class SchedulerTask {
     return this.correlationID;
   }
 
-  public async beforeTaskRun(config: TaskConfig): Promise<void> {
+  protected async beforeTaskRun(config: TaskConfig): Promise<void> {
   }
 
-  public async afterTaskRun(config: TaskConfig): Promise<void> {
+  protected async afterTaskRun(config: TaskConfig): Promise<void> {
   }
 
-  public abstract processTask(config: TaskConfig): Promise<void>;
+  protected abstract processTask(config: TaskConfig): Promise<void>;
 }
