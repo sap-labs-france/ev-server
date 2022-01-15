@@ -143,6 +143,7 @@
     "mongodb": "^4.2.2",
     "morgan": "^1.10.0",
     "mustache": "^4.2.0",
+    "nanoid": "^3.1.32",
     "node-cron": "^3.0.0",
     "object-sizeof": "^1.6.1",
     "passport": "^0.5.2",
@@ -160,7 +161,6 @@
     "tslib": "^2.2.0",
     "tz-lookup": "^6.1.25",
     "urlencode": "^1.1.0",
-    "uuid": "^8.3.2",
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.6.0",
     "validator": "^13.7.0",
     "ws": "^8.3.0"

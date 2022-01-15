@@ -6,15 +6,15 @@ import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
 import RefundFactory from '../../integration/refund/RefundFactory';
 import { RefundStatus } from '../../types/Refund';
-import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
 import { TaskConfig } from '../../types/TaskConfig';
+import TenantSchedulerTask from '../TenantSchedulerTask';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'SynchronizeRefundTransactionsTask';
 
-export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
+export default class SynchronizeRefundTransactionsTask extends TenantSchedulerTask {
   public async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     if (!Utils.isTenantComponentActive(tenant, TenantComponents.REFUND)) {
       await Logging.logDebug({

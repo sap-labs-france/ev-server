@@ -9,15 +9,15 @@ import LoggingHelper from '../../utils/LoggingHelper';
 import NotificationHandler from '../../notification/NotificationHandler';
 import OCPPCommon from '../../server/ocpp/utils/OCPPCommon';
 import { OCPPGetConfigurationResponse } from '../../types/ocpp/OCPPClient';
-import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
+import TenantSchedulerTask from '../TenantSchedulerTask';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
 
 const MODULE_NAME = 'CheckOfflineChargingStationsTask';
 
-export default class CheckOfflineChargingStationsTask extends SchedulerTask {
+export default class CheckOfflineChargingStationsTask extends TenantSchedulerTask {
   public async processTenant(tenant: Tenant, config: CheckOfflineChargingStationsTaskConfig): Promise<void> {
     // Get the lock
     const offlineChargingStationLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.CHARGING_STATION, 'offline-charging-station');
