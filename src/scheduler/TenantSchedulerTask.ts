@@ -16,19 +16,19 @@ export default abstract class TenantSchedulerTask extends SchedulerTask {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     // Process them
     for (const tenant of tenants.result) {
-      const tenantTaskID = Utils.generateShortNonUniqueID();
+      const tenantCorrelationID = Utils.generateShortNonUniqueID();
       const startMigrationTimeInTenant = moment();
       await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.SCHEDULER,
         module: MODULE_NAME, method: 'processTask',
-        message: `The Task '${this.getName()}~${this.getTaskID()}~${tenantTaskID}' is running for Tenant ${Utils.buildTenantName(tenant)}...`
+        message: `The Task '${this.getName()}~${this.getCorrelationID()}~${tenantCorrelationID}' is running for Tenant ${Utils.buildTenantName(tenant)}...`
       });
       await Logging.logDebug({
         tenantID: tenant.id,
         action: ServerAction.SCHEDULER,
         module: MODULE_NAME, method: 'processTask',
-        message: `The Task '${this.getName()}~${this.getTaskID()}~${tenantTaskID}' is running...`
+        message: `The Task '${this.getName()}~${this.getCorrelationID()}~${tenantCorrelationID}' is running...`
       });
       try {
         // Hook
@@ -42,14 +42,14 @@ export default abstract class TenantSchedulerTask extends SchedulerTask {
           tenantID: Constants.DEFAULT_TENANT,
           action: ServerAction.SCHEDULER,
           module: MODULE_NAME, method: 'processTask',
-          message: `Error while running the Task '${this.getName()}~${this.getTaskID()}~${tenantTaskID}' for Tenant ${Utils.buildTenantName(tenant)}: ${error.message as string}`,
+          message: `Error while running the Task '${this.getName()}~${this.getCorrelationID()}~${tenantCorrelationID}' for Tenant ${Utils.buildTenantName(tenant)}: ${error.message as string}`,
           detailedMessages: { error: error.stack }
         });
         await Logging.logError({
           tenantID: tenant.id,
           action: ServerAction.SCHEDULER,
           module: MODULE_NAME, method: 'processTask',
-          message: `Error while running the Task '${this.getName()}~${this.getTaskID()}~${tenantTaskID}': ${error.message as string}`,
+          message: `Error while running the Task '${this.getName()}~${this.getCorrelationID()}~${tenantCorrelationID}': ${error.message as string}`,
           detailedMessages: { error: error.stack }
         });
       }
@@ -59,13 +59,13 @@ export default abstract class TenantSchedulerTask extends SchedulerTask {
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.SCHEDULER,
         module: MODULE_NAME, method: 'processTask',
-        message: `The Task '${this.getName()}~${this.getTaskID()}~${tenantTaskID}' has been run successfully in ${totalMigrationTimeSecsInTenant} secs for Tenant ${Utils.buildTenantName(tenant)}`
+        message: `The Task '${this.getName()}~${this.getCorrelationID()}~${tenantCorrelationID}' has been run successfully in ${totalMigrationTimeSecsInTenant} secs for Tenant ${Utils.buildTenantName(tenant)}`
       });
       await Logging.logDebug({
         tenantID: tenant.id,
         action: ServerAction.SCHEDULER,
         module: MODULE_NAME, method: 'processTask',
-        message: `The Task '${this.getName()}~${this.getTaskID()}~${tenantTaskID}' has been run successfully in ${totalMigrationTimeSecsInTenant} secs`
+        message: `The Task '${this.getName()}~${this.getCorrelationID()}~${tenantCorrelationID}' has been run successfully in ${totalMigrationTimeSecsInTenant} secs`
       });
     }
   }

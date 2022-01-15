@@ -88,6 +88,7 @@ export default class AsyncTaskManager {
             // Get the lock
             const asyncTaskLock = await LockingHelper.acquireAsyncTaskLock(Constants.DEFAULT_TENANT, asyncTask.id);
             if (asyncTaskLock) {
+              const correlationID = Utils.generateShortNonUniqueID();
               const startAsyncTaskTime = new Date().getTime();
               try {
                 // Update the task
@@ -101,7 +102,7 @@ export default class AsyncTaskManager {
                   tenantID: Constants.DEFAULT_TENANT,
                   action: ServerAction.ASYNC_TASK,
                   module: MODULE_NAME, method: 'handleAsyncTasks',
-                  message: `The asynchronous task '${asyncTask.name}' is running...`
+                  message: `The Async Task '${asyncTask.name}~${correlationID}' is running...`
                 });
                 // Run
                 await abstractAsyncTask.run();
@@ -118,7 +119,7 @@ export default class AsyncTaskManager {
                   tenantID: Constants.DEFAULT_TENANT,
                   action: ServerAction.ASYNC_TASK,
                   module: MODULE_NAME, method: 'handleAsyncTasks',
-                  message: `The asynchronous task '${asyncTask.name}' has been processed in ${asyncTaskTotalDurationSecs} secs`
+                  message: `The Async Task '${asyncTask.name}~${correlationID}' has been processed in ${asyncTaskTotalDurationSecs} secs`
                 });
               } catch (error) {
                 processedTask.inError++;
@@ -133,7 +134,7 @@ export default class AsyncTaskManager {
                   tenantID: Constants.DEFAULT_TENANT,
                   module: MODULE_NAME, method: 'handleAsyncTasks',
                   action: ServerAction.ASYNC_TASK,
-                  message: `Error while running the asynchronous task '${asyncTask.name}': ${error.message as string}`,
+                  message: `Error while running the Async Task '${asyncTask.name}~${correlationID}': ${error.message as string}`,
                   detailedMessages: { error: error.stack, asyncTask }
                 });
               } finally {

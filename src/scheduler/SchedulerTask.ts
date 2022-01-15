@@ -11,11 +11,11 @@ const MODULE_NAME = 'SchedulerTask';
 
 export default abstract class SchedulerTask {
   private name: string;
-  private taskID: string;
+  private correlationID: string;
 
   public async run(name: string, config: TaskConfig): Promise<void> {
     this.name = name;
-    this.taskID = Utils.generateShortNonUniqueID();
+    this.correlationID = Utils.generateShortNonUniqueID();
     // Get the lock
     const scheduledTaskLock = await LockingHelper.acquireScheduledTaskLock(Constants.DEFAULT_TENANT, name);
     if (scheduledTaskLock) {
@@ -25,7 +25,7 @@ export default abstract class SchedulerTask {
           tenantID: Constants.DEFAULT_TENANT,
           action: ServerAction.SCHEDULER,
           module: MODULE_NAME, method: 'run',
-          message: `The Task '${name}~${this.taskID}' is running...`
+          message: `The Task '${name}~${this.correlationID}' is running...`
         });
         try {
           // Hook
@@ -39,7 +39,7 @@ export default abstract class SchedulerTask {
             tenantID: Constants.DEFAULT_TENANT,
             action: ServerAction.SCHEDULER,
             module: MODULE_NAME, method: 'run',
-            message: `Error while running the Task '${this.getName()}~${this.taskID}': ${error.message as string}`,
+            message: `Error while running the Task '${this.getName()}~${this.correlationID}': ${error.message as string}`,
             detailedMessages: { error: error.stack }
           });
         }
@@ -49,7 +49,7 @@ export default abstract class SchedulerTask {
           tenantID: Constants.DEFAULT_TENANT,
           action: ServerAction.SCHEDULER,
           module: MODULE_NAME, method: 'run',
-          message: `The Task '${name}~${this.taskID}' has been run in ${totalMigrationTimeSecs} secs`
+          message: `The Task '${name}~${this.correlationID}' has been run in ${totalMigrationTimeSecs} secs`
         });
       } finally {
         // Release lock
@@ -62,16 +62,15 @@ export default abstract class SchedulerTask {
     return this.name;
   }
 
-  public getTaskID(): string {
-    return this.taskID;
+  public getCorrelationID(): string {
+    return this.correlationID;
   }
 
   public async beforeTaskRun(config: TaskConfig): Promise<void> {
   }
 
-  public async processTask(config: TaskConfig): Promise<void> {
-  }
-
   public async afterTaskRun(config: TaskConfig): Promise<void> {
   }
+
+  public abstract processTask(config: TaskConfig): Promise<void>;
 }
