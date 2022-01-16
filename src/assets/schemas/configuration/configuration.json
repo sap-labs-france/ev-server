@@ -63,8 +63,7 @@
       "required": [
         "protocol",
         "host",
-        "port",
-        "debug"
+        "port"
       ]
     },
     "ODataService": {
@@ -86,8 +85,7 @@
       "required": [
         "protocol",
         "host",
-        "port",
-        "debug"
+        "port"
       ]
     },
     "CentralSystemServer": {
@@ -141,8 +139,7 @@
           "implementation",
           "protocol",
           "host",
-          "port",
-          "debug"
+          "port"
         ]
       }
     },
@@ -198,8 +195,7 @@
         "passwordWrongNumberOfTrial",
         "passwordBlockedWaitTimeMin",
         "captchaSecretKey",
-        "captchaScore",
-        "debug"
+        "captchaScore"
       ]
     },
     "CentralSystemFrontEnd": {
@@ -214,6 +210,33 @@
         },
         "port": {
           "type": "integer"
+        }
+      },
+      "required": [
+        "protocol",
+        "host",
+        "port"
+      ]
+    },
+    "Monitoring": {
+      "type": "object",
+      "properties": {
+        "implementation": {
+          "type": "string",
+          "enum": ["prometheus"]
+        },
+        "protocol": {
+          "type": "string",
+          "enum": ["http", "https"]
+        },
+        "host": {
+          "type": "string"
+        },
+        "port": {
+          "type": "integer"
+        },
+        "debug": {
+          "type": "boolean"
         }
       },
       "required": [
@@ -270,7 +293,8 @@
       "type": "object",
       "properties": {
         "implementation": {
-          "type": "string"
+          "type": "string",
+          "enum": ["mongodb"]
         },
         "uri": {
           "type": "string"
@@ -285,8 +309,7 @@
       "required": [
         "implementation",
         "uri",
-        "poolSize",
-        "debug"
+        "poolSize"
       ]
     },
     "OCPIService": {
@@ -309,8 +332,7 @@
       "required": [
         "protocol",
         "host",
-        "port",
-        "debug"
+        "port"
       ]
     },
     "Notification": {
@@ -517,10 +539,7 @@
         "debug": {
           "type": "boolean"
         }
-      },
-      "required": [
-        "debug"
-      ]
+      }
     },
     "ChargingStation": {
       "type": "object",

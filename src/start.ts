@@ -16,6 +16,9 @@ import Logging from './utils/Logging';
 import MigrationConfiguration from './types/configuration/MigrationConfiguration';
 import MigrationHandler from './migration/MigrationHandler';
 import MongoDBStorage from './storage/mongodb/MongoDBStorage';
+import MonitoringConfiguration from './types/configuration/MonitoringConfiguration';
+import MonitoringServer from './monitoring/MonitoringServer';
+import MonitoringServerFactory from './monitoring/MonitoringServerFactory';
 import OCPIServer from './server/ocpi/OCPIServer';
 import OCPIServiceConfiguration from './types/configuration/OCPIServiceConfiguration';
 import ODataServer from './server/odata/ODataServer';
@@ -32,23 +35,27 @@ import global from './types/GlobalType';
 const MODULE_NAME = 'Bootstrap';
 
 export default class Bootstrap {
-  private static centralSystemRestConfig: CentralSystemRestServiceConfiguration;
+  private static database: MongoDBStorage;
+
   private static centralRestServer: CentralRestServer;
-  private static chargingStationConfig: ChargingStationConfiguration;
   private static storageConfig: StorageConfiguration;
-  private static centralSystemsConfig: CentralSystemConfiguration[];
   private static SoapCentralSystemServer: SoapCentralSystemServer;
   private static JsonCentralSystemServer: JsonCentralSystemServer;
-  private static ocpiConfig: OCPIServiceConfiguration;
   private static ocpiServer: OCPIServer;
-  private static oicpConfig: OICPServiceConfiguration;
   private static oicpServer: OICPServer;
-  private static oDataServerConfig: ODataServiceConfiguration;
   private static oDataServer: ODataServer;
-  private static database: MongoDBStorage;
+  private static monitoringServer: MonitoringServer;
+
+  private static centralSystemRestConfig: CentralSystemRestServiceConfiguration;
+  private static chargingStationConfig: ChargingStationConfiguration;
+  private static centralSystemsConfig: CentralSystemConfiguration[];
+  private static ocpiConfig: OCPIServiceConfiguration;
+  private static oicpConfig: OICPServiceConfiguration;
+  private static oDataServerConfig: ODataServiceConfiguration;
   private static migrationConfig: MigrationConfiguration;
   private static asyncTaskConfig: AsyncTaskConfiguration;
   private static schedulerConfig: SchedulerConfiguration;
+  private static monitoringConfig: MonitoringConfiguration;
 
   public static async start(): Promise<void> {
     let serverStarted: ServerType[] = [];
@@ -69,6 +76,7 @@ export default class Bootstrap {
       Bootstrap.migrationConfig = Configuration.getMigrationConfig();
       Bootstrap.asyncTaskConfig = Configuration.getAsyncTaskConfig();
       Bootstrap.schedulerConfig = Configuration.getSchedulerConfig();
+      Bootstrap.monitoringConfig = Configuration.getMonitoringConfig();
 
       // -------------------------------------------------------------------------
       // Listen to promise failure
@@ -163,6 +171,27 @@ export default class Bootstrap {
       } else {
         global.serverType = ServerType.CENTRAL_SERVER;
       }
+
+      // -------------------------------------------------------------------------
+      // Start Monitoring Server
+      // -------------------------------------------------------------------------
+      if (Bootstrap.monitoringConfig) {
+        // Create server instance
+        Bootstrap.monitoringServer = MonitoringServerFactory.getMonitoringServerImpl(Bootstrap.monitoringConfig);
+        // Start server instance
+        if (Bootstrap.monitoringServer) {
+          Bootstrap.monitoringServer.start();
+        } else {
+          const message = `Monitoring Server implementation does not exist '${this.monitoringConfig.implementation}'`;
+          Logging.logConsoleError(message);
+          await Logging.logError({
+            tenantID: Constants.DEFAULT_TENANT,
+            action: ServerAction.STARTUP,
+            module: MODULE_NAME, method: 'startServers', message
+          });
+        }
+      }
+
       await this.logDuration(startTimeGlobalMillis, `${serverStarted.join(', ')} server has been started successfuly`, ServerAction.BOOTSTRAP_STARTUP);
     } catch (error) {
       Logging.logConsoleError(error);
@@ -284,7 +313,7 @@ export default class Bootstrap {
       await Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.STARTUP,
-        module: MODULE_NAME, method: 'startServersListening',
+        module: MODULE_NAME, method: 'startServers',
         message: `Unexpected exception in ${serverTypes.join(', ')}: ${error?.message as string}`,
         detailedMessages: { error: error?.stack }
       });

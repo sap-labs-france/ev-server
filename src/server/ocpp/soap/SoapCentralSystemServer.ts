@@ -23,7 +23,7 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
   public httpServer: http.Server;
   private expressApplication: express.Application;
 
-  constructor(centralSystemConfig: CentralSystemConfiguration, chargingStationConfig: ChargingStationConfiguration) {
+  public constructor(centralSystemConfig: CentralSystemConfiguration, chargingStationConfig: ChargingStationConfiguration) {
     // Call parent
     super(centralSystemConfig, chargingStationConfig);
     // Initialize express app
@@ -38,7 +38,7 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
    * Start the server and listen to all SOAP OCPP versions
    * Listen to external command to send request to charging stations
    */
-  start(): void {
+  public start(): void {
     // Make it global for SOAP Services
     global.centralSystemSoapServer = this;
     ServerUtils.startHttpServer(this.centralSystemConfig, this.httpServer, MODULE_NAME, ServerType.SOAP_SERVER);
@@ -71,7 +71,7 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
     ExpressUtils.postInitApplication(this.expressApplication);
   }
 
-  readWsdl(filename: string): string {
+  private readWsdl(filename: string): string {
     return fs.readFileSync(`${global.appRoot}/assets/server/ocpp/wsdl/${filename}`, 'utf8');
   }
 
