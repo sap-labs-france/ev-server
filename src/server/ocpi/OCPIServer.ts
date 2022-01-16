@@ -19,7 +19,7 @@ export default class OCPIServer {
   private expressApplication: Application;
 
   // Create the rest server
-  constructor(ocpiRestConfig: OCPIServiceConfiguration) {
+  public constructor(ocpiRestConfig: OCPIServiceConfiguration) {
     // Keep params
     this.ocpiRestConfig = ocpiRestConfig;
     // Initialize express app

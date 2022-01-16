@@ -1,13 +1,13 @@
 import Asset from '../types/Asset';
 import ChargingStation from '../types/ChargingStation';
-import { Log } from '../types/Log';
 import Site from '../types/Site';
 import SiteArea from '../types/SiteArea';
 import Transaction from '../types/Transaction';
+import User from '../types/User';
 
 export default class LoggingHelper {
 
-  public static getTransactionProperties(transaction: Transaction): Partial<Log> {
+  public static getTransactionProperties(transaction: Transaction): { siteID: string; siteAreaID: string; companyID: string; chargingStationID: string; actionOnUser: User } {
     return {
       siteID: transaction.siteID,
       siteAreaID: transaction.siteAreaID,

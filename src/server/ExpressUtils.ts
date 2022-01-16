@@ -11,6 +11,7 @@ import helmet from 'helmet';
 import hpp from 'hpp';
 import locale from 'locale';
 import morgan from 'morgan';
+import sanitize from 'express-sanitizer';
 import useragent from 'express-useragent';
 
 bodyParserXml(bodyParser);
@@ -42,6 +43,8 @@ export default class ExpressUtils {
         ].join(' ')
       ));
     }
+    // Mount express-sanitizer middleware
+    app.use(sanitize());
     app.use(hpp());
     app.use(bodyParser['xml']({
       limit: bodyLimit

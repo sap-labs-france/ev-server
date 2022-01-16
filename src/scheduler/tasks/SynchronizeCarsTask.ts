@@ -10,12 +10,12 @@ import { TaskConfig } from '../../types/TaskConfig';
 import Utils from '../../utils/Utils';
 
 export default class SynchronizeCarsTask extends SchedulerTask {
-  public async run(name: string, config: TaskConfig): Promise<void> {
+  public async processTask(config: TaskConfig): Promise<void> {
     // Get the lock
     const syncCarCatalogLock = await LockingHelper.acquireSyncCarCatalogsLock(Constants.DEFAULT_TENANT);
     if (syncCarCatalogLock) {
       try {
-        const carDatabaseImpl = await CarFactory.getCarImpl();
+        const carDatabaseImpl = CarFactory.getCarImpl();
         if (carDatabaseImpl) {
           const synchronizeAction = await carDatabaseImpl.synchronizeCarCatalogs();
           if (synchronizeAction.inError > 0) {

@@ -3,13 +3,13 @@ import { LockEntity } from '../../types/Locking';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
-import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
+import TenantSchedulerTask from '../TenantSchedulerTask';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import Utils from '../../utils/Utils';
 
-export default class CheckSessionNotStartedAfterAuthorizeTask extends SchedulerTask {
+export default class CheckSessionNotStartedAfterAuthorizeTask extends TenantSchedulerTask {
   public async processTenant(tenant: Tenant, config: CheckSessionNotStartedAfterAuthorizeTaskConfig): Promise<void> {
     // Get the lock
     const sessionNotStartedLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.CHARGING_STATION, 'session-not-started-after-authorize');
