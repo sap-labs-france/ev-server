@@ -180,6 +180,9 @@
         "captchaSecretKey": {
           "type": "string"
         },
+        "captchaScore": {
+          "type": "number"
+        },
         "debug": {
           "type": "boolean"
         }
