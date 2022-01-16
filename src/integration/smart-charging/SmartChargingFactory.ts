@@ -7,7 +7,7 @@ import SmartChargingIntegration from './SmartChargingIntegration';
 import Utils from '../../utils/Utils';
 
 export default class SmartChargingFactory {
-  static async getSmartChargingImpl(tenant: Tenant): Promise<SmartChargingIntegration<SmartChargingSetting>> {
+  public static async getSmartChargingImpl(tenant: Tenant): Promise<SmartChargingIntegration<SmartChargingSetting>> {
     // Check if Smart Charging is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)) {
       // Get the Smart Charging's settings
