@@ -6,7 +6,7 @@ import PerformanceRecord, { PerformanceRecordGroup } from '../types/Performance'
 import Tenant, { TenantComponentContent, TenantComponents } from '../types/Tenant';
 import Transaction, { CSPhasesUsed, InactivityStatus } from '../types/Transaction';
 import User, { UserRole, UserStatus } from '../types/User';
-import crypto, { CipherGCMTypes } from 'crypto';
+import crypto, { CipherGCMTypes, randomUUID } from 'crypto';
 import global, { EntityData } from '../types/GlobalType';
 
 import Address from '../types/Address';
@@ -28,11 +28,11 @@ import bcrypt from 'bcryptjs';
 import fs from 'fs';
 import http from 'http';
 import moment from 'moment';
+import { nanoid } from 'nanoid';
 import os from 'os';
 import passwordGenerator from 'password-generator';
 import path from 'path';
 import tzlookup from 'tz-lookup';
-import { v4 as uuid } from 'uuid';
 import validator from 'validator';
 
 export default class Utils {
@@ -242,7 +242,15 @@ export default class Utils {
   }
 
   public static generateUUID(): string {
-    return uuid();
+    return randomUUID();
+  }
+
+  public static generateShortID(): string {
+    return nanoid();
+  }
+
+  public static generateShortNonUniqueID(length = 5): string {
+    return nanoid(length);
   }
 
   public static generateTagID(name: string, firstName: string): string {

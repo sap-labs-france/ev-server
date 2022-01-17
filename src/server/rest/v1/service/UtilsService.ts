@@ -12,7 +12,9 @@ import Asset from '../../../../types/Asset';
 import AssetStorage from '../../../../storage/mongodb/AssetStorage';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
+import AxiosFactory from '../../../../utils/AxiosFactory';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
+import CentralSystemRestServiceConfiguration from '../../../../types/configuration/CentralSystemRestServiceConfiguration';
 import { ChargingProfile } from '../../../../types/ChargingProfile';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Company from '../../../../types/Company';
@@ -50,6 +52,31 @@ import moment from 'moment';
 const MODULE_NAME = 'UtilsService';
 
 export default class UtilsService {
+
+  public static async checkReCaptcha(tenant: Tenant, action: ServerAction, method: string,
+      centralSystemRestConfig: CentralSystemRestServiceConfiguration, captcha: string, remoteAddress: string): Promise<void> {
+    const recaptchaURL = `https://www.google.com/recaptcha/api/siteverify?secret=${centralSystemRestConfig.captchaSecretKey}&response=${captcha}&remoteip=${remoteAddress}`;
+    const response = await AxiosFactory.getAxiosInstance(tenant).get(recaptchaURL);
+    if (!response.data.success) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        module: MODULE_NAME, action, method,
+        message: 'The Captcha is invalid',
+      });
+    }
+    if (response.data.score < centralSystemRestConfig.captchaScore) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        module: MODULE_NAME, action, method,
+        message: `The Captcha score is too low, got ${response.data.score as string} but expected ${centralSystemRestConfig.captchaScore}`,
+      });
+    }
+    await Logging.logDebug({
+      tenantID: tenant?.id,
+      module: MODULE_NAME, action, method,
+      message: `The Captcha score is ${response.data.score as string} (score limit is ${centralSystemRestConfig.captchaScore})`,
+    });
+  }
 
   public static async checkAndGetChargingStationAuthorization(tenant: Tenant, userToken: UserToken, chargingStationID: string,
       action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<ChargingStation> {
