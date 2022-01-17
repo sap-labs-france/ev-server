@@ -28,7 +28,7 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
     // Enable the collection of default metrics
     client.collectDefaultMetrics({
       register,
-      prefix: global.serverType.toLocaleLowerCase()
+      prefix: `${global.serverType.toLocaleLowerCase()}_`
     });
     // Create HTTP Server
     this.expressApplication = ExpressUtils.initApplication();
