@@ -21,7 +21,7 @@ export default class ConsumptionPricer {
   private pricingModel: ResolvedPricingModel;
   private consumptionData: Consumption;
 
-  constructor(tenant: Tenant, pricingModel: ResolvedPricingModel, consumptionData: Consumption) {
+  public constructor(tenant: Tenant, pricingModel: ResolvedPricingModel, consumptionData: Consumption) {
     this.tenant = tenant;
     this.pricingModel = pricingModel;
     this.consumptionData = consumptionData;
