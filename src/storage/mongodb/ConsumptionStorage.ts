@@ -192,132 +192,166 @@ export default class ConsumptionStorage {
       });
     }
 
-    const facets = {};
-    // Specific filters for each type of data
-    const detailedGroups = [SiteAreaValueTypes.ASSET_CONSUMPTIONS,
-      SiteAreaValueTypes.ASSET_PRODUCTIONS,
-      SiteAreaValueTypes.CHARGING_STATION_CONSUMPTIONS,
-      SiteAreaValueTypes.NET_CONSUMPTIONS];
-
-    for (const detailedType of detailedGroups) {
-      // Create filters
-      const facetFilters: FilterParams = {};
-      // Type of query
-      if (detailedType === SiteAreaValueTypes.ASSET_CONSUMPTIONS) {
-        facetFilters.instantWatts = { '$gte': 0 };
-        facetFilters.assetID = { '$ne': null };
-      } else if (detailedType === SiteAreaValueTypes.ASSET_PRODUCTIONS) {
-        facetFilters.instantWatts = { '$lt': 0 };
-        facetFilters.assetID = { '$ne': null };
-      } else if (detailedType === SiteAreaValueTypes.CHARGING_STATION_CONSUMPTIONS) {
-        facetFilters.chargeBoxID = { '$ne': null };
-      }
-      // Create Aggregation
-      const facetAggregation = [];
-      // Filters
-      if (facetFilters) {
-        facetAggregation.push({
-          $match: facetFilters
-        });
-      }
-      // grouping fields
-      const groupFields: GroupParams = {
-        _id: {
-          year: { '$year': '$startedAt' },
-          month: { '$month': '$startedAt' },
-          day: { '$dayOfMonth': '$startedAt' },
-          hour: { '$hour': '$startedAt' },
-          minute: { '$minute': '$startedAt' }
-        }
-      };
-      if (detailedType === SiteAreaValueTypes.ASSET_CONSUMPTIONS) {
-        groupFields[SiteAreaValueTypes.ASSET_CONSUMPTION_WATTS] = { $sum: '$instantWatts' };
-        groupFields[SiteAreaValueTypes.ASSET_CONSUMPTION_AMPS] = { $sum: '$instantAmps' };
-      } else if (detailedType === SiteAreaValueTypes.ASSET_PRODUCTIONS) {
-        groupFields[SiteAreaValueTypes.ASSET_PRODUCTION_WATTS] = { $sum: '$instantWatts' };
-        groupFields[SiteAreaValueTypes.ASSET_PRODUCTION_AMPS] = { $sum: '$instantAmps' };
-      } else if (detailedType === SiteAreaValueTypes.CHARGING_STATION_CONSUMPTIONS) {
-        groupFields[SiteAreaValueTypes.CHARGING_STATION_CONSUMPTION_WATTS] = { $sum: '$instantWatts' };
-        groupFields[SiteAreaValueTypes.CHARGING_STATION_CONSUMPTION_AMPS] = { $sum: '$instantAmps' };
-      } else {
-        groupFields[SiteAreaValueTypes.NET_CONSUMPTION_WATTS] = { $sum: '$instantWatts' };
-        groupFields[SiteAreaValueTypes.NET_CONSUMPTION_AMPS] = { $sum: '$instantAmps' };
-        groupFields.limitWatts = { $last: '$limitSiteAreaWatts' };
-        groupFields.limitAmps = { $last: '$limitSiteAreaAmps' };
-      }
-      facetAggregation.push({
-        $group: groupFields
-      });
-      facets[detailedType] = facetAggregation;
-    }
-    // Group consumption values per minute
-    aggregation.push({
-      $facet: facets
-    });
-    // Push different facet pipeline data into one
-    aggregation.push({
-      $addFields: {
-        'allInOne': {
-          $setUnion: [
-            '$' + SiteAreaValueTypes.ASSET_CONSUMPTIONS,
-            '$' + SiteAreaValueTypes.ASSET_PRODUCTIONS,
-            '$' + SiteAreaValueTypes.CHARGING_STATION_CONSUMPTIONS,
-            '$' + SiteAreaValueTypes.NET_CONSUMPTIONS
-          ]
-        }
-      }
-    });
-    // Project only all in one array object
-    aggregation.push({
-      $project: {
-        'allInOne': 1
-      }
-    });
-    // Unwind the array
-    aggregation.push({
-      $unwind: {
-        path: '$allInOne',
-        preserveNullAndEmptyArrays: false
-      }
-    });
-    // Group and calculate sum of individual fields
-    const groupFields = {
-      _id: '$allInOne._id'
+    // grouping fields
+    const groupFields: GroupParams = {
+      _id: {
+        year: { '$year': '$startedAt' },
+        month: { '$month': '$startedAt' },
+        day: { '$dayOfMonth': '$startedAt' },
+        hour: { '$hour': '$startedAt' },
+        minute: { '$minute': '$startedAt' },
+        assetID: '$assetID',
+        chargeBoxID: '$chargeBoxID',
+      },
+      InstantWattsT: { $avg: '$instantWatts' },
+      InstantAmpsT: { $avg: '$instantAmps' },
+      LimitWattsT: { $last: '$limitSiteAreaWatts' },
+      LimitAmpsT: { $last: '$limitSiteAreaAmps' },
     };
-    groupFields[SiteAreaValueTypes.ASSET_CONSUMPTION_WATTS] = { $sum: '$allInOne.' + SiteAreaValueTypes.ASSET_CONSUMPTION_WATTS };
-    groupFields[SiteAreaValueTypes.ASSET_CONSUMPTION_AMPS] = { $sum: '$allInOne.' + SiteAreaValueTypes.ASSET_CONSUMPTION_AMPS };
-    groupFields[SiteAreaValueTypes.ASSET_PRODUCTION_WATTS] = { $sum: { $multiply: ['$allInOne.' + SiteAreaValueTypes.ASSET_PRODUCTION_WATTS, -1] } };
-    groupFields[SiteAreaValueTypes.ASSET_PRODUCTION_AMPS] = { $sum: { $multiply: ['$allInOne.' + SiteAreaValueTypes.ASSET_PRODUCTION_AMPS, -1] } };
-    groupFields[SiteAreaValueTypes.CHARGING_STATION_CONSUMPTION_WATTS] = { $sum: '$allInOne.' + SiteAreaValueTypes.CHARGING_STATION_CONSUMPTION_WATTS };
-    groupFields[SiteAreaValueTypes.CHARGING_STATION_CONSUMPTION_AMPS] = { $sum: '$allInOne.' + SiteAreaValueTypes.CHARGING_STATION_CONSUMPTION_AMPS };
-    groupFields[SiteAreaValueTypes.NET_CONSUMPTION_WATTS] = { $sum: '$allInOne.' + SiteAreaValueTypes.NET_CONSUMPTION_WATTS };
-    groupFields[SiteAreaValueTypes.NET_CONSUMPTION_AMPS] = { $sum: '$allInOne.' + SiteAreaValueTypes.NET_CONSUMPTION_AMPS };
-    groupFields['limitWatts'] = { $last: '$allInOne.limitWatts' };
-    groupFields['limitAmps'] = { $last: '$allInOne.limitAmps' };
+
     aggregation.push({
       $group: groupFields
     });
-    // Rebuild the date
+
+    // add fields
     aggregation.push({
       $addFields: {
-        startedAt: {
-          $dateFromParts: {
-            'year': '$_id.year',
-            'month': '$_id.month',
-            'day': '$_id.day',
-            'hour': '$_id.hour',
-            'minute': '$_id.minute'
-          }
+        '_id.productionAsset': {
+          $and: [{
+            $lt: ['$InstantWattsT', 0]
+          },{
+            $ne: ['$_id.assetID', null]
+          }]
+        },
+        '_id.consumptionAsset': {
+          $and: [{
+            $gte: ['$InstantWattsT', 0]
+          },{
+            $ne: ['$_id.assetID', null]
+          }]
+        },
+        '_id.chargingStation': {
+          $ne: ['$_id.chargeBoxID', null]
         }
       }
     });
-    // Same date
-    // Convert instant watts / amps to absolute value
+
+    const groupFieldsByType: GroupParams = {
+      _id: {
+        year: '$_id.year',
+        month: '$_id.month',
+        day: '$_id.day',
+        hour: '$_id.hour',
+        minute: '$_id.minute',
+        productionAsset: '$_id.productionAsset',
+        consumptionAsset: '$_id.consumptionAsset',
+        chargingStation: '$_id.chargingStation',
+      },
+      'InstantWattsT': {
+        $sum: '$InstantWattsT'
+      },
+      'InstantAmpsT': {
+        $sum: '$InstantAmpsT'
+      },
+      'LimitWattsT': {
+        $last: '$LimitWattsT'
+      },
+      'LimitAmpsT': {
+        $last: '$LimitAmpsT'
+      }
+    };
+
+    // group based on type
     aggregation.push({
-      $addFields: {
-        endedAt: '$startedAt'
+      $group: groupFieldsByType
+    });
+
+    aggregation.push({
+      $group: {
+        _id: {
+          year: '$_id.year',
+          month: '$_id.month',
+          day: '$_id.day',
+          hour: '$_id.hour',
+          minute: '$_id.minute',
+        },
+        [SiteAreaValueTypes.ASSET_CONSUMPTION_WATTS]: {
+          $sum: {
+            $cond: [
+              { $eq: ['$_id.consumptionAsset', true] },
+              '$InstantWattsT',
+              0
+            ]
+          }
+        },
+        [SiteAreaValueTypes.ASSET_CONSUMPTION_AMPS]: {
+          $sum: {
+            $cond: [
+              { $eq: ['$_id.consumptionAsset', true] },
+              '$InstantAmpsT',
+              0
+            ]
+          }
+        },
+        [SiteAreaValueTypes.ASSET_PRODUCTION_WATTS]: {
+          $sum: {
+            $cond: [
+              { $eq: ['$_id.productionAsset', true] },
+              '$InstantWattsT',
+              0
+            ]
+          }
+        },
+        [SiteAreaValueTypes.ASSET_PRODUCTION_AMPS]: {
+          $sum: {
+            $cond: [
+              { $eq: ['$_id.productionAsset', true] },
+              '$InstantAmpsT',
+              0
+            ]
+          }
+        },
+        [SiteAreaValueTypes.CHARGING_STATION_CONSUMPTION_WATTS]: {
+          $sum: {
+            $cond: [
+              { $eq: ['$_id.chargingStation', true] },
+              '$InstantWattsT',
+              0
+            ]
+          }
+        },
+        [SiteAreaValueTypes.CHARGING_STATION_CONSUMPTION_AMPS]: {
+          $sum: {
+            $cond: [
+              { $eq: ['$_id.chargingStation', true] },
+              '$InstantAmpsT',
+              0
+            ]
+          }
+        },
+        'limitWatts': {
+          $last: '$LimitWattsT'
+        },
+        'limitAmps': {
+          $last: '$LimitAmpsT'
+        }
       }
     });
+
+    aggregation.push({
+      $addFields: {
+        startedAt: {
+          $dateFromParts: { 'year': '$_id.year', 'month': '$_id.month', 'day': '$_id.day', 'hour': '$_id.hour', 'minute': '$_id.minute' }
+        },
+        [SiteAreaValueTypes.NET_CONSUMPTION_WATTS]: {
+          $sum: ['$' + SiteAreaValueTypes.ASSET_CONSUMPTION_WATTS, '$' + SiteAreaValueTypes.ASSET_PRODUCTION_WATTS, '$' + SiteAreaValueTypes.CHARGING_STATION_CONSUMPTION_WATTS]
+        },
+        [SiteAreaValueTypes.NET_CONSUMPTION_AMPS]: {
+          $sum: ['$' + SiteAreaValueTypes.ASSET_CONSUMPTION_AMPS, '$' + SiteAreaValueTypes.ASSET_PRODUCTION_AMPS, '$' + SiteAreaValueTypes.CHARGING_STATION_CONSUMPTION_AMPS]
+        }
+      }
+    });
+
     aggregation.push({
       $sort: {
         startedAt: 1
@@ -329,6 +363,7 @@ export default class ConsumptionStorage {
         _id: 0
       }
     });
+
     // Read DB
     const consumptionsMDB = await global.database.getCollection<Consumption>(tenant.id, 'consumptions')
       .aggregate<Consumption>(aggregation, DatabaseUtils.buildAggregateOptions())
