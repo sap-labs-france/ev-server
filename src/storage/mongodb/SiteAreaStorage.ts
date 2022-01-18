@@ -96,6 +96,7 @@ export default class SiteAreaStorage {
       maximumPower: Utils.convertToFloat(siteAreaToSave.maximumPower),
       voltage: Utils.convertToInt(siteAreaToSave.voltage),
       numberOfPhases: Utils.convertToInt(siteAreaToSave.numberOfPhases),
+      tariffID: siteAreaToSave.tariffID,
     };
     if (siteAreaToSave.address) {
       siteAreaMDB.address = {

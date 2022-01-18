@@ -279,25 +279,30 @@ export default class SiteAreaService {
       });
     }
     // Check Site auth
-    await UtilsService.checkAndGetSiteAuthorization(
+    const site = await UtilsService.checkAndGetSiteAuthorization(
       req.tenant, req.user, filteredRequest.siteID, Action.UPDATE, action);
     // Create Site Area
-    const newSiteArea: SiteArea = {
+    const siteArea: SiteArea = {
       ...filteredRequest,
       issuer: true,
       createdBy: { id: req.user.id },
       createdOn: new Date()
     } as SiteArea;
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
+      if (!site.public) {
+        delete siteArea.tariffID;
+      }
+    }
     // Save
-    newSiteArea.id = await SiteAreaStorage.saveSiteArea(req.tenant, newSiteArea, true);
+    siteArea.id = await SiteAreaStorage.saveSiteArea(req.tenant, siteArea, true);
     await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleCreateSiteArea',
-      message: `Site Area '${newSiteArea.name}' has been created successfully`,
+      message: `Site Area '${siteArea.name}' has been created successfully`,
       action: action,
-      detailedMessages: { siteArea: newSiteArea }
+      detailedMessages: { siteArea: siteArea }
     });
-    res.json(Object.assign({ id: newSiteArea.id }, Constants.REST_RESPONSE_SUCCESS));
+    res.json(Object.assign({ id: siteArea.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 
@@ -313,9 +318,10 @@ export default class SiteAreaService {
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest, {
         withChargingStations: true,
+        withSite: true,
       }, false);
     // Check Site auth
-    await UtilsService.checkAndGetSiteAuthorization(
+    const site = await UtilsService.checkAndGetSiteAuthorization(
       req.tenant, req.user, filteredRequest.siteID, Action.READ, action);
     // Update
     siteArea.name = filteredRequest.name;
@@ -342,6 +348,14 @@ export default class SiteAreaService {
       }
     }
     siteArea.numberOfPhases = filteredRequest.numberOfPhases;
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
+      if (Utils.objectHasProperty(filteredRequest, 'tariffID')) {
+        siteArea.tariffID = filteredRequest.tariffID;
+      }
+      if (!site.public) {
+        delete siteArea.tariffID;
+      }
+    }
     let actionsResponse: ActionsResponse;
     if (siteArea.smartCharging && !filteredRequest.smartCharging) {
       actionsResponse = await OCPPUtils.clearAndDeleteChargingProfilesForSiteArea(
