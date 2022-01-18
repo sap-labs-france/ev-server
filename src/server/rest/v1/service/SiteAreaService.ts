@@ -342,7 +342,11 @@ export default class SiteAreaService {
       }
     }
     siteArea.numberOfPhases = filteredRequest.numberOfPhases;
-    siteArea.tariffID = filteredRequest.tariffID;
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
+      if (Utils.objectHasProperty(filteredRequest, 'tariffID')) {
+        siteArea.tariffID = filteredRequest.tariffID;
+      }
+    }
     let actionsResponse: ActionsResponse;
     if (siteArea.smartCharging && !filteredRequest.smartCharging) {
       actionsResponse = await OCPPUtils.clearAndDeleteChargingProfilesForSiteArea(
