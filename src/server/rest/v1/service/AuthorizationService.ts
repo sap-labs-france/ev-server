@@ -223,17 +223,13 @@ export default class AuthorizationService {
   }
 
   public static async addUserAuthorizations(tenant: Tenant, userToken: UserToken, user: User, authorizationFilter: AuthorizationFilter): Promise<void> {
-    if (!user.issuer) {
-      user.canRead = true;
-    } else {
-      user.canRead = true; // Always true as it should be filtered upfront
-      user.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.USER, Action.UPDATE, authorizationFilter, { UserID: user.id }, user);
-      user.canDelete = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.USER, Action.DELETE, authorizationFilter, { UserID: user.id }, user);
-      // Optimize data over the net
-      Utils.removeCanPropertiesWithFalseValue(user);
-    }
+    user.canRead = true; // Always true as it should be filtered upfront
+    user.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.USER, Action.UPDATE, authorizationFilter, { UserID: user.id }, user);
+    user.canDelete = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.USER, Action.DELETE, authorizationFilter, { UserID: user.id }, user);
+    // Optimize data over the net
+    Utils.removeCanPropertiesWithFalseValue(user);
   }
 
   public static async checkAndGetUsersAuthorizations(tenant: Tenant, userToken: UserToken,
@@ -340,25 +336,21 @@ export default class AuthorizationService {
   }
 
   public static async addTagAuthorizations(tenant: Tenant, userToken: UserToken, tag: Tag, authorizationFilter: AuthorizationFilter): Promise<void> {
-    if (!tag.issuer) {
-      tag.canRead = true;
-    } else {
-      tag.canRead = true; // Always true as it should be filtered upfront
-      tag.canDelete = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.TAG, Action.DELETE, authorizationFilter, { TagID: tag.id }, tag);
-      tag.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.TAG, Action.UPDATE, authorizationFilter, { TagID: tag.id }, tag);
-      tag.canUpdateByVisualID = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.TAG, Action.UPDATE_BY_VISUAL_ID, authorizationFilter, { TagID: tag.id }, tag);
-      tag.canUnassign = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.TAG, Action.UNASSIGN, authorizationFilter, { TagID: tag.id }, tag);
-      tag.canAssign = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.TAG, Action.ASSIGN, authorizationFilter, { TagID: tag.id }, tag);
-      tag.canListUsers = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.USER, Action.LIST, authorizationFilter);
-      // Optimize data over the net
-      Utils.removeCanPropertiesWithFalseValue(tag);
-    }
+    tag.canRead = true; // Always true as it should be filtered upfront
+    tag.canDelete = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TAG, Action.DELETE, authorizationFilter, { TagID: tag.id }, tag);
+    tag.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TAG, Action.UPDATE, authorizationFilter, { TagID: tag.id }, tag);
+    tag.canUpdateByVisualID = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TAG, Action.UPDATE_BY_VISUAL_ID, authorizationFilter, { TagID: tag.id }, tag);
+    tag.canUnassign = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TAG, Action.UNASSIGN, authorizationFilter, { TagID: tag.id }, tag);
+    tag.canAssign = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TAG, Action.ASSIGN, authorizationFilter, { TagID: tag.id }, tag);
+    tag.canListUsers = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.USER, Action.LIST, authorizationFilter);
+    // Optimize data over the net
+    Utils.removeCanPropertiesWithFalseValue(tag);
   }
 
   public static async checkAndGetRegistrationTokenAuthorizations(tenant: Tenant, userToken: UserToken,
