@@ -6,8 +6,7 @@ import EVBOXChargingStationVendorIntegration from './evbox/EVBOXChargingStationV
 import KebaChargingStationVendorIntegration from './keba/KebaChargingStationVendorIntegration';
 
 export default class ChargingStationVendorFactory {
-
-  static getChargingStationVendorImpl(chargingStation: ChargingStation): ChargingStationVendorIntegration {
+  public static getChargingStationVendorImpl(chargingStation: ChargingStation): ChargingStationVendorIntegration {
     let chargingStationVendorImpl: ChargingStationVendorIntegration = null;
     switch (chargingStation.chargePointVendor) {
       case ChargerVendor.EVBOX:

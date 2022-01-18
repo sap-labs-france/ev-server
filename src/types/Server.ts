@@ -688,6 +688,7 @@ export enum ServerType {
   OICP_SERVER = 'Oicp',
   ODATA_SERVER = 'OData',
   BATCH_SERVER = 'Batch',
+  MONITORING_SERVER = 'Monitoring',
   CENTRAL_SERVER = 'CentralServer',
 }
 

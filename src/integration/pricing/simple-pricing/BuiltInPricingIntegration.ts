@@ -17,7 +17,7 @@ import Utils from '../../../utils/Utils';
 const MODULE_NAME = 'BuiltInPricingIntegration';
 
 export default class BuiltInPricingIntegration extends PricingIntegration<SimplePricingSetting> {
-  constructor(tenant: Tenant, readonly settings: SimplePricingSetting) {
+  public constructor(tenant: Tenant, private readonly settings: SimplePricingSetting) {
     super(tenant, settings);
   }
 

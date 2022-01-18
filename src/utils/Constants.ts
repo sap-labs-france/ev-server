@@ -309,7 +309,7 @@ export default class Constants {
   public static readonly CSV_ESCAPING_CHARACTER = '\'';
 
   public static readonly EXCEPTION_JSON_KEYS_IN_SENSITIVE_DATA = Object.freeze([
-    'stack'
+    'error', 'stack'
   ]);
 
   public static readonly SENSITIVE_DATA = Object.freeze([

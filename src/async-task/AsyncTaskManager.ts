@@ -101,7 +101,7 @@ export default class AsyncTaskManager {
                   tenantID: Constants.DEFAULT_TENANT,
                   action: ServerAction.ASYNC_TASK,
                   module: MODULE_NAME, method: 'handleAsyncTasks',
-                  message: `The asynchronous task '${asyncTask.name}' is running...`
+                  message: `The Task '${asyncTask.name}~${abstractAsyncTask.getCorrelationID()}' is running...`
                 });
                 // Run
                 await abstractAsyncTask.run();
@@ -118,7 +118,7 @@ export default class AsyncTaskManager {
                   tenantID: Constants.DEFAULT_TENANT,
                   action: ServerAction.ASYNC_TASK,
                   module: MODULE_NAME, method: 'handleAsyncTasks',
-                  message: `The asynchronous task '${asyncTask.name}' has been processed in ${asyncTaskTotalDurationSecs} secs`
+                  message: `The Task '${asyncTask.name}~${abstractAsyncTask.getCorrelationID()}' has been processed in ${asyncTaskTotalDurationSecs} secs`
                 });
               } catch (error) {
                 processedTask.inError++;
@@ -133,7 +133,7 @@ export default class AsyncTaskManager {
                   tenantID: Constants.DEFAULT_TENANT,
                   module: MODULE_NAME, method: 'handleAsyncTasks',
                   action: ServerAction.ASYNC_TASK,
-                  message: `Error while running the asynchronous task '${asyncTask.name}': ${error.message as string}`,
+                  message: `Error while running the Task '${asyncTask.name}~${abstractAsyncTask.getCorrelationID()}': ${error.message as string}`,
                   detailedMessages: { error: error.stack, asyncTask }
                 });
               } finally {
@@ -164,33 +164,34 @@ export default class AsyncTaskManager {
   }
 
   private static async createTask(asyncTask: AsyncTask): Promise<AbstractAsyncTask> {
+    const correlationID = Utils.generateShortNonUniqueID();
     switch (asyncTask.name) {
       case AsyncTasks.BILL_TRANSACTION:
-        return new BillTransactionAsyncTask(asyncTask);
+        return new BillTransactionAsyncTask(asyncTask, correlationID);
       case AsyncTasks.TAGS_IMPORT:
-        return new TagsImportAsyncTask(asyncTask);
+        return new TagsImportAsyncTask(asyncTask, correlationID);
       case AsyncTasks.USERS_IMPORT:
-        return new UsersImportAsyncTask(asyncTask);
+        return new UsersImportAsyncTask(asyncTask, correlationID);
       case AsyncTasks.SYNCHRONIZE_CAR_CATALOGS:
-        return new SynchronizeCarCatalogsAsyncTask(asyncTask);
+        return new SynchronizeCarCatalogsAsyncTask(asyncTask, correlationID);
       case AsyncTasks.OCPI_PUSH_TOKENS:
-        return new OCPIPushTokensAsyncTask(asyncTask);
+        return new OCPIPushTokensAsyncTask(asyncTask, correlationID);
       case AsyncTasks.OCPI_PULL_LOCATIONS:
-        return new OCPIPullLocationsAsyncTask(asyncTask);
+        return new OCPIPullLocationsAsyncTask(asyncTask, correlationID);
       case AsyncTasks.OCPI_PULL_SESSIONS:
-        return new OCPIPullSessionsAsyncTask(asyncTask);
+        return new OCPIPullSessionsAsyncTask(asyncTask, correlationID);
       case AsyncTasks.OCPI_PULL_CDRS:
-        return new OCPIPullCdrsAsyncTask(asyncTask);
+        return new OCPIPullCdrsAsyncTask(asyncTask, correlationID);
       case AsyncTasks.OCPI_CHECK_CDRS:
-        return new OCPICheckCdrsAsyncTask(asyncTask);
+        return new OCPICheckCdrsAsyncTask(asyncTask, correlationID);
       case AsyncTasks.OCPI_CHECK_SESSIONS:
-        return new OCPICheckSessionsAsyncTask(asyncTask);
+        return new OCPICheckSessionsAsyncTask(asyncTask, correlationID);
       case AsyncTasks.OCPI_CHECK_LOCATIONS:
-        return new OCPICheckLocationsAsyncTask(asyncTask);
+        return new OCPICheckLocationsAsyncTask(asyncTask, correlationID);
       case AsyncTasks.OCPI_PULL_TOKENS:
-        return new OCPIPullTokensAsyncTask(asyncTask);
+        return new OCPIPullTokensAsyncTask(asyncTask, correlationID);
       case AsyncTasks.OCPI_PUSH_EVSE_STATUSES:
-        return new OCPIPushEVSEStatusesAsyncTask(asyncTask);
+        return new OCPIPushEVSEStatusesAsyncTask(asyncTask, correlationID);
       default:
         await Logging.logError({
           tenantID: Constants.DEFAULT_TENANT,

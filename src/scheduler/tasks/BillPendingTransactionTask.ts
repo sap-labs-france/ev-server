@@ -7,8 +7,8 @@ import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
 import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
-import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
+import TenantSchedulerTask from '../TenantSchedulerTask';
 import { TransactionAction } from '../../types/Transaction';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import Utils from '../../utils/Utils';
@@ -16,7 +16,7 @@ import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'BillPendingTransactionTask';
 
-export default class BillPendingTransactionTask extends SchedulerTask {
+export default class BillPendingTransactionTask extends TenantSchedulerTask {
   public async processTenant(tenant: Tenant, /* config: TaskConfig */): Promise<void> {
     try {
       // Check if OCPI component is active

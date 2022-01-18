@@ -16,6 +16,7 @@ import FirebaseConfiguration from '../types/configuration/FirebaseConfiguration'
 import JsonEndpointConfiguration from '../types/configuration/JsonEndpointConfiguration';
 import LoggingConfiguration from '../types/configuration/LoggingConfiguration';
 import MigrationConfiguration from '../types/configuration/MigrationConfiguration';
+import MonitoringConfiguration from '../types/configuration/MonitoringConfiguration';
 import NotificationConfiguration from '../types/configuration/NotificationConfiguration';
 import OCPIEndpointConfiguration from '../types/configuration/OCPIEndpointConfiguration';
 import OCPIServiceConfiguration from '../types/configuration/OCPIServiceConfiguration';
@@ -99,7 +100,17 @@ export default class Configuration {
   public static getCentralSystemRestServiceConfig(): CentralSystemRestServiceConfiguration {
     const centralSystemRestService = Configuration.getConfig().CentralSystemRestService;
     if (!Configuration.isUndefined('CentralSystemRestService', centralSystemRestService)) {
+      if (Configuration.isUndefined('CentralSystemRestService.captchaScore', centralSystemRestService.captchaScore)) {
+        centralSystemRestService.captchaScore = 0.25;
+      }
       return centralSystemRestService;
+    }
+  }
+
+  public static getMonitoringConfig(): MonitoringConfiguration {
+    const monitoring = Configuration.getConfig().Monitoring;
+    if (!Configuration.isUndefined('Monitoring', monitoring)) {
+      return monitoring;
     }
   }
 
