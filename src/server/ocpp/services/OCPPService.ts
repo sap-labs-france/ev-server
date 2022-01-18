@@ -766,24 +766,19 @@ export default class OCPPService {
         tenant, chargingStation.id, connector.connectorId, { withUser: true });
       // Transaction completed
       if (lastTransaction?.stop) {
-        let transactionUpdated = false;
         // Check Inactivity
-        transactionUpdated = await this.checkAndComputeTransactionExtraInactivityFromStatusNotification(
+        const transactionUpdated = await this.checkAndComputeTransactionExtraInactivityFromStatusNotification(
           tenant, chargingStation, lastTransaction, connector, statusNotification);
-        // Billing - We now know the extra inactivity - the invoice can be generated
-        if (transactionUpdated) {
-          // TODO: Always true!!! Should be set by the Billing itself
-          transactionUpdated ||= true;
-          await OCPPUtils.processTransactionBilling(tenant, lastTransaction, TransactionAction.END);
-        }
+        // Billing: Trigger the asynchronous billing task
+        const billingDataUpdated = await this.checkAndBillTransaction(tenant, lastTransaction);
         // OCPI: Post the CDR
-        transactionUpdated ||= await this.checkAndSendOCPITransactionCdr(
+        const ocpiUpdated = await this.checkAndSendOCPITransactionCdr(
           tenant, lastTransaction, chargingStation, lastTransaction.tag);
         // OICP: Post the CDR
-        transactionUpdated ||= await this.checkAndSendOICPTransactionCdr(
+        const oicpUpdated = await this.checkAndSendOICPTransactionCdr(
           tenant, lastTransaction, chargingStation, lastTransaction.tag);
         // Save
-        if (transactionUpdated) {
+        if (transactionUpdated || billingDataUpdated || ocpiUpdated || oicpUpdated) {
           await TransactionStorage.saveTransaction(tenant, lastTransaction);
         }
       } else if (!Utils.isNullOrUndefined(lastTransaction)) {
@@ -868,6 +863,17 @@ export default class OCPPService {
       }
     }
     return extraInactivityUpdated;
+  }
+
+  private async checkAndBillTransaction(tenant: Tenant, transaction: Transaction): Promise<boolean> {
+    let transactionUpdated = false;
+    // Make sure the Extra Inactivity is already known
+    if (transaction.stop?.extraInactivityComputed) {
+      transactionUpdated = true;
+      // Billing - Start the asynchronous billing flow
+      await OCPPUtils.processTransactionBilling(tenant, transaction, TransactionAction.END);
+    }
+    return transactionUpdated;
   }
 
   private async checkAndSendOCPITransactionCdr(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, tag: Tag): Promise<boolean> {
