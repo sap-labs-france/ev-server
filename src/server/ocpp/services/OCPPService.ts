@@ -382,7 +382,8 @@ export default class OCPPService {
       // Handle car and current SOC
       await this.processTransactionCar(tenant, newTransaction, chargingStation, null, user, TransactionAction.START);
       // Pricing
-      await OCPPUtils.processTransactionPricing(tenant, newTransaction, chargingStation, null, TransactionAction.START);
+      const firstConsumption = await OCPPUtils.createFirstConsumption(tenant, chargingStation, newTransaction);
+      await OCPPUtils.processTransactionPricing(tenant, newTransaction, chargingStation, firstConsumption, TransactionAction.START);
       // Billing
       await OCPPUtils.processTransactionBilling(tenant, newTransaction, TransactionAction.START);
       // Roaming
