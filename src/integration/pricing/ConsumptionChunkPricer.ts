@@ -9,7 +9,7 @@ export default class ConsumptionChunkPricer {
   private consumptionChunk: ConsumptionChunk;
   private actualPricingDefinitions: ResolvedPricingDefinition[];
 
-  constructor(consumptionPricer: ConsumptionPricer, consumptionChunk: ConsumptionChunk) {
+  public constructor(consumptionPricer: ConsumptionPricer, consumptionChunk: ConsumptionChunk) {
     this.consumptionPricer = consumptionPricer;
     this.consumptionChunk = consumptionChunk;
     const actualPricingDefinitions = this.getPricingModel().pricingDefinitions.filter((pricingDefinition) =>
