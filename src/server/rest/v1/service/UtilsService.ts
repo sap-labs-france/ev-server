@@ -115,6 +115,7 @@ export default class UtilsService {
     UtilsService.assertObjectExists(action, chargingStation, `ChargingStation ID '${chargingStationID}' does not exist`,
       MODULE_NAME, 'checkAndGetChargingStationAuthorization', userToken);
     // External Charging Station
+    // TODO: require auth migration to remove below check -> checkAndGetChargingStationAuthorizations doesn't use auth definition !
     if (!chargingStation.issuer) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
@@ -315,6 +316,7 @@ export default class UtilsService {
     UtilsService.assertObjectExists(action, user, `User ID '${userID}' does not exist`,
       MODULE_NAME, 'checkAndGetUserAuthorization', userToken);
     // External User
+    // TODO: need alignement of auth definition to remove below check
     if (checkIssuer && !user.issuer) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
@@ -546,18 +548,6 @@ export default class UtilsService {
         module: MODULE_NAME, method: 'checkUserSitesAuthorization',
       });
     }
-    for (const site of sites) {
-      // External Site
-      if (!site.issuer) {
-        throw new AppError({
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: `Site ID '${site.id}' not issued by the organization`,
-          module: MODULE_NAME, method: 'checkUserSitesAuthorization',
-          user: userToken,
-          action: action
-        });
-      }
-    }
     return sites;
   }
 
@@ -606,19 +596,6 @@ export default class UtilsService {
         module: MODULE_NAME, method: 'checkSiteUsersAuthorization',
       });
     }
-    for (const user of users) {
-      // External User
-      if (!user.issuer) {
-        throw new AppError({
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: `User ID '${user.id}' not issued by the organization`,
-          module: MODULE_NAME, method: 'checkSiteUsersAuthorization',
-          user: userToken,
-          actionOnUser: user,
-          action: action
-        });
-      }
-    }
     return users;
   }
 
@@ -663,18 +640,6 @@ export default class UtilsService {
         entity: Entity.ASSET,
         module: MODULE_NAME, method: 'checkSiteAreaAssetsAuthorization',
       });
-    }
-    for (const asset of assets) {
-      // External Asset
-      if (!asset.issuer) {
-        throw new AppError({
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: `Asset ID '${asset.id}' not issued by the organization`,
-          module: MODULE_NAME, method: 'checkSiteAreaAssetsAuthorization',
-          user: userToken,
-          action: action
-        });
-      }
     }
     return assets;
   }
@@ -721,18 +686,6 @@ export default class UtilsService {
         entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'checkSiteAreaChargingStationsAuthorization',
       });
-    }
-    for (const chargingStation of chargingStations) {
-      // External Charging Station
-      if (!chargingStation.issuer) {
-        throw new AppError({
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: `Charging Station ID '${chargingStation.id}' not issued by the organization`,
-          module: MODULE_NAME, method: 'checkSiteAreaChargingStationsAuthorization',
-          user: userToken,
-          action: action
-        });
-      }
     }
     return chargingStations;
   }
@@ -888,15 +841,15 @@ export default class UtilsService {
   }
 
   public static async checkAndGetTagAuthorization(tenant: Tenant, userToken:UserToken, tagID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false, checkIssuer = true): Promise<Tag> {
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Tag> {
     return UtilsService.checkAndGetTagByXXXAuthorization(tenant, userToken, tagID, TagStorage.getTag.bind(this),
-      authAction, action, entityData, additionalFilters, applyProjectFields, checkIssuer);
+      authAction, action, entityData, additionalFilters, applyProjectFields);
   }
 
   public static async checkAndGetTagByVisualIDAuthorization(tenant: Tenant, userToken:UserToken, tagID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false, checkIssuer = true): Promise<Tag> {
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Tag> {
     return UtilsService.checkAndGetTagByXXXAuthorization(tenant, userToken, tagID, TagStorage.getTagByVisualID.bind(this),
-      authAction, action, entityData, additionalFilters, applyProjectFields, checkIssuer);
+      authAction, action, entityData, additionalFilters, applyProjectFields);
   }
 
   public static sendEmptyDataResult(res: Response, next: NextFunction): void {
@@ -1988,7 +1941,7 @@ export default class UtilsService {
 
   private static async checkAndGetTagByXXXAuthorization(tenant: Tenant, userToken:UserToken, id: string,
       getTagByXXX: (tenant: Tenant, id: string, params: any, projectedFileds: string[]) => Promise<Tag>, authAction: Action,
-      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false, checkIssuer = true): Promise<Tag> {
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Tag> {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, id, MODULE_NAME, 'checkAndGetTagByXXXAuthorization', userToken);
     // Get dynamic auth
@@ -2013,17 +1966,6 @@ export default class UtilsService {
     );
     UtilsService.assertObjectExists(action, tag, `Tag ID '${id}' does not exist`,
       MODULE_NAME, 'handleGetTag', userToken);
-    // External Tag
-    if (checkIssuer && !tag.issuer) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `Tag ID '${tag.id}' not issued by the organization`,
-        module: MODULE_NAME, method: 'checkAndGetTagByXXXAuthorization',
-        user: userToken,
-        action: action,
-        detailedMessages: { tag }
-      });
-    }
     // Assign projected fields
     if (authorizationFilter.projectFields) {
       tag.projectFields = authorizationFilter.projectFields;
