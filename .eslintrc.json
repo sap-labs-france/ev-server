@@ -19,6 +19,7 @@
     "plugin:import/typescript"
   ],
   "rules": {
+    "@typescript-eslint/explicit-member-accessibility": "off",
     "jsdoc/require-jsdoc": "off",
     "indent": "off",
     "@typescript-eslint/indent": [
@@ -208,5 +209,13 @@
       "error",
       "single"
     ]
-  }
+  },
+  "overrides": [
+    {
+      "files": ["*.ts", "*.tsx"],
+      "rules": {
+        "@typescript-eslint/explicit-member-accessibility": ["error"]
+      }
+    }
+  ]
 }

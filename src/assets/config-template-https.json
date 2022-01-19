@@ -40,6 +40,7 @@
     "passwordWrongNumberOfTrial": 3,
     "passwordBlockedWaitTimeMin": 5,
     "captchaSecretKey": "YourCaptchaSecretKey",
+    "captchaScore": 0.25,
     "debug": false
   },
   "CentralSystemFrontEnd": {
@@ -183,16 +184,14 @@
       }
     ]
   },
+  "Trace": {
+    "traceIngressHttp": false,
+    "traceEgressHttp": false,
+    "traceOcpp": false,
+    "traceDatabase": false,
+    "traceNotification": false
+  },
   "Logging": {
-    "logLevel": "D",
-    "trace": false,
-    "moduleDetails": {
-      "ChargingStation": {
-        "logLevel": "DEFAULT"
-      },
-      "Authorizations": {
-        "logLevel": "DEFAULT"
-      }
-    }
+    "logLevel": "D"
   }
 }

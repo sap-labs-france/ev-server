@@ -2,8 +2,8 @@
 import AsyncTask, { AsyncTaskStatus } from '../../src/types/AsyncTask';
 import { BillingDataTransactionStop, BillingInvoice, BillingInvoiceStatus, BillingStatus, BillingUser } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
+import { ChargePointErrorCode, ChargePointStatus, OCPPStatusNotificationRequest } from '../../src/types/ocpp/OCPPServer';
 import ChargingStation, { ConnectorType } from '../../src/types/ChargingStation';
-import FeatureToggles, { Feature } from '../../src/utils/FeatureToggles';
 import PricingDefinition, { DayOfWeek, PricingDimension, PricingDimensions, PricingEntity, PricingRestriction } from '../../src/types/Pricing';
 import chai, { assert, expect } from 'chai';
 
@@ -207,7 +207,7 @@ export default class BillingTestHelper {
           active: true
         }
       };
-    } else if (testMode === 'E-After30mins') {
+    } else if (testMode === 'E-After30mins+PT') {
       // Create a second tariff with a different pricing strategy
       dimensions = {
         energy: {
@@ -326,7 +326,19 @@ export default class BillingTestHelper {
     // Let's create a pricing definition
     let dimensions: PricingDimensions;
     let restrictions: PricingRestriction;
-    if (testMode === 'FOR_HALF_AN_HOUR') {
+    if (testMode === 'FROM_23:59') {
+      dimensions = {
+        energy: {
+          price: 0.50,
+          active: true
+        }
+      };
+      restrictions = {
+        daysOfWeek: [ atThatMoment.isoWeekday() ], // Sets today as the only day allowed for this pricing definition
+        timeFrom: '23:59', // Specific test to check the behavior when timeFrom is lower than timeTo
+        timeTo: atThatMoment.add(60 + 30, 'minutes').format('HH:mm'), // Validity for the whole session
+      };
+    } else if (testMode === 'FOR_HALF_AN_HOUR') {
       dimensions = {
         energy: {
           price: 3,
@@ -341,7 +353,7 @@ export default class BillingTestHelper {
     } else if (testMode === 'NEXT_HOUR') {
       dimensions = {
         chargingTime: {
-          price: 5, // Euro per hour
+          price: 30, // Euro per hour
           active: true
         },
       };
@@ -477,13 +489,25 @@ export default class BillingTestHelper {
     return roundedPrice;
   }
 
-  public async generateTransaction(user: any, expectedStatus = 'Accepted'): Promise<number> {
+  public async sendStatusNotification(connectorId: number, timestamp: Date, status: ChargePointStatus): Promise<void> {
+    const occpStatusFinishing: OCPPStatusNotificationRequest = {
+      connectorId,
+      status,
+      errorCode: ChargePointErrorCode.NO_ERROR,
+      timestamp: timestamp.toISOString()
+    };
+    await this.chargingStationContext.setConnectorStatus(occpStatusFinishing);
+  }
+
+
+  public async generateTransaction(user: any, expectedStatus = 'Accepted', withExtraNotificationStatus = true): Promise<number> {
 
     const meterStart = 0;
     const meterStop = 32325; // Unit: Wh
-    const meterValue1 = Utils.createDecimal(meterStop).divToInt(80).toNumber();
-    const meterValue2 = Utils.createDecimal(meterStop).divToInt(30).toNumber();
-    const meterValue3 = Utils.createDecimal(meterStop).divToInt(60).toNumber();
+    const meterValueRampUp = Utils.createDecimal(meterStop).divToInt(80).toNumber();
+    const meterValueHighConsumption = Utils.createDecimal(meterStop).divToInt(30).toNumber();
+    const meterValuePoorConsumption = 0; // Simulate a gap in the energy provisioning
+    const meterValuePhaseOut = Utils.createDecimal(meterStop).divToInt(60).toNumber();
 
     // const user:any = this.userContext;
     const connectorId = 1;
@@ -491,52 +515,70 @@ export default class BillingTestHelper {
     const tagId = user.tags[0].id;
     // # Begin
     const startDate = moment();
+    // Let's send an OCCP status notification to simulate some extra inactivities
+    await this.sendStatusNotification(connectorId, startDate.toDate(), ChargePointStatus.PREPARING);
     const startTransactionResponse = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
     expect(startTransactionResponse).to.be.transactionStatus(expectedStatus);
     const transactionId = startTransactionResponse.transactionId;
 
     const currentTime = startDate.clone();
     let cumulated = 0;
-    // Phase #0
+    // Phase #0 - not charging yet
     for (let index = 0; index < 5; index++) {
-      // cumulated += meterValue1; - not charging yet!
+      // cumulated += meterValueRampUp;
       await this.sendConsumptionMeterValue(connectorId, transactionId, currentTime, cumulated);
     }
-    // Phase #1
+    // Phase #1 - warm up
     for (let index = 0; index < 15; index++) {
-      cumulated += meterValue1;
+      cumulated += meterValueRampUp;
       await this.sendConsumptionMeterValue(connectorId, transactionId, currentTime, cumulated);
     }
-    // Phase #2
-    for (let index = 0; index < 20; index++) {
-      cumulated += meterValue2;
+    // Phase #2 - high consumption - 3 minutes
+    for (let index = 0; index < 3; index++) {
+      cumulated += meterValueHighConsumption;
       await this.sendConsumptionMeterValue(connectorId, transactionId, currentTime, cumulated);
     }
-    // Phase #3
-    for (let index = 0; index < 15; index++) {
-      cumulated = Math.min(meterStop, cumulated += meterValue3);
+    // Phase #2 - high consumption - a single consumption for 14 minutes (sent in one shot to simulate charge@home network issues)
+    const minutes = 14;
+    cumulated += Utils.createDecimal(meterValueHighConsumption).mul(minutes).toNumber();
+    await this.sendConsumptionMeterValue(connectorId, transactionId, currentTime, cumulated, minutes);
+    // Phase #2 - high consumption - 3 minutes
+    for (let index = 0; index < 3; index++) {
+      cumulated += meterValueHighConsumption;
+      await this.sendConsumptionMeterValue(connectorId, transactionId, currentTime, cumulated);
+    }
+    // Phase #4 - no consumption
+    for (let index = 0; index < 5; index++) {
+      cumulated += meterValuePoorConsumption;
+      await this.sendConsumptionMeterValue(connectorId, transactionId, currentTime, cumulated);
+    }
+    // Phase #5 - phase out
+    for (let index = 0; index < 10; index++) {
+      cumulated = Math.min(meterStop, cumulated += meterValuePhaseOut);
       await this.sendConsumptionMeterValue(connectorId, transactionId, currentTime, cumulated);
     }
     assert(cumulated === meterStop, 'Inconsistent meter values - cumulated energy should equal meterStop - ' + cumulated);
-    // Phase #4 - parking time
+    // Phase #6 - parking time
     for (let index = 0; index < 4; index++) {
       // cumulated += 0; // Parking time - not charging anymore
       await this.sendConsumptionMeterValue(connectorId, transactionId, currentTime, meterStop);
     }
-
     // #end
     const stopDate = startDate.clone().add(1, 'hour');
     if (expectedStatus === 'Accepted') {
       const stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate.toDate());
       expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
+      // Let's send an OCCP status notification to simulate some extra inactivities
+      await this.sendStatusNotification(connectorId, stopDate.clone().add(29, 'minutes').toDate(), ChargePointStatus.FINISHING);
+      await this.sendStatusNotification(connectorId, stopDate.clone().add(30, 'minutes').toDate(), ChargePointStatus.AVAILABLE);
+      // Give some time to the asyncTask to bill the transaction
+      await this.waitForAsyncTasks();
     }
-    // Give some time to the asyncTask to bill the transaction
-    await this.waitForAsyncTasks();
     return transactionId;
   }
 
-  public async sendConsumptionMeterValue(connectorId: number, transactionId: number, currentTime: moment.Moment, energyActiveImportMeterValue: number): Promise<void> {
-    currentTime.add(1, 'minute');
+  public async sendConsumptionMeterValue(connectorId: number, transactionId: number, currentTime: moment.Moment, energyActiveImportMeterValue: number, interval = 1): Promise<void> {
+    currentTime.add(interval, 'minute');
     const meterValueResponse = await this.chargingStationContext.sendConsumptionMeterValue(
       connectorId,
       transactionId,

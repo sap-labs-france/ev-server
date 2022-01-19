@@ -7,13 +7,11 @@ import global from '../../../../types/GlobalType';
 
 export default class LoggingValidator extends SchemaValidator {
   private static instance: LoggingValidator|null = null;
-  private loggingsGet: Schema;
-  private loggingGet: Schema;
+  private loggingsGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/logging/loggings-get.json`, 'utf8'));
+  private loggingGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/logging/logging-get.json`, 'utf8'));
 
   private constructor() {
     super('LoggingValidator');
-    this.loggingsGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/logging/loggings-get.json`, 'utf8'));
-    this.loggingGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/logging/logging-get.json`, 'utf8'));
   }
 
   public static getInstance(): LoggingValidator {

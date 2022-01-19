@@ -366,6 +366,11 @@ export default class SiteService {
       createdBy: { id: req.user.id },
       createdOn: new Date()
     } as Site;
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
+      if (!filteredRequest.public) {
+        delete site.tariffID;
+      }
+    }
     // Save
     site.id = await SiteStorage.saveSite(req.tenant, site);
     await Logging.logInfo({
@@ -398,6 +403,7 @@ export default class SiteService {
     site.companyID = filteredRequest.companyID;
     if (Utils.objectHasProperty(filteredRequest, 'public')) {
       if (!filteredRequest.public) {
+        // Check that there is no public charging stations
         const publicChargingStations = await ChargingStationStorage.getChargingStations(req.tenant, {
           siteIDs: [site.id],
           public: true,
@@ -413,8 +419,13 @@ export default class SiteService {
       }
       site.public = filteredRequest.public;
     }
-    if (Utils.objectHasProperty(filteredRequest, 'tariffID')) {
-      site.tariffID = filteredRequest.tariffID;
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
+      if (Utils.objectHasProperty(filteredRequest, 'tariffID')) {
+        site.tariffID = filteredRequest.tariffID;
+      }
+      if (!filteredRequest.public) {
+        delete site.tariffID;
+      }
     }
     if (Utils.objectHasProperty(filteredRequest, 'autoUserSiteAssignment')) {
       site.autoUserSiteAssignment = filteredRequest.autoUserSiteAssignment;

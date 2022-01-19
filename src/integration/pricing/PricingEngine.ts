@@ -1,5 +1,4 @@
 /* eslint-disable max-len */
-import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
 import PricingDefinition, { PricedConsumptionData, PricingEntity, PricingStaticRestriction, ResolvedPricingDefinition, ResolvedPricingModel } from '../../types/Pricing';
 
 import ChargingStation from '../../types/ChargingStation';
