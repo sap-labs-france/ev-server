@@ -104,7 +104,7 @@
     "ajv": "^8.6.3",
     "ajv-formats": "^2.1.1",
     "ajv-keywords": "^5.1.0",
-    "axios": "^0.24.0",
+    "axios": "^0.25.0",
     "axios-retry": "^3.2.3",
     "basic-auth": "^2.0.1",
     "bcryptjs": "^2.4.3",
@@ -143,7 +143,7 @@
     "mongodb": "^4.2.2",
     "morgan": "^1.10.0",
     "mustache": "^4.2.0",
-    "nanoid": "^3.1.32",
+    "nanoid": "^3.2.0",
     "node-cron": "^3.0.0",
     "object-sizeof": "^1.6.1",
     "passport": "^0.5.2",
@@ -164,7 +164,7 @@
     "urlencode": "^1.1.0",
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.6.0",
     "validator": "^13.7.0",
-    "ws": "^8.3.0"
+    "ws": "^8.4.2"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.4",
@@ -193,7 +193,7 @@
     "@types/i18n-js": "^3.8.2",
     "@types/intl": "^1.2.0",
     "@types/jsonstream": "^0.8.30",
-    "@types/jsonwebtoken": "^8.5.5",
+    "@types/jsonwebtoken": "^8.5.8",
     "@types/lodash": "^4.14.178",
     "@types/mocha": "^9.0.0",
     "@types/mochawesome": "^6.2.1",
