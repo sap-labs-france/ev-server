@@ -268,6 +268,10 @@ export default class AssetService {
       },
       authorizationAssetsInErrorFilter.projectFields
     );
+    // Assign projected fields
+    if (authorizationAssetsInErrorFilter.projectFields) {
+      assets.projectFields = authorizationAssetsInErrorFilter.projectFields;
+    }
     // Add Auth flags
     await AuthorizationService.addAssetsAuthorizations(
       req.tenant, req.user, assets as AssetDataResult, authorizationAssetsInErrorFilter);
@@ -371,6 +375,10 @@ export default class AssetService {
       },
       authorizationAssetsFilter.projectFields
     );
+    // Assign projected fields
+    if (authorizationAssetsFilter.projectFields) {
+      assets.projectFields = authorizationAssetsFilter.projectFields;
+    }
     // Add Auth flags
     await AuthorizationService.addAssetsAuthorizations(
       req.tenant, req.user, assets as AssetDataResult, authorizationAssetsFilter);
