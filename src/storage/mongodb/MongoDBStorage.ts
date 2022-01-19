@@ -284,6 +284,7 @@ export default class MongoDBStorage {
 
   public async ping(): Promise<boolean> {
     if (this.database) {
+      const startTime = Logging.traceDatabaseRequestStart();
       try {
         const result = await this.database.command({ ping: 1 });
         return (result.ok === 1);
@@ -297,6 +298,8 @@ export default class MongoDBStorage {
           message, detailedMessages: { error: error.stack }
         });
         return false;
+      } finally {
+        await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'ping', startTime, {});
       }
     }
     return true;

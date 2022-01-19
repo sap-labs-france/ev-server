@@ -50,7 +50,8 @@ export default class Constants {
   public static readonly DEFAULT_TENANT = 'default';
   public static readonly DEFAULT_TENANT_OBJECT = Object.freeze({
     id: Constants.DEFAULT_TENANT,
-    name: Constants.DEFAULT_TENANT
+    name: Constants.DEFAULT_TENANT,
+    subdomain: Constants.DEFAULT_TENANT
   } as Tenant);
 
   // Output of crypto.getCiphers()
