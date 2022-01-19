@@ -1,4 +1,5 @@
 import Asset from '../types/Asset';
+import { Car } from '../types/Car';
 import ChargingStation from '../types/ChargingStation';
 import Site from '../types/Site';
 import SiteArea from '../types/SiteArea';
@@ -44,6 +45,14 @@ export default class LoggingHelper {
     return {
       siteAreaID: siteArea.id,
       siteID: siteArea.siteID,
+    };
+  }
+
+  public static getCarProperties(car: Car): { carID: string; userID: string, carCatalogID: number } {
+    return {
+      carID: car.id,
+      userID: car.userID,
+      carCatalogID: car.carCatalogID
     };
   }
 }

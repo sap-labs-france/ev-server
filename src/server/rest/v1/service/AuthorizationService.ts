@@ -612,8 +612,8 @@ export default class AuthorizationService {
     Utils.removeCanPropertiesWithFalseValue(car);
   }
 
-  public static async checkAndGetCarCatalogsAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Partial<HttpCarCatalogsRequest>): Promise<AuthorizationFilter> {
+  public static async checkAndGetCarCatalogsAuthorizations(tenant: Tenant, userToken: UserToken, authAction: Action,
+      filteredRequest?: Partial<HttpCarCatalogsRequest>): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -621,7 +621,7 @@ export default class AuthorizationService {
       authorized: false
     };
     // Check static & dynamic authorization
-    await this.canPerformAuthorizationAction(tenant, userToken, Entity.CAR_CATALOG, Action.LIST,
+    await this.canPerformAuthorizationAction(tenant, userToken, Entity.CAR_CATALOG, authAction,
       authorizationFilters, filteredRequest, null, true);
     return authorizationFilters;
   }
