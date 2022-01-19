@@ -20,6 +20,7 @@ const MODULE_NAME = 'MongoDBStorage';
 
 export default class MongoDBStorage {
   private database: Db;
+  private dbPingFailed = 0;
   private readonly dbConfig: StorageConfiguration;
   private readonly migrationConfig: MigrationConfiguration;
 
@@ -286,10 +287,18 @@ export default class MongoDBStorage {
     if (this.database) {
       const startTime = Logging.traceDatabaseRequestStart();
       try {
+        // Ping the DB
         const result = await this.database.command({ ping: 1 });
+        // Check time spent
+        const totalTime = Date.now() - startTime;
+        if (totalTime > Constants.DB_MAX_PING_TIME_MILLIS) {
+          throw new Error(`Database ping took ${totalTime} ms instead of ${Constants.DB_MAX_PING_TIME_MILLIS}`);
+        }
+        this.dbPingFailed = 0;
         return (result.ok === 1);
       } catch (error) {
-        const message = 'Error while pinging the Database!';
+        this.dbPingFailed++;
+        const message = `${this.dbPingFailed} database ping(s) failed: ${error.message as string}`;
         Logging.logConsoleError(message);
         await Logging.logError({
           tenantID: Constants.DEFAULT_TENANT,
