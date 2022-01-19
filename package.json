@@ -164,7 +164,7 @@
     "urlencode": "^1.1.0",
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.6.0",
     "validator": "^13.7.0",
-    "ws": "^8.3.0"
+    "ws": "^8.4.2"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.4",
