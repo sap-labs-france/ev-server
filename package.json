@@ -193,7 +193,7 @@
     "@types/i18n-js": "^3.8.2",
     "@types/intl": "^1.2.0",
     "@types/jsonstream": "^0.8.30",
-    "@types/jsonwebtoken": "^8.5.5",
+    "@types/jsonwebtoken": "^8.5.8",
     "@types/lodash": "^4.14.178",
     "@types/mocha": "^9.0.0",
     "@types/mochawesome": "^6.2.1",
