@@ -40,7 +40,7 @@ export default class Constants {
   public static readonly IMPORT_BATCH_INSERT_SIZE = 250;
   public static readonly BATCH_PAGE_SIZE = 1000;
 
-  public static readonly LOCK_WAIT_MILLIS = 500;
+  public static readonly LOCK_WAIT_MILLIS = 1000;
 
   public static readonly SMART_CHARGING_LOCK_SECS = 5;
   public static readonly CHARGING_STATION_LOCK_SECS = 5;
