@@ -60,101 +60,9 @@ export default class SchedulerManager {
         });
         continue;
       }
-      let schedulerTask: SchedulerTask;
-      // Tasks
-      switch (task.name) {
-        case 'AsyncTaskCheckTask':
-          schedulerTask = new AsyncTaskCheckTask();
-          break;
-        case 'LoggingDatabaseTableCleanupTask':
-          schedulerTask = new LoggingDatabaseTableCleanupTask();
-          break;
-        case 'CheckUserAccountInactivityTask':
-          schedulerTask = new CheckUserAccountInactivityTask();
-          break;
-        case 'CheckOfflineChargingStationsTask':
-          // The task runs every five minutes
-          schedulerTask = new CheckOfflineChargingStationsTask();
-          break;
-        case 'CheckPreparingSessionNotStartedTask':
-          // The task runs every five minutes
-          schedulerTask = new CheckPreparingSessionNotStartedTask();
-          break;
-        case 'OICPPushEVSEDataTask':
-          schedulerTask = new OICPPushEvseDataTask();
-          break;
-        case 'OICPPushEvseStatusTask':
-          schedulerTask = new OICPPushEvseStatusTask();
-          break;
-        case 'OCPIPushEVSEStatusesTask':
-          schedulerTask = new OCPIPushEVSEStatusesTask();
-          break;
-        case 'OCPIGetCdrsTask':
-          schedulerTask = new OCPIGetCdrsTask();
-          break;
-        case 'OCPIGetLocationsTask':
-          schedulerTask = new OCPIGetLocationsTask();
-          break;
-        case 'OCPIGetSessionsTask':
-          schedulerTask = new OCPIGetSessionsTask();
-          break;
-        case 'OCPICheckLocationsTask':
-          schedulerTask = new OCPICheckLocationsTask();
-          break;
-        case 'OCPICheckSessionsTask':
-          schedulerTask = new OCPICheckSessionsTask();
-          break;
-        case 'OCPICheckCdrsTask':
-          schedulerTask = new OCPICheckCdrsTask();
-          break;
-        case 'OCPIGetTokensTask':
-          schedulerTask = new OCPIGetTokensTask();
-          break;
-        case 'OCPIPushCdrsTask':
-          schedulerTask = new OCPIPushCdrsTask();
-          break;
-        case 'SynchronizeRefundTransactionsTask':
-          schedulerTask = new SynchronizeRefundTransactionsTask();
-          break;
-        case 'SynchronizeBillingUsersTask':
-          schedulerTask = new SynchronizeBillingUsersTask();
-          break;
-        case 'SynchronizeBillingInvoicesTask':
-          schedulerTask = new SynchronizeBillingInvoicesTask();
-          break;
-        case 'BillingPeriodicOperationTask':
-          schedulerTask = new BillingPeriodicOperationTask();
-          break;
-        case 'BillPendingTransactionTask':
-          schedulerTask = new BillPendingTransactionTask();
-          break;
-        case 'SynchronizeCarsTask':
-          schedulerTask = new SynchronizeCarsTask();
-          break;
-        case 'CheckSessionNotStartedAfterAuthorizeTask':
-          schedulerTask = new CheckSessionNotStartedAfterAuthorizeTask();
-          break;
-        case 'CheckAndComputeSmartChargingTask':
-          schedulerTask = new CheckAndComputeSmartChargingTask();
-          break;
-        case 'AssetGetConsumptionTask':
-          schedulerTask = new AssetGetConsumptionTask();
-          break;
-        case 'CheckChargingStationTemplateTask':
-          schedulerTask = new CheckChargingStationTemplateTask();
-          break;
-        case 'MigrateSensitiveDataTask':
-          schedulerTask = new MigrateSensitiveDataTask();
-          break;
-        default:
-          await Logging.logError({
-            tenantID: Constants.DEFAULT_TENANT,
-            action: ServerAction.SCHEDULER,
-            module: MODULE_NAME, method: 'init',
-            message: `The task '${task.name}' is unknown`
-          });
-      }
+      const schedulerTask = await SchedulerManager.createTask(task.name);
       if (schedulerTask) {
+        // Register task to cron engine
         cron.schedule(task.periodicity, () => SchedulerManager.runTask(schedulerTask, task));
         await Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT,
@@ -173,5 +81,74 @@ export default class SchedulerManager {
     }
     // Do not wait for the task result
     void task.run(taskConfiguration.name, taskConfiguration.config);
+  }
+
+  private static async createTask(name: string): Promise<SchedulerTask> {
+    // Tasks
+    switch (name) {
+      case 'AsyncTaskCheckTask':
+        return new AsyncTaskCheckTask();
+      case 'LoggingDatabaseTableCleanupTask':
+        return new LoggingDatabaseTableCleanupTask();
+      case 'CheckUserAccountInactivityTask':
+        return new CheckUserAccountInactivityTask();
+      case 'CheckOfflineChargingStationsTask':
+        // The task runs every five minutes
+        return new CheckOfflineChargingStationsTask();
+      case 'CheckPreparingSessionNotStartedTask':
+        // The task runs every five minutes
+        return new CheckPreparingSessionNotStartedTask();
+      case 'OICPPushEVSEDataTask':
+        return new OICPPushEvseDataTask();
+      case 'OICPPushEvseStatusTask':
+        return new OICPPushEvseStatusTask();
+      case 'OCPIPushEVSEStatusesTask':
+        return new OCPIPushEVSEStatusesTask();
+      case 'OCPIGetCdrsTask':
+        return new OCPIGetCdrsTask();
+      case 'OCPIGetLocationsTask':
+        return new OCPIGetLocationsTask();
+      case 'OCPIGetSessionsTask':
+        return new OCPIGetSessionsTask();
+      case 'OCPICheckLocationsTask':
+        return new OCPICheckLocationsTask();
+      case 'OCPICheckSessionsTask':
+        return new OCPICheckSessionsTask();
+      case 'OCPICheckCdrsTask':
+        return new OCPICheckCdrsTask();
+      case 'OCPIGetTokensTask':
+        return new OCPIGetTokensTask();
+      case 'OCPIPushCdrsTask':
+        return new OCPIPushCdrsTask();
+      case 'SynchronizeRefundTransactionsTask':
+        return new SynchronizeRefundTransactionsTask();
+      case 'SynchronizeBillingUsersTask':
+        return new SynchronizeBillingUsersTask();
+      case 'SynchronizeBillingInvoicesTask':
+        return new SynchronizeBillingInvoicesTask();
+      case 'BillingPeriodicOperationTask':
+        return new BillingPeriodicOperationTask();
+      case 'BillPendingTransactionTask':
+        return new BillPendingTransactionTask();
+      case 'SynchronizeCarsTask':
+        return new SynchronizeCarsTask();
+      case 'CheckSessionNotStartedAfterAuthorizeTask':
+        return new CheckSessionNotStartedAfterAuthorizeTask();
+      case 'CheckAndComputeSmartChargingTask':
+        return new CheckAndComputeSmartChargingTask();
+      case 'AssetGetConsumptionTask':
+        return new AssetGetConsumptionTask();
+      case 'CheckChargingStationTemplateTask':
+        return new CheckChargingStationTemplateTask();
+      case 'MigrateSensitiveDataTask':
+        return new MigrateSensitiveDataTask();
+      default:
+        await Logging.logError({
+          tenantID: Constants.DEFAULT_TENANT,
+          action: ServerAction.SCHEDULER,
+          module: MODULE_NAME, method: 'createTask',
+          message: `The task '${name}' is unknown`
+        });
+    }
   }
 }

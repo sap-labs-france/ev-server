@@ -36,6 +36,9 @@
     },
     "image": {
       "$ref": "site-area#/definitions/image"
+    },
+    "tariffID": {
+      "$ref": "common#/definitions/tariff-id"
     }
   },
   "required": [

@@ -223,11 +223,8 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     }
     if (!transaction.issuer) {
       await Logging.logError({
+        ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: tenant.id,
-        siteID: transaction.siteID,
-        siteAreaID: transaction.siteAreaID,
-        companyID: transaction.companyID,
-        chargingStationID: transaction.chargeBoxID,
         action: ServerAction.OCPI_STOP_SESSION,
         message: `Transaction with Session ID '${stopSession.session_id}' is local to the tenant`,
         module: MODULE_NAME, method: 'remoteStopSession',
@@ -237,12 +234,9 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     }
     if (transaction.stop) {
       await Logging.logError({
+        ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: tenant.id,
         action: ServerAction.OCPI_STOP_SESSION,
-        siteID: transaction.siteID,
-        siteAreaID: transaction.siteAreaID,
-        companyID: transaction.companyID,
-        chargingStationID: transaction.chargeBoxID,
         message: `Transaction with Session ID '${stopSession.session_id}' is already stopped`,
         module: MODULE_NAME, method: 'remoteStopSession',
         detailedMessages: { stopSession, transaction },
@@ -252,11 +246,8 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     const chargingStation = await ChargingStationStorage.getChargingStation(tenant, transaction.chargeBoxID);
     if (!chargingStation) {
       await Logging.logError({
+        ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: tenant.id,
-        siteID: transaction.siteID,
-        siteAreaID: transaction.siteAreaID,
-        companyID: transaction.companyID,
-        chargingStationID: transaction.chargeBoxID,
         action: ServerAction.OCPI_STOP_SESSION,
         message: `Charging Station ID '${transaction.chargeBoxID}' has not been found`,
         module: MODULE_NAME, method: 'remoteStopSession',

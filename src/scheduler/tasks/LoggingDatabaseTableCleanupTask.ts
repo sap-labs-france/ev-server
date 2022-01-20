@@ -6,15 +6,15 @@ import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
 import LoggingStorage from '../../storage/mongodb/LoggingStorage';
 import PerformanceStorage from '../../storage/mongodb/PerformanceStorage';
-import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
+import TenantSchedulerTask from '../TenantSchedulerTask';
 import global from './../../types/GlobalType';
 import moment from 'moment';
 
 const MODULE_NAME = 'LoggingDatabaseTableCleanupTask';
 
-export default class LoggingDatabaseTableCleanupTask extends SchedulerTask {
+export default class LoggingDatabaseTableCleanupTask extends TenantSchedulerTask {
   public async beforeTaskRun(config: TaskConfig): Promise<void> {
     // Delete Default Tenant Logs
     await this.deleteLogs(Constants.DEFAULT_TENANT_OBJECT, config);

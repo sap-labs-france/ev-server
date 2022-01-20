@@ -2460,7 +2460,7 @@
         }
       }
     },
-    "/api/transactions/{id}/ocpi/cdrs": {
+    "/api/transactions/{id}/ocpi/cdr": {
       "post": {
         "security": [
           {
@@ -2508,7 +2508,7 @@
         }
       }
     },
-    "/api/transactions/{id}/ocpi/cdrs/export": {
+    "/api/transactions/{id}/ocpi/cdr/export": {
       "get": {
         "security": [
           {
@@ -2517,13 +2517,7 @@
         ],
         "parameters": [
           {
-            "$ref": "#/components/parameters/WithUser"
-          },
-          {
-            "$ref": "#/components/parameters/WithCar"
-          },
-          {
-            "$ref": "#/components/parameters/WithTag"
+            "$ref": "#/components/parameters/transactionID"
           }
         ],
         "description": "Export Transaction CDR",
@@ -13775,6 +13769,9 @@
           },
           "smartCharging": {
             "type": "boolean"
+          },
+          "tariffID": {
+            "type": "string"
           },
           "voltage": {
             "type": "number",

@@ -11,7 +11,7 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'BillingFactory';
 
 export default class BillingFactory {
-  static async getBillingImpl(tenant: Tenant): Promise<BillingIntegration> {
+  public static async getBillingImpl(tenant: Tenant): Promise<BillingIntegration> {
     // Check if billing is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.PRICING) &&
         Utils.isTenantComponentActive(tenant, TenantComponents.BILLING)) {

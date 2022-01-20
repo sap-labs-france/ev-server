@@ -32,7 +32,7 @@ export default class UpdateEmailsToLowercaseTask extends TenantMigrationTask {
   }
 
   public getVersion(): string {
-    return '1.0';
+    return '1.1';
   }
 
   public getName(): string {

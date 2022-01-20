@@ -959,6 +959,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
         module: MODULE_NAME, method: 'endTransaction',
         message: 'Unexpected situation - end transaction is being called while the extra inactivity is not yet known'
       });
+      return {
+        // Preserve the previous state
+        status: transaction.billingData?.stop?.status
+      };
     }
     // Create and Save async task
     await AsyncTaskBuilder.createAndSaveAsyncTasks({

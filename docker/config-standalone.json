@@ -18,6 +18,7 @@
     "passwordWrongNumberOfTrial": 3,
     "passwordBlockedWaitTimeMin": 5,
     "captchaSecretKey": "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe",
+    "captchaScore": 0.25,
     "debug": false
   },
   "CentralSystemFrontEnd": {

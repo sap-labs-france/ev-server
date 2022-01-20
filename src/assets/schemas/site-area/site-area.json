@@ -43,6 +43,9 @@
       "sanitize": "mongo",
       "nullable": true
     },
+    "tariffID": {
+      "$ref": "common#/definitions/tariff-id"
+    },
     "image": {
       "type": "string",
       "sanitize": "mongo"
