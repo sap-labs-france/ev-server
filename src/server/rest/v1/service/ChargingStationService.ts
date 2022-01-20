@@ -531,7 +531,7 @@ export default class ChargingStationService {
         connectorID: filteredRequest.ConnectorID,
         withChargingStation: filteredRequest.WithChargingStation,
         withSiteArea: filteredRequest.WithSiteArea,
-        siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
+        siteIDs: await Authorizations.getAuthorizedSiteIDs(req.tenant, req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
       },
       {
         limit: filteredRequest.Limit,
@@ -1043,7 +1043,7 @@ export default class ChargingStationService {
     const chargingStations = await ChargingStationStorage.getChargingStationsInError(req.tenant,
       {
         search: filteredRequest.Search,
-        siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
+        siteIDs: await Authorizations.getAuthorizedSiteIDs(req.tenant, req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         siteAreaIDs: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
         errorType
       },
@@ -1444,7 +1444,7 @@ export default class ChargingStationService {
     if (!Utils.isEmptyArray(httpProjectFields)) {
       projectFields = projectFields.filter((projectField) => httpProjectFields.includes(projectField));
     }
-    const siteIDs = Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null);
+    const siteIDs = await Authorizations.getAuthorizedSiteIDs(req.tenant, req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null);
     // todo: write this in a nicer way when refactoring the whole auth concept for ChargingStation
     if (Utils.isEmptyArray(siteIDs) && !Authorizations.isAdmin(req.user)) {
       return { count: 0, result: [] };

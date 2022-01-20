@@ -680,7 +680,7 @@ export default class AuthorizationService {
     return userSites.result.map((userSite) => userSite.siteID);
   }
 
-  private static async getSiteOwnerSiteIDs(tenant: Tenant, userToken: UserToken): Promise<string[]> {
+  public static async getSiteOwnerSiteIDs(tenant: Tenant, userToken: UserToken): Promise<string[]> {
     // Get the Sites where the user is Site Owner
     const userSites = await UserStorage.getUserSites(tenant,
       {
@@ -692,7 +692,7 @@ export default class AuthorizationService {
     return userSites.result.map((userSite) => userSite.siteID);
   }
 
-  private static async getAssignedSiteIDs(tenant: Tenant, userToken: UserToken): Promise<string[]> {
+  public static async getAssignedSiteIDs(tenant: Tenant, userToken: UserToken): Promise<string[]> {
     // Get the Sites assigned to the User
     const sites = await SiteStorage.getSites(tenant,
       {
@@ -702,19 +702,6 @@ export default class AuthorizationService {
       ['id']
     );
     return sites.result.map((site) => site.id);
-  }
-
-  private static async getAssignedAssetIDs(tenant: Tenant, siteID: string): Promise<string[]> {
-    // Get the Assets assigned to the Site
-    const assets = await AssetStorage.getAssets(tenant,
-      {
-        siteIDs: [siteID],
-        // TODO: Uncomment when the bug will be fixed: https://github.com/sap-labs-france/ev-dashboard/issues/2266
-        // issuer: true,
-      }, Constants.DB_PARAMS_MAX_LIMIT,
-      ['id']
-    );
-    return assets.result.map((asset) => asset.id);
   }
 
   private static async checkAssignedSites(tenant: Tenant, userToken: UserToken,

@@ -4,6 +4,7 @@ import Tenant, { TenantComponents } from '../types/Tenant';
 import User, { UserRole, UserStatus } from '../types/User';
 
 import AuthorizationConfiguration from '../types/configuration/AuthorizationConfiguration';
+import AuthorizationService from '../server/rest/v1/service/AuthorizationService';
 import AuthorizationsManager from './AuthorizationsManager';
 import BackendError from '../exception/BackendError';
 import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
@@ -33,6 +34,7 @@ import TransactionStorage from '../storage/mongodb/TransactionStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
 import UserToken from '../types/UserToken';
 import Utils from '../utils/Utils';
+import _ from 'lodash';
 import moment from 'moment';
 
 const MODULE_NAME = 'Authorizations';
@@ -89,20 +91,21 @@ export default class Authorizations {
       loggedUser, Entity.CHARGING_STATION, Action.REMOTE_STOP_TRANSACTION, context);
   }
 
-  public static getAuthorizedSiteIDs(loggedUser: UserToken, requestedSites: string[]): string[] {
+  public static async getAuthorizedSiteIDs(tenant : Tenant, loggedUser: UserToken, requestedSites: string[]): Promise<string[]> {
     if (!Utils.isComponentActiveFromToken(loggedUser, TenantComponents.ORGANIZATION)) {
       return null;
     }
     if (this.isAdmin(loggedUser)) {
       return requestedSites;
     }
+    const loggedUserAssignedSiteIDs = await AuthorizationService.getAssignedSiteIDs(tenant, loggedUser);
     if (Utils.isEmptyArray(requestedSites)) {
-      return loggedUser.sites.length > 0 ? loggedUser.sites : null;
+      return loggedUserAssignedSiteIDs.length > 0 ? loggedUserAssignedSiteIDs : null;
     }
-    return requestedSites.filter((site) => loggedUser.sites.includes(site));
+    return requestedSites.filter((site) => loggedUserAssignedSiteIDs.includes(site));
   }
 
-  public static getAuthorizedSiteAdminIDs(loggedUser: UserToken, requestedSites?: string[]): string[] {
+  public static async getAuthorizedSiteAdminIDs(tenant: Tenant, loggedUser: UserToken, requestedSites?: string[]): Promise<string[]> {
     if (!Utils.isComponentActiveFromToken(loggedUser, TenantComponents.ORGANIZATION)) {
       return null;
     }
@@ -112,14 +115,13 @@ export default class Authorizations {
     if (this.isAdmin(loggedUser)) {
       return requestedSites;
     }
-    const sites: Set<string> = new Set(loggedUser.sitesAdmin);
-    for (const siteID of loggedUser.sitesOwner) {
-      sites.add(siteID);
-    }
+    const siteAdminSiteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant, loggedUser);
+    const siteOwnerSiteIDs = await AuthorizationService.getSiteOwnerSiteIDs(tenant, loggedUser);
+    const sites = _.uniq([...siteAdminSiteIDs, ...siteOwnerSiteIDs]);
     if (Utils.isEmptyArray(requestedSites)) {
-      return [...sites];
+      return sites;
     }
-    return requestedSites.filter((site) => sites.has(site));
+    return requestedSites.filter((site) => sites.includes(site));
   }
 
   public static async buildUserToken(tenant: Tenant, user: User, tags: Tag[]): Promise<UserToken> {
