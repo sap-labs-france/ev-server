@@ -1518,7 +1518,7 @@ export default class UtilsService {
       siteIDs.push(additionalSiteID);
     }
     const siteAreas = await SiteAreaStorage.getSiteAreas(req.tenant, { siteIDs: siteIDs }, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'parentSiteAreaID', 'siteID', 'smartCharging', 'name', 'voltage', 'numberOfPhases']);
-    // Check if site area exists or is currently created
+    // Check if site area exists or should be created
     if (siteArea.id) {
       const index = siteAreas.result.findIndex((siteAreaToChange) => siteAreaToChange.id === siteArea.id);
       siteAreas.result[index] = { id: siteArea.id, parentSiteAreaID: siteArea.parentSiteAreaID, siteID: siteArea.siteID, smartCharging: siteArea.smartCharging,
@@ -1529,27 +1529,13 @@ export default class UtilsService {
         voltage: siteArea.voltage, numberOfPhases: siteArea.numberOfPhases } as SiteArea) ;
     }
     let siteAreaTrees: SiteArea[];
-    let count = 0;
     try {
       siteAreaTrees = Utils.buildSiteAreaTrees(siteAreas.result);
+      Utils.checkSiteAreaTrees(siteAreaTrees, siteAreas.result.length);
     } catch {
       throw new AppError({
         errorCode: HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR,
-        message: 'Property inconsistency in Site Area Tree',
-        module: MODULE_NAME, method: 'checkIfSiteAreaTreeValid',
-        user: req.user.id
-      });
-    }
-    // Loop through trees to check validity
-    for (const siteAreaTree of siteAreaTrees) {
-      // If no ID defined count elements to verify validity
-      count += this.countElementsOfSiteAreaTree(siteAreaTree);
-    }
-    // If site area list is the same length as elements in the tree, the tree is valid
-    if (count !== siteAreas.result.length) {
-      throw new AppError({
-        errorCode: HTTPError.SITE_AREA_HIERARCHY_CIRCULAR_STRUCTURE_ERROR,
-        message: 'Circular Structure in Site Area Tree',
+        message: 'Inconsistency in Site Area Tree',
         module: MODULE_NAME, method: 'checkIfSiteAreaTreeValid',
         user: req.user.id
       });
@@ -2043,18 +2029,5 @@ export default class UtilsService {
       });
     }
     return tag;
-  }
-
-  private static countElementsOfSiteAreaTree(siteAreaTree: Partial<SiteArea>, count = -1) {
-    if (count < 0) {
-      count = 0 ;
-    }
-    count++;
-    if (!Utils.isEmptyArray(siteAreaTree.siteAreaChildren)) {
-      for (const child of siteAreaTree.siteAreaChildren) {
-        count += this.countElementsOfSiteAreaTree(child), count;
-      }
-    }
-    return count;
   }
 }

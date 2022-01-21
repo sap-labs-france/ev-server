@@ -68,8 +68,10 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
       { siteIDs: [sourceSiteArea.siteID], withChargingStations: true, withAssets: true,
         chargingStationConnectorStatuses: [ChargePointStatus.CHARGING, ChargePointStatus.SUSPENDED_EVSE] },
       Constants.DB_PARAMS_MAX_LIMIT);
-    // Build site area tree, which contains the source site area
-    const rootSiteArea = Utils.buildSiteAreaTree(sourceSiteArea.id, siteAreas.result);
+    // Build site area trees
+    const siteAreaTrees = Utils.buildSiteAreaTrees(siteAreas.result);
+    // Find tree which contains the source site area of smart charging
+    const rootSiteArea = Utils.findSiteAreaInTrees(sourceSiteArea.id, siteAreaTrees);
     // TODO: Store the Site Area ID in the DB profiles and use siteAreaIDs param in this DB request.
     // Get all the charging station IDs and transaction IDs from site areas to retrieve current profiles and transactions
     const chargingStationIDs = [];

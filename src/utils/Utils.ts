@@ -1609,19 +1609,38 @@ export default class Utils {
     return crypto.createHash('sha256').update(data).digest('hex');
   }
 
-  public static buildSiteAreaTree(siteAreaId: string, siteAreaList: SiteArea[]): SiteArea {
-    const siteAreaTrees = this.buildSiteAreaTrees(siteAreaList);
-    // Loop through trees to find specific tree
-    for (const siteAreaTree of siteAreaTrees) {
-      // If site area ID is defined return tree, which contains the site area
-      const requestedTree = this.checkIfSiteAreaInTree(siteAreaTree, siteAreaId);
-      if (requestedTree) {
-        return siteAreaTree;
+  public static findSiteAreaInTrees(siteAreaId: string, siteAreaTreeList: SiteArea[] = null, siteAreaTreeNode: SiteArea = null): SiteArea {
+    if (siteAreaTreeNode) {
+      // Check if current site area is the one to find
+      if (siteAreaId === siteAreaTreeNode.id) {
+        return siteAreaTreeNode;
       }
-      // If it is not containing the ID go to next tree
-      continue;
+      if (!Utils.isEmptyArray(siteAreaTreeNode.siteAreaChildren)) {
+        // Check all children and children of children
+        for (const siteAreaChild of siteAreaTreeNode.siteAreaChildren) {
+          if (siteAreaChild.id === siteAreaId) {
+            return siteAreaTreeNode;
+          }
+          if (this.findSiteAreaInTrees(siteAreaId, null, siteAreaChild)) {
+            return siteAreaTreeNode;
+          }
+        }
+      }
+      return null;
     }
-    return null;
+    if (Array.isArray(siteAreaTreeList)) {
+    // Loop through trees to find specific tree
+      for (const singleTree of siteAreaTreeList) {
+      // If site area ID is defined return tree, which contains the site area
+        const requestedTree = this.findSiteAreaInTrees(siteAreaId, null, singleTree);
+        if (requestedTree) {
+          return singleTree;
+        }
+        // If it is not containing the ID go to next tree
+        continue;
+      }
+      return null;
+    }
   }
 
   public static buildSiteAreaTrees(siteAreaList: SiteArea[]): SiteArea[] {
@@ -1633,18 +1652,9 @@ export default class Utils {
     const siteAreaTrees: SiteArea[] = [];
     // Build tree
     for (const siteArea of siteAreaList) {
-      if (!Utils.isNullOrUndefined(siteArea.parentSiteAreaID)) {
-        // Check if site area chain is meeting the constraints
-        if (!Utils.isNullOrUndefined(hashTable[siteArea.parentSiteAreaID]) &&
-          hashTable[siteArea.parentSiteAreaID].smartCharging === hashTable[siteArea.id].smartCharging &&
-          hashTable[siteArea.parentSiteAreaID].siteID === hashTable[siteArea.id].siteID &&
-          hashTable[siteArea.parentSiteAreaID].voltage === hashTable[siteArea.id].voltage &&
-          hashTable[siteArea.parentSiteAreaID].numberOfPhases === hashTable[siteArea.id].numberOfPhases) {
-          // Push sub site area to parent children array
-          hashTable[siteArea.parentSiteAreaID].siteAreaChildren.push(hashTable[siteArea.id]);
-        } else {
-          throw new Error('Property inconsistency in Site Area Tree');
-        }
+      if (!Utils.isNullOrUndefined(siteArea.parentSiteAreaID) && !Utils.isNullOrUndefined(hashTable[siteArea.parentSiteAreaID])) {
+        // Push sub site area to parent children array
+        hashTable[siteArea.parentSiteAreaID].siteAreaChildren.push(hashTable[siteArea.id]);
       } else {
         // If no parent ID is defined push root site area to array
         siteAreaTrees.push(hashTable[siteArea.id]);
@@ -1653,20 +1663,41 @@ export default class Utils {
     return siteAreaTrees;
   }
 
-  private static checkIfSiteAreaInTree(siteAreaTree: Partial<SiteArea>, siteAreaId: string): boolean {
-    if (siteAreaId === siteAreaTree.id) {
-      return true;
-    }
-    if (!Utils.isEmptyArray(siteAreaTree.siteAreaChildren)) {
-      for (const siteAreaChild of siteAreaTree.siteAreaChildren) {
-        if (siteAreaChild.id === siteAreaId) {
-          return true;
-        }
-        if (this.checkIfSiteAreaInTree(siteAreaChild, siteAreaId)) {
-          return true;
+  public static checkSiteAreaTrees(siteAreaTreeList: SiteArea[], numberOfSiteAreas?: number,
+      siteAreaTree: SiteArea = null, count = 0) : number {
+    if (siteAreaTree) {
+      count++;
+      // Count and check all children and children of children
+      if (!Utils.isEmptyArray(siteAreaTree.siteAreaChildren)) {
+        for (const child of siteAreaTree.siteAreaChildren) {
+          if (siteAreaTree.smartCharging !== child.smartCharging ||
+            siteAreaTree.numberOfPhases !== child.numberOfPhases ||
+            siteAreaTree.siteID !== child.siteID ||
+            siteAreaTree.voltage !== child.voltage) {
+            throw new BackendError({
+              siteAreaID: child.id,
+              siteID: siteAreaTreeList[0].siteID,
+              method: 'checkSiteAreaTrees',
+              message: 'Property inconsistency in Site Area Tree',
+            });
+          }
+          count += this.checkSiteAreaTrees(null, null, child);
         }
       }
+      return count;
     }
-    return false;
+    if (Array.isArray(siteAreaTreeList)) {
+      // Loop through trees to check properties and count all site areas in it
+      for (const singleTree of siteAreaTreeList) {
+        count += this.checkSiteAreaTrees(null, null, singleTree);
+      }
+      if (count !== numberOfSiteAreas) {
+        throw new BackendError({
+          siteID: siteAreaTreeList[0].siteID,
+          method: 'checkSiteAreaTrees',
+          message: 'Circular Structure in Site Area Tree',
+        });
+      }
+    }
   }
 }

@@ -515,7 +515,7 @@ describe('Site Area', function() {
           testData.userService.siteAreaApi,
           testData.newSiteArea, false
         );
-        expect(response.status).to.equal(HTTPError.SITE_AREA_HIERARCHY_CIRCULAR_STRUCTURE_ERROR);
+        expect(response.status).to.equal(HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR);
       });
 
       it('Should not be able to set undefined parent', async () => {
