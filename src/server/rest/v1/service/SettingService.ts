@@ -293,7 +293,7 @@ export default class SettingService {
       action: action,
       detailedMessages: { filteredRequest }
     });
-    // Pricing Checks on Currency
+    // Pricing Checks on Currency Modification
     if (filteredRequest.identifier === TenantComponents.PRICING
       && setting.content?.type === PricingSettingsType.SIMPLE
       && setting.content?.simple.currency !== filteredRequest.content?.simple?.currency) {
@@ -301,8 +301,7 @@ export default class SettingService {
       throw new AppError({
         errorCode: HTTPError.TENANT_COMPONENT_CHANGED,
         message: 'Pricing Settings - Currency has been updated. A log out is necessary to benefit from the changes',
-        module: MODULE_NAME,
-        method: 'checkUserAndTenantValidity',
+        module: MODULE_NAME, method: 'handleUpdateSetting',
         user: req.user
       });
     }
