@@ -1532,10 +1532,10 @@ export default class UtilsService {
     try {
       siteAreaTrees = Utils.buildSiteAreaTrees(siteAreas.result);
       Utils.checkSiteAreaTrees(siteAreaTrees, siteAreas.result.length);
-    } catch {
+    } catch (error) {
       throw new AppError({
         errorCode: HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR,
-        message: 'Inconsistency in Site Area Tree',
+        message: `Error when checking site area tree: ${error.message as string}`,
         module: MODULE_NAME, method: 'checkIfSiteAreaTreeValid',
         user: req.user.id
       });

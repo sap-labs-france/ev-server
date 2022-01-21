@@ -1676,7 +1676,6 @@ export default class Utils {
             siteAreaTree.voltage !== child.voltage) {
             throw new BackendError({
               siteAreaID: child.id,
-              siteID: siteAreaTreeList[0].siteID,
               method: 'checkSiteAreaTrees',
               message: 'Property inconsistency in Site Area Tree',
             });
