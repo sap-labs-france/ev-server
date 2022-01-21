@@ -103,7 +103,8 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSetting> 
   }
 
   private async connect(): Promise<string> {
-    let token = AssetTokenCache.getInstanceForTenant(this.tenant).getToken(this.connection.id);
+    const key = this.connection.id + this.connection.witConnection.user + this.connection.witConnection.password;
+    let token = AssetTokenCache.getInstanceForTenant(this.tenant).getToken(key);
     if (!token) {
       // Check if connection is initialized
       this.checkConnectionIsProvided();
