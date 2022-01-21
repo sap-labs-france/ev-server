@@ -213,7 +213,17 @@ export default class SiteAreaStorage {
       filters.name = params.name;
     }
     if (params.withNoParentSiteArea) {
-      filters.parentSiteAreaID = { $ne: true };
+      const noParentFilter = {
+        $or: [
+          { parentSiteAreaID: { $exists: false } },
+          { parentSiteAreaID: { $eq: null } },
+        ]
+      };
+      if (filters.$and) {
+        filters.$and.push(noParentFilter);
+      } else {
+        filters.$and = [ noParentFilter ];
+      }
     }
     // Filters
     if (filters) {
