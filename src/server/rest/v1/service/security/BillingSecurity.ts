@@ -65,7 +65,7 @@ export default class BillingSecurity {
 
   static filterBillingWebHookRequest(requestQuery: any): HttpBillingWebHookRequest {
     return {
-      tenantID: sanitize(requestQuery.TenantID)
+      TenantID: sanitize(requestQuery.TenantID)
     };
   }
 

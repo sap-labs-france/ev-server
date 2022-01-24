@@ -1,0 +1,46 @@
+{
+  "$id": "invoices-get",
+  "title": "Get invoices list Request",
+  "type": "object",
+  "properties": {
+    "UserID": {
+      "$ref": "common#/definitions/ids"
+    },
+    "Status": {
+      "type": "string",
+      "pattern": "^((paid|open|draft|void|uncollectible|deleted)(\\||paid|open|draft|void|uncollectible|deleted)*)?$",
+      "sanitize": "mongo"
+    },
+    "StartDateTime": {
+      "type": "string",
+      "format": "date-time",
+      "sanitize": "mongo"
+    },
+    "EndDateTime": {
+      "type": "string",
+      "format": "date-time",
+      "sanitize": "mongo"
+    },
+    "Search": {
+      "$ref": "common#/definitions/search"
+    },
+    "Limit": {
+      "$ref": "common#/definitions/limit"
+    },
+    "SortFields": {
+      "$ref": "common#/definitions/sortFields"
+    },
+    "Skip": {
+      "$ref": "common#/definitions/skip"
+    },
+    "OnlyRecordCount": {
+      "$ref": "common#/definitions/onlyRecordCount"
+    },
+    "ProjectFields": {
+      "$ref": "common#/definitions/projectFields"
+    }
+  },
+  "required": [
+    "Limit"
+  ]
+}

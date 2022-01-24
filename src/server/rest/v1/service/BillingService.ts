@@ -318,7 +318,7 @@ export default class BillingService {
       userProject = [ 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email' ];
     }
     // Filter
-    const filteredRequest = BillingSecurity.filterGetInvoicesRequest(req.query);
+    const filteredRequest = BillingValidator.getInstance().validateBillingInvoicesGetReq(req.query);
     // Get invoices
     const invoices = await BillingStorage.getInvoices(req.tenant,
       {
@@ -331,7 +331,7 @@ export default class BillingService {
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.SortFields,
+        sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       [
@@ -347,7 +347,7 @@ export default class BillingService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.LIST, Entity.INVOICE, MODULE_NAME, 'handleGetInvoice');
     // Filter
-    const filteredRequest = BillingSecurity.filterGetInvoiceRequest(req.query);
+    const filteredRequest = BillingValidator.getInstance().validateBillingInvoicesGetByIdReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetInvoice', req.user);
     // Check Users
     let userProject: string[] = [];
@@ -618,7 +618,7 @@ export default class BillingService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.DOWNLOAD, Entity.BILLING, MODULE_NAME, 'handleDownloadInvoice');
     // Filter
-    const filteredRequest = BillingSecurity.filterDownloadInvoiceRequest(req.query);
+    const filteredRequest = BillingValidator.getInstance().validateBillingInvoicesGetByIdReq(req.query);
     // Get the Invoice
     const billingInvoice = await BillingStorage.getInvoice(req.tenant, filteredRequest.ID);
     UtilsService.assertObjectExists(action, billingInvoice, `Invoice ID '${filteredRequest.ID}' does not exist`,
@@ -667,11 +667,11 @@ export default class BillingService {
     // Check if component is active
     // ?? How to do it in this context
     // Filter
-    const filteredRequest = BillingSecurity.filterBillingWebHookRequest(req.query);
+    const filteredRequest = BillingValidator.getInstance().validateBillingWebhookReq(req.query);
     // Check Auth
     // How to check it - no JWT!
     // Retrieve Tenant ID from the URL Query Parameters
-    if (!filteredRequest.tenantID) {
+    if (!filteredRequest.TenantID) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Unexpected situation - TenantID is not set',
@@ -680,13 +680,13 @@ export default class BillingService {
       });
     }
     // Get Tenant
-    const tenant = await TenantStorage.getTenant(filteredRequest.tenantID);
+    const tenant = await TenantStorage.getTenant(filteredRequest.TenantID);
     if (!tenant) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
         action: action,
         module: MODULE_NAME, method: 'handleBillingWebHook',
-        message: `Tenant ID '${filteredRequest.tenantID}' does not exist!`
+        message: `Tenant ID '${filteredRequest.TenantID}' does not exist!`
       });
     }
     const billingImpl = await BillingFactory.getBillingImpl(tenant);

@@ -1,0 +1,13 @@
+{
+  "$id": "billing-webhook",
+  "title": "Billing webhook Request",
+  "type": "object",
+  "properties": {
+    "TenantID": {
+      "$ref": "common#/definitions/id"
+    }
+  },
+  "required": [
+    "TenantID"
+  ]
+}
