@@ -13535,6 +13535,87 @@
           }
         }
       }
+    },
+    "/api/invoices/{id}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get Invoice by id",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/invoiceID"
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return invoice",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Invoice"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/invoices/{id}/download": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Download Invoice as PDF",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/invoiceID"
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return invoice as PDF",
+            "content": {
+              "application/pdf": {
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -16391,6 +16472,15 @@
         "in": "path",
         "name": "paymentMethodID",
         "description": "Payment Method ID",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "invoiceID": {
+        "in": "path",
+        "name": "id",
+        "description": "Invoice ID",
         "required": true,
         "schema": {
           "type": "string"
