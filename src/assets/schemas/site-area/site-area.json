@@ -37,6 +37,9 @@
     "siteID": {
       "$ref": "common#/definitions/id"
     },
+    "tariffID": {
+      "$ref": "common#/definitions/tariff-id"
+    },
     "image": {
       "type": "string",
       "sanitize": "mongo"

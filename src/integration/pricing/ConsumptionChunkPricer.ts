@@ -9,7 +9,7 @@ export default class ConsumptionChunkPricer {
   private consumptionChunk: ConsumptionChunk;
   private actualPricingDefinitions: ResolvedPricingDefinition[];
 
-  constructor(consumptionPricer: ConsumptionPricer, consumptionChunk: ConsumptionChunk) {
+  public constructor(consumptionPricer: ConsumptionPricer, consumptionChunk: ConsumptionChunk) {
     this.consumptionPricer = consumptionPricer;
     this.consumptionChunk = consumptionChunk;
     const actualPricingDefinitions = this.getPricingModel().pricingDefinitions.filter((pricingDefinition) =>
@@ -129,13 +129,20 @@ export default class ConsumptionChunkPricer {
     if (!this.getPricingModel().pricerContext.flatFeeAlreadyPriced) {
       const activePricingDefinition = this.getActiveDefinition4Dimension(this.actualPricingDefinitions, DimensionType.FLAT_FEE);
       if (activePricingDefinition) {
-        const dimensionToPrice = activePricingDefinition.dimensions.flatFee;
-        const pricedData = this.priceFlatFeeDimension(dimensionToPrice);
-        if (pricedData) {
-          pricedData.sourceName = activePricingDefinition.name;
-          this.getPricingModel().pricerContext.flatFeeAlreadyPriced = true;
+        // --------------------------------------------------------------------------------
+        // Make sure not to price the Flat Fee when no energy has been delivered
+        // End-users may attempt to plug/unplug several times their car, without charging
+        // In such situation, they should not pay !
+        // -------------------------------------------------------------------------------
+        if (this.consumptionChunk.cumulatedConsumptionWh > 0) {
+          const dimensionToPrice = activePricingDefinition.dimensions.flatFee;
+          const pricedData = this.priceFlatFeeDimension(dimensionToPrice);
+          if (pricedData) {
+            pricedData.sourceName = activePricingDefinition.name;
+            this.getPricingModel().pricerContext.flatFeeAlreadyPriced = true;
+          }
+          return pricedData;
         }
-        return pricedData;
       }
     }
   }
@@ -273,6 +280,7 @@ export default class ConsumptionChunkPricer {
       // throw new Error('Unexpected situation - priceFlatFeeDimension should be called only once per session');
       return {
         unitPrice: 0,
+        amountAsDecimal: Utils.createDecimal(0),
         amount: 0,
         roundedAmount: 0,
         quantity: 0 // Session
@@ -281,6 +289,7 @@ export default class ConsumptionChunkPricer {
     // First call for this dimension
     pricingDimension.pricedData = {
       unitPrice: unitPrice,
+      amountAsDecimal: Utils.createDecimal(unitPrice),
       amount: unitPrice,
       roundedAmount: Utils.truncTo(unitPrice, 2),
       quantity: 1 // Session
@@ -291,12 +300,13 @@ export default class ConsumptionChunkPricer {
   private priceConsumptionStep(pricingDimension: PricingDimension, steps: number): PricedDimensionData {
     const unitPrice = pricingDimension.price || 0; // Eur/wWh
     const quantity = Utils.createDecimal(steps).times(pricingDimension.stepSize).toNumber(); // Wh
-    const amount = Utils.createDecimal(unitPrice).times(quantity).div(1000).toNumber(); // Eur
+    const amountAsDecimal = Utils.createDecimal(unitPrice).times(quantity).div(1000); // Eur
     // Price the consumption
     const pricedData: PricedDimensionData = {
       unitPrice: unitPrice,
-      amount,
-      roundedAmount: Utils.truncTo(amount, 2),
+      amountAsDecimal,
+      amount: amountAsDecimal.toNumber(),
+      roundedAmount: Utils.truncTo(amountAsDecimal, 2),
       quantity,
       stepSize: pricingDimension.stepSize,
     };
@@ -309,13 +319,14 @@ export default class ConsumptionChunkPricer {
   private priceConsumptionWh(pricingDimension: PricingDimension, consumptionWh: number): PricedDimensionData {
     const unitPrice = pricingDimension.price || 0; // Eur/kWh
     const quantity = Utils.createDecimal(consumptionWh).toNumber(); // Wh
-    const amount = Utils.createDecimal(unitPrice).times(consumptionWh).div(1000).toNumber(); // Eur
+    const amountAsDecimal = Utils.createDecimal(unitPrice).times(consumptionWh).div(1000); // Eur
     // const consumptionkWh = Utils.createDecimal(consumptionWh).div(1000).toNumber();
     // Price the consumption
     const pricedData: PricedDimensionData = {
       unitPrice: unitPrice,
-      amount,
-      roundedAmount: Utils.truncTo(amount, 2),
+      amountAsDecimal,
+      amount: amountAsDecimal.toNumber(),
+      roundedAmount: Utils.truncTo(amountAsDecimal, 2),
       quantity
     };
     // Add the consumption to the previous data (if any) - for the billing
@@ -344,12 +355,13 @@ export default class ConsumptionChunkPricer {
   private priceTimeSteps(pricingDimension: PricingDimension, steps: number): PricedDimensionData {
     const unitPrice = pricingDimension.price || 0; // Eur/hour
     const quantity = Utils.createDecimal(steps).times(pricingDimension.stepSize).toNumber(); // seconds
-    const amount = Utils.createDecimal(unitPrice).times(quantity).div(3600).toNumber(); // Eur
+    const amountAsDecimal = Utils.createDecimal(unitPrice).times(quantity).div(3600); // Eur
     // Price the consumption
     const pricedData: PricedDimensionData = {
       unitPrice: unitPrice,
-      amount,
-      roundedAmount: Utils.truncTo(amount, 2),
+      amountAsDecimal,
+      amount: amountAsDecimal.toNumber(),
+      roundedAmount: Utils.truncTo(amountAsDecimal, 2),
       quantity,
       stepSize: pricingDimension.stepSize
     };
@@ -361,12 +373,13 @@ export default class ConsumptionChunkPricer {
 
   private priceTimeSpent(pricingDimension: PricingDimension, seconds: number): PricedDimensionData {
     const unitPrice = pricingDimension.price || 0; // Eur/hour
-    const amount = Utils.createDecimal(unitPrice).times(seconds).div(3600).toNumber(); // Eur
+    const amountAsDecimal = Utils.createDecimal(unitPrice).times(seconds).div(3600); // Eur
     // Price the consumption
     const pricedData: PricedDimensionData = {
       unitPrice: unitPrice,
-      amount,
-      roundedAmount: Utils.truncTo(amount, 2),
+      amountAsDecimal,
+      amount: amountAsDecimal.toNumber(),
+      roundedAmount: Utils.truncTo(amountAsDecimal, 2),
       quantity: seconds
     };
     // Add the consumption to the previous data (if any) - for the billing
@@ -379,7 +392,8 @@ export default class ConsumptionChunkPricer {
     // Add the consumption to the previous data (if any) - for the billing
     const previousData = pricingDimension.pricedData;
     if (previousData) {
-      previousData.amount = Utils.createDecimal(previousData.amount).plus(pricedData.amount).toNumber();
+      previousData.amountAsDecimal = Utils.createDecimal(previousData.amountAsDecimal).plus(pricedData.amountAsDecimal);
+      previousData.amount = previousData.amountAsDecimal.toNumber();
       previousData.quantity = Utils.createDecimal(previousData.quantity).plus(pricedData.quantity).toNumber();
       previousData.roundedAmount = Utils.truncTo(previousData.amount, 2);
     } else {

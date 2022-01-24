@@ -16,6 +16,7 @@ import JsonEndpointConfiguration from './JsonEndpointConfiguration';
 import LocalesConfiguration from './LocalesConfiguration';
 import LoggingConfiguration from './LoggingConfiguration';
 import MigrationConfiguration from './MigrationConfiguration';
+import MonitoringConfiguration from './MonitoringConfiguration';
 import NotificationConfiguration from './NotificationConfiguration';
 import OCPIEndpointConfiguration from './OCPIEndpointConfiguration';
 import OCPIServiceConfiguration from './OCPIServiceConfiguration';
@@ -56,6 +57,7 @@ export interface Configuration {
   ChargingStationTemplates?: ChargingStationTemplatesConfiguration;
   Axios?: AxiosConfiguration;
   Trace?: TraceConfiguration;
+  Monitoring?: MonitoringConfiguration;
 }
 
 export type ConfigurationSection = CryptoConfiguration|CentralSystemServerConfiguration|CentralSystemConfiguration|CentralSystemRestServiceConfiguration|CentralSystemFrontEndConfiguration|WSDLEndpointConfiguration|JsonEndpointConfiguration|OCPIEndpointConfiguration|OCPIServiceConfiguration|ODataServiceConfiguration|FirebaseConfiguration|EmailConfiguration|StorageConfiguration|NotificationConfiguration|AuthorizationConfiguration|ChargingStationConfiguration|SchedulerConfiguration|LocalesConfiguration|LoggingConfiguration|HealthCheckConfiguration|MigrationConfiguration|EVDatabaseConfiguration|ChargingStationTemplatesConfiguration|AxiosConfiguration;

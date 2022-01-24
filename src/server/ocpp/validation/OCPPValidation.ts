@@ -16,24 +16,18 @@ const MODULE_NAME = 'OCPPValidation';
 export default class OCPPValidation extends SchemaValidator {
   private static instance: OCPPValidation | null = null;
 
-  private bootNotificationRequest: Schema;
-  private authorizeRequest: Schema;
-  private statusNotificationRequest: Schema;
-  private startTransactionRequest: Schema;
-  private stopTransactionRequest16: Schema;
-  private stopTransactionRequest15: Schema;
+  private bootNotificationRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/boot-notification-request.json`, 'utf8'));
+  private authorizeRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/authorize-request.json`, 'utf8'));
+  private statusNotificationRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/status-notification-request.json`, 'utf8'));
+  private startTransactionRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/start-transaction-request.json`, 'utf8'));
+  private stopTransactionRequest16: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/stop-transaction-request-16.json`, 'utf8'));
+  private stopTransactionRequest15: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/stop-transaction-request-15.json`, 'utf8'));
 
   private constructor() {
     super('OCPPValidation');
-    this.bootNotificationRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/boot-notification-request.json`, 'utf8'));
-    this.authorizeRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/authorize-request.json`, 'utf8'));
-    this.statusNotificationRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/status-notification-request.json`, 'utf8'));
-    this.startTransactionRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/start-transaction-request.json`, 'utf8'));
-    this.stopTransactionRequest15 = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/stop-transaction-request-15.json`, 'utf8'));
-    this.stopTransactionRequest16 = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/stop-transaction-request-16.json`, 'utf8'));
   }
 
-  static getInstance(): OCPPValidation {
+  public static getInstance(): OCPPValidation {
     if (!OCPPValidation.instance) {
       OCPPValidation.instance = new OCPPValidation();
     }
@@ -52,6 +46,7 @@ export default class OCPPValidation extends SchemaValidator {
   }
 
   public validateAuthorize(authorize: OCPPAuthorizeRequestExtended): void {
+    authorize.idTag = this.cleanUpTagID(authorize.idTag);
     this.validate(this.authorizeRequest, authorize);
   }
 
@@ -68,6 +63,7 @@ export default class OCPPValidation extends SchemaValidator {
   }
 
   public validateStartTransaction(chargingStation: ChargingStation, startTransaction: OCPPStartTransactionRequestExtended): void {
+    startTransaction.idTag = this.cleanUpTagID(startTransaction.idTag);
     this.validate(this.startTransactionRequest, startTransaction);
     // Check Connector ID
     if (!Utils.getConnectorFromID(chargingStation, startTransaction.connectorId)) {
@@ -84,6 +80,7 @@ export default class OCPPValidation extends SchemaValidator {
   }
 
   public validateStopTransaction(chargingStation: ChargingStation, stopTransaction: OCPPStopTransactionRequestExtended): void {
+    stopTransaction.idTag = this.cleanUpTagID(stopTransaction.idTag);
     if (chargingStation.ocppVersion === OCPPVersion.VERSION_16) {
       this.validate(this.stopTransactionRequest16, stopTransaction);
     } else {
@@ -152,6 +149,14 @@ export default class OCPPValidation extends SchemaValidator {
       // Override it
       meterValues.transactionId = connectorTransactionID;
     }
+  }
+
+  private cleanUpTagID(tagID: string): string {
+    // Handle bug in Tag ID ending with ;NULL on some Charging Stations
+    if (typeof tagID === 'string') {
+      tagID = tagID.replace(';NULL', '');
+    }
+    return tagID;
   }
 }
 

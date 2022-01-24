@@ -25,7 +25,7 @@ import UtilsService from './UtilsService';
 const MODULE_NAME = 'OCPIEndpointService';
 
 export default class OCPIEndpointService {
-  static async handleDeleteOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleDeleteOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.DELETE, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleDeleteOcpiEndpoint');
@@ -58,7 +58,7 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handleGetOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleGetOcpiEndpoint');
@@ -86,7 +86,7 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handleGetOcpiEndpoints(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetOcpiEndpoints(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.LIST, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleGetOcpiEndpoints');
@@ -126,7 +126,7 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handleCreateOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleCreateOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.CREATE, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleCreateOcpiEndpoint');
@@ -159,7 +159,7 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handleUpdateOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdateOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.UPDATE, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleUpdateOcpiEndpoint');
@@ -195,7 +195,7 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handlePingOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handlePingOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePingOcpiEndpoint');
@@ -235,7 +235,7 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handlePullLocationsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handlePullLocationsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePullLocationsEndpoint');
@@ -286,7 +286,7 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handlePullSessionsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handlePullSessionsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePullSessionsEndpoint');
@@ -336,7 +336,7 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handlePullTokensEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handlePullTokensEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePullTokensEndpoint');
@@ -386,7 +386,7 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handlePullCdrsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handlePullCdrsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePullCdrsEndpoint');
@@ -436,7 +436,7 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handleCheckCdrsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleCheckCdrsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleCheckCdrsEndpoint');
@@ -486,7 +486,7 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handleCheckSessionsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleCheckSessionsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleCheckSessionsEndpoint');
@@ -536,7 +536,7 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handleCheckLocationsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleCheckLocationsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleCheckLocationsEndpoint');
@@ -586,7 +586,7 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handlePushEVSEStatusesOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handlePushEVSEStatusesOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePushEVSEStatusesOcpiEndpoint');
@@ -636,7 +636,7 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handlePushTokensOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handlePushTokensOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePushTokensOcpiEndpoint');
@@ -687,7 +687,7 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handleUnregisterOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUnregisterOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleUnregisterOcpiEndpoint');
@@ -740,7 +740,7 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handleRegisterOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleRegisterOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.UPDATE, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleRegisterOcpiEndpoint');
@@ -793,7 +793,7 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handleGenerateLocalTokenOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGenerateLocalTokenOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.UPDATE, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleGenerateLocalTokenOcpiEndpoint');

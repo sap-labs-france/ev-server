@@ -223,17 +223,13 @@ export default class AuthorizationService {
   }
 
   public static async addUserAuthorizations(tenant: Tenant, userToken: UserToken, user: User, authorizationFilter: AuthorizationFilter): Promise<void> {
-    if (!user.issuer) {
-      user.canRead = true;
-    } else {
-      user.canRead = true; // Always true as it should be filtered upfront
-      user.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.USER, Action.UPDATE, authorizationFilter, { UserID: user.id }, user);
-      user.canDelete = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.USER, Action.DELETE, authorizationFilter, { UserID: user.id }, user);
-      // Optimize data over the net
-      Utils.removeCanPropertiesWithFalseValue(user);
-    }
+    user.canRead = true; // Always true as it should be filtered upfront
+    user.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.USER, Action.UPDATE, authorizationFilter, { UserID: user.id }, user);
+    user.canDelete = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.USER, Action.DELETE, authorizationFilter, { UserID: user.id }, user);
+    // Optimize data over the net
+    Utils.removeCanPropertiesWithFalseValue(user);
   }
 
   public static async checkAndGetUsersAuthorizations(tenant: Tenant, userToken: UserToken,
@@ -275,6 +271,8 @@ export default class AuthorizationService {
     assets.metadata = authorizationFilter.metadata;
     // Add Authorizations
     assets.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.ASSET, Action.CREATE, authorizationFilter);
+    assets.canListSites = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE, Action.LIST, authorizationFilter);
+    assets.canListSiteAreas = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.LIST, authorizationFilter);
     for (const asset of assets.result) {
       await AuthorizationService.addAssetAuthorizations(tenant, userToken, asset, authorizationFilter);
     }
@@ -338,25 +336,21 @@ export default class AuthorizationService {
   }
 
   public static async addTagAuthorizations(tenant: Tenant, userToken: UserToken, tag: Tag, authorizationFilter: AuthorizationFilter): Promise<void> {
-    if (!tag.issuer) {
-      tag.canRead = true;
-    } else {
-      tag.canRead = true; // Always true as it should be filtered upfront
-      tag.canDelete = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.TAG, Action.DELETE, authorizationFilter, { TagID: tag.id }, tag);
-      tag.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.TAG, Action.UPDATE, authorizationFilter, { TagID: tag.id }, tag);
-      tag.canUpdateByVisualID = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.TAG, Action.UPDATE_BY_VISUAL_ID, authorizationFilter, { TagID: tag.id }, tag);
-      tag.canUnassign = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.TAG, Action.UNASSIGN, authorizationFilter, { TagID: tag.id }, tag);
-      tag.canAssign = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.TAG, Action.ASSIGN, authorizationFilter, { TagID: tag.id }, tag);
-      tag.canListUsers = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.USER, Action.LIST, authorizationFilter);
-      // Optimize data over the net
-      Utils.removeCanPropertiesWithFalseValue(tag);
-    }
+    tag.canRead = true; // Always true as it should be filtered upfront
+    tag.canDelete = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TAG, Action.DELETE, authorizationFilter, { TagID: tag.id }, tag);
+    tag.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TAG, Action.UPDATE, authorizationFilter, { TagID: tag.id }, tag);
+    tag.canUpdateByVisualID = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TAG, Action.UPDATE_BY_VISUAL_ID, authorizationFilter, { TagID: tag.id }, tag);
+    tag.canUnassign = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TAG, Action.UNASSIGN, authorizationFilter, { TagID: tag.id }, tag);
+    tag.canAssign = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TAG, Action.ASSIGN, authorizationFilter, { TagID: tag.id }, tag);
+    tag.canListUsers = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.USER, Action.LIST, authorizationFilter);
+    // Optimize data over the net
+    Utils.removeCanPropertiesWithFalseValue(tag);
   }
 
   public static async checkAndGetRegistrationTokenAuthorizations(tenant: Tenant, userToken: UserToken,
@@ -560,7 +554,7 @@ export default class AuthorizationService {
       projectFields: [
         'id', 'inactive', 'public', 'chargingStationURL', 'issuer', 'maximumPower', 'excludeFromSmartCharging', 'lastReboot',
         'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.smartCharging', 'siteArea.siteID',
-        'site.id', 'site.name', 'siteID', 'voltage', 'coordinates', 'forceInactive', 'manualConfiguration', 'firmwareUpdateStatus',
+        'site.id', 'site.public', 'site.name', 'siteID', 'voltage', 'coordinates', 'forceInactive', 'manualConfiguration', 'firmwareUpdateStatus', 'tariffID',
         'capabilities', 'endpoint', 'chargePointVendor', 'chargePointModel', 'ocppVersion', 'ocppProtocol', 'lastSeen',
         'firmwareVersion', 'currentIPAddress', 'ocppStandardParameters', 'ocppVendorParameters', 'connectors', 'chargePoints',
         'createdOn', 'chargeBoxSerialNumber', 'chargePointSerialNumber', 'powerLimitUnit'
@@ -824,15 +818,6 @@ export default class AuthorizationService {
           if (dynamicFilter.isNegateFilter()) {
             authorizationFilters.authorized = !authorizationFilters.authorized;
           }
-          if (!authorizationFilters.authorized) {
-            await Logging.logError({
-              tenantID: tenant.id,
-              user: userToken,
-              module: MODULE_NAME, method: 'processDynamicFilters',
-              message: `Dynamic Authorization '${filterToProcess}' did not allow to perform '${authAction}' on '${authEntity}'`,
-              action: ServerAction.AUTHORIZATIONS
-            });
-          }
           authorized = authorized || authorizationFilters.authorized;
         }
         // Assign
@@ -913,13 +898,6 @@ export default class AuthorizationService {
           module: MODULE_NAME, method: 'canPerformAuthorizationAction',
         });
       }
-      await Logging.logError({
-        tenantID: tenant.id,
-        user: userToken,
-        module: MODULE_NAME, method: 'canPerformAuthorizationAction',
-        action: ServerAction.AUTHORIZATIONS,
-        message: `Role '${userToken.rolesACL.join(', ')}' is not authorized to perform '${authAction}' on '${authEntity}'`,
-      });
       return false;
     }
     // Process Dynamic Filters

@@ -96,4 +96,6 @@ export interface TransactionRefundDataResult {
 
 export interface AssetDataResult extends DataResult<Asset> {
   canCreate: boolean;
+  canListSites: boolean;
+  canListSiteAreas: boolean;
 }

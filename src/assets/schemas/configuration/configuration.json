@@ -63,8 +63,7 @@
       "required": [
         "protocol",
         "host",
-        "port",
-        "debug"
+        "port"
       ]
     },
     "ODataService": {
@@ -86,8 +85,7 @@
       "required": [
         "protocol",
         "host",
-        "port",
-        "debug"
+        "port"
       ]
     },
     "CentralSystemServer": {
@@ -141,8 +139,7 @@
           "implementation",
           "protocol",
           "host",
-          "port",
-          "debug"
+          "port"
         ]
       }
     },
@@ -180,6 +177,9 @@
         "captchaSecretKey": {
           "type": "string"
         },
+        "captchaScore": {
+          "type": "number"
+        },
         "debug": {
           "type": "boolean"
         }
@@ -195,7 +195,7 @@
         "passwordWrongNumberOfTrial",
         "passwordBlockedWaitTimeMin",
         "captchaSecretKey",
-        "debug"
+        "captchaScore"
       ]
     },
     "CentralSystemFrontEnd": {
@@ -210,6 +210,33 @@
         },
         "port": {
           "type": "integer"
+        }
+      },
+      "required": [
+        "protocol",
+        "host",
+        "port"
+      ]
+    },
+    "Monitoring": {
+      "type": "object",
+      "properties": {
+        "implementation": {
+          "type": "string",
+          "enum": ["prometheus"]
+        },
+        "protocol": {
+          "type": "string",
+          "enum": ["http", "https"]
+        },
+        "host": {
+          "type": "string"
+        },
+        "port": {
+          "type": "integer"
+        },
+        "debug": {
+          "type": "boolean"
         }
       },
       "required": [
@@ -266,7 +293,8 @@
       "type": "object",
       "properties": {
         "implementation": {
-          "type": "string"
+          "type": "string",
+          "enum": ["mongodb"]
         },
         "uri": {
           "type": "string"
@@ -281,8 +309,7 @@
       "required": [
         "implementation",
         "uri",
-        "poolSize",
-        "debug"
+        "poolSize"
       ]
     },
     "OCPIService": {
@@ -305,8 +332,7 @@
       "required": [
         "protocol",
         "host",
-        "port",
-        "debug"
+        "port"
       ]
     },
     "Notification": {
@@ -375,6 +401,24 @@
         },
         "databaseURL": {
           "type": "string"
+        },
+        "tenants": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "tenantID": {
+                "type": "string"
+              },
+              "configuration": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "tenantID",
+              "configuration"
+            ]
+          }
         }
       },
       "required": [
@@ -495,10 +539,7 @@
         "debug": {
           "type": "boolean"
         }
-      },
-      "required": [
-        "debug"
-      ]
+      }
     },
     "ChargingStation": {
       "type": "object",

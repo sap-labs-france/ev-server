@@ -17,7 +17,7 @@ export default class ODataServer {
   private expressApplication: Application;
 
   // Create the rest server
-  constructor(oDataServerConfig: ODataServiceConfiguration) {
+  public constructor(oDataServerConfig: ODataServiceConfiguration) {
     // Keep params
     this.oDataServerConfig = oDataServerConfig;
     // Initialize express app
@@ -49,7 +49,7 @@ export default class ODataServer {
   }
 
   // Start the server
-  start(): void {
+  public start(): void {
     ServerUtils.startHttpServer(this.oDataServerConfig,
       ServerUtils.createHttpServer(this.oDataServerConfig, this.expressApplication), MODULE_NAME, ServerType.ODATA_SERVER);
   }

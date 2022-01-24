@@ -562,12 +562,9 @@ export default class EmspOCPIClient extends OCPIClient {
         },
       });
     await Logging.logDebug({
+      ...LoggingHelper.getTransactionProperties(transaction),
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_STOP_SESSION,
-      siteID: transaction.siteID,
-      siteAreaID: transaction.siteAreaID,
-      companyID: transaction.companyID,
-      chargingStationID: transaction.chargeBoxID,
       message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OCPI Remote Stop response status '${response.status}'`,
       module: MODULE_NAME, method: 'remoteStopSession',
       detailedMessages: { response: response.data }
