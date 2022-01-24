@@ -27,7 +27,7 @@ export default class OCPPValidation extends SchemaValidator {
     super('OCPPValidation');
   }
 
-  static getInstance(): OCPPValidation {
+  public static getInstance(): OCPPValidation {
     if (!OCPPValidation.instance) {
       OCPPValidation.instance = new OCPPValidation();
     }

@@ -651,7 +651,7 @@ export default class OCPIUtilsService {
     await this.updateConnector(tenant, transaction);
   }
 
-  public static async updateToken(tenant: Tenant, ocpiEndpoint: OCPIEndpoint, token: OCPIToken, tag: Tag, emspUser: User): Promise<void> {
+  public static async updateToken(tenant: Tenant, token: OCPIToken, tag: Tag, emspUser: User): Promise<void> {
     if (!OCPIUtilsService.validateToken(token)) {
       throw new AppError({
         module: MODULE_NAME, method: 'updateToken',
@@ -661,80 +661,49 @@ export default class OCPIUtilsService {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    if (emspUser) {
-      // External organization
-      if (emspUser.issuer) {
-        throw new AppError({
-          module: MODULE_NAME, method: 'updateToken',
-          errorCode: StatusCodes.CONFLICT,
-          message: 'Token already assigned to an internal user',
-          actionOnUser: emspUser,
-          detailedMessages: { token },
-          ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
-        });
-      }
-      // Check the tag
-      if (tag && tag.issuer) {
-        throw new AppError({
-          module: MODULE_NAME, method: 'checkExistingTag',
-          errorCode: StatusCodes.CONFLICT,
-          message: 'Token already exists in the current organization',
-          detailedMessages: token,
-          ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
-        });
-      }
-      const tagToSave = {
-        id: token.uid,
-        issuer: false,
-        userID: emspUser.id,
-        active: token.valid === true ? true : false,
-        description: token.visual_number,
-        lastChangedOn: token.last_updated,
-        ocpiToken: token
-      };
-      // Save Tag
-      if (!tag || JSON.stringify(tagToSave.ocpiToken) !== JSON.stringify(tag.ocpiToken)) {
-        await TagStorage.saveTag(tenant, tagToSave);
-      }
-    } else {
-      // Unknown User
-      // Check the Tag
-      if (tag && tag.issuer) {
-        throw new AppError({
-          module: MODULE_NAME, method: 'checkExistingTag',
-          errorCode: StatusCodes.CONFLICT,
-          message: 'Token already exists in the current organization',
-          detailedMessages: token,
-          ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
-        });
-      }
-      // Create User
-      emspUser = {
-        issuer: false,
-        createdOn: token.last_updated,
-        lastChangedOn: token.last_updated,
-        name: token.issuer,
-        firstName: OCPIUtils.buildOperatorName(ocpiEndpoint.countryCode, ocpiEndpoint.partyId),
-        email: OCPIUtils.buildEmspEmailFromOCPIToken(token, ocpiEndpoint.countryCode, ocpiEndpoint.partyId),
-        locale: Utils.getLocaleFromLanguage(token.language),
-      } as User;
-      // Save User
-      emspUser.id = await UserStorage.saveUser(tenant, emspUser);
-      await UserStorage.saveUserRole(tenant, emspUser.id, UserRole.BASIC);
-      await UserStorage.saveUserStatus(tenant, emspUser.id, UserStatus.ACTIVE);
-      const tagToSave = {
-        id: token.uid,
-        issuer: false,
-        userID: emspUser.id,
-        active: token.valid === true ? true : false,
-        description: 'OCPI token',
-        lastChangedOn: token.last_updated,
-        ocpiToken: token
-      };
-      // Save Tag
-      if (!tag || JSON.stringify(tagToSave.ocpiToken) !== JSON.stringify(tag.ocpiToken)) {
-        await TagStorage.saveTag(tenant, tagToSave);
-      }
+    // External organization
+    if (!emspUser) {
+      throw new AppError({
+        module: MODULE_NAME, method: 'updateToken',
+        errorCode: StatusCodes.CONFLICT,
+        message: 'eMSP User is mandatory',
+        detailedMessages: { token },
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
+      });
+    }
+    // External organization
+    if (emspUser.issuer) {
+      throw new AppError({
+        module: MODULE_NAME, method: 'updateToken',
+        errorCode: StatusCodes.CONFLICT,
+        message: 'Token already assigned to an internal user',
+        actionOnUser: emspUser,
+        detailedMessages: { token },
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
+      });
+    }
+    // Check the tag
+    if (tag?.issuer) {
+      throw new AppError({
+        module: MODULE_NAME, method: 'checkExistingTag',
+        errorCode: StatusCodes.CONFLICT,
+        message: 'Token already exists in the current organization',
+        detailedMessages: token,
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
+      });
+    }
+    const tagToSave = {
+      id: token.uid,
+      issuer: false,
+      userID: emspUser.id,
+      active: token.valid === true ? true : false,
+      description: token.visual_number,
+      lastChangedOn: token.last_updated,
+      ocpiToken: token
+    };
+    // Save Tag
+    if (!tag || JSON.stringify(tagToSave.ocpiToken) !== JSON.stringify(tag.ocpiToken)) {
+      await TagStorage.saveTag(tenant, tagToSave);
     }
   }
 

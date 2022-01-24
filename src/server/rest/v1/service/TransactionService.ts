@@ -722,7 +722,7 @@ export default class TransactionService {
 
   public static async getRefundedTransactionsToExport(req: Request): Promise<DataResult<Transaction>> {
     req.query.Status = 'completed';
-    return await TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_TO_REFUND_EXPORT, {}, [
+    return TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_TO_REFUND_EXPORT, {}, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
       'refundData.reportId', 'refundData.refundedAt', 'refundData.status', 'site.name', 'siteArea.name', 'company.name',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
@@ -744,7 +744,7 @@ export default class TransactionService {
       });
     }
     // Filter
-    const filteredRequest = TransactionValidator.getInstance().validateTransactionGetReq(req.query);
+    const filteredRequest = TransactionValidator.getInstance().validateTransactionCdrExportReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleExportTransactionOcpiCdr', req.user);
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.tenant, filteredRequest.ID, {}, ['id', 'ocpiData']);
