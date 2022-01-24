@@ -7,7 +7,6 @@ import MonitoringServer from '../MonitoringServer';
 import { ServerType } from '../../types/Server';
 import { ServerUtils } from '../../server/ServerUtils';
 import client from 'prom-client';
-import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'PrometheusMonitoringServer';
 
@@ -28,7 +27,6 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
     // Enable the collection of default metrics
     client.collectDefaultMetrics({
       register,
-      prefix: `${global.serverType.toLocaleLowerCase()}_`
     });
     // Create HTTP Server
     this.expressApplication = ExpressUtils.initApplication();
