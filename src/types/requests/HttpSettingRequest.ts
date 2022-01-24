@@ -11,5 +11,4 @@ export interface HttpSettingByIdentifierRequest {
 
 export interface HttpSettingsRequest extends HttpDatabaseRequest {
   Identifier?: string;
-  ContentFilter?: boolean;
 }
