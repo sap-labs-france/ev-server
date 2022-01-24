@@ -10,7 +10,6 @@ import Constants from '../../../../utils/Constants';
 import Cypher from '../../../../utils/Cypher';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
-import SettingSecurity from './security/SettingSecurity';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import SettingValidator from '../validator/SettingValidator';
 import { StatusCodes } from 'http-status-codes';

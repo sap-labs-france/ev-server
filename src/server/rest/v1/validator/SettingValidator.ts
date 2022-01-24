@@ -8,7 +8,6 @@ import global from '../../../../types/GlobalType';
 
 export default class SettingValidator extends SchemaValidator {
   private static instance: SettingValidator|null = null;
-
   private settingOCPISet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-ocpi-set.json`, 'utf8'));
   private settingSmartChargingSet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-smart-charging-set.json`, 'utf8'));
   private settingUserSet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-user-set.json`, 'utf8'));
