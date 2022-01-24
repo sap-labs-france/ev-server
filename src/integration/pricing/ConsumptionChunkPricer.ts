@@ -1,6 +1,7 @@
 import ConsumptionPricer, { ConsumptionChunk } from './ConsumptionPricer';
-import { DimensionType, PricedConsumptionData, PricedDimensionData, PricingDimension, PricingRestriction, PricingTimeLimit, ResolvedPricingDefinition, ResolvedPricingModel } from '../../types/Pricing';
+import { DimensionType, PricedConsumptionData, PricedDimensionData, PricingDimension, PricingRestriction, ResolvedPricingDefinition, ResolvedPricingModel } from '../../types/Pricing';
 
+import PricingTimeLimit from './simple-pricing/PricingTimeLimit';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
 
