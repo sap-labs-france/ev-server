@@ -364,6 +364,7 @@ export default class SiteService {
         }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);
         if (publicChargingStations.count > 0) {
           throw new AppError({
+            ...LoggingHelper.getSiteProperties(site),
             errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
             message: `Cannot set site ${site.name} to private as charging station ${publicChargingStations.result[0].id} under site is public`,
             module: MODULE_NAME, method: 'handleUpdateSite',

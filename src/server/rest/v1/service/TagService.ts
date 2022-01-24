@@ -21,6 +21,7 @@ import JSONStream from 'JSONStream';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
+import LoggingHelper from '../../../../utils/LoggingHelper';
 import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import { OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
@@ -137,6 +138,7 @@ export default class TagService {
     let tag = await TagStorage.getTag(req.tenant, filteredRequest.id.toUpperCase());
     if (tag) {
       throw new AppError({
+        ...LoggingHelper.getTagProperties(tag),
         errorCode: HTTPError.TAG_ALREADY_EXIST_ERROR,
         message: `Tag with ID '${filteredRequest.id}' already exists`,
         module: MODULE_NAME, method: 'handleCreateTag',
@@ -148,6 +150,7 @@ export default class TagService {
     tag = await TagStorage.getTagByVisualID(req.tenant, filteredRequest.visualID);
     if (tag) {
       throw new AppError({
+        ...LoggingHelper.getTagProperties(tag),
         errorCode: HTTPError.TAG_VISUAL_ID_ALREADY_EXIST_ERROR,
         message: `Tag with visual ID '${filteredRequest.visualID}' already exists`,
         module: MODULE_NAME, method: 'handleCreateTag',
@@ -191,6 +194,7 @@ export default class TagService {
     // OCPI
     await TagService.updateTagOCPI(action, req.tenant, req.user, newTag);
     await Logging.logInfo({
+      ...LoggingHelper.getTagProperties(newTag),
       tenantID: req.user.tenantID,
       action: action,
       user: req.user,
@@ -210,6 +214,7 @@ export default class TagService {
     // Check Tag with Visual ID
     if (!tag) {
       throw new AppError({
+        ...LoggingHelper.getTagProperties(tag),
         errorCode: HTTPError.TAG_VISUAL_ID_DOES_NOT_MATCH_TAG_ERROR,
         message: `Tag with visual ID '${filteredRequest.visualID}' does not match any badge`,
         module: MODULE_NAME, method: 'handleAssignTag',
@@ -220,6 +225,7 @@ export default class TagService {
     // Check if tag is active
     if (!tag.active) {
       throw new AppError({
+        ...LoggingHelper.getTagProperties(tag),
         errorCode: HTTPError.TAG_INACTIVE,
         message: `Tag with visual ID '${filteredRequest.visualID}' is not active and cannot be assigned`,
         module: MODULE_NAME, method: 'handleAssignTag',
@@ -229,6 +235,7 @@ export default class TagService {
     }
     if (tag.user) {
       throw new AppError({
+        ...LoggingHelper.getTagProperties(tag),
         errorCode: HTTPError.TAG_ALREADY_EXIST_ERROR,
         message: `Tag with ID '${filteredRequest.id}' already exists and assigned to another user`,
         module: MODULE_NAME, method: 'handleAssignTag',
@@ -263,6 +270,7 @@ export default class TagService {
     // OCPI
     await TagService.updateTagOCPI(action, req.tenant, req.user, tag);
     await Logging.logInfo({
+      ...LoggingHelper.getTagProperties(tag),
       tenantID: req.user.tenantID,
       action: action,
       user: req.user, actionOnUser: user,
@@ -304,6 +312,7 @@ export default class TagService {
     await TagStorage.saveTag(req.tenant, tag);
     await TagService.updateTagOCPI(action, req.tenant, req.user, tag);
     await Logging.logInfo({
+      ...LoggingHelper.getTagProperties(tag),
       tenantID: req.user.tenantID,
       action: action,
       module: MODULE_NAME, method: 'handleUpdateTagByVisualID',
@@ -331,6 +340,7 @@ export default class TagService {
       const tagVisualID = await TagStorage.getTagByVisualID(req.tenant, filteredRequest.visualID);
       if (tagVisualID) {
         throw new AppError({
+          ...LoggingHelper.getTagProperties(tag),
           errorCode: HTTPError.TAG_VISUAL_ID_ALREADY_EXIST_ERROR,
           message: `Tag with Visual ID '${filteredRequest.id}' already exists`,
           module: MODULE_NAME, method: 'handleUpdateTag',
@@ -379,6 +389,7 @@ export default class TagService {
     // OCPI
     await TagService.updateTagOCPI(action, req.tenant, req.user, tag);
     await Logging.logInfo({
+      ...LoggingHelper.getTagProperties(tag),
       tenantID: req.user.tenantID,
       action: action,
       module: MODULE_NAME, method: 'handleUpdateTag',

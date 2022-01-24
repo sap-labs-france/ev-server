@@ -1,8 +1,10 @@
 import Asset from '../types/Asset';
 import { Car } from '../types/Car';
 import ChargingStation from '../types/ChargingStation';
+import RegistrationToken from '../types/RegistrationToken';
 import Site from '../types/Site';
 import SiteArea from '../types/SiteArea';
+import Tag from '../types/Tag';
 import Transaction from '../types/Transaction';
 import User from '../types/User';
 
@@ -53,6 +55,21 @@ export default class LoggingHelper {
       carID: car.id,
       userID: car.userID,
       carCatalogID: car.carCatalogID
+    };
+  }
+
+  public static getRegistrationTokenProperties(registrationToken: RegistrationToken): { registrationTokenID: string; siteAreaID: string } {
+    return {
+      registrationTokenID: registrationToken.id,
+      siteAreaID: registrationToken.siteAreaID
+    };
+  }
+
+  public static getTagProperties(tag: Tag): { tagID: string; userID: string, visualID: string } {
+    return {
+      tagID: tag.id,
+      userID: tag.userID,
+      visualID: tag.visualID
     };
   }
 }
