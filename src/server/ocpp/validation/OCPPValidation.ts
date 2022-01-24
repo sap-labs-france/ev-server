@@ -46,6 +46,7 @@ export default class OCPPValidation extends SchemaValidator {
   }
 
   public validateAuthorize(authorize: OCPPAuthorizeRequestExtended): void {
+    authorize.idTag = this.cleanUpTagID(authorize.idTag);
     this.validate(this.authorizeRequest, authorize);
   }
 
@@ -62,6 +63,7 @@ export default class OCPPValidation extends SchemaValidator {
   }
 
   public validateStartTransaction(chargingStation: ChargingStation, startTransaction: OCPPStartTransactionRequestExtended): void {
+    startTransaction.idTag = this.cleanUpTagID(startTransaction.idTag);
     this.validate(this.startTransactionRequest, startTransaction);
     // Check Connector ID
     if (!Utils.getConnectorFromID(chargingStation, startTransaction.connectorId)) {
@@ -78,6 +80,7 @@ export default class OCPPValidation extends SchemaValidator {
   }
 
   public validateStopTransaction(chargingStation: ChargingStation, stopTransaction: OCPPStopTransactionRequestExtended): void {
+    stopTransaction.idTag = this.cleanUpTagID(stopTransaction.idTag);
     if (chargingStation.ocppVersion === OCPPVersion.VERSION_16) {
       this.validate(this.stopTransactionRequest16, stopTransaction);
     } else {
@@ -146,6 +149,12 @@ export default class OCPPValidation extends SchemaValidator {
       // Override it
       meterValues.transactionId = connectorTransactionID;
     }
+  }
+
+  private cleanUpTagID(tagID: string): string {
+    // Handle bug in Tag ID ending with ;NULL on some Charging Stations
+    tagID = tagID.replace(';NULL', '');
+    return tagID;
   }
 }
 
