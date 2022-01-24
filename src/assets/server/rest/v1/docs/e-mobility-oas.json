@@ -13457,6 +13457,84 @@
           }
         }
       }
+    },
+    "/api/invoices": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get Invoices",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/UserIDs"
+          },
+          {
+            "in": "query",
+            "name": "Status",
+            "description": "Pipe separated invoice status (paid, open, draft, void, uncollectible, deleted)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/StartDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/EndDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return invoices",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "number",
+                      "example": 1
+                    },
+                    "result": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Invoice"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -15536,6 +15614,83 @@
             "type": "object"
           }
         }
+      },
+      "Invoice": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number"
+          },
+          "createdOn": {
+            "$ref": "#/components/schemas/CreatedOn"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "downloadable": {
+            "type": "boolean"
+          },
+          "number": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "paid",
+              "open",
+              "draft",
+              "void",
+              "uncollectible",
+              "deleted"
+            ]
+          },
+          "userID": {
+            "type": "string"
+          },
+          "user": {
+            "$ref": "#/components/schemas/User"
+          },
+          "id": {
+            "type": "string"
+          },
+          "sessions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "transactionID": {
+                  "type": "number"
+                },
+                "pricingData": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "quantity": {
+                        "type": "number"
+                      },
+                      "amount": {
+                        "type": "number"
+                      },
+                      "roundedAmount": {
+                        "type": "number"
+                      },
+                      "itemDescription": {
+                        "type": "string"
+                      },
+                      "taxes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "parameters": {
@@ -15544,7 +15699,7 @@
         "name": "Limit",
         "description": "Limit the number of records",
         "example": 100,
-        "required": false,
+        "required": true,
         "schema": {
           "type": "integer"
         }
