@@ -10,7 +10,6 @@ import Constants from '../../../../utils/Constants';
 import Cypher from '../../../../utils/Cypher';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
-import SettingSecurity from './security/SettingSecurity';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import SettingValidator from '../validator/SettingValidator';
 import { StatusCodes } from 'http-status-codes';
@@ -23,7 +22,7 @@ const MODULE_NAME = 'SettingService';
 export default class SettingService {
   public static async handleDeleteSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const settingID = SettingSecurity.filterSettingRequestByID(req.query);
+    const settingID = SettingValidator.getInstance().validateSettingGetByIDReq(req.query).ID;
     UtilsService.assertIdIsProvided(action, settingID, MODULE_NAME, 'handleDeleteSetting', req.user);
     // Check auth
     if (!await Authorizations.canDeleteSetting(req.user)) {
@@ -55,7 +54,7 @@ export default class SettingService {
 
   public static async handleGetSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const settingID = SettingSecurity.filterSettingRequestByID(req.query);
+    const settingID = SettingValidator.getInstance().validateSettingGetByIDReq(req.query).ID;
     UtilsService.assertIdIsProvided(action, settingID, MODULE_NAME, 'handleGetSetting', req.user);
     // Check auth
     if (!await Authorizations.canReadSetting(req.user)) {
@@ -84,7 +83,7 @@ export default class SettingService {
 
   public static async handleGetSettingByIdentifier(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const settingID = SettingSecurity.filterSettingRequestByID(req.query);
+    const settingID = SettingValidator.getInstance().validateSettingGetByIdentifierReq(req.query).Identifier;
     UtilsService.assertIdIsProvided(action, settingID, MODULE_NAME, 'handleGetSettingByIdentifier', req.user);
     // Check auth
     if (!await Authorizations.canReadSetting(req.user)) {
@@ -122,7 +121,7 @@ export default class SettingService {
       });
     }
     // Filter
-    const filteredRequest = SettingSecurity.filterSettingsRequest(req.query);
+    const filteredRequest = SettingValidator.getInstance().validateSettingsGetReq(req.query);
     // Get the all settings identifier
     const settings = await SettingStorage.getSettings(req.tenant,
       { identifier: filteredRequest.Identifier },
