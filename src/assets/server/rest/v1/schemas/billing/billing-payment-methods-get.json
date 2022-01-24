@@ -1,0 +1,20 @@
+{
+  "$id": "billing-payment-methods-get",
+  "title": "Get user payments methods",
+  "type": "object",
+  "properties": {
+    "userID": {
+      "$ref": "common#/definitions/id"
+    },
+    "Limit": {
+      "$ref": "common#/definitions/limit"
+    },
+    "Skip": {
+      "$ref": "common#/definitions/skip"
+    }
+  },
+  "required": [
+    "userID",
+    "Limit"
+  ]
+}

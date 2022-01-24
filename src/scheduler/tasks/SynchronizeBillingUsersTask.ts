@@ -3,13 +3,13 @@ import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
-import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
 import { TaskConfig } from '../../types/TaskConfig';
 import Tenant from '../../types/Tenant';
+import TenantSchedulerTask from '../TenantSchedulerTask';
 import Utils from '../../utils/Utils';
 
-export default class SynchronizeBillingUsersTask extends SchedulerTask {
+export default class SynchronizeBillingUsersTask extends TenantSchedulerTask {
   public async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     // Get the lock
     const billingLock = await LockingHelper.acquireBillingSyncUsersLock(tenant.id);
@@ -19,7 +19,7 @@ export default class SynchronizeBillingUsersTask extends SchedulerTask {
         if (billingImpl) {
           const synchronizeAction = await billingImpl.synchronizeUsers();
           if (synchronizeAction.inError > 0) {
-            await NotificationHandler.sendBillingSynchronizationFailed(
+            void NotificationHandler.sendBillingSynchronizationFailed(
               tenant,
               {
                 nbrUsersInError: synchronizeAction.inError,

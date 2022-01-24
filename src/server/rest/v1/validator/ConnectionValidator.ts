@@ -8,15 +8,12 @@ import global from '../../../../types/GlobalType';
 
 export default class ConnectionValidator extends SchemaValidator {
   private static instance: ConnectionValidator|null = null;
-  private connectionCreate: Schema;
-  private connectionsGet: Schema;
-  private connectionGet: Schema;
+  private connectionCreate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/connections/connection-create.json`, 'utf8'));
+  private connectionsGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/connections/connections-get.json`, 'utf8'));
+  private connectionGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/connections/connection-get.json`, 'utf8'));
 
   private constructor() {
     super('ConnectionValidator');
-    this.connectionCreate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/connections/connection-create.json`, 'utf8'));
-    this.connectionsGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/connections/connections-get.json`, 'utf8'));
-    this.connectionGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/connections/connection-get.json`, 'utf8'));
   }
 
   public static getInstance(): ConnectionValidator {

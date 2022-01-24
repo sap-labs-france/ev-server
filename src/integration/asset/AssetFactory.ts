@@ -15,7 +15,7 @@ import WitAssetIntegration from './wit/WitAssetIntegration';
 const MODULE_NAME = 'AssetFactory';
 
 export default class AssetFactory {
-  static async getAssetImpl(tenant: Tenant, connectionID: string): Promise<AssetIntegration<AssetSetting>> {
+  public static async getAssetImpl(tenant: Tenant, connectionID: string): Promise<AssetIntegration<AssetSetting>> {
     // Check if component is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.ASSET)) {
       // Get the Asset's settings

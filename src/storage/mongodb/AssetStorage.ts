@@ -15,17 +15,18 @@ const MODULE_NAME = 'AssetStorage';
 
 export default class AssetStorage {
   public static async getAsset(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID,
-      params: { withSiteArea?: boolean } = {}, projectFields?: string[]): Promise<Asset> {
+      params: { withSiteArea?: boolean, siteIDs?: string[], issuer?: boolean } = {}, projectFields?: string[]): Promise<Asset> {
     const assetsMDB = await AssetStorage.getAssets(tenant, {
       assetIDs: [id],
-      withSiteArea: params.withSiteArea
+      withSiteArea: params.withSiteArea,
+      siteIDs: params.siteIDs,
+      issuer: params.issuer
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return assetsMDB.count === 1 ? assetsMDB.result[0] : null;
   }
 
   public static async getAssetImage(tenant: Tenant, id: string): Promise<{ id: string; image: string }> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Read DB
     const assetImageMDB = await global.database.getCollection<Image>(tenant.id, 'assetimages')
@@ -39,7 +40,6 @@ export default class AssetStorage {
 
   public static async saveAsset(tenant: Tenant, assetToSave: Asset, saveImage = true): Promise<string> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Set
     const assetMDB: any = {
@@ -53,7 +53,7 @@ export default class AssetStorage {
       excludeFromSmartCharging: Utils.convertToBoolean(assetToSave.excludeFromSmartCharging),
       variationThresholdPercent: Utils.convertToFloat(assetToSave.variationThresholdPercent),
       powerWattsLastSmartChargingRun: Utils.convertToFloat(assetToSave.powerWattsLastSmartChargingRun),
-      fluctuationPercent:  Utils.convertToFloat(assetToSave.fluctuationPercent),
+      fluctuationPercent: Utils.convertToFloat(assetToSave.fluctuationPercent),
       staticValueWatt: Utils.convertToFloat(assetToSave.staticValueWatt),
       dynamicAsset: Utils.convertToBoolean(assetToSave.dynamicAsset),
       usesPushAPI: Utils.convertToBoolean(assetToSave.usesPushAPI),
@@ -102,7 +102,6 @@ export default class AssetStorage {
         withNoSiteArea?: boolean; dynamicOnly?: boolean; issuer?: boolean; } = {},
       dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Asset>> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -139,8 +138,8 @@ export default class AssetStorage {
       };
     }
     // Dynamic Asset
-    if (params.dynamicOnly) {
-      filters.dynamicAsset = true;
+    if (params.dynamicOnly && Utils.isBoolean(params.dynamicOnly)) {
+      filters.dynamicAsset = params.dynamicOnly;
     }
     // Limit on Asset for Basic Users
     if (!Utils.isEmptyArray(params.assetIDs)) {
@@ -187,7 +186,7 @@ export default class AssetStorage {
     }
     // Limit
     aggregation.push({
-      $limit: (dbParams.limit > 0 && dbParams.limit < Constants.DB_RECORD_COUNT_CEIL) ? dbParams.limit : Constants.DB_RECORD_COUNT_CEIL
+      $limit: dbParams.limit
     });
     // Site Area
     if (params.withSiteArea) {
@@ -219,7 +218,6 @@ export default class AssetStorage {
       params: { search?: string; siteAreaIDs?: string[]; siteIDs?: string[]; errorType?: string[]; issuer?: boolean } = {},
       dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Asset>> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -284,7 +282,7 @@ export default class AssetStorage {
     }
     // Limit
     aggregation.push({
-      $limit: (dbParams.limit > 0 && dbParams.limit < Constants.DB_RECORD_COUNT_CEIL) ? dbParams.limit : Constants.DB_RECORD_COUNT_CEIL
+      $limit: dbParams.limit
     });
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
@@ -301,7 +299,6 @@ export default class AssetStorage {
 
   public static async deleteAsset(tenant: Tenant, id: string): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete the Asset
     await global.database.getCollection<Asset>(tenant.id, 'assets')
@@ -314,7 +311,6 @@ export default class AssetStorage {
 
   private static async saveAssetImage(tenant: Tenant, assetID: string, assetImageToSave: string): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Modify
     await global.database.getCollection<any>(tenant.id, 'assetimages').findOneAndUpdate(

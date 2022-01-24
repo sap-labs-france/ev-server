@@ -1,7 +1,7 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { ActionsResponse, ImportStatus } from '../../../../types/GlobalType';
 import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
-import Busboy, { BusboyHeaders } from 'busboy';
+import Busboy, { FileInfo } from 'busboy';
 import { DataResult, TagDataResult } from '../../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
@@ -25,6 +25,7 @@ import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import { OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../../ocpi/OCPIUtils';
+import { Readable } from 'stream';
 import { ServerAction } from '../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
@@ -275,7 +276,7 @@ export default class TagService {
 
   public static async handleUpdateTagByVisualID(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = TagValidator.getInstance().validateTagVisualIDUpdateReq({ ...req.params, ...req.body });
+    const filteredRequest = TagValidator.getInstance().validateTagVisualIDUpdateReq(req.body);
     // Check and Get Tag
     const tag = await UtilsService.checkAndGetTagByVisualIDAuthorization(req.tenant, req.user, filteredRequest.visualID, Action.UPDATE_BY_VISUAL_ID, action,
       filteredRequest, { withNbrTransactions: true, withUser: true });
@@ -425,7 +426,7 @@ export default class TagService {
       // Delete all previously imported tags
       await TagStorage.deleteImportedTags(req.tenant);
       // Get the stream
-      const busboy = new Busboy({ headers: req.headers as BusboyHeaders });
+      const busboy = Busboy({ headers: req.headers });
       req.pipe(busboy);
       // Handle closed socket
       let connectionClosed = false;
@@ -439,8 +440,8 @@ export default class TagService {
       });
       await new Promise((resolve) => {
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        busboy.on('file', async (fieldname: string, file: any, filename: string, encoding: string, mimetype: string) => {
-          if (filename.slice(-4) === '.csv') {
+        busboy.on('file', async (fileName: string, fileStream: Readable, fileInfo: FileInfo) => {
+          if (fileInfo.filename.slice(-4) === '.csv') {
             const converter = csvToJson({
               trim: true,
               delimiter: Constants.CSV_SEPARATOR,
@@ -484,13 +485,12 @@ export default class TagService {
             }, async (error: CSVError) => {
               // Release the lock
               await LockingManager.release(importTagsLock);
-              // Log
               await Logging.logError({
                 tenantID: req.user.tenantID,
                 module: MODULE_NAME, method: 'handleImportTags',
                 action: action,
                 user: req.user.id,
-                message: `Exception while parsing the CSV '${filename}': ${error.message}`,
+                message: `Exception while parsing the CSV '${fileInfo.filename}': ${error.message}`,
                 detailedMessages: { error: error.stack }
               });
               if (!res.headersSent) {
@@ -509,7 +509,6 @@ export default class TagService {
               }
               // Release the lock
               await LockingManager.release(importTagsLock);
-              // Log
               const executionDurationSecs = Utils.truncTo((new Date().getTime() - startTime) / 1000, 2);
               await Logging.logActionsResponse(
                 req.user.tenantID, action,
@@ -534,10 +533,9 @@ export default class TagService {
               resolve();
             });
             // Start processing the file
-            void file.pipe(converter);
-          } else if (mimetype === 'application/json') {
+            void fileStream.pipe(converter);
+          } else if (fileInfo.encoding === 'application/json') {
             const parser = JSONStream.parse('tags.*');
-            // TODO: Handle the end of the process to send the data like the CSV
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             parser.on('data', async (tag: ImportedTag) => {
               // Set default value
@@ -557,13 +555,12 @@ export default class TagService {
             parser.on('error', async (error) => {
               // Release the lock
               await LockingManager.release(importTagsLock);
-              // Log
               await Logging.logError({
                 tenantID: req.user.tenantID,
                 module: MODULE_NAME, method: 'handleImportTags',
                 action: action,
                 user: req.user.id,
-                message: `Invalid Json file '${filename}'`,
+                message: `Invalid Json file '${fileInfo.filename}'`,
                 detailedMessages: { error: error.stack }
               });
               if (!res.headersSent) {
@@ -572,17 +569,16 @@ export default class TagService {
                 resolve();
               }
             });
-            file.pipe(parser);
+            fileStream.pipe(parser);
           } else {
             // Release the lock
             await LockingManager.release(importTagsLock);
-            // Log
             await Logging.logError({
               tenantID: req.user.tenantID,
               module: MODULE_NAME, method: 'handleImportTags',
               action: action,
               user: req.user.id,
-              message: `Invalid file format '${mimetype}'`
+              message: `Invalid file format '${fileInfo.mimeType}'`
             });
             if (!res.headersSent) {
               res.writeHead(HTTPError.INVALID_FILE_FORMAT);

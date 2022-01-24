@@ -4,12 +4,12 @@ import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
-import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
+import TenantSchedulerTask from '../TenantSchedulerTask';
 import Utils from '../../utils/Utils';
 
-export default class SynchronizeBillingInvoicesTask extends SchedulerTask {
+export default class SynchronizeBillingInvoicesTask extends TenantSchedulerTask {
   public async processTenant(tenant: Tenant, taskConfig: BillingInvoiceSynchronizationTaskConfig): Promise<void> {
     // Get the lock
     const billingLock = await LockingHelper.acquireBillingSyncInvoicesLock(tenant.id);
@@ -20,7 +20,7 @@ export default class SynchronizeBillingInvoicesTask extends SchedulerTask {
           // Synchronize new Invoices and Invoices changes
           const synchronizeActionResults = await billingImpl.synchronizeInvoices();
           if (synchronizeActionResults.inError > 0) {
-            await NotificationHandler.sendBillingInvoicesSynchronizationFailed(
+            void NotificationHandler.sendBillingInvoicesSynchronizationFailed(
               tenant,
               {
                 nbrInvoicesInError: synchronizeActionResults.inError,

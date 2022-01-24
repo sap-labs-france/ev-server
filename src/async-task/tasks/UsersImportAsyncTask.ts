@@ -20,11 +20,11 @@ const MODULE_NAME = 'UsersImportAsyncTask';
 
 export default class UsersImportAsyncTask extends AbstractAsyncTask {
   protected async executeAsyncTask(): Promise<void> {
-    const importUsersLock = await LockingHelper.acquireImportUsersLock(this.asyncTask.tenantID);
+    const importUsersLock = await LockingHelper.acquireImportUsersLock(this.getAsyncTask().tenantID);
     const importHelper = new ImportHelper();
     const existingSites: Map<string, Site> = new Map();
     if (importUsersLock) {
-      const tenant = await TenantStorage.getTenant(this.asyncTask.tenantID);
+      const tenant = await TenantStorage.getTenant(this.getAsyncTask().tenantID);
       try {
         if (existingSites.size === 0) {
           const sites = await SiteStorage.getSites(tenant, {}, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'name']);

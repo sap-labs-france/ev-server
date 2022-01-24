@@ -15,6 +15,7 @@ import { BillingSettings } from '../../../types/Setting';
 import BillingStorage from '../../../storage/mongodb/BillingStorage';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
+import DatabaseUtils from '../../../storage/mongodb/DatabaseUtils';
 import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
 import LoggingHelper from '../../../utils/LoggingHelper';
@@ -338,10 +339,15 @@ export default class StripeBillingIntegration extends BillingIntegration {
       userID, invoiceID, customerID, liveMode, number, amount, amountPaid, currency, createdOn, downloadUrl, downloadable: !!downloadUrl,
       status: status as BillingInvoiceStatus, payInvoiceUrl,
     };
-    // Let's persist the up-to-date data
+    // Let's persist the invoice with up-to-date data
     const freshInvoiceId = await BillingStorage.saveInvoice(this.tenant, invoiceToSave);
-    // TODO - perf improvement? - can't we just reuse
-    const freshBillingInvoice = await BillingStorage.getInvoice(this.tenant, freshInvoiceId);
+    // Let's get a clean invoice instance
+    let freshBillingInvoice = await BillingStorage.getInvoice(this.tenant, freshInvoiceId);
+    if (!freshBillingInvoice) {
+      // This should not happen - but it happened several times - so let's wait a bit and try again
+      await Utils.sleep(2000);
+      freshBillingInvoice = await BillingStorage.getInvoice(this.tenant, freshInvoiceId);
+    }
     return freshBillingInvoice;
   }
 
@@ -442,7 +448,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Let's replicate some information on our side
     billingInvoice = await this.synchronizeAsBillingInvoice(stripeInvoice, false);
     if (!billingInvoice) {
-      // This should not happen - but it happened once!
       throw new Error(`Unexpected situation - failed to synchronize ${stripeInvoice.id} - the invoice is null`);
     }
     await StripeHelpers.updateInvoiceAdditionalData(this.tenant, billingInvoice, operationResult);
@@ -912,23 +917,52 @@ export default class StripeBillingIntegration extends BillingIntegration {
       };
     }
     // Do not bill suspicious StopTransaction events
-    if (FeatureToggles.isFeatureActive(Feature.BILLING_CHECK_THRESHOLD_ON_STOP) && !Utils.isDevelopmentEnv()) {
-      // Suspicious StopTransaction may occur after a 'Housing temperature approaching limit' error on some charging stations
-      const timeSpent = this.computeTimeSpentInSeconds(transaction);
-      // TODO - make it part of the pricing or billing settings!
-      if (timeSpent < 60 /* seconds */ || transaction.stop.totalConsumptionWh < 1000 /* 1kWh */) {
-        await Logging.logWarning({
-          tenantID: this.tenant.id,
-          user: transaction.userID,
-          action: ServerAction.BILLING_TRANSACTION,
-          module: MODULE_NAME, method: 'stopTransaction',
-          message: `Transaction data is suspicious - billing operation has been aborted - transaction ID: ${transaction.id}`,
-          ...LoggingHelper.getTransactionProperties(transaction)
-        });
-        return {
-          status: BillingStatus.UNBILLED
-        };
-      }
+    if (!await this.checkBillingDataThreshold(transaction)) {
+      return {
+        status: BillingStatus.UNBILLED
+      };
+    }
+    // Inform the calling layer that the billing operation has been postponed
+    return {
+      status: BillingStatus.PENDING
+    };
+  }
+
+  public async endTransaction(transaction: Transaction): Promise<BillingDataTransactionStop> {
+    // Check whether the billing was activated on start transaction
+    if (!transaction.billingData?.withBillingActive) {
+      return {
+        status: BillingStatus.UNBILLED
+      };
+    }
+    if (transaction.billingData?.stop?.status === BillingStatus.BILLED) {
+      await Logging.logWarning({
+        tenantID: this.tenant.id,
+        action: ServerAction.BILLING_TRANSACTION,
+        module: MODULE_NAME, method: 'endTransaction',
+        message: 'Operation aborted - unexpected situation - the session has already been billed'
+      });
+      return {
+        status: transaction.billingData?.stop?.status
+      };
+    }
+    if (transaction.billingData?.stop?.status === BillingStatus.UNBILLED) {
+      // Make sure to preserve the decision made during the STOP transaction
+      return {
+        status: BillingStatus.UNBILLED
+      };
+    }
+    if (!transaction.stop?.extraInactivityComputed) {
+      await Logging.logWarning({
+        tenantID: this.tenant.id,
+        action: ServerAction.BILLING_TRANSACTION,
+        module: MODULE_NAME, method: 'endTransaction',
+        message: 'Unexpected situation - end transaction is being called while the extra inactivity is not yet known'
+      });
+      return {
+        // Preserve the previous state
+        status: transaction.billingData?.stop?.status
+      };
     }
     // Create and Save async task
     await AsyncTaskBuilder.createAndSaveAsyncTasks({
@@ -941,12 +975,35 @@ export default class StripeBillingIntegration extends BillingIntegration {
         userID: transaction.userID
       },
       module: MODULE_NAME,
-      method: 'stopTransaction',
+      method: 'endTransaction',
     });
     // Inform the calling layer that the operation has been postponed
     return {
       status: BillingStatus.PENDING
     };
+  }
+
+  private async checkBillingDataThreshold(transaction: Transaction): Promise<boolean> {
+    // Do not bill suspicious StopTransaction events
+    if (!Utils.isDevelopmentEnv()) {
+    // Suspicious StopTransaction may occur after a 'Housing temperature approaching limit' error on some charging stations
+      const timeSpent = this.computeTimeSpentInSeconds(transaction);
+      // TODO - make it part of the pricing or billing settings!
+      if (timeSpent < 60 /* seconds */ || transaction.stop.totalConsumptionWh < 1000 /* 1kWh */) {
+        await Logging.logWarning({
+          tenantID: this.tenant.id,
+          user: transaction.userID,
+          action: ServerAction.BILLING_TRANSACTION,
+          module: MODULE_NAME, method: 'stopTransaction',
+          message: `Transaction data is suspicious - billing operation has been aborted - transaction ID: ${transaction.id}`,
+          ...LoggingHelper.getTransactionProperties(transaction)
+        });
+        // Abort the billing process - thresholds are not met!
+        return false;
+      }
+    }
+    // billing data sounds correct
+    return true;
   }
 
   public async billTransaction(transaction: Transaction): Promise<BillingDataTransactionStop> {
@@ -1155,6 +1212,9 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
     // Let's replicate some information on our side
     const billingInvoice = await this.synchronizeAsBillingInvoice(stripeInvoice, false);
+    if (!billingInvoice) {
+      throw new Error(`Unexpected situation - failed to synchronize ${stripeInvoice.id} - the invoice is null`);
+    }
     // We have now a Billing Invoice - Let's update it with details about the last operation result
     await StripeHelpers.updateInvoiceAdditionalData(this.tenant, billingInvoice, operationResult, billingInvoiceItem);
     // Return the billing invoice
@@ -1522,5 +1582,137 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
     // Let's return the check results!
     return errorCodes;
+  }
+
+  public async repairInvoice(billingInvoice: BillingInvoice): Promise<void> {
+    await this.checkConnection();
+    const transactions = new Map<string, { transactionID: number, description?: string, pricingData: any }>();
+    const stripeInvoice: Stripe.Invoice = await this.stripe.invoices.retrieve(billingInvoice.invoiceID);
+    const stripeInvoiceItems = await this.stripe.invoiceItems.list({
+      invoice: stripeInvoice.id
+    });
+    //
+    // ACHTUNG - SIMPLE PRICING
+    // "sessions" : [
+    //   {
+    //       "transactionID" : 1884157429,
+    //       "description" : "Session de recharge: 1884157429 - ...",
+    //       "pricingData" : {
+    //           "quantity" : 0.211,
+    //           "amount" : 3.37,
+    //           "currency" : "EUR"
+    //       }
+    //   }
+    // ]
+    //
+    // ACHTUNG - BUILT-IN PRICING
+    // "sessions" : [
+    //   {
+    //       "transactionID" : 1745843057,
+    //       "pricingData" : [
+    //           {
+    //               "energy" : {
+    //                   "unitPrice" : 0,
+    //                   "quantity" : 32325,
+    //                   "amount" : 32.325,
+    //                   "roundedAmount" : 32.32,
+    //                   "itemDescription" : "Energy Consumption: 32.325 kWh",
+    //                   "taxes" : []
+    //               }
+    //           }
+    //       ]
+    //   },
+    for (const stripeInvoiceItem of stripeInvoiceItems.data) {
+      const transactionID = stripeInvoiceItem.metadata?.transactionID;
+      if (transactionID) {
+        // The metadata provides the ID of the session that has been billed
+        // ACHTUNG - with the new pricing engine we may have an item per pricing dimensions!
+        if (!transactions.has(transactionID)) {
+          if (stripeInvoiceItem.metadata.totalConsumptionWh) {
+            // Legacy mode - Simple Pricing!
+            transactions.set(transactionID, {
+              transactionID: Utils.convertToInt(transactionID),
+              description: stripeInvoiceItem.description,
+              pricingData: {
+                quantity: Utils.createDecimal(Utils.convertToFloat(stripeInvoiceItem.metadata.totalConsumptionWh)).div(1000).toNumber(),
+                amount: Utils.createDecimal(stripeInvoiceItem.amount).div(100).toNumber(),
+                currency: stripeInvoiceItem.metadata.priceUnit
+              }
+            });
+          } else {
+            // New pricing engine
+            const transaction = await TransactionStorage.getTransaction(this.tenant, Utils.convertToInt(transactionID), {
+              withUser: true,
+              withChargingStation: true
+            });
+            const pricingData: PricedConsumptionData[] = this.extractTransactionPricingData(transaction);
+            transactions.set(transactionID, {
+              transactionID: Utils.convertToInt(transactionID),
+              pricingData
+            });
+          }
+        }
+      }
+    }
+    // Now we know the sessions
+    const sessions = Array.from(transactions.values());
+    DatabaseUtils.checkTenantObject(this.tenant);
+    // Set data
+    const updatedInvoiceMDB: any = {
+      sessions,
+    };
+    await global.database.getCollection(this.tenant.id, 'invoices').findOneAndUpdate(
+      { '_id': DatabaseUtils.convertToObjectID(billingInvoice.id) },
+      { $set: updatedInvoiceMDB });
+    // Debug
+    const freshBillingInvoice = await BillingStorage.getInvoice(this.tenant, billingInvoice.id);
+    await this.repairTransactionsBillingData(freshBillingInvoice);
+  }
+
+  private async repairTransactionsBillingData(billingInvoice: BillingInvoice): Promise<void> {
+    // This method is ONLY USED when repairing invoices - c.f.: RepairInvoiceInconsistencies migration task
+    if (!billingInvoice.sessions) {
+      // This should not happen - but it happened once!
+      await Logging.logError({
+        tenantID: this.tenant.id,
+        action: ServerAction.BILLING,
+        actionOnUser: billingInvoice.user,
+        module: MODULE_NAME, method: 'repairTransactionsBillingData',
+        message: `Unexpected situation - Invoice ${billingInvoice.id} has no sessions attached to it`
+      });
+    }
+    await Promise.all(billingInvoice.sessions.map(async (session) => {
+      const transactionID = session.transactionID;
+      try {
+        const transaction = await TransactionStorage.getTransaction(this.tenant, Number(transactionID), {
+          withUser: true
+        });
+        // Update Billing Data
+        if (transaction?.billingData?.stop) {
+          transaction.billingData.stop.status = BillingStatus.BILLED,
+          transaction.billingData.stop.invoiceStatus = billingInvoice.status;
+          transaction.billingData.stop.invoiceNumber = billingInvoice.number;
+          transaction.billingData.lastUpdate = new Date();
+          // Add pricing data
+          if (!transaction.billingData.stop.invoiceItem && transaction.pricingModel) {
+            // Only set when the built-in pricing model was used
+            const invoiceItem = this.convertToBillingInvoiceItem(transaction);
+            transaction.billingData.stop.invoiceItem = this.shrinkInvoiceItem(invoiceItem);
+          }
+          // Save repaired billing data
+          await TransactionStorage.saveTransactionBillingData(this.tenant, transaction.id, transaction.billingData);
+        }
+      } catch (error) {
+        // Catch stripe errors and send the information back to the client
+        await Logging.logError({
+          tenantID: this.tenant.id,
+          action: ServerAction.BILLING,
+          actionOnUser: billingInvoice.user,
+          module: MODULE_NAME, method: 'repairTransactionsBillingData',
+          message: `Failed to update transaction billing data - transaction: ${transactionID}`,
+          detailedMessages: { error: error.stack }
+        });
+      }
+    }));
   }
 }

@@ -1,0 +1,35 @@
+{
+  "$id": "statistic-export",
+  "title": "Export statistics Request",
+  "type": "object",
+  "properties": {
+    "DataType": {
+      "type": "string",
+      "enum": [
+        "Consumption",
+        "Usage",
+        "Inactivity",
+        "Transactions",
+        "Pricing"
+      ],
+      "sanitize": "mongo"
+    },
+    "DataCategory": {
+      "type": "string",
+      "enum": [
+        "C",
+        "U"
+      ],
+      "sanitize": "mongo"
+    },
+    "DataScope": {
+      "type": "string",
+      "enum": [
+        "year",
+        "month",
+        "total"
+      ],
+      "sanitize": "mongo"
+    }
+  }
+}

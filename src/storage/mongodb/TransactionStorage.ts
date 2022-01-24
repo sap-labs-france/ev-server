@@ -27,7 +27,7 @@ export default class TransactionStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Delete
-    const result = await global.database.getCollection<Transaction>(tenant.id, 'transactions')
+    const result = await global.database.getCollection<any>(tenant.id, 'transactions')
       .deleteMany({ '_id': { $in: transactionsIDs } });
     // Delete Meter Values
     await global.database.getCollection<any>(tenant.id, 'metervalues')
@@ -211,10 +211,9 @@ export default class TransactionStorage {
   public static async saveTransactionOcpiData(tenant: Tenant, id: number,
       ocpiData: TransactionOcpiData): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Modify document
-    await global.database.getCollection<Transaction>(tenant.id, 'transactions').findOneAndUpdate(
+    await global.database.getCollection<any>(tenant.id, 'transactions').findOneAndUpdate(
       { '_id': id },
       {
         $set: {
@@ -228,10 +227,9 @@ export default class TransactionStorage {
   public static async saveTransactionOicpData(tenant: Tenant, id: number,
       oicpData: TransactionOicpData): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Modify document
-    await global.database.getCollection<Transaction>(tenant.id, 'transactions').findOneAndUpdate(
+    await global.database.getCollection<any>(tenant.id, 'transactions').findOneAndUpdate(
       { '_id': id },
       {
         $set: {
@@ -245,10 +243,9 @@ export default class TransactionStorage {
   public static async saveTransactionBillingData(tenant: Tenant, id: number,
       billingData: TransactionBillingData): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Modify document
-    await global.database.getCollection<Transaction>(tenant.id, 'transactions').findOneAndUpdate(
+    await global.database.getCollection<any>(tenant.id, 'transactions').findOneAndUpdate(
       { '_id': id },
       {
         $set: {
@@ -262,10 +259,9 @@ export default class TransactionStorage {
   public static async saveTransactionRefundData(tenant: Tenant, id: number,
       refundData: TransactionRefundData): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Modify document
-    await global.database.getCollection<Transaction>(tenant.id, 'transactions').findOneAndUpdate(
+    await global.database.getCollection<any>(tenant.id, 'transactions').findOneAndUpdate(
       { '_id': id },
       {
         $set: {
@@ -1192,7 +1188,6 @@ export default class TransactionStorage {
   public static async getNotStartedTransactions(tenant: Tenant,
       params: { checkPastAuthorizeMins: number; sessionShouldBeStartedAfterMins: number }): Promise<DataResult<NotifySessionNotStarted>> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Compute the date some minutes ago
     const authorizeStartDate = moment().subtract(params.checkPastAuthorizeMins, 'minutes').toDate();

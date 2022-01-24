@@ -6,6 +6,7 @@ import JsonCentralSystemServer from '../server/ocpp/json/JsonCentralSystemServer
 import { Log } from './Log';
 import MongoDBStorage from '../storage/mongodb/MongoDBStorage';
 import PricingDefinition from './Pricing';
+import RegistrationToken from './RegistrationToken';
 import { ServerType } from './Server';
 import Site from './Site';
 import SiteArea from './SiteArea';
@@ -71,7 +72,7 @@ export enum ImportStatus {
   ERROR = 'E',
 }
 
-export type EntityData = Car|User|Company|Site|SiteArea|Tag|CarCatalog|ChargingStation|PricingDefinition|Log;
+export type EntityData = Car|User|Company|Site|SiteArea|Tag|CarCatalog|ChargingStation|PricingDefinition|Log|RegistrationToken;
 
 interface TSGlobal extends Global {
   database: MongoDBStorage;

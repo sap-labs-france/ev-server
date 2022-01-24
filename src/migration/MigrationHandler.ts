@@ -8,6 +8,8 @@ import Logging from '../utils/Logging';
 import MigrationStorage from '../storage/mongodb/MigrationStorage';
 import MigrationTask from './MigrationTask';
 import RemoveDuplicateTagVisualIDsTask from './tasks/RemoveDuplicateTagVisualIDsTask';
+import RepairInvoiceInconsistencies from './tasks/RepairInvoiceInconsistencies';
+import RepairTransactionPricedAtZero from './tasks/RepairTransactionPricedAtZeroTask';
 import RestoreDataIntegrityInSiteUsersTask from './tasks/RestoreDataIntegrityInSiteUsersTask';
 import { ServerAction } from '../types/Server';
 import SimplePricingMigrationTask from './tasks/MigrateSimplePricing';
@@ -23,8 +25,7 @@ export default class MigrationHandler {
     const migrationLock = LockingManager.createExclusiveLock(Constants.DEFAULT_TENANT, LockEntity.DATABASE, 'migration', 3600);
     if (await LockingManager.acquire(migrationLock)) {
       try {
-        const startMigrationTime = moment();
-        // Log
+        const startTime = moment();
         await Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT,
           action: ServerAction.MIGRATION,
@@ -55,12 +56,12 @@ export default class MigrationHandler {
           }
         }
         // Log Total Processing Time
-        const totalMigrationTimeSecs = moment.duration(moment().diff(startMigrationTime)).asSeconds();
+        const totalTimeSecs = moment.duration(moment().diff(startTime)).asSeconds();
         await Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT,
           action: ServerAction.MIGRATION,
           module: MODULE_NAME, method: 'migrate',
-          message: `The ${processAsyncTasksOnly ? 'asynchronous' : 'synchronous'} migration has been run in ${totalMigrationTimeSecs} secs`
+          message: `The ${processAsyncTasksOnly ? 'asynchronous' : 'synchronous'} migration has been run in ${totalTimeSecs} secs`
         });
       } catch (error) {
         await Logging.logError({
@@ -78,7 +79,7 @@ export default class MigrationHandler {
     // Process async tasks one by one
     if (!processAsyncTasksOnly) {
       setTimeout(() => {
-        MigrationHandler.migrate(true).catch(() => { });
+        void MigrationHandler.migrate(true);
       }, 5000);
     }
   }
@@ -90,7 +91,9 @@ export default class MigrationHandler {
     currentMigrationTasks.push(new AddCompanyIDToChargingStationsTask());
     currentMigrationTasks.push(new RestoreDataIntegrityInSiteUsersTask());
     currentMigrationTasks.push(new AddUserIDToCarsTask());
+    currentMigrationTasks.push(new RepairInvoiceInconsistencies());
     currentMigrationTasks.push(new SimplePricingMigrationTask());
+    currentMigrationTasks.push(new RepairTransactionPricedAtZero());
     currentMigrationTasks.push(new UpdateEmailsToLowercaseTask());
     return currentMigrationTasks;
   }

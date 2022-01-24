@@ -18,6 +18,7 @@
     "passwordWrongNumberOfTrial": 3,
     "passwordBlockedWaitTimeMin": 5,
     "captchaSecretKey": "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe",
+    "captchaScore": 0.25,
     "debug": false
   },
   "CentralSystemFrontEnd": {
@@ -50,16 +51,27 @@
     "replicaSet": "rs0",
     "debug": false
   },
+  "Axios": {
+    "retries": 0,
+    "timeoutSecs": 30
+  },
   "Email": {
-    "from": "donotreply@charge-angels.fr",
-    "admins": [
-      "fabiano.serge@chargeangels.fr"
-    ],
+    "disableBackup": false,
     "smtp": {
+      "from": "e-mobility@sap.com",
       "host": "mailserver",
-      "port": 1025,
+      "port": 587,
       "secure": false,
-      "requireTLS": false,
+      "requireTLS": true,
+      "user": "evse-mail-user",
+      "password": "evse-mail-pwd"
+    },
+    "smtpBackup": {
+      "from": "e-mobility@sap.com",
+      "host": "mailserver",
+      "port": 587,
+      "secure": false,
+      "requireTLS": true,
       "user": "evse-mail-user",
       "password": "evse-mail-pwd"
     }
@@ -78,6 +90,8 @@
   "ChargingStation": {
     "heartbeatIntervalOCPPSSecs": 180,
     "heartbeatIntervalOCPPJSecs": 3600,
+    "pingIntervalOCPPJSecs": 60,
+    "monitoringIntervalOCPPJSecs": 600,
     "checkEndOfChargeNotificationAfterMin": 5,
     "notifBeforeEndOfChargePercent": 85,
     "notifBeforeEndOfChargeEnabled": true,
@@ -117,6 +131,12 @@
         "name": "BillingPeriodicOperationTask",
         "active": false,
         "periodicity": "0 1 1 * *",
+        "config": {}
+      },
+      {
+        "name": "BillPendingTransactionTask",
+        "active": false,
+        "periodicity": "*/15 * * * *",
         "config": {}
       },
       {
@@ -201,19 +221,14 @@
       }
     ]
   },
+  "Trace": {
+    "traceIngressHttp": false,
+    "traceEgressHttp": false,
+    "traceOcpp": false,
+    "traceDatabase": false,
+    "traceNotification": false
+  },
   "Logging": {
-    "logLevel": "D",
-    "consoleLogLevel": "NONE",
-    "trace": true,
-    "moduleDetails": {
-      "ChargingStation": {
-        "logLevel": "DEFAULT",
-        "consoleLogLevel": "DEFAULT"
-      },
-      "Authorizations": {
-        "logLevel": "DEFAULT",
-        "consoleLogLevel": "DEFAULT"
-      }
-    }
+    "logLevel": "D"
   }
 }

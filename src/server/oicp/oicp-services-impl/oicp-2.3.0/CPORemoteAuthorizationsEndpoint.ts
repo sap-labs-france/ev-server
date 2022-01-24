@@ -184,11 +184,8 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
     const chargingStation = await ChargingStationStorage.getChargingStation(tenant, transaction.chargeBoxID);
     if (!chargingStation) {
       await Logging.logError({
+        ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: tenant.id,
-        siteID: transaction.siteID,
-        siteAreaID: transaction.siteAreaID,
-        companyID: transaction.companyID,
-        chargingStationID: transaction.chargeBoxID,
         action: ServerAction.OICP_AUTHORIZE_REMOTE_STOP,
         message: `Charging Station '${transaction.chargeBoxID}' not found`,
         module: MODULE_NAME, method: 'authorizeRemoteStop'
@@ -216,11 +213,10 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
       });
       return;
     }
-    const result = await chargingStationClient.remoteStartTransaction({
+    return chargingStationClient.remoteStartTransaction({
       connectorId: connector.connectorId,
       idTag: OICPUtils.convertOICPIdentification2TagID(authorizeRemoteStart.Identification)
     });
-    return result;
   }
 
   private async remoteStopTransaction(tenant: Tenant, chargingStation: ChargingStation, transactionId: number): Promise<OCPPRemoteStopTransactionResponse> {
@@ -235,9 +231,8 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
       });
       return;
     }
-    const result = await chargingStationClient.remoteStopTransaction({
+    return chargingStationClient.remoteStopTransaction({
       transactionId: transactionId
     });
-    return result;
   }
 }

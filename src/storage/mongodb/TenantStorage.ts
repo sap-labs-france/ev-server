@@ -229,7 +229,6 @@ export default class TenantStorage {
 
   public static async getTenantLogo(tenant: Tenant): Promise<TenantLogo> {
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Read DB
     const tenantLogoMDB = await global.database.getCollection<{ _id: ObjectId; logo: string }>(Constants.DEFAULT_TENANT, 'tenantlogos')
