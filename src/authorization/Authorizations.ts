@@ -4,7 +4,6 @@ import Tenant, { TenantComponents } from '../types/Tenant';
 import User, { UserRole, UserStatus } from '../types/User';
 
 import AuthorizationConfiguration from '../types/configuration/AuthorizationConfiguration';
-import AuthorizationService from '../server/rest/v1/service/AuthorizationService';
 import AuthorizationsManager from './AuthorizationsManager';
 import BackendError from '../exception/BackendError';
 import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
@@ -27,6 +26,7 @@ import { PricingSettingsType } from '../types/Setting';
 import { ServerAction } from '../types/Server';
 import SessionHashService from '../server/rest/v1/service/SessionHashService';
 import SettingStorage from '../storage/mongodb/SettingStorage';
+import SiteStorage from '../storage/mongodb/SiteStorage';
 import Tag from '../types/Tag';
 import TagStorage from '../storage/mongodb/TagStorage';
 import Transaction from '../types/Transaction';
@@ -98,7 +98,7 @@ export default class Authorizations {
     if (this.isAdmin(loggedUser)) {
       return requestedSites;
     }
-    const loggedUserAssignedSiteIDs = await AuthorizationService.getAssignedSiteIDs(tenant, loggedUser);
+    const loggedUserAssignedSiteIDs = await Authorizations.getAssignedSiteIDs(tenant, loggedUser);
     if (Utils.isEmptyArray(requestedSites)) {
       return loggedUserAssignedSiteIDs.length > 0 ? loggedUserAssignedSiteIDs : null;
     }
@@ -115,8 +115,8 @@ export default class Authorizations {
     if (this.isAdmin(loggedUser)) {
       return requestedSites;
     }
-    const siteAdminSiteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant, loggedUser);
-    const siteOwnerSiteIDs = await AuthorizationService.getSiteOwnerSiteIDs(tenant, loggedUser);
+    const siteAdminSiteIDs = await Authorizations.getSiteAdminSiteIDs(tenant, loggedUser);
+    const siteOwnerSiteIDs = await Authorizations.getSiteOwnerSiteIDs(tenant, loggedUser);
     const sites = _.uniq([...siteAdminSiteIDs, ...siteOwnerSiteIDs]);
     if (Utils.isEmptyArray(requestedSites)) {
       return sites;
@@ -781,6 +781,42 @@ export default class Authorizations {
       }
       return true;
     }
+  }
+
+  private static async getSiteAdminSiteIDs(tenant: Tenant, userToken: UserToken): Promise<string[]> {
+    // Get the Sites where the user is Site Admin
+    const userSites = await UserStorage.getUserSites(tenant,
+      {
+        userIDs: [userToken.id],
+        siteAdmin: true
+      }, Constants.DB_PARAMS_MAX_LIMIT,
+      ['siteID']
+    );
+    return userSites.result.map((userSite) => userSite.siteID);
+  }
+
+  private static async getSiteOwnerSiteIDs(tenant: Tenant, userToken: UserToken): Promise<string[]> {
+    // Get the Sites where the user is Site Owner
+    const userSites = await UserStorage.getUserSites(tenant,
+      {
+        userIDs: [userToken.id],
+        siteOwner: true
+      }, Constants.DB_PARAMS_MAX_LIMIT,
+      ['siteID']
+    );
+    return userSites.result.map((userSite) => userSite.siteID);
+  }
+
+  private static async getAssignedSiteIDs(tenant: Tenant, userToken: UserToken): Promise<string[]> {
+    // Get the Sites assigned to the User
+    const sites = await SiteStorage.getSites(tenant,
+      {
+        userID: userToken.id,
+        issuer: true,
+      }, Constants.DB_PARAMS_MAX_LIMIT,
+      ['id']
+    );
+    return sites.result.map((site) => site.id);
   }
 
   private static async isTagIDAuthorizedOnChargingStation(tenant: Tenant, chargingStation: ChargingStation,

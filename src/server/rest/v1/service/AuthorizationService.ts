@@ -16,7 +16,6 @@ import User, { UserRole } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import Asset from '../../../../types/Asset';
-import AssetStorage from '../../../../storage/mongodb/AssetStorage';
 import Authorizations from '../../../../authorization/Authorizations';
 import Company from '../../../../types/Company';
 import Constants from '../../../../utils/Constants';
@@ -680,7 +679,7 @@ export default class AuthorizationService {
     return userSites.result.map((userSite) => userSite.siteID);
   }
 
-  public static async getSiteOwnerSiteIDs(tenant: Tenant, userToken: UserToken): Promise<string[]> {
+  private static async getSiteOwnerSiteIDs(tenant: Tenant, userToken: UserToken): Promise<string[]> {
     // Get the Sites where the user is Site Owner
     const userSites = await UserStorage.getUserSites(tenant,
       {
@@ -692,7 +691,7 @@ export default class AuthorizationService {
     return userSites.result.map((userSite) => userSite.siteID);
   }
 
-  public static async getAssignedSiteIDs(tenant: Tenant, userToken: UserToken): Promise<string[]> {
+  private static async getAssignedSiteIDs(tenant: Tenant, userToken: UserToken): Promise<string[]> {
     // Get the Sites assigned to the User
     const sites = await SiteStorage.getSites(tenant,
       {
