@@ -18,7 +18,6 @@ import AppAuthError from '../../../../exception/AppAuthError';
 import Asset from '../../../../types/Asset';
 import Authorizations from '../../../../authorization/Authorizations';
 import Company from '../../../../types/Company';
-import Constants from '../../../../utils/Constants';
 import DynamicAuthorizationFactory from '../../../../authorization/DynamicAuthorizationFactory';
 import { EntityData } from '../../../../types/GlobalType';
 import { HTTPAuthError } from '../../../../types/HTTPError';
@@ -31,9 +30,7 @@ import RegistrationToken from '../../../../types/RegistrationToken';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
-import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import Tag from '../../../../types/Tag';
-import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import _ from 'lodash';
@@ -667,48 +664,12 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
-  public static async getSiteAdminSiteIDs(tenant: Tenant, userToken: UserToken): Promise<string[]> {
-    // Get the Sites where the user is Site Admin
-    const userSites = await UserStorage.getUserSites(tenant,
-      {
-        userIDs: [userToken.id],
-        siteAdmin: true
-      }, Constants.DB_PARAMS_MAX_LIMIT,
-      ['siteID']
-    );
-    return userSites.result.map((userSite) => userSite.siteID);
-  }
-
-  private static async getSiteOwnerSiteIDs(tenant: Tenant, userToken: UserToken): Promise<string[]> {
-    // Get the Sites where the user is Site Owner
-    const userSites = await UserStorage.getUserSites(tenant,
-      {
-        userIDs: [userToken.id],
-        siteOwner: true
-      }, Constants.DB_PARAMS_MAX_LIMIT,
-      ['siteID']
-    );
-    return userSites.result.map((userSite) => userSite.siteID);
-  }
-
-  private static async getAssignedSiteIDs(tenant: Tenant, userToken: UserToken): Promise<string[]> {
-    // Get the Sites assigned to the User
-    const sites = await SiteStorage.getSites(tenant,
-      {
-        userID: userToken.id,
-        issuer: true,
-      }, Constants.DB_PARAMS_MAX_LIMIT,
-      ['id']
-    );
-    return sites.result.map((site) => site.id);
-  }
-
   private static async checkAssignedSites(tenant: Tenant, userToken: UserToken,
       filteredRequest: { SiteID?: string }, authorizationFilters: AuthorizationFilter): Promise<void> {
     if (userToken.role !== UserRole.ADMIN && userToken.role !== UserRole.SUPER_ADMIN) {
       if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
         // Get assigned Site IDs assigned to user from DB
-        const siteIDs = await AuthorizationService.getAssignedSiteIDs(tenant, userToken);
+        const siteIDs = await Authorizations.getAssignedSiteIDs(tenant, userToken);
         if (!Utils.isEmptyArray(siteIDs)) {
           // Force the filter
           authorizationFilters.filters.siteIDs = siteIDs;
@@ -734,8 +695,8 @@ export default class AuthorizationService {
     if (userToken.role !== UserRole.ADMIN && userToken.role !== UserRole.SUPER_ADMIN) {
       if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
         // Get Site IDs from Site Admin & Site Owner flag
-        const siteAdminSiteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant, userToken);
-        const siteOwnerSiteIDs = await AuthorizationService.getSiteOwnerSiteIDs(tenant, userToken);
+        const siteAdminSiteIDs = await Authorizations.getSiteAdminSiteIDs(tenant, userToken);
+        const siteOwnerSiteIDs = await Authorizations.getSiteOwnerSiteIDs(tenant, userToken);
         const allSites = _.uniq([...siteAdminSiteIDs, ...siteOwnerSiteIDs]);
         if (!Utils.isEmptyArray(allSites)) {
           // Force the filters

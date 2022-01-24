@@ -783,7 +783,7 @@ export default class Authorizations {
     }
   }
 
-  private static async getSiteAdminSiteIDs(tenant: Tenant, userToken: UserToken): Promise<string[]> {
+  public static async getSiteAdminSiteIDs(tenant: Tenant, userToken: UserToken): Promise<string[]> {
     // Get the Sites where the user is Site Admin
     const userSites = await UserStorage.getUserSites(tenant,
       {
@@ -795,7 +795,7 @@ export default class Authorizations {
     return userSites.result.map((userSite) => userSite.siteID);
   }
 
-  private static async getSiteOwnerSiteIDs(tenant: Tenant, userToken: UserToken): Promise<string[]> {
+  public static async getSiteOwnerSiteIDs(tenant: Tenant, userToken: UserToken): Promise<string[]> {
     // Get the Sites where the user is Site Owner
     const userSites = await UserStorage.getUserSites(tenant,
       {
@@ -807,7 +807,7 @@ export default class Authorizations {
     return userSites.result.map((userSite) => userSite.siteID);
   }
 
-  private static async getAssignedSiteIDs(tenant: Tenant, userToken: UserToken): Promise<string[]> {
+  public static async getAssignedSiteIDs(tenant: Tenant, userToken: UserToken): Promise<string[]> {
     // Get the Sites assigned to the User
     const sites = await SiteStorage.getSites(tenant,
       {
