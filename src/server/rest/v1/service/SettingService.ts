@@ -1,6 +1,6 @@
 import { Action, Entity } from '../../../../types/Authorization';
+import { BillingSettingsType, IntegrationSettings, PricingSettingsType, SettingDB, TechnicalSettings } from '../../../../types/Setting';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
-import { IntegrationSettings, SettingDB, TechnicalSettings } from '../../../../types/Setting';
 import { NextFunction, Request, Response } from 'express';
 
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -13,6 +13,7 @@ import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import SettingValidator from '../validator/SettingValidator';
 import { StatusCodes } from 'http-status-codes';
+import { TenantComponents } from '../../../../types/Tenant';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 import _ from 'lodash';
@@ -291,6 +292,18 @@ export default class SettingService {
       action: action,
       detailedMessages: { filteredRequest }
     });
+    // Pricing Checks on Currency Modification
+    if (filteredRequest.identifier === TenantComponents.PRICING
+      && setting.content?.type === PricingSettingsType.SIMPLE
+      && setting.content?.simple.currency !== filteredRequest.content?.simple?.currency) {
+      // Force a user logout
+      throw new AppError({
+        errorCode: HTTPError.TENANT_COMPONENT_CHANGED,
+        message: 'Pricing Settings - Currency has been updated. A log out is necessary to benefit from the changes',
+        module: MODULE_NAME, method: 'handleUpdateSetting',
+        user: req.user
+      });
+    }
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
