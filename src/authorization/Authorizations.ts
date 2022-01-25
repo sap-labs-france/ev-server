@@ -787,17 +787,20 @@ export default class Authorizations {
   }
 
   public static async getSiteAdminSiteIDs(tenant: Tenant, userToken: UserToken): Promise<string[]> {
-    const siteAdminDataSource = await DynamicAuthorizationFactory.getDynamicDataSource(tenant, userToken, DynamicAuthorizationDataSourceName.SITES_ADMIN) as SitesAdminDynamicAuthorizationDataSource;
+    const siteAdminDataSource = await DynamicAuthorizationFactory.getDynamicDataSource(
+      tenant, userToken, DynamicAuthorizationDataSourceName.SITES_ADMIN) as SitesAdminDynamicAuthorizationDataSource;
     return siteAdminDataSource.getData().siteIDs;
   }
 
   public static async getSiteOwnerSiteIDs(tenant: Tenant, userToken: UserToken): Promise<string[]> {
-    const siteOwnerDataSource = await DynamicAuthorizationFactory.getDynamicDataSource(tenant, userToken, DynamicAuthorizationDataSourceName.SITES_OWNER) as SitesOwnerDynamicAuthorizationDataSource;
+    const siteOwnerDataSource = await DynamicAuthorizationFactory.getDynamicDataSource(
+      tenant, userToken, DynamicAuthorizationDataSourceName.SITES_OWNER) as SitesOwnerDynamicAuthorizationDataSource;
     return siteOwnerDataSource.getData().siteIDs;
   }
 
   public static async getAssignedSiteIDs(tenant: Tenant, userToken: UserToken): Promise<string[]> {
-    const userAssignedSiteDataSource = await DynamicAuthorizationFactory.getDynamicDataSource(tenant, userToken, DynamicAuthorizationDataSourceName.ASSIGNED_SITES) as AssignedSitesDynamicAuthorizationDataSource;
+    const userAssignedSiteDataSource = await DynamicAuthorizationFactory.getDynamicDataSource(
+      tenant, userToken, DynamicAuthorizationDataSourceName.ASSIGNED_SITES) as AssignedSitesDynamicAuthorizationDataSource;
     return userAssignedSiteDataSource.getData().siteIDs;
   }
 
