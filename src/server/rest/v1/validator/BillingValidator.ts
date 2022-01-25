@@ -1,4 +1,4 @@
-import { HttpBillingInvoiceRequest, HttpBillingRequest, HttpBillingWebHookRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
+import { HttpBillingInvoiceRequest, HttpBillingRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
 
 import { BillingSettings } from '../../../../types/Setting';
 import Schema from '../../../../types/validator/Schema';
@@ -14,7 +14,6 @@ export default class BillingValidator extends SchemaValidator {
   private billingSetupUserPaymentMethod: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-setup-payment-method.json`, 'utf8'));
   private billingInvoicesGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/invoices-get.json`, 'utf8'));
   private billingInvoiceGetByID: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/invoice-get-by-id.json`, 'utf8'));
-  private billingWebhook: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-webhook.json`, 'utf8'));
 
   private constructor() {
     super('BillingValidator');
@@ -47,11 +46,7 @@ export default class BillingValidator extends SchemaValidator {
     return this.validate(this.billingInvoicesGet, data);
   }
 
-  public validateBillingInvoicesGetByIdReq(data: Record<string, unknown>): HttpBillingRequest {
+  public validateBillingInvoiceReq(data: Record<string, unknown>): HttpBillingRequest {
     return this.validate(this.billingInvoiceGetByID, data);
-  }
-
-  public validateBillingWebhookReq(data: Record<string, unknown>): HttpBillingWebHookRequest {
-    return this.validate(this.billingWebhook, data);
   }
 }

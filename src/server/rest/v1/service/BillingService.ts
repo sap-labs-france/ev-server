@@ -347,7 +347,7 @@ export default class BillingService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.LIST, Entity.INVOICE, MODULE_NAME, 'handleGetInvoice');
     // Filter
-    const filteredRequest = BillingValidator.getInstance().validateBillingInvoicesGetByIdReq(req.query);
+    const filteredRequest = BillingValidator.getInstance().validateBillingInvoiceReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetInvoice', req.user);
     // Check Users
     let userProject: string[] = [];
@@ -618,7 +618,7 @@ export default class BillingService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.DOWNLOAD, Entity.BILLING, MODULE_NAME, 'handleDownloadInvoice');
     // Filter
-    const filteredRequest = BillingValidator.getInstance().validateBillingInvoicesGetByIdReq(req.query);
+    const filteredRequest = BillingValidator.getInstance().validateBillingInvoiceReq(req.query);
     // Get the Invoice
     const billingInvoice = await BillingStorage.getInvoice(req.tenant, filteredRequest.ID);
     UtilsService.assertObjectExists(action, billingInvoice, `Invoice ID '${filteredRequest.ID}' does not exist`,
@@ -658,51 +658,6 @@ export default class BillingService {
     res.attachment(fileName);
     res.setHeader('Content-Type', 'application/pdf');
     res.end(buffer, 'binary');
-  }
-
-  public static async handleBillingWebHook(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.SYNCHRONIZE, Entity.BILLING, MODULE_NAME, 'handleBillingWebHook');
-    // Check if component is active
-    // ?? How to do it in this context
-    // Filter
-    const filteredRequest = BillingValidator.getInstance().validateBillingWebhookReq(req.query);
-    // Check Auth
-    // How to check it - no JWT!
-    // Retrieve Tenant ID from the URL Query Parameters
-    if (!filteredRequest.TenantID) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Unexpected situation - TenantID is not set',
-        module: MODULE_NAME, method: 'handleBillingWebHook',
-        action: action,
-      });
-    }
-    // Get Tenant
-    const tenant = await TenantStorage.getTenant(filteredRequest.TenantID);
-    if (!tenant) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        action: action,
-        module: MODULE_NAME, method: 'handleBillingWebHook',
-        message: `Tenant ID '${filteredRequest.TenantID}' does not exist!`
-      });
-    }
-    const billingImpl = await BillingFactory.getBillingImpl(tenant);
-    if (!billingImpl) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Billing service is not configured',
-        module: MODULE_NAME, method: 'handleBillingWebHook',
-        action: action,
-      });
-    }
-    // STRIPE expects a fast response - make sure to postpone time consuming operations when handling these events
-    const done = await billingImpl.consumeBillingEvent(req);
-    // Return a response to acknowledge receipt of the event
-    res.json({ received: done });
-    next();
   }
 
   public static async handleGetBillingSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {

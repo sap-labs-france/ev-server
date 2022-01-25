@@ -291,11 +291,6 @@ export default class CentralRestServerService {
         case 'POST':
           // Check Context
           switch (action) {
-            // Ping
-            case ServerAction.BILLING_WEB_HOOK:
-              await BillingService.handleBillingWebHook(action, req, res, next);
-              // Res.sendStatus(StatusCodes.OK);
-              break;
             default:
               // Delegate
               await UtilsService.handleUnknownAction(action, req, res, next);

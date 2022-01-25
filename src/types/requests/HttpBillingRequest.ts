@@ -15,10 +15,6 @@ export interface HttpBillingInvoiceRequest extends HttpDatabaseRequest {
   ID?: string;
 }
 
-export interface HttpBillingWebHookRequest {
-  TenantID?: string
-}
-
 export interface HttpSetupPaymentMethod {
   userID: string;
   paymentMethodId?: string;
