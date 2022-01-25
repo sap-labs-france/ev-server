@@ -1,3 +1,5 @@
+import { HttpSettingByIdentifierRequest, HttpSettingRequest, HttpSettingsRequest } from '../../../../types/requests/HttpSettingRequest';
+
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from '../../../../validator/SchemaValidator';
 import { SettingDB } from '../../../../types/Setting';
@@ -20,6 +22,9 @@ export default class SettingValidator extends SchemaValidator {
   private settingCarSet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-car-set.json`, 'utf8'));
   private settingOrganizationSet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-organization-set.json`, 'utf8'));
   private settingStatisticsSet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-statistics-set.json`, 'utf8'));
+  private settingGetByID = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-by-id.json`, 'utf8'));
+  private settingGetByIdentifier = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-by-identifier.json`, 'utf8'));
+  private settingsGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/settings-get.json`, 'utf8'));
 
   private constructor() {
     super('SettingValidator');
@@ -30,6 +35,18 @@ export default class SettingValidator extends SchemaValidator {
       SettingValidator.instance = new SettingValidator();
     }
     return SettingValidator.instance;
+  }
+
+  public validateSettingGetByIDReq(data: Record<string, unknown>): HttpSettingRequest {
+    return this.validate(this.settingGetByID, data);
+  }
+
+  public validateSettingGetByIdentifierReq(data: Record<string, unknown>): HttpSettingByIdentifierRequest {
+    return this.validate(this.settingGetByIdentifier, data);
+  }
+
+  public validateSettingsGetReq(data: Record<string, unknown>): HttpSettingsRequest {
+    return this.validate(this.settingsGet, data);
   }
 
   public validateSettingOCPISetReq(data: Record<string, unknown>): SettingDB {

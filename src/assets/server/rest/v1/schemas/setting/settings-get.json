@@ -1,0 +1,29 @@
+{
+  "$id": "settings-get",
+  "title": "Settings get Request",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "Identifier": {
+      "$ref": "setting#/definitions/identifier"
+    },
+    "Limit": {
+      "$ref": "common#/definitions/limit"
+    },
+    "SortFields": {
+      "$ref": "common#/definitions/sortFields"
+    },
+    "Skip": {
+      "$ref": "common#/definitions/skip"
+    },
+    "OnlyRecordCount": {
+      "$ref": "common#/definitions/onlyRecordCount"
+    },
+    "ProjectFields": {
+      "$ref": "common#/definitions/projectFields"
+    }
+  },
+  "required": [
+    "Limit"
+  ]
+}
