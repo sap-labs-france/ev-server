@@ -69,8 +69,8 @@ export default class ChargingStationService {
         action: action
       });
     }
-    let siteArea: SiteArea = null;
     // Check the Site Area
+    let siteArea: SiteArea = null;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredRequest.siteAreaID) {
       siteArea = await SiteAreaStorage.getSiteArea(req.tenant, filteredRequest.siteAreaID, { withSite: true });
       UtilsService.assertObjectExists(action, siteArea, `Site Area ID '${filteredRequest.siteAreaID}' does not exist.`,
@@ -165,6 +165,11 @@ export default class ChargingStationService {
       }
       chargingStation.public = filteredRequest.public;
     }
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
+      if (Utils.objectHasProperty(filteredRequest, 'tariffID')) {
+        chargingStation.tariffID = filteredRequest.tariffID;
+      }
+    }
     if (Utils.objectHasProperty(filteredRequest, 'excludeFromSmartCharging')) {
       chargingStation.excludeFromSmartCharging = filteredRequest.excludeFromSmartCharging;
     }
@@ -214,6 +219,11 @@ export default class ChargingStationService {
           connector.numberOfConnectedPhase = filteredConnector.numberOfConnectedPhase;
         }
         connector.phaseAssignmentToGrid = filteredConnector.phaseAssignmentToGrid;
+        if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
+          if (Utils.objectHasProperty(filteredConnector, 'tariffID')) {
+            connector.tariffID = filteredConnector.tariffID;
+          }
+        }
       }
     }
     // Manual Config
@@ -571,7 +581,7 @@ export default class ChargingStationService {
         user: req.user
       });
     }
-    const siteAreaLock = await LockingHelper.acquireSiteAreaSmartChargingLock(req.user.tenantID, siteArea, 30);
+    const siteAreaLock = await LockingHelper.acquireSiteAreaSmartChargingLock(req.user.tenantID, siteArea);
     if (siteAreaLock) {
       try {
         // Call
@@ -1777,7 +1787,7 @@ export default class ChargingStationService {
       if (filteredRequest.carID && filteredRequest.carID !== user.lastSelectedCarID) {
         await UserStorage.saveLastSelectedCarID(req.tenant, user.id, filteredRequest.carID, true);
       } else {
-        await UserStorage.clearLastSelectedCarID(req.tenant, user.id);
+        await UserStorage.saveLastSelectedCarID(req.tenant, user.id, null, true);
       }
     }
     // Execute it
@@ -1792,7 +1802,7 @@ export default class ChargingStationService {
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(
       req.tenant, filteredRequest.args.transactionId, { withUser: true });
-    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.args.transactionId }' does not exist`,
+    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.args.transactionId}' does not exist`,
       MODULE_NAME, 'handleAction', req.user);
     // Get default Tag
     const tags = await TagStorage.getTags(req.tenant, { userIDs: [req.user.id], active: true }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);

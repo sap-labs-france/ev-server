@@ -195,7 +195,7 @@ export default class EMailNotificationTask implements NotificationTask {
       return;
     }
     if (useSmtpClientBackup && !this.smtpBackupClientInstance) {
-    // No suitable backup SMTP server configuration found or activated to send the email
+      // No suitable backup SMTP server configuration found or activated to send the email
       await Logging.logError({
         tenantID: tenant.id,
         siteID: data?.siteID,
@@ -260,6 +260,7 @@ export default class EMailNotificationTask implements NotificationTask {
             from: rfc2047.decode(messageToSend.header.from.toString()),
             to: rfc2047.decode(messageToSend.header.to.toString()),
             subject: rfc2047.decode(messageToSend.header.subject),
+            smtpError: error.smtp,
             error: error.stack,
             content: email.html
           }

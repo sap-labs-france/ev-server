@@ -36,6 +36,7 @@
     "passwordWrongNumberOfTrial": 3,
     "passwordBlockedWaitTimeMin": 5,
     "captchaSecretKey": "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe",
+    "captchaScore": 0.25,
     "debug": false
   },
   "CentralSystemFrontEnd": {
@@ -52,15 +53,13 @@
     "protocol": "http",
     "host": "server",
     "port": 9090,
-    "debug": false,
-    "externalProtocol": "http"
+    "debug": false
   },
   "ODataService": {
     "protocol": "http",
     "host": "server",
     "port": 9292,
-    "debug": false,
-    "externalProtocol": "http"
+    "debug": false
   },
   "WSDLEndpoint": {
     "baseUrl": "http://server:8000"
@@ -170,6 +169,12 @@
         "config": {}
       },
       {
+        "name": "BillPendingTransactionTask",
+        "active": false,
+        "periodicity": "*/15 * * * *",
+        "config": {}
+      },
+      {
         "name": "LoggingDatabaseTableCleanupTask",
         "active": true,
         "periodicity": "0 0 * * 1",
@@ -251,16 +256,14 @@
       }
     ]
   },
+  "Trace": {
+    "traceIngressHttp": false,
+    "traceEgressHttp": false,
+    "traceOcpp": false,
+    "traceDatabase": false,
+    "traceNotification": false
+  },
   "Logging": {
-    "logLevel": "D",
-    "trace": true,
-    "moduleDetails": {
-      "ChargingStation": {
-        "logLevel": "DEFAULT"
-      },
-      "Authorizations": {
-        "logLevel": "DEFAULT"
-      }
-    }
+    "logLevel": "D"
   }
 }

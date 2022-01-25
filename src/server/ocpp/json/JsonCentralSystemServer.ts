@@ -15,6 +15,7 @@ import Constants from '../../../utils/Constants';
 import JsonRestWSConnection from './JsonRestWSConnection';
 import JsonWSConnection from './JsonWSConnection';
 import Logging from '../../../utils/Logging';
+import LoggingHelper from '../../../utils/LoggingHelper';
 import { OCPPMessageType } from '../../../types/ocpp/OCPPCommon';
 import Tenant from '../../../types/Tenant';
 import Utils from '../../../utils/Utils';
@@ -94,8 +95,23 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
           await wsConnection.onPong(ocppMessage);
         }
       }
-    }).any('/health-check', (res: HttpResponse) => {
-      res.end('OK');
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    }).any(Constants.HEALTH_CHECK_ROUTE, async (res: HttpResponse) => {
+      res.onAborted(() => {
+        res.aborted = true;
+      });
+      const pingSuccess = await global.database.ping();
+      if (!res.aborted) {
+        if (pingSuccess) {
+          res.end('OK');
+        } else {
+          res.writeStatus('500');
+          res.end('KO');
+        }
+      }
+    }).any('/*', (res: HttpResponse) => {
+      res.writeStatus('404');
+      res.end();
     }).listen(this.centralSystemConfig.port, (token) => {
       if (token) {
         Logging.logConsoleDebug(`${ServerType.JSON_SERVER} Server listening on 'http://${this.centralSystemConfig.host}:${this.centralSystemConfig.port}'`);
@@ -110,11 +126,8 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     const jsonWebSocket = this.jsonWSConnections.get(`${tenant.id}~${chargingStation.id}`);
     if (!jsonWebSocket) {
       await Logging.logWarning({
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         tenantID: tenant.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
-        chargingStationID: chargingStation.id,
         module: MODULE_NAME, method: 'getChargingStationClient',
         action: ServerAction.WS_CONNECTION,
         message: 'No opened Web Socket connection found'

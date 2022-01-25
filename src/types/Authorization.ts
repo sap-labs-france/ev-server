@@ -77,7 +77,6 @@ export enum Entity {
   PRICING_DEFINITION = 'PricingDefinition',
   BILLING = 'Billing',
   SETTING = 'Setting',
-  TOKEN = 'Token',
   ASYNC_TASK = 'AsyncTask',
   OCPI_ENDPOINT = 'OcpiEndpoint',
   OICP_ENDPOINT = 'OicpEndpoint',
@@ -101,6 +100,7 @@ export enum Action {
   UPDATE = 'Update',
   UPDATE_BY_VISUAL_ID = 'UpdateByVisualID',
   REPLACE = 'Replace',
+  REVOKE = 'Revoke',
   DELETE = 'Delete',
   LOGOUT = 'Logout',
   LOGIN = 'Login',
@@ -138,6 +138,7 @@ export enum Action {
   CHECK_CONNECTION = 'CheckConnection',
   CLEAR_BILLING_TEST_DATA = 'ClearBillingTestData',
   RETRIEVE_CONSUMPTION = 'RetrieveConsumption',
+  READ_CONSUMPTION = 'ReadConsumption',
   CREATE_CONSUMPTION = 'CreateConsumption',
   PING = 'Ping',
   GENERATE_LOCAL_TOKEN = 'GenerateLocalToken',
@@ -145,13 +146,13 @@ export enum Action {
   TRIGGER_JOB = 'TriggerJob',
   DOWNLOAD = 'Download',
   IMPORT = 'Import',
-  ASSIGN_USERS_TO_SITE = 'AssignUsersToSite',
-  UNASSIGN_USERS_TO_SITE = 'UnassignUsersToSite',
-  ASSIGN_ASSETS_TO_SITE_AREA = 'AssignAssetsToSiteArea',
-  UNASSIGN_ASSETS_TO_SITE_AREA = 'UnassignAssetsToSiteArea',
-  READ_ASSETS_FROM_SITE_AREA = 'ReadAssetsFromSiteArea',
-  ASSIGN_CHARGING_STATIONS_TO_SITE_AREA = 'AssignChargingStationsToSiteArea',
-  UNASSIGN_CHARGING_STATIONS_TO_SITE_AREA = 'UnassignChargingStationsToSiteArea',
+  ASSIGN_USERS_TO_SITE = 'AssignUsers',
+  UNASSIGN_USERS_FROM_SITE = 'UnassignUsers',
+  ASSIGN_ASSETS_TO_SITE_AREA = 'AssignAssets',
+  UNASSIGN_ASSETS_FROM_SITE_AREA = 'UnassignAssets',
+  READ_ASSETS_FROM_SITE_AREA = 'ReadAssets',
+  ASSIGN_CHARGING_STATIONS_TO_SITE_AREA = 'AssignChargingStations',
+  UNASSIGN_CHARGING_STATIONS_FROM_SITE_AREA = 'UnassignChargingStations',
   READ_CHARGING_STATIONS_FROM_SITE_AREA = 'ReadChargingStationsFromSiteArea',
   EXPORT_OCPP_PARAMS = 'ExportOCPPParams',
   GENERATE_QR = 'GenerateQrCode',
@@ -179,7 +180,6 @@ export interface AuthorizationContext {
 
 export interface AuthorizationActions {
   canRead?: boolean;
-  canCreate?: boolean;
   canUpdate?: boolean;
   canDelete?: boolean;
   canListUsers?: boolean;
@@ -191,6 +191,16 @@ export interface TagAuthorizationActions extends AuthorizationActions {
   canUnassign?: boolean;
   canAssign?: boolean;
   canUpdateByVisualID?: boolean;
+}
+
+export interface RegistrationTokenAuthorizationActions extends AuthorizationActions {
+  canRevoke?: boolean;
+}
+
+export interface AssetAuthorizationActions extends AuthorizationActions {
+  canRetrieveConsumption?:boolean;
+  canReadConsumption?:boolean;
+  canCheckConnection?:boolean;
 }
 
 export interface SiteAreaAuthorizationActions extends AuthorizationActions {
@@ -227,7 +237,8 @@ export enum DynamicAuthorizationAssertName {
   POOL_CAR = 'PoolCar',
   OWN_USER = 'OwnUser',
   BASIC_USER = 'BasicUser',
-  USER_MANDATORY = 'UserMandatory'
+  USER_MANDATORY = 'UserMandatory',
+  SITE_AREA_MANDATORY = 'SiteAreaMandatory',
 }
 
 export enum DynamicAuthorizationDataSourceName {

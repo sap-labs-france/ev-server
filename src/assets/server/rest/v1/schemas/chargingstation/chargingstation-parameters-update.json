@@ -47,6 +47,9 @@
       "items": {
         "$ref": "chargingstation#/definitions/chargePoint"
       }
+    },
+    "tariffID": {
+      "$ref": "common#/definitions/tariff-id"
     }
   },
   "required": [

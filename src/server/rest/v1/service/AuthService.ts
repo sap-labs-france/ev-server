@@ -6,7 +6,6 @@ import User, { UserRole, UserStatus } from '../../../../types/User';
 import AppError from '../../../../exception/AppError';
 import AuthValidator from '../validator/AuthValidator';
 import Authorizations from '../../../../authorization/Authorizations';
-import AxiosFactory from '../../../../utils/AxiosFactory';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
 import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
@@ -15,7 +14,6 @@ import I18nManager from '../../../../utils/I18nManager';
 import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
 import { ServerAction } from '../../../../types/Server';
-import SessionHashService from './SessionHashService';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { StatusCodes } from 'http-status-codes';
@@ -30,15 +28,15 @@ import jwt from 'jsonwebtoken';
 import moment from 'moment';
 import passport from 'passport';
 
-const _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
+const centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 let jwtOptions;
 
 // Init JWT auth options
-if (_centralSystemRestConfig) {
+if (centralSystemRestConfig) {
   // Set
   jwtOptions = {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-    secretOrKey: _centralSystemRestConfig.userTokenKey
+    secretOrKey: centralSystemRestConfig.userTokenKey
   };
   // Use
   passport.use(new Strategy(jwtOptions, (jwtPayload, done) =>
@@ -77,7 +75,7 @@ export default class AuthService {
     UtilsService.assertObjectExists(action, user, `User with email '${filteredRequest.email}' does not exist`,
       MODULE_NAME, 'handleLogIn', req.user);
     // Check if the number of trials is reached
-    if (user.passwordWrongNbrTrials >= _centralSystemRestConfig.passwordWrongNumberOfTrial) {
+    if (user.passwordWrongNbrTrials >= centralSystemRestConfig.passwordWrongNumberOfTrial) {
       // Check if the user is still locked
       if (user.status === UserStatus.LOCKED) {
         // Yes: Check date to reset pass
@@ -139,24 +137,9 @@ export default class AuthService {
       });
     }
     req.user = { tenantID: tenant.id };
-    // Check Captcha
-    const recaptchaURL = `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`;
-    const response = await AxiosFactory.getAxiosInstance(tenant).get(recaptchaURL);
-    if (!response.data.success) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The captcha is invalid',
-        module: MODULE_NAME,
-        method: 'handleRegisterUser'
-      });
-    } else if (response.data.score < 0.5) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The captcha score is too low',
-        module: MODULE_NAME,
-        method: 'handleRegisterUser'
-      });
-    }
+    // Check reCaptcha
+    await UtilsService.checkReCaptcha(tenant, action, 'handleRegisterUser',
+      centralSystemRestConfig, filteredRequest.captcha, req.connection.remoteAddress);
     // Check Mandatory field
     UtilsService.checkIfUserValid(filteredRequest as User, null, req);
     // Check email
@@ -254,7 +237,7 @@ export default class AuthService {
           'evseDashboardURL': Utils.buildEvseURL(filteredRequest.tenant),
           'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
         }
-      ).catch(() => { });
+      );
     }
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
@@ -271,24 +254,9 @@ export default class AuthService {
         method: 'checkAndSendResetPasswordConfirmationEmail'
       });
     }
-    // Check captcha
-    const recaptchaURL = `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`;
-    const response = await AxiosFactory.getAxiosInstance(tenant).get(recaptchaURL);
-    if (!response.data.success) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The reCaptcha is invalid',
-        module: MODULE_NAME,
-        method: 'checkAndSendResetPasswordConfirmationEmail'
-      });
-    } else if (response.data.score < 0.5) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `The reCaptcha score is too low, got ${response.data.score as string} and expected to be >= 0.5`,
-        module: MODULE_NAME,
-        method: 'checkAndSendResetPasswordConfirmationEmail'
-      });
-    }
+    // Check reCaptcha
+    await UtilsService.checkReCaptcha(tenant, action, 'checkAndSendResetPasswordConfirmationEmail',
+      centralSystemRestConfig, filteredRequest.captcha, req.connection.remoteAddress);
     // Generate a new password
     const user = await UserStorage.getUserByEmail(tenant, filteredRequest.email);
     UtilsService.assertObjectExists(action, user, `User with email '${filteredRequest.email}' does not exist`,
@@ -316,7 +284,7 @@ export default class AuthService {
         'evseDashboardURL': Utils.buildEvseURL(filteredRequest.tenant),
         'evseDashboardResetPassURL': evseDashboardResetPassURL
       }
-    ).catch(() => { });
+    );
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -533,7 +501,7 @@ export default class AuthService {
         'userStatus': userStatus,
         'evseDashboardURL': Utils.buildEvseURL(filteredRequest.Tenant),
       }
-    ).catch(() => { });
+    );
     res.json({ status: 'Success', userStatus });
     next();
   }
@@ -561,26 +529,9 @@ export default class AuthService {
         action: action
       });
     }
-    // Is valid captcha?
-    const recaptchaURL = `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`;
-    const response = await AxiosFactory.getAxiosInstance(tenant).get(recaptchaURL);
-    if (!response.data.success) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The captcha is invalid',
-        module: MODULE_NAME,
-        method: 'handleResendVerificationEmail',
-        action: action
-      });
-    } else if (response.data.score < 0.5) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The captcha is too low',
-        module: MODULE_NAME,
-        method: 'handleResendVerificationEmail',
-        action: action
-      });
-    }
+    // Check reCaptcha
+    await UtilsService.checkReCaptcha(tenant, action, 'handleResendVerificationEmail',
+      centralSystemRestConfig, filteredRequest.captcha, req.connection.remoteAddress);
     // Is valid email?
     const user = await UserStorage.getUserByEmail(tenant, filteredRequest.email);
     UtilsService.assertObjectExists(action, user, `User with email '${filteredRequest.email}' does not exist`,
@@ -633,7 +584,7 @@ export default class AuthService {
         'evseDashboardURL': Utils.buildEvseURL(filteredRequest.tenant),
         'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
       }
-    ).catch(() => { });
+    );
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -650,7 +601,7 @@ export default class AuthService {
     }
     const passwordWrongNbrTrials = user.passwordWrongNbrTrials + 1;
     // Check if the number of trial is reached
-    if (passwordWrongNbrTrials >= _centralSystemRestConfig.passwordWrongNumberOfTrial) {
+    if (passwordWrongNbrTrials >= centralSystemRestConfig.passwordWrongNumberOfTrial) {
       // Too many attempts, lock user
       // Save User Status
       await UserStorage.saveUserStatus(tenant, user.id, UserStatus.LOCKED);
@@ -658,7 +609,7 @@ export default class AuthService {
       await UserStorage.saveUserPassword(tenant, user.id,
         {
           passwordWrongNbrTrials,
-          passwordBlockedUntil: moment().add(_centralSystemRestConfig.passwordBlockedWaitTimeMin, 'm').toDate()
+          passwordBlockedUntil: moment().add(centralSystemRestConfig.passwordBlockedWaitTimeMin, 'm').toDate()
         });
       throw new AppError({
         errorCode: HTTPError.USER_ACCOUNT_LOCKED_ERROR,
@@ -673,7 +624,7 @@ export default class AuthService {
       await UserStorage.saveUserPassword(tenant, user.id, { passwordWrongNbrTrials });
       throw new AppError({
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User failed to log in, ${_centralSystemRestConfig.passwordWrongNumberOfTrial - user.passwordWrongNbrTrials} trial(s) remaining`,
+        message: `User failed to log in, ${centralSystemRestConfig.passwordWrongNumberOfTrial - user.passwordWrongNbrTrials} trial(s) remaining`,
         module: MODULE_NAME,
         method: 'checkUserLogin',
         action: action,
@@ -714,15 +665,15 @@ export default class AuthService {
     // Role Demo?
     if (Authorizations.isDemo(user)) {
       token = jwt.sign(payload, jwtOptions.secretOrKey, {
-        expiresIn: _centralSystemRestConfig.userDemoTokenLifetimeDays * 24 * 3600
+        expiresIn: centralSystemRestConfig.userDemoTokenLifetimeDays * 24 * 3600
       });
     } else if (user.technical) {
       token = jwt.sign(payload, jwtOptions.secretOrKey, {
-        expiresIn: _centralSystemRestConfig.userTechnicalTokenLifetimeDays * 24 * 3600
+        expiresIn: centralSystemRestConfig.userTechnicalTokenLifetimeDays * 24 * 3600
       });
     } else {
       token = jwt.sign(payload, jwtOptions.secretOrKey, {
-        expiresIn: _centralSystemRestConfig.userTokenLifetimeHours * 3600
+        expiresIn: centralSystemRestConfig.userTokenLifetimeHours * 3600
       });
     }
     // Return it
@@ -806,7 +757,7 @@ export default class AuthService {
         // No authorized to log
         throw new AppError({
           errorCode: HTTPError.TECHNICAL_USER_CANNOT_LOG_TO_UI_ERROR,
-          message: 'Technical user cannot log in to UI but only B2B',
+          message: 'API User cannot log in to UI but only B2B',
           module: MODULE_NAME,
           method: 'checkUserLogin',
           user: user

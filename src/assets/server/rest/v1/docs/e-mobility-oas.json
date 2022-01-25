@@ -2442,7 +2442,7 @@
         }
       }
     },
-    "/api/transactions/{id}/ocpi/cdrs": {
+    "/api/transactions/{id}/ocpi/cdr": {
       "post": {
         "security": [
           {
@@ -2490,7 +2490,7 @@
         }
       }
     },
-    "/api/transactions/{id}/ocpi/cdrs/export": {
+    "/api/transactions/{id}/ocpi/cdr/export": {
       "get": {
         "security": [
           {
@@ -2499,13 +2499,7 @@
         ],
         "parameters": [
           {
-            "$ref": "#/components/parameters/WithUser"
-          },
-          {
-            "$ref": "#/components/parameters/WithCar"
-          },
-          {
-            "$ref": "#/components/parameters/WithTag"
+            "$ref": "#/components/parameters/transactionID"
           }
         ],
         "description": "Export Transaction CDR",
@@ -5125,6 +5119,9 @@
                     "type": "boolean",
                     "example": false
                   },
+                  "tariffID": {
+                    "type": "string"
+                  },
                   "siteAreaID": {
                     "type": "string",
                     "example": ""
@@ -7121,6 +7118,256 @@
           },
           "584": {
             "description": "Invalid CSV header format"
+          }
+        }
+      }
+    },
+    "/api/users/{id}/payment-methods": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get user's payment methods",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/userID"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Retrieved user payment methods",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "number"
+                    },
+                    "result": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BillingPaymentMethod"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/users/{id}/payment-methods/{paymentMethodID}": {
+      "delete": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Delete user's payment methods",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/userID"
+          },
+          {
+            "$ref": "#/components/parameters/paymentMethodID"
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully deleted user payment method",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingOperationResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/users/{id}/payment-methods/setup": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Setup user's payment method",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/userID"
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "paymentMethodId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully setup user payment method",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingOperationResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/users/{id}/payment-methods/{paymentMethodID}/attach": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Creates a new payment method and attach it to the user as its default",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/userID"
+          },
+          {
+            "$ref": "#/components/parameters/paymentMethodID"
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully attached user payment method",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingOperationResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/users/{id}/payment-methods/{paymentMethodID}/detach": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Detach a payment method from the user",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/userID"
+          },
+          {
+            "$ref": "#/components/parameters/paymentMethodID"
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully detached user payment method",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingOperationResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
       }
@@ -12414,8 +12661,7 @@
           "200": {
             "description": "Return statistics",
             "content": {
-              "text/csv": {
-              }
+              "text/csv": {}
             }
           },
           "401": {
@@ -13055,7 +13301,7 @@
         }
       }
     },
-    "/api/billing/settings": {
+    "/api/billing-setting": {
       "get": {
         "security": [
           {
@@ -13565,6 +13811,9 @@
           "smartCharging": {
             "type": "boolean"
           },
+          "tariffID": {
+            "type": "string"
+          },
           "voltage": {
             "type": "number",
             "enum": [
@@ -13666,6 +13915,9 @@
           },
           "public": {
             "type": "boolean"
+          },
+          "tariffID": {
+            "type": "string"
           },
           "siteAreaID": {
             "type": "string"
@@ -13908,6 +14160,9 @@
                 "example": "L3"
               }
             }
+          },
+          "tariffID": {
+            "type": "string"
           }
         }
       },
@@ -15235,6 +15490,52 @@
             }
           }
         }
+      },
+      "BillingPaymentMethod": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "readOnly": true
+          },
+          "brand": {
+            "type": "string"
+          },
+          "expiringOn": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "last4": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "createdOn": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "isDefault": {
+            "type": "boolean"
+          }
+        }
+      },
+      "BillingOperationResult": {
+        "type": "object",
+        "required": [
+          "succeeded"
+        ],
+        "properties": {
+          "succeeded": {
+            "type": "boolean"
+          },
+          "error": {
+            "type": "object"
+          },
+          "internalData": {
+            "type": "object"
+          }
+        }
       }
     },
     "parameters": {
@@ -15929,6 +16230,15 @@
         "schema": {
           "type": "number",
           "minimum": 0
+        }
+      },
+      "paymentMethodID": {
+        "in": "path",
+        "name": "paymentMethodID",
+        "description": "Payment Method ID",
+        "required": true,
+        "schema": {
+          "type": "string"
         }
       }
     }

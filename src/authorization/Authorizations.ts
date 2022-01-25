@@ -431,35 +431,35 @@ export default class Authorizations {
   }
 
   public static async canCreateRegistrationToken(loggedUser: UserToken, siteID: string): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.TOKEN, Action.CREATE, {
+    return Authorizations.canPerformAction(loggedUser, Entity.REGISTRATION_TOKEN, Action.CREATE, {
       site: siteID,
       sites: loggedUser.sitesAdmin
     });
   }
 
   public static async canReadRegistrationToken(loggedUser: UserToken, siteID: string): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.TOKEN, Action.READ, {
+    return Authorizations.canPerformAction(loggedUser, Entity.REGISTRATION_TOKEN, Action.READ, {
       site: siteID,
       sites: loggedUser.sitesAdmin
     });
   }
 
   public static async canDeleteRegistrationToken(loggedUser: UserToken, siteID: string): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.TOKEN, Action.DELETE, {
+    return Authorizations.canPerformAction(loggedUser, Entity.REGISTRATION_TOKEN, Action.DELETE, {
       site: siteID,
       sites: loggedUser.sitesAdmin
     });
   }
 
   public static async canUpdateRegistrationToken(loggedUser: UserToken, siteID: string): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.TOKEN, Action.UPDATE, {
+    return Authorizations.canPerformAction(loggedUser, Entity.REGISTRATION_TOKEN, Action.UPDATE, {
       site: siteID,
       sites: loggedUser.sitesAdmin
     });
   }
 
   public static async canListRegistrationTokens(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.TOKEN, Action.LIST);
+    return Authorizations.canPerformAction(loggedUser, Entity.REGISTRATION_TOKEN, Action.LIST);
   }
 
   public static async canListOcpiEndpoints(loggedUser: UserToken): Promise<boolean> {
@@ -679,6 +679,10 @@ export default class Authorizations {
 
   public static async canRetrieveAssetConsumption(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.RETRIEVE_CONSUMPTION);
+  }
+
+  public static async canReadAssetConsumption(loggedUser: UserToken): Promise<boolean> {
+    return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.READ_CONSUMPTION);
   }
 
   public static async canCreateAssetConsumption(loggedUser: UserToken): Promise<boolean> {
@@ -1005,7 +1009,7 @@ export default class Authorizations {
         badgeID: tagID,
         evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
       }
-    ).catch(() => { });
+    );
     throw new BackendError({
       ...LoggingHelper.getChargingStationProperties(chargingStation),
       action: action,

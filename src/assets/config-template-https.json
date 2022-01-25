@@ -40,6 +40,7 @@
     "passwordWrongNumberOfTrial": 3,
     "passwordBlockedWaitTimeMin": 5,
     "captchaSecretKey": "YourCaptchaSecretKey",
+    "captchaScore": 0.25,
     "debug": false
   },
   "CentralSystemFrontEnd": {
@@ -54,8 +55,7 @@
     "sslKey": "",
     "sslCert": "",
     "sslCa": [],
-    "debug": false,
-    "externalProtocol": "https"
+    "debug": false
   },
   "OICPService": {
     "protocol": "https",
@@ -66,8 +66,7 @@
     "sslCa": [
       "**insert certificate in PEM format**"
     ],
-    "debug": false,
-    "externalProtocol": "https"
+    "debug": false
   },
   "CentralSystemServer": {
     "protocol": "https",
@@ -81,8 +80,7 @@
     "sslKey": "",
     "sslCert": "",
     "sslCa": [],
-    "debug": false,
-    "externalProtocol": "https"
+    "debug": false
   },
   "WSDLEndpoint": {
     "baseSecureUrl": ""
@@ -186,16 +184,14 @@
       }
     ]
   },
+  "Trace": {
+    "traceIngressHttp": false,
+    "traceEgressHttp": false,
+    "traceOcpp": false,
+    "traceDatabase": false,
+    "traceNotification": false
+  },
   "Logging": {
-    "logLevel": "D",
-    "trace": false,
-    "moduleDetails": {
-      "ChargingStation": {
-        "logLevel": "DEFAULT"
-      },
-      "Authorizations": {
-        "logLevel": "DEFAULT"
-      }
-    }
+    "logLevel": "D"
   }
 }
