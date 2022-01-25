@@ -1,4 +1,4 @@
-import { HttpDeletePaymentMethod, HttpPaymentMethods } from '../../../../types/requests/HttpBillingRequest';
+import { HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
 
 import { BillingSettings } from '../../../../types/Setting';
 import Schema from '../../../../types/validator/Schema';
@@ -36,7 +36,7 @@ export default class BillingValidator extends SchemaValidator {
     return this.validate(this.billingDeleteUserPaymentMethod, data);
   }
 
-  public validateBillingSetupUserPaymentMethodReq(data: Record<string, unknown>): HttpDeletePaymentMethod {
+  public validateBillingSetupUserPaymentMethodReq(data: Record<string, unknown>): HttpSetupPaymentMethod {
     return this.validate(this.billingSetupUserPaymentMethod, data);
   }
 }

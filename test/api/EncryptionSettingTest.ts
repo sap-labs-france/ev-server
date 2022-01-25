@@ -4,8 +4,8 @@
 import chai, { expect } from 'chai';
 
 import CentralServerService from './client/CentralServerService';
+import { HTTPError } from '../../src/types/HTTPError';
 import { StatusCodes } from 'http-status-codes';
-import TestConstants from './client/utils/TestConstants';
 import TestData from './client/utils/TestData';
 import chaiSubset from 'chai-subset';
 import config from '../config';
@@ -95,8 +95,8 @@ describe('Encryption Setting', function() {
                 }
             }
         }`);
-      const update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
-      expect(update.status).to.equal(StatusCodes.OK);
+      const update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data, false);
+      expect(update.status).to.equal(HTTPError.TENANT_COMPONENT_CHANGED);
       // Retrieve the updated setting and check
       read = await testData.centralService.settingApi.readByIdentifier({ 'Identifier': 'pricing' });
       expect(read.status).to.equal(StatusCodes.OK);
