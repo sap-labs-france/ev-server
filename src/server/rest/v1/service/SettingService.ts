@@ -1,6 +1,6 @@
 import { Action, Entity } from '../../../../types/Authorization';
+import { BillingSettingsType, IntegrationSettings, PricingSettingsType, SettingDB, TechnicalSettings } from '../../../../types/Setting';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
-import { IntegrationSettings, SettingDB, TechnicalSettings } from '../../../../types/Setting';
 import { NextFunction, Request, Response } from 'express';
 
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -10,10 +10,10 @@ import Constants from '../../../../utils/Constants';
 import Cypher from '../../../../utils/Cypher';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
-import SettingSecurity from './security/SettingSecurity';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import SettingValidator from '../validator/SettingValidator';
 import { StatusCodes } from 'http-status-codes';
+import { TenantComponents } from '../../../../types/Tenant';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 import _ from 'lodash';
@@ -23,7 +23,7 @@ const MODULE_NAME = 'SettingService';
 export default class SettingService {
   public static async handleDeleteSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const settingID = SettingSecurity.filterSettingRequestByID(req.query);
+    const settingID = SettingValidator.getInstance().validateSettingGetByIDReq(req.query).ID;
     UtilsService.assertIdIsProvided(action, settingID, MODULE_NAME, 'handleDeleteSetting', req.user);
     // Check auth
     if (!await Authorizations.canDeleteSetting(req.user)) {
@@ -55,7 +55,7 @@ export default class SettingService {
 
   public static async handleGetSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const settingID = SettingSecurity.filterSettingRequestByID(req.query);
+    const settingID = SettingValidator.getInstance().validateSettingGetByIDReq(req.query).ID;
     UtilsService.assertIdIsProvided(action, settingID, MODULE_NAME, 'handleGetSetting', req.user);
     // Check auth
     if (!await Authorizations.canReadSetting(req.user)) {
@@ -84,7 +84,7 @@ export default class SettingService {
 
   public static async handleGetSettingByIdentifier(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const settingID = SettingSecurity.filterSettingRequestByID(req.query);
+    const settingID = SettingValidator.getInstance().validateSettingGetByIdentifierReq(req.query).Identifier;
     UtilsService.assertIdIsProvided(action, settingID, MODULE_NAME, 'handleGetSettingByIdentifier', req.user);
     // Check auth
     if (!await Authorizations.canReadSetting(req.user)) {
@@ -122,7 +122,7 @@ export default class SettingService {
       });
     }
     // Filter
-    const filteredRequest = SettingSecurity.filterSettingsRequest(req.query);
+    const filteredRequest = SettingValidator.getInstance().validateSettingsGetReq(req.query);
     // Get the all settings identifier
     const settings = await SettingStorage.getSettings(req.tenant,
       { identifier: filteredRequest.Identifier },
@@ -292,6 +292,18 @@ export default class SettingService {
       action: action,
       detailedMessages: { filteredRequest }
     });
+    // Pricing Checks on Currency Modification
+    if (filteredRequest.identifier === TenantComponents.PRICING
+      && setting.content?.type === PricingSettingsType.SIMPLE
+      && setting.content?.simple.currency !== filteredRequest.content?.simple?.currency) {
+      // Force a user logout
+      throw new AppError({
+        errorCode: HTTPError.TENANT_COMPONENT_CHANGED,
+        message: 'Pricing Settings - Currency has been updated. A log out is necessary to benefit from the changes',
+        module: MODULE_NAME, method: 'handleUpdateSetting',
+        user: req.user
+      });
+    }
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
