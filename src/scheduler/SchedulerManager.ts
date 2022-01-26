@@ -9,6 +9,7 @@ import CheckOfflineChargingStationsTask from './tasks/CheckOfflineChargingStatio
 import CheckPreparingSessionNotStartedTask from './tasks/CheckPreparingSessionNotStartedTask';
 import CheckSessionNotStartedAfterAuthorizeTask from './tasks/CheckSessionNotStartedAfterAuthorizeTask';
 import CheckUserAccountInactivityTask from './tasks/CheckUserAccountInactivityTask';
+import CleanTransactionsInProgressTask from './tasks/CleanTransactionsInProgressTask';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 import LoggingDatabaseTableCleanupTask from './tasks/LoggingDatabaseTableCleanupTask';
@@ -141,6 +142,9 @@ export default class SchedulerManager {
           break;
         case 'MigrateSensitiveDataTask':
           schedulerTask = new MigrateSensitiveDataTask();
+          break;
+        case 'CleanTransactionsInProgressTask':
+          schedulerTask = new CleanTransactionsInProgressTask();
           break;
         default:
           await Logging.logError({

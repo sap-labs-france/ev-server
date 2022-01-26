@@ -116,6 +116,14 @@ export default class LockingHelper {
     return lock;
   }
 
+  public static async acquireTransactionsCleanLock(tenantID: string): Promise<Lock | null> {
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.TRANSACTION, 'clean-transactions');
+    if (!(await LockingManager.acquire(lock))) {
+      return null;
+    }
+    return lock;
+  }
+
   public static async createOCPIPullTokensLock(tenantID: string, ocpiEndpoint: OCPIEndpoint, partial: boolean): Promise<Lock | null> {
     return LockingHelper.acquireOCPIEndpointActionLock(tenantID, ocpiEndpoint, `pull-tokens${partial ? '-partial' : ''}`);
   }

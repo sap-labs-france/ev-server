@@ -1,9 +1,8 @@
 import { BillingDataTransactionStart, BillingDataTransactionStop } from '../../../types/Billing';
 import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargingStationCapabilities, ChargingStationTemplate, Command, Connector, ConnectorCurrentLimitSource, CurrentType, OcppParameter, SiteAreaLimitSource, StaticLimitAmps, TemplateUpdate, TemplateUpdateResult } from '../../../types/ChargingStation';
-import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
+import { OCPPAuthorizationStatus, OCPPMeasurand, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat } from '../../../types/ocpp/OCPPServer';
 import { OCPPChangeConfigurationResponse, OCPPChargingProfileStatus, OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
-import { OCPPMeasurand, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat } from '../../../types/ocpp/OCPPServer';
 import { OICPIdentification, OICPSessionID } from '../../../types/oicp/OICPIdentification';
 import Tenant, { TenantComponents } from '../../../types/Tenant';
 import Transaction, { InactivityStatus, TransactionAction } from '../../../types/Transaction';
@@ -13,6 +12,7 @@ import BackendError from '../../../exception/BackendError';
 import BillingFactory from '../../../integration/billing/BillingFactory';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
+import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import Consumption from '../../../types/Consumption';
 import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
@@ -25,6 +25,7 @@ import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
 import OCPPCommon from './OCPPCommon';
 import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
+import OCPPService from '../services/OCPPService';
 import OICPClientFactory from '../../../client/oicp/OICPClientFactory';
 import { OICPRole } from '../../../types/oicp/OICPRole';
 import OICPUtils from '../../oicp/OICPUtils';
@@ -1712,6 +1713,35 @@ export default class OCPPUtils {
         });
       }
     }
+  }
+
+  public static async softStopTransaction(tenant: Tenant, transaction: Transaction): Promise<boolean> {
+    // Get the Charging Station
+    const chargingStation = await ChargingStationStorage.getChargingStation(tenant, transaction.chargeBoxID, { withSiteArea: true });
+    // Stop Transaction
+    const result = await new OCPPService(Configuration.getChargingStationConfig()).handleStopTransaction(
+      {
+        chargeBoxIdentity: chargingStation.id,
+        chargingStation: chargingStation,
+        companyID: chargingStation.companyID,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        tenantID: tenant.id,
+        tenant: tenant,
+      },
+      {
+        transactionId: transaction.id,
+        chargeBoxID: chargingStation.id,
+        idTag: transaction.tagID,
+        timestamp: Utils.convertToDate(transaction.lastConsumption ? transaction.lastConsumption.timestamp : transaction.timestamp).toISOString(),
+        meterStop: transaction.lastConsumption ? transaction.lastConsumption.value : transaction.meterStart
+      },
+      true
+    );
+    if (result.idTagInfo?.status !== OCPPAuthorizationStatus.ACCEPTED) {
+      return false;
+    }
+    return true;
   }
 
   private static async enrichChargingStationWithTemplate(tenant: Tenant, chargingStation: ChargingStation): Promise<TemplateUpdateResult> {

@@ -300,7 +300,7 @@ export default class TransactionStorage {
         endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; tagIDs?: string[]; inactivityStatus?: string[];
         ocpiSessionID?: string; ocpiAuthorizationID?: string; ocpiSessionDateFrom?: Date; ocpiSessionDateTo?: Date; ocpiCdrDateFrom?: Date; ocpiCdrDateTo?: Date;
         ocpiSessionChecked?: boolean; ocpiCdrChecked?: boolean; oicpSessionID?: string; withSite?: boolean; withSiteArea?: boolean; withCompany?: boolean;
-        statistics?: 'refund' | 'history' | 'ongoing'; refundStatus?: RefundStatus[]; withTag?: boolean; hasUserID?: boolean; withUser?: boolean; withCar?: boolean;
+        statistics?: 'refund' | 'history' | 'ongoing'; refundStatus?: RefundStatus[]; withTag?: boolean; hasUserID?: boolean; withUser?: boolean; withCar?: boolean; transactionsToClean?: boolean
       },
       dbParams: DbParams, projectFields?: string[]): Promise<TransactionDataResult> {
     const startTime = Logging.traceDatabaseRequestStart();
@@ -476,6 +476,51 @@ export default class TransactionStorage {
       aggregation.push({
         $match: filters
       });
+    }
+    // Charging Station
+    if (params.withChargingStation || params.transactionsToClean) {
+      DatabaseUtils.pushChargingStationLookupInAggregation({
+        tenantID: tenant.id, aggregation: aggregation, localField: 'chargeBoxID', foreignField: '_id',
+        asField: 'chargeBox', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+      });
+      DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargeBox.siteAreaID');
+      // Add Connector and Status
+      if ((projectFields && projectFields.includes('status')) || params.transactionsToClean) {
+        aggregation.push({
+          $addFields: {
+            connector: {
+              '$arrayElemAt': [
+                {
+                  '$filter': {
+                    input: '$chargeBox.connectors',
+                    as: 'connector',
+                    cond: {
+                      $eq: [
+                        '$$connector.connectorId',
+                        '$connectorId'
+                      ]
+                    }
+                  }
+                },
+                0
+              ]
+            }
+          }
+        });
+        if (projectFields && projectFields.includes('status')) {
+          aggregation.push({
+            $addFields: { status: '$connector.status' }
+          });
+        }
+        if (params.transactionsToClean) {
+          aggregation.push({
+            '$addFields': {
+              'transactionIdEq': { '$eq': ['$connector.currentTransactionID', '$_id'] }
+            }
+          },
+          { '$match': { 'transactionIdEq': false } });
+        }
+      }
     }
     // Limit records?
     if (!dbParams.onlyRecordCount) {
@@ -671,30 +716,6 @@ export default class TransactionStorage {
         tenantID: tenant.id, aggregation: aggregation, localField: 'siteAreaID', foreignField: '_id',
         asField: 'siteArea', oneToOneCardinality: true
       });
-    }
-    // Charging Station
-    if (params.withChargingStation) {
-      DatabaseUtils.pushChargingStationLookupInAggregation({
-        tenantID: tenant.id, aggregation: aggregation, localField: 'chargeBoxID', foreignField: '_id',
-        asField: 'chargeBox', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
-      });
-      DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargeBox.siteAreaID');
-      // Add Connector and Status
-      if (projectFields && projectFields.includes('status')) {
-        aggregation.push({
-          $addFields: {
-            connector: {
-              $arrayElemAt: [
-                '$chargeBox.connectors', {
-                  $indexOfArray: ['$chargeBox.connectors.connectorId', '$connectorId']
-                }
-              ]
-            }
-          }
-        }, {
-          $addFields: { status: '$connector.status' }
-        });
-      }
     }
     // User
     if (params.withUser) {
