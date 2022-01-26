@@ -8,7 +8,7 @@
     },
     "Status": {
       "type": "string",
-      "pattern": "^((paid|open|draft|void|uncollectible|deleted)(\|paid|\|open|\|draft|\|void|\|uncollectible|\|deleted)*)?$",
+      "pattern": "^((paid|open|draft|void|uncollectible|deleted)(\\|paid|\\|open|\\|draft|\\|void|\\|uncollectible|\\|deleted)*)?$",
       "sanitize": "mongo"
     },
     "StartDateTime": {
