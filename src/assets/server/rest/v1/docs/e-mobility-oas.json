@@ -7212,13 +7212,7 @@
             "$ref": "#/components/parameters/userID"
           },
           {
-            "in": "path",
-            "name": "paymentMethodID",
-            "description": "Payment Method ID",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/paymentMethodID"
           }
         ],
         "tags": [
@@ -7283,6 +7277,96 @@
         "responses": {
           "200": {
             "description": "Successfully setup user payment method",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingOperationResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/users/{id}/payment-methods/{paymentMethodID}/attach": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Creates a new payment method and attach it to the user as its default",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/userID"
+          },
+          {
+            "$ref": "#/components/parameters/paymentMethodID"
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully attached user payment method",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingOperationResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/users/{id}/payment-methods/{paymentMethodID}/detach": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Detach a payment method from the user",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/userID"
+          },
+          {
+            "$ref": "#/components/parameters/paymentMethodID"
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully detached user payment method",
             "content": {
               "application/json": {
                 "schema": {
@@ -12595,8 +12679,7 @@
           "200": {
             "description": "Return statistics",
             "content": {
-              "text/csv": {
-              }
+              "text/csv": {}
             }
           },
           "401": {
@@ -13236,7 +13319,7 @@
         }
       }
     },
-    "/api/billing/settings": {
+    "/api/billing-setting": {
       "get": {
         "security": [
           {
@@ -16197,6 +16280,15 @@
         "schema": {
           "type": "number",
           "minimum": 0
+        }
+      },
+      "paymentMethodID": {
+        "in": "path",
+        "name": "paymentMethodID",
+        "description": "Payment Method ID",
+        "required": true,
+        "schema": {
+          "type": "string"
         }
       }
     }
