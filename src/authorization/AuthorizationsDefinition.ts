@@ -488,7 +488,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'chargeAlternativePhase', 'chargeOptionPower', 'chargeOptionPhase', 'image', 'chargeOptionPhaseAmp', 'chargeAlternativePhaseAmp'
         ]
       },
-      { resource: Entity.CAR, action: [Action.CREATE, Action.UPDATE, Action.DELETE] },
+      { resource: Entity.CAR, action: [Action.CREATE, Action.CREATE_POOL_CAR, Action.UPDATE, Action.DELETE] },
       {
         resource: Entity.CAR, action: Action.READ,
         attributes: [
@@ -1226,7 +1226,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
-            asserts: [],
+            asserts: ['-PoolCar'],
             filters: []
           }
         },
