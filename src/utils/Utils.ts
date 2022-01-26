@@ -1609,49 +1609,46 @@ export default class Utils {
     return crypto.createHash('sha256').update(data).digest('hex');
   }
 
-  public static findSiteAreaInTrees(siteAreaId: string, siteAreaTreeList: SiteArea[] = null, siteAreaTreeNode: SiteArea = null): SiteArea {
+  public static findSiteAreaInTrees(siteAreaID: string, siteAreas: SiteArea[] = null, siteAreaTreeNode: SiteArea = null): SiteArea {
     if (siteAreaTreeNode) {
       // Check if current site area is the one to find
-      if (siteAreaId === siteAreaTreeNode.id) {
+      if (siteAreaID === siteAreaTreeNode.id) {
         return siteAreaTreeNode;
       }
       if (!Utils.isEmptyArray(siteAreaTreeNode.siteAreaChildren)) {
         // Check all children and children of children
         for (const siteAreaChild of siteAreaTreeNode.siteAreaChildren) {
-          if (siteAreaChild.id === siteAreaId) {
+          if (siteAreaChild.id === siteAreaID) {
             return siteAreaTreeNode;
           }
-          if (this.findSiteAreaInTrees(siteAreaId, null, siteAreaChild)) {
+          if (this.findSiteAreaInTrees(siteAreaID, null, siteAreaChild)) {
             return siteAreaTreeNode;
           }
         }
       }
       return null;
     }
-    if (Array.isArray(siteAreaTreeList)) {
-    // Loop through trees to find specific tree
-      for (const singleTree of siteAreaTreeList) {
-      // If site area ID is defined return tree, which contains the site area
-        const requestedTree = this.findSiteAreaInTrees(siteAreaId, null, singleTree);
+    if (Array.isArray(siteAreas)) {
+      // Loop through trees to find specific tree
+      for (const siteArea of siteAreas) {
+        // If site area ID is defined return tree, which contains the site area
+        const requestedTree = this.findSiteAreaInTrees(siteAreaID, null, siteArea);
         if (requestedTree) {
-          return singleTree;
+          return siteArea;
         }
-        // If it is not containing the ID go to next tree
-        continue;
       }
-      return null;
     }
   }
 
-  public static buildSiteAreaTrees(siteAreaList: SiteArea[]): SiteArea[] {
+  public static buildSiteAreaTrees(siteAreas: SiteArea[]): SiteArea[] {
     // Hash Table helper
-    const hashTable = Object.create(null);
-    for (const siteArea of siteAreaList) {
+    const hashTable = {};
+    for (const siteArea of siteAreas) {
       hashTable[siteArea.id] = { ...siteArea, siteAreaChildren: [] } as SiteArea;
     }
     const siteAreaTrees: SiteArea[] = [];
     // Build tree
-    for (const siteArea of siteAreaList) {
+    for (const siteArea of siteAreas) {
       if (!Utils.isNullOrUndefined(siteArea.parentSiteAreaID) && !Utils.isNullOrUndefined(hashTable[siteArea.parentSiteAreaID])) {
         // Push sub site area to parent children array
         hashTable[siteArea.parentSiteAreaID].siteAreaChildren.push(hashTable[siteArea.id]);
@@ -1663,36 +1660,36 @@ export default class Utils {
     return siteAreaTrees;
   }
 
-  public static checkSiteAreaTrees(siteAreaTreeList: SiteArea[], numberOfSiteAreas?: number,
+  public static checkSiteAreaTrees(siteAreaTrees: SiteArea[], numberOfSiteAreas?: number,
       siteAreaTree: SiteArea = null, count = 0) : number {
     if (siteAreaTree) {
       count++;
       // Count and check all children and children of children
       if (!Utils.isEmptyArray(siteAreaTree.siteAreaChildren)) {
-        for (const child of siteAreaTree.siteAreaChildren) {
-          if (siteAreaTree.smartCharging !== child.smartCharging ||
-            siteAreaTree.numberOfPhases !== child.numberOfPhases ||
-            siteAreaTree.siteID !== child.siteID ||
-            siteAreaTree.voltage !== child.voltage) {
+        for (const siteAreaChild of siteAreaTree.siteAreaChildren) {
+          if (siteAreaTree.smartCharging !== siteAreaChild.smartCharging ||
+            siteAreaTree.numberOfPhases !== siteAreaChild.numberOfPhases ||
+            siteAreaTree.siteID !== siteAreaChild.siteID ||
+            siteAreaTree.voltage !== siteAreaChild.voltage) {
             throw new BackendError({
-              siteAreaID: child.id,
+              siteAreaID: siteAreaChild.id,
               method: 'checkSiteAreaTrees',
               message: 'Property inconsistency in Site Area Tree',
             });
           }
-          count += this.checkSiteAreaTrees(null, null, child);
+          count += this.checkSiteAreaTrees(null, null, siteAreaChild);
         }
       }
       return count;
     }
-    if (Array.isArray(siteAreaTreeList)) {
+    if (Array.isArray(siteAreaTrees)) {
       // Loop through trees to check properties and count all site areas in it
-      for (const singleTree of siteAreaTreeList) {
+      for (const singleTree of siteAreaTrees) {
         count += this.checkSiteAreaTrees(null, null, singleTree);
       }
       if (count !== numberOfSiteAreas) {
         throw new BackendError({
-          siteID: siteAreaTreeList[0].siteID,
+          siteID: siteAreaTrees[0].siteID,
           method: 'checkSiteAreaTrees',
           message: 'Circular Structure in Site Area Tree',
         });
