@@ -8,8 +8,6 @@ import { StatusCodes } from 'http-status-codes';
 import Tenant from '../types/Tenant';
 
 export default class AxiosFactory {
-  private static axiosInstances: Map<string, AxiosInstance> = new Map<string, AxiosInstance>();
-
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   private constructor() { }
 
@@ -19,30 +17,24 @@ export default class AxiosFactory {
     instanceConfiguration.axiosConfig = instanceConfiguration.axiosConfig ?? {} as AxiosRequestConfig;
     // Set timeout
     instanceConfiguration.axiosConfig.timeout = instanceConfiguration.axiosConfig.timeout ?? Configuration.getAxiosConfig()?.timeoutSecs * 1000;
-    // Get from map
-    let axiosInstance = this.axiosInstances.get(tenant.id);
-    if (!axiosInstance) {
-      // Create
-      axiosInstance = axios.create(instanceConfiguration.axiosConfig);
-      // Add a Request interceptor
-      axiosInstance.interceptors.request.use(async (request: AxiosRequestConfig) => {
-        await Logging.traceAxiosRequest(tenant, request);
-        return request;
-      }, async (error: AxiosError) => {
-        await Logging.traceAxiosError(tenant, error);
-        return Promise.reject(error);
-      });
-      // Add a Response interceptor
-      axiosInstance.interceptors.response.use(async (response: AxiosResponse) => {
-        await Logging.traceAxiosResponse(tenant, response);
-        return response;
-      }, async (error: AxiosError) => {
-        await Logging.traceAxiosError(tenant, error);
-        return Promise.reject(error);
-      });
-      // Add
-      this.axiosInstances.set(tenant.id, axiosInstance);
-    }
+    // Create
+    const axiosInstance = axios.create(instanceConfiguration.axiosConfig);
+    // Add a Request interceptor
+    axiosInstance.interceptors.request.use(async (request: AxiosRequestConfig) => {
+      await Logging.traceAxiosRequest(tenant, request);
+      return request;
+    }, async (error: AxiosError) => {
+      await Logging.traceAxiosError(tenant, error);
+      return Promise.reject(error);
+    });
+    // Add a Response interceptor
+    axiosInstance.interceptors.response.use(async (response: AxiosResponse) => {
+      await Logging.traceAxiosResponse(tenant, response);
+      return response;
+    }, async (error: AxiosError) => {
+      await Logging.traceAxiosError(tenant, error);
+      return Promise.reject(error);
+    });
     // Set retry configuration
     AxiosFactory.applyAxiosRetryConfiguration(axiosInstance, instanceConfiguration.axiosRetryConfig);
     return axiosInstance;

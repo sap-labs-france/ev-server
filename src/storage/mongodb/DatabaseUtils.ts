@@ -388,6 +388,10 @@ export default class DatabaseUtils {
     }
   }
 
+  public static generateID(): string {
+    return new ObjectId().toString();
+  }
+
   public static convertUserToObjectID(user: User | UserToken | string): ObjectId | null {
     let userID: ObjectId | null = null;
     // Check Created By

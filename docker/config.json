@@ -36,6 +36,7 @@
     "passwordWrongNumberOfTrial": 3,
     "passwordBlockedWaitTimeMin": 5,
     "captchaSecretKey": "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe",
+    "captchaScore": 0.25,
     "debug": false
   },
   "CentralSystemFrontEnd": {
@@ -165,6 +166,12 @@
         "name": "BillingPeriodicOperationTask",
         "active": false,
         "periodicity": "0 1 1 * *",
+        "config": {}
+      },
+      {
+        "name": "BillPendingTransactionTask",
+        "active": false,
+        "periodicity": "*/15 * * * *",
         "config": {}
       },
       {

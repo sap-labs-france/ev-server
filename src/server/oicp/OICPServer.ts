@@ -14,7 +14,7 @@ export default class OICPServer {
   private oicpRestConfig: OICPServiceConfiguration;
   private expressApplication: Application;
 
-  constructor(oicpRestConfig: OICPServiceConfiguration) {
+  public constructor(oicpRestConfig: OICPServiceConfiguration) {
     // Keep params
     this.oicpRestConfig = oicpRestConfig;
     // Initialize express app
@@ -38,7 +38,7 @@ export default class OICPServer {
     ExpressUtils.postInitApplication(this.expressApplication);
   }
 
-  start(): void {
+  public start(): void {
     ServerUtils.startHttpServer(this.oicpRestConfig,
       ServerUtils.createHttpServer(this.oicpRestConfig, this.expressApplication), MODULE_NAME, ServerType.OICP_SERVER);
   }

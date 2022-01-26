@@ -65,6 +65,7 @@ export default interface ChargingStation extends CreatedUpdatedProps, Authorizat
   distanceMeters?: number;
   ocpiData?: ChargingStationOcpiData;
   oicpData?: ChargingStationOicpData;
+  tariffID?: string;
 }
 
 export interface ChargingStationOcpiData {
@@ -169,6 +170,7 @@ export interface Connector {
   currentType?: CurrentType;
   chargePointID?: number;
   phaseAssignmentToGrid?: PhaseAssignmentToGrid;
+  tariffID?: string;
 }
 
 export interface PhaseAssignmentToGrid {

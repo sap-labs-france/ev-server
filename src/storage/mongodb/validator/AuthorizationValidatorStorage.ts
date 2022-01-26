@@ -6,7 +6,7 @@ import global from '../../../types/GlobalType';
 
 export default class AuthorizationValidatorStorage extends SchemaValidator {
   private static instance: AuthorizationValidatorStorage | null = null;
-  private authorizationRole: Schema;
+  private authorizationRole: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/authorization/authorization-role.json`, 'utf8'));
 
   private constructor() {
     super('AuthorizationValidatorStorage', {
@@ -17,7 +17,6 @@ export default class AuthorizationValidatorStorage extends SchemaValidator {
       coerceTypes: true,
       verbose: true,
     });
-    this.authorizationRole = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/authorization/authorization-role.json`, 'utf8'));
   }
 
   public static getInstance(): AuthorizationValidatorStorage {

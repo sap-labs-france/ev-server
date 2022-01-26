@@ -413,8 +413,10 @@ export default class SiteService {
       }
       site.public = filteredRequest.public;
     }
-    if (Utils.objectHasProperty(filteredRequest, 'tariffID')) {
-      site.tariffID = filteredRequest.tariffID;
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
+      if (Utils.objectHasProperty(filteredRequest, 'tariffID')) {
+        site.tariffID = filteredRequest.tariffID;
+      }
     }
     if (Utils.objectHasProperty(filteredRequest, 'autoUserSiteAssignment')) {
       site.autoUserSiteAssignment = filteredRequest.autoUserSiteAssignment;

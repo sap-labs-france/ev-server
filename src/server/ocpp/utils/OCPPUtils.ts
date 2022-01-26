@@ -196,16 +196,37 @@ export default class OCPPUtils {
     }
   }
 
-  public static async buildExtraConsumptionInactivity(tenant: Tenant, transaction: Transaction): Promise<boolean> {
+  public static async buildAndPriceExtraConsumptionInactivity(tenant: Tenant, chargingStation: ChargingStation, lastTransaction: Transaction): Promise<void> {
+    const lastConsumption = await OCPPUtils.buildExtraConsumptionInactivity(tenant, chargingStation, lastTransaction);
+    if (lastConsumption) {
+      // Pricing of the extra inactivity
+      if (lastConsumption?.toPrice) {
+        await OCPPUtils.processTransactionPricing(tenant, lastTransaction, chargingStation, lastConsumption, TransactionAction.END);
+      }
+      // Save the last consumption
+      await ConsumptionStorage.saveConsumption(tenant, lastConsumption);
+      // Update transaction stop
+      lastTransaction.stop.timestamp = lastConsumption.endedAt;
+      lastTransaction.stop.totalDurationSecs = moment.duration(moment(lastTransaction.stop.timestamp).diff(lastTransaction.timestamp)).asSeconds();
+      lastTransaction.stop.price = lastTransaction.currentCumulatedPrice;
+      lastTransaction.stop.roundedPrice = lastTransaction.currentCumulatedRoundedPrice;
+    }
+  }
+
+  public static async buildExtraConsumptionInactivity(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction): Promise<Consumption> {
     // Extra inactivity
-    if (transaction.stop.extraInactivitySecs > 0) {
+    const extraInactivitySecs = transaction.stop?.extraInactivitySecs || 0;
+    if (extraInactivitySecs > 0) {
       // Get the last Consumption
       const lastConsumption = await ConsumptionStorage.getLastTransactionConsumption(tenant, { transactionId: transaction.id });
       if (lastConsumption) {
         delete lastConsumption.id;
         // Create the extra consumption with inactivity
         lastConsumption.startedAt = transaction.stop.timestamp;
-        lastConsumption.endedAt = moment(transaction.stop.timestamp).add(transaction.stop.extraInactivitySecs, 's').toDate();
+        lastConsumption.endedAt = moment(transaction.stop.timestamp).add(extraInactivitySecs, 's').toDate();
+        lastConsumption.inactivitySecs = extraInactivitySecs;
+        lastConsumption.totalDurationSecs = Utils.createDecimal(lastConsumption.totalDurationSecs).add(extraInactivitySecs).toNumber();
+        lastConsumption.totalInactivitySecs = Utils.createDecimal(lastConsumption.totalInactivitySecs).add(extraInactivitySecs).toNumber();
         // Set inactivity
         lastConsumption.consumptionAmps = 0;
         lastConsumption.consumptionWh = 0;
@@ -219,17 +240,11 @@ export default class OCPPUtils {
         lastConsumption.instantWattsL1 = 0;
         lastConsumption.instantWattsL2 = 0;
         lastConsumption.instantWattsL3 = 0;
-        // Save
-        await ConsumptionStorage.saveConsumption(tenant, lastConsumption);
-        // Update the Stop transaction data
-        transaction.stop.timestamp = lastConsumption.endedAt;
-        transaction.stop.totalDurationSecs = Utils.createDecimal(
-          Math.floor((transaction.stop.timestamp.getTime() - transaction.timestamp.getTime()))).div(1000).toNumber();
-        transaction.stop.extraInactivityComputed = true;
-        return true;
+        lastConsumption.toPrice = true;
+        return lastConsumption;
       }
     }
-    return false;
+    return null;
   }
 
   public static async processTransactionPricing(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation,
@@ -241,69 +256,48 @@ export default class OCPPUtils {
       switch (action) {
         // Start Transaction
         case TransactionAction.START:
-          // Build first Dummy consumption for pricing the Start Transaction
-          if (!consumption) {
-            consumption = await OCPPUtils.createConsumptionFromMeterValue(
-              tenant, chargingStation, transaction,
-              { timestamp: transaction.timestamp, value: transaction.meterStart },
-              {
-                id: Utils.getRandomIntSafe().toString(),
-                chargeBoxID: transaction.chargeBoxID,
-                siteID: transaction.siteID,
-                siteAreaID: transaction.siteAreaID,
-                companyID: transaction.companyID,
-                connectorId: transaction.connectorId,
-                transactionId: transaction.id,
-                timestamp: transaction.timestamp,
-                value: transaction.meterStart,
-                attribute: Constants.OCPP_ENERGY_ACTIVE_IMPORT_REGISTER_ATTRIBUTE
-              }
-            );
-          }
-          // Set
           pricedConsumption = await pricingImpl.startSession(transaction, consumption, chargingStation);
           if (pricedConsumption) {
+            OCPPUtils.updateCumulatedAmounts(transaction, consumption, pricedConsumption);
             // Set the initial pricing
             transaction.price = pricedConsumption.amount;
             transaction.roundedPrice = pricedConsumption.roundedAmount;
             transaction.priceUnit = pricedConsumption.currencyCode;
             transaction.pricingSource = pricedConsumption.pricingSource;
-            transaction.currentCumulatedPrice = pricedConsumption.amount;
-            transaction.currentCumulatedRoundedPrice = pricedConsumption.roundedAmount;
+            // Set the actual pricing model after the resolution of the context
             transaction.pricingModel = pricedConsumption.pricingModel;
           }
           break;
-        // Meter Values
         case TransactionAction.UPDATE:
           // Set
           pricedConsumption = await pricingImpl.updateSession(transaction, consumption, chargingStation);
-          if (pricedConsumption) {
-            // Update consumption
-            consumption.amount = pricedConsumption.amount;
-            consumption.roundedAmount = pricedConsumption.roundedAmount;
-            consumption.currencyCode = pricedConsumption.currencyCode;
-            consumption.pricingSource = pricedConsumption.pricingSource;
-            consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
-            transaction.currentCumulatedPrice = consumption.cumulatedAmount;
-            transaction.currentCumulatedRoundedPrice = pricedConsumption.cumulatedRoundedAmount;
-          }
+          OCPPUtils.updateCumulatedAmounts(transaction, consumption, pricedConsumption);
           break;
-        // Stop Transaction
         case TransactionAction.STOP:
           // Set
           pricedConsumption = await pricingImpl.stopSession(transaction, consumption, chargingStation);
-          if (pricedConsumption) {
-            // Update consumption
-            consumption.amount = pricedConsumption.amount;
-            consumption.roundedAmount = pricedConsumption.roundedAmount;
-            consumption.currencyCode = pricedConsumption.currencyCode;
-            consumption.pricingSource = pricedConsumption.pricingSource;
-            consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
-            transaction.currentCumulatedPrice = consumption.cumulatedAmount;
-            transaction.currentCumulatedRoundedPrice = pricedConsumption.cumulatedRoundedAmount;
-          }
+          OCPPUtils.updateCumulatedAmounts(transaction, consumption, pricedConsumption);
+          break;
+        case TransactionAction.END:
+          // Set
+          pricedConsumption = await pricingImpl.endSession(transaction, consumption, chargingStation);
+          OCPPUtils.updateCumulatedAmounts(transaction, consumption, pricedConsumption);
           break;
       }
+    }
+  }
+
+  public static updateCumulatedAmounts(transaction: Transaction, consumption: Consumption, pricedConsumption: PricedConsumption): void {
+    if (pricedConsumption) {
+      // Update consumption
+      consumption.amount = pricedConsumption.amount;
+      consumption.roundedAmount = pricedConsumption.roundedAmount;
+      consumption.currencyCode = pricedConsumption.currencyCode;
+      consumption.pricingSource = pricedConsumption.pricingSource;
+      consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
+      // Update transaction
+      transaction.currentCumulatedPrice = consumption.cumulatedAmount;
+      transaction.currentCumulatedRoundedPrice = pricedConsumption.cumulatedRoundedAmount;
     }
   }
 
@@ -327,23 +321,15 @@ export default class OCPPUtils {
           } catch (error) {
             const message = `Billing - startTransaction failed - transaction ID '${transaction.id}'`;
             await Logging.logError({
+              ...LoggingHelper.getTransactionProperties(transaction),
               tenantID: tenant.id,
-              siteID: transaction.siteID,
-              siteAreaID: transaction.siteAreaID,
-              companyID: transaction.companyID,
-              chargingStationID: transaction.chargeBoxID,
-              user: transaction.userID,
               action: ServerAction.BILLING_TRANSACTION,
               module: MODULE_NAME, method: 'processTransactionBilling',
               message, detailedMessages: { error: error.stack }
             });
             // Prevent from starting a transaction when Billing prerequisites are not met
             throw new BackendError({
-              chargingStationID: transaction.chargeBoxID,
-              siteID: transaction.siteID,
-              siteAreaID: transaction.siteAreaID,
-              companyID: transaction.companyID,
-              user: transaction.user,
+              ...LoggingHelper.getTransactionProperties(transaction),
               action: ServerAction.BILLING_TRANSACTION,
               module: MODULE_NAME, method: 'processTransactionBilling',
               message, detailedMessages: { error: error.stack }
@@ -362,19 +348,15 @@ export default class OCPPUtils {
           } catch (error) {
             const message = `Billing - updateTransaction failed - transaction ID '${transaction.id}'`;
             await Logging.logError({
+              ...LoggingHelper.getTransactionProperties(transaction),
               tenantID: tenant.id,
-              siteID: transaction.siteID,
-              siteAreaID: transaction.siteAreaID,
-              companyID: transaction.companyID,
-              chargingStationID: transaction.chargeBoxID,
-              user: transaction.userID,
               action: ServerAction.BILLING_TRANSACTION,
               module: MODULE_NAME, method: 'processTransactionBilling',
               message, detailedMessages: { error: error.stack }
             });
           }
           break;
-        // Stop Transaction
+        // Stop Transaction - Extra inactivity is not yet known
         case TransactionAction.STOP:
           try {
             // Delegate
@@ -387,12 +369,29 @@ export default class OCPPUtils {
           } catch (error) {
             const message = `Billing - stopTransaction failed - transaction ID '${transaction.id}'`;
             await Logging.logError({
+              ...LoggingHelper.getTransactionProperties(transaction),
               tenantID: tenant.id,
-              siteID: transaction.siteID,
-              siteAreaID: transaction.siteAreaID,
-              companyID: transaction.companyID,
-              chargingStationID: transaction.chargeBoxID,
-              user: transaction.userID,
+              action: ServerAction.BILLING_TRANSACTION,
+              module: MODULE_NAME, method: 'processTransactionBilling',
+              message, detailedMessages: { error: error.stack }
+            });
+          }
+          break;
+        // End Transaction - Extra inactivity is now known
+        case TransactionAction.END:
+          try {
+            // Delegate
+            const billingDataStop: BillingDataTransactionStop = await billingImpl.endTransaction(transaction);
+            // Update
+            if (transaction.billingData) {
+              transaction.billingData.stop = billingDataStop;
+              transaction.billingData.lastUpdate = new Date();
+            }
+          } catch (error) {
+            const message = `Billing - stopTransaction failed - transaction ID '${transaction.id}'`;
+            await Logging.logError({
+              ...LoggingHelper.getTransactionProperties(transaction),
+              tenantID: tenant.id,
               action: ServerAction.BILLING_TRANSACTION,
               module: MODULE_NAME, method: 'processTransactionBilling',
               message, detailedMessages: { error: error.stack }
@@ -524,10 +523,7 @@ export default class OCPPUtils {
   public static async rebuildTransactionSimplePricing(tenant: Tenant, transaction: Transaction, pricePerkWh?: number): Promise<void> {
     if (!transaction) {
       throw new BackendError({
-        chargingStationID: transaction.chargeBoxID,
-        siteID: transaction.siteID,
-        siteAreaID: transaction.siteAreaID,
-        companyID: transaction.companyID,
+        ...LoggingHelper.getTransactionProperties(transaction),
         action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
         module: MODULE_NAME, method: 'rebuildTransactionSimplePricing',
         message: 'Transaction does not exist',
@@ -535,10 +531,7 @@ export default class OCPPUtils {
     }
     if (!transaction.stop) {
       throw new BackendError({
-        chargingStationID: transaction.chargeBoxID,
-        siteID: transaction.siteID,
-        siteAreaID: transaction.siteAreaID,
-        companyID: transaction.companyID,
+        ...LoggingHelper.getTransactionProperties(transaction),
         action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
         module: MODULE_NAME, method: 'rebuildTransactionSimplePricing',
         message: `Transaction ID '${transaction.id}' is in progress`,
@@ -546,10 +539,7 @@ export default class OCPPUtils {
     }
     if (transaction.stop.pricingSource !== PricingSettingsType.SIMPLE) {
       throw new BackendError({
-        chargingStationID: transaction.chargeBoxID,
-        siteID: transaction.siteID,
-        siteAreaID: transaction.siteAreaID,
-        companyID: transaction.companyID,
+        ...LoggingHelper.getTransactionProperties(transaction),
         action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
         module: MODULE_NAME, method: 'rebuildTransactionSimplePricing',
         message: `Transaction ID '${transaction.id}' was not priced with simple pricing`,
@@ -792,6 +782,23 @@ export default class OCPPUtils {
     return consumptions;
   }
 
+  public static async createFirstConsumption(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction): Promise<Consumption> {
+    const lastConsumption: { value: number; timestamp: Date } = { timestamp: transaction.timestamp, value: transaction.meterStart };
+    const meterValue: OCPPNormalizedMeterValue = {
+      id: Utils.getRandomIntSafe().toString(),
+      chargeBoxID: transaction.chargeBoxID,
+      siteID: transaction.siteID,
+      siteAreaID: transaction.siteAreaID,
+      companyID: transaction.companyID,
+      connectorId: transaction.connectorId,
+      transactionId: transaction.id,
+      timestamp: transaction.timestamp,
+      value: transaction.meterStart,
+      attribute: Constants.OCPP_ENERGY_ACTIVE_IMPORT_REGISTER_ATTRIBUTE
+    };
+    return await OCPPUtils.createConsumptionFromMeterValue(tenant, chargingStation, transaction, lastConsumption, meterValue);
+  }
+
   public static async createConsumptionFromMeterValue(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction,
       lastConsumption: { value: number; timestamp: Date }, meterValue: OCPPNormalizedMeterValue): Promise<Consumption> {
     // Only Consumption and SoC (No consumption for Transaction Begin/End: scenario already handled in Start/Stop Transaction)
@@ -955,6 +962,8 @@ export default class OCPPUtils {
         consumption.totalDurationSecs = !transaction.stop ?
           moment.duration(moment(meterValue.timestamp).diff(moment(transaction.timestamp))).asSeconds() :
           moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
+        consumption.cumulatedAmount = transaction.currentCumulatedPrice;
+        consumption.pricingSource = transaction.pricingSource;
         consumption.toPrice = true;
       }
       return consumption;
@@ -2129,11 +2138,7 @@ export default class OCPPUtils {
     // Check User
     if (!transaction.user) {
       throw new BackendError({
-        chargingStationID: transaction.chargeBoxID,
-        siteID: transaction.siteID,
-        siteAreaID: transaction.siteAreaID,
-        companyID: transaction.companyID,
-        user: transaction.user,
+        ...LoggingHelper.getTransactionProperties(transaction),
         action,
         module: MODULE_NAME, method: 'processOCPITransaction',
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} User does not exist`
@@ -2141,11 +2146,7 @@ export default class OCPPUtils {
     }
     if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
       throw new BackendError({
-        chargingStationID: transaction.chargeBoxID,
-        siteID: transaction.siteID,
-        siteAreaID: transaction.siteAreaID,
-        companyID: transaction.companyID,
-        user: transaction.user,
+        ...LoggingHelper.getTransactionProperties(transaction),
         action,
         module: MODULE_NAME, method: 'processOCPITransaction',
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OCPI Component is not active in this Tenant`
@@ -2153,11 +2154,7 @@ export default class OCPPUtils {
     }
     if (transaction.user.issuer) {
       throw new BackendError({
-        chargingStationID: transaction.chargeBoxID,
-        siteID: transaction.siteID,
-        siteAreaID: transaction.siteAreaID,
-        companyID: transaction.companyID,
-        user: transaction.user,
+        ...LoggingHelper.getTransactionProperties(transaction),
         action,
         module: MODULE_NAME, method: 'processOCPITransaction',
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} User does not belong to the local organization`
@@ -2166,11 +2163,7 @@ export default class OCPPUtils {
     const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
     if (!ocpiClient) {
       throw new BackendError({
-        chargingStationID: transaction.chargeBoxID,
-        siteID: transaction.siteID,
-        siteAreaID: transaction.siteAreaID,
-        companyID: transaction.companyID,
-        user: transaction.user,
+        ...LoggingHelper.getTransactionProperties(transaction),
         action,
         module: MODULE_NAME, method: 'processOCPITransaction',
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OCPI component requires at least one CPO endpoint to ${transactionAction} a Transaction`
@@ -2181,11 +2174,7 @@ export default class OCPPUtils {
         // Check Authorization
         if (!transaction.authorizationID) {
           throw new BackendError({
-            chargingStationID: transaction.chargeBoxID,
-            siteID: transaction.siteID,
-            siteAreaID: transaction.siteAreaID,
-            companyID: transaction.companyID,
-            user: transaction.user,
+            ...LoggingHelper.getTransactionProperties(transaction),
             action: action,
             module: MODULE_NAME, method: 'processOCPITransaction',
             message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Tag ID '${transaction.tagID}' is not authorized`
