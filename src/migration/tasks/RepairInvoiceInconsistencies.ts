@@ -13,7 +13,7 @@ const MODULE_NAME = 'RepairInvoiceInconsistencies';
 
 export default class RepairInvoiceInconsistencies extends TenantMigrationTask {
 
-  async migrateTenant(tenant: Tenant): Promise<void> {
+  public async migrateTenant(tenant: Tenant): Promise<void> {
     try {
       const billingImpl = await BillingFactory.getBillingImpl(tenant);
       if (billingImpl && billingImpl instanceof StripeBillingIntegration) {
@@ -36,15 +36,15 @@ export default class RepairInvoiceInconsistencies extends TenantMigrationTask {
     }
   }
 
-  getVersion(): string {
-    return '1.1';
+  public getVersion(): string {
+    return '1.2';
   }
 
-  getName(): string {
+  public getName(): string {
     return 'RepairInvoiceInconsistenciesTask';
   }
 
-  isAsynchronous(): boolean {
+  public isAsynchronous(): boolean {
     return true;
   }
 
