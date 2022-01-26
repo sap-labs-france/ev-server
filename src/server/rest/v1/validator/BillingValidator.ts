@@ -1,4 +1,4 @@
-import { HttpBillingInvoiceRequest, HttpBillingRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
+import { HttpBillingInvoiceRequest, HttpBillingInvoicesRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
 
 import { BillingSettings } from '../../../../types/Setting';
 import Schema from '../../../../types/validator/Schema';
@@ -13,7 +13,7 @@ export default class BillingValidator extends SchemaValidator {
   private billingDeleteUserPaymentMethod: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-delete-payment-method.json`, 'utf8'));
   private billingSetupUserPaymentMethod: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-setup-payment-method.json`, 'utf8'));
   private billingInvoicesGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/invoices-get.json`, 'utf8'));
-  private billingInvoiceGetByID: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/invoice-get-by-id.json`, 'utf8'));
+  private billingInvoiceGetByID: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/invoice-get.json`, 'utf8'));
 
   private constructor() {
     super('BillingValidator');
@@ -42,11 +42,11 @@ export default class BillingValidator extends SchemaValidator {
     return this.validate(this.billingSetupUserPaymentMethod, data);
   }
 
-  public validateBillingInvoicesGetReq(data: Record<string, unknown>): HttpBillingInvoiceRequest {
+  public validateBillingInvoicesGetReq(data: Record<string, unknown>): HttpBillingInvoicesRequest {
     return this.validate(this.billingInvoicesGet, data);
   }
 
-  public validateBillingInvoiceReq(data: Record<string, unknown>): HttpBillingRequest {
+  public validateBillingInvoiceReq(data: Record<string, unknown>): HttpBillingInvoiceRequest {
     return this.validate(this.billingInvoiceGetByID, data);
   }
 }

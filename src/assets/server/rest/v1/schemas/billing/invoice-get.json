@@ -1,5 +1,5 @@
 {
-  "$id": "invoice-get-by-id",
+  "$id": "invoice-get",
   "title": "Get invoice by id Request",
   "type": "object",
   "properties": {

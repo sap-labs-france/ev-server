@@ -1,4 +1,4 @@
-import { HttpBillingInvoiceRequest, HttpBillingRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../../types/requests/HttpBillingRequest';
+import { HttpBillingInvoiceRequest, HttpBillingInvoicesRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../../types/requests/HttpBillingRequest';
 import { HttpCreateTransactionInvoiceRequest, HttpForceSynchronizeUserInvoicesRequest, HttpSynchronizeUserRequest } from '../../../../../types/requests/HttpUserRequest';
 
 import Utils from '../../../../../utils/Utils';
@@ -17,8 +17,8 @@ export default class BillingSecurity {
     return filteredUser;
   }
 
-  public static filterGetInvoicesRequest(requestQuery: any): HttpBillingInvoiceRequest {
-    const filteredRequest = {} as HttpBillingInvoiceRequest;
+  public static filterGetInvoicesRequest(requestQuery: any): HttpBillingInvoicesRequest {
+    const filteredRequest = {} as HttpBillingInvoicesRequest;
     if (Utils.objectHasProperty(requestQuery, 'UserID')) {
       filteredRequest.UserID = sanitize(requestQuery.UserID);
     }
@@ -39,10 +39,10 @@ export default class BillingSecurity {
     return filteredRequest;
   }
 
-  public static filterGetInvoiceRequest(requestQuery: any): HttpBillingInvoiceRequest {
+  public static filterGetInvoiceRequest(requestQuery: any): HttpBillingInvoicesRequest {
     return {
       ID: sanitize(requestQuery.ID)
-    } as HttpBillingInvoiceRequest;
+    } as HttpBillingInvoicesRequest;
   }
 
   public static filterForceSynchronizeUserInvoicesRequest(requestBody: any): HttpForceSynchronizeUserInvoicesRequest {
@@ -57,7 +57,7 @@ export default class BillingSecurity {
     };
   }
 
-  public static filterDownloadInvoiceRequest(requestQuery: any): HttpBillingRequest {
+  public static filterDownloadInvoiceRequest(requestQuery: any): HttpBillingInvoiceRequest {
     return {
       ID: sanitize(requestQuery.ID)
     };
