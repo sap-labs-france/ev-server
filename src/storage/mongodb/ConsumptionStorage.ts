@@ -13,7 +13,7 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'ConsumptionStorage';
 
 export default class ConsumptionStorage {
-  static async saveConsumption(tenant: Tenant, consumptionToSave: Consumption): Promise<string> {
+  public static async saveConsumption(tenant: Tenant, consumptionToSave: Consumption): Promise<string> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Build
@@ -27,7 +27,7 @@ export default class ConsumptionStorage {
     return consumptionMDB._id;
   }
 
-  static async saveConsumptions(tenant: Tenant, consumptionsToSave: Consumption[]): Promise<string[]> {
+  public static async saveConsumptions(tenant: Tenant, consumptionsToSave: Consumption[]): Promise<string[]> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     const consumptionsMDB = [];
@@ -43,7 +43,7 @@ export default class ConsumptionStorage {
     return consumptionsMDB.map((consumptionMDB) => consumptionMDB._id);
   }
 
-  static async deleteConsumptions(tenant: Tenant, transactionIDs: number[]): Promise<void> {
+  public static async deleteConsumptions(tenant: Tenant, transactionIDs: number[]): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // DeleFte
@@ -52,7 +52,7 @@ export default class ConsumptionStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteConsumptions', startTime, { transactionIDs });
   }
 
-  static async getAssetConsumptions(tenant: Tenant, params: { assetID: string; startDate: Date; endDate: Date }, projectFields?: string[]): Promise<Consumption[]> {
+  public static async getAssetConsumptions(tenant: Tenant, params: { assetID: string; startDate: Date; endDate: Date }, projectFields?: string[]): Promise<Consumption[]> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Create filters
@@ -129,7 +129,7 @@ export default class ConsumptionStorage {
     return consumptionsMDB;
   }
 
-  static async getLastAssetConsumption(tenant: Tenant, params: { assetID: string }): Promise<Consumption> {
+  public static async getLastAssetConsumption(tenant: Tenant, params: { assetID: string }): Promise<Consumption> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Create Aggregation
@@ -161,7 +161,7 @@ export default class ConsumptionStorage {
     return !Utils.isEmptyArray(consumptionsMDB) ? consumptionsMDB[0] : null;
   }
 
-  static async getSiteAreaConsumptions(tenant: Tenant,
+  public static async getSiteAreaConsumptions(tenant: Tenant,
       params: { siteAreaID: string; startDate: Date; endDate: Date }): Promise<Consumption[]> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
@@ -372,7 +372,7 @@ export default class ConsumptionStorage {
     return consumptionsMDB;
   }
 
-  static async getSiteAreaChargingStationConsumptions(tenant: Tenant,
+  public static async getSiteAreaChargingStationConsumptions(tenant: Tenant,
       params: { siteAreaID: string; startDate: Date; endDate: Date }, dbParams: DbParams = Constants.DB_PARAMS_MAX_LIMIT,
       projectFields?: string[]): Promise<DataResult<Consumption>> {
     const startTime = Logging.traceDatabaseRequestStart();
@@ -466,7 +466,7 @@ export default class ConsumptionStorage {
     };
   }
 
-  static async getTransactionConsumptions(tenant: Tenant, params: { transactionId: number },
+  public static async getTransactionConsumptions(tenant: Tenant, params: { transactionId: number },
       dbParams: DbParams = Constants.DB_PARAMS_MAX_LIMIT, projectFields?: string[]): Promise<DataResult<Consumption>> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
@@ -516,7 +516,7 @@ export default class ConsumptionStorage {
     };
   }
 
-  static async getLastTransactionConsumption(tenant: Tenant, params: { transactionId: number }): Promise<Consumption> {
+  public static async getLastTransactionConsumption(tenant: Tenant, params: { transactionId: number }): Promise<Consumption> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Create Aggregation
@@ -552,7 +552,7 @@ export default class ConsumptionStorage {
     return consumption;
   }
 
-  static async getOptimizedTransactionConsumptions(tenant: Tenant, params: { transactionId: number }, projectFields?: string[]): Promise<Consumption[]> {
+  public static async getOptimizedTransactionConsumptions(tenant: Tenant, params: { transactionId: number }, projectFields?: string[]): Promise<Consumption[]> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Create Aggregation
