@@ -7,6 +7,7 @@ import CentralServerService from '../client/CentralServerService';
 import ChargingStation from '../../../src/types/ChargingStation';
 import CompanyStorage from '../../../src/storage/mongodb/CompanyStorage';
 import Factory from '../../factories/Factory';
+import { HTTPError } from '../../../src/types/HTTPError';
 import MongoDBStorage from '../../../src/storage/mongodb/MongoDBStorage';
 import OCPIEndpoint from '../../../src/types/ocpi/OCPIEndpoint';
 import OCPIEndpointStorage from '../../../src/storage/mongodb/OCPIEndpointStorage';
@@ -186,7 +187,13 @@ export default class ContextBuilder {
         } else {
           console.log(`${buildTenant.id} (${buildTenant.name}) - Update settings for '${componentSettingKey}'`);
           foundSetting.content = tenantContextDef.componentSettings[componentSettingKey].content;
-          await localCentralServiceService.updateEntity(localCentralServiceService.settingApi, foundSetting);
+          if (componentSettingKey === TenantComponents.PRICING && !!foundSetting.content?.simple?.currency) {
+            // Expect an error code triggering a user logout when the currency code is changed
+            const response = await localCentralServiceService.updateEntity(localCentralServiceService.settingApi, foundSetting, false);
+            expect(response.status).to.equal(HTTPError.TENANT_COMPONENT_CHANGED);
+          } else {
+            await localCentralServiceService.updateEntity(localCentralServiceService.settingApi, foundSetting);
+          }
         }
         if (componentSettingKey === TenantComponents.OCPI) {
           const cpoEndpoint = {

@@ -32,4 +32,12 @@ export default class AssetApi extends CrudApi {
   public async readAllInError(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING): Promise<any> {
     return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(ServerRoute.REST_ASSETS_IN_ERROR));
   }
+
+  public async checkAssetConnectorLink(id: string): Promise<any> {
+    return super.read(id, this.buildRestEndpointUrl(ServerRoute.REST_ASSET_CHECK_CONNECTION, { id }));
+  }
+
+  public async retrieveLatestConsumption(id: string): Promise<any> {
+    return super.read(id, this.buildRestEndpointUrl(ServerRoute.REST_ASSET_RETRIEVE_CONSUMPTION, { id }));
+  }
 }

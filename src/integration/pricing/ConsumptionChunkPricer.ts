@@ -1,6 +1,7 @@
 import ConsumptionPricer, { ConsumptionChunk } from './ConsumptionPricer';
-import { DimensionType, PricedConsumptionData, PricedDimensionData, PricingDimension, PricingRestriction, PricingTimeLimit, ResolvedPricingDefinition, ResolvedPricingModel } from '../../types/Pricing';
+import { DimensionType, PricedConsumptionData, PricedDimensionData, PricingDimension, PricingRestriction, ResolvedPricingDefinition, ResolvedPricingModel } from '../../types/Pricing';
 
+import PricingTimeLimit from './simple-pricing/PricingTimeLimit';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
 
@@ -9,7 +10,7 @@ export default class ConsumptionChunkPricer {
   private consumptionChunk: ConsumptionChunk;
   private actualPricingDefinitions: ResolvedPricingDefinition[];
 
-  constructor(consumptionPricer: ConsumptionPricer, consumptionChunk: ConsumptionChunk) {
+  public constructor(consumptionPricer: ConsumptionPricer, consumptionChunk: ConsumptionChunk) {
     this.consumptionPricer = consumptionPricer;
     this.consumptionChunk = consumptionChunk;
     const actualPricingDefinitions = this.getPricingModel().pricingDefinitions.filter((pricingDefinition) =>
@@ -129,13 +130,20 @@ export default class ConsumptionChunkPricer {
     if (!this.getPricingModel().pricerContext.flatFeeAlreadyPriced) {
       const activePricingDefinition = this.getActiveDefinition4Dimension(this.actualPricingDefinitions, DimensionType.FLAT_FEE);
       if (activePricingDefinition) {
-        const dimensionToPrice = activePricingDefinition.dimensions.flatFee;
-        const pricedData = this.priceFlatFeeDimension(dimensionToPrice);
-        if (pricedData) {
-          pricedData.sourceName = activePricingDefinition.name;
-          this.getPricingModel().pricerContext.flatFeeAlreadyPriced = true;
+        // --------------------------------------------------------------------------------
+        // Make sure not to price the Flat Fee when no energy has been delivered
+        // End-users may attempt to plug/unplug several times their car, without charging
+        // In such situation, they should not pay !
+        // -------------------------------------------------------------------------------
+        if (this.consumptionChunk.cumulatedConsumptionWh > 0) {
+          const dimensionToPrice = activePricingDefinition.dimensions.flatFee;
+          const pricedData = this.priceFlatFeeDimension(dimensionToPrice);
+          if (pricedData) {
+            pricedData.sourceName = activePricingDefinition.name;
+            this.getPricingModel().pricerContext.flatFeeAlreadyPriced = true;
+          }
+          return pricedData;
         }
-        return pricedData;
       }
     }
   }

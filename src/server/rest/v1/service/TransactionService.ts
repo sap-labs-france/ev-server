@@ -678,9 +678,9 @@ export default class TransactionService {
         filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
       }
       if (filteredRequest.SiteID) {
-        filter.siteID = Authorizations.getAuthorizedSiteAdminIDs(req.user, filteredRequest.SiteID.split('|'));
+        filter.siteID = await Authorizations.getAuthorizedSiteAdminIDs(req.tenant, req.user, filteredRequest.SiteID.split('|'));
       }
-      filter.siteAdminIDs = Authorizations.getAuthorizedSiteAdminIDs(req.user);
+      filter.siteAdminIDs = await Authorizations.getAuthorizedSiteAdminIDs(req.tenant, req.user);
     }
     // Get Reports
     const reports = await TransactionStorage.getRefundReports(req.tenant, filter, {
@@ -722,7 +722,7 @@ export default class TransactionService {
 
   public static async getRefundedTransactionsToExport(req: Request): Promise<DataResult<Transaction>> {
     req.query.Status = 'completed';
-    return await TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_TO_REFUND_EXPORT, {}, [
+    return TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_TO_REFUND_EXPORT, {}, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
       'refundData.reportId', 'refundData.refundedAt', 'refundData.status', 'site.name', 'siteArea.name', 'company.name',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
@@ -744,7 +744,7 @@ export default class TransactionService {
       });
     }
     // Filter
-    const filteredRequest = TransactionValidator.getInstance().validateTransactionGetReq(req.query);
+    const filteredRequest = TransactionValidator.getInstance().validateTransactionCdrExportReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleExportTransactionOcpiCdr', req.user);
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.tenant, filteredRequest.ID, {}, ['id', 'ocpiData']);
@@ -811,7 +811,7 @@ export default class TransactionService {
         startDateTime: filteredRequest.StartDateTime,
         chargingStationIDs: filteredRequest.ChargingStationID ? filteredRequest.ChargingStationID.split('|') : null,
         siteAreaIDs: filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null,
-        siteIDs: Authorizations.getAuthorizedSiteAdminIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
+        siteIDs: await Authorizations.getAuthorizedSiteAdminIDs(req.tenant, req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
         connectorIDs: filteredRequest.ConnectorID ? filteredRequest.ConnectorID.split('|').map((connectorID) => Utils.convertToInt(connectorID)) : null,
       },
@@ -1041,8 +1041,8 @@ export default class TransactionService {
         withCompany: filteredRequest.WithCompany,
         siteAreaIDs: filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null,
         withSiteArea: filteredRequest.WithSiteArea,
-        siteIDs: filteredRequest.SiteID ? Authorizations.getAuthorizedSiteAdminIDs(req.user, filteredRequest.SiteID.split('|')) : null,
-        siteAdminIDs: Authorizations.getAuthorizedSiteAdminIDs(req.user),
+        siteIDs: filteredRequest.SiteID ? await Authorizations.getAuthorizedSiteAdminIDs(req.tenant, req.user, filteredRequest.SiteID.split('|')) : null,
+        siteAdminIDs: await Authorizations.getAuthorizedSiteAdminIDs(req.tenant, req.user),
         startDateTime: filteredRequest.StartDateTime ? filteredRequest.StartDateTime : null,
         endDateTime: filteredRequest.EndDateTime ? filteredRequest.EndDateTime : null,
         refundStatus: filteredRequest.RefundStatus ? filteredRequest.RefundStatus.split('|') : null,

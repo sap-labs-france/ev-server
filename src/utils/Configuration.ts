@@ -26,7 +26,6 @@ import OICPServiceConfiguration from '../types/configuration/OICPServiceConfigur
 import SchedulerConfiguration from '../types/configuration/SchedulerConfiguration';
 import StorageConfiguration from '../types/configuration/StorageConfiguration';
 import TraceConfiguration from '../types/configuration/TraceConfiguration';
-import Utils from './Utils';
 import WSDLEndpointConfiguration from '../types/configuration/WSDLEndpointConfiguration';
 import chalk from 'chalk';
 import fs from 'fs';
@@ -67,7 +66,7 @@ export default class Configuration {
       if (firebaseConfiguration.privateKey) {
         firebaseConfiguration.privateKey = firebaseConfiguration.privateKey.replace(/\\n/g, '\n');
       }
-      if (!Utils.isEmptyArray(firebaseConfiguration.tenants)) {
+      if (!Configuration.isEmptyArray(firebaseConfiguration.tenants)) {
         for (const tenantConfig of firebaseConfiguration.tenants) {
           tenantConfig.configuration.privateKey = tenantConfig.configuration.privateKey.replace(/\\n/g, '\n');
         }
@@ -305,5 +304,16 @@ export default class Configuration {
       return true;
     }
     return false;
+  }
+
+  // Dup method: Avoid circular deps with Utils class
+  private static isEmptyArray(array: any): boolean {
+    if (!array) {
+      return true;
+    }
+    if (Array.isArray(array) && array.length > 0) {
+      return false;
+    }
+    return true;
   }
 }

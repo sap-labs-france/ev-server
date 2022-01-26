@@ -531,7 +531,7 @@ export default class ChargingStationService {
         connectorID: filteredRequest.ConnectorID,
         withChargingStation: filteredRequest.WithChargingStation,
         withSiteArea: filteredRequest.WithSiteArea,
-        siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
+        siteIDs: await Authorizations.getAuthorizedSiteIDs(req.tenant, req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
       },
       {
         limit: filteredRequest.Limit,
@@ -1043,7 +1043,7 @@ export default class ChargingStationService {
     const chargingStations = await ChargingStationStorage.getChargingStationsInError(req.tenant,
       {
         search: filteredRequest.Search,
-        siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
+        siteIDs: await Authorizations.getAuthorizedSiteIDs(req.tenant, req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         siteAreaIDs: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
         errorType
       },
@@ -1444,7 +1444,7 @@ export default class ChargingStationService {
     if (!Utils.isEmptyArray(httpProjectFields)) {
       projectFields = projectFields.filter((projectField) => httpProjectFields.includes(projectField));
     }
-    const siteIDs = Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null);
+    const siteIDs = await Authorizations.getAuthorizedSiteIDs(req.tenant, req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null);
     // todo: write this in a nicer way when refactoring the whole auth concept for ChargingStation
     if (Utils.isEmptyArray(siteIDs) && !Authorizations.isAdmin(req.user)) {
       return { count: 0, result: [] };
@@ -1787,7 +1787,7 @@ export default class ChargingStationService {
       if (filteredRequest.carID && filteredRequest.carID !== user.lastSelectedCarID) {
         await UserStorage.saveLastSelectedCarID(req.tenant, user.id, filteredRequest.carID, true);
       } else {
-        await UserStorage.clearLastSelectedCarID(req.tenant, user.id);
+        await UserStorage.saveLastSelectedCarID(req.tenant, user.id, null, true);
       }
     }
     // Execute it
@@ -1802,7 +1802,7 @@ export default class ChargingStationService {
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(
       req.tenant, filteredRequest.args.transactionId, { withUser: true });
-    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.args.transactionId }' does not exist`,
+    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.args.transactionId}' does not exist`,
       MODULE_NAME, 'handleAction', req.user);
     // Get default Tag
     const tags = await TagStorage.getTags(req.tenant, { userIDs: [req.user.id], active: true }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);

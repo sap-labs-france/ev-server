@@ -16,10 +16,8 @@ import User, { UserRole } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import Asset from '../../../../types/Asset';
-import AssetStorage from '../../../../storage/mongodb/AssetStorage';
 import Authorizations from '../../../../authorization/Authorizations';
 import Company from '../../../../types/Company';
-import Constants from '../../../../utils/Constants';
 import DynamicAuthorizationFactory from '../../../../authorization/DynamicAuthorizationFactory';
 import { EntityData } from '../../../../types/GlobalType';
 import { HTTPAuthError } from '../../../../types/HTTPError';
@@ -32,9 +30,7 @@ import RegistrationToken from '../../../../types/RegistrationToken';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
-import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import Tag from '../../../../types/Tag';
-import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import _ from 'lodash';
@@ -223,17 +219,13 @@ export default class AuthorizationService {
   }
 
   public static async addUserAuthorizations(tenant: Tenant, userToken: UserToken, user: User, authorizationFilter: AuthorizationFilter): Promise<void> {
-    if (!user.issuer) {
-      user.canRead = true;
-    } else {
-      user.canRead = true; // Always true as it should be filtered upfront
-      user.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.USER, Action.UPDATE, authorizationFilter, { UserID: user.id }, user);
-      user.canDelete = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.USER, Action.DELETE, authorizationFilter, { UserID: user.id }, user);
-      // Optimize data over the net
-      Utils.removeCanPropertiesWithFalseValue(user);
-    }
+    user.canRead = true; // Always true as it should be filtered upfront
+    user.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.USER, Action.UPDATE, authorizationFilter, { UserID: user.id }, user);
+    user.canDelete = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.USER, Action.DELETE, authorizationFilter, { UserID: user.id }, user);
+    // Optimize data over the net
+    Utils.removeCanPropertiesWithFalseValue(user);
   }
 
   public static async checkAndGetUsersAuthorizations(tenant: Tenant, userToken: UserToken,
@@ -340,25 +332,21 @@ export default class AuthorizationService {
   }
 
   public static async addTagAuthorizations(tenant: Tenant, userToken: UserToken, tag: Tag, authorizationFilter: AuthorizationFilter): Promise<void> {
-    if (!tag.issuer) {
-      tag.canRead = true;
-    } else {
-      tag.canRead = true; // Always true as it should be filtered upfront
-      tag.canDelete = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.TAG, Action.DELETE, authorizationFilter, { TagID: tag.id }, tag);
-      tag.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.TAG, Action.UPDATE, authorizationFilter, { TagID: tag.id }, tag);
-      tag.canUpdateByVisualID = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.TAG, Action.UPDATE_BY_VISUAL_ID, authorizationFilter, { TagID: tag.id }, tag);
-      tag.canUnassign = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.TAG, Action.UNASSIGN, authorizationFilter, { TagID: tag.id }, tag);
-      tag.canAssign = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.TAG, Action.ASSIGN, authorizationFilter, { TagID: tag.id }, tag);
-      tag.canListUsers = await AuthorizationService.canPerformAuthorizationAction(
-        tenant, userToken, Entity.USER, Action.LIST, authorizationFilter);
-      // Optimize data over the net
-      Utils.removeCanPropertiesWithFalseValue(tag);
-    }
+    tag.canRead = true; // Always true as it should be filtered upfront
+    tag.canDelete = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TAG, Action.DELETE, authorizationFilter, { TagID: tag.id }, tag);
+    tag.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TAG, Action.UPDATE, authorizationFilter, { TagID: tag.id }, tag);
+    tag.canUpdateByVisualID = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TAG, Action.UPDATE_BY_VISUAL_ID, authorizationFilter, { TagID: tag.id }, tag);
+    tag.canUnassign = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TAG, Action.UNASSIGN, authorizationFilter, { TagID: tag.id }, tag);
+    tag.canAssign = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TAG, Action.ASSIGN, authorizationFilter, { TagID: tag.id }, tag);
+    tag.canListUsers = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.USER, Action.LIST, authorizationFilter);
+    // Optimize data over the net
+    Utils.removeCanPropertiesWithFalseValue(tag);
   }
 
   public static async checkAndGetRegistrationTokenAuthorizations(tenant: Tenant, userToken: UserToken,
@@ -676,61 +664,12 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
-  public static async getSiteAdminSiteIDs(tenant: Tenant, userToken: UserToken): Promise<string[]> {
-    // Get the Sites where the user is Site Admin
-    const userSites = await UserStorage.getUserSites(tenant,
-      {
-        userIDs: [userToken.id],
-        siteAdmin: true
-      }, Constants.DB_PARAMS_MAX_LIMIT,
-      ['siteID']
-    );
-    return userSites.result.map((userSite) => userSite.siteID);
-  }
-
-  private static async getSiteOwnerSiteIDs(tenant: Tenant, userToken: UserToken): Promise<string[]> {
-    // Get the Sites where the user is Site Owner
-    const userSites = await UserStorage.getUserSites(tenant,
-      {
-        userIDs: [userToken.id],
-        siteOwner: true
-      }, Constants.DB_PARAMS_MAX_LIMIT,
-      ['siteID']
-    );
-    return userSites.result.map((userSite) => userSite.siteID);
-  }
-
-  private static async getAssignedSiteIDs(tenant: Tenant, userToken: UserToken): Promise<string[]> {
-    // Get the Sites assigned to the User
-    const sites = await SiteStorage.getSites(tenant,
-      {
-        userID: userToken.id,
-        issuer: true,
-      }, Constants.DB_PARAMS_MAX_LIMIT,
-      ['id']
-    );
-    return sites.result.map((site) => site.id);
-  }
-
-  private static async getAssignedAssetIDs(tenant: Tenant, siteID: string): Promise<string[]> {
-    // Get the Assets assigned to the Site
-    const assets = await AssetStorage.getAssets(tenant,
-      {
-        siteIDs: [siteID],
-        // TODO: Uncomment when the bug will be fixed: https://github.com/sap-labs-france/ev-dashboard/issues/2266
-        // issuer: true,
-      }, Constants.DB_PARAMS_MAX_LIMIT,
-      ['id']
-    );
-    return assets.result.map((asset) => asset.id);
-  }
-
   private static async checkAssignedSites(tenant: Tenant, userToken: UserToken,
       filteredRequest: { SiteID?: string }, authorizationFilters: AuthorizationFilter): Promise<void> {
     if (userToken.role !== UserRole.ADMIN && userToken.role !== UserRole.SUPER_ADMIN) {
       if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
         // Get assigned Site IDs assigned to user from DB
-        const siteIDs = await AuthorizationService.getAssignedSiteIDs(tenant, userToken);
+        const siteIDs = await Authorizations.getAssignedSiteIDs(tenant, userToken);
         if (!Utils.isEmptyArray(siteIDs)) {
           // Force the filter
           authorizationFilters.filters.siteIDs = siteIDs;
@@ -756,8 +695,8 @@ export default class AuthorizationService {
     if (userToken.role !== UserRole.ADMIN && userToken.role !== UserRole.SUPER_ADMIN) {
       if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
         // Get Site IDs from Site Admin & Site Owner flag
-        const siteAdminSiteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant, userToken);
-        const siteOwnerSiteIDs = await AuthorizationService.getSiteOwnerSiteIDs(tenant, userToken);
+        const siteAdminSiteIDs = await Authorizations.getSiteAdminSiteIDs(tenant, userToken);
+        const siteOwnerSiteIDs = await Authorizations.getSiteOwnerSiteIDs(tenant, userToken);
         const allSites = _.uniq([...siteAdminSiteIDs, ...siteOwnerSiteIDs]);
         if (!Utils.isEmptyArray(allSites)) {
           // Force the filters
