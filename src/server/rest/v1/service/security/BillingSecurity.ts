@@ -1,8 +1,6 @@
-import { HttpBillingInvoiceRequest, HttpBillingInvoicesRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../../types/requests/HttpBillingRequest';
-import { HttpCreateTransactionInvoiceRequest, HttpForceSynchronizeUserInvoicesRequest, HttpSynchronizeUserRequest } from '../../../../../types/requests/HttpUserRequest';
+import { HttpForceSynchronizeUserInvoicesRequest, HttpSynchronizeUserRequest } from '../../../../../types/requests/HttpUserRequest';
 
 import Utils from '../../../../../utils/Utils';
-import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
 
 export default class BillingSecurity {
@@ -17,71 +15,9 @@ export default class BillingSecurity {
     return filteredUser;
   }
 
-  public static filterGetInvoicesRequest(requestQuery: any): HttpBillingInvoicesRequest {
-    const filteredRequest = {} as HttpBillingInvoicesRequest;
-    if (Utils.objectHasProperty(requestQuery, 'UserID')) {
-      filteredRequest.UserID = sanitize(requestQuery.UserID);
-    }
-    if (Utils.objectHasProperty(requestQuery, 'Status')) {
-      filteredRequest.Status = sanitize(requestQuery.Status);
-    }
-    if (Utils.objectHasProperty(requestQuery, 'StartDateTime')) {
-      filteredRequest.StartDateTime = sanitize(requestQuery.StartDateTime);
-    }
-    if (Utils.objectHasProperty(requestQuery, 'EndDateTime')) {
-      filteredRequest.EndDateTime = sanitize(requestQuery.EndDateTime);
-    }
-    if (Utils.objectHasProperty(requestQuery, 'Search')) {
-      filteredRequest.Search = sanitize(requestQuery.Search);
-    }
-    UtilsSecurity.filterSkipAndLimit(requestQuery, filteredRequest);
-    UtilsSecurity.filterSort(requestQuery, filteredRequest);
-    return filteredRequest;
-  }
-
-  public static filterGetInvoiceRequest(requestQuery: any): HttpBillingInvoicesRequest {
-    return {
-      ID: sanitize(requestQuery.ID)
-    } as HttpBillingInvoicesRequest;
-  }
-
   public static filterForceSynchronizeUserInvoicesRequest(requestBody: any): HttpForceSynchronizeUserInvoicesRequest {
     return {
       userID: sanitize(requestBody.userID)
-    };
-  }
-
-  public static filterLinkTransactionToInvoiceRequest(requestBody: any): HttpCreateTransactionInvoiceRequest {
-    return {
-      transactionID: sanitize(requestBody.transactionID)
-    };
-  }
-
-  public static filterDownloadInvoiceRequest(requestQuery: any): HttpBillingInvoiceRequest {
-    return {
-      ID: sanitize(requestQuery.ID)
-    };
-  }
-
-  public static filterSetupPaymentMethodRequest(requestBody: any): HttpSetupPaymentMethod {
-    return {
-      userID: sanitize(requestBody.userID),
-      paymentMethodId: sanitize(requestBody.paymentMethodId),
-    };
-  }
-
-  public static filterPaymentMethodsRequest(requestQuery: any): HttpPaymentMethods {
-    const filteredRequest: HttpPaymentMethods = {
-      userID: sanitize(requestQuery.userID)
-    };
-    UtilsSecurity.filterSkipAndLimit(requestQuery, filteredRequest);
-    return filteredRequest;
-  }
-
-  public static filterDeletePaymentMethodRequest(requestBody: any): HttpDeletePaymentMethod {
-    return {
-      userID: sanitize(requestBody.userID),
-      paymentMethodId: sanitize(requestBody.paymentMethodId),
     };
   }
 }
