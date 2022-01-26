@@ -347,7 +347,7 @@ export default class BillingService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.LIST, Entity.INVOICE, MODULE_NAME, 'handleGetInvoice');
     // Filter
-    const filteredRequest = BillingValidator.getInstance().validateBillingInvoiceReq(req.query);
+    const filteredRequest = BillingValidator.getInstance().validateBillingInvoiceGetReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetInvoice', req.user);
     // Check Users
     let userProject: string[] = [];
@@ -618,7 +618,7 @@ export default class BillingService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.DOWNLOAD, Entity.BILLING, MODULE_NAME, 'handleDownloadInvoice');
     // Filter
-    const filteredRequest = BillingValidator.getInstance().validateBillingInvoiceReq(req.query);
+    const filteredRequest = BillingValidator.getInstance().validateBillingInvoiceGetReq(req.query);
     // Get the Invoice
     const billingInvoice = await BillingStorage.getInvoice(req.tenant, filteredRequest.ID);
     UtilsService.assertObjectExists(action, billingInvoice, `Invoice ID '${filteredRequest.ID}' does not exist`,

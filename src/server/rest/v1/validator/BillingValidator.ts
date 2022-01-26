@@ -13,7 +13,7 @@ export default class BillingValidator extends SchemaValidator {
   private billingDeleteUserPaymentMethod: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-delete-payment-method.json`, 'utf8'));
   private billingSetupUserPaymentMethod: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-setup-payment-method.json`, 'utf8'));
   private billingInvoicesGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/invoices-get.json`, 'utf8'));
-  private billingInvoiceGetByID: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/invoice-get.json`, 'utf8'));
+  private billingInvoiceGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/invoice-get.json`, 'utf8'));
 
   private constructor() {
     super('BillingValidator');
@@ -46,7 +46,7 @@ export default class BillingValidator extends SchemaValidator {
     return this.validate(this.billingInvoicesGet, data);
   }
 
-  public validateBillingInvoiceReq(data: Record<string, unknown>): HttpBillingInvoiceRequest {
-    return this.validate(this.billingInvoiceGetByID, data);
+  public validateBillingInvoiceGetReq(data: Record<string, unknown>): HttpBillingInvoiceRequest {
+    return this.validate(this.billingInvoiceGet, data);
   }
 }
