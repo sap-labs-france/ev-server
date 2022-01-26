@@ -82,7 +82,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'fastChargePowerMax', 'drivetrainPowerHP'
         ]
       },
-      { resource: Entity.CAR_CATALOG, action: Action.SYNCHRONIZE },
+      { resource: Entity.CAR_CATALOG, action: [Action.SYNCHRONIZE, Action.DEBUG] },
       {
         resource: Entity.CAR_CATALOG, action: Action.READ,
         attributes: [

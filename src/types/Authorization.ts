@@ -158,6 +158,7 @@ export enum Action {
   GENERATE_QR = 'GenerateQrCode',
   MAINTAIN_PRICING_DEFINITIONS = 'MaintainPricingDefinitions',
   CREATE_POOL_CAR = 'CreatePoolCar',
+  DEBUG = 'Debug',
 }
 
 export interface AuthorizationContext {
@@ -190,6 +191,10 @@ export interface AuthorizationActions {
 
 export interface CarAuthorizationActions extends AuthorizationActions {
   canCreatePoolCar?: boolean;
+}
+
+export interface CarCatalogAuthorizationActions extends AuthorizationActions {
+  canDebug?: boolean;
 }
 
 export interface TagAuthorizationActions extends AuthorizationActions {
