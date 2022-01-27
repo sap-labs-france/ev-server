@@ -709,7 +709,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
 
   private async getStripeDefaultPaymentMethod(paymentMethodID: string): Promise<BillingPaymentMethod> {
     try {
-      const paymentMethod: Stripe.Response<Stripe.PaymentMethod> = await this.stripe.paymentMethods.retrieve(paymentMethodID);
+      const paymentMethod = await this.stripe.paymentMethods.retrieve(paymentMethodID);
       return this.convertToBillingPaymentMethod(paymentMethod, true);
     } catch (error) {
       await Logging.logError({
