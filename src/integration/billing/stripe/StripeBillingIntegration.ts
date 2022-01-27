@@ -708,15 +708,19 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   private async getStripeDefaultPaymentMethod(paymentMethodID: string): Promise<BillingPaymentMethod> {
+    return this.getStripePaymentMethod(paymentMethodID, true) ;
+  }
+
+  private async getStripePaymentMethod(paymentMethodID: string, asDefault = false): Promise<BillingPaymentMethod> {
     try {
       const paymentMethod = await this.stripe.paymentMethods.retrieve(paymentMethodID);
-      return this.convertToBillingPaymentMethod(paymentMethod, true);
+      return this.convertToBillingPaymentMethod(paymentMethod, asDefault);
     } catch (error) {
       await Logging.logError({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_PAYMENT_METHODS,
-        module: MODULE_NAME, method: 'getStripeDefaultPaymentMethod',
-        message: 'Failed to retrieve default payment methods',
+        module: MODULE_NAME, method: 'getStripePaymentMethod',
+        message: `Failed to retrieve payment method - ID ${paymentMethodID}`,
         detailedMessages: { error: error.stack }
       });
     }
@@ -842,8 +846,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
         action: ServerAction.BILLING_TRANSACTION
       });
     }
-    const paymentMethodID = customer.invoice_settings?.default_payment_method as string;
-    if (!paymentMethodID) {
+    const defaultPaymentMethodID = customer.invoice_settings?.default_payment_method as string;
+    if (!defaultPaymentMethodID) {
       throw new BackendError({
         message: `Customer has no default payment method - ${customer.id}`,
         module: MODULE_NAME,
@@ -851,7 +855,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         action: ServerAction.BILLING_TRANSACTION
       });
     }
-    const billingPaymentMethod = await this.getStripeDefaultPaymentMethod(paymentMethodID);
+    const billingPaymentMethod = await this.getStripeDefaultPaymentMethod(defaultPaymentMethodID);
     if (!this.isPaymentMethodStillValid(billingPaymentMethod)) {
       throw new BackendError({
         message: `Default payment method has expired - ${customer.id}`,
