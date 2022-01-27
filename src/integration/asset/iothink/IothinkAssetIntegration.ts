@@ -86,26 +86,32 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
     const energyDirection = asset.assetType === AssetType.PRODUCTION ? -1 : 1;
     if (!Utils.isEmptyArray(mergedResponseArray)) {
       for (const mergedConsumption of mergedResponseArray) {
-        if (Utils.isUndefined(mergedConsumption[IothinkProperty.IO_POW_ACTIVE])) {
+        if (Utils.isUndefined(mergedConsumption[IothinkProperty.IO_POW_ACTIVE]) &&
+        Utils.isUndefined(mergedConsumption[IothinkProperty.IO_POW_L1]) &&
+        Utils.isUndefined(mergedConsumption[IothinkProperty.IO_POW_L2]) &&
+        Utils.isUndefined(mergedConsumption[IothinkProperty.IO_POW_L3])) {
           // Skip if current power is undefined
           continue;
         }
         const consumption = {} as AbstractCurrentConsumption;
         switch (asset.assetType) {
           case AssetType.CONSUMPTION:
-            consumption.currentInstantWatts = Utils.createDecimal(this.getPropertyValue(mergedConsumption, IothinkProperty.IO_POW_ACTIVE)).mul(energyDirection * 1000).toNumber();
-            consumption.currentTotalConsumptionWh = this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_INPUT);
-            if (asset.siteArea?.voltage) {
-              consumption.currentInstantAmps = Utils.createDecimal(consumption.currentInstantWatts).div(asset.siteArea.voltage).toNumber();
-            }
-            consumption.lastConsumption = {
-              timestamp: moment(this.timestampReference).add(mergedConsumption.timestamp, 'seconds').toDate(),
-              value: consumption.currentTotalConsumptionWh
-            };
-            break;
           case AssetType.PRODUCTION:
-            consumption.currentInstantWatts = Utils.createDecimal(this.getPropertyValue(mergedConsumption, IothinkProperty.IO_POW_ACTIVE)).mul(energyDirection * 1000).toNumber();
-            consumption.currentTotalConsumptionWh = this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY);
+            if (!Utils.isUndefined(mergedConsumption[IothinkProperty.IO_POW_ACTIVE])) {
+              consumption.currentInstantWatts = Utils.createDecimal(this.getPropertyValue(mergedConsumption, IothinkProperty.IO_POW_ACTIVE)).mul(energyDirection * 1000).toNumber();
+            } else {
+              consumption.currentInstantWatts = Utils.createDecimal(this.getPropertyValue(mergedConsumption, IothinkProperty.IO_POW_L1))
+                .plus(this.getPropertyValue(mergedConsumption, IothinkProperty.IO_POW_L2))
+                .plus(this.getPropertyValue(mergedConsumption, IothinkProperty.IO_POW_L3)).mul(energyDirection * 1000).toNumber();
+            }
+            if (!Utils.isUndefined(mergedConsumption[IothinkProperty.IO_ENERGY_INPUT])) {
+              consumption.currentTotalConsumptionWh = Utils.createDecimal(this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_INPUT)).mul(1000).toNumber();
+            } else {
+              consumption.currentTotalConsumptionWh =
+                Utils.createDecimal(this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_L1))
+                  .plus(this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_L2))
+                  .plus(this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_L3)).mul(1000).toNumber();
+            }
             if (asset.siteArea?.voltage) {
               consumption.currentInstantAmps = Utils.createDecimal(consumption.currentInstantWatts).div(asset.siteArea.voltage).toNumber();
             }
@@ -117,8 +123,8 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
           case AssetType.CONSUMPTION_AND_PRODUCTION:
             consumption.currentInstantWatts = Utils.createDecimal(this.getPropertyValue(mergedConsumption, IothinkProperty.IO_POW_ACTIVE)).mul(1000).toNumber();
             consumption.currentStateOfCharge = this.getPropertyValue(mergedConsumption, IothinkProperty.IO_SOC);
-            consumption.currentConsumptionWh = this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_CHARGE)
-            - this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_DISCHARGE);
+            consumption.currentConsumptionWh = Utils.createDecimal(this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_CHARGE)
+              - this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_DISCHARGE)).mul(1000).toNumber();
             if (asset.siteArea?.voltage) {
               consumption.currentInstantAmps = Utils.createDecimal(consumption.currentInstantWatts).div(asset.siteArea.voltage).toNumber();
             }
