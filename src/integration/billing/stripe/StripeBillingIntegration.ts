@@ -41,7 +41,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
   private axiosInstance: AxiosInstance;
   private stripe: Stripe;
 
-  constructor(tenant: Tenant, settings: BillingSettings) {
+  private constructor(tenant: Tenant, settings: BillingSettings) {
     super(tenant, settings);
     this.axiosInstance = AxiosFactory.getAxiosInstance(this.tenant);
   }
@@ -683,15 +683,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
         do {
           response = await this.stripe.paymentMethods.list(requestParams);
           for (const paymentMethod of response.data) {
-            paymentMethods.push({
-              id: paymentMethod.id,
-              brand: paymentMethod.card.brand,
-              expiringOn: new Date(paymentMethod.card.exp_year, paymentMethod.card.exp_month, 0),
-              last4: paymentMethod.card.last4,
-              type: paymentMethod.type,
-              createdOn: moment.unix(paymentMethod.created).toDate(),
-              isDefault: paymentMethod.id === customer.invoice_settings.default_payment_method
-            });
+            const isDefault = (paymentMethod.id === customer.invoice_settings.default_payment_method);
+            paymentMethods.push(this.convertToBillingPaymentMethod(paymentMethod, isDefault));
           }
           if (response.has_more) {
             requestParams.starting_after = paymentMethods[paymentMethods.length - 1].id;
@@ -699,17 +692,44 @@ export default class StripeBillingIntegration extends BillingIntegration {
         } while (response.has_more);
       }
     } catch (error) {
-      // catch stripe errors and send the information back to the client
       await Logging.logError({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_PAYMENT_METHODS,
         actionOnUser: user,
-        module: MODULE_NAME, method: '_getPaymentMethods',
+        module: MODULE_NAME, method: 'getStripePaymentMethods',
         message: 'Failed to retrieve payment methods',
         detailedMessages: { error: error.stack }
       });
     }
     return paymentMethods;
+  }
+
+  private async getStripeDefaultPaymentMethod(paymentMethodID: string): Promise<BillingPaymentMethod> {
+    try {
+      const paymentMethod: Stripe.Response<Stripe.PaymentMethod> = await this.stripe.paymentMethods.retrieve(paymentMethodID);
+      return this.convertToBillingPaymentMethod(paymentMethod, true);
+    } catch (error) {
+      await Logging.logError({
+        tenantID: this.tenant.id,
+        action: ServerAction.BILLING_PAYMENT_METHODS,
+        module: MODULE_NAME, method: 'getStripeDefaultPaymentMethod',
+        message: 'Failed to retrieve default payment methods',
+        detailedMessages: { error: error.stack }
+      });
+    }
+    return null;
+  }
+
+  private convertToBillingPaymentMethod(paymentMethod: Stripe.PaymentMethod, isDefault = false): BillingPaymentMethod {
+    return {
+      id: paymentMethod.id,
+      brand: paymentMethod.card.brand,
+      expiringOn: new Date(paymentMethod.card.exp_year, paymentMethod.card.exp_month, 0),
+      last4: paymentMethod.card.last4,
+      type: paymentMethod.type,
+      createdOn: moment.unix(paymentMethod.created).toDate(),
+      isDefault
+    };
   }
 
   private async detachStripePaymentMethod(paymentMethodId: string, customerID: string): Promise<BillingOperationResult> {
@@ -777,7 +797,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Check whether the customer exists or not
     const customer = await this.checkStripeCustomer(customerID);
     // Check whether the customer has a default payment method
-    this.checkStripePaymentMethod(customer);
+    await this.checkStripePaymentMethod(customer);
     // Well ... when in test mode we may allow to start the transaction
     if (!customerID) {
       // Not yet LIVE ... starting a transaction without a STRIPE CUSTOMER is allowed
@@ -806,8 +826,12 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return customer;
   }
 
-  private checkStripePaymentMethod(customer: Stripe.Customer): void {
-    if (!customer.default_source && !customer.invoice_settings?.default_payment_method) {
+  private async checkStripePaymentMethod(customer: Stripe.Customer): Promise<void> {
+    if (Utils.isDevelopmentEnv() && customer.default_source) {
+      // Specific situation used only while running tests
+      return ;
+    }
+    if (!customer.invoice_settings?.default_payment_method) {
       throw new BackendError({
         message: `Customer has no default payment method - ${customer.id}`,
         module: MODULE_NAME,
@@ -815,6 +839,31 @@ export default class StripeBillingIntegration extends BillingIntegration {
         action: ServerAction.BILLING_TRANSACTION
       });
     }
+    const paymentMethodID = customer.invoice_settings?.default_payment_method as string;
+    if (!paymentMethodID) {
+      throw new BackendError({
+        message: `Customer has no default payment method - ${customer.id}`,
+        module: MODULE_NAME,
+        method: 'startTransaction',
+        action: ServerAction.BILLING_TRANSACTION
+      });
+    }
+    const billingPaymentMethod = await this.getStripeDefaultPaymentMethod(paymentMethodID);
+    if (!this.isPaymentMethodStillValid(billingPaymentMethod)) {
+      throw new BackendError({
+        message: `Default payment method has expired - ${customer.id}`,
+        module: MODULE_NAME,
+        method: 'startTransaction',
+        action: ServerAction.BILLING_TRANSACTION
+      });
+    }
+  }
+
+  private isPaymentMethodStillValid(billingPaymentMethod: BillingPaymentMethod): boolean {
+    if (billingPaymentMethod.expiringOn && moment().isAfter(moment(billingPaymentMethod.expiringOn))) {
+      return false;
+    }
+    return true;
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
@@ -1567,7 +1616,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       // Check whether the customer exists or not
       const customer = await this.checkStripeCustomer(customerID);
       // Check whether the customer has a default payment method
-      this.checkStripePaymentMethod(customer);
+      await this.checkStripePaymentMethod(customer);
     } catch (error) {
       await Logging.logError({
         tenantID: this.tenant.id,
