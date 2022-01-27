@@ -110,7 +110,7 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
               consumption.currentTotalConsumptionWh =
                 Utils.createDecimal(this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_L1))
                   .plus(this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_L2))
-                  .plus(this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_L3)).mul(energyDirection * 1000).toNumber();
+                  .plus(this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_L3)).mul(1000).toNumber();
             }
             if (asset.siteArea?.voltage) {
               consumption.currentInstantAmps = Utils.createDecimal(consumption.currentInstantWatts).div(asset.siteArea.voltage).toNumber();
