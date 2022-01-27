@@ -87,9 +87,9 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
     if (!Utils.isEmptyArray(mergedResponseArray)) {
       for (const mergedConsumption of mergedResponseArray) {
         if (Utils.isUndefined(mergedConsumption[IothinkProperty.IO_POW_ACTIVE]) &&
-        Utils.isUndefined(mergedConsumption[IothinkProperty.IO_POW_L1]) &&
-        Utils.isUndefined(mergedConsumption[IothinkProperty.IO_POW_L2]) &&
-        Utils.isUndefined(mergedConsumption[IothinkProperty.IO_POW_L3])) {
+            Utils.isUndefined(mergedConsumption[IothinkProperty.IO_POW_L1]) &&
+            Utils.isUndefined(mergedConsumption[IothinkProperty.IO_POW_L2]) &&
+            Utils.isUndefined(mergedConsumption[IothinkProperty.IO_POW_L3])) {
           // Skip if current power is undefined
           continue;
         }
