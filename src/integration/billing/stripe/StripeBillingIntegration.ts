@@ -532,9 +532,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // User should now exist
     if (!customerID) {
       throw new BackendError({
-        message: `User is not known in Stripe: '${user.id}' - (${user.email})`,
+        message: `User is not known in Stripe: '${user.id}')`,
         module: MODULE_NAME,
         method: 'setupPaymentMethod',
+        actionOnUser: user,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD
       });
     }
@@ -573,9 +574,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
     const customerID = user?.billingData?.customerID;
     if (!customerID) {
       throw new BackendError({
-        message: `User is not known in Stripe: '${user.id}' - (${user.email})`,
+        message: `User is not known in Stripe: '${user.id}'`,
         module: MODULE_NAME,
         method: 'deletePaymentMethod',
+        actionOnUser: user,
         action: ServerAction.BILLING_DELETE_PAYMENT_METHOD
       });
     }
@@ -593,8 +595,9 @@ export default class StripeBillingIntegration extends BillingIntegration {
       await Logging.logInfo({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
-        module: MODULE_NAME, method: '_createSetupIntent',
-        message: `Setup intent has been created - customer '${customerID}' - (${user.email})`
+        module: MODULE_NAME, method: 'createSetupIntent',
+        actionOnUser: user,
+        message: `Setup intent has been created - customer '${customerID}'`
       });
       // Send some feedback
       return {
@@ -607,7 +610,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
         actionOnUser: user,
-        module: MODULE_NAME, method: '_createSetupIntent',
+        module: MODULE_NAME, method: 'createSetupIntent',
         message: `Stripe operation failed - ${error?.message as string}`
       });
       return {
@@ -635,8 +638,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
       await Logging.logInfo({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
-        module: MODULE_NAME, method: '_attachPaymentMethod',
-        message: `Payment method ${paymentMethodId} has been attached - customer '${customerID}' - (${user.email})`
+        module: MODULE_NAME, method: 'attachPaymentMethod',
+        message: `Payment method ${paymentMethodId} has been attached - customer '${customerID}')`
       });
       // Set this payment method as the default
       await this.stripe.customers.update(customerID, {
@@ -645,8 +648,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
       await Logging.logInfo({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
-        module: MODULE_NAME, method: '_attachPaymentMethod',
-        message: `Default payment method has been set ${paymentMethodId} - customer '${customerID}' - (${user.email})`
+        module: MODULE_NAME, method: 'attachPaymentMethod',
+        message: `Default payment method has been set ${paymentMethodId} - customer '${customerID}'`
       });
       // Send some feedback
       return {
@@ -659,7 +662,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
         actionOnUser: user,
-        module: MODULE_NAME, method: '_attachPaymentMethod',
+        module: MODULE_NAME, method: 'attachPaymentMethod',
         message: `Stripe operation failed - ${error?.message as string}`
       });
       return {
@@ -740,7 +743,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         throw new BackendError({
           message: 'Cannot delete default payment method',
           module: MODULE_NAME,
-          method: '_detachPaymentMethod',
+          method: 'detachStripePaymentMethod',
           action: ServerAction.BILLING_DELETE_PAYMENT_METHOD,
         });
       }
@@ -749,7 +752,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       await Logging.logInfo({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_DELETE_PAYMENT_METHOD,
-        module: MODULE_NAME, method: '_detachPaymentMethod',
+        module: MODULE_NAME, method: 'detachStripePaymentMethod',
         message: `Payment method ${paymentMethodId} has been detached - customer '${customerID}'`
       });
       // Send some feedback
@@ -762,7 +765,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       await Logging.logError({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_DELETE_PAYMENT_METHOD,
-        module: MODULE_NAME, method: '_detachPaymentMethod',
+        module: MODULE_NAME, method: 'detachStripePaymentMethod',
         message: `Failed to detach payment method - customer '${customerID}'`,
         detailedMessages: { error: error.stack }
       });
@@ -1527,7 +1530,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
     // Check Stripe
     await this.checkConnection();
-    // const customer = await this.getCustomerByEmail(user.email);
     const customerID = user.billingData?.customerID;
     const customer = await this.getStripeCustomer(customerID);
     if (customer && customer.id) {
