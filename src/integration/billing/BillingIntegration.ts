@@ -264,13 +264,13 @@ export default abstract class BillingIntegration {
     }
   }
 
-  public checkStopTransaction(transaction: Transaction): void {
+  public checkBillTransaction(transaction: Transaction): void {
     // Check User
     if (!transaction.userID || !transaction.user) {
       throw new BackendError({
         message: 'User is not provided',
         module: MODULE_NAME,
-        method: 'checkStopTransaction',
+        method: 'checkBillTransaction',
         action: ServerAction.BILLING_TRANSACTION
       });
     }
@@ -279,7 +279,7 @@ export default abstract class BillingIntegration {
       throw new BackendError({
         message: 'Charging Station is not provided',
         module: MODULE_NAME,
-        method: 'checkStopTransaction',
+        method: 'checkBillTransaction',
         action: ServerAction.BILLING_TRANSACTION
       });
     }
@@ -288,7 +288,7 @@ export default abstract class BillingIntegration {
       throw new BackendError({
         message: 'User has no Billing Data',
         module: MODULE_NAME,
-        method: 'checkStopTransaction',
+        method: 'checkBillTransaction',
         action: ServerAction.BILLING_TRANSACTION
       });
     }

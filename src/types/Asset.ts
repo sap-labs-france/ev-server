@@ -54,19 +54,18 @@ export enum SchneiderProperty {
 }
 
 export enum IothinkProperty {
-  POWER_L1 = 'Puissance_active_de_phase_1',
-  POWER_L2 = 'Puissance_active_de_phase_2',
-  POWER_L3 = 'Puissance_active_de_phase_3',
 
-  // Generic
+  // Power
   IO_POW_ACTIVE = 'io-pow-active',
+  IO_POW_L1 = 'io-pow-l1',
+  IO_POW_L2 = 'io-pow-l2',
+  IO_POW_L3 = 'io-pow-l3',
 
-  // Consuming response
+  // Energy
   IO_ENERGY_INPUT = 'io-energy-input',
-  IO_ENERGY_OUTPUT = 'io-energy-output',
-
-  // Producing responses
-  IO_ENERGY = 'io-energy',
+  IO_ENERGY_L1 = 'io-energy-l1',
+  IO_ENERGY_L2 = 'io-energy-l2',
+  IO_ENERGY_L3 = 'io-energy-l3',
 
   // Battery response
   IO_ENERGY_CHARGE = 'io-energy-charge',
