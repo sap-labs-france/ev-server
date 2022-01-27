@@ -910,7 +910,7 @@ export default class Logging {
     log.host = Utils.getHostName();
     if (log.detailedMessages) {
       // Anonymize message
-      if (!Utils.isDevelopmentEnv()) {
+      if (!Utils.isDevelopmentEnv() && log.action !== ServerAction.UNKNOWN_ACTION) {
         log.detailedMessages = Utils.cloneObject(log.detailedMessages);
         log.detailedMessages = await Logging.anonymizeSensitiveData(log.detailedMessages);
       }
