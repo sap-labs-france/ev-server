@@ -367,7 +367,7 @@ export default class OCPPService {
       // Enrich
       this.enrichStartTransaction(tenant, startTransaction, chargingStation);
       // Create Transaction
-      const newTransaction = await this.createTransaction(tenant, startTransaction);
+      const newTransaction = await this.createTransaction(tenant, chargingStation, startTransaction);
       // Check User
       const { user, tag } = await Authorizations.isAuthorizedToStartTransaction(
         tenant, chargingStation, startTransaction.tagID, newTransaction, ServerAction.OCPP_START_TRANSACTION, Action.START_TRANSACTION);
@@ -1704,11 +1704,12 @@ export default class OCPPService {
     }
   }
 
-  private async createTransaction(tenant: Tenant, startTransaction: OCPPStartTransactionRequestExtended): Promise<Transaction> {
+  private async createTransaction(tenant: Tenant, chargingStation: ChargingStation, startTransaction: OCPPStartTransactionRequestExtended): Promise<Transaction> {
     return {
       id: await TransactionStorage.findAvailableID(tenant),
       issuer: true,
       chargeBoxID: startTransaction.chargeBoxID,
+      chargeBox: chargingStation, // TODO - Clarify if this is allowed!!!!
       tagID: startTransaction.idTag,
       timezone: startTransaction.timezone,
       userID: startTransaction.userID,

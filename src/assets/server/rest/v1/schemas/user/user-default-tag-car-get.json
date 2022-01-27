@@ -6,6 +6,9 @@
     "UserID": {
       "$ref": "user#/definitions/id"
     },
+    "ChargingStationID": {
+      "$ref": "common#/definitions/string-ids"
+    },
     "ProjectFields": {
       "$ref": "common#/definitions/projectFields"
     }

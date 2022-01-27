@@ -17,6 +17,7 @@ import Authorizations from '../../../../authorization/Authorizations';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
 import CSVError from 'csvtojson/v2/CSVError';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
+import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../../utils/Constants';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
 import JSONStream from 'JSONStream';
@@ -80,9 +81,22 @@ export default class UserService {
         );
       }
     }
+    let withBillingChecks = true ;
+    if (filteredRequest.ChargingStationID) {
+      // TODO - The ChargingStationID is optional but only for backward compatibility reasons - make it mandatory as soon as possible
+      const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, filteredRequest.ChargingStationID,
+        { withSiteArea: true },
+        ['id', 'siteArea.id', 'siteArea.accessControl']);
+      if (!chargingStation.siteArea.accessControl) {
+        // The access control is switched off - so billing checks are useless
+        withBillingChecks = false;
+      }
+    }
     const errorCodes: Array<StartTransactionErrorCode> = [];
-    // Check Billing errors
-    await UserService.checkBillingErrorCodes(action, req.tenant, req.user, user, errorCodes);
+    if (withBillingChecks) {
+      // Check for the billing prerequisites (such as the user's payment method)
+      await UserService.checkBillingErrorCodes(action, req.tenant, req.user, user, errorCodes);
+    }
     res.json({
       tag, car, errorCodes
     });

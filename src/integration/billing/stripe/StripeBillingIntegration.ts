@@ -769,6 +769,12 @@ export default class StripeBillingIntegration extends BillingIntegration {
         withBillingActive: false
       };
     }
+    if (!transaction.chargeBox?.siteArea?.accessControl) {
+      return {
+        // Do not bill sessions where the Access Control is OFF
+        withBillingActive: false
+      };
+    }
     // Check Stripe
     await this.checkConnection();
     // Check Transaction
