@@ -755,7 +755,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   public async startTransaction(transaction: Transaction): Promise<BillingDataTransactionStart> {
-
     if (!this.settings.billing.isTransactionBillingActivated) {
       return {
         // Keeps track whether the billing was activated or not on start transaction
@@ -940,7 +939,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_TRANSACTION,
         module: MODULE_NAME, method: 'endTransaction',
-        message: 'Operation aborted - unexpected situation - the session has already been billed'
+        message: `Operation aborted - unexpected situation - the session has already been billed - transaction ID: ${transaction.id}`
       });
       return {
         status: transaction.billingData?.stop?.status
@@ -957,7 +956,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_TRANSACTION,
         module: MODULE_NAME, method: 'endTransaction',
-        message: 'Unexpected situation - end transaction is being called while the extra inactivity is not yet known'
+        message: `Unexpected situation - end transaction is being called while the extra inactivity is not yet known - transaction ID: ${transaction.id}`
       });
       return {
         // Preserve the previous state
@@ -1010,7 +1009,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Check Stripe
     await this.checkConnection();
     // Check object
-    this.checkStopTransaction(transaction);
+    this.checkBillTransaction(transaction);
     try {
       // Check that the customer STRIPE exists
       const customerID: string = transaction.user?.billingData?.customerID;
