@@ -191,7 +191,6 @@ export default class ConsumptionStorage {
         $match: filters
       });
     }
-
     // grouping fields
     const groupFields: GroupParams = {
       _id: {
@@ -208,11 +207,9 @@ export default class ConsumptionStorage {
       LimitWattsT: { $last: '$limitSiteAreaWatts' },
       LimitAmpsT: { $last: '$limitSiteAreaAmps' },
     };
-
     aggregation.push({
       $group: groupFields
     });
-
     // add fields
     aggregation.push({
       $addFields: {
@@ -235,7 +232,6 @@ export default class ConsumptionStorage {
         }
       }
     });
-
     const groupFieldsByType: GroupParams = {
       _id: {
         year: '$_id.year',
@@ -260,12 +256,10 @@ export default class ConsumptionStorage {
         $last: '$LimitAmpsT'
       }
     };
-
     // group based on type
     aggregation.push({
       $group: groupFieldsByType
     });
-
     aggregation.push({
       $group: {
         _id: {
@@ -337,7 +331,6 @@ export default class ConsumptionStorage {
         }
       }
     });
-
     aggregation.push({
       $addFields: {
         startedAt: {
@@ -351,19 +344,16 @@ export default class ConsumptionStorage {
         }
       }
     });
-
     aggregation.push({
       $sort: {
         startedAt: 1
       }
     });
-
     aggregation.push({
       $project: {
         _id: 0
       }
     });
-
     // Read DB
     const consumptionsMDB = await global.database.getCollection<Consumption>(tenant.id, 'consumptions')
       .aggregate<Consumption>(aggregation, DatabaseUtils.buildAggregateOptions())
