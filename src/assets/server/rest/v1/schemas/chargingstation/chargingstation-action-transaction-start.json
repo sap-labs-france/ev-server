@@ -9,8 +9,25 @@
     "carID": {
       "$ref": "common#/definitions/id"
     },
+    "carSoc": {
+      "type": "integer",
+      "sanitize": "mongo",
+      "minimum": 1,
+      "maximum": 100
+    },
+    "carOdometer": {
+      "type": "integer",
+      "sanitize": "mongo",
+      "minimum": 1
+    },
     "userID": {
       "$ref": "common#/definitions/id"
+    },
+    "departureTime": {
+      "type": "string",
+      "format": "date-time",
+      "customType": "date",
+      "sanitize": "mongo"
     },
     "args": {
       "type": "object",
@@ -29,9 +46,6 @@
         { "required": ["tagID"] },
         { "required": ["visualTagID"] }
       ]
-    },
-    "chargePointID": {
-      "$ref": "common#/definitions/id"
     }
   },
   "required": [

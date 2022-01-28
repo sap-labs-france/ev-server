@@ -4139,14 +4139,26 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "carID": {
-                    "type": "string",
-                    "example": ""
-                  },
                   "userID": {
                     "type": "string",
                     "example": ""
                   },
+                  "carID": {
+                    "type": "string",
+                    "example": ""
+                  },
+                  "carSoc": {
+                    "type": "integer",
+                    "example": ""
+                  },
+                  "carOdometer": {
+                    "type": "integer",
+                    "example": ""
+                  },
+                  "departureTime": {
+                    "type": "string",
+                    "format": "date-time"
+                },
                   "args": {
                     "type": "object",
                     "properties": {
