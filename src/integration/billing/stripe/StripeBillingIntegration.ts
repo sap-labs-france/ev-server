@@ -997,15 +997,12 @@ export default class StripeBillingIntegration extends BillingIntegration {
         module: MODULE_NAME, method: 'endTransaction',
         message: `Operation aborted - unexpected situation - the session has already been billed - transaction ID: ${transaction.id}`
       });
-      return {
-        status: transaction.billingData?.stop?.status
-      };
+      // Preserve the previous state unchanged
+      return transaction.billingData.stop;
     }
     if (transaction.billingData?.stop?.status === BillingStatus.UNBILLED) {
-      // Make sure to preserve the decision made during the STOP transaction
-      return {
-        status: BillingStatus.UNBILLED
-      };
+      // Preserve the previous state unchanged
+      return transaction.billingData.stop;
     }
     if (!transaction.stop?.extraInactivityComputed) {
       await Logging.logWarning({
@@ -1014,10 +1011,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
         module: MODULE_NAME, method: 'endTransaction',
         message: `Unexpected situation - end transaction is being called while the extra inactivity is not yet known - transaction ID: ${transaction.id}`
       });
-      return {
-        // Preserve the previous state
-        status: transaction.billingData?.stop?.status
-      };
+      // Preserve the previous state unchanged (if any) or mark it as PENDING
+      return transaction.billingData?.stop || { status: BillingStatus.PENDING };
     }
     // Create and Save async task
     await AsyncTaskBuilder.createAndSaveAsyncTasks({
