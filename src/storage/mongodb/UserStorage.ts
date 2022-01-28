@@ -366,7 +366,13 @@ export default class UserStorage {
     // Modify and return the modified document
     await global.database.getCollection<any>(tenant.id, 'users').findOneAndUpdate(
       { '_id': DatabaseUtils.convertToObjectID(userID) },
-      { $set: { lastSelectedCarID, lastSelectedCar } });
+      { $set: {
+        startTransactionData: {
+          lastChangedOn: new Date(),
+          lastSelectedCarID,
+          lastSelectedCar
+        }
+      } });
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveUserLastSelectedCarID', startTime, { lastSelectedCarID });
   }
 

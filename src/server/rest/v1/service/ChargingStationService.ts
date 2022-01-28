@@ -1784,7 +1784,7 @@ export default class ChargingStationService {
     Authorizations.isChargingStationValidInOrganization(action, req.tenant, chargingStation);
     // Save Car selection
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
-      if (filteredRequest.carID && filteredRequest.carID !== user.lastSelectedCarID) {
+      if (filteredRequest.carID && filteredRequest.carID !== user.startTransactionData?.lastSelectedCarID) {
         await UserStorage.saveLastSelectedCarID(req.tenant, user.id, filteredRequest.carID, true);
       } else {
         await UserStorage.saveLastSelectedCarID(req.tenant, user.id, null, true);
