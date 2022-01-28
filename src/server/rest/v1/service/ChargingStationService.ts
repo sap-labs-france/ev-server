@@ -1359,7 +1359,7 @@ export default class ChargingStationService {
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: action,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `OCPP Command '${command}' has failed`,
+        message: `OCPP Command '${command}' has failed: ${error.message as string}`,
         module: MODULE_NAME, method: 'handleAction',
         user: req.user,
         detailedMessages: { error: error.stack }
@@ -1730,10 +1730,17 @@ export default class ChargingStationService {
       throw new AppError({
         errorCode: HTTPError.USER_NO_BADGE_ERROR,
         message: 'The user does not have any badge',
-        module: MODULE_NAME,
-        method: 'handleAction',
-        user: req.user,
-        action: action,
+        module: MODULE_NAME, method: 'handleAction',
+        user: req.user, action: action,
+      });
+    }
+    // Check Departure Time
+    if (filteredRequest.departureTime && filteredRequest.departureTime.getTime() < Date.now()) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'The departure time must be set in the future',
+        module: MODULE_NAME, method: 'handleAction',
+        user: req.user, action: action,
       });
     }
     // Check Car
