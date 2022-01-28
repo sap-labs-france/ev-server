@@ -122,6 +122,26 @@ export default class Bootstrap {
       }
 
       // -------------------------------------------------------------------------
+      // Start Monitoring Server
+      // -------------------------------------------------------------------------
+      if (Bootstrap.monitoringConfig) {
+        // Create server instance
+        Bootstrap.monitoringServer = MonitoringServerFactory.getMonitoringServerImpl(Bootstrap.monitoringConfig);
+        // Start server instance
+        if (Bootstrap.monitoringServer) {
+          Bootstrap.monitoringServer.start();
+        } else {
+          const message = `Monitoring Server implementation does not exist '${this.monitoringConfig.implementation}'`;
+          Logging.logConsoleError(message);
+          await Logging.logError({
+            tenantID: Constants.DEFAULT_TENANT,
+            action: ServerAction.STARTUP,
+            module: MODULE_NAME, method: 'startServers', message
+          });
+        }
+      }
+
+      // -------------------------------------------------------------------------
       // Start all the Servers
       // -------------------------------------------------------------------------
       serverStarted = await Bootstrap.startServers();
@@ -170,26 +190,6 @@ export default class Bootstrap {
         global.serverType = serverStarted[0];
       } else {
         global.serverType = ServerType.CENTRAL_SERVER;
-      }
-
-      // -------------------------------------------------------------------------
-      // Start Monitoring Server
-      // -------------------------------------------------------------------------
-      if (Bootstrap.monitoringConfig) {
-        // Create server instance
-        Bootstrap.monitoringServer = MonitoringServerFactory.getMonitoringServerImpl(Bootstrap.monitoringConfig);
-        // Start server instance
-        if (Bootstrap.monitoringServer) {
-          Bootstrap.monitoringServer.start();
-        } else {
-          const message = `Monitoring Server implementation does not exist '${this.monitoringConfig.implementation}'`;
-          Logging.logConsoleError(message);
-          await Logging.logError({
-            tenantID: Constants.DEFAULT_TENANT,
-            action: ServerAction.STARTUP,
-            module: MODULE_NAME, method: 'startServers', message
-          });
-        }
       }
 
       await this.logDuration(startTimeGlobalMillis, `${serverStarted.join(', ')} server has been started successfuly`, ServerAction.BOOTSTRAP_STARTUP);
