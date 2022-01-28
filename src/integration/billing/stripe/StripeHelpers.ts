@@ -1,4 +1,5 @@
 import { BillingAdditionalData, BillingError, BillingErrorCode, BillingErrorType, BillingInvoice, BillingInvoiceItem, BillingSessionData } from '../../../types/Billing';
+import moment, { DurationFormatSettings } from 'moment';
 
 import BillingStorage from '../../../storage/mongodb/BillingStorage';
 import Constants from '../../../utils/Constants';
@@ -202,5 +203,26 @@ export default class StripeHelpers {
   public static isResourceMissingError(error: any): boolean {
     // TODO - Find a better way to handle such specific Stripe Errors
     return (error.statusCode === 404 && error.code === 'resource_missing');
+  }
+
+  public static getBestDurationFormat(nbSeconds: number): string {
+    if (nbSeconds < 60) {
+      return 's [second]';
+    } else if (nbSeconds < 60 * 60) {
+      return 'm [minute] s [second]';
+    } else if (nbSeconds < 60 * 60 * 24) {
+      return 'h [hour] m [minute] s [second]';
+    } else if (nbSeconds < 60 * 60 * 24 * 7) {
+      return 'd [day] h [hour] m [min] s [second]';
+    }
+    return 'w [week] d [day] h [hour] m [minute] s [second]';
+  }
+
+  public static formatDuration(nbSeconds: number): string {
+    const template = StripeHelpers.getBestDurationFormat(nbSeconds);
+    const options: DurationFormatSettings = {
+      trim: 'small' // removes non-significant values (such as 0 minutes)
+    };
+    return moment.duration(nbSeconds, 'seconds').format(template, options);
   }
 }

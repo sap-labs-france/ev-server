@@ -1299,8 +1299,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
       duration = '';
     } else if (dimensionType === DimensionType.PARKING_TIME || dimensionType === DimensionType.CHARGING_TIME) {
       quantity = Utils.createDecimal(pricedData.quantity).toNumber().toLocaleString(userLocale); // seconds
-      duration = moment.duration(pricedData.quantity, 's').humanize();
-      // duration = moment.duration(quantity, 's').format('HH:mm:ss');
+      duration = StripeHelpers.formatDuration(pricedData.quantity);
+      // duration = moment.duration(pricedData.quantity, 's').humanize(); // this one shows human readable strings such as "a few seconds ..."
     } else {
       quantity = Utils.createDecimal(pricedData.quantity).toNumber().toLocaleString(userLocale); // Sessions
       duration = '';
