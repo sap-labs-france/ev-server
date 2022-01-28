@@ -203,6 +203,27 @@ export default class SiteAreaStorage {
       };
       params.withSite = false;
     }
+    // Connector statuses
+    if (!Utils.isEmptyArray(params.chargingStationConnectorStatuses)) {
+      const pipelineMatch = { ['connectors.status'] : { $in: params.chargingStationConnectorStatuses } };
+      const additionalPipeline = [{
+        '$addFields': {
+          'connectors': {
+            '$filter': {
+              input: '$connectors',
+              as: 'connector',
+              cond: {
+                $in: ['$$connector.status', params.chargingStationConnectorStatuses]
+              }
+            }
+          }
+        }
+      }];
+      DatabaseUtils.pushChargingStationLookupInAggregation({
+        tenantID: tenant.id, aggregation, localField: '_id', foreignField: 'siteAreaID',
+        asField: 'chargingStations', pipelineMatch
+      }, additionalPipeline);
+    }
     if (Utils.objectHasProperty(params, 'issuer') && Utils.isBoolean(params.issuer)) {
       filters.issuer = params.issuer;
     }
@@ -285,29 +306,12 @@ export default class SiteAreaStorage {
       });
     }
     // Charging Stations
-    if (params.withChargingStations || params.withOnlyChargingStations || params.withAvailableChargingStations) {
-      let pipelineMatch = {};
-      const additionalPipeline = [];
-      if (!Utils.isEmptyArray(params.chargingStationConnectorStatuses)) {
-        pipelineMatch = { ['connectors.status'] : { $in: params.chargingStationConnectorStatuses } };
-        additionalPipeline.push({
-          '$addFields': {
-            'connectors': {
-              '$filter': {
-                input: '$connectors',
-                as: 'connector',
-                cond: {
-                  $in: ['$$connector.status', params.chargingStationConnectorStatuses]
-                }
-              }
-            }
-          }
-        });
-      }
+    if ((params.withChargingStations || params.withOnlyChargingStations || params.withAvailableChargingStations) &&
+    Utils.isEmptyArray(params.chargingStationConnectorStatuses)) {
       DatabaseUtils.pushChargingStationLookupInAggregation({
         tenantID: tenant.id, aggregation, localField: '_id', foreignField: 'siteAreaID',
-        asField: 'chargingStations', pipelineMatch
-      }, additionalPipeline);
+        asField: 'chargingStations'
+      });
     }
     // Assets
     if (params.withAssets) {

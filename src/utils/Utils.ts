@@ -1646,40 +1646,53 @@ export default class Utils {
     return siteAreaTrees;
   }
 
-  public static checkSiteAreaTrees(siteAreaTrees: SiteArea[], numberOfSiteAreas?: number,
-      siteAreaTree: SiteArea = null, count = 0) : number {
-    if (siteAreaTree) {
+  public static checkSiteAreaTrees(siteAreas: SiteArea[], numberOfSiteAreas?: number,
+      parentSiteArea: SiteArea = null, count = 0) : number {
+    // Count and check all children and children of children
+    for (const siteArea of siteAreas) {
       count++;
-      // Count and check all children and children of children
-      if (!Utils.isEmptyArray(siteAreaTree.siteAreaChildren)) {
-        for (const siteAreaChild of siteAreaTree.siteAreaChildren) {
-          if (siteAreaTree.smartCharging !== siteAreaChild.smartCharging ||
-          siteAreaTree.numberOfPhases !== siteAreaChild.numberOfPhases ||
-          siteAreaTree.siteID !== siteAreaChild.siteID ||
-          siteAreaTree.voltage !== siteAreaChild.voltage) {
-            throw new BackendError({
-              siteAreaID: siteAreaChild.id,
-              method: 'checkSiteAreaTrees',
-              message: 'Property inconsistency in Site Area Tree',
-            });
-          }
-          count += this.checkSiteAreaTrees(null, null, siteAreaChild);
+      if (parentSiteArea) {
+        if (siteArea.smartCharging !== parentSiteArea.smartCharging) {
+          throw new BackendError({
+            siteAreaID: siteArea.id,
+            method: 'checkSiteAreaTrees',
+            message: `Expected smartCharging '${String(parentSiteArea.smartCharging)}' from parent '${parentSiteArea.name}', but got '${String(siteArea.smartCharging)}' from child '${siteArea.name}'`,
+          });
+        }
+        if (siteArea.numberOfPhases !== parentSiteArea.numberOfPhases) {
+          throw new BackendError({
+            siteAreaID: siteArea.id,
+            method: 'checkSiteAreaTrees',
+            message: `Expected numberOfPhases '${parentSiteArea.numberOfPhases}' from parent '${parentSiteArea.name}', but got '${siteArea.numberOfPhases}' from child '${siteArea.name}'`,
+          });
+        }
+        if (siteArea.siteID !== parentSiteArea.siteID) {
+          throw new BackendError({
+            siteAreaID: siteArea.id,
+            method: 'checkSiteAreaTrees',
+            message: `Expected siteID '${parentSiteArea.siteID}' from parent '${parentSiteArea.name}', but got '${siteArea.siteID}' from child '${siteArea.name}'`,
+          });
+        }
+        if (siteArea.voltage !== parentSiteArea.voltage) {
+          throw new BackendError({
+            siteAreaID: siteArea.id,
+            method: 'checkSiteAreaTrees',
+            message: `Expected voltage '${parentSiteArea.voltage}' from parent '${parentSiteArea.name}', but got '${siteArea.voltage}' from child '${siteArea.name}'`,
+          });
         }
       }
+      count += this.checkSiteAreaTrees(siteArea.siteAreaChildren, null, siteArea);
+    }
+    if (Utils.isNullOrUndefined(numberOfSiteAreas)) {
       return count;
     }
-    if (Array.isArray(siteAreaTrees)) {
-    // Loop through trees to check properties and count all site areas in it
-      for (const singleTree of siteAreaTrees) {
-        count += this.checkSiteAreaTrees(null, null, singleTree);
-      }
-      if (count !== numberOfSiteAreas) {
-        throw new BackendError({
-          siteID: siteAreaTrees[0].siteID,
-          method: 'checkSiteAreaTrees',
-          message: 'Circular Structure in Site Area Tree',
-        });
-      }
+    if (count !== numberOfSiteAreas) {
+      throw new BackendError({
+        siteID: siteAreas[0].siteID,
+        method: 'checkSiteAreaTrees',
+        message: 'Circular Structure in Site Area Tree',
+      });
     }
+
   }
 }
