@@ -36,55 +36,6 @@ export default abstract class BillingIntegration {
     this.settings = settings;
   }
 
-  public async synchronizeUsers(): Promise<BillingUserSynchronizeAction> {
-    await this.checkConnection();
-    const actionsDone: BillingUserSynchronizeAction = {
-      inSuccess: 0,
-      inError: 0
-    };
-    if (FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USERS)) {
-      // Sync e-Mobility Users with no billing data
-      const users = await this._getUsersWithNoBillingData();
-      if (!Utils.isEmptyArray(users)) {
-        // Process them
-        await Logging.logInfo({
-          tenantID: this.tenant.id,
-          action: ServerAction.BILLING_SYNCHRONIZE_USERS,
-          module: MODULE_NAME, method: 'synchronizeUsers',
-          message: `${users.length} new user(s) are going to be synchronized`
-        });
-        for (const user of users) {
-          // Synchronize user
-          if (await this.synchronizeUser(user)) {
-            actionsDone.inSuccess++;
-          } else {
-            actionsDone.inError++;
-          }
-        }
-      }
-    } else {
-      await Logging.logWarning({
-        tenantID: this.tenant.id,
-        action: ServerAction.BILLING_SYNCHRONIZE_USERS,
-        module: MODULE_NAME, method: 'synchronizeUsers',
-        message: 'Feature is switched OFF - operation has been aborted'
-      });
-    }
-    // Log
-    await Logging.logActionsResponse(this.tenant.id, ServerAction.BILLING_SYNCHRONIZE_USERS,
-      MODULE_NAME, 'synchronizeUsers', actionsDone,
-      '{{inSuccess}} user(s) were successfully synchronized',
-      '{{inError}} user(s) failed to be synchronized',
-      '{{inSuccess}} user(s) were successfully synchronized and {{inError}} failed to be synchronized',
-      'All the users are up to date'
-    );
-    // Update last synchronization
-    this.settings.billing.usersLastSynchronizedOn = new Date();
-    await SettingStorage.saveBillingSetting(this.tenant, this.settings);
-    // Result
-    return actionsDone;
-  }
-
   public async synchronizeUser(user: User): Promise<BillingUser> {
     let billingUser: BillingUser = null;
     try {
@@ -140,21 +91,6 @@ export default abstract class BillingIntegration {
       });
     }
     return billingUser;
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async synchronizeInvoices(user?: User): Promise<BillingUserSynchronizeAction> {
-    const actionsDone: BillingUserSynchronizeAction = {
-      inSuccess: 0,
-      inError: 0
-    };
-    await Logging.logWarning({
-      tenantID: this.tenant.id,
-      action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
-      module: MODULE_NAME, method: 'synchronizeInvoices',
-      message: 'Method is deprecated - operation skipped'
-    });
-    return actionsDone;
   }
 
   public async chargeInvoices(forceOperation = false): Promise<BillingChargeInvoiceAction> {

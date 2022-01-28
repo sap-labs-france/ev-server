@@ -1,4 +1,3 @@
-import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
 import Tenant, { TenantComponents } from '../../types/Tenant';
 import User, { ImportedUser, UserRole, UserStatus } from '../../types/User';
 import { UserInError, UserInErrorType } from '../../types/InError';
@@ -825,11 +824,7 @@ export default class UserStorage {
     const array = [];
     for (const type of params.errorTypes) {
       if ((type === UserInErrorType.NOT_ASSIGNED && !Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) ||
-        ((type === UserInErrorType.NO_BILLING_DATA || type === UserInErrorType.FAILED_BILLING_SYNCHRO) && !Utils.isTenantComponentActive(tenant, TenantComponents.BILLING))) {
-        continue;
-      }
-      if (type === UserInErrorType.NO_BILLING_DATA && !FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USERS)) {
-        // LAZY User Synchronization - no BillingData is not an Error anymore
+        (type === UserInErrorType.FAILED_BILLING_SYNCHRO && !Utils.isTenantComponentActive(tenant, TenantComponents.BILLING))) {
         continue;
       }
       array.push(`$${type}`);
@@ -1082,11 +1077,6 @@ export default class UserStorage {
         return [
           { $match: { $or: [{ 'billingData.hasSynchroError': { $eq: true } }, { $and: [{ billingData: { $exists: true } }, { 'billingData.hasSynchroError': { $exists: false } }] }] } },
           { $addFields: { 'errorCode': UserInErrorType.FAILED_BILLING_SYNCHRO } }
-        ];
-      case UserInErrorType.NO_BILLING_DATA:
-        return [
-          { $match: { $and: [{ 'status': { $eq: UserStatus.ACTIVE } }, { 'billingData': { $exists: false } }] } },
-          { $addFields: { 'errorCode': UserInErrorType.NO_BILLING_DATA } }
         ];
       default:
         return [];

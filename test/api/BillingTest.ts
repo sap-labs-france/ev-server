@@ -437,8 +437,10 @@ describe('Billing', function() {
           const fakeUser = {
             ...Factory.user.build(),
           } as User;
-          const response = await billingTestHelper.userService.billingApi.synchronizeUser({ id: fakeUser.id });
-          expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
+          const billingUser = await billingTestHelper.billingImpl.synchronizeUser(fakeUser);
+          expect(billingUser).to.be.not.null;
+          // const response = await billingTestHelper.userService.billingApi.synchronizeUser({ id: fakeUser.id });
+          // expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
         });
 
         it('Should not force synchronization of a user', async () => {
@@ -465,13 +467,11 @@ describe('Billing', function() {
             billingTestHelper.tenantContext.getTenant().subdomain,
             billingTestHelper.userContext
           );
-          // await testData.userService.billingApi.synchronizeInvoices({});
           const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
           await billingTestHelper.assignPaymentMethod(userWithBillingData, 'tok_fr');
           const itemsBefore = await billingTestHelper.getNumberOfSessions(basicUser.id);
           const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext);
           assert(transactionID, 'transactionID should not be null');
-          // await testData.userService.billingApi.synchronizeInvoices({});
           const itemsAfter = await billingTestHelper.getNumberOfSessions(basicUser.id);
           expect(itemsAfter).to.be.eq(itemsBefore + 1);
         });
@@ -516,7 +516,9 @@ describe('Billing', function() {
           );
           billingTestHelper.createdUsers.push(fakeUser);
           billingTestHelper.billingImpl = await billingTestHelper.setBillingSystemValidCredentials();
-          await billingTestHelper.userService.billingApi.synchronizeUser({ id: fakeUser.id });
+          // await billingTestHelper.userService.billingApi.synchronizeUser({ id: fakeUser.id });
+          const billingUser = await billingTestHelper.billingImpl.synchronizeUser(fakeUser);
+          expect(billingUser).to.be.not.null;
           const userExists = await billingTestHelper.billingImpl.isUserSynchronized(fakeUser);
           expect(userExists).to.be.true;
         });
@@ -539,37 +541,6 @@ describe('Billing', function() {
         it('Should not be able to start a transaction', async () => {
           const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext, 'Invalid');
           assert(!transactionID, 'Transaction ID should not be set');
-        });
-
-        it('Should set in error users without Billing data', async () => {
-          const fakeUser = {
-            ...Factory.user.build()
-          } as User;
-          fakeUser.issuer = true;
-          // Creates user without billing data
-          await billingTestHelper.userService.createEntity(
-            billingTestHelper.userService.userApi,
-            fakeUser
-          );
-          billingTestHelper.createdUsers.push(fakeUser);
-          // Check if user is in Users In Error
-          const response = await billingTestHelper.userService.userApi.readAllInError({ ErrorType: UserInErrorType.NO_BILLING_DATA }, {
-            limit: 100,
-            skip: 0
-          });
-          let userFound = false;
-          for (const user of response.data.result) {
-            if (user.id === fakeUser.id) {
-              userFound = true;
-              break;
-            }
-          }
-          if (FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USERS)) {
-            assert(userFound, 'User with no billing data should be listed as a User In Error');
-          } else {
-          // LAZY User Sync - The billing data will be created on demand (i.e.: when entering a payment method)
-            assert(!userFound, 'User with no billing data should not be listed as a User In Error');
-          }
         });
 
       });
