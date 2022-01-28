@@ -284,6 +284,8 @@ export default class AuthorizationService {
       await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.ASSET, Action.RETRIEVE_CONSUMPTION, authorizationFilter, {}, asset);
     asset.canReadConsumption = asset.dynamicAsset &&
       await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.ASSET, Action.READ_CONSUMPTION, authorizationFilter, {}, asset);
+    asset.canCreateConsumption = asset.dynamicAsset && asset.usesPushAPI &&
+      await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.ASSET, Action.CREATE_CONSUMPTION, authorizationFilter, {}, asset);
     // Optimize data over the net
     Utils.removeCanPropertiesWithFalseValue(asset);
   }
