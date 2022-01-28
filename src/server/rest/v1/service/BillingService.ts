@@ -1,5 +1,5 @@
 import { Action, Entity } from '../../../../types/Authorization';
-import { BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingUserSynchronizeAction } from '../../../../types/Billing';
+import { BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod } from '../../../../types/Billing';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 
@@ -20,7 +20,6 @@ import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import { StatusCodes } from 'http-status-codes';
 import { TenantComponents } from '../../../../types/Tenant';
-import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import User from '../../../../types/User';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
@@ -120,105 +119,6 @@ export default class BillingService {
       });
       res.json(Object.assign({ connectionIsValid: false }, Constants.REST_RESPONSE_SUCCESS));
     }
-    next();
-  }
-
-  public static async handleSynchronizeUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    if (!(await Authorizations.canSynchronizeUsersBilling(req.user)).authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        entity: Entity.USER, action: Action.SYNCHRONIZE_BILLING_USERS,
-        module: MODULE_NAME, method: 'handleSynchronizeUsers',
-      });
-    }
-    // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.SYNCHRONIZE_BILLING_USERS, Entity.USER, MODULE_NAME, 'handleSynchronizeUsers');
-    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
-    if (!billingImpl) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Billing service is not configured',
-        module: MODULE_NAME, method: 'handleSynchronizeUsers',
-        action: action,
-        user: req.user
-      });
-    }
-    // Get the lock
-    let synchronizeAction: BillingUserSynchronizeAction = {
-      inError: 0,
-      inSuccess: 0,
-    };
-    const billingLock = await LockingHelper.acquireBillingSyncUsersLock(req.user.tenantID);
-    if (billingLock) {
-      try {
-        // Sync users
-        synchronizeAction = await billingImpl.synchronizeUsers();
-      } finally {
-        // Release the lock
-        await LockingManager.release(billingLock);
-      }
-    } else {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Cannot acquire lock',
-        module: MODULE_NAME, method: 'handleSynchronizeUsers',
-        action: action,
-        user: req.user
-      });
-    }
-    res.json(Object.assign(synchronizeAction, Constants.REST_RESPONSE_SUCCESS));
-    next();
-  }
-
-  public static async handleSynchronizeUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    const filteredRequest = BillingSecurity.filterSynchronizeUserRequest(req.body);
-    if (!(await Authorizations.canSynchronizeUserBilling(req.user)).authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        entity: Entity.USER, action: Action.SYNCHRONIZE_BILLING_USER,
-        module: MODULE_NAME, method: 'handleSynchronizeUser',
-      });
-    }
-    // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.SYNCHRONIZE_BILLING_USERS, Entity.USER, MODULE_NAME, 'handleSynchronizeUser');
-    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
-    if (!billingImpl) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Billing service is not configured',
-        module: MODULE_NAME, method: 'handleSynchronizeUser',
-        action: action,
-        user: req.user
-      });
-    }
-    // Get user
-    const userToSynchronize = await UserStorage.getUser(req.tenant, filteredRequest.id);
-    UtilsService.assertObjectExists(action, userToSynchronize, `User ID '${filteredRequest.id}' does not exist`,
-      MODULE_NAME, 'handleSynchronizeUser', req.user);
-    // Get the lock
-    const billingLock = await LockingHelper.acquireBillingSyncUsersLock(req.user.tenantID);
-    if (billingLock) {
-      try {
-        // Sync user
-        await billingImpl.synchronizeUser(userToSynchronize);
-      } finally {
-        // Release the lock
-        await LockingManager.release(billingLock);
-      }
-    } else {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Cannot acquire lock',
-        module: MODULE_NAME, method: 'handleSynchronizeUser',
-        action: action,
-        user: req.user
-      });
-    }
-    res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
@@ -371,118 +271,6 @@ export default class BillingService {
       });
     }
     res.json(invoice);
-    next();
-  }
-
-  public static async handleSynchronizeInvoices(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    if (!await Authorizations.canSynchronizeInvoicesBilling(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        entity: Entity.INVOICE, action: Action.SYNCHRONIZE,
-        module: MODULE_NAME, method: 'handleSynchronizeInvoices',
-      });
-    }
-    // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.SYNCHRONIZE, Entity.INVOICE, MODULE_NAME, 'handleSynchronizeInvoices');
-    // Check user
-    let user: User;
-    if (!Authorizations.isAdmin(req.user)) {
-      // Get the User
-      user = await UserStorage.getUser(req.tenant, req.user.id);
-      UtilsService.assertObjectExists(action, user, `User ID '${req.user.id}' does not exist`,
-        MODULE_NAME, 'handleSynchronizeUserInvoices', req.user);
-    }
-    // Get the billing impl
-    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
-    if (!billingImpl) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Billing service is not configured',
-        module: MODULE_NAME, method: 'handleSynchronizeInvoices',
-        action: action,
-        user: req.user
-      });
-    }
-    let synchronizeAction: BillingUserSynchronizeAction = {
-      inError: 0,
-      inSuccess: 0,
-    };
-    // Get the Invoice lock
-    const billingLock = await LockingHelper.acquireBillingSyncInvoicesLock(req.user.tenantID);
-    if (billingLock) {
-      try {
-        // Sync invoices
-        synchronizeAction = await billingImpl.synchronizeInvoices(user);
-      } finally {
-        // Release the lock
-        await LockingManager.release(billingLock);
-      }
-    } else {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Cannot acquire lock',
-        module: MODULE_NAME, method: 'handleSynchronizeUserInvoices',
-        action: action,
-        user: req.user
-      });
-    }
-    res.json(Object.assign(synchronizeAction, Constants.REST_RESPONSE_SUCCESS));
-    next();
-  }
-
-  public static async handleForceSynchronizeUserInvoices(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    if (!await Authorizations.canSynchronizeInvoicesBilling(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        entity: Entity.INVOICE, action: Action.SYNCHRONIZE,
-        module: MODULE_NAME, method: 'handleForceSynchronizeUserInvoices',
-      });
-    }
-    // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.SYNCHRONIZE, Entity.INVOICE, MODULE_NAME, 'handleForceSynchronizeUserInvoices');
-    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
-    if (!billingImpl) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Billing service is not configured',
-        module: MODULE_NAME, method: 'handleForceSynchronizeUserInvoices',
-        action: action,
-        user: req.user
-      });
-    }
-    const filteredRequest = BillingSecurity.filterForceSynchronizeUserInvoicesRequest(req.body);
-    // Get the User
-    const user = await UserStorage.getUser(req.tenant, filteredRequest.userID);
-    UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.userID}' does not exist`,
-      MODULE_NAME, 'handleForceSynchronizeUserInvoices', req.user);
-    // Get the Invoice lock
-    let synchronizeAction: BillingUserSynchronizeAction = {
-      inError: 0,
-      inSuccess: 0,
-    };
-    const billingLock = await LockingHelper.acquireBillingSyncInvoicesLock(req.user.tenantID);
-    if (billingLock) {
-      try {
-        // Sync invoices
-        synchronizeAction = await billingImpl.synchronizeInvoices(user);
-      } finally {
-        // Release the lock
-        await LockingManager.release(billingLock);
-      }
-    } else {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Cannot acquire lock',
-        module: MODULE_NAME, method: 'handleForceSynchronizeUserInvoices',
-        action: action,
-        user: req.user
-      });
-    }
-    res.json(Object.assign(synchronizeAction, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 
