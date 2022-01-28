@@ -346,272 +346,6 @@
 			"response": []
 		},
 		{
-			"name": "FE-CompanyCreate",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n\t\"name\": \"Eurecom2\",\n\t\"address\": {\n\t\t\"address1\": \"805 Av. du Docteur Maurice Donat\",\n\t\t\"address2\": \"Font de l'Orme\",\n\t\t\"postalCode\": \"06150\",\n\t\t\"city\": \"Mougins\",\n\t\t\"region\": \"PACA\",\n\t\t\"country\": \"France\"\n\t}\n}"
-				},
-				"url": {
-					"raw": "{{base_url}}/client/api/CompanyCreate",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"client",
-						"api",
-						"CompanyCreate"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "FE-SiteCreate",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n\t\"name\": \"SAP Labs Mougins\",\n\t\"address\": {\n\t\t\"address1\": \"805 Av. du Docteur Maurice Donat\",\n\t\t\"address2\": \"Font de l'Orme\",\n\t\t\"postalCode\": \"06150\",\n\t\t\"city\": \"Mougins\",\n\t\t\"region\": \"PACA\",\n\t\t\"country\": \"France\"\n\t},\n\t\"userIDs\": [\"59f08d7cf2c8c0ed9ed46cb4\", \"592e969f89d8e07a2b16a79b\"],\n\t\"companyID\": \"5abeba344bae1457eb565e27\"\n}"
-				},
-				"url": {
-					"raw": "{{base_url}}/client/api/SiteCreate",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"client",
-						"api",
-						"SiteCreate"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "FE-TenantCreate",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n\t\"name\": \"Tenant 1\", \n\t\"email\": \"slf@chargeangels.fr\", \n\t\"subdomain\": \"slf\"\n}"
-				},
-				"url": {
-					"raw": "{{base_url}}/client/api/TenantCreate",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"client",
-						"api",
-						"TenantCreate"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "FE-TenantCreate Copy",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n\t\"subdomain\": \"slf\"\n}"
-				},
-				"url": {
-					"raw": "{{base_url}}/client/api/TenantCreate",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"client",
-						"api",
-						"TenantCreate"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "FE-VehicleManufacturerCreate",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n\t\"name\": \"Renault\"\n}"
-				},
-				"url": {
-					"raw": "{{base_url}}/client/api/VehicleManufacturerCreate",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"client",
-						"api",
-						"VehicleManufacturerCreate"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "FE-VehicleCreate",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n\t\"type\": \"C\",\n\t\"model\": \"Zoe3\",\n\t\"batteryKW\": 40,\n\t\"autonomyKmWLTP\": 300,\n\t\"autonomyKmReal\": 200,\n\t\"horsePower\": 80,\n\t\"torqueNm\": 100,\n\t\"performance0To100kmh\": 69,\n\t\"weightKg\": 1250,\n\t\"lengthMeter\": 4.30,\n\t\"widthMeter\": 2,\n\t\"heightMeter\": 1.6,\n\t\"vehicleManufacturerID\" : \"5b85c0eeb8e312367c713e9b\",\n\t\"releasedOn\": \"01/10/2018\",\n\t\"images\": [\"xyz\", \"uvw\"],\n\t\"withVehicleImages\": true\n}"
-				},
-				"url": {
-					"raw": "{{base_url}}/client/api/VehicleCreate",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"client",
-						"api",
-						"VehicleCreate"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "FE-SiteAreaCreate",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n\t\"name\": \"North\",\n\t\"siteID\": \"5abeba9e4bae1457eb565e66\"\n}"
-				},
-				"url": {
-					"raw": "{{base_url}}/client/api/SiteAreaCreate",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"client",
-						"api",
-						"SiteAreaCreate"
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "FE-SchneiderGTCGetBorneSud",
 			"request": {
 				"auth": {
@@ -689,42 +423,19 @@
 			"response": []
 		},
 		{
-			"name": "FE-VehicleManufacturers",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{base_url}}/client/api/VehicleManufacturers?WithVehicles=true",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"client",
-						"api",
-						"VehicleManufacturers"
-					],
-					"query": [
-						{
-							"key": "WithVehicles",
-							"value": "true"
-						}
-					]
+			"name": "FE-TenantCreate",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var responseJson = JSON.parse(responseBody);",
+							"postman.setEnvironmentVariable(\"tenantID\", responseJson[\"id\"]);"
+						],
+						"type": "text/javascript"
+					}
 				}
-			},
-			"response": []
-		},
-		{
-			"name": "FE-VehicleManufacturer",
+			],
 			"request": {
 				"auth": {
 					"type": "bearer",
@@ -736,87 +447,26 @@
 						}
 					]
 				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{base_url}}/client/api/VehicleManufacturer?ID=5b6cb3e8aeead45c9c70eba3",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"client",
-						"api",
-						"VehicleManufacturer"
-					],
-					"query": [
-						{
-							"key": "ID",
-							"value": "5b6cb3e8aeead45c9c70eba3"
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "FE-VehicleManufacturerLogos",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"name\": \"Tenant 1\", \n\t\"email\": \"slf@chargeangels.fr\", \n\t\"subdomain\": \"slf2\"\n}"
 				},
-				"method": "GET",
-				"header": [],
 				"url": {
-					"raw": "{{base_url}}/client/api/VehicleManufacturerLogos",
+					"raw": "{{base_url}}/v1/api/tenants",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
-						"client",
+						"v1",
 						"api",
-						"VehicleManufacturerLogos"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "FE-VehicleManufacturerLogo",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{base_url}}/client/api/VehicleManufacturerLogo?ID=5b6cb3e8aeead45c9c70eba3",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"client",
-						"api",
-						"VehicleManufacturerLogo"
-					],
-					"query": [
-						{
-							"key": "ID",
-							"value": "5b6cb3e8aeead45c9c70eba3"
-						}
+						"tenants"
 					]
 				}
 			},
@@ -838,7 +488,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/tenants",
+					"raw": "{{base_url}}/v1/api/tenants?Limit=100",
 					"host": [
 						"{{base_url}}"
 					],
@@ -846,6 +496,12 @@
 						"v1",
 						"api",
 						"tenants"
+					],
+					"query": [
+						{
+							"key": "Limit",
+							"value": "100"
+						}
 					]
 				}
 			},
@@ -865,6 +521,111 @@
 					]
 				},
 				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/tenants/{{tenantID}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"tenants",
+						"{{tenantID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-TenantLogo",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/tenants/logo?ID={{tenantID}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"tenants",
+						"logo"
+					],
+					"query": [
+						{
+							"key": "ID",
+							"value": "{{tenantID}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-Tenant",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"name\": \"Tenant 1 updated\", \n\t\"email\": \"slf@chargeangels.fr\", \n\t\"subdomain\": \"slf2\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/tenants/{{tenantID}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"tenants",
+						"{{tenantID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-TenantDelete",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
 				"header": [],
 				"url": {
 					"raw": "{{base_url}}/v1/api/tenants/{{tenantID}}",
@@ -1016,6 +777,44 @@
 			"response": []
 		},
 		{
+			"name": "FE-CompanyCreate",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"name\": \"Eurecom2\",\n\t\"address\": {\n\t\t\"address1\": \"805 Av. du Docteur Maurice Donat\",\n\t\t\"address2\": \"Font de l'Orme\",\n\t\t\"postalCode\": \"06150\",\n\t\t\"city\": \"Mougins\",\n\t\t\"region\": \"PACA\",\n\t\t\"country\": \"France\"\n\t}\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/client/api/CompanyCreate",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"client",
+						"api",
+						"CompanyCreate"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "FE-Companies",
 			"request": {
 				"auth": {
@@ -1031,7 +830,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/companies",
+					"raw": "{{base_url}}/v1/api/companies?Limit=100",
 					"host": [
 						"{{base_url}}"
 					],
@@ -1048,7 +847,7 @@
 						},
 						{
 							"key": "WithSite",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
@@ -1058,42 +857,41 @@
 						},
 						{
 							"key": "Issuer",
-							"value": null,
-							"disabled": true
-						},
-						{
-							"key": "LocLongitude",
-							"value": null,
-							"disabled": true
-						},
-						{
-							"key": "LocLatitude",
-							"value": null,
-							"disabled": true
-						},
-						{
-							"key": "LocMaxDistanceMeters",
-							"value": null,
-							"disabled": true
-						},
-						{
-							"key": "Limit",
 							"value": "",
 							"disabled": true
 						},
 						{
+							"key": "LocLongitude",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "LocLatitude",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "LocMaxDistanceMeters",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Limit",
+							"value": "100"
+						},
+						{
 							"key": "Skip",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "SortFields",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "ProjectFields",
-							"value": null,
+							"value": "",
 							"disabled": true
 						}
 					]
@@ -1135,25 +933,18 @@
 			"name": "FE-CompanyLogo",
 			"request": {
 				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
+					"type": "noauth"
 				},
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/companies/{{companyID}}/logo?TenantID={{tenantID}}",
+					"raw": "{{base_url}}/v1/util/companies/{{companyID}}/logo?TenantID={{tenantID}}",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
 						"v1",
-						"api",
+						"util",
 						"companies",
 						"{{companyID}}",
 						"logo"
@@ -1262,7 +1053,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/client/api/Sites?WithSiteAreas=false&WithChargeBoxes=false&WithCompany=false",
+					"raw": "{{base_url}}/client/api/Sites?WithSiteAreas=false&WithChargeBoxes=false&WithCompany=false&Limit=100",
 					"host": [
 						"{{base_url}}"
 					],
@@ -1283,6 +1074,10 @@
 						{
 							"key": "WithCompany",
 							"value": "false"
+						},
+						{
+							"key": "Limit",
+							"value": "100"
 						}
 					]
 				}
@@ -1305,7 +1100,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/client/api/Sites?WithAvailableChargers=true",
+					"raw": "{{base_url}}/client/api/Sites?WithAvailableChargers=true&Limit=100",
 					"host": [
 						"{{base_url}}"
 					],
@@ -1318,6 +1113,10 @@
 						{
 							"key": "WithAvailableChargers",
 							"value": "true"
+						},
+						{
+							"key": "Limit",
+							"value": "100"
 						}
 					]
 				}
@@ -1421,195 +1220,6 @@
 						{
 							"key": "ID",
 							"value": "5abeba9e4bae1457eb565e66"
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "FE-SitesAreas",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{base_url}}/client/api/SiteAreas?WithChargeBoxes=false&WithSite=false&WithAvailableChargers=true",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"client",
-						"api",
-						"SiteAreas"
-					],
-					"query": [
-						{
-							"key": "WithChargeBoxes",
-							"value": "false"
-						},
-						{
-							"key": "WithSite",
-							"value": "false"
-						},
-						{
-							"key": "WithAvailableChargers",
-							"value": "true"
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "FE-SitesAreasWithAvailableChargers",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{base_url}}/client/api/SiteAreas?WithChargeBoxes=false&WithSite=false&WithAvailableChargers=true&SiteID=5abeba8d4bae1457eb565e5b",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"client",
-						"api",
-						"SiteAreas"
-					],
-					"query": [
-						{
-							"key": "WithChargeBoxes",
-							"value": "false"
-						},
-						{
-							"key": "WithSite",
-							"value": "false"
-						},
-						{
-							"key": "WithAvailableChargers",
-							"value": "true"
-						},
-						{
-							"key": "SiteID",
-							"value": "5abeba8d4bae1457eb565e5b"
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "FE-SiteArea",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{base_url}}/client/api/SiteArea?ID=5af1ba94ee5dc0cd3bc7fd50",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"client",
-						"api",
-						"SiteArea"
-					],
-					"query": [
-						{
-							"key": "ID",
-							"value": "5af1ba94ee5dc0cd3bc7fd50"
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "FE-SiteAreaImages",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{base_url}}/client/api/SiteAreaImages",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"client",
-						"api",
-						"SiteAreaImages"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "FE-SiteAreaImage",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{base_url}}/client/api/SiteAreaImage?ID=5ac678b5c0cc5e7fdd2c5ef3",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"client",
-						"api",
-						"SiteAreaImage"
-					],
-					"query": [
-						{
-							"key": "ID",
-							"value": "5ac678b5c0cc5e7fdd2c5ef3"
 						}
 					]
 				}
@@ -2094,7 +1704,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/charging-stations",
+					"raw": "{{base_url}}/v1/api/charging-stations?Limit=100",
 					"host": [
 						"{{base_url}}"
 					],
@@ -2111,8 +1721,7 @@
 						},
 						{
 							"key": "Limit",
-							"value": "30",
-							"disabled": true
+							"value": "100"
 						},
 						{
 							"key": "Issuer",
@@ -2225,7 +1834,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/charging-stations/{{chargingStation}}/transactions?ConnectorId=2&StartDateTime=2018-05-05T22:00:00.000Z&EndDateTime=2018-08-06T21:22:54.225Z",
+					"raw": "{{base_url}}/v1/api/charging-stations/{{chargingStation}}/transactions?ConnectorId=2&StartDateTime=2018-05-05T22:00:00.000Z&EndDateTime=2018-08-06T21:22:54.225Z&Limit=100",
 					"host": [
 						"{{base_url}}"
 					],
@@ -2248,6 +1857,10 @@
 						{
 							"key": "EndDateTime",
 							"value": "2018-08-06T21:22:54.225Z"
+						},
+						{
+							"key": "Limit",
+							"value": "100"
 						}
 					]
 				}
@@ -2500,7 +2113,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/charging-stations/ocpp/parameters/export?ChargingStationID={{chargingStation}}",
+					"raw": "{{base_url}}/v1/api/charging-stations/ocpp/parameters/export?ChargingStationID={{chargingStation}}&Limit=1000",
 					"host": [
 						"{{base_url}}"
 					],
@@ -2516,6 +2129,10 @@
 						{
 							"key": "ChargingStationID",
 							"value": "{{chargingStation}}"
+						},
+						{
+							"key": "Limit",
+							"value": "1000"
 						}
 					]
 				}
@@ -2917,7 +2534,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/notifications",
+					"raw": "{{base_url}}/v1/api/notifications?Limit=100",
 					"host": [
 						"{{base_url}}"
 					],
@@ -2941,6 +2558,10 @@
 							"key": "Channel",
 							"value": "",
 							"disabled": true
+						},
+						{
+							"key": "Limit",
+							"value": "100"
 						}
 					]
 				}
@@ -2963,7 +2584,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/transactions",
+					"raw": "{{base_url}}/v1/api/transactions?Limit=100",
 					"host": [
 						"{{base_url}}"
 					],
@@ -3090,8 +2711,7 @@
 						},
 						{
 							"key": "Limit",
-							"value": "",
-							"disabled": true
+							"value": "100"
 						},
 						{
 							"key": "Skip",
@@ -3134,7 +2754,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/transactions/status/completed",
+					"raw": "{{base_url}}/v1/api/transactions/status/completed?Limit=100",
 					"host": [
 						"{{base_url}}"
 					],
@@ -3263,8 +2883,7 @@
 						},
 						{
 							"key": "Limit",
-							"value": "",
-							"disabled": true
+							"value": "100"
 						},
 						{
 							"key": "Skip",
@@ -3307,7 +2926,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/transactions/status/active",
+					"raw": "{{base_url}}/v1/api/transactions/status/active?Limit=100",
 					"host": [
 						"{{base_url}}"
 					],
@@ -3436,8 +3055,7 @@
 						},
 						{
 							"key": "Limit",
-							"value": "",
-							"disabled": true
+							"value": "100"
 						},
 						{
 							"key": "Skip",
@@ -3480,7 +3098,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/transactions/status/active",
+					"raw": "{{base_url}}/v1/api/transactions/status/active?Limit=100",
 					"host": [
 						"{{base_url}}"
 					],
@@ -3609,8 +3227,7 @@
 						},
 						{
 							"key": "Limit",
-							"value": "",
-							"disabled": true
+							"value": "100"
 						},
 						{
 							"key": "Skip",
@@ -3653,7 +3270,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/transactions/status/in-error",
+					"raw": "{{base_url}}/v1/api/transactions/status/in-error?Limit=100",
 					"host": [
 						"{{base_url}}"
 					],
@@ -3782,8 +3399,7 @@
 						},
 						{
 							"key": "Limit",
-							"value": "",
-							"disabled": true
+							"value": "100"
 						},
 						{
 							"key": "Skip",
@@ -3826,7 +3442,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/transactions/status/in-error",
+					"raw": "{{base_url}}/v1/api/transactions/status/in-error?Limit=100",
 					"host": [
 						"{{base_url}}"
 					],
@@ -3955,8 +3571,7 @@
 						},
 						{
 							"key": "Limit",
-							"value": "",
-							"disabled": true
+							"value": "100"
 						},
 						{
 							"key": "Skip",
@@ -4946,7 +4561,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/users",
+					"raw": "{{base_url}}/v1/api/users?Limit=100",
 					"host": [
 						"{{base_url}}"
 					],
@@ -4993,8 +4608,7 @@
 						},
 						{
 							"key": "Limit",
-							"value": "",
-							"disabled": true
+							"value": "100"
 						},
 						{
 							"key": "SortFields",
@@ -5032,7 +4646,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/users/592e969f89d8e07a2b16a78f",
+					"raw": "{{base_url}}/v1/api/users/60d34fc5e5984f1557496c30",
 					"host": [
 						"{{base_url}}"
 					],
@@ -5040,7 +4654,7 @@
 						"v1",
 						"api",
 						"users",
-						"592e969f89d8e07a2b16a78f"
+						"60d34fc5e5984f1557496c30"
 					]
 				}
 			},
@@ -5295,7 +4909,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/users/{{userID}}/sites",
+					"raw": "{{base_url}}/v1/api/users/{{userID}}/sites?Limit=100",
 					"host": [
 						"{{base_url}}"
 					],
@@ -5305,6 +4919,43 @@
 						"users",
 						"{{userID}}",
 						"sites"
+					],
+					"query": [
+						{
+							"key": "Limit",
+							"value": "100"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-UserImage",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/users/{{userID}}/image",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"users",
+						"{{userID}}",
+						"image"
 					]
 				}
 			},
@@ -5516,7 +5167,8 @@
 					"script": {
 						"exec": [
 							"var responseJson = JSON.parse(responseBody);",
-							"postman.setEnvironmentVariable(\"tag\", responseJson[\"result\"][0][\"id\"]);"
+							"postman.setEnvironmentVariable(\"tagID\", responseJson[\"result\"][0][\"id\"]);",
+							"postman.setEnvironmentVariable(\"tagVisualID\", responseJson[\"result\"][0][\"visualID\"]);"
 						],
 						"type": "text/javascript"
 					}
@@ -5536,7 +5188,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/tags",
+					"raw": "{{base_url}}/v1/api/tags?Limit=100",
 					"host": [
 						"{{base_url}}"
 					],
@@ -5544,6 +5196,12 @@
 						"v1",
 						"api",
 						"tags"
+					],
+					"query": [
+						{
+							"key": "Limit",
+							"value": "100"
+						}
 					]
 				}
 			},
@@ -5576,7 +5234,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/tags/{{tag}}",
+					"raw": "{{base_url}}/v1/api/tags/{{tagID}}",
 					"host": [
 						"{{base_url}}"
 					],
@@ -5584,7 +5242,53 @@
 						"v1",
 						"api",
 						"tags",
-						"{{tag}}"
+						"{{tagID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-TagByVisualID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/tags?VisualID={{tagVisualID}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"tags"
+					],
+					"query": [
+						{
+							"key": "VisualID",
+							"value": "{{tagVisualID}}"
+						}
 					]
 				}
 			},
@@ -5822,6 +5526,55 @@
 			"response": []
 		},
 		{
+			"name": "FE-TagUpdateByVisualID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\": \"ABCDE1234679\",\n    \"visualID\": \"New visual ID\",\n    \"description\": \"Postman tag\",\n    \"active\": true,\n    \"issuer\": true,\n    \"default\": false,\n    \"userID\": \"{{userID}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/tags",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"tags"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "FE-TagDelete",
 			"event": [
 				{
@@ -5921,37 +5674,6 @@
 			"response": []
 		},
 		{
-			"name": "FE-UserImage Copy",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{base_url}}/v1/api/users/{{userID}}/image",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"v1",
-						"api",
-						"users",
-						"{{userID}}",
-						"image"
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "FE-Assets",
 			"request": {
 				"auth": {
@@ -5967,7 +5689,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/assets",
+					"raw": "{{base_url}}/v1/api/assets?Limit=100",
 					"host": [
 						"{{base_url}}"
 					],
@@ -6019,8 +5741,7 @@
 						},
 						{
 							"key": "Limit",
-							"value": "",
-							"disabled": true
+							"value": "100"
 						},
 						{
 							"key": "Skip",
@@ -6233,28 +5954,27 @@
 			"name": "FE-AssetImage",
 			"request": {
 				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
+					"type": "noauth"
 				},
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/assets/601b2a5e52f1d8000e8dd95b/image",
+					"raw": "{{base_url}}/v1/util/assets/601b2a5e52f1d8000e8dd95b/image?TenantID={{tenantID}}",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
 						"v1",
-						"api",
+						"util",
 						"assets",
 						"601b2a5e52f1d8000e8dd95b",
 						"image"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
 					]
 				}
 			},
@@ -6276,7 +5996,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/car-catalogs",
+					"raw": "{{base_url}}/v1/api/car-catalogs?Limit=100",
 					"host": [
 						"{{base_url}}"
 					],
@@ -6303,8 +6023,7 @@
 						},
 						{
 							"key": "Limit",
-							"value": "",
-							"disabled": true
+							"value": "100"
 						},
 						{
 							"key": "Skip",
@@ -6360,25 +6079,18 @@
 			"name": "FE-CarCatalogImage",
 			"request": {
 				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
+					"type": "noauth"
 				},
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/car-catalogs/1172/image",
+					"raw": "{{base_url}}/v1/util/car-catalogs/1172/image",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
 						"v1",
-						"api",
+						"util",
 						"car-catalogs",
 						"1172",
 						"image"
@@ -6403,7 +6115,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/car-catalogs/1172/images",
+					"raw": "{{base_url}}/v1/api/car-catalogs/1172/images?Limit=100",
 					"host": [
 						"{{base_url}}"
 					],
@@ -6422,8 +6134,7 @@
 						},
 						{
 							"key": "Limit",
-							"value": "",
-							"disabled": true
+							"value": "100"
 						}
 					]
 				}
@@ -6506,7 +6217,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/cars",
+					"raw": "{{base_url}}/v1/api/cars?Limit=100",
 					"host": [
 						"{{base_url}}"
 					],
@@ -6538,8 +6249,7 @@
 						},
 						{
 							"key": "Limit",
-							"value": "",
-							"disabled": true
+							"value": "100"
 						},
 						{
 							"key": "Skip",
@@ -6697,7 +6407,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/loggings",
+					"raw": "{{base_url}}/v1/api/loggings?Limit=100",
 					"host": [
 						"{{base_url}}"
 					],
@@ -6759,8 +6469,7 @@
 						},
 						{
 							"key": "Limit",
-							"value": "",
-							"disabled": true
+							"value": "100"
 						},
 						{
 							"key": "Skip",
@@ -6848,7 +6557,7 @@
 			"response": []
 		},
 		{
-			"name": "FE-IntegrationConnections Copy",
+			"name": "FE-IntegrationConnectionsCreate",
 			"request": {
 				"auth": {
 					"type": "bearer",
@@ -7064,7 +6773,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/ocpi/endpoints",
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints?Limit=100",
 					"host": [
 						"{{base_url}}"
 					],
@@ -7087,8 +6796,7 @@
 						},
 						{
 							"key": "Limit",
-							"value": "",
-							"disabled": true
+							"value": "100"
 						},
 						{
 							"key": "Skip",
@@ -7655,7 +7363,19 @@
 			"response": []
 		},
 		{
-			"name": "FE-TransactionsYears",
+			"name": "FE-OICPEndpointCreate",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var responseJson = JSON.parse(responseBody);",
+							"postman.setEnvironmentVariable(\"oicpID\", responseJson[\"id\"]);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"request": {
 				"auth": {
 					"type": "bearer",
@@ -7667,24 +7387,183 @@
 						}
 					]
 				},
-				"method": "GET",
+				"method": "POST",
 				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"OICP Endpoint name\",\n  \"role\": \"CPO\",\n  \"baseUrl\": \"https://xxxxxxx.xx\",\n  \"countryCode\": \"FR\",\n  \"partyId\": \"ABC\",\n  \"backgroundPatchJob\": true\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
 				"url": {
-					"raw": "{{base_url}}/client/api/TransactionYears",
+					"raw": "{{base_url}}/v1/api/oicp/endpoints/",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
-						"client",
+						"v1",
 						"api",
-						"TransactionYears"
+						"oicp",
+						"endpoints",
+						""
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "FE-ChargingStationConsumptionStatistics",
+			"name": "FE-OICPEndpointUpdate",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"Updated OICP Endpoint name\",\n  \"role\": \"CPO\",\n  \"baseUrl\": \"https://xxxxxxx.xx\",\n  \"countryCode\": \"FR\",\n  \"partyId\": \"ABC\",\n  \"backgroundPatchJob\": true\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/oicp/endpoints/{{oicpID}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"oicp",
+						"endpoints",
+						"{{oicpID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OICPEndpointPing",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"OICP Endpoint name\",\n  \"role\": \"CPO\",\n  \"baseUrl\": \"https://xxxxxxx.xx\",\n  \"countryCode\": \"FR\",\n  \"partyId\": \"ABC\",\n  \"backgroundPatchJob\": true\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/oicp/endpoints/{{oicpID}}/ping",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"oicp",
+						"endpoints",
+						"{{oicpID}}",
+						"ping"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OICPEndpointSendEvseStatuses",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/oicp/endpoints/{{oicpID}}/evses/statuses/send",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"oicp",
+						"endpoints",
+						"{{oicpID}}",
+						"evses",
+						"statuses",
+						"send"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OICPEndpointSendEvses",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/oicp/endpoints/{{oicpID}}/evses/send",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"oicp",
+						"endpoints",
+						"{{oicpID}}",
+						"evses",
+						"send"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OICPEndpoints",
 			"request": {
 				"auth": {
 					"type": "bearer",
@@ -7699,14 +7578,1721 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/client/api/ChargingStationConsumptionStatistics?Year=2018",
+					"raw": "{{base_url}}/v1/api/oicp/endpoints?Limit=100",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
-						"client",
+						"v1",
 						"api",
-						"ChargingStationConsumptionStatistics"
+						"oicp",
+						"endpoints"
+					],
+					"query": [
+						{
+							"key": "Limit",
+							"value": "100"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OICPEndpoint",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/oicp/endpoints/{{oicpID}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"oicp",
+						"endpoints",
+						"{{oicpID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OICPEndpointRegister",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/oicp/endpoints/{{oicpID}}/register",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"oicp",
+						"endpoints",
+						"{{oicpID}}",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OICPEndpointUnregister",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/oicp/endpoints/{{oicpID}}/unregister",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"oicp",
+						"endpoints",
+						"{{oicpID}}",
+						"unregister"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OICPEndpointDelete",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/oicp/endpoints/{{oicpID}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"oicp",
+						"endpoints",
+						"{{oicpID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-RegistrationTokens",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/registration-tokens?Limit=100",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"registration-tokens"
+					],
+					"query": [
+						{
+							"key": "Limit",
+							"value": "100"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-RegistrationTokensCreate",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var responseJson = JSON.parse(responseBody);",
+							"postman.setEnvironmentVariable(\"registrationTokenID\", responseJson[\"id\"]);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"description\": \"A Token description\",\n    \"siteAreaID\": null\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/registration-tokens",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"registration-tokens"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-RegistrationToken",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/registration-tokens/{{registrationTokenID}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"registration-tokens",
+						"{{registrationTokenID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-RegistrationTokenUpdate",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"description\": \"An updated Token description\",\n    \"siteAreaID\": null\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/registration-tokens/{{registrationTokenID}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"registration-tokens",
+						"{{registrationTokenID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-RegistrationTokenRevoke",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/registration-tokens/{{registrationTokenID}}/revoke",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"registration-tokens",
+						"{{registrationTokenID}}",
+						"revoke"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-RegistrationTokenDelete",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/registration-tokens/{{registrationTokenID}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"registration-tokens",
+						"{{registrationTokenID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-SettingCreate",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var responseJson = JSON.parse(responseBody);",
+							"postman.setEnvironmentVariable(\"settingID\", responseJson[\"id\"]);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"identifier\": \"User\",\n  \"sensitiveData\": [],\n  \"content\": {\n    \"type\": \"user\",\n    \"user\": {\n      \"autoActivateAccountAfterValidation\": true\n    }\n  }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/settings",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"settings"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-Settings",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/settings",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"settings"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-Setting",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/settings/{{settingID}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"settings",
+						"{{settingID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-SettingUpdate",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"identifier\": \"User\",\n  \"sensitiveData\": [],\n  \"content\": {\n    \"type\": \"user\",\n    \"user\": {\n      \"autoActivateAccountAfterValidation\": false\n    }\n  }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/settings/{{settingID}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"settings",
+						"{{settingID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-SettingDelete",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/settings/{{settingID}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"settings",
+						"{{settingID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-SiteCreate",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var responseJson = JSON.parse(responseBody);",
+							"postman.setEnvironmentVariable(\"siteID\", responseJson[\"id\"]);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"name\": \"SAP Labs Mougins\",\n\t\"address\": {\n\t\t\"address1\": \"805 Av. du Docteur Maurice Donat\",\n\t\t\"address2\": \"Font de l'Orme\",\n\t\t\"postalCode\": \"06150\",\n\t\t\"city\": \"Mougins\",\n\t\t\"region\": \"PACA\",\n\t\t\"country\": \"France\"\n\t},\n\t\"companyID\": \"5abeba344bae1457eb565e27\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/sites",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"sites"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-Site",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/v1/api/sites/{{siteID}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"sites",
+						"{{siteID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-SiteUsers",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/v1/api/sites/{{siteID}}/users",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"sites",
+						"{{siteID}}",
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-SiteUpdate",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"name\": \"SAP Labs Mougins updated\",\n\t\"address\": {\n\t\t\"address1\": \"805 Av. du Docteur Maurice Donat\",\n\t\t\"address2\": \"Font de l'Orme\",\n\t\t\"postalCode\": \"06150\",\n\t\t\"city\": \"Mougins\",\n\t\t\"region\": \"PACA\",\n\t\t\"country\": \"France\"\n\t},\n\t\"companyID\": \"5abeba344bae1457eb565e27\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/sites/{{siteID}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"sites",
+						"{{siteID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-SiteAssignUsers",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"userIDs\": [\"{{userID}}\"]\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/sites/{{siteID}}/users/assign",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"sites",
+						"{{siteID}}",
+						"users",
+						"assign"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-SiteAssignUsers Copy",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"userIDs\": [\"{{userID}}\"]\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/sites/{{siteID}}/users/assign",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"sites",
+						"{{siteID}}",
+						"users",
+						"assign"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-SiteSetAdmin",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"userID\": \"{{userID}}\",\n    \"siteAdmin\": true\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/sites/{{siteID}}/users/admin",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"sites",
+						"{{siteID}}",
+						"users",
+						"admin"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-SiteSetOwner",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"userID\": \"{{userID}}\",\n    \"siteOwner\": true\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/sites/{{siteID}}/users/owner",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"sites",
+						"{{siteID}}",
+						"users",
+						"owner"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-SiteImage",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/v1/util/sites/{{siteID}}/image?TenantID=aaaaaaaaaaaaaaaaaaaaaaa1",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"util",
+						"sites",
+						"{{siteID}}",
+						"image"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "aaaaaaaaaaaaaaaaaaaaaaa1"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-SiteDelete",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/v1/api/sites/{{siteID}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"sites",
+						"{{siteID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-SiteAreas",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/site-areas?Limit=100",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"site-areas"
+					],
+					"query": [
+						{
+							"key": "WithSite",
+							"value": "true",
+							"disabled": true
+						},
+						{
+							"key": "WithAvailableChargers",
+							"value": "true",
+							"disabled": true
+						},
+						{
+							"key": "WithChargeBoxes",
+							"value": "true",
+							"disabled": true
+						},
+						{
+							"key": "Limit",
+							"value": "100"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-SiteAreaCreate",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"accessControl\": true,\n  \"address\": {\n    \"address1\": \"805 av. du Docteur Maurice Donat\",\n    \"address2\": \"string\",\n    \"postalCode\": \"06250\",\n    \"city\": \"Mougins\",\n    \"department\": \"Alpes Maritimes\",\n    \"region\": \"PACA\",\n    \"country\": \"France\",\n    \"coordinates\": [\n      43,\n      7\n    ]\n  },\n  \"issuer\": true,\n  \"maximumPower\": 1,\n  \"name\": \"Test Site Area\",\n  \"numberOfPhases\": 1,\n  \"siteID\": \"{{siteID}}\",\n  \"smartCharging\": true,\n  \"voltage\": 110\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/site-areas",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"site-areas"
+					],
+					"query": [
+						{
+							"key": "WithSite",
+							"value": "true",
+							"disabled": true
+						},
+						{
+							"key": "WithAvailableChargers",
+							"value": "true",
+							"disabled": true
+						},
+						{
+							"key": "WithChargeBoxes",
+							"value": "true",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-SiteArea",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/site-areas/{{siteAreaID}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"site-areas",
+						"{{siteAreaID}}"
+					],
+					"query": [
+						{
+							"key": "WithSite",
+							"value": "true",
+							"disabled": true
+						},
+						{
+							"key": "WithAvailableChargers",
+							"value": "true",
+							"disabled": true
+						},
+						{
+							"key": "WithChargeBoxes",
+							"value": "true",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-SiteAreaImage",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/util/site-areas/{{siteAreaID}}/image?TenantID={{tenantID}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"util",
+						"site-areas",
+						"{{siteAreaID}}",
+						"image"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-SiteAreaConsumption",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/site-areas/{{siteAreaID}}/consumptions?StartDate=2019-11-18T14:35:23.603Z&EndDate=2021-11-18T14:35:23.603Z",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"site-areas",
+						"{{siteAreaID}}",
+						"consumptions"
+					],
+					"query": [
+						{
+							"key": "StartDate",
+							"value": "2019-11-18T14:35:23.603Z"
+						},
+						{
+							"key": "EndDate",
+							"value": "2021-11-18T14:35:23.603Z"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-SiteAreaAssignChargingStations",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"chargingStationIDs\": [\"{{chargingStation}}\"]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/site-areas/{{siteAreaID}}/charging-stations/assign",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"site-areas",
+						"{{siteAreaID}}",
+						"charging-stations",
+						"assign"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-SiteAreaUnassignChargingStations",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"chargingStationIDs\": [\"{{chargingStation}}\"]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/site-areas/{{siteAreaID}}/charging-stations/unassign",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"site-areas",
+						"{{siteAreaID}}",
+						"charging-stations",
+						"unassign"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-SiteAreaAssignAssets",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"assetIDs\": [\"{{assetID}}\"]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/site-areas/{{siteAreaID}}/assets/assign",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"site-areas",
+						"{{siteAreaID}}",
+						"assets",
+						"assign"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-SiteAreaUnassignAssets",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"assetIDs\": [\"{{assetID}}\"]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/site-areas/{{siteAreaID}}/assets/unassign",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"site-areas",
+						"{{siteAreaID}}",
+						"assets",
+						"unassign"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-StatisticsExport",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/statistics/action/export?DataType=Users&DataCategory=Pricing&DataScope=Year",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"statistics",
+						"action",
+						"export"
+					],
+					"query": [
+						{
+							"key": "DataType",
+							"value": "Users"
+						},
+						{
+							"key": "DataCategory",
+							"value": "Pricing"
+						},
+						{
+							"key": "DataScope",
+							"value": "Year"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-StatisticsTransactionsYears",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/statistics/transactions/years",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"statistics",
+						"transactions",
+						"years"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-StatisticsChargingStationConsumption",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/statistics/charging-stations/consumption?Year=2018",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"statistics",
+						"charging-stations",
+						"consumption"
 					],
 					"query": [
 						{
@@ -7719,7 +9305,7 @@
 			"response": []
 		},
 		{
-			"name": "FE-ChargingStationUsageStatistics",
+			"name": "FE-StatisticsChargingStationInactivity",
 			"request": {
 				"auth": {
 					"type": "bearer",
@@ -7734,14 +9320,16 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/client/api/ChargingStationUsageStatistics?Year=2018",
+					"raw": "{{base_url}}/v1/api/statistics/charging-stations/inactivity?Year=2018",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
-						"client",
+						"v1",
 						"api",
-						"ChargingStationUsageStatistics"
+						"statistics",
+						"charging-stations",
+						"inactivity"
 					],
 					"query": [
 						{
@@ -7754,7 +9342,7 @@
 			"response": []
 		},
 		{
-			"name": "FE-UserConsumptionStatistics",
+			"name": "FE-StatisticsChargingStationUsage",
 			"request": {
 				"auth": {
 					"type": "bearer",
@@ -7769,14 +9357,16 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/client/api/UserConsumptionStatistics?Year=2018",
+					"raw": "{{base_url}}/v1/api/statistics/charging-stations/usage?Year=2018",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
-						"client",
+						"v1",
 						"api",
-						"UserConsumptionStatistics"
+						"statistics",
+						"charging-stations",
+						"usage"
 					],
 					"query": [
 						{
@@ -7789,7 +9379,7 @@
 			"response": []
 		},
 		{
-			"name": "FE-UserUsageStatistics",
+			"name": "FE-StatisticsChargingStationTransaction",
 			"request": {
 				"auth": {
 					"type": "bearer",
@@ -7804,20 +9394,888 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/client/api/UserUsageStatistics?Year=2018",
+					"raw": "{{base_url}}/v1/api/statistics/charging-stations/transaction?Year=2018",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
-						"client",
+						"v1",
 						"api",
-						"UserUsageStatistics"
+						"statistics",
+						"charging-stations",
+						"transaction"
 					],
 					"query": [
 						{
 							"key": "Year",
 							"value": "2018"
 						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-StatisticsChargingStationPricing",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/statistics/charging-stations/transaction?Year=2018",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"statistics",
+						"charging-stations",
+						"transaction"
+					],
+					"query": [
+						{
+							"key": "Year",
+							"value": "2018"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-StatisticsUsersConsumption",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/statistics/users/consumption?Year=2018",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"statistics",
+						"users",
+						"consumption"
+					],
+					"query": [
+						{
+							"key": "Year",
+							"value": "2018"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-StatisticsUsersUsage",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/statistics/users/usage?Year=2018",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"statistics",
+						"users",
+						"usage"
+					],
+					"query": [
+						{
+							"key": "Year",
+							"value": "2018"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-StatisticsUsersInactivity",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/statistics/users/inactivity?Year=2018",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"statistics",
+						"users",
+						"inactivity"
+					],
+					"query": [
+						{
+							"key": "Year",
+							"value": "2018"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-StatisticsUsersTransactions",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/statistics/users/transaction?Year=2018",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"statistics",
+						"users",
+						"transaction"
+					],
+					"query": [
+						{
+							"key": "Year",
+							"value": "2018"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-StatisticsUsersPricing",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/statistics/users/pricing?Year=2018",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"statistics",
+						"users",
+						"pricing"
+					],
+					"query": [
+						{
+							"key": "Year",
+							"value": "2018"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-BillingSetting",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/v1/api/billing-setting",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"billing-setting"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-BillingSettingUpdate",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\": \"61efb66864118300f06ea3f1\",\n    \"identifier\": \"billing\",\n    \"sensitiveData\": [],\n    \"type\": \"stripe\",\n    \"billing\": {\n        \"isTransactionBillingActivated\": true,\n        \"immediateBillingAllowed\": true,\n        \"periodicBillingAllowed\": true,\n        \"taxID\": \"\"\n    },\n    \"stripe\": {\n        \"url\": \"string\",\n        \"secretKey\": \"string\",\n        \"publicKey\": \"string\"\n    }\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/billing-setting",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"billing-setting"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-BillingGetUserPaymentMethod",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\": \"61efb66864118300f06ea3f1\",\n    \"identifier\": \"billing\",\n    \"sensitiveData\": [],\n    \"type\": \"stripe\",\n    \"billing\": {\n        \"isTransactionBillingActivated\": true,\n        \"immediateBillingAllowed\": true,\n        \"periodicBillingAllowed\": true,\n        \"taxID\": \"\"\n    },\n    \"stripe\": {\n        \"url\": \"string\",\n        \"secretKey\": \"string\",\n        \"publicKey\": \"string\"\n    }\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/users/{{userID}}/payment-methods?Limit=100",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"users",
+						"{{userID}}",
+						"payment-methods"
+					],
+					"query": [
+						{
+							"key": "Skip",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "Limit",
+							"value": "100"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-BillingGetUserPaymentMethod Copy",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/v1/api/users/{{userID}}/payment-methods/pm_1Ib3MxF5e1VSb1v6eH3Zhn4K",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"users",
+						"{{userID}}",
+						"payment-methods",
+						"pm_1Ib3MxF5e1VSb1v6eH3Zhn4K"
+					],
+					"query": [
+						{
+							"key": "Skip",
+							"value": null,
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-BillingSetupUserPaymentMethod",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"paymentMethodId\": \"pm_1Ib3MxF5e1VSb1v6eH3Zhn4K\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/users/{{userID}}/payment-methods/setup",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"users",
+						"{{userID}}",
+						"payment-methods",
+						"setup"
+					],
+					"query": [
+						{
+							"key": "Skip",
+							"value": null,
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-BillingAttachUserPaymentMethod",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"paymentMethodId\": \"pm_1Ib3MxF5e1VSb1v6eH3Zhn4K\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/users/{{userID}}/payment-methods/pm_1Ib3MxF5e1VSb1v6eH3Zhn4K/attach",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"users",
+						"{{userID}}",
+						"payment-methods",
+						"pm_1Ib3MxF5e1VSb1v6eH3Zhn4K",
+						"attach"
+					],
+					"query": [
+						{
+							"key": "Skip",
+							"value": null,
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-BillingDetachUserPaymentMethod",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/v1/api/users/{{userID}}/payment-methods/pm_1Ib3MxF5e1VSb1v6eH3Zhn4K/attach",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"users",
+						"{{userID}}",
+						"payment-methods",
+						"pm_1Ib3MxF5e1VSb1v6eH3Zhn4K",
+						"attach"
+					],
+					"query": [
+						{
+							"key": "Skip",
+							"value": null,
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-BillingTaxes",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/v1/api/billing/taxes",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"billing",
+						"taxes"
+					],
+					"query": [
+						{
+							"key": "Skip",
+							"value": null,
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-BillingCheck",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/v1/api/billing/check",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"billing",
+						"check"
+					],
+					"query": [
+						{
+							"key": "Skip",
+							"value": null,
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-BillingInvoices",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/v1/api/invoices?Limit=100",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"invoices"
+					],
+					"query": [
+						{
+							"key": "Skip",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "Limit",
+							"value": "100"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-BillingInvoice",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/v1/api/invoices/5bbd06cd4598d76ea07dd3cf",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"invoices",
+						"5bbd06cd4598d76ea07dd3cf"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-BillingDownloadInvoice",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/v1/api/invoices/5bbd06cd4598d76ea07dd3cf/download",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"invoices",
+						"5bbd06cd4598d76ea07dd3cf",
+						"download"
 					]
 				}
 			},

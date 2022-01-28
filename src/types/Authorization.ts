@@ -211,6 +211,7 @@ export interface AssetAuthorizationActions extends AuthorizationActions {
   canRetrieveConsumption?:boolean;
   canReadConsumption?:boolean;
   canCheckConnection?:boolean;
+  canCreateConsumption?:boolean;
 }
 
 export interface SiteAreaAuthorizationActions extends AuthorizationActions {
