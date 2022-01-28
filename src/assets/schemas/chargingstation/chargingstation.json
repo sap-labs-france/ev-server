@@ -64,11 +64,13 @@
             "validFrom": {
               "type": "string",
               "format": "date-time",
+              "customType": "date",
               "sanitize": "mongo"
             },
             "validTo": {
               "type": "string",
               "format": "date-time",
+              "customType": "date",
               "sanitize": "mongo"
             },
             "chargingSchedule": {
@@ -81,6 +83,7 @@
                 "startSchedule": {
                   "type": "string",
                   "format": "date-time",
+                  "customType": "date",
                   "sanitize": "mongo"
                 },
                 "chargingRateUnit": {

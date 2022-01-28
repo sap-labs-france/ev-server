@@ -1627,8 +1627,11 @@ export default class OCPPService {
         if (Utils.isTenantComponentActive(tenant, TenantComponents.CAR) && user) {
           // Check Car from User selection (valid for 5 mins)
           if (user.startTransactionData?.lastSelectedCar &&
-              user.startTransactionData.lastChangedOn.getTime() + 5 * 60 * 1000 > Date.now()) {
+              user.startTransactionData.lastChangedOn?.getTime() + 5 * 60 * 1000 > Date.now()) {
             transaction.carID = user.startTransactionData.lastSelectedCarID;
+            transaction.carSoc = user.startTransactionData.lastCarSoc;
+            transaction.carOdometer = user.startTransactionData.lastCarOdometer;
+            transaction.departureTime = user.startTransactionData.lastDepartureTime;
           } else {
             // Get default car if any
             const defaultCar = await CarStorage.getDefaultUserCar(tenant, user.id, {},
@@ -1647,7 +1650,14 @@ export default class OCPPService {
             transaction.car = car;
           }
           // Clear
-          await UserStorage.saveLastSelectedCarID(tenant, user.id, null, false);
+          await UserStorage.saveStartTransactionData(tenant, user.id, {
+            lastChangedOn: null,
+            lastSelectedCarID: null,
+            lastSelectedCar: false,
+            lastCarSoc: null,
+            lastCarOdometer: null,
+            lastDepartureTime: null
+          });
           // Handle SoC
           soc = await this.getCurrentSoc(tenant, transaction, chargingStation);
           if (soc) {

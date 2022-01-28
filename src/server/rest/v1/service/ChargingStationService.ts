@@ -1736,6 +1736,11 @@ export default class ChargingStationService {
         action: action,
       });
     }
+    // Check Car
+    if (filteredRequest.carID) {
+      await UtilsService.checkAndGetCarAuthorization(
+        req.tenant, req.user, filteredRequest.carID, Action.READ, ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION);
+    }
     let tag: Tag;
     if (filteredRequest.args.tagID) {
       tag = await UtilsService.checkAndGetTagAuthorization(
@@ -1784,11 +1789,14 @@ export default class ChargingStationService {
     Authorizations.isChargingStationValidInOrganization(action, req.tenant, chargingStation);
     // Save Car selection
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
-      if (filteredRequest.carID && filteredRequest.carID !== user.startTransactionData?.lastSelectedCarID) {
-        await UserStorage.saveLastSelectedCarID(req.tenant, user.id, filteredRequest.carID, true);
-      } else {
-        await UserStorage.saveLastSelectedCarID(req.tenant, user.id, null, true);
-      }
+      await UserStorage.saveStartTransactionData(req.tenant, user.id, {
+        lastChangedOn: new Date(),
+        lastSelectedCarID: filteredRequest.carID,
+        lastSelectedCar: true,
+        lastCarSoc: filteredRequest.carSoc,
+        lastCarOdometer: filteredRequest.carOdometer,
+        lastDepartureTime: filteredRequest.departureTime
+      });
     }
     // Execute it
     return chargingStationClient.remoteStartTransaction({

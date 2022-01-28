@@ -1,5 +1,5 @@
 import Tenant, { TenantComponents } from '../../types/Tenant';
-import User, { ImportedUser, UserRole, UserStatus } from '../../types/User';
+import User, { ImportedUser, StartTransactionUserData, UserRole, UserStatus } from '../../types/User';
 import { UserInError, UserInErrorType } from '../../types/InError';
 import global, { DatabaseCount, FilterParams, Image, ImportStatus } from '../../types/GlobalType';
 
@@ -360,20 +360,14 @@ export default class UserStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveUserStatus', startTime, { status });
   }
 
-  public static async saveLastSelectedCarID(tenant: Tenant, userID: string, lastSelectedCarID: string, lastSelectedCar: boolean): Promise<void> {
+  public static async saveStartTransactionData(tenant: Tenant, userID: string, startTransactionData: StartTransactionUserData): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Modify and return the modified document
     await global.database.getCollection<any>(tenant.id, 'users').findOneAndUpdate(
       { '_id': DatabaseUtils.convertToObjectID(userID) },
-      { $set: {
-        startTransactionData: {
-          lastChangedOn: new Date(),
-          lastSelectedCarID,
-          lastSelectedCar
-        }
-      } });
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveUserLastSelectedCarID', startTime, { lastSelectedCarID });
+      { $set: { startTransactionData } });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveUserLastSelectedCarID', startTime, { startTransactionData });
   }
 
   public static async saveUserMobileToken(tenant: Tenant, userID: string,

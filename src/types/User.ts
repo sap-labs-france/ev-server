@@ -49,6 +49,9 @@ export interface StartTransactionUserData {
   lastChangedOn: Date;
   lastSelectedCarID: string;
   lastSelectedCar: boolean;
+  lastCarSoc: number;
+  lastCarOdometer: number;
+  lastDepartureTime: Date;
 }
 
 export interface UserSite {
