@@ -98,7 +98,6 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   },
   admin: {
     grants: [
-      { resource: Entity.USER, action: Action.SYNCHRONIZE_BILLING_USERS },
       {
         resource: Entity.USER,
         action: [
