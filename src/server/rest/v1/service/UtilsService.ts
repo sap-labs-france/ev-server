@@ -1512,11 +1512,8 @@ export default class UtilsService {
     }
   }
 
-  public static async checkIfSiteAreaTreeValid(siteArea: SiteArea, req: Request, additionalSiteID: string = null): Promise<void> {
-    const siteIDs = [siteArea.siteID];
-    if (additionalSiteID) {
-      siteIDs.push(additionalSiteID);
-    }
+  public static async checkIfSiteAreaTreeValid(siteArea: SiteArea, req: Request, siteIDs: string[] = []): Promise<void> {
+    siteIDs.push(siteArea.siteID);
     const siteAreas = await SiteAreaStorage.getSiteAreas(req.tenant, { siteIDs: siteIDs }, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'name', 'parentSiteAreaID', 'siteID', 'smartCharging', 'name', 'voltage', 'numberOfPhases']);
     // Check if site area exists or should be created
     if (siteArea.id) {
