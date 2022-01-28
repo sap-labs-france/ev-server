@@ -101,7 +101,7 @@
     "xmake:download-libvibs-headers": "wget https://nexus.wdf.sap.corp:8443/nexus/service/local/repositories/3rd-party.releases.manual-uploads.hosted/content/lovell/sharp/libvips/8.10.6/libvips-8.10.6-linux-x64.tar.br -P ${WORKSPACE}/gen/tmp/libvips/v8.10.6/"
   },
   "dependencies": {
-    "ajv": "^8.6.3",
+    "ajv": "^8.9.0",
     "ajv-formats": "^2.1.1",
     "ajv-keywords": "^5.1.0",
     "axios": "^0.25.0",
