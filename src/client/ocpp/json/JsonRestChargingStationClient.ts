@@ -20,15 +20,15 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
   private wsConnection: WSClient;
   private tenantID: string;
 
-  constructor(tenantID: string, chargingStation: ChargingStation) {
+  public constructor(tenantID: string, chargingStation: ChargingStation) {
     super();
     this.tenantID = tenantID;
     // Get URL
     let jsonServerURL: string;
     // Check K8s
-    if (process.env.POD_NAME && chargingStation.cloudHostIP) {
+    if (process.env.K8S && process.env.OCPPJ_TARGET_PORT && chargingStation.cloudHostIP) {
       // Use K8s internal IP, always in ws
-      jsonServerURL = `ws://${chargingStation.cloudHostIP}`;
+      jsonServerURL = `ws://${chargingStation.cloudHostIP}:${process.env.OCPPJ_TARGET_PORT}`;
     } else {
       jsonServerURL = chargingStation.chargingStationURL;
       if (!jsonServerURL) {
