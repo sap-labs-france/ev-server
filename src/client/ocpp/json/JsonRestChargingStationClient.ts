@@ -5,6 +5,7 @@ import { ServerAction, WSServerProtocol } from '../../../types/Server';
 
 import BackendError from '../../../exception/BackendError';
 import ChargingStationClient from '../ChargingStationClient';
+import Configuration from '../../../utils/Configuration';
 import Logging from '../../../utils/Logging';
 import LoggingHelper from '../../../utils/LoggingHelper';
 import Utils from '../../../utils/Utils';
@@ -14,6 +15,7 @@ import { WSClientOptions } from '../../../types/WebSocket';
 const MODULE_NAME = 'JsonRestChargingStationClient';
 
 export default class JsonRestChargingStationClient extends ChargingStationClient {
+  private jsonEndoint = Configuration.getJsonEndpointConfig();
   private serverURL: string;
   private chargingStation: ChargingStation;
   private requests: { [messageUID: string]: { resolve?: (result: Record<string, unknown> | string) => void; reject?: (error: Record<string, unknown>) => void; command: Command } };
@@ -26,9 +28,9 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     // Get URL
     let jsonServerURL: string;
     // Check K8s
-    if (process.env.K8S && process.env.OCPPJ_TARGET_PORT && chargingStation.cloudHostIP) {
+    if (process.env.K8S && this.jsonEndoint.targetPort && chargingStation.cloudHostIP) {
       // Use K8s internal IP, always in ws
-      jsonServerURL = `ws://${chargingStation.cloudHostIP}:${process.env.OCPPJ_TARGET_PORT}`;
+      jsonServerURL = `ws://${chargingStation.cloudHostIP}:${this.jsonEndoint.targetPort}`;
     } else {
       jsonServerURL = chargingStation.chargingStationURL;
       if (!jsonServerURL) {
