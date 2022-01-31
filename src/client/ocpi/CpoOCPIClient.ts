@@ -134,7 +134,7 @@ export default class CpoOCPIClient extends OCPIClient {
           } catch (error) {
             result.failure++;
             result.logs.push(
-              `Failed to update Issuer '${token.issuer}' - Token ID '${token.uid}': ${error.message as string}`
+              `Failed to update Issuer '${token.issuer}' - ID '${token.uid}': ${error.message as string}`
             );
           }
         },
