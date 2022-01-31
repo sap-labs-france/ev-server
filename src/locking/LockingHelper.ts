@@ -116,8 +116,8 @@ export default class LockingHelper {
     return lock;
   }
 
-  public static async acquireTransactionsCleanLock(tenantID: string): Promise<Lock | null> {
-    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.TRANSACTION, 'clean-transactions');
+  public static async acquireCloseTransactionsInProgressLock(tenantID: string): Promise<Lock | null> {
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.TRANSACTION, 'close-transactions-in-progress');
     if (!(await LockingManager.acquire(lock))) {
       return null;
     }

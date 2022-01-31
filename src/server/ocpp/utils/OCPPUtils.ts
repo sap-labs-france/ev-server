@@ -36,6 +36,7 @@ import { Promise } from 'bluebird';
 import RegistrationToken from '../../../types/RegistrationToken';
 import RegistrationTokenStorage from '../../../storage/mongodb/RegistrationTokenStorage';
 import { ServerAction } from '../../../types/Server';
+import Site from '../../../types/Site';
 import SiteArea from '../../../types/SiteArea';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import Tag from '../../../types/Tag';
@@ -1729,33 +1730,37 @@ export default class OCPPUtils {
     }
   }
 
-  public static async softStopTransaction(tenant: Tenant, transaction: Transaction): Promise<boolean> {
-    // Get the Charging Station
-    const chargingStation = await ChargingStationStorage.getChargingStation(tenant, transaction.chargeBoxID, { withSiteArea: true });
+  public static async softStopTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, siteArea: SiteArea): Promise<boolean> {
+    // Check
+    if (!tenant || !transaction || !chargingStation) {
+      return false;
+    }
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION) && !siteArea) {
+      return false;
+    }
+    // Set
+    chargingStation.siteArea = siteArea;
     // Stop Transaction
     const result = await new OCPPService(Configuration.getChargingStationConfig()).handleStopTransaction(
-      {
-        chargeBoxIdentity: chargingStation.id,
+      { // OCPP Header
+        chargeBoxIdentity: transaction.chargeBoxID,
         chargingStation: chargingStation,
-        companyID: chargingStation.companyID,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
+        companyID: transaction.companyID,
+        siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
         tenantID: tenant.id,
         tenant: tenant,
       },
-      {
+      { // OCPP Stop Transaction
         transactionId: transaction.id,
-        chargeBoxID: chargingStation.id,
+        chargeBoxID: transaction.chargeBoxID,
         idTag: transaction.tagID,
         timestamp: Utils.convertToDate(transaction.lastConsumption ? transaction.lastConsumption.timestamp : transaction.timestamp).toISOString(),
         meterStop: transaction.lastConsumption ? transaction.lastConsumption.value : transaction.meterStart
       },
       true
     );
-    if (result.idTagInfo?.status !== OCPPAuthorizationStatus.ACCEPTED) {
-      return false;
-    }
-    return true;
+    return (result.idTagInfo?.status === OCPPAuthorizationStatus.ACCEPTED);
   }
 
   private static async enrichChargingStationWithTemplate(tenant: Tenant, chargingStation: ChargingStation): Promise<TemplateUpdateResult> {
