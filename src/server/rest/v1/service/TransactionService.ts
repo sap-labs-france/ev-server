@@ -373,7 +373,7 @@ export default class TransactionService {
       }
       // Stop Transaction
       const result = await new OCPPService(Configuration.getChargingStationConfig()).handleStopTransaction(
-        {
+        { // OCPP Headers
           chargeBoxIdentity: chargingStation.id,
           chargingStation: chargingStation,
           companyID: chargingStation.companyID,
@@ -382,7 +382,7 @@ export default class TransactionService {
           tenantID: req.user.tenantID,
           tenant: req.tenant,
         },
-        {
+        { // OCPP Stop Transaction
           transactionId: transactionId,
           chargeBoxID: chargingStation.id,
           idTag: req.user.tagIDs[0],
