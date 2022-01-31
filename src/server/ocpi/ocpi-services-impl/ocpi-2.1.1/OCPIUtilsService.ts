@@ -692,12 +692,13 @@ export default class OCPIUtilsService {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    const tagToSave = {
+    const tagToSave: Tag = {
       id: token.uid,
       issuer: false,
       userID: emspUser.id,
       active: token.valid === true ? true : false,
       description: token.visual_number,
+      visualID: token.visual_number,
       lastChangedOn: token.last_updated,
       ocpiToken: token
     };
