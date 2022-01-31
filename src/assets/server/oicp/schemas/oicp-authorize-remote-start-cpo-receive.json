@@ -70,6 +70,7 @@
                 "ExpiryDate": {
                     "description": "Enables basic storage and retrieval of dates and times.",
                     "format": "date-time",
+                    "customType": "date",
                     "type": "string"
                 },
                 "PrintedNumber": {

@@ -55,6 +55,7 @@
     "timestamp": {
       "type": "string",
       "format": "date-time",
+      "customType": "date",
       "description": "string defining the status notification timestamp"
     },
     "vendorId": {

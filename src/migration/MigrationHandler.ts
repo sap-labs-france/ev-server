@@ -14,6 +14,7 @@ import RestoreDataIntegrityInSiteUsersTask from './tasks/RestoreDataIntegrityInS
 import { ServerAction } from '../types/Server';
 import SimplePricingMigrationTask from './tasks/MigrateSimplePricing';
 import UpdateEmailsToLowercaseTask from './tasks/UpdateEmailsToLowercaseTask';
+import UserCleanUpTask from './tasks/UserCleanUpTask';
 import Utils from '../utils/Utils';
 import moment from 'moment';
 
@@ -84,20 +85,6 @@ export default class MigrationHandler {
     }
   }
 
-  private static createMigrationTasks(): MigrationTask[] {
-    const currentMigrationTasks: MigrationTask[] = [];
-    currentMigrationTasks.push(new RemoveDuplicateTagVisualIDsTask());
-    currentMigrationTasks.push(new AddCompanyIDToTransactionsTask());
-    currentMigrationTasks.push(new AddCompanyIDToChargingStationsTask());
-    currentMigrationTasks.push(new RestoreDataIntegrityInSiteUsersTask());
-    currentMigrationTasks.push(new AddUserIDToCarsTask());
-    currentMigrationTasks.push(new RepairInvoiceInconsistencies());
-    currentMigrationTasks.push(new SimplePricingMigrationTask());
-    currentMigrationTasks.push(new RepairTransactionPricedAtZero());
-    currentMigrationTasks.push(new UpdateEmailsToLowercaseTask());
-    return currentMigrationTasks;
-  }
-
   private static async executeTask(currentMigrationTask: MigrationTask): Promise<void> {
     try {
       // Log Start Task
@@ -145,5 +132,20 @@ export default class MigrationHandler {
       });
       Logging.logConsoleError(logMsg);
     }
+  }
+
+  private static createMigrationTasks(): MigrationTask[] {
+    const currentMigrationTasks: MigrationTask[] = [];
+    currentMigrationTasks.push(new RemoveDuplicateTagVisualIDsTask());
+    currentMigrationTasks.push(new AddCompanyIDToTransactionsTask());
+    currentMigrationTasks.push(new AddCompanyIDToChargingStationsTask());
+    currentMigrationTasks.push(new RestoreDataIntegrityInSiteUsersTask());
+    currentMigrationTasks.push(new AddUserIDToCarsTask());
+    currentMigrationTasks.push(new RepairInvoiceInconsistencies());
+    currentMigrationTasks.push(new SimplePricingMigrationTask());
+    currentMigrationTasks.push(new RepairTransactionPricedAtZero());
+    currentMigrationTasks.push(new UpdateEmailsToLowercaseTask());
+    currentMigrationTasks.push(new UserCleanUpTask());
+    return currentMigrationTasks;
   }
 }
