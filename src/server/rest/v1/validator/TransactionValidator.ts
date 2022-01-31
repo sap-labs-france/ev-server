@@ -1,4 +1,4 @@
-import { HttpAssignTransactionsToUserRequest, HttpConsumptionFromTransactionRequest, HttpPushTransactionCdrRequest, HttpTransactionRequest, HttpTransactionsRequest, HttpUnassignTransactionsToUserRequest } from '../../../../types/requests/HttpTransactionRequest';
+import { HttpAssignTransactionsToUserRequest, HttpConsumptionFromTransactionRequest, HttpExportTransactionCdrRequest, HttpPushTransactionCdrRequest, HttpTransactionRequest, HttpTransactionsRequest, HttpUnassignTransactionsToUserRequest } from '../../../../types/requests/HttpTransactionRequest';
 
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from '../../../../validator/SchemaValidator';
@@ -11,6 +11,7 @@ export default class TransactionValidator extends SchemaValidator {
   private transactionGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transaction-get.json`, 'utf8'));
   private transactionsByIDsGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transactions-by-ids-get.json`, 'utf8'));
   private transactionCdrPush: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transaction-cdr-push.json`, 'utf8'));
+  private transactionCdrExport: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transaction-cdr-export.json`, 'utf8'));
   private transactionConsumptionsGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transaction-consumptions-get.json`, 'utf8'));
   private transactionsUserAssign: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transactions-user-assign.json`, 'utf8'));
   private transactionsUnassignedCountGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transactions-unassigned-count-get.json`, 'utf8'));
@@ -34,6 +35,10 @@ export default class TransactionValidator extends SchemaValidator {
 
   public validateTransactionGetReq(data: Record<string, unknown>): HttpTransactionRequest {
     return this.validate(this.transactionGet, data);
+  }
+
+  public validateTransactionCdrExportReq(data: Record<string, unknown>): HttpExportTransactionCdrRequest {
+    return this.validate(this.transactionCdrExport, data);
   }
 
   public validateTransactionsByIDsGetReq(data: Record<string, unknown>): { transactionsIDs: number[] } {

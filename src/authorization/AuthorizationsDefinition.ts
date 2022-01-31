@@ -98,7 +98,6 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   },
   admin: {
     grants: [
-      { resource: Entity.USER, action: Action.SYNCHRONIZE_BILLING_USERS },
       {
         resource: Entity.USER,
         action: [
@@ -184,7 +183,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['LocalIssuer'],
+            filters: [],
           }
         },
         attributes: [
@@ -1135,6 +1134,14 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
             filters: ['SitesAdmin', 'LocalIssuer']
           }
         },
+      },
+      {
+        resource: Entity.SITE_AREA,
+        action: [Action.READ],
+        attributes: [
+          'id', 'name', 'issuer', 'image', 'address', 'maximumPower', 'numberOfPhases',
+          'voltage', 'smartCharging', 'accessControl', 'connectorStats', 'siteID', 'site.name', 'site.public', 'tariffID'
+        ]
       },
       {
         resource: Entity.SITE_AREA,

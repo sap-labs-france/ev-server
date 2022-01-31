@@ -531,7 +531,7 @@ export default class ChargingStationService {
         connectorID: filteredRequest.ConnectorID,
         withChargingStation: filteredRequest.WithChargingStation,
         withSiteArea: filteredRequest.WithSiteArea,
-        siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
+        siteIDs: await Authorizations.getAuthorizedSiteIDs(req.tenant, req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
       },
       {
         limit: filteredRequest.Limit,
@@ -1043,7 +1043,7 @@ export default class ChargingStationService {
     const chargingStations = await ChargingStationStorage.getChargingStationsInError(req.tenant,
       {
         search: filteredRequest.Search,
-        siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
+        siteIDs: await Authorizations.getAuthorizedSiteIDs(req.tenant, req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         siteAreaIDs: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
         errorType
       },
@@ -1359,7 +1359,7 @@ export default class ChargingStationService {
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: action,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `OCPP Command '${command}' has failed`,
+        message: `OCPP Command '${command}' has failed: ${error.message as string}`,
         module: MODULE_NAME, method: 'handleAction',
         user: req.user,
         detailedMessages: { error: error.stack }
@@ -1444,7 +1444,7 @@ export default class ChargingStationService {
     if (!Utils.isEmptyArray(httpProjectFields)) {
       projectFields = projectFields.filter((projectField) => httpProjectFields.includes(projectField));
     }
-    const siteIDs = Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null);
+    const siteIDs = await Authorizations.getAuthorizedSiteIDs(req.tenant, req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null);
     // todo: write this in a nicer way when refactoring the whole auth concept for ChargingStation
     if (Utils.isEmptyArray(siteIDs) && !Authorizations.isAdmin(req.user)) {
       return { count: 0, result: [] };
@@ -1730,11 +1730,23 @@ export default class ChargingStationService {
       throw new AppError({
         errorCode: HTTPError.USER_NO_BADGE_ERROR,
         message: 'The user does not have any badge',
-        module: MODULE_NAME,
-        method: 'handleAction',
-        user: req.user,
-        action: action,
+        module: MODULE_NAME, method: 'handleAction',
+        user: req.user, action: action,
       });
+    }
+    // Check Departure Time
+    if (filteredRequest.departureTime && filteredRequest.departureTime.getTime() < Date.now()) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'The departure time must be set in the future',
+        module: MODULE_NAME, method: 'handleAction',
+        user: req.user, action: action,
+      });
+    }
+    // Check Car
+    if (filteredRequest.carID) {
+      await UtilsService.checkAndGetCarAuthorization(
+        req.tenant, req.user, filteredRequest.carID, Action.READ, ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION);
     }
     let tag: Tag;
     if (filteredRequest.args.tagID) {
@@ -1784,11 +1796,14 @@ export default class ChargingStationService {
     Authorizations.isChargingStationValidInOrganization(action, req.tenant, chargingStation);
     // Save Car selection
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
-      if (filteredRequest.carID && filteredRequest.carID !== user.lastSelectedCarID) {
-        await UserStorage.saveLastSelectedCarID(req.tenant, user.id, filteredRequest.carID, true);
-      } else {
-        await UserStorage.clearLastSelectedCarID(req.tenant, user.id);
-      }
+      await UserStorage.saveStartTransactionData(req.tenant, user.id, {
+        lastChangedOn: new Date(),
+        lastSelectedCarID: filteredRequest.carID,
+        lastSelectedCar: true,
+        lastCarSoc: filteredRequest.carSoc,
+        lastCarOdometer: filteredRequest.carOdometer,
+        lastDepartureTime: filteredRequest.departureTime
+      });
     }
     // Execute it
     return chargingStationClient.remoteStartTransaction({
@@ -1802,7 +1817,7 @@ export default class ChargingStationService {
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(
       req.tenant, filteredRequest.args.transactionId, { withUser: true });
-    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.args.transactionId }' does not exist`,
+    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.args.transactionId}' does not exist`,
       MODULE_NAME, 'handleAction', req.user);
     // Get default Tag
     const tags = await TagStorage.getTags(req.tenant, { userIDs: [req.user.id], active: true }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);

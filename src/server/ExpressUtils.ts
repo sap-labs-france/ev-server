@@ -7,6 +7,7 @@ import Utils from '../utils/Utils';
 import bodyParser from 'body-parser';
 import bodyParserXml from 'body-parser-xml';
 import cors from 'cors';
+import global from '../types/GlobalType';
 import helmet from 'helmet';
 import hpp from 'hpp';
 import locale from 'locale';

@@ -757,7 +757,7 @@ export default class AuthService {
         // No authorized to log
         throw new AppError({
           errorCode: HTTPError.TECHNICAL_USER_CANNOT_LOG_TO_UI_ERROR,
-          message: 'Technical user cannot log in to UI but only B2B',
+          message: 'API User cannot log in to UI but only B2B',
           module: MODULE_NAME,
           method: 'checkUserLogin',
           user: user

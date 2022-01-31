@@ -227,8 +227,8 @@ export default class OCPPService {
       }
       // Get the phases really used from Meter Values (for AC single phase charger/car)
       if (!transaction.phasesUsed &&
-          Utils.checkIfPhasesProvidedInTransactionInProgress(transaction) &&
-          transaction.numberOfMeterValues >= 1) {
+        Utils.checkIfPhasesProvidedInTransactionInProgress(transaction) &&
+        transaction.numberOfMeterValues >= 1) {
         transaction.phasesUsed = Utils.getUsedPhasesInTransactionInProgress(chargingStation, transaction);
       }
       // Roaming
@@ -677,7 +677,7 @@ export default class OCPPService {
   private async processSmartChargingFromStatusNotification(tenant: Tenant, chargingStation: ChargingStation, connector: Connector): Promise<void> {
     // Trigger Smart Charging
     if (connector.status === ChargePointStatus.CHARGING ||
-        connector.status === ChargePointStatus.SUSPENDED_EV) {
+      connector.status === ChargePointStatus.SUSPENDED_EV) {
       try {
         // Trigger Smart Charging
         await this.triggerSmartCharging(tenant, chargingStation);
@@ -709,7 +709,7 @@ export default class OCPPService {
   }
 
   private async checkAndGetConnectorFromStatusNotification(tenant: Tenant, chargingStation: ChargingStation,
-      statusNotification: OCPPStatusNotificationRequestExtended): Promise<{connector: Connector; ignoreStatusNotification: boolean;}> {
+      statusNotification: OCPPStatusNotificationRequestExtended): Promise<{ connector: Connector; ignoreStatusNotification: boolean; }> {
     let ignoreStatusNotification = false;
     let foundConnector = Utils.getConnectorFromID(chargingStation, statusNotification.connectorId);
     if (!foundConnector) {
@@ -741,7 +741,7 @@ export default class OCPPService {
         await OCPPUtils.enrichChargingStationConnectorWithTemplate(
           tenant, chargingStation, statusNotification.connectorId, chargingStationTemplate);
       }
-    // Same Status Notification?
+      // Same Status Notification?
     } else if (Utils.objectAllPropertiesAreEqual(statusNotification, foundConnector, ['status', 'info', 'errorCode', 'vendorErrorCode'])) {
       ignoreStatusNotification = true;
       await Logging.logWarning({
@@ -760,7 +760,7 @@ export default class OCPPService {
       statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector) {
     // Check last transaction
     if (statusNotification.status === ChargePointStatus.AVAILABLE ||
-        statusNotification.status === ChargePointStatus.PREPARING) {
+      statusNotification.status === ChargePointStatus.PREPARING) {
       // Get the last transaction
       const lastTransaction = await TransactionStorage.getLastTransactionFromChargingStation(
         tenant, chargingStation.id, connector.connectorId, { withUser: true });
@@ -957,8 +957,8 @@ export default class OCPPService {
   private async notifyStatusNotification(tenant: Tenant, chargingStation: ChargingStation, connector: Connector, statusNotification: OCPPStatusNotificationRequestExtended) {
     // Faulted?
     if (connector.status !== ChargePointStatus.AVAILABLE &&
-        connector.status !== ChargePointStatus.FINISHING && // TODO: To remove after fix of ABB bug having Finishing status with an Error Code to avoid spamming Admins
-        connector.errorCode !== ChargePointErrorCode.NO_ERROR) {
+      connector.status !== ChargePointStatus.FINISHING && // TODO: To remove after fix of ABB bug having Finishing status with an Error Code to avoid spamming Admins
+      connector.errorCode !== ChargePointErrorCode.NO_ERROR) {
       await Logging.logError({
         tenantID: tenant.id,
         ...LoggingHelper.getChargingStationProperties(chargingStation),
@@ -1023,7 +1023,7 @@ export default class OCPPService {
         if (meterValue.attribute.context === OCPPReadingContext.TRANSACTION_BEGIN) {
           transaction.stateOfCharge = Utils.convertToFloat(meterValue.value);
           continue;
-        // Set only the last SoC (will be used in the last consumption building in StopTransaction due to backward compat with OCPP 1.5)
+          // Set only the last SoC (will be used in the last consumption building in StopTransaction due to backward compat with OCPP 1.5)
         } else if (meterValue.attribute.context === OCPPReadingContext.TRANSACTION_END) {
           transaction.currentStateOfCharge = Utils.convertToFloat(meterValue.value);
           continue;
@@ -1239,17 +1239,17 @@ export default class OCPPService {
         if (transaction.currentStateOfCharge === 100) {
           // Send Notification
           this.notifyEndOfCharge(tenant, chargingStation, transaction);
-        // Check if optimal charge has been reached (85%)
+          // Check if optimal charge has been reached (85%)
         } else if (transaction.currentStateOfCharge >= this.chargingStationConfig.notifBeforeEndOfChargePercent) {
           // Send Notification
           this.notifyOptimalChargeReached(tenant, chargingStation, transaction);
         }
-      // No battery information: check last consumptions
+        // No battery information: check last consumptions
       } else {
         // Connector' status must be 'Suspended'
         const connector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
         if (connector.status === ChargePointStatus.SUSPENDED_EVSE ||
-            connector.status === ChargePointStatus.SUSPENDED_EV) {
+          connector.status === ChargePointStatus.SUSPENDED_EV) {
           // Check the last 3 consumptions
           const consumptions = await ConsumptionStorage.getTransactionConsumptions(
             tenant, { transactionId: transaction.id }, { limit: 3, skip: 0, sort: { startedAt: -1 } });
@@ -1258,7 +1258,7 @@ export default class OCPPService {
             const noConsumption = consumptions.result.every((consumption) =>
               consumption.consumptionWh === 0 &&
               (consumption.limitSource !== ConnectorCurrentLimitSource.CHARGING_PROFILE ||
-               consumption.limitAmps >= StaticLimitAmps.MIN_LIMIT_PER_PHASE * Utils.getNumberOfConnectedPhases(chargingStation, null, transaction.connectorId)));
+                consumption.limitAmps >= StaticLimitAmps.MIN_LIMIT_PER_PHASE * Utils.getNumberOfConnectedPhases(chargingStation, null, transaction.connectorId)));
             // Send Notification
             if (noConsumption) {
               this.notifyEndOfCharge(tenant, chargingStation, transaction);
@@ -1366,7 +1366,7 @@ export default class OCPPService {
           // Add
           normalizedMeterValues.values.push(normalizedLocalMeterValue);
         }
-      // OCPP 1.5
+        // OCPP 1.5
       } else if (meterValue['value']) {
         if (Array.isArray(meterValue['value'])) {
           for (const currentValue of meterValue['value']) {
@@ -1625,10 +1625,14 @@ export default class OCPPService {
       case TransactionAction.START:
         // Handle car in transaction start
         if (Utils.isTenantComponentActive(tenant, TenantComponents.CAR) && user) {
-          // Check default car
-          if (user.lastSelectedCarID) {
-            transaction.carID = user.lastSelectedCarID;
-          } else if (!user.lastSelectedCar) {
+          // Check Car from User selection (valid for 5 mins)
+          if (user.startTransactionData?.lastSelectedCar &&
+              user.startTransactionData.lastChangedOn?.getTime() + 5 * 60 * 1000 > Date.now()) {
+            transaction.carID = user.startTransactionData.lastSelectedCarID;
+            transaction.carSoc = user.startTransactionData.lastCarSoc;
+            transaction.carOdometer = user.startTransactionData.lastCarOdometer;
+            transaction.departureTime = user.startTransactionData.lastDepartureTime;
+          } else {
             // Get default car if any
             const defaultCar = await CarStorage.getDefaultUserCar(tenant, user.id, {},
               ['id', 'carCatalogID', 'vin', 'carConnectorData.carConnectorID', 'carConnectorData.carConnectorMeterID']);
@@ -1646,7 +1650,14 @@ export default class OCPPService {
             transaction.car = car;
           }
           // Clear
-          await UserStorage.clearLastSelectedCarID(tenant, user.id);
+          await UserStorage.saveStartTransactionData(tenant, user.id, {
+            lastChangedOn: null,
+            lastSelectedCarID: null,
+            lastSelectedCar: false,
+            lastCarSoc: null,
+            lastCarOdometer: null,
+            lastDepartureTime: null
+          });
           // Handle SoC
           soc = await this.getCurrentSoc(tenant, transaction, chargingStation);
           if (soc) {
@@ -1671,8 +1682,8 @@ export default class OCPPService {
 
   private async getCurrentSoc(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation): Promise<number> {
     if (Utils.isTenantComponentActive(tenant, TenantComponents.CAR_CONNECTOR) && !Utils.isNullOrUndefined(transaction.car) &&
-    !Utils.isNullOrUndefined(transaction.car.carConnectorData?.carConnectorID) &&
-    Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId) === CurrentType.AC) {
+      !Utils.isNullOrUndefined(transaction.car.carConnectorData?.carConnectorID) &&
+      Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId) === CurrentType.AC) {
       const carImplementation = await CarConnectorFactory.getCarConnectorImpl(tenant, transaction.car.carConnectorData.carConnectorID);
       if (carImplementation) {
         try {
@@ -1778,7 +1789,7 @@ export default class OCPPService {
         // Set coordinates
         if (siteArea.address?.coordinates?.length === 2) {
           newChargingStation.coordinates = siteArea.address.coordinates;
-        // Backup on Site's coordinates
+          // Backup on Site's coordinates
         } else if (siteArea.site?.address?.coordinates?.length === 2) {
           newChargingStation.coordinates = siteArea.site.address.coordinates;
         }
@@ -1791,9 +1802,9 @@ export default class OCPPService {
     // Existing Charging Station: Update
     // Check if same vendor and model
     if ((chargingStation.chargePointVendor !== bootNotification.chargePointVendor ||
-         chargingStation.chargePointModel !== bootNotification.chargePointModel) ||
-        (chargingStation.chargePointSerialNumber && bootNotification.chargePointSerialNumber &&
-         chargingStation.chargePointSerialNumber !== bootNotification.chargePointSerialNumber)) {
+      chargingStation.chargePointModel !== bootNotification.chargePointModel) ||
+      (chargingStation.chargePointSerialNumber && bootNotification.chargePointSerialNumber &&
+        chargingStation.chargePointSerialNumber !== bootNotification.chargePointSerialNumber)) {
       throw new BackendError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.OCPP_BOOT_NOTIFICATION,
@@ -1890,7 +1901,7 @@ export default class OCPPService {
             value: heartbeatIntervalSecs.toString()
           }, false);
           if (result.status === OCPPConfigurationStatus.ACCEPTED ||
-              result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
+            result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
             break;
           }
           await Logging.logError({
@@ -2136,7 +2147,7 @@ export default class OCPPService {
         // Save Consumption
         await ConsumptionStorage.saveConsumption(tenant, consumption);
       }
-    // Check Inactivity and Consumption between the last Transaction.End and Stop Transaction
+      // Check Inactivity and Consumption between the last Transaction.End and Stop Transaction
     } else if (transaction.lastConsumption) {
       // The consumption should be the same
       if (transaction.lastConsumption.value !== stopTransaction.meterStop) {

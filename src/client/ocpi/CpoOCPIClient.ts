@@ -6,6 +6,7 @@ import { OCPIAllowed, OCPIAuthorizationInfo } from '../../types/ocpi/OCPIAuthori
 import { OCPIAuthMethod, OCPISession, OCPISessionStatus } from '../../types/ocpi/OCPISession';
 import { OCPICapability, OCPIEvse, OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
 import { OCPILocation, OCPILocationOptions, OCPILocationReference, OCPILocationType } from '../../types/ocpi/OCPILocation';
+import User, { UserRole, UserStatus } from '../../types/User';
 
 import { AxiosResponse } from 'axios';
 import BackendError from '../../exception/BackendError';
@@ -37,7 +38,6 @@ import TagStorage from '../../storage/mongodb/TagStorage';
 import Tenant from '../../types/Tenant';
 import Transaction from '../../types/Transaction';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
-import User from '../../types/User';
 import UserStorage from '../../storage/mongodb/UserStorage';
 import Utils from '../../utils/Utils';
 import _ from 'lodash';
@@ -47,7 +47,7 @@ import moment from 'moment';
 const MODULE_NAME = 'CpoOCPIClient';
 
 export default class CpoOCPIClient extends OCPIClient {
-  constructor(tenant: Tenant, settings: OcpiSetting, ocpiEndpoint: OCPIEndpoint) {
+  public constructor(tenant: Tenant, settings: OcpiSetting, ocpiEndpoint: OCPIEndpoint) {
     super(tenant, settings, ocpiEndpoint, OCPIRole.CPO);
     if (ocpiEndpoint.role !== OCPIRole.CPO) {
       throw new BackendError({
@@ -58,7 +58,6 @@ export default class CpoOCPIClient extends OCPIClient {
   }
 
   public async pullTokens(partial = true): Promise<OCPIResult> {
-    // Result
     const result: OCPIResult = {
       success: 0,
       failure: 0,
@@ -67,16 +66,20 @@ export default class CpoOCPIClient extends OCPIClient {
     };
     // If partial (keep it global for logs)
     const momentFrom = moment().utc().subtract(1, 'hours').startOf('hour');
-    // EMSP Users
-    const emspUsers = new Map<string, User>();
+    // Get all the EMSP Users
+    const emspUsersMap = new Map<string, User>();
+    const emspUsers = (await UserStorage.getUsers(this.tenant, { issuer: false }, Constants.DB_PARAMS_MAX_LIMIT)).result;
+    for (const emspUser of emspUsers) {
+      emspUsersMap.set(emspUser.email, emspUser);
+    }
     // Perfs trace
     const startTime = new Date().getTime();
     // Get tokens endpoint url
     let tokensUrl = this.getEndpointUrl('tokens', ServerAction.OCPI_PULL_TOKENS);
     if (partial) {
-      tokensUrl = `${tokensUrl}?date_from=${momentFrom.format()}&limit=100`;
+      tokensUrl = `${tokensUrl}?date_from=${momentFrom.format()}&limit=1000`;
     } else {
-      tokensUrl = `${tokensUrl}?limit=100`;
+      tokensUrl = `${tokensUrl}?limit=1000`;
     }
     let nextResult = true;
     let totalNumberOfToken = 0;
@@ -116,27 +119,22 @@ export default class CpoOCPIClient extends OCPIClient {
         { tagIDs: tagIDs }, Constants.DB_PARAMS_MAX_LIMIT);
       const tokens = response.data.data as OCPIToken[];
       if (!Utils.isEmptyArray(tokens)) {
+        // Check and get eMSP users from Tokens
+        await this.checkAndCreateEMSPUsersFromTokens(tokens, emspUsersMap);
+        // Update the tags
         await Promise.map(tokens, async (token) => {
           try {
-            // Get eMSP user
+          // Get eMSP user
             const email = OCPIUtils.buildEmspEmailFromOCPIToken(token, this.ocpiEndpoint.countryCode, this.ocpiEndpoint.partyId);
-            // Check cache
-            let emspUser = emspUsers.get(email);
-            if (!emspUser) {
-              // Get User from DB
-              emspUser = await UserStorage.getUserByEmail(this.tenant, email);
-              if (emspUser) {
-                emspUsers.set(email, emspUser);
-              }
-            }
+            const emspUser = emspUsersMap.get(email);
             // Get the Tag
             const emspTag = tags.result.find((tag) => tag.id === token.uid);
-            await OCPIUtilsService.updateToken(this.tenant, this.ocpiEndpoint, token, emspTag, emspUser);
+            await OCPIUtilsService.updateToken(this.tenant, token, emspTag, emspUser);
             result.success++;
           } catch (error) {
             result.failure++;
             result.logs.push(
-              `Failed to update Issuer '${token.issuer}' - Token ID '${token.uid}': ${error.message}`
+              `Failed to update Issuer '${token.issuer}' - ID '${token.uid}': ${error.message as string}`
             );
           }
         },
@@ -541,7 +539,7 @@ export default class CpoOCPIClient extends OCPIClient {
             result.failure++;
             result.objectIDsInFailure.push(String(transaction.id));
             result.logs.push(
-              `Failed to check OCPI Transaction ID '${transaction.ocpiData.session.id}': ${error.message}`
+              `Failed to check OCPI Transaction ID '${transaction.ocpiData.session.id}': ${error.message as string}`
             );
           }
         }
@@ -593,7 +591,7 @@ export default class CpoOCPIClient extends OCPIClient {
             result.failure++;
             result.objectIDsInFailure.push(String(location.id));
             result.logs.push(
-              `Failed to check the Location '${location.name}' with ID '${location.id}': ${error.message}`
+              `Failed to check the Location '${location.name}' with ID '${location.id}': ${error.message as string}`
             );
           }
         }
@@ -640,7 +638,7 @@ export default class CpoOCPIClient extends OCPIClient {
           result.failure++;
           result.objectIDsInFailure.push(String(transaction.id));
           result.logs.push(
-            `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Failed to check CDR: ${error.message}`
+            `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Failed to check CDR: ${error.message as string}`
           );
         }
         result.total++;
@@ -725,7 +723,7 @@ export default class CpoOCPIClient extends OCPIClient {
                   result.failure++;
                   result.objectIDsInFailure.push(evse.chargingStationID);
                   result.logs.push(
-                    `Update status failed on Location '${location.name}' with ID '${location.id}', Charging Station ID '${evse.evse_id}': ${error.message}`
+                    `Update status failed on Location '${location.name}' with ID '${location.id}', Charging Station ID '${evse.evse_id}': ${error.message as string}`
                   );
                 }
                 if (result.failure > 0) {
@@ -779,6 +777,39 @@ export default class CpoOCPIClient extends OCPIClient {
     );
     // Return result
     return result;
+  }
+
+  private async checkAndCreateEMSPUsersFromTokens(tokens: OCPIToken[], emspUsers: Map<string, User>) {
+    if (!Utils.isEmptyArray(tokens)) {
+      for (const token of tokens) {
+        // Get eMSP user
+        const email = OCPIUtils.buildEmspEmailFromOCPIToken(token, this.ocpiEndpoint.countryCode, this.ocpiEndpoint.partyId);
+        // Check cache
+        let emspUser = emspUsers.get(email);
+        if (!emspUser) {
+          // Get User from DB
+          emspUser = await UserStorage.getUserByEmail(this.tenant, email);
+          // Create user
+          if (!emspUser) {
+            // Create User
+            emspUser = {
+              issuer: false,
+              createdOn: token.last_updated,
+              lastChangedOn: token.last_updated,
+              name: token.issuer,
+              firstName: OCPIUtils.buildOperatorName(this.ocpiEndpoint.countryCode, this.ocpiEndpoint.partyId),
+              email: OCPIUtils.buildEmspEmailFromOCPIToken(token, this.ocpiEndpoint.countryCode, this.ocpiEndpoint.partyId),
+              locale: Utils.getLocaleFromLanguage(token.language),
+            } as User;
+            // Save User
+            emspUser.id = await UserStorage.saveUser(this.tenant, emspUser);
+            await UserStorage.saveUserRole(this.tenant, emspUser.id, UserRole.BASIC);
+            await UserStorage.saveUserStatus(this.tenant, emspUser.id, UserStatus.ACTIVE);
+          }
+          emspUsers.set(email, emspUser);
+        }
+      }
+    }
   }
 
   private async getChargeBoxIDsWithNewStatusNotifications(): Promise<string[]> {

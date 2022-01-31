@@ -28,8 +28,6 @@ import OICPPushEvseDataTask from './tasks/oicp/OICPPushEvseDataTask';
 import OICPPushEvseStatusTask from './tasks/oicp/OICPPushEvseStatusTask';
 import SchedulerTask from './SchedulerTask';
 import { ServerAction } from '../types/Server';
-import SynchronizeBillingInvoicesTask from './tasks/SynchronizeBillingInvoicesTask';
-import SynchronizeBillingUsersTask from './tasks/SynchronizeBillingUsersTask';
 import SynchronizeCarsTask from './tasks/SynchronizeCarsTask';
 import SynchronizeRefundTransactionsTask from './tasks/SynchronizeRefundTransactionsTask';
 import cron from 'node-cron';
@@ -123,10 +121,6 @@ export default class SchedulerManager {
         return new OCPIPushCdrsTask();
       case 'SynchronizeRefundTransactionsTask':
         return new SynchronizeRefundTransactionsTask();
-      case 'SynchronizeBillingUsersTask':
-        return new SynchronizeBillingUsersTask();
-      case 'SynchronizeBillingInvoicesTask':
-        return new SynchronizeBillingInvoicesTask();
       case 'BillingPeriodicOperationTask':
         return new BillingPeriodicOperationTask();
       case 'BillPendingTransactionTask':
