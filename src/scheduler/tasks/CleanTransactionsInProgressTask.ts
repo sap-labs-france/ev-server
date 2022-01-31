@@ -4,16 +4,16 @@ import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
 import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
-import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
+import TenantSchedulerTask from '../TenantSchedulerTask';
 import { TransactionDataResult } from '../../types/DataResult';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'CleanTransactionsInProgressTask';
 
-export default class CleanTransactionsInProgressTask extends SchedulerTask {
+export default class CleanTransactionsInProgressTask extends TenantSchedulerTask {
   public async processTenant(tenant: Tenant): Promise<void> {
     const cleanTransactionsLock = await LockingHelper.acquireTransactionsCleanLock(tenant.id);
     if (cleanTransactionsLock) {
