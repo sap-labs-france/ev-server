@@ -1713,12 +1713,12 @@ export default class StripeBillingIntegration extends BillingIntegration {
     await global.database.getCollection(this.tenant.id, 'invoices').findOneAndUpdate(
       { '_id': DatabaseUtils.convertToObjectID(billingInvoice.id) },
       { $set: updatedInvoiceMDB });
-    // Debug
-    const freshBillingInvoice = await BillingStorage.getInvoice(this.tenant, billingInvoice.id);
-    await this.repairTransactionsBillingData(freshBillingInvoice);
+    // Let's get a clean invoice instance
+    const repairedInvoice = await BillingStorage.getInvoice(this.tenant, billingInvoice.id);
+    await this.repairTransactionsBillingData(repairedInvoice);
   }
 
-  private async repairTransactionsBillingData(billingInvoice: BillingInvoice): Promise<void> {
+  public async repairTransactionsBillingData(billingInvoice: BillingInvoice): Promise<void> {
     // This method is ONLY USED when repairing invoices - c.f.: RepairInvoiceInconsistencies migration task
     if (!billingInvoice.sessions) {
       // This should not happen - but it happened once!
@@ -1739,6 +1739,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         // Update Billing Data
         if (transaction?.billingData?.stop) {
           transaction.billingData.stop.status = BillingStatus.BILLED,
+          transaction.billingData.stop.invoiceID = billingInvoice.id;
           transaction.billingData.stop.invoiceStatus = billingInvoice.status;
           transaction.billingData.stop.invoiceNumber = billingInvoice.number;
           transaction.billingData.lastUpdate = new Date();
