@@ -1555,12 +1555,17 @@ export default class OCPPUtils {
           message: 'Charging Station has been forced as inactive!'
         });
       }
-      // Save Charging Station lastSeen date
+      // Reassign to the Charging station
+      chargingStation.lastSeen = new Date();
+      chargingStation.tokenID = tokenID;
+      chargingStation.cloudHostIP = Utils.getHostIP();
+      chargingStation.cloudHostName = Utils.getHostName();
+      // Save Charging Station runtime data
       await ChargingStationStorage.saveChargingStationRuntimeData(tenant, chargingStation.id, {
-        lastSeen: new Date(),
-        tokenID: tokenID,
-        cloudHostIP: Utils.getHostIP(),
-        cloudHostName: Utils.getHostName(),
+        lastSeen: chargingStation.lastSeen,
+        tokenID: chargingStation.tokenID,
+        cloudHostIP: chargingStation.cloudHostIP,
+        cloudHostName: chargingStation.cloudHostName,
       });
     }
     return { tenant, chargingStation, token };

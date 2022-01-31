@@ -608,7 +608,6 @@ export default class ChargingStationStorage {
       params: { lastSeen: Date; currentIPAddress?: string | string[]; tokenID?: string; cloudHostIP?: string; cloudHostName?: string; }): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
-    // Set data
     // Modify document
     await global.database.getCollection<any>(tenant.id, 'chargingstations').findOneAndUpdate(
       { '_id': id },
@@ -691,7 +690,7 @@ export default class ChargingStationStorage {
     return value;
   }
 
-  static async saveOcppParameters(tenant: Tenant, parameters: ChargingStationOcppParameters): Promise<void> {
+  public static async saveOcppParameters(tenant: Tenant, parameters: ChargingStationOcppParameters): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Modify

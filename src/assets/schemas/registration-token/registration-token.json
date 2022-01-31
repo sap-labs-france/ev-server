@@ -14,6 +14,7 @@
     "expirationDate": {
       "type": "string",
       "format": "date-time",
+      "customType": "date",
       "sanitize": "mongo"
     }
   }
