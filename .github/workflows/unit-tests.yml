@@ -43,7 +43,7 @@ jobs:
         npm run build:prod
     - name: Start Server in Prod mode
       run: |
-        npm run start:prod
+        npm run start:prod & sleep 10
     - name: Create Unit Test context
       run: |
         if [ ! -d test/config ]; then mkdir -p test/config; fi
