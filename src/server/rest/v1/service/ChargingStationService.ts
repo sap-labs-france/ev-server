@@ -1358,7 +1358,7 @@ export default class ChargingStationService {
       throw new AppError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: action,
-        errorCode: HTTPError.GENERAL_ERROR,
+        errorCode: error instanceof AppError ? error.params.errorCode : HTTPError.GENERAL_ERROR,
         message: `OCPP Command '${command}' has failed: ${error.message as string}`,
         module: MODULE_NAME, method: 'handleAction',
         user: req.user,

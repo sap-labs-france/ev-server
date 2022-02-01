@@ -366,7 +366,7 @@ export default class TransactionService {
         throw new AppError({
           ...LoggingHelper.getChargingStationProperties(chargingStation),
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Cannot stop an ongoing Transaction`,
+          message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Cannot soft stop an ongoing Transaction`,
           module: MODULE_NAME, method: 'handleTransactionSoftStop',
           user: req.user, action: action
         });
