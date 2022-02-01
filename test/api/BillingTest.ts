@@ -863,6 +863,30 @@ describe('Billing', function() {
         await billingTestHelper.checkPricingDefinitionEndpoints();
       });
     });
+
+    describe('Transaction Inconsistency Recovery', () => {
+      before(async () => {
+        billingTestHelper.initUserContextAsAdmin();
+        // Initialize the Billing module
+        billingTestHelper.billingImpl = await billingTestHelper.setBillingSystemValidCredentials(true, true /* immediateBillingAllowed ON */);
+        await billingTestHelper.initChargingStationContext2TestChargingTime();
+      });
+
+      after(async () => {
+      });
+
+      it('check Soft Stop Transaction', async () => {
+        await billingTestHelper.initChargingStationContext2TestFastCharger('E+PT(STEP)');
+        await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
+        const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
+        await billingTestHelper.assignPaymentMethod(userWithBillingData, 'tok_fr');
+        const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext, 'Accepted', true);
+        assert(transactionID, 'transactionID should not be null');
+        // Check that we have a new invoice with an invoiceID and an invoiceNumber
+        await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 29.49);
+      });
+    });
+
   });
 
   describe('Billing Test Data Cleanup (utbilling)', () => {

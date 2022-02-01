@@ -60,6 +60,11 @@ export default class ChargingStationContext {
     this.transactionsStarted.clear();
   }
 
+  public async softStopTransaction(transactionID: number): Promise<any> {
+    const response = await this.tenantContext.getAdminCentralServerService().transactionApi.softStopTransaction({ ID: transactionID });
+    return response;
+  }
+
   public getChargingStation(): ChargingStation {
     return this.chargingStation;
   }

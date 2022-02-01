@@ -500,8 +500,7 @@ export default class BillingTestHelper {
   }
 
 
-  public async generateTransaction(user: any, expectedStatus = 'Accepted', withExtraNotificationStatus = true): Promise<number> {
-
+  public async generateTransaction(user: any, expectedStatus = 'Accepted', withSoftStopSimulation = false): Promise<number> {
     const meterStart = 0;
     const meterStop = 32325; // Unit: Wh
     const meterValueRampUp = Utils.createDecimal(meterStop).divToInt(80).toNumber();
@@ -563,14 +562,23 @@ export default class BillingTestHelper {
       // cumulated += 0; // Parking time - not charging anymore
       await this.sendConsumptionMeterValue(connectorId, transactionId, currentTime, meterStop);
     }
-    // #end
     const stopDate = startDate.clone().add(1, 'hour');
     if (expectedStatus === 'Accepted') {
-      const stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate.toDate());
-      expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
-      // Let's send an OCCP status notification to simulate some extra inactivities
-      await this.sendStatusNotification(connectorId, stopDate.clone().add(29, 'minutes').toDate(), ChargePointStatus.FINISHING);
-      await this.sendStatusNotification(connectorId, stopDate.clone().add(30, 'minutes').toDate(), ChargePointStatus.AVAILABLE);
+      if (withSoftStopSimulation) {
+      // #end - simulating the situation where the stop is not received
+        await this.sendStatusNotification(connectorId, stopDate.clone().add(29, 'minutes').toDate(), ChargePointStatus.FINISHING);
+        await this.sendStatusNotification(connectorId, stopDate.clone().add(30, 'minutes').toDate(), ChargePointStatus.AVAILABLE);
+        // SOFT STOP TRANSACTION
+        const stopTransactionResponse = await this.chargingStationContext.softStopTransaction(transactionId);
+        expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
+      } else {
+      // #end
+        const stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate.toDate());
+        expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
+        // Let's send an OCCP status notification to simulate some extra inactivities
+        await this.sendStatusNotification(connectorId, stopDate.clone().add(29, 'minutes').toDate(), ChargePointStatus.FINISHING);
+        await this.sendStatusNotification(connectorId, stopDate.clone().add(30, 'minutes').toDate(), ChargePointStatus.AVAILABLE);
+      }
       // Give some time to the asyncTask to bill the transaction
       await this.waitForAsyncTasks();
     }
