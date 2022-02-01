@@ -649,8 +649,6 @@ export default class AuthorizationService {
       tenant, userToken, Entity.CAR_CATALOG, Action.DELETE, authorizationFilter, { CarCatalogID: carCatalog.id }, carCatalog);
     carCatalog.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CAR_CATALOG, Action.UPDATE, authorizationFilter, { CarCatalogID: carCatalog.id }, carCatalog);
-    carCatalog.canDebug = carCatalog.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.CAR_CATALOG, Action.DEBUG, authorizationFilter);
     // Optimize data over the net
     Utils.removeCanPropertiesWithFalseValue(carCatalog);
   }

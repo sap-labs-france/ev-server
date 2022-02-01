@@ -192,10 +192,6 @@ export interface CarAuthorizationActions extends AuthorizationActions {
   canCreatePoolCar?: boolean;
 }
 
-export interface CarCatalogAuthorizationActions extends AuthorizationActions {
-  canDebug?: boolean;
-}
-
 export interface TagAuthorizationActions extends AuthorizationActions {
   canUnassign?: boolean;
   canAssign?: boolean;
