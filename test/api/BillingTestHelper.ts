@@ -570,7 +570,7 @@ export default class BillingTestHelper {
         await this.sendStatusNotification(connectorId, stopDate.clone().add(30, 'minutes').toDate(), ChargePointStatus.AVAILABLE);
         // SOFT STOP TRANSACTION
         const stopTransactionResponse = await this.chargingStationContext.softStopTransaction(transactionId);
-        expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
+        expect(stopTransactionResponse).to.be.not.null;
       } else {
       // #end
         const stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate.toDate());
