@@ -17,6 +17,7 @@ import Cypher from '../../src/utils/Cypher';
 import { DataResult } from '../../src/types/DataResult';
 import Decimal from 'decimal.js';
 import LoggingStorage from '../../src/storage/mongodb/LoggingStorage';
+import OCPPUtils from '../../src/server/ocpp/utils/OCPPUtils';
 import SiteAreaContext from './context/SiteAreaContext';
 import SiteContext from './context/SiteContext';
 import { StatusCodes } from 'http-status-codes';
@@ -26,6 +27,8 @@ import { TenantComponents } from '../../src/types/Tenant';
 import TenantContext from './context/TenantContext';
 import TestConstants from './client/utils/TestConstants';
 import TestUtils from './TestUtils';
+import { TransactionAction } from '../../src/types/Transaction';
+import TransactionStorage from '../../src/storage/mongodb/TransactionStorage';
 import User from '../../src/types/User';
 import Utils from '../../src/utils/Utils';
 import chaiSubset from 'chai-subset';
@@ -582,15 +585,22 @@ export default class BillingTestHelper {
     const stopDate = startDate.clone().add(1, 'hour');
     if (expectedStatus === 'Accepted') {
       if (withSoftStopSimulation) {
+        const tenant = this.tenantContext.getTenant();
         // #end - simulating the situation where the stop is not received
         await this.sendConsumptionMeterValue(connectorId, transactionId, currentTime, meterStop);
         await this.sendStatusNotification(connectorId, stopDate.clone().add(29, 'minutes').toDate(), ChargePointStatus.FINISHING);
         await this.sendStatusNotification(connectorId, stopDate.clone().add(30, 'minutes').toDate(), ChargePointStatus.AVAILABLE);
         // SOFT STOP TRANSACTION
-        const stopTransactionResponse = await this.chargingStationContext.softStopTransaction(transactionId);
-        expect(stopTransactionResponse).to.be.not.null;
-        // Status notification should trigger the transaction.END and the billing
-        await this.sendStatusNotification(connectorId, moment().add(50, 'minutes').toDate(), ChargePointStatus.PREPARING);
+        const chargingStation = this.chargingStationContext.getChargingStation();
+        let transaction = await TransactionStorage.getTransaction(tenant, transactionId);
+        const siteArea = this.siteAreaContext.getSiteArea();
+        const done = await OCPPUtils.softStopTransaction(tenant, transaction, chargingStation, siteArea);
+        expect(done).to.be.true;
+        // Force the billing as this is normally done by a job every 15 minutes
+        transaction = await TransactionStorage.getTransaction(tenant, transactionId, { withUser: true, withChargingStation: true });
+        transaction.stop.extraInactivityComputed = true;
+        transaction.stop.extraInactivitySecs = 0;
+        await OCPPUtils.processTransactionBilling(tenant, transaction, TransactionAction.END);
       } else {
         // #end
         const stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate.toDate());
