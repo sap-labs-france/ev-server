@@ -35,7 +35,7 @@
     "config:rest": "ncp src/assets/configs-scp/e-Mobility-config/config_rest_server.json dist/assets/config.json",
     "config:chargebox-json": "ncp src/assets/configs-scp/e-Mobility-config/config_chargebox_json_server.json dist/assets/config.json",
     "config:chargebox-soap": "ncp src/assets/configs-scp/e-Mobility-config/config_chargebox_soap_server.json dist/assets/config.json",
-    "start:dev": "npm version && cross-env NODE_ENV=development ts-node-dev --files --max-old-space-size=4096 -- src/start.ts",
+    "start:dev": "npm version && cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=development node -r source-map-support/register dist/start.js",
     "start:dev:debug": "npm version && cross-env NODE_ENV=development ts-node-dev --inspect --files --max-old-space-size=4096 -- src/start.ts",
     "start:dev:nodemon": "npm version && nodemon --exec 'ts-node --files' src/start.ts",
     "start:dev:debug:nodemon": "npm version && nodemon --exec 'ts-node --files' src/start.ts 9229",

@@ -40,10 +40,10 @@ jobs:
     - name: Build production sources
       run: |
         cp src/assets/configs-ci/config.json src/assets
-        npm run build:prod
+        npm run build:dev
     - name: Start Server in Prod mode
       run: |
-        npm run start:prod & sleep 10
+        npm run start:dev & sleep 10
     - name: Create Unit Test context
       run: |
         if [ ! -d test/config ]; then mkdir -p test/config; fi
