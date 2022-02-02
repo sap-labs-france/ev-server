@@ -500,6 +500,21 @@ export default class BillingTestHelper {
     await this.chargingStationContext.setConnectorStatus(occpStatusFinishing);
   }
 
+  public async dumpLastErrors(): Promise<void> {
+    const params = { Level: 'E' };
+    const paging = { limit: 2, skip: 0 };
+    const ordering = [{ field: '-timestamp' }];
+    const response = await this.adminUserService.logsApi.readAll(params, paging, ordering);
+    if (response?.data?.result.length > 0) {
+      for (const loggedError of response?.data?.result) {
+        console.error(
+          '-----------------------------------------------\n' +
+          'Logged Error: \n' +
+          '-----------------------------------------------\n' +
+          JSON.stringify(loggedError));
+      }
+    }
+  }
 
   public async generateTransaction(user: any, expectedStatus = 'Accepted', expectedStartDate = new Date(), withSoftStopSimulation = false): Promise<number> {
     const meterStart = 0;
@@ -517,9 +532,11 @@ export default class BillingTestHelper {
     // Let's send an OCCP status notification to simulate some extra inactivities
     await this.sendStatusNotification(connectorId, startDate.toDate(), ChargePointStatus.PREPARING);
     const startTransactionResponse = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
+    if (expectedStatus === 'Accepted' && startTransactionResponse.idTagInfo.status !== expectedStatus) {
+      await this.dumpLastErrors();
+    }
     expect(startTransactionResponse).to.be.transactionStatus(expectedStatus);
     const transactionId = startTransactionResponse.transactionId;
-
     const currentTime = startDate.clone();
     let cumulated = 0;
     // Phase #0 - not charging yet
@@ -577,6 +594,9 @@ export default class BillingTestHelper {
       } else {
         // #end
         const stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate.toDate());
+        if (expectedStatus === 'Accepted' && stopTransactionResponse.idTagInfo.status !== expectedStatus) {
+          await this.dumpLastErrors();
+        }
         expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
         // Let's send an OCCP status notification to simulate some extra inactivities
         await this.sendStatusNotification(connectorId, stopDate.clone().add(29, 'minutes').toDate(), ChargePointStatus.FINISHING);
