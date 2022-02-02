@@ -10,6 +10,7 @@ import chai, { assert, expect } from 'chai';
 import AsyncTaskStorage from '../../src/storage/mongodb/AsyncTaskStorage';
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
+import Configuration from '../../src/utils/Configuration';
 import Constants from '../../src/utils/Constants';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
@@ -595,7 +596,7 @@ export default class BillingTestHelper {
         const chargingStation = this.chargingStationContext.getChargingStation();
         let transaction = await TransactionStorage.getTransaction(tenant, transactionId);
         const siteArea = this.siteAreaContext.getSiteArea();
-        const done = await OCPPService.softStopTransaction(tenant, transaction, chargingStation, siteArea);
+        const done = await new OCPPService(Configuration.getChargingStationConfig()).softStopTransaction(tenant, transaction, chargingStation, siteArea);
         expect(done).to.be.true;
         // Force the billing as this is normally done by a job every 15 minutes
         transaction = await TransactionStorage.getTransaction(tenant, transactionId, { withUser: true, withChargingStation: true });
