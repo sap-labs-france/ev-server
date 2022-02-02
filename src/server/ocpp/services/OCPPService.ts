@@ -34,6 +34,7 @@ import OCPPValidation from '../validation/OCPPValidation';
 import OICPClientFactory from '../../../client/oicp/OICPClientFactory';
 import { OICPRole } from '../../../types/oicp/OICPRole';
 import { ServerAction } from '../../../types/Server';
+import SiteArea from '../../../types/SiteArea';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
 import Tag from '../../../types/Tag';
@@ -527,6 +528,39 @@ export default class OCPPService {
         }
       };
     }
+  }
+
+  public async softStopTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, siteArea: SiteArea): Promise<boolean> {
+    // Check
+    if (!tenant || !transaction || !chargingStation) {
+      return false;
+    }
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION) && !siteArea) {
+      return false;
+    }
+    // Set
+    chargingStation.siteArea = siteArea;
+    // Stop Transaction
+    const result = await this.handleStopTransaction(
+      { // OCPP Header
+        chargeBoxIdentity: transaction.chargeBoxID,
+        chargingStation: chargingStation,
+        companyID: transaction.companyID,
+        siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        tenantID: tenant.id,
+        tenant: tenant,
+      },
+      { // OCPP Stop Transaction
+        transactionId: transaction.id,
+        chargeBoxID: transaction.chargeBoxID,
+        idTag: transaction.tagID,
+        timestamp: Utils.convertToDate(transaction.lastConsumption ? transaction.lastConsumption.timestamp : transaction.timestamp).toISOString(),
+        meterStop: transaction.lastConsumption ? transaction.lastConsumption.value : transaction.meterStart
+      },
+      true
+    );
+    return (result.idTagInfo?.status === OCPPAuthorizationStatus.ACCEPTED);
   }
 
   private checkAndUpdateTransactionWithSignedDataInStopTransaction(transaction: Transaction, stopTransaction: OCPPStopTransactionRequestExtended) {
