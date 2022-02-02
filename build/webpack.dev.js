@@ -2,6 +2,9 @@ const CircularDependencyPlugin = require('circular-dependency-plugin');
 
 const config = {
   mode: 'development',
+  optimization: {
+    nodeEnv: 'development-build'
+  },
   module: {
     rules: [
       {
