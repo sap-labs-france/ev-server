@@ -572,7 +572,7 @@ export default class OCPPUtils {
   }
 
   public static updateTransactionWithStopTransaction(transaction: Transaction, chargingStation: ChargingStation,
-      stopTransaction: OCPPStopTransactionRequestExtended, user: User, alternateUser: User, tagId: string): void {
+      stopTransaction: OCPPStopTransactionRequestExtended, user: User, alternateUser: User, tagId: string, isSoftStop: boolean): void {
     // Set final data
     transaction.stop = {
       reason: stopTransaction.reason,
@@ -580,6 +580,8 @@ export default class OCPPUtils {
       timestamp: Utils.convertToDate(stopTransaction.timestamp),
       userID: (alternateUser ? alternateUser.id : (user ? user.id : null)),
       tagID: tagId,
+      extraInactivityComputed: isSoftStop,
+      extraInactivitySecs: 0,
       stateOfCharge: transaction.currentStateOfCharge,
       signedData: transaction.currentSignedData ? transaction.currentSignedData : '',
       totalConsumptionWh: transaction.currentTotalConsumptionWh,
