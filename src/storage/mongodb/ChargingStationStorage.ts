@@ -86,10 +86,16 @@ export default class ChargingStationStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     // Validate
     chargingStationTemplate = ChargingStationValidatorStorage.getInstance().validateChargingStationTemplate(chargingStationTemplate);
+    // Prepare DB structure
+    const chargingStationTemplateMDB = {
+      ...chargingStationTemplate,
+      _id: chargingStationTemplate.id
+    };
+    delete chargingStationTemplateMDB.id;
     // Modify and return the modified document
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'chargingstationtemplates').findOneAndReplace(
       { '_id': chargingStationTemplate.id },
-      chargingStationTemplate,
+      chargingStationTemplateMDB,
       { upsert: true });
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'saveChargingStationTemplate', startTime, chargingStationTemplate);
   }
