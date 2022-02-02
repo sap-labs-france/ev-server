@@ -17,6 +17,7 @@ import Cypher from '../../src/utils/Cypher';
 import { DataResult } from '../../src/types/DataResult';
 import Decimal from 'decimal.js';
 import LoggingStorage from '../../src/storage/mongodb/LoggingStorage';
+import OCPPService from '../../src/server/ocpp/services/OCPPService';
 import OCPPUtils from '../../src/server/ocpp/utils/OCPPUtils';
 import SiteAreaContext from './context/SiteAreaContext';
 import SiteContext from './context/SiteContext';
@@ -594,7 +595,7 @@ export default class BillingTestHelper {
         const chargingStation = this.chargingStationContext.getChargingStation();
         let transaction = await TransactionStorage.getTransaction(tenant, transactionId);
         const siteArea = this.siteAreaContext.getSiteArea();
-        const done = await OCPPUtils.softStopTransaction(tenant, transaction, chargingStation, siteArea);
+        const done = await OCPPService.softStopTransaction(tenant, transaction, chargingStation, siteArea);
         expect(done).to.be.true;
         // Force the billing as this is normally done by a job every 15 minutes
         transaction = await TransactionStorage.getTransaction(tenant, transactionId, { withUser: true, withChargingStation: true });
