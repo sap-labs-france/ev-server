@@ -37,18 +37,18 @@ jobs:
         cache: npm
     - name: Install NodeJs Packages
       run: npm ci
-    - name: Build production sources
+    - name: Build sources
       run: |
         cp src/assets/configs-ci/config.json src/assets
         npm run build:dev
-    - name: Start Server in Prod mode
+    - name: Start Server
       run: |
         npm run start:dev & sleep 10
-    - name: Create Unit Test context
+    - name: Create Integration Test data
       run: |
         if [ ! -d test/config ]; then mkdir -p test/config; fi
         cp src/assets/configs-ci/local.json test/config
         npm run mochatest:createContext
-    - name: Run Unit Test
+    - name: Run Integration Tests
       run: npm run mochatest
 
