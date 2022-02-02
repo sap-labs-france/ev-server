@@ -1,5 +1,4 @@
-import { AuthorizationActions, CarAuthorizationActions } from './Authorization';
-
+import { AuthorizationActions } from './Authorization';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 
 export interface CarCatalog extends CreatedUpdatedProps, AuthorizationActions {
@@ -129,7 +128,7 @@ export enum CarType {
   POOL_CAR = 'PC',
 }
 
-export interface Car extends CreatedUpdatedProps, CarAuthorizationActions {
+export interface Car extends CreatedUpdatedProps, AuthorizationActions {
   id?: string;
   vin: string;
   licensePlate: string;

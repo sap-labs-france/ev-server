@@ -596,7 +596,6 @@ export default class AuthorizationService {
     cars.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR, Action.CREATE, authorizationFilter);
     cars.canListUsers = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.LIST, authorizationFilter);
     cars.canListCarCatalog = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR_CATALOG, Action.LIST, authorizationFilter);
-    cars.canCreatePoolCar = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR, Action.CREATE_POOL_CAR, authorizationFilter);
     for (const car of cars.result) {
       await AuthorizationService.addCarAuthorizations(tenant, userToken, car, authorizationFilter);
     }
@@ -607,7 +606,6 @@ export default class AuthorizationService {
     car.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR, Action.DELETE, authorizationFilter, { CarID: car.id }, car);
     car.canUpdate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR, Action.UPDATE, authorizationFilter, { CarID: car.id }, car);
     car.canListUsers = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.LIST, authorizationFilter);
-    car.canCreatePoolCar = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR, Action.CREATE_POOL_CAR, authorizationFilter);
     // Optimize data over the net
     Utils.removeCanPropertiesWithFalseValue(car);
   }

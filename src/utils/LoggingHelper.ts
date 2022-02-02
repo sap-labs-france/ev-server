@@ -50,26 +50,21 @@ export default class LoggingHelper {
     };
   }
 
-  public static getCarProperties(car: Car): { carID: string; userID: string, carCatalogID: number } {
+  public static getCarProperties(car: Car): { userID: string } {
     return {
-      carID: car.id,
       userID: car.userID,
-      carCatalogID: car.carCatalogID
     };
   }
 
-  public static getRegistrationTokenProperties(registrationToken: RegistrationToken): { registrationTokenID: string; siteAreaID: string } {
+  public static getRegistrationTokenProperties(registrationToken: RegistrationToken): { siteAreaID: string } {
     return {
-      registrationTokenID: registrationToken.id,
       siteAreaID: registrationToken.siteAreaID
     };
   }
 
-  public static getTagProperties(tag: Tag): { tagID: string; userID: string, visualID: string } {
+  public static getTagProperties(tag: Tag): { userID: string } {
     return {
-      tagID: tag.id,
-      userID: tag.userID,
-      visualID: tag.visualID
+      userID: tag.userID
     };
   }
 }
