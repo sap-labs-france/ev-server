@@ -10,6 +10,7 @@ import CheckOfflineChargingStationsTask from './tasks/CheckOfflineChargingStatio
 import CheckPreparingSessionNotStartedTask from './tasks/CheckPreparingSessionNotStartedTask';
 import CheckSessionNotStartedAfterAuthorizeTask from './tasks/CheckSessionNotStartedAfterAuthorizeTask';
 import CheckUserAccountInactivityTask from './tasks/CheckUserAccountInactivityTask';
+import CloseTransactionsInProgressTask from './tasks/CloseTransactionsInProgressTask';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 import LoggingDatabaseTableCleanupTask from './tasks/LoggingDatabaseTableCleanupTask';
@@ -136,6 +137,8 @@ export default class SchedulerManager {
         return new CheckChargingStationTemplateTask();
       case 'MigrateSensitiveDataTask':
         return new MigrateSensitiveDataTask();
+      case 'CloseTransactionsInProgressTask':
+        return new CloseTransactionsInProgressTask();
       default:
         await Logging.logError({
           tenantID: Constants.DEFAULT_TENANT,

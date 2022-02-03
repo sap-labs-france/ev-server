@@ -5,6 +5,7 @@ import { AxiosInstance } from 'axios';
 import CarIntegration from '../CarIntegration';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
+import Jimp from 'jimp';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import Utils from '../../../utils/Utils';
@@ -233,9 +234,9 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
 
   public async getCarCatalogImage(carCatalog: CarCatalog, imageURL:string): Promise<string> {
     try {
-      const response = await this.axiosInstance.get(imageURL, { responseType: 'arraybuffer' });
-      const base64Image = Buffer.from(response.data).toString('base64');
-      const encodedImage = 'data:' + response.headers['content-type'] + ';base64,' + base64Image;
+      const response = (await Jimp.read(imageURL)).resize(700, Jimp.AUTO).quality(60);
+      const imageMIME = response.getMIME();
+      const encodedImage = await response.getBase64Async(imageMIME);
       return encodedImage;
     } catch (error) {
       await Logging.logError({

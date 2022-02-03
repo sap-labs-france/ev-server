@@ -1358,7 +1358,7 @@ export default class ChargingStationService {
       throw new AppError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: action,
-        errorCode: HTTPError.GENERAL_ERROR,
+        errorCode: error instanceof AppError ? error.params.errorCode : HTTPError.GENERAL_ERROR,
         message: `OCPP Command '${command}' has failed: ${error.message as string}`,
         module: MODULE_NAME, method: 'handleAction',
         user: req.user,
@@ -1821,7 +1821,7 @@ export default class ChargingStationService {
       MODULE_NAME, 'handleAction', req.user);
     // Get default Tag
     const tags = await TagStorage.getTags(req.tenant, { userIDs: [req.user.id], active: true }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);
-    if (!Utils.isEmptyArray(tags)) {
+    if (Utils.isEmptyArray(tags)) {
       throw new AppError({
         errorCode: HTTPError.USER_NO_BADGE_ERROR,
         message: 'The user does not have any active badge',

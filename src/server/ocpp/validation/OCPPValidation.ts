@@ -153,8 +153,8 @@ export default class OCPPValidation extends SchemaValidator {
 
   private cleanUpTagID(tagID: string): string {
     // Handle bug in Tag ID ending with ;NULL on some Charging Stations
-    if (typeof tagID === 'string') {
-      tagID = tagID.replace(';NULL', '');
+    if (tagID && typeof tagID === 'string' && tagID.toLowerCase().endsWith(';null')) {
+      tagID = tagID.slice(0, tagID.length - 5);
     }
     return tagID;
   }
