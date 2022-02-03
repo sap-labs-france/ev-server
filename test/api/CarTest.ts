@@ -2,6 +2,7 @@ import chai, { expect } from 'chai';
 
 import { Car } from '../../src/types/Car';
 import CentralServerService from './client/CentralServerService';
+import Constants from '../../src/utils/Constants';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
@@ -11,6 +12,7 @@ import TenantContext from './context/TenantContext';
 import User from '../../src/types/User';
 import chaiSubset from 'chai-subset';
 import config from '../config';
+import faker from 'faker';
 
 chai.use(chaiSubset);
 class TestData {
@@ -117,6 +119,7 @@ describe('Car', function() {
         const newCar = Factory.car.build();
         newCar.userID = testData.userContext.id;
         newCar.default = false;
+        newCar.carCatalogID = (await testData.centralService.carApi.readCarCatalogs({}, Constants.DB_PARAMS_SINGLE_RECORD)).data.result[0].id;
         testData.newCar = await testData.centralService.createEntity(
           testData.centralService.carApi,
           newCar
@@ -175,6 +178,7 @@ describe('Car', function() {
           Factory.car.build({
             vin: testData.newCar.vin,
             licensePlate: testData.newCar.licensePlate,
+            carCatalogID: (await testData.centralService.carApi.readCarCatalogs({}, Constants.DB_PARAMS_SINGLE_RECORD)).data.result[0].id
           }), false
         );
         expect(response.status).to.equal(HTTPError.CAR_ALREADY_EXIST_ERROR);
@@ -183,7 +187,12 @@ describe('Car', function() {
       it('Should be able to update a car', async () => {
         // Update
         const carToUpdate = (await testData.centralService.carApi.readCar(testData.createdCars[0].id)).data;
-        carToUpdate.carCatalogID = 1010;
+        carToUpdate.converter = {
+          'amperagePerPhase': faker.datatype.number(64),
+          'numberOfPhases': faker.datatype.number({ min: 1, max: 4 }),
+          'type': 'S',
+          'powerWatts': faker.datatype.number(32)
+        };
         testData.newCar = await testData.centralService.updateEntity(
           testData.centralService.carApi,
           carToUpdate
@@ -193,7 +202,9 @@ describe('Car', function() {
         // Create
         testData.newCar = await testData.centralService.createEntity(
           testData.centralService.carApi,
-          Factory.car.build()
+          Factory.car.build({
+            carCatalogID: (await testData.centralService.carApi.readCarCatalogs({}, Constants.DB_PARAMS_SINGLE_RECORD)).data.result[0].id
+          })
         );
         testData.createdCars.push(testData.newCar);
         testData.newCar.vin = testData.createdCars[0].vin;
@@ -226,6 +237,7 @@ describe('Car', function() {
         const carToCreate = Factory.car.build();
         carToCreate.userID = testData.userContext.id;
         carToCreate.default = false;
+        carToCreate.carCatalogID = (await testData.centralService.carApi.readCarCatalogs({}, Constants.DB_PARAMS_SINGLE_RECORD)).data.result[0].id;
         testData.newCar = await testData.centralService.createEntity(
           testData.centralService.carApi,
           carToCreate
@@ -235,7 +247,10 @@ describe('Car', function() {
 
       it('Should not be able to create a pool car', async () => {
         // Update
-        const newCar = Factory.car.build({ type: 'PC' });
+        const newCar = Factory.car.build({
+          type: 'PC',
+          carCatalogID: (await testData.centralService.carApi.readCarCatalogs({}, Constants.DB_PARAMS_SINGLE_RECORD)).data.result[0].id
+        });
         const response = await testData.centralService.createEntity(
           testData.centralService.carApi,
           newCar, false
@@ -248,7 +263,12 @@ describe('Car', function() {
         const response = (await testData.centralService.carApi.readCar(testData.newCar.id));
         expect(response.status).to.equal(StatusCodes.OK);
         const carToUpdate = response.data;
-        carToUpdate.carCatalogID = 1004;
+        carToUpdate.converter = {
+          'amperagePerPhase': faker.datatype.number(64),
+          'numberOfPhases': faker.datatype.number({ min: 1, max: 4 }),
+          'type': 'S',
+          'powerWatts': faker.datatype.number(32)
+        };
         await testData.centralService.updateEntity(
           testData.centralService.carApi,
           carToUpdate
