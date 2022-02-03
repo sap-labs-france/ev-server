@@ -9,7 +9,7 @@ import global from '../../../types/GlobalType';
 const MODULE_NAME = 'JsonRestWSConnection';
 
 export default class JsonRestWSConnection extends WSConnection {
-  constructor(ws: WSWrapper) {
+  public constructor(ws: WSWrapper) {
     super(ws);
   }
 

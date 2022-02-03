@@ -1228,7 +1228,7 @@ export default class Utils {
   }
 
   public static isDevelopmentEnv(): boolean {
-    return process.env.NODE_ENV === 'development';
+    return process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'development-build';
   }
 
   public static isProductionEnv(): boolean {

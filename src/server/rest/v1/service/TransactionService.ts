@@ -366,14 +366,14 @@ export default class TransactionService {
         throw new AppError({
           ...LoggingHelper.getChargingStationProperties(chargingStation),
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Cannot stop an ongoing Transaction`,
+          message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Cannot soft stop an ongoing Transaction`,
           module: MODULE_NAME, method: 'handleTransactionSoftStop',
           user: req.user, action: action
         });
       }
       // Stop Transaction
       const result = await new OCPPService(Configuration.getChargingStationConfig()).handleStopTransaction(
-        {
+        { // OCPP Headers
           chargeBoxIdentity: chargingStation.id,
           chargingStation: chargingStation,
           companyID: chargingStation.companyID,
@@ -382,7 +382,7 @@ export default class TransactionService {
           tenantID: req.user.tenantID,
           tenant: req.tenant,
         },
-        {
+        { // OCPP Stop Transaction
           transactionId: transactionId,
           chargeBoxID: chargingStation.id,
           idTag: req.user.tagIDs[0],

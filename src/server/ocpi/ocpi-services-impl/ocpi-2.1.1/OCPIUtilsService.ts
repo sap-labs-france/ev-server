@@ -692,7 +692,8 @@ export default class OCPIUtilsService {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    const tagToSave = {
+    // Do not set the visualID property as this field is not unique from the eMSP side!!!
+    const tagToSave: Tag = {
       id: token.uid,
       issuer: false,
       userID: emspUser.id,
