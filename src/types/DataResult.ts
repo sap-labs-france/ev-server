@@ -54,7 +54,6 @@ export interface CarDataResult extends DataResult<Car> {
   canCreate: boolean;
   canListUsers: boolean;
   canListCarCatalog: boolean;
-  canCreatePoolCar: boolean;
 }
 
 export interface CarCatalogDataResult extends DataResult<CarCatalog> {
