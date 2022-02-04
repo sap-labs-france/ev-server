@@ -1,5 +1,4 @@
 import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
-import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
 import Transaction, { StartTransactionErrorCode } from '../../types/Transaction';
 import User, { UserStatus } from '../../types/User';
 
@@ -14,7 +13,6 @@ import NotificationHandler from '../../notification/NotificationHandler';
 import { Promise } from 'bluebird';
 import { Request } from 'express';
 import { ServerAction } from '../../types/Server';
-import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
@@ -34,56 +32,6 @@ export default abstract class BillingIntegration {
   protected constructor(tenant: Tenant, settings: BillingSettings) {
     this.tenant = tenant;
     this.settings = settings;
-  }
-
-  public async synchronizeUsers(): Promise<BillingUserSynchronizeAction> {
-    await this.checkConnection();
-    // Check
-    const actionsDone: BillingUserSynchronizeAction = {
-      inSuccess: 0,
-      inError: 0
-    };
-    if (FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USERS)) {
-      // Sync e-Mobility Users with no billing data
-      const users = await this._getUsersWithNoBillingData();
-      if (!Utils.isEmptyArray(users)) {
-        // Process them
-        await Logging.logInfo({
-          tenantID: this.tenant.id,
-          action: ServerAction.BILLING_SYNCHRONIZE_USERS,
-          module: MODULE_NAME, method: 'synchronizeUsers',
-          message: `${users.length} new user(s) are going to be synchronized`
-        });
-        for (const user of users) {
-          // Synchronize user
-          if (await this.synchronizeUser(user)) {
-            actionsDone.inSuccess++;
-          } else {
-            actionsDone.inError++;
-          }
-        }
-      }
-    } else {
-      await Logging.logWarning({
-        tenantID: this.tenant.id,
-        action: ServerAction.BILLING_SYNCHRONIZE_USERS,
-        module: MODULE_NAME, method: 'synchronizeUsers',
-        message: 'Feature is switched OFF - operation has been aborted'
-      });
-    }
-    // Log
-    await Logging.logActionsResponse(this.tenant.id, ServerAction.BILLING_SYNCHRONIZE_USERS,
-      MODULE_NAME, 'synchronizeUsers', actionsDone,
-      '{{inSuccess}} user(s) were successfully synchronized',
-      '{{inError}} user(s) failed to be synchronized',
-      '{{inSuccess}} user(s) were successfully synchronized and {{inError}} failed to be synchronized',
-      'All the users are up to date'
-    );
-    // Update last synchronization
-    this.settings.billing.usersLastSynchronizedOn = new Date();
-    await SettingStorage.saveBillingSetting(this.tenant, this.settings);
-    // Result
-    return actionsDone;
   }
 
   public async synchronizeUser(user: User): Promise<BillingUser> {
@@ -141,21 +89,6 @@ export default abstract class BillingIntegration {
       });
     }
     return billingUser;
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async synchronizeInvoices(user?: User): Promise<BillingUserSynchronizeAction> {
-    const actionsDone: BillingUserSynchronizeAction = {
-      inSuccess: 0,
-      inError: 0
-    };
-    await Logging.logWarning({
-      tenantID: this.tenant.id,
-      action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
-      module: MODULE_NAME, method: 'synchronizeInvoices',
-      message: 'Method is deprecated - operation skipped'
-    });
-    return actionsDone;
   }
 
   public async chargeInvoices(forceOperation = false): Promise<BillingChargeInvoiceAction> {
@@ -233,7 +166,7 @@ export default abstract class BillingIntegration {
         // Format amount with currency symbol depending on locale
         const invoiceAmount = new Intl.NumberFormat(Utils.convertLocaleForCurrency(billingInvoice.user.locale), { style: 'currency', currency: billingInvoice.currency.toUpperCase() }).format(decimInvoiceAmount.toNumber());
         // Send async notification
-        await NotificationHandler.sendBillingNewInvoiceNotification(
+        void NotificationHandler.sendBillingNewInvoiceNotification(
           this.tenant,
           billingInvoice.id,
           billingInvoice.user,
@@ -265,13 +198,13 @@ export default abstract class BillingIntegration {
     }
   }
 
-  public checkStopTransaction(transaction: Transaction): void {
+  public checkBillTransaction(transaction: Transaction): void {
     // Check User
     if (!transaction.userID || !transaction.user) {
       throw new BackendError({
         message: 'User is not provided',
         module: MODULE_NAME,
-        method: 'checkStopTransaction',
+        method: 'checkBillTransaction',
         action: ServerAction.BILLING_TRANSACTION
       });
     }
@@ -280,7 +213,7 @@ export default abstract class BillingIntegration {
       throw new BackendError({
         message: 'Charging Station is not provided',
         module: MODULE_NAME,
-        method: 'checkStopTransaction',
+        method: 'checkBillTransaction',
         action: ServerAction.BILLING_TRANSACTION
       });
     }
@@ -289,7 +222,7 @@ export default abstract class BillingIntegration {
       throw new BackendError({
         message: 'User has no Billing Data',
         module: MODULE_NAME,
-        method: 'checkStopTransaction',
+        method: 'checkBillTransaction',
         action: ServerAction.BILLING_TRANSACTION
       });
     }
@@ -570,6 +503,8 @@ export default abstract class BillingIntegration {
   abstract updateTransaction(transaction: Transaction): Promise<BillingDataTransactionUpdate>;
 
   abstract stopTransaction(transaction: Transaction): Promise<BillingDataTransactionStop>;
+
+  abstract endTransaction(transaction: Transaction): Promise<BillingDataTransactionStop>;
 
   abstract billTransaction(transaction: Transaction): Promise<BillingDataTransactionStop>;
 

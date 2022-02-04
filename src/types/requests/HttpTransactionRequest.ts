@@ -25,6 +25,10 @@ export interface HttpPushTransactionCdrRequest {
   transactionId: number;
 }
 
+export interface HttpExportTransactionCdrRequest {
+  ID: number;
+}
+
 export interface HttpTransactionsRequest extends HttpDatabaseRequest {
   ChargingStationID: string;
   Issuer: boolean;

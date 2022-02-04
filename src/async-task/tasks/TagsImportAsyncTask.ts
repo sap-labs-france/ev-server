@@ -20,11 +20,11 @@ const MODULE_NAME = 'TagsImportAsyncTask';
 
 export default class TagsImportAsyncTask extends AbstractAsyncTask {
   protected async executeAsyncTask(): Promise<void> {
-    const importTagsLock = await LockingHelper.acquireImportTagsLock(this.asyncTask.tenantID);
+    const importTagsLock = await LockingHelper.acquireImportTagsLock(this.getAsyncTask().tenantID);
     const importHelper = new ImportHelper();
     const existingSites: Map<string, Site> = new Map();
     if (importTagsLock) {
-      const tenant = await TenantStorage.getTenant(this.asyncTask.tenantID);
+      const tenant = await TenantStorage.getTenant(this.getAsyncTask().tenantID);
       try {
         // If we never got the sites from db -> construct array of existing sites
         if (existingSites.size === 0) {

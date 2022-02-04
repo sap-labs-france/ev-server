@@ -91,6 +91,8 @@ export enum ServerAction {
 
   OFFLINE_CHARGING_STATION = 'OfflineChargingStation',
 
+  MISSING_CONFIGURATION = 'MissingConfiguration',
+
   LOGS_CLEANUP = 'LogsCleanup',
   PERFORMANCES_CLEANUP = 'PerformancesCleanup',
   PERFORMANCES = 'Performances',
@@ -266,7 +268,6 @@ export enum ServerAction {
   NEW_REGISTERED_USER = 'NewRegisteredUser',
   UNKNOWN_USER_BADGED = 'UnknownUserBadged',
   TRANSACTION_STARTED = 'TransactionStarted',
-  VERIFICATION_EMAIL = 'VerificationEmail',
   VERIFICATION_EMAIL_USER_IMPORT = 'VerificationEmailUserImport',
   PATCH_EVSE_STATUS_ERROR = 'PatchEVSEStatusError',
   PATCH_EVSE_ERROR = 'PatchEVSEError',
@@ -418,16 +419,13 @@ export enum ServerAction {
 
   BILLING = 'Billing',
   BILLING_TRANSACTION = 'BillingTransaction',
-  BILLING_SYNCHRONIZE_USERS = 'BillingSynchronizeUsers',
   BILLING_SYNCHRONIZE_USER = 'BillingSynchronizeUser',
   BILLING_FORCE_SYNCHRONIZE_USER = 'BillingForceSynchronizeUser',
   CHECK_BILLING_CONNECTION = 'CheckBillingConnection',
   BILLING_TAXES = 'BillingTaxes',
   BILLING_INVOICES = 'BillingInvoices',
   BILLING_INVOICE = 'BillingInvoice',
-  BILLING_SYNCHRONIZE_INVOICES = 'BillingSynchronizeInvoices',
   BILLING_PERFORM_OPERATIONS = 'BillingPeriodicOperations',
-  BILLING_FORCE_SYNCHRONIZE_USER_INVOICES = 'BillingForceSynchronizeUserInvoices',
   BILLING_DOWNLOAD_INVOICE = 'BillingDownloadInvoice',
   BILLING_NEW_INVOICE = 'BillingNewInvoice',
   BILLING_SETUP_PAYMENT_METHOD = 'BillingSetupPaymentMethod',
@@ -435,8 +433,8 @@ export enum ServerAction {
   BILLING_PAYMENT_METHODS = 'BillingPaymentMethods',
   BILLING_DELETE_PAYMENT_METHOD = 'BillingDeletePaymentMethod',
   BILLING_CHARGE_INVOICE = 'BillingChargeInvoice',
-  BILLING_WEB_HOOK = 'BillingWebHook',
   BILLING_TEST_DATA_CLEANUP = 'BillingTestDataCleanup',
+  BILLING_BILL_PENDING_TRANSACTION = 'BillingBillPendingTransaction',
 
   PRICING = 'Pricing',
   PRICING_DEFINITION = 'PricingDefinition',
@@ -539,6 +537,9 @@ export enum ServerRoute {
 
   REST_TAGS = 'tags',
   REST_TAG = 'tags/:id',
+  REST_TAG_ASSIGN = 'tags/:id/assign',
+  REST_TAG_UNASSIGN = 'tags/:id/unassign',
+  REST_TAGS_UNASSIGN = 'tags/unassign',
   REST_TAGS_IMPORT = 'tags/action/import',
   REST_TAGS_EXPORT = 'tags/action/export',
 
@@ -629,6 +630,19 @@ export enum ServerRoute {
   REST_SITE_OWNER = 'sites/:id/users/owner',
   REST_SITE_IMAGE = 'sites/:id/image',
 
+  REST_STATISTICS_EXPORT = 'statistics/action/export',
+  REST_CHARGING_STATION_CONSUMPTION_STATISTICS = 'statistics/charging-stations/consumption',
+  REST_CHARGING_STATION_USAGE_STATISTICS = 'statistics/charging-stations/usage',
+  REST_CHARGING_STATION_INACTIVITY_STATISTICS = 'statistics/charging-stations/inactivity',
+  REST_CHARGING_STATION_TRANSACTIONS_STATISTICS = 'statistics/charging-stations/transaction',
+  REST_CHARGING_STATION_PRICING_STATISTICS = 'statistics/charging-stations/pricing',
+  REST_USER_CONSUMPTION_STATISTICS = 'statistics/users/consumption',
+  REST_USER_USAGE_STATISTICS = 'statistics/users/usage',
+  REST_USER_INACTIVITY_STATISTICS = 'statistics/users/inactivity',
+  REST_USER_TRANSACTIONS_STATISTICS = 'statistics/users/transaction',
+  REST_USER_PRICING_STATISTICS = 'statistics/users/pricing',
+  REST_TRANSACTION_YEARS = 'statistics/transactions/years',
+
   // BILLING URLs for CRUD operations on PAYMENT METHODS
   REST_BILLING_PAYMENT_METHODS = 'users/:userID/payment-methods',
   REST_BILLING_PAYMENT_METHOD = 'users/:userID/payment-methods/:paymentMethodID',
@@ -642,6 +656,8 @@ export enum ServerRoute {
   REST_BILLING_SETTING = 'billing-setting', // GET and PUT
   REST_BILLING_CHECK = 'billing/check',
   REST_BILLING_CLEAR_TEST_DATA = 'billing/clearTestData',
+
+  REST_BILLING_TAXES = 'billing/taxes',
 
   // BILLING URLs for CRUD operations on INVOICES
   REST_BILLING_INVOICES = 'invoices',
@@ -670,6 +686,7 @@ export enum ServerType {
   OICP_SERVER = 'Oicp',
   ODATA_SERVER = 'OData',
   BATCH_SERVER = 'Batch',
+  MONITORING_SERVER = 'Monitoring',
   CENTRAL_SERVER = 'CentralServer',
 }
 

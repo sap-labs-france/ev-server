@@ -63,23 +63,18 @@ export default class NotificationService {
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, req.user.id, Action.READ, action);
-    // Save mobile number
-    if (filteredRequest.mobile && user.mobile !== filteredRequest.mobile) {
-      user.mobile = filteredRequest.mobile;
-      await UserStorage.saveUserMobilePhone(req.tenant, user.id, { mobile: filteredRequest.mobile });
-    }
     // Set
     const endUserErrorNotification: EndUserErrorNotification = {
       userID: user.id,
       email: user.email,
-      phone: user.mobile,
+      phone: filteredRequest?.mobile ?? user?.mobile,
       name: Utils.buildUserFullName(user, false, false),
       errorTitle: filteredRequest.subject,
       errorDescription: filteredRequest.description,
       evseDashboardURL: Utils.buildEvseURL(),
     };
-    // Send Notification
-    await NotificationHandler.sendEndUserErrorNotification(req.tenant, endUserErrorNotification);
+    // Notify
+    void NotificationHandler.sendEndUserErrorNotification(req.tenant, endUserErrorNotification);
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }

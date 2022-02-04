@@ -40,6 +40,9 @@ export default class BillingRouter {
     // ROUTE to PAY an INVOICE
     // -----------------------------------
     this.buildRouteBillingInvoicePayment();
+    // ROUTES for TAXES
+    // -----------------------------------
+    this.buildRouteBillingGetTaxes();
     return this.router;
   }
 
@@ -140,6 +143,12 @@ export default class BillingRouter {
       // GET {{base_url}}/v1/api/invoices/606193168f22ac7f02223c8c/download
       req.query.ID = req.params.invoiceID;
       void RouterUtils.handleServerAction(BillingService.handleDownloadInvoice.bind(this), ServerAction.BILLING_DOWNLOAD_INVOICE, req, res, next);
+    });
+  }
+
+  private buildRouteBillingGetTaxes(): void {
+    this.router.get(`/${ServerRoute.REST_BILLING_TAXES}`, (req: Request, res: Response, next: NextFunction) => {
+      void RouterUtils.handleServerAction(BillingService.handleGetBillingTaxes.bind(this), ServerAction.BILLING_TAXES, req, res, next);
     });
   }
 }

@@ -1,18 +1,19 @@
 import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
 import { ChargingStationTemplate } from '../types/ChargingStation';
-import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 import { ServerAction } from '../types/Server';
 import Utils from '../utils/Utils';
 import fs from 'fs';
+import global from './../types/GlobalType';
 
 export default class ChargingStationTemplateBootstrap {
   public static async uploadChargingStationTemplatesFromFile(): Promise<void> {
     // Read File
     let chargingStationTemplates: ChargingStationTemplate[];
     try {
-      chargingStationTemplates = JSON.parse(fs.readFileSync(Configuration.getChargingStationTemplatesConfig().templatesFilePath, 'utf8'));
+      chargingStationTemplates = JSON.parse(
+        fs.readFileSync(`${global.appRoot}/assets/charging-station-templates/charging-stations.json`, 'utf8'));
     } catch (error) {
       await Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, ServerAction.UPDATE_CHARGING_STATION_TEMPLATES, error);
       return;

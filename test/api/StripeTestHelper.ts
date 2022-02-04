@@ -279,6 +279,7 @@ export default class StripeTestHelper {
       energy: {
         itemDescription: `Energy consumption - ${consumptionTestData.energyConsumptionkWh} kWh * ${consumptionTestData.energyAmount / consumptionTestData.energyConsumptionkWh} Eur`,
         unitPrice: Utils.createDecimal(consumptionTestData.energyAmount).div(consumptionTestData.energyConsumptionkWh).toNumber(),
+        amountAsDecimal: Utils.createDecimal(consumptionTestData.energyAmount), // total amount to bill -  not yet in cents
         amount: consumptionTestData.energyAmount, // total amount to bill -  not yet in cents
         roundedAmount: Utils.truncTo(consumptionTestData.energyAmount, 2),
         quantity: Utils.createDecimal(consumptionTestData.energyConsumptionkWh).div(1000).toNumber(), // Wh
@@ -287,6 +288,7 @@ export default class StripeTestHelper {
       parkingTime: {
         itemDescription: `Parking time - ${consumptionTestData.parkingTime} minutes`,
         unitPrice: Utils.createDecimal(consumptionTestData.parkingAmount).div(consumptionTestData.parkingTime).toNumber(),
+        amountAsDecimal: Utils.createDecimal(consumptionTestData.parkingAmount),
         amount: consumptionTestData.parkingAmount, // Euros
         roundedAmount: Utils.truncTo(consumptionTestData.parkingAmount, 2),
         quantity: Utils.createDecimal(consumptionTestData.parkingTime).div(60).toNumber(), // seconds

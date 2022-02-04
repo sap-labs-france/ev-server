@@ -27,14 +27,11 @@ export default class CompanyStorage {
   }
 
   public static async getCompanyLogo(tenant: Tenant, id: string): Promise<Logo> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Read DB
     const companyLogoMDB = await global.database.getCollection<Logo>(tenant.id, 'companylogos')
       .findOne({ _id: DatabaseUtils.convertToObjectID(id) });
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getCompanyLogo', startTime, { id }, companyLogoMDB);
     return {
       id: id,
@@ -43,9 +40,7 @@ export default class CompanyStorage {
   }
 
   public static async saveCompany(tenant: Tenant, companyToSave: Company, saveLogo = true): Promise<string> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Set
     const companyMDB: any = {
@@ -78,7 +73,6 @@ export default class CompanyStorage {
     if (saveLogo) {
       await CompanyStorage.saveCompanyLogo(tenant, companyMDB._id.toString(), companyToSave.logo);
     }
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveCompany', startTime, companyMDB);
     return companyMDB._id.toString();
   }
@@ -87,9 +81,7 @@ export default class CompanyStorage {
       params: { search?: string; issuer?: boolean; companyIDs?: string[]; withSite?: boolean; withLogo?: boolean;
         locCoordinates?: number[]; locMaxDistanceMeters?: number; } = {},
       dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Company>> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -181,7 +173,7 @@ export default class CompanyStorage {
     }
     // Limit
     aggregation.push({
-      $limit: (dbParams.limit > 0 && dbParams.limit < Constants.DB_RECORD_COUNT_CEIL) ? dbParams.limit : Constants.DB_RECORD_COUNT_CEIL
+      $limit: dbParams.limit
     });
     // Site
     if (params.withSite) {
@@ -216,9 +208,7 @@ export default class CompanyStorage {
     const companiesMDB = await global.database.getCollection<Company>(tenant.id, 'companies')
       .aggregate<Company>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getCompanies', startTime, aggregation, companiesMDB);
-    // Ok
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(companiesCountMDB[0]),
       result: companiesMDB,
@@ -227,9 +217,7 @@ export default class CompanyStorage {
   }
 
   public static async deleteCompany(tenant: Tenant, id: string): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete sites associated with Company
     await SiteStorage.deleteCompanySites(tenant, id);
@@ -239,21 +227,17 @@ export default class CompanyStorage {
     // Delete Logo
     await global.database.getCollection<any>(tenant.id, 'companylogos')
       .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteCompany', startTime, { id });
   }
 
   private static async saveCompanyLogo(tenant: Tenant, companyID: string, companyLogoToSave: string): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Modify
     await global.database.getCollection<any>(tenant.id, 'companylogos').findOneAndUpdate(
       { '_id': DatabaseUtils.convertToObjectID(companyID) },
       { $set: { logo: companyLogoToSave } },
       { upsert: true });
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveCompanyLogo', startTime, companyLogoToSave);
   }
 }

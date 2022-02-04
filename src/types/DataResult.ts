@@ -1,10 +1,12 @@
 import { Car, CarCatalog } from './Car';
 import Transaction, { TransactionStats } from './Transaction';
 
+import Asset from './Asset';
 import { AuthorizationDefinitionFieldMetadata } from './Authorization';
 import Company from './Company';
 import { Log } from './Log';
 import PricingDefinition from './Pricing';
+import RegistrationToken from './RegistrationToken';
 import Site from './Site';
 import SiteArea from './SiteArea';
 import Tag from './Tag';
@@ -22,20 +24,25 @@ export interface DataResult<T> {
   metadata?: Record<string, AuthorizationDefinitionFieldMetadata>;
 }
 
-export interface PricingDataResult extends DataResult<PricingDefinition>{
+export interface PricingDefinitionDataResult extends DataResult<PricingDefinition> {
   canCreate: boolean;
 }
 
-export interface CompanyDataResult extends DataResult<Company>{
+export interface RegistrationTokenDataResult extends DataResult<RegistrationToken> {
   canCreate: boolean;
 }
-export interface SiteDataResult extends DataResult<Site>{
+
+export interface CompanyDataResult extends DataResult<Company> {
+  canCreate: boolean;
+}
+
+export interface SiteDataResult extends DataResult<Site> {
   canCreate: boolean;
   canAssignUsers: boolean;
   canUnassignUsers: boolean;
 }
 
-export interface LogDataResult extends DataResult<Log>{
+export interface LogDataResult extends DataResult<Log> {
   canExport: boolean;
 }
 
@@ -55,7 +62,6 @@ export interface UserDataResult extends DataResult<User> {
   canCreate: boolean;
   canExport: boolean;
   canImport: boolean;
-  canSynchronizeBilling: boolean;
 }
 export interface TagDataResult extends DataResult<Tag> {
   canCreate: boolean;
@@ -65,6 +71,7 @@ export interface TagDataResult extends DataResult<Tag> {
   canUnassign: boolean;
   canAssign: boolean;
   canListUsers: boolean;
+  canListSources: boolean;
 }
 
 export interface TransactionDataResult extends DataResult<Transaction> {
@@ -84,4 +91,10 @@ export interface TransactionRefundDataResult {
     totalPricePending: number;
     currency: string;
   };
+}
+
+export interface AssetDataResult extends DataResult<Asset> {
+  canCreate: boolean;
+  canListSites: boolean;
+  canListSiteAreas: boolean;
 }

@@ -431,21 +431,21 @@ export default class OCPIUtilsService {
     const evses: OCPIEvse[] = [];
     // Convert charging stations to evse(s)
     const chargingStations = await ChargingStationStorage.getChargingStations(tenant,
-      { ...dbFilters, siteIDs: [ siteID ], public: true, issuer: true, withSiteArea: true },
+      { ...dbFilters, siteIDs: [ siteID ], public: true, issuer: true, withSiteArea: true, withSite: true },
       dbParams ?? Constants.DB_PARAMS_MAX_LIMIT,
-      [ 'id', 'chargePoints', 'connectors', 'coordinates', 'lastSeen', 'siteAreaID', 'siteID', 'companyID' ]);
+      [ 'id', 'chargePoints', 'connectors', 'coordinates', 'tariffID', 'lastSeen', 'siteAreaID', 'siteID', 'companyID', 'siteArea', 'site' ]);
     for (const chargingStation of chargingStations.result) {
       const chargingStationEvses: OCPIEvse[] = [];
       if (!Utils.isEmptyArray(chargingStation.chargePoints)) {
         for (const chargePoint of chargingStation.chargePoints) {
           if (chargePoint.cannotChargeInParallel) {
-            chargingStationEvses.push(...OCPIUtilsService.convertChargingStation2UniqueEvse(tenant, chargingStation, chargePoint, options));
+            chargingStationEvses.push(...await OCPIUtilsService.convertChargingStation2UniqueEvse(tenant, chargingStation, chargePoint, options));
           } else {
-            chargingStationEvses.push(...OCPIUtilsService.convertChargingStation2MultipleEvses(tenant, chargingStation, chargePoint, options));
+            chargingStationEvses.push(...await OCPIUtilsService.convertChargingStation2MultipleEvses(tenant, chargingStation, chargePoint, options));
           }
         }
       } else {
-        chargingStationEvses.push(...OCPIUtilsService.convertChargingStation2MultipleEvses(tenant, chargingStation, null, options));
+        chargingStationEvses.push(...await OCPIUtilsService.convertChargingStation2MultipleEvses(tenant, chargingStation, null, options));
       }
       // Always update OCPI data
       await ChargingStationStorage.saveChargingStationOcpiData(tenant, chargingStation.id, { evses: chargingStationEvses });
@@ -651,7 +651,7 @@ export default class OCPIUtilsService {
     await this.updateConnector(tenant, transaction);
   }
 
-  public static async updateToken(tenant: Tenant, ocpiEndpoint: OCPIEndpoint, token: OCPIToken, tag: Tag, emspUser: User): Promise<void> {
+  public static async updateToken(tenant: Tenant, token: OCPIToken, tag: Tag, emspUser: User): Promise<void> {
     if (!OCPIUtilsService.validateToken(token)) {
       throw new AppError({
         module: MODULE_NAME, method: 'updateToken',
@@ -661,84 +661,54 @@ export default class OCPIUtilsService {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    if (emspUser) {
-      // External organization
-      if (emspUser.issuer) {
-        throw new AppError({
-          module: MODULE_NAME, method: 'updateToken',
-          errorCode: StatusCodes.CONFLICT,
-          message: 'Token already assigned to an internal user',
-          actionOnUser: emspUser,
-          detailedMessages: { token },
-          ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
-        });
-      }
-      // Check the tag
-      if (tag && tag.issuer) {
-        throw new AppError({
-          module: MODULE_NAME, method: 'checkExistingTag',
-          errorCode: StatusCodes.CONFLICT,
-          message: 'Token already exists in the current organization',
-          detailedMessages: token,
-          ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
-        });
-      }
-      const tagToSave = {
-        id: token.uid,
-        issuer: false,
-        userID: emspUser.id,
-        active: token.valid === true ? true : false,
-        description: token.visual_number,
-        lastChangedOn: token.last_updated,
-        ocpiToken: token
-      };
-      // Save Tag
-      if (!tag || JSON.stringify(tagToSave.ocpiToken) !== JSON.stringify(tag.ocpiToken)) {
-        await TagStorage.saveTag(tenant, tagToSave);
-      }
-    } else {
-      // Unknown User
-      // Check the Tag
-      if (tag && tag.issuer) {
-        throw new AppError({
-          module: MODULE_NAME, method: 'checkExistingTag',
-          errorCode: StatusCodes.CONFLICT,
-          message: 'Token already exists in the current organization',
-          detailedMessages: token,
-          ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
-        });
-      }
-      // Create User
-      emspUser = {
-        issuer: false,
-        createdOn: token.last_updated,
-        lastChangedOn: token.last_updated,
-        name: token.issuer,
-        firstName: OCPIUtils.buildOperatorName(ocpiEndpoint.countryCode, ocpiEndpoint.partyId),
-        email: OCPIUtils.buildEmspEmailFromOCPIToken(token, ocpiEndpoint.countryCode, ocpiEndpoint.partyId),
-        locale: Utils.getLocaleFromLanguage(token.language),
-      } as User;
-      // Save User
-      emspUser.id = await UserStorage.saveUser(tenant, emspUser);
-      await UserStorage.saveUserRole(tenant, emspUser.id, UserRole.BASIC);
-      await UserStorage.saveUserStatus(tenant, emspUser.id, UserStatus.ACTIVE);
-      const tagToSave = {
-        id: token.uid,
-        issuer: false,
-        userID: emspUser.id,
-        active: token.valid === true ? true : false,
-        description: 'OCPI token',
-        lastChangedOn: token.last_updated,
-        ocpiToken: token
-      };
-      // Save Tag
-      if (!tag || JSON.stringify(tagToSave.ocpiToken) !== JSON.stringify(tag.ocpiToken)) {
-        await TagStorage.saveTag(tenant, tagToSave);
-      }
+    // External organization
+    if (!emspUser) {
+      throw new AppError({
+        module: MODULE_NAME, method: 'updateToken',
+        errorCode: StatusCodes.CONFLICT,
+        message: 'eMSP User is mandatory',
+        detailedMessages: { token },
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
+      });
+    }
+    // External organization
+    if (emspUser.issuer) {
+      throw new AppError({
+        module: MODULE_NAME, method: 'updateToken',
+        errorCode: StatusCodes.CONFLICT,
+        message: 'Token already assigned to an internal user',
+        actionOnUser: emspUser,
+        detailedMessages: { token },
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
+      });
+    }
+    // Check the tag
+    if (tag?.issuer) {
+      throw new AppError({
+        module: MODULE_NAME, method: 'checkExistingTag',
+        errorCode: StatusCodes.CONFLICT,
+        message: 'Token already exists in the current organization',
+        detailedMessages: token,
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
+      });
+    }
+    // Do not set the visualID property as this field is not unique from the eMSP side!!!
+    const tagToSave: Tag = {
+      id: token.uid,
+      issuer: false,
+      userID: emspUser.id,
+      active: token.valid === true ? true : false,
+      description: token.visual_number,
+      lastChangedOn: token.last_updated,
+      ocpiToken: token
+    };
+    // Save Tag
+    if (!tag || JSON.stringify(tagToSave.ocpiToken) !== JSON.stringify(tag.ocpiToken)) {
+      await TagStorage.saveTag(tenant, tagToSave);
     }
   }
 
-  public static convertConnector2OCPIConnector(tenant: Tenant, chargingStation: ChargingStation, connector: Connector, countryId: string, partyId: string): OCPIConnector {
+  public static async convertConnector2OCPIConnector(tenant: Tenant, chargingStation: ChargingStation, connector: Connector, countryId: string, partyId: string): Promise<OCPIConnector> {
     let type: OCPIConnectorType, format: OCPIConnectorFormat;
     const chargePoint = Utils.getChargePointFromID(chargingStation, connector?.chargePointID);
     const voltage: OCPIVoltage = OCPIUtilsService.getChargingStationOCPIVoltage(chargingStation, chargePoint, connector.connectorId);
@@ -774,7 +744,7 @@ export default class OCPIUtilsService {
       voltage: voltage,
       amperage: amperage,
       power_type: OCPIUtilsService.convertOCPINumberOfConnectedPhases2PowerType(ocpiNumberOfConnectedPhases),
-      tariff_id: OCPIUtilsService.buildTariffID(tenant, chargingStation, connector),
+      tariff_id: await OCPIUtilsService.buildTariffID(tenant, chargingStation, connector),
       last_updated: chargingStation.lastSeen
     };
   }
@@ -812,8 +782,8 @@ export default class OCPIUtilsService {
     return businessDetails;
   }
 
-  private static convertChargingStation2MultipleEvses(tenant: Tenant, chargingStation: ChargingStation,
-      chargePoint: ChargePoint, options: OCPILocationOptions): OCPIEvse[] {
+  private static async convertChargingStation2MultipleEvses(tenant: Tenant, chargingStation: ChargingStation,
+      chargePoint: ChargePoint, options: OCPILocationOptions): Promise<OCPIEvse[]> {
     // Loop through connectors and send one evse per connector
     let connectors: Connector[];
     if (chargePoint) {
@@ -821,7 +791,7 @@ export default class OCPIUtilsService {
     } else {
       connectors = chargingStation.connectors.filter((connector) => connector !== null);
     }
-    const evses = connectors.map((connector) => {
+    const evses = await Promise.all(connectors.map(async (connector) => {
       const evse: OCPIEvse = {
         uid: OCPIUtils.buildEvseUID(chargingStation, connector),
         evse_id: RoamingUtils.buildEvseID(options.countryID, options.partyID,
@@ -829,7 +799,7 @@ export default class OCPIUtilsService {
         location_id: chargingStation.siteID,
         status: chargingStation.inactive ? OCPIEvseStatus.INOPERATIVE : OCPIUtilsService.convertStatus2OCPIStatus(connector.status),
         capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
-        connectors: [OCPIUtilsService.convertConnector2OCPIConnector(tenant, chargingStation, connector, options.countryID, options.partyID)],
+        connectors: [await OCPIUtilsService.convertConnector2OCPIConnector(tenant, chargingStation, connector, options.countryID, options.partyID)],
         last_updated: chargingStation.lastSeen,
         coordinates: {
           latitude: chargingStation.coordinates[1] ? chargingStation.coordinates[1].toString() : null,
@@ -844,13 +814,13 @@ export default class OCPIUtilsService {
         evse.companyID = chargingStation.companyID;
       }
       return evse;
-    });
+    }));
     // Return all evses
     return evses;
   }
 
-  private static convertChargingStation2UniqueEvse(tenant: Tenant, chargingStation: ChargingStation,
-      chargePoint: ChargePoint, options: OCPILocationOptions): OCPIEvse[] {
+  private static async convertChargingStation2UniqueEvse(tenant: Tenant, chargingStation: ChargingStation,
+      chargePoint: ChargePoint, options: OCPILocationOptions): Promise<OCPIEvse[]> {
     let connectors: Connector[];
     if (chargePoint) {
       connectors = Utils.getConnectorsFromChargePoint(chargingStation, chargePoint);
@@ -858,8 +828,8 @@ export default class OCPIUtilsService {
       connectors = chargingStation.connectors.filter((connector) => connector !== null);
     }
     // Get all connectors
-    const ocpiConnectors: OCPIConnector[] = connectors.map((connector: Connector) =>
-      OCPIUtilsService.convertConnector2OCPIConnector(tenant, chargingStation, connector, options.countryID, options.partyID));
+    const ocpiConnectors: OCPIConnector[] = await Promise.all(connectors.map(async (connector: Connector) =>
+      await OCPIUtilsService.convertConnector2OCPIConnector(tenant, chargingStation, connector, options.countryID, options.partyID)));
     // Get connectors aggregated status
     const connectorOneStatus = OCPIUtilsService.convertToOneConnectorStatus(connectors);
     // Build evse
@@ -935,8 +905,30 @@ export default class OCPIUtilsService {
     }
   }
 
-  private static buildTariffID(tenant: Tenant, chargingStation: ChargingStation, connector: Connector): string {
+  private static async buildTariffID(tenant: Tenant, chargingStation: ChargingStation, connector: Connector): Promise<string> {
     const defaultTariff = 'Default';
+    // Connector?
+    if (!Utils.isNullOrEmptyString(connector.tariffID)) {
+      return connector.tariffID;
+    }
+    // Charging Station?
+    if (!Utils.isNullOrEmptyString(chargingStation.tariffID)) {
+      return chargingStation.tariffID;
+    }
+    // Site Area?
+    if (!Utils.isNullOrEmptyString(chargingStation.siteArea?.tariffID)) {
+      return chargingStation.siteArea.tariffID;
+    }
+    // Site?
+    if (!Utils.isNullOrEmptyString(chargingStation.site?.tariffID)) {
+      return chargingStation.site.tariffID;
+    }
+    // Tenant?
+    const ocpiSettings = await SettingStorage.getOCPISettings(tenant);
+    if (!Utils.isNullOrEmptyString(ocpiSettings?.ocpi?.tariffID)) {
+      return ocpiSettings.ocpi.tariffID;
+    }
+    // Backup rules (give time to customers to maintain their corresponding objects)
     switch (tenant?.id) {
       // Station-e
       case '60633bb1834fed0016310189':
@@ -1019,6 +1011,7 @@ export default class OCPIUtilsService {
       case '60b9f4336493830016c9a68c':
         return 'Tarif_Standard';
     }
+    // Default
     return defaultTariff;
   }
 

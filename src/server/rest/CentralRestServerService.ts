@@ -13,7 +13,6 @@ import OCPIEndpointService from './v1/service/OCPIEndpointService';
 import OICPEndpointService from './v1/service/OICPEndpointService';
 import RegistrationTokenService from './v1/service/RegistrationTokenService';
 import { ServerAction } from '../../types/Server';
-import SessionHashService from './v1/service/SessionHashService';
 import SettingService from './v1/service/SettingService';
 import SiteAreaService from './v1/service/SiteAreaService';
 import SiteService from './v1/service/SiteService';
@@ -52,11 +51,7 @@ class RequestMapper {
           [ServerAction.TRANSACTION_PUSH_CDR]: TransactionService.handlePushTransactionCdr.bind(this),
           [ServerAction.SYNCHRONIZE_REFUNDED_TRANSACTIONS]: TransactionService.handleSynchronizeRefundedTransactions.bind(this),
           [ServerAction.SETTING_CREATE]: SettingService.handleCreateSetting.bind(this),
-          [ServerAction.BILLING_SYNCHRONIZE_USERS]: BillingService.handleSynchronizeUsers.bind(this),
-          [ServerAction.BILLING_SYNCHRONIZE_USER]: BillingService.handleSynchronizeUser.bind(this),
           [ServerAction.BILLING_FORCE_SYNCHRONIZE_USER]: BillingService.handleForceSynchronizeUser.bind(this),
-          [ServerAction.BILLING_SYNCHRONIZE_INVOICES]: BillingService.handleSynchronizeInvoices.bind(this),
-          [ServerAction.BILLING_FORCE_SYNCHRONIZE_USER_INVOICES]: BillingService.handleForceSynchronizeUserInvoices.bind(this),
           [ServerAction.BILLING_SETUP_PAYMENT_METHOD]: BillingService.handleBillingSetupPaymentMethod.bind(this),
           [ServerAction.OCPI_ENDPOINT_CREATE]: OCPIEndpointService.handleCreateOcpiEndpoint.bind(this),
           [ServerAction.OCPI_ENDPOINT_PING]: OCPIEndpointService.handlePingOcpiEndpoint.bind(this),
@@ -292,11 +287,6 @@ export default class CentralRestServerService {
         case 'POST':
           // Check Context
           switch (action) {
-            // Ping
-            case ServerAction.BILLING_WEB_HOOK:
-              await BillingService.handleBillingWebHook(action, req, res, next);
-              // Res.sendStatus(StatusCodes.OK);
-              break;
             default:
               // Delegate
               await UtilsService.handleUnknownAction(action, req, res, next);
@@ -311,10 +301,6 @@ export default class CentralRestServerService {
   public static async restServiceSecured(req: Request, res: Response, next: NextFunction): Promise<void> {
     // Parse the action
     const action = req.params.action as ServerAction;
-    // Check if User has been updated and require new login
-    if ((await SessionHashService.areTokenUserAndTenantStillValid(req, res, next))) {
-      return;
-    }
     // Check HTTP Verbs
     if (!['POST', 'GET', 'PUT', 'DELETE'].includes(req.method)) {
       await Logging.logActionExceptionMessageAndSendResponse(
@@ -322,7 +308,6 @@ export default class CentralRestServerService {
       return;
     }
     try {
-      await Logging.traceExpressRequest(req, res, next);
       // Get the action
       const handleRequest = RequestMapper.getInstanceFromHTTPVerb(req.method).getActionFromPath(action);
       // Execute

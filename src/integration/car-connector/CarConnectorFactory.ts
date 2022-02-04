@@ -8,7 +8,7 @@ import TronityCarConnectorIntegration from './tronity-connector/TronityCarConnec
 import Utils from '../../utils/Utils';
 
 export default class CarConnectorFactory {
-  static async getCarConnectorImpl(tenant: Tenant, carConnectorId: string): Promise<CarConnectorIntegration<CarConnectorSettings>> {
+  public static async getCarConnectorImpl(tenant: Tenant, carConnectorId: string): Promise<CarConnectorIntegration<CarConnectorSettings>> {
     // Check if car connector component is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.CAR_CONNECTOR)) {
       const settings = await SettingStorage.getCarConnectorSettings(tenant);

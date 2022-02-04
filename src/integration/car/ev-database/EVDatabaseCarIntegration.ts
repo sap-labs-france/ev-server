@@ -1,10 +1,11 @@
-import { CarCatalog, CarCatalogChargeAlternativeTable, CarCatalogChargeOptionTable, CarCatalogConverter } from '../../../types/Car';
+import { CarCatalog, CarCatalogConverter } from '../../../types/Car';
 
 import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
 import CarIntegration from '../CarIntegration';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
+import Jimp from 'jimp';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import Utils from '../../../utils/Utils';
@@ -36,8 +37,8 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
     // Build result
     for (const data of response.data) {
       const chargeStandardTables: CarCatalogConverter[] = [];
-      const chargeAlternativeTables: CarCatalogChargeAlternativeTable[] = [];
-      const chargeOptionTables: CarCatalogChargeOptionTable[] = [];
+      const chargeAlternativeTables: CarCatalogConverter[] = [];
+      const chargeOptionTables: CarCatalogConverter[] = [];
       for (const chargeStandard of Object.keys(data.Charge_Standard_Table)) {
         const chargeStandardTable: CarCatalogConverter = {
           type: chargeStandard,
@@ -56,7 +57,7 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
       }
       if (data.Charge_Alternative_Table) {
         for (const chargeAlternative of Object.keys(data.Charge_Alternative_Table)) {
-          const chargeAlternativeTable: CarCatalogChargeAlternativeTable = {
+          const chargeAlternativeTable: CarCatalogConverter = {
             type: chargeAlternative,
             evsePhaseVolt: data.Charge_Standard_Table[chargeAlternative].EVSE_PhaseVolt,
             evsePhaseAmp: data.Charge_Standard_Table[chargeAlternative].EVSE_PhaseAmp,
@@ -73,7 +74,7 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
       }
       if (data.Charge_Option_Table) {
         for (const chargeOption of Object.keys(data.Charge_Option_Table)) {
-          const chargeAlternativeTable: CarCatalogChargeOptionTable = {
+          const chargeAlternativeTable: CarCatalogConverter = {
             type: chargeOption,
             evsePhaseVolt: data.Charge_Standard_Table[chargeOption].EVSE_PhaseVolt,
             evsePhaseAmp: data.Charge_Standard_Table[chargeOption].EVSE_PhaseAmp,
@@ -233,9 +234,9 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
 
   public async getCarCatalogImage(carCatalog: CarCatalog, imageURL:string): Promise<string> {
     try {
-      const response = await this.axiosInstance.get(imageURL, { responseType: 'arraybuffer' });
-      const base64Image = Buffer.from(response.data).toString('base64');
-      const encodedImage = 'data:' + response.headers['content-type'] + ';base64,' + base64Image;
+      const response = (await Jimp.read(imageURL)).resize(700, Jimp.AUTO).quality(60);
+      const imageMIME = response.getMIME();
+      const encodedImage = await response.getBase64Async(imageMIME);
       return encodedImage;
     } catch (error) {
       await Logging.logError({

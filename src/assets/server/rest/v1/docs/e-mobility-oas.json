@@ -87,6 +87,10 @@
     {
       "name": "Registration tokens",
       "description": "Registration tokens API"
+    },
+    {
+      "name": "Statistics",
+      "description": "Statistics API"
     }
   ],
   "paths": {
@@ -2438,7 +2442,7 @@
         }
       }
     },
-    "/api/transactions/{id}/ocpi/cdrs": {
+    "/api/transactions/{id}/ocpi/cdr": {
       "post": {
         "security": [
           {
@@ -2486,7 +2490,7 @@
         }
       }
     },
-    "/api/transactions/{id}/ocpi/cdrs/export": {
+    "/api/transactions/{id}/ocpi/cdr/export": {
       "get": {
         "security": [
           {
@@ -2495,13 +2499,7 @@
         ],
         "parameters": [
           {
-            "$ref": "#/components/parameters/WithUser"
-          },
-          {
-            "$ref": "#/components/parameters/WithCar"
-          },
-          {
-            "$ref": "#/components/parameters/WithTag"
+            "$ref": "#/components/parameters/transactionID"
           }
         ],
         "description": "Export Transaction CDR",
@@ -4141,14 +4139,26 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "carID": {
-                    "type": "string",
-                    "example": ""
-                  },
                   "userID": {
                     "type": "string",
                     "example": ""
                   },
+                  "carID": {
+                    "type": "string",
+                    "example": ""
+                  },
+                  "carSoc": {
+                    "type": "integer",
+                    "example": ""
+                  },
+                  "carOdometer": {
+                    "type": "integer",
+                    "example": ""
+                  },
+                  "departureTime": {
+                    "type": "string",
+                    "format": "date-time"
+                },
                   "args": {
                     "type": "object",
                     "properties": {
@@ -5120,6 +5130,9 @@
                   "public": {
                     "type": "boolean",
                     "example": false
+                  },
+                  "tariffID": {
+                    "type": "string"
                   },
                   "siteAreaID": {
                     "type": "string",
@@ -7121,6 +7134,256 @@
         }
       }
     },
+    "/api/users/{id}/payment-methods": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get user's payment methods",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/userID"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Retrieved user payment methods",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "number"
+                    },
+                    "result": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BillingPaymentMethod"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/users/{id}/payment-methods/{paymentMethodID}": {
+      "delete": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Delete user's payment methods",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/userID"
+          },
+          {
+            "$ref": "#/components/parameters/paymentMethodID"
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully deleted user payment method",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingOperationResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/users/{id}/payment-methods/setup": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Setup user's payment method",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/userID"
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "paymentMethodId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully setup user payment method",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingOperationResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/users/{id}/payment-methods/{paymentMethodID}/attach": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Creates a new payment method and attach it to the user as its default",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/userID"
+          },
+          {
+            "$ref": "#/components/parameters/paymentMethodID"
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully attached user payment method",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingOperationResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/users/{id}/payment-methods/{paymentMethodID}/detach": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Detach a payment method from the user",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/userID"
+          },
+          {
+            "$ref": "#/components/parameters/paymentMethodID"
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully detached user payment method",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingOperationResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
     "/api/tags": {
       "get": {
         "security": [
@@ -7472,6 +7735,181 @@
         "responses": {
           "200": {
             "description": "Tag deleted successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/tags/{id}/assign": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Assign a Tag to a user",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/tagVisualID"
+          }
+        ],
+        "tags": [
+          "Tags"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "visualID",
+                  "userID"
+                ],
+                "properties": {
+                  "visualID": {
+                    "$ref": "#/components/schemas/Tag/properties/visualID"
+                  },
+                  "description": {
+                    "$ref": "#/components/schemas/Tag/properties/description"
+                  },
+                  "default": {
+                    "$ref": "#/components/schemas/Tag/properties/default"
+                  },
+                  "userID": {
+                    "$ref": "#/components/schemas/Tag/properties/userID"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tag successfully assigned",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success",
+                  "id": "###"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          },
+          "576": {
+            "description": "Tag already exists and assigned to another user"
+          },
+          "578": {
+            "description": "Tag with given visual ID does not match any badge"
+          },
+          "579": {
+            "description": "Tag with given visual ID is not active and cannot be assigned"
+          }
+        }
+      }
+    },
+    "/api/tags/{id}/unassign": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Unassign a Tag",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/tagVisualID"
+          }
+        ],
+        "tags": [
+          "Tags"
+        ],
+        "responses": {
+          "200": {
+            "description": "Tag successfully unassigned",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/tags/unassign": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Unassign several Tags",
+        "tags": [
+          "Tags"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "visualIDs": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Tag/properties/visualID"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tags successfully unassigned",
             "content": {
               "application/json": {
                 "example": {
@@ -12157,6 +12595,1039 @@
           }
         }
       }
+    },
+    "/api/statistics/action/export": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Export Statistics",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Year"
+          },
+          {
+            "$ref": "#/components/parameters/StartDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/EndDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/SiteAreaIDs"
+          },
+          {
+            "$ref": "#/components/parameters/ChargingStationIDs"
+          },
+          {
+            "$ref": "#/components/parameters/UserIDs"
+          },
+          {
+            "$ref": "#/components/parameters/SiteIDs"
+          },
+          {
+            "in": "query",
+            "name": "DataType",
+            "description": "Data type",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "Consumption",
+                "Usage",
+                "Inactivity",
+                "Transactions",
+                "Pricing"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "DataCategory",
+            "description": "Data category (C = charging stations, U = users)",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "C",
+                "U"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "DataScope",
+            "description": "Data scope",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "year",
+                "month"
+              ]
+            }
+          }
+        ],
+        "tags": [
+          "Statistics"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return statistics",
+            "content": {
+              "text/csv": {}
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/statistics/charging-stations/consumption": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get Charging stations consumption Statistics",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Year"
+          },
+          {
+            "$ref": "#/components/parameters/StartDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/EndDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/SiteAreaIDs"
+          },
+          {
+            "$ref": "#/components/parameters/ChargingStationIDs"
+          },
+          {
+            "$ref": "#/components/parameters/UserIDs"
+          },
+          {
+            "$ref": "#/components/parameters/SiteIDs"
+          }
+        ],
+        "tags": [
+          "Statistics"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return charging stations consumption statistics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChargingStationStatistics"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/statistics/charging-stations/usage": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get Charging stations usage Statistics",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Year"
+          },
+          {
+            "$ref": "#/components/parameters/StartDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/EndDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/SiteAreaIDs"
+          },
+          {
+            "$ref": "#/components/parameters/ChargingStationIDs"
+          },
+          {
+            "$ref": "#/components/parameters/UserIDs"
+          },
+          {
+            "$ref": "#/components/parameters/SiteIDs"
+          }
+        ],
+        "tags": [
+          "Statistics"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return charging stations usage statistics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChargingStationStatistics"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/statistics/charging-stations/inactivity": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get Charging stations inactivity Statistics",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Year"
+          },
+          {
+            "$ref": "#/components/parameters/StartDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/EndDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/SiteAreaIDs"
+          },
+          {
+            "$ref": "#/components/parameters/ChargingStationIDs"
+          },
+          {
+            "$ref": "#/components/parameters/UserIDs"
+          },
+          {
+            "$ref": "#/components/parameters/SiteIDs"
+          }
+        ],
+        "tags": [
+          "Statistics"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return charging stations inactivity statistics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChargingStationStatistics"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/statistics/charging-stations/transactions": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get Charging stations transactions Statistics",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Year"
+          },
+          {
+            "$ref": "#/components/parameters/StartDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/EndDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/SiteAreaIDs"
+          },
+          {
+            "$ref": "#/components/parameters/ChargingStationIDs"
+          },
+          {
+            "$ref": "#/components/parameters/UserIDs"
+          },
+          {
+            "$ref": "#/components/parameters/SiteIDs"
+          }
+        ],
+        "tags": [
+          "Statistics"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return charging stations transactions statistics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChargingStationStatistics"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/statistics/charging-stations/pricing": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get Charging stations princing Statistics",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Year"
+          },
+          {
+            "$ref": "#/components/parameters/StartDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/EndDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/SiteAreaIDs"
+          },
+          {
+            "$ref": "#/components/parameters/ChargingStationIDs"
+          },
+          {
+            "$ref": "#/components/parameters/UserIDs"
+          },
+          {
+            "$ref": "#/components/parameters/SiteIDs"
+          }
+        ],
+        "tags": [
+          "Statistics"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return charging stations pricing statistics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChargingStationStatistics"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/statistics/users/consumption": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get users consumption Statistics",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Year"
+          },
+          {
+            "$ref": "#/components/parameters/StartDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/EndDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/SiteAreaIDs"
+          },
+          {
+            "$ref": "#/components/parameters/ChargingStationIDs"
+          },
+          {
+            "$ref": "#/components/parameters/UserIDs"
+          },
+          {
+            "$ref": "#/components/parameters/SiteIDs"
+          }
+        ],
+        "tags": [
+          "Statistics"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return user consumption statistics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserStatistics"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/statistics/users/usage": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get users usage Statistics",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Year"
+          },
+          {
+            "$ref": "#/components/parameters/StartDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/EndDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/SiteAreaIDs"
+          },
+          {
+            "$ref": "#/components/parameters/ChargingStationIDs"
+          },
+          {
+            "$ref": "#/components/parameters/UserIDs"
+          },
+          {
+            "$ref": "#/components/parameters/SiteIDs"
+          }
+        ],
+        "tags": [
+          "Statistics"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return users usage statistics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserStatistics"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/statistics/users/inactivity": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get users inactivity Statistics",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Year"
+          },
+          {
+            "$ref": "#/components/parameters/StartDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/EndDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/SiteAreaIDs"
+          },
+          {
+            "$ref": "#/components/parameters/ChargingStationIDs"
+          },
+          {
+            "$ref": "#/components/parameters/UserIDs"
+          },
+          {
+            "$ref": "#/components/parameters/SiteIDs"
+          }
+        ],
+        "tags": [
+          "Statistics"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return users inactivity statistics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserStatistics"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/statistics/users/transactions": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get users transactions Statistics",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Year"
+          },
+          {
+            "$ref": "#/components/parameters/StartDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/EndDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/SiteAreaIDs"
+          },
+          {
+            "$ref": "#/components/parameters/ChargingStationIDs"
+          },
+          {
+            "$ref": "#/components/parameters/UserIDs"
+          },
+          {
+            "$ref": "#/components/parameters/SiteIDs"
+          }
+        ],
+        "tags": [
+          "Statistics"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return users transactions statistics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserStatistics"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/statistics/users/pricing": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get users princing Statistics",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Year"
+          },
+          {
+            "$ref": "#/components/parameters/StartDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/EndDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/SiteAreaIDs"
+          },
+          {
+            "$ref": "#/components/parameters/ChargingStationIDs"
+          },
+          {
+            "$ref": "#/components/parameters/UserIDs"
+          },
+          {
+            "$ref": "#/components/parameters/SiteIDs"
+          }
+        ],
+        "tags": [
+          "Statistics"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return users pricing statistics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserStatistics"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/billing/taxes": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get billing taxes",
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return billing taxes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "example": "###"
+                      },
+                      "description": {
+                        "type": "string",
+                        "example": "###"
+                      },
+                      "displayName": {
+                        "type": "string",
+                        "example": "###"
+                      },
+                      "percentage": {
+                        "type": "number",
+                        "example": "20"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/billing-setting": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get billing settings",
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return billing settings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "$ref": "#/components/schemas/Setting/properties/id"
+                    },
+                    "identifier": {
+                      "$ref": "#/components/schemas/Setting/properties/identifier"
+                    },
+                    "sensitiveData": {
+                      "$ref": "#/components/schemas/Setting/properties/sensitiveData"
+                    },
+                    "content": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "$ref": "#/components/schemas/Setting/properties/content/properties/type"
+                        },
+                        "billing": {
+                          "$ref": "#/components/schemas/Setting/properties/content/properties/billing"
+                        },
+                        "stripe": {
+                          "$ref": "#/components/schemas/Setting/properties/content/properties/stripe"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Update billing settings",
+        "tags": [
+          "Billing"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "identifier": {
+                    "$ref": "#/components/schemas/Setting/properties/identifier"
+                  },
+                  "sensitiveData": {
+                    "$ref": "#/components/schemas/Setting/properties/sensitiveData"
+                  },
+                  "content": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "$ref": "#/components/schemas/Setting/properties/content/properties/type"
+                      },
+                      "billing": {
+                        "$ref": "#/components/schemas/Setting/properties/content/properties/billing"
+                      },
+                      "stripe": {
+                        "$ref": "#/components/schemas/Setting/properties/content/properties/stripe"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Billing settings successfully updated",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/billing/check": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Check the connection with the billing provider",
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Billing provider is reachable",
+            "content": {
+              "application/json": {
+                "example": {
+                  "connectionIsValid": true,
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/invoices": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get Invoices",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/UserIDs"
+          },
+          {
+            "in": "query",
+            "name": "Status",
+            "description": "Pipe separated invoice status (paid, open, draft, void, uncollectible, deleted)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/StartDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/EndDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return invoices",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "number",
+                      "example": 1
+                    },
+                    "result": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Invoice"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/invoices/{id}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get Invoice by id",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/invoiceID"
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return invoice",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Invoice"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/invoices/{id}/download": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Download Invoice as PDF",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/invoiceID"
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return invoice as PDF",
+            "content": {
+              "application/pdf": {
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -12511,6 +13982,9 @@
           "smartCharging": {
             "type": "boolean"
           },
+          "tariffID": {
+            "type": "string"
+          },
           "voltage": {
             "type": "number",
             "enum": [
@@ -12612,6 +14086,9 @@
           },
           "public": {
             "type": "boolean"
+          },
+          "tariffID": {
+            "type": "string"
           },
           "siteAreaID": {
             "type": "string"
@@ -12854,6 +14331,9 @@
                 "example": "L3"
               }
             }
+          },
+          "tariffID": {
+            "type": "string"
           }
         }
       },
@@ -14147,6 +15627,163 @@
             "format": "date-time"
           }
         }
+      },
+      "ChargingStationStatistics": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "month": {
+              "type": "number",
+              "description": "Month number starting from 0",
+              "example": 0
+            },
+            "###": {
+              "type": "number",
+              "description": "Charging station name"
+            }
+          }
+        }
+      },
+      "UserStatistics": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "month": {
+              "type": "number",
+              "description": "Month number starting from 0",
+              "example": 0
+            },
+            "###": {
+              "type": "number",
+              "description": "User name"
+            }
+          }
+        }
+      },
+      "BillingPaymentMethod": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "readOnly": true
+          },
+          "brand": {
+            "type": "string"
+          },
+          "expiringOn": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "last4": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "createdOn": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "isDefault": {
+            "type": "boolean"
+          }
+        }
+      },
+      "BillingOperationResult": {
+        "type": "object",
+        "required": [
+          "succeeded"
+        ],
+        "properties": {
+          "succeeded": {
+            "type": "boolean"
+          },
+          "error": {
+            "type": "object"
+          },
+          "internalData": {
+            "type": "object"
+          }
+        }
+      },
+      "Invoice": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number"
+          },
+          "createdOn": {
+            "$ref": "#/components/schemas/CreatedOn"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "downloadable": {
+            "type": "boolean"
+          },
+          "number": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "paid",
+              "open",
+              "draft",
+              "void",
+              "uncollectible",
+              "deleted"
+            ]
+          },
+          "userID": {
+            "type": "string"
+          },
+          "user": {
+            "$ref": "#/components/schemas/User"
+          },
+          "id": {
+            "type": "string"
+          },
+          "sessions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "transactionID": {
+                  "type": "number"
+                },
+                "pricingData": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "quantity": {
+                        "type": "number"
+                      },
+                      "amount": {
+                        "type": "number"
+                      },
+                      "roundedAmount": {
+                        "type": "number"
+                      },
+                      "itemDescription": {
+                        "type": "string"
+                      },
+                      "taxes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "parameters": {
@@ -14155,7 +15792,7 @@
         "name": "Limit",
         "description": "Limit the number of records",
         "example": 100,
-        "required": false,
+        "required": true,
         "schema": {
           "type": "integer"
         }
@@ -14609,6 +16246,15 @@
           "type": "string"
         }
       },
+      "tagVisualID": {
+        "in": "path",
+        "name": "id",
+        "description": "Tag Visual ID",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
       "transactionID": {
         "in": "path",
         "name": "id",
@@ -14821,6 +16467,33 @@
         "name": "id",
         "description": "Tenant ID",
         "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "Year": {
+        "in": "query",
+        "name": "Year",
+        "description": "Year",
+        "schema": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "paymentMethodID": {
+        "in": "path",
+        "name": "paymentMethodID",
+        "description": "Payment Method ID",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "invoiceID": {
+        "in": "path",
+        "name": "id",
+        "description": "Invoice ID",
+        "required": true,
         "schema": {
           "type": "string"
         }

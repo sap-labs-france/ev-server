@@ -30,6 +30,13 @@
       "pattern": "^(\\d\\|?)*$",
       "sanitize": "mongo"
     },
+    "tariff-id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 36,
+      "sanitize": "mongo",
+      "nullable": true
+    },
     "authSubdomain": {
       "type": "string",
       "pattern": "^[a-z0-9]*$",

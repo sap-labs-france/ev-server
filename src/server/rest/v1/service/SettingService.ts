@@ -1,6 +1,6 @@
 import { Action, Entity } from '../../../../types/Authorization';
+import { BillingSettingsType, IntegrationSettings, PricingSettingsType, SettingDB, TechnicalSettings } from '../../../../types/Setting';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
-import { IntegrationSettings, TechnicalSettings } from '../../../../types/Setting';
 import { NextFunction, Request, Response } from 'express';
 
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -10,10 +10,10 @@ import Constants from '../../../../utils/Constants';
 import Cypher from '../../../../utils/Cypher';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
-import SettingSecurity from './security/SettingSecurity';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import SettingValidator from '../validator/SettingValidator';
 import { StatusCodes } from 'http-status-codes';
+import { TenantComponents } from '../../../../types/Tenant';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 import _ from 'lodash';
@@ -23,7 +23,7 @@ const MODULE_NAME = 'SettingService';
 export default class SettingService {
   public static async handleDeleteSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const settingID = SettingSecurity.filterSettingRequestByID(req.query);
+    const settingID = SettingValidator.getInstance().validateSettingGetByIDReq(req.query).ID;
     UtilsService.assertIdIsProvided(action, settingID, MODULE_NAME, 'handleDeleteSetting', req.user);
     // Check auth
     if (!await Authorizations.canDeleteSetting(req.user)) {
@@ -49,14 +49,13 @@ export default class SettingService {
       action: action,
       detailedMessages: { setting }
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
   public static async handleGetSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const settingID = SettingSecurity.filterSettingRequestByID(req.query);
+    const settingID = SettingValidator.getInstance().validateSettingGetByIDReq(req.query).ID;
     UtilsService.assertIdIsProvided(action, settingID, MODULE_NAME, 'handleGetSetting', req.user);
     // Check auth
     if (!await Authorizations.canReadSetting(req.user)) {
@@ -79,14 +78,13 @@ export default class SettingService {
     if (setting.identifier === 'crypto') {
       setting.content.crypto.key = Utils.hash(setting.content.crypto.key);
     }
-    // Return
     res.json(setting);
     next();
   }
 
   public static async handleGetSettingByIdentifier(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const settingID = SettingSecurity.filterSettingRequestByID(req.query);
+    const settingID = SettingValidator.getInstance().validateSettingGetByIdentifierReq(req.query).Identifier;
     UtilsService.assertIdIsProvided(action, settingID, MODULE_NAME, 'handleGetSettingByIdentifier', req.user);
     // Check auth
     if (!await Authorizations.canReadSetting(req.user)) {
@@ -109,7 +107,6 @@ export default class SettingService {
     if (setting.identifier === 'crypto') {
       setting.content.crypto.key = Utils.hash(setting.content.crypto.key);
     }
-    // Return
     res.json(setting);
     next();
   }
@@ -125,7 +122,7 @@ export default class SettingService {
       });
     }
     // Filter
-    const filteredRequest = SettingSecurity.filterSettingsRequest(req.query);
+    const filteredRequest = SettingValidator.getInstance().validateSettingsGetReq(req.query);
     // Get the all settings identifier
     const settings = await SettingStorage.getSettings(req.tenant,
       { identifier: filteredRequest.Identifier },
@@ -139,7 +136,6 @@ export default class SettingService {
         setting.content.crypto.key = Utils.hash(setting.content.crypto.key);
       }
     }
-    // Return
     res.json(settings);
     next();
   }
@@ -155,7 +151,7 @@ export default class SettingService {
       });
     }
     // Filter
-    const filteredRequest = await SettingService.filterSetting(action, req, true);
+    const filteredRequest = SettingService.filterSetting(action, req);
     // Process the sensitive data if any
     await Cypher.encryptSensitiveDataInJSON(req.tenant, filteredRequest);
     // Update timestamp
@@ -171,14 +167,13 @@ export default class SettingService {
       action: action,
       detailedMessages: { params: filteredRequest }
     });
-    // Ok
     res.status(StatusCodes.OK).json(Object.assign({ id: filteredRequest.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 
   public static async handleUpdateSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     UtilsService.assertIdIsProvided(action, req.body.id, MODULE_NAME, 'handleUpdateSetting', req.user);
-    const filteredRequest = await SettingService.filterSetting(action, req, false);
+    const filteredRequest = SettingService.filterSetting(action, req);
     // Check auth
     if (!await Authorizations.canUpdateSetting(req.user)) {
       throw new AppAuthError({
@@ -191,7 +186,7 @@ export default class SettingService {
     }
     // Get Setting
     const setting = await SettingStorage.getSetting(req.tenant, filteredRequest.id);
-    UtilsService.assertObjectExists(action, setting, `Setting ID '${filteredRequest.id as string}' does not exist`,
+    UtilsService.assertObjectExists(action, setting, `Setting ID '${filteredRequest.id }' does not exist`,
       MODULE_NAME, 'handleUpdateSetting', req.user);
     // Process the sensitive data if any
     // Preprocess the data to take care of updated values
@@ -199,7 +194,7 @@ export default class SettingService {
       if (!Array.isArray(filteredRequest.sensitiveData)) {
         throw new AppError({
           errorCode: HTTPError.CYPHER_INVALID_SENSITIVE_DATA_ERROR,
-          message: `The property 'sensitiveData' for Setting with ID '${filteredRequest.id as string}' is not an array`,
+          message: `The property 'sensitiveData' for Setting with ID '${filteredRequest.id }' is not an array`,
           module: MODULE_NAME,
           method: 'handleUpdateSetting',
           user: req.user
@@ -293,17 +288,27 @@ export default class SettingService {
     await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateSetting',
-      message: `Setting '${filteredRequest.id as string}' has been updated successfully`,
+      message: `Setting '${filteredRequest.id}' has been updated successfully`,
       action: action,
       detailedMessages: { filteredRequest }
     });
-    // Ok
+    // Pricing Checks on Currency Modification
+    if (filteredRequest.identifier === TenantComponents.PRICING
+      && setting.content?.type === PricingSettingsType.SIMPLE
+      && setting.content?.simple.currency !== filteredRequest.content?.simple?.currency) {
+      // Force a user logout
+      throw new AppError({
+        errorCode: HTTPError.TENANT_COMPONENT_CHANGED,
+        message: 'Pricing Settings - Currency has been updated. A log out is necessary to benefit from the changes',
+        module: MODULE_NAME, method: 'handleUpdateSetting',
+        user: req.user
+      });
+    }
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
-  private static async filterSetting(action: ServerAction, req: Request, createSetting: boolean) {
-    let filteredRequest;
+  private static filterSetting(action: ServerAction, req: Request): SettingDB {
     switch (req.body.identifier) {
       // Filter
       case IntegrationSettings.OCPI:
@@ -320,24 +325,29 @@ export default class SettingService {
         return SettingValidator.getInstance().validateSettingRefundSetReq(req.body);
       case IntegrationSettings.PRICING:
         return SettingValidator.getInstance().validateSettingPricingSetReq(req.body);
-      case IntegrationSettings.SAC:
+      case IntegrationSettings.ANALYTICS:
         return SettingValidator.getInstance().validateSettingAnalyticsSetReq(req.body);
       case IntegrationSettings.ASSET:
         return SettingValidator.getInstance().validateSettingAssetSetReq(req.body);
+      case IntegrationSettings.CAR_CONNECTOR:
+        return SettingValidator.getInstance().validateSettingCarConnectorSetReq(req.body);
+      case IntegrationSettings.BILLING:
+        return SettingValidator.getInstance().validateSettingBillingSetReq(req.body);
+      case IntegrationSettings.CAR:
+        return SettingValidator.getInstance().validateSettingCarSetReq(req.body);
+      case IntegrationSettings.ORGANIZATION:
+        return SettingValidator.getInstance().validateSettingOrganizationSetReq(req.body);
+      case IntegrationSettings.STATISTICS:
+        return SettingValidator.getInstance().validateSettingStatisticsSetReq(req.body);
       default:
-        if (createSetting) {
-          filteredRequest = SettingSecurity.filterSettingCreateRequest(req.body);
-        } else {
-          filteredRequest = SettingSecurity.filterSettingUpdateRequest(req.body);
-        }
-        await Logging.logDebug({
-          tenantID: req.user.tenantID,
-          user: req.user, module: MODULE_NAME, method: 'filterSetting',
-          message: `The property 'identifier' with value '${req.body.identifier as string}' for Setting with ID '${req.body.id as string}' has no dedicated schema (yet)`,
-          action: action,
-          detailedMessages: { filteredRequest }
+        throw new AppError({
+          module: MODULE_NAME,
+          method: 'filterSetting',
+          action,
+          message: `Unknown setting ${req.body.identifier as string}`,
+          detailedMessages: { setting: req.body },
+          errorCode: HTTPError.GENERAL_ERROR
         });
-        return filteredRequest;
     }
   }
 }

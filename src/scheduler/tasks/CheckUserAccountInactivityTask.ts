@@ -4,14 +4,14 @@ import { LockEntity } from '../../types/Locking';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
-import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
+import TenantSchedulerTask from '../TenantSchedulerTask';
 import UserStorage from '../../storage/mongodb/UserStorage';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
 
-export default class CheckUserAccountInactivityTask extends SchedulerTask {
+export default class CheckUserAccountInactivityTask extends TenantSchedulerTask {
   public async processTenant(tenant: Tenant, config: CheckUserAccountInactivityTaskConfig): Promise<void> {
     // Get the lock
     const accountInactivityLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.USER, 'check-account-inactivity');
@@ -29,7 +29,7 @@ export default class CheckUserAccountInactivityTask extends SchedulerTask {
         for (const user of users.result) {
           // Notification
           moment.locale(user.locale);
-          await NotificationHandler.sendUserAccountInactivity(
+          void NotificationHandler.sendUserAccountInactivity(
             tenant,
             user,
             {

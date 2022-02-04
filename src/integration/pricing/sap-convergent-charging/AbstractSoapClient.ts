@@ -90,7 +90,6 @@ export default abstract class AbstractSoapClient {
   private async _initSOAPClient(): Promise<void> {
     // Client options
     const options: any = {};
-    // Check
     if (!this.client) {
       // Create the Promise
       this.client = await new Promise((resolve, reject) => {

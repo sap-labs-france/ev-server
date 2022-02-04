@@ -101,7 +101,7 @@ export default class OCPIUtils {
 
   public static buildEmspEmailFromOCPIToken(token: OCPIToken, countryCode: string, partyId: string): string {
     if (token?.issuer) {
-      return `${token.issuer}@${partyId}.${countryCode}`;
+      return `${token.issuer}@${partyId}.${countryCode}`.toLowerCase();
     }
   }
 

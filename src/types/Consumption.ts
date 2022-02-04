@@ -4,10 +4,6 @@ export interface AbstractCurrentConsumption {
   currentConsumptionWh?: number;
   currentTotalConsumptionWh: number;
   currentCumulatedPrice?: number;
-  lastConsumption?: {
-    value: number;
-    timestamp: Date;
-  };
   currentInstantWatts: number;
   currentInstantWattsL1?: number;
   currentInstantWattsL2?: number;
@@ -24,6 +20,10 @@ export interface AbstractCurrentConsumption {
   currentInstantAmpsL3?: number;
   currentInstantAmpsDC?: number;
   currentStateOfCharge?: number;
+  lastConsumption?: {
+    value: number;
+    timestamp: Date;
+  };
 }
 
 export interface AbstractConsumption {
@@ -63,6 +63,7 @@ export default interface Consumption extends AbstractConsumption {
   roundedAmount?: number;
   cumulatedAmount?: number;
   currencyCode?: string;
+  inactivitySecs?: number;
   totalInactivitySecs?: number;
   totalDurationSecs?: number;
   stateOfCharge?: number;

@@ -17,7 +17,7 @@ export default class LockingHelper {
   }
 
   public static async acquireScheduledTaskLock(tenantID: string, scheduledTaskName: string): Promise<Lock | null> {
-    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.SCHEDULER_TASK, scheduledTaskName, 24 * 60 * 60);
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.SCHEDULER_TASK, scheduledTaskName, 15 * 60);
     if (!(await LockingManager.acquire(lock))) {
       return null;
     }
@@ -25,16 +25,16 @@ export default class LockingHelper {
   }
 
   public static async acquireAsyncTaskManagerLock(tenantID: string): Promise<Lock | null> {
-    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.ASYNC_TASK_MANAGER, 'async-task-manager', 24 * 60 * 60);
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.ASYNC_TASK_MANAGER, 'async-task-manager', 15 * 60);
     if (!(await LockingManager.acquire(lock))) {
       return null;
     }
     return lock;
   }
 
-  public static async acquireSiteAreaSmartChargingLock(tenantID: string, siteArea: SiteArea, timeoutSecs: number): Promise<Lock | null> {
-    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.SITE_AREA, `${siteArea.id}-smart-charging`, 180);
-    if (!(await LockingManager.acquire(lock, timeoutSecs))) {
+  public static async acquireSiteAreaSmartChargingLock(tenantID: string, siteArea: SiteArea): Promise<Lock | null> {
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.SITE_AREA, `${siteArea.id}-smart-charging`, 3 * 60);
+    if (!(await LockingManager.acquire(lock, Constants.SMART_CHARGING_LOCK_SECS))) {
       return null;
     }
     return lock;
@@ -110,6 +110,14 @@ export default class LockingHelper {
 
   public static async acquireOCPIPushCdrLock(tenantID: string, transactionID: number): Promise<Lock | null> {
     const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.TRANSACTION, `push-cdr-${transactionID}`);
+    if (!(await LockingManager.acquire(lock))) {
+      return null;
+    }
+    return lock;
+  }
+
+  public static async acquireCloseTransactionsInProgressLock(tenantID: string): Promise<Lock | null> {
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.TRANSACTION, 'close-transactions-in-progress');
     if (!(await LockingManager.acquire(lock))) {
       return null;
     }
@@ -192,6 +200,22 @@ export default class LockingHelper {
     return lock;
   }
 
+  public static async acquireBillPendingTransactionsLock(tenantID: string): Promise<Lock | null> {
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.TRANSACTION, 'bill-pending-transactions');
+    if (!(await LockingManager.acquire(lock))) {
+      return null;
+    }
+    return lock;
+  }
+
+  public static async acquireBillPendingTransactionLock(tenantID: string, transactionID: number): Promise<Lock | null> {
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.TRANSACTION, `bill-pending-transaction-${transactionID}`);
+    if (!(await LockingManager.acquire(lock))) {
+      return null;
+    }
+    return lock;
+  }
+
   private static async acquireOCPIEndpointActionLock(tenantID: string, ocpiEndpoint: OCPIEndpoint, action: string): Promise<Lock | null> {
     const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.OCPI_ENDPOINT, `${ocpiEndpoint.id}-${action}`);
     if (!(await LockingManager.acquire(lock))) {
@@ -207,4 +231,5 @@ export default class LockingHelper {
     }
     return lock;
   }
+
 }

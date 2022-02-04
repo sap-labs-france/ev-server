@@ -79,7 +79,9 @@ export interface HttpChargingStationParamsUpdateRequest {
     currentType: CurrentType;
     numberOfConnectedPhase: number;
     phaseAssignmentToGrid: PhaseAssignmentToGrid;
+    tariffID?: string;
   }[];
+  tariffID?: string;
 }
 
 export interface HttpChargingStationRequest extends HttpByIDRequest {
@@ -148,10 +150,13 @@ export interface HttpChargingStationReservationCancelRequest {
 export interface HttpChargingStationStartTransactionRequest extends HttpChargingStationCommandRequest {
   carID?: string,
   userID?: string,
+  carSoc?: number,
+  carOdometer?: number,
+  departureTime?: Date,
   args: {
+    connectorId: number,
     tagID?: string,
     visualTagID?: string,
-    connectorId: number
   }
 }
 

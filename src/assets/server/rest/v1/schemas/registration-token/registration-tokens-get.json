@@ -4,6 +4,9 @@
   "description": "",
   "type": "object",
   "properties": {
+    "Search": {
+      "$ref": "common#/definitions/search"
+    },
     "SiteAreaID": {
       "$ref": "registration-token#/definitions/siteAreaID"
     },

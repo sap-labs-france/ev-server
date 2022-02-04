@@ -19,7 +19,6 @@ export default class OICPClientFactory {
     // Check if OICP component is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {
       const oicpSettings = await SettingStorage.getOICPSettings(tenant);
-      // Check
       if (!oicpSettings && oicpSettings.oicp) {
         await Logging.logError({
           tenantID: tenant.id,

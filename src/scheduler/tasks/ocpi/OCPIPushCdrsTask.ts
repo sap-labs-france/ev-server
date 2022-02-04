@@ -5,10 +5,10 @@ import LockingHelper from '../../../locking/LockingHelper';
 import LockingManager from '../../../locking/LockingManager';
 import Logging from '../../../utils/Logging';
 import OCPPUtils from '../../../server/ocpp/utils/OCPPUtils';
-import SchedulerTask from '../../SchedulerTask';
 import { ServerAction } from '../../../types/Server';
 import TagStorage from '../../../storage/mongodb/TagStorage';
 import { TaskConfig } from '../../../types/TaskConfig';
+import TenantSchedulerTask from '../../TenantSchedulerTask';
 import { TransactionAction } from '../../../types/Transaction';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import Utils from '../../../utils/Utils';
@@ -16,7 +16,7 @@ import global from '../../../types/GlobalType';
 
 const MODULE_NAME = 'OCPIPushCdrsTask';
 
-export default class OCPIPushCdrsTask extends SchedulerTask {
+export default class OCPIPushCdrsTask extends TenantSchedulerTask {
   public async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     try {
       // Check if OCPI component is active
@@ -98,7 +98,6 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
                     await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, tag, TransactionAction.END);
                     // Save
                     await TransactionStorage.saveTransactionOcpiData(tenant, transaction.id, transaction.ocpiData);
-                    // Ok
                     await Logging.logInfo({
                       tenantID: tenant.id,
                       action: ServerAction.OCPI_PUSH_CDRS,

@@ -4,76 +4,52 @@ import LockingManager from '../locking/LockingManager';
 import Logging from '../utils/Logging';
 import { ServerAction } from '../types/Server';
 import { TaskConfig } from '../types/TaskConfig';
-import Tenant from '../types/Tenant';
-import TenantStorage from '../storage/mongodb/TenantStorage';
+import Utils from '../utils/Utils';
 import moment from 'moment';
 
 const MODULE_NAME = 'SchedulerTask';
 
 export default abstract class SchedulerTask {
   private name: string;
+  private correlationID: string;
 
   public async run(name: string, config: TaskConfig): Promise<void> {
     this.name = name;
+    this.correlationID = Utils.generateShortNonUniqueID();
     // Get the lock
     const scheduledTaskLock = await LockingHelper.acquireScheduledTaskLock(Constants.DEFAULT_TENANT, name);
     if (scheduledTaskLock) {
       try {
-        const startMigrationTime = moment();
+        const startTime = moment();
         await Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT,
           action: ServerAction.SCHEDULER,
           module: MODULE_NAME, method: 'run',
-          message: `The task '${name}' is running...`
+          message: `The Task '${name}~${this.correlationID}' is running...`
         });
-        // Hook
-        await this.beforeTaskRun(config);
-        // Get the Tenants
-        const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
-        // Process them
-        for (const tenant of tenants.result) {
-          try {
-            const startMigrationTimeInTenant = moment();
-            await Logging.logInfo({
-              tenantID: tenant.id,
-              action: ServerAction.SCHEDULER,
-              module: MODULE_NAME, method: 'run',
-              message: `The task '${name}' is running...`
-            });
-            // Hook
-            await this.beforeProcessTenant(tenant, config);
-            // Process
-            await this.processTenant(tenant, config);
-            // Log Total Processing Time in Tenant
-            const totalMigrationTimeSecsInTenant = moment.duration(moment().diff(startMigrationTimeInTenant)).asSeconds();
-            await Logging.logInfo({
-              tenantID: tenant.id,
-              action: ServerAction.SCHEDULER,
-              module: MODULE_NAME, method: 'run',
-              message: `The task '${name}' has been run successfully in ${totalMigrationTimeSecsInTenant} secs`
-            });
-          } catch (error) {
-            await Logging.logError({
-              tenantID: tenant.id,
-              action: ServerAction.SCHEDULER,
-              module: MODULE_NAME, method: 'run',
-              message: `Error while running the task '${name}': ${error.message}`,
-              detailedMessages: { error: error.stack }
-            });
-          } finally {
-            // Hook
-            await this.afterProcessTenant(tenant, config);
-          }
+        try {
+          // Hook
+          await this.beforeTaskRun(config);
+          // Process
+          await this.processTask(config);
+          // Hook
+          await this.afterTaskRun(config);
+        } catch (error) {
+          await Logging.logError({
+            tenantID: Constants.DEFAULT_TENANT,
+            action: ServerAction.SCHEDULER,
+            module: MODULE_NAME, method: 'run',
+            message: `Error while running the Task '${this.getName()}~${this.correlationID}': ${error.message as string}`,
+            detailedMessages: { error: error.stack }
+          });
         }
-        // Hook
-        await this.afterTaskRun(config);
         // Log Total Processing Time
-        const totalMigrationTimeSecs = moment.duration(moment().diff(startMigrationTime)).asSeconds();
+        const totalTimeSecs = moment.duration(moment().diff(startTime)).asSeconds();
         await Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT,
           action: ServerAction.SCHEDULER,
           module: MODULE_NAME, method: 'run',
-          message: `The task '${name}' has been run in ${totalMigrationTimeSecs} secs over ${tenants.count} tenant(s)`
+          message: `The Task '${name}~${this.correlationID}' has been run in ${totalTimeSecs} secs`
         });
       } finally {
         // Release lock
@@ -82,18 +58,19 @@ export default abstract class SchedulerTask {
     }
   }
 
-  public async beforeTaskRun(config: TaskConfig): Promise<void> {
+  public getName(): string {
+    return this.name;
   }
 
-  public async beforeProcessTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
+  public getCorrelationID(): string {
+    return this.correlationID;
   }
 
-  public async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
+  protected async beforeTaskRun(config: TaskConfig): Promise<void> {
   }
 
-  public async afterProcessTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
+  protected async afterTaskRun(config: TaskConfig): Promise<void> {
   }
 
-  public async afterTaskRun(config: TaskConfig): Promise<void> {
-  }
+  protected abstract processTask(config: TaskConfig): Promise<void>;
 }

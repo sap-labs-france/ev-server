@@ -19,6 +19,7 @@ import { DataResult } from '../../../../types/DataResult';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
+import LoggingHelper from '../../../../utils/LoggingHelper';
 import { OCPPAuthorizationStatus } from '../../../../types/ocpp/OCPPServer';
 import OCPPService from '../../../../server/ocpp/services/OCPPService';
 import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
@@ -229,7 +230,6 @@ export default class TransactionService {
           await OCPPUtils.processTransactionRoaming(req.tenant, transaction, chargingStation, transaction.tag, TransactionAction.END);
           // Save
           await TransactionStorage.saveTransactionOcpiData(req.tenant, transaction.id, transaction.ocpiData);
-          // Ok
           await Logging.logInfo({
             tenantID: req.user.tenantID,
             action: action,
@@ -264,7 +264,6 @@ export default class TransactionService {
           await OCPPUtils.processOICPTransaction(req.tenant, transaction, chargingStation, TransactionAction.END);
           // Save
           await TransactionStorage.saveTransactionOicpData(req.tenant, transaction.id, transaction.oicpData);
-          // Ok
           await Logging.logInfo({
             tenantID: req.user.tenantID,
             action: action,
@@ -362,9 +361,23 @@ export default class TransactionService {
         action: action,
       });
     } else {
+      // Charging Station must be active
+      if (!chargingStation.inactive) {
+        // Check connector
+        const connector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
+        if (connector.currentTransactionID === transaction.id) {
+          throw new AppError({
+            ...LoggingHelper.getChargingStationProperties(chargingStation),
+            errorCode: HTTPError.GENERAL_ERROR,
+            message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Cannot soft stop an ongoing Transaction`,
+            module: MODULE_NAME, method: 'handleTransactionSoftStop',
+            user: req.user, action: action
+          });
+        }
+      }
       // Stop Transaction
       const result = await new OCPPService(Configuration.getChargingStationConfig()).handleStopTransaction(
-        {
+        { // OCPP Headers
           chargeBoxIdentity: chargingStation.id,
           chargingStation: chargingStation,
           companyID: chargingStation.companyID,
@@ -373,7 +386,7 @@ export default class TransactionService {
           tenantID: req.user.tenantID,
           tenant: req.tenant,
         },
-        {
+        { // OCPP Stop Transaction
           transactionId: transactionId,
           chargeBoxID: chargingStation.id,
           idTag: req.user.tagIDs[0],
@@ -384,6 +397,7 @@ export default class TransactionService {
       );
       if (result.idTagInfo?.status !== OCPPAuthorizationStatus.ACCEPTED) {
         throw new AppError({
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
           errorCode: HTTPError.GENERAL_ERROR,
           message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction cannot be stopped`,
           module: MODULE_NAME, method: 'handleTransactionSoftStop',
@@ -394,6 +408,7 @@ export default class TransactionService {
         tenantID: req.user.tenantID,
         user: req.user, actionOnUser: transaction.userID,
         module: MODULE_NAME, method: 'handleTransactionSoftStop',
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has been stopped successfully`,
         action: action,
         detailedMessages: { result }
@@ -565,7 +580,6 @@ export default class TransactionService {
         delete transaction.stop.tagID;
       }
     }
-    // Return
     res.json(transaction);
     next();
   }
@@ -591,7 +605,6 @@ export default class TransactionService {
       result.years = [];
       result.years.push(new Date().getFullYear());
     }
-    // Return
     res.json(transactionsYears);
     next();
   }
@@ -669,9 +682,9 @@ export default class TransactionService {
         filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
       }
       if (filteredRequest.SiteID) {
-        filter.siteID = Authorizations.getAuthorizedSiteAdminIDs(req.user, filteredRequest.SiteID.split('|'));
+        filter.siteID = await Authorizations.getAuthorizedSiteAdminIDs(req.tenant, req.user, filteredRequest.SiteID.split('|'));
       }
-      filter.siteAdminIDs = Authorizations.getAuthorizedSiteAdminIDs(req.user);
+      filter.siteAdminIDs = await Authorizations.getAuthorizedSiteAdminIDs(req.tenant, req.user);
     }
     // Get Reports
     const reports = await TransactionStorage.getRefundReports(req.tenant, filter, {
@@ -681,7 +694,6 @@ export default class TransactionService {
       onlyRecordCount: filteredRequest.OnlyRecordCount
     },
     ['id', ...userProject]);
-    // Return
     res.json(reports);
     next();
   }
@@ -714,7 +726,7 @@ export default class TransactionService {
 
   public static async getRefundedTransactionsToExport(req: Request): Promise<DataResult<Transaction>> {
     req.query.Status = 'completed';
-    return await TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_TO_REFUND_EXPORT, {}, [
+    return TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_TO_REFUND_EXPORT, {}, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
       'refundData.reportId', 'refundData.refundedAt', 'refundData.status', 'site.name', 'siteArea.name', 'company.name',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
@@ -736,13 +748,12 @@ export default class TransactionService {
       });
     }
     // Filter
-    const filteredRequest = TransactionValidator.getInstance().validateTransactionGetReq(req.query);
+    const filteredRequest = TransactionValidator.getInstance().validateTransactionCdrExportReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleExportTransactionOcpiCdr', req.user);
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.tenant, filteredRequest.ID, {}, ['id', 'ocpiData']);
     UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleExportTransactionOcpiCdr', req.user);
-    // Check
     if (!transaction?.ocpiData) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
@@ -804,7 +815,7 @@ export default class TransactionService {
         startDateTime: filteredRequest.StartDateTime,
         chargingStationIDs: filteredRequest.ChargingStationID ? filteredRequest.ChargingStationID.split('|') : null,
         siteAreaIDs: filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null,
-        siteIDs: Authorizations.getAuthorizedSiteAdminIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
+        siteIDs: await Authorizations.getAuthorizedSiteAdminIDs(req.tenant, req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
         connectorIDs: filteredRequest.ConnectorID ? filteredRequest.ConnectorID.split('|').map((connectorID) => Utils.convertToInt(connectorID)) : null,
       },
@@ -815,7 +826,6 @@ export default class TransactionService {
       },
       projectFields
     );
-    // Return
     res.json(transactions);
     next();
   }
@@ -942,7 +952,6 @@ export default class TransactionService {
           // To Delete
           transactionsIDsToDelete.push(transactionID);
         }
-        // Ok
       } else {
         transactionsIDsToDelete.push(transactionID);
       }
@@ -1036,8 +1045,8 @@ export default class TransactionService {
         withCompany: filteredRequest.WithCompany,
         siteAreaIDs: filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null,
         withSiteArea: filteredRequest.WithSiteArea,
-        siteIDs: filteredRequest.SiteID ? Authorizations.getAuthorizedSiteAdminIDs(req.user, filteredRequest.SiteID.split('|')) : null,
-        siteAdminIDs: Authorizations.getAuthorizedSiteAdminIDs(req.user),
+        siteIDs: filteredRequest.SiteID ? await Authorizations.getAuthorizedSiteAdminIDs(req.tenant, req.user, filteredRequest.SiteID.split('|')) : null,
+        siteAdminIDs: await Authorizations.getAuthorizedSiteAdminIDs(req.tenant, req.user),
         startDateTime: filteredRequest.StartDateTime ? filteredRequest.StartDateTime : null,
         endDateTime: filteredRequest.EndDateTime ? filteredRequest.EndDateTime : null,
         refundStatus: filteredRequest.RefundStatus ? filteredRequest.RefundStatus.split('|') : null,

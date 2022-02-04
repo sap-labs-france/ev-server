@@ -71,7 +71,6 @@ export default class TenantService {
       action: action,
       detailedMessages: { tenant }
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -140,7 +139,6 @@ export default class TenantService {
     );
     UtilsService.assertObjectExists(action, tenant, `Tenant ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetTenant', req.user);
-    // Return
     res.json(tenant);
     next();
   }
@@ -177,7 +175,6 @@ export default class TenantService {
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields) },
       projectFields);
-    // Return
     res.json(tenants);
     next();
   }
@@ -234,6 +231,8 @@ export default class TenantService {
         module: MODULE_NAME, method: 'handleCreateTenant'
       });
     }
+    // Check Tenant
+    UtilsService.checkIfTenantValid(filteredRequest, req);
     // Get the Tenant with ID (subdomain)
     const foundTenant = await TenantStorage.getTenantBySubdomain(filteredRequest.subdomain);
     if (foundTenant) {
@@ -290,8 +289,8 @@ export default class TenantService {
     const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.subdomain) +
       '/verify-email?VerificationToken=' + verificationToken + '&Email=' +
       tenantUser.email + '&ResetToken=' + resetHash;
-    // Send Register User (Async)
-    await NotificationHandler.sendNewRegisteredUser(
+    // Notify
+    void NotificationHandler.sendNewRegisteredUser(
       tenant,
       Utils.generateUUID(),
       tenantUser,
@@ -301,7 +300,7 @@ export default class TenantService {
         'evseDashboardURL': Utils.buildEvseURL(filteredRequest.subdomain),
         'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
       }
-    ).catch(() => { });
+    );
     // Log
     await Logging.logInfo({
       tenantID: req.user.tenantID, user: req.user,
@@ -310,13 +309,11 @@ export default class TenantService {
       action: action,
       detailedMessages: { params: filteredRequest }
     });
-    // Ok
     res.status(StatusCodes.OK).json(Object.assign({ id: filteredRequest.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 
   public static async handleUpdateTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check
     const filteredRequest = TenantValidator.getInstance().validateTenantUpdateReq(req.body);
     // Check auth
     if (!await Authorizations.canUpdateTenant(req.user)) {
@@ -328,6 +325,8 @@ export default class TenantService {
         value: filteredRequest.id
       });
     }
+    // Check Tenant
+    UtilsService.checkIfTenantValid(filteredRequest, req);
     // Get
     const tenant = await TenantStorage.getTenant(filteredRequest.id);
     UtilsService.assertObjectExists(action, tenant, `Tenant ID '${filteredRequest.id}' does not exist`,
@@ -384,7 +383,6 @@ export default class TenantService {
       action: action,
       detailedMessages: { tenant }
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
