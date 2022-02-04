@@ -34,6 +34,7 @@ import OCPPValidation from '../validation/OCPPValidation';
 import OICPClientFactory from '../../../client/oicp/OICPClientFactory';
 import { OICPRole } from '../../../types/oicp/OICPRole';
 import { ServerAction } from '../../../types/Server';
+import SiteArea from '../../../types/SiteArea';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
 import Tag from '../../../types/Tag';
@@ -490,7 +491,7 @@ export default class OCPPService {
       // Signed Data
       this.checkAndUpdateTransactionWithSignedDataInStopTransaction(transaction, stopTransaction);
       // Update Transaction with Stop Transaction and Stop MeterValues
-      OCPPUtils.updateTransactionWithStopTransaction(transaction, chargingStation, stopTransaction, user, alternateUser, tagID);
+      OCPPUtils.updateTransactionWithStopTransaction(transaction, chargingStation, stopTransaction, user, alternateUser, tagID, isSoftStop);
       // Bill
       await OCPPUtils.processTransactionBilling(tenant, transaction, TransactionAction.STOP);
       // Roaming
@@ -527,6 +528,39 @@ export default class OCPPService {
         }
       };
     }
+  }
+
+  public async softStopTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, siteArea: SiteArea): Promise<boolean> {
+    // Check
+    if (!tenant || !transaction || !chargingStation) {
+      return false;
+    }
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION) && !siteArea) {
+      return false;
+    }
+    // Set
+    chargingStation.siteArea = siteArea;
+    // Stop Transaction
+    const result = await this.handleStopTransaction(
+      { // OCPP Header
+        chargeBoxIdentity: transaction.chargeBoxID,
+        chargingStation: chargingStation,
+        companyID: transaction.companyID,
+        siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        tenantID: tenant.id,
+        tenant: tenant,
+      },
+      { // OCPP Stop Transaction
+        transactionId: transaction.id,
+        chargeBoxID: transaction.chargeBoxID,
+        idTag: transaction.tagID,
+        timestamp: Utils.convertToDate(transaction.lastConsumption ? transaction.lastConsumption.timestamp : transaction.timestamp).toISOString(),
+        meterStop: transaction.lastConsumption ? transaction.lastConsumption.value : transaction.meterStart
+      },
+      true
+    );
+    return (result.idTagInfo?.status === OCPPAuthorizationStatus.ACCEPTED);
   }
 
   private checkAndUpdateTransactionWithSignedDataInStopTransaction(transaction: Transaction, stopTransaction: OCPPStopTransactionRequestExtended) {
@@ -760,7 +794,7 @@ export default class OCPPService {
       statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector) {
     // Check last transaction
     if (statusNotification.status === ChargePointStatus.AVAILABLE ||
-      statusNotification.status === ChargePointStatus.PREPARING) {
+        statusNotification.status === ChargePointStatus.PREPARING) {
       // Get the last transaction
       const lastTransaction = await TransactionStorage.getLastTransactionFromChargingStation(
         tenant, chargingStation.id, connector.connectorId, { withUser: true });
@@ -1625,10 +1659,14 @@ export default class OCPPService {
       case TransactionAction.START:
         // Handle car in transaction start
         if (Utils.isTenantComponentActive(tenant, TenantComponents.CAR) && user) {
-          // Check default car
-          if (user.lastSelectedCarID) {
-            transaction.carID = user.lastSelectedCarID;
-          } else if (!user.lastSelectedCar) {
+          // Check Car from User selection (valid for 5 mins)
+          if (user.startTransactionData?.lastSelectedCar &&
+              user.startTransactionData.lastChangedOn?.getTime() + 5 * 60 * 1000 > Date.now()) {
+            transaction.carID = user.startTransactionData.lastSelectedCarID;
+            transaction.carSoc = user.startTransactionData.lastCarSoc;
+            transaction.carOdometer = user.startTransactionData.lastCarOdometer;
+            transaction.departureTime = user.startTransactionData.lastDepartureTime;
+          } else {
             // Get default car if any
             const defaultCar = await CarStorage.getDefaultUserCar(tenant, user.id, {},
               ['id', 'carCatalogID', 'vin', 'carConnectorData.carConnectorID', 'carConnectorData.carConnectorMeterID']);
@@ -1646,7 +1684,14 @@ export default class OCPPService {
             transaction.car = car;
           }
           // Clear
-          await UserStorage.saveLastSelectedCarID(tenant, user.id, null, false);
+          await UserStorage.saveStartTransactionData(tenant, user.id, {
+            lastChangedOn: null,
+            lastSelectedCarID: null,
+            lastSelectedCar: false,
+            lastCarSoc: null,
+            lastCarOdometer: null,
+            lastDepartureTime: null
+          });
           // Handle SoC
           soc = await this.getCurrentSoc(tenant, transaction, chargingStation);
           if (soc) {

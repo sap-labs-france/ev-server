@@ -41,7 +41,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
   private axiosInstance: AxiosInstance;
   private stripe: Stripe;
 
-  constructor(tenant: Tenant, settings: BillingSettings) {
+  private constructor(tenant: Tenant, settings: BillingSettings) {
     super(tenant, settings);
     this.axiosInstance = AxiosFactory.getAxiosInstance(this.tenant);
   }
@@ -532,9 +532,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // User should now exist
     if (!customerID) {
       throw new BackendError({
-        message: `User is not known in Stripe: '${user.id}' - (${user.email})`,
+        message: `User is not known in Stripe: '${user.id}')`,
         module: MODULE_NAME,
         method: 'setupPaymentMethod',
+        actionOnUser: user,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD
       });
     }
@@ -573,9 +574,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
     const customerID = user?.billingData?.customerID;
     if (!customerID) {
       throw new BackendError({
-        message: `User is not known in Stripe: '${user.id}' - (${user.email})`,
+        message: `User is not known in Stripe: '${user.id}'`,
         module: MODULE_NAME,
         method: 'deletePaymentMethod',
+        actionOnUser: user,
         action: ServerAction.BILLING_DELETE_PAYMENT_METHOD
       });
     }
@@ -593,8 +595,9 @@ export default class StripeBillingIntegration extends BillingIntegration {
       await Logging.logInfo({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
-        module: MODULE_NAME, method: '_createSetupIntent',
-        message: `Setup intent has been created - customer '${customerID}' - (${user.email})`
+        module: MODULE_NAME, method: 'createSetupIntent',
+        actionOnUser: user,
+        message: `Setup intent has been created - customer '${customerID}'`
       });
       // Send some feedback
       return {
@@ -607,7 +610,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
         actionOnUser: user,
-        module: MODULE_NAME, method: '_createSetupIntent',
+        module: MODULE_NAME, method: 'createSetupIntent',
         message: `Stripe operation failed - ${error?.message as string}`
       });
       return {
@@ -635,8 +638,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
       await Logging.logInfo({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
-        module: MODULE_NAME, method: '_attachPaymentMethod',
-        message: `Payment method ${paymentMethodId} has been attached - customer '${customerID}' - (${user.email})`
+        module: MODULE_NAME, method: 'attachPaymentMethod',
+        message: `Payment method ${paymentMethodId} has been attached - customer '${customerID}')`
       });
       // Set this payment method as the default
       await this.stripe.customers.update(customerID, {
@@ -645,8 +648,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
       await Logging.logInfo({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
-        module: MODULE_NAME, method: '_attachPaymentMethod',
-        message: `Default payment method has been set ${paymentMethodId} - customer '${customerID}' - (${user.email})`
+        module: MODULE_NAME, method: 'attachPaymentMethod',
+        message: `Default payment method has been set ${paymentMethodId} - customer '${customerID}'`
       });
       // Send some feedback
       return {
@@ -659,7 +662,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
         actionOnUser: user,
-        module: MODULE_NAME, method: '_attachPaymentMethod',
+        module: MODULE_NAME, method: 'attachPaymentMethod',
         message: `Stripe operation failed - ${error?.message as string}`
       });
       return {
@@ -683,15 +686,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
         do {
           response = await this.stripe.paymentMethods.list(requestParams);
           for (const paymentMethod of response.data) {
-            paymentMethods.push({
-              id: paymentMethod.id,
-              brand: paymentMethod.card.brand,
-              expiringOn: new Date(paymentMethod.card.exp_year, paymentMethod.card.exp_month, 0),
-              last4: paymentMethod.card.last4,
-              type: paymentMethod.type,
-              createdOn: moment.unix(paymentMethod.created).toDate(),
-              isDefault: paymentMethod.id === customer.invoice_settings.default_payment_method
-            });
+            const isDefault = (paymentMethod.id === customer.invoice_settings.default_payment_method);
+            paymentMethods.push(this.convertToBillingPaymentMethod(paymentMethod, isDefault));
           }
           if (response.has_more) {
             requestParams.starting_after = paymentMethods[paymentMethods.length - 1].id;
@@ -699,17 +695,48 @@ export default class StripeBillingIntegration extends BillingIntegration {
         } while (response.has_more);
       }
     } catch (error) {
-      // catch stripe errors and send the information back to the client
       await Logging.logError({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_PAYMENT_METHODS,
         actionOnUser: user,
-        module: MODULE_NAME, method: '_getPaymentMethods',
+        module: MODULE_NAME, method: 'getStripePaymentMethods',
         message: 'Failed to retrieve payment methods',
         detailedMessages: { error: error.stack }
       });
     }
     return paymentMethods;
+  }
+
+  private async getStripeDefaultPaymentMethod(paymentMethodID: string): Promise<BillingPaymentMethod> {
+    return this.getStripePaymentMethod(paymentMethodID, true) ;
+  }
+
+  private async getStripePaymentMethod(paymentMethodID: string, asDefault = false): Promise<BillingPaymentMethod> {
+    try {
+      const paymentMethod = await this.stripe.paymentMethods.retrieve(paymentMethodID);
+      return this.convertToBillingPaymentMethod(paymentMethod, asDefault);
+    } catch (error) {
+      await Logging.logError({
+        tenantID: this.tenant.id,
+        action: ServerAction.BILLING_PAYMENT_METHODS,
+        module: MODULE_NAME, method: 'getStripePaymentMethod',
+        message: `Failed to retrieve payment method - ID ${paymentMethodID}`,
+        detailedMessages: { error: error.stack }
+      });
+    }
+    return null;
+  }
+
+  private convertToBillingPaymentMethod(paymentMethod: Stripe.PaymentMethod, isDefault = false): BillingPaymentMethod {
+    return {
+      id: paymentMethod.id,
+      brand: paymentMethod.card.brand,
+      expiringOn: new Date(paymentMethod.card.exp_year, paymentMethod.card.exp_month, 0),
+      last4: paymentMethod.card.last4,
+      type: paymentMethod.type,
+      createdOn: moment.unix(paymentMethod.created).toDate(),
+      isDefault
+    };
   }
 
   private async detachStripePaymentMethod(paymentMethodId: string, customerID: string): Promise<BillingOperationResult> {
@@ -720,7 +747,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         throw new BackendError({
           message: 'Cannot delete default payment method',
           module: MODULE_NAME,
-          method: '_detachPaymentMethod',
+          method: 'detachStripePaymentMethod',
           action: ServerAction.BILLING_DELETE_PAYMENT_METHOD,
         });
       }
@@ -729,7 +756,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       await Logging.logInfo({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_DELETE_PAYMENT_METHOD,
-        module: MODULE_NAME, method: '_detachPaymentMethod',
+        module: MODULE_NAME, method: 'detachStripePaymentMethod',
         message: `Payment method ${paymentMethodId} has been detached - customer '${customerID}'`
       });
       // Send some feedback
@@ -742,7 +769,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       await Logging.logError({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_DELETE_PAYMENT_METHOD,
-        module: MODULE_NAME, method: '_detachPaymentMethod',
+        module: MODULE_NAME, method: 'detachStripePaymentMethod',
         message: `Failed to detach payment method - customer '${customerID}'`,
         detailedMessages: { error: error.stack }
       });
@@ -755,7 +782,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   public async startTransaction(transaction: Transaction): Promise<BillingDataTransactionStart> {
-
     if (!this.settings.billing.isTransactionBillingActivated) {
       return {
         // Keeps track whether the billing was activated or not on start transaction
@@ -778,7 +804,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Check whether the customer exists or not
     const customer = await this.checkStripeCustomer(customerID);
     // Check whether the customer has a default payment method
-    this.checkStripePaymentMethod(customer);
+    await this.checkStripePaymentMethod(customer);
     // Well ... when in test mode we may allow to start the transaction
     if (!customerID) {
       // Not yet LIVE ... starting a transaction without a STRIPE CUSTOMER is allowed
@@ -807,8 +833,12 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return customer;
   }
 
-  private checkStripePaymentMethod(customer: Stripe.Customer): void {
-    if (!customer.default_source && !customer.invoice_settings?.default_payment_method) {
+  private async checkStripePaymentMethod(customer: Stripe.Customer): Promise<void> {
+    if (Utils.isDevelopmentEnv() && customer.default_source) {
+      // Specific situation used only while running tests
+      return ;
+    }
+    if (!customer.invoice_settings?.default_payment_method) {
       throw new BackendError({
         message: `Customer has no default payment method - ${customer.id}`,
         module: MODULE_NAME,
@@ -816,6 +846,31 @@ export default class StripeBillingIntegration extends BillingIntegration {
         action: ServerAction.BILLING_TRANSACTION
       });
     }
+    const defaultPaymentMethodID = customer.invoice_settings?.default_payment_method as string;
+    if (!defaultPaymentMethodID) {
+      throw new BackendError({
+        message: `Customer has no default payment method - ${customer.id}`,
+        module: MODULE_NAME,
+        method: 'startTransaction',
+        action: ServerAction.BILLING_TRANSACTION
+      });
+    }
+    const billingPaymentMethod = await this.getStripeDefaultPaymentMethod(defaultPaymentMethodID);
+    if (!this.isPaymentMethodStillValid(billingPaymentMethod)) {
+      throw new BackendError({
+        message: `Default payment method has expired - ${customer.id}`,
+        module: MODULE_NAME,
+        method: 'startTransaction',
+        action: ServerAction.BILLING_TRANSACTION
+      });
+    }
+  }
+
+  private isPaymentMethodStillValid(billingPaymentMethod: BillingPaymentMethod): boolean {
+    if (billingPaymentMethod.expiringOn && moment().isAfter(moment(billingPaymentMethod.expiringOn))) {
+      return false;
+    }
+    return true;
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
@@ -940,29 +995,24 @@ export default class StripeBillingIntegration extends BillingIntegration {
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_TRANSACTION,
         module: MODULE_NAME, method: 'endTransaction',
-        message: 'Operation aborted - unexpected situation - the session has already been billed'
+        message: `Operation aborted - unexpected situation - the session has already been billed - transaction ID: ${transaction.id}`
       });
-      return {
-        status: transaction.billingData?.stop?.status
-      };
+      // Preserve the previous state unchanged
+      return transaction.billingData.stop;
     }
     if (transaction.billingData?.stop?.status === BillingStatus.UNBILLED) {
-      // Make sure to preserve the decision made during the STOP transaction
-      return {
-        status: BillingStatus.UNBILLED
-      };
+      // Preserve the previous state unchanged
+      return transaction.billingData.stop;
     }
     if (!transaction.stop?.extraInactivityComputed) {
       await Logging.logWarning({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_TRANSACTION,
         module: MODULE_NAME, method: 'endTransaction',
-        message: 'Unexpected situation - end transaction is being called while the extra inactivity is not yet known'
+        message: `Unexpected situation - end transaction is being called while the extra inactivity is not yet known - transaction ID: ${transaction.id}`
       });
-      return {
-        // Preserve the previous state
-        status: transaction.billingData?.stop?.status
-      };
+      // Preserve the previous state unchanged (if any) or mark it as PENDING
+      return transaction.billingData?.stop || { status: BillingStatus.PENDING };
     }
     // Create and Save async task
     await AsyncTaskBuilder.createAndSaveAsyncTasks({
@@ -1010,7 +1060,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Check Stripe
     await this.checkConnection();
     // Check object
-    this.checkStopTransaction(transaction);
+    this.checkBillTransaction(transaction);
     try {
       // Check that the customer STRIPE exists
       const customerID: string = transaction.user?.billingData?.customerID;
@@ -1479,7 +1529,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
     // Check Stripe
     await this.checkConnection();
-    // const customer = await this.getCustomerByEmail(user.email);
     const customerID = user.billingData?.customerID;
     const customer = await this.getStripeCustomer(customerID);
     if (customer && customer.id) {
@@ -1568,7 +1617,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       // Check whether the customer exists or not
       const customer = await this.checkStripeCustomer(customerID);
       // Check whether the customer has a default payment method
-      this.checkStripePaymentMethod(customer);
+      await this.checkStripePaymentMethod(customer);
     } catch (error) {
       await Logging.logError({
         tenantID: this.tenant.id,
@@ -1664,12 +1713,12 @@ export default class StripeBillingIntegration extends BillingIntegration {
     await global.database.getCollection(this.tenant.id, 'invoices').findOneAndUpdate(
       { '_id': DatabaseUtils.convertToObjectID(billingInvoice.id) },
       { $set: updatedInvoiceMDB });
-    // Debug
-    const freshBillingInvoice = await BillingStorage.getInvoice(this.tenant, billingInvoice.id);
-    await this.repairTransactionsBillingData(freshBillingInvoice);
+    // Let's get a clean invoice instance
+    const repairedInvoice = await BillingStorage.getInvoice(this.tenant, billingInvoice.id);
+    await this.repairTransactionsBillingData(repairedInvoice);
   }
 
-  private async repairTransactionsBillingData(billingInvoice: BillingInvoice): Promise<void> {
+  public async repairTransactionsBillingData(billingInvoice: BillingInvoice): Promise<void> {
     // This method is ONLY USED when repairing invoices - c.f.: RepairInvoiceInconsistencies migration task
     if (!billingInvoice.sessions) {
       // This should not happen - but it happened once!
@@ -1690,6 +1739,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         // Update Billing Data
         if (transaction?.billingData?.stop) {
           transaction.billingData.stop.status = BillingStatus.BILLED,
+          transaction.billingData.stop.invoiceID = billingInvoice.id;
           transaction.billingData.stop.invoiceStatus = billingInvoice.status;
           transaction.billingData.stop.invoiceNumber = billingInvoice.number;
           transaction.billingData.lastUpdate = new Date();

@@ -1,10 +1,15 @@
 {
-  "$id": "transactions-inerror-get",
-  "title": "Get Transactions in error Request",
+  "$id": "invoices-get",
+  "title": "Get invoices list Request",
   "type": "object",
   "properties": {
-    "ChargingStationID": {
-      "$ref": "common#/definitions/string-ids"
+    "UserID": {
+      "$ref": "common#/definitions/ids"
+    },
+    "Status": {
+      "type": "string",
+      "pattern": "^((paid|open|draft|void|uncollectible|deleted)(\\|paid|\\|open|\\|draft|\\|void|\\|uncollectible|\\|deleted)*)?$",
+      "sanitize": "mongo"
     },
     "StartDateTime": {
       "type": "string",
@@ -18,22 +23,6 @@
       "customType": "date",
       "sanitize": "mongo"
     },
-    "SiteID": {
-      "$ref": "common#/definitions/ids"
-    },
-    "SiteAreaID": {
-      "$ref": "common#/definitions/ids"
-    },
-    "ErrorType": {
-      "type": "string",
-      "sanitize": "mongo"
-    },
-    "ConnectorID": {
-      "$ref": "common#/definitions/number-ids"
-    },
-    "UserID": {
-      "$ref": "common#/definitions/ids"
-    },
     "Search": {
       "$ref": "common#/definitions/search"
     },
@@ -45,6 +34,9 @@
     },
     "Skip": {
       "$ref": "common#/definitions/skip"
+    },
+    "OnlyRecordCount": {
+      "$ref": "common#/definitions/onlyRecordCount"
     },
     "ProjectFields": {
       "$ref": "common#/definitions/projectFields"

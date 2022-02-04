@@ -569,7 +569,7 @@ export default class OCPPUtils {
   }
 
   public static updateTransactionWithStopTransaction(transaction: Transaction, chargingStation: ChargingStation,
-      stopTransaction: OCPPStopTransactionRequestExtended, user: User, alternateUser: User, tagId: string): void {
+      stopTransaction: OCPPStopTransactionRequestExtended, user: User, alternateUser: User, tagId: string, isSoftStop: boolean): void {
     // Set final data
     transaction.stop = {
       reason: stopTransaction.reason,
@@ -577,6 +577,8 @@ export default class OCPPUtils {
       timestamp: Utils.convertToDate(stopTransaction.timestamp),
       userID: (alternateUser ? alternateUser.id : (user ? user.id : null)),
       tagID: tagId,
+      extraInactivityComputed: isSoftStop,
+      extraInactivitySecs: 0,
       stateOfCharge: transaction.currentStateOfCharge,
       signedData: transaction.currentSignedData ? transaction.currentSignedData : '',
       totalConsumptionWh: transaction.currentTotalConsumptionWh,
@@ -1167,10 +1169,10 @@ export default class OCPPUtils {
     const chargingStationTemplateUpdateResult = await OCPPUtils.enrichChargingStationWithTemplate(tenant, chargingStation);
     // Save
     if (chargingStationTemplateUpdateResult.chargingStationUpdated ||
-      chargingStationTemplateUpdateResult.technicalUpdated ||
-      chargingStationTemplateUpdateResult.capabilitiesUpdated ||
-      chargingStationTemplateUpdateResult.ocppStandardUpdated ||
-      chargingStationTemplateUpdateResult.ocppVendorUpdated) {
+        chargingStationTemplateUpdateResult.technicalUpdated ||
+        chargingStationTemplateUpdateResult.capabilitiesUpdated ||
+        chargingStationTemplateUpdateResult.ocppStandardUpdated ||
+        chargingStationTemplateUpdateResult.ocppVendorUpdated) {
       const sectionsUpdated = [];
       if (chargingStationTemplateUpdateResult.technicalUpdated) {
         sectionsUpdated.push('Technical');
@@ -1178,7 +1180,8 @@ export default class OCPPUtils {
       if (chargingStationTemplateUpdateResult.capabilitiesUpdated) {
         sectionsUpdated.push('Capabilities');
       }
-      if (chargingStationTemplateUpdateResult.ocppStandardUpdated || chargingStationTemplateUpdateResult.ocppVendorUpdated) {
+      if (chargingStationTemplateUpdateResult.ocppStandardUpdated ||
+          chargingStationTemplateUpdateResult.ocppVendorUpdated) {
         sectionsUpdated.push('OCPP');
       }
       // Save
@@ -1208,11 +1211,11 @@ export default class OCPPUtils {
       message: `Apply Template's OCPP Parameters for '${chargingStation.id}' in Tenant ${Utils.buildTenantName(tenant)})`,
     });
     // Request and save the latest OCPP parameters
-    let result = await Utils.executePromiseWithTimeout<OCPPChangeConfigurationResponse>(
+    await Utils.executePromiseWithTimeout<OCPPChangeConfigurationResponse>(
       Constants.DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS, OCPPCommon.requestAndSaveChargingStationOcppParameters(tenant, chargingStation),
       `Time out error (${Constants.DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS.toString()} ms) in requesting OCPP Parameters`);
     // Update the OCPP Parameters from the template
-    result = await Utils.executePromiseWithTimeout<OCPPChangeConfigurationResponse>(
+    const result = await Utils.executePromiseWithTimeout<OCPPChangeConfigurationResponse>(
       Constants.DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS, OCPPUtils.updateChargingStationOcppParametersWithTemplate(tenant, chargingStation),
       `Time out error (${Constants.DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS} ms) in updating OCPP Parameters`);
     if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
@@ -1555,12 +1558,17 @@ export default class OCPPUtils {
           message: 'Charging Station has been forced as inactive!'
         });
       }
-      // Save Charging Station lastSeen date
+      // Reassign to the Charging station
+      chargingStation.lastSeen = new Date();
+      chargingStation.tokenID = tokenID;
+      chargingStation.cloudHostIP = Utils.getHostIP();
+      chargingStation.cloudHostName = Utils.getHostName();
+      // Save Charging Station runtime data
       await ChargingStationStorage.saveChargingStationRuntimeData(tenant, chargingStation.id, {
-        lastSeen: new Date(),
-        tokenID: tokenID,
-        cloudHostIP: Utils.getHostIP(),
-        cloudHostName: Utils.getHostName(),
+        lastSeen: chargingStation.lastSeen,
+        tokenID: chargingStation.tokenID,
+        cloudHostIP: chargingStation.cloudHostIP,
+        cloudHostName: chargingStation.cloudHostName,
       });
     }
     return { tenant, chargingStation, token };

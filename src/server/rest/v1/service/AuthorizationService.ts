@@ -16,10 +16,8 @@ import User, { UserRole } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import Asset from '../../../../types/Asset';
-import AssetStorage from '../../../../storage/mongodb/AssetStorage';
 import Authorizations from '../../../../authorization/Authorizations';
 import Company from '../../../../types/Company';
-import Constants from '../../../../utils/Constants';
 import DynamicAuthorizationFactory from '../../../../authorization/DynamicAuthorizationFactory';
 import { EntityData } from '../../../../types/GlobalType';
 import { HTTPAuthError } from '../../../../types/HTTPError';
@@ -32,9 +30,7 @@ import RegistrationToken from '../../../../types/RegistrationToken';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
-import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import Tag from '../../../../types/Tag';
-import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import _ from 'lodash';
@@ -216,7 +212,6 @@ export default class AuthorizationService {
     users.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.CREATE, authorizationFilter);
     users.canExport = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.EXPORT, authorizationFilter);
     users.canImport = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.IMPORT, authorizationFilter);
-    users.canSynchronizeBilling = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.SYNCHRONIZE_BILLING_USERS, authorizationFilter);
     for (const user of users.result) {
       await AuthorizationService.addUserAuthorizations(tenant, userToken, user, authorizationFilter);
     }
@@ -288,6 +283,8 @@ export default class AuthorizationService {
       await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.ASSET, Action.RETRIEVE_CONSUMPTION, authorizationFilter, {}, asset);
     asset.canReadConsumption = asset.dynamicAsset &&
       await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.ASSET, Action.READ_CONSUMPTION, authorizationFilter, {}, asset);
+    asset.canCreateConsumption = asset.dynamicAsset && asset.usesPushAPI &&
+      await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.ASSET, Action.CREATE_CONSUMPTION, authorizationFilter, {}, asset);
     // Optimize data over the net
     Utils.removeCanPropertiesWithFalseValue(asset);
   }
@@ -602,7 +599,6 @@ export default class AuthorizationService {
     cars.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR, Action.CREATE, authorizationFilter);
     cars.canListUsers = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.LIST, authorizationFilter);
     cars.canListCarCatalog = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR_CATALOG, Action.LIST, authorizationFilter);
-    cars.canCreatePoolCar = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR, Action.CREATE_POOL_CAR, authorizationFilter);
     for (const car of cars.result) {
       await AuthorizationService.addCarAuthorizations(tenant, userToken, car, authorizationFilter);
     }
@@ -613,7 +609,6 @@ export default class AuthorizationService {
     car.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR, Action.DELETE, authorizationFilter, { CarID: car.id }, car);
     car.canUpdate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR, Action.UPDATE, authorizationFilter, { CarID: car.id }, car);
     car.canListUsers = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.LIST, authorizationFilter);
-    car.canCreatePoolCar = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR, Action.CREATE_POOL_CAR, authorizationFilter);
     // Optimize data over the net
     Utils.removeCanPropertiesWithFalseValue(car);
   }
@@ -655,8 +650,6 @@ export default class AuthorizationService {
       tenant, userToken, Entity.CAR_CATALOG, Action.DELETE, authorizationFilter, { CarCatalogID: carCatalog.id }, carCatalog);
     carCatalog.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CAR_CATALOG, Action.UPDATE, authorizationFilter, { CarCatalogID: carCatalog.id }, carCatalog);
-    carCatalog.canDebug = carCatalog.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.CAR_CATALOG, Action.DEBUG, authorizationFilter);
     // Optimize data over the net
     Utils.removeCanPropertiesWithFalseValue(carCatalog);
   }
@@ -676,61 +669,12 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
-  public static async getSiteAdminSiteIDs(tenant: Tenant, userToken: UserToken): Promise<string[]> {
-    // Get the Sites where the user is Site Admin
-    const userSites = await UserStorage.getUserSites(tenant,
-      {
-        userIDs: [userToken.id],
-        siteAdmin: true
-      }, Constants.DB_PARAMS_MAX_LIMIT,
-      ['siteID']
-    );
-    return userSites.result.map((userSite) => userSite.siteID);
-  }
-
-  private static async getSiteOwnerSiteIDs(tenant: Tenant, userToken: UserToken): Promise<string[]> {
-    // Get the Sites where the user is Site Owner
-    const userSites = await UserStorage.getUserSites(tenant,
-      {
-        userIDs: [userToken.id],
-        siteOwner: true
-      }, Constants.DB_PARAMS_MAX_LIMIT,
-      ['siteID']
-    );
-    return userSites.result.map((userSite) => userSite.siteID);
-  }
-
-  private static async getAssignedSiteIDs(tenant: Tenant, userToken: UserToken): Promise<string[]> {
-    // Get the Sites assigned to the User
-    const sites = await SiteStorage.getSites(tenant,
-      {
-        userID: userToken.id,
-        issuer: true,
-      }, Constants.DB_PARAMS_MAX_LIMIT,
-      ['id']
-    );
-    return sites.result.map((site) => site.id);
-  }
-
-  private static async getAssignedAssetIDs(tenant: Tenant, siteID: string): Promise<string[]> {
-    // Get the Assets assigned to the Site
-    const assets = await AssetStorage.getAssets(tenant,
-      {
-        siteIDs: [siteID],
-        // TODO: Uncomment when the bug will be fixed: https://github.com/sap-labs-france/ev-dashboard/issues/2266
-        // issuer: true,
-      }, Constants.DB_PARAMS_MAX_LIMIT,
-      ['id']
-    );
-    return assets.result.map((asset) => asset.id);
-  }
-
   private static async checkAssignedSites(tenant: Tenant, userToken: UserToken,
       filteredRequest: { SiteID?: string }, authorizationFilters: AuthorizationFilter): Promise<void> {
     if (userToken.role !== UserRole.ADMIN && userToken.role !== UserRole.SUPER_ADMIN) {
       if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
         // Get assigned Site IDs assigned to user from DB
-        const siteIDs = await AuthorizationService.getAssignedSiteIDs(tenant, userToken);
+        const siteIDs = await Authorizations.getAssignedSiteIDs(tenant, userToken);
         if (!Utils.isEmptyArray(siteIDs)) {
           // Force the filter
           authorizationFilters.filters.siteIDs = siteIDs;
@@ -756,8 +700,8 @@ export default class AuthorizationService {
     if (userToken.role !== UserRole.ADMIN && userToken.role !== UserRole.SUPER_ADMIN) {
       if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
         // Get Site IDs from Site Admin & Site Owner flag
-        const siteAdminSiteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant, userToken);
-        const siteOwnerSiteIDs = await AuthorizationService.getSiteOwnerSiteIDs(tenant, userToken);
+        const siteAdminSiteIDs = await Authorizations.getSiteAdminSiteIDs(tenant, userToken);
+        const siteOwnerSiteIDs = await Authorizations.getSiteOwnerSiteIDs(tenant, userToken);
         const allSites = _.uniq([...siteAdminSiteIDs, ...siteOwnerSiteIDs]);
         if (!Utils.isEmptyArray(allSites)) {
           // Force the filters

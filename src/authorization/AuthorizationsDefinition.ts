@@ -82,7 +82,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'fastChargePowerMax', 'drivetrainPowerHP'
         ]
       },
-      { resource: Entity.CAR_CATALOG, action: [Action.SYNCHRONIZE, Action.DEBUG] },
+      { resource: Entity.CAR_CATALOG, action: Action.SYNCHRONIZE },
       {
         resource: Entity.CAR_CATALOG, action: Action.READ,
         attributes: [
@@ -98,7 +98,6 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   },
   admin: {
     grants: [
-      { resource: Entity.USER, action: Action.SYNCHRONIZE_BILLING_USERS },
       {
         resource: Entity.USER,
         action: [
@@ -184,7 +183,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['LocalIssuer'],
+            filters: [],
           }
         },
         attributes: [
@@ -488,7 +487,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'chargeAlternativePhase', 'chargeOptionPower', 'chargeOptionPhase', 'image', 'chargeOptionPhaseAmp', 'chargeAlternativePhaseAmp'
         ]
       },
-      { resource: Entity.CAR, action: [Action.CREATE, Action.CREATE_POOL_CAR, Action.UPDATE, Action.DELETE] },
+      { resource: Entity.CAR, action: [Action.CREATE, Action.UPDATE, Action.DELETE] },
       {
         resource: Entity.CAR, action: Action.READ,
         attributes: [
@@ -502,6 +501,18 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       {
         resource: Entity.CAR, action: Action.LIST,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: [],
+            metadata: {
+              createPoolCar: {
+                visible: true
+              }
+            }
+          }
+        },
         attributes: [
           'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'createdOn', 'lastChangedOn',
           'carCatalog.id', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
@@ -1210,7 +1221,12 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['SitesAdmin']
+            filters: ['SitesAdmin'],
+            metadata: {
+              createPoolCar: {
+                visible: true
+              }
+            }
           }
         },
         attributes: [
@@ -1226,7 +1242,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
-            asserts: ['-PoolCar'],
+            asserts: [],
             filters: []
           }
         },

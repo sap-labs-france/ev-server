@@ -64,6 +64,10 @@ export default class PricingEngine {
   }
 
   public static extractFinalPricingData(pricingModel: ResolvedPricingModel): PricedConsumptionData[] {
+    if (!pricingModel) {
+      // Happens only when billing "ghost" sessions that were created with the former "Simple Pricing" module
+      return [];
+    }
     // Iterate throw the list of pricing definitions
     const pricedData: PricedConsumptionData[] = pricingModel.pricingDefinitions.map((pricingDefinition) =>
       PricingEngine.extractFinalPricedConsumptionData(pricingDefinition)

@@ -129,7 +129,6 @@ export enum Action {
   EXPORT = 'Export',
   CHANGE_AVAILABILITY = 'ChangeAvailability',
   REFUND_TRANSACTION = 'RefundTransaction',
-  SYNCHRONIZE_BILLING_USERS = 'SynchronizeBillingUsers',
   SYNCHRONIZE_BILLING_USER = 'SynchronizeBillingUser',
   BILLING_SETUP_PAYMENT_METHOD = 'BillingSetupPaymentMethod',
   BILLING_PAYMENT_METHODS = 'BillingPaymentMethods',
@@ -157,8 +156,6 @@ export enum Action {
   EXPORT_OCPP_PARAMS = 'ExportOCPPParams',
   GENERATE_QR = 'GenerateQrCode',
   MAINTAIN_PRICING_DEFINITIONS = 'MaintainPricingDefinitions',
-  CREATE_POOL_CAR = 'CreatePoolCar',
-  DEBUG = 'Debug',
 }
 
 export interface AuthorizationContext {
@@ -189,14 +186,6 @@ export interface AuthorizationActions {
   metadata?: Record<string, unknown>;
 }
 
-export interface CarAuthorizationActions extends AuthorizationActions {
-  canCreatePoolCar?: boolean;
-}
-
-export interface CarCatalogAuthorizationActions extends AuthorizationActions {
-  canDebug?: boolean;
-}
-
 export interface TagAuthorizationActions extends AuthorizationActions {
   canUnassign?: boolean;
   canAssign?: boolean;
@@ -211,6 +200,7 @@ export interface AssetAuthorizationActions extends AuthorizationActions {
   canRetrieveConsumption?:boolean;
   canReadConsumption?:boolean;
   canCheckConnection?:boolean;
+  canCreateConsumption?:boolean;
 }
 
 export interface SiteAreaAuthorizationActions extends AuthorizationActions {
