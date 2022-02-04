@@ -10,6 +10,7 @@ import chai, { assert, expect } from 'chai';
 import AsyncTaskStorage from '../../src/storage/mongodb/AsyncTaskStorage';
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
+import ChargingStationStorage from '../../src/storage/mongodb/ChargingStationStorage';
 import Configuration from '../../src/utils/Configuration';
 import Constants from '../../src/utils/Constants';
 import ContextDefinition from './context/ContextDefinition';
@@ -593,8 +594,8 @@ export default class BillingTestHelper {
         await this.sendStatusNotification(connectorId, stopDate.clone().add(29, 'minutes').toDate(), ChargePointStatus.FINISHING);
         await this.sendStatusNotification(connectorId, stopDate.clone().add(30, 'minutes').toDate(), ChargePointStatus.AVAILABLE);
         // SOFT STOP TRANSACTION
-        const chargingStation = this.chargingStationContext.getChargingStation();
-        let transaction = await TransactionStorage.getTransaction(tenant, transactionId);
+        let transaction = await TransactionStorage.getTransaction(tenant, transactionId, { withUser: true, withChargingStation: true });
+        const chargingStation = await ChargingStationStorage.getChargingStation(tenant, transaction.chargeBoxID);
         const siteArea = this.siteAreaContext.getSiteArea();
         const done = await new OCPPService(Configuration.getChargingStationConfig()).softStopTransaction(tenant, transaction, chargingStation, siteArea);
         expect(done).to.be.true;
