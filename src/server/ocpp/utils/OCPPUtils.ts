@@ -1,8 +1,8 @@
 import { BillingDataTransactionStart, BillingDataTransactionStop } from '../../../types/Billing';
 import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargingStationCapabilities, ChargingStationTemplate, Command, Connector, ConnectorCurrentLimitSource, CurrentType, OcppParameter, SiteAreaLimitSource, StaticLimitAmps, TemplateUpdate, TemplateUpdateResult } from '../../../types/ChargingStation';
-import { OCPPAuthorizationStatus, OCPPMeasurand, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat } from '../../../types/ocpp/OCPPServer';
 import { OCPPChangeConfigurationResponse, OCPPChargingProfileStatus, OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
+import { OCPPMeasurand, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat } from '../../../types/ocpp/OCPPServer';
 import { OICPIdentification, OICPSessionID } from '../../../types/oicp/OICPIdentification';
 import Tenant, { TenantComponents } from '../../../types/Tenant';
 import Transaction, { InactivityStatus, TransactionAction } from '../../../types/Transaction';
@@ -12,7 +12,6 @@ import BackendError from '../../../exception/BackendError';
 import BillingFactory from '../../../integration/billing/BillingFactory';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
-import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import Consumption from '../../../types/Consumption';
 import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
@@ -25,7 +24,6 @@ import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
 import OCPPCommon from './OCPPCommon';
 import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
-import OCPPService from '../services/OCPPService';
 import OICPClientFactory from '../../../client/oicp/OICPClientFactory';
 import { OICPRole } from '../../../types/oicp/OICPRole';
 import OICPUtils from '../../oicp/OICPUtils';
@@ -36,7 +34,6 @@ import { Promise } from 'bluebird';
 import RegistrationToken from '../../../types/RegistrationToken';
 import RegistrationTokenStorage from '../../../storage/mongodb/RegistrationTokenStorage';
 import { ServerAction } from '../../../types/Server';
-import Site from '../../../types/Site';
 import SiteArea from '../../../types/SiteArea';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import Tag from '../../../types/Tag';
@@ -1172,10 +1169,10 @@ export default class OCPPUtils {
     const chargingStationTemplateUpdateResult = await OCPPUtils.enrichChargingStationWithTemplate(tenant, chargingStation);
     // Save
     if (chargingStationTemplateUpdateResult.chargingStationUpdated ||
-      chargingStationTemplateUpdateResult.technicalUpdated ||
-      chargingStationTemplateUpdateResult.capabilitiesUpdated ||
-      chargingStationTemplateUpdateResult.ocppStandardUpdated ||
-      chargingStationTemplateUpdateResult.ocppVendorUpdated) {
+        chargingStationTemplateUpdateResult.technicalUpdated ||
+        chargingStationTemplateUpdateResult.capabilitiesUpdated ||
+        chargingStationTemplateUpdateResult.ocppStandardUpdated ||
+        chargingStationTemplateUpdateResult.ocppVendorUpdated) {
       const sectionsUpdated = [];
       if (chargingStationTemplateUpdateResult.technicalUpdated) {
         sectionsUpdated.push('Technical');
@@ -1183,7 +1180,8 @@ export default class OCPPUtils {
       if (chargingStationTemplateUpdateResult.capabilitiesUpdated) {
         sectionsUpdated.push('Capabilities');
       }
-      if (chargingStationTemplateUpdateResult.ocppStandardUpdated || chargingStationTemplateUpdateResult.ocppVendorUpdated) {
+      if (chargingStationTemplateUpdateResult.ocppStandardUpdated ||
+          chargingStationTemplateUpdateResult.ocppVendorUpdated) {
         sectionsUpdated.push('OCPP');
       }
       // Save
@@ -1213,11 +1211,11 @@ export default class OCPPUtils {
       message: `Apply Template's OCPP Parameters for '${chargingStation.id}' in Tenant ${Utils.buildTenantName(tenant)})`,
     });
     // Request and save the latest OCPP parameters
-    let result = await Utils.executePromiseWithTimeout<OCPPChangeConfigurationResponse>(
+    await Utils.executePromiseWithTimeout<OCPPChangeConfigurationResponse>(
       Constants.DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS, OCPPCommon.requestAndSaveChargingStationOcppParameters(tenant, chargingStation),
       `Time out error (${Constants.DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS.toString()} ms) in requesting OCPP Parameters`);
     // Update the OCPP Parameters from the template
-    result = await Utils.executePromiseWithTimeout<OCPPChangeConfigurationResponse>(
+    const result = await Utils.executePromiseWithTimeout<OCPPChangeConfigurationResponse>(
       Constants.DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS, OCPPUtils.updateChargingStationOcppParametersWithTemplate(tenant, chargingStation),
       `Time out error (${Constants.DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS} ms) in updating OCPP Parameters`);
     if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
@@ -1730,39 +1728,6 @@ export default class OCPPUtils {
         });
       }
     }
-  }
-
-  public static async softStopTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, siteArea: SiteArea): Promise<boolean> {
-    // Check
-    if (!tenant || !transaction || !chargingStation) {
-      return false;
-    }
-    if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION) && !siteArea) {
-      return false;
-    }
-    // Set
-    chargingStation.siteArea = siteArea;
-    // Stop Transaction
-    const result = await new OCPPService(Configuration.getChargingStationConfig()).handleStopTransaction(
-      { // OCPP Header
-        chargeBoxIdentity: transaction.chargeBoxID,
-        chargingStation: chargingStation,
-        companyID: transaction.companyID,
-        siteID: transaction.siteID,
-        siteAreaID: transaction.siteAreaID,
-        tenantID: tenant.id,
-        tenant: tenant,
-      },
-      { // OCPP Stop Transaction
-        transactionId: transaction.id,
-        chargeBoxID: transaction.chargeBoxID,
-        idTag: transaction.tagID,
-        timestamp: Utils.convertToDate(transaction.lastConsumption ? transaction.lastConsumption.timestamp : transaction.timestamp).toISOString(),
-        meterStop: transaction.lastConsumption ? transaction.lastConsumption.value : transaction.meterStart
-      },
-      true
-    );
-    return (result.idTagInfo?.status === OCPPAuthorizationStatus.ACCEPTED);
   }
 
   private static async enrichChargingStationWithTemplate(tenant: Tenant, chargingStation: ChargingStation): Promise<TemplateUpdateResult> {

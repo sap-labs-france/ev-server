@@ -86,10 +86,16 @@ export default class ChargingStationStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     // Validate
     chargingStationTemplate = ChargingStationValidatorStorage.getInstance().validateChargingStationTemplate(chargingStationTemplate);
+    // Prepare DB structure
+    const chargingStationTemplateMDB = {
+      ...chargingStationTemplate,
+      _id: chargingStationTemplate.id
+    };
+    delete chargingStationTemplateMDB.id;
     // Modify and return the modified document
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'chargingstationtemplates').findOneAndReplace(
       { '_id': chargingStationTemplate.id },
-      chargingStationTemplate,
+      chargingStationTemplateMDB,
       { upsert: true });
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'saveChargingStationTemplate', startTime, chargingStationTemplate);
   }
@@ -605,15 +611,29 @@ export default class ChargingStationStorage {
   }
 
   public static async saveChargingStationRuntimeData(tenant: Tenant, id: string,
-      params: { lastSeen: Date; currentIPAddress?: string | string[]; tokenID?: string; cloudHostIP?: string; cloudHostName?: string; }): Promise<void> {
+      runtimeData: { lastSeen?: Date; currentIPAddress?: string | string[]; tokenID?: string; cloudHostIP?: string; cloudHostName?: string; }): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
+    const runtimeDataMDB: { lastSeen?: Date; currentIPAddress?: string | string[]; tokenID?: string; cloudHostIP?: string; cloudHostName?: string; } = {};
+    if (runtimeData.lastSeen) {
+      runtimeDataMDB.lastSeen = Utils.convertToDate(runtimeData.lastSeen);
+    }
+    if (runtimeData.currentIPAddress) {
+      runtimeDataMDB.currentIPAddress = runtimeData.currentIPAddress;
+    }
+    if (runtimeData.tokenID) {
+      runtimeDataMDB.tokenID = runtimeData.tokenID;
+    }
+    if (runtimeData.cloudHostIP || runtimeData.cloudHostName) {
+      runtimeDataMDB.cloudHostIP = runtimeData.cloudHostIP;
+      runtimeDataMDB.cloudHostName = runtimeData.cloudHostName;
+    }
     // Modify document
     await global.database.getCollection<any>(tenant.id, 'chargingstations').findOneAndUpdate(
       { '_id': id },
-      { $set: params },
+      { $set: runtimeDataMDB },
       { upsert: true });
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveChargingStationLastSeen', startTime, params);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveChargingStationRuntimeData', startTime, runtimeData);
   }
 
   public static async saveChargingStationOcpiData(tenant: Tenant, id: string,

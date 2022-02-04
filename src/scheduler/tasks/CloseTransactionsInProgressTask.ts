@@ -1,9 +1,10 @@
 import { ActionsResponse } from '../../types/GlobalType';
+import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
-import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
+import OCPPService from '../../server/ocpp/services/OCPPService';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import TenantSchedulerTask from '../TenantSchedulerTask';
@@ -22,6 +23,8 @@ export default class CloseTransactionsInProgressTask extends TenantSchedulerTask
           inSuccess: 0,
         };
         const startTime = new Date().getTime();
+        // Instantiate the OCPPService
+        const ocppService = new OCPPService(Configuration.getChargingStationConfig());
         // Get opened transactions to close
         const transactions = await TransactionStorage.getTransactions(tenant, { transactionsToClose: true }, Constants.DB_PARAMS_MAX_LIMIT,
           ['id', 'tagID', 'lastConsumption.timestamp', 'timestamp', 'lastConsumption.value', 'meterStart',
@@ -29,7 +32,7 @@ export default class CloseTransactionsInProgressTask extends TenantSchedulerTask
         for (const transaction of transactions.result) {
           try {
             // Soft stop transaction
-            if (await OCPPUtils.softStopTransaction(tenant, transaction, transaction.chargeBox, transaction.siteArea)) {
+            if (await ocppService.softStopTransaction(tenant, transaction, transaction.chargeBox, transaction.siteArea)) {
               result.inSuccess++;
             } else {
               result.inError++;
