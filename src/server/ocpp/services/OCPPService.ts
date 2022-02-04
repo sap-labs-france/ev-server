@@ -798,34 +798,35 @@ export default class OCPPService {
       // Get the last transaction
       const lastTransaction = await TransactionStorage.getLastTransactionFromChargingStation(
         tenant, chargingStation.id, connector.connectorId, { withUser: true });
-      // Transaction completed
-      if (lastTransaction?.stop) {
-        // Check Inactivity
-        const transactionUpdated = await this.checkAndComputeTransactionExtraInactivityFromStatusNotification(
-          tenant, chargingStation, lastTransaction, connector, statusNotification);
-        // Billing: Trigger the asynchronous billing task
-        const billingDataUpdated = await this.checkAndBillTransaction(tenant, lastTransaction);
-        // OCPI: Post the CDR
-        const ocpiUpdated = await this.checkAndSendOCPITransactionCdr(
-          tenant, lastTransaction, chargingStation, lastTransaction.tag);
-        // OICP: Post the CDR
-        const oicpUpdated = await this.checkAndSendOICPTransactionCdr(
-          tenant, lastTransaction, chargingStation, lastTransaction.tag);
-        // Save
-        if (transactionUpdated || billingDataUpdated || ocpiUpdated || oicpUpdated) {
-          await TransactionStorage.saveTransaction(tenant, lastTransaction);
+      if (lastTransaction) {
+        // Transaction completed
+        if (lastTransaction.stop) {
+          // Check Inactivity
+          const transactionUpdated = await this.checkAndComputeTransactionExtraInactivityFromStatusNotification(
+            tenant, chargingStation, lastTransaction, connector, statusNotification);
+          // Billing: Trigger the asynchronous billing task
+          const billingDataUpdated = await this.checkAndBillTransaction(tenant, lastTransaction);
+          // OCPI: Post the CDR
+          const ocpiUpdated = await this.checkAndSendOCPITransactionCdr(
+            tenant, lastTransaction, chargingStation, lastTransaction.tag);
+          // OICP: Post the CDR
+          const oicpUpdated = await this.checkAndSendOICPTransactionCdr(
+            tenant, lastTransaction, chargingStation, lastTransaction.tag);
+          // Save
+          if (transactionUpdated || billingDataUpdated || ocpiUpdated || oicpUpdated) {
+            await TransactionStorage.saveTransaction(tenant, lastTransaction);
+          }
+        } else {
+          await Logging.logWarning({
+            tenantID: tenant.id,
+            ...LoggingHelper.getChargingStationProperties(chargingStation),
+            module: MODULE_NAME, method: 'checkAndUpdateLastCompletedTransaction',
+            action: ServerAction.OCPP_STATUS_NOTIFICATION,
+            message: `${Utils.buildConnectorInfo(lastTransaction.connectorId, lastTransaction.id)} Received Status Notification '${statusNotification.status}' while a transaction is ongoing`,
+            detailedMessages: { statusNotification }
+          });
         }
-      }
-      // Clear Connector Runtime Data
-      if (!Utils.isNullOrUndefined(lastTransaction)) {
-        await Logging.logWarning({
-          tenantID: tenant.id,
-          ...LoggingHelper.getChargingStationProperties(chargingStation),
-          module: MODULE_NAME, method: 'checkAndUpdateLastCompletedTransaction',
-          action: ServerAction.OCPP_STATUS_NOTIFICATION,
-          message: `${Utils.buildConnectorInfo(lastTransaction.connectorId, lastTransaction.id)} Received Status Notification '${statusNotification.status}' while a transaction is ongoing`,
-          detailedMessages: { statusNotification }
-        });
+        // Clear Connector Runtime Data
         OCPPUtils.clearChargingStationConnectorRuntimeData(chargingStation, lastTransaction.connectorId);
       }
     }
