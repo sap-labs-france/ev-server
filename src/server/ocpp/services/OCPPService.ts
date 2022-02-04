@@ -815,7 +815,9 @@ export default class OCPPService {
         if (transactionUpdated || billingDataUpdated || ocpiUpdated || oicpUpdated) {
           await TransactionStorage.saveTransaction(tenant, lastTransaction);
         }
-      } else if (!Utils.isNullOrUndefined(lastTransaction)) {
+      }
+      // Clear Connector Runtime Data
+      if (!Utils.isNullOrUndefined(lastTransaction)) {
         await Logging.logWarning({
           tenantID: tenant.id,
           ...LoggingHelper.getChargingStationProperties(chargingStation),
