@@ -361,15 +361,19 @@ export default class TransactionService {
         action: action,
       });
     } else {
-      const connector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
-      if (connector.currentTransactionID === transaction.id) {
-        throw new AppError({
-          ...LoggingHelper.getChargingStationProperties(chargingStation),
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Cannot soft stop an ongoing Transaction`,
-          module: MODULE_NAME, method: 'handleTransactionSoftStop',
-          user: req.user, action: action
-        });
+      // Charging Station must be active
+      if (!chargingStation.inactive) {
+        // Check connector
+        const connector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
+        if (connector.currentTransactionID === transaction.id) {
+          throw new AppError({
+            ...LoggingHelper.getChargingStationProperties(chargingStation),
+            errorCode: HTTPError.GENERAL_ERROR,
+            message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Cannot soft stop an ongoing Transaction`,
+            module: MODULE_NAME, method: 'handleTransactionSoftStop',
+            user: req.user, action: action
+          });
+        }
       }
       // Stop Transaction
       const result = await new OCPPService(Configuration.getChargingStationConfig()).handleStopTransaction(
