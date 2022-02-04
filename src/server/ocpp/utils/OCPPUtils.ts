@@ -1169,10 +1169,10 @@ export default class OCPPUtils {
     const chargingStationTemplateUpdateResult = await OCPPUtils.enrichChargingStationWithTemplate(tenant, chargingStation);
     // Save
     if (chargingStationTemplateUpdateResult.chargingStationUpdated ||
-      chargingStationTemplateUpdateResult.technicalUpdated ||
-      chargingStationTemplateUpdateResult.capabilitiesUpdated ||
-      chargingStationTemplateUpdateResult.ocppStandardUpdated ||
-      chargingStationTemplateUpdateResult.ocppVendorUpdated) {
+        chargingStationTemplateUpdateResult.technicalUpdated ||
+        chargingStationTemplateUpdateResult.capabilitiesUpdated ||
+        chargingStationTemplateUpdateResult.ocppStandardUpdated ||
+        chargingStationTemplateUpdateResult.ocppVendorUpdated) {
       const sectionsUpdated = [];
       if (chargingStationTemplateUpdateResult.technicalUpdated) {
         sectionsUpdated.push('Technical');
@@ -1180,7 +1180,8 @@ export default class OCPPUtils {
       if (chargingStationTemplateUpdateResult.capabilitiesUpdated) {
         sectionsUpdated.push('Capabilities');
       }
-      if (chargingStationTemplateUpdateResult.ocppStandardUpdated || chargingStationTemplateUpdateResult.ocppVendorUpdated) {
+      if (chargingStationTemplateUpdateResult.ocppStandardUpdated ||
+          chargingStationTemplateUpdateResult.ocppVendorUpdated) {
         sectionsUpdated.push('OCPP');
       }
       // Save
@@ -1210,11 +1211,11 @@ export default class OCPPUtils {
       message: `Apply Template's OCPP Parameters for '${chargingStation.id}' in Tenant ${Utils.buildTenantName(tenant)})`,
     });
     // Request and save the latest OCPP parameters
-    let result = await Utils.executePromiseWithTimeout<OCPPChangeConfigurationResponse>(
+    await Utils.executePromiseWithTimeout<OCPPChangeConfigurationResponse>(
       Constants.DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS, OCPPCommon.requestAndSaveChargingStationOcppParameters(tenant, chargingStation),
       `Time out error (${Constants.DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS.toString()} ms) in requesting OCPP Parameters`);
     // Update the OCPP Parameters from the template
-    result = await Utils.executePromiseWithTimeout<OCPPChangeConfigurationResponse>(
+    const result = await Utils.executePromiseWithTimeout<OCPPChangeConfigurationResponse>(
       Constants.DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS, OCPPUtils.updateChargingStationOcppParametersWithTemplate(tenant, chargingStation),
       `Time out error (${Constants.DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS} ms) in updating OCPP Parameters`);
     if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
