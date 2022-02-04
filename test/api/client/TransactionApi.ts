@@ -60,4 +60,8 @@ export default class TransactionApi extends CrudApi {
   public async exportTransactions(params) {
     return await super.read(params, this.buildRestEndpointUrl(ServerRoute.REST_TRANSACTIONS_EXPORT));
   }
+
+  public async softStopTransaction(params) {
+    return super.update(params, this.buildRestEndpointUrl(ServerRoute.REST_TRANSACTION_SOFT_STOP, { id: params.ID }));
+  }
 }

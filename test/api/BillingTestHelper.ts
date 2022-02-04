@@ -10,8 +10,6 @@ import chai, { assert, expect } from 'chai';
 import AsyncTaskStorage from '../../src/storage/mongodb/AsyncTaskStorage';
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
-import ChargingStationStorage from '../../src/storage/mongodb/ChargingStationStorage';
-import Configuration from '../../src/utils/Configuration';
 import Constants from '../../src/utils/Constants';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
@@ -19,7 +17,6 @@ import Cypher from '../../src/utils/Cypher';
 import { DataResult } from '../../src/types/DataResult';
 import Decimal from 'decimal.js';
 import LoggingStorage from '../../src/storage/mongodb/LoggingStorage';
-import OCPPService from '../../src/server/ocpp/services/OCPPService';
 import OCPPUtils from '../../src/server/ocpp/utils/OCPPUtils';
 import SiteAreaContext from './context/SiteAreaContext';
 import SiteContext from './context/SiteContext';
@@ -594,12 +591,10 @@ export default class BillingTestHelper {
         await this.sendStatusNotification(connectorId, stopDate.clone().add(29, 'minutes').toDate(), ChargePointStatus.FINISHING);
         await this.sendStatusNotification(connectorId, stopDate.clone().add(30, 'minutes').toDate(), ChargePointStatus.AVAILABLE);
         // SOFT STOP TRANSACTION
-        let transaction = await TransactionStorage.getTransaction(tenant, transactionId, { withUser: true, withChargingStation: true });
-        const chargingStation = await ChargingStationStorage.getChargingStation(tenant, transaction.chargeBoxID);
-        const siteArea = this.siteAreaContext.getSiteArea();
-        const done = await new OCPPService(Configuration.getChargingStationConfig()).softStopTransaction(tenant, transaction, chargingStation, siteArea);
-        expect(done).to.be.true;
+        const stopTransactionResponse = await this.chargingStationContext.softStopTransaction(transactionId);
+        expect(stopTransactionResponse).to.be.not.null;
         // Force the billing as this is normally done by a job every 15 minutes
+        let transaction = await TransactionStorage.getTransaction(tenant, transactionId, { withUser: true, withChargingStation: true });
         transaction = await TransactionStorage.getTransaction(tenant, transactionId, { withUser: true, withChargingStation: true });
         transaction.stop.extraInactivityComputed = true;
         transaction.stop.extraInactivitySecs = 0;
