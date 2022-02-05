@@ -60,32 +60,23 @@ export default class OCPPService {
     try {
       const { tenant } = headers;
       let { chargingStation } = headers;
-      OCPPValidation.getInstance().validateBootNotification(bootNotification);
+      OCPPValidation.getInstance().validateBootNotification(headers, bootNotification);
       // Enrich Boot Notification
       this.enrichBootNotification(headers, bootNotification);
       // Get heartbeat interval
       const heartbeatIntervalSecs = this.getHeartbeatInterval(headers.ocppProtocol);
       // Check Charging Station
-      if (!headers.chargeBoxIdentity) {
-        throw new BackendError({
-          action: ServerAction.OCPP_BOOT_NOTIFICATION,
-          module: MODULE_NAME, method: 'handleBootNotification',
-          message: 'Should have the required property \'chargeBoxIdentity\'!',
-          detailedMessages: { bootNotification }
-        });
-      }
-      // Get Charging Station
       if (!chargingStation) {
         // Create Charging Station
         chargingStation = await this.createChargingStationFromBootNotification(tenant, bootNotification, headers);
       } else {
-        // Check Charging Station
-        this.checkSameChargingStation(headers, chargingStation, bootNotification);
+        // Validate Charging Station
+        this.checkChargingStationIsIdenticalFromBootNotification(chargingStation, bootNotification);
       }
       // Enrich Charging Station
       await this.enrichChargingStationFromBootNotification(tenant, chargingStation, headers, bootNotification);
-      // Apply Charging Station Template
-      const templateUpdateResult = await this.applyChargingStationTemplate(tenant, chargingStation);
+      // Apply template
+      const templateUpdateResult = await OCPPUtils.checkAndApplyTemplateToChargingStation(tenant, chargingStation, false);
       // Save Charging Station
       await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
       // Save Boot Notification
@@ -93,7 +84,12 @@ export default class OCPPService {
       // Notify
       this.notifyBootNotification(tenant, chargingStation);
       // Request OCPP configuration
-      this.requestOCPPConfigurationAfterBootNotification(tenant, chargingStation, templateUpdateResult, heartbeatIntervalSecs);
+      if (!templateUpdateResult.chargingStationUpdated) {
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        setTimeout(async () => {
+          await OCPPCommon.requestAndSaveChargingStationOcppParameters(tenant, chargingStation);
+        }, Constants.DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS);
+      }
       await Logging.logInfo({
         tenantID: tenant.id,
         ...LoggingHelper.getChargingStationProperties(chargingStation),
@@ -171,10 +167,10 @@ export default class OCPPService {
           message: `Connector ID '0' > ${this.buildStatusNotification(statusNotification)}, will be ignored (Connector ID = '0')`,
           detailedMessages: { statusNotification }
         });
-        return {};
+      } else {
+        // Update only the given Connector ID
+        await this.processConnectorFromStatusNotification(tenant, chargingStation, statusNotification);
       }
-      // Update only the given Connector ID
-      await this.processConnectorStatusNotification(tenant, chargingStation, statusNotification);
       return {};
     } catch (error) {
       this.addChargingStationToException(error, headers.chargeBoxIdentity);
@@ -667,7 +663,7 @@ export default class OCPPService {
     }
   }
 
-  private async processConnectorStatusNotification(tenant: Tenant, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended) {
+  private async processConnectorFromStatusNotification(tenant: Tenant, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended) {
     // Get Connector
     const { connector, ignoreStatusNotification } =
       await this.checkAndGetConnectorFromStatusNotification(tenant, chargingStation, statusNotification);
@@ -691,8 +687,7 @@ export default class OCPPService {
           connector1?.connectorId - connector2?.connectorId);
       }
       // Save Charging Station
-      await ChargingStationStorage.saveChargingStationConnectors(tenant, chargingStation.id,
-        chargingStation.connectors, chargingStation.backupConnectors);
+      await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
       // Process Smart Charging
       await this.processSmartChargingFromStatusNotification(tenant, chargingStation, connector);
       await Logging.logInfo({
@@ -745,18 +740,18 @@ export default class OCPPService {
   private async checkAndGetConnectorFromStatusNotification(tenant: Tenant, chargingStation: ChargingStation,
       statusNotification: OCPPStatusNotificationRequestExtended): Promise<{ connector: Connector; ignoreStatusNotification: boolean; }> {
     let ignoreStatusNotification = false;
-    let foundConnector = Utils.getConnectorFromID(chargingStation, statusNotification.connectorId);
-    if (!foundConnector) {
+    let connector = Utils.getConnectorFromID(chargingStation, statusNotification.connectorId);
+    if (!connector) {
       // Check backup first
-      foundConnector = Utils.getLastSeenConnectorFromID(chargingStation, statusNotification.connectorId);
-      if (foundConnector) {
+      connector = Utils.getLastSeenConnectorFromID(chargingStation, statusNotification.connectorId);
+      if (connector) {
         // Append the backup connector
-        chargingStation.connectors.push(foundConnector);
+        chargingStation.connectors.push(connector);
         chargingStation.backupConnectors = chargingStation.backupConnectors.filter(
-          (backupConnector) => backupConnector.connectorId !== foundConnector.connectorId);
+          (backupConnector) => backupConnector.connectorId !== connector.connectorId);
       } else {
         // Does not exist: Create
-        foundConnector = {
+        connector = {
           currentTransactionID: 0,
           currentTransactionDate: null,
           currentTagID: null,
@@ -767,16 +762,12 @@ export default class OCPPService {
           power: 0,
           type: ConnectorType.UNKNOWN
         };
-        chargingStation.connectors.push(foundConnector);
+        chargingStation.connectors.push(connector);
       }
       // Enrich Charging Station's Connector
-      const chargingStationTemplate = await OCPPUtils.getChargingStationTemplate(chargingStation);
-      if (chargingStationTemplate) {
-        await OCPPUtils.enrichChargingStationConnectorWithTemplate(
-          tenant, chargingStation, statusNotification.connectorId, chargingStationTemplate);
-      }
-      // Same Status Notification?
-    } else if (Utils.objectAllPropertiesAreEqual(statusNotification, foundConnector, ['status', 'info', 'errorCode', 'vendorErrorCode'])) {
+      await OCPPUtils.enrichChargingStationConnectorWithTemplate(tenant, chargingStation, connector);
+    // Same Status Notification?
+    } else if (Utils.objectAllPropertiesAreEqual(statusNotification, connector, ['status', 'info', 'errorCode', 'vendorErrorCode'])) {
       ignoreStatusNotification = true;
       await Logging.logWarning({
         tenantID: tenant.id,
@@ -784,10 +775,10 @@ export default class OCPPService {
         action: ServerAction.OCPP_STATUS_NOTIFICATION,
         module: MODULE_NAME, method: 'handleStatusNotification',
         message: `${this.buildStatusNotification(statusNotification)} has not changed and will be ignored`,
-        detailedMessages: { foundConnector, statusNotification }
+        detailedMessages: { connector, statusNotification }
       });
     }
-    return { connector: foundConnector, ignoreStatusNotification };
+    return { connector, ignoreStatusNotification };
   }
 
   private async checkAndUpdateLastCompletedTransactionFromStatusNotification(tenant: Tenant, chargingStation: ChargingStation,
@@ -1832,7 +1823,7 @@ export default class OCPPService {
     return newChargingStation;
   }
 
-  private checkSameChargingStation(headers: OCPPHeader, chargingStation: ChargingStation, bootNotification: OCPPBootNotificationRequestExtended) {
+  private checkChargingStationIsIdenticalFromBootNotification(chargingStation: ChargingStation, bootNotification: OCPPBootNotificationRequestExtended) {
     // Existing Charging Station: Update
     // Check if same vendor and model
     if ((chargingStation.chargePointVendor !== bootNotification.chargePointVendor ||
@@ -1897,16 +1888,6 @@ export default class OCPPService {
     chargingStation.connectors = [];
   }
 
-  private async applyChargingStationTemplate(tenant: Tenant, chargingStation: ChargingStation): Promise<TemplateUpdateResult> {
-    const templateUpdateResult = await OCPPUtils.applyTemplateToChargingStation(tenant, chargingStation, false);
-    // No matching template or manual configuration
-    if (!templateUpdateResult.chargingStationUpdated) {
-      OCPPUtils.checkAndSetChargingStationAmperageLimit(chargingStation);
-      await OCPPUtils.setChargingStationPhaseAssignment(tenant, chargingStation);
-    }
-    return templateUpdateResult;
-  }
-
   private notifyBootNotification(tenant: Tenant, chargingStation: ChargingStation) {
     void NotificationHandler.sendChargingStationRegistered(
       tenant,
@@ -1921,66 +1902,6 @@ export default class OCPPService {
         evseDashboardChargingStationURL: Utils.buildEvseChargingStationURL(tenant.subdomain, chargingStation, '#all')
       }
     );
-  }
-
-  private requestOCPPConfigurationAfterBootNotification(tenant: Tenant, chargingStation: ChargingStation,
-      templateUpdateResult: TemplateUpdateResult, heartbeatIntervalSecs: number) {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    setTimeout(async () => {
-      // Synchronize heartbeat interval OCPP parameter for charging stations that do not take into account its value in the boot notification response
-      for (const heartbeatOcppKey of Constants.OCPP_HEARTBEAT_KEYS) {
-        try {
-          const result = await OCPPCommon.requestChangeChargingStationOcppParameter(tenant, chargingStation, {
-            key: heartbeatOcppKey,
-            value: heartbeatIntervalSecs.toString()
-          }, false);
-          if (result.status === OCPPConfigurationStatus.ACCEPTED ||
-            result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
-            break;
-          }
-          await Logging.logError({
-            tenantID: tenant.id,
-            ...LoggingHelper.getChargingStationProperties(chargingStation),
-            action: ServerAction.OCPP_BOOT_NOTIFICATION,
-            module: MODULE_NAME, method: 'requestOCPPConfigurationDelayed',
-            message: `Cannot set '${heartbeatOcppKey}' to '${heartbeatIntervalSecs.toString()}' secs`
-          });
-        } catch (error) {
-          await Logging.logError({
-            tenantID: tenant.id,
-            ...LoggingHelper.getChargingStationProperties(chargingStation),
-            action: ServerAction.OCPP_BOOT_NOTIFICATION,
-            module: MODULE_NAME, method: 'requestOCPPConfigurationDelayed',
-            message: `Cannot set '${heartbeatOcppKey}' to '${heartbeatIntervalSecs.toString()}' secs`,
-            detailedMessages: { error: error.stack }
-          });
-        }
-      }
-      // Apply Charging Station Template OCPP configuration
-      if (templateUpdateResult.ocppStandardUpdated || templateUpdateResult.ocppVendorUpdated) {
-        try {
-          const result = await OCPPUtils.applyTemplateOcppParametersToChargingStation(tenant, chargingStation);
-          if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
-            await Logging.logError({
-              tenantID: tenant.id,
-              ...LoggingHelper.getChargingStationProperties(chargingStation),
-              action: ServerAction.OCPP_BOOT_NOTIFICATION,
-              module: MODULE_NAME, method: 'requestOCPPConfigurationDelayed',
-              message: `Cannot apply Template OCPP Parameters: '${result.status}'`
-            });
-          }
-        } catch (error) {
-          await Logging.logError({
-            tenantID: tenant.id,
-            ...LoggingHelper.getChargingStationProperties(chargingStation),
-            action: ServerAction.OCPP_BOOT_NOTIFICATION,
-            module: MODULE_NAME, method: 'requestOCPPConfigurationDelayed',
-            message: `Cannot apply Template OCPP Parameters: ${error.message as string}`,
-            detailedMessages: { error: error.stack }
-          });
-        }
-      }
-    }, Constants.DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS);
   }
 
   private enrichAuthorize(user: User, chargingStation: ChargingStation, headers: OCPPHeader, authorize: OCPPAuthorizeRequestExtended) {
