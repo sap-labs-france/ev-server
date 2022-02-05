@@ -1051,6 +1051,12 @@ export default class OCPPUtils {
   public static async enrichChargingStationConnectorWithTemplate(
       tenant: Tenant, chargingStation: ChargingStation, connector: Connector): Promise<boolean> {
     if (chargingStation.manualConfiguration) {
+      // Check that the Connector is in the Charge Point: Case where the charger got applied a template with an unknown connector in Manual Config
+      if (!Utils.isEmptyArray(chargingStation.chargePoints) &&
+          !chargingStation.chargePoints[0].connectorIDs.includes(connector.connectorId)) {
+        // Add unknown Connector ID
+        chargingStation.chargePoints[0].connectorIDs.push(connector.connectorId);
+      }
       await Logging.logWarning({
         tenantID: tenant.id,
         ...LoggingHelper.getChargingStationProperties(chargingStation),
