@@ -1866,7 +1866,14 @@ export default class OCPPService {
     }
     // Clear Firmware Status
     if (chargingStation.firmwareUpdateStatus) {
+      // Clear status
       await ChargingStationStorage.saveChargingStationFirmwareStatus(tenant, chargingStation.id, null);
+      // Force reapply Template
+      delete chargingStation.templateHash;
+      delete chargingStation.templateHashCapabilities;
+      delete chargingStation.templateHashOcppStandard;
+      delete chargingStation.templateHashOcppVendor;
+      delete chargingStation.templateHashTechnical;
     }
     // Backup connectors
     if (!Utils.isEmptyArray(chargingStation.connectors)) {
