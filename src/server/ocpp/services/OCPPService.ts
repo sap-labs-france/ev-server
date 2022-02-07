@@ -1654,7 +1654,7 @@ export default class OCPPService {
           if (user.startTransactionData?.lastSelectedCar &&
               user.startTransactionData.lastChangedOn?.getTime() + 5 * 60 * 1000 > Date.now()) {
             transaction.carID = user.startTransactionData.lastSelectedCarID;
-            transaction.carSoc = user.startTransactionData.lastCarSoc;
+            transaction.carStateOfCharge = user.startTransactionData.lastCarStateOfCharge;
             transaction.carOdometer = user.startTransactionData.lastCarOdometer;
             transaction.departureTime = user.startTransactionData.lastDepartureTime;
           } else {
@@ -1679,7 +1679,7 @@ export default class OCPPService {
             lastChangedOn: null,
             lastSelectedCarID: null,
             lastSelectedCar: false,
-            lastCarSoc: null,
+            lastCarStateOfCharge: null,
             lastCarOdometer: null,
             lastDepartureTime: null
           });
