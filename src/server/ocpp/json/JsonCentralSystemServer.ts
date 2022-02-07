@@ -207,7 +207,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
   private async onOpen(ws: uWS.WebSocket) {
     let wsConnection: WSConnection;
     // Debug
-    Logging.logConsoleDebug(`WS Connection - '${ws.url as string}'`);
+    // Logging.logConsoleDebug(`WS Connection - '${ws.url as string}'`);
     // Create WS Wrapper
     const wsWrapper = new WSWrapper(ws);
     // Keep it on the ws
