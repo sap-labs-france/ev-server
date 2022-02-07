@@ -9,11 +9,13 @@
     "StartDateTime": {
       "type": "string",
       "format": "date-time",
+      "customType": "date",
       "sanitize": "mongo"
     },
     "EndDateTime": {
       "type": "string",
       "format": "date-time",
+      "customType": "date",
       "sanitize": "mongo"
     },
     "SiteID": {
