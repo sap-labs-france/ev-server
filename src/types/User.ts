@@ -49,7 +49,7 @@ export interface StartTransactionUserData {
   lastChangedOn: Date;
   lastSelectedCarID: string;
   lastSelectedCar: boolean;
-  lastCarSoc: number;
+  lastCarStateOfCharge: number;
   lastCarOdometer: number;
   lastDepartureTime: Date;
 }
