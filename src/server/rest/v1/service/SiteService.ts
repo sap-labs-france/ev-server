@@ -400,7 +400,10 @@ export default class SiteService {
       req.tenant, req.user, filteredRequest.companyID, Action.READ, action, filteredRequest);
     // Update
     site.name = filteredRequest.name;
-    site.companyID = filteredRequest.companyID;
+    if (site.companyID !== filteredRequest.companyID) {
+      await ChargingStationStorage.updateChargingStationsCompany(req.tenant, filteredRequest.id, filteredRequest.companyID);
+      site.companyID = filteredRequest.companyID;
+    }
     if (Utils.objectHasProperty(filteredRequest, 'public')) {
       if (!filteredRequest.public) {
         // Check that there is no public charging stations

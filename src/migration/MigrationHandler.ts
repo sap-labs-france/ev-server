@@ -2,6 +2,8 @@ import AddCompanyIDToChargingStationsTask from './tasks/AddCompanyIDToChargingSt
 import AddCompanyIDToTransactionsTask from './tasks/AddCompanyIDToTransactionsTask';
 import AddUserIDToCarsTask from './tasks/AddUserIDToCarsTask';
 import Constants from '../utils/Constants';
+import FixChargingStationCompanyIDsTask from './tasks/FixChargingStationCompanyIDsTask';
+import FixChargingStationSiteIDsTask from './tasks/FixChargingStationSiteIDsTask';
 import { LockEntity } from '../types/Locking';
 import LockingManager from '../locking/LockingManager';
 import Logging from '../utils/Logging';
@@ -148,6 +150,8 @@ export default class MigrationHandler {
     currentMigrationTasks.push(new RepairTransactionPricedAtZero());
     currentMigrationTasks.push(new UpdateEmailsToLowercaseTask());
     currentMigrationTasks.push(new UserCleanUpTask());
+    currentMigrationTasks.push(new FixChargingStationSiteIDsTask());
+    currentMigrationTasks.push(new FixChargingStationCompanyIDsTask());
     return currentMigrationTasks;
   }
 }

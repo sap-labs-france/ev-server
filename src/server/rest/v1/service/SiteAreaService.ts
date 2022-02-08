@@ -7,6 +7,7 @@ import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
 import { ChargingProfilePurposeType } from '../../../../types/ChargingProfile';
+import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../../utils/Constants';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
 import LockingHelper from '../../../../locking/LockingHelper';
@@ -364,7 +365,10 @@ export default class SiteAreaService {
     }
     siteArea.smartCharging = filteredRequest.smartCharging;
     siteArea.accessControl = filteredRequest.accessControl;
-    siteArea.siteID = filteredRequest.siteID;
+    if (siteArea.siteID !== filteredRequest.siteID) {
+      await ChargingStationStorage.updateChargingStationsSite(req.tenant, filteredRequest.id, filteredRequest.siteID);
+      siteArea.siteID = filteredRequest.siteID;
+    }
     siteArea.lastChangedBy = { 'id': req.user.id };
     siteArea.lastChangedOn = new Date();
     // Save

@@ -344,20 +344,19 @@ export default class ChargingStationStorage {
       }, { sort: dbParams.sort });
     }
     // Site Area
-    if (params.withSiteArea || params.withSite) {
+    if (params.withSiteArea) {
       DatabaseUtils.pushSiteAreaLookupInAggregation({
         tenantID: tenant.id, aggregation: aggregation, localField: 'siteAreaID', foreignField: '_id',
         asField: 'siteArea', oneToOneCardinality: true
       });
-      // Site
-      if (params.withSite) {
-        DatabaseUtils.pushSiteLookupInAggregation({
-          tenantID: tenant.id, aggregation: aggregation, localField: 'siteArea.siteID', foreignField: '_id',
-          asField: 'site', oneToOneCardinality: true
-        });
-      }
     }
-
+    // Site
+    if (params.withSite) {
+      DatabaseUtils.pushSiteLookupInAggregation({
+        tenantID: tenant.id, aggregation: aggregation, localField: 'siteID', foreignField: '_id',
+        asField: 'site', oneToOneCardinality: true
+      });
+    }
     // Change ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Convert siteID back to string after having queried the site
@@ -967,6 +966,32 @@ export default class ChargingStationStorage {
     const firmware = bucket.openUploadStream(filename);
     void Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'putChargingStationFirmware', startTime, filename, firmware);
     return firmware;
+  }
+
+  public static async updateChargingStationsSite(tenant: Tenant, siteAreaID: string, siteID: string): Promise<void> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    DatabaseUtils.checkTenantObject(tenant);
+    await global.database.getCollection<any>(tenant.id, 'chargingstations').updateMany(
+      {
+        siteAreaID: DatabaseUtils.convertToObjectID(siteAreaID),
+      },
+      {
+        $set: { siteID: DatabaseUtils.convertToObjectID(siteAreaID) }
+      });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'updateChargingStationsSite', startTime, { siteID });
+  }
+
+  public static async updateChargingStationsCompany(tenant: Tenant, siteID: string, companyID: string): Promise<void> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    DatabaseUtils.checkTenantObject(tenant);
+    await global.database.getCollection<any>(tenant.id, 'chargingstations').updateMany(
+      {
+        siteID: DatabaseUtils.convertToObjectID(siteID),
+      },
+      {
+        $set: { companyID: DatabaseUtils.convertToObjectID(companyID) }
+      });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'updateChargingStationsCompanies', startTime, { companyID });
   }
 
   private static getChargerInErrorFacet(errorType: string) {
