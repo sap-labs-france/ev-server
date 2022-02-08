@@ -1800,7 +1800,7 @@ export default class ChargingStationService {
         lastChangedOn: new Date(),
         lastSelectedCarID: filteredRequest.carID,
         lastSelectedCar: true,
-        lastCarSoc: filteredRequest.carSoc,
+        lastCarStateOfCharge: filteredRequest.carStateOfCharge,
         lastCarOdometer: filteredRequest.carOdometer,
         lastDepartureTime: filteredRequest.departureTime
       });

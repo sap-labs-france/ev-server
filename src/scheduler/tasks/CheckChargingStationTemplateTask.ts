@@ -49,8 +49,11 @@ export default class CheckChargingStationTemplateTask extends TenantSchedulerTas
     // Update
     for (const chargingStation of chargingStations.result) {
       try {
-        const chargingStationTemplateUpdateResult = await OCPPUtils.applyTemplateToChargingStation(tenant, chargingStation);
+        // Apply template
+        const chargingStationTemplateUpdateResult = await OCPPUtils.checkAndApplyTemplateToChargingStation(tenant, chargingStation);
+        // Save
         if (chargingStationTemplateUpdateResult.chargingStationUpdated) {
+          await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
           updated++;
         }
       } catch (error) {

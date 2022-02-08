@@ -25,7 +25,7 @@ export default class WSWrapper {
 
   private ws: WebSocket;
 
-  constructor(ws: WebSocket) {
+  public constructor(ws: WebSocket) {
     this.ws = ws;
     this.url = ws.url;
     this.remoteAddress = Utils.convertBufferArrayToString(ws.getRemoteAddressAsText()).toString();
