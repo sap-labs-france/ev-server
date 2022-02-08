@@ -1821,7 +1821,7 @@ export default class ChargingStationService {
       MODULE_NAME, 'handleAction', req.user);
     // Get default Tag
     const tags = await TagStorage.getTags(req.tenant, { userIDs: [req.user.id], active: true }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);
-    if (Utils.isEmptyArray(tags)) {
+    if (Utils.isEmptyArray(tags.result)) {
       throw new AppError({
         errorCode: HTTPError.USER_NO_BADGE_ERROR,
         message: 'The user does not have any active badge',
