@@ -968,7 +968,7 @@ export default class ChargingStationStorage {
     return firmware;
   }
 
-  public static async updateChargingStationsSite(tenant: Tenant, siteAreaID: string, siteID: string): Promise<void> {
+  public static async updateChargingStationsSite(tenant: Tenant, siteAreaID: string, siteID: string, companyID: string): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     await global.database.getCollection<any>(tenant.id, 'chargingstations').updateMany(
@@ -976,7 +976,10 @@ export default class ChargingStationStorage {
         siteAreaID: DatabaseUtils.convertToObjectID(siteAreaID),
       },
       {
-        $set: { siteID: DatabaseUtils.convertToObjectID(siteID) }
+        $set: {
+          siteID: DatabaseUtils.convertToObjectID(siteID),
+          companyID: DatabaseUtils.convertToObjectID(companyID)
+        }
       });
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'updateChargingStationsSite', startTime, { siteID });
   }
