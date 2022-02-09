@@ -229,7 +229,7 @@ export default class OCPPService {
         transaction.phasesUsed = Utils.getUsedPhasesInTransactionInProgress(chargingStation, transaction);
       }
       // Roaming
-      await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, transaction.tag, TransactionAction.UPDATE);
+      await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, chargingStation.siteArea, transaction.tag, TransactionAction.UPDATE);
       // Save Transaction
       await TransactionStorage.saveTransaction(tenant, transaction);
       // Update Charging Station
@@ -384,7 +384,7 @@ export default class OCPPService {
       // Billing
       await OCPPUtils.processTransactionBilling(tenant, newTransaction, TransactionAction.START);
       // Roaming
-      await OCPPUtils.processTransactionRoaming(tenant, newTransaction, chargingStation, tag, TransactionAction.START);
+      await OCPPUtils.processTransactionRoaming(tenant, newTransaction, chargingStation, chargingStation.siteArea, tag, TransactionAction.START);
       // Save it
       await TransactionStorage.saveTransaction(tenant, newTransaction);
       // Clean up
@@ -491,7 +491,7 @@ export default class OCPPService {
       // Bill
       await OCPPUtils.processTransactionBilling(tenant, transaction, TransactionAction.STOP);
       // Roaming
-      await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, transaction.tag, TransactionAction.STOP);
+      await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, chargingStation.siteArea, transaction.tag, TransactionAction.STOP);
       // Save the transaction
       await TransactionStorage.saveTransaction(tenant, transaction);
       // Notify
@@ -914,7 +914,7 @@ export default class OCPPService {
         try {
           // Roaming
           transactionUpdated = true;
-          await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, tag, TransactionAction.END);
+          await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, chargingStation.siteArea, tag, TransactionAction.END);
         } finally {
           // Release the lock
           await LockingManager.release(ocpiLock);
@@ -934,7 +934,7 @@ export default class OCPPService {
         try {
           // Roaming
           transactionUpdated = true;
-          await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, tag, TransactionAction.END);
+          await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, chargingStation.siteArea, tag, TransactionAction.END);
         } finally {
           // Release the lock
           await LockingManager.release(oicpLock);

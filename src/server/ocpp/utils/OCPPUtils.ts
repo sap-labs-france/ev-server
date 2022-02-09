@@ -98,10 +98,11 @@ export default class OCPPUtils {
     return token;
   }
 
-  public static async processTransactionRoaming(tenant: Tenant, transaction: Transaction,
-      chargingStation: ChargingStation, tag: Tag, transactionAction: TransactionAction): Promise<void> {
+  public static async processTransactionRoaming(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation,
+      siteArea: SiteArea, tag: Tag, transactionAction: TransactionAction): Promise<void> {
     try {
-      if (transaction.user && !transaction.user.issuer) {
+      // Roaming User and ACL must be active in Site Area
+      if (transaction.user && !transaction.user.issuer && siteArea?.accessControl) {
         // OCPI
         if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
           await OCPPUtils.processOCPITransaction(tenant, transaction, chargingStation, tag, transactionAction);
