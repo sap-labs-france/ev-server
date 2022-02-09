@@ -976,7 +976,7 @@ export default class ChargingStationStorage {
         siteAreaID: DatabaseUtils.convertToObjectID(siteAreaID),
       },
       {
-        $set: { siteID: DatabaseUtils.convertToObjectID(siteAreaID) }
+        $set: { siteID: DatabaseUtils.convertToObjectID(siteID) }
       });
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'updateChargingStationsSite', startTime, { siteID });
   }

@@ -365,14 +365,13 @@ export default class SiteAreaService {
     }
     siteArea.smartCharging = filteredRequest.smartCharging;
     siteArea.accessControl = filteredRequest.accessControl;
-    if (siteArea.siteID !== filteredRequest.siteID) {
-      await ChargingStationStorage.updateChargingStationsSite(req.tenant, filteredRequest.id, filteredRequest.siteID);
-      siteArea.siteID = filteredRequest.siteID;
-    }
+    siteArea.siteID = filteredRequest.siteID;
     siteArea.lastChangedBy = { 'id': req.user.id };
     siteArea.lastChangedOn = new Date();
     // Save
     await SiteAreaStorage.saveSiteArea(req.tenant, siteArea, Utils.objectHasProperty(filteredRequest, 'image'));
+    // Update charging station
+    await ChargingStationStorage.updateChargingStationsSite(req.tenant, filteredRequest.id, filteredRequest.siteID);
     // Retrigger Smart Charging
     if (filteredRequest.smartCharging) {
       // FIXME: the lock acquisition can wait for 30s before timeout and the whole code execution timeout at 3s

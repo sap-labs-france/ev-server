@@ -400,10 +400,7 @@ export default class SiteService {
       req.tenant, req.user, filteredRequest.companyID, Action.READ, action, filteredRequest);
     // Update
     site.name = filteredRequest.name;
-    if (site.companyID !== filteredRequest.companyID) {
-      await ChargingStationStorage.updateChargingStationsCompany(req.tenant, filteredRequest.id, filteredRequest.companyID);
-      site.companyID = filteredRequest.companyID;
-    }
+    site.companyID = filteredRequest.companyID;
     if (Utils.objectHasProperty(filteredRequest, 'public')) {
       if (!filteredRequest.public) {
         // Check that there is no public charging stations
@@ -443,6 +440,8 @@ export default class SiteService {
     site.lastChangedOn = new Date();
     // Save
     await SiteStorage.saveSite(req.tenant, site, Utils.objectHasProperty(filteredRequest, 'image') ? true : false);
+    // Update charging station
+    await ChargingStationStorage.updateChargingStationsCompany(req.tenant, filteredRequest.id, filteredRequest.companyID);
     await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateSite',
