@@ -190,7 +190,7 @@ export default class TransactionService {
       });
     }
     // Check Charging Station
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, transaction.chargeBoxID);
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, transaction.chargeBoxID, { withSiteArea: true });
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${transaction.chargeBoxID}' does not exist`,
       MODULE_NAME, 'handlePushTransactionCdr', req.user);
     // Check Issuer
@@ -227,7 +227,7 @@ export default class TransactionService {
       if (ocpiLock) {
         try {
           // Roaming
-          await OCPPUtils.processTransactionRoaming(req.tenant, transaction, chargingStation, transaction.tag, TransactionAction.END);
+          await OCPPUtils.processTransactionRoaming(req.tenant, transaction, chargingStation, chargingStation.siteArea, transaction.tag, TransactionAction.END);
           // Save
           await TransactionStorage.saveTransactionOcpiData(req.tenant, transaction.id, transaction.ocpiData);
           await Logging.logInfo({
