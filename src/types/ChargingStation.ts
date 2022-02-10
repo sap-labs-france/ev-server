@@ -48,6 +48,7 @@ export default interface ChargingStation extends CreatedUpdatedProps, Authorizat
   lastReboot: Date;
   chargingStationURL: string;
   maximumPower: number;
+  masterSlave?: boolean;
   voltage: Voltage;
   excludeFromSmartCharging?: boolean;
   powerLimitUnit: ChargingRateUnitType;
@@ -88,14 +89,6 @@ export enum ChargingStationEndpoint {
   SCP = 'scp',
   SCP_QA = 'scpqa',
   AWS = 'aws',
-}
-
-export interface TemplateUpdate {
-  chargingStationUpdate: boolean;
-  technicalUpdate: boolean;
-  capabilitiesUpdate: boolean;
-  ocppStandardUpdate: boolean;
-  ocppVendorUpdate: boolean;
 }
 
 export interface TemplateUpdateResult {
@@ -243,20 +236,12 @@ export interface ChargingStationTemplate {
     chargeBoxSerialNumber?: string;
   };
   technical: {
+    masterSlave: boolean;
     maximumPower: number;
     voltage?: Voltage;
     powerLimitUnit: ChargingRateUnitType;
     chargePoints?: ChargePoint[];
-    connectors: {
-      connectorId: number;
-      type: ConnectorType;
-      power?: number;
-      amperage?: number;
-      voltage?: Voltage;
-      chargePointID?: number;
-      currentType?: CurrentType;
-      numberOfConnectedPhase?: number;
-    }[];
+    connectors: ChargingStationTemplateConnector[];
   };
   capabilities: {
     supportedFirmwareVersions: string[];
@@ -273,6 +258,17 @@ export interface ChargingStationTemplate {
     supportedOcppVersions: string[];
     parameters: Record<string, string>;
   }[];
+}
+
+export interface ChargingStationTemplateConnector {
+  connectorId: number;
+  type: ConnectorType;
+  power?: number;
+  amperage?: number;
+  voltage?: Voltage;
+  chargePointID?: number;
+  currentType?: CurrentType;
+  numberOfConnectedPhase?: number;
 }
 
 export enum ConnectorType {

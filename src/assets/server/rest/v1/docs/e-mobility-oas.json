@@ -4165,7 +4165,7 @@
                     "type": "string",
                     "example": ""
                   },
-                  "carSoc": {
+                  "carStateOfCharge": {
                     "type": "integer",
                     "example": ""
                   },

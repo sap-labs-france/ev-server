@@ -39,6 +39,9 @@
     "technical": {
       "type": "object",
       "properties": {
+        "masterSlave": {
+          "type": "boolean"
+        },
         "maximumPower": {
           "type": "integer"
         },

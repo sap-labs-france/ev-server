@@ -4,6 +4,7 @@ import BackendError from '../../../exception/BackendError';
 import ChargingStation from '../../../types/ChargingStation';
 import Logging from '../../../utils/Logging';
 import LoggingHelper from '../../../utils/LoggingHelper';
+import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
 import Schema from '../../../types/validator/Schema';
 import SchemaValidator from '../../../validator/SchemaValidator';
 import { ServerAction } from '../../../types/Server';
@@ -50,7 +51,16 @@ export default class OCPPValidation extends SchemaValidator {
     this.validate(this.authorizeRequest, authorize);
   }
 
-  public validateBootNotification(bootNotification: OCPPBootNotificationRequestExtended): void {
+  public validateBootNotification(headers: OCPPHeader, bootNotification: OCPPBootNotificationRequestExtended): void {
+    // Check Charging Station
+    if (!headers.chargeBoxIdentity) {
+      throw new BackendError({
+        action: ServerAction.OCPP_BOOT_NOTIFICATION,
+        module: MODULE_NAME, method: 'validateBootNotification',
+        message: 'Should have the required property \'chargeBoxIdentity\'!',
+        detailedMessages: { headers, bootNotification }
+      });
+    }
     this.validate(this.bootNotificationRequest, bootNotification);
   }
 
