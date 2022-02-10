@@ -669,6 +669,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
         module: MODULE_NAME, method: '_attachPaymentMethod',
         message: `Payment method ${paymentMethodId} has been attached - customer '${customerID}'`
       });
+      // Set this payment method as the default
+      await this.stripe.customers.update(customerID, {
+        invoice_settings: { default_payment_method: paymentMethodId }
+      });
       await Logging.logInfo({
         tenantID: this.tenant.id,
         actionOnUser: user,
