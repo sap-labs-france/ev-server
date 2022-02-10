@@ -197,7 +197,6 @@ describe('User', function() {
             testData.userService.userApi,
             testData.newUser
           );
-          // Check
           expect(updatedUser.name).to.equal(testData.newUser.name);
         });
 

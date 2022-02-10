@@ -6,10 +6,9 @@ import EVBOXChargingStationVendorIntegration from './evbox/EVBOXChargingStationV
 import KebaChargingStationVendorIntegration from './keba/KebaChargingStationVendorIntegration';
 
 export default class ChargingStationVendorFactory {
-
-  static getChargingStationVendorImpl(chargingStation: ChargingStation): ChargingStationVendorIntegration {
+  public static getChargingStationVendorImpl(chargingStation: ChargingStation): ChargingStationVendorIntegration {
     let chargingStationVendorImpl: ChargingStationVendorIntegration = null;
-    switch (chargingStation.chargePointVendor) {
+    switch (chargingStation.chargePointVendor.toLowerCase()) {
       case ChargerVendor.EVBOX:
         chargingStationVendorImpl = new EVBOXChargingStationVendorIntegration(chargingStation);
         break;
@@ -38,7 +37,7 @@ export default class ChargingStationVendorFactory {
       case ChargerVendor.ATESS:
       case ChargerVendor.SAP_LABS_FRANCE:
       case ChargerVendor.CIRCONTROL:
-      case ChargerVendor.CIRCONTROL_BIS:
+      case ChargerVendor.XCHARGE:
       case ChargerVendor.JOINON:
       case ChargerVendor.LAFON_TECHNOLOGIES:
       case ChargerVendor.ALFEN:

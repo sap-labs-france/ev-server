@@ -16,13 +16,15 @@ const MODULE_NAME = 'RemotePushNotificationTask';
 
 export default class RemotePushNotificationTask implements NotificationTask {
   private firebaseConfig = Configuration.getFirebaseConfig();
+  private defaultApp: admin.app.App;
+  private tenantFirebaseApps: Map<string, admin.app.App> = new Map();
   private initialized = false;
 
   public constructor() {
-    // Init
     if (this.firebaseConfig?.type?.length > 0) {
       try {
-        admin.initializeApp({
+        // Init default conf
+        this.defaultApp = admin.initializeApp({
           credential: admin.credential.cert({
             projectId: this.firebaseConfig.projectID,
             clientEmail: this.firebaseConfig.clientEmail,
@@ -30,14 +32,29 @@ export default class RemotePushNotificationTask implements NotificationTask {
           }),
           databaseURL: this.firebaseConfig.databaseURL
         });
-        // Ok
+        // Init tenant conf
+        if (!Utils.isEmptyArray(this.firebaseConfig.tenants)) {
+          for (const tenantConfig of this.firebaseConfig.tenants) {
+            // Create the app
+            const app = admin.initializeApp({
+              credential: admin.credential.cert({
+                projectId: tenantConfig.configuration.projectID,
+                clientEmail: tenantConfig.configuration.clientEmail,
+                privateKey: tenantConfig.configuration.privateKey
+              }),
+              databaseURL: tenantConfig.configuration.databaseURL
+            }, tenantConfig.tenantID);
+            // Keep it per Tenant
+            this.tenantFirebaseApps.set(tenantConfig.tenantID, app);
+          }
+        }
         this.initialized = true;
       } catch (error) {
         void Logging.logError({
           tenantID: Constants.DEFAULT_TENANT,
           action: ServerAction.REMOTE_PUSH_NOTIFICATION,
           module: MODULE_NAME, method: 'constructor',
-          message: `Error initializing Firebase: '${error.message}'`,
+          message: `Error initializing Firebase: '${error.message as string}'`,
           detailedMessages: { error: error.stack }
         });
       }
@@ -54,9 +71,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.USER_ACCOUNT_INACTIVITY, title, body, user, {
       lastLogin: data.lastLogin
-    },
-    severity
-    );
+    }, severity);
   }
 
   public async sendPreparingSessionNotStarted(data: PreparingSessionNotStartedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
@@ -70,9 +85,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.PREPARING_SESSION_NOT_STARTED, title, body, user, {
       chargeBoxID: data.chargeBoxID,
       connectorId: data.connectorId
-    },
-    severity
-    );
+    }, severity);
   }
 
   public async sendSessionNotStarted(data: SessionNotStartedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
@@ -85,9 +98,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.SESSION_NOT_STARTED_AFTER_AUTHORIZE, title, body, user, {
       chargeBoxID: data.chargeBoxID,
-    },
-    severity
-    );
+    }, severity);
   }
 
   public async sendOfflineChargingStations(data: OfflineChargingStationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
@@ -98,9 +109,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     const body = i18nManager.translate('notifications.offlineChargingStation.body',
       { chargeBoxIDs: data.chargeBoxIDs, tenantName: tenant.name });
     // Send Notification
-    return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.OFFLINE_CHARGING_STATION, title, body, user, null,
-      severity
-    );
+    return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.OFFLINE_CHARGING_STATION, title, body, user, null, severity);
   }
 
   public async sendNewRegisteredUser(data: NewRegisteredUserNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
@@ -125,9 +134,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
       transactionId: data.transactionId.toString(),
       chargeBoxID: data.chargeBoxID,
       connectorId: data.connectorId
-    },
-    severity
-    );
+    }, severity);
   }
 
   public async sendEndOfCharge(data: EndOfChargeNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
@@ -142,9 +149,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
       transactionId: data.transactionId.toString(),
       chargeBoxID: data.chargeBoxID,
       connectorId: data.connectorId
-    },
-    severity
-    );
+    }, severity);
   }
 
   public async sendEndOfSession(data: EndOfSessionNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
@@ -159,9 +164,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
       transactionId: data.transactionId.toString(),
       chargeBoxID: data.chargeBoxID,
       connectorId: data.connectorId
-    },
-    severity
-    );
+    }, severity);
   }
 
   public async sendEndOfSignedSession(data: EndOfSignedSessionNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
@@ -182,9 +185,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     const body = i18nManager.translate('notifications.endUserErrorNotification.body',
       { userName: data.name, errorTitle: data.errorTitle, errorDescription: data.errorDescription ,tenantName: tenant.name });
     // Send Notification
-    return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.END_USER_ERROR_NOTIFICATION, title, body, user, null,
-      severity
-    );
+    return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.END_USER_ERROR_NOTIFICATION, title, body, user, null, severity);
   }
 
   public async sendChargingStationStatusError(data: ChargingStationStatusErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
@@ -198,9 +199,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.CHARGING_STATION_STATUS_ERROR, title, body, user, {
       chargeBoxID: data.chargeBoxID,
       connectorId: data.connectorId
-    },
-    severity
-    );
+    }, severity);
   }
 
   public async sendChargingStationRegistered(data: ChargingStationRegisteredNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
@@ -213,9 +212,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.CHARGING_STATION_REGISTERED, title, body, user, {
       chargeBoxID: data.chargeBoxID
-    },
-    severity
-    );
+    }, severity);
   }
 
   public async sendUserAccountStatusChanged(data: UserAccountStatusChangedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
@@ -232,9 +229,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.USER_ACCOUNT_STATUS_CHANGED, title, body, user, {
       userID: user.id
-    },
-    severity
-    );
+    }, severity);
   }
 
   public async sendUnknownUserBadged(data: UnknownUserBadgedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
@@ -248,9 +243,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.UNKNOWN_USER_BADGED, title, body, user, {
       chargeBoxID: data.chargeBoxID,
       badgeID: data.badgeID
-    },
-    severity
-    );
+    }, severity);
   }
 
   public async sendSessionStarted(data: TransactionStartedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
@@ -265,9 +258,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
       'transactionId': data.transactionId.toString(),
       'chargeBoxID': data.chargeBoxID,
       'connectorId': data.connectorId
-    },
-    severity
-    );
+    }, severity);
   }
 
   public async sendVerificationEmail(data: VerificationEmailNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
@@ -280,7 +271,8 @@ export default class RemotePushNotificationTask implements NotificationTask {
     return Promise.resolve();
   }
 
-  public async sendOCPIPatchChargingStationsStatusesError(data: OCPIPatchChargingStationsStatusesErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendOCPIPatchChargingStationsStatusesError(data: OCPIPatchChargingStationsStatusesErrorNotification,
+      user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     // Set the locale
     const i18nManager = I18nManager.getInstanceForLocale(user.locale);
     // Get Message Text
@@ -291,7 +283,8 @@ export default class RemotePushNotificationTask implements NotificationTask {
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.OCPI_PATCH_STATUS_ERROR, title, body, user, null, severity);
   }
 
-  public async sendOICPPatchChargingStationsStatusesError(data: OICPPatchChargingStationsStatusesErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendOICPPatchChargingStationsStatusesError(data: OICPPatchChargingStationsStatusesErrorNotification,
+      user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     // Set the locale
     const i18nManager = I18nManager.getInstanceForLocale(user.locale);
     // Get Message Text
@@ -325,7 +318,8 @@ export default class RemotePushNotificationTask implements NotificationTask {
       title, body, user, { 'error': data.nbrUsersInError.toString() }, severity);
   }
 
-  public async sendBillingInvoiceSynchronizationFailed(data: BillingInvoiceSynchronizationFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendBillingInvoiceSynchronizationFailed(data: BillingInvoiceSynchronizationFailedNotification,
+      user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     // Set the locale
     const i18nManager = I18nManager.getInstanceForLocale(user.locale);
     // Get Message Text
@@ -349,7 +343,8 @@ export default class RemotePushNotificationTask implements NotificationTask {
       title, body, user, { 'error': data.nbrInvoicesInError.toString() }, severity);
   }
 
-  public async sendComputeAndApplyChargingProfilesFailed(data: ComputeAndApplyChargingProfilesFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendComputeAndApplyChargingProfilesFailed(data: ComputeAndApplyChargingProfilesFailedNotification,
+      user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     // Set the locale
     const i18nManager = I18nManager.getInstanceForLocale(user.locale);
     // Get Message Text
@@ -419,9 +414,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
       body = i18nManager.translate('notifications.accountVerificationNotification.bodyVerified');
     }
     // Send Notification
-    return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.ACCOUNT_VERIFICATION_NOTIFICATION, title, body, user, null,
-      severity
-    );
+    return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.ACCOUNT_VERIFICATION_NOTIFICATION, title, body, user, null, severity);
   }
 
   public async sendAdminAccountVerificationNotification(): Promise<void> {
@@ -436,61 +429,70 @@ export default class RemotePushNotificationTask implements NotificationTask {
 
   private async sendRemotePushNotificationToUser(tenant: Tenant, notificationType: UserNotificationType,
       title: string, body: string, user: User, data?: Record<string, string>, severity?: NotificationSeverity): Promise<void> {
-    // Checks
-    if (!this.initialized) {
-      return Promise.resolve();
+    let startTime: number;
+    let message = {} as admin.messaging.MessagingPayload;
+    try {
+      startTime = Logging.traceNotificationStart();
+      // Checks
+      if (!this.initialized) {
+        return Promise.resolve();
+      }
+      if (!user || !user.mobileToken || user.mobileToken.length === 0) {
+        await Logging.logDebug({
+          tenantID: tenant.id,
+          siteID: data?.siteID,
+          siteAreaID: data?.siteAreaID,
+          companyID: data?.companyID,
+          chargingStationID: data?.chargeBoxID,
+          action: ServerAction.REMOTE_PUSH_NOTIFICATION,
+          module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
+          message: `'${notificationType}': No mobile token found for this User`,
+          actionOnUser: user.id,
+          detailedMessages: { title, body }
+        });
+        // Send nothing
+        return Promise.resolve();
+      }
+      // Create message
+      message = this.createMessage(tenant, notificationType, title, body, data, severity);
+      // Get the right firebase app
+      const app = this.getFirebaseAppFromTenant(tenant);
+      // Send message
+      admin.messaging(app).sendToDevice(
+        user.mobileToken,
+        message,
+        { priority: 'high', timeToLive: 60 * 60 * 24 }
+      ).then((response) => {
+        // Response is a message ID string.
+        void Logging.logDebug({
+          tenantID: tenant.id,
+          siteID: data?.siteID,
+          siteAreaID: data?.siteAreaID,
+          companyID: data?.companyID,
+          chargingStationID: data?.chargeBoxID,
+          action: ServerAction.REMOTE_PUSH_NOTIFICATION,
+          module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
+          message: `Notification Sent: '${notificationType}' - '${title}'`,
+          actionOnUser: user.id,
+          detailedMessages: { message, response }
+        });
+      }).catch((error: Error) => {
+        void Logging.logError({
+          tenantID: tenant.id,
+          siteID: data?.siteID,
+          siteAreaID: data?.siteAreaID,
+          companyID: data?.companyID,
+          chargingStationID: data?.chargeBoxID,
+          action: ServerAction.REMOTE_PUSH_NOTIFICATION,
+          module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
+          message: `Error when sending Notification: '${notificationType}' - '${error.message}'`,
+          actionOnUser: user.id,
+          detailedMessages: { error: error.stack, message }
+        });
+      });
+    } finally {
+      await Logging.traceNotificationEnd(tenant, MODULE_NAME, 'sendRemotePushNotificationToUser', startTime, notificationType, message, user.id);
     }
-    if (!user || !user.mobileToken || user.mobileToken.length === 0) {
-      await Logging.logDebug({
-        tenantID: tenant.id,
-        siteID: data?.siteID,
-        siteAreaID: data?.siteAreaID,
-        companyID: data?.companyID,
-        chargingStationID: data?.chargeBoxID,
-        action: ServerAction.REMOTE_PUSH_NOTIFICATION,
-        module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
-        message: `'${notificationType}': No mobile token found for this User`,
-        actionOnUser: user.id,
-        detailedMessages: { title, body }
-      });
-      // Send nothing
-      return Promise.resolve();
-    }
-    // Create message
-    const message = this.createMessage(tenant, notificationType, title, body, data, severity);
-    // Send message
-    admin.messaging().sendToDevice(
-      user.mobileToken,
-      message,
-      { priority: 'high', timeToLive: 60 * 60 * 24 }
-    ).then((response) => {
-      // Response is a message ID string.
-      void Logging.logDebug({
-        tenantID: tenant.id,
-        siteID: data?.siteID,
-        siteAreaID: data?.siteAreaID,
-        companyID: data?.companyID,
-        chargingStationID: data?.chargeBoxID,
-        action: ServerAction.REMOTE_PUSH_NOTIFICATION,
-        module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
-        message: `Notification Sent: '${notificationType}' - '${title}'`,
-        actionOnUser: user.id,
-        detailedMessages: { message, response }
-      });
-    }).catch((error: Error) => {
-      void Logging.logError({
-        tenantID: tenant.id,
-        siteID: data?.siteID,
-        siteAreaID: data?.siteAreaID,
-        companyID: data?.companyID,
-        chargingStationID: data?.chargeBoxID,
-        action: ServerAction.REMOTE_PUSH_NOTIFICATION,
-        module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
-        message: `Error when sending Notification: '${notificationType}' - '${error.message}'`,
-        actionOnUser: user.id,
-        detailedMessages: { error: error.stack, message }
-      });
-    });
   }
 
   private createMessage(tenant: Tenant, notificationType: UserNotificationType, title: string, body: string,
@@ -514,5 +516,13 @@ export default class RemotePushNotificationTask implements NotificationTask {
       }
     };
     return message;
+  }
+
+  private getFirebaseAppFromTenant(tenant: Tenant): admin.app.App {
+    const app = this.tenantFirebaseApps.get(tenant.id);
+    if (app) {
+      return app;
+    }
+    return this.defaultApp;
   }
 }

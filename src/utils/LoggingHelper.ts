@@ -1,10 +1,13 @@
+import Asset from '../types/Asset';
 import ChargingStation from '../types/ChargingStation';
-import { Log } from '../types/Log';
+import Site from '../types/Site';
+import SiteArea from '../types/SiteArea';
 import Transaction from '../types/Transaction';
+import User from '../types/User';
 
 export default class LoggingHelper {
 
-  public static getTransactionProperties(transaction: Transaction): Partial<Log> {
+  public static getTransactionProperties(transaction: Transaction): { siteID: string; siteAreaID: string; companyID: string; chargingStationID: string; actionOnUser: User } {
     return {
       siteID: transaction.siteID,
       siteAreaID: transaction.siteAreaID,
@@ -20,6 +23,27 @@ export default class LoggingHelper {
       siteAreaID: chargingStation.siteAreaID,
       companyID: chargingStation.companyID,
       chargingStationID: chargingStation.id,
+    };
+  }
+
+  public static getAssetProperties(asset: Asset): { siteID: string; siteAreaID: string; } {
+    return {
+      siteID: asset.siteID,
+      siteAreaID: asset.siteAreaID,
+    };
+  }
+
+  public static getSiteProperties(site: Site): { siteID: string; companyID: string; } {
+    return {
+      siteID: site.id,
+      companyID: site.companyID,
+    };
+  }
+
+  public static getSiteAreaProperties(siteArea: SiteArea): { siteID: string; siteAreaID: string; } {
+    return {
+      siteAreaID: siteArea.id,
+      siteID: siteArea.siteID,
     };
   }
 }

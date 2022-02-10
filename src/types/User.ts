@@ -36,13 +36,22 @@ export default interface User extends CreatedUpdatedProps, AuthorizationActions 
   mobileOs: string;
   mobileToken: string;
   mobileLastChangedOn: Date;
-  lastSelectedCarID?: string;
+  startTransactionData?: StartTransactionUserData;
   authorizationID?: string;
   importedData?: {
     autoActivateUserAtImport: boolean;
   };
   technical?: boolean;
   freeAccess?: boolean;
+}
+
+export interface StartTransactionUserData {
+  lastChangedOn: Date;
+  lastSelectedCarID: string;
+  lastSelectedCar: boolean;
+  lastCarStateOfCharge: number;
+  lastCarOdometer: number;
+  lastDepartureTime: Date;
 }
 
 export interface UserSite {

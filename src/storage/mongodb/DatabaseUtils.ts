@@ -388,6 +388,10 @@ export default class DatabaseUtils {
     }
   }
 
+  public static generateID(): string {
+    return new ObjectId().toString();
+  }
+
   public static convertUserToObjectID(user: User | UserToken | string): ObjectId | null {
     let userID: ObjectId | null = null;
     // Check Created By
@@ -426,8 +430,8 @@ export default class DatabaseUtils {
             { $eq: ['$firmwareUpdateStatus', OCPPFirmwareStatus.INSTALLING] },
             {
               $gte: [
-                { $divide: [{ $subtract: [new Date(), '$lastSeen'] }, 1000] },
-                Configuration.getChargingStationConfig().heartbeatIntervalOCPPSSecs * 2
+                { $subtract: [new Date(), '$lastSeen'] },
+                Configuration.getChargingStationConfig().pingIntervalOCPPJSecs * 2 * 1000
               ]
             }
           ]

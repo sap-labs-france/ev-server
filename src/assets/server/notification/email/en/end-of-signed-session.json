@@ -6,7 +6,7 @@
     "stats": [
       { "label": "Charger", "value": "<%- chargeBoxID %>" },
       { "label": "Connector", "value": "<%- connectorId %>" },
-      { "label": "Badge ID", "value": "<%- tagId %>" },
+      { "label": "RFID Card", "value": "<%- tagId %>" },
       { "label": "Start time", "value": "<%- startDate %>" },
       { "label": "End time", "value": "<%- endDate %>" },
       { "label": "Start counter", "value": "<%- meterStart %> kWh" },

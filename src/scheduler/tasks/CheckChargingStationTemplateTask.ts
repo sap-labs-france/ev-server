@@ -5,14 +5,14 @@ import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
 import LoggingHelper from '../../utils/LoggingHelper';
 import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
-import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
+import TenantSchedulerTask from '../TenantSchedulerTask';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'CheckChargingStationTemplateTask';
 
-export default class CheckChargingStationTemplateTask extends SchedulerTask {
+export default class CheckChargingStationTemplateTask extends TenantSchedulerTask {
   public async processTenant(tenant: Tenant): Promise<void> {
     // Get the lock
     const checkChargingStationTemplateLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.CHARGING_STATION, 'check-charging-station-template');
@@ -49,8 +49,11 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
     // Update
     for (const chargingStation of chargingStations.result) {
       try {
-        const chargingStationTemplateUpdateResult = await OCPPUtils.applyTemplateToChargingStation(tenant, chargingStation);
+        // Apply template
+        const chargingStationTemplateUpdateResult = await OCPPUtils.checkAndApplyTemplateToChargingStation(tenant, chargingStation);
+        // Save
         if (chargingStationTemplateUpdateResult.chargingStationUpdated) {
+          await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
           updated++;
         }
       } catch (error) {

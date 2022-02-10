@@ -51,7 +51,6 @@ export default class OICPEndpointService {
       action: action,
       detailedMessages: { oicpEndpoint }
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -101,7 +100,6 @@ export default class OICPEndpointService {
       action: action,
       detailedMessages: { endpoint: filteredRequest }
     });
-    // Ok
     res.json(Object.assign({ id: endpointID }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
@@ -141,7 +139,6 @@ export default class OICPEndpointService {
       action: action,
       detailedMessages: { endpoint: oicpEndpoint }
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }

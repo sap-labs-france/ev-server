@@ -8,10 +8,14 @@ import Logging from '../utils/Logging';
 import MigrationStorage from '../storage/mongodb/MigrationStorage';
 import MigrationTask from './MigrationTask';
 import RemoveDuplicateTagVisualIDsTask from './tasks/RemoveDuplicateTagVisualIDsTask';
+import RepairInvoiceInconsistencies from './tasks/RepairInvoiceInconsistencies';
+import RepairTransactionBillingData from './tasks/RepairTransactionBillingData';
+import RepairTransactionPricedAtZero from './tasks/RepairTransactionPricedAtZeroTask';
 import RestoreDataIntegrityInSiteUsersTask from './tasks/RestoreDataIntegrityInSiteUsersTask';
 import { ServerAction } from '../types/Server';
 import SimplePricingMigrationTask from './tasks/MigrateSimplePricing';
 import UpdateEmailsToLowercaseTask from './tasks/UpdateEmailsToLowercaseTask';
+import UserCleanUpTask from './tasks/UserCleanUpTask';
 import Utils from '../utils/Utils';
 import moment from 'moment';
 
@@ -23,8 +27,7 @@ export default class MigrationHandler {
     const migrationLock = LockingManager.createExclusiveLock(Constants.DEFAULT_TENANT, LockEntity.DATABASE, 'migration', 3600);
     if (await LockingManager.acquire(migrationLock)) {
       try {
-        const startMigrationTime = moment();
-        // Log
+        const startTime = moment();
         await Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT,
           action: ServerAction.MIGRATION,
@@ -35,7 +38,6 @@ export default class MigrationHandler {
         const migrationTasks = MigrationHandler.createMigrationTasks();
         // Get the already done migrations from the DB
         const migrationTasksCompleted = await MigrationStorage.getMigrations();
-        // Check
         for (const migrationTask of migrationTasks) {
           // Check if not already done
           const foundMigrationTaskCompleted = migrationTasksCompleted.find((migrationTaskCompleted) =>
@@ -47,7 +49,6 @@ export default class MigrationHandler {
           if (foundMigrationTaskCompleted) {
             continue;
           }
-          // Check
           if (migrationTask.isAsynchronous() && processAsyncTasksOnly) {
             // Execute Async
             await MigrationHandler.executeTask(migrationTask);
@@ -57,12 +58,12 @@ export default class MigrationHandler {
           }
         }
         // Log Total Processing Time
-        const totalMigrationTimeSecs = moment.duration(moment().diff(startMigrationTime)).asSeconds();
+        const totalTimeSecs = moment.duration(moment().diff(startTime)).asSeconds();
         await Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT,
           action: ServerAction.MIGRATION,
           module: MODULE_NAME, method: 'migrate',
-          message: `The ${processAsyncTasksOnly ? 'asynchronous' : 'synchronous'} migration has been run in ${totalMigrationTimeSecs} secs`
+          message: `The ${processAsyncTasksOnly ? 'asynchronous' : 'synchronous'} migration has been run in ${totalTimeSecs} secs`
         });
       } catch (error) {
         await Logging.logError({
@@ -80,21 +81,9 @@ export default class MigrationHandler {
     // Process async tasks one by one
     if (!processAsyncTasksOnly) {
       setTimeout(() => {
-        MigrationHandler.migrate(true).catch(() => { });
+        void MigrationHandler.migrate(true);
       }, 5000);
     }
-  }
-
-  private static createMigrationTasks(): MigrationTask[] {
-    const currentMigrationTasks: MigrationTask[] = [];
-    currentMigrationTasks.push(new RemoveDuplicateTagVisualIDsTask());
-    currentMigrationTasks.push(new AddCompanyIDToTransactionsTask());
-    currentMigrationTasks.push(new AddCompanyIDToChargingStationsTask());
-    currentMigrationTasks.push(new RestoreDataIntegrityInSiteUsersTask());
-    currentMigrationTasks.push(new AddUserIDToCarsTask());
-    currentMigrationTasks.push(new SimplePricingMigrationTask());
-    currentMigrationTasks.push(new UpdateEmailsToLowercaseTask());
-    return currentMigrationTasks;
   }
 
   private static async executeTask(currentMigrationTask: MigrationTask): Promise<void> {
@@ -144,5 +133,21 @@ export default class MigrationHandler {
       });
       Logging.logConsoleError(logMsg);
     }
+  }
+
+  private static createMigrationTasks(): MigrationTask[] {
+    const currentMigrationTasks: MigrationTask[] = [];
+    currentMigrationTasks.push(new RemoveDuplicateTagVisualIDsTask());
+    currentMigrationTasks.push(new AddCompanyIDToTransactionsTask());
+    currentMigrationTasks.push(new AddCompanyIDToChargingStationsTask());
+    currentMigrationTasks.push(new RestoreDataIntegrityInSiteUsersTask());
+    currentMigrationTasks.push(new AddUserIDToCarsTask());
+    currentMigrationTasks.push(new RepairInvoiceInconsistencies());
+    currentMigrationTasks.push(new RepairTransactionBillingData());
+    currentMigrationTasks.push(new SimplePricingMigrationTask());
+    currentMigrationTasks.push(new RepairTransactionPricedAtZero());
+    currentMigrationTasks.push(new UpdateEmailsToLowercaseTask());
+    currentMigrationTasks.push(new UserCleanUpTask());
+    return currentMigrationTasks;
   }
 }

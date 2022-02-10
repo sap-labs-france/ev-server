@@ -25,7 +25,6 @@ export default class CompanyService {
       Action.DELETE, Entity.COMPANY, MODULE_NAME, 'handleDeleteCompany');
     // Filter
     const companyID = CompanyValidator.getInstance().validateCompanyGetReq(req.query).ID;
-    UtilsService.assertIdIsProvided(action, companyID, MODULE_NAME, 'handleDeleteCompany', req.user);
     // Check and Get Company
     const company = await UtilsService.checkAndGetCompanyAuthorization(
       req.tenant, req.user, companyID, Action.DELETE, action);
@@ -48,7 +47,6 @@ export default class CompanyService {
       Action.READ, Entity.COMPANY, MODULE_NAME, 'handleGetCompany');
     // Filter
     const filteredRequest = CompanyValidator.getInstance().validateCompanyGetReq(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCompany', req.user);
     // Check and Get Company
     const company = await UtilsService.checkAndGetCompanyAuthorization(
       req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {
@@ -61,14 +59,12 @@ export default class CompanyService {
   public static async handleGetCompanyLogo(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = CompanyValidator.getInstance().validateCompanyLogoGetReq(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCompanyLogo', req.user);
     // Fetch Tenant Object by Tenant ID
     const tenant = await TenantStorage.getTenant(filteredRequest.TenantID);
     UtilsService.assertObjectExists(action, tenant, `Tenant ID '${filteredRequest.TenantID}' does not exist`,
       MODULE_NAME, 'handleGetCompanyLogo', req.user);
     // Get the Logo
     const companyLogo = await CompanyStorage.getCompanyLogo(tenant, filteredRequest.ID);
-    // Return
     if (companyLogo?.logo) {
       let header = 'image';
       let encoding: BufferEncoding = 'base64';
@@ -90,10 +86,6 @@ export default class CompanyService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.LIST, Entity.COMPANY, MODULE_NAME, 'handleGetCompanies');
-    // Maintain retro-compatibility
-    if (req.query.WithSites) {
-      req.query.WithSite = req.query.WithSites;
-    }
     // Filter
     const filteredRequest = CompanyValidator.getInstance().validateCompaniesGetReq(req.query);
     // Create GPS Coordinates

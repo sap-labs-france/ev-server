@@ -14,7 +14,7 @@ export default class SynchronizeCarCatalogsAsyncTask extends AbstractAsyncTask {
     const syncCarCatalogsLock = await LockingHelper.acquireSyncCarCatalogsLock(Constants.DEFAULT_TENANT);
     if (syncCarCatalogsLock) {
       try {
-        const carDatabaseImpl = await CarFactory.getCarImpl();
+        const carDatabaseImpl = CarFactory.getCarImpl();
         if (!carDatabaseImpl) {
           throw new BackendError({
             message: 'Car service is not configured',

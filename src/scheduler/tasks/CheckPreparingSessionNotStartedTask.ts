@@ -6,14 +6,14 @@ import { LockEntity } from '../../types/Locking';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
-import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
 import SiteStorage from '../../storage/mongodb/SiteStorage';
 import Tenant from '../../types/Tenant';
+import TenantSchedulerTask from '../TenantSchedulerTask';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
 
-export default class CheckPreparingSessionNotStartedTask extends SchedulerTask {
+export default class CheckPreparingSessionNotStartedTask extends TenantSchedulerTask {
   public async processTenant(tenant: Tenant, config: CheckPreparingSessionNotStartedTaskConfig): Promise<void> {
     // Get the lock
     const sessionNotStartedLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.CHARGING_STATION, 'preparing-session-not-started');
@@ -35,7 +35,7 @@ export default class CheckPreparingSessionNotStartedTask extends SchedulerTask {
               // Send notification
               moment.locale(siteOwners.result[0].user.locale);
               for (const connector of chargingStation.connectors) {
-                await NotificationHandler.sendPreparingSessionNotStarted(tenant, chargingStation, siteOwners.result[0].user, {
+                void NotificationHandler.sendPreparingSessionNotStarted(tenant, chargingStation, siteOwners.result[0].user, {
                   user: siteOwners.result[0].user,
                   chargeBoxID: chargingStation.id,
                   siteID: chargingStation.siteID,

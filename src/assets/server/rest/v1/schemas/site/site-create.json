@@ -13,7 +13,7 @@
       "$ref": "site#/definitions/public"
     },
     "tariffID": {
-      "$ref": "site#/definitions/tariffID"
+      "$ref": "common#/definitions/tariff-id"
     },
     "autoUserSiteAssignment": {
       "$ref": "site#/definitions/autoUserSiteAssignment"

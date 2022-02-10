@@ -295,8 +295,6 @@ describe('Billing', function() {
           const itemsBefore = await billingTestHelper.getNumberOfSessions(billingTestHelper.userContext.id);
           const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext);
           assert(transactionID, 'transactionID should not be null');
-          // await testData.checkTransactionBillingData(transactionID); // TODO - Check not yet possible!
-          // await testData.userService.billingApi.synchronizeInvoices({});
           const itemsAfter = await billingTestHelper.getNumberOfSessions(billingTestHelper.userContext.id);
           expect(itemsAfter).to.be.gt(itemsBefore);
         });
@@ -309,7 +307,7 @@ describe('Billing', function() {
         });
 
         it('Should connect to Billing Provider', async () => {
-          const response = await billingTestHelper.userService.billingApi.testConnection({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING);
+          const response = await billingTestHelper.userService.billingApi.testConnection();
           expect(response.data.connectionIsValid).to.be.true;
           expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
         });
@@ -356,63 +354,14 @@ describe('Billing', function() {
           const itemsBefore = await billingTestHelper.getNumberOfSessions(billingTestHelper.userContext.id);
           const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext);
           expect(transactionID).to.not.be.null;
-          // await testData.userService.billingApi.synchronizeInvoices({});
           const itemsAfter = await billingTestHelper.getNumberOfSessions(billingTestHelper.userContext.id);
           expect(itemsAfter).to.be.eq(itemsBefore + 1);
-        });
-
-        xit('should synchronize 1 invoice after a transaction', async () => {
-        // Synchronize Invoices is now deprecated
-          await billingTestHelper.userService.billingApi.synchronizeInvoices({});
-          const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext);
-          expect(transactionID).to.not.be.null;
-          const response = await billingTestHelper.userService.billingApi.synchronizeInvoices({});
-          expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
-          expect(response.data.inSuccess).to.be.eq(1);
         });
 
         it('Should list invoices', async () => {
           const response = await billingTestHelper.userService.billingApi.readInvoices({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING);
           expect(response.status).to.be.eq(StatusCodes.OK);
           expect(response.data.result.length).to.be.gt(0);
-        });
-
-        xit('Should list filtered invoices', async () => {
-          const response = await billingTestHelper.userService.billingApi.readInvoices({ Status: BillingInvoiceStatus.OPEN }, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING);
-          expect(response.data.result.length).to.be.gt(0);
-          for (const invoice of response.data.result) {
-            expect(invoice.status).to.be.eq(BillingInvoiceStatus.OPEN);
-          }
-        });
-
-        xit('Should synchronize invoices', async () => {
-          const response = await billingTestHelper.userService.billingApi.synchronizeInvoices({});
-          expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
-        });
-
-        xit('Should force a user synchronization', async () => {
-          const fakeUser = {
-            ...Factory.user.build(),
-          } as User;
-          fakeUser.issuer = true;
-          billingTestHelper.billingImpl = await billingTestHelper.setBillingSystemValidCredentials();
-          await billingTestHelper.userService.createEntity(
-            billingTestHelper.userService.userApi,
-            fakeUser
-          );
-          billingTestHelper.createdUsers.push(fakeUser);
-          fakeUser.billingData = {
-            customerID: 'cus_utbilling_fake_user',
-            liveMode: false,
-            lastChangedOn: new Date(),
-          }; // TODO - not supported anymore
-          await billingTestHelper.userService.updateEntity(
-            billingTestHelper.userService.userApi,
-            fakeUser
-          );
-          await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: fakeUser.id });
-          const billingUserAfter = await billingTestHelper.billingImpl.getUser(fakeUser);
-          expect(fakeUser.billingData.customerID).to.not.be.eq(billingUserAfter.billingData.customerID);
         });
       });
 
@@ -429,7 +378,7 @@ describe('Billing', function() {
         });
 
         it('Should not be able to test connection to Billing Provider', async () => {
-          const response = await billingTestHelper.userService.billingApi.testConnection({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING);
+          const response = await billingTestHelper.userService.billingApi.testConnection();
           expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
         });
 
@@ -437,8 +386,8 @@ describe('Billing', function() {
           const fakeUser = {
             ...Factory.user.build(),
           } as User;
-          const response = await billingTestHelper.userService.billingApi.synchronizeUser({ id: fakeUser.id });
-          expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
+          const billingUser = await billingTestHelper.billingImpl.synchronizeUser(fakeUser);
+          expect(billingUser).to.be.not.null;
         });
 
         it('Should not force synchronization of a user', async () => {
@@ -465,13 +414,11 @@ describe('Billing', function() {
             billingTestHelper.tenantContext.getTenant().subdomain,
             billingTestHelper.userContext
           );
-          // await testData.userService.billingApi.synchronizeInvoices({});
           const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
           await billingTestHelper.assignPaymentMethod(userWithBillingData, 'tok_fr');
           const itemsBefore = await billingTestHelper.getNumberOfSessions(basicUser.id);
           const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext);
           assert(transactionID, 'transactionID should not be null');
-          // await testData.userService.billingApi.synchronizeInvoices({});
           const itemsAfter = await billingTestHelper.getNumberOfSessions(basicUser.id);
           expect(itemsAfter).to.be.eq(itemsBefore + 1);
         });
@@ -516,7 +463,8 @@ describe('Billing', function() {
           );
           billingTestHelper.createdUsers.push(fakeUser);
           billingTestHelper.billingImpl = await billingTestHelper.setBillingSystemValidCredentials();
-          await billingTestHelper.userService.billingApi.synchronizeUser({ id: fakeUser.id });
+          const billingUser = await billingTestHelper.billingImpl.synchronizeUser(fakeUser);
+          expect(billingUser).to.be.not.null;
           const userExists = await billingTestHelper.billingImpl.isUserSynchronized(fakeUser);
           expect(userExists).to.be.true;
         });
@@ -539,37 +487,6 @@ describe('Billing', function() {
         it('Should not be able to start a transaction', async () => {
           const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext, 'Invalid');
           assert(!transactionID, 'Transaction ID should not be set');
-        });
-
-        it('Should set in error users without Billing data', async () => {
-          const fakeUser = {
-            ...Factory.user.build()
-          } as User;
-          fakeUser.issuer = true;
-          // Creates user without billing data
-          await billingTestHelper.userService.createEntity(
-            billingTestHelper.userService.userApi,
-            fakeUser
-          );
-          billingTestHelper.createdUsers.push(fakeUser);
-          // Check if user is in Users In Error
-          const response = await billingTestHelper.userService.userApi.readAllInError({ ErrorType: UserInErrorType.NO_BILLING_DATA }, {
-            limit: 100,
-            skip: 0
-          });
-          let userFound = false;
-          for (const user of response.data.result) {
-            if (user.id === fakeUser.id) {
-              userFound = true;
-              break;
-            }
-          }
-          if (FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USERS)) {
-            assert(userFound, 'User with no billing data should be listed as a User In Error');
-          } else {
-          // LAZY User Sync - The billing data will be created on demand (i.e.: when entering a payment method)
-            assert(!userFound, 'User with no billing data should not be listed as a User In Error');
-          }
         });
 
       });
@@ -703,7 +620,7 @@ describe('Billing', function() {
           const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext);
           assert(transactionID, 'transactionID should not be null');
           // Check that we have a new invoice with an invoiceID and an invoiceNumber
-          await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 6.49);
+          await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 11.49);
         });
 
         it('should bill the CT(STEP)+PT(STEP) on COMBO CCS - DC', async () => {
@@ -714,7 +631,7 @@ describe('Billing', function() {
           const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext);
           assert(transactionID, 'transactionID should not be null');
           // Check that we have a new invoice with an invoiceID and an invoiceNumber
-          await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 11.00);
+          await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 21.00);
         });
 
         it('should bill the ENERGY + PT(STEP) on COMBO CCS - DC', async () => {
@@ -725,14 +642,14 @@ describe('Billing', function() {
           const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext);
           assert(transactionID, 'transactionID should not be null');
           // Check that we have a new invoice with an invoiceID and an invoiceNumber
-          await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 19.49);
+          await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 29.49);
         });
 
         it('should bill the FF+E with 2 tariffs on COMBO CCS - DC', async () => {
           // A first Tariff for the ENERGY Only
           await billingTestHelper.initChargingStationContext2TestFastCharger('FF+E');
           // A second Tariff applied after 30 mins!
-          await billingTestHelper.initChargingStationContext2TestFastCharger('E-After30mins');
+          await billingTestHelper.initChargingStationContext2TestFastCharger('E-After30mins+PT');
           // A tariff applied immediately
           await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
           const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
@@ -740,7 +657,7 @@ describe('Billing', function() {
           const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext);
           assert(transactionID, 'transactionID should not be null');
           // Check that we have a new invoice with an invoiceID and an invoiceNumber
-          await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 24.63);
+          await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 34.63);
         });
 
         it('should bill the FF+E(STEP)+E(STEP) with 2 tariffs on COMBO CCS - DC', async () => {
@@ -792,7 +709,7 @@ describe('Billing', function() {
           await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 33.82);
         });
 
-        it('should bill an invoice taking the Time into account', async () => {
+        it('should bill an invoice taking the Time Range into account', async () => {
           const atThatParticularMoment = moment();
           await billingTestHelper.initChargingStationContext2TestTimeRestrictions('OTHER_HOURS', atThatParticularMoment);
           await billingTestHelper.initChargingStationContext2TestTimeRestrictions('NEXT_HOUR', atThatParticularMoment);
@@ -804,8 +721,23 @@ describe('Billing', function() {
           const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext);
           assert(transactionID, 'transactionID should not be null');
           // Check that we have a new invoice with an invoiceID and an invoiceNumber
-          await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 55.22);
+          await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 59.99);
         });
+
+        it('should bill an invoice taking a reverted Time Range into account', async () => {
+          const atThatParticularMoment = moment();
+          await billingTestHelper.initChargingStationContext2TestTimeRestrictions('OTHER_HOURS', atThatParticularMoment);
+          await billingTestHelper.initChargingStationContext2TestTimeRestrictions('FROM_23:59', atThatParticularMoment);
+          // A tariff applied immediately
+          await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
+          const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
+          await billingTestHelper.assignPaymentMethod(userWithBillingData, 'tok_fr');
+          const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext);
+          assert(transactionID, 'transactionID should not be null');
+          // Check that we have a new invoice with an invoiceID and an invoiceNumber
+          await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 16.16);
+        });
+
       });
 
       describe('When basic user has a free access', () => {
@@ -931,6 +863,31 @@ describe('Billing', function() {
         await billingTestHelper.checkPricingDefinitionEndpoints();
       });
     });
+
+    describe('Transaction Inconsistency Recovery', () => {
+      before(async () => {
+        billingTestHelper.initUserContextAsAdmin();
+        // Initialize the Billing module
+        billingTestHelper.billingImpl = await billingTestHelper.setBillingSystemValidCredentials(true, true /* immediateBillingAllowed ON */);
+        await billingTestHelper.initChargingStationContext2TestChargingTime();
+      });
+
+      after(async () => {
+      });
+
+      it('check Soft Stop Transaction', async () => {
+        const dateInThePast = moment().add(-5, 'hours').toDate();
+        await billingTestHelper.initChargingStationContext2TestFastCharger('E+PT(STEP)', dateInThePast);
+        await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
+        const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
+        await billingTestHelper.assignPaymentMethod(userWithBillingData, 'tok_fr');
+        const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext, 'Accepted', dateInThePast, true);
+        assert(transactionID, 'transactionID should not be null');
+        // Check that we have a new invoice with an invoiceID and an invoiceNumber
+        await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 19.49);
+      });
+    });
+
   });
 
   describe('Billing Test Data Cleanup (utbilling)', () => {

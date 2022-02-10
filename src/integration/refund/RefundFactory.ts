@@ -11,7 +11,7 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'RefundFactory';
 
 export default class RefundFactory {
-  static async getRefundImpl(tenant: Tenant): Promise<RefundIntegration<RefundSetting>> {
+  public static async getRefundImpl(tenant: Tenant): Promise<RefundIntegration<RefundSetting>> {
     // Check if Refund component is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.REFUND)) {
       const setting = await SettingStorage.getRefundSettings(tenant);

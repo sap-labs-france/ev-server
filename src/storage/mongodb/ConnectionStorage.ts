@@ -110,26 +110,20 @@ export default class ConnectionStorage {
   }
 
   static async deleteConnectionById(tenant: Tenant, id: string): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check
     DatabaseUtils.checkTenantObject(tenant);
     // Delete
     await global.database.getCollection<Connection>(tenant.id, 'connections')
       .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteConnectionById', startTime, { id });
   }
 
   static async deleteConnectionByUserId(tenant: Tenant, userID: string): Promise<void> {
-    // Debug
     const startTime = Logging.traceDatabaseRequestStart();
-    // Check
     DatabaseUtils.checkTenantObject(tenant);
     // Delete
     await global.database.getCollection<any>(tenant.id, 'connections')
       .deleteMany({ 'userId': DatabaseUtils.convertToObjectID(userID) });
-    // Debug
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteConnectionByUserId', startTime, { userID });
   }
 }

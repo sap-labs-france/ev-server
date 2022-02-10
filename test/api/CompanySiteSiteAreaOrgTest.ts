@@ -115,7 +115,6 @@ describe('Company, Site, Site Area', function() {
           Factory.company.build()
         );
         testData.createdCompanies.push(testData.newCompany);
-        // Check
         expect(testData.newCompany).to.not.be.null;
         // Create a new Site
         testData.newSite = await testData.userService.createEntity(
@@ -125,7 +124,6 @@ describe('Company, Site, Site Area', function() {
           })
         );
         testData.createdSites.push(testData.newSite);
-        // Check
         expect(testData.newSite).to.not.be.null;
         // Create a new Site Area
         testData.newSiteArea = await testData.userService.createEntity(

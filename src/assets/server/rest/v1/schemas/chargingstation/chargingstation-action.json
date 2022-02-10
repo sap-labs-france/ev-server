@@ -72,16 +72,19 @@
         "startTime": {
           "type": "string",
           "format": "date-time",
+          "customType": "date",
           "sanitize": "mongo"
         },
         "stopTime": {
           "type": "string",
           "format": "date-time",
+          "customType": "date",
           "sanitize": "mongo"
         },
         "retrieveDate": {
           "type": "string",
           "format": "date-time",
+          "customType": "date",
           "sanitize": "mongo"
         },
         "transactionId": {

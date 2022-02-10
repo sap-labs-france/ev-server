@@ -1,0 +1,414 @@
+{
+  "$id": "car-catalog",
+  "title": "Validate the Car Catalog",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "number"
+    },
+    "vehicleMake": {
+      "type": "string"
+    },
+    "vehicleModel": {
+      "type": "string"
+    },
+    "vehicleModelVersion": {
+      "type": "string"
+    },
+    "availabilityStatus": {
+      "type": "string"
+    },
+    "availabilityDateFrom": {
+      "type": "string"
+    },
+    "availabilityDateTo": {
+      "type": "string"
+    },
+    "priceFromDE": {
+      "type": "number"
+    },
+    "priceFromDEEstimate": {
+      "type": "boolean"
+    },
+    "priceFromNL": {
+      "type": "number"
+    },
+    "priceFromNLEstimate": {
+      "type": "boolean"
+    },
+    "priceFromUK": {
+      "type": "number"
+    },
+    "priceGrantPICGUK": {
+      "type": "number"
+    },
+    "priceFromUKEstimate": {
+      "type": "boolean"
+    },
+    "drivetrainType": {
+      "type": "string"
+    },
+    "drivetrainFuel": {
+      "type": "string"
+    },
+    "drivetrainPropulsion": {
+      "type": "string"
+    },
+    "drivetrainPower": {
+      "type": "number"
+    },
+    "drivetrainPowerHP": {
+      "type": "number"
+    },
+    "drivetrainTorque": {
+      "type": "number"
+    },
+    "performanceAcceleration": {
+      "type": "number"
+    },
+    "performanceTopspeed": {
+      "type": "number"
+    },
+    "rangeWLTP": {
+      "type": "number"
+    },
+    "rangeWLTPEstimate": {
+      "type": "boolean"
+    },
+    "rangeNEDC": {
+      "type": "number"
+    },
+    "rangeNEDCEstimate": {
+      "type": "boolean"
+    },
+    "rangeReal": {
+      "type": "number"
+    },
+    "rangeRealMode": {
+      "type": "string"
+    },
+    "rangeRealWHwy": {
+      "type": "number"
+    },
+    "rangeRealWCmb": {
+      "type": "number"
+    },
+    "rangeRealWCty": {
+      "type": "number"
+    },
+    "rangeRealBHwy": {
+      "type": "number"
+    },
+    "rangeRealBCmb": {
+      "type": "number"
+    },
+    "rangeRealBCty": {
+      "type": "number"
+    },
+    "efficiencyWLTP": {
+      "type": "number"
+    },
+    "efficiencyWLTPFuelEq": {
+      "type": "number"
+    },
+    "efficiencyWLTPV": {
+      "type": "number"
+    },
+    "efficiencyWLTPFuelEqV": {
+      "type": "number"
+    },
+    "efficiencyWLTPCO2": {
+      "type": "number"
+    },
+    "efficiencyNEDC": {
+      "type": "number"
+    },
+    "efficiencyNEDCFuelEq": {
+      "type": "number"
+    },
+    "efficiencyNEDCV": {
+      "type": "number"
+    },
+    "efficiencyNEDCFuelEqV": {
+      "type": "number"
+    },
+    "efficiencyNEDCCO2": {
+      "type": "number"
+    },
+    "efficiencyReal": {
+      "type": "number"
+    },
+    "efficiencyRealFuelEqV": {
+      "type": "number"
+    },
+    "efficiencyRealCO2": {
+      "type": "number"
+    },
+    "efficiencyRealWHwy": {
+      "type": "number"
+    },
+    "efficiencyRealWCmb": {
+      "type": "number"
+    },
+    "efficiencyRealWCty": {
+      "type": "number"
+    },
+    "efficiencyRealBHwy": {
+      "type": "number"
+    },
+    "efficiencyRealBCmb": {
+      "type": "number"
+    },
+    "efficiencyRealBCty": {
+      "type": "number"
+    },
+    "chargePlug": {
+      "type": "string"
+    },
+    "chargePlugEstimate": {
+      "type": "boolean"
+    },
+    "chargePlugLocation": {
+      "type": "string"
+    },
+    "chargeStandardPower": {
+      "type": "number"
+    },
+    "chargeStandardPhase": {
+      "type": "number"
+    },
+    "chargeStandardPhaseAmp": {
+      "type": "number"
+    },
+    "chargeStandardChargeTime": {
+      "type": "number"
+    },
+    "chargeStandardChargeSpeed": {
+      "type": "number"
+    },
+    "chargeStandardEstimate": {
+      "type": "boolean"
+    },
+    "chargeStandardTables": {
+      "$ref": "#/definitions/chargeTables"
+    },
+    "chargeAlternativePower": {
+      "type": "number"
+    },
+    "chargeAlternativePhase": {
+      "type": "number"
+    },
+    "chargeAlternativePhaseAmp": {
+      "type": "number"
+    },
+    "chargeAlternativeChargeTime": {
+      "type": "number"
+    },
+    "chargeAlternativeChargeSpeed": {
+      "type": "number"
+    },
+    "chargeAlternativeTables": {
+      "$ref": "#/definitions/chargeTables"
+    },
+    "chargeOptionPower": {
+      "type": "number"
+    },
+    "chargeOptionPhase": {
+      "type": "number"
+    },
+    "chargeOptionPhaseAmp": {
+      "type": "number"
+    },
+    "chargeOptionChargeTime": {
+      "type": "number"
+    },
+    "chargeOptionChargeSpeed": {
+      "type": "number"
+    },
+    "chargeOptionTables": {
+      "$ref": "#/definitions/chargeTables"
+    },
+    "fastChargePlug": {
+      "type": "string"
+    },
+    "fastChargePlugEstimate": {
+      "type": "boolean"
+    },
+    "fastChargePlugLocation": {
+      "type": "string"
+    },
+    "fastChargePowerMax": {
+      "type": "number"
+    },
+    "fastChargePowerAvg": {
+      "type": "number"
+    },
+    "fastChargeTime": {
+      "type": "number"
+    },
+    "fastChargeSpeed": {
+      "type": "number"
+    },
+    "fastChargeOptional": {
+      "type": "boolean"
+    },
+    "fastChargeEstimate": {
+      "type": "boolean"
+    },
+    "batteryCapacityUseable": {
+      "type": "number"
+    },
+    "batteryCapacityFull": {
+      "type": "number"
+    },
+    "batteryCapacityEstimate": {
+      "type": "string"
+    },
+    "dimsLength": {
+      "type": "number"
+    },
+    "dimsWidth": {
+      "type": "number"
+    },
+    "dimsHeight": {
+      "type": "number"
+    },
+    "dimsWheelbase": {
+      "type": "number"
+    },
+    "dimsWeight": {
+      "type": "number"
+    },
+    "dimsBootspace": {
+      "type": "number"
+    },
+    "dimsBootspaceMax": {
+      "type": "number"
+    },
+    "dimsTowWeightUnbraked": {
+      "type": "number"
+    },
+    "dimsTowWeightBraked": {
+      "type": "number"
+    },
+    "dimsRoofLoadMax": {
+      "type": "number"
+    },
+    "miscBody": {
+      "type": "string"
+    },
+    "miscSegment": {
+      "type": "string"
+    },
+    "miscSeats": {
+      "type": "number"
+    },
+    "miscRoofrails": {
+      "type": "boolean"
+    },
+    "miscIsofix": {
+      "type": "boolean"
+    },
+    "miscIsofixSeats": {
+      "type": "number"
+    },
+    "miscTurningCircle": {
+      "type": "number"
+    },
+    "euroNCAPRating": {
+      "type": "number"
+    },
+    "euroNCAPYear": {
+      "type": "number"
+    },
+    "euroNCAPAdult": {
+      "type": "number"
+    },
+    "euroNCAPChild": {
+      "type": "number"
+    },
+    "euroNCAPVRU": {
+      "type": "number"
+    },
+    "euroNCAPSA": {
+      "type": "number"
+    },
+    "relatedVehicleIDSuccessor": {
+      "type": "number"
+    },
+    "eVDBDetailURL": {
+      "type": "string"
+    },
+    "videos": {
+      "type": ["array", "null"],
+      "items": {
+        "type": "string"
+      }
+    },
+    "hash": {
+      "type": "string"
+    },
+    "image": {
+      "type": "string"
+    },
+    "imageURLs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "lastChangedOn": {
+      "type": ["string", "object"],
+      "format": "date"
+    }
+  },
+  "required": [
+    "id",
+    "vehicleMake",
+    "vehicleModel",
+    "vehicleModelVersion"
+  ],
+  "definitions": {
+    "chargeTables": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "evsePhaseVolt": {
+            "type": "number"
+          },
+          "evsePhaseAmp": {
+            "type": "number"
+          },
+          "evsePhase": {
+            "type": "number"
+          },
+          "evsePhaseVoltCalculated": {
+            "type": "number"
+          },
+          "chargePhaseVolt": {
+            "type": "number"
+          },
+          "chargePhaseAmp": {
+            "type": "number"
+          },
+          "chargePhase": {
+            "type": "number"
+          },
+          "chargePower": {
+            "type": "number"
+          },
+          "chargeTime": {
+            "type": "number"
+          },
+          "chargeSpeed": {
+            "type": "number"
+          }
+        }
+      }
+    }
+  }
+}

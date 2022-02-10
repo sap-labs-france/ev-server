@@ -143,8 +143,8 @@ export default abstract class WSConnection {
       } else {
         // Trigger timeout
         requestTimeout = setTimeout(() => {
-          rejectCallback(`Timeout for Message ID '${messageID}' with content '${messageToSend} (${this.tenantSubdomain})`);
-        }, Constants.OCPP_SOCKET_TIMEOUT);
+          rejectCallback(`Timeout after ${Constants.OCPP_SOCKET_TIMEOUT_MILLIS / 1000} secs for Message ID '${messageID}' with content '${messageToSend} (${this.tenantSubdomain})`);
+        }, Constants.OCPP_SOCKET_TIMEOUT_MILLIS);
       }
     });
   }

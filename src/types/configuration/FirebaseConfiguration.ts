@@ -1,3 +1,5 @@
+import TenantConfiguration from './TenantConfiguration';
+
 export default interface FirebaseConfiguration {
   type: string;
   projectID: string;
@@ -10,4 +12,5 @@ export default interface FirebaseConfiguration {
   authProviderX509CertURL: string;
   clientX509CertURL: string;
   databaseURL: string;
+  tenants: TenantConfiguration<FirebaseConfiguration>[];
 }

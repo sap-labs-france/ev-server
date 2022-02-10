@@ -13,7 +13,6 @@ export default class AssignedSitesCompaniesDynamicAuthorizationFilter extends Dy
     const { companyIDs } = assignedSitesCompaniesDataSource.getData();
     // Clear
     authorizationFilters.filters.companyIDs = [];
-    // Check
     if (!Utils.isEmptyArray(companyIDs)) {
       // Force the filter
       authorizationFilters.filters.companyIDs = companyIDs;

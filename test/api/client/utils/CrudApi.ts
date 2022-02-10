@@ -90,7 +90,6 @@ export default class CrudApi {
 
   // Build the ordering in the Queryparam
   private buildOrdering(ordering, queryString): void {
-    // Check
     if (ordering && ordering.length) {
       if (!queryString.SortFields) {
         Object.assign(queryString, { SortFields: [] });

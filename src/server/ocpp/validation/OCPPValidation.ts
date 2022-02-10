@@ -4,6 +4,7 @@ import BackendError from '../../../exception/BackendError';
 import ChargingStation from '../../../types/ChargingStation';
 import Logging from '../../../utils/Logging';
 import LoggingHelper from '../../../utils/LoggingHelper';
+import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
 import Schema from '../../../types/validator/Schema';
 import SchemaValidator from '../../../validator/SchemaValidator';
 import { ServerAction } from '../../../types/Server';
@@ -16,24 +17,18 @@ const MODULE_NAME = 'OCPPValidation';
 export default class OCPPValidation extends SchemaValidator {
   private static instance: OCPPValidation | null = null;
 
-  private bootNotificationRequest: Schema;
-  private authorizeRequest: Schema;
-  private statusNotificationRequest: Schema;
-  private startTransactionRequest: Schema;
-  private stopTransactionRequest16: Schema;
-  private stopTransactionRequest15: Schema;
+  private bootNotificationRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/boot-notification-request.json`, 'utf8'));
+  private authorizeRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/authorize-request.json`, 'utf8'));
+  private statusNotificationRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/status-notification-request.json`, 'utf8'));
+  private startTransactionRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/start-transaction-request.json`, 'utf8'));
+  private stopTransactionRequest16: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/stop-transaction-request-16.json`, 'utf8'));
+  private stopTransactionRequest15: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/stop-transaction-request-15.json`, 'utf8'));
 
   private constructor() {
     super('OCPPValidation');
-    this.bootNotificationRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/boot-notification-request.json`, 'utf8'));
-    this.authorizeRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/authorize-request.json`, 'utf8'));
-    this.statusNotificationRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/status-notification-request.json`, 'utf8'));
-    this.startTransactionRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/start-transaction-request.json`, 'utf8'));
-    this.stopTransactionRequest15 = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/stop-transaction-request-15.json`, 'utf8'));
-    this.stopTransactionRequest16 = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/stop-transaction-request-16.json`, 'utf8'));
   }
 
-  static getInstance(): OCPPValidation {
+  public static getInstance(): OCPPValidation {
     if (!OCPPValidation.instance) {
       OCPPValidation.instance = new OCPPValidation();
     }
@@ -48,15 +43,25 @@ export default class OCPPValidation extends SchemaValidator {
     if (!statusNotification.timestamp || new Date(statusNotification.timestamp).getFullYear() === new Date(0).getFullYear()) {
       statusNotification.timestamp = new Date().toISOString();
     }
-    this.validate(this.statusNotificationRequest, statusNotification as unknown as Record<string, unknown>);
+    this.validate(this.statusNotificationRequest, statusNotification);
   }
 
   public validateAuthorize(authorize: OCPPAuthorizeRequestExtended): void {
-    this.validate(this.authorizeRequest, authorize as unknown as Record<string, unknown>);
+    authorize.idTag = this.cleanUpTagID(authorize.idTag);
+    this.validate(this.authorizeRequest, authorize);
   }
 
-  public validateBootNotification(bootNotification: OCPPBootNotificationRequestExtended): void {
-    this.validate(this.bootNotificationRequest, bootNotification as unknown as Record<string, unknown>);
+  public validateBootNotification(headers: OCPPHeader, bootNotification: OCPPBootNotificationRequestExtended): void {
+    // Check Charging Station
+    if (!headers.chargeBoxIdentity) {
+      throw new BackendError({
+        action: ServerAction.OCPP_BOOT_NOTIFICATION,
+        module: MODULE_NAME, method: 'validateBootNotification',
+        message: 'Should have the required property \'chargeBoxIdentity\'!',
+        detailedMessages: { headers, bootNotification }
+      });
+    }
+    this.validate(this.bootNotificationRequest, bootNotification);
   }
 
   public validateDiagnosticsStatusNotification(chargingStation: ChargingStation,
@@ -68,7 +73,8 @@ export default class OCPPValidation extends SchemaValidator {
   }
 
   public validateStartTransaction(chargingStation: ChargingStation, startTransaction: OCPPStartTransactionRequestExtended): void {
-    this.validate(this.startTransactionRequest, startTransaction as unknown as Record<string, unknown>);
+    startTransaction.idTag = this.cleanUpTagID(startTransaction.idTag);
+    this.validate(this.startTransactionRequest, startTransaction);
     // Check Connector ID
     if (!Utils.getConnectorFromID(chargingStation, startTransaction.connectorId)) {
       throw new BackendError({
@@ -84,10 +90,11 @@ export default class OCPPValidation extends SchemaValidator {
   }
 
   public validateStopTransaction(chargingStation: ChargingStation, stopTransaction: OCPPStopTransactionRequestExtended): void {
+    stopTransaction.idTag = this.cleanUpTagID(stopTransaction.idTag);
     if (chargingStation.ocppVersion === OCPPVersion.VERSION_16) {
-      this.validate(this.stopTransactionRequest16, stopTransaction as unknown as Record<string, unknown>);
+      this.validate(this.stopTransactionRequest16, stopTransaction);
     } else {
-      this.validate(this.stopTransactionRequest15, stopTransaction as unknown as Record<string, unknown>);
+      this.validate(this.stopTransactionRequest15, stopTransaction);
     }
   }
 
@@ -152,6 +159,14 @@ export default class OCPPValidation extends SchemaValidator {
       // Override it
       meterValues.transactionId = connectorTransactionID;
     }
+  }
+
+  private cleanUpTagID(tagID: string): string {
+    // Handle bug in Tag ID ending with ;NULL on some Charging Stations
+    if (tagID && typeof tagID === 'string' && tagID.toLowerCase().endsWith(';null')) {
+      tagID = tagID.slice(0, tagID.length - 5);
+    }
+    return tagID;
   }
 }
 

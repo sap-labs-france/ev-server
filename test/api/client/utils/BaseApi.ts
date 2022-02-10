@@ -33,7 +33,6 @@ export default class BaseApi {
     let t1 = 0;
     try {
       t0 = performance.now();
-      // Debug
       if (config.get('trace_logs')) {
         console.debug('HTTP Request =======================');
         console.debug(httpRequest.baseURL);
@@ -44,7 +43,6 @@ export default class BaseApi {
       }
       // Execute with Axios
       httpResponse = await this.axiosInstance(httpRequest);
-      // Debug
       if (config.get('trace_logs')) {
         console.debug('HTTP Response ======================');
         console.debug(httpResponse.status);

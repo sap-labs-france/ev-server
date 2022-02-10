@@ -6,7 +6,7 @@ import PerformanceRecord, { PerformanceRecordGroup } from '../types/Performance'
 import Tenant, { TenantComponentContent, TenantComponents } from '../types/Tenant';
 import Transaction, { CSPhasesUsed, InactivityStatus } from '../types/Transaction';
 import User, { UserRole, UserStatus } from '../types/User';
-import crypto, { CipherGCMTypes } from 'crypto';
+import crypto, { CipherGCMTypes, randomUUID } from 'crypto';
 import global, { EntityData } from '../types/GlobalType';
 
 import Address from '../types/Address';
@@ -28,11 +28,11 @@ import bcrypt from 'bcryptjs';
 import fs from 'fs';
 import http from 'http';
 import moment from 'moment';
+import { nanoid } from 'nanoid';
 import os from 'os';
 import passwordGenerator from 'password-generator';
 import path from 'path';
 import tzlookup from 'tz-lookup';
-import { v4 as uuid } from 'uuid';
 import validator from 'validator';
 
 export default class Utils {
@@ -216,7 +216,6 @@ export default class Utils {
     }
     // Get Notification Interval
     const intervalMins = Utils.getEndOfChargeNotificationIntervalMins(chargingStation, connectorId);
-    // Check
     if (inactivitySecs < (intervalMins * 60)) {
       return InactivityStatus.INFO;
     } else if (inactivitySecs < (intervalMins * 60 * 2)) {
@@ -243,7 +242,15 @@ export default class Utils {
   }
 
   public static generateUUID(): string {
-    return uuid();
+    return randomUUID();
+  }
+
+  public static generateShortID(): string {
+    return nanoid();
+  }
+
+  public static generateShortNonUniqueID(length = 5): string {
+    return nanoid(length);
   }
 
   public static generateTagID(name: string, firstName: string): string {
@@ -446,7 +453,6 @@ export default class Utils {
   }
 
   public static convertToDate(value: any): Date {
-    // Check
     if (!value) {
       return null;
     }
@@ -470,7 +476,6 @@ export default class Utils {
     if (typeof document !== 'object') {
       return true;
     }
-    // Check
     return Object.keys(document).length === 0;
   }
 
@@ -502,7 +507,6 @@ export default class Utils {
     if (Number.isSafeInteger(value)) {
       return value;
     }
-    // Check
     if (typeof value === 'string') {
       // Create Object
       changedValue = parseInt(value);
@@ -515,7 +519,6 @@ export default class Utils {
     if (!value) {
       return 0;
     }
-    // Check
     if (typeof value === 'string') {
       // Create Object
       changedValue = parseFloat(value);
@@ -551,11 +554,19 @@ export default class Utils {
     return Utils.convertToFloat((Utils.createDecimal(wattHours).div(1000)));
   }
 
-  public static createDecimal(value: number): Decimal {
+  public static createDecimal(value: Decimal.Value): Decimal {
     if (Utils.isNullOrUndefined(value)) {
       value = 0;
     }
-    return new Decimal(value);
+    if (value instanceof Decimal) {
+      return value;
+    }
+    // --------------------------------------------------------------------------------------------
+    // Decimals are serialized as object in the DB
+    // The Decimal constructor is able to deserialized these Decimal representations.
+    // However the type declaration does not expose this constructor - so we need to explicit cast
+    // --------------------------------------------------------------------------------------------
+    return new Decimal(value as Decimal.Value);
   }
 
   public static getChargePointFromID(chargingStation: ChargingStation, chargePointID: number): ChargePoint {
@@ -1066,7 +1077,11 @@ export default class Utils {
     return Utils.createDecimal(value).mul(roundPower).round().div(roundPower).toNumber();
   }
 
-  public static truncTo(value: number, scale: number): number {
+  public static minValue(value1: number, value2: number): number {
+    return Decimal.min(value1, value2).toNumber();
+  }
+
+  public static truncTo(value: Decimal.Value, scale: number): number {
     const truncPower = Math.pow(10, scale);
     return Utils.createDecimal(value).mul(truncPower).trunc().div(truncPower).toNumber();
   }
@@ -1127,7 +1142,7 @@ export default class Utils {
   }
 
   public static async hashPasswordBcrypt(password: string): Promise<string> {
-    return await new Promise((fulfill, reject) => {
+    return new Promise((fulfill, reject) => {
       // Generate a salt with 15 rounds
       bcrypt.genSalt(10, (error, salt) => {
         // Hash
@@ -1144,7 +1159,7 @@ export default class Utils {
   }
 
   public static async checkPasswordBCrypt(password: string, hash: string): Promise<boolean> {
-    return await new Promise((fulfill, reject) => {
+    return new Promise((fulfill, reject) => {
       // Compare
       bcrypt.compare(password, hash, (err, match) => {
         // Error?
@@ -1212,7 +1227,7 @@ export default class Utils {
   }
 
   public static isDevelopmentEnv(): boolean {
-    return process.env.NODE_ENV === 'development';
+    return process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'development-build';
   }
 
   public static isProductionEnv(): boolean {
@@ -1484,9 +1499,9 @@ export default class Utils {
   }
 
   public static buildPerformanceRecord(params: {
-    tenantSubdomain?: string; durationMs?: number; resSizeKb?: number;
-    reqSizeKb?: number; action: ServerAction|string; group?: PerformanceRecordGroup;
-    httpUrl?: string; httpMethod?: string; httpResponseCode?: number; chargingStationID?: string,
+    tenantSubdomain?: string; durationMs?: number; resSizeKb?: number; reqSizeKb?: number;
+    action: ServerAction|string; group?: PerformanceRecordGroup; httpUrl?: string;
+    httpMethod?: string; httpResponseCode?: number; chargingStationID?: string, userID?: string
   }): PerformanceRecord {
     const performanceRecord: PerformanceRecord = {
       tenantSubdomain: params.tenantSubdomain,
@@ -1516,6 +1531,9 @@ export default class Utils {
     if (params.httpResponseCode) {
       performanceRecord.httpResponseCode = params.httpResponseCode;
     }
+    if (params.userID) {
+      performanceRecord.userID = params.userID;
+    }
     if (global.serverType) {
       performanceRecord.server = global.serverType;
     }
@@ -1523,10 +1541,19 @@ export default class Utils {
   }
 
   public static getHostName(): string {
+    // K8s
+    if (process.env.POD_NAME) {
+      return process.env.POD_NAME;
+    }
     return os.hostname();
   }
 
   public static getHostIP(): string {
+    // K8s
+    if (process.env.POD_IP) {
+      return process.env.POD_IP;
+    }
+    // AWS
     const hostname = Utils.getHostName();
     if (hostname.startsWith('ip-')) {
       const hostnameParts = hostname.split('-');

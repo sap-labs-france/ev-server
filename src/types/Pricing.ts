@@ -1,7 +1,8 @@
-/* eslint-disable max-len */
 import { AuthorizationActions } from './Authorization';
 import { ConnectorType } from './ChargingStation';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
+import Decimal from 'decimal.js';
+import Utils from '../utils/Utils';
 
 export enum PricingEntity {
   TENANT = 'Tenant',
@@ -53,6 +54,7 @@ export default interface PricingDefinition extends PricingDefinitionInternal, Cr
   id: string;
   entityID: string;
   entityType: PricingEntity;
+  siteID: string;
 }
 
 export interface PricingDimensions {
@@ -121,8 +123,12 @@ export interface PricedConsumptionData {
   chargingTime?: PricedDimensionData;
 }
 
+// Very important - preserve maximal precision - Decimal type is persisted as an object in the DB
+export type PricingAmount = Decimal.Value;
+
 export interface PricedDimensionData {
   unitPrice?: number;
+  amountAsDecimal: PricingAmount
   amount: number;
   roundedAmount: number;
   quantity: number;
@@ -134,4 +140,3 @@ export interface PricedDimensionData {
   // Each dimension have a different tax rate
   taxes?: string[];
 }
-

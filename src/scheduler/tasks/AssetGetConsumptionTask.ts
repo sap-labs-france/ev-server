@@ -11,17 +11,17 @@ import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
 import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
-import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
 import SiteArea from '../../types/SiteArea';
 import SmartChargingFactory from '../../integration/smart-charging/SmartChargingFactory';
 import { TaskConfig } from '../../types/TaskConfig';
+import TenantSchedulerTask from '../TenantSchedulerTask';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
 
 const MODULE_NAME = 'AssetGetConsumptionTask';
 
-export default class AssetGetConsumptionTask extends SchedulerTask {
+export default class AssetGetConsumptionTask extends TenantSchedulerTask {
   public async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     // Check if Asset component is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.ASSET)) {
@@ -127,7 +127,7 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
   }
 
   private async triggerSmartCharging(tenant: Tenant, siteArea: SiteArea) {
-    const siteAreaLock = await LockingHelper.acquireSiteAreaSmartChargingLock(tenant.id, siteArea, 30);
+    const siteAreaLock = await LockingHelper.acquireSiteAreaSmartChargingLock(tenant.id, siteArea);
     if (siteAreaLock) {
       try {
         const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenant);
