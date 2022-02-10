@@ -23,7 +23,8 @@ export default class OCPPValidation extends SchemaValidator {
   private startTransactionRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/start-transaction-request.json`, 'utf8'));
   private stopTransactionRequest16: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/stop-transaction-request-16.json`, 'utf8'));
   private stopTransactionRequest15: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/stop-transaction-request-15.json`, 'utf8'));
-
+  private diagnosticsStatusNotificationRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/diagnostics-status-notification-request.json`, 'utf8'));
+  private heartbeatRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/heartbeat-request.json`, 'utf8'));
   private constructor() {
     super('OCPPValidation');
   }
@@ -36,6 +37,7 @@ export default class OCPPValidation extends SchemaValidator {
   }
 
   public validateHeartbeat(heartbeat: OCPPHeartbeatRequestExtended): void {
+    this.validate(this.heartbeatRequest, heartbeat);
   }
 
   public validateStatusNotification(statusNotification: OCPPStatusNotificationRequestExtended): void {
@@ -64,8 +66,8 @@ export default class OCPPValidation extends SchemaValidator {
     this.validate(this.bootNotificationRequest, bootNotification);
   }
 
-  public validateDiagnosticsStatusNotification(chargingStation: ChargingStation,
-      diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequestExtended): void {
+  public validateDiagnosticsStatusNotification(diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequestExtended): void {
+        this.validate(this.diagnosticsStatusNotificationRequest, diagnosticsStatusNotification);
   }
 
   public validateFirmwareStatusNotification(chargingStation: ChargingStation,
