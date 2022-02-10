@@ -1,0 +1,20 @@
+{
+  "$id": "billing-pay-invoice",
+  "title": "Pay Invoice Request",
+  "type": "object",
+  "properties": {
+    "userID": {
+      "$ref": "common#/definitions/id"
+    },
+    "invoiceID": {
+      "$ref": "common#/definitions/id"
+    },
+    "paymentMethodId": {
+      "type": "string",
+      "sanitize": "mongo"
+    }
+  },
+  "required": [
+    "userID"
+  ]
+}

@@ -21,6 +21,12 @@ export interface HttpSetupPaymentMethod {
   keepDefaultUnchanged?: boolean
 }
 
+export interface HttpBillingPayInvoice {
+  userID: string;
+  invoiceID: string;
+  paymentMethodID?: string;
+}
+
 export interface HttpSetupPaymentIntent {
   userID: string;
   invoiceID: string;

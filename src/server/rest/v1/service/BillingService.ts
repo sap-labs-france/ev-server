@@ -327,7 +327,7 @@ export default class BillingService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.BILLING_INVOICE_PAYMENT, Entity.BILLING, MODULE_NAME, 'handleBillingInvoicePayment');
     // Filter
-    const filteredRequest = BillingSecurity.filterInvoicePaymentRequest(req.body);
+    const filteredRequest = BillingValidator.getInstance().validateBillingPayInvoiceReq(req.body);
     if (!await Authorizations.canPayInvoice(req.user, filteredRequest.userID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -336,44 +336,31 @@ export default class BillingService {
         module: MODULE_NAME, method: 'handleBillingInvoicePayment'
       });
     }
-    // Verify invoice exists
-    const billingInvoice: BillingInvoice = await BillingStorage.getInvoice(req.tenant, filteredRequest.invoiceID);
-    UtilsService.assertObjectExists(action, billingInvoice, `Invoice ID '${filteredRequest.invoiceID}' does not exist`,
-      MODULE_NAME, 'handleBillingInvoicePayment', req.user);
-    const user: User = await UserStorage.getUser(req.tenant, billingInvoice.userID);
-    UtilsService.assertObjectExists(action, user, `User ID '${billingInvoice.userID}' does not exist`,
-      MODULE_NAME, 'handleBillingInvoicePayment', req.user);
-    if (filteredRequest.userID !== billingInvoice.userID) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Unexpected situation - user ID does not match the invoice information',
-        module: MODULE_NAME, method: 'handleBillingInvoicePayment',
-        action: action,
-        user: req.user
-      });
-    }
     // Get the billing impl
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
-        module: MODULE_NAME, method: 'handleBillingSetupPaymentMethod',
+        module: MODULE_NAME, method: 'handleBillingInvoicePayment',
         action: action,
         user: req.user
       });
     }
+    // Verify invoice exists
+    const billingInvoice: BillingInvoice = await BillingStorage.getInvoice(req.tenant, filteredRequest.invoiceID);
+    UtilsService.assertObjectExists(action, billingInvoice, `Invoice ID '${filteredRequest.invoiceID}' does not exist`,
+      MODULE_NAME, 'handleBillingInvoicePayment', req.user);
+    const user: User = await UserStorage.getUser(req.tenant, filteredRequest.userID);
+    UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.userID}' does not exist`,
+      MODULE_NAME, 'handleBillingInvoicePayment', req.user);
     // Invoke the billing implementation
-    const paymentMethodId: string = filteredRequest.paymentMethodID;
+    const paymentMethodID: string = filteredRequest.paymentMethodID;
     // setup payment intent
-    const operationResult = await billingImpl.attemptInvoicePayment(billingInvoice, paymentMethodId);
-    await Logging.logInfo({
-      tenantID: req.user.tenantID,
-      actionOnUser: user,
-      action: ServerAction.BILLING_INVOICE_PAYMENT,
-      module: MODULE_NAME, method: 'handleBillingSetupPaymentMethod',
-      message: `Payment attempt - Invoice number: '${billingInvoice.number}' - ID: '${paymentMethodId}''`
-    });
+    const operationResult = await billingImpl.attemptInvoicePayment(billingInvoice, paymentMethodID);
+    if (operationResult) {
+      console.log(operationResult);
+    }
     res.json(operationResult);
     next();
   }
