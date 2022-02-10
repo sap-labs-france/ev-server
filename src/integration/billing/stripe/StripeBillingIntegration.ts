@@ -1003,15 +1003,12 @@ export default class StripeBillingIntegration extends BillingIntegration {
         module: MODULE_NAME, method: 'endTransaction',
         message: `Operation aborted - unexpected situation - the session has already been billed - transaction ID: ${transaction.id}`
       });
-      return {
-        status: transaction.billingData?.stop?.status
-      };
+      // Preserve the previous state unchanged
+      return transaction.billingData.stop;
     }
     if (transaction.billingData?.stop?.status === BillingStatus.UNBILLED) {
-      // Make sure to preserve the decision made during the STOP transaction
-      return {
-        status: BillingStatus.UNBILLED
-      };
+      // Preserve the previous state unchanged
+      return transaction.billingData.stop;
     }
     if (!transaction.stop?.extraInactivityComputed) {
       await Logging.logWarning({
@@ -1020,10 +1017,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
         module: MODULE_NAME, method: 'endTransaction',
         message: `Unexpected situation - end transaction is being called while the extra inactivity is not yet known - transaction ID: ${transaction.id}`
       });
-      return {
-        // Preserve the previous state
-        status: transaction.billingData?.stop?.status
-      };
+      // Preserve the previous state unchanged (if any) or mark it as PENDING
+      return transaction.billingData?.stop || { status: BillingStatus.PENDING };
     }
     // Create and Save async task
     await AsyncTaskBuilder.createAndSaveAsyncTasks({
@@ -1724,12 +1719,12 @@ export default class StripeBillingIntegration extends BillingIntegration {
     await global.database.getCollection(this.tenant.id, 'invoices').findOneAndUpdate(
       { '_id': DatabaseUtils.convertToObjectID(billingInvoice.id) },
       { $set: updatedInvoiceMDB });
-    // Debug
-    const freshBillingInvoice = await BillingStorage.getInvoice(this.tenant, billingInvoice.id);
-    await this.repairTransactionsBillingData(freshBillingInvoice);
+    // Let's get a clean invoice instance
+    const repairedInvoice = await BillingStorage.getInvoice(this.tenant, billingInvoice.id);
+    await this.repairTransactionsBillingData(repairedInvoice);
   }
 
-  private async repairTransactionsBillingData(billingInvoice: BillingInvoice): Promise<void> {
+  public async repairTransactionsBillingData(billingInvoice: BillingInvoice): Promise<void> {
     // This method is ONLY USED when repairing invoices - c.f.: RepairInvoiceInconsistencies migration task
     if (!billingInvoice.sessions) {
       // This should not happen - but it happened once!
@@ -1750,6 +1745,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         // Update Billing Data
         if (transaction?.billingData?.stop) {
           transaction.billingData.stop.status = BillingStatus.BILLED,
+          transaction.billingData.stop.invoiceID = billingInvoice.id;
           transaction.billingData.stop.invoiceStatus = billingInvoice.status;
           transaction.billingData.stop.invoiceNumber = billingInvoice.number;
           transaction.billingData.lastUpdate = new Date();

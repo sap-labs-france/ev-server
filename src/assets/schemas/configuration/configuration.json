@@ -261,6 +261,9 @@
       "properties": {
         "baseSecureUrl": {
           "type": "string"
+        },
+        "targetPort": {
+          "type": "integer"
         }
       },
       "required": [

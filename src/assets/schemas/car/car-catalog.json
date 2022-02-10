@@ -19,12 +19,10 @@
       "type": "string"
     },
     "availabilityDateFrom": {
-      "type": ["string", "object"],
-      "format": "date"
+      "type": "string"
     },
     "availabilityDateTo": {
-      "type": ["string", "object"],
-      "format": "date"
+      "type": "string"
     },
     "priceFromDE": {
       "type": "number"
@@ -342,7 +340,10 @@
       "type": "string"
     },
     "videos": {
-      "type": "string"
+      "type": ["array", "null"],
+      "items": {
+        "type": "string"
+      }
     },
     "hash": {
       "type": "string"

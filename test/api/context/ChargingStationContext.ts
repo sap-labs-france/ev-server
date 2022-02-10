@@ -64,6 +64,11 @@ export default class ChargingStationContext {
     return this.chargingStation;
   }
 
+  public async softStopTransaction(transactionID: number): Promise<any> {
+    const response = await this.tenantContext.getAdminCentralServerService().transactionApi.softStopTransaction({ ID: transactionID });
+    return response;
+  }
+
   public async authorize(tagId: string): Promise<OCPPAuthorizeResponse> {
     return this.ocppService.executeAuthorize(this.chargingStation.id, {
       idTag: tagId
