@@ -1768,42 +1768,12 @@ export default class OCPPUtils {
         // Check Capabilities
         templateUpdateResult.capabilitiesUpdated =
           OCPPUtils.enrichChargingStationWithTemplateCapabilities(chargingStation, chargingStationTemplate);
-        if (!templateUpdateResult.capabilitiesUpdated) {
-          await Logging.logWarning({
-            tenantID: tenant.id,
-            ...LoggingHelper.getChargingStationProperties(chargingStation),
-            action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
-            module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
-            message: `Cannot find a matching section named 'capabilities' in Template ID '${chargingStationTemplate.id}'`,
-            detailedMessages: { chargingStationTemplate, chargingStation }
-          });
-        }
         // Check Ocpp Standard parameters
         templateUpdateResult.ocppStandardUpdated =
           await OCPPUtils.enrichChargingStationWithTemplateOcppStandardParams(tenant, chargingStation, chargingStationTemplate);
-        if (!templateUpdateResult.ocppStandardUpdated) {
-          await Logging.logWarning({
-            tenantID: tenant.id,
-            ...LoggingHelper.getChargingStationProperties(chargingStation),
-            action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
-            module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
-            message: `Cannot find a matching section named 'ocppStandardParameters' in Template ID '${chargingStationTemplate.id}'`,
-            detailedMessages: { chargingStationTemplate, chargingStation }
-          });
-        }
         // Check Ocpp Vendor parameters
         templateUpdateResult.ocppVendorUpdated =
           await OCPPUtils.enrichChargingStationWithTemplateOcppVendorParams(tenant, chargingStation, chargingStationTemplate);
-        if (!templateUpdateResult.ocppVendorUpdated) {
-          await Logging.logWarning({
-            tenantID: tenant.id,
-            ...LoggingHelper.getChargingStationProperties(chargingStation),
-            action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
-            module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
-            message: `Cannot find a matching section named 'ocppVendorParameters' in Template ID '${chargingStationTemplate.id}'`,
-            detailedMessages: { chargingStationTemplate, chargingStation }
-          });
-        }
         // Update
         chargingStation.templateHash = chargingStationTemplate.hash;
         templateUpdateResult.chargingStationUpdated = true;
