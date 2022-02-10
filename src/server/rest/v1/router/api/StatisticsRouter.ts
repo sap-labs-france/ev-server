@@ -49,7 +49,7 @@ export default class StatisticsRouter {
 
   private buildRouteChargingStationInactivityStatistics(): void {
     this.router.get(`/${ServerRoute.REST_CHARGING_STATION_INACTIVITY_STATISTICS}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(StatisticService.handleGetUserInactivityStatistics.bind(this), ServerAction.CHARGING_STATION_INACTIVITY_STATISTICS, req, res, next);
+      await RouterUtils.handleServerAction(StatisticService.handleGetChargingStationInactivityStatistics.bind(this), ServerAction.CHARGING_STATION_INACTIVITY_STATISTICS, req, res, next);
     });
   }
 

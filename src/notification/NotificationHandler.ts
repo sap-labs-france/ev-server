@@ -1141,10 +1141,8 @@ export default class NotificationHandler {
   }
 
   public static async sendCarsSynchronizationFailed(sourceData: CarCatalogSynchronizationFailedNotification): Promise<void> {
-    // Get the tenant
-    const tenant = await TenantStorage.getTenant(Constants.DEFAULT_TENANT);
     // Get admin users
-    const adminUsers = await NotificationHandler.getAdminUsers(tenant);
+    const adminUsers = await NotificationHandler.getAdminUsers(Constants.DEFAULT_TENANT_OBJECT);
     if (!Utils.isEmptyArray(adminUsers)) {
       // For each Sources
       for (const notificationSource of NotificationHandler.notificationSources) {
@@ -1153,13 +1151,13 @@ export default class NotificationHandler {
           try {
             // Check notification
             const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
-              tenant, notificationSource.channel, ServerAction.CAR_CATALOG_SYNCHRONIZATION_FAILED,
+              Constants.DEFAULT_TENANT_OBJECT, notificationSource.channel, ServerAction.CAR_CATALOG_SYNCHRONIZATION_FAILED,
               null, null, { intervalMins: 60 * 24 });
             // Notified?
             if (!hasBeenNotified) {
               // Save
               await NotificationHandler.saveNotification(
-                tenant, notificationSource.channel, null, ServerAction.CAR_CATALOG_SYNCHRONIZATION_FAILED);
+                Constants.DEFAULT_TENANT_OBJECT, notificationSource.channel, null, ServerAction.CAR_CATALOG_SYNCHRONIZATION_FAILED);
               // Send
               for (const adminUser of adminUsers) {
                 // Enabled?
@@ -1170,7 +1168,7 @@ export default class NotificationHandler {
               }
             } else {
               await Logging.logDebug({
-                tenantID: tenant.id,
+                tenantID: Constants.DEFAULT_TENANT_OBJECT.id,
                 module: MODULE_NAME, method: 'sendCarsSynchronizationFailed',
                 action: ServerAction.CAR_CATALOG_SYNCHRONIZATION_FAILED,
                 message: `Notification via '${notificationSource.channel}' has already been sent`

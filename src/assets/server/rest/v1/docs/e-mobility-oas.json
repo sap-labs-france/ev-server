@@ -4139,14 +4139,26 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "carID": {
-                    "type": "string",
-                    "example": ""
-                  },
                   "userID": {
                     "type": "string",
                     "example": ""
                   },
+                  "carID": {
+                    "type": "string",
+                    "example": ""
+                  },
+                  "carStateOfCharge": {
+                    "type": "integer",
+                    "example": ""
+                  },
+                  "carOdometer": {
+                    "type": "integer",
+                    "example": ""
+                  },
+                  "departureTime": {
+                    "type": "string",
+                    "format": "date-time"
+                },
                   "args": {
                     "type": "object",
                     "properties": {
@@ -7194,13 +7206,7 @@
             "$ref": "#/components/parameters/userID"
           },
           {
-            "in": "path",
-            "name": "paymentMethodID",
-            "description": "Payment Method ID",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/paymentMethodID"
           }
         ],
         "tags": [
@@ -7265,6 +7271,96 @@
         "responses": {
           "200": {
             "description": "Successfully setup user payment method",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingOperationResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/users/{id}/payment-methods/{paymentMethodID}/attach": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Creates a new payment method and attach it to the user as its default",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/userID"
+          },
+          {
+            "$ref": "#/components/parameters/paymentMethodID"
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully attached user payment method",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingOperationResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/users/{id}/payment-methods/{paymentMethodID}/detach": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Detach a payment method from the user",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/userID"
+          },
+          {
+            "$ref": "#/components/parameters/paymentMethodID"
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully detached user payment method",
             "content": {
               "application/json": {
                 "schema": {
@@ -12577,8 +12673,7 @@
           "200": {
             "description": "Return statistics",
             "content": {
-              "text/csv": {
-              }
+              "text/csv": {}
             }
           },
           "401": {
@@ -13218,7 +13313,7 @@
         }
       }
     },
-    "/api/billing/settings": {
+    "/api/billing-setting": {
       "get": {
         "security": [
           {
@@ -13371,6 +13466,165 @@
           },
           "500": {
             "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/invoices": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get Invoices",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/UserIDs"
+          },
+          {
+            "in": "query",
+            "name": "Status",
+            "description": "Pipe separated invoice status (paid, open, draft, void, uncollectible, deleted)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/StartDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/EndDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return invoices",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "number",
+                      "example": 1
+                    },
+                    "result": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Invoice"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/invoices/{id}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get Invoice by id",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/invoiceID"
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return invoice",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Invoice"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/invoices/{id}/download": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Download Invoice as PDF",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/invoiceID"
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return invoice as PDF",
+            "content": {
+              "application/pdf": {
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
       }
@@ -15453,6 +15707,83 @@
             "type": "object"
           }
         }
+      },
+      "Invoice": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number"
+          },
+          "createdOn": {
+            "$ref": "#/components/schemas/CreatedOn"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "downloadable": {
+            "type": "boolean"
+          },
+          "number": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "paid",
+              "open",
+              "draft",
+              "void",
+              "uncollectible",
+              "deleted"
+            ]
+          },
+          "userID": {
+            "type": "string"
+          },
+          "user": {
+            "$ref": "#/components/schemas/User"
+          },
+          "id": {
+            "type": "string"
+          },
+          "sessions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "transactionID": {
+                  "type": "number"
+                },
+                "pricingData": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "quantity": {
+                        "type": "number"
+                      },
+                      "amount": {
+                        "type": "number"
+                      },
+                      "roundedAmount": {
+                        "type": "number"
+                      },
+                      "itemDescription": {
+                        "type": "string"
+                      },
+                      "taxes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "parameters": {
@@ -15461,7 +15792,7 @@
         "name": "Limit",
         "description": "Limit the number of records",
         "example": 100,
-        "required": false,
+        "required": true,
         "schema": {
           "type": "integer"
         }
@@ -16147,6 +16478,24 @@
         "schema": {
           "type": "number",
           "minimum": 0
+        }
+      },
+      "paymentMethodID": {
+        "in": "path",
+        "name": "paymentMethodID",
+        "description": "Payment Method ID",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "invoiceID": {
+        "in": "path",
+        "name": "id",
+        "description": "Invoice ID",
+        "required": true,
+        "schema": {
+          "type": "string"
         }
       }
     }

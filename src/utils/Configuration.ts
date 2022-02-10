@@ -151,6 +151,9 @@ export default class Configuration {
   public static getJsonEndpointConfig(): JsonEndpointConfiguration {
     const jsonEndpoint = Configuration.getConfig().JsonEndpoint;
     if (!Configuration.isUndefined('JsonEndpoint', jsonEndpoint)) {
+      if (Configuration.isUndefined('JsonEndpoint.targetPort', jsonEndpoint.targetPort)) {
+        jsonEndpoint.targetPort = 80;
+      }
       return jsonEndpoint;
     }
   }
