@@ -1073,7 +1073,8 @@ export default class CpoOCPIClient extends OCPIClient {
 
   private async convertChargingStationToOCPILocation(tenant: Tenant, site: Site, chargingStation: ChargingStation,
       connectorID: number, countryID: string, partyID: string): Promise<OCPILocation> {
-    const hasValidGpsCoordinates = Utils.hasValidGpsCoordinates(site.address?.coordinates);
+    const hasValidSiteGpsCoordinates = Utils.hasValidGpsCoordinates(site.address?.coordinates);
+    const hasValidChargingStationGpsCoordinates = Utils.hasValidGpsCoordinates(chargingStation?.coordinates);
     const connectors: OCPIConnector[] = [];
     let status: ChargePointStatus;
     const connector = Utils.getConnectorFromID(chargingStation, connectorID);
@@ -1091,8 +1092,8 @@ export default class CpoOCPIClient extends OCPIClient {
       postal_code: site.address?.postalCode,
       country: countries.getAlpha3Code(site.address.country, CountriesList.countries[countryID].languages[0]),
       coordinates: {
-        longitude: hasValidGpsCoordinates ? site.address.coordinates[0].toString() : Constants.SFDP_LONGITUDE.toString(),
-        latitude: hasValidGpsCoordinates ? site.address.coordinates[1].toString() : Constants.SFDP_LATTITUDE.toString()
+        longitude: hasValidSiteGpsCoordinates ? site.address.coordinates[0].toString() : Constants.SFDP_LONGITUDE.toString(),
+        latitude: hasValidSiteGpsCoordinates ? site.address.coordinates[1].toString() : Constants.SFDP_LATTITUDE.toString()
       },
       type: OCPILocationType.UNKNOWN,
       evses: [{
@@ -1103,8 +1104,8 @@ export default class CpoOCPIClient extends OCPIClient {
         capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
         connectors: connectors,
         coordinates: {
-          latitude: chargingStation.coordinates[1]?.toString(),
-          longitude: chargingStation.coordinates[0]?.toString()
+          longitude: hasValidChargingStationGpsCoordinates ? chargingStation.coordinates[0].toString() : Constants.SFDP_LONGITUDE.toString(),
+          latitude: hasValidChargingStationGpsCoordinates ? chargingStation.coordinates[1].toString() : Constants.SFDP_LATTITUDE.toString()
         },
         last_updated: chargingStation.lastSeen
       }],

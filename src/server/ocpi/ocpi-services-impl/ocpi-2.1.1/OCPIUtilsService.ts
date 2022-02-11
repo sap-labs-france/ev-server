@@ -173,7 +173,7 @@ export default class OCPIUtilsService {
 
   public static async convertSite2Location(tenant: Tenant, site: Site,
       options: OCPILocationOptions, withChargingStations: boolean): Promise<OCPILocation> {
-    const hasValidGpsCoordinates = Utils.hasValidGpsCoordinates(site.address?.coordinates);
+    const hasValidSiteGpsCoordinates = Utils.hasValidGpsCoordinates(site.address?.coordinates);
     // Build object
     return {
       id: site.id,
@@ -184,8 +184,8 @@ export default class OCPIUtilsService {
       postal_code: site.address.postalCode,
       country: countries.getAlpha3Code(site.address.country, CountriesList.countries[options.countryID].languages[0]),
       coordinates: {
-        longitude: hasValidGpsCoordinates ? site.address.coordinates[0].toString() : Constants.SFDP_LONGITUDE.toString(),
-        latitude: hasValidGpsCoordinates ? site.address.coordinates[1].toString() : Constants.SFDP_LATTITUDE.toString()
+        longitude: hasValidSiteGpsCoordinates ? site.address.coordinates[0].toString() : Constants.SFDP_LONGITUDE.toString(),
+        latitude: hasValidSiteGpsCoordinates ? site.address.coordinates[1].toString() : Constants.SFDP_LATTITUDE.toString()
       },
       evses: withChargingStations ?
         await OCPIUtilsService.getEvsesFromSite(tenant, site.id, options, Constants.DB_PARAMS_MAX_LIMIT) : [],
@@ -786,6 +786,7 @@ export default class OCPIUtilsService {
 
   private static async convertChargingStation2MultipleEvses(tenant: Tenant, chargingStation: ChargingStation,
       chargePoint: ChargePoint, options: OCPILocationOptions): Promise<OCPIEvse[]> {
+    const hasValidChargingStationGpsCoordinates = Utils.hasValidGpsCoordinates(chargingStation?.coordinates);
     // Loop through connectors and send one evse per connector
     let connectors: Connector[];
     if (chargePoint) {
@@ -804,8 +805,8 @@ export default class OCPIUtilsService {
         connectors: [await OCPIUtilsService.convertConnector2OCPIConnector(tenant, chargingStation, connector, options.countryID, options.partyID)],
         last_updated: chargingStation.lastSeen,
         coordinates: {
-          latitude: chargingStation.coordinates[1] ? chargingStation.coordinates[1].toString() : null,
-          longitude: chargingStation.coordinates[0] ? chargingStation.coordinates[0].toString() : null
+          longitude: hasValidChargingStationGpsCoordinates ? chargingStation.coordinates[0].toString() : Constants.SFDP_LONGITUDE.toString(),
+          latitude: hasValidChargingStationGpsCoordinates ? chargingStation.coordinates[1].toString() : Constants.SFDP_LATTITUDE.toString()
         }
       };
       // Check addChargeBoxID flag
@@ -823,6 +824,7 @@ export default class OCPIUtilsService {
 
   private static async convertChargingStation2UniqueEvse(tenant: Tenant, chargingStation: ChargingStation,
       chargePoint: ChargePoint, options: OCPILocationOptions): Promise<OCPIEvse[]> {
+    const hasValidChargingStationGpsCoordinates = Utils.hasValidGpsCoordinates(chargingStation?.coordinates);
     let connectors: Connector[];
     if (chargePoint) {
       connectors = Utils.getConnectorsFromChargePoint(chargingStation, chargePoint);
@@ -831,7 +833,7 @@ export default class OCPIUtilsService {
     }
     // Get all connectors
     const ocpiConnectors: OCPIConnector[] = await Promise.all(connectors.map(async (connector: Connector) =>
-      await OCPIUtilsService.convertConnector2OCPIConnector(tenant, chargingStation, connector, options.countryID, options.partyID)));
+      OCPIUtilsService.convertConnector2OCPIConnector(tenant, chargingStation, connector, options.countryID, options.partyID)));
     // Get connectors aggregated status
     const connectorOneStatus = OCPIUtilsService.convertToOneConnectorStatus(connectors);
     // Build evse
@@ -845,8 +847,8 @@ export default class OCPIUtilsService {
       connectors: ocpiConnectors,
       last_updated: chargingStation.lastSeen,
       coordinates: {
-        latitude: chargingStation.coordinates[1] ? chargingStation.coordinates[1].toString() : null,
-        longitude: chargingStation.coordinates[0] ? chargingStation.coordinates[0].toString() : null
+        longitude: hasValidChargingStationGpsCoordinates ? chargingStation.coordinates[0].toString() : Constants.SFDP_LONGITUDE.toString(),
+        latitude: hasValidChargingStationGpsCoordinates ? chargingStation.coordinates[1].toString() : Constants.SFDP_LATTITUDE.toString()
       }
     };
     // Check addChargeBoxID flag
