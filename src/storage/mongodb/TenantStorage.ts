@@ -72,7 +72,7 @@ export default class TenantStorage {
           department: tenantToSave.address.department,
           region: tenantToSave.address.region,
           country: tenantToSave.address.country,
-          coordinates: Utils.containsGPSCoordinates(tenantToSave.address.coordinates) ? tenantToSave.address.coordinates.map(
+          coordinates: Utils.hasValidGpsCoordinates(tenantToSave.address.coordinates) ? tenantToSave.address.coordinates.map(
             (coordinate) => Utils.convertToFloat(coordinate)) : [],
         }
       });

@@ -173,6 +173,7 @@ export default class OCPIUtilsService {
 
   public static async convertSite2Location(tenant: Tenant, site: Site,
       options: OCPILocationOptions, withChargingStations: boolean): Promise<OCPILocation> {
+    const hasValidGpsCoordinates = Utils.hasValidGpsCoordinates(site.address?.coordinates);
     // Build object
     return {
       id: site.id,
@@ -183,8 +184,8 @@ export default class OCPIUtilsService {
       postal_code: site.address.postalCode,
       country: countries.getAlpha3Code(site.address.country, CountriesList.countries[options.countryID].languages[0]),
       coordinates: {
-        longitude: site.address.coordinates[0].toString(),
-        latitude: site.address.coordinates[1].toString()
+        longitude: hasValidGpsCoordinates ? site.address.coordinates[0].toString() : Constants.SFDP_LONGITUDE.toString(),
+        latitude: hasValidGpsCoordinates ? site.address.coordinates[1].toString() : Constants.SFDP_LATTITUDE.toString()
       },
       evses: withChargingStations ?
         await OCPIUtilsService.getEvsesFromSite(tenant, site.id, options, Constants.DB_PARAMS_MAX_LIMIT) : [],
@@ -708,7 +709,8 @@ export default class OCPIUtilsService {
     }
   }
 
-  public static async convertConnector2OCPIConnector(tenant: Tenant, chargingStation: ChargingStation, connector: Connector, countryId: string, partyId: string): Promise<OCPIConnector> {
+  public static async convertConnector2OCPIConnector(tenant: Tenant, chargingStation: ChargingStation,
+      connector: Connector, countryID: string, partyID: string): Promise<OCPIConnector> {
     let type: OCPIConnectorType, format: OCPIConnectorFormat;
     const chargePoint = Utils.getChargePointFromID(chargingStation, connector?.chargePointID);
     const voltage: OCPIVoltage = OCPIUtilsService.getChargingStationOCPIVoltage(chargingStation, chargePoint, connector.connectorId);
@@ -738,7 +740,7 @@ export default class OCPIUtilsService {
         break;
     }
     return {
-      id: RoamingUtils.buildEvseID(countryId, partyId, chargingStation.id, connector.connectorId),
+      id: RoamingUtils.buildEvseID(countryID, partyID, chargingStation.id, connector.connectorId),
       standard: type,
       format: format,
       voltage: voltage,

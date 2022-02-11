@@ -163,7 +163,7 @@ export default class ChargingStationStorage {
     // Create Aggregation
     const aggregation = [];
     // Position coordinates
-    if (Utils.containsGPSCoordinates(params.locCoordinates)) {
+    if (Utils.hasValidGpsCoordinates(params.locCoordinates)) {
       aggregation.push({
         $geoNear: {
           near: {
@@ -321,7 +321,7 @@ export default class ChargingStationStorage {
       dbParams.sort = { _id: 1 };
     }
     // Position coordinates
-    if (Utils.containsGPSCoordinates(params.locCoordinates)) {
+    if (Utils.hasValidGpsCoordinates(params.locCoordinates)) {
       // Override (can have only one sort)
       dbParams.sort = { distanceMeters: 1 };
     }
@@ -370,7 +370,7 @@ export default class ChargingStationStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Reorder connector ID
-    if (!Utils.containsGPSCoordinates(params.locCoordinates)) {
+    if (!Utils.hasValidGpsCoordinates(params.locCoordinates)) {
       aggregation.push({
         $sort: dbParams.sort
       });
@@ -554,7 +554,7 @@ export default class ChargingStationStorage {
         (backupConnector) => ChargingStationStorage.filterConnectorMDB(backupConnector)) : [],
       chargePoints: chargingStationToSave.chargePoints ? chargingStationToSave.chargePoints.map(
         (chargePoint) => ChargingStationStorage.filterChargePointMDB(chargePoint)) : [],
-      coordinates: Utils.containsGPSCoordinates(chargingStationToSave.coordinates) ? chargingStationToSave.coordinates.map(
+      coordinates: Utils.hasValidGpsCoordinates(chargingStationToSave.coordinates) ? chargingStationToSave.coordinates.map(
         (coordinate) => Utils.convertToFloat(coordinate)) : [],
       currentIPAddress: chargingStationToSave.currentIPAddress,
       capabilities: chargingStationToSave.capabilities,
