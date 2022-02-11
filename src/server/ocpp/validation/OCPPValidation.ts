@@ -72,7 +72,7 @@ export default class OCPPValidation extends SchemaValidator {
         this.validate(this.diagnosticsStatusNotificationRequest, diagnosticsStatusNotification);
   }
 
-  public validateFirmwareStatusNotification(chargingStation: ChargingStation,
+  public validateFirmwareStatusNotification(
       firmwareStatusNotification: OCPPFirmwareStatusNotificationRequestExtended): void {
         this.validate(this.firmwareStatusNotificationRequest, firmwareStatusNotification);
   }
