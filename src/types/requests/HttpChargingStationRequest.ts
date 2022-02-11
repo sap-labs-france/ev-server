@@ -150,7 +150,7 @@ export interface HttpChargingStationReservationCancelRequest {
 export interface HttpChargingStationStartTransactionRequest extends HttpChargingStationCommandRequest {
   carID?: string,
   userID?: string,
-  carSoc?: number,
+  carStateOfCharge?: number,
   carOdometer?: number,
   departureTime?: Date,
   args: {

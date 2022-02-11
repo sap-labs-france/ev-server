@@ -22,10 +22,10 @@ export default class PricingEngine {
     // Merge the pricing definitions from the different contexts
     const pricingDefinitions: ResolvedPricingDefinition[] = [];
     // pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction.userID));
-    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.CHARGING_STATION, transaction.chargeBoxID.toString()));
-    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.SITE_AREA, transaction.siteAreaID.toString()));
-    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.SITE, transaction.siteID.toString()));
-    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.COMPANY, transaction.companyID.toString()));
+    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.CHARGING_STATION, transaction.chargeBoxID?.toString()));
+    // pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.SITE_AREA, transaction.siteAreaID?.toString()));
+    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.SITE, transaction.siteID?.toString()));
+    // pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.COMPANY, transaction.companyID?.toString()));
     pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.TENANT, tenant.id));
     if (!transaction.timezone) {
       await Logging.logWarning({
@@ -77,6 +77,17 @@ export default class PricingEngine {
   }
 
   private static async getPricingDefinitions4Entity(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, entityType: PricingEntity, entityID: string): Promise<ResolvedPricingDefinition[]> {
+    if (!entityID) {
+      await Logging.logWarning({
+        tenantID: tenant.id,
+        module: MODULE_NAME,
+        action: ServerAction.PRICING,
+        method: 'getPricingDefinitions4Entity',
+        message: `Pricing context resolution - unexpected situation - entity ID is null for type ${entityType}`,
+        ...LoggingHelper.getTransactionProperties(transaction)
+      });
+      return [];
+    }
     let pricingDefinitions = await PricingEngine.fetchPricingDefinitions4Entity(tenant, entityType, entityID);
     pricingDefinitions = pricingDefinitions || [];
     const actualPricingDefinitions = pricingDefinitions.filter((pricingDefinition) =>

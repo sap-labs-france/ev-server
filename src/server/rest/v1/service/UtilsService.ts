@@ -1068,16 +1068,16 @@ export default class UtilsService {
     }
   }
 
-  public static async exportToCSV(req: Request, res: Response, attachmentName: string,
-      handleGetData: (req: Request) => Promise<DataResult<any>>,
+  public static async exportToCSV(req: Request, res: Response, attachmentName: string, filteredRequest: any,
+      handleGetData: (req: Request, filteredRequest: any) => Promise<DataResult<any>>,
       handleConvertToCSV: (req: Request, data: any[], writeHeader: boolean) => string): Promise<void> {
-    // Override
+    // Force params
     req.query.Limit = Constants.EXPORT_PAGE_SIZE.toString();
     // Set the attachment name
     res.attachment(attachmentName);
     // Get the total number of Logs
     req.query.OnlyRecordCount = 'true';
-    let data = await handleGetData(req);
+    let data = await handleGetData(req, filteredRequest);
     let count = data.count;
     delete req.query.OnlyRecordCount;
     let skip = 0;
@@ -1097,7 +1097,7 @@ export default class UtilsService {
       }
       // Get the data
       req.query.Skip = skip.toString();
-      data = await handleGetData(req);
+      data = await handleGetData(req, filteredRequest);
       // Sanitize against csv formula injection
       data.result = await Utils.sanitizeCSVExport(data.result, req.tenant?.id);
       // Get CSV data

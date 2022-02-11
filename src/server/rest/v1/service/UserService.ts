@@ -19,6 +19,7 @@ import CSVError from 'csvtojson/v2/CSVError';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
 import Constants from '../../../../utils/Constants';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
+import { HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
 import JSONStream from 'JSONStream';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
@@ -306,7 +307,12 @@ export default class UserService {
   }
 
   public static async handleExportUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    await UtilsService.exportToCSV(req, res, 'exported-users.csv',
+    // Force params
+    req.query.Limit = Constants.EXPORT_PAGE_SIZE.toString();
+    // Filter
+    const filteredRequest = UserValidator.getInstance().validateUsersGetReq(req.query);
+    // Get Users
+    await UtilsService.exportToCSV(req, res, 'exported-users.csv', filteredRequest,
       UserService.getUsers.bind(this),
       UserService.convertToCSV.bind(this));
   }
@@ -358,7 +364,10 @@ export default class UserService {
   }
 
   public static async handleGetUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    res.json(await UserService.getUsers(req));
+    // Filter
+    const filteredRequest = UserValidator.getInstance().validateUsersGetReq(req.query);
+    // Get Users
+    res.json(await UserService.getUsers(req, filteredRequest));
     next();
   }
 
@@ -722,9 +731,7 @@ export default class UserService {
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
   }
 
-  private static async getUsers(req: Request): Promise<DataResult<User>> {
-    // Filter
-    const filteredRequest = UserValidator.getInstance().validateUsersGetReq(req.query);
+  private static async getUsers(req: Request, filteredRequest: HttpUsersRequest): Promise<DataResult<User>> {
     // Get authorization filters
     const authorizationUsersFilters = await AuthorizationService.checkAndGetUsersAuthorizations(
       req.tenant, req.user, filteredRequest);

@@ -47,7 +47,7 @@ export default class AssetStorage {
       name: assetToSave.name,
       siteAreaID: DatabaseUtils.convertToObjectID(assetToSave.siteAreaID),
       siteID: DatabaseUtils.convertToObjectID(assetToSave.siteID),
-      coordinates: Utils.containsGPSCoordinates(assetToSave.coordinates) ? assetToSave.coordinates.map(
+      coordinates: Utils.hasValidGpsCoordinates(assetToSave.coordinates) ? assetToSave.coordinates.map(
         (coordinate) => Utils.convertToFloat(coordinate)) : [],
       assetType: assetToSave.assetType,
       excludeFromSmartCharging: Utils.convertToBoolean(assetToSave.excludeFromSmartCharging),

@@ -253,7 +253,7 @@ export default class SiteStorage {
         department: siteToSave.address.department,
         region: siteToSave.address.region,
         country: siteToSave.address.country,
-        coordinates: Utils.containsGPSCoordinates(siteToSave.address.coordinates) ? siteToSave.address.coordinates.map(
+        coordinates: Utils.hasValidGpsCoordinates(siteToSave.address.coordinates) ? siteToSave.address.coordinates.map(
           (coordinate) => Utils.convertToFloat(coordinate)) : [],
       };
     }
@@ -303,7 +303,7 @@ export default class SiteStorage {
     // Create Aggregation
     const aggregation = [];
     // Position coordinates
-    if (Utils.containsGPSCoordinates(params.locCoordinates)) {
+    if (Utils.hasValidGpsCoordinates(params.locCoordinates)) {
       aggregation.push({
         $geoNear: {
           near: {
@@ -394,7 +394,7 @@ export default class SiteStorage {
       dbParams.sort = { name: 1 };
     }
     // Position coordinates
-    if (Utils.containsGPSCoordinates(params.locCoordinates)) {
+    if (Utils.hasValidGpsCoordinates(params.locCoordinates)) {
       dbParams.sort = { distanceMeters: 1 };
     }
     aggregation.push({

@@ -252,7 +252,7 @@ export default class UserStorage {
         department: userToSave.address.department,
         region: userToSave.address.region,
         country: userToSave.address.country,
-        coordinates: Utils.containsGPSCoordinates(userToSave.address.coordinates) ? userToSave.address.coordinates.map(
+        coordinates: Utils.hasValidGpsCoordinates(userToSave.address.coordinates) ? userToSave.address.coordinates.map(
           (coordinate) => Utils.convertToFloat(coordinate)) : [],
       };
     }
