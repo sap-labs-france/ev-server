@@ -217,7 +217,7 @@ export default class OCPPService {
           // Pricing
           await OCPPUtils.processTransactionPricing(tenant, transaction, chargingStation, consumption, TransactionAction.UPDATE);
           // Billing
-          await OCPPUtils.processTransactionBilling(tenant, transaction, TransactionAction.UPDATE);
+          await OCPPUtils.processTransactionBilling(tenant, transaction, chargingStation, TransactionAction.UPDATE);
         }
         // Save
         await ConsumptionStorage.saveConsumption(tenant, consumption);
@@ -364,7 +364,7 @@ export default class OCPPService {
       // Enrich
       this.enrichStartTransaction(tenant, startTransaction, chargingStation);
       // Create Transaction
-      const newTransaction = await this.createTransaction(tenant, chargingStation, startTransaction);
+      const newTransaction = await this.createTransaction(tenant, startTransaction);
       // Check User
       const { user, tag } = await Authorizations.isAuthorizedToStartTransaction(
         tenant, chargingStation, startTransaction.tagID, newTransaction, ServerAction.OCPP_START_TRANSACTION, Action.START_TRANSACTION);
@@ -382,7 +382,7 @@ export default class OCPPService {
       const firstConsumption = await OCPPUtils.createFirstConsumption(tenant, chargingStation, newTransaction);
       await OCPPUtils.processTransactionPricing(tenant, newTransaction, chargingStation, firstConsumption, TransactionAction.START);
       // Billing
-      await OCPPUtils.processTransactionBilling(tenant, newTransaction, TransactionAction.START);
+      await OCPPUtils.processTransactionBilling(tenant, newTransaction, chargingStation, TransactionAction.START);
       // Roaming
       await OCPPUtils.processTransactionRoaming(tenant, newTransaction, chargingStation, chargingStation.siteArea, tag, TransactionAction.START);
       // Save it
@@ -489,7 +489,7 @@ export default class OCPPService {
       // Update Transaction with Stop Transaction and Stop MeterValues
       OCPPUtils.updateTransactionWithStopTransaction(transaction, chargingStation, stopTransaction, user, alternateUser, tagID, isSoftStop);
       // Bill
-      await OCPPUtils.processTransactionBilling(tenant, transaction, TransactionAction.STOP);
+      await OCPPUtils.processTransactionBilling(tenant, transaction, chargingStation, TransactionAction.STOP);
       // Roaming
       await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, chargingStation.siteArea, transaction.tag, TransactionAction.STOP);
       // Save the transaction
@@ -796,7 +796,7 @@ export default class OCPPService {
           const transactionUpdated = await this.checkAndComputeTransactionExtraInactivityFromStatusNotification(
             tenant, chargingStation, lastTransaction, connector, statusNotification);
           // Billing: Trigger the asynchronous billing task
-          const billingDataUpdated = await this.checkAndBillTransaction(tenant, lastTransaction);
+          const billingDataUpdated = await this.checkAndBillTransaction(tenant, lastTransaction, chargingStation);
           // OCPI: Post the CDR
           const ocpiUpdated = await this.checkAndSendOCPITransactionCdr(
             tenant, lastTransaction, chargingStation, lastTransaction.tag);
@@ -893,13 +893,13 @@ export default class OCPPService {
     return extraInactivityUpdated;
   }
 
-  private async checkAndBillTransaction(tenant: Tenant, transaction: Transaction): Promise<boolean> {
+  private async checkAndBillTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation): Promise<boolean> {
     let transactionUpdated = false;
     // Make sure the Extra Inactivity is already known
     if (transaction.stop?.extraInactivityComputed) {
       transactionUpdated = true;
       // Billing - Start the asynchronous billing flow
-      await OCPPUtils.processTransactionBilling(tenant, transaction, TransactionAction.END);
+      await OCPPUtils.processTransactionBilling(tenant, transaction, chargingStation, TransactionAction.END);
     }
     return transactionUpdated;
   }
@@ -1743,12 +1743,11 @@ export default class OCPPService {
     }
   }
 
-  private async createTransaction(tenant: Tenant, chargingStation: ChargingStation, startTransaction: OCPPStartTransactionRequestExtended): Promise<Transaction> {
+  private async createTransaction(tenant: Tenant, startTransaction: OCPPStartTransactionRequestExtended): Promise<Transaction> {
     return {
       id: await TransactionStorage.findAvailableID(tenant),
       issuer: true,
       chargeBoxID: startTransaction.chargeBoxID,
-      chargeBox: chargingStation, // TODO - Clarify if this is allowed!!!!
       tagID: startTransaction.idTag,
       timezone: startTransaction.timezone,
       userID: startTransaction.userID,

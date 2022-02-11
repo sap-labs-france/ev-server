@@ -13,6 +13,7 @@ import BackendError from '../../../exception/BackendError';
 import BillingIntegration from '../BillingIntegration';
 import { BillingSettings } from '../../../types/Setting';
 import BillingStorage from '../../../storage/mongodb/BillingStorage';
+import ChargingStation from '../../../types/ChargingStation';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import DatabaseUtils from '../../../storage/mongodb/DatabaseUtils';
@@ -781,30 +782,29 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
   }
 
-  public async startTransaction(transaction: Transaction): Promise<BillingDataTransactionStart> {
+  public async startTransaction(transaction: Transaction, chargingStation: ChargingStation): Promise<BillingDataTransactionStart> {
     if (!this.settings.billing.isTransactionBillingActivated) {
       return {
         // Keeps track whether the billing was activated or not on start transaction
         withBillingActive: false
       };
     }
-    // User with free access are not billed
-    if (transaction.user?.freeAccess) {
+    // Check Transaction
+    this.checkStartTransaction(transaction, chargingStation);
+    // Check Free Access
+    if (transaction.user.freeAccess) {
       return {
-        // Do not bill internal users
         withBillingActive: false
       };
     }
-    if (!transaction.chargeBox?.siteArea?.accessControl) {
+    // Check Access Control
+    if (!chargingStation.siteArea.accessControl) {
       return {
-        // Do not bill sessions where the Access Control is OFF
         withBillingActive: false
       };
     }
     // Check Stripe
     await this.checkConnection();
-    // Check Transaction
-    this.checkStartTransaction(transaction);
     // Check Start Transaction Prerequisites
     const customerID: string = transaction.user?.billingData?.customerID;
     // Check whether the customer exists or not

@@ -5,6 +5,7 @@ import User, { UserStatus } from '../../types/User';
 import BackendError from '../../exception/BackendError';
 import { BillingSettings } from '../../types/Setting';
 import BillingStorage from '../../storage/mongodb/BillingStorage';
+import ChargingStation from '../../types/ChargingStation';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import { Decimal } from 'decimal.js';
@@ -228,7 +229,7 @@ export default abstract class BillingIntegration {
     }
   }
 
-  public checkStartTransaction(transaction: Transaction): void {
+  public checkStartTransaction(transaction: Transaction, chargingStation: ChargingStation): void {
     // Check User
     if (!transaction.userID || !transaction.user) {
       throw new BackendError({
@@ -238,7 +239,7 @@ export default abstract class BillingIntegration {
         action: ServerAction.BILLING_TRANSACTION
       });
     }
-    // Check Billing Data (only in Live Mode)
+    // Check Billing Data
     if (!transaction.user?.billingData?.customerID) {
       throw new BackendError({
         message: 'User has no billing data or no customer ID',
@@ -247,18 +248,23 @@ export default abstract class BillingIntegration {
         action: ServerAction.BILLING_TRANSACTION
       });
     }
-  }
-
-  private async _getUsersWithNoBillingData(): Promise<User[]> {
-    const newUsers = await UserStorage.getUsers(this.tenant,
-      {
-        statuses: [UserStatus.ACTIVE],
-        notSynchronizedBillingData: true
-      }, Constants.DB_PARAMS_MAX_LIMIT);
-    if (newUsers.count > 0) {
-      return newUsers.result;
+    if (!chargingStation) {
+      throw new BackendError({
+        message: 'The charging station is mandatory to start a transaction',
+        module: MODULE_NAME,
+        method: 'checkStartTransaction',
+        action: ServerAction.BILLING_TRANSACTION
+      });
     }
-    return [];
+    // Check for the Site Area
+    if (!chargingStation.siteArea) {
+      throw new BackendError({
+        message: 'The site area is mandatory to start a transaction',
+        module: MODULE_NAME,
+        method: 'checkStartTransaction',
+        action: ServerAction.BILLING_TRANSACTION
+      });
+    }
   }
 
   private async _synchronizeUser(user: User, forceMode = false): Promise<BillingUser> {
@@ -498,7 +504,7 @@ export default abstract class BillingIntegration {
 
   abstract resetConnectionSettings() : Promise<BillingSettings>;
 
-  abstract startTransaction(transaction: Transaction): Promise<BillingDataTransactionStart>;
+  abstract startTransaction(transaction: Transaction, chargingStation: ChargingStation): Promise<BillingDataTransactionStart>;
 
   abstract updateTransaction(transaction: Transaction): Promise<BillingDataTransactionUpdate>;
 

@@ -110,7 +110,7 @@ export default class BillPendingTransactionTask extends TenantSchedulerTask {
                       transaction.stop.extraInactivityComputed = true;
                       transaction.stop.extraInactivitySecs = 0;
                       // Billing - This starts the billing async task - the BillingStatus will remain PENDING for a while!
-                      await OCPPUtils.processTransactionBilling(tenant, transaction, TransactionAction.END);
+                      await OCPPUtils.processTransactionBilling(tenant, transaction, transaction.chargeBox, TransactionAction.END);
                       // Save
                       await TransactionStorage.saveTransaction(tenant, transaction);
                       await Logging.logInfo({

@@ -300,7 +300,7 @@ export default class OCPPUtils {
     }
   }
 
-  public static async processTransactionBilling(tenant: Tenant, transaction: Transaction, action: TransactionAction): Promise<void> {
+  public static async processTransactionBilling(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, action: TransactionAction): Promise<void> {
     if (!transaction.user || !transaction.user.issuer) {
       return;
     }
@@ -311,7 +311,7 @@ export default class OCPPUtils {
         case TransactionAction.START:
           try {
             // Delegate
-            const billingDataTransactionStart: BillingDataTransactionStart = await billingImpl.startTransaction(transaction);
+            const billingDataTransactionStart: BillingDataTransactionStart = await billingImpl.startTransaction(transaction, chargingStation);
             // Update
             transaction.billingData = {
               withBillingActive: billingDataTransactionStart.withBillingActive,
@@ -387,7 +387,7 @@ export default class OCPPUtils {
               transaction.billingData.lastUpdate = new Date();
             }
           } catch (error) {
-            const message = `Billing - stopTransaction failed - transaction ID '${transaction.id}'`;
+            const message = `Billing - endTransaction failed - transaction ID '${transaction.id}'`;
             await Logging.logError({
               ...LoggingHelper.getTransactionProperties(transaction),
               tenantID: tenant.id,
