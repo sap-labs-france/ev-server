@@ -25,10 +25,16 @@ class TestData {
 }
 
 const testData: TestData = new TestData();
+// Flag to check if we can test single location
+let testSingleLocation;
 
-describe('OCPI Service Tests (utocpi)', function() {
-  this.timeout(100000);
-  before(async () => {
+const cpoService = new OCPIService(OCPIRole.CPO);
+
+describe('OCPI Service Tests (utocpi)', () => {
+
+  jest.setTimeout(100000);
+
+  beforeAll(async () => {
     if (!OCPIService.isConfigAvailable()) {
       testData.pending = 1;
     }
@@ -42,9 +48,10 @@ describe('OCPI Service Tests (utocpi)', function() {
     );
     testData.cpoService = new OCPIService(OCPIRole.CPO);
     testData.emspService = new OCPIService(OCPIRole.EMSP);
+    testSingleLocation = (await testData.cpoService.getLocations2_1_1()).status !== StatusCodes.OK;
   });
 
-  after(async () => {
+  afterAll(async () => {
   });
 
   /**
@@ -234,12 +241,15 @@ describe('OCPI Service Tests (utocpi)', function() {
     let response;
 
     // Check call
-    it('should return 501 on url: /ocpi/emsp/2.1.1/invalidEndpoint', async () => {
-      // Create
-      response = await testData.emspService.accessPath('GET', '/ocpi/emsp/2.1.1/invalidEndpoint');
-      // Check status
-      expect(response.status).to.be.eql(501);
-    });
+    it(
+      'should return 501 on url: /ocpi/emsp/2.1.1/invalidEndpoint',
+      async () => {
+        // Create
+        response = await testData.emspService.accessPath('GET', '/ocpi/emsp/2.1.1/invalidEndpoint');
+        // Check status
+        expect(response.status).to.be.eql(501);
+      }
+    );
 
     // Check Response Object
     it('should have correct OCPI Error Response object', () => {
@@ -322,40 +332,49 @@ describe('OCPI Service Tests (utocpi)', function() {
      */
     describe('Access with paging', () => {
       // Check access for each location
-      it('should access url /ocpi/cpo/2.1.1/locations/ and have headers X-Limit and X-Total-Count', async () => {
-        // Call
-        const locationsResponse = await testData.cpoService.accessPath('GET', '/ocpi/cpo/2.1.1/locations');
+      it(
+        'should access url /ocpi/cpo/2.1.1/locations/ and have headers X-Limit and X-Total-Count',
+        async () => {
+          // Call
+          const locationsResponse = await testData.cpoService.accessPath('GET', '/ocpi/cpo/2.1.1/locations');
 
-        expect(locationsResponse.data).to.not.be.empty;
-        expect(locationsResponse.data).to.have.property('status_code', 1000);
-        expect(locationsResponse.data).to.have.property('status_message', 'Success');
-        expect(locationsResponse.data).to.have.property('data').to.be.an('array').that.is.not.empty;
-        expect(locationsResponse.headers).to.have.property('x-limit');
-        expect(locationsResponse.headers).to.have.property('x-total-count');
-      });
+          expect(locationsResponse.data).to.not.be.empty;
+          expect(locationsResponse.data).to.have.property('status_code', 1000);
+          expect(locationsResponse.data).to.have.property('status_message', 'Success');
+          expect(locationsResponse.data).to.have.property('data').to.be.an('array').that.is.not.empty;
+          expect(locationsResponse.headers).to.have.property('x-limit');
+          expect(locationsResponse.headers).to.have.property('x-total-count');
+        }
+      );
 
       // Check access for each location
-      it('should access url with paging /ocpi/cpo/2.1.1/locations/?offset=0&limit=20', async () => {
-        // Call
-        const locationsResponse = await testData.cpoService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/?offset=0&limit=20');
+      it(
+        'should access url with paging /ocpi/cpo/2.1.1/locations/?offset=0&limit=20',
+        async () => {
+          // Call
+          const locationsResponse = await testData.cpoService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/?offset=0&limit=20');
 
-        expect(locationsResponse.data).to.not.be.empty;
-        expect(locationsResponse.data).to.have.property('status_code', 1000);
-        expect(locationsResponse.data).to.have.property('status_message', 'Success');
-        expect(locationsResponse.data).to.have.property('data').to.be.an('array').that.is.not.empty;
-      });
+          expect(locationsResponse.data).to.not.be.empty;
+          expect(locationsResponse.data).to.have.property('status_code', 1000);
+          expect(locationsResponse.data).to.have.property('status_message', 'Success');
+          expect(locationsResponse.data).to.have.property('data').to.be.an('array').that.is.not.empty;
+        }
+      );
 
       // Check limit
-      it('should access url with paging /ocpi/cpo/2.1.1/locations/?offset=0&limit=1', async () => {
-        // Call
-        const locationsResponse = await testData.cpoService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/?offset=0&limit=1');
+      it(
+        'should access url with paging /ocpi/cpo/2.1.1/locations/?offset=0&limit=1',
+        async () => {
+          // Call
+          const locationsResponse = await testData.cpoService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/?offset=0&limit=1');
 
-        expect(locationsResponse.data).to.not.be.empty;
-        expect(locationsResponse.data).to.have.property('status_code', 1000);
-        expect(locationsResponse.data).to.have.property('status_message', 'Success');
-        expect(locationsResponse.data).to.have.property('data').to.be.an('array').and.to.have.length(1);
-        expect(locationsResponse.headers).to.have.property('link').to.match(/^<.*:\/\/.*:.*\/ocpi\/cpo\/.*\/locations\/\?offset=1&limit=1>; rel="next"/);
-      });
+          expect(locationsResponse.data).to.not.be.empty;
+          expect(locationsResponse.data).to.have.property('status_code', 1000);
+          expect(locationsResponse.data).to.have.property('status_message', 'Success');
+          expect(locationsResponse.data).to.have.property('data').to.be.an('array').and.to.have.length(1);
+          expect(locationsResponse.headers).to.have.property('link').to.match(/^<.*:\/\/.*:.*\/ocpi\/cpo\/.*\/locations\/\?offset=1&limit=1>; rel="next"/);
+        }
+      );
 
     });
 
@@ -367,60 +386,74 @@ describe('OCPI Service Tests (utocpi)', function() {
    *    - /ocpi/cpo/2.1.1/locations/{locationId}/{evseUid}
    *    - /ocpi/cpo/2.1.1/locations/{locationId}/{evseId}/{connectorId}
    */
-  describe('Test single entity /ocpi/cpo/2.1.1/locations/...', () => {
+   describe('Test single entity /ocpi/cpo/2.1.1/locations/...', () => {
     let response;
     /**
      * Success Cases
      */
     describe('Success cases', () => {
       // Call once agian the GET Locations
-      before(async function() {
+      beforeAll(async () => {
         // Create
         response = await testData.cpoService.getLocations2_1_1();
 
         if (response.status !== StatusCodes.OK) {
-          this.skip();
+          // this.skip();
         }
       });
 
       // Check access for each location
-      it('should access single location entity /ocpi/cpo/2.1.1/locations/{locationId}', async () => {
-        for (const location of response.data.data) {
-          // Call
-          const locationResponse = await testData.cpoService.accessPath('GET', `/ocpi/cpo/2.1.1/locations/${location.id}`);
-          // Check status
-          expect(locationResponse.status).to.be.eql(StatusCodes.OK);
-          expect(testData.cpoService.validateLocationEntity(locationResponse.data.data));
-        }
-      });
-
-      // Check access for each evse
-      it('should access single EVSE entity /ocpi/cpo/2.1.1/locations/{locationId}/{evseUid}', async () => {
-        for (const location of response.data.data) {
-          for (const evse of location.evses) {
-            // Call
-            const evseResponse = await testData.cpoService.accessPath('GET', `/ocpi/cpo/2.1.1/locations/${location.id}/${evse.uid}`);
-            // Check status
-            expect(evseResponse.status).to.be.eql(StatusCodes.OK);
-            expect(testData.cpoService.validateEvseEntity(evseResponse.data.data));
-          }
-        }
-      });
-
-      // Check access for each evse
-      it('should access single Connector entity /ocpi/cpo/2.1.1/locations/{locationId}/{evseUid}/{connectorId}', async () => {
-        for (const location of response.data.data) {
-          for (const evse of location.evses) {
-            for (const connector of evse.connectors) {
+      it(
+        'should access single location entity /ocpi/cpo/2.1.1/locations/{locationId}',
+        async () => {
+          if(testSingleLocation) {
+            for (const location of response.data.data) {
               // Call
-              const connectorResponse = await testData.cpoService.accessPath('GET', `/ocpi/cpo/2.1.1/locations/${location.id}/${evse.uid}/${connector.id}`);
+              const locationResponse = await testData.cpoService.accessPath('GET', `/ocpi/cpo/2.1.1/locations/${location.id}`);
               // Check status
-              expect(connectorResponse.status).to.be.eql(StatusCodes.OK);
-              expect(testData.cpoService.validateConnectorEntity(connectorResponse.data.data));
+              expect(locationResponse.status).to.be.eql(StatusCodes.OK);
+              expect(testData.cpoService.validateLocationEntity(locationResponse.data.data));
+            }
+          }
+          else {
+            console.warn("should access single location entity /ocpi/cpo/2.1.1/locations/{locationId} - Skipped");
+          }      
+        }
+      );
+
+      // Check access for each evse
+      it(
+        'should access single EVSE entity /ocpi/cpo/2.1.1/locations/{locationId}/{evseUid}',
+        async () => {
+          for (const location of response.data.data) {
+            for (const evse of location.evses) {
+              // Call
+              const evseResponse = await testData.cpoService.accessPath('GET', `/ocpi/cpo/2.1.1/locations/${location.id}/${evse.uid}`);
+              // Check status
+              expect(evseResponse.status).to.be.eql(StatusCodes.OK);
+              expect(testData.cpoService.validateEvseEntity(evseResponse.data.data));
             }
           }
         }
-      });
+      );
+
+      // Check access for each evse
+      it(
+        'should access single Connector entity /ocpi/cpo/2.1.1/locations/{locationId}/{evseUid}/{connectorId}',
+        async () => {
+          for (const location of response.data.data) {
+            for (const evse of location.evses) {
+              for (const connector of evse.connectors) {
+                // Call
+                const connectorResponse = await testData.cpoService.accessPath('GET', `/ocpi/cpo/2.1.1/locations/${location.id}/${evse.uid}/${connector.id}`);
+                // Check status
+                expect(connectorResponse.status).to.be.eql(StatusCodes.OK);
+                expect(testData.cpoService.validateConnectorEntity(connectorResponse.data.data));
+              }
+            }
+          }
+        }
+      );
     });
 
     /**
@@ -428,37 +461,46 @@ describe('OCPI Service Tests (utocpi)', function() {
      */
     describe('Failure cases', () => {
       // Invalid location
-      it('should not find this non-existing location  /ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e67', async () => {
-        // Call
-        const locationResponse = await testData.cpoService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e67');
-        // Check status
-        expect(locationResponse.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
-        expect(locationResponse.data).to.have.property('timestamp');
-        expect(locationResponse.data).to.have.property('status_code', 3000);
-        expect(locationResponse.data).to.have.property('status_message', 'Location ID \'5abeba9e4bae1457eb565e67\' not found');
-      });
+      it(
+        'should not find this non-existing location  /ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e67',
+        async () => {
+          // Call
+          const locationResponse = await testData.cpoService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e67');
+          // Check status
+          expect(locationResponse.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
+          expect(locationResponse.data).to.have.property('timestamp');
+          expect(locationResponse.data).to.have.property('status_code', 3000);
+          expect(locationResponse.data).to.have.property('status_message', 'Location ID \'5abeba9e4bae1457eb565e67\' not found');
+        }
+      );
 
       // Invalid evse uid
-      it('should not find this non-existing EVSE  /ocpi/cpo/2.1.1/locations/5ce249a2372f0b1c8caf9294/NonExistingSite', async () => {
-        // Call
-        const locationResponse = await testData.cpoService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/5ce249a2372f0b1c8caf9294/NonExistingSite');
-        // Check status
-        expect(locationResponse.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
-        expect(locationResponse.data).to.have.property('timestamp');
-        expect(locationResponse.data).to.have.property('status_code', 3000);
-        expect(locationResponse.data).to.have.property('status_message', 'EVSE UID not found \'NonExistingSite\' in Location ID \'5ce249a2372f0b1c8caf9294\'');
-      });
+      it(
+        'should not find this non-existing EVSE  /ocpi/cpo/2.1.1/locations/5ce249a2372f0b1c8caf9294/NonExistingSite',
+        async () => {
+          // Call
+          const locationResponse = await testData.cpoService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/5ce249a2372f0b1c8caf9294/NonExistingSite');
+          // Check status
+          expect(locationResponse.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
+          expect(locationResponse.data).to.have.property('timestamp');
+          expect(locationResponse.data).to.have.property('status_code', 3000);
+          expect(locationResponse.data).to.have.property('status_message', 'EVSE UID not found \'NonExistingSite\' in Location ID \'5ce249a2372f0b1c8caf9294\'');
+        }
+      );
 
       // Invalid connector id
-      it('should not find this non-existing Connector  /ocpi/cpo/2.1.1/locations/5ce249a2372f0b1c8caf9294/cs-15-ut-site-withoutACL/0', async () => {
-        // Call
-        const locationResponse = await testData.cpoService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/5ce249a2372f0b1c8caf9294/cs-15-ut-site-withoutACL/0');
-        // Check status
-        expect(locationResponse.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
-        expect(locationResponse.data).to.have.property('timestamp');
-        expect(locationResponse.data).to.have.property('status_code', 3000);
-        expect(locationResponse.data).to.have.property('status_message', 'EVSE Connector ID \'0\' not found on Charging Station ID \'cs-15-ut-site-withoutACL\' and Location ID \'5ce249a2372f0b1c8caf9294\'');
-      });
+      it(
+        'should not find this non-existing Connector  /ocpi/cpo/2.1.1/locations/5ce249a2372f0b1c8caf9294/cs-15-ut-site-withoutACL/0',
+        async () => {
+          // Call
+          const locationResponse = await testData.cpoService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/5ce249a2372f0b1c8caf9294/cs-15-ut-site-withoutACL/0');
+          // Check status
+          expect(locationResponse.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
+          expect(locationResponse.data).to.have.property('timestamp');
+          expect(locationResponse.data).to.have.property('status_code', 3000);
+          expect(locationResponse.data).to.have.property('status_message', 'EVSE Connector ID \'0\' not found on Charging Station ID \'cs-15-ut-site-withoutACL\' and Location ID \'5ce249a2372f0b1c8caf9294\'');
+        }
+      );
     });
   });
 

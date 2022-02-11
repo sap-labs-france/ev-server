@@ -25,9 +25,9 @@ class TestData {
 }
 const testData: TestData = new TestData();
 let carID: number;
-describe('Car', function() {
-  this.timeout(500000);
-  before(async function() {
+describe('Car', () => {
+  jest.setTimeout(500000);
+  beforeAll(async () => {
     // Init values
     testData.superCentralService = new CentralServerService(null, { email: config.get('superadmin.username'), password: config.get('superadmin.password') });
     testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_CAR);
@@ -39,12 +39,12 @@ describe('Car', function() {
 
   });
 
-  after(() => {
+  afterAll(() => {
   });
 
   describe('Without any component (utnothing)', () => {
     describe('Where admin user', () => {
-      before(function() {
+      beforeAll(() => {
 
         testData.centralService = new CentralServerService(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS, {
           email: config.get('admin.username'),
@@ -82,7 +82,7 @@ describe('Car', function() {
   describe('With component Car (utcar)', () => {
     describe('Where admin user', () => {
 
-      before(function() {
+      beforeAll(() => {
         testData.centralService = new CentralServerService(ContextDefinition.TENANT_CONTEXTS.TENANT_CAR, {
           email: config.get('admin.username'),
           password: config.get('admin.password')
@@ -109,10 +109,13 @@ describe('Car', function() {
         expect(response.status).to.equal(StatusCodes.OK);
       });
 
-      it('Should not be able to get a detailed car catalog without ID', async () => {
-        const response = await testData.centralService.carApi.readCarCatalog(null);
-        expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
-      });
+      it(
+        'Should not be able to get a detailed car catalog without ID',
+        async () => {
+          const response = await testData.centralService.carApi.readCarCatalog(null);
+          expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+        }
+      );
 
       it('Should be able to create a new car', async () => {
         // Create
@@ -138,16 +141,19 @@ describe('Car', function() {
         expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
       });
 
-      it('Should not be able to create a new car without a license plate', async () => {
-        // Create
-        const response = await testData.centralService.createEntity(
-          testData.centralService.carApi,
-          Factory.car.build({
-            licensePlate: null,
-          }), false
-        );
-        expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
-      });
+      it(
+        'Should not be able to create a new car without a license plate',
+        async () => {
+          // Create
+          const response = await testData.centralService.createEntity(
+            testData.centralService.carApi,
+            Factory.car.build({
+              licensePlate: null,
+            }), false
+          );
+          expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+        }
+      );
 
       it('Should not be able to create a new car without a car type', async () => {
         // Create
@@ -160,29 +166,35 @@ describe('Car', function() {
         expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
       });
 
-      it('Should not be able to create a new car without a car catalog ID', async () => {
-        // Create
-        const response = await testData.centralService.createEntity(
-          testData.centralService.carApi,
-          Factory.car.build({
-            carCatalogID: null,
-          }), false
-        );
-        expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
-      });
+      it(
+        'Should not be able to create a new car without a car catalog ID',
+        async () => {
+          // Create
+          const response = await testData.centralService.createEntity(
+            testData.centralService.carApi,
+            Factory.car.build({
+              carCatalogID: null,
+            }), false
+          );
+          expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+        }
+      );
 
-      it('Should not be able to create a new car with existent VIN and License Plate', async () => {
-        // Create
-        const response = await testData.centralService.createEntity(
-          testData.centralService.carApi,
-          Factory.car.build({
-            vin: testData.newCar.vin,
-            licensePlate: testData.newCar.licensePlate,
-            carCatalogID: (await testData.centralService.carApi.readCarCatalogs({}, Constants.DB_PARAMS_SINGLE_RECORD)).data.result[0].id
-          }), false
-        );
-        expect(response.status).to.equal(HTTPError.CAR_ALREADY_EXIST_ERROR);
-      });
+      it(
+        'Should not be able to create a new car with existent VIN and License Plate',
+        async () => {
+          // Create
+          const response = await testData.centralService.createEntity(
+            testData.centralService.carApi,
+            Factory.car.build({
+              vin: testData.newCar.vin,
+              licensePlate: testData.newCar.licensePlate,
+              carCatalogID: (await testData.centralService.carApi.readCarCatalogs({}, Constants.DB_PARAMS_SINGLE_RECORD)).data.result[0].id
+            }), false
+          );
+          expect(response.status).to.equal(HTTPError.CAR_ALREADY_EXIST_ERROR);
+        }
+      );
 
       it('Should be able to update a car', async () => {
         // Update
@@ -198,24 +210,27 @@ describe('Car', function() {
           carToUpdate
         );
       });
-      it('Should not be able to update a car with existent VIN and License Plate', async () => {
-        // Create
-        testData.newCar = await testData.centralService.createEntity(
-          testData.centralService.carApi,
-          Factory.car.build({
-            carCatalogID: (await testData.centralService.carApi.readCarCatalogs({}, Constants.DB_PARAMS_SINGLE_RECORD)).data.result[0].id
-          })
-        );
-        testData.createdCars.push(testData.newCar);
-        testData.newCar.vin = testData.createdCars[0].vin;
-        testData.newCar.licensePlate = testData.createdCars[0].licensePlate;
-        const response = await testData.centralService.updateEntity(
-          testData.centralService.carApi,
-          testData.newCar,
-          false
-        );
-        expect(response.status).to.equal(HTTPError.CAR_ALREADY_EXIST_ERROR);
-      });
+      it(
+        'Should not be able to update a car with existent VIN and License Plate',
+        async () => {
+          // Create
+          testData.newCar = await testData.centralService.createEntity(
+            testData.centralService.carApi,
+            Factory.car.build({
+              carCatalogID: (await testData.centralService.carApi.readCarCatalogs({}, Constants.DB_PARAMS_SINGLE_RECORD)).data.result[0].id
+            })
+          );
+          testData.createdCars.push(testData.newCar);
+          testData.newCar.vin = testData.createdCars[0].vin;
+          testData.newCar.licensePlate = testData.createdCars[0].licensePlate;
+          const response = await testData.centralService.updateEntity(
+            testData.centralService.carApi,
+            testData.newCar,
+            false
+          );
+          expect(response.status).to.equal(HTTPError.CAR_ALREADY_EXIST_ERROR);
+        }
+      );
 
       it('Should be able to get car', async () => {
         const response = await testData.centralService.carApi.readCar(testData.newCar.id);
@@ -228,7 +243,7 @@ describe('Car', function() {
       });
     });
     describe('Where basic user', () => {
-      before(function() {
+      beforeAll(() => {
         testData.centralService = new CentralServerService(ContextDefinition.TENANT_CONTEXTS.TENANT_CAR, testData.userContext);
       });
 
@@ -307,7 +322,7 @@ describe('Car', function() {
       });
     });
 
-    after(async () => {
+    afterAll(async () => {
       testData.centralService = new CentralServerService(ContextDefinition.TENANT_CONTEXTS.TENANT_CAR, {
         email: config.get('admin.username'),
         password: config.get('admin.password')
@@ -339,10 +354,13 @@ describe('Car', function() {
       expect(response.status).to.equal(StatusCodes.OK);
     });
 
-    it('Should not be able to get a detailed car catalog without ID', async () => {
-      const response = await testData.centralService.carApiSuperTenant.readCarCatalog(null);
-      expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
-    });
+    it(
+      'Should not be able to get a detailed car catalog without ID',
+      async () => {
+        const response = await testData.centralService.carApiSuperTenant.readCarCatalog(null);
+        expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+      }
+    );
 
     it('Should be able to get car catalog debug object', async () => {
       const response = await testData.centralService.carApiSuperTenant.readCarCatalog(carID);

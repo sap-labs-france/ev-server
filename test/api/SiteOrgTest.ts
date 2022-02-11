@@ -83,22 +83,22 @@ async function assignSiteOwner(userRole, site) {
 
 }
 
-describe('Site', function() {
-  this.timeout(1000000); // Will automatically stop the unit test after that period of time
+describe('Site', () => {
+  jest.setTimeout(1000000); // Will automatically stop the unit test after that period of time
 
-  before(async () => {
+  beforeAll(async () => {
     chai.config.includeStack = true;
     await ContextProvider.defaultInstance.prepareContexts();
   });
 
-  after(async () => {
+  afterAll(async () => {
     // Final clean up at the end
     await ContextProvider.defaultInstance.cleanUpCreatedContent();
   });
 
   describe('With component Organization (utorg)', () => {
 
-    before(async () => {
+    beforeAll(async () => {
       testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_ORGANIZATION);
       testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       testData.centralUserService = new CentralServerService(
@@ -109,11 +109,11 @@ describe('Site', function() {
 
     describe('Where admin user', () => {
 
-      before(async () => {
+      beforeAll(async () => {
         login(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       });
 
-      after(async () => {
+      afterAll(async () => {
         // Delete any created site
         for (const site of testData.createdSites) {
           await testData.centralUserService.deleteEntity(
@@ -250,7 +250,7 @@ describe('Site', function() {
 
     describe('Where basic user', () => {
 
-      before(async () => {
+      beforeAll(async () => {
         login(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
         await createSite();
         await assignUserToSite(ContextDefinition.USER_CONTEXTS.BASIC_USER, testData.createdSites[0]);
@@ -262,7 +262,7 @@ describe('Site', function() {
         login(ContextDefinition.USER_CONTEXTS.BASIC_USER);
       });
 
-      after(async () => {
+      afterAll(async () => {
         // Delete any created site
         for (const site of testData.createdSites) {
           await testData.centralUserService.deleteEntity(
@@ -309,17 +309,20 @@ describe('Site', function() {
         }
       });
 
-      it('Should not find a site he is not assigned to in the site list', async () => {
-        try {
-        // Check if the created entity is in the list
-          await testData.userService.checkEntityInList(
-            testData.userService.siteApi,
-            testData.createdSites[1]
-          );
-        } catch (error) {
-          expect(error.actual.result).to.not.containSubset([{ id: testData.createdSites[1].id }]);
+      it(
+        'Should not find a site he is not assigned to in the site list',
+        async () => {
+          try {
+          // Check if the created entity is in the list
+            await testData.userService.checkEntityInList(
+              testData.userService.siteApi,
+              testData.createdSites[1]
+            );
+          } catch (error) {
+            expect(error.actual.result).to.not.containSubset([{ id: testData.createdSites[1].id }]);
+          }
         }
-      });
+      );
 
       it('Should not be able to create a new site', async () => {
         try {
@@ -362,50 +365,68 @@ describe('Site', function() {
         }
       });
 
-      it('Should be able to update a site for which he is site admin', async () => {
-        // Change entity
-        testData.createdSites[2].name = 'New Name';
-        // Update
-        const updateResult = await testData.userService.updateEntity(
-          testData.userService.siteApi,
-          testData.createdSites[2]
-        );
-        expect(updateResult.status).to.eq(StatusCodes.OK);
-      });
-
-      it('Should not be able to update a site for which he is site owner', async () => {
-        // Change entity
-        testData.createdSites[3].name = 'New Name';
-        // Try to update
-        try {
+      it(
+        'Should be able to update a site for which he is site admin',
+        async () => {
+          // Change entity
+          testData.createdSites[2].name = 'New Name';
+          // Update
           const updateResult = await testData.userService.updateEntity(
             testData.userService.siteApi,
-            testData.createdSites[3]
+            testData.createdSites[2]
           );
-          expect(updateResult.status).to.not.eq(StatusCodes.OK);
-        } catch (error) {
-          expect(error.actual).to.eq(403);
+          expect(updateResult.status).to.eq(StatusCodes.OK);
         }
-      });
-      it('Should not be able to assign a user to a site he is assigned to', async () => {
-        const assignmentResult = await assignUserToSite(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN, testData.createdSites[0]);
-        expect(assignmentResult.status).to.eq(403);
-      });
+      );
 
-      it('Should not be able to assign a user to a site he is not assigned to', async () => {
-        const assignmentResult = await assignUserToSite(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN, testData.createdSites[1]);
-        expect(assignmentResult.status).to.eq(403);
-      });
+      it(
+        'Should not be able to update a site for which he is site owner',
+        async () => {
+          // Change entity
+          testData.createdSites[3].name = 'New Name';
+          // Try to update
+          try {
+            const updateResult = await testData.userService.updateEntity(
+              testData.userService.siteApi,
+              testData.createdSites[3]
+            );
+            expect(updateResult.status).to.not.eq(StatusCodes.OK);
+          } catch (error) {
+            expect(error.actual).to.eq(403);
+          }
+        }
+      );
+      it(
+        'Should not be able to assign a user to a site he is assigned to',
+        async () => {
+          const assignmentResult = await assignUserToSite(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN, testData.createdSites[0]);
+          expect(assignmentResult.status).to.eq(403);
+        }
+      );
 
-      it('Should not be able to assign a user to a site for which he is site admin', async () => {
-        const assignmentResult = await assignUserToSite(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN, testData.createdSites[2]);
-        expect(assignmentResult.status).to.eq(403);
-      });
+      it(
+        'Should not be able to assign a user to a site he is not assigned to',
+        async () => {
+          const assignmentResult = await assignUserToSite(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN, testData.createdSites[1]);
+          expect(assignmentResult.status).to.eq(403);
+        }
+      );
 
-      it('Should not be able to assign a user to a site for which he is site owner', async () => {
-        const assignmentResult = await assignUserToSite(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN, testData.createdSites[3]);
-        expect(assignmentResult.status).to.eq(403);
-      });
+      it(
+        'Should not be able to assign a user to a site for which he is site admin',
+        async () => {
+          const assignmentResult = await assignUserToSite(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN, testData.createdSites[2]);
+          expect(assignmentResult.status).to.eq(403);
+        }
+      );
+
+      it(
+        'Should not be able to assign a user to a site for which he is site owner',
+        async () => {
+          const assignmentResult = await assignUserToSite(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN, testData.createdSites[3]);
+          expect(assignmentResult.status).to.eq(403);
+        }
+      );
 
       it('Should not be able to delete a site he is assigned to', async () => {
         try {
@@ -429,27 +450,33 @@ describe('Site', function() {
         }
       });
 
-      it('Should not be able to delete a site for which he is site admin', async () => {
-        try {
-          await testData.userService.deleteEntity(
-            testData.userService.siteApi,
-            testData.createdSites[2]
-          );
-        } catch (error) {
-          expect(error.actual).to.eq(403);
+      it(
+        'Should not be able to delete a site for which he is site admin',
+        async () => {
+          try {
+            await testData.userService.deleteEntity(
+              testData.userService.siteApi,
+              testData.createdSites[2]
+            );
+          } catch (error) {
+            expect(error.actual).to.eq(403);
+          }
         }
-      });
+      );
 
-      it('Should not be able to delete a site for which he is site owner', async () => {
-        try {
-          await testData.userService.deleteEntity(
-            testData.userService.siteApi,
-            testData.createdSites[3]
-          );
-        } catch (error) {
-          expect(error.actual).to.eq(403);
+      it(
+        'Should not be able to delete a site for which he is site owner',
+        async () => {
+          try {
+            await testData.userService.deleteEntity(
+              testData.userService.siteApi,
+              testData.createdSites[3]
+            );
+          } catch (error) {
+            expect(error.actual).to.eq(403);
+          }
         }
-      });
+      );
 
     });
   });

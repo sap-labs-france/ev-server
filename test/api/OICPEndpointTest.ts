@@ -22,9 +22,9 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('OICP Endpoint (utoicp)', function() {
-  this.timeout(30000);
-  before(async () => {
+describe('OICP Endpoint (utoicp)', () => {
+  jest.setTimeout(30000);
+  beforeAll(async () => {
     testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_OICP);
     testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
     testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
@@ -48,11 +48,14 @@ describe('OICP Endpoint (utoicp)', function() {
         testData.centralUserService.oicpEndpointApi, testData.newOcpiEndpoint);
     });
 
-    it('Should find the created OICP Endpoint in the OICP Endpoint list', async () => {
-      // Check if the created entity is in the list
-      await testData.centralUserService.checkEntityInList(
-        testData.centralUserService.oicpEndpointApi, testData.newOcpiEndpoint);
-    });
+    it(
+      'Should find the created OICP Endpoint in the OICP Endpoint list',
+      async () => {
+        // Check if the created entity is in the list
+        await testData.centralUserService.checkEntityInList(
+          testData.centralUserService.oicpEndpointApi, testData.newOcpiEndpoint);
+      }
+    );
 
     it('Should register the created OICP Endpoint', async () => {
       // Check if the deleted entity cannot be retrieved with its id

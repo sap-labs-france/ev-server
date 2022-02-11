@@ -21,9 +21,9 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('OCPI Endpoint (utocpi)', function() {
-  this.timeout(30000);
-  before(async () => {
+describe('OCPI Endpoint (utocpi)', () => {
+  jest.setTimeout(30000);
+  beforeAll(async () => {
     testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_OCPI);
     testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
     testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
@@ -48,11 +48,14 @@ describe('OCPI Endpoint (utocpi)', function() {
         testData.centralUserService.ocpiEndpointApi, testData.newOcpiEndpoint);
     });
 
-    it('Should find the created Ocpi Endpoint in the Ocpi Endpoint list', async () => {
-      // Check if the created entity is in the list
-      await testData.centralUserService.checkEntityInList(
-        testData.centralUserService.ocpiEndpointApi, testData.newOcpiEndpoint);
-    });
+    it(
+      'Should find the created Ocpi Endpoint in the Ocpi Endpoint list',
+      async () => {
+        // Check if the created entity is in the list
+        await testData.centralUserService.checkEntityInList(
+          testData.centralUserService.ocpiEndpointApi, testData.newOcpiEndpoint);
+      }
+    );
 
     it('Should update the Ocpi Endpoint', async () => {
       // Change entity

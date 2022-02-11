@@ -82,22 +82,22 @@ async function loginAsAdminAndRemoveUsersFromSite() {
   await testData.userService.siteApi.addUsersToSite(testData.newSite.id, []);
 }
 
-describe('Company', function() {
-  this.timeout(1000000); // Will automatically stop the unit test after that period of time
+describe('Company', () => {
+  jest.setTimeout(1000000); // Will automatically stop the unit test after that period of time
 
-  before(async () => {
+  beforeAll(async () => {
     chai.config.includeStack = true;
     await ContextProvider.defaultInstance.prepareContexts();
   });
 
-  after(async () => {
+  afterAll(async () => {
     // Final clean up at the end
     await ContextProvider.defaultInstance.cleanUpCreatedContent();
   });
 
   describe('With component Organization (utorg)', () => {
 
-    before(async () => {
+    beforeAll(async () => {
       testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_ORGANIZATION);
       testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       testData.centralUserService = new CentralServerService(
@@ -106,7 +106,7 @@ describe('Company', function() {
       );
     });
 
-    after(async () => {
+    afterAll(async () => {
       // Delete any created site
       for (const site of testData.createdSites) {
         await testData.centralUserService.deleteEntity(
@@ -137,7 +137,7 @@ describe('Company', function() {
     });
 
     describe('Where admin user', () => {
-      before(() => {
+      beforeAll(() => {
         login(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       });
 
@@ -204,42 +204,51 @@ describe('Company', function() {
 
     describe('Where basic user', () => {
 
-      before(async () => {
+      beforeAll(async () => {
         await loginAsAdminAndCreateTestData();
         login(ContextDefinition.USER_CONTEXTS.BASIC_USER);
       });
 
-      it('Should be able to read company with site he is assigned to ', async () => {
-        await testData.userService.getEntityById(
-          testData.userService.companyApi,
-          testData.companyWithSite
-        );
-      });
-
-      it('Should not be able to read company if he is not assigned to a site of that company', async () => {
-        try {
-          await testData.userService.getEntityById(
-            testData.userService.companyApi,
-            testData.companyWithNoSite
-          );
-        } catch (error) {
-          expect(error.actual).to.eq(403);
-        }
-      });
-
-      it('Should not be able to read company after he was removed from the site assigned to that company', async () => {
-        await loginAsAdminAndRemoveUsersFromSite();
-        login(ContextDefinition.USER_CONTEXTS.BASIC_USER);
-
-        try {
+      it(
+        'Should be able to read company with site he is assigned to ',
+        async () => {
           await testData.userService.getEntityById(
             testData.userService.companyApi,
             testData.companyWithSite
           );
-        } catch (error) {
-          expect(error.actual).to.eq(403);
         }
-      });
+      );
+
+      it(
+        'Should not be able to read company if he is not assigned to a site of that company',
+        async () => {
+          try {
+            await testData.userService.getEntityById(
+              testData.userService.companyApi,
+              testData.companyWithNoSite
+            );
+          } catch (error) {
+            expect(error.actual).to.eq(403);
+          }
+        }
+      );
+
+      it(
+        'Should not be able to read company after he was removed from the site assigned to that company',
+        async () => {
+          await loginAsAdminAndRemoveUsersFromSite();
+          login(ContextDefinition.USER_CONTEXTS.BASIC_USER);
+
+          try {
+            await testData.userService.getEntityById(
+              testData.userService.companyApi,
+              testData.companyWithSite
+            );
+          } catch (error) {
+            expect(error.actual).to.eq(403);
+          }
+        }
+      );
 
       it('Should not be able to create a new company', async () => {
         try {

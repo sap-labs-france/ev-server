@@ -16,7 +16,7 @@ chai.use(responseHelper);
 // Mocha is the test framework and chai provides functions to check expectations
 
 describe('Template for Dev Unit Test', function() {
-  this.timeout(10000); // Not mandatory will automatically stop the unit test after that period of time
+  jest.setTimeout(10000); // Not mandatory will automatically stop the unit test after that period of time
 
   before(async () => {
     chai.config.includeStack = true;

@@ -22,26 +22,21 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('Firmware Update Status', function() {
-  this.timeout(1000000); // Will automatically stop test after that period of time
+describe('Firmware Update Status', () => {
+  jest.setTimeout(5000); // Will automatically stop test after that period of time
 
-  before(async () => {
+  beforeAll(async () => {
     chai.config.includeStack = true;
     await ContextProvider.defaultInstance.prepareContexts();
   });
 
-  afterEach(() => {
-    // Can be called after each UT to clean up created data
-  });
-
-  after(async () => {
+  afterAll(async () => {
     // Final cleanup at the end
     await ContextProvider.defaultInstance.cleanUpCreatedContent();
   });
 
   describe('With all components (utall)', () => {
-
-    before(async () => {
+    beforeAll(async () => {
       testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
       testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION);
@@ -50,28 +45,31 @@ describe('Firmware Update Status', function() {
       await testData.chargingStationContext.sendHeartbeat();
     });
 
-    after(async () => {
+    afterAll(async () => {
       await testData.chargingStationContext.cleanUpCreatedData();
     });
 
     describe('Where any user', () => {
 
-      after(async () => {
+      afterAll(async () => {
         // After tests ensure that the charging station are Idle
         const response = await testData.chargingStationContext.sendFirmwareStatusNotification(OCPPFirmwareStatus.IDLE);
         expect(response).to.eql({});
       });
 
-      it('An idle Charging station should have the firmwareUpdateStatus set to Idle or be empty', async () => {
-        const response = await testData.chargingStationContext.readChargingStation();
-        expect(response.status).to.equal(StatusCodes.OK);
-        expect(response.data.firmwareUpdateStatus).to.satisfy((firmwareUpdateStatus) => {
-          if (!firmwareUpdateStatus || firmwareUpdateStatus === OCPPFirmwareStatus.IDLE) {
-            return true;
-          }
-          return false;
-        });
-      });
+      it(
+        'An idle Charging station should have the firmwareUpdateStatus set to Idle or be empty',
+        async () => {
+          const response = await testData.chargingStationContext.readChargingStation();
+          expect(response.status).to.equal(StatusCodes.OK);
+          expect(response.data.firmwareUpdateStatus).to.satisfy((firmwareUpdateStatus) => {
+            if (!firmwareUpdateStatus || firmwareUpdateStatus === OCPPFirmwareStatus.IDLE) {
+              return true;
+            }
+            return false;
+          });
+        }
+      );
 
       it('Should correctly assign Downloading Status', async () => {
         const firmwareResponse = await testData.chargingStationContext.sendFirmwareStatusNotification(OCPPFirmwareStatus.DOWNLOADING);
@@ -121,14 +119,17 @@ describe('Firmware Update Status', function() {
         expect(chargingStationResponse.data.firmwareUpdateStatus).to.equal(OCPPFirmwareStatus.INSTALLED);
       });
 
-      it('Should restore the connectors to available after Installing', async () => {
-        const response = await testData.chargingStationContext.readChargingStation();
-        expect(response.status).to.equal(StatusCodes.OK);
-        const chargingStation = response.data;
-        for (let i = 0; i < chargingStation.connectors.length; i++) {
-          expect(chargingStation.connectors[i].status).to.equal(ChargePointStatus.AVAILABLE);
+      it(
+        'Should restore the connectors to available after Installing',
+        async () => {
+          const response = await testData.chargingStationContext.readChargingStation();
+          expect(response.status).to.equal(StatusCodes.OK);
+          const chargingStation = response.data;
+          for (let i = 0; i < chargingStation.connectors.length; i++) {
+            expect(chargingStation.connectors[i].status).to.equal(ChargePointStatus.AVAILABLE);
+          }
         }
-      });
+      );
 
       it('Should correctly assign Installation Failed Status', async () => {
         const firmwareResponse = await testData.chargingStationContext.sendFirmwareStatusNotification(OCPPFirmwareStatus.INSTALLATION_FAILED);
