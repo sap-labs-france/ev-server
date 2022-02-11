@@ -332,7 +332,7 @@ export default class OCPPService {
     const { chargingStation, tenant } = headers;
     try {
       // Check props
-      OCPPValidation.getInstance().validateFirmwareStatusNotification(chargingStation, firmwareStatusNotification);
+      OCPPValidation.getInstance().validateFirmwareStatusNotification(firmwareStatusNotification);
       // Enrich
       this.enrichOCPPRequest(chargingStation, firmwareStatusNotification);
       // Save the status to Charging Station
