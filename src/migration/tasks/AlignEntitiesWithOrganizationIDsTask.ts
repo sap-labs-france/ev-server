@@ -86,7 +86,7 @@ export default class AlignEntitiesWithOrganizationIDsTask extends TenantMigratio
   }
 
   public getVersion(): string {
-    return '1.05';
+    return '1.0';
   }
 
   public getName(): string {
