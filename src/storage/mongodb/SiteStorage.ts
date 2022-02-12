@@ -1,5 +1,6 @@
 import global, { DatabaseCount, FilterParams, Image } from '../../types/GlobalType';
 
+import AssetStorage from './AssetStorage';
 import ChargingStationStorage from './ChargingStationStorage';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
@@ -10,12 +11,23 @@ import { ObjectId } from 'mongodb';
 import Site from '../../types/Site';
 import SiteAreaStorage from './SiteAreaStorage';
 import Tenant from '../../types/Tenant';
+import TransactionStorage from './TransactionStorage';
 import { UserSite } from '../../types/User';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'SiteStorage';
 
 export default class SiteStorage {
+  public static async updateEntitiesWithOrganizationIDs(tenant: Tenant, companyID: string, siteID: string): Promise<number> {
+    // Update Charging Stations
+    let updated = await ChargingStationStorage.updateChargingStationsWithOrganizationIDs(tenant, companyID, siteID);
+    // Update Transactions
+    updated += await TransactionStorage.updateTransactionsWithOrganizationIDs(tenant, companyID, siteID);
+    // Update Assets
+    updated += await AssetStorage.updateAssetsWithOrganizationIDs(tenant, companyID, siteID);
+    return updated;
+  }
+
   public static async getSite(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID,
       params: { withCompany?: boolean, withImage?: boolean; issuer?: boolean; } = {}, projectFields?: string[]): Promise<Site> {
     const sitesMDB = await SiteStorage.getSites(tenant, {

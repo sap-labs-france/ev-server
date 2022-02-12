@@ -1,6 +1,7 @@
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
+import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import Tenant from '../../types/Tenant';
 import TenantMigrationTask from '../TenantMigrationTask';
 import Utils from '../../utils/Utils';
@@ -25,45 +26,9 @@ export default class AlignEntitiesWithOrganizationIDsTask extends TenantMigratio
         }
         const foundSite = sites.find((site) => site._id.toString() === siteArea.siteID.toString());
         if (foundSite) {
-          // Update Charging Stations
-          let result = await global.database.getCollection<any>(tenant.id, 'chargingstations').updateMany(
-            {
-              siteAreaID: siteArea._id
-            },
-            {
-              $set: {
-                siteID: siteArea.siteID,
-                companyID: foundSite.companyID
-              }
-            }
-          );
-          updated += result.modifiedCount;
-          // Update Transactions
-          result = await global.database.getCollection<any>(tenant.id, 'transactions').updateMany(
-            {
-              siteAreaID: siteArea._id
-            },
-            {
-              $set: {
-                siteID: siteArea.siteID,
-                companyID: foundSite.companyID
-              }
-            }
-          );
-          updated += result.modifiedCount;
-          // Update Assets
-          result = await global.database.getCollection<any>(tenant.id, 'assets').updateMany(
-            {
-              siteAreaID: siteArea._id
-            },
-            {
-              $set: {
-                siteID: siteArea.siteID,
-                companyID: foundSite.companyID
-              }
-            }
-          );
-          updated += result.modifiedCount;
+          // Update all
+          updated += await SiteAreaStorage.updateEntitiesWithOrganizationIDs(
+            tenant, foundSite.companyID.toString(), siteArea.siteID.toString(), siteArea._id.toString());
         } else {
           await Logging.logError({
             tenantID: Constants.DEFAULT_TENANT,
@@ -90,7 +55,7 @@ export default class AlignEntitiesWithOrganizationIDsTask extends TenantMigratio
   }
 
   public getName(): string {
-    return 'FixChargingStationCompanyAndSiteIDsTask';
+    return 'AlignEntitiesWithOrganizationIDsTask';
   }
 
   public isAsynchronous(): boolean {

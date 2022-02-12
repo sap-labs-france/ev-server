@@ -1,4 +1,4 @@
-import { Action, DynamicAuthorizationDataSourceName, Entity, SitesAdminDynamicAuthorizationDataSourceData } from '../../../../types/Authorization';
+import { Action, DynamicAuthorizationDataSourceName, Entity } from '../../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 
@@ -440,8 +440,8 @@ export default class SiteService {
     site.lastChangedOn = new Date();
     // Save
     await SiteStorage.saveSite(req.tenant, site, Utils.objectHasProperty(filteredRequest, 'image') ? true : false);
-    // Update charging station
-    await ChargingStationStorage.updateChargingStationsCompany(req.tenant, filteredRequest.id, filteredRequest.companyID);
+    // Update all refs
+    await SiteStorage.updateEntitiesWithOrganizationIDs(req.tenant, site.companyID, filteredRequest.id);
     await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateSite',

@@ -2,7 +2,7 @@ import { ChargePointStatus, OCPPFirmwareStatus } from '../../types/ocpp/OCPPServ
 import { ChargingProfile, ChargingProfilePurposeType, ChargingRateUnitType } from '../../types/ChargingProfile';
 import ChargingStation, { ChargePoint, ChargingStationOcpiData, ChargingStationOcppParameters, ChargingStationOicpData, ChargingStationTemplate, Connector, ConnectorType, CurrentType, OcppParameter, PhaseAssignmentToGrid, RemoteAuthorization, Voltage } from '../../types/ChargingStation';
 import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
-import { GridFSBucket, GridFSBucketReadStream, GridFSBucketWriteStream, ObjectId } from 'mongodb';
+import { GridFSBucket, GridFSBucketReadStream, GridFSBucketWriteStream, ObjectId, UpdateResult } from 'mongodb';
 import Tenant, { TenantComponents } from '../../types/Tenant';
 import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
@@ -969,33 +969,34 @@ export default class ChargingStationStorage {
     return firmware;
   }
 
-  public static async updateChargingStationsSite(tenant: Tenant, siteAreaID: string, siteID: string, companyID: string): Promise<void> {
+  public static async updateChargingStationsWithOrganizationIDs(tenant: Tenant, companyID: string, siteID: string, siteAreaID?: string): Promise<number> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
-    await global.database.getCollection<any>(tenant.id, 'chargingstations').updateMany(
-      {
-        siteAreaID: DatabaseUtils.convertToObjectID(siteAreaID),
-      },
-      {
-        $set: {
+    let result: UpdateResult;
+    if (siteAreaID) {
+      result = await global.database.getCollection<any>(tenant.id, 'chargingstations').updateMany(
+        {
+          siteAreaID: DatabaseUtils.convertToObjectID(siteAreaID),
+        },
+        {
+          $set: {
+            siteID: DatabaseUtils.convertToObjectID(siteID),
+            companyID: DatabaseUtils.convertToObjectID(companyID)
+          }
+        }) as UpdateResult;
+    } else {
+      result = await global.database.getCollection<any>(tenant.id, 'chargingstations').updateMany(
+        {
           siteID: DatabaseUtils.convertToObjectID(siteID),
-          companyID: DatabaseUtils.convertToObjectID(companyID)
-        }
-      });
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'updateChargingStationsSite', startTime, { siteID });
-  }
-
-  public static async updateChargingStationsCompany(tenant: Tenant, siteID: string, companyID: string): Promise<void> {
-    const startTime = Logging.traceDatabaseRequestStart();
-    DatabaseUtils.checkTenantObject(tenant);
-    await global.database.getCollection<any>(tenant.id, 'chargingstations').updateMany(
-      {
-        siteID: DatabaseUtils.convertToObjectID(siteID),
-      },
-      {
-        $set: { companyID: DatabaseUtils.convertToObjectID(companyID) }
-      });
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'updateChargingStationsCompanies', startTime, { companyID });
+        },
+        {
+          $set: {
+            companyID: DatabaseUtils.convertToObjectID(companyID)
+          }
+        }) as UpdateResult;
+    }
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'updateChargingStationsWithOrganizationIDs', startTime, { siteID, companyID, siteAreaID });
+    return result.modifiedCount;
   }
 
   private static getChargerInErrorFacet(errorType: string) {
