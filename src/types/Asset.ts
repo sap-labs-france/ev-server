@@ -2,14 +2,17 @@ import Consumption, { AbstractCurrentConsumption } from './Consumption';
 
 import { AssetAuthorizationActions } from './Authorization';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
+import Site from './Site';
 import SiteArea from './SiteArea';
 
 export default interface Asset extends CreatedUpdatedProps, AbstractCurrentConsumption, AssetAuthorizationActions {
   id: string;
   name: string;
+  companyID: string;
+  siteID?: string;
+  site?: Site;
   siteAreaID: string;
   siteArea?: SiteArea;
-  siteID?: string;
   assetType: AssetType;
   fluctuationPercent: number;
   staticValueWatt: number;
