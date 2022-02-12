@@ -99,7 +99,7 @@ export default class AssetStorage {
 
   public static async getAssets(tenant: Tenant,
       params: { search?: string; assetIDs?: string[]; siteAreaIDs?: string[]; siteIDs?: string[]; withSiteArea?: boolean;
-        withNoSiteArea?: boolean; dynamicOnly?: boolean; issuer?: boolean; } = {},
+        withSite?: boolean; withNoSiteArea?: boolean; dynamicOnly?: boolean; issuer?: boolean; } = {},
       dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Asset>> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
@@ -193,6 +193,13 @@ export default class AssetStorage {
       DatabaseUtils.pushSiteAreaLookupInAggregation({
         tenantID: tenant.id, aggregation, localField: 'siteAreaID', foreignField: '_id',
         asField: 'siteArea', oneToOneCardinality: true
+      });
+    }
+    // Site
+    if (params.withSite) {
+      DatabaseUtils.pushSiteLookupInAggregation({
+        tenantID: tenant.id, aggregation: aggregation, localField: 'siteID', foreignField: '_id',
+        asField: 'site', oneToOneCardinality: true
       });
     }
     // Handle the ID
