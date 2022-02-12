@@ -45,8 +45,9 @@ export default class AssetStorage {
     const assetMDB: any = {
       _id: assetToSave.id ? DatabaseUtils.convertToObjectID(assetToSave.id) : new ObjectId(),
       name: assetToSave.name,
-      siteAreaID: DatabaseUtils.convertToObjectID(assetToSave.siteAreaID),
+      companyID: DatabaseUtils.convertToObjectID(assetToSave.companyID),
       siteID: DatabaseUtils.convertToObjectID(assetToSave.siteID),
+      siteAreaID: DatabaseUtils.convertToObjectID(assetToSave.siteAreaID),
       coordinates: Utils.hasValidGpsCoordinates(assetToSave.coordinates) ? assetToSave.coordinates.map(
         (coordinate) => Utils.convertToFloat(coordinate)) : [],
       assetType: assetToSave.assetType,
