@@ -359,6 +359,7 @@ export default class AssetService {
         siteAreaIDs: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         withSiteArea: filteredRequest.WithSiteArea,
+        withSite: filteredRequest.WithSite,
         withNoSiteArea: filteredRequest.WithNoSiteArea,
         dynamicOnly: filteredRequest.DynamicOnly,
         ...authorizationAssetsFilter.filters
