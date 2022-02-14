@@ -19,12 +19,14 @@ const MODULE_NAME = 'SiteStorage';
 
 export default class SiteStorage {
   public static async updateEntitiesWithOrganizationIDs(tenant: Tenant, companyID: string, siteID: string): Promise<number> {
+    const startTime = Logging.traceDatabaseRequestStart();
     // Update Charging Stations
     let updated = await ChargingStationStorage.updateChargingStationsWithOrganizationIDs(tenant, companyID, siteID);
     // Update Transactions
     updated += await TransactionStorage.updateTransactionsWithOrganizationIDs(tenant, companyID, siteID);
     // Update Assets
     updated += await AssetStorage.updateAssetsWithOrganizationIDs(tenant, companyID, siteID);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'updateEntitiesWithOrganizationIDs', startTime, { companyID, siteID });
     return updated;
   }
 

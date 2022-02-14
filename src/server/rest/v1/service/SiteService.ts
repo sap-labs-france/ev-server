@@ -441,7 +441,7 @@ export default class SiteService {
     // Save
     await SiteStorage.saveSite(req.tenant, site, Utils.objectHasProperty(filteredRequest, 'image') ? true : false);
     // Update all refs
-    await SiteStorage.updateEntitiesWithOrganizationIDs(req.tenant, site.companyID, filteredRequest.id);
+    void SiteStorage.updateEntitiesWithOrganizationIDs(req.tenant, site.companyID, filteredRequest.id);
     await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateSite',

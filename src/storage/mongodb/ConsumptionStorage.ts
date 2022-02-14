@@ -8,11 +8,28 @@ import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { SiteAreaValueTypes } from '../../types/SiteArea';
 import Tenant from '../../types/Tenant';
+import { UpdateResult } from 'mongodb';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'ConsumptionStorage';
 
 export default class ConsumptionStorage {
+  public static async updateConsumptionsWithOrganizationIDs(tenant: Tenant, siteID: string, siteAreaID: string): Promise<number> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    DatabaseUtils.checkTenantObject(tenant);
+    const result = await global.database.getCollection<any>(tenant.id, 'consumptions').updateMany(
+      {
+        siteAreaID: DatabaseUtils.convertToObjectID(siteAreaID),
+      },
+      {
+        $set: {
+          siteID: DatabaseUtils.convertToObjectID(siteID),
+        }
+      }) as UpdateResult;
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'updateConsumptionsWithOrganizationIDs', startTime, { siteID });
+    return result.modifiedCount;
+  }
+
   public static async saveConsumption(tenant: Tenant, consumptionToSave: Consumption): Promise<string> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
