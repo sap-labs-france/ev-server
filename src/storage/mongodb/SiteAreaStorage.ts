@@ -1,7 +1,7 @@
 import global, { DatabaseCount, FilterParams, Image } from '../../types/GlobalType';
 
-import { ChargePointStatus } from '../../types/ocpp/OCPPServer';
 import AssetStorage from './AssetStorage';
+import { ChargePointStatus } from '../../types/ocpp/OCPPServer';
 import ChargingStationStorage from './ChargingStationStorage';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
