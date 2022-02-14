@@ -325,7 +325,17 @@ export default class Logging {
         const sizeOfRequestDataKB = Utils.truncTo(Utils.createDecimal(
           sizeof({ headers: req.headers, query: req.query, body: req.body })
         ).div(1024).toNumber(), 2);
-        const message = `Express HTTP Request << Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB << ${req.method} '${req.url}'`;
+        const performanceID = await PerformanceStorage.savePerformanceRecord(
+          Utils.buildPerformanceRecord({
+            tenantSubdomain,
+            group: Utils.getPerformanceRecordGroupFromURL(req.originalUrl),
+            httpUrl: req.url,
+            httpMethod: req.method,
+            reqSizeKb: sizeOfRequestDataKB,
+            action: ServerAction.HTTP_REQUEST,
+          })
+        );
+        const message = `Express HTTP Request - '${Utils.last5Chars(performanceID)}' << Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB << ${req.method} '${req.url}'`;
         Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
         await Logging.logDebug({
           tenantID,
@@ -346,16 +356,6 @@ export default class Logging {
             headers: req.headers,
           }
         });
-        const performanceID = await PerformanceStorage.savePerformanceRecord(
-          Utils.buildPerformanceRecord({
-            tenantSubdomain,
-            group: Utils.getPerformanceRecordGroupFromURL(req.originalUrl),
-            httpUrl: req.url,
-            httpMethod: req.method,
-            reqSizeKb: sizeOfRequestDataKB,
-            action: ServerAction.HTTP_REQUEST,
-          })
-        );
         req['performanceID'] = performanceID;
       } finally {
         next();
@@ -381,7 +381,7 @@ export default class Logging {
           sizeOfResponseDataKB = Utils.truncTo(
             Utils.createDecimal(res.getHeader('content-length') as number).div(1024).toNumber(), 2);
         }
-        const message = `Express HTTP Response >> ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB >> ${req.method}/${res.statusCode} '${req.url}'`;
+        const message = `Express HTTP Response ${req['performanceID'] ? '- \'' + Utils.last5Chars(req['performanceID']) + '\' ' : ''}>> ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB >> ${req.method}/${res.statusCode} '${req.url}'`;
         Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
         if (sizeOfResponseDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
           const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB} KB, got ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB`);
