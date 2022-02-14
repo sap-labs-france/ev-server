@@ -559,26 +559,7 @@ export default class OCPPService {
     return (result.idTagInfo?.status === OCPPAuthorizationStatus.ACCEPTED);
   }
 
-  private checkAndUpdateTransactionWithSignedDataInStopTransaction(transaction: Transaction, stopTransaction: OCPPStopTransactionRequestExtended) {
-    // Handle Signed Data in Stop Transaction
-    if (!Utils.isEmptyArray(stopTransaction.transactionData)) {
-      for (const meterValue of stopTransaction.transactionData as OCPPMeterValue[]) {
-        for (const sampledValue of meterValue.sampledValue) {
-          if (sampledValue.format === OCPPValueFormat.SIGNED_DATA) {
-            // Set Signed data in Start of Transaction
-            if (sampledValue.context === OCPPReadingContext.TRANSACTION_BEGIN) {
-              transaction.signedData = sampledValue.value;
-            }
-            if (sampledValue.context === OCPPReadingContext.TRANSACTION_END) {
-              transaction.currentSignedData = sampledValue.value;
-            }
-          }
-        }
-      }
-    }
-  }
-
-  private async checkAuthorizeStopTransactionAndGetUsers(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction,
+  public async checkAuthorizeStopTransactionAndGetUsers(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction,
       tagId: string, isStoppedByCentralSystem: boolean): Promise<{ user: User; alternateUser: User; }> {
     let user: User;
     let alternateUser: User;
@@ -605,6 +586,25 @@ export default class OCPPService {
       });
     }
     return { user, alternateUser };
+  }
+
+  private checkAndUpdateTransactionWithSignedDataInStopTransaction(transaction: Transaction, stopTransaction: OCPPStopTransactionRequestExtended) {
+    // Handle Signed Data in Stop Transaction
+    if (!Utils.isEmptyArray(stopTransaction.transactionData)) {
+      for (const meterValue of stopTransaction.transactionData as OCPPMeterValue[]) {
+        for (const sampledValue of meterValue.sampledValue) {
+          if (sampledValue.format === OCPPValueFormat.SIGNED_DATA) {
+            // Set Signed data in Start of Transaction
+            if (sampledValue.context === OCPPReadingContext.TRANSACTION_BEGIN) {
+              transaction.signedData = sampledValue.value;
+            }
+            if (sampledValue.context === OCPPReadingContext.TRANSACTION_END) {
+              transaction.currentSignedData = sampledValue.value;
+            }
+          }
+        }
+      }
+    }
   }
 
   private async triggerSmartChargingStopTransaction(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction) {
