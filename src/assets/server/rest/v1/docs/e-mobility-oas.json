@@ -9990,6 +9990,9 @@
             "$ref": "#/components/parameters/SiteIDs"
           },
           {
+            "$ref": "#/components/parameters/WithSite"
+          },
+          {
             "$ref": "#/components/parameters/WithSiteArea"
           },
           {
