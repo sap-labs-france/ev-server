@@ -325,7 +325,17 @@ export default class Logging {
         const sizeOfRequestDataKB = Utils.truncTo(Utils.createDecimal(
           sizeof({ headers: req.headers, query: req.query, body: req.body })
         ).div(1024).toNumber(), 2);
-        const message = `Express HTTP Request << Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB << ${req.method} '${req.url}'`;
+        const performanceID = await PerformanceStorage.savePerformanceRecord(
+          Utils.buildPerformanceRecord({
+            tenantSubdomain,
+            group: Utils.getPerformanceRecordGroupFromURL(req.originalUrl),
+            httpUrl: req.url,
+            httpMethod: req.method,
+            reqSizeKb: sizeOfRequestDataKB,
+            action: ServerAction.HTTP_REQUEST,
+          })
+        );
+        const message = `Express HTTP Request - '${Utils.last5Chars(performanceID)}' << Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB << ${req.method} '${req.url}'`;
         Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
         await Logging.logDebug({
           tenantID,
@@ -346,16 +356,6 @@ export default class Logging {
             headers: req.headers,
           }
         });
-        const performanceID = await PerformanceStorage.savePerformanceRecord(
-          Utils.buildPerformanceRecord({
-            tenantSubdomain,
-            group: Utils.getPerformanceRecordGroupFromURL(req.originalUrl),
-            httpUrl: req.url,
-            httpMethod: req.method,
-            reqSizeKb: sizeOfRequestDataKB,
-            action: ServerAction.HTTP_REQUEST,
-          })
-        );
         req['performanceID'] = performanceID;
       } finally {
         next();
@@ -381,7 +381,7 @@ export default class Logging {
           sizeOfResponseDataKB = Utils.truncTo(
             Utils.createDecimal(res.getHeader('content-length') as number).div(1024).toNumber(), 2);
         }
-        const message = `Express HTTP Response >> ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB >> ${req.method}/${res.statusCode} '${req.url}'`;
+        const message = `Express HTTP Response ${req['performanceID'] ? '- \'' + Utils.last5Chars(req['performanceID']) + '\' ' : ''}>> ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB >> ${req.method}/${res.statusCode} '${req.url}'`;
         Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
         if (sizeOfResponseDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
           const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB} KB, got ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB`);
@@ -458,17 +458,6 @@ export default class Logging {
       // Compute Length
       const sizeOfRequestDataKB = Utils.truncTo(Utils.createDecimal(
         sizeof(request)).div(1024).toNumber(), 2);
-      const message = `Axios HTTP Request >> Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB - ${request.method.toLocaleUpperCase()} '${request.url}'`;
-      Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
-      await Logging.logDebug({
-        tenantID: tenant.id,
-        action: ServerAction.HTTP_REQUEST,
-        module: Constants.MODULE_AXIOS, method: 'interceptor',
-        message,
-        detailedMessages: {
-          request: Utils.cloneObject(request),
-        }
-      });
       const performanceID = await PerformanceStorage.savePerformanceRecord(
         Utils.buildPerformanceRecord({
           tenantSubdomain: tenant.subdomain,
@@ -479,6 +468,17 @@ export default class Logging {
           action: ServerAction.HTTP_REQUEST,
         })
       );
+      const message = `Axios HTTP Request - '${Utils.last5Chars(performanceID)}' >> Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB - ${request.method.toLocaleUpperCase()} '${request.url}'`;
+      Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
+      await Logging.logDebug({
+        tenantID: tenant.id,
+        action: ServerAction.HTTP_REQUEST,
+        module: Constants.MODULE_AXIOS, method: 'interceptor',
+        message,
+        detailedMessages: {
+          request: Utils.cloneObject(request),
+        }
+      });
       request['performanceID'] = performanceID;
     }
   }
@@ -499,7 +499,7 @@ export default class Logging {
         sizeOfResponseDataKB = Utils.truncTo(
           Utils.createDecimal(sizeof(response.data)).div(1024).toNumber(), 2);
       }
-      const message = `Axios HTTP Response << ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`;
+      const message = `Axios HTTP Response ${response.config['performanceID'] ? '- \'' + Utils.last5Chars(response.config['performanceID']) + '\' ' : ''}<< ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`;
       Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
       if (sizeOfResponseDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
         const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}`);
@@ -683,7 +683,16 @@ export default class Logging {
       // Compute size
       const sizeOfRequestDataKB = Utils.truncTo(Utils.createDecimal(
         sizeof(request)).div(1024).toNumber(), 2);
-      const message = `${direction} OCPP Request '${action}' - Req ${sizeOfRequestDataKB} KB - ${direction === '>>' ? 'Received' : 'Sent'}`;
+      const performanceID = await PerformanceStorage.savePerformanceRecord(
+        Utils.buildPerformanceRecord({
+          tenantSubdomain: tenant.subdomain,
+          chargingStationID,
+          group: PerformanceRecordGroup.OCPP,
+          reqSizeKb: sizeOfRequestDataKB,
+          action
+        })
+      );
+      const message = `${direction} OCPP Request '${action}~${Utils.last5Chars(performanceID)}' on '${chargingStationID}' has been ${direction === '>>' ? 'received' : 'sent'} - Req ${sizeOfRequestDataKB} KB`;
       Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
       await Logging.logDebug({
         tenantID: tenant.id,
@@ -694,15 +703,6 @@ export default class Logging {
         module: module, method: action, action,
         message, detailedMessages: { request }
       });
-      const performanceID = await PerformanceStorage.savePerformanceRecord(
-        Utils.buildPerformanceRecord({
-          tenantSubdomain: tenant.subdomain,
-          chargingStationID,
-          group: PerformanceRecordGroup.OCPP,
-          reqSizeKb: sizeOfRequestDataKB,
-          action
-        })
-      );
       return {
         startTimestamp: Date.now(),
         performanceID
@@ -718,7 +718,7 @@ export default class Logging {
       const executionDurationMillis = performanceTracingData?.startTimestamp ? Date.now() - performanceTracingData.startTimestamp : 0;
       const sizeOfResponseDataKB = Utils.truncTo(Utils.createDecimal(
         sizeof(response)).div(1024).toNumber(), 2);
-      const message = `${direction} OCPP Request '${action}' on '${chargingStationID}' has been processed ${executionDurationMillis ? 'in ' + executionDurationMillis.toString() + ' ms' : ''} - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB`;
+      const message = `${direction} OCPP Request '${action}~${Utils.last5Chars(performanceTracingData.performanceID)}' on '${chargingStationID}' has been processed ${executionDurationMillis ? 'in ' + executionDurationMillis.toString() + ' ms' : ''} - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB`;
       Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
       if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
         const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms`);

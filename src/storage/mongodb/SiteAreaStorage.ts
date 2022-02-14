@@ -1,6 +1,9 @@
 import global, { DatabaseCount, FilterParams, Image } from '../../types/GlobalType';
 
+import AssetStorage from './AssetStorage';
+import ChargingStationStorage from './ChargingStationStorage';
 import Constants from '../../utils/Constants';
+import ConsumptionStorage from './ConsumptionStorage';
 import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
@@ -8,11 +11,26 @@ import Logging from '../../utils/Logging';
 import { ObjectId } from 'mongodb';
 import SiteArea from '../../types/SiteArea';
 import Tenant from '../../types/Tenant';
+import TransactionStorage from './TransactionStorage';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'SiteAreaStorage';
 
 export default class SiteAreaStorage {
+  public static async updateEntitiesWithOrganizationIDs(tenant: Tenant, companyID: string, siteID: string, siteAreaID: string): Promise<number> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    // Update Charging Stations
+    let updated = await ChargingStationStorage.updateChargingStationsWithOrganizationIDs(tenant, companyID, siteID, siteAreaID);
+    // Update Transactions
+    updated += await TransactionStorage.updateTransactionsWithOrganizationIDs(tenant, companyID, siteID, siteAreaID);
+    // Update Assets
+    updated += await AssetStorage.updateAssetsWithOrganizationIDs(tenant, companyID, siteID, siteAreaID);
+    // Update Consumptions
+    updated += await ConsumptionStorage.updateConsumptionsWithOrganizationIDs(tenant, siteID, siteAreaID);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'updateEntitiesWithOrganizationIDs', startTime, { companyID, siteID, siteAreaID });
+    return updated;
+  }
+
   public static async addAssetsToSiteArea(tenant: Tenant, siteArea: SiteArea, assetIDs: string[]): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
@@ -107,7 +125,7 @@ export default class SiteAreaStorage {
         department: siteAreaToSave.address.department,
         region: siteAreaToSave.address.region,
         country: siteAreaToSave.address.country,
-        coordinates: Utils.containsGPSCoordinates(siteAreaToSave.address.coordinates) ? siteAreaToSave.address.coordinates.map(
+        coordinates: Utils.hasValidGpsCoordinates(siteAreaToSave.address.coordinates) ? siteAreaToSave.address.coordinates.map(
           (coordinate) => Utils.convertToFloat(coordinate)) : [],
       };
     }
@@ -144,7 +162,7 @@ export default class SiteAreaStorage {
     // Create Aggregation
     const aggregation = [];
     // Position coordinates
-    if (Utils.containsGPSCoordinates(params.locCoordinates)) {
+    if (Utils.hasValidGpsCoordinates(params.locCoordinates)) {
       aggregation.push({
         $geoNear: {
           near: {
@@ -232,7 +250,7 @@ export default class SiteAreaStorage {
       dbParams.sort = { name: 1 };
     }
     // Position coordinates
-    if (Utils.containsGPSCoordinates(params.locCoordinates)) {
+    if (Utils.hasValidGpsCoordinates(params.locCoordinates)) {
       dbParams.sort = { distanceMeters: 1 };
     }
     aggregation.push({
