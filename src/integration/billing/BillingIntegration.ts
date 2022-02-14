@@ -1,4 +1,5 @@
 import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
+import Tenant, { TenantComponents } from '../../types/Tenant';
 import Transaction, { StartTransactionErrorCode } from '../../types/Transaction';
 import User, { UserStatus } from '../../types/User';
 
@@ -14,7 +15,6 @@ import NotificationHandler from '../../notification/NotificationHandler';
 import { Promise } from 'bluebird';
 import { Request } from 'express';
 import { ServerAction } from '../../types/Server';
-import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
@@ -256,14 +256,16 @@ export default abstract class BillingIntegration {
         action: ServerAction.BILLING_TRANSACTION
       });
     }
-    // Check for the Site Area
-    if (!chargingStation.siteArea) {
-      throw new BackendError({
-        message: 'The site area is mandatory to start a transaction',
-        module: MODULE_NAME,
-        method: 'checkStartTransaction',
-        action: ServerAction.BILLING_TRANSACTION
-      });
+    if (Utils.isTenantComponentActive(this.tenant, TenantComponents.ORGANIZATION)) {
+      // Check for the Site Area
+      if (!chargingStation.siteArea) {
+        throw new BackendError({
+          message: 'The site area is mandatory to start a transaction',
+          module: MODULE_NAME,
+          method: 'checkStartTransaction',
+          action: ServerAction.BILLING_TRANSACTION
+        });
+      }
     }
   }
 
