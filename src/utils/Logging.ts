@@ -683,7 +683,7 @@ export default class Logging {
       // Compute size
       const sizeOfRequestDataKB = Utils.truncTo(Utils.createDecimal(
         sizeof(request)).div(1024).toNumber(), 2);
-      const message = `${direction} OCPP Request '${action}' - Req ${sizeOfRequestDataKB} KB - ${direction === '>>' ? 'Received' : 'Sent'}`;
+      const message = `${direction} OCPP Request '${action}' on '${chargingStationID}' has been ${direction === '>>' ? 'received' : 'sent'} - Req ${sizeOfRequestDataKB} KB`;
       Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
       await Logging.logDebug({
         tenantID: tenant.id,

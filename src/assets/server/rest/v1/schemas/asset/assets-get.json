@@ -3,6 +3,10 @@
   "title": "Get Assets Request",
   "type": "object",
   "properties": {
+    "WithSite": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
     "WithSiteArea": {
       "type": "boolean",
       "sanitize": "mongo"

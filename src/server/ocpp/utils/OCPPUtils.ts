@@ -1767,7 +1767,7 @@ export default class OCPPUtils {
           OCPPUtils.enrichChargingStationWithTemplateTechnicalParams(chargingStation, chargingStationTemplate);
         // Check Capabilities
         templateUpdateResult.capabilitiesUpdated =
-          OCPPUtils.enrichChargingStationWithTemplateCapabilities(chargingStation, chargingStationTemplate);
+          await OCPPUtils.enrichChargingStationWithTemplateCapabilities(tenant, chargingStation, chargingStationTemplate);
         // Check Ocpp Standard parameters
         templateUpdateResult.ocppStandardUpdated =
           await OCPPUtils.enrichChargingStationWithTemplateOcppStandardParams(tenant, chargingStation, chargingStationTemplate);
@@ -1889,10 +1889,20 @@ export default class OCPPUtils {
           return true;
         }
       }
+      // Not found
+      await Logging.logWarning({
+        tenantID: tenant.id,
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
+        action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
+        module: MODULE_NAME, method: 'enrichChargingStationWithTemplateOcppParams',
+        message: `Cannot find a matching section named '${ocppProperty}' in Template ID '${chargingStationTemplate.id}'`,
+        detailedMessages: { chargingStationTemplate, chargingStation }
+      });
     }
   }
 
-  private static enrichChargingStationWithTemplateCapabilities(chargingStation: ChargingStation, chargingStationTemplate: ChargingStationTemplate): boolean {
+  private static async enrichChargingStationWithTemplateCapabilities(tenant: Tenant, chargingStation: ChargingStation,
+      chargingStationTemplate: ChargingStationTemplate): Promise<boolean> {
     // Already updated?
     if (chargingStation.templateHashCapabilities !== chargingStationTemplate.hashCapabilities) {
       // Handle capabilities
@@ -1927,6 +1937,15 @@ export default class OCPPUtils {
             return true;
           }
         }
+        // Not found
+        await Logging.logWarning({
+          tenantID: tenant.id,
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
+          action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
+          module: MODULE_NAME, method: 'enrichChargingStationWithTemplateCapabilities',
+          message: `Cannot find a matching section named 'capabilities' in Template ID '${chargingStationTemplate.id}'`,
+          detailedMessages: { chargingStationTemplate, chargingStation }
+        });
       }
     }
   }
