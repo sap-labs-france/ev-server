@@ -37,24 +37,24 @@ export default class CloseTransactionsInProgressTask extends TenantSchedulerTask
             // Soft stop transaction
             if (await ocppService.softStopTransaction(tenant, transaction, transaction.chargeBox, transaction.siteArea)) {
               result.inSuccess++;
-            } else {
-              if (transaction.chargeBox) {
-                // Transaction is stopped by central system?
-                authUser = await ocppService.checkAuthorizeStopTransactionAndGetUsers(
-                  tenant, transaction.chargeBox, transaction, transaction.tagID, true);
-              }
-              // Update Transaction with Stop Transaction and Stop MeterValues
-              OCPPUtils.updateTransactionWithStopTransaction(transaction, transaction.chargeBox ? transaction.chargeBox : null, {
-                transactionId: transaction.id,
-                chargeBoxID: transaction.chargeBoxID,
-                idTag: transaction.tagID,
-                timestamp: Utils.convertToDate(transaction.lastConsumption ? transaction.lastConsumption.timestamp : transaction.timestamp).toISOString(),
-                meterStop: transaction.lastConsumption ? transaction.lastConsumption.value : transaction.meterStart
-              }, authUser?.user, authUser?.alternateUser, transaction.tagID, true);
-              // Save the transaction
-              await TransactionStorage.saveTransaction(tenant, transaction);
-              result.inSuccess++;
+              continue;
             }
+            if (transaction.chargeBox) {
+              // Transaction is stopped by central system?
+              authUser = await ocppService.checkAuthorizeStopTransactionAndGetUsers(
+                tenant, transaction.chargeBox, transaction, transaction.tagID, true);
+            }
+            // Update Transaction with Stop Transaction and Stop MeterValues
+            OCPPUtils.updateTransactionWithStopTransaction(transaction, transaction.chargeBox, {
+              transactionId: transaction.id,
+              chargeBoxID: transaction.chargeBoxID,
+              idTag: transaction.tagID,
+              timestamp: Utils.convertToDate(transaction.lastConsumption ? transaction.lastConsumption.timestamp : transaction.timestamp).toISOString(),
+              meterStop: transaction.lastConsumption ? transaction.lastConsumption.value : transaction.meterStart
+            }, authUser?.user, authUser?.alternateUser, transaction.tagID, true);
+            // Save the transaction
+            await TransactionStorage.saveTransaction(tenant, transaction);
+            result.inSuccess++;
           } catch (error) {
             result.inError++;
             await Logging.logError({
