@@ -4,6 +4,7 @@ import AssetStorage from './AssetStorage';
 import { ChargePointStatus } from '../../types/ocpp/OCPPServer';
 import ChargingStationStorage from './ChargingStationStorage';
 import Constants from '../../utils/Constants';
+import ConsumptionStorage from './ConsumptionStorage';
 import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
@@ -18,12 +19,16 @@ const MODULE_NAME = 'SiteAreaStorage';
 
 export default class SiteAreaStorage {
   public static async updateEntitiesWithOrganizationIDs(tenant: Tenant, companyID: string, siteID: string, siteAreaID: string): Promise<number> {
+    const startTime = Logging.traceDatabaseRequestStart();
     // Update Charging Stations
     let updated = await ChargingStationStorage.updateChargingStationsWithOrganizationIDs(tenant, companyID, siteID, siteAreaID);
     // Update Transactions
     updated += await TransactionStorage.updateTransactionsWithOrganizationIDs(tenant, companyID, siteID, siteAreaID);
     // Update Assets
     updated += await AssetStorage.updateAssetsWithOrganizationIDs(tenant, companyID, siteID, siteAreaID);
+    // Update Consumptions
+    updated += await ConsumptionStorage.updateConsumptionsWithOrganizationIDs(tenant, siteID, siteAreaID);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'updateEntitiesWithOrganizationIDs', startTime, { companyID, siteID, siteAreaID });
     return updated;
   }
 

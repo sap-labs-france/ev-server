@@ -254,6 +254,13 @@ export default class Utils {
     return nanoid(length);
   }
 
+  public static last5Chars(data: string): string {
+    if (!data || data.length <= 5) {
+      return data;
+    }
+    return data.slice(data.length - 5, data.length);
+  }
+
   public static generateTagID(name: string, firstName: string): string {
     let tagID = '';
     if (name && name.length > 0) {
