@@ -114,18 +114,6 @@ export default class UtilsService {
     );
     UtilsService.assertObjectExists(action, chargingStation, `ChargingStation ID '${chargingStationID}' does not exist`,
       MODULE_NAME, 'checkAndGetChargingStationAuthorization', userToken);
-    // External Charging Station
-    // TODO: require auth migration to remove below check -> checkAndGetChargingStationAuthorizations doesn't use auth definition !
-    if (!chargingStation.issuer) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `ChargingStation Id '${chargingStation.id}' not issued by the organization`,
-        module: MODULE_NAME, method: 'checkAndGetChargingStationAuthorization',
-        user: userToken,
-        action: action,
-        ...LoggingHelper.getChargingStationProperties(chargingStation)
-      });
-    }
     // Deleted?
     if (chargingStation?.deleted) {
       throw new AppError({
