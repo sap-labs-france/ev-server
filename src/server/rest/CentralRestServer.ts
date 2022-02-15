@@ -10,7 +10,6 @@ import { ServerType } from '../../types/Server';
 import { ServerUtils } from '../ServerUtils';
 import SessionHashService from './v1/service/SessionHashService';
 import http from 'http';
-import sanitize from 'express-sanitizer';
 
 const MODULE_NAME = 'CentralRestServer';
 
@@ -20,13 +19,11 @@ export default class CentralRestServer {
   private expressApplication: Application;
 
   // Create the rest server
-  constructor(centralSystemRestConfig: CentralSystemRestServiceConfiguration) {
+  public constructor(centralSystemRestConfig: CentralSystemRestServiceConfiguration) {
     // Keep params
     CentralRestServer.centralSystemRestConfig = centralSystemRestConfig;
     // Initialize express app
-    this.expressApplication = ExpressUtils.initApplication('2mb', centralSystemRestConfig.debug);
-    // Mount express-sanitizer middleware
-    this.expressApplication.use(sanitize());
+    this.expressApplication = ExpressUtils.initApplication('1mb', centralSystemRestConfig.debug);
     // Authentication
     this.expressApplication.use(AuthService.initialize());
     // Routers
@@ -49,7 +46,7 @@ export default class CentralRestServer {
     CentralRestServer.restHttpServer = ServerUtils.createHttpServer(CentralRestServer.centralSystemRestConfig, this.expressApplication);
   }
 
-  start(): void {
+  public start(): void {
     ServerUtils.startHttpServer(CentralRestServer.centralSystemRestConfig, CentralRestServer.restHttpServer, MODULE_NAME, ServerType.REST_SERVER);
   }
 }

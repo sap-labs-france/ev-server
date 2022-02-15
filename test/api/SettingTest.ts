@@ -14,7 +14,6 @@ import Tenant from '../../src/types/Tenant';
 import TenantContext from './context/TenantContext';
 import TestConstants from './client/utils/TestConstants';
 import Utils from '../../src/utils/Utils';
-import _ from 'lodash';
 import chaiSubset from 'chai-subset';
 import config from '../config';
 import responseHelper from '../helpers/responseHelper';
@@ -208,7 +207,20 @@ describe('Setting', function() {
       // Store the old setting
       const oldSetting = read.data;
       // Activate convergent charging
-      testData.data = JSON.parse(`{"id":"${testData.credentials.tenantId}","name":"${ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS}","email":"${testData.credentials.email}","subdomain":"utall","components":{"ocpi":{"active":true,"type":"ocpi"},"organization":{"active":true,"type":null},"pricing":{"active":true,"type":"convergentCharging"},"refund":{"active":true,"type":"concur"},"statistics":{"active":true,"type":null},"analytics":{"active":true,"type":null}}}`);
+      testData.data = JSON.parse(`{
+        "id":"${testData.credentials.tenantId}",
+        "name":"${ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS}",
+        "email":"${testData.credentials.email}",
+        "subdomain":"utall",
+        "components":{
+          "ocpi":{ "active":true,"type":"ocpi" },
+          "organization":{ "active":true,"type":null },
+          "pricing":{ "active":true,"type":"convergentCharging" },
+          "refund":{ "active":true,"type":"concur" },
+          "statistics":{ "active":true,"type":null },
+          "analytics":{ "active":true,"type":null }
+        }
+      }`);
       // Updating Tenant's components will trigger a logout
       let activation = await testData.superCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
       expect(activation.status).to.equal(StatusCodes.OK);
@@ -232,12 +244,25 @@ describe('Setting', function() {
       let update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
       expect(update.status).to.equal(StatusCodes.OK);
       // Activate back simple pricing
-      testData.data = JSON.parse(`{"id":"${testData.credentials.tenantId}","name":"${ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS}","email":"${testData.credentials.email}","subdomain":"utall","components":{"ocpi":{"active":true,"type":"ocpi"},"organization":{"active":true,"type":null},"pricing":{"active":true,"type":"simple"},"refund":{"active":true,"type":"concur"},"statistics":{"active":true,"type":null},"analytics":{"active":true,"type":null}}}`);
+      testData.data = JSON.parse(`{
+        "id":"${testData.credentials.tenantId}",
+        "name":"${ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS}",
+        "email":"${testData.credentials.email}",
+        "subdomain":"utall",
+        "components":{
+          "ocpi":{ "active":true,"type":"ocpi" },
+          "organization":{ "active":true,"type":null },
+          "pricing":{ "active":true,"type":"simple" },
+          "refund":{ "active":true,"type":"concur" },
+          "statistics":{ "active":true,"type":null },
+          "analytics":{"active":true,"type":null }
+        }
+      }`);
       activation = await testData.superCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
       expect(activation.status).to.equal(StatusCodes.OK);
       // Restore default simple pricing setting
-      update = await testData.centralService.updateEntity(testData.centralService.settingApi, oldSetting);
-      expect(update.status).to.equal(StatusCodes.OK);
+      update = await testData.centralService.updateEntity(testData.centralService.settingApi, oldSetting, false);
+      expect(update.status).to.equal(HTTPError.TENANT_COMPONENT_CHANGED);
     });
 
     describe('Crypto settings update tests', () => {
@@ -540,27 +565,54 @@ describe('Setting', function() {
         expect(response.status).to.equal(StatusCodes.OK);
       });
       it('Should be able to create a new setting', async () => {
+        // Delete a previous setting as they all already exist
+        const read = await testData.centralService.settingApi.readByIdentifier({ Identifier: 'statistics' });
+        expect(read.status).to.eq(StatusCodes.OK);
+        await testData.centralService.settingApi.delete(read.data.id);
+        // Recreate it
         const settingData = {
-          'identifier': 'test',
-          'content': {
-            'type': 'simple'
-          }
+          'identifier': 'statistics',
+          'content': {}
         };
         const create = await testData.centralService.settingApi.create(settingData);
         expect(create.status).to.equal(StatusCodes.OK);
       });
       it('Should be able to update a setting', async () => {
-        const read = await testData.centralService.settingApi.readByIdentifier({ 'Identifier': 'test' });
-        read.data.content.type = 'updated';
-        const update = await testData.centralService.settingApi.update(read.data);
+        const read = await testData.centralService.settingApi.readByIdentifier({ 'Identifier': 'pricing' });
+        const oldPricingType = read.data.content.type;
+        // Update the setting
+        read.data.content.type = 'convergentCharging';
+        let update = await testData.centralService.settingApi.update(read.data);
         expect(update.status).to.equal(StatusCodes.OK);
-        const readUpdated = await testData.centralService.settingApi.readByIdentifier({ 'Identifier': 'test' });
-        expect(readUpdated.data.content.type).to.equal('updated');
+        let readUpdated = await testData.centralService.settingApi.readByIdentifier({ 'Identifier': 'pricing' });
+        expect(readUpdated.data.content.type).to.equal('convergentCharging');
+        // Set back the setting's type
+        read.data.content.type = oldPricingType;
+        update = await testData.centralService.settingApi.update(read.data);
+        expect(update.status).to.equal(StatusCodes.OK);
+        readUpdated = await testData.centralService.settingApi.readByIdentifier({ 'Identifier': 'pricing' });
+        expect(readUpdated.data.content.type).to.equal(oldPricingType);
       });
       it('Should be able to delete the created setting', async () => {
-        const read = await testData.centralService.settingApi.readByIdentifier({ 'Identifier': 'test' });
-        const create = await testData.centralService.settingApi.delete(read.data.id);
+        const read = await testData.centralService.settingApi.readByIdentifier({ 'Identifier': 'statistics' });
+        const deleted = await testData.centralService.settingApi.delete(read.data.id);
+        expect(deleted.status).to.equal(StatusCodes.OK);
+        // Restore the statistics setting
+        const settingData = {
+          'identifier': 'statistics',
+          'content': {}
+        };
+        const create = await testData.centralService.settingApi.create(settingData);
         expect(create.status).to.equal(StatusCodes.OK);
+      });
+
+      it('Should not be able to create an unknown setting', async () => {
+        const settingData = {
+          'identifier': 'unknown',
+          'content': {}
+        };
+        const create = await testData.centralService.settingApi.create(settingData);
+        expect(create.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
       });
     });
 

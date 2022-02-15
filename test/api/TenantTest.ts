@@ -1,10 +1,10 @@
+import Tenant, { TenantComponents } from '../../src/types/Tenant';
 import chai, { expect } from 'chai';
 
 import CentralServerService from '../api/client/CentralServerService';
 import Factory from '../factories/Factory';
 import { HTTPError } from '../../src/types/HTTPError';
 import { StatusCodes } from 'http-status-codes';
-import Tenant from '../../src/types/Tenant';
 import TestUtils from './TestUtils';
 import chaiSubset from 'chai-subset';
 import faker from 'faker';
@@ -82,6 +82,10 @@ describe('Tenant', function() {
           'type': null
         },
         'smartCharging': {
+          'active': false,
+          'type': null
+        },
+        'carConnector': {
           'active': false,
           'type': null
         },

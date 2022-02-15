@@ -91,6 +91,8 @@ export enum ServerAction {
 
   OFFLINE_CHARGING_STATION = 'OfflineChargingStation',
 
+  MISSING_CONFIGURATION = 'MissingConfiguration',
+
   LOGS_CLEANUP = 'LogsCleanup',
   PERFORMANCES_CLEANUP = 'PerformancesCleanup',
   PERFORMANCES = 'Performances',
@@ -235,6 +237,7 @@ export enum ServerAction {
   WS_CLIENT_INFO = 'WSClientInfo',
 
   WS_CONNECTION = 'WSConnection',
+  WS_MESSAGE = 'WSMessage',
   WS_CONNECTION_PINGED = 'WSConnectionPinged',
   WS_CONNECTION_OPENED = 'WSConnectionOpened',
   WS_CONNECTION_CLOSED = 'WSConnectionClosed',
@@ -266,7 +269,6 @@ export enum ServerAction {
   NEW_REGISTERED_USER = 'NewRegisteredUser',
   UNKNOWN_USER_BADGED = 'UnknownUserBadged',
   TRANSACTION_STARTED = 'TransactionStarted',
-  VERIFICATION_EMAIL = 'VerificationEmail',
   VERIFICATION_EMAIL_USER_IMPORT = 'VerificationEmailUserImport',
   PATCH_EVSE_STATUS_ERROR = 'PatchEVSEStatusError',
   PATCH_EVSE_ERROR = 'PatchEVSEError',
@@ -418,24 +420,21 @@ export enum ServerAction {
 
   BILLING = 'Billing',
   BILLING_TRANSACTION = 'BillingTransaction',
-  BILLING_SYNCHRONIZE_USERS = 'BillingSynchronizeUsers',
   BILLING_SYNCHRONIZE_USER = 'BillingSynchronizeUser',
   BILLING_FORCE_SYNCHRONIZE_USER = 'BillingForceSynchronizeUser',
   CHECK_BILLING_CONNECTION = 'CheckBillingConnection',
   BILLING_TAXES = 'BillingTaxes',
   BILLING_INVOICES = 'BillingInvoices',
   BILLING_INVOICE = 'BillingInvoice',
-  BILLING_SYNCHRONIZE_INVOICES = 'BillingSynchronizeInvoices',
   BILLING_PERFORM_OPERATIONS = 'BillingPeriodicOperations',
-  BILLING_FORCE_SYNCHRONIZE_USER_INVOICES = 'BillingForceSynchronizeUserInvoices',
   BILLING_DOWNLOAD_INVOICE = 'BillingDownloadInvoice',
   BILLING_NEW_INVOICE = 'BillingNewInvoice',
   BILLING_SETUP_PAYMENT_METHOD = 'BillingSetupPaymentMethod',
   BILLING_PAYMENT_METHODS = 'BillingPaymentMethods',
   BILLING_DELETE_PAYMENT_METHOD = 'BillingDeletePaymentMethod',
   BILLING_CHARGE_INVOICE = 'BillingChargeInvoice',
-  BILLING_WEB_HOOK = 'BillingWebHook',
   BILLING_TEST_DATA_CLEANUP = 'BillingTestDataCleanup',
+  BILLING_BILL_PENDING_TRANSACTION = 'BillingBillPendingTransaction',
 
   PRICING = 'Pricing',
   PRICING_DEFINITION = 'PricingDefinition',
@@ -686,6 +685,7 @@ export enum ServerType {
   OICP_SERVER = 'Oicp',
   ODATA_SERVER = 'OData',
   BATCH_SERVER = 'Batch',
+  MONITORING_SERVER = 'Monitoring',
   CENTRAL_SERVER = 'CentralServer',
 }
 

@@ -1,0 +1,13 @@
+{
+  "$id": "invoice-get",
+  "title": "Get invoice by id Request",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "common#/definitions/id"
+    }
+  },
+  "required": [
+    "ID"
+  ]
+}

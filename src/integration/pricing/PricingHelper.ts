@@ -51,14 +51,24 @@ export default class PricingHelper {
       if (!accumulatedData[dimensionType]) {
         const emptyDimensionData: PricedDimensionData = {
           quantity:0,
+          amountAsDecimal: Utils.createDecimal(0),
           amount: 0,
           roundedAmount: 0
         };
         accumulatedData[dimensionType] = emptyDimensionData;
       }
+      let persistedAmount: Decimal;
+      if (Utils.isNullOrUndefined(pricedData[dimensionType].amountAsDecimal)) {
+        // amountAsDecimal is NOT set - let's use the amount instead
+        persistedAmount = Utils.createDecimal(pricedData[dimensionType].amount);
+      } else {
+        // Normal situation - amountAsDecimal is set
+        persistedAmount = Utils.createDecimal(pricedData[dimensionType].amountAsDecimal);
+      }
       accumulatedData[dimensionType].quantity = Utils.createDecimal(accumulatedData[dimensionType].quantity).plus(pricedData[dimensionType].quantity).toNumber();
-      accumulatedData[dimensionType].amount = Utils.createDecimal(accumulatedData[dimensionType].amount).plus(pricedData[dimensionType].amount).toNumber();
-      accumulatedData[dimensionType].roundedAmount = Utils.createDecimal(accumulatedData[dimensionType].roundedAmount).plus(pricedData[dimensionType].roundedAmount).toNumber();
+      accumulatedData[dimensionType].amountAsDecimal = Utils.createDecimal(accumulatedData[dimensionType].amountAsDecimal).plus(persistedAmount);
+      accumulatedData[dimensionType].amount = Utils.createDecimal(accumulatedData[dimensionType].amountAsDecimal).toNumber();
+      accumulatedData[dimensionType].roundedAmount = Utils.truncTo(accumulatedData[dimensionType].amount, 2);
     }
   }
 }

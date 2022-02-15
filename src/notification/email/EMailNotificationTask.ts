@@ -1,22 +1,21 @@
-import fs from 'fs';
-
-import ejs from 'ejs';
+import { AccountVerificationNotification, AdminAccountVerificationNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, VerificationEmailNotification } from '../../types/UserNotifications';
 import { Message, SMTPClient, SMTPError } from 'emailjs';
-import rfc2047 from 'rfc2047';
 
 import BackendError from '../../exception/BackendError';
-import EmailConfiguration from '../../types/configuration/EmailConfiguration';
-import global from '../../types/GlobalType';
-import { ServerAction } from '../../types/Server';
-import Tenant from '../../types/Tenant';
-import User from '../../types/User';
-import { AccountVerificationNotification, AdminAccountVerificationNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, VerificationEmailNotification } from '../../types/UserNotifications';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
+import EmailConfiguration from '../../types/configuration/EmailConfiguration';
 import Logging from '../../utils/Logging';
-import TemplateManager from '../../utils/TemplateManager';
-import Utils from '../../utils/Utils';
 import NotificationTask from '../NotificationTask';
+import { ServerAction } from '../../types/Server';
+import TemplateManager from '../../utils/TemplateManager';
+import Tenant from '../../types/Tenant';
+import User from '../../types/User';
+import Utils from '../../utils/Utils';
+import ejs from 'ejs';
+import fs from 'fs';
+import global from '../../types/GlobalType';
+import rfc2047 from 'rfc2047';
 
 const MODULE_NAME = 'EMailNotificationTask';
 
@@ -196,7 +195,7 @@ export default class EMailNotificationTask implements NotificationTask {
       return;
     }
     if (useSmtpClientBackup && !this.smtpBackupClientInstance) {
-    // No suitable backup SMTP server configuration found or activated to send the email
+      // No suitable backup SMTP server configuration found or activated to send the email
       await Logging.logError({
         tenantID: tenant.id,
         siteID: data?.siteID,
@@ -261,6 +260,7 @@ export default class EMailNotificationTask implements NotificationTask {
             from: rfc2047.decode(messageToSend.header.from.toString()),
             to: rfc2047.decode(messageToSend.header.to.toString()),
             subject: rfc2047.decode(messageToSend.header.subject),
+            smtpError: error.smtp,
             error: error.stack,
             content: email.html
           }
@@ -296,7 +296,10 @@ export default class EMailNotificationTask implements NotificationTask {
   }
 
   private async prepareAndSendEmail(templateName: string, data: any, user: User, tenant: Tenant, severity: NotificationSeverity, useSmtpClientBackup = false): Promise<void> {
+    let startTime: number;
+    let emailContent = {} as EmailNotificationMessage;
     try {
+      startTime = Logging.traceNotificationStart();
       if (!user) {
         throw new BackendError({
           action: ServerAction.EMAIL_NOTIFICATION,
@@ -398,13 +401,14 @@ export default class EMailNotificationTask implements NotificationTask {
         htmlTemp = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/body-html.template`, 'utf8'), emailTemplate);
       }
       const html = htmlTemp;
-      // Send the email
-      await this.sendEmail({
+      emailContent = {
         to: user.email,
         subject: subject,
         text: html,
         html: html
-      }, data, tenant, user, severity, useSmtpClientBackup);
+      };
+      // Send the email
+      await this.sendEmail(emailContent, data, tenant, user, severity, useSmtpClientBackup);
     } catch (error) {
       await Logging.logError({
         tenantID: tenant.id,
@@ -418,6 +422,8 @@ export default class EMailNotificationTask implements NotificationTask {
         actionOnUser: user,
         detailedMessages: { error: error.stack }
       });
+    } finally {
+      await Logging.traceNotificationEnd(tenant, MODULE_NAME, 'prepareAndSendEmail', startTime, templateName, emailContent, user.id);
     }
   }
 

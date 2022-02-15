@@ -98,7 +98,7 @@ export default class CarStorage {
     }
     // Limit
     aggregation.push({
-      $limit: (dbParams.limit > 0 && dbParams.limit < Constants.DB_RECORD_COUNT_CEIL) ? dbParams.limit : Constants.DB_RECORD_COUNT_CEIL
+      $limit: dbParams.limit
     });
     // Car Image
     if (params.withImage) {
@@ -142,8 +142,7 @@ export default class CarStorage {
   public static async saveCarCatalog(carToSave: CarCatalog): Promise<number> {
     const startTime = Logging.traceDatabaseRequestStart();
     // Validate
-    const carCatalog = CarValidatorStorage.getInstance().validateCarCatalog(
-      carToSave as unknown as Record<string, unknown>);
+    const carCatalog = CarValidatorStorage.getInstance().validateCarCatalog(carToSave);
     // Properties to save
     const carMDB: any = {
       _id: carToSave.id,
@@ -498,7 +497,7 @@ export default class CarStorage {
     }
     // Limit
     aggregation.push({
-      $limit: (dbParams.limit > 0 && dbParams.limit < Constants.DB_RECORD_COUNT_CEIL) ? dbParams.limit : Constants.DB_RECORD_COUNT_CEIL
+      $limit: dbParams.limit
     });
     // Users
     if (params.withUser) {
@@ -578,7 +577,7 @@ export default class CarStorage {
   public static async deleteCarCatalog(id: number): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     // Delete singular site area
-    await global.database.getCollection(Constants.DEFAULT_TENANT, 'carcatalogs')
+    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogs')
       .deleteOne({ '_id': id });
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'deleteCarCatalog', startTime, { carID: id });
   }

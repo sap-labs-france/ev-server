@@ -8,12 +8,29 @@ import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { SiteAreaValueTypes } from '../../types/SiteArea';
 import Tenant from '../../types/Tenant';
+import { UpdateResult } from 'mongodb';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'ConsumptionStorage';
 
 export default class ConsumptionStorage {
-  static async saveConsumption(tenant: Tenant, consumptionToSave: Consumption): Promise<string> {
+  public static async updateConsumptionsWithOrganizationIDs(tenant: Tenant, siteID: string, siteAreaID: string): Promise<number> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    DatabaseUtils.checkTenantObject(tenant);
+    const result = await global.database.getCollection<any>(tenant.id, 'consumptions').updateMany(
+      {
+        siteAreaID: DatabaseUtils.convertToObjectID(siteAreaID),
+      },
+      {
+        $set: {
+          siteID: DatabaseUtils.convertToObjectID(siteID),
+        }
+      }) as UpdateResult;
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'updateConsumptionsWithOrganizationIDs', startTime, { siteID });
+    return result.modifiedCount;
+  }
+
+  public static async saveConsumption(tenant: Tenant, consumptionToSave: Consumption): Promise<string> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Build
@@ -27,7 +44,7 @@ export default class ConsumptionStorage {
     return consumptionMDB._id;
   }
 
-  static async saveConsumptions(tenant: Tenant, consumptionsToSave: Consumption[]): Promise<string[]> {
+  public static async saveConsumptions(tenant: Tenant, consumptionsToSave: Consumption[]): Promise<string[]> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     const consumptionsMDB = [];
@@ -43,7 +60,7 @@ export default class ConsumptionStorage {
     return consumptionsMDB.map((consumptionMDB) => consumptionMDB._id);
   }
 
-  static async deleteConsumptions(tenant: Tenant, transactionIDs: number[]): Promise<void> {
+  public static async deleteConsumptions(tenant: Tenant, transactionIDs: number[]): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // DeleFte
@@ -52,7 +69,7 @@ export default class ConsumptionStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteConsumptions', startTime, { transactionIDs });
   }
 
-  static async getAssetConsumptions(tenant: Tenant, params: { assetID: string; startDate: Date; endDate: Date }, projectFields?: string[]): Promise<Consumption[]> {
+  public static async getAssetConsumptions(tenant: Tenant, params: { assetID: string; startDate: Date; endDate: Date }, projectFields?: string[]): Promise<Consumption[]> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Create filters
@@ -129,7 +146,7 @@ export default class ConsumptionStorage {
     return consumptionsMDB;
   }
 
-  static async getLastAssetConsumption(tenant: Tenant, params: { assetID: string }): Promise<Consumption> {
+  public static async getLastAssetConsumption(tenant: Tenant, params: { assetID: string }): Promise<Consumption> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Create Aggregation
@@ -161,7 +178,7 @@ export default class ConsumptionStorage {
     return !Utils.isEmptyArray(consumptionsMDB) ? consumptionsMDB[0] : null;
   }
 
-  static async getSiteAreaConsumptions(tenant: Tenant,
+  public static async getSiteAreaConsumptions(tenant: Tenant,
       params: { siteAreaID: string; startDate: Date; endDate: Date }): Promise<Consumption[]> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
@@ -191,131 +208,157 @@ export default class ConsumptionStorage {
         $match: filters
       });
     }
-
-    const facets = {};
-    // Specific filters for each type of data
-    const detailedGroups = [SiteAreaValueTypes.ASSET_CONSUMPTIONS,
-      SiteAreaValueTypes.ASSET_PRODUCTIONS,
-      SiteAreaValueTypes.CHARGING_STATION_CONSUMPTIONS,
-      SiteAreaValueTypes.NET_CONSUMPTIONS];
-
-    for (const detailedType of detailedGroups) {
-      // Create filters
-      const facetFilters: FilterParams = {};
-      // Type of query
-      if (detailedType === SiteAreaValueTypes.ASSET_CONSUMPTIONS) {
-        facetFilters.instantWatts = { '$gte': 0 };
-        facetFilters.assetID = { '$ne': null };
-      } else if (detailedType === SiteAreaValueTypes.ASSET_PRODUCTIONS) {
-        facetFilters.instantWatts = { '$lt': 0 };
-        facetFilters.assetID = { '$ne': null };
-      } else if (detailedType === SiteAreaValueTypes.CHARGING_STATION_CONSUMPTIONS) {
-        facetFilters.chargeBoxID = { '$ne': null };
-      }
-      // Create Aggregation
-      const facetAggregation = [];
-      // Filters
-      if (facetFilters) {
-        facetAggregation.push({
-          $match: facetFilters
-        });
-      }
-      // grouping fields
-      const groupFields: GroupParams = {
-        _id: {
-          year: { '$year': '$startedAt' },
-          month: { '$month': '$startedAt' },
-          day: { '$dayOfMonth': '$startedAt' },
-          hour: { '$hour': '$startedAt' },
-          minute: { '$minute': '$startedAt' }
-        }
-      };
-      if (detailedType === SiteAreaValueTypes.ASSET_CONSUMPTIONS) {
-        groupFields[SiteAreaValueTypes.ASSET_CONSUMPTION_WATTS] = { $sum: '$instantWatts' };
-        groupFields[SiteAreaValueTypes.ASSET_CONSUMPTION_AMPS] = { $sum: '$instantAmps' };
-      } else if (detailedType === SiteAreaValueTypes.ASSET_PRODUCTIONS) {
-        groupFields[SiteAreaValueTypes.ASSET_PRODUCTION_WATTS] = { $sum: '$instantWatts' };
-        groupFields[SiteAreaValueTypes.ASSET_PRODUCTION_AMPS] = { $sum: '$instantAmps' };
-      } else if (detailedType === SiteAreaValueTypes.CHARGING_STATION_CONSUMPTIONS) {
-        groupFields[SiteAreaValueTypes.CHARGING_STATION_CONSUMPTION_WATTS] = { $sum: '$instantWatts' };
-        groupFields[SiteAreaValueTypes.CHARGING_STATION_CONSUMPTION_AMPS] = { $sum: '$instantAmps' };
-      } else {
-        groupFields[SiteAreaValueTypes.NET_CONSUMPTION_WATTS] = { $sum: '$instantWatts' };
-        groupFields[SiteAreaValueTypes.NET_CONSUMPTION_AMPS] = { $sum: '$instantAmps' };
-        groupFields.limitWatts = { $last: '$limitSiteAreaWatts' };
-        groupFields.limitAmps = { $last: '$limitSiteAreaAmps' };
-      }
-      facetAggregation.push({
-        $group: groupFields
-      });
-      facets[detailedType] = facetAggregation;
-    }
-    // Group consumption values per minute
-    aggregation.push({
-      $facet: facets
-    });
-    // Push different facet pipeline data into one
-    aggregation.push({
-      $addFields: {
-        'allInOne': {
-          $setUnion: [
-            '$' + SiteAreaValueTypes.ASSET_CONSUMPTIONS,
-            '$' + SiteAreaValueTypes.ASSET_PRODUCTIONS,
-            '$' + SiteAreaValueTypes.CHARGING_STATION_CONSUMPTIONS,
-            '$' + SiteAreaValueTypes.NET_CONSUMPTIONS
-          ]
-        }
-      }
-    });
-    // Project only all in one array object
-    aggregation.push({
-      $project: {
-        'allInOne': 1
-      }
-    });
-    // Unwind the array
-    aggregation.push({
-      $unwind: {
-        path: '$allInOne',
-        preserveNullAndEmptyArrays: false
-      }
-    });
-    // Group and calculate sum of individual fields
-    const groupFields = {
-      _id: '$allInOne._id'
+    // grouping fields
+    const groupFields: GroupParams = {
+      _id: {
+        year: { '$year': '$startedAt' },
+        month: { '$month': '$startedAt' },
+        day: { '$dayOfMonth': '$startedAt' },
+        hour: { '$hour': '$startedAt' },
+        minute: { '$minute': '$startedAt' },
+        assetID: '$assetID',
+        chargeBoxID: '$chargeBoxID',
+      },
+      InstantWattsT: { $avg: '$instantWatts' },
+      InstantAmpsT: { $avg: '$instantAmps' },
+      LimitWattsT: { $last: '$limitSiteAreaWatts' },
+      LimitAmpsT: { $last: '$limitSiteAreaAmps' },
     };
-    groupFields[SiteAreaValueTypes.ASSET_CONSUMPTION_WATTS] = { $sum: '$allInOne.' + SiteAreaValueTypes.ASSET_CONSUMPTION_WATTS };
-    groupFields[SiteAreaValueTypes.ASSET_CONSUMPTION_AMPS] = { $sum: '$allInOne.' + SiteAreaValueTypes.ASSET_CONSUMPTION_AMPS };
-    groupFields[SiteAreaValueTypes.ASSET_PRODUCTION_WATTS] = { $sum: { $multiply: ['$allInOne.' + SiteAreaValueTypes.ASSET_PRODUCTION_WATTS, -1] } };
-    groupFields[SiteAreaValueTypes.ASSET_PRODUCTION_AMPS] = { $sum: { $multiply: ['$allInOne.' + SiteAreaValueTypes.ASSET_PRODUCTION_AMPS, -1] } };
-    groupFields[SiteAreaValueTypes.CHARGING_STATION_CONSUMPTION_WATTS] = { $sum: '$allInOne.' + SiteAreaValueTypes.CHARGING_STATION_CONSUMPTION_WATTS };
-    groupFields[SiteAreaValueTypes.CHARGING_STATION_CONSUMPTION_AMPS] = { $sum: '$allInOne.' + SiteAreaValueTypes.CHARGING_STATION_CONSUMPTION_AMPS };
-    groupFields[SiteAreaValueTypes.NET_CONSUMPTION_WATTS] = { $sum: '$allInOne.' + SiteAreaValueTypes.NET_CONSUMPTION_WATTS };
-    groupFields[SiteAreaValueTypes.NET_CONSUMPTION_AMPS] = { $sum: '$allInOne.' + SiteAreaValueTypes.NET_CONSUMPTION_AMPS };
-    groupFields['limitWatts'] = { $last: '$allInOne.limitWatts' };
-    groupFields['limitAmps'] = { $last: '$allInOne.limitAmps' };
     aggregation.push({
       $group: groupFields
     });
-    // Rebuild the date
+    // add fields
     aggregation.push({
       $addFields: {
-        startedAt: {
-          $dateFromParts: {
-            'year': '$_id.year',
-            'month': '$_id.month',
-            'day': '$_id.day',
-            'hour': '$_id.hour',
-            'minute': '$_id.minute'
-          }
+        '_id.productionAsset': {
+          $and: [{
+            $lt: ['$InstantWattsT', 0]
+          },{
+            $ne: ['$_id.assetID', null]
+          }]
+        },
+        '_id.consumptionAsset': {
+          $and: [{
+            $gte: ['$InstantWattsT', 0]
+          },{
+            $ne: ['$_id.assetID', null]
+          }]
+        },
+        '_id.chargingStation': {
+          $ne: ['$_id.chargeBoxID', null]
         }
       }
     });
-    // Same date
-    // Convert instant watts / amps to absolute value
+    const groupFieldsByType: GroupParams = {
+      _id: {
+        year: '$_id.year',
+        month: '$_id.month',
+        day: '$_id.day',
+        hour: '$_id.hour',
+        minute: '$_id.minute',
+        productionAsset: '$_id.productionAsset',
+        consumptionAsset: '$_id.consumptionAsset',
+        chargingStation: '$_id.chargingStation',
+      },
+      'InstantWattsT': {
+        $sum: '$InstantWattsT'
+      },
+      'InstantAmpsT': {
+        $sum: '$InstantAmpsT'
+      },
+      'LimitWattsT': {
+        $last: '$LimitWattsT'
+      },
+      'LimitAmpsT': {
+        $last: '$LimitAmpsT'
+      }
+    };
+    // group based on type
+    aggregation.push({
+      $group: groupFieldsByType
+    });
+    aggregation.push({
+      $group: {
+        _id: {
+          year: '$_id.year',
+          month: '$_id.month',
+          day: '$_id.day',
+          hour: '$_id.hour',
+          minute: '$_id.minute',
+        },
+        [SiteAreaValueTypes.ASSET_CONSUMPTION_WATTS]: {
+          $sum: {
+            $cond: [
+              { $eq: ['$_id.consumptionAsset', true] },
+              '$InstantWattsT',
+              0
+            ]
+          }
+        },
+        [SiteAreaValueTypes.ASSET_CONSUMPTION_AMPS]: {
+          $sum: {
+            $cond: [
+              { $eq: ['$_id.consumptionAsset', true] },
+              '$InstantAmpsT',
+              0
+            ]
+          }
+        },
+        [SiteAreaValueTypes.ASSET_PRODUCTION_WATTS]: {
+          $sum: {
+            $cond: [
+              { $eq: ['$_id.productionAsset', true] },
+              '$InstantWattsT',
+              0
+            ]
+          }
+        },
+        [SiteAreaValueTypes.ASSET_PRODUCTION_AMPS]: {
+          $sum: {
+            $cond: [
+              { $eq: ['$_id.productionAsset', true] },
+              '$InstantAmpsT',
+              0
+            ]
+          }
+        },
+        [SiteAreaValueTypes.CHARGING_STATION_CONSUMPTION_WATTS]: {
+          $sum: {
+            $cond: [
+              { $eq: ['$_id.chargingStation', true] },
+              '$InstantWattsT',
+              0
+            ]
+          }
+        },
+        [SiteAreaValueTypes.CHARGING_STATION_CONSUMPTION_AMPS]: {
+          $sum: {
+            $cond: [
+              { $eq: ['$_id.chargingStation', true] },
+              '$InstantAmpsT',
+              0
+            ]
+          }
+        },
+        'limitWatts': {
+          $last: '$LimitWattsT'
+        },
+        'limitAmps': {
+          $last: '$LimitAmpsT'
+        }
+      }
+    });
     aggregation.push({
       $addFields: {
-        endedAt: '$startedAt'
+        startedAt: {
+          $dateFromParts: { 'year': '$_id.year', 'month': '$_id.month', 'day': '$_id.day', 'hour': '$_id.hour', 'minute': '$_id.minute' }
+        },
+        [SiteAreaValueTypes.NET_CONSUMPTION_WATTS]: {
+          $sum: ['$' + SiteAreaValueTypes.ASSET_CONSUMPTION_WATTS, '$' + SiteAreaValueTypes.ASSET_PRODUCTION_WATTS, '$' + SiteAreaValueTypes.CHARGING_STATION_CONSUMPTION_WATTS]
+        },
+        [SiteAreaValueTypes.NET_CONSUMPTION_AMPS]: {
+          $sum: ['$' + SiteAreaValueTypes.ASSET_CONSUMPTION_AMPS, '$' + SiteAreaValueTypes.ASSET_PRODUCTION_AMPS, '$' + SiteAreaValueTypes.CHARGING_STATION_CONSUMPTION_AMPS]
+        }
       }
     });
     aggregation.push({
@@ -323,7 +366,6 @@ export default class ConsumptionStorage {
         startedAt: 1
       }
     });
-
     aggregation.push({
       $project: {
         _id: 0
@@ -337,7 +379,7 @@ export default class ConsumptionStorage {
     return consumptionsMDB;
   }
 
-  static async getSiteAreaChargingStationConsumptions(tenant: Tenant,
+  public static async getSiteAreaChargingStationConsumptions(tenant: Tenant,
       params: { siteAreaID: string; startDate: Date; endDate: Date }, dbParams: DbParams = Constants.DB_PARAMS_MAX_LIMIT,
       projectFields?: string[]): Promise<DataResult<Consumption>> {
     const startTime = Logging.traceDatabaseRequestStart();
@@ -431,7 +473,7 @@ export default class ConsumptionStorage {
     };
   }
 
-  static async getTransactionConsumptions(tenant: Tenant, params: { transactionId: number },
+  public static async getTransactionConsumptions(tenant: Tenant, params: { transactionId: number },
       dbParams: DbParams = Constants.DB_PARAMS_MAX_LIMIT, projectFields?: string[]): Promise<DataResult<Consumption>> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
@@ -481,7 +523,7 @@ export default class ConsumptionStorage {
     };
   }
 
-  static async getLastTransactionConsumption(tenant: Tenant, params: { transactionId: number }): Promise<Consumption> {
+  public static async getLastTransactionConsumption(tenant: Tenant, params: { transactionId: number }): Promise<Consumption> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Create Aggregation
@@ -517,7 +559,7 @@ export default class ConsumptionStorage {
     return consumption;
   }
 
-  static async getOptimizedTransactionConsumptions(tenant: Tenant, params: { transactionId: number }, projectFields?: string[]): Promise<Consumption[]> {
+  public static async getOptimizedTransactionConsumptions(tenant: Tenant, params: { transactionId: number }, projectFields?: string[]): Promise<Consumption[]> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Create Aggregation
@@ -638,6 +680,7 @@ export default class ConsumptionStorage {
       instantVoltsL2: Utils.convertToFloat(consumption.instantVoltsL2),
       instantVoltsL3: Utils.convertToFloat(consumption.instantVoltsL3),
       instantVoltsDC: Utils.convertToFloat(consumption.instantVoltsDC),
+      inactivitySecs: Utils.convertToInt(consumption.inactivitySecs),
       totalInactivitySecs: Utils.convertToInt(consumption.totalInactivitySecs),
       totalDurationSecs: Utils.convertToInt(consumption.totalDurationSecs),
       stateOfCharge: !Utils.isNullOrUndefined(consumption.stateOfCharge) ? Utils.convertToInt(consumption.stateOfCharge) : null,

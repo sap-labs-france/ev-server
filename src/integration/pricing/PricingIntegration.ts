@@ -23,4 +23,6 @@ export default abstract class PricingIntegration<T extends PricingSetting> {
   public abstract updateSession(transaction: Transaction, consumptionData: Consumption, chargingStation?: ChargingStation): Promise<PricedConsumption>;
 
   public abstract stopSession(transaction: Transaction, consumptionData: Consumption, chargingStation?: ChargingStation): Promise<PricedConsumption>;
+
+  public abstract endSession(transaction: Transaction, consumptionData: Consumption, chargingStation?: ChargingStation): Promise<PricedConsumption>;
 }

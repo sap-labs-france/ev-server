@@ -1,7 +1,7 @@
 import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
 import { ActionsResponse, ImportStatus } from '../../../../types/GlobalType';
 import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
-import Busboy, { BusboyHeaders } from 'busboy';
+import Busboy, { FileInfo } from 'busboy';
 import { Car, CarType } from '../../../../types/Car';
 import { DataResult, UserDataResult } from '../../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
@@ -19,6 +19,7 @@ import CSVError from 'csvtojson/v2/CSVError';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
 import Constants from '../../../../utils/Constants';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
+import { HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
 import JSONStream from 'JSONStream';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
@@ -28,6 +29,7 @@ import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import { OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../../ocpi/OCPIUtils';
+import { Readable } from 'stream';
 import { ServerAction } from '../../../../types/Server';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { StartTransactionErrorCode } from '../../../../types/Transaction';
@@ -47,7 +49,6 @@ import moment from 'moment';
 const MODULE_NAME = 'UserService';
 
 export default class UserService {
-
   public static async handleGetUserDefaultTagCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = UserValidator.getInstance().validateUserDefaultTagCarGetReq(req.query);
@@ -228,8 +229,8 @@ export default class UserService {
       action: action
     });
     if (statusHasChanged && req.tenant.id !== Constants.DEFAULT_TENANT) {
-      // Send notification (Async)
-      await NotificationHandler.sendUserAccountStatusChanged(
+      // Notify
+      void NotificationHandler.sendUserAccountStatusChanged(
         req.tenant,
         Utils.generateUUID(),
         user,
@@ -237,7 +238,7 @@ export default class UserService {
           'user': user,
           'evseDashboardURL': Utils.buildEvseURL(req.tenant.subdomain)
         }
-      ).catch(() => { });
+      );
     }
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
@@ -306,7 +307,12 @@ export default class UserService {
   }
 
   public static async handleExportUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    await UtilsService.exportToCSV(req, res, 'exported-users.csv',
+    // Force params
+    req.query.Limit = Constants.EXPORT_PAGE_SIZE.toString();
+    // Filter
+    const filteredRequest = UserValidator.getInstance().validateUsersGetReq(req.query);
+    // Get Users
+    await UtilsService.exportToCSV(req, res, 'exported-users.csv', filteredRequest,
       UserService.getUsers.bind(this),
       UserService.convertToCSV.bind(this));
   }
@@ -358,7 +364,10 @@ export default class UserService {
   }
 
   public static async handleGetUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    res.json(await UserService.getUsers(req));
+    // Filter
+    const filteredRequest = UserValidator.getInstance().validateUsersGetReq(req.query);
+    // Get Users
+    res.json(await UserService.getUsers(req, filteredRequest));
     next();
   }
 
@@ -425,7 +434,7 @@ export default class UserService {
       // Delete all previously imported users
       await UserStorage.deleteImportedUsers(req.tenant);
       // Get the stream
-      const busboy = new Busboy({ headers: req.headers as BusboyHeaders });
+      const busboy = Busboy({ headers: req.headers });
       req.pipe(busboy);
       // Handle closed socket
       let connectionClosed = false;
@@ -439,8 +448,8 @@ export default class UserService {
       });
       await new Promise((resolve) => {
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        busboy.on('file', async (fieldname, file, filename, encoding, mimetype) => {
-          if (filename.slice(-4) === '.csv') {
+        busboy.on('file', async (fileName: string, fileStream: Readable, fileInfo: FileInfo) => {
+          if (fileInfo.filename.slice(-4) === '.csv') {
             const converter = csvToJson({
               trim: true,
               delimiter: Constants.CSV_SEPARATOR,
@@ -489,7 +498,7 @@ export default class UserService {
                 module: MODULE_NAME, method: 'handleImportUsers',
                 action: action,
                 user: req.user.id,
-                message: `Exception while parsing the CSV '${filename}': ${error.message}`,
+                message: `Exception while parsing the CSV '${fileInfo.filename}': ${error.message}`,
                 detailedMessages: { error: error.stack }
               });
               if (!res.headersSent) {
@@ -533,8 +542,8 @@ export default class UserService {
               resolve();
             });
             // Start processing the file
-            void file.pipe(converter);
-          } else if (mimetype === 'application/json') {
+            void fileStream.pipe(converter);
+          } else if (fileInfo.mimeType === 'application/json') {
             const parser = JSONStream.parse('users.*');
             // TODO: Handle the end of the process to send the data like the CSV
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -562,7 +571,7 @@ export default class UserService {
                 module: MODULE_NAME, method: 'handleImportUsers',
                 action: action,
                 user: req.user.id,
-                message: `Invalid Json file '${filename}'`,
+                message: `Invalid Json file '${fileInfo.filename}'`,
                 detailedMessages: { error: error.stack }
               });
               if (!res.headersSent) {
@@ -571,7 +580,7 @@ export default class UserService {
                 resolve();
               }
             });
-            file.pipe(parser);
+            fileStream.pipe(parser);
           } else {
             // Release the lock
             await LockingManager.release(importUsersLock);
@@ -581,7 +590,7 @@ export default class UserService {
               module: MODULE_NAME, method: 'handleImportUsers',
               action: action,
               user: req.user.id,
-              message: `Invalid file format '${mimetype}'`
+              message: `Invalid file format '${fileInfo.mimeType}'`
             });
             if (!res.headersSent) {
               res.writeHead(HTTPError.INVALID_FILE_FORMAT);
@@ -722,9 +731,7 @@ export default class UserService {
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
   }
 
-  private static async getUsers(req: Request): Promise<DataResult<User>> {
-    // Filter
-    const filteredRequest = UserValidator.getInstance().validateUsersGetReq(req.query);
+  private static async getUsers(req: Request, filteredRequest: HttpUsersRequest): Promise<DataResult<User>> {
     // Get authorization filters
     const authorizationUsersFilters = await AuthorizationService.checkAndGetUsersAuthorizations(
       req.tenant, req.user, filteredRequest);

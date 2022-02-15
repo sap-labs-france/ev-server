@@ -8,7 +8,7 @@ import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Utils from '../../utils/Utils';
 
 export default class PricingFactory {
-  static async getPricingImpl(tenant: Tenant): Promise<PricingIntegration<PricingSetting>> {
+  public static async getPricingImpl(tenant: Tenant): Promise<PricingIntegration<PricingSetting>> {
     // Check if the Pricing is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.PRICING)) {
       // Get the pricing settings

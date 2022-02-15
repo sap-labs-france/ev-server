@@ -1,7 +1,7 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { ActionsResponse, ImportStatus } from '../../../../types/GlobalType';
 import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
-import Busboy, { BusboyHeaders } from 'busboy';
+import Busboy, { FileInfo } from 'busboy';
 import { DataResult, TagDataResult } from '../../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
@@ -16,6 +16,7 @@ import Authorizations from '../../../../authorization/Authorizations';
 import CSVError from 'csvtojson/v2/CSVError';
 import Constants from '../../../../utils/Constants';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
+import { HttpTagsRequest } from '../../../../types/requests/HttpTagRequest';
 import { ImportedUser } from '../../../../types/User';
 import JSONStream from 'JSONStream';
 import LockingHelper from '../../../../locking/LockingHelper';
@@ -25,6 +26,7 @@ import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import { OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../../ocpi/OCPIUtils';
+import { Readable } from 'stream';
 import { ServerAction } from '../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
@@ -51,7 +53,10 @@ export default class TagService {
   }
 
   public static async handleGetTags(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    res.json(await TagService.getTags(req));
+    // Filter
+    const filteredRequest = TagValidator.getInstance().validateTagsGetReq(req.query);
+    // Get Tags
+    res.json(await TagService.getTags(req, filteredRequest));
     next();
   }
 
@@ -425,7 +430,7 @@ export default class TagService {
       // Delete all previously imported tags
       await TagStorage.deleteImportedTags(req.tenant);
       // Get the stream
-      const busboy = new Busboy({ headers: req.headers as BusboyHeaders });
+      const busboy = Busboy({ headers: req.headers });
       req.pipe(busboy);
       // Handle closed socket
       let connectionClosed = false;
@@ -439,8 +444,8 @@ export default class TagService {
       });
       await new Promise((resolve) => {
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        busboy.on('file', async (fieldname: string, file: any, filename: string, encoding: string, mimetype: string) => {
-          if (filename.slice(-4) === '.csv') {
+        busboy.on('file', async (fileName: string, fileStream: Readable, fileInfo: FileInfo) => {
+          if (fileInfo.filename.slice(-4) === '.csv') {
             const converter = csvToJson({
               trim: true,
               delimiter: Constants.CSV_SEPARATOR,
@@ -489,7 +494,7 @@ export default class TagService {
                 module: MODULE_NAME, method: 'handleImportTags',
                 action: action,
                 user: req.user.id,
-                message: `Exception while parsing the CSV '${filename}': ${error.message}`,
+                message: `Exception while parsing the CSV '${fileInfo.filename}': ${error.message}`,
                 detailedMessages: { error: error.stack }
               });
               if (!res.headersSent) {
@@ -532,10 +537,9 @@ export default class TagService {
               resolve();
             });
             // Start processing the file
-            void file.pipe(converter);
-          } else if (mimetype === 'application/json') {
+            void fileStream.pipe(converter);
+          } else if (fileInfo.encoding === 'application/json') {
             const parser = JSONStream.parse('tags.*');
-            // TODO: Handle the end of the process to send the data like the CSV
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             parser.on('data', async (tag: ImportedTag) => {
               // Set default value
@@ -560,7 +564,7 @@ export default class TagService {
                 module: MODULE_NAME, method: 'handleImportTags',
                 action: action,
                 user: req.user.id,
-                message: `Invalid Json file '${filename}'`,
+                message: `Invalid Json file '${fileInfo.filename}'`,
                 detailedMessages: { error: error.stack }
               });
               if (!res.headersSent) {
@@ -569,7 +573,7 @@ export default class TagService {
                 resolve();
               }
             });
-            file.pipe(parser);
+            fileStream.pipe(parser);
           } else {
             // Release the lock
             await LockingManager.release(importTagsLock);
@@ -578,7 +582,7 @@ export default class TagService {
               module: MODULE_NAME, method: 'handleImportTags',
               action: action,
               user: req.user.id,
-              message: `Invalid file format '${mimetype}'`
+              message: `Invalid file format '${fileInfo.mimeType}'`
             });
             if (!res.headersSent) {
               res.writeHead(HTTPError.INVALID_FILE_FORMAT);
@@ -605,8 +609,12 @@ export default class TagService {
         module: MODULE_NAME, method: 'handleImportTags'
       });
     }
-    // Export with users
-    await UtilsService.exportToCSV(req, res, 'exported-tags.csv',
+    // Force params
+    req.query.Limit = Constants.EXPORT_PAGE_SIZE.toString();
+    // Filter
+    const filteredRequest = TagValidator.getInstance().validateTagsGetReq(req.query);
+    // Export
+    await UtilsService.exportToCSV(req, res, 'exported-tags.csv', filteredRequest,
       TagService.getTags.bind(this),
       TagService.convertToCSV.bind(this));
   }
@@ -760,9 +768,7 @@ export default class TagService {
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
   }
 
-  private static async getTags(req: Request): Promise<DataResult<Tag>> {
-    // Filter
-    const filteredRequest = TagValidator.getInstance().validateTagsGetReq(req.query);
+  private static async getTags(req: Request, filteredRequest: HttpTagsRequest): Promise<DataResult<Tag>> {
     // Get authorization filters
     const authorizationTagsFilters = await AuthorizationService.checkAndGetTagsAuthorizations(
       req.tenant, req.user, filteredRequest);

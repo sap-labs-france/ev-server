@@ -15,9 +15,7 @@ export default class Constants {
   public static readonly PERF_MAX_DATA_VOLUME_KB = 512;
   public static readonly PERF_MAX_RESPONSE_TIME_MILLIS = 1000;
 
-  public static readonly AXIOS_DEFAULT_TIMEOUT = 60000;
-
-  public static readonly LAST_SEEN_UPDATE_INTERVAL_MILLIS = 60000;
+  public static readonly AXIOS_DEFAULT_TIMEOUT_SECS = 30;
 
   public static readonly DC_CHARGING_STATION_DEFAULT_EFFICIENCY_PERCENT = 80;
   public static readonly AMPERAGE_DETECTION_THRESHOLD = 0.5;
@@ -33,6 +31,7 @@ export default class Constants {
   public static readonly DB_PARAMS_SINGLE_RECORD: DbParams = Object.freeze({ limit: 1, skip: 0, sort: null });
   public static readonly DB_PARAMS_DEFAULT_RECORD: DbParams = Object.freeze({ limit: Constants.DB_RECORD_COUNT_DEFAULT, skip: 0, sort: null });
   public static readonly DB_PARAMS_COUNT_ONLY: DbParams = Object.freeze({ limit: Constants.DB_RECORD_COUNT_NO_LIMIT, skip: 0, onlyRecordCount: true, sort: null });
+  public static readonly DB_MAX_PING_TIME_MILLIS = 3000;
 
   public static readonly EXPORT_PDF_PAGE_SIZE = 100;
   public static readonly EXPORT_PAGE_SIZE = 1000;
@@ -41,6 +40,12 @@ export default class Constants {
   public static readonly IMPORT_BATCH_INSERT_SIZE = 250;
   public static readonly BATCH_PAGE_SIZE = 1000;
 
+  public static readonly SFDP_LATTITUDE = 43.585784;
+  public static readonly SFDP_LONGITUDE = 7.0377592;
+
+  public static readonly LOCK_WAIT_MILLIS = 1000;
+
+  public static readonly SMART_CHARGING_LOCK_SECS = 5;
   public static readonly CHARGING_STATION_LOCK_SECS = 5;
   public static readonly CHARGING_STATION_CONNECTION_LOCK_SECS = 5;
 
@@ -49,7 +54,8 @@ export default class Constants {
   public static readonly DEFAULT_TENANT = 'default';
   public static readonly DEFAULT_TENANT_OBJECT = Object.freeze({
     id: Constants.DEFAULT_TENANT,
-    name: Constants.DEFAULT_TENANT
+    name: Constants.DEFAULT_TENANT,
+    subdomain: Constants.DEFAULT_TENANT
   } as Tenant);
 
   // Output of crypto.getCiphers()
@@ -293,7 +299,7 @@ export default class Constants {
     '([0-9a-f]{24})\\/',
     '(?:\\S+)$'].join(''), 'ig');
 
-  public static readonly OCPP_SOCKET_TIMEOUT = 10 * 1000;
+  public static readonly OCPP_SOCKET_TIMEOUT_MILLIS = 10 * 1000;
   public static readonly OCPP_HEARTBEAT_KEYS = Object.freeze(['HeartbeatInterval', 'HeartBeatInterval']);
 
   public static readonly MAX_DATE = new Date('9999-12-31Z23:59:59:999');
@@ -308,7 +314,7 @@ export default class Constants {
   public static readonly CSV_ESCAPING_CHARACTER = '\'';
 
   public static readonly EXCEPTION_JSON_KEYS_IN_SENSITIVE_DATA = Object.freeze([
-    'stack'
+    'error', 'stack'
   ]);
 
   public static readonly SENSITIVE_DATA = Object.freeze([

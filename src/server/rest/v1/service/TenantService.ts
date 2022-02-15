@@ -231,6 +231,8 @@ export default class TenantService {
         module: MODULE_NAME, method: 'handleCreateTenant'
       });
     }
+    // Check Tenant
+    UtilsService.checkIfTenantValid(filteredRequest, req);
     // Get the Tenant with ID (subdomain)
     const foundTenant = await TenantStorage.getTenantBySubdomain(filteredRequest.subdomain);
     if (foundTenant) {
@@ -287,8 +289,8 @@ export default class TenantService {
     const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.subdomain) +
       '/verify-email?VerificationToken=' + verificationToken + '&Email=' +
       tenantUser.email + '&ResetToken=' + resetHash;
-    // Send Register User (Async)
-    await NotificationHandler.sendNewRegisteredUser(
+    // Notify
+    void NotificationHandler.sendNewRegisteredUser(
       tenant,
       Utils.generateUUID(),
       tenantUser,
@@ -298,7 +300,7 @@ export default class TenantService {
         'evseDashboardURL': Utils.buildEvseURL(filteredRequest.subdomain),
         'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
       }
-    ).catch(() => { });
+    );
     // Log
     await Logging.logInfo({
       tenantID: req.user.tenantID, user: req.user,
@@ -323,6 +325,8 @@ export default class TenantService {
         value: filteredRequest.id
       });
     }
+    // Check Tenant
+    UtilsService.checkIfTenantValid(filteredRequest, req);
     // Get
     const tenant = await TenantStorage.getTenant(filteredRequest.id);
     UtilsService.assertObjectExists(action, tenant, `Tenant ID '${filteredRequest.id}' does not exist`,

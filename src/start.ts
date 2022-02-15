@@ -1,6 +1,7 @@
 import CentralSystemConfiguration, { CentralSystemImplementation } from './types/configuration/CentralSystemConfiguration';
 import { ServerAction, ServerType } from './types/Server';
 
+import AsyncTaskConfiguration from './types/configuration/AsyncTaskConfiguration';
 import AsyncTaskManager from './async-task/AsyncTaskManager';
 import CentralRestServer from './server/rest/CentralRestServer';
 import CentralSystemRestServiceConfiguration from './types/configuration/CentralSystemRestServiceConfiguration';
@@ -15,12 +16,16 @@ import Logging from './utils/Logging';
 import MigrationConfiguration from './types/configuration/MigrationConfiguration';
 import MigrationHandler from './migration/MigrationHandler';
 import MongoDBStorage from './storage/mongodb/MongoDBStorage';
+import MonitoringConfiguration from './types/configuration/MonitoringConfiguration';
+import MonitoringServer from './monitoring/MonitoringServer';
+import MonitoringServerFactory from './monitoring/MonitoringServerFactory';
 import OCPIServer from './server/ocpi/OCPIServer';
 import OCPIServiceConfiguration from './types/configuration/OCPIServiceConfiguration';
 import ODataServer from './server/odata/ODataServer';
 import ODataServiceConfiguration from './types/configuration/ODataServiceConfiguration';
 import OICPServer from './server/oicp/OICPServer';
 import OICPServiceConfiguration from './types/configuration/OICPServiceConfiguration';
+import SchedulerConfiguration from './types/configuration/SchedulerConfiguration';
 import SchedulerManager from './scheduler/SchedulerManager';
 import SoapCentralSystemServer from './server/ocpp/soap/SoapCentralSystemServer';
 import StorageConfiguration from './types/configuration/StorageConfiguration';
@@ -30,21 +35,27 @@ import global from './types/GlobalType';
 const MODULE_NAME = 'Bootstrap';
 
 export default class Bootstrap {
-  private static centralSystemRestConfig: CentralSystemRestServiceConfiguration;
+  private static database: MongoDBStorage;
+
   private static centralRestServer: CentralRestServer;
-  private static chargingStationConfig: ChargingStationConfiguration;
   private static storageConfig: StorageConfiguration;
-  private static centralSystemsConfig: CentralSystemConfiguration[];
   private static SoapCentralSystemServer: SoapCentralSystemServer;
   private static JsonCentralSystemServer: JsonCentralSystemServer;
-  private static ocpiConfig: OCPIServiceConfiguration;
   private static ocpiServer: OCPIServer;
-  private static oicpConfig: OICPServiceConfiguration;
   private static oicpServer: OICPServer;
-  private static oDataServerConfig: ODataServiceConfiguration;
   private static oDataServer: ODataServer;
-  private static database: MongoDBStorage;
+  private static monitoringServer: MonitoringServer;
+
+  private static centralSystemRestConfig: CentralSystemRestServiceConfiguration;
+  private static chargingStationConfig: ChargingStationConfiguration;
+  private static centralSystemsConfig: CentralSystemConfiguration[];
+  private static ocpiConfig: OCPIServiceConfiguration;
+  private static oicpConfig: OICPServiceConfiguration;
+  private static oDataServerConfig: ODataServiceConfiguration;
   private static migrationConfig: MigrationConfiguration;
+  private static asyncTaskConfig: AsyncTaskConfiguration;
+  private static schedulerConfig: SchedulerConfiguration;
+  private static monitoringConfig: MonitoringConfiguration;
 
   public static async start(): Promise<void> {
     let serverStarted: ServerType[] = [];
@@ -63,6 +74,24 @@ export default class Bootstrap {
       Bootstrap.oicpConfig = Configuration.getOICPServiceConfig();
       Bootstrap.oDataServerConfig = Configuration.getODataServiceConfig();
       Bootstrap.migrationConfig = Configuration.getMigrationConfig();
+      Bootstrap.asyncTaskConfig = Configuration.getAsyncTaskConfig();
+      Bootstrap.schedulerConfig = Configuration.getSchedulerConfig();
+      Bootstrap.monitoringConfig = Configuration.getMonitoringConfig();
+
+      // -------------------------------------------------------------------------
+      // Listen to promise failure
+      // -------------------------------------------------------------------------
+      process.on('unhandledRejection', (reason: any, p: any): void => {
+        // eslint-disable-next-line no-console
+        Logging.logConsoleError(`Unhandled Rejection: ${p?.toString()}, reason: ${reason as string}`);
+        void Logging.logError({
+          tenantID: Constants.DEFAULT_TENANT,
+          action: ServerAction.UNKNOWN_ACTION,
+          module: MODULE_NAME, method: 'start',
+          message: `Unhandled Rejection: ${(reason ? (reason.message ?? reason) : 'Not provided')}`,
+          detailedMessages: (reason ? reason.stack : null)
+        });
+      });
 
       // -------------------------------------------------------------------------
       // Connect to the DB
@@ -85,51 +114,60 @@ export default class Bootstrap {
       // -------------------------------------------------------------------------
       // Start DB Migration
       // -------------------------------------------------------------------------
-      if (Bootstrap.migrationConfig.active) {
+      if (Bootstrap.migrationConfig?.active) {
         startTimeMillis = await this.logAndGetStartTimeMillis('Migration is starting...');
         // Check and trigger migration (only master process can run the migration)
         await MigrationHandler.migrate();
         await this.logDuration(startTimeMillis, 'Migration has been run successfully');
       }
-      // Listen to promise failure
-      process.on('unhandledRejection', (reason: any, p: any): void => {
-        // eslint-disable-next-line no-console
-        Logging.logConsoleError(`Unhandled Rejection: ${p?.toString()}, reason: ${reason as string}`);
-        void Logging.logError({
-          tenantID: Constants.DEFAULT_TENANT,
-          action: ServerAction.UNKNOWN_ACTION,
-          module: MODULE_NAME, method: 'start',
-          message: `Unhandled Rejection: ${(reason ? (reason.message ?? reason) : 'Not provided')}`,
-          detailedMessages: (reason ? reason.stack : null)
-        });
-      });
+
+      // -------------------------------------------------------------------------
+      // Start Monitoring Server
+      // -------------------------------------------------------------------------
+      if (Bootstrap.monitoringConfig) {
+        // Create server instance
+        Bootstrap.monitoringServer = MonitoringServerFactory.getMonitoringServerImpl(Bootstrap.monitoringConfig);
+        // Start server instance
+        if (Bootstrap.monitoringServer) {
+          Bootstrap.monitoringServer.start();
+        } else {
+          const message = `Monitoring Server implementation does not exist '${this.monitoringConfig.implementation}'`;
+          Logging.logConsoleError(message);
+          await Logging.logError({
+            tenantID: Constants.DEFAULT_TENANT,
+            action: ServerAction.STARTUP,
+            module: MODULE_NAME, method: 'startServers', message
+          });
+        }
+      }
 
       // -------------------------------------------------------------------------
       // Start all the Servers
       // -------------------------------------------------------------------------
-      startTimeMillis = await this.logAndGetStartTimeMillis('Server is starting...');
-      // Start the Servers
-      serverStarted = await Bootstrap.startServersListening();
-      await this.logDuration(startTimeMillis, `Server ${serverStarted.join(', ')} has been started successfully`);
+      serverStarted = await Bootstrap.startServers();
 
       // -------------------------------------------------------------------------
       // Init the Scheduler
       // -------------------------------------------------------------------------
-      startTimeMillis = await this.logAndGetStartTimeMillis('Scheduler is starting...');
-      // Start the Scheduler
-      await SchedulerManager.init();
-      await this.logDuration(startTimeMillis, 'Scheduler has been started successfully');
+      if (Bootstrap.schedulerConfig?.active) {
+        startTimeMillis = await this.logAndGetStartTimeMillis('Scheduler is starting...');
+        // Start the Scheduler
+        await SchedulerManager.init(Bootstrap.schedulerConfig);
+        await this.logDuration(startTimeMillis, 'Scheduler has been started successfully');
+      }
 
       // -------------------------------------------------------------------------
       // Init the Async Task
       // -------------------------------------------------------------------------
-      startTimeMillis = await this.logAndGetStartTimeMillis('Async Task manager is starting...');
-      // Start the Async Manager
-      await AsyncTaskManager.init();
-      await this.logDuration(startTimeMillis, 'Async Task manager has been started successfully');
+      if (Bootstrap.asyncTaskConfig?.active) {
+        startTimeMillis = await this.logAndGetStartTimeMillis('Async Task manager is starting...');
+        // Start the Async Manager
+        await AsyncTaskManager.init(Bootstrap.asyncTaskConfig);
+        await this.logDuration(startTimeMillis, 'Async Task manager has been started successfully');
+      }
 
       // Update of manually uploaded data
-      if (Bootstrap.migrationConfig.active) {
+      if (Bootstrap.migrationConfig?.active) {
         // -------------------------------------------------------------------------
         // Update Charging Station Templates
         // -------------------------------------------------------------------------
@@ -194,7 +232,7 @@ export default class Bootstrap {
     }
   }
 
-  private static async startServersListening(): Promise<ServerType[]> {
+  private static async startServers(): Promise<ServerType[]> {
     const serverTypes: ServerType[] = [];
     try {
       // -------------------------------------------------------------------------
@@ -274,7 +312,7 @@ export default class Bootstrap {
       await Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.STARTUP,
-        module: MODULE_NAME, method: 'startServersListening',
+        module: MODULE_NAME, method: 'startServers',
         message: `Unexpected exception in ${serverTypes.join(', ')}: ${error?.message as string}`,
         detailedMessages: { error: error?.stack }
       });

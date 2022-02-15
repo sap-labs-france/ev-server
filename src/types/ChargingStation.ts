@@ -48,6 +48,7 @@ export default interface ChargingStation extends CreatedUpdatedProps, Authorizat
   lastReboot: Date;
   chargingStationURL: string;
   maximumPower: number;
+  masterSlave?: boolean;
   voltage: Voltage;
   excludeFromSmartCharging?: boolean;
   powerLimitUnit: ChargingRateUnitType;
@@ -65,6 +66,7 @@ export default interface ChargingStation extends CreatedUpdatedProps, Authorizat
   distanceMeters?: number;
   ocpiData?: ChargingStationOcpiData;
   oicpData?: ChargingStationOicpData;
+  tariffID?: string;
 }
 
 export interface ChargingStationOcpiData {
@@ -87,14 +89,6 @@ export enum ChargingStationEndpoint {
   SCP = 'scp',
   SCP_QA = 'scpqa',
   AWS = 'aws',
-}
-
-export interface TemplateUpdate {
-  chargingStationUpdate: boolean;
-  technicalUpdate: boolean;
-  capabilitiesUpdate: boolean;
-  ocppStandardUpdate: boolean;
-  ocppVendorUpdate: boolean;
 }
 
 export interface TemplateUpdateResult {
@@ -169,6 +163,7 @@ export interface Connector {
   currentType?: CurrentType;
   chargePointID?: number;
   phaseAssignmentToGrid?: PhaseAssignmentToGrid;
+  tariffID?: string;
 }
 
 export interface PhaseAssignmentToGrid {
@@ -241,20 +236,12 @@ export interface ChargingStationTemplate {
     chargeBoxSerialNumber?: string;
   };
   technical: {
+    masterSlave: boolean;
     maximumPower: number;
     voltage?: Voltage;
     powerLimitUnit: ChargingRateUnitType;
     chargePoints?: ChargePoint[];
-    connectors: {
-      connectorId: number;
-      type: ConnectorType;
-      power?: number;
-      amperage?: number;
-      voltage?: Voltage;
-      chargePointID?: number;
-      currentType?: CurrentType;
-      numberOfConnectedPhase?: number;
-    }[];
+    connectors: ChargingStationTemplateConnector[];
   };
   capabilities: {
     supportedFirmwareVersions: string[];
@@ -271,6 +258,17 @@ export interface ChargingStationTemplate {
     supportedOcppVersions: string[];
     parameters: Record<string, string>;
   }[];
+}
+
+export interface ChargingStationTemplateConnector {
+  connectorId: number;
+  type: ConnectorType;
+  power?: number;
+  amperage?: number;
+  voltage?: Voltage;
+  chargePointID?: number;
+  currentType?: CurrentType;
+  numberOfConnectedPhase?: number;
 }
 
 export enum ConnectorType {
@@ -316,50 +314,52 @@ export type OCPPParams = {
   params: OcppParameter[];
 };
 
+// IMPORTANT: Always enter vendors in lower case
 export enum ChargerVendor {
-  ARK_AC_EV_CHARGER = 'Ark AC EV Charger',
-  ALFEN = 'Alfen BV',
-  ALPITRONIC = 'alpitronic GmbH',
-  BENDER = 'Bender GmbH Co. KG',
-  CFOS = 'cFos',
-  DBTCEV = 'DBT-CEV',
-  EBEE = 'Ebee',
-  ECOTAP = 'Ecotap',
-  ENPLUS = 'EN+',
-  EXADYS = 'EXADYS',
-  EVBOX = 'EV-BOX',
-  EVMETER = 'EV Meter',
+  ARK_AC_EV_CHARGER = 'ark ac ev charger',
+  ALFEN = 'alfen bv',
+  ALPITRONIC = 'alpitronic gmbh',
+  BENDER = 'bender gmbh co. kg',
+  CFOS = 'cfos',
+  DBTCEV = 'dbt-cev',
+  EBEE = 'ebee',
+  ECOTAP = 'ecotap',
+  ENPLUS = 'en+',
+  EXADYS = 'exadys',
+  EVBOX = 'ev-box',
+  EVMETER = 'ev meter',
   INNOGY = 'innogy',
-  INGETEAM = 'INGETEAM',
-  INGETEAM_ENERGY = 'INGETEAM ENERGY',
+  INGETEAM = 'ingeteam',
+  INGETEAM_ENERGY = 'ingeteam energy',
   EFACEC = 'pt.efacec',
-  IES = 'IES',
-  HDM = 'HDM',
-  HAGER = 'Hager',
-  WALLBOX_CHARGERS = 'Wall Box Chargers',
-  SCHNEIDER = 'Schneider Electric',
-  WEBASTO = 'Webasto',
-  DELTA_ELECTRONICS = 'Delta Electronics',
-  DELTA = 'DELTA',
-  ABB = 'ABB',
-  LEGRAND = 'Legrand',
-  ATESS = 'ATESS',
-  MENNEKES = 'MENNEKES',
-  KEBA = 'Keba AG',
-  SAP_LABS_FRANCE = 'SAP Labs France Caen',
-  CIRCONTROL = 'CIRCONTROL',
-  CIRCONTROL_BIS = 'Circontrol',
-  JOINON = 'JOINON',
-  JOINT = 'Joint',
-  NEXANS = 'Nexans',
+  IES = 'ies',
+  HDM = 'hdm',
+  HAGER = 'hager',
+  WALLBOX_CHARGERS = 'wall box chargers',
+  SCHNEIDER = 'schneider electric',
+  WEBASTO = 'webasto',
+  DELTA_ELECTRONICS = 'delta electronics',
+  DELTA = 'delta',
+  ABB = 'abb',
+  XCHARGE = 'xcharge',
+  LEGRAND = 'legrand',
+  ATESS = 'atess',
+  MENNEKES = 'mennekes',
+  KEBA = 'keba ag',
+  SAP_LABS_FRANCE = 'sap labs france caen',
+  CIRCONTROL = 'circontrol',
+  JOINON = 'joinon',
+  JOINT = 'joint',
+  NEXANS = 'nexans',
   AIXCHARGE = 'aixcharge',
-  LAFON_TECHNOLOGIES = 'LAFON TECHNOLOGIES',
-  TRITIUM = 'Tritium',
-  GREEN_MOTION = 'Green Motion',
+  LAFON_TECHNOLOGIES = 'lafon technologies',
+  TRITIUM = 'tritium',
+  GREEN_MOTION = 'green motion',
   G2_MOBILITY = 'com.g2mobility',
-  MEAECN = 'MEAECN',
-  KOSTAD = 'Kostad',
-  KEMPOWER = 'Kempower',
-  GROWATT = 'Growatt',
-  SETEC = 'SETEC-POWER'
+  MEAECN = 'meaecn',
+  KOSTAD = 'kostad',
+  KEMPOWER = 'kempower',
+  GROWATT = 'growatt',
+  SETEC = 'setec-power',
+  ELECTRIC_LOADING = 'electric loading'
 }

@@ -10,13 +10,13 @@ import OICPEndpoint from '../../../types/oicp/OICPEndpoint';
 import OICPEndpointStorage from '../../../storage/mongodb/OICPEndpointStorage';
 import { OICPRegistrationStatus } from '../../../types/oicp/OICPRegistrationStatus';
 import { OICPRole } from '../../../types/oicp/OICPRole';
-import SchedulerTask from '../../SchedulerTask';
 import { ServerAction } from '../../../types/Server';
+import TenantSchedulerTask from '../../TenantSchedulerTask';
 import Utils from '../../../utils/Utils';
 
 const MODULE_NAME = 'OICPPushEvseStatusTask';
 
-export default class OICPPushEvseStatusTask extends SchedulerTask {
+export default class OICPPushEvseStatusTask extends TenantSchedulerTask {
   public async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     try {
       // Check if OICP component is active

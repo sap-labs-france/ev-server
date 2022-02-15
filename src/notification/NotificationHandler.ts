@@ -122,7 +122,7 @@ export default class NotificationHandler {
                   }
                 );
                 // Send
-                await notificationSource.notificationTask.sendEndOfCharge(sourceData, user, tenant, NotificationSeverity.INFO);
+                void notificationSource.notificationTask.sendEndOfCharge(sourceData, user, tenant, NotificationSeverity.INFO);
               }
             } else {
               await Logging.logDebug({
@@ -173,7 +173,7 @@ export default class NotificationHandler {
                     }
                   });
                 // Send
-                await notificationSource.notificationTask.sendOptimalChargeReached(sourceData, user, tenant, NotificationSeverity.INFO);
+                void notificationSource.notificationTask.sendOptimalChargeReached(sourceData, user, tenant, NotificationSeverity.INFO);
               }
             } else {
               await Logging.logDebug({
@@ -224,7 +224,7 @@ export default class NotificationHandler {
                     }
                   });
                 // Send
-                await notificationSource.notificationTask.sendEndOfSession(sourceData, user, tenant, NotificationSeverity.INFO);
+                void notificationSource.notificationTask.sendEndOfSession(sourceData, user, tenant, NotificationSeverity.INFO);
               }
             } else {
               await Logging.logDebug({
@@ -275,7 +275,7 @@ export default class NotificationHandler {
                     }
                   });
                 // Send
-                await notificationSource.notificationTask.sendEndOfSignedSession(sourceData, user, tenant, NotificationSeverity.INFO);
+                void notificationSource.notificationTask.sendEndOfSignedSession(sourceData, user, tenant, NotificationSeverity.INFO);
               }
             } else {
               await Logging.logDebug({
@@ -313,7 +313,7 @@ export default class NotificationHandler {
             await NotificationHandler.saveNotification(
               tenant, notificationSource.channel, notificationID, ServerAction.REQUEST_PASSWORD, { user });
             // Send
-            await notificationSource.notificationTask.sendRequestPassword(
+            void notificationSource.notificationTask.sendRequestPassword(
               sourceData, user, tenant, NotificationSeverity.INFO);
           } catch (error) {
             await Logging.logActionExceptionMessage(tenant.id, ServerAction.REQUEST_PASSWORD, error);
@@ -343,7 +343,7 @@ export default class NotificationHandler {
               await NotificationHandler.saveNotification(
                 tenant, notificationSource.channel, notificationID, ServerAction.USER_ACCOUNT_STATUS_CHANGED, { user });
               // Send
-              await notificationSource.notificationTask.sendUserAccountStatusChanged(
+              void notificationSource.notificationTask.sendUserAccountStatusChanged(
                 sourceData, user, tenant, NotificationSeverity.WARNING);
             }
           } catch (error) {
@@ -372,7 +372,7 @@ export default class NotificationHandler {
             await NotificationHandler.saveNotification(
               tenant, notificationSource.channel, notificationID, ServerAction.NEW_REGISTERED_USER, { user });
             // Send
-            await notificationSource.notificationTask.sendNewRegisteredUser(
+            void notificationSource.notificationTask.sendNewRegisteredUser(
               sourceData, user, tenant, NotificationSeverity.INFO);
           } catch (error) {
             await Logging.logActionExceptionMessage(tenant.id, ServerAction.NEW_REGISTERED_USER, error);
@@ -399,7 +399,7 @@ export default class NotificationHandler {
             await NotificationHandler.saveNotification(
               tenant, notificationSource.channel, notificationID, ServerAction.USER_ACCOUNT_VERIFICATION, { user });
             // Send
-            await notificationSource.notificationTask.sendAccountVerificationNotification(
+            void notificationSource.notificationTask.sendAccountVerificationNotification(
               sourceData, user, tenant, NotificationSeverity.INFO);
           } catch (error) {
             await Logging.logActionExceptionMessage(tenant.id, ServerAction.USER_ACCOUNT_VERIFICATION, error);
@@ -440,7 +440,7 @@ export default class NotificationHandler {
               await NotificationHandler.saveNotification(tenant, notificationSource.channel, notificationID, ServerAction.ADMIN_ACCOUNT_VERIFICATION);
               // Send
               for (const adminUser of adminUsers) {
-                await notificationSource.notificationTask.sendAdminAccountVerificationNotification(
+                void notificationSource.notificationTask.sendAdminAccountVerificationNotification(
                   adminSourceData, adminUser, tenant, NotificationSeverity.INFO);
               }
             } catch (error) {
@@ -468,38 +468,37 @@ export default class NotificationHandler {
           try {
             // Check notification
             const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
-              tenant, notificationSource.channel, ServerAction.VERIFICATION_EMAIL,
+              tenant, notificationSource.channel, ServerAction.VERIFY_EMAIL,
               null, user.id, { intervalMins: 10 });
             // Notified?
             if (!hasBeenNotified) {
               // Save
               await NotificationHandler.saveNotification(
-                tenant, notificationSource.channel, notificationID, ServerAction.VERIFICATION_EMAIL, { user });
+                tenant, notificationSource.channel, notificationID, ServerAction.VERIFY_EMAIL, { user });
               // Send
-              await notificationSource.notificationTask.sendVerificationEmail(
+              void notificationSource.notificationTask.sendVerificationEmail(
                 sourceData, user, tenant, NotificationSeverity.INFO);
             } else {
               await Logging.logDebug({
                 tenantID: tenant.id,
                 module: MODULE_NAME, method: 'sendVerificationEmail',
-                action: ServerAction.VERIFICATION_EMAIL,
+                action: ServerAction.VERIFY_EMAIL,
                 user: user.id,
                 message: `Notification via '${notificationSource.channel}' has already been sent`
               });
             }
           } catch (error) {
-            await Logging.logActionExceptionMessage(tenant.id, ServerAction.VERIFICATION_EMAIL, error);
+            await Logging.logActionExceptionMessage(tenant.id, ServerAction.VERIFY_EMAIL, error);
           }
         }
       }
     }
   }
 
-  public static async sendVerificationEmailUserImport(tenantID: string, notificationID: string, user: User,
+  public static async sendVerificationEmailUserImport(tenant: Tenant, notificationID: string, user: User,
       sourceData: VerificationEmailNotification): Promise<void> {
-    if (tenantID !== Constants.DEFAULT_TENANT) {
+    if (tenant.id !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
-      const tenant = await TenantStorage.getTenant(tenantID, { withLogo: true });
       sourceData.tenantLogoURL = tenant.logo;
       // For each Sources
       for (const notificationSource of NotificationHandler.notificationSources) {
@@ -510,10 +509,10 @@ export default class NotificationHandler {
             await NotificationHandler.saveNotification(
               tenant, notificationSource.channel, notificationID, ServerAction.VERIFICATION_EMAIL_USER_IMPORT, { user });
             // Send
-            await notificationSource.notificationTask.sendVerificationEmailUserImport(
+            void notificationSource.notificationTask.sendVerificationEmailUserImport(
               sourceData, user, tenant, NotificationSeverity.INFO);
           } catch (error) {
-            await Logging.logActionExceptionMessage(tenantID, ServerAction.VERIFICATION_EMAIL_USER_IMPORT, error);
+            await Logging.logActionExceptionMessage(tenant.id, ServerAction.VERIFICATION_EMAIL_USER_IMPORT, error);
           }
         }
       }
@@ -555,7 +554,7 @@ export default class NotificationHandler {
                 );
                 // Send
                 for (const adminUser of adminUsers) {
-                  await notificationSource.notificationTask.sendChargingStationStatusError(
+                  void notificationSource.notificationTask.sendChargingStationStatusError(
                     sourceData, adminUser, tenant, NotificationSeverity.ERROR);
                 }
               } else {
@@ -598,7 +597,7 @@ export default class NotificationHandler {
                 tenant, notificationSource.channel, notificationID, ServerAction.CHARGING_STATION_REGISTERED, { chargingStation });
               // Send
               for (const adminUser of adminUsers) {
-                await notificationSource.notificationTask.sendChargingStationRegistered(
+                void notificationSource.notificationTask.sendChargingStationRegistered(
                   sourceData, adminUser, tenant, NotificationSeverity.WARNING);
               }
             } catch (error) {
@@ -632,7 +631,7 @@ export default class NotificationHandler {
                 tenant, notificationSource.channel, notificationID, ServerAction.UNKNOWN_USER_BADGED, { chargingStation });
               // Send
               for (const adminUser of adminUsers) {
-                await notificationSource.notificationTask.sendUnknownUserBadged(
+                void notificationSource.notificationTask.sendUnknownUserBadged(
                   sourceData, adminUser, tenant, NotificationSeverity.WARNING);
               }
             } catch (error) {
@@ -676,7 +675,7 @@ export default class NotificationHandler {
                   }
                 );
                 // Send
-                await notificationSource.notificationTask.sendSessionStarted(
+                void notificationSource.notificationTask.sendSessionStarted(
                   sourceData, user, tenant, NotificationSeverity.INFO);
               }
             } else {
@@ -731,7 +730,7 @@ export default class NotificationHandler {
                   );
                   // Send
                   for (const adminUser of adminUsers) {
-                    await notificationSource.notificationTask.sendOCPIPatchChargingStationsStatusesError(
+                    void notificationSource.notificationTask.sendOCPIPatchChargingStationsStatusesError(
                       sourceData, adminUser, tenant, NotificationSeverity.ERROR);
                   }
                 }
@@ -781,7 +780,7 @@ export default class NotificationHandler {
                     tenant, notificationSource.channel, null, ServerAction.PATCH_EVSE_STATUS_ERROR);
                   // Send
                   for (const adminUser of adminUsers) {
-                    await notificationSource.notificationTask.sendOICPPatchChargingStationsStatusesError(
+                    void notificationSource.notificationTask.sendOICPPatchChargingStationsStatusesError(
                       sourceData, adminUser, tenant, NotificationSeverity.ERROR);
                   }
                 }
@@ -831,7 +830,7 @@ export default class NotificationHandler {
                     tenant, notificationSource.channel, null, ServerAction.PATCH_EVSE_ERROR);
                   // Send
                   for (const adminUser of adminUsers) {
-                    await notificationSource.notificationTask.sendOICPPatchChargingStationsError(
+                    void notificationSource.notificationTask.sendOICPPatchChargingStationsError(
                       sourceData, adminUser, tenant, NotificationSeverity.ERROR);
                   }
                 }
@@ -874,7 +873,7 @@ export default class NotificationHandler {
               await NotificationHandler.saveNotification(
                 tenant, notificationSource.channel, null, ServerAction.USER_ACCOUNT_INACTIVITY, { user });
               // Send
-              await notificationSource.notificationTask.sendUserAccountInactivity(
+              void notificationSource.notificationTask.sendUserAccountInactivity(
                 sourceData, user, tenant, NotificationSeverity.INFO);
             } else {
               await Logging.logDebug({
@@ -924,7 +923,7 @@ export default class NotificationHandler {
                   }
                 );
                 // Send
-                await notificationSource.notificationTask.sendPreparingSessionNotStarted(sourceData, user, tenant, NotificationSeverity.INFO);
+                void notificationSource.notificationTask.sendPreparingSessionNotStarted(sourceData, user, tenant, NotificationSeverity.INFO);
               }
             } else {
               await Logging.logDebug({
@@ -973,7 +972,7 @@ export default class NotificationHandler {
                 for (const adminUser of adminUsers) {
                   // Enabled?
                   if (adminUser.notificationsActive && adminUser.notifications.sendOfflineChargingStations) {
-                    await notificationSource.notificationTask.sendOfflineChargingStations(
+                    void notificationSource.notificationTask.sendOfflineChargingStations(
                       sourceData, adminUser, tenant, NotificationSeverity.INFO);
                   }
                 }
@@ -1022,7 +1021,7 @@ export default class NotificationHandler {
                 for (const adminUser of adminUsers) {
                   // Enabled?
                   if (adminUser.notificationsActive && adminUser.notifications.sendBillingSynchronizationFailed) {
-                    await notificationSource.notificationTask.sendBillingSynchronizationFailed(
+                    void notificationSource.notificationTask.sendBillingSynchronizationFailed(
                       sourceData, adminUser, tenant, NotificationSeverity.ERROR);
                   }
                 }
@@ -1071,7 +1070,7 @@ export default class NotificationHandler {
                 for (const adminUser of adminUsers) {
                   // Enabled?
                   if (adminUser.notificationsActive && adminUser.notifications.sendBillingSynchronizationFailed) {
-                    await notificationSource.notificationTask.sendBillingInvoiceSynchronizationFailed(
+                    void notificationSource.notificationTask.sendBillingInvoiceSynchronizationFailed(
                       sourceData, adminUser, tenant, NotificationSeverity.ERROR);
                   }
                 }
@@ -1120,7 +1119,7 @@ export default class NotificationHandler {
                 for (const adminUser of adminUsers) {
                   // Enabled?
                   if (adminUser.notificationsActive && adminUser.notifications.sendBillingPeriodicOperationFailed) {
-                    await notificationSource.notificationTask.sendBillingPeriodicOperationFailed(
+                    void notificationSource.notificationTask.sendBillingPeriodicOperationFailed(
                       sourceData, adminUser, tenant, NotificationSeverity.ERROR);
                   }
                 }
@@ -1142,10 +1141,8 @@ export default class NotificationHandler {
   }
 
   public static async sendCarsSynchronizationFailed(sourceData: CarCatalogSynchronizationFailedNotification): Promise<void> {
-    // Get the tenant
-    const tenant = await TenantStorage.getTenant(Constants.DEFAULT_TENANT);
     // Get admin users
-    const adminUsers = await NotificationHandler.getAdminUsers(tenant);
+    const adminUsers = await NotificationHandler.getAdminUsers(Constants.DEFAULT_TENANT_OBJECT);
     if (!Utils.isEmptyArray(adminUsers)) {
       // For each Sources
       for (const notificationSource of NotificationHandler.notificationSources) {
@@ -1154,24 +1151,24 @@ export default class NotificationHandler {
           try {
             // Check notification
             const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
-              tenant, notificationSource.channel, ServerAction.CAR_CATALOG_SYNCHRONIZATION_FAILED,
+              Constants.DEFAULT_TENANT_OBJECT, notificationSource.channel, ServerAction.CAR_CATALOG_SYNCHRONIZATION_FAILED,
               null, null, { intervalMins: 60 * 24 });
             // Notified?
             if (!hasBeenNotified) {
               // Save
               await NotificationHandler.saveNotification(
-                tenant, notificationSource.channel, null, ServerAction.CAR_CATALOG_SYNCHRONIZATION_FAILED);
+                Constants.DEFAULT_TENANT_OBJECT, notificationSource.channel, null, ServerAction.CAR_CATALOG_SYNCHRONIZATION_FAILED);
               // Send
               for (const adminUser of adminUsers) {
                 // Enabled?
                 if (adminUser.notificationsActive && adminUser.notifications.sendCarCatalogSynchronizationFailed) {
-                  await notificationSource.notificationTask.sendCarCatalogSynchronizationFailed(
+                  void notificationSource.notificationTask.sendCarCatalogSynchronizationFailed(
                     sourceData, adminUser, Constants.DEFAULT_TENANT_OBJECT, NotificationSeverity.ERROR);
                 }
               }
             } else {
               await Logging.logDebug({
-                tenantID: tenant.id,
+                tenantID: Constants.DEFAULT_TENANT_OBJECT.id,
                 module: MODULE_NAME, method: 'sendCarsSynchronizationFailed',
                 action: ServerAction.CAR_CATALOG_SYNCHRONIZATION_FAILED,
                 message: `Notification via '${notificationSource.channel}' has already been sent`
@@ -1185,7 +1182,8 @@ export default class NotificationHandler {
     }
   }
 
-  public static async sendComputeAndApplyChargingProfilesFailed(tenant: Tenant, chargingStation: ChargingStation, sourceData: ComputeAndApplyChargingProfilesFailedNotification): Promise<void> {
+  public static async sendComputeAndApplyChargingProfilesFailed(tenant: Tenant, chargingStation: ChargingStation,
+      sourceData: ComputeAndApplyChargingProfilesFailedNotification): Promise<void> {
     if (tenant.id !== Constants.DEFAULT_TENANT) {
       // Get the Tenant logo
       if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
@@ -1214,7 +1212,7 @@ export default class NotificationHandler {
                 for (const adminUser of adminUsers) {
                   // Enabled?
                   if (adminUser.notificationsActive && adminUser.notifications.sendComputeAndApplyChargingProfilesFailed) {
-                    await notificationSource.notificationTask.sendComputeAndApplyChargingProfilesFailed(
+                    void notificationSource.notificationTask.sendComputeAndApplyChargingProfilesFailed(
                       sourceData, adminUser, tenant, NotificationSeverity.ERROR);
                   }
                 }
@@ -1263,7 +1261,7 @@ export default class NotificationHandler {
               for (const adminUser of adminUsers) {
                 // Enabled?
                 if (adminUser.notificationsActive && adminUser.notifications.sendEndUserErrorNotification) {
-                  await notificationSource.notificationTask.sendEndUserErrorNotification(
+                  void notificationSource.notificationTask.sendEndUserErrorNotification(
                     sourceData, adminUser, tenant, NotificationSeverity.ERROR);
                 }
               }
@@ -1303,7 +1301,7 @@ export default class NotificationHandler {
                     chargingStation
                   });
                 // Send
-                await notificationSource.notificationTask.sendSessionNotStarted(sourceData, sourceData.user, tenant, NotificationSeverity.INFO);
+                void notificationSource.notificationTask.sendSessionNotStarted(sourceData, sourceData.user, tenant, NotificationSeverity.INFO);
               }
             } else {
               await Logging.logDebug({
@@ -1346,7 +1344,7 @@ export default class NotificationHandler {
                   await NotificationHandler.saveNotification(
                     tenant, notificationSource.channel, notificationID, ServerAction.BILLING_NEW_INVOICE, { user });
                   // Send
-                  await notificationSource.notificationTask.sendBillingNewInvoice(
+                  void notificationSource.notificationTask.sendBillingNewInvoice(
                     sourceData, user, tenant, NotificationSeverity.INFO);
                 }
               }

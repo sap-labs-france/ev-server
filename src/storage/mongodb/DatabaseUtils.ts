@@ -40,9 +40,9 @@ export default class DatabaseUtils {
 
   public static pushCreatedLastChangedInAggregation(tenantID: string, aggregation: any[]): void {
     // Add Created By
-    DatabaseUtils._pushUserInAggregation(tenantID, aggregation, 'createdBy');
+    DatabaseUtils.pushUserInAggregation(tenantID, aggregation, 'createdBy');
     // Add Last Changed By
-    DatabaseUtils._pushUserInAggregation(tenantID, aggregation, 'lastChangedBy');
+    DatabaseUtils.pushUserInAggregation(tenantID, aggregation, 'lastChangedBy');
   }
 
   public static getCollectionName(tenantID: string, collectionNameSuffix: string): string {
@@ -345,11 +345,11 @@ export default class DatabaseUtils {
     dest.createdBy = null;
     dest.lastChangedBy = null;
     if (entity.createdBy || entity.createdOn) {
-      dest.createdBy = DatabaseUtils._mongoConvertUserID(entity, 'createdBy');
+      dest.createdBy = DatabaseUtils.mongoConvertUserID(entity, 'createdBy');
       dest.createdOn = Utils.convertToDate(entity.createdOn);
     }
     if (entity.lastChangedBy || entity.lastChangedOn) {
-      dest.lastChangedBy = DatabaseUtils._mongoConvertUserID(entity, 'lastChangedBy');
+      dest.lastChangedBy = DatabaseUtils.mongoConvertUserID(entity, 'lastChangedBy');
       dest.lastChangedOn = Utils.convertToDate(entity.lastChangedOn);
     }
   }
@@ -386,6 +386,10 @@ export default class DatabaseUtils {
     if (id) {
       return new ObjectId(id);
     }
+  }
+
+  public static generateID(): string {
+    return new ObjectId().toString();
   }
 
   public static convertUserToObjectID(user: User | UserToken | string): ObjectId | null {
@@ -426,8 +430,8 @@ export default class DatabaseUtils {
             { $eq: ['$firmwareUpdateStatus', OCPPFirmwareStatus.INSTALLING] },
             {
               $gte: [
-                { $divide: [{ $subtract: [new Date(), '$lastSeen'] }, 1000] },
-                Configuration.getChargingStationConfig().heartbeatIntervalOCPPJSecs * 2
+                { $subtract: [new Date(), '$lastSeen'] },
+                Configuration.getChargingStationConfig().pingIntervalOCPPJSecs * 2 * 1000
               ]
             }
           ]
@@ -437,7 +441,7 @@ export default class DatabaseUtils {
   }
 
   // Temporary hack to fix user Id saving. fix all this when user is typed...
-  private static _mongoConvertUserID(obj: any, prop: string): ObjectId | null {
+  private static mongoConvertUserID(obj: any, prop: string): ObjectId | null {
     if (!obj || !obj[prop]) {
       return null;
     }
@@ -450,7 +454,7 @@ export default class DatabaseUtils {
     return null;
   }
 
-  private static _pushUserInAggregation(tenantID: string, aggregation: any[], fieldName: string) {
+  private static pushUserInAggregation(tenantID: string, aggregation: any[], fieldName: string) {
     // Created By Lookup
     aggregation.push({
       $lookup: {

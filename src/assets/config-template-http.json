@@ -37,6 +37,7 @@
     "passwordWrongNumberOfTrial": 3,
     "passwordBlockedWaitTimeMin": 5,
     "captchaSecretKey": "YourCaptchaSecretKey",
+    "captchaScore": 0.25,
     "debug": false
   },
   "CentralSystemFrontEnd": {
@@ -48,15 +49,13 @@
     "protocol": "http",
     "host": "localhost",
     "port": 9090,
-    "debug": false,
-    "externalProtocol": "http"
+    "debug": false
   },
   "OICPService": {
     "protocol": "http",
     "host": "localhost",
     "port": 9080,
-    "debug": false,
-    "externalProtocol": "http"
+    "debug": false
   },
   "CentralSystemServer": {
     "protocol": "http",
@@ -67,8 +66,7 @@
     "protocol": "http",
     "host": "localhost",
     "port": 9292,
-    "debug": false,
-    "externalProtocol": "http"
+    "debug": false
   },
   "WSDLEndpoint": {
     "baseSecureUrl": ""
@@ -109,7 +107,12 @@
     "clientX509CertURL": "",
     "databaseURL": ""
   },
+  "Axios": {
+    "retries": 0,
+    "timeoutSecs": 30
+  },
   "Email": {
+    "disableBackup": false,
     "smtp": {
       "from": "",
       "host": "",
@@ -135,6 +138,8 @@
   "ChargingStation": {
     "heartbeatIntervalOCPPSSecs": 60,
     "heartbeatIntervalOCPPJSecs": 3600,
+    "pingIntervalOCPPJSecs": 60,
+    "monitoringIntervalOCPPJSecs": 600,
     "notifBeforeEndOfChargeEnabled": true,
     "notifBeforeEndOfChargePercent": 85,
     "notifEndOfChargeEnabled": true,
@@ -165,19 +170,14 @@
       }
     ]
   },
+  "Trace": {
+    "traceIngressHttp": false,
+    "traceEgressHttp": false,
+    "traceOcpp": false,
+    "traceDatabase": false,
+    "traceNotification": false
+  },
   "Logging": {
-    "logLevel": "D",
-    "consoleLogLevel": "NONE",
-    "trace": false,
-    "moduleDetails": {
-      "ChargingStation": {
-        "logLevel": "DEFAULT",
-        "consoleLogLevel": "DEFAULT"
-      },
-      "Authorizations": {
-        "logLevel": "DEFAULT",
-        "consoleLogLevel": "DEFAULT"
-      }
-    }
+    "logLevel": "D"
   }
 }

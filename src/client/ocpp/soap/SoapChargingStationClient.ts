@@ -10,7 +10,6 @@ import Tenant from '../../../types/Tenant';
 import global from '../../../types/GlobalType';
 import { soap } from 'strong-soap';
 
-// Default Module name
 const MODULE_NAME = 'SoapChargingStationClient';
 
 export default class SoapChargingStationClient extends ChargingStationClient {
@@ -26,9 +25,9 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     this.tenant = tenant;
   }
 
-  static async getChargingStationClient(tenant: Tenant, chargingStation: ChargingStation): Promise<SoapChargingStationClient> {
+  public static async getChargingStationClient(tenant: Tenant, chargingStation: ChargingStation): Promise<SoapChargingStationClient> {
     const scsc = new SoapChargingStationClient(tenant, chargingStation);
-    return await new Promise((fulfill, reject) => {
+    return new Promise((fulfill, reject) => {
       let chargingStationWdsl = null;
       // Read the WSDL client files
       switch (scsc.chargingStation.ocppVersion) {

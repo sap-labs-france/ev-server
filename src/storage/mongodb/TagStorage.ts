@@ -240,25 +240,28 @@ export default class TagStorage {
   }
 
   public static async getTag(tenant: Tenant, id: string,
-      params: { userIDs?: string[], withUser?: boolean; withNbrTransactions?: boolean; active?: boolean; siteIDs?: string[]; } = {}, projectFields?: string[]): Promise<Tag> {
+      params: { userIDs?: string[], withUser?: boolean, withNbrTransactions?: boolean, active?: boolean, siteIDs?: string[], issuer?: boolean } = {},
+      projectFields?: string[]): Promise<Tag> {
     const tagMDB = await TagStorage.getTags(tenant, {
       tagIDs: [id],
       withUser: params.withUser,
       withNbrTransactions: params.withNbrTransactions,
       userIDs: params.userIDs,
       active: params.active,
-      siteIDs: params.siteIDs
+      siteIDs: params.siteIDs,
+      issuer: params.issuer,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return tagMDB.count === 1 ? tagMDB.result[0] : null;
   }
 
   public static async getTagByVisualID(tenant: Tenant, visualID: string,
-      params: { withUser?: boolean; withNbrTransactions?: boolean, userIDs?: string[] } = {}, projectFields?: string[]): Promise<Tag> {
+      params: { withUser?: boolean, withNbrTransactions?: boolean, userIDs?: string[], issuer?: boolean } = {}, projectFields?: string[]): Promise<Tag> {
     const tagMDB = await TagStorage.getTags(tenant, {
       visualIDs: [visualID],
       withUser: params.withUser,
       withNbrTransactions: params.withNbrTransactions,
-      userIDs: params.userIDs
+      userIDs: params.userIDs,
+      issuer: params.issuer
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return tagMDB.count === 1 ? tagMDB.result[0] : null;
   }

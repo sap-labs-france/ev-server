@@ -17,7 +17,7 @@ import Utils from '../../../utils/Utils';
 const MODULE_NAME = 'BuiltInPricingIntegration';
 
 export default class BuiltInPricingIntegration extends PricingIntegration<SimplePricingSetting> {
-  constructor(tenant: Tenant, readonly settings: SimplePricingSetting) {
+  public constructor(tenant: Tenant, private readonly settings: SimplePricingSetting) {
     super(tenant, settings);
   }
 
@@ -47,6 +47,20 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
       action: ServerAction.PRICING,
       method: 'stopSession',
       message: `Session STOP - Transaction: ${transaction.id} - Accumulated amount: ${pricedConsumption.cumulatedRoundedAmount} ${pricedConsumption.currencyCode}`,
+      detailedMessages: { pricedConsumption },
+      ...LoggingHelper.getTransactionProperties(transaction)
+    });
+    return pricedConsumption;
+  }
+
+  public async endSession(transaction: Transaction, consumptionData: Consumption, chargingStation: ChargingStation): Promise<PricedConsumption> {
+    const pricedConsumption = await this.computePrice(transaction, consumptionData, chargingStation);
+    await Logging.logInfo({
+      tenantID: this.tenant.id,
+      module: MODULE_NAME,
+      action: ServerAction.PRICING,
+      method: 'endSession',
+      message: `Session END - Transaction: ${transaction.id} - Accumulated amount: ${pricedConsumption.cumulatedRoundedAmount} ${pricedConsumption.currencyCode}`,
       detailedMessages: { pricedConsumption },
       ...LoggingHelper.getTransactionProperties(transaction)
     });

@@ -2,7 +2,7 @@ import { ChargePointStatus, OCPPFirmwareStatus } from '../../types/ocpp/OCPPServ
 import { ChargingProfile, ChargingProfilePurposeType, ChargingRateUnitType } from '../../types/ChargingProfile';
 import ChargingStation, { ChargePoint, ChargingStationOcpiData, ChargingStationOcppParameters, ChargingStationOicpData, ChargingStationTemplate, Connector, ConnectorType, CurrentType, OcppParameter, PhaseAssignmentToGrid, RemoteAuthorization, Voltage } from '../../types/ChargingStation';
 import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
-import { GridFSBucket, GridFSBucketReadStream, GridFSBucketWriteStream, ObjectId } from 'mongodb';
+import { GridFSBucket, GridFSBucketReadStream, GridFSBucketWriteStream, ObjectId, UpdateResult } from 'mongodb';
 import Tenant, { TenantComponents } from '../../types/Tenant';
 import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
@@ -46,6 +46,7 @@ export interface ConnectorMDB {
   currentType: CurrentType;
   chargePointID: number;
   phaseAssignmentToGrid: PhaseAssignmentToGrid;
+  tariffID?: string;
 }
 
 export default class ChargingStationStorage {
@@ -84,12 +85,17 @@ export default class ChargingStationStorage {
   public static async saveChargingStationTemplate(chargingStationTemplate: ChargingStationTemplate): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     // Validate
-    chargingStationTemplate = ChargingStationValidatorStorage.getInstance().validateChargingStationTemplate(
-      chargingStationTemplate as unknown as Record<string, unknown>);
+    chargingStationTemplate = ChargingStationValidatorStorage.getInstance().validateChargingStationTemplate(chargingStationTemplate);
+    // Prepare DB structure
+    const chargingStationTemplateMDB = {
+      ...chargingStationTemplate,
+      _id: chargingStationTemplate.id
+    };
+    delete chargingStationTemplateMDB.id;
     // Modify and return the modified document
-    await global.database.getCollection<ChargingStationTemplate>(Constants.DEFAULT_TENANT, 'chargingstationtemplates').findOneAndReplace(
+    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'chargingstationtemplates').findOneAndReplace(
       { '_id': chargingStationTemplate.id },
-      chargingStationTemplate,
+      chargingStationTemplateMDB,
       { upsert: true });
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'saveChargingStationTemplate', startTime, chargingStationTemplate);
   }
@@ -157,7 +163,7 @@ export default class ChargingStationStorage {
     // Create Aggregation
     const aggregation = [];
     // Position coordinates
-    if (Utils.containsGPSCoordinates(params.locCoordinates)) {
+    if (Utils.hasValidGpsCoordinates(params.locCoordinates)) {
       aggregation.push({
         $geoNear: {
           near: {
@@ -315,7 +321,7 @@ export default class ChargingStationStorage {
       dbParams.sort = { _id: 1 };
     }
     // Position coordinates
-    if (Utils.containsGPSCoordinates(params.locCoordinates)) {
+    if (Utils.hasValidGpsCoordinates(params.locCoordinates)) {
       // Override (can have only one sort)
       dbParams.sort = { distanceMeters: 1 };
     }
@@ -364,7 +370,7 @@ export default class ChargingStationStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Reorder connector ID
-    if (!Utils.containsGPSCoordinates(params.locCoordinates)) {
+    if (!Utils.hasValidGpsCoordinates(params.locCoordinates)) {
       aggregation.push({
         $sort: dbParams.sort
       });
@@ -536,6 +542,7 @@ export default class ChargingStationStorage {
       lastReboot: Utils.convertToDate(chargingStationToSave.lastReboot),
       chargingStationURL: chargingStationToSave.chargingStationURL,
       maximumPower: Utils.convertToInt(chargingStationToSave.maximumPower),
+      masterSlave: Utils.convertToBoolean(chargingStationToSave.masterSlave),
       excludeFromSmartCharging: Utils.convertToBoolean(chargingStationToSave.excludeFromSmartCharging),
       forceInactive: Utils.convertToBoolean(chargingStationToSave.forceInactive),
       manualConfiguration: Utils.convertToBoolean(chargingStationToSave.manualConfiguration),
@@ -547,12 +554,13 @@ export default class ChargingStationStorage {
         (backupConnector) => ChargingStationStorage.filterConnectorMDB(backupConnector)) : [],
       chargePoints: chargingStationToSave.chargePoints ? chargingStationToSave.chargePoints.map(
         (chargePoint) => ChargingStationStorage.filterChargePointMDB(chargePoint)) : [],
-      coordinates: Utils.containsGPSCoordinates(chargingStationToSave.coordinates) ? chargingStationToSave.coordinates.map(
+      coordinates: Utils.hasValidGpsCoordinates(chargingStationToSave.coordinates) ? chargingStationToSave.coordinates.map(
         (coordinate) => Utils.convertToFloat(coordinate)) : [],
       currentIPAddress: chargingStationToSave.currentIPAddress,
       capabilities: chargingStationToSave.capabilities,
       ocppStandardParameters: chargingStationToSave.ocppStandardParameters,
       ocppVendorParameters: chargingStationToSave.ocppVendorParameters,
+      tariffID: chargingStationToSave.tariffID,
     };
     // Add Created/LastChanged By
     DatabaseUtils.addLastChangedCreatedProps(chargingStationMDB, chargingStationToSave);
@@ -592,7 +600,7 @@ export default class ChargingStationStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Modify document
-    await global.database.getCollection<ChargingStation>(tenant.id, 'chargingstations').findOneAndUpdate(
+    await global.database.getCollection<any>(tenant.id, 'chargingstations').findOneAndUpdate(
       { '_id': id },
       {
         $set: {
@@ -604,16 +612,29 @@ export default class ChargingStationStorage {
   }
 
   public static async saveChargingStationRuntimeData(tenant: Tenant, id: string,
-      params: { lastSeen: Date; currentIPAddress?: string | string[]; tokenID?: string; cloudHostIP?: string; cloudHostName?: string; }): Promise<void> {
+      runtimeData: { lastSeen?: Date; currentIPAddress?: string | string[]; tokenID?: string; cloudHostIP?: string; cloudHostName?: string; }): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
-    // Set data
+    const runtimeDataMDB: { lastSeen?: Date; currentIPAddress?: string | string[]; tokenID?: string; cloudHostIP?: string; cloudHostName?: string; } = {};
+    if (runtimeData.lastSeen) {
+      runtimeDataMDB.lastSeen = Utils.convertToDate(runtimeData.lastSeen);
+    }
+    if (runtimeData.currentIPAddress) {
+      runtimeDataMDB.currentIPAddress = runtimeData.currentIPAddress;
+    }
+    if (runtimeData.tokenID) {
+      runtimeDataMDB.tokenID = runtimeData.tokenID;
+    }
+    if (runtimeData.cloudHostIP || runtimeData.cloudHostName) {
+      runtimeDataMDB.cloudHostIP = runtimeData.cloudHostIP;
+      runtimeDataMDB.cloudHostName = runtimeData.cloudHostName;
+    }
     // Modify document
-    await global.database.getCollection<ChargingStation>(tenant.id, 'chargingstations').findOneAndUpdate(
+    await global.database.getCollection<any>(tenant.id, 'chargingstations').findOneAndUpdate(
       { '_id': id },
-      { $set: params },
+      { $set: runtimeDataMDB },
       { upsert: true });
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveChargingStationLastSeen', startTime, params);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveChargingStationRuntimeData', startTime, runtimeData);
   }
 
   public static async saveChargingStationOcpiData(tenant: Tenant, id: string,
@@ -621,7 +642,7 @@ export default class ChargingStationStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Modify document
-    await global.database.getCollection<ChargingStation>(tenant.id, 'chargingstations').findOneAndUpdate(
+    await global.database.getCollection<any>(tenant.id, 'chargingstations').findOneAndUpdate(
       { '_id': id },
       {
         $set: {
@@ -637,7 +658,7 @@ export default class ChargingStationStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Modify document
-    await global.database.getCollection<ChargingStation>(tenant.id, 'chargingstations').findOneAndUpdate(
+    await global.database.getCollection<any>(tenant.id, 'chargingstations').findOneAndUpdate(
       { '_id': id },
       {
         $set: {
@@ -652,7 +673,7 @@ export default class ChargingStationStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Modify document
-    await global.database.getCollection<ChargingStation>(tenant.id, 'chargingstations').findOneAndUpdate(
+    await global.database.getCollection<any>(tenant.id, 'chargingstations').findOneAndUpdate(
       { '_id': id },
       { $set: { firmwareUpdateStatus } },
       { upsert: true });
@@ -668,7 +689,7 @@ export default class ChargingStationStorage {
     // Delete Charging Profiles
     await ChargingStationStorage.deleteChargingProfiles(tenant, id);
     // Delete Charging Station
-    await global.database.getCollection<ChargingStation>(tenant.id, 'chargingstations')
+    await global.database.getCollection<any>(tenant.id, 'chargingstations')
       .findOneAndDelete({ '_id': id });
     // Keep the rest (boot notification, authorize...)
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteChargingStation', startTime, { id });
@@ -690,7 +711,7 @@ export default class ChargingStationStorage {
     return value;
   }
 
-  static async saveOcppParameters(tenant: Tenant, parameters: ChargingStationOcppParameters): Promise<void> {
+  public static async saveOcppParameters(tenant: Tenant, parameters: ChargingStationOcppParameters): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Modify
@@ -712,8 +733,8 @@ export default class ChargingStationStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Read DB
-    const parametersMDB = await global.database.getCollection<ChargingStationOcppParameters>(tenant.id, 'configurations')
-      .findOne({ '_id': id });
+    const parametersMDB = await global.database.getCollection<any>(tenant.id, 'configurations')
+      .findOne({ '_id': id }) as ChargingStationOcppParameters;
     if (parametersMDB) {
       // Sort
       if (parametersMDB.configuration) {
@@ -749,11 +770,9 @@ export default class ChargingStationStorage {
   }
 
   public static async getChargingProfiles(tenant: Tenant,
-      params: {
-        search?: string; chargingStationIDs?: string[]; connectorID?: number; chargingProfileID?: string;
+      params: { search?: string; chargingStationIDs?: string[]; connectorID?: number; chargingProfileID?: string;
         profilePurposeType?: ChargingProfilePurposeType; transactionId?: number; withChargingStation?: boolean;
-        withSiteArea?: boolean; siteIDs?: string[];
-      } = {},
+        withSiteArea?: boolean; siteIDs?: string[]; } = {},
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingProfile>> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
@@ -950,6 +969,36 @@ export default class ChargingStationStorage {
     return firmware;
   }
 
+  public static async updateChargingStationsWithOrganizationIDs(tenant: Tenant, companyID: string, siteID: string, siteAreaID?: string): Promise<number> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    DatabaseUtils.checkTenantObject(tenant);
+    let result: UpdateResult;
+    if (siteAreaID) {
+      result = await global.database.getCollection<any>(tenant.id, 'chargingstations').updateMany(
+        {
+          siteAreaID: DatabaseUtils.convertToObjectID(siteAreaID),
+        },
+        {
+          $set: {
+            siteID: DatabaseUtils.convertToObjectID(siteID),
+            companyID: DatabaseUtils.convertToObjectID(companyID)
+          }
+        }) as UpdateResult;
+    } else {
+      result = await global.database.getCollection<any>(tenant.id, 'chargingstations').updateMany(
+        {
+          siteID: DatabaseUtils.convertToObjectID(siteID),
+        },
+        {
+          $set: {
+            companyID: DatabaseUtils.convertToObjectID(companyID)
+          }
+        }) as UpdateResult;
+    }
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'updateChargingStationsWithOrganizationIDs', startTime, { siteID, companyID, siteAreaID });
+    return result.modifiedCount;
+  }
+
   private static getChargerInErrorFacet(errorType: string) {
     switch (errorType) {
       case ChargingStationInErrorType.MISSING_SETTINGS:
@@ -1018,6 +1067,7 @@ export default class ChargingStationStorage {
         numberOfConnectedPhase: connector.numberOfConnectedPhase,
         currentType: connector.currentType,
         chargePointID: connector.chargePointID,
+        tariffID: connector.tariffID,
         phaseAssignmentToGrid: connector.phaseAssignmentToGrid &&
           {
             csPhaseL1: connector.phaseAssignmentToGrid.csPhaseL1,

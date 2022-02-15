@@ -5,7 +5,7 @@ import User from './User';
 import UserToken from './UserToken';
 
 export interface Log extends AuthorizationActions {
-  tenantID: string;
+  tenantID?: string;
   id?: string;
   level?: LogLevel;
   chargingStationID?: string;

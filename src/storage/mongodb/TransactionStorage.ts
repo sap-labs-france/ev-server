@@ -13,6 +13,7 @@ import Logging from '../../utils/Logging';
 import { NotifySessionNotStarted } from '../../types/UserNotifications';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
+import { UpdateResult } from 'mongodb';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
 
@@ -27,7 +28,7 @@ export default class TransactionStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Delete
-    const result = await global.database.getCollection<Transaction>(tenant.id, 'transactions')
+    const result = await global.database.getCollection<any>(tenant.id, 'transactions')
       .deleteMany({ '_id': { $in: transactionsIDs } });
     // Delete Meter Values
     await global.database.getCollection<any>(tenant.id, 'metervalues')
@@ -56,6 +57,9 @@ export default class TransactionStorage {
       tagID: transactionToSave.tagID,
       carID: transactionToSave.carID ? DatabaseUtils.convertToObjectID(transactionToSave.carID) : null,
       carCatalogID: transactionToSave.carCatalogID ? Utils.convertToInt(transactionToSave.carCatalogID) : null,
+      carStateOfCharge: Utils.convertToInt(transactionToSave.carStateOfCharge),
+      carOdometer: Utils.convertToInt(transactionToSave.carOdometer),
+      departureTime: Utils.convertToDate(transactionToSave.departureTime),
       userID: DatabaseUtils.convertToObjectID(transactionToSave.userID),
       chargeBoxID: transactionToSave.chargeBoxID,
       meterStart: Utils.convertToInt(transactionToSave.meterStart),
@@ -213,7 +217,7 @@ export default class TransactionStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Modify document
-    await global.database.getCollection<Transaction>(tenant.id, 'transactions').findOneAndUpdate(
+    await global.database.getCollection<any>(tenant.id, 'transactions').findOneAndUpdate(
       { '_id': id },
       {
         $set: {
@@ -224,12 +228,42 @@ export default class TransactionStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveTransactionOcpiData', startTime, ocpiData);
   }
 
+  public static async updateTransactionsWithOrganizationIDs(tenant: Tenant, companyID: string, siteID: string, siteAreaID?: string): Promise<number> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    DatabaseUtils.checkTenantObject(tenant);
+    let result: UpdateResult;
+    if (siteAreaID) {
+      result = await global.database.getCollection<any>(tenant.id, 'transactions').updateMany(
+        {
+          siteAreaID: DatabaseUtils.convertToObjectID(siteAreaID),
+        },
+        {
+          $set: {
+            siteID: DatabaseUtils.convertToObjectID(siteID),
+            companyID: DatabaseUtils.convertToObjectID(companyID)
+          }
+        }) as UpdateResult;
+    } else {
+      result = await global.database.getCollection<any>(tenant.id, 'transactions').updateMany(
+        {
+          siteID: DatabaseUtils.convertToObjectID(siteID),
+        },
+        {
+          $set: {
+            companyID: DatabaseUtils.convertToObjectID(companyID)
+          }
+        }) as UpdateResult;
+    }
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'updateTransactionsWithOrganizationIDs', startTime, { siteID, companyID, siteAreaID });
+    return result.modifiedCount;
+  }
+
   public static async saveTransactionOicpData(tenant: Tenant, id: number,
       oicpData: TransactionOicpData): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Modify document
-    await global.database.getCollection<Transaction>(tenant.id, 'transactions').findOneAndUpdate(
+    await global.database.getCollection<any>(tenant.id, 'transactions').findOneAndUpdate(
       { '_id': id },
       {
         $set: {
@@ -245,7 +279,7 @@ export default class TransactionStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Modify document
-    await global.database.getCollection<Transaction>(tenant.id, 'transactions').findOneAndUpdate(
+    await global.database.getCollection<any>(tenant.id, 'transactions').findOneAndUpdate(
       { '_id': id },
       {
         $set: {
@@ -261,7 +295,7 @@ export default class TransactionStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Modify document
-    await global.database.getCollection<Transaction>(tenant.id, 'transactions').findOneAndUpdate(
+    await global.database.getCollection<any>(tenant.id, 'transactions').findOneAndUpdate(
       { '_id': id },
       {
         $set: {
@@ -301,6 +335,7 @@ export default class TransactionStorage {
         ocpiSessionID?: string; ocpiAuthorizationID?: string; ocpiSessionDateFrom?: Date; ocpiSessionDateTo?: Date; ocpiCdrDateFrom?: Date; ocpiCdrDateTo?: Date;
         ocpiSessionChecked?: boolean; ocpiCdrChecked?: boolean; oicpSessionID?: string; withSite?: boolean; withSiteArea?: boolean; withCompany?: boolean;
         statistics?: 'refund' | 'history' | 'ongoing'; refundStatus?: RefundStatus[]; withTag?: boolean; hasUserID?: boolean; withUser?: boolean; withCar?: boolean;
+        transactionsToClose?: boolean;
       },
       dbParams: DbParams, projectFields?: string[]): Promise<TransactionDataResult> {
     const startTime = Logging.traceDatabaseRequestStart();
@@ -465,6 +500,10 @@ export default class TransactionStorage {
     if (params.reportIDs) {
       filters['refundData.reportId'] = { $in: params.reportIDs };
     }
+    // Only opened Transactions
+    if (params.transactionsToClose) {
+      filters.stop = { $exists: false };
+    }
     // Filters
     if (ownerMatch.$or && ownerMatch.$or.length > 0) {
       aggregation.push({
@@ -476,6 +515,19 @@ export default class TransactionStorage {
       aggregation.push({
         $match: filters
       });
+    }
+    // Only Connector's Transaction ID !== Transaction ID
+    if (params.transactionsToClose) {
+      TransactionStorage.pushChargingStationInTransactionAggregation(
+        tenant, params, projectFields, aggregation);
+      aggregation.push(
+        {
+          '$addFields': {
+            'transactionIdEq': { '$eq': ['$connector.currentTransactionID', '$_id'] }
+          }
+        },
+        { '$match': { 'transactionIdEq': false } }
+      );
     }
     // Limit records?
     if (!dbParams.onlyRecordCount) {
@@ -639,6 +691,11 @@ export default class TransactionStorage {
         }
       });
     }
+    // Charging Station
+    if (params.withChargingStation) {
+      TransactionStorage.pushChargingStationInTransactionAggregation(
+        tenant, params, projectFields, aggregation);
+    }
     // Tag
     if (params.withTag) {
       DatabaseUtils.pushTagLookupInAggregation({
@@ -666,35 +723,11 @@ export default class TransactionStorage {
       });
     }
     // Site Area
-    if (params.withSiteArea) {
+    if (params.withSiteArea || params.transactionsToClose) {
       DatabaseUtils.pushSiteAreaLookupInAggregation({
         tenantID: tenant.id, aggregation: aggregation, localField: 'siteAreaID', foreignField: '_id',
         asField: 'siteArea', oneToOneCardinality: true
       });
-    }
-    // Charging Station
-    if (params.withChargingStation) {
-      DatabaseUtils.pushChargingStationLookupInAggregation({
-        tenantID: tenant.id, aggregation: aggregation, localField: 'chargeBoxID', foreignField: '_id',
-        asField: 'chargeBox', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
-      });
-      DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargeBox.siteAreaID');
-      // Add Connector and Status
-      if (projectFields && projectFields.includes('status')) {
-        aggregation.push({
-          $addFields: {
-            connector: {
-              $arrayElemAt: [
-                '$chargeBox.connectors', {
-                  $indexOfArray: ['$chargeBox.connectors.connectorId', '$connectorId']
-                }
-              ]
-            }
-          }
-        }, {
-          $addFields: { status: '$connector.status' }
-        });
-      }
     }
     // User
     if (params.withUser) {
@@ -869,7 +902,7 @@ export default class TransactionStorage {
     };
   }
 
-  static async getTransactionsInError(tenant: Tenant,
+  public static async getTransactionsInError(tenant: Tenant,
       params: {
         search?: string; issuer?: boolean; userIDs?: string[]; chargingStationIDs?: string[];
         siteAreaIDs?: string[]; siteIDs?: string[]; startDateTime?: Date; endDateTime?: Date;
@@ -1387,5 +1420,44 @@ export default class TransactionStorage {
       default:
         return [];
     }
+  }
+
+  private static pushChargingStationInTransactionAggregation(tenant: Tenant, params: any, projectFields: string[], aggregation: any[]) {
+    // Add Charging Station
+    DatabaseUtils.pushChargingStationLookupInAggregation({
+      tenantID: tenant.id, aggregation: aggregation, localField: 'chargeBoxID', foreignField: '_id',
+      asField: 'chargeBox', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+    });
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargeBox.siteAreaID');
+    // Add Connector and Status
+    if ((projectFields && projectFields.includes('status')) || params.transactionsToClose) {
+      aggregation.push({
+        $addFields: {
+          connector: {
+            '$arrayElemAt': [
+              {
+                '$filter': {
+                  input: '$chargeBox.connectors',
+                  as: 'connector',
+                  cond: {
+                    $eq: [
+                      '$$connector.connectorId',
+                      '$connectorId'
+                    ]
+                  }
+                }
+              },
+              0
+            ]
+          }
+        }
+      });
+      if (projectFields && projectFields.includes('status')) {
+        aggregation.push({
+          $addFields: { status: '$connector.status' }
+        });
+      }
+    }
+    params.withChargingStation = false;
   }
 }

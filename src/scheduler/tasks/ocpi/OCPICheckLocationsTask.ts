@@ -9,14 +9,14 @@ import OCPIEndpoint from '../../../types/ocpi/OCPIEndpoint';
 import OCPIEndpointStorage from '../../../storage/mongodb/OCPIEndpointStorage';
 import { OCPIRegistrationStatus } from '../../../types/ocpi/OCPIRegistrationStatus';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
-import SchedulerTask from '../../SchedulerTask';
 import { ServerAction } from '../../../types/Server';
 import { TaskConfig } from '../../../types/TaskConfig';
+import TenantSchedulerTask from '../../TenantSchedulerTask';
 import Utils from '../../../utils/Utils';
 
 const MODULE_NAME = 'OCPICheckLocationsTask';
 
-export default class OCPICheckLocationsTask extends SchedulerTask {
+export default class OCPICheckLocationsTask extends TenantSchedulerTask {
   public async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     try {
       // Check if OCPI component is active

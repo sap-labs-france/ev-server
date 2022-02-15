@@ -242,35 +242,20 @@ This application displays the charging stations with their statuses, charging cu
 
 To set the end point, fill the following information in the **config.json** file
 
-#### Secure Configuration (SSL)
-
-```json
-  "CentralSystemRestService": {
-    "protocol": "https",
-    "host": "localhost",
-    "port": 443,
-    "sslKey": "ssl/64933587-localhost.key",
-    "sslCert": "ssl/64933587-localhost.cert",
-    "sslCa": [],
-    "userTokenKey": "MySecureKeyToEncodeTokenAuth",
-    "userTokenLifetimeHours": 12,
-    "userDemoTokenLifetimeDays": 365,
-    "userTechnicalTokenLifetimeDays": 365,
-    "debug": false
-  }
-```
-
-#### Simple Configuration
+#### Configuration
 
 ```json
   "CentralSystemRestService": {
     "protocol": "http",
-    "host": "localhost",
+    "host": "YOUR_HOST",
     "port": 80,
-    "userTokenKey": "YourSecureKeyToEncodeTokenAuth",
+		"userTokenKey": "YOUR_JWT_PRIVATE_KEY",
     "userTokenLifetimeHours": 12,
-    "userDemoTokenLifetimeDays": 365,
-    "userTechnicalTokenLifetimeDays": 365,
+    "userDemoTokenLifetimeDays": 360,
+    "userTechnicalTokenLifetimeDays": 180,
+    "passwordWrongNumberOfTrial": 3,
+    "passwordBlockedWaitTimeMin": 5,
+    "captchaSecretKey": "YOUR_CAPTCHA_SECRET",
     "debug": false
   }
 ```

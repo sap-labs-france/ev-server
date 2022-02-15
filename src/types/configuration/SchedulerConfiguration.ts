@@ -1,9 +1,9 @@
 export default interface SchedulerConfiguration {
   active: boolean;
-  tasks: SchedulerTask[];
+  tasks: SchedulerTaskConfiguration[];
 }
 
-interface SchedulerTask {
+export interface SchedulerTaskConfiguration {
   name: string;
   active: boolean;
   periodicity: string;

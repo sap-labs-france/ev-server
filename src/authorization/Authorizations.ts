@@ -1,8 +1,9 @@
-import { Action, AuthorizationContext, AuthorizationResult, Entity } from '../types/Authorization';
+import { Action, AuthorizationContext, AuthorizationResult, DynamicAuthorizationDataSourceName, Entity } from '../types/Authorization';
 import ChargingStation, { Connector } from '../types/ChargingStation';
 import Tenant, { TenantComponents } from '../types/Tenant';
 import User, { UserRole, UserStatus } from '../types/User';
 
+import AssignedSitesDynamicAuthorizationDataSource from './dynamic-data-source/AssignedSitesDynamicAuthorizationDataSource';
 import AuthorizationConfiguration from '../types/configuration/AuthorizationConfiguration';
 import AuthorizationsManager from './AuthorizationsManager';
 import BackendError from '../exception/BackendError';
@@ -11,6 +12,7 @@ import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import CpoOCPIClient from '../client/ocpi/CpoOCPIClient';
 import CpoOICPClient from '../client/oicp/CpoOICPClient';
+import DynamicAuthorizationFactory from './DynamicAuthorizationFactory';
 import Logging from '../utils/Logging';
 import LoggingHelper from '../utils/LoggingHelper';
 import NotificationHandler from '../notification/NotificationHandler';
@@ -26,6 +28,8 @@ import { PricingSettingsType } from '../types/Setting';
 import { ServerAction } from '../types/Server';
 import SessionHashService from '../server/rest/v1/service/SessionHashService';
 import SettingStorage from '../storage/mongodb/SettingStorage';
+import SitesAdminDynamicAuthorizationDataSource from './dynamic-data-source/SitesAdminDynamicAuthorizationDataSource';
+import SitesOwnerDynamicAuthorizationDataSource from './dynamic-data-source/SitesOwnerDynamicAuthorizationDataSource';
 import Tag from '../types/Tag';
 import TagStorage from '../storage/mongodb/TagStorage';
 import Transaction from '../types/Transaction';
@@ -33,6 +37,7 @@ import TransactionStorage from '../storage/mongodb/TransactionStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
 import UserToken from '../types/UserToken';
 import Utils from '../utils/Utils';
+import _ from 'lodash';
 import moment from 'moment';
 
 const MODULE_NAME = 'Authorizations';
@@ -89,37 +94,37 @@ export default class Authorizations {
       loggedUser, Entity.CHARGING_STATION, Action.REMOTE_STOP_TRANSACTION, context);
   }
 
-  public static getAuthorizedSiteIDs(loggedUser: UserToken, requestedSites: string[]): string[] {
-    if (!Utils.isComponentActiveFromToken(loggedUser, TenantComponents.ORGANIZATION)) {
+  public static async getAuthorizedSiteIDs(tenant: Tenant, userToken: UserToken, requestedSites: string[]): Promise<string[]> {
+    if (!Utils.isComponentActiveFromToken(userToken, TenantComponents.ORGANIZATION)) {
       return null;
     }
-    if (this.isAdmin(loggedUser)) {
+    if (this.isAdmin(userToken)) {
       return requestedSites;
     }
+    const userAssignedSiteIDs = await Authorizations.getAssignedSiteIDs(tenant, userToken);
     if (Utils.isEmptyArray(requestedSites)) {
-      return loggedUser.sites.length > 0 ? loggedUser.sites : null;
+      return userAssignedSiteIDs.length > 0 ? userAssignedSiteIDs : null;
     }
-    return requestedSites.filter((site) => loggedUser.sites.includes(site));
+    return requestedSites.filter((site) => userAssignedSiteIDs.includes(site));
   }
 
-  public static getAuthorizedSiteAdminIDs(loggedUser: UserToken, requestedSites?: string[]): string[] {
-    if (!Utils.isComponentActiveFromToken(loggedUser, TenantComponents.ORGANIZATION)) {
+  public static async getAuthorizedSiteAdminIDs(tenant: Tenant, userToken: UserToken, requestedSites?: string[]): Promise<string[]> {
+    if (!Utils.isComponentActiveFromToken(userToken, TenantComponents.ORGANIZATION)) {
       return null;
     }
-    if (this.isDemo(loggedUser)) {
+    if (this.isDemo(userToken)) {
       return null;
     }
-    if (this.isAdmin(loggedUser)) {
+    if (this.isAdmin(userToken)) {
       return requestedSites;
     }
-    const sites: Set<string> = new Set(loggedUser.sitesAdmin);
-    for (const siteID of loggedUser.sitesOwner) {
-      sites.add(siteID);
-    }
+    const siteAdminSiteIDs = await Authorizations.getSiteAdminSiteIDs(tenant, userToken);
+    const siteOwnerSiteIDs = await Authorizations.getSiteOwnerSiteIDs(tenant, userToken);
+    const sites = _.uniq([...siteAdminSiteIDs, ...siteOwnerSiteIDs]);
     if (Utils.isEmptyArray(requestedSites)) {
-      return [...sites];
+      return sites;
     }
-    return requestedSites.filter((site) => sites.has(site));
+    return requestedSites.filter((site) => sites.includes(site));
   }
 
   public static async buildUserToken(tenant: Tenant, user: User, tags: Tag[]): Promise<UserToken> {
@@ -431,35 +436,35 @@ export default class Authorizations {
   }
 
   public static async canCreateRegistrationToken(loggedUser: UserToken, siteID: string): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.TOKEN, Action.CREATE, {
+    return Authorizations.canPerformAction(loggedUser, Entity.REGISTRATION_TOKEN, Action.CREATE, {
       site: siteID,
       sites: loggedUser.sitesAdmin
     });
   }
 
   public static async canReadRegistrationToken(loggedUser: UserToken, siteID: string): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.TOKEN, Action.READ, {
+    return Authorizations.canPerformAction(loggedUser, Entity.REGISTRATION_TOKEN, Action.READ, {
       site: siteID,
       sites: loggedUser.sitesAdmin
     });
   }
 
   public static async canDeleteRegistrationToken(loggedUser: UserToken, siteID: string): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.TOKEN, Action.DELETE, {
+    return Authorizations.canPerformAction(loggedUser, Entity.REGISTRATION_TOKEN, Action.DELETE, {
       site: siteID,
       sites: loggedUser.sitesAdmin
     });
   }
 
   public static async canUpdateRegistrationToken(loggedUser: UserToken, siteID: string): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.TOKEN, Action.UPDATE, {
+    return Authorizations.canPerformAction(loggedUser, Entity.REGISTRATION_TOKEN, Action.UPDATE, {
       site: siteID,
       sites: loggedUser.sitesAdmin
     });
   }
 
   public static async canListRegistrationTokens(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.TOKEN, Action.LIST);
+    return Authorizations.canPerformAction(loggedUser, Entity.REGISTRATION_TOKEN, Action.LIST);
   }
 
   public static async canListOcpiEndpoints(loggedUser: UserToken): Promise<boolean> {
@@ -639,10 +644,6 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.CHECK_CONNECTION);
   }
 
-  public static async canSynchronizeUsersBilling(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
-    return Authorizations.can(loggedUser, Entity.USER, Action.SYNCHRONIZE_BILLING_USERS, authContext);
-  }
-
   public static async canSynchronizeUserBilling(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
     return Authorizations.can(loggedUser, Entity.USER, Action.SYNCHRONIZE_BILLING_USER, authContext);
   }
@@ -679,6 +680,10 @@ export default class Authorizations {
 
   public static async canRetrieveAssetConsumption(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.RETRIEVE_CONSUMPTION);
+  }
+
+  public static async canReadAssetConsumption(loggedUser: UserToken): Promise<boolean> {
+    return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.READ_CONSUMPTION);
   }
 
   public static async canCreateAssetConsumption(loggedUser: UserToken): Promise<boolean> {
@@ -777,6 +782,24 @@ export default class Authorizations {
     }
   }
 
+  public static async getSiteAdminSiteIDs(tenant: Tenant, userToken: UserToken): Promise<string[]> {
+    const siteAdminDataSource = await DynamicAuthorizationFactory.getDynamicDataSource(
+      tenant, userToken, DynamicAuthorizationDataSourceName.SITES_ADMIN) as SitesAdminDynamicAuthorizationDataSource;
+    return siteAdminDataSource.getData().siteIDs;
+  }
+
+  public static async getSiteOwnerSiteIDs(tenant: Tenant, userToken: UserToken): Promise<string[]> {
+    const siteOwnerDataSource = await DynamicAuthorizationFactory.getDynamicDataSource(
+      tenant, userToken, DynamicAuthorizationDataSourceName.SITES_OWNER) as SitesOwnerDynamicAuthorizationDataSource;
+    return siteOwnerDataSource.getData().siteIDs;
+  }
+
+  public static async getAssignedSiteIDs(tenant: Tenant, userToken: UserToken): Promise<string[]> {
+    const userAssignedSiteDataSource = await DynamicAuthorizationFactory.getDynamicDataSource(
+      tenant, userToken, DynamicAuthorizationDataSourceName.ASSIGNED_SITES) as AssignedSitesDynamicAuthorizationDataSource;
+    return userAssignedSiteDataSource.getData().siteIDs;
+  }
+
   private static async isTagIDAuthorizedOnChargingStation(tenant: Tenant, chargingStation: ChargingStation,
       transaction: Transaction, tagID: string, action: ServerAction, authAction: Action): Promise<{user: User, tag?: Tag}> {
     // Check Organization
@@ -798,7 +821,7 @@ export default class Authorizations {
         return { user };
       }
       // Create the Tag as inactive and abort
-      await this.notifyUnknownBadgeHasBeenUsedAndAbort(action, tenant, tagID, chargingStation);
+      void this.notifyUnknownBadgeHasBeenUsedAndAbort(action, tenant, tagID, chargingStation);
     }
     // Get Authorized User
     const user = await this.checkAndGetAuthorizedUserFromTag(action, tenant, chargingStation, transaction, tag, authAction);
@@ -982,7 +1005,7 @@ export default class Authorizations {
     return user;
   }
 
-  private static async notifyUnknownBadgeHasBeenUsedAndAbort(
+  private static notifyUnknownBadgeHasBeenUsedAndAbort(
       action: ServerAction, tenant: Tenant, tagID: string, chargingStation: ChargingStation) {
     const tag: Tag = {
       id: tagID,
@@ -993,7 +1016,7 @@ export default class Authorizations {
       default: false
     };
     // Notify (Async)
-    await NotificationHandler.sendUnknownUserBadged(
+    void NotificationHandler.sendUnknownUserBadged(
       tenant,
       Utils.generateUUID(),
       chargingStation,
@@ -1005,7 +1028,7 @@ export default class Authorizations {
         badgeID: tagID,
         evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
       }
-    ).catch(() => { });
+    );
     throw new BackendError({
       ...LoggingHelper.getChargingStationProperties(chargingStation),
       action: action,

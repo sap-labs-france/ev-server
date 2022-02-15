@@ -57,7 +57,7 @@ export default class CompanyStorage {
         department: companyToSave.address.department,
         region: companyToSave.address.region,
         country: companyToSave.address.country,
-        coordinates: Utils.containsGPSCoordinates(companyToSave.address.coordinates) ? companyToSave.address.coordinates.map(
+        coordinates: Utils.hasValidGpsCoordinates(companyToSave.address.coordinates) ? companyToSave.address.coordinates.map(
           (coordinate) => Utils.convertToFloat(coordinate)) : [],
       };
     }
@@ -92,7 +92,7 @@ export default class CompanyStorage {
     // Create Aggregation
     const aggregation = [];
     // Position coordinates
-    if (Utils.containsGPSCoordinates(params.locCoordinates)) {
+    if (Utils.hasValidGpsCoordinates(params.locCoordinates)) {
       aggregation.push({
         $geoNear: {
           near: {
@@ -161,7 +161,7 @@ export default class CompanyStorage {
       dbParams.sort = { name: 1 };
     }
     // Position coordinates
-    if (Utils.containsGPSCoordinates(params.locCoordinates)) {
+    if (Utils.hasValidGpsCoordinates(params.locCoordinates)) {
       dbParams.sort = { distanceMeters: 1 };
     }
     aggregation.push({
@@ -173,7 +173,7 @@ export default class CompanyStorage {
     }
     // Limit
     aggregation.push({
-      $limit: (dbParams.limit > 0 && dbParams.limit < Constants.DB_RECORD_COUNT_CEIL) ? dbParams.limit : Constants.DB_RECORD_COUNT_CEIL
+      $limit: dbParams.limit
     });
     // Site
     if (params.withSite) {
