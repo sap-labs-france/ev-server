@@ -68,7 +68,7 @@ export default class CloseTransactionsInProgressTask extends TenantSchedulerTask
         }
         // Log final results
         const executionDurationSecs = Math.round((new Date().getTime() - startTime) / 1000);
-        await Logging.logActionsResponse(tenant.id, ServerAction.TAGS_IMPORT, MODULE_NAME, 'processTenant', result,
+        await Logging.logActionsResponse(tenant.id, ServerAction.TRANSACTION_SOFT_STOP, MODULE_NAME, 'processTenant', result,
           `{{inSuccess}} Transaction(s) have been soft stopped successfully in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`,
           `{{inError}} Transaction(s) failed to be soft stopped in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`,
           `{{inSuccess}} Transaction(s) have been soft stopped successfully but {{inError}} failed in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`,
