@@ -11,6 +11,7 @@ import Constants from '../../../../../utils/Constants';
 import { HTTPError } from '../../../../../types/HTTPError';
 import Logging from '../../../../../utils/Logging';
 import LoggingHelper from '../../../../../utils/LoggingHelper';
+import OCPIClientFactory from '../../../../../client/ocpi/OCPIClientFactory';
 import { OCPIConnector } from '../../../../../types/ocpi/OCPIConnector';
 import OCPIEndpoint from '../../../../../types/ocpi/OCPIEndpoint';
 import { OCPILocation } from '../../../../../types/ocpi/OCPILocation';
@@ -59,6 +60,8 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
+    // Get the OCPI client
+    const ocpiClient = await OCPIClientFactory.getOcpiClient(tenant, ocpiEndpoint);
     // Handle Charging Station / Connector
     if (evseUID) {
       const chargingStation = await ChargingStationStorage.getChargingStationByOcpiLocationUid(
@@ -85,7 +88,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
         });
       }
       // Rebuild Location
-      const location = await OCPIUtilsService.convertEMSPSiteArea2Location(tenant, chargingStation.siteArea);
+      const location = OCPIUtilsService.convertEMSPSiteArea2Location(chargingStation.siteArea, ocpiClient.getSettings());
       // Get the EVSE
       const chargingStationEvse = chargingStation.ocpiData.evses.find((evse) => evse.uid === evseUID);
       if (!chargingStationEvse) {
