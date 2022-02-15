@@ -253,6 +253,13 @@ export default class Utils {
     return nanoid(length);
   }
 
+  public static last5Chars(data: string): string {
+    if (!data || data.length <= 5) {
+      return data;
+    }
+    return data.slice(data.length - 5, data.length);
+  }
+
   public static generateTagID(name: string, firstName: string): string {
     let tagID = '';
     if (name && name.length > 0) {
@@ -1172,15 +1179,15 @@ export default class Utils {
     });
   }
 
-  public static containsAddressGPSCoordinates(address: Address): boolean {
+  public static hasValidAddressGpsCoordinates(address: Address): boolean {
     // Check if GPS are available
-    if (address && Utils.containsGPSCoordinates(address.coordinates)) {
+    if (address && Utils.hasValidGpsCoordinates(address.coordinates)) {
       return true;
     }
     return false;
   }
 
-  public static containsGPSCoordinates(coordinates: number[]): boolean {
+  public static hasValidGpsCoordinates(coordinates: number[]): boolean {
     // Check if GPs are available
     if (!Utils.isEmptyArray(coordinates) && coordinates.length === 2 && coordinates[0] && coordinates[1]) {
       // Check Longitude & Latitude

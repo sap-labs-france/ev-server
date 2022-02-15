@@ -305,7 +305,7 @@ export default class OCPPService {
     const { chargingStation, tenant } = headers;
     try {
       // Check props
-      OCPPValidation.getInstance().validateDiagnosticsStatusNotification(chargingStation, diagnosticsStatusNotification);
+      OCPPValidation.getInstance().validateDiagnosticsStatusNotification(diagnosticsStatusNotification);
       // Enrich
       this.enrichOCPPRequest(chargingStation, diagnosticsStatusNotification);
       // Save it

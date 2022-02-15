@@ -13,6 +13,7 @@ import Logging from '../../utils/Logging';
 import { NotifySessionNotStarted } from '../../types/UserNotifications';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
+import { UpdateResult } from 'mongodb';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
 
@@ -225,6 +226,36 @@ export default class TransactionStorage {
       },
       { upsert: false });
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveTransactionOcpiData', startTime, ocpiData);
+  }
+
+  public static async updateTransactionsWithOrganizationIDs(tenant: Tenant, companyID: string, siteID: string, siteAreaID?: string): Promise<number> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    DatabaseUtils.checkTenantObject(tenant);
+    let result: UpdateResult;
+    if (siteAreaID) {
+      result = await global.database.getCollection<any>(tenant.id, 'transactions').updateMany(
+        {
+          siteAreaID: DatabaseUtils.convertToObjectID(siteAreaID),
+        },
+        {
+          $set: {
+            siteID: DatabaseUtils.convertToObjectID(siteID),
+            companyID: DatabaseUtils.convertToObjectID(companyID)
+          }
+        }) as UpdateResult;
+    } else {
+      result = await global.database.getCollection<any>(tenant.id, 'transactions').updateMany(
+        {
+          siteID: DatabaseUtils.convertToObjectID(siteID),
+        },
+        {
+          $set: {
+            companyID: DatabaseUtils.convertToObjectID(companyID)
+          }
+        }) as UpdateResult;
+    }
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'updateTransactionsWithOrganizationIDs', startTime, { siteID, companyID, siteAreaID });
+    return result.modifiedCount;
   }
 
   public static async saveTransactionOicpData(tenant: Tenant, id: number,
