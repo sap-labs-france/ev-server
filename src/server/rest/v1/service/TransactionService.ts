@@ -398,11 +398,11 @@ export default class TransactionService {
         });
       }
       await Logging.logInfo({
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         tenantID: req.user.tenantID,
         user: req.user, actionOnUser: transaction.userID,
         module: MODULE_NAME, method: 'handleTransactionSoftStop',
-        ...LoggingHelper.getChargingStationProperties(chargingStation),
-        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has been stopped successfully`,
+        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has been soft stopped successfully`,
         action: action,
         detailedMessages: { transaction }
       });

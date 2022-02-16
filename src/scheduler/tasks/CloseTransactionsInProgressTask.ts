@@ -4,6 +4,7 @@ import Constants from '../../utils/Constants';
 import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
+import LoggingHelper from '../../utils/LoggingHelper';
 import OCPPService from '../../server/ocpp/services/OCPPService';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
@@ -33,12 +34,22 @@ export default class CloseTransactionsInProgressTask extends TenantSchedulerTask
             // Soft stop transaction
             if (await ocppService.softStopTransaction(tenant, transaction, transaction.chargeBox, transaction.siteArea)) {
               result.inSuccess++;
+              await Logging.logInfo({
+                ...LoggingHelper.getTransactionProperties(transaction),
+                tenantID: tenant.id,
+                actionOnUser: transaction.userID,
+                module: MODULE_NAME, method: 'processTenant',
+                message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has been soft stopped successfully`,
+                action: ServerAction.TRANSACTION_SOFT_STOP,
+                detailedMessages: { transaction }
+              });
             } else {
               result.inError++;
             }
           } catch (error) {
             result.inError++;
             await Logging.logError({
+              ...LoggingHelper.getTransactionProperties(transaction),
               tenantID: tenant.id,
               action: ServerAction.TRANSACTION_SOFT_STOP,
               module: MODULE_NAME, method: 'processTenant',
