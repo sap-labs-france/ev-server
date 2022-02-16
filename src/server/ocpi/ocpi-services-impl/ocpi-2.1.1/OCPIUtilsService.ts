@@ -56,15 +56,40 @@ export default class OCPIUtilsService {
       response.status_code === 1000;
   }
 
-  public static convertEvseToChargingStation(evse: Partial<OCPIEvse>, location: OCPILocation): ChargingStation {
-    const chargingStation = {
-      maximumPower: 0,
-      issuer: false,
-      connectors: [],
-      ocpiData: {
-        evses: [evse]
-      }
-    } as ChargingStation;
+  public static convertEvseToChargingStation(chargingStation: ChargingStation, evse: OCPIEvse,
+      location: OCPILocation, site: Site, siteArea: SiteArea): ChargingStation {
+    if (!evse.evse_id) {
+      throw new BackendError({
+        action: ServerAction.OCPI_ENDPOINT,
+        message: 'Cannot find Charging Station EVSE ID',
+        module: MODULE_NAME, method: 'convertEvseToChargingStation',
+        detailedMessages:  { evse, location }
+      });
+    }
+    if (!chargingStation) {
+      chargingStation = {
+        id: evse.evse_id,
+        createdOn: new Date(),
+        maximumPower: 0,
+        issuer: false,
+        connectors: [],
+        companyID: site.companyID,
+        siteID: site.id,
+        siteAreaID: siteArea.id,
+        ocpiData: {
+          evses: [evse]
+        }
+      } as ChargingStation;
+    } else {
+      chargingStation = {
+        ...chargingStation,
+        lastChangedOn: new Date(),
+        connectors: [],
+        ocpiData: {
+          evses: [evse]
+        }
+      } as ChargingStation;
+    }
     // Set the location ID
     evse.location_id = location.id;
     // Coordinates
@@ -96,17 +121,6 @@ export default class OCPIUtilsService {
         chargingStation.connectors.push(connector);
         connectorId++;
       }
-    }
-    // Build ID
-    chargingStation.id = evse.evse_id;
-    // TODO: Handle missing evse_id in eMSP (tokens, sessions, cdr): Need to identify the use cases so force it to crash here
-    if (!chargingStation.id) {
-      throw new BackendError({
-        action: ServerAction.OCPI_ENDPOINT,
-        message: 'Cannot find Charging Station EVSE ID',
-        module: MODULE_NAME, method: 'convertEvseToChargingStation',
-        detailedMessages:  { evse, location }
-      });
     }
     return chargingStation;
   }
@@ -193,25 +207,6 @@ export default class OCPIUtilsService {
       operator: OCPIUtilsService.getOperatorBusinessDetails(settings) ?? { name: 'Undefined' },
       last_updated: site.lastChangedOn ? site.lastChangedOn : site.createdOn,
       opening_times: this.buildOpeningTimes(tenant, site)
-    };
-  }
-
-  public static convertEMSPSiteArea2Location(siteArea: SiteArea, settings: OcpiSetting): OCPILocation {
-    // Becareful: Partial Location
-    return {
-      id: siteArea.id.split('*')[2],
-      type: OCPILocationType.UNKNOWN,
-      name: siteArea.name,
-      address: siteArea.address?.address1,
-      city: siteArea.address?.city,
-      postal_code: siteArea.address?.postalCode,
-      country: siteArea.address?.country,
-      coordinates: {
-        longitude: siteArea.address?.coordinates[0].toString(),
-        latitude: siteArea.address?.coordinates[1].toString()
-      },
-      operator: OCPIUtilsService.getOperatorBusinessDetails(settings) ?? { name: 'Undefined' },
-      last_updated: siteArea.lastChangedOn ? siteArea.lastChangedOn : siteArea.createdOn,
     };
   }
 

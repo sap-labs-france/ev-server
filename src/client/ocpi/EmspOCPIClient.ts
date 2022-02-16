@@ -127,10 +127,10 @@ export default class EmspOCPIClient extends OCPIClient {
     if (partial) {
       // Take the last day
       const momentFrom = moment().utc().subtract(1, 'days').startOf('day');
-      locationsUrl = `${locationsUrl}?date_from=${momentFrom.format()}&limit=5`;
+      locationsUrl = `${locationsUrl}?date_from=${momentFrom.format()}&limit=50`;
     } else {
       // Take them all
-      locationsUrl = `${locationsUrl}?limit=5`;
+      locationsUrl = `${locationsUrl}?limit=50`;
     }
     const company = await OCPIUtils.checkAndGetEMSPCompany(this.tenant, this.ocpiEndpoint);
     const sites = await SiteStorage.getSites(this.tenant,
@@ -150,12 +150,19 @@ export default class EmspOCPIClient extends OCPIClient {
         // Cannot process locations in parallel (uniqueness is on site name) -> leads to dups
         for (const location of locations) {
           try {
-            await OCPIUtils.processEMSPLocation(this.tenant, location, company, sites.result);
+            // Get the Site
+            const foundSite = sites.result.find((existingSite) => existingSite.name === location.operator.name);
+            // Process the Location
+            const site = await OCPIUtils.processEMSPLocation(this.tenant, location, company, foundSite, location.operator.name);
+            // Push the Site then it can be retrieve in the next round
+            if (!foundSite && site) {
+              sites.result.push(site);
+            }
             result.success++;
           } catch (error) {
             result.failure++;
             result.logs.push(
-              `Failed to update Location '${location.name}': ${error.message}`
+              `Failed to update Location '${location.name}': ${error.message as string}`
             );
           }
         }

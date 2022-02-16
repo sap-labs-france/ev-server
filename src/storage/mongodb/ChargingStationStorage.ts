@@ -637,8 +637,7 @@ export default class ChargingStationStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveChargingStationRuntimeData', startTime, runtimeData);
   }
 
-  public static async saveChargingStationOcpiData(tenant: Tenant, id: string,
-      ocpiData: ChargingStationOcpiData): Promise<void> {
+  public static async saveChargingStationOcpiData(tenant: Tenant, id: string, ocpiData: ChargingStationOcpiData): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Modify document

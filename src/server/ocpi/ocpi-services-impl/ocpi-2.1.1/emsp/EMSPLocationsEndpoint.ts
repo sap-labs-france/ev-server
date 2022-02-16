@@ -87,20 +87,20 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
           detailedMessages: { countryCode, partyID, locationID, evseUID, chargingStation }
         });
       }
-      // Rebuild Location
-      const location = OCPIUtilsService.convertEMSPSiteArea2Location(chargingStation.siteArea, ocpiClient.getSettings());
-      // Get the EVSE
-      const chargingStationEvse = chargingStation.ocpiData.evses.find((evse) => evse.uid === evseUID);
-      if (!chargingStationEvse) {
-        throw new AppError({
-          action: ServerAction.OCPI_PATCH_LOCATION,
-          module: MODULE_NAME, method: 'patchLocationRequest',
-          errorCode: StatusCodes.NOT_FOUND,
-          message: `Unknown EVSE UID '${evseUID}'`,
-          ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
-          detailedMessages: { countryCode, partyID, locationID, evseUID, location }
-        });
-      }
+      // // Rebuild Location
+      // const location = OCPIUtilsService.convertEMSPSiteArea2Location(chargingStation.siteArea, ocpiClient.getSettings());
+      // // Get the EVSE
+      // const chargingStationEvse = chargingStation.ocpiData.evses.find((evse) => evse.uid === evseUID);
+      // if (!chargingStationEvse) {
+      //   throw new AppError({
+      //     action: ServerAction.OCPI_PATCH_LOCATION,
+      //     module: MODULE_NAME, method: 'patchLocationRequest',
+      //     errorCode: StatusCodes.NOT_FOUND,
+      //     message: `Unknown EVSE UID '${evseUID}'`,
+      //     ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
+      //     detailedMessages: { countryCode, partyID, locationID, evseUID, location }
+      //   });
+      // }
       if (connectorID) {
         const evseConnector = req.body as OCPIConnector;
         // const foundEvseConnector = foundEvse.connectors.find((evseConnector) => evseConnector.id === connectorID);
@@ -119,7 +119,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       } else {
         const evse = req.body as OCPIEvse;
         // Patch Evse
-        await this.patchEvse(tenant, chargingStation, chargingStationEvse, location);
+        // await this.patchEvse(tenant, chargingStation, chargingStationEvse, location);
       }
     // Handle Location
     } else {
@@ -189,11 +189,14 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
         await this.updateEvse(tenant, foundEvse, location);
       }
     } else {
-      // Update Location
+      // Get the Orgs
       const company = await OCPIUtils.checkAndGetEMSPCompany(tenant, ocpiEndpoint);
       const siteName = OCPIUtils.buildOperatorName(countryCode, partyID);
       const sites = await SiteStorage.getSites(tenant, { companyIDs: [company.id], name: siteName }, Constants.DB_PARAMS_SINGLE_RECORD);
-      await OCPIUtils.processEMSPLocation(tenant, location, company, sites.result, countryCode, partyID);
+      // Get the Site
+      const foundSite = sites.result.find((existingSite) => existingSite.name === siteName);
+      // Update Location
+      await OCPIUtils.processEMSPLocation(tenant, location, company, foundSite, siteName);
     }
     return OCPIUtils.success();
   }
@@ -232,15 +235,15 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       foundChargingStationEvse.last_updated = evse.last_updated;
     }
     // Rebuild the charging station
-    const patchedChargingStation = OCPIUtilsService.convertEvseToChargingStation(evse, location);
+    // const patchedChargingStation = OCPIUtilsService.convertEvseToChargingStation(evse, location);
     // Report updates
-    if (patchedChargingStation.coordinates) {
-      chargingStation.coordinates = patchedChargingStation.coordinates;
-    }
-    if (!Utils.isEmptyArray(patchedChargingStation.connectors)) {
-      chargingStation.connectors = patchedChargingStation.connectors;
-      chargingStation.maximumPower = patchedChargingStation.maximumPower;
-    }
+    // if (patchedChargingStation.coordinates) {
+    //   chargingStation.coordinates = patchedChargingStation.coordinates;
+    // }
+    // if (!Utils.isEmptyArray(patchedChargingStation.connectors)) {
+    //   chargingStation.connectors = patchedChargingStation.connectors;
+    //   chargingStation.maximumPower = patchedChargingStation.maximumPower;
+    // }
     await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
   }
 
@@ -289,8 +292,8 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       }
     } else {
       // Create/Update
-      const chargingStation = OCPIUtilsService.convertEvseToChargingStation(evse, location);
-      await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
+      // const chargingStation = OCPIUtilsService.convertEvseToChargingStation(evse, location);
+      // await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
       await Logging.logDebug({
         tenantID: tenant.id,
         action: ServerAction.OCPI_PATCH_LOCATION,

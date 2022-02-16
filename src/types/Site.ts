@@ -2,6 +2,7 @@ import Address from './Address';
 import Company from './Company';
 import ConnectorStats from './ConnectorStats';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
+import { OCPILocation } from './ocpi/OCPILocation';
 import { OpeningTimes } from './OpeningTimes';
 import SiteArea from './SiteArea';
 import { SiteAuthorizationActions } from './Authorization';
@@ -21,6 +22,7 @@ export default interface Site extends CreatedUpdatedProps, SiteAuthorizationActi
   public?: boolean;
   openingTimes?: OpeningTimes;
   tariffID?: string;
+  ocpiData?: OCPILocation;
 }
 
 export interface SiteUser {

@@ -1,4 +1,5 @@
 import ChargingStation, { Connector } from '../../types/ChargingStation';
+import { OCPIEvse, OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
 import { OCPIToken, OCPITokenType } from '../../types/ocpi/OCPIToken';
 
 import AppError from '../../exception/AppError';
@@ -9,7 +10,6 @@ import CompanyStorage from '../../storage/mongodb/CompanyStorage';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
-import { OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
 import { OCPILocation } from '../../types/ocpi/OCPILocation';
 import { OCPIResponse } from '../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../types/ocpi/OCPIStatusCode';
@@ -170,19 +170,43 @@ export default class OCPIUtils {
     return company;
   }
 
-  public static async processEMSPLocation(tenant: Tenant, location: OCPILocation, company: Company, existingSites: Site[],
-      countryCode?: string, partyID?: string): Promise<void> {
+  public static async processEMSPLocation(tenant: Tenant, location: OCPILocation, company: Company, site: Site, siteName: string): Promise<Site> {
+    // Remove EVSEs from location
+    location = Utils.cloneObject(location);
+    const evses = location.evses;
+    delete location.evses;
     // Handle Site
-    let site: Site;
-    const siteName = location.operator?.name ?? OCPIUtils.buildOperatorName(countryCode, partyID);
-    site = existingSites.find((existingSite) => existingSite.name === siteName);
+    site = await OCPIUtils.processEMSPLocationSite(tenant, location, company, site, siteName);
+    // Handle Site Area
+    const siteArea = await OCPIUtils.processEMSPLocationSiteArea(tenant, location, site);
+    // Handle EVSEs
+    if (!Utils.isEmptyArray(evses)) {
+      for (const evse of evses) {
+        try {
+          await OCPIUtils.processEMSPLocationChargingStation(tenant, evse, location, site, siteArea);
+        } catch (error) {
+          await Logging.logError({
+            tenantID: tenant.id,
+            action: ServerAction.OCPI_PULL_LOCATIONS,
+            module: MODULE_NAME, method: 'processEMSPLocation',
+            message: `Error while processing the EVSE UID '${evse.uid}' (ID '${evse.evse_id}') in Location '${location.name}'`,
+            detailedMessages: { error: error.stack, evse, location, site, siteArea }
+          });
+        }
+      }
+    }
+    return site;
+  }
+
+  private static async processEMSPLocationSite(tenant: Tenant, location: OCPILocation, company: Company, site: Site, siteName: string): Promise<Site> {
+    // Create Site
     if (!site) {
-      // Create Site
       site = {
         name: siteName,
         createdOn: new Date(),
         companyID: company.id,
         issuer: false,
+        ocpiData: location,
         address: {
           address1: location.address,
           postalCode: location.postal_code,
@@ -191,29 +215,46 @@ export default class OCPIUtils {
           coordinates: []
         }
       } as Site;
-      if (location.coordinates?.latitude && location.coordinates?.longitude) {
-        site.address.coordinates = [
-          Utils.convertToFloat(location.coordinates.longitude),
-          Utils.convertToFloat(location.coordinates.latitude)
-        ];
-      }
-      site.id = await SiteStorage.saveSite(tenant, site, false);
-      // Push the Site then it can be retrieve in the next round
-      existingSites.push(site);
+    } else {
+      site = {
+        ...site,
+        lastChangedOn: new Date(),
+        ocpiData: location,
+        address: {
+          address1: location.address,
+          postalCode: location.postal_code,
+          city: location.city,
+          country: location.country,
+          coordinates: []
+        }
+      } as Site;
     }
-    const locationName = site.name + Constants.OCPI_SEPARATOR + location.id;
-    // Handle Site Area
+    if (location.coordinates?.latitude && location.coordinates?.longitude) {
+      site.address.coordinates = [
+        Utils.convertToFloat(location.coordinates.longitude),
+        Utils.convertToFloat(location.coordinates.latitude)
+      ];
+    }
+    // Update Site
+    site.id = await SiteStorage.saveSite(tenant, site);
+    await SiteStorage.saveSiteOcpiData(tenant, site.id, site.ocpiData);
+    return site;
+  }
+
+  private static async processEMSPLocationSiteArea(tenant: Tenant, location: OCPILocation, site: Site): Promise<SiteArea> {
+    const siteAreaName = `${site.name}${Constants.OCPI_SEPARATOR}${location.id}`;
     const siteAreas = await SiteAreaStorage.getSiteAreas(tenant,
-      { siteIDs: [site.id], name: locationName, issuer: false, withSite: true },
+      { siteIDs: [site.id], name: siteAreaName, issuer: false, withSite: true },
       Constants.DB_PARAMS_SINGLE_RECORD);
     let siteArea = !Utils.isEmptyArray(siteAreas.result) ? siteAreas.result[0] : null;
+    // Create Site Area
     if (!siteArea) {
-      // Create Site Area
       siteArea = {
-        name: locationName,
+        name: siteAreaName,
         createdOn: new Date(),
         siteID: site.id,
         issuer: false,
+        ocpiData: location,
         address: {
           address1: location.address,
           address2: location.name,
@@ -223,56 +264,67 @@ export default class OCPIUtils {
           coordinates: []
         }
       } as SiteArea;
-      if (location.coordinates?.latitude && location.coordinates?.longitude) {
-        siteArea.address.coordinates = [
-          Utils.convertToFloat(location.coordinates.longitude),
-          Utils.convertToFloat(location.coordinates.latitude)
-        ];
-      }
-      siteArea.id = await SiteAreaStorage.saveSiteArea(tenant, siteArea, false);
+    } else {
+      siteArea = {
+        ...siteArea,
+        lastChangedOn: new Date(),
+        ocpiData: location,
+        address: {
+          address1: location.address,
+          address2: location.name,
+          postalCode: location.postal_code,
+          city: location.city,
+          country: location.country,
+          coordinates: []
+        }
+      } as SiteArea;
     }
-    if (!Utils.isEmptyArray(location.evses)) {
-      for (const evse of location.evses) {
-        if (!evse.uid) {
-          throw new BackendError({
-            action: ServerAction.OCPI_PULL_LOCATIONS,
-            message: `Missing Charging Station EVSE UID in Location '${location.name}' with ID '${location.id}'`,
-            module: MODULE_NAME, method: 'processLocation',
-            detailedMessages:  { evse, location }
-          });
-        }
-        if (evse.status === OCPIEvseStatus.REMOVED) {
-          // Get existing charging station
-          const currentChargingStation = await ChargingStationStorage.getChargingStationByOcpiLocationUid(
-            tenant, location.id, evse.uid, ['id']
-          );
-          if (currentChargingStation) {
-            await ChargingStationStorage.deleteChargingStation(tenant, currentChargingStation.id);
-            await Logging.logDebug({
-              tenantID: tenant.id,
-              action: ServerAction.OCPI_PULL_LOCATIONS,
-              message: `Removed Charging Station EVSE UID '${evse.uid}' in Location '${location.name}' with ID '${location.id}'`,
-              module: MODULE_NAME, method: 'processLocation',
-              detailedMessages: { evse, location }
-            });
-          }
-          continue;
-        }
-        // Update Charging Station
-        const chargingStation = OCPIUtilsService.convertEvseToChargingStation(evse, location);
-        chargingStation.companyID = siteArea.site?.companyID;
-        chargingStation.siteID = siteArea.siteID;
-        chargingStation.siteAreaID = siteArea.id;
-        await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
-        await ChargingStationStorage.saveChargingStationOcpiData(tenant, chargingStation.id, chargingStation.ocpiData);
-        await Logging.logDebug({
-          tenantID: tenant.id,
-          action: ServerAction.OCPI_PULL_LOCATIONS,
-          message: `Updated Charging Station ID '${evse.evse_id}' in Location '${location.name}'`,
-          module: MODULE_NAME, method: 'processLocation',
-          detailedMessages: location
-        });
-      }
+    if (location.coordinates?.latitude && location.coordinates?.longitude) {
+      siteArea.address.coordinates = [
+        Utils.convertToFloat(location.coordinates.longitude),
+        Utils.convertToFloat(location.coordinates.latitude)
+      ];
+    }
+    // Update Site Area
+    siteArea.id = await SiteAreaStorage.saveSiteArea(tenant, siteArea);
+    await SiteAreaStorage.saveSiteAreaOcpiData(tenant, siteArea.id, siteArea.ocpiData);
+    return siteArea;
+  }
+
+  private static async processEMSPLocationChargingStation(tenant: Tenant, evse: OCPIEvse, location: OCPILocation, site: Site, siteArea: SiteArea): Promise<void> {
+    if (!evse.uid) {
+      throw new BackendError({
+        action: ServerAction.OCPI_PULL_LOCATIONS,
+        message: `Missing Charging Station EVSE UID in Location '${location.name}' with ID '${location.id}'`,
+        module: MODULE_NAME, method: 'processLocation',
+        detailedMessages:  { evse, location }
+      });
+    }
+    // Get existing charging station
+    const currentChargingStation = await ChargingStationStorage.getChargingStationByOcpiLocationUid(
+      tenant, location.id, evse.uid);
+    // Delete Charging Station
+    if (currentChargingStation && evse.status === OCPIEvseStatus.REMOVED) {
+      await ChargingStationStorage.deleteChargingStation(tenant, currentChargingStation.id);
+      await Logging.logDebug({
+        tenantID: tenant.id,
+        action: ServerAction.OCPI_PULL_LOCATIONS,
+        message: `Removed Charging Station EVSE UID '${evse.uid}' in Location '${location.name}' with ID '${location.id}'`,
+        module: MODULE_NAME, method: 'processLocation',
+        detailedMessages: { evse, location }
+      });
+    // Update Charging Station
+    } else {
+      const chargingStation = OCPIUtilsService.convertEvseToChargingStation(currentChargingStation, evse, location, site, siteArea);
+      await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
+      await ChargingStationStorage.saveChargingStationOcpiData(tenant, chargingStation.id, chargingStation.ocpiData);
+      await Logging.logDebug({
+        tenantID: tenant.id,
+        action: ServerAction.OCPI_PULL_LOCATIONS,
+        message: `${currentChargingStation ? 'Updated' : 'Created'} Charging Station ID '${chargingStation.id}' in Location '${location.name}' with ID '${location.id}'`,
+        module: MODULE_NAME, method: 'processLocation',
+        detailedMessages: location
+      });
     }
   }
 }

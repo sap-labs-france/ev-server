@@ -4,6 +4,7 @@ import Address from './Address';
 import ConnectorStats from './ConnectorStats';
 import Consumption from './Consumption';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
+import { OCPILocation } from './ocpi/OCPILocation';
 import { OpeningTimes } from './OpeningTimes';
 import Site from '../types/Site';
 import { SiteAreaAuthorizationActions } from './Authorization';
@@ -42,4 +43,5 @@ export default interface SiteArea extends CreatedUpdatedProps, SiteAreaAuthoriza
   distanceMeters?: number;
   openingTimes?: OpeningTimes;
   tariffID?: string;
+  ocpiData?: OCPILocation;
 }
