@@ -22,7 +22,7 @@ export default interface Site extends CreatedUpdatedProps, SiteAuthorizationActi
   public?: boolean;
   openingTimes?: OpeningTimes;
   tariffID?: string;
-  ocpiData?: OCPILocation;
+  ocpiData?: SiteOcpiData;
 }
 
 export interface SiteUser {
@@ -33,3 +33,6 @@ export interface SiteUser {
   siteOwner: boolean;
 }
 
+export interface SiteOcpiData {
+  location: OCPILocation;
+}

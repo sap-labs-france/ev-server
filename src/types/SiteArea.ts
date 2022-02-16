@@ -43,5 +43,9 @@ export default interface SiteArea extends CreatedUpdatedProps, SiteAreaAuthoriza
   distanceMeters?: number;
   openingTimes?: OpeningTimes;
   tariffID?: string;
-  ocpiData?: OCPILocation;
+  ocpiData?: SiteAreaOcpiData;
+}
+
+export interface SiteAreaOcpiData {
+  location: OCPILocation;
 }

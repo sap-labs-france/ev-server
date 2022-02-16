@@ -207,7 +207,7 @@ export default class OCPIUtils {
         createdOn: new Date(),
         companyID: company.id,
         issuer: false,
-        ocpiData: location,
+        ocpiData: { location },
         address: {
           address1: location.address,
           postalCode: location.postal_code,
@@ -220,7 +220,7 @@ export default class OCPIUtils {
       site = {
         ...site,
         lastChangedOn: new Date(),
-        ocpiData: location,
+        ocpiData: { location },
         address: {
           address1: location.address,
           postalCode: location.postal_code,
@@ -255,7 +255,7 @@ export default class OCPIUtils {
         createdOn: new Date(),
         siteID: site.id,
         issuer: false,
-        ocpiData: location,
+        ocpiData: { location },
         address: {
           address1: location.address,
           address2: location.name,
@@ -269,7 +269,7 @@ export default class OCPIUtils {
       siteArea = {
         ...siteArea,
         lastChangedOn: new Date(),
-        ocpiData: location,
+        ocpiData: { location },
         address: {
           address1: location.address,
           address2: location.name,

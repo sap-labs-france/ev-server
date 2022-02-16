@@ -1,3 +1,4 @@
+import Site, { SiteOcpiData } from '../../types/Site';
 import global, { DatabaseCount, FilterParams, Image } from '../../types/GlobalType';
 
 import AssetStorage from './AssetStorage';
@@ -9,7 +10,6 @@ import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { OCPILocation } from '../../types/ocpi/OCPILocation';
 import { ObjectId } from 'mongodb';
-import Site from '../../types/Site';
 import SiteAreaStorage from './SiteAreaStorage';
 import Tenant from '../../types/Tenant';
 import TransactionStorage from './TransactionStorage';
@@ -287,7 +287,7 @@ export default class SiteStorage {
     return siteFilter._id.toString();
   }
 
-  public static async saveSiteOcpiData(tenant: Tenant, id: string, ocpiData: OCPILocation): Promise<void> {
+  public static async saveSiteOcpiData(tenant: Tenant, id: string, ocpiData: SiteOcpiData): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Modify document
