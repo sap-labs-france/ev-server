@@ -24,6 +24,7 @@ import { DataResult } from '../../../../types/DataResult';
 import DbParams from '../../../../types/database/DbParams';
 import { HTTPError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
+import LoggingHelper from '../../../../utils/LoggingHelper';
 import { OCPIBusinessDetails } from '../../../../types/ocpi/OCPIBusinessDetails';
 import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
 import OCPICredential from '../../../../types/ocpi/OCPICredential';
@@ -559,6 +560,7 @@ export default class OCPIUtilsService {
     }
     if (moment(session.last_updated).isBefore(transaction.lastConsumption.timestamp)) {
       await Logging.logDebug({
+        ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: tenant.id,
         action: ServerAction.OCPI_PUSH_SESSION,
         module: MODULE_NAME, method: 'updateTransaction',

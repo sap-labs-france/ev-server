@@ -9,6 +9,7 @@ import Company from '../../types/Company';
 import CompanyStorage from '../../storage/mongodb/CompanyStorage';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
+import LoggingHelper from '../../utils/LoggingHelper';
 import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import { OCPILocation } from '../../types/ocpi/OCPILocation';
 import { OCPIResponse } from '../../types/ocpi/OCPIResponse';
@@ -307,9 +308,10 @@ export default class OCPIUtils {
     if (currentChargingStation && evse.status === OCPIEvseStatus.REMOVED) {
       await ChargingStationStorage.deleteChargingStation(tenant, currentChargingStation.id);
       await Logging.logDebug({
+        ...LoggingHelper.getChargingStationProperties(currentChargingStation),
         tenantID: tenant.id,
         action: ServerAction.OCPI_PULL_LOCATIONS,
-        message: `Removed Charging Station EVSE UID '${evse.uid}' in Location '${location.name}' with ID '${location.id}'`,
+        message: `Deleted Charging Station ID '${currentChargingStation.id}' in Location '${location.name}' with ID '${location.id}'`,
         module: MODULE_NAME, method: 'processLocation',
         detailedMessages: { evse, location }
       });
@@ -319,6 +321,7 @@ export default class OCPIUtils {
       await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
       await ChargingStationStorage.saveChargingStationOcpiData(tenant, chargingStation.id, chargingStation.ocpiData);
       await Logging.logDebug({
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         tenantID: tenant.id,
         action: ServerAction.OCPI_PULL_LOCATIONS,
         message: `${currentChargingStation ? 'Updated' : 'Created'} Charging Station ID '${chargingStation.id}' in Location '${location.name}' with ID '${location.id}'`,
