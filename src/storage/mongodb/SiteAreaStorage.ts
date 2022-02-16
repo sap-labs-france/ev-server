@@ -201,6 +201,7 @@ export default class SiteAreaStorage {
         { 'address.city': { $regex: params.search, $options: 'i' } },
         { 'address.region': { $regex: params.search, $options: 'i' } },
         { 'address.country': { $regex: params.search, $options: 'i' } },
+        { 'ocpiData.location.id': { $regex: params.search, $options: 'im' } },
       ];
     }
     // Site Area

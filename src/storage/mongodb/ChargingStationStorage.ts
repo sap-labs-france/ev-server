@@ -129,7 +129,8 @@ export default class ChargingStationStorage {
     const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenant, {
       ocpiLocationID,
       ocpiEvseUid,
-      withSiteArea: true
+      withSite: true,
+      withSiteArea: true,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
   }
@@ -182,6 +183,8 @@ export default class ChargingStationStorage {
     if (params.search) {
       filters.$or = [
         { _id: { $regex: params.search, $options: 'im' } },
+        { 'ocpiData.evses.uid': { $regex: params.search, $options: 'im' } },
+        { 'ocpiData.evses.location_id': { $regex: params.search, $options: 'im' } },
         { chargePointModel: { $regex: params.search, $options: 'im' } },
         { chargePointVendor: { $regex: params.search, $options: 'im' } }
       ];
