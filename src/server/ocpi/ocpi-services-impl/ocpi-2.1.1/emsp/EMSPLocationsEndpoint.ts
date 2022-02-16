@@ -11,7 +11,6 @@ import Constants from '../../../../../utils/Constants';
 import { HTTPError } from '../../../../../types/HTTPError';
 import Logging from '../../../../../utils/Logging';
 import LoggingHelper from '../../../../../utils/LoggingHelper';
-import OCPIClientFactory from '../../../../../client/ocpi/OCPIClientFactory';
 import { OCPIConnector } from '../../../../../types/ocpi/OCPIConnector';
 import OCPIEndpoint from '../../../../../types/ocpi/OCPIEndpoint';
 import { OCPILocation } from '../../../../../types/ocpi/OCPILocation';
@@ -44,114 +43,6 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
   }
 
   private async patchLocationRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
-    const urlSegment = req.path.substring(1).split('/');
-    // Remove action
-    urlSegment.shift();
-    // Get filters
-    const countryCode = urlSegment.shift();
-    const partyID = urlSegment.shift();
-    const locationID = urlSegment.shift();
-    const evseUID = urlSegment.shift();
-    const connectorID = urlSegment.shift();
-    if (!countryCode || !partyID || !locationID) {
-      throw new AppError({
-        action: ServerAction.OCPI_PATCH_LOCATION,
-        module: MODULE_NAME, method: 'patchLocationRequest',
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Missing request parameters',
-        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
-      });
-    }
-    // Get the OCPI client
-    const ocpiClient = await OCPIClientFactory.getOcpiClient(tenant, ocpiEndpoint);
-    // Handle Charging Station / Connector
-    if (evseUID) {
-      const chargingStation = await ChargingStationStorage.getChargingStationByOcpiLocationUid(
-        tenant, locationID, evseUID);
-      if (!chargingStation) {
-        throw new AppError({
-          action: ServerAction.OCPI_PATCH_LOCATION,
-          module: MODULE_NAME, method: 'patchLocationRequest',
-          errorCode: StatusCodes.NOT_FOUND,
-          message: `Unknown Charging Station with EVSE UID '${evseUID}' and Location ID '${locationID}'`,
-          ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
-          detailedMessages: { countryCode, partyID, locationID, evseUID }
-        });
-      }
-      if (!chargingStation.siteArea) {
-        throw new AppError({
-          ...LoggingHelper.getChargingStationProperties(chargingStation),
-          action: ServerAction.OCPI_PATCH_LOCATION,
-          module: MODULE_NAME, method: 'patchLocationRequest',
-          errorCode: StatusCodes.NOT_FOUND,
-          message: `Site Area ID '${chargingStation.siteAreaID}' does not exists`,
-          ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
-          detailedMessages: { countryCode, partyID, locationID, evseUID, chargingStation }
-        });
-      }
-      if (!chargingStation.siteArea.ocpiData?.location) {
-        throw new AppError({
-          ...LoggingHelper.getChargingStationProperties(chargingStation),
-          action: ServerAction.OCPI_PATCH_LOCATION,
-          module: MODULE_NAME, method: 'patchLocationRequest',
-          errorCode: StatusCodes.NOT_FOUND,
-          message: `Site Area ID '${chargingStation.siteAreaID}' does not have a location`,
-          ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
-          detailedMessages: { countryCode, partyID, locationID, evseUID, chargingStation }
-        });
-      }
-      const location = chargingStation.siteArea.ocpiData.location;
-      if (!chargingStation.site) {
-        throw new AppError({
-          ...LoggingHelper.getChargingStationProperties(chargingStation),
-          action: ServerAction.OCPI_PATCH_LOCATION,
-          module: MODULE_NAME, method: 'patchLocationRequest',
-          errorCode: StatusCodes.NOT_FOUND,
-          message: `Site ID '${chargingStation.siteID}' does not exists`,
-          ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
-          detailedMessages: { countryCode, partyID, locationID, evseUID, chargingStation }
-        });
-      }
-      // Get the EVSE
-      const foundEvse = chargingStation.ocpiData.evses.find((evse) => evse.uid === evseUID);
-      if (!foundEvse) {
-        throw new AppError({
-          action: ServerAction.OCPI_PATCH_LOCATION,
-          module: MODULE_NAME, method: 'patchLocationRequest',
-          errorCode: StatusCodes.NOT_FOUND,
-          message: `Unknown EVSE UID '${evseUID}'`,
-          ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
-          detailedMessages: { countryCode, partyID, locationID, evseUID, location }
-        });
-      }
-      if (connectorID) {
-        const evseConnector = req.body as OCPIConnector;
-        // const foundEvseConnector = foundEvse.connectors.find((evseConnector) => evseConnector.id === connectorID);
-        // if (!foundEvseConnector) {
-        //   throw new AppError({
-        //     action: ServerAction.OCPI_PATCH_LOCATION,
-        //     module: MODULE_NAME, method: 'patchLocationRequest',
-        //     errorCode: StatusCodes.NOT_FOUND,
-        //     message: `Unknown Connector ID '${connectorID}' in EVSE UID '${evseUID}'`,
-        //     ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
-        //     detailedMessages: { connectorId: connectorID, evse: foundEvse, location }
-        //   });
-        // }
-        // // Patch Connector
-        // await this.patchEvseConnector(tenant, chargingStation, foundEvseConnector);
-      } else {
-        // Patch Evse
-        const newEvse = req.body as OCPIEvse;
-        await this.patchEvse(tenant, chargingStation, foundEvse, newEvse, location, chargingStation.site, chargingStation.siteArea);
-      }
-    // Handle Location
-    } else {
-      const location = req.body as OCPILocation;
-    }
-    return OCPIUtils.success();
-  }
-
-  private async putLocationRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
     urlSegment.shift();
     const countryCode = urlSegment.shift();
@@ -215,9 +106,123 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       const company = await OCPIUtils.checkAndGetEMSPCompany(tenant, ocpiEndpoint);
       const siteName = OCPIUtils.buildOperatorName(countryCode, partyID);
       const sites = await SiteStorage.getSites(tenant, { companyIDs: [company.id], name: siteName }, Constants.DB_PARAMS_SINGLE_RECORD);
-      // Get the Site
       const foundSite = sites.result.find((existingSite) => existingSite.name === siteName);
       // Update Location
+      await OCPIUtils.processEMSPLocation(tenant, location, company, foundSite, siteName);
+    }
+    return OCPIUtils.success();
+  }
+
+  private async putLocationRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
+    const urlSegment = req.path.substring(1).split('/');
+    // Remove action
+    urlSegment.shift();
+    // Get filters
+    const countryCode = urlSegment.shift();
+    const partyID = urlSegment.shift();
+    const locationID = urlSegment.shift();
+    const evseUID = urlSegment.shift();
+    const connectorID = urlSegment.shift();
+    if (!countryCode || !partyID || !locationID) {
+      throw new AppError({
+        action: ServerAction.OCPI_PATCH_LOCATION,
+        module: MODULE_NAME, method: 'patchLocationRequest',
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Missing request parameters',
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
+      });
+    }
+    // Handle Charging Station / Connector
+    if (evseUID) {
+      const chargingStation = await ChargingStationStorage.getChargingStationByOcpiLocationUid(
+        tenant, locationID, evseUID);
+      if (!chargingStation) {
+        throw new AppError({
+          action: ServerAction.OCPI_PATCH_LOCATION,
+          module: MODULE_NAME, method: 'patchLocationRequest',
+          errorCode: StatusCodes.NOT_FOUND,
+          message: `Unknown Charging Station with EVSE UID '${evseUID}' and Location ID '${locationID}'`,
+          ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
+          detailedMessages: { countryCode, partyID, locationID, evseUID }
+        });
+      }
+      if (!chargingStation.siteArea) {
+        throw new AppError({
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
+          action: ServerAction.OCPI_PATCH_LOCATION,
+          module: MODULE_NAME, method: 'patchLocationRequest',
+          errorCode: StatusCodes.NOT_FOUND,
+          message: `Site Area ID '${chargingStation.siteAreaID}' does not exists`,
+          ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
+          detailedMessages: { countryCode, partyID, locationID, evseUID, chargingStation }
+        });
+      }
+      if (!chargingStation.siteArea.ocpiData?.location) {
+        throw new AppError({
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
+          action: ServerAction.OCPI_PATCH_LOCATION,
+          module: MODULE_NAME, method: 'patchLocationRequest',
+          errorCode: StatusCodes.NOT_FOUND,
+          message: `Site Area ID '${chargingStation.siteAreaID}' does not have a location`,
+          ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
+          detailedMessages: { countryCode, partyID, locationID, evseUID, chargingStation }
+        });
+      }
+      const location = chargingStation.siteArea.ocpiData.location;
+      if (!chargingStation.site) {
+        throw new AppError({
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
+          action: ServerAction.OCPI_PATCH_LOCATION,
+          module: MODULE_NAME, method: 'patchLocationRequest',
+          errorCode: StatusCodes.NOT_FOUND,
+          message: `Site ID '${chargingStation.siteID}' does not exists`,
+          ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
+          detailedMessages: { countryCode, partyID, locationID, evseUID, chargingStation }
+        });
+      }
+      // Get the EVSE
+      const foundEvse = chargingStation.ocpiData.evses.find((evse) => evse.uid === evseUID);
+      if (!foundEvse) {
+        throw new AppError({
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
+          action: ServerAction.OCPI_PATCH_LOCATION,
+          module: MODULE_NAME, method: 'patchLocationRequest',
+          errorCode: StatusCodes.NOT_FOUND,
+          message: `Unknown EVSE UID '${evseUID}'`,
+          ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
+          detailedMessages: { countryCode, partyID, locationID, evseUID, location }
+        });
+      }
+      if (connectorID) {
+        const newEvseConnector = req.body as OCPIConnector;
+        const foundEvseConnector = foundEvse.connectors.find((evseConnector) => evseConnector.id === connectorID);
+        if (!foundEvseConnector) {
+          throw new AppError({
+            ...LoggingHelper.getChargingStationProperties(chargingStation),
+            action: ServerAction.OCPI_PATCH_LOCATION,
+            module: MODULE_NAME, method: 'patchLocationRequest',
+            errorCode: StatusCodes.NOT_FOUND,
+            message: `Unknown Connector ID '${connectorID}' in EVSE UID '${evseUID}'`,
+            ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
+            detailedMessages: { connectorId: connectorID, evse: foundEvse, location }
+          });
+        }
+        // Patch Connector
+        // await this.patchEvseConnector(tenant, chargingStation, foundEvseConnector);
+      } else {
+        // Patch Evse
+        const newEvse = req.body as OCPIEvse;
+        await this.patchEvse(tenant, chargingStation, foundEvse, newEvse, location, chargingStation.site, chargingStation.siteArea);
+      }
+    // Handle Location
+    } else {
+      // Get the Orgs
+      const company = await OCPIUtils.checkAndGetEMSPCompany(tenant, ocpiEndpoint);
+      const siteName = OCPIUtils.buildOperatorName(countryCode, partyID);
+      const sites = await SiteStorage.getSites(tenant, { companyIDs: [company.id], name: siteName }, Constants.DB_PARAMS_SINGLE_RECORD);
+      const foundSite = sites.result.find((existingSite) => existingSite.name === siteName);
+      // Update Location
+      const location = req.body as OCPILocation;
       await OCPIUtils.processEMSPLocation(tenant, location, company, foundSite, siteName);
     }
     return OCPIUtils.success();
