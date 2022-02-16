@@ -17,10 +17,7 @@
       "sanitize": "mongo"
     },
     "email": {
-      "type": "string",
-      "format": "email",
-      "sanitize": "mongo",
-      "transform": ["toLowerCase"]
+      "$ref": "common#/definitions/email"
     },
     "password": {
       "type": "string",

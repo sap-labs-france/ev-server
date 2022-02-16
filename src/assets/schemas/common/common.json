@@ -6,12 +6,6 @@
       "pattern": "^$|^[0-9a-fA-F]{24}$",
       "sanitize": "mongo"
     },
-    "objectId": {
-      "type": "string",
-      "pattern": "^$|^[0-9a-fA-F]{24}$",
-      "sanitize": "mongo",
-      "customType": "objectId"
-    },
     "ids": {
       "type": "string",
       "pattern": "^$|^([0-9a-fA-F]{24}\\|?)*$",
