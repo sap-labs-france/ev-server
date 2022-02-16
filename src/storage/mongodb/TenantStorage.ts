@@ -41,13 +41,13 @@ export default class TenantStorage {
   public static async saveTenant(tenantToSave: Partial<Tenant>, saveLogo = true): Promise<string> {
     const startTime = Logging.traceDatabaseRequestStart();
     const tenantFilter: any = {};
+    const tenantMDB = TenantValidatorStorage.getInstance().validateTenant(tenantToSave);
     // Build Request
     if (tenantToSave.id) {
-      tenantFilter._id = DatabaseUtils.convertToObjectID(tenantToSave.id);
+      tenantFilter._id = DatabaseUtils.convertToObjectID(tenantMDB.id);
     } else {
       tenantFilter._id = new ObjectId();
     }
-    const tenantMDB = TenantValidatorStorage.getInstance().validateTenant(tenantToSave);
     DatabaseUtils.addLastChangedCreatedProps(tenantMDB, tenantToSave);
     // Modify
     await global.database.getCollection<Tenant>(Constants.DEFAULT_TENANT, 'tenants').findOneAndUpdate(
