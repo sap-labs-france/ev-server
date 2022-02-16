@@ -255,8 +255,8 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     }
     // Update Timestamp
     if (evse.last_updated) {
-      chargingStation.lastSeen = newEvse.last_updated;
-      chargingStation.lastChangedOn = newEvse.last_updated;
+      chargingStation.lastSeen = new Date(newEvse.last_updated);
+      chargingStation.lastChangedOn = chargingStation.lastSeen;
       evse.last_updated = newEvse.last_updated;
     }
     // Rebuild the Charging Station
