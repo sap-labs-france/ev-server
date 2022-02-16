@@ -216,8 +216,8 @@ export default class CpoOCPIClient extends OCPIClient {
       });
     }
     await Logging.logInfo({
-      tenantID: this.tenant.id,
       ...LoggingHelper.getChargingStationProperties(chargingStation),
+      tenantID: this.tenant.id,
       action: ServerAction.OCPI_AUTHORIZE_TOKEN,
       message: `OCPI Tag ID '${token.uid}' has been authorized successfully`,
       module: MODULE_NAME, method: 'authorizeToken',
@@ -261,8 +261,8 @@ export default class CpoOCPIClient extends OCPIClient {
       session: ocpiSession
     };
     await Logging.logInfo({
-      tenantID: this.tenant.id,
       ...LoggingHelper.getChargingStationProperties(chargingStation),
+      tenantID: this.tenant.id,
       action: ServerAction.OCPI_START_SESSION,
       message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OCPI Transaction has been started successfully`,
       module: MODULE_NAME, method: 'startSession',
@@ -467,8 +467,8 @@ export default class CpoOCPIClient extends OCPIClient {
       results.push(result.data);
     }
     await Logging.logInfo({
-      tenantID: this.tenant.id,
       ...LoggingHelper.getChargingStationProperties(chargingStation),
+      tenantID: this.tenant.id,
       action: ServerAction.OCPI_PATCH_STATUS,
       message: 'Charging Station has been removed successfully',
       module: MODULE_NAME, method: 'removeChargingStation',
@@ -864,8 +864,8 @@ export default class CpoOCPIClient extends OCPIClient {
         },
       });
     await Logging.logInfo({
-      tenantID: this.tenant.id,
       ...LoggingHelper.getChargingStationProperties(chargingStation as ChargingStation),
+      tenantID: this.tenant.id,
       action: ServerAction.OCPI_PATCH_STATUS,
       message: `OCPI Charging Station ID '${evseUID}' has been patched successfully to '${newStatus}'`,
       module: MODULE_NAME, method: 'patchEVSEStatus',

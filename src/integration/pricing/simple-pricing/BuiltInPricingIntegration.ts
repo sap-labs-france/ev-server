@@ -24,12 +24,12 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
   public async startSession(transaction: Transaction, consumptionData: Consumption, chargingStation: ChargingStation): Promise<PricedConsumption> {
     const pricedConsumption = await this.computePrice(transaction, consumptionData, chargingStation);
     await Logging.logInfo({
+      ...LoggingHelper.getTransactionProperties(transaction),
       tenantID: this.tenant.id,
       module: MODULE_NAME,
       action: ServerAction.PRICING,
       method: 'startSession',
       message: `Session START - Transaction: ${transaction.id} - Accumulated amount: ${pricedConsumption.cumulatedRoundedAmount} ${pricedConsumption.currencyCode}`,
-      ...LoggingHelper.getTransactionProperties(transaction)
     });
     return pricedConsumption;
   }
@@ -42,13 +42,13 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
   public async stopSession(transaction: Transaction, consumptionData: Consumption, chargingStation: ChargingStation): Promise<PricedConsumption> {
     const pricedConsumption = await this.computePrice(transaction, consumptionData, chargingStation);
     await Logging.logInfo({
+      ...LoggingHelper.getTransactionProperties(transaction),
       tenantID: this.tenant.id,
       module: MODULE_NAME,
       action: ServerAction.PRICING,
       method: 'stopSession',
       message: `Session STOP - Transaction: ${transaction.id} - Accumulated amount: ${pricedConsumption.cumulatedRoundedAmount} ${pricedConsumption.currencyCode}`,
       detailedMessages: { pricedConsumption },
-      ...LoggingHelper.getTransactionProperties(transaction)
     });
     return pricedConsumption;
   }
@@ -56,13 +56,13 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
   public async endSession(transaction: Transaction, consumptionData: Consumption, chargingStation: ChargingStation): Promise<PricedConsumption> {
     const pricedConsumption = await this.computePrice(transaction, consumptionData, chargingStation);
     await Logging.logInfo({
+      ...LoggingHelper.getTransactionProperties(transaction),
       tenantID: this.tenant.id,
       module: MODULE_NAME,
       action: ServerAction.PRICING,
       method: 'endSession',
       message: `Session END - Transaction: ${transaction.id} - Accumulated amount: ${pricedConsumption.cumulatedRoundedAmount} ${pricedConsumption.currencyCode}`,
       detailedMessages: { pricedConsumption },
-      ...LoggingHelper.getTransactionProperties(transaction)
     });
     return pricedConsumption;
   }

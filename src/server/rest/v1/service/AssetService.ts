@@ -42,8 +42,8 @@ export default class AssetService {
     // Check dates
     if (!filteredRequest.StartDate || !filteredRequest.EndDate) {
       throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
         ...LoggingHelper.getAssetProperties(asset),
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Start date and end date must be provided',
         module: MODULE_NAME, method: 'handleGetAssetConsumption',
         user: req.user,
@@ -416,8 +416,8 @@ export default class AssetService {
     newAsset.id = await AssetStorage.saveAsset(req.tenant, newAsset);
     // Log
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
       ...LoggingHelper.getAssetProperties(newAsset),
+      tenantID: req.user.tenantID,
       user: req.user,
       module: MODULE_NAME, method: 'handleCreateAsset',
       message: `Asset '${newAsset.id}' has been created successfully`,
