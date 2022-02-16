@@ -556,7 +556,25 @@ export default class OCPPService {
       },
       true
     );
-    return (result.idTagInfo?.status === OCPPAuthorizationStatus.ACCEPTED);
+    if (result.idTagInfo?.status !== OCPPAuthorizationStatus.ACCEPTED) {
+      let authUser: { user: User, alternateUser: User };
+      if (transaction.chargeBox) {
+        // Transaction is stopped by central system?
+        authUser = await this.checkAuthorizeStopTransactionAndGetUsers(
+          tenant, transaction.chargeBox, transaction, transaction.tagID, true);
+      }
+      // Update Transaction with Stop Transaction and Stop MeterValues
+      OCPPUtils.updateTransactionWithStopTransaction(transaction, transaction.chargeBox, {
+        transactionId: transaction.id,
+        chargeBoxID: transaction.chargeBoxID,
+        idTag: transaction.tagID,
+        timestamp: Utils.convertToDate(transaction.lastConsumption ? transaction.lastConsumption.timestamp : transaction.timestamp).toISOString(),
+        meterStop: transaction.lastConsumption ? transaction.lastConsumption.value : transaction.meterStart
+      }, authUser?.user, authUser?.alternateUser, transaction.tagID, true);
+      // Save the transaction
+      await TransactionStorage.saveTransaction(tenant, transaction);
+    }
+    return true;
   }
 
   public async checkAuthorizeStopTransactionAndGetUsers(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction,
