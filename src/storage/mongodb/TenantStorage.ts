@@ -43,7 +43,7 @@ export default class TenantStorage {
     const tenantFilter: any = {};
     const tenantMDB = TenantValidatorStorage.getInstance().validateTenant(tenantToSave);
     // Build Request
-    if (tenantToSave.id) {
+    if (tenantMDB.id) {
       tenantFilter._id = DatabaseUtils.convertToObjectID(tenantMDB.id);
     } else {
       tenantFilter._id = new ObjectId();
