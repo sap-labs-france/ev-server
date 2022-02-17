@@ -1,6 +1,5 @@
 {
     "$id": "firmware-status-notification-request",
-    "$schema": "http://json-schema.org/draft-04/schema#",
     "title": "FirmwareStatusNotificationRequest",
     "type": "object",
     "properties": {
