@@ -817,8 +817,10 @@ export default class OCPPService {
             detailedMessages: { statusNotification }
           });
         }
-        // Clear Connector Runtime Data
-        OCPPUtils.clearChargingStationConnectorRuntimeData(chargingStation, lastTransaction.connectorId);
+        if (statusNotification.status === ChargePointStatus.AVAILABLE) {
+          // Clear Connector Runtime Data
+          OCPPUtils.clearChargingStationConnectorRuntimeData(chargingStation, lastTransaction.connectorId);
+        }
       }
     }
   }
