@@ -12,15 +12,13 @@ chai.use(chaiDatetime);
 chai.use(chaiSubset);
 chai.use(responseHelper);
 
-// For Visual Studio it is recommended to install Mocha sidebar and Chai snippets
-// Mocha is the test framework and chai provides functions to check expectations
 
 describe('Template for Dev Unit Test', function() {
   jest.setTimeout(10000); // Not mandatory will automatically stop the unit test after that period of time
 
-  before(async () => {
+  beforeAll(async () => {
     chai.config.includeStack = true;
-    // Used to prepare data before the whole test chain is started
+    // Used to prepare data beforeAll the whole test chain is started
     await ContextProvider.defaultInstance.prepareContexts();
   });
 
@@ -29,7 +27,7 @@ describe('Template for Dev Unit Test', function() {
     await ContextProvider.defaultInstance.cleanUpCreatedContent();
   });
 
-  after(async () => {
+  afterAll(async () => {
     // Can be called at the end to ensure proper data clean up
     // ContextProvider.cleanUpCreatedContent();
   });

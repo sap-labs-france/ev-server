@@ -14,7 +14,6 @@ import chaiSubset from 'chai-subset';
 chai.use(chaiSubset);
 
 class TestData {
-  public pending: any;
   public cpoService: OCPIService;
   public emspService: OCPIService;
   public tenantContext: TenantContext;
@@ -25,19 +24,11 @@ class TestData {
 }
 
 const testData: TestData = new TestData();
-// Flag to check if we can test single location
-let testSingleLocation;
-
-const cpoService = new OCPIService(OCPIRole.CPO);
 
 describe('OCPI Service Tests (utocpi)', () => {
-
   jest.setTimeout(100000);
 
   beforeAll(async () => {
-    if (!OCPIService.isConfigAvailable()) {
-      testData.pending = 1;
-    }
     testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_OCPI);
     testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
     testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
@@ -48,7 +39,6 @@ describe('OCPI Service Tests (utocpi)', () => {
     );
     testData.cpoService = new OCPIService(OCPIRole.CPO);
     testData.emspService = new OCPIService(OCPIRole.EMSP);
-    testSingleLocation = (await testData.cpoService.getLocations2_1_1()).status !== StatusCodes.OK;
   });
 
   afterAll(async () => {
@@ -396,28 +386,20 @@ describe('OCPI Service Tests (utocpi)', () => {
       beforeAll(async () => {
         // Create
         response = await testData.cpoService.getLocations2_1_1();
-
-        if (response.status !== StatusCodes.OK) {
-          // this.skip();
-        }
+        expect(response.status).to.be.eql(StatusCodes.OK);
       });
 
       // Check access for each location
       it(
         'should access single location entity /ocpi/cpo/2.1.1/locations/{locationId}',
         async () => {
-          if(testSingleLocation) {
-            for (const location of response.data.data) {
-              // Call
-              const locationResponse = await testData.cpoService.accessPath('GET', `/ocpi/cpo/2.1.1/locations/${location.id}`);
-              // Check status
-              expect(locationResponse.status).to.be.eql(StatusCodes.OK);
-              expect(testData.cpoService.validateLocationEntity(locationResponse.data.data));
-            }
+          for (const location of response.data.data) {
+            // Call
+            const locationResponse = await testData.cpoService.accessPath('GET', `/ocpi/cpo/2.1.1/locations/${location.id}`);
+            // Check status
+            expect(locationResponse.status).to.be.eql(StatusCodes.OK);
+            expect(testData.cpoService.validateLocationEntity(locationResponse.data.data));
           }
-          else {
-            console.warn("should access single location entity /ocpi/cpo/2.1.1/locations/{locationId} - Skipped");
-          }      
         }
       );
 

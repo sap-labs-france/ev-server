@@ -47,7 +47,7 @@ class TestData {
   public chargingStationContext1: ChargingStationContext;
   public createdUsers = [];
   public isForcedSynchro: boolean;
-  public pending = false;
+  public chargingSettingProvided = true;
   public newAsset: Asset;
 
   public static async setSmartChargingValidCredentials(testData): Promise<void> {
@@ -155,7 +155,7 @@ const testData: TestData = new TestData();
 const smartChargingSettings = TestData.getSmartChargingSettings();
 for (const key of Object.keys(smartChargingSettings)) {
   if (!smartChargingSettings[key] || smartChargingSettings[key] === '') {
-    testData.pending = true;
+    testData.chargingSettingProvided = false;
   }
 }
 
@@ -272,9 +272,10 @@ let transaction = {} as Transaction;
 let transaction1 = {} as Transaction;
 let transaction2 = {} as Transaction;
 
+// Conditional test execution function
+const describeif = (condition) => condition ? describe : describe.skip;
 
-describe('Smart Charging Service', () => {
-  this.pending = testData.pending;
+describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
   jest.setTimeout(1000000);
 
   describe('With component SmartCharging (utsmartcharging)', () => {

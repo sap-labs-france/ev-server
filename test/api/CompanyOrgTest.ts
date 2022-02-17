@@ -83,7 +83,7 @@ async function loginAsAdminAndRemoveUsersFromSite() {
 }
 
 describe('Company', () => {
-  jest.setTimeout(1000000); // Will automatically stop the unit test after that period of time
+  jest.setTimeout(60000); // Will automatically stop the unit test after that period of time
 
   beforeAll(async () => {
     chai.config.includeStack = true;

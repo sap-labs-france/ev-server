@@ -33,7 +33,7 @@ class TestData {
 const testData: TestData = new TestData();
 
 describe('Tenant Settings', () => {
-  jest.setTimeout(3000000); // Not mandatory will automatically stop the unit test after that period of time
+  jest.setTimeout(60000); // Not mandatory will automatically stop the unit test after that period of time
 
   beforeAll(async () => {
     // Init values

@@ -23,7 +23,7 @@ class TestData {
 const testData: TestData = new TestData();
 
 describe('Firmware Update Status', () => {
-  jest.setTimeout(5000); // Will automatically stop test after that period of time
+  jest.setTimeout(60000); // Will automatically stop test after that period of time
 
   beforeAll(async () => {
     chai.config.includeStack = true;

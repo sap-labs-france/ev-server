@@ -26,7 +26,7 @@ class TestData {
 const testData: TestData = new TestData();
 let carID: number;
 describe('Car', () => {
-  jest.setTimeout(500000);
+  jest.setTimeout(60000);
   beforeAll(async () => {
     // Init values
     testData.superCentralService = new CentralServerService(null, { email: config.get('superadmin.username'), password: config.get('superadmin.password') });
