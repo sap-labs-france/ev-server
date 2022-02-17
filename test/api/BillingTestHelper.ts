@@ -532,13 +532,14 @@ export default class BillingTestHelper {
     const tagId = user.tags[0].id;
     // # Begin
     const startDate = moment(expectedStartDate);
-    // Let's send an OCCP status notification to simulate some extra inactivities
-    await this.sendStatusNotification(connectorId, startDate.toDate(), ChargePointStatus.PREPARING);
     const startTransactionResponse = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
     if (expectedStatus === 'Accepted' && startTransactionResponse.idTagInfo.status !== expectedStatus) {
       await this.dumpLastErrors();
     }
     expect(startTransactionResponse).to.be.transactionStatus(expectedStatus);
+    // Let's send a PREPARING OCCP status notification - this should not have any impact!
+    await this.sendStatusNotification(connectorId, startDate.toDate(), ChargePointStatus.PREPARING);
+    // Start sending meter values
     const transactionId = startTransactionResponse.transactionId;
     const currentTime = startDate.clone();
     let cumulated = 0;
@@ -566,6 +567,8 @@ export default class BillingTestHelper {
       cumulated += meterValueHighConsumption;
       await this.sendConsumptionMeterValue(connectorId, transactionId, currentTime, cumulated);
     }
+    // Let's send an OCCP status notification to simulate EVSuspended event
+    await this.sendStatusNotification(connectorId, currentTime.toDate(), ChargePointStatus.SUSPENDED_EVSE);
     // Phase #4 - no consumption
     for (let index = 0; index < 5; index++) {
       cumulated += meterValuePoorConsumption;
