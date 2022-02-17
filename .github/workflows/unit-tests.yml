@@ -50,5 +50,5 @@ jobs:
         cp src/assets/configs-ci/local.json test/config
         npm run mochatest:createContext
     - name: Run Integration Tests
-      run: npm run mochatest
+      run: npm run mochatest:firmwareUpdateStatus
 
