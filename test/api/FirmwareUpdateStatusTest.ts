@@ -78,10 +78,11 @@ describe('Firmware Update Status', function() {
         expect(firmwareResponse).to.eql({});
         const chargingStationResponse = await testData.chargingStationContext.readChargingStation();
         expect(chargingStationResponse.status).to.equal(StatusCodes.OK);
+        console.log("test = " + chargingStationResponse.data.firmwareUpdateStatus);
         expect(chargingStationResponse.data.firmwareUpdateStatus).to.equal(OCPPFirmwareStatus.DOWNLOADED);
       });
 
-      it('Should correctly assign Downloading Status TESTTTTTTTTTTT', async () => {
+      it('Should correctly assign Downloading Status', async () => {
         const firmwareResponse = await testData.chargingStationContext.sendFirmwareStatusNotification(OCPPFirmwareStatus.DOWNLOADING);
         expect(firmwareResponse).to.eql({});
         const chargingStationResponse = await testData.chargingStationContext.readChargingStation();
