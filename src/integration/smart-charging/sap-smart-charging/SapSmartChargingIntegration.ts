@@ -282,8 +282,8 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
     if (!connector.currentTransactionID) {
       // Should not happen
       await Logging.logError({
-        tenantID: this.tenant.id,
         ...LoggingHelper.getChargingStationProperties(chargingStation),
+        tenantID: this.tenant.id,
         action: ServerAction.SMART_CHARGING,
         module: MODULE_NAME, method: 'getTransactionFromChargingConnector',
         message: `${siteArea.name} > No active transaction on '${chargingStation.id}' connector ID '${connector.connectorId}' Charging station will be excluded from this smart charging run.`,
@@ -296,8 +296,8 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
     if (!currentTransaction) {
       // Should not happen
       await Logging.logError({
-        tenantID: this.tenant.id,
         ...LoggingHelper.getChargingStationProperties(chargingStation),
+        tenantID: this.tenant.id,
         action: ServerAction.SMART_CHARGING,
         module: MODULE_NAME, method: 'getTransactionFromChargingConnector',
         message: `${siteArea.name} > Active transaction ID '${connector.currentTransactionID}' on '${chargingStation.id}' connector ID '${connector.connectorId}' not found! Charging station will be excluded from this smart charging run.`,
