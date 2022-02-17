@@ -4,6 +4,7 @@ import { NextFunction, Request, Response } from 'express';
 import { Action } from '../../../../types/Authorization';
 import AuthorizationService from './AuthorizationService';
 import Constants from '../../../../utils/Constants';
+import { HttpLogsRequest } from '../../../../types/requests/HttpLoggingRequest';
 import { Log } from '../../../../types/Log';
 import LoggingStorage from '../../../../storage/mongodb/LoggingStorage';
 import LoggingValidator from '../validator/LoggingValidator';
@@ -16,13 +17,20 @@ const MODULE_NAME = 'LoggingService';
 
 export default class LoggingService {
   public static async handleGetLogs(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Get logs
-    res.json(await LoggingService.getLogs(req));
+    // Filter
+    const filteredRequest = LoggingValidator.getInstance().validateLoggingsGetReq(req.query);
+    // Get Logs
+    res.json(await LoggingService.getLogs(req, filteredRequest));
     next();
   }
 
   public static async handleExportLogs(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    await UtilsService.exportToCSV(req, res, 'exported-logs.csv',
+    // Force params
+    req.query.Limit = Constants.EXPORT_PAGE_SIZE.toString();
+    // Filter
+    const filteredRequest = LoggingValidator.getInstance().validateLoggingsGetReq(req.query);
+    // Export
+    await UtilsService.exportToCSV(req, res, 'exported-logs.csv', filteredRequest,
       LoggingService.getLogs.bind(this),
       LoggingService.convertToCSV.bind(this));
   }
@@ -75,16 +83,14 @@ export default class LoggingService {
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
   }
 
-  private static async getLogs(req: Request): Promise<DataResult<Log>> {
-    // Filter
-    const filteredRequest = LoggingValidator.getInstance().validateLoggingsGetReq(req.query);
+  private static async getLogs(req: Request, filteredRequest: HttpLogsRequest): Promise<DataResult<Log>> {
     // Check dynamic auth
     const authorizationSitesFilter = await AuthorizationService.checkAndGetLoggingsAuthorizations(
       req.tenant, req.user, filteredRequest);
     if (!authorizationSitesFilter.authorized) {
       return Constants.DB_EMPTY_DATA_RESULT;
     }
-    // Get logs
+    // Get Logs
     const logs = await LoggingStorage.getLogs(req.tenant, {
       search: filteredRequest.Search,
       startDateTime: filteredRequest.StartDateTime,

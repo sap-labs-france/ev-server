@@ -69,7 +69,7 @@ export default class OCPPValidation extends SchemaValidator {
   }
 
   public validateDiagnosticsStatusNotification(diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequestExtended): void {
-        this.validate(this.diagnosticsStatusNotificationRequest, diagnosticsStatusNotification);
+    this.validate(this.diagnosticsStatusNotificationRequest, diagnosticsStatusNotification);
   }
 
   public validateFirmwareStatusNotification(chargingStation: ChargingStation,
@@ -110,8 +110,8 @@ export default class OCPPValidation extends SchemaValidator {
     if (meterValues.connectorId === 0) {
       // KEBA: Connector ID must be > 0 according to OCPP
       await Logging.logWarning({
-        tenantID: tenantID,
         ...LoggingHelper.getChargingStationProperties(chargingStation),
+        tenantID: tenantID,
         module: MODULE_NAME, method: 'validateMeterValues',
         action: ServerAction.OCPP_METER_VALUES,
         message: 'Connector ID must not be \'0\' and has been reset to \'1\''
@@ -123,8 +123,8 @@ export default class OCPPValidation extends SchemaValidator {
     const foundConnector = Utils.getConnectorFromID(chargingStation, meterValues.connectorId);
     if (!foundConnector) {
       await Logging.logWarning({
-        tenantID: tenantID,
         ...LoggingHelper.getChargingStationProperties(chargingStation),
+        tenantID: tenantID,
         module: MODULE_NAME, method: 'validateMeterValues',
         action: ServerAction.OCPP_METER_VALUES,
         message: `Connector ID '${meterValues.connectorId}' not found in charging station for transaction '${meterValues.transactionId}'`
@@ -141,8 +141,8 @@ export default class OCPPValidation extends SchemaValidator {
         if (connectorTransactionID > 0) {
           // No: Log that the transaction ID will be reused
           await Logging.logWarning({
-            tenantID: tenantID,
             ...LoggingHelper.getChargingStationProperties(chargingStation),
+            tenantID: tenantID,
             module: MODULE_NAME, method: 'validateMeterValues',
             action: ServerAction.OCPP_METER_VALUES,
             message: `Transaction ID '${meterValues.transactionId}' not found but retrieved from StartTransaction '${connectorTransactionID}'`
@@ -155,8 +155,8 @@ export default class OCPPValidation extends SchemaValidator {
     } else if (connectorTransactionID > 0) {
       // Yes: Use Connector's Transaction ID
       await Logging.logWarning({
-        tenantID: tenantID,
         ...LoggingHelper.getChargingStationProperties(chargingStation),
+        tenantID: tenantID,
         module: MODULE_NAME, method: 'validateMeterValues',
         action: ServerAction.OCPP_METER_VALUES,
         message: `Transaction ID is not provided but retrieved from StartTransaction '${connectorTransactionID}'`
