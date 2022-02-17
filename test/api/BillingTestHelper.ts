@@ -532,13 +532,18 @@ export default class BillingTestHelper {
     const tagId = user.tags[0].id;
     // # Begin
     const startDate = moment(expectedStartDate);
+    if (!withSoftStopSimulation) {
+      await this.sendStatusNotification(connectorId, startDate.toDate(), ChargePointStatus.PREPARING);
+    }
     const startTransactionResponse = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
     if (expectedStatus === 'Accepted' && startTransactionResponse.idTagInfo.status !== expectedStatus) {
       await this.dumpLastErrors();
     }
     expect(startTransactionResponse).to.be.transactionStatus(expectedStatus);
-    // Let's send a PREPARING OCCP status notification - this should not have any impact!
-    await this.sendStatusNotification(connectorId, startDate.toDate(), ChargePointStatus.PREPARING);
+    if (withSoftStopSimulation) {
+      // Let's send a PREPARING OCCP status notification - this should not have any impact!
+      await this.sendStatusNotification(connectorId, startDate.toDate(), ChargePointStatus.PREPARING);
+    }
     // Start sending meter values
     const transactionId = startTransactionResponse.transactionId;
     const currentTime = startDate.clone();
