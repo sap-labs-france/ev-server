@@ -39,10 +39,10 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('User', function() {
-  this.timeout(1000000); // Will automatically stop the unit test after that period of time
+describe('User', () => {
+  jest.setTimeout(1000000); // Will automatically stop the unit test after that period of time
 
-  before(async () => {
+  beforeAll(async () => {
     chai.config.includeStack = true;
     await ContextProvider.defaultInstance.prepareContexts();
   });
@@ -51,14 +51,14 @@ describe('User', function() {
     // Can be called after each UT to clean up created data
   });
 
-  after(async () => {
+  afterAll(async () => {
     // Final clean up at the end
     await ContextProvider.defaultInstance.cleanUpCreatedContent();
   });
 
   describe('With component Organization (utorg)', () => {
 
-    before(async () => {
+    beforeAll(async () => {
       testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_ORGANIZATION);
       testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT);
@@ -70,7 +70,7 @@ describe('User', function() {
       testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
     });
 
-    after(async () => {
+    afterAll(async () => {
       // Delete any created user
       for (const user of testData.createdUsers) {
         await testData.centralUserService.deleteEntity(
@@ -89,7 +89,7 @@ describe('User', function() {
     });
 
     describe('When admin user', () => {
-      before(() => {
+      beforeAll(() => {
         testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
         assert(testData.userContext, 'User context cannot be null');
         if (testData.userContext === testData.centralUserContext) {
@@ -167,19 +167,22 @@ describe('User', function() {
           );
         });
 
-        it('Should be able to update the user with a single attribute in the request', async () => {
-          // Update
-          await testData.userService.updateEntity(
-            testData.userService.userApi,
-            { id: testData.newUser.id, role: UserRole.ADMIN }
-          );
+        it(
+          'Should be able to update the user with a single attribute in the request',
+          async () => {
+            // Update
+            await testData.userService.updateEntity(
+              testData.userService.userApi,
+              { id: testData.newUser.id, role: UserRole.ADMIN }
+            );
 
-          testData.newUser = (await testData.userService.getEntityById(
-            testData.userService.userApi,
-            testData.newUser,
-            false
-          )).data;
-        });
+            testData.newUser = (await testData.userService.getEntityById(
+              testData.userService.userApi,
+              testData.newUser,
+              false
+            )).data;
+          }
+        );
 
         it('Should be able to export users list', async () => {
           const response = await testData.userService.userApi.exportUsers({});
@@ -374,7 +377,7 @@ describe('User', function() {
   });
 
   describe('With component Organization (utbilling)', () => {
-    before(async () => {
+    beforeAll(async () => {
       testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING);
       testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT);
@@ -390,7 +393,7 @@ describe('User', function() {
 
 
       describe('When admin user', () => {
-        before(() => {
+        beforeAll(() => {
           testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
           assert(testData.userContext, 'User context cannot be null');
           if (testData.userContext === testData.centralUserContext) {

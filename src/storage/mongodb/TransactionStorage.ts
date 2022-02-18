@@ -755,6 +755,7 @@ export default class TransactionStorage {
     DatabaseUtils.pushRenameDatabaseIDToNumber(aggregation);
     // Convert Object ID to string
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'companyID');
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'stop.userID');

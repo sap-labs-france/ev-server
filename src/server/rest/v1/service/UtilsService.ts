@@ -114,27 +114,15 @@ export default class UtilsService {
     );
     UtilsService.assertObjectExists(action, chargingStation, `ChargingStation ID '${chargingStationID}' does not exist`,
       MODULE_NAME, 'checkAndGetChargingStationAuthorization', userToken);
-    // External Charging Station
-    // TODO: require auth migration to remove below check -> checkAndGetChargingStationAuthorizations doesn't use auth definition !
-    if (!chargingStation.issuer) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `ChargingStation Id '${chargingStation.id}' not issued by the organization`,
-        module: MODULE_NAME, method: 'checkAndGetChargingStationAuthorization',
-        user: userToken,
-        action: action,
-        ...LoggingHelper.getChargingStationProperties(chargingStation)
-      });
-    }
     // Deleted?
     if (chargingStation?.deleted) {
       throw new AppError({
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `ChargingStation with ID '${chargingStation.id}' is logically deleted`,
         module: MODULE_NAME,
         method: 'checkAndGetChargingStationAuthorization',
         user: userToken,
-        ...LoggingHelper.getChargingStationProperties(chargingStation)
       });
     }
     return chargingStation;
@@ -389,12 +377,12 @@ export default class UtilsService {
     const authorized = AuthorizationService.canPerformAction(site, authAction);
     if (!authorized) {
       throw new AppAuthError({
+        ...LoggingHelper.getSiteProperties(site),
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
         action: authAction, entity: Entity.SITE,
         module: MODULE_NAME, method: 'checkAndGetSiteAuthorization',
         value: siteID,
-        ...LoggingHelper.getSiteProperties(site)
       });
     }
     return site;
@@ -443,12 +431,12 @@ export default class UtilsService {
     const authorized = AuthorizationService.canPerformAction(asset, authAction);
     if (!authorized) {
       throw new AppAuthError({
+        ...LoggingHelper.getAssetProperties(asset),
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
         action: authAction, entity: Entity.ASSET,
         module: MODULE_NAME, method: 'checkAndGetAssetAuthorization',
         value: assetID,
-        ...LoggingHelper.getAssetProperties(asset)
       });
     }
     return asset;
@@ -730,12 +718,12 @@ export default class UtilsService {
     const authorized = AuthorizationService.canPerformAction(siteArea, authAction);
     if (!authorized) {
       throw new AppAuthError({
+        ...LoggingHelper.getSiteAreaProperties(siteArea),
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
         action: authAction, entity: Entity.SITE_AREA,
         module: MODULE_NAME, method: 'checkAndGetSiteAreaAuthorization',
         value: siteAreaID,
-        ...LoggingHelper.getSiteAreaProperties(siteArea)
       });
     }
     return siteArea;

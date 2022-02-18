@@ -1049,12 +1049,12 @@ export default class StripeBillingIntegration extends BillingIntegration {
       // TODO - make it part of the pricing or billing settings!
       if (timeSpent < 60 /* seconds */ || transaction.stop.totalConsumptionWh < 1000 /* 1kWh */) {
         await Logging.logWarning({
+          ...LoggingHelper.getTransactionProperties(transaction),
           tenantID: this.tenant.id,
           user: transaction.userID,
           action: ServerAction.BILLING_TRANSACTION,
           module: MODULE_NAME, method: 'stopTransaction',
           message: `Transaction data is suspicious - billing operation has been aborted - transaction ID: ${transaction.id}`,
-          ...LoggingHelper.getTransactionProperties(transaction)
         });
         // Abort the billing process - thresholds are not met!
         return false;
@@ -1075,12 +1075,12 @@ export default class StripeBillingIntegration extends BillingIntegration {
       const customer = await this.getStripeCustomer(customerID);
       if (customer) {
         await Logging.logInfo({
+          ...LoggingHelper.getTransactionProperties(transaction),
           tenantID: this.tenant.id,
           user: transaction.userID,
           action: ServerAction.BILLING_TRANSACTION,
           module: MODULE_NAME, method: 'billTransaction',
           message: `Billing process is about to start - transaction ID: ${transaction.id}`,
-          ...LoggingHelper.getTransactionProperties(transaction)
         });
         // ACHTUNG: a single transaction may generate several lines in the invoice
         const invoiceItem: BillingInvoiceItem = this.convertToBillingInvoiceItem(transaction);
@@ -1097,13 +1097,13 @@ export default class StripeBillingIntegration extends BillingIntegration {
       }
     } catch (error) {
       await Logging.logError({
+        ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: this.tenant.id,
         user: transaction.userID,
         action: ServerAction.BILLING_TRANSACTION,
         module: MODULE_NAME, method: 'billTransaction',
         message: `Failed to bill the transaction - Transaction ID '${transaction.id}'`,
         detailedMessages: { error: error.stack },
-        ...LoggingHelper.getTransactionProperties(transaction)
       });
     }
     return {
@@ -1175,13 +1175,13 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
     pricingData = pricingData.map((pricingConsumptionData) => this.enrichTransactionPricingData(transaction, pricingConsumptionData));
     void Logging.logInfo({
+      ...LoggingHelper.getTransactionProperties(transaction),
       tenantID: this.tenant.id,
       module: MODULE_NAME,
       action: ServerAction.PRICING,
       method: 'extractTransactionPricingData',
       message: `Final pricing - Transaction: ${transaction.id}`,
       detailedMessages: pricingData,
-      ...LoggingHelper.getTransactionProperties(transaction)
     });
     return pricingData;
   }

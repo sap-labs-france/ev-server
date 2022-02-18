@@ -7,7 +7,7 @@ import { DataResult, UserDataResult } from '../../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
-import User, { ImportedUser, UserRequiredImportProperties } from '../../../../types/User';
+import User, { ImportedUser, UserRequiredImportProperties, UserRole } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
@@ -210,12 +210,6 @@ export default class UserService {
       lastChangedBy: lastChangedBy,
       lastChangedOn: lastChangedOn,
     };
-    if (filteredRequest.name) {
-      user.name = filteredRequest.name.toUpperCase();
-    }
-    if (filteredRequest.email) {
-      user.email = filteredRequest.email.toLowerCase();
-    }
     // Update User (override TagIDs because it's not of the same type as in filteredRequest)
     await UserStorage.saveUser(req.tenant, user, true);
     // Save User's password
@@ -650,8 +644,8 @@ export default class UserService {
     // Create
     const newUser: User = {
       ...filteredRequest,
-      name: filteredRequest.name.toUpperCase(),
-      email: filteredRequest.email.toLowerCase(),
+      name: filteredRequest.name,
+      email: filteredRequest.email,
       createdBy: { id: req.user.id },
       createdOn: new Date(),
       issuer: true,
@@ -981,6 +975,10 @@ export default class UserService {
     if (Utils.objectHasProperty(user, 'role') &&
         projectFields.includes('role')) {
       await UserStorage.saveUserRole(tenant, user.id, user.role);
+      // Check Admin
+      if (user.role === UserRole.ADMIN) {
+        await UserStorage.clearUserSiteAdmin(tenant, user.id);
+      }
     }
     // Save Admin Data
     if (projectFields.includes('plateID') ||

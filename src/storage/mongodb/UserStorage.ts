@@ -165,6 +165,20 @@ export default class UserStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'addSitesToUser', startTime, siteIDs);
   }
 
+  public static async clearUserSiteAdmin(tenant: Tenant, userID: string): Promise<void> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    DatabaseUtils.checkTenantObject(tenant);
+    // Execute
+    await global.database.getCollection<User>(tenant.id, 'siteusers').updateMany(
+      { userID: DatabaseUtils.convertToObjectID(userID) },
+      {
+        $set: {
+          siteAdmin: false
+        }
+      });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'clearUserSiteAdmin', startTime, { userID });
+  }
+
   public static async addSiteToUser(tenant: Tenant, userID: string, siteID: string): Promise<string> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
