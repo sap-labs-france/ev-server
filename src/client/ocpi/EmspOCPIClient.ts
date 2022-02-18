@@ -23,6 +23,7 @@ import OCPIUtilsService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OC
 import { OcpiSetting } from '../../types/Setting';
 import { Promise } from 'bluebird';
 import { ServerAction } from '../../types/Server';
+import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../storage/mongodb/SiteStorage';
 import TagStorage from '../../storage/mongodb/TagStorage';
 import Tenant from '../../types/Tenant';
@@ -73,7 +74,7 @@ export default class EmspOCPIClient extends OCPIClient {
             result.failure++;
             result.objectIDsInFailure.push(token.uid);
             result.logs.push(
-              `Failed to update Token ID '${token.uid}': ${error.message}`
+              `Failed to update Token ID '${token.uid}': ${error.message as string}`
             );
           }
         },
@@ -135,6 +136,8 @@ export default class EmspOCPIClient extends OCPIClient {
     const company = await OCPIUtils.checkAndGetEMSPCompany(this.tenant, this.ocpiEndpoint);
     const sites = await SiteStorage.getSites(this.tenant,
       { companyIDs: [ company.id ] }, Constants.DB_PARAMS_MAX_LIMIT);
+    const siteAreas = await SiteAreaStorage.getSiteAreas(this.tenant,
+      { companyIDs: [ company.id ] }, Constants.DB_PARAMS_MAX_LIMIT);
     let nextResult = true;
     do {
       // Call IOP
@@ -150,10 +153,22 @@ export default class EmspOCPIClient extends OCPIClient {
         // Cannot process locations in parallel (uniqueness is on site name) -> leads to dups
         for (const location of locations) {
           try {
-            // Get the Site
-            const foundSite = sites.result.find((existingSite) => existingSite.name === location.operator.name);
-            // Process the Location
-            const site = await OCPIUtils.processEMSPLocation(this.tenant, location, company, foundSite, location.operator.name);
+            // Keep Evses a part from Location
+            const evses = location.evses;
+            delete location.evses;
+            // Process Site
+            const siteName = location.operator.name;
+            const foundSite = sites.result.find((existingSite) => existingSite.name === siteName);
+            const site = await OCPIUtils.processEMSPLocationSite(
+              this.tenant, location, company, foundSite, siteName);
+            // Process Site Area
+            const siteAreaName = `${location.operator.name}${Constants.OCPI_SEPARATOR}${location.id}`;
+            const foundSiteArea = siteAreas.result.find((existingSiteArea) => existingSiteArea.name === siteAreaName);
+            const siteArea = await OCPIUtils.processEMSPLocationSiteArea(
+              this.tenant, location, site, foundSiteArea);
+            // Process Charging Station
+            await OCPIUtils.processEMSPLocationChargingStations(
+              this.tenant, location, site, siteArea, evses, ServerAction.OCPI_PATCH_LOCATION);
             // Push the Site then it can be retrieve in the next round
             if (!foundSite && site) {
               sites.result.push(site);
@@ -218,7 +233,7 @@ export default class EmspOCPIClient extends OCPIClient {
           } catch (error) {
             result.failure++;
             result.logs.push(
-              `Failed to update OCPI Session ID '${session.id}': ${error.message}`
+              `Failed to update OCPI Session ID '${session.id}': ${error.message as string}`
             );
           }
         },
@@ -276,7 +291,7 @@ export default class EmspOCPIClient extends OCPIClient {
           } catch (error) {
             result.failure++;
             result.logs.push(
-              `Failed to update CDR ID '${cdr.id}': ${error.message}`
+              `Failed to update CDR ID '${cdr.id}': ${error.message as string}`
             );
           }
         },

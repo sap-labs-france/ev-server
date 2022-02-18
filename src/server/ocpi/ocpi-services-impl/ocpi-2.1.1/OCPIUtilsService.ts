@@ -58,12 +58,11 @@ export default class OCPIUtilsService {
   }
 
   public static convertEvseToChargingStation(chargingStation: ChargingStation, evse: OCPIEvse,
-      location: OCPILocation, site: Site, siteArea: SiteArea): ChargingStation {
+      location: OCPILocation, site: Site, siteArea: SiteArea, action: ServerAction): ChargingStation {
     if (!evse.evse_id) {
       throw new BackendError({
-        action: ServerAction.OCPI_ENDPOINT,
+        action, module: MODULE_NAME, method: 'convertEvseToChargingStation',
         message: 'Cannot find Charging Station EVSE ID',
-        module: MODULE_NAME, method: 'convertEvseToChargingStation',
         detailedMessages:  { evse, location }
       });
     }
@@ -106,24 +105,28 @@ export default class OCPIUtilsService {
       ];
     }
     if (!Utils.isEmptyArray(evse.connectors)) {
-      let connectorId = 1;
-      for (const ocpiConnector of evse.connectors) {
-        const connector: Connector = {
-          id: ocpiConnector.id,
-          status: OCPIUtilsService.convertOCPIStatus2Status(evse.status),
-          amperage: ocpiConnector.amperage,
-          voltage: ocpiConnector.voltage,
-          connectorId: connectorId,
-          currentInstantWatts: 0,
-          power: ocpiConnector.amperage * ocpiConnector.voltage,
-          type: OCPIUtilsService.convertOCPIConnectorType2ConnectorType(ocpiConnector.standard),
-        };
-        chargingStation.maximumPower = Math.max(chargingStation.maximumPower, connector.power);
+      let connectorID = 1;
+      for (const evseConnector of evse.connectors) {
+        const connector = OCPIUtilsService.convertEvseToChargingStationConnector(evse, evseConnector, connectorID);
         chargingStation.connectors.push(connector);
-        connectorId++;
+        chargingStation.maximumPower = Math.max(chargingStation.maximumPower, connector.power);
+        connectorID++;
       }
     }
     return chargingStation;
+  }
+
+  public static convertEvseToChargingStationConnector(evse: OCPIEvse, evseConnector: OCPIConnector, connectorID: number): Connector {
+    return {
+      id: evseConnector.id,
+      status: OCPIUtilsService.convertOCPIStatus2Status(evse.status),
+      amperage: evseConnector.amperage,
+      voltage: evseConnector.voltage,
+      connectorId: connectorID,
+      currentInstantWatts: 0,
+      power: evseConnector.amperage * evseConnector.voltage,
+      type: OCPIUtilsService.convertOCPIConnectorType2ConnectorType(evseConnector.standard),
+    };
   }
 
   public static async getAllLocations(tenant: Tenant, limit: number, skip: number,

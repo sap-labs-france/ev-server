@@ -8,7 +8,6 @@ import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
-import { OCPILocation } from '../../types/ocpi/OCPILocation';
 import { ObjectId } from 'mongodb';
 import SiteAreaStorage from './SiteAreaStorage';
 import Tenant from '../../types/Tenant';
@@ -285,21 +284,6 @@ export default class SiteStorage {
     }
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveSite', startTime, siteMDB);
     return siteFilter._id.toString();
-  }
-
-  public static async saveSiteOcpiData(tenant: Tenant, id: string, ocpiData: SiteOcpiData): Promise<void> {
-    const startTime = Logging.traceDatabaseRequestStart();
-    DatabaseUtils.checkTenantObject(tenant);
-    // Modify document
-    await global.database.getCollection<any>(tenant.id, 'sites').findOneAndUpdate(
-      { '_id': DatabaseUtils.convertToObjectID(id) },
-      {
-        $set: {
-          ocpiData
-        }
-      },
-      { upsert: false });
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveSiteOcpiData', startTime, ocpiData);
   }
 
   public static async saveSiteImage(tenant: Tenant, siteID: string, siteImageToSave: string): Promise<void> {

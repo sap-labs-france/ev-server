@@ -22,7 +22,6 @@ export default interface Site extends CreatedUpdatedProps, SiteAuthorizationActi
   public?: boolean;
   openingTimes?: OpeningTimes;
   tariffID?: string;
-  ocpiData?: SiteOcpiData;
 }
 
 export interface SiteUser {

@@ -9,7 +9,6 @@ import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
-import { OCPILocation } from '../../types/ocpi/OCPILocation';
 import { ObjectId } from 'mongodb';
 import Tenant from '../../types/Tenant';
 import TransactionStorage from './TransactionStorage';
@@ -84,6 +83,14 @@ export default class SiteAreaStorage {
     return {
       id: id, image: siteAreaImageMDB ? siteAreaImageMDB.image : null
     };
+  }
+
+  public static async getSiteAreaByOcpiLocationUid(tenant: Tenant, ocpiLocationID: string = Constants.UNKNOWN_STRING_ID, projectFields?: string[]): Promise<SiteArea> {
+    const siteAreaMDB = await SiteAreaStorage.getSiteAreas(tenant, {
+      ocpiLocationID,
+      withSite: true,
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+    return siteAreaMDB.count === 1 ? siteAreaMDB.result[0] : null;
   }
 
   public static async getSiteArea(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID,
@@ -164,7 +171,7 @@ export default class SiteAreaStorage {
       params: {
         siteAreaIDs?: string[]; search?: string; siteIDs?: string[]; companyIDs?: string[]; withSite?: boolean; issuer?: boolean; name?: string;
         withChargingStations?: boolean; withOnlyChargingStations?: boolean; withAvailableChargingStations?: boolean;
-        locCoordinates?: number[]; locMaxDistanceMeters?: number; smartCharging?: boolean; withImage?: boolean;
+        locCoordinates?: number[]; locMaxDistanceMeters?: number; smartCharging?: boolean; withImage?: boolean; ocpiLocationID?: string;
       } = {},
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteArea>> {
     const startTime = Logging.traceDatabaseRequestStart();
@@ -233,6 +240,11 @@ export default class SiteAreaStorage {
     if (Utils.objectHasProperty(params, 'smartCharging') && Utils.isBoolean(params.smartCharging)) {
       filters.smartCharging = params.smartCharging;
     }
+    // OCPI Location ID
+    if (params.ocpiLocationID) {
+      filters['ocpiData.location.id'] = params.ocpiLocationID;
+    }
+    // Name
     if (params.name) {
       filters.name = params.name;
     }
