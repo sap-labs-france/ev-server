@@ -451,8 +451,8 @@ export default class ChargingStationService {
         }
         // Log
         await Logging.logWarning({
-          tenantID: req.user.tenantID,
           ...LoggingHelper.getChargingStationProperties(chargingStation),
+          tenantID: req.user.tenantID,
           action: action,
           user: req.user,
           module: MODULE_NAME, method: 'handleChargingStationLimitPower',
@@ -479,8 +479,8 @@ export default class ChargingStationService {
       });
     }
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
       ...LoggingHelper.getChargingStationProperties(chargingStation),
+      tenantID: req.user.tenantID,
       action: action,
       user: req.user,
       module: MODULE_NAME, method: 'handleChargingStationLimitPower',
@@ -1341,8 +1341,8 @@ export default class ChargingStationService {
       // OCPP Command with status
       if (Utils.objectHasProperty(result, 'status') && ![OCPPStatus.ACCEPTED, OCPPUnlockStatus.UNLOCKED].includes(result.status)) {
         await Logging.logError({
-          tenantID: req.tenant.id,
           ...LoggingHelper.getChargingStationProperties(chargingStation),
+          tenantID: req.tenant.id,
           user: req.user,
           module: MODULE_NAME, method: 'handleAction',
           action: action,
@@ -1352,8 +1352,8 @@ export default class ChargingStationService {
       } else {
         // OCPP Command with no status
         await Logging.logInfo({
-          tenantID: req.tenant.id,
           ...LoggingHelper.getChargingStationProperties(chargingStation),
+          tenantID: req.tenant.id,
           user: req.user,
           module: MODULE_NAME, method: 'handleAction',
           action: action,
@@ -1676,12 +1676,12 @@ export default class ChargingStationService {
     // Check Auth
     if (!await Authorizations.canUpdateChargingStation(req.user, siteID)) {
       throw new AppAuthError({
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'setAndSaveChargingProfile',
         value: chargingStation.id,
-        ...LoggingHelper.getChargingStationProperties(chargingStation),
       });
     }
     // Check if Charging Profile is supported
@@ -1873,8 +1873,8 @@ export default class ChargingStationService {
       // Reboot?
       if (result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
         await Logging.logWarning({
-          tenantID: req.tenant.id,
           ...LoggingHelper.getChargingStationProperties(chargingStation),
+          tenantID: req.tenant.id,
           user: req.user,
           action: action,
           module: MODULE_NAME, method: 'handleChargingStationCommand',

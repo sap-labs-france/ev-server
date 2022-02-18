@@ -38,8 +38,8 @@ export default abstract class ChargingStationVendorIntegration {
     const numberOfConnectors = chargePoint ? chargePoint.connectorIDs.length : chargingStation.connectors.length;
     if (chargePoint.excludeFromPowerLimitation) {
       await Logging.logWarning({
-        tenantID: tenant.id,
         ...LoggingHelper.getChargingStationProperties(chargingStation),
+        tenantID: tenant.id,
         action: ServerAction.CHARGING_STATION_LIMIT_POWER,
         message: `Charge Point '${chargePoint.chargePointID}' is excluded from power limitation`,
         module: MODULE_NAME, method: 'setStaticPowerLimitation',
@@ -49,8 +49,8 @@ export default abstract class ChargingStationVendorIntegration {
     }
     if (!chargePoint.ocppParamForPowerLimitation) {
       await Logging.logWarning({
-        tenantID: tenant.id,
         ...LoggingHelper.getChargingStationProperties(chargingStation),
+        tenantID: tenant.id,
         action: ServerAction.CHARGING_STATION_LIMIT_POWER,
         message: `No OCPP Parameter provided in template for Charge Point '${chargePoint.chargePointID}'`,
         module: MODULE_NAME, method: 'setStaticPowerLimitation',
@@ -89,8 +89,8 @@ export default abstract class ChargingStationVendorIntegration {
     let result: OCPPChangeConfigurationResponse;
     try {
       await Logging.logDebug({
-        tenantID: tenant.id,
         ...LoggingHelper.getChargingStationProperties(chargingStation),
+        tenantID: tenant.id,
         action: ServerAction.CHARGING_STATION_LIMIT_POWER,
         message: `Set Power limitation via OCPP on ${chargePoint.ocppParamForPowerLimitation} key to ${ocppLimitAmpValue} value`,
         module: MODULE_NAME, method: 'setStaticPowerLimitation',
@@ -134,8 +134,8 @@ export default abstract class ChargingStationVendorIntegration {
             if (connector) {
               connector.amperageLimit = this.convertLimitAmpToAllPhases(chargingStation, chargePoint, connectorID, Utils.convertToInt(ocppParamValue) / ocppParamValueDivider);
               await Logging.logInfo({
-                tenantID: tenant.id,
                 ...LoggingHelper.getChargingStationProperties(chargingStation),
+                tenantID: tenant.id,
                 action: ServerAction.OCPP_PARAM_UPDATE,
                 message: `${Utils.buildConnectorInfo(connectorID)} Amperage limit set to ${connector.amperageLimit}A following an update of OCPP Parameter '${ocppParamName}'`,
                 module: MODULE_NAME, method: 'checkUpdateOfOCPPParams',
@@ -188,8 +188,8 @@ export default abstract class ChargingStationVendorIntegration {
         // Call each connector?
         if (result.status !== OCPPChargingProfileStatus.ACCEPTED) {
           await Logging.logWarning({
-            tenantID: tenant.id,
             ...LoggingHelper.getChargingStationProperties(chargingStation),
+            tenantID: tenant.id,
             action: ServerAction.CHARGING_PROFILE_UPDATE,
             message: 'Set Charging Profile on Connector ID 0 has been rejected, will try connector per connector',
             module: MODULE_NAME, method: 'clearChargingProfile',
@@ -215,8 +215,8 @@ export default abstract class ChargingStationVendorIntegration {
       return result;
     } catch (error) {
       await Logging.logError({
-        tenantID: tenant.id,
         ...LoggingHelper.getChargingStationProperties(chargingStation),
+        tenantID: tenant.id,
         action: ServerAction.CHARGING_PROFILE_UPDATE,
         message: 'Error occurred while setting the Charging Profile',
         module: MODULE_NAME, method: 'setChargingProfile',
@@ -262,8 +262,8 @@ export default abstract class ChargingStationVendorIntegration {
         // Call each connector?
         if (result.status !== OCPPClearChargingProfileStatus.ACCEPTED) {
           await Logging.logWarning({
-            tenantID: tenant.id,
             ...LoggingHelper.getChargingStationProperties(chargingStation),
+            tenantID: tenant.id,
             action: ServerAction.CHARGING_PROFILE_DELETE,
             module: MODULE_NAME, method: 'clearChargingProfile',
             message: 'Clear Charging Profile on Connector ID 0 has been rejected, will try connector per connector',
@@ -289,8 +289,8 @@ export default abstract class ChargingStationVendorIntegration {
       return result;
     } catch (error) {
       await Logging.logError({
-        tenantID: tenant.id,
         ...LoggingHelper.getChargingStationProperties(chargingStation),
+        tenantID: tenant.id,
         action: ServerAction.CHARGING_PROFILE_DELETE,
         message: 'Error occurred while clearing the Charging Profile',
         module: MODULE_NAME, method: 'clearChargingProfile',
@@ -341,8 +341,8 @@ export default abstract class ChargingStationVendorIntegration {
       return result;
     } catch (error) {
       await Logging.logError({
-        tenantID: tenant.id,
         ...LoggingHelper.getChargingStationProperties(chargingStation),
+        tenantID: tenant.id,
         action: ServerAction.CHARGING_STATION_GET_COMPOSITE_SCHEDULE,
         message: 'Error occurred while getting the Composite Schedule',
         module: MODULE_NAME, method: 'getCompositeSchedule',
@@ -425,8 +425,8 @@ export default abstract class ChargingStationVendorIntegration {
             limitSource: ConnectorCurrentLimitSource.STATIC_LIMITATION,
           };
           await Logging.logInfo({
-            tenantID: tenant.id,
             ...LoggingHelper.getChargingStationProperties(chargingStation),
+            tenantID: tenant.id,
             action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
             message: `${Utils.buildConnectorInfo(connectorID)} Current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${Utils.getConnectorLimitSourceString(result.limitSource)}'`,
             module: MODULE_NAME, method: 'getCurrentConnectorLimit',
@@ -437,8 +437,8 @@ export default abstract class ChargingStationVendorIntegration {
       }
     } catch (error) {
       await Logging.logError({
-        tenantID: tenant.id,
         ...LoggingHelper.getChargingStationProperties(chargingStation),
+        tenantID: tenant.id,
         action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
         message: `${Utils.buildConnectorInfo(connectorID)} Cannot retrieve the current limitation`,
         module: MODULE_NAME, method: 'getCurrentConnectorLimit',
@@ -452,8 +452,8 @@ export default abstract class ChargingStationVendorIntegration {
       limitSource: ConnectorCurrentLimitSource.CONNECTOR
     };
     await Logging.logInfo({
-      tenantID: tenant.id,
       ...LoggingHelper.getChargingStationProperties(chargingStation),
+      tenantID: tenant.id,
       action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
       message: `${Utils.buildConnectorInfo(connectorID)} Current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${Utils.getConnectorLimitSourceString(result.limitSource)}'`,
       module: MODULE_NAME, method: 'getCurrentConnectorLimit',
@@ -601,8 +601,8 @@ export default abstract class ChargingStationVendorIntegration {
               limitSource: ConnectorCurrentLimitSource.CHARGING_PROFILE,
             };
             await Logging.logInfo({
-              tenantID: tenant.id,
               ...LoggingHelper.getChargingStationProperties(chargingStation),
+              tenantID: tenant.id,
               action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
               message: `${Utils.buildConnectorInfo(connectorID)} Current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${Utils.getConnectorLimitSourceString(result.limitSource)} in DB'`,
               module: MODULE_NAME, method: 'getCurrentConnectorLimit',
@@ -619,8 +619,8 @@ export default abstract class ChargingStationVendorIntegration {
               limitSource: ConnectorCurrentLimitSource.CHARGING_PROFILE,
             };
             await Logging.logInfo({
-              tenantID: tenant.id,
               ...LoggingHelper.getChargingStationProperties(chargingStation),
+              tenantID: tenant.id,
               action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
               message: `${Utils.buildConnectorInfo(connectorID)} Current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${Utils.getConnectorLimitSourceString(result.limitSource)} in DB'`,
               module: MODULE_NAME, method: 'getCurrentConnectorLimit',
@@ -638,8 +638,8 @@ export default abstract class ChargingStationVendorIntegration {
               limitSource: ConnectorCurrentLimitSource.CHARGING_PROFILE,
             };
             await Logging.logInfo({
-              tenantID: tenant.id,
               ...LoggingHelper.getChargingStationProperties(chargingStation),
+              tenantID: tenant.id,
               action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
               message: `${Utils.buildConnectorInfo(connectorID)} Current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${Utils.getConnectorLimitSourceString(result.limitSource)} in DB'`,
               module: MODULE_NAME, method: 'getCurrentConnectorLimit',

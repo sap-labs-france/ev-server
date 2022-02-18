@@ -58,8 +58,8 @@ export default class CheckChargingStationTemplateTask extends TenantSchedulerTas
         }
       } catch (error) {
         await Logging.logError({
-          tenantID: tenant.id,
           ...LoggingHelper.getChargingStationProperties(chargingStation),
+          tenantID: tenant.id,
           action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
           module: MODULE_NAME, method: 'applyTemplateToChargingStations',
           message: `Template update error in Tenant ${Utils.buildTenantName(tenant)}): ${error.message as string}`,

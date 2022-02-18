@@ -109,8 +109,8 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
         if (OICPUtils.isAuthorizationValid(existingAuthorization.timestamp)) {
           // Current remote authorization fails due to valid remote authorization of different user
           await Logging.logDebug({
-            tenantID: tenant.id,
             ...LoggingHelper.getChargingStationProperties(chargingStation),
+            tenantID: tenant.id,
             action: ServerAction.OICP_AUTHORIZE_REMOTE_START,
             message: `An existing remote authorization exists for Charging Station '${chargingStation.id}' and Connector ID ${connector.connectorId}`,
             module: MODULE_NAME, method: 'authorizeRemoteStart'
@@ -205,8 +205,8 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant, chargingStation);
     if (!chargingStationClient) {
       await Logging.logError({
-        tenantID: tenant.id,
         ...LoggingHelper.getChargingStationProperties(chargingStation),
+        tenantID: tenant.id,
         action: ServerAction.OICP_AUTHORIZE_REMOTE_START,
         message: `Charging Station '${chargingStation.id}' not found`,
         module: MODULE_NAME, method: 'remoteStartTransaction'
@@ -223,8 +223,8 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant, chargingStation);
     if (!chargingStationClient) {
       await Logging.logError({
-        tenantID: tenant.id,
         ...LoggingHelper.getChargingStationProperties(chargingStation),
+        tenantID: tenant.id,
         action: ServerAction.OICP_AUTHORIZE_REMOTE_STOP,
         message: `Charging Station '${chargingStation.id}' not found`,
         module: MODULE_NAME, method: 'remoteStopTransaction'
