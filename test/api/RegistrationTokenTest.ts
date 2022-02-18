@@ -22,16 +22,16 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('Registration Token', function() {
-  this.timeout(300000); // Will automatically stop the unit test after that period of time
+describe('Registration Token', () => {
+  jest.setTimeout(300000); // Will automatically stop the unit test after that period of time
 
-  before(async () => {
+  beforeAll(async () => {
     testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
     testData.adminUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
     testData.adminCentralService = new CentralServerService(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS, testData.adminUserContext);
   });
 
-  after(async () => {
+  afterAll(async () => {
     // Final clean up at the end
     await ContextProvider.defaultInstance.cleanUpCreatedContent();
   });
@@ -57,13 +57,16 @@ describe('Registration Token', function() {
       });
 
       // Check creation readAll
-      it('Should find the created registration token in the tokens list', async () => {
-        // Check if the created entity is in the list
-        await testData.adminCentralService.checkEntityInList(
-          testData.adminCentralService.registrationApi,
-          testData.newRegistrationToken
-        );
-      });
+      it(
+        'Should find the created registration token in the tokens list',
+        async () => {
+          // Check if the created entity is in the list
+          await testData.adminCentralService.checkEntityInList(
+            testData.adminCentralService.registrationApi,
+            testData.newRegistrationToken
+          );
+        }
+      );
 
       // Update
       it('Should be able to update a registration token', async () => {
@@ -142,7 +145,7 @@ describe('Registration Token', function() {
     });
 
     describe('Where basic user assigned', () => {
-      before(async () => {
+      beforeAll(async () => {
         testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
         testData.basicUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
         testData.basicCentralService = new CentralServerService(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS, testData.basicUserContext);
