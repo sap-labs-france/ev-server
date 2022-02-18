@@ -8,6 +8,7 @@
       "type": "string",
       "minLength": 1,
       "maxLength": 100,
+      "transform": ["toUpperCase"],
       "sanitize": "mongo"
     },
     "firstName": {
@@ -17,10 +18,7 @@
       "sanitize": "mongo"
     },
     "email": {
-      "type": "string",
-      "format": "email",
-      "sanitize": "mongo",
-      "transform": ["toLowerCase"]
+      "$ref": "common#/definitions/email"
     },
     "password": {
       "type": "string",

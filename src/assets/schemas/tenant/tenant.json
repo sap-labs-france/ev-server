@@ -1,6 +1,7 @@
 {
   "$id": "tenant",
-  "definitions": {
+  "type": "object",
+  "properties": {
     "id": {
       "$ref": "common#/definitions/id"
     },
@@ -9,6 +10,26 @@
       "minLength": 1,
       "maxLength": 100,
       "sanitize": "mongo"
+    },
+    "email": {
+      "$ref": "common#/definitions/email"
+    },
+    "subdomain": {
+      "$ref": "common#/definitions/subdomain"
+    },
+    "components": {
+      "$ref": "tenant-components#/definitions/components"
+    },
+    "address": {
+      "$ref": "common#/definitions/address"
+    },
+    "logo": {
+      "$ref": "common#/definitions/logo"
     }
-  }
+  },
+  "required": [
+    "name",
+    "email",
+    "subdomain"
+  ]
 }
