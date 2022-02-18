@@ -60,6 +60,7 @@ export default class ChargingStationVendorFactory {
       case ChargerVendor.ELECTRIC_LOADING:
       case ChargerVendor.CHARGEX_GMBH:
       case ChargerVendor.SETEC:
+      case ChargerVendor.VESTEL:
         chargingStationVendorImpl = new DefaultChargingStationVendorIntegration(chargingStation);
         break;
     }

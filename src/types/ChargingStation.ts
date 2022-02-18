@@ -361,6 +361,7 @@ export enum ChargerVendor {
   KEMPOWER = 'kempower',
   GROWATT = 'growatt',
   SETEC = 'setec-power',
+  ELECTRIC_LOADING = 'electric loading',
+  VESTEL = 'vestel',
   CHARGEX_GMBH = "Chargex gmbh",
-  ELECTRIC_LOADING = 'electric loading'
 }
