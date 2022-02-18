@@ -51,7 +51,7 @@ export default class TenantStorage {
     // Remove ID
     delete tenantMDB.id;
     // Add Last Changed/Created props
-    DatabaseUtils.addLastChangedCreatedProps(tenantMDB, tenantToSave);
+    DatabaseUtils.addLastChangedCreatedProps(tenantMDB, Utils.cloneObject(tenantToSave));
     // Modify
     await global.database.getCollection<Tenant>(Constants.DEFAULT_TENANT, 'tenants').findOneAndUpdate(
       tenantFilter,

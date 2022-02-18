@@ -148,7 +148,37 @@
       "type": "string",
       "format": "email",
       "sanitize": "mongo",
-      "transform": ["toLowerCase"]
+      "transform": [
+        "toLowerCase"
+      ]
+    },
+    "createdBy": {
+      "type": "object",
+      "nullable": true,
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        }
+      }
+    },
+    "createdOn": {
+      "type": "object",
+      "nullable": true,
+      "sanitize": "mongo"
+    },
+    "lastChangedBy": {
+      "type": "object",
+      "nullable": true,
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        }
+      }
+    },
+    "lastChangedOn": {
+      "type": "object",
+      "nullable": true,
+      "sanitize": "mongo"
     }
   }
 }
