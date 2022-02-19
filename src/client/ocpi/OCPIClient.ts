@@ -134,6 +134,10 @@ export default abstract class OCPIClient {
     return response.data?.data;
   }
 
+  public getSettings(): OcpiSetting {
+    return this.settings;
+  }
+
   public async getEndpointVersions(): Promise<OCPIEndpointVersions> {
     await Logging.logInfo({
       tenantID: this.tenant.id,
