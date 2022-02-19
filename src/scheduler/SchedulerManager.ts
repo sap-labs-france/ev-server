@@ -21,6 +21,7 @@ import OCPICheckSessionsTask from './tasks/ocpi/OCPICheckSessionsTask';
 import OCPIPullCdrsTask from './tasks/ocpi/OCPIPullCdrsTask';
 import OCPIPullLocationsTask from './tasks/ocpi/OCPIPullLocationsTask';
 import OCPIPullSessionsTask from './tasks/ocpi/OCPIPullSessionsTask';
+import OCPIPushTokensTask from './tasks/ocpi/OCPIPushTokensTask';
 import OCPIPullTokensTask from './tasks/ocpi/OCPIPullTokensTask';
 import OCPIPushCdrsTask from './tasks/ocpi/OCPIPushCdrsTask';
 import OCPIPushEVSEStatusesTask from './tasks/ocpi/OCPIPushEVSEStatusesTask';
@@ -119,6 +120,8 @@ export default class SchedulerManager {
         return new OCPIPullTokensTask();
       case 'OCPIPushCdrsTask':
         return new OCPIPushCdrsTask();
+      case 'OCPIPushTokensTask':
+        return new OCPIPushTokensTask();
       case 'SynchronizeRefundTransactionsTask':
         return new SynchronizeRefundTransactionsTask();
       case 'BillingPeriodicOperationTask':

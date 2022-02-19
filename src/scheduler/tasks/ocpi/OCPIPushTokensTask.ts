@@ -1,4 +1,4 @@
-import { OCPIPullLocationsTaskConfig, TaskConfig } from '../../../types/TaskConfig';
+import { TaskConfig } from '../../../types/TaskConfig';
 import Tenant, { TenantComponents } from '../../../types/Tenant';
 
 import Constants from '../../../utils/Constants';
@@ -24,7 +24,7 @@ export default class OCPIPushTokensTask extends TenantSchedulerTask {
         // Get all available endpoints
         const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(tenant, { role: OCPIRole.EMSP }, Constants.DB_PARAMS_MAX_LIMIT);
         for (const ocpiEndpoint of ocpiEndpoints.result) {
-          await this.processOCPIEndpoint(tenant, ocpiEndpoint, config);
+          await this.processOCPIEndpoint(tenant, ocpiEndpoint);
         }
       }
     } catch (error) {
@@ -33,7 +33,7 @@ export default class OCPIPushTokensTask extends TenantSchedulerTask {
     }
   }
 
-  private async processOCPIEndpoint(tenant: Tenant, ocpiEndpoint: OCPIEndpoint, config: OCPIPullLocationsTaskConfig): Promise<void> {
+  private async processOCPIEndpoint(tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<void> {
     // Get the lock
     const ocpiLock = await LockingHelper.createOCPIPushTokensLock(tenant.id, ocpiEndpoint);
     if (ocpiLock) {
