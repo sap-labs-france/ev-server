@@ -10,6 +10,7 @@ import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { ObjectId } from 'mongodb';
+import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import TransactionStorage from './TransactionStorage';
 import Utils from '../../utils/Utils';
@@ -90,7 +91,17 @@ export default class SiteAreaStorage {
       ocpiLocationID,
       withSite: true,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
-    return siteAreaMDB.count === 1 ? siteAreaMDB.result[0] : null;
+    // No unique key on OCPI Location (avoid create several Site Area with the same location ID)
+    if (siteAreaMDB.count > 1) {
+      await Logging.logWarning({
+        tenantID: tenant.id,
+        action: ServerAction.UNKNOWN_ACTION,
+        module: MODULE_NAME, method: 'getSiteAreaByOcpiLocationUid',
+        message: `Multiple Site Area with same OCPI Location ID '${ocpiLocationID}'`,
+        detailedMessages: { ocpiLocationID, siteAreas: siteAreaMDB.result }
+      });
+    }
+    return siteAreaMDB.count >= 1 ? siteAreaMDB.result[0] : null;
   }
 
   public static async getSiteArea(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID,

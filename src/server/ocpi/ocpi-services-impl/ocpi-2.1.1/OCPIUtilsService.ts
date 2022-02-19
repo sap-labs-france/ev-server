@@ -1,19 +1,15 @@
 import * as CountriesList from 'countries-list';
 
 import ChargingStation, { ChargePoint, Connector, ConnectorType, CurrentType, Voltage } from '../../../../types/ChargingStation';
+import { OCPIAvailableEndpoints, OCPIEndpointVersions } from '../../../../types/ocpi/OCPIEndpoint';
 import { OCPICapability, OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
 import { OCPIConnector, OCPIConnectorFormat, OCPIConnectorType, OCPIPowerType, OCPIVoltage } from '../../../../types/ocpi/OCPIConnector';
-import OCPIEndpoint, { OCPIAvailableEndpoints, OCPIEndpointVersions } from '../../../../types/ocpi/OCPIEndpoint';
 import { OCPILocation, OCPILocationOptions, OCPILocationType, OCPIOpeningTimes } from '../../../../types/ocpi/OCPILocation';
 import { OCPISession, OCPISessionStatus } from '../../../../types/ocpi/OCPISession';
-import { OCPITariff, OCPITariffDimensionType } from '../../../../types/ocpi/OCPITariff';
 import { OCPIToken, OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
-import { OcpiSetting, SimplePricingSetting } from '../../../../types/Setting';
 import Transaction, { InactivityStatus } from '../../../../types/Transaction';
-import User, { UserRole, UserStatus } from '../../../../types/User';
 
 import AppError from '../../../../exception/AppError';
-import BackendError from '../../../../exception/BackendError';
 import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../../utils/Configuration';
@@ -32,18 +28,19 @@ import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from '../../OCPIUtils';
+import { OcpiSetting } from '../../../../types/Setting';
 import { PricingSource } from '../../../../types/Pricing';
 import RoamingUtils from '../../../../utils/RoamingUtils';
 import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import Site from '../../../../types/Site';
-import SiteArea from '../../../../types/SiteArea';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import Tenant from '../../../../types/Tenant';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
+import User from '../../../../types/User';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
 import countries from 'i18n-iso-countries';
@@ -55,78 +52,6 @@ export default class OCPIUtilsService {
   public static isSuccessResponse(response: OCPIResponse): boolean {
     return !Utils.objectHasProperty(response, 'status_code') ||
       response.status_code === 1000;
-  }
-
-  public static convertEvseToChargingStation(chargingStation: ChargingStation, evse: OCPIEvse,
-      location: OCPILocation, site: Site, siteArea: SiteArea, action: ServerAction): ChargingStation {
-    if (!evse.evse_id) {
-      throw new BackendError({
-        action, module: MODULE_NAME, method: 'convertEvseToChargingStation',
-        message: 'Cannot find Charging Station EVSE ID',
-        detailedMessages:  { evse, location }
-      });
-    }
-    if (!chargingStation) {
-      chargingStation = {
-        id: evse.evse_id,
-        createdOn: new Date(),
-        maximumPower: 0,
-        issuer: false,
-        connectors: [],
-        companyID: site.companyID,
-        siteID: site.id,
-        siteAreaID: siteArea.id,
-        ocpiData: {
-          evses: [evse]
-        }
-      } as ChargingStation;
-    } else {
-      chargingStation = {
-        ...chargingStation,
-        lastChangedOn: new Date(),
-        connectors: [],
-        ocpiData: {
-          evses: [evse]
-        }
-      } as ChargingStation;
-    }
-    // Set the location ID
-    evse.location_id = location.id;
-    // Coordinates
-    if (evse.coordinates?.latitude && evse.coordinates?.longitude) {
-      chargingStation.coordinates = [
-        Utils.convertToFloat(evse.coordinates.longitude),
-        Utils.convertToFloat(evse.coordinates.latitude)
-      ];
-    } else if (location?.coordinates?.latitude && location?.coordinates?.longitude) {
-      chargingStation.coordinates = [
-        Utils.convertToFloat(location.coordinates.longitude),
-        Utils.convertToFloat(location.coordinates.latitude)
-      ];
-    }
-    if (!Utils.isEmptyArray(evse.connectors)) {
-      let connectorID = 1;
-      for (const evseConnector of evse.connectors) {
-        const connector = OCPIUtilsService.convertEvseToChargingStationConnector(evse, evseConnector, connectorID);
-        chargingStation.connectors.push(connector);
-        chargingStation.maximumPower = Math.max(chargingStation.maximumPower, connector.power);
-        connectorID++;
-      }
-    }
-    return chargingStation;
-  }
-
-  public static convertEvseToChargingStationConnector(evse: OCPIEvse, evseConnector: OCPIConnector, connectorID: number): Connector {
-    return {
-      id: evseConnector.id,
-      status: OCPIUtilsService.convertOCPIStatus2Status(evse.status),
-      amperage: evseConnector.amperage,
-      voltage: evseConnector.voltage,
-      connectorId: connectorID,
-      currentInstantWatts: 0,
-      power: evseConnector.amperage * evseConnector.voltage,
-      type: OCPIUtilsService.convertOCPIConnectorType2ConnectorType(evseConnector.standard),
-    };
   }
 
   public static async getAllLocations(tenant: Tenant, limit: number, skip: number,
@@ -325,92 +250,6 @@ export default class OCPIUtilsService {
     return {
       twentyfourseven: true,
     };
-  }
-
-  public static convertOCPIConnectorType2ConnectorType(ocpiConnectorType: OCPIConnectorType): ConnectorType {
-    switch (ocpiConnectorType) {
-      case OCPIConnectorType.CHADEMO:
-        return ConnectorType.CHADEMO;
-      case OCPIConnectorType.IEC_62196_T2:
-        return ConnectorType.TYPE_2;
-      case OCPIConnectorType.IEC_62196_T2_COMBO:
-        return ConnectorType.COMBO_CCS;
-      case OCPIConnectorType.IEC_62196_T3:
-      case OCPIConnectorType.IEC_62196_T3A:
-        return ConnectorType.TYPE_3C;
-      case OCPIConnectorType.IEC_62196_T1:
-        return ConnectorType.TYPE_1;
-      case OCPIConnectorType.IEC_62196_T1_COMBO:
-        return ConnectorType.TYPE_1_CCS;
-      case OCPIConnectorType.DOMESTIC_A:
-      case OCPIConnectorType.DOMESTIC_B:
-      case OCPIConnectorType.DOMESTIC_C:
-      case OCPIConnectorType.DOMESTIC_D:
-      case OCPIConnectorType.DOMESTIC_E:
-      case OCPIConnectorType.DOMESTIC_F:
-      case OCPIConnectorType.DOMESTIC_G:
-      case OCPIConnectorType.DOMESTIC_H:
-      case OCPIConnectorType.DOMESTIC_I:
-      case OCPIConnectorType.DOMESTIC_J:
-      case OCPIConnectorType.DOMESTIC_K:
-      case OCPIConnectorType.DOMESTIC_L:
-        return ConnectorType.DOMESTIC;
-      default:
-        return ConnectorType.UNKNOWN;
-    }
-  }
-
-  public static convertOCPIStatus2Status(status: OCPIEvseStatus): ChargePointStatus {
-    switch (status) {
-      case OCPIEvseStatus.AVAILABLE:
-        return ChargePointStatus.AVAILABLE;
-      case OCPIEvseStatus.BLOCKED:
-        return ChargePointStatus.OCCUPIED;
-      case OCPIEvseStatus.CHARGING:
-        return ChargePointStatus.CHARGING;
-      case OCPIEvseStatus.INOPERATIVE:
-      case OCPIEvseStatus.OUTOFORDER:
-        return ChargePointStatus.FAULTED;
-      case OCPIEvseStatus.PLANNED:
-      case OCPIEvseStatus.RESERVED:
-        return ChargePointStatus.RESERVED;
-      default:
-        return ChargePointStatus.UNAVAILABLE;
-    }
-  }
-
-  public static convertStatus2OCPIStatus(status: ChargePointStatus): OCPIEvseStatus {
-    switch (status) {
-      case ChargePointStatus.AVAILABLE:
-        return OCPIEvseStatus.AVAILABLE;
-      case ChargePointStatus.OCCUPIED:
-        return OCPIEvseStatus.BLOCKED;
-      case ChargePointStatus.CHARGING:
-        return OCPIEvseStatus.CHARGING;
-      case ChargePointStatus.FAULTED:
-      case ChargePointStatus.UNAVAILABLE:
-        return OCPIEvseStatus.INOPERATIVE;
-      case ChargePointStatus.PREPARING:
-      case ChargePointStatus.SUSPENDED_EV:
-      case ChargePointStatus.SUSPENDED_EVSE:
-      case ChargePointStatus.FINISHING:
-        return OCPIEvseStatus.BLOCKED;
-      case ChargePointStatus.RESERVED:
-        return OCPIEvseStatus.RESERVED;
-      default:
-        return OCPIEvseStatus.UNKNOWN;
-    }
-  }
-
-  public static convertSimplePricingSetting2OCPITariff(simplePricingSetting: SimplePricingSetting): OCPITariff {
-    const tariff = {} as OCPITariff;
-    tariff.id = '1';
-    tariff.currency = simplePricingSetting.currency;
-    tariff.elements[0].price_components[0].type = OCPITariffDimensionType.TIME;
-    tariff.elements[0].price_components[0].price = simplePricingSetting.price;
-    tariff.elements[0].price_components[0].step_size = 60;
-    tariff.last_updated = simplePricingSetting.last_updated;
-    return tariff;
   }
 
   public static async buildOCPICredentialObject(tenant: Tenant, token: string, role: string, versionUrl?: string): Promise<OCPICredential> {
@@ -820,7 +659,7 @@ export default class OCPIUtilsService {
         evse_id: RoamingUtils.buildEvseID(options.countryID, options.partyID,
           chargingStation.id, connector.connectorId),
         location_id: chargingStation.siteID,
-        status: chargingStation.inactive ? OCPIEvseStatus.INOPERATIVE : OCPIUtilsService.convertStatus2OCPIStatus(connector.status),
+        status: chargingStation.inactive ? OCPIEvseStatus.INOPERATIVE : OCPIUtils.convertStatus2OCPIStatus(connector.status),
         capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
         connectors: [OCPIUtilsService.convertConnector2OCPIConnector(
           tenant, chargingStation, connector, options.countryID, options.partyID, settings)],
@@ -861,7 +700,7 @@ export default class OCPIUtilsService {
       uid: OCPIUtils.buildEvseUID(chargingStation, connectors[0]),
       evse_id: RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation.id, chargePoint.chargePointID),
       location_id: chargingStation.siteID,
-      status: chargingStation.inactive ? OCPIEvseStatus.INOPERATIVE : OCPIUtilsService.convertStatus2OCPIStatus(connectorOneStatus),
+      status: chargingStation.inactive ? OCPIEvseStatus.INOPERATIVE : OCPIUtils.convertStatus2OCPIStatus(connectorOneStatus),
       capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
       connectors: ocpiConnectors,
       last_updated: chargingStation.lastSeen,

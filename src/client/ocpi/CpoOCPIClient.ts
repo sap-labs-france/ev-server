@@ -463,7 +463,7 @@ export default class CpoOCPIClient extends OCPIClient {
           siteAreaID: chargingStation.siteAreaID,
           companyID: chargingStation.companyID
         }, chargingStation.siteID, OCPIUtils.buildEvseUID(chargingStation, connector),
-        status ?? OCPIUtilsService.convertStatus2OCPIStatus(connector.status));
+        status ?? OCPIUtils.convertStatus2OCPIStatus(connector.status));
       results.push(result.data);
     }
     await Logging.logInfo({
@@ -507,7 +507,7 @@ export default class CpoOCPIClient extends OCPIClient {
       siteAreaID: chargingStation.siteAreaID,
       companyID: chargingStation.companyID,
     }, chargingStation.siteID,
-    OCPIUtils.buildEvseUID(chargingStation, connector), OCPIUtilsService.convertStatus2OCPIStatus(connector.status));
+    OCPIUtils.buildEvseUID(chargingStation, connector), OCPIUtils.convertStatus2OCPIStatus(connector.status));
   }
 
   public async checkSessions(): Promise<OCPIResult> {
@@ -1100,7 +1100,7 @@ export default class CpoOCPIClient extends OCPIClient {
         uid: OCPIUtils.buildEvseUID(chargingStation, Utils.getConnectorFromID(chargingStation, connectorID)),
         evse_id: RoamingUtils.buildEvseID(countryID, partyID, chargingStation.id, chargePoint && chargePoint.cannotChargeInParallel ? chargePoint.chargePointID : connectorID),
         location_id: chargingStation.siteID,
-        status: OCPIUtilsService.convertStatus2OCPIStatus(status),
+        status: OCPIUtils.convertStatus2OCPIStatus(status),
         capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
         connectors: connectors,
         coordinates: {
