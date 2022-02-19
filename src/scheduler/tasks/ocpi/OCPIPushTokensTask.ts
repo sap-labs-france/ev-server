@@ -1,4 +1,4 @@
-import { OCPIGetTokensTaskConfig, TaskConfig } from '../../../types/TaskConfig';
+import { OCPIPullLocationsTaskConfig, TaskConfig } from '../../../types/TaskConfig';
 import Tenant, { TenantComponents } from '../../../types/Tenant';
 
 import Constants from '../../../utils/Constants';
@@ -14,36 +14,36 @@ import { ServerAction } from '../../../types/Server';
 import TenantSchedulerTask from '../../TenantSchedulerTask';
 import Utils from '../../../utils/Utils';
 
-const MODULE_NAME = 'OCPIGetTokensTask';
+const MODULE_NAME = 'OCPIPushTokensTask';
 
-export default class OCPIGetTokensTask extends TenantSchedulerTask {
+export default class OCPIPushTokensTask extends TenantSchedulerTask {
   public async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     try {
       // Check if OCPI component is active
       if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
         // Get all available endpoints
-        const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(tenant, { role: OCPIRole.CPO }, Constants.DB_PARAMS_MAX_LIMIT);
+        const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(tenant, { role: OCPIRole.EMSP }, Constants.DB_PARAMS_MAX_LIMIT);
         for (const ocpiEndpoint of ocpiEndpoints.result) {
           await this.processOCPIEndpoint(tenant, ocpiEndpoint, config);
         }
       }
     } catch (error) {
       // Log error
-      await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PULL_TOKENS, error);
+      await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PUSH_TOKENS, error);
     }
   }
 
-  private async processOCPIEndpoint(tenant: Tenant, ocpiEndpoint: OCPIEndpoint, config: OCPIGetTokensTaskConfig): Promise<void> {
+  private async processOCPIEndpoint(tenant: Tenant, ocpiEndpoint: OCPIEndpoint, config: OCPIPullLocationsTaskConfig): Promise<void> {
     // Get the lock
-    const ocpiLock = await LockingHelper.createOCPIPullTokensLock(tenant.id, ocpiEndpoint, config.partial);
+    const ocpiLock = await LockingHelper.createOCPIPushTokensLock(tenant.id, ocpiEndpoint);
     if (ocpiLock) {
       try {
         // Check if OCPI endpoint is registered
         if (ocpiEndpoint.status !== OCPIRegistrationStatus.REGISTERED) {
           await Logging.logDebug({
             tenantID: tenant.id,
+            action: ServerAction.OCPI_PUSH_TOKENS,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
-            action: ServerAction.OCPI_PULL_TOKENS,
             message: `The OCPI endpoint '${ocpiEndpoint.name}' is not registered. Skipping the OCPI endpoint.`
           });
           return;
@@ -51,32 +51,32 @@ export default class OCPIGetTokensTask extends TenantSchedulerTask {
         if (!ocpiEndpoint.backgroundPatchJob) {
           await Logging.logDebug({
             tenantID: tenant.id,
+            action: ServerAction.OCPI_PUSH_TOKENS,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
-            action: ServerAction.OCPI_PULL_TOKENS,
             message: `The OCPI endpoint '${ocpiEndpoint.name}' is inactive.`
           });
           return;
         }
         await Logging.logInfo({
           tenantID: tenant.id,
+          action: ServerAction.OCPI_PUSH_TOKENS,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
-          action: ServerAction.OCPI_PULL_TOKENS,
-          message: `The pull tokens process for endpoint '${ocpiEndpoint.name}' is being processed${config.partial ? ' (only diff)' : ' (full)'}...`
+          message: `Push of Tokens for endpoint '${ocpiEndpoint.name}' is being processed`
         });
         // Build OCPI Client
-        const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
-        // Send EVSE statuses
-        const result = await ocpiClient.pullTokens(config.partial);
+        const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
+        // Push the Tokens
+        const result = await ocpiClient.pushTokens();
         await Logging.logInfo({
           tenantID: tenant.id,
+          action: ServerAction.OCPI_PUSH_TOKENS,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
-          action: ServerAction.OCPI_PULL_TOKENS,
-          message: `The pull tokens process for endpoint '${ocpiEndpoint.name}' has been completed${config.partial ? ' (only diff)' : ' (full)'}`,
+          message: `Push of Tokens for endpoint '${ocpiEndpoint.name}' is completed`,
           detailedMessages: { result }
         });
       } catch (error) {
         // Log error
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PULL_TOKENS, error);
+        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PUSH_TOKENS, error);
       } finally {
         // Release the lock
         await LockingManager.release(ocpiLock);
