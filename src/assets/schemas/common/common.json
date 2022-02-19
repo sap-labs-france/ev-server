@@ -143,6 +143,12 @@
       "type": "number",
       "sanitize": "mongo",
       "exclusiveMinimum": 0
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "sanitize": "mongo",
+      "transform": ["toLowerCase"]
     }
   }
 }

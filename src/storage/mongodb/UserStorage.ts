@@ -79,7 +79,7 @@ export default class UserStorage {
     return eula;
   }
 
-  public static async getUserByTagId(tenant: Tenant, tagID: string = Constants.UNKNOWN_STRING_ID): Promise<User> {
+  public static async getUserByTagID(tenant: Tenant, tagID: string = Constants.UNKNOWN_STRING_ID): Promise<User> {
     const tagMDB = await TagStorage.getTag(tenant, tagID, { withUser: true });
     return tagMDB ? tagMDB.user : null;
   }
@@ -163,6 +163,20 @@ export default class UserStorage {
       await global.database.getCollection<User>(tenant.id, 'siteusers').insertMany(siteUsersMDB);
     }
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'addSitesToUser', startTime, siteIDs);
+  }
+
+  public static async clearUserSiteAdmin(tenant: Tenant, userID: string): Promise<void> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    DatabaseUtils.checkTenantObject(tenant);
+    // Execute
+    await global.database.getCollection<User>(tenant.id, 'siteusers').updateMany(
+      { userID: DatabaseUtils.convertToObjectID(userID) },
+      {
+        $set: {
+          siteAdmin: false
+        }
+      });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'clearUserSiteAdmin', startTime, { userID });
   }
 
   public static async addSiteToUser(tenant: Tenant, userID: string, siteID: string): Promise<string> {

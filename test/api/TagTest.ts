@@ -56,10 +56,10 @@ function login(userRole) {
   }
 }
 
-describe('Tag', function() {
-  this.timeout(1000000); // Will automatically stop the unit test after that period of time
+describe('Tag', () => {
+  jest.setTimeout(1000000); // Will automatically stop the unit test after that period of time
 
-  before(async () => {
+  beforeAll(async () => {
     chai.config.includeStack = true;
     await ContextProvider.defaultInstance.prepareContexts();
   });
@@ -68,14 +68,14 @@ describe('Tag', function() {
     // Can be called after each UT to clean up created data
   });
 
-  after(async () => {
+  afterAll(async () => {
     // Final clean up at the end
     await ContextProvider.defaultInstance.cleanUpCreatedContent();
   });
 
   describe('With component Organization (utorg)', () => {
 
-    before(async () => {
+    beforeAll(async () => {
       testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_ORGANIZATION);
       testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT);
@@ -87,7 +87,7 @@ describe('Tag', function() {
       testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
     });
 
-    after(async () => {
+    afterAll(async () => {
       // Delete any created user
       for (const user of testData.createdUsers) {
         await testData.centralUserService.deleteEntity(
@@ -112,7 +112,7 @@ describe('Tag', function() {
     });
 
     describe('Where admin user', () => {
-      before(async () => {
+      beforeAll(async () => {
         testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
         assert(testData.userContext, 'User context cannot be null');
         if (testData.userContext === testData.centralUserContext) {
@@ -177,16 +177,19 @@ describe('Tag', function() {
           expect(tag.active).to.equal(false);
         });
 
-        it('Should not be able to start a transaction with a deactivated badge', async () => {
-          const connectorId = 1;
-          const tagId = testData.newTag.id;
-          const meterStart = 180;
-          const startDate = moment();
-          const response = await testData.chargingStationContext.startTransaction(
-            connectorId, tagId, meterStart, startDate.toDate());
-          // eslint-disable-next-line @typescript-eslint/unbound-method
-          expect(response).to.be.transactionStatus('Invalid');
-        });
+        it(
+          'Should not be able to start a transaction with a deactivated badge',
+          async () => {
+            const connectorId = 1;
+            const tagId = testData.newTag.id;
+            const meterStart = 180;
+            const startDate = moment();
+            const response = await testData.chargingStationContext.startTransaction(
+              connectorId, tagId, meterStart, startDate.toDate());
+            // eslint-disable-next-line @typescript-eslint/unbound-method
+            expect(response).to.be.transactionStatus('Invalid');
+          }
+        );
 
         it('Should be able to delete a badge that has not been used', async () => {
           testData.newTag = Factory.tag.build({ userID: testData.newUser.id });
@@ -240,7 +243,7 @@ describe('Tag', function() {
     });
 
     describe('Where basic user', () => {
-      before(() => {
+      beforeAll(() => {
         testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER_NO_TAGS);
         assert(testData.userContext, 'User context cannot be null');
         if (testData.userContext === testData.centralUserContext) {
@@ -307,7 +310,7 @@ describe('Tag', function() {
     // where site admin
 
     describe('Where site admin user', () => {
-      before(async () => {
+      beforeAll(async () => {
         testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER_NO_TAGS);
         assert(testData.userContext, 'User context cannot be null');
         if (testData.userContext === testData.centralUserContext) {
@@ -336,25 +339,34 @@ describe('Tag', function() {
           expect(response.status).to.equal(StatusCodes.FORBIDDEN);
         });
 
-        it('Should be not be able to read badge of user not assigned to his site', async () => {
-          const response = await testData.userService.tagApi.readTag(testData.newTag.id);
-          expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
-        });
+        it(
+          'Should be not be able to read badge of user not assigned to his site',
+          async () => {
+            const response = await testData.userService.tagApi.readTag(testData.newTag.id);
+            expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+          }
+        );
 
-        it('Should be able to create a badge for a user assigned to his site', async () => {
-          testData.newTag = Factory.tag.build({ userID: testData.newUser.id });
-          const response = await testData.userService.tagApi.createTag(testData.newTag);
-          expect(response.status).to.equal(StatusCodes.CREATED);
-          testData.createdTags.push(testData.newTag);
-        });
+        it(
+          'Should be able to create a badge for a user assigned to his site',
+          async () => {
+            testData.newTag = Factory.tag.build({ userID: testData.newUser.id });
+            const response = await testData.userService.tagApi.createTag(testData.newTag);
+            expect(response.status).to.equal(StatusCodes.CREATED);
+            testData.createdTags.push(testData.newTag);
+          }
+        );
 
-        it('Should be able to update a badge of a user assigned to his site', async () => {
-          testData.newTag.description = 'My new description for site admin';
-          const response = await testData.userService.tagApi.updateTag(testData.newTag);
-          expect(response.status).to.equal(StatusCodes.OK);
-          const tag = (await testData.userService.tagApi.readTag(testData.newTag.id)).data;
-          expect(tag.description).to.equal('My new description for site admin');
-        });
+        it(
+          'Should be able to update a badge of a user assigned to his site',
+          async () => {
+            testData.newTag.description = 'My new description for site admin';
+            const response = await testData.userService.tagApi.updateTag(testData.newTag);
+            expect(response.status).to.equal(StatusCodes.OK);
+            const tag = (await testData.userService.tagApi.readTag(testData.newTag.id)).data;
+            expect(tag.description).to.equal('My new description for site admin');
+          }
+        );
       });
 
     });
