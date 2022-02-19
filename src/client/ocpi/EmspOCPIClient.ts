@@ -74,7 +74,7 @@ export default class EmspOCPIClient extends OCPIClient {
             result.failure++;
             result.objectIDsInFailure.push(token.uid);
             result.logs.push(
-              `Failed to update Token ID '${token.uid}': ${error.message as string}`
+              `Failed to update ID '${token.uid}': ${error.message as string}`
             );
           }
         },
@@ -168,7 +168,7 @@ export default class EmspOCPIClient extends OCPIClient {
               this.tenant, location, site, foundSiteArea);
             // Process Charging Station
             await OCPIUtils.processEMSPLocationChargingStations(
-              this.tenant, location, site, siteArea, evses, ServerAction.OCPI_PATCH_LOCATION);
+              this.tenant, location, site, siteArea, evses, ServerAction.OCPI_PULL_LOCATIONS);
             // Push the Site then it can be retrieve in the next round
             if (!foundSite && site) {
               sites.result.push(site);
