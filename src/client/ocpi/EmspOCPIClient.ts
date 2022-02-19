@@ -74,7 +74,7 @@ export default class EmspOCPIClient extends OCPIClient {
             result.failure++;
             result.objectIDsInFailure.push(token.uid);
             result.logs.push(
-              `Failed to update Token ID '${token.uid}': ${error.message as string}`
+              `Failed to update ID '${token.uid}': ${error.message as string}`
             );
           }
         },
