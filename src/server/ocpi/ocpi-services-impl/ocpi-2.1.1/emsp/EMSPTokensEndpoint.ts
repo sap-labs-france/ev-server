@@ -81,7 +81,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         ocpiError: OCPIStatusCode.CODE_2002_NOT_ENOUGH_INFORMATION_ERROR
       });
     }
-    if (!locationReference.evse_uids || locationReference.evse_uids.length === 0) {
+    if (Utils.isEmptyArray(locationReference.evse_uids)) {
       throw new AppError({
         action: ServerAction.OCPI_AUTHORIZE_TOKEN,
         module: MODULE_NAME, method: 'authorizeRequest',
@@ -95,12 +95,13 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         action: ServerAction.OCPI_AUTHORIZE_TOKEN,
         module: MODULE_NAME, method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Invalid or missing parameters : does not support authorization request on multiple Charging Stations',
+        message: 'Does not support authorization request on multiple Charging Stations',
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    const chargingStation = await ChargingStationStorage.getChargingStationByOcpiEvseID(
-      tenant, locationReference.evse_uids[0]);
+    // Get the Charging Station
+    const chargingStation = await ChargingStationStorage.getChargingStationByOcpiLocationEvseUid(
+      tenant, locationReference.location_id, locationReference.evse_uids[0]);
     if (!chargingStation) {
       throw new AppError({
         action: ServerAction.OCPI_AUTHORIZE_TOKEN,
@@ -135,12 +136,11 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
           allowedStatus = OCPIAllowed.NOT_ALLOWED;
       }
     }
-    const authorizationInfo: OCPIAuthorizationInfo = {
+    return OCPIUtils.success({
       allowed: allowedStatus,
       authorization_id: Utils.generateUUID(),
       location: locationReference
-    };
-    return OCPIUtils.success(authorizationInfo);
+    });
   }
 }
 

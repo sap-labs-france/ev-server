@@ -204,7 +204,7 @@ export default class OCPIUtils {
       });
     }
     // Get existing charging station
-    const currentChargingStation = await ChargingStationStorage.getChargingStationByOcpiLocationUid(
+    const currentChargingStation = await ChargingStationStorage.getChargingStationByOcpiLocationEvseUid(
       tenant, location.id, evse.uid);
     // Delete Charging Station
     if (currentChargingStation && evse.status === OCPIEvseStatus.REMOVED) {

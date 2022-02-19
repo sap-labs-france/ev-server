@@ -329,7 +329,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       });
     }
     // Get the Charging Station
-    const chargingStation = await ChargingStationStorage.getChargingStationByOcpiLocationUid(
+    const chargingStation = await ChargingStationStorage.getChargingStationByOcpiLocationEvseUid(
       tenant, locationID, evseUID);
     if (!chargingStation) {
       throw new AppError({

@@ -17,6 +17,7 @@ import { InactivityStatus } from '../../types/Transaction';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
+import { ServerAction } from '../../types/Server';
 
 const MODULE_NAME = 'ChargingStationStorage';
 
@@ -120,10 +121,20 @@ export default class ChargingStationStorage {
       ocpiEvseID,
       withSiteArea: true,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
-    return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
+    // No unique key on OCPI Location (avoid create several Site Area with the same location ID)
+    if (chargingStationsMDB.count > 1) {
+      await Logging.logWarning({
+        tenantID: tenant.id,
+        action: ServerAction.UNKNOWN_ACTION,
+        module: MODULE_NAME, method: 'getSiteAreaByOcpiLocationUid',
+        message: `Multiple Charging Station with same OCPI EVSE ID '${ocpiEvseID}'`,
+        detailedMessages: { ocpiEvseID, chargingStations: chargingStationsMDB.result }
+      });
+    }
+    return chargingStationsMDB.count >= 1 ? chargingStationsMDB.result[0] : null;
   }
 
-  public static async getChargingStationByOcpiLocationUid(tenant: Tenant, ocpiLocationID: string = Constants.UNKNOWN_STRING_ID,
+  public static async getChargingStationByOcpiLocationEvseUid(tenant: Tenant, ocpiLocationID: string = Constants.UNKNOWN_STRING_ID,
       ocpiEvseUid: string = Constants.UNKNOWN_STRING_ID,
       projectFields?: string[]): Promise<ChargingStation> {
     const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenant, {
