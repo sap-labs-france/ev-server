@@ -258,6 +258,7 @@ export default class OCPIUtils {
     } else {
       chargingStation = {
         ...chargingStation,
+        maximumPower: 0,
         lastChangedOn: new Date(),
         connectors: [],
         ocpiData: {
@@ -282,14 +283,16 @@ export default class OCPIUtils {
     if (!Utils.isEmptyArray(evse.connectors)) {
       let connectorID = 1;
       for (const evseConnector of evse.connectors) {
-        OCPIUtils.convertEvseToChargingStationConnector(chargingStation, evse, evseConnector, connectorID++);
+        const connector = OCPIUtils.convertEvseToChargingStationConnector(evse, evseConnector, connectorID++);
+        chargingStation.connectors.push(connector);
+        chargingStation.maximumPower = Math.max(chargingStation.maximumPower, connector.power);
       }
     }
     return chargingStation;
   }
 
-  public static convertEvseToChargingStationConnector(chargingStation: ChargingStation, evse: OCPIEvse, evseConnector: OCPIConnector, connectorID: number): Connector {
-    const connector = {
+  public static convertEvseToChargingStationConnector(evse: OCPIEvse, evseConnector: OCPIConnector, connectorID: number): Connector {
+    return {
       id: evseConnector.id,
       status: OCPIUtils.convertOCPIStatus2Status(evse.status),
       amperage: evseConnector.amperage,
@@ -299,15 +302,6 @@ export default class OCPIUtils {
       power: evseConnector.amperage * evseConnector.voltage,
       type: OCPIUtils.convertOCPIConnectorType2ConnectorType(evseConnector.standard),
     };
-    // Connector exists?
-    const foundConnector = Utils.getConnectorFromID(chargingStation, connectorID);
-    if (foundConnector) {
-      _.merge(foundConnector, connector);
-    } else {
-      chargingStation.connectors.push(connector);
-    }
-    chargingStation.maximumPower = Math.max(chargingStation.maximumPower, connector.power);
-    return connector;
   }
 
   public static convertOCPIConnectorType2ConnectorType(ocpiConnectorType: OCPIConnectorType): ConnectorType {
