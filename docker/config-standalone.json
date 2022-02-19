@@ -190,25 +190,30 @@
         "config": {}
       },
       {
-        "name": "OCPIGetLocationsTask",
+        "name": "OCPIPullLocationsTask",
         "active": false,
         "periodicity": "*/10 * * * *",
         "config": {}
       },
       {
-        "name": "OCPIGetTokensTask",
+        "name": "OCPIPushTokensTask",
+        "active": true,
+        "periodicity": "0 0 1 * *"
+      },
+      {
+        "name": "OCPIPullTokensTask",
         "active": false,
         "periodicity": "0 2 * * *",
         "config": {}
       },
       {
-        "name": "OCPIGetSessionsTask",
+        "name": "OCPIPullSessionsTask",
         "active": false,
         "periodicity": "0 3 * * *",
         "config": {}
       },
       {
-        "name": "OCPIGetCdrsTask",
+        "name": "OCPIPullCdrsTask",
         "active": false,
         "periodicity": "0 4 * * *",
         "config": {}
