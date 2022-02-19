@@ -323,7 +323,7 @@ export default class OCPIUtilsService {
     }
   }
 
-  public static async updateTransaction(tenant: Tenant, session: OCPISession): Promise<void> {
+  public static async updateTransaction(tenant: Tenant, session: OCPISession, transaction?: Transaction): Promise<void> {
     if (!OCPIUtilsService.validateSession(session)) {
       throw new AppError({
         module: MODULE_NAME, method: 'updateTransaction',
@@ -333,31 +333,37 @@ export default class OCPIUtilsService {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
+    // Init default values
     if (!session.total_cost) {
       session.total_cost = 0;
     }
     if (!session.kwh) {
       session.kwh = 0;
     }
-    let transaction: Transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant, session.id);
+    // Get Transaction
+    if (!transaction) {
+      transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant, session.id);
+    }
+    // Create Transaction
     if (!transaction) {
       const user = await UserStorage.getUser(tenant, session.auth_id);
       if (!user) {
         throw new AppError({
           module: MODULE_NAME, method: 'updateTransaction',
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `No User found for auth_id ${session.auth_id}`,
+          message: `No User found with ID '${session.auth_id}'`,
           detailedMessages: { session },
           ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
         });
       }
       const evse = session.location.evses[0];
-      const chargingStation = await ChargingStationStorage.getChargingStationByOcpiEvseID(tenant, evse.evse_id);
+      const chargingStation = await ChargingStationStorage.getChargingStationByOcpiLocationEvseUid(
+        tenant, session.location.id, evse.uid);
       if (!chargingStation) {
         throw new AppError({
           module: MODULE_NAME, method: 'updateTransaction',
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `No Charging Station found with ID '${evse.uid}' in Location '${session.location.id}'`,
+          message: `Charging Station with EVSE ID '${evse.uid}' and Location ID '${session.location.id}' does not exist`,
           detailedMessages: { session },
           ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR
         });
@@ -411,6 +417,7 @@ export default class OCPIUtilsService {
       });
       return;
     }
+    // Create Consumption
     if (session.kwh > 0) {
       await OCPIUtilsService.computeAndSaveConsumption(tenant, transaction, session);
     }

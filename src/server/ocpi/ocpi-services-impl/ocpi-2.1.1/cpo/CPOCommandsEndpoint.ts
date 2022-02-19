@@ -117,7 +117,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       await Logging.logError({
         tenantID: tenant.id,
         action: ServerAction.OCPI_START_SESSION,
-        message: `Charging Station with EVSE UID '${startSession.evse_uid}' in Location ID '${startSession.location_id}' has not been found`,
+        message: `Charging Station with EVSE ID '${startSession.evse_uid}' and Location ID '${startSession.location_id}' does not exist`,
         module: MODULE_NAME, method: 'remoteStartSession',
         detailedMessages: { startSession }
       });

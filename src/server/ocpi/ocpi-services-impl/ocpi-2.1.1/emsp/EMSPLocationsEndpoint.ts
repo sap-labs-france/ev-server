@@ -336,7 +336,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
         chargingStationID: evseUID, companyID: company.id, siteID: site.id, siteAreaID: siteArea.id,
         action, module: MODULE_NAME, method: 'checkAndGetEvse',
         errorCode: StatusCodes.NOT_FOUND,
-        message: `Charging Station with EVSE ID '${evseUID}' does not exists`,
+        message: `Charging Station with EVSE ID '${evseUID}' and Location ID '${locationID}' does not exist`,
         ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
         detailedMessages: { locationID, evseUID, siteArea }
       });

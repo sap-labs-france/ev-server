@@ -115,25 +115,6 @@ export default class ChargingStationStorage {
     return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
   }
 
-  public static async getChargingStationByOcpiEvseID(tenant: Tenant, ocpiEvseID: string = Constants.UNKNOWN_STRING_ID,
-      projectFields?: string[]): Promise<ChargingStation> {
-    const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenant, {
-      ocpiEvseID,
-      withSiteArea: true,
-    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
-    // No unique key on OCPI Location (avoid create several Site Area with the same location ID)
-    if (chargingStationsMDB.count > 1) {
-      await Logging.logWarning({
-        tenantID: tenant.id,
-        action: ServerAction.UNKNOWN_ACTION,
-        module: MODULE_NAME, method: 'getSiteAreaByOcpiLocationUid',
-        message: `Multiple Charging Station with same OCPI EVSE ID '${ocpiEvseID}'`,
-        detailedMessages: { ocpiEvseID, chargingStations: chargingStationsMDB.result }
-      });
-    }
-    return chargingStationsMDB.count >= 1 ? chargingStationsMDB.result[0] : null;
-  }
-
   public static async getChargingStationByOcpiLocationEvseUid(tenant: Tenant, ocpiLocationID: string = Constants.UNKNOWN_STRING_ID,
       ocpiEvseUid: string = Constants.UNKNOWN_STRING_ID,
       projectFields?: string[]): Promise<ChargingStation> {
@@ -159,7 +140,7 @@ export default class ChargingStationStorage {
       params: {
         search?: string; chargingStationIDs?: string[]; chargingStationSerialNumbers?: string[]; siteAreaIDs?: string[]; withNoSiteArea?: boolean;
         connectorStatuses?: string[]; connectorTypes?: string[]; statusChangedBefore?: Date; withSiteArea?: boolean; withUser?: boolean;
-        ocpiEvseUid?: string; ocpiEvseID?: string; ocpiLocationID?: string; oicpEvseID?: string;
+        ocpiEvseUid?: string; ocpiLocationID?: string; oicpEvseID?: string;
         siteIDs?: string[]; companyIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
         locCoordinates?: number[]; locMaxDistanceMeters?: number; public?: boolean;
       },
@@ -227,10 +208,6 @@ export default class ChargingStationStorage {
     // OCPI Location ID
     if (params.ocpiLocationID) {
       filters['ocpiData.evses.location_id'] = params.ocpiLocationID;
-    }
-    // OCPI Evse ID
-    if (params.ocpiEvseID) {
-      filters['ocpiData.evses.evse_id'] = params.ocpiEvseID;
     }
     // OICP Evse ID
     if (params.oicpEvseID) {
