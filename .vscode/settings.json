@@ -9,14 +9,6 @@
     "typescriptreact"
   ],
   "files.autoSave": "off",
-  "mochaExplorer.env": {
-    "TS_NODE_FILES": "true"
-  },
-  "mochaExplorer.files": "test/**/*Test.ts",
-  "mochaExplorer.parallel": false,
-  "mochaExplorer.exit": true,
-  "mochaExplorer.debuggerConfig": "Debug Mocha Tests",
-  "mochaExplorer.debuggerPort": 9230,
   "search.usePCRE2": true,
   "jest.jestCommandLine": "npm run test -- ",
   "jest.autoRun": "false"
