@@ -79,7 +79,7 @@ export default class UserStorage {
     return eula;
   }
 
-  public static async getUserByTagId(tenant: Tenant, tagID: string = Constants.UNKNOWN_STRING_ID): Promise<User> {
+  public static async getUserByTagID(tenant: Tenant, tagID: string = Constants.UNKNOWN_STRING_ID): Promise<User> {
     const tagMDB = await TagStorage.getTag(tenant, tagID, { withUser: true });
     return tagMDB ? tagMDB.user : null;
   }
