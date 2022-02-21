@@ -32,7 +32,7 @@ import User from '../../src/types/User';
 import Utils from '../../src/utils/Utils';
 import chaiSubset from 'chai-subset';
 import config from '../config';
-import moment from 'moment';
+import moment from 'moment-timezone';
 import responseHelper from '../helpers/responseHelper';
 
 chai.use(chaiSubset);
