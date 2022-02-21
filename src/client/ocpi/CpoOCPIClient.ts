@@ -175,7 +175,7 @@ export default class CpoOCPIClient extends OCPIClient {
     {
       location_id: chargingStation.siteID,
       // Gireve does not support authorization request on multiple EVSE
-      evse_uids: [OCPIUtils.buildEvseUID(chargingStation, connector)]
+      evse_uids: [RoamingUtils.buildEvseUID(chargingStation, connector.connectorId)]
     };
     // Call IOP
     const response = await this.axiosInstance.post(
@@ -462,7 +462,7 @@ export default class CpoOCPIClient extends OCPIClient {
           siteID: chargingStation.siteID,
           siteAreaID: chargingStation.siteAreaID,
           companyID: chargingStation.companyID
-        }, chargingStation.siteID, OCPIUtils.buildEvseUID(chargingStation, connector),
+        }, chargingStation.siteID, RoamingUtils.buildEvseUID(chargingStation, connector.connectorId),
         status ?? OCPIUtils.convertStatus2OCPIStatus(connector.status));
       results.push(result.data);
     }
@@ -507,7 +507,7 @@ export default class CpoOCPIClient extends OCPIClient {
       siteAreaID: chargingStation.siteAreaID,
       companyID: chargingStation.companyID,
     }, chargingStation.siteID,
-    OCPIUtils.buildEvseUID(chargingStation, connector), OCPIUtils.convertStatus2OCPIStatus(connector.status));
+    RoamingUtils.buildEvseUID(chargingStation, connector.connectorId), OCPIUtils.convertStatus2OCPIStatus(connector.status));
   }
 
   public async checkSessions(): Promise<OCPIResult> {
@@ -1097,8 +1097,8 @@ export default class CpoOCPIClient extends OCPIClient {
       },
       type: OCPILocationType.UNKNOWN,
       evses: [{
-        uid: OCPIUtils.buildEvseUID(chargingStation, Utils.getConnectorFromID(chargingStation, connectorID)),
-        evse_id: RoamingUtils.buildEvseID(countryID, partyID, chargingStation.id, chargePoint && chargePoint.cannotChargeInParallel ? chargePoint.chargePointID : connectorID),
+        uid: RoamingUtils.buildEvseUID(chargingStation, connectorID),
+        evse_id: RoamingUtils.buildEvseID(countryID, partyID, chargingStation, connectorID),
         location_id: chargingStation.siteID,
         status: OCPIUtils.convertStatus2OCPIStatus(status),
         capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
