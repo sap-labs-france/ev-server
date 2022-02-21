@@ -8,6 +8,7 @@ import Transaction, { InactivityStatus, TransactionAction } from '../../../types
 import { Action } from '../../../types/Authorization';
 import Authorizations from '../../../authorization/Authorizations';
 import BackendError from '../../../exception/BackendError';
+import BillingFacade from '../../../integration/billing/BillingFacade';
 import CarConnectorFactory from '../../../integration/car-connector/CarConnectorFactory';
 import CarStorage from '../../../storage/mongodb/CarStorage';
 import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
@@ -217,7 +218,7 @@ export default class OCPPService {
           // Pricing
           await OCPPUtils.processTransactionPricing(tenant, transaction, chargingStation, consumption, TransactionAction.UPDATE);
           // Billing
-          await OCPPUtils.processTransactionBilling(tenant, transaction, chargingStation, TransactionAction.UPDATE);
+          await BillingFacade.processUpdateTransaction(tenant, transaction);
         }
         // Save
         await ConsumptionStorage.saveConsumption(tenant, consumption);
@@ -382,7 +383,7 @@ export default class OCPPService {
       const firstConsumption = await OCPPUtils.createFirstConsumption(tenant, chargingStation, newTransaction);
       await OCPPUtils.processTransactionPricing(tenant, newTransaction, chargingStation, firstConsumption, TransactionAction.START);
       // Billing
-      await OCPPUtils.processTransactionBilling(tenant, newTransaction, chargingStation, TransactionAction.START);
+      await BillingFacade.processStartTransaction(tenant, newTransaction, chargingStation, chargingStation.siteArea);
       // Roaming
       await OCPPUtils.processTransactionRoaming(tenant, newTransaction, chargingStation, chargingStation.siteArea, tag, TransactionAction.START);
       // Save it
@@ -489,7 +490,7 @@ export default class OCPPService {
       // Update Transaction with Stop Transaction and Stop MeterValues
       OCPPUtils.updateTransactionWithStopTransaction(transaction, chargingStation, stopTransaction, user, alternateUser, tagID, isSoftStop);
       // Bill
-      await OCPPUtils.processTransactionBilling(tenant, transaction, chargingStation, TransactionAction.STOP);
+      await BillingFacade.processStopTransaction(tenant, transaction);
       // Roaming
       await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, chargingStation.siteArea, transaction.tag, TransactionAction.STOP);
       // Save the transaction
@@ -796,7 +797,7 @@ export default class OCPPService {
           const transactionUpdated = await this.checkAndComputeTransactionExtraInactivityFromStatusNotification(
             tenant, chargingStation, lastTransaction, connector, statusNotification);
           // Billing: Trigger the asynchronous billing task
-          const billingDataUpdated = await this.checkAndBillTransaction(tenant, lastTransaction, chargingStation);
+          const billingDataUpdated = await this.checkAndBillTransaction(tenant, lastTransaction);
           // OCPI: Post the CDR
           const ocpiUpdated = await this.checkAndSendOCPITransactionCdr(
             tenant, lastTransaction, chargingStation, lastTransaction.tag);
@@ -893,13 +894,13 @@ export default class OCPPService {
     return extraInactivityUpdated;
   }
 
-  private async checkAndBillTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation): Promise<boolean> {
+  private async checkAndBillTransaction(tenant: Tenant, transaction: Transaction): Promise<boolean> {
     let transactionUpdated = false;
     // Make sure the Extra Inactivity is already known
     if (transaction.stop?.extraInactivityComputed) {
       transactionUpdated = true;
       // Billing - Start the asynchronous billing flow
-      await OCPPUtils.processTransactionBilling(tenant, transaction, chargingStation, TransactionAction.END);
+      await BillingFacade.processEndTransaction(tenant, transaction);
     }
     return transactionUpdated;
   }
