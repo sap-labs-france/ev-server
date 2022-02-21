@@ -8,6 +8,7 @@ import PricingDefinition, { DayOfWeek, PricingDimension, PricingDimensions, Pric
 import chai, { assert, expect } from 'chai';
 
 import AsyncTaskStorage from '../../src/storage/mongodb/AsyncTaskStorage';
+import BillingFacade from '../../src/integration/billing/BillingFacade';
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
 import Constants from '../../src/utils/Constants';
@@ -17,7 +18,6 @@ import Cypher from '../../src/utils/Cypher';
 import { DataResult } from '../../src/types/DataResult';
 import Decimal from 'decimal.js';
 import LoggingStorage from '../../src/storage/mongodb/LoggingStorage';
-import OCPPUtils from '../../src/server/ocpp/utils/OCPPUtils';
 import SiteAreaContext from './context/SiteAreaContext';
 import SiteContext from './context/SiteContext';
 import { StatusCodes } from 'http-status-codes';
@@ -27,7 +27,6 @@ import { TenantComponents } from '../../src/types/Tenant';
 import TenantContext from './context/TenantContext';
 import TestConstants from './client/utils/TestConstants';
 import TestUtils from './TestUtils';
-import { TransactionAction } from '../../src/types/Transaction';
 import TransactionStorage from '../../src/storage/mongodb/TransactionStorage';
 import User from '../../src/types/User';
 import Utils from '../../src/utils/Utils';
@@ -598,7 +597,7 @@ export default class BillingTestHelper {
         transaction = await TransactionStorage.getTransaction(tenant, transactionId, { withUser: true, withChargingStation: true });
         transaction.stop.extraInactivityComputed = true;
         transaction.stop.extraInactivitySecs = 0;
-        await OCPPUtils.processTransactionBilling(tenant, transaction, transaction.chargeBox, TransactionAction.END);
+        await BillingFacade.processEndTransaction(tenant, transaction);
       } else {
         // #end
         const stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate.toDate());

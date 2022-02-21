@@ -4,7 +4,6 @@ import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTra
 import { DimensionType, PricedConsumptionData, PricedDimensionData } from '../../../types/Pricing';
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import StripeHelpers, { StripeChargeOperationResult } from './StripeHelpers';
-import Tenant, { TenantComponents } from '../../../types/Tenant';
 import Transaction, { StartTransactionErrorCode } from '../../../types/Transaction';
 
 import AsyncTaskBuilder from '../../../async-task/AsyncTaskBuilder';
@@ -14,7 +13,6 @@ import BackendError from '../../../exception/BackendError';
 import BillingIntegration from '../BillingIntegration';
 import { BillingSettings } from '../../../types/Setting';
 import BillingStorage from '../../../storage/mongodb/BillingStorage';
-import ChargingStation from '../../../types/ChargingStation';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import DatabaseUtils from '../../../storage/mongodb/DatabaseUtils';
@@ -28,6 +26,7 @@ import { Request } from 'express';
 import { ServerAction } from '../../../types/Server';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import Stripe from 'stripe';
+import Tenant from '../../../types/Tenant';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
@@ -458,38 +457,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return billingInvoice;
   }
 
-  // TODO - move this method to the billing abstraction to make it common to all billing implementation
-  private async updateTransactionsBillingData(billingInvoice: BillingInvoice): Promise<void> {
-    if (!billingInvoice.sessions) {
-      // This should not happen - but it happened once!
-      throw new Error(`Unexpected situation - Invoice ${billingInvoice.id} has no sessions attached to it`);
-    }
-    await Promise.all(billingInvoice.sessions.map(async (session) => {
-      const transactionID = session.transactionID;
-      try {
-        const transaction = await TransactionStorage.getTransaction(this.tenant, Number(transactionID));
-        // Update Billing Data
-        if (transaction?.billingData?.stop) {
-          transaction.billingData.stop.invoiceStatus = billingInvoice.status;
-          transaction.billingData.stop.invoiceNumber = billingInvoice.number;
-          transaction.billingData.lastUpdate = new Date();
-          // Save
-          await TransactionStorage.saveTransactionBillingData(this.tenant, transaction.id, transaction.billingData);
-        }
-      } catch (error) {
-        // Catch stripe errors and send the information back to the client
-        await Logging.logError({
-          tenantID: this.tenant.id,
-          action: ServerAction.BILLING_CHARGE_INVOICE,
-          actionOnUser: billingInvoice.user,
-          module: MODULE_NAME, method: 'updateTransactionsBillingData',
-          message: `Failed to update transaction billing data - transaction: ${transactionID}`,
-          detailedMessages: { error: error.stack }
-        });
-      }
-    }));
-  }
-
   private async chargeStripeInvoice(invoiceID: string): Promise<StripeChargeOperationResult> {
     try {
       // Fetch the invoice from stripe (do NOT TRUST the local copy)
@@ -782,29 +749,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
   }
 
-  public async startTransaction(transaction: Transaction, chargingStation: ChargingStation): Promise<BillingDataTransactionStart> {
-    if (!this.settings.billing.isTransactionBillingActivated) {
-      return {
-        // Keeps track whether the billing was activated or not on start transaction
-        withBillingActive: false
-      };
-    }
-    // Check Transaction
-    this.checkStartTransaction(transaction, chargingStation);
-    // Check Free Access
-    if (transaction.user.freeAccess) {
-      return {
-        withBillingActive: false
-      };
-    }
-    if (Utils.isTenantComponentActive(this.tenant, TenantComponents.ORGANIZATION)) {
-      // Check Access Control
-      if (!chargingStation.siteArea.accessControl) {
-        return {
-          withBillingActive: false
-        };
-      }
-    }
+  public async startTransaction(transaction: Transaction): Promise<BillingDataTransactionStart> {
     // Check Stripe
     await this.checkConnection();
     // Check Start Transaction Prerequisites
