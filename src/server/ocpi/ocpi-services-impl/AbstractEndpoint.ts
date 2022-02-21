@@ -5,13 +5,9 @@ import OCPIEndpoint from '../../../types/ocpi/OCPIEndpoint';
 import { OCPIResponse } from '../../../types/ocpi/OCPIResponse';
 import Tenant from '../../../types/Tenant';
 
-/**
- * Abstract Endpoint
- */
 export default abstract class AbstractEndpoint {
-
   // Create OCPI Service
-  constructor(readonly ocpiService: AbstractOCPIService, readonly identifier: string = 'default') {
+  public constructor(protected readonly ocpiService: AbstractOCPIService, protected readonly identifier: string = 'default') {
   }
 
   // Get Endpoint Identifier

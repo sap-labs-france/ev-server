@@ -589,7 +589,7 @@ export default class OCPPService {
       alternateUser = authorizedUsers.alternateUser;
     } else {
       // Get the User
-      user = await UserStorage.getUserByTagId(tenant, tagId);
+      user = await UserStorage.getUserByTagID(tenant, tagId);
     }
     // Already Stopped?
     if (transaction.stop) {
