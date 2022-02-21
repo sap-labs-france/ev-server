@@ -9,7 +9,6 @@ import { OCPIResponse } from '../../../../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../../../../types/ocpi/OCPIStatusCode';
 import { OCPITariff } from '../../../../../types/ocpi/OCPITariff';
 import OCPIUtils from '../../../OCPIUtils';
-import OCPIUtilsService from '../OCPIUtilsService';
 import { PricingSettingsType } from '../../../../../types/Setting';
 import { ServerAction } from '../../../../../types/Server';
 import SettingStorage from '../../../../../storage/mongodb/SettingStorage';
@@ -53,7 +52,7 @@ export default class EMSPTariffsEndpoint extends AbstractEndpoint {
       // Get simple pricing settings
       const pricingSettings = await SettingStorage.getPricingSettings(tenant);
       if (pricingSettings.type === PricingSettingsType.SIMPLE && pricingSettings.simple) {
-        tariff = OCPIUtilsService.convertSimplePricingSetting2OCPITariff(pricingSettings.simple);
+        tariff = OCPIUtils.convertSimplePricingSetting2OCPITariff(pricingSettings.simple);
       } else {
         throw new AppError({
           module: MODULE_NAME, method: 'getTariffRequest',
