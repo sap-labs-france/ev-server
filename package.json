@@ -58,6 +58,7 @@
     "import-sort": "npx import-sort-cli --write 'src/**/*.ts{,x}' 'test/**/*.ts{,x}' 'types/**/*.ts{,x}'",
     "test": "npm version && cross-env TS_NODE_FILES=true jest --runInBand --logHeapUsage --verbose --colors --silent --forceExit --testPathIgnorePatterns='.*Runner.ts$'",
     "test:createContext": "npm version && cross-env TS_NODE_FILES=true jest --runInBand --logHeapUsage --verbose --colors --silent --forceExit -- ContextBuilderRunner.ts",
+    "test:createContext-poc": "npm version && cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=test ts-node -r source-map-support/register test/api/context/ContextBuilder.ts",
     "test:asset": "npm version && cross-env TS_NODE_FILES=true jest --runInBand --logHeapUsage --verbose --colors --silent -- test/**/AssetTest.ts",
     "test:authentication": "npm version && cross-env TS_NODE_FILES=true jest --runInBand --logHeapUsage --verbose --colors --silent -- test/**/AuthenticationTest.ts",
     "test:billing": "npm version && cross-env TS_NODE_FILES=true jest --runInBand --logHeapUsage --verbose --colors --silent -- test/**/BillingTest.ts",
