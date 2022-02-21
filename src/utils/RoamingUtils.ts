@@ -22,6 +22,11 @@ export default class RoamingUtils {
     return evseID.replace(/[\W_]+/g, '*').toUpperCase();
   }
 
+  public static buildEvseConnectorID(countryCode: string, partyId: string, chargingStation: ChargingStation, connectorID: number): string {
+    const evseID = `${RoamingUtils.buildOperatorName(countryCode, partyId)}*E${chargingStation.id}*${connectorID}`;
+    return evseID.replace(/[\W_]+/g, '*').toUpperCase();
+  }
+
   public static buildEvseUID(chargingStation: ChargingStation, connectorID: number): string {
     // connectors are grouped in the same evse when the connectors cannot charge in parallel
     const connector = Utils.getConnectorFromID(chargingStation, connectorID);
