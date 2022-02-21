@@ -511,8 +511,8 @@ npm run start:(prod|dev):(doctorprof|flameprof|bubbleprof)
 
   For further parameters, check the [`config`](./test/config.js) content. It is also possible to use environment variables as defined in the [`config`](./test/config.js) file
 * Start a server containing the configured admin user in the database
-* If you have not done it yet, run the command `npm run mochatest:createContext`
-* Run the command `npm run mochatest`
+* If you have not done it yet, run the command `npm run test:createContext`
+* Run the command `npm run test`
 
 ### Docker Mode
 Depending on the need it is possible to start different docker containers.
