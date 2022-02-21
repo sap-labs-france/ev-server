@@ -118,7 +118,6 @@ export default class OCPIUtilsService {
   public static async convertCPOSite2Location(tenant: Tenant, site: Site,
       options: OCPILocationOptions, withChargingStations: boolean, settings: OcpiSetting): Promise<OCPILocation> {
     const hasValidSiteGpsCoordinates = Utils.hasValidGpsCoordinates(site.address?.coordinates);
-    // Build object
     return {
       id: site.id,
       type: OCPILocationType.UNKNOWN,
@@ -606,7 +605,7 @@ export default class OCPIUtilsService {
         break;
     }
     return {
-      id: RoamingUtils.buildEvseID(countryID, partyID, chargingStation.id, connector.connectorId),
+      id: RoamingUtils.buildEvseConnectorID(countryID, partyID, chargingStation, connector.connectorId),
       standard: type,
       format: format,
       voltage: voltage,
@@ -660,11 +659,11 @@ export default class OCPIUtilsService {
     } else {
       connectors = chargingStation.connectors.filter((connector) => connector !== null);
     }
-    return connectors.map((connector) => {
+    const evses: OCPIEvse[] = [];
+    for (const connector of connectors) {
       const evse: OCPIEvse = {
-        uid: OCPIUtils.buildEvseUID(chargingStation, connector),
-        evse_id: RoamingUtils.buildEvseID(options.countryID, options.partyID,
-          chargingStation.id, connector.connectorId),
+        uid: RoamingUtils.buildEvseUID(chargingStation, connector.connectorId),
+        evse_id: RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connector.connectorId),
         location_id: chargingStation.siteID,
         status: chargingStation.inactive ? OCPIEvseStatus.INOPERATIVE : OCPIUtils.convertStatus2OCPIStatus(connector.status),
         capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
@@ -683,8 +682,9 @@ export default class OCPIUtilsService {
         evse.siteAreaID = chargingStation.siteAreaID;
         evse.companyID = chargingStation.companyID;
       }
-      return evse;
-    });
+      evses.push(evse);
+    }
+    return evses;
   }
 
   private static convertChargingStation2UniqueEvse(tenant: Tenant, chargingStation: ChargingStation,
@@ -704,8 +704,8 @@ export default class OCPIUtilsService {
     // Build evse
     const evse: OCPIEvse = {
       // Evse uid must contains the chargePoint.id
-      uid: OCPIUtils.buildEvseUID(chargingStation, connectors[0]),
-      evse_id: RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation.id, chargePoint.chargePointID),
+      uid: RoamingUtils.buildEvseUID(chargingStation, connectors[0].connectorId),
+      evse_id: RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connectors[0].connectorId),
       location_id: chargingStation.siteID,
       status: chargingStation.inactive ? OCPIEvseStatus.INOPERATIVE : OCPIUtils.convertStatus2OCPIStatus(connectorOneStatus),
       capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],

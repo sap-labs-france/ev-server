@@ -1,12 +1,6 @@
 import ChargingStation, { Connector, ConnectorType } from '../../types/ChargingStation';
-import { OCPIConnector, OCPIConnectorType } from '../../types/ocpi/OCPIConnector';
-import { OCPIEvse, OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
-import { OCPITariff, OCPITariffDimensionType } from '../../types/ocpi/OCPITariff';
-import { OCPIToken, OCPITokenType } from '../../types/ocpi/OCPIToken';
-
 import AppError from '../../exception/AppError';
 import BackendError from '../../exception/BackendError';
-import { ChargePointStatus } from '../../types/ocpp/OCPPServer';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import Company from '../../types/Company';
 import CompanyStorage from '../../storage/mongodb/CompanyStorage';
@@ -14,20 +8,26 @@ import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import LoggingHelper from '../../utils/LoggingHelper';
 import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
+import RoamingUtils from '../../utils/RoamingUtils';
+import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
+import SiteStorage from '../../storage/mongodb/SiteStorage';
+import { OCPIConnector, OCPIConnectorType } from '../../types/ocpi/OCPIConnector';
+import { OCPIEvse, OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
 import { OCPILocation } from '../../types/ocpi/OCPILocation';
 import { OCPIResponse } from '../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../types/ocpi/OCPIStatusCode';
+import { OCPITariff, OCPITariffDimensionType } from '../../types/ocpi/OCPITariff';
+import { OCPIToken, OCPITokenType } from '../../types/ocpi/OCPIToken';
+import { ChargePointStatus } from '../../types/ocpp/OCPPServer';
 import { Request } from 'express';
 import { ServerAction } from '../../types/Server';
 import { SimplePricingSetting } from '../../types/Setting';
 import Site from '../../types/Site';
 import SiteArea from '../../types/SiteArea';
-import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
-import SiteStorage from '../../storage/mongodb/SiteStorage';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
-import _ from 'lodash';
 import moment from 'moment';
+
 
 const MODULE_NAME = 'OCPIUtils';
 
@@ -99,22 +99,11 @@ export default class OCPIUtils {
     return `${countryCode}*${partyId}-${locationId}`;
   }
 
-  public static buildEvseUID(chargingStation: ChargingStation, connector: Connector): string {
-    // connectors are grouped in the same evse when the connectors cannot charge in parallel
-    if (connector.chargePointID) {
-      const chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
-      if (chargePoint && chargePoint.cannotChargeInParallel) {
-        return `${chargingStation.id}*${chargePoint.chargePointID}`;
-      }
-    }
-    return `${chargingStation.id}*${connector.connectorId}`;
-  }
-
   public static buildEvseUIDs(chargingStation: ChargingStation): string[] {
     const evseUIDs: string[] = [];
-    for (const _connector of chargingStation.connectors) {
-      if (_connector) {
-        evseUIDs.push(OCPIUtils.buildEvseUID(chargingStation, _connector));
+    for (const connector of chargingStation.connectors) {
+      if (connector) {
+        evseUIDs.push(RoamingUtils.buildEvseUID(chargingStation, connector.connectorId));
       }
     }
     return evseUIDs;

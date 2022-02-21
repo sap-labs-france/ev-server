@@ -191,6 +191,11 @@ export default class TenantStorage {
       .findOneAndDelete({
         '_id': DatabaseUtils.convertToObjectID(id)
       });
+    // Delete logo
+    await global.database.getCollection<Tenant>(Constants.DEFAULT_TENANT, 'tenantlogos')
+      .findOneAndDelete({
+        '_id': DatabaseUtils.convertToObjectID(id)
+      });
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'deleteTenant', startTime, { id });
   }
 
