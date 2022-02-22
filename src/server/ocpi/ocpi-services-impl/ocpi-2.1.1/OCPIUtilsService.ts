@@ -605,7 +605,7 @@ export default class OCPIUtilsService {
         break;
     }
     return {
-      id: RoamingUtils.buildEvseID(countryID, partyID, chargingStation, connector.connectorId),
+      id: RoamingUtils.buildEvseConnectorID(countryID, partyID, chargingStation, connector.connectorId),
       standard: type,
       format: format,
       voltage: voltage,

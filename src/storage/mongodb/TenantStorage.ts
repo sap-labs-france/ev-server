@@ -48,6 +48,9 @@ export default class TenantStorage {
     } else {
       tenantFilter._id = new ObjectId();
     }
+    // Remove ID
+    delete tenantMDB.id;
+    // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(tenantMDB, tenantToSave);
     // Modify
     await global.database.getCollection<Tenant>(Constants.DEFAULT_TENANT, 'tenants').findOneAndUpdate(
@@ -185,6 +188,11 @@ export default class TenantStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     // Delete
     await global.database.getCollection<Tenant>(Constants.DEFAULT_TENANT, 'tenants')
+      .findOneAndDelete({
+        '_id': DatabaseUtils.convertToObjectID(id)
+      });
+    // Delete logo
+    await global.database.getCollection<Tenant>(Constants.DEFAULT_TENANT, 'tenantlogos')
       .findOneAndDelete({
         '_id': DatabaseUtils.convertToObjectID(id)
       });
