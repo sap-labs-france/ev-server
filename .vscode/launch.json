@@ -12,6 +12,9 @@
       "args": [
         "--i",
         "--runInBand",
+        "--config='./test/jest.config.ts'",
+        "--reporters='default'",
+        "--reporters='./JestEvseReporter'",
         "--watchAll=false",
       ],
       "cwd": "${workspaceFolder}",
