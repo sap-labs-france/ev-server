@@ -5,7 +5,7 @@ import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types
 import { ChargePointErrorCode, ChargePointStatus, OCPPStatusNotificationRequest } from '../../src/types/ocpp/OCPPServer';
 import ChargingStation, { ConnectorType } from '../../src/types/ChargingStation';
 import PricingDefinition, { DayOfWeek, PricingDimension, PricingDimensions, PricingEntity, PricingRestriction } from '../../src/types/Pricing';
-import chai, { assert, expect } from 'chai';
+import chai, { expect } from 'chai';
 
 import AsyncTaskStorage from '../../src/storage/mongodb/AsyncTaskStorage';
 import CentralServerService from './client/CentralServerService';
@@ -31,6 +31,7 @@ import { TransactionAction } from '../../src/types/Transaction';
 import TransactionStorage from '../../src/storage/mongodb/TransactionStorage';
 import User from '../../src/types/User';
 import Utils from '../../src/utils/Utils';
+import assert from 'assert';
 import chaiSubset from 'chai-subset';
 import config from '../config';
 import moment from 'moment';
@@ -517,6 +518,26 @@ export default class BillingTestHelper {
           JSON.stringify(loggedError));
       }
     }
+  }
+
+  public considerChargingStationTimezone(): Date {
+    const timezone = Utils.getTimezone(this.chargingStationContext.getChargingStation().coordinates);
+    // Our simulated session is supposed to last 2 hours!
+    if (moment().add(2, 'hours').tz(timezone).isoWeekday() !== moment().isoWeekday()) {
+      // The current day is about to change (at charging station location)!
+      const dateToConsider = moment().add(-2, 'hours');
+      console.error(
+        '----------------------------------------------------------------------------\n' +
+        ' Charging Station Timezone: ' + timezone + '\n' +
+        '----------------------------------------------------------------------------\n' +
+        ' Simulate session in the past: ' + dateToConsider.toISOString() + '\n' +
+        '----------------------------------------------------------------------------\n'
+      );
+      assert(dateToConsider.isoWeekday() === moment().isoWeekday(), 'Start date should be on the same day');
+      assert(dateToConsider.add(2, 'hours').isoWeekday() === moment().isoWeekday(), 'End date should be on the same day');
+      return dateToConsider.toDate();
+    }
+    return new Date();
   }
 
   public async generateTransaction(user: any, expectedStatus = 'Accepted', expectedStartDate = new Date(), withSoftStopSimulation = false): Promise<number> {

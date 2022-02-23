@@ -58,6 +58,7 @@
     "import-sort": "npx import-sort-cli --write 'src/**/*.ts{,x}' 'test/**/*.ts{,x}' 'types/**/*.ts{,x}'",
     "test": "npm version && cross-env TS_NODE_FILES=true jest --config='test/jest.config.ts' --reporters='default' --reporters='./JestEvseReporter.js' --runInBand --logHeapUsage --verbose --colors --silent --forceExit --testPathIgnorePatterns='.*Runner.ts$'",
     "test:createContext": "npm version && cross-env TS_NODE_FILES=true jest --config='test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent --forceExit -- test/**/**/ContextBuilderRunner.ts",
+    "test:create:utbilling": "npm version && cross-env TS_NODE_FILES=true TENANT_FILTER=utbilling jest --config='test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent --forceExit -- test/**/**/ContextBuilderRunner.ts",
     "test:asset": "npm version && cross-env TS_NODE_FILES=true jest --config='./test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent -- test/**/AssetTest.ts",
     "test:authentication": "npm version && cross-env TS_NODE_FILES=true jest --config='./test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent -- test/**/AuthenticationTest.ts",
     "test:billing": "npm version && cross-env TS_NODE_FILES=true jest --config='./test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent -- test/**/BillingTest.ts",

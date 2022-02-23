@@ -731,7 +731,9 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
             await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
             const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
             await billingTestHelper.assignPaymentMethod(userWithBillingData, 'tok_fr');
-            const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext);
+            // This test is sensitive to the timezone of the charging station - which is set randomly
+            const dateToConsider = billingTestHelper.considerChargingStationTimezone();
+            const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext, 'Accepted', dateToConsider);
             assert(transactionID, 'transactionID should not be null');
             // Check that we have a new invoice with an invoiceID and an invoiceNumber
             await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 33.82);
@@ -747,7 +749,9 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
           const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
           await billingTestHelper.assignPaymentMethod(userWithBillingData, 'tok_fr');
-          const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext);
+          // This test is sensitive to the timezone of the charging station - which is set randomly
+          const dateToConsider = billingTestHelper.considerChargingStationTimezone();
+          const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext, 'Accepted', dateToConsider);
           assert(transactionID, 'transactionID should not be null');
           // Check that we have a new invoice with an invoiceID and an invoiceNumber
           await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 59.99);
@@ -763,7 +767,9 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
             await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
             const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
             await billingTestHelper.assignPaymentMethod(userWithBillingData, 'tok_fr');
-            const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext);
+            // This test is sensitive to the timezone of the charging station - which is set randomly
+            const dateToConsider = billingTestHelper.considerChargingStationTimezone();
+            const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext, 'Accepted', dateToConsider);
             assert(transactionID, 'transactionID should not be null');
             // Check that we have a new invoice with an invoiceID and an invoiceNumber
             await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 16.16);
