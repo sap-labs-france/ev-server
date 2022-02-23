@@ -1,8 +1,7 @@
 /* eslint-disable max-len */
 import { BillingChargeInvoiceAction, BillingInvoiceStatus } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType } from '../../src/types/Setting';
-import FeatureToggles, { Feature } from '../../src/utils/FeatureToggles';
-import chai, { assert, expect } from 'chai';
+import chai, { expect } from 'chai';
 
 import BillingTestHelper from './BillingTestHelper';
 import CentralServerService from './client/CentralServerService';
@@ -15,6 +14,7 @@ import { StatusCodes } from 'http-status-codes';
 import StripeTestHelper from './StripeTestHelper';
 import TestConstants from './client/utils/TestConstants';
 import User from '../../src/types/User';
+import assert from 'assert';
 import chaiSubset from 'chai-subset';
 import config from '../config';
 import global from '../../src/types/GlobalType';
