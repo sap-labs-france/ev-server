@@ -319,12 +319,16 @@ export default class BillingTestHelper {
     return this.chargingStationContext;
   }
 
-  public async initChargingStationContext2TestTimeRestrictions(testMode = 'E', aParticularMoment: moment.Moment) : Promise<ChargingStationContext> {
+  public initChargingStationContext2TestTimeRestrictions() : ChargingStationContext {
     // Charging Station Context
     this.siteContext = this.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
     this.siteAreaContext = this.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC);
     this.chargingStationContext = this.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16 + '-' + ContextDefinition.SITE_CONTEXTS.SITE_BASIC + '-' + ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC);
     assert(!!this.chargingStationContext, 'Charging station context should not be null');
+    return this.chargingStationContext;
+  }
+
+  public async initPricingContext2TestTimeRestrictions(testMode = 'E', aParticularMoment: moment.Moment) : Promise<void> {
     // Take into account the Charging Station location and its timezone
     const timezone = Utils.getTimezone(this.chargingStationContext.getChargingStation().coordinates);
     // The moment has to be cloned to have stable tests results!
@@ -388,7 +392,6 @@ export default class BillingTestHelper {
       };
     }
     await this.createTariff4ChargingStation(testMode, this.chargingStationContext.getChargingStation(), new Date(), dimensions, ConnectorType.COMBO_CCS, restrictions);
-    return this.chargingStationContext;
   }
 
   public async setBillingSystemValidCredentials(activateTransactionBilling = true, immediateBillingAllowed = false) : Promise<StripeBillingIntegration> {
@@ -520,24 +523,29 @@ export default class BillingTestHelper {
     }
   }
 
-  public considerChargingStationTimezone(): Date {
-    const timezone = Utils.getTimezone(this.chargingStationContext.getChargingStation().coordinates);
-    // Our simulated session is supposed to last 2 hours!
-    if (moment().add(2, 'hours').tz(timezone).isoWeekday() !== moment().isoWeekday()) {
-      // The current day is about to change (at charging station location)!
-      const dateToConsider = moment().add(-2, 'hours');
-      console.error(
-        '----------------------------------------------------------------------------\n' +
-        ' Charging Station Timezone: ' + timezone + '\n' +
-        '----------------------------------------------------------------------------\n' +
-        ' Simulate session in the past: ' + dateToConsider.toISOString() + '\n' +
-        '----------------------------------------------------------------------------\n'
-      );
-      assert(dateToConsider.isoWeekday() === moment().isoWeekday(), 'Start date should be on the same day');
-      assert(dateToConsider.add(2, 'hours').isoWeekday() === moment().isoWeekday(), 'End date should be on the same day');
-      return dateToConsider.toDate();
-    }
-    return new Date();
+  public considerChargingStationTimezone(): moment.Moment {
+    // const timezone = Utils.getTimezone(this.chargingStationContext.getChargingStation().coordinates);
+    // // Our simulated session is supposed to last 2 hours!
+    // if (moment().add(2, 'hours').tz(timezone).isoWeekday() !== moment().isoWeekday()) {
+    //   // The current day is about to change (at charging station location)!
+    //   const dateToConsider = moment().add(-2, 'hours');
+    //   console.error(
+    //     '----------------------------------------------------------------------------\n' +
+    //     ' Charging Station Timezone: ' + timezone + '\n' +
+    //     '----------------------------------------------------------------------------\n' +
+    //     ' Simulate session in the past: \n' +
+    //     ' - .toIsoString() .........................: ' + dateToConsider.toISOString() + '\n' +
+    //     ' - .toLocaleString() ......................: ' + dateToConsider.toLocaleString() + '\n' +
+    //     ' - .tz(timezone).toLocaleString() .........: ' + dateToConsider.tz(timezone).toLocaleString() + '\n' +
+    //     ' - .isoWeekday() ..........................: ' + dateToConsider.isoWeekday() + '\n' +
+    //     ' - .tz(timezone).isoWeekday() .............: ' + dateToConsider.tz(timezone).isoWeekday() + '\n' +
+    //     ' - .add(+2h).tz(timezone).isoWeekday() ....: ' + dateToConsider.clone().add(2, 'hours').tz(timezone).isoWeekday() + '\n' +
+    //     '----------------------------------------------------------------------------\n'
+    //   );
+    //   assert(dateToConsider.tz(timezone).isoWeekday() === dateToConsider.clone().add(2, 'hours').tz(timezone).isoWeekday(), 'Start date and End date should be on the same day');
+    //   return dateToConsider;
+    // }
+    return moment();
   }
 
   public async generateTransaction(user: any, expectedStatus = 'Accepted', expectedStartDate = new Date(), withSoftStopSimulation = false): Promise<number> {

@@ -1,8 +1,7 @@
 /* eslint-disable max-len */
 import { BillingChargeInvoiceAction, BillingInvoiceStatus } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType } from '../../src/types/Setting';
-import FeatureToggles, { Feature } from '../../src/utils/FeatureToggles';
-import chai, { assert, expect } from 'chai';
+import chai, { expect } from 'chai';
 
 import BillingTestHelper from './BillingTestHelper';
 import CentralServerService from './client/CentralServerService';
@@ -15,6 +14,7 @@ import { StatusCodes } from 'http-status-codes';
 import StripeTestHelper from './StripeTestHelper';
 import TestConstants from './client/utils/TestConstants';
 import User from '../../src/types/User';
+import assert from 'assert';
 import chaiSubset from 'chai-subset';
 import config from '../config';
 import global from '../../src/types/GlobalType';
@@ -572,7 +572,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       describe('FF + CT', () => {
         // eslint-disable-next-line @typescript-eslint/require-await
         beforeAll(async () => {
-          // Initialize the charing station context
+          // Initialize the charging station context
           await billingTestHelper.initChargingStationContext2TestChargingTime();
         });
 
@@ -591,6 +591,8 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       describe('FF + ENERGY', () => {
         // eslint-disable-next-line @typescript-eslint/require-await
         beforeAll(async () => {
+          // Initialize the charging station context
+          await billingTestHelper.initChargingStationContext2TestChargingTime();
         });
 
         it('should create and bill an invoice with FF + ENERGY', async () => {
@@ -733,7 +735,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
             await billingTestHelper.assignPaymentMethod(userWithBillingData, 'tok_fr');
             // This test is sensitive to the timezone of the charging station - which is set randomly
             const dateToConsider = billingTestHelper.considerChargingStationTimezone();
-            const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext, 'Accepted', dateToConsider);
+            const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext, 'Accepted', dateToConsider.toDate());
             assert(transactionID, 'transactionID should not be null');
             // Check that we have a new invoice with an invoiceID and an invoiceNumber
             await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 33.82);
@@ -741,17 +743,17 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         );
 
         it('should bill an invoice taking the Time Range into account', async () => {
-          const atThatParticularMoment = moment();
-          await billingTestHelper.initChargingStationContext2TestTimeRestrictions('OTHER_HOURS', atThatParticularMoment);
-          await billingTestHelper.initChargingStationContext2TestTimeRestrictions('NEXT_HOUR', atThatParticularMoment);
-          await billingTestHelper.initChargingStationContext2TestTimeRestrictions('FOR_HALF_AN_HOUR', atThatParticularMoment);
+          // This test is sensitive to the timezone of the charging station - which is set randomly
+          billingTestHelper.initChargingStationContext2TestTimeRestrictions();
+          const atThatParticularMoment = billingTestHelper.considerChargingStationTimezone();
+          await billingTestHelper.initPricingContext2TestTimeRestrictions('OTHER_HOURS', atThatParticularMoment);
+          await billingTestHelper.initPricingContext2TestTimeRestrictions('NEXT_HOUR', atThatParticularMoment);
+          await billingTestHelper.initPricingContext2TestTimeRestrictions('FOR_HALF_AN_HOUR', atThatParticularMoment);
           // A tariff applied immediately
           await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
           const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
           await billingTestHelper.assignPaymentMethod(userWithBillingData, 'tok_fr');
-          // This test is sensitive to the timezone of the charging station - which is set randomly
-          const dateToConsider = billingTestHelper.considerChargingStationTimezone();
-          const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext, 'Accepted', dateToConsider);
+          const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext, 'Accepted', atThatParticularMoment.toDate());
           assert(transactionID, 'transactionID should not be null');
           // Check that we have a new invoice with an invoiceID and an invoiceNumber
           await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 59.99);
@@ -760,16 +762,16 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         it(
           'should bill an invoice taking a reverted Time Range into account',
           async () => {
-            const atThatParticularMoment = moment();
-            await billingTestHelper.initChargingStationContext2TestTimeRestrictions('OTHER_HOURS', atThatParticularMoment);
-            await billingTestHelper.initChargingStationContext2TestTimeRestrictions('FROM_23:59', atThatParticularMoment);
+            // This test is sensitive to the timezone of the charging station - which is set randomly
+            billingTestHelper.initChargingStationContext2TestTimeRestrictions();
+            const atThatParticularMoment = billingTestHelper.considerChargingStationTimezone();
+            await billingTestHelper.initPricingContext2TestTimeRestrictions('OTHER_HOURS', atThatParticularMoment);
+            await billingTestHelper.initPricingContext2TestTimeRestrictions('FROM_23:59', atThatParticularMoment);
             // A tariff applied immediately
             await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
             const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
             await billingTestHelper.assignPaymentMethod(userWithBillingData, 'tok_fr');
-            // This test is sensitive to the timezone of the charging station - which is set randomly
-            const dateToConsider = billingTestHelper.considerChargingStationTimezone();
-            const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext, 'Accepted', dateToConsider);
+            const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext, 'Accepted', atThatParticularMoment.toDate());
             assert(transactionID, 'transactionID should not be null');
             // Check that we have a new invoice with an invoiceID and an invoiceNumber
             await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 16.16);
@@ -781,6 +783,8 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       describe('When basic user has a free access', () => {
         // eslint-disable-next-line @typescript-eslint/require-await
         beforeAll(async () => {
+          // Initialize the charging station context
+          await billingTestHelper.initChargingStationContext();
           billingTestHelper.billingImpl = await billingTestHelper.setBillingSystemValidCredentials();
           billingTestHelper.adminUserContext = await billingTestHelper.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
           expect(billingTestHelper.adminUserContext).to.not.be.null;
@@ -821,6 +825,8 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       describe('When basic user does not have a free access', () => {
         // eslint-disable-next-line @typescript-eslint/require-await
         beforeAll(async () => {
+          // Initialize the charging station context
+          await billingTestHelper.initChargingStationContext();
           billingTestHelper.billingImpl = await billingTestHelper.setBillingSystemValidCredentials();
           billingTestHelper.adminUserContext = await billingTestHelper.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
           expect(billingTestHelper.adminUserContext).to.not.be.null;
