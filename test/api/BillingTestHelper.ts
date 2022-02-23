@@ -5,7 +5,7 @@ import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types
 import { ChargePointErrorCode, ChargePointStatus, OCPPStatusNotificationRequest } from '../../src/types/ocpp/OCPPServer';
 import ChargingStation, { ConnectorType } from '../../src/types/ChargingStation';
 import PricingDefinition, { DayOfWeek, PricingDimension, PricingDimensions, PricingEntity, PricingRestriction } from '../../src/types/Pricing';
-import chai, { assert, expect } from 'chai';
+import chai, { expect } from 'chai';
 
 import AsyncTaskStorage from '../../src/storage/mongodb/AsyncTaskStorage';
 import CentralServerService from './client/CentralServerService';
@@ -31,6 +31,7 @@ import { TransactionAction } from '../../src/types/Transaction';
 import TransactionStorage from '../../src/storage/mongodb/TransactionStorage';
 import User from '../../src/types/User';
 import Utils from '../../src/utils/Utils';
+import assert from 'assert';
 import chaiSubset from 'chai-subset';
 import config from '../config';
 import moment from 'moment';
