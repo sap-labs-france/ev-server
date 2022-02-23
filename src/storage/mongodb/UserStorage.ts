@@ -231,6 +231,7 @@ export default class UserStorage {
       costCenter: userToSave.costCenter,
       importedData: userToSave.importedData,
       notificationsActive: userToSave.notificationsActive,
+      authorizationID: userToSave.authorizationID,
       notifications: {
         sendSessionStarted: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendSessionStarted) : false,
         sendOptimalChargeReached: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendOptimalChargeReached) : false,
@@ -539,6 +540,9 @@ export default class UserStorage {
         { 'email': { $regex: params.search, $options: 'i' } },
         { 'plateID': { $regex: params.search, $options: 'i' } }
       ];
+      if (DatabaseUtils.isObjectID(params.search)) {
+        filters.$or.push({ '_id': DatabaseUtils.convertToObjectID(params.search) });
+      }
     }
     // Users
     if (!Utils.isEmptyArray(params.userIDs)) {

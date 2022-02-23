@@ -1,50 +1,49 @@
 import * as CountriesList from 'countries-list';
-
-import ChargingStation, { ChargePoint, Connector, ConnectorType, CurrentType, Voltage } from '../../../../types/ChargingStation';
-import { OCPIAvailableEndpoints, OCPIEndpointVersions } from '../../../../types/ocpi/OCPIEndpoint';
-import { OCPICapability, OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
-import { OCPIConnector, OCPIConnectorFormat, OCPIConnectorType, OCPIPowerType, OCPIVoltage } from '../../../../types/ocpi/OCPIConnector';
-import { OCPILocation, OCPILocationOptions, OCPILocationType, OCPIOpeningTimes } from '../../../../types/ocpi/OCPILocation';
-import { OCPISession, OCPISessionStatus } from '../../../../types/ocpi/OCPISession';
-import { OCPIToken, OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
-import Transaction, { InactivityStatus } from '../../../../types/Transaction';
-
-import AppError from '../../../../exception/AppError';
-import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
-import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
-import Configuration from '../../../../utils/Configuration';
-import Constants from '../../../../utils/Constants';
-import Consumption from '../../../../types/Consumption';
-import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
-import { DataResult } from '../../../../types/DataResult';
-import DbParams from '../../../../types/database/DbParams';
-import { HTTPError } from '../../../../types/HTTPError';
-import Logging from '../../../../utils/Logging';
-import LoggingHelper from '../../../../utils/LoggingHelper';
-import { OCPIBusinessDetails } from '../../../../types/ocpi/OCPIBusinessDetails';
-import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
-import OCPICredential from '../../../../types/ocpi/OCPICredential';
-import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
-import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
-import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
-import OCPIUtils from '../../OCPIUtils';
-import { OcpiSetting } from '../../../../types/Setting';
-import { PricingSource } from '../../../../types/Pricing';
-import RoamingUtils from '../../../../utils/RoamingUtils';
-import { ServerAction } from '../../../../types/Server';
-import SettingStorage from '../../../../storage/mongodb/SettingStorage';
-import Site from '../../../../types/Site';
-import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { StatusCodes } from 'http-status-codes';
-import Tag from '../../../../types/Tag';
-import TagStorage from '../../../../storage/mongodb/TagStorage';
-import Tenant from '../../../../types/Tenant';
-import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
-import User from '../../../../types/User';
-import UserStorage from '../../../../storage/mongodb/UserStorage';
-import Utils from '../../../../utils/Utils';
 import countries from 'i18n-iso-countries';
 import moment from 'moment';
+import AppError from '../../../../exception/AppError';
+import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
+import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
+import SettingStorage from '../../../../storage/mongodb/SettingStorage';
+import SiteStorage from '../../../../storage/mongodb/SiteStorage';
+import TagStorage from '../../../../storage/mongodb/TagStorage';
+import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
+import ChargingStation, { ChargePoint, Connector, ConnectorType, CurrentType, Voltage } from '../../../../types/ChargingStation';
+import Consumption from '../../../../types/Consumption';
+import DbParams from '../../../../types/database/DbParams';
+import { DataResult } from '../../../../types/DataResult';
+import { HTTPError } from '../../../../types/HTTPError';
+import { OCPIBusinessDetails } from '../../../../types/ocpi/OCPIBusinessDetails';
+import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
+import { OCPIConnector, OCPIConnectorFormat, OCPIConnectorType, OCPIPowerType, OCPIVoltage } from '../../../../types/ocpi/OCPIConnector';
+import OCPICredential from '../../../../types/ocpi/OCPICredential';
+import { OCPIAvailableEndpoints, OCPIEndpointVersions } from '../../../../types/ocpi/OCPIEndpoint';
+import { OCPICapability, OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
+import { OCPILocation, OCPILocationOptions, OCPILocationType, OCPIOpeningTimes } from '../../../../types/ocpi/OCPILocation';
+import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
+import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
+import { OCPISession, OCPISessionStatus } from '../../../../types/ocpi/OCPISession';
+import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
+import { OCPIToken, OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
+import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
+import { PricingSource } from '../../../../types/Pricing';
+import { ServerAction } from '../../../../types/Server';
+import { OcpiSetting } from '../../../../types/Setting';
+import Site from '../../../../types/Site';
+import Tag from '../../../../types/Tag';
+import Tenant from '../../../../types/Tenant';
+import Transaction, { InactivityStatus } from '../../../../types/Transaction';
+import User from '../../../../types/User';
+import Configuration from '../../../../utils/Configuration';
+import Constants from '../../../../utils/Constants';
+import Logging from '../../../../utils/Logging';
+import LoggingHelper from '../../../../utils/LoggingHelper';
+import RoamingUtils from '../../../../utils/RoamingUtils';
+import Utils from '../../../../utils/Utils';
+import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
+import OCPIUtils from '../../OCPIUtils';
+
 
 const MODULE_NAME = 'OCPIUtilsService';
 
@@ -94,7 +93,7 @@ export default class OCPIUtilsService {
       tokens.push({
         uid: tag.id,
         type: OCPIUtils.getOCPITokenTypeFromID(tag.id),
-        auth_id: tag.userID,
+        auth_id: tag.id,
         visual_number: tag.visualID,
         issuer: tenant.name,
         valid: !Utils.isNullOrUndefined(tag.user),
@@ -322,10 +321,10 @@ export default class OCPIUtilsService {
     }
   }
 
-  public static async updateTransaction(tenant: Tenant, session: OCPISession, transaction?: Transaction): Promise<void> {
+  public static async updateTransaction(tenant: Tenant, session: OCPISession, action: ServerAction, transaction?: Transaction): Promise<void> {
     if (!OCPIUtilsService.validateSession(session)) {
       throw new AppError({
-        module: MODULE_NAME, method: 'updateTransaction',
+        module: MODULE_NAME, method: 'updateTransaction', action,
         errorCode: StatusCodes.BAD_REQUEST,
         message: 'Session object is invalid',
         detailedMessages: { session },
@@ -343,74 +342,135 @@ export default class OCPIUtilsService {
     if (!transaction) {
       transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant, session.id);
     }
+    // Get the Charging Station
+    const evse = session.location.evses[0];
+    let chargingStation: ChargingStation;
+    if (transaction) {
+      chargingStation = await ChargingStationStorage.getChargingStation(
+        tenant, transaction.chargeBoxID);
+    } else {
+      chargingStation = await ChargingStationStorage.getChargingStationByOcpiLocationEvseUid(
+        tenant, session.location.id, evse.uid);
+    }
+    if (!chargingStation) {
+      throw new AppError({
+        module: MODULE_NAME, method: 'updateTransaction', action,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Charging Station with EVSE ID '${evse.uid}' and Location ID '${session.location.id}' does not exist`,
+        detailedMessages: { session },
+        ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR
+      });
+    }
     // Create Transaction
     if (!transaction) {
-      const user = await UserStorage.getUser(tenant, session.auth_id);
-      if (!user) {
+      // Get the Tag
+      const tag = await TagStorage.getTag(tenant, session.auth_id, { withUser: true });
+      if (!tag) {
         throw new AppError({
-          module: MODULE_NAME, method: 'updateTransaction',
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
+          module: MODULE_NAME, method: 'updateTransaction', action,
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `No User found with ID '${session.auth_id}'`,
+          message: `No Tag has been found with ID '${session.auth_id}'`,
           detailedMessages: { session },
           ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
         });
       }
-      const evse = session.location.evses[0];
-      const chargingStation = await ChargingStationStorage.getChargingStationByOcpiLocationEvseUid(
-        tenant, session.location.id, evse.uid);
-      if (!chargingStation) {
+      // Get User
+      const user = tag.user;
+      if (!user) {
         throw new AppError({
-          module: MODULE_NAME, method: 'updateTransaction',
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
+          module: MODULE_NAME, method: 'updateTransaction', action,
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `Charging Station with EVSE ID '${evse.uid}' and Location ID '${session.location.id}' does not exist`,
+          message: `No User has been found with Tag ID '${session.auth_id}'`,
           detailedMessages: { session },
-          ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR
+          ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
         });
       }
+      // Check Auth ID
+      if (!user.authorizationID) {
+        throw new AppError({
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
+          module: MODULE_NAME, method: 'updateTransaction', action,
+          errorCode: HTTPError.GENERAL_ERROR,
+          actionOnUser: user,
+          message: `User has no Authorization ID, expected '${session.authorization_id}'`,
+          detailedMessages: { session },
+          ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
+        });
+      }
+      if (user.authorizationID !== session.authorization_id) {
+        throw new AppError({
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
+          module: MODULE_NAME, method: 'updateTransaction', action,
+          errorCode: HTTPError.GENERAL_ERROR,
+          actionOnUser: user,
+          message: `Wrong Authorization ID, expected '${user.authorizationID}', got '${session.authorization_id}'`,
+          detailedMessages: { session },
+          ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
+        });
+      }
+      // Get the connector ID
       let connectorId = 1;
       if (evse.connectors && evse.connectors.length === 1) {
         const evseConnectorId = evse.connectors[0].id;
-        for (const connector of chargingStation.connectors) {
-          if (evseConnectorId === connector.id) {
-            connectorId = connector.connectorId;
+        for (const chargingStationConnector of chargingStation.connectors) {
+          if (evseConnectorId === chargingStationConnector.id) {
+            connectorId = chargingStationConnector.connectorId;
           }
         }
       }
+      // Create the Transaction
       transaction = {
         issuer: false,
         userID: user.id,
-        tagID: session.auth_id,
+        tagID: tag.id,
         timestamp: session.start_datetime,
         chargeBoxID: chargingStation.id,
+        companyID: chargingStation.companyID,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
         timezone: Utils.getTimezone(chargingStation.coordinates),
         connectorId: connectorId,
-        meterStart: 0,
-        stateOfCharge: 0,
-        currentStateOfCharge: 0,
-        currentTotalInactivitySecs: 0,
         pricingSource: PricingSource.OCPI,
         currentInactivityStatus: InactivityStatus.INFO,
-        currentInstantWatts: 0,
-        currentConsumptionWh: 0,
         lastConsumption: {
           value: 0,
           timestamp: session.start_datetime
         },
-        signedData: '',
       } as Transaction;
     }
+    // Check
+    if (transaction.stop) {
+      throw new AppError({
+        ...LoggingHelper.getTransactionProperties(transaction),
+        module: MODULE_NAME, method: 'updateTransaction', action,
+        errorCode: HTTPError.GENERAL_ERROR,
+        actionOnUser: transaction.userID,
+        message: `Transaction ID '${transaction.id}' is already stopped`,
+        detailedMessages: { transaction, session, chargingStation },
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
+      });
+    }
+    // Set the connector
+    const connector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
+    if (connector) {
+      connector.status = OCPIUtils.convertOCPISessionStatus2ConnectorStatus(session.status);
+    }
+    // Create the last consumption (first time)
     if (!transaction.lastConsumption) {
       transaction.lastConsumption = {
         value: transaction.meterStart,
         timestamp: transaction.timestamp
       };
     }
+    // Session in the past
     if (moment(session.last_updated).isBefore(transaction.lastConsumption.timestamp)) {
       await Logging.logDebug({
         ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: tenant.id,
-        action: ServerAction.OCPI_PUSH_SESSION,
-        module: MODULE_NAME, method: 'updateTransaction',
+        actionOnUser: transaction.userID,
+        module: MODULE_NAME, method: 'updateTransaction', action,
         message: `Ignore session update session.last_updated < transaction.currentTimestamp for transaction ${transaction.id}`,
         detailedMessages: { session }
       });
@@ -418,12 +478,9 @@ export default class OCPIUtilsService {
     }
     // Create Consumption
     if (session.kwh > 0) {
-      await OCPIUtilsService.computeAndSaveConsumption(tenant, transaction, session);
+      await OCPIUtilsService.computeAndSaveConsumption(tenant, chargingStation, transaction, session);
     }
-    if (!transaction.ocpiData) {
-      transaction.ocpiData = {};
-    }
-    transaction.ocpiData.session = session;
+    transaction.ocpiData = { session };
     transaction.currentTimestamp = session.last_updated;
     transaction.price = session.total_cost;
     transaction.priceUnit = session.currency;
@@ -453,7 +510,7 @@ export default class OCPIUtilsService {
       };
     }
     await TransactionStorage.saveTransaction(tenant, transaction);
-    await this.updateConnector(tenant, transaction);
+    await OCPPUtils.updateChargingStationConnectorRuntimeDataWithTransaction(tenant, chargingStation, transaction, true);
   }
 
   public static async processCdr(tenant: Tenant, cdr: OCPICdr): Promise<void> {
@@ -466,7 +523,8 @@ export default class OCPIUtilsService {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    const transaction: Transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant, cdr.id);
+    // Get Transaction
+    const transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant, cdr.id);
     if (!transaction) {
       throw new AppError({
         module: MODULE_NAME, method: 'processCdr',
@@ -474,6 +532,18 @@ export default class OCPIUtilsService {
         message: `No Transaction found for OCPI CDR ID '${cdr.id}'`,
         detailedMessages: { cdr },
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
+      });
+    }
+    // Get Charging Station
+    const chargingStation = await ChargingStationStorage.getChargingStation(tenant, transaction.chargeBoxID);
+    if (!chargingStation) {
+      throw new AppError({
+        ...LoggingHelper.getTransactionProperties(transaction),
+        module: MODULE_NAME, method: 'processCdr',
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Charging Station does not exist',
+        detailedMessages: { transaction, cdr },
+        ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR
       });
     }
     if (!cdr.total_cost) {
@@ -488,25 +558,22 @@ export default class OCPIUtilsService {
     if (!cdr.total_parking_time) {
       cdr.total_parking_time = 0;
     }
-    transaction.priceUnit = cdr.currency;
-    transaction.price = cdr.total_cost;
-    transaction.roundedPrice = Utils.truncTo(cdr.total_cost, 2);
-    transaction.currentTimestamp = cdr.last_updated;
     transaction.stop = {
-      extraInactivityComputed: false,
+      extraInactivityComputed: true,
       extraInactivitySecs: 0,
-      meterStop: cdr.total_energy * 1000,
+      inactivityStatus: Utils.getInactivityStatusLevel(
+        transaction.chargeBox, transaction.connectorId, Utils.createDecimal(cdr.total_parking_time).mul(3600).toNumber()),
+      meterStop: Utils.createDecimal(cdr.total_energy).mul(1000).toNumber(),
       price: cdr.total_cost,
       priceUnit: cdr.currency,
-      pricingSource: 'ocpi',
+      pricingSource: PricingSource.OCPI,
       roundedPrice: Utils.truncTo(cdr.total_cost, 2),
       stateOfCharge: 0,
       tagID: cdr.auth_id,
       timestamp: cdr.stop_date_time,
-      totalConsumptionWh: cdr.total_energy * 1000,
-      totalDurationSecs: cdr.total_time * 3600,
-      totalInactivitySecs: cdr.total_parking_time * 3600,
-      inactivityStatus: transaction.currentInactivityStatus,
+      totalConsumptionWh: Utils.createDecimal(cdr.total_energy).mul(1000).toNumber(),
+      totalDurationSecs: Utils.createDecimal(cdr.total_time).mul(3600).toNumber(),
+      totalInactivitySecs: Utils.createDecimal(cdr.total_parking_time).mul(3600).toNumber(),
       userID: transaction.userID
     };
     if (!transaction.ocpiData) {
@@ -514,7 +581,7 @@ export default class OCPIUtilsService {
     }
     transaction.ocpiData.cdr = cdr;
     await TransactionStorage.saveTransaction(tenant, transaction);
-    await this.updateConnector(tenant, transaction);
+    await OCPPUtils.updateChargingStationConnectorRuntimeDataWithTransaction(tenant, chargingStation, transaction, true);
   }
 
   public static async updateToken(tenant: Tenant, token: OCPIToken, tag: Tag, emspUser: User): Promise<void> {
@@ -895,39 +962,47 @@ export default class OCPIUtilsService {
     }
   }
 
-  private static async computeAndSaveConsumption(tenant: Tenant, transaction: Transaction, session: OCPISession): Promise<void> {
+  private static async computeAndSaveConsumption(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction, session: OCPISession): Promise<void> {
     const consumptionWh = Utils.createDecimal(session.kwh).mul(1000).minus(Utils.convertToFloat(transaction.lastConsumption.value)).toNumber();
-    const duration = Utils.createDecimal(moment(session.last_updated).diff(transaction.lastConsumption.timestamp, 'milliseconds')).div(1000).toNumber();
-    if (consumptionWh > 0 || duration > 0) {
-      const sampleMultiplier = duration > 0 ? Utils.createDecimal(3600).div(duration).toNumber() : 0;
+    const durationSecs = Utils.createDecimal(moment(session.last_updated).diff(transaction.lastConsumption.timestamp, 'milliseconds')).div(1000).toNumber();
+    if (consumptionWh > 0 || durationSecs > 0) {
+      // Update Transaction
+      const sampleMultiplier = durationSecs > 0 ? Utils.createDecimal(3600).div(durationSecs).toNumber() : 0;
       const currentInstantWatts = consumptionWh > 0 ? Utils.createDecimal(consumptionWh).mul(sampleMultiplier).toNumber() : 0;
       const amount = Utils.createDecimal(session.total_cost).minus(transaction.price).toNumber();
       transaction.currentInstantWatts = currentInstantWatts;
       transaction.currentConsumptionWh = consumptionWh > 0 ? consumptionWh : 0;
       transaction.currentTotalConsumptionWh = Utils.createDecimal(transaction.currentTotalConsumptionWh).plus(transaction.currentConsumptionWh).toNumber();
       if (consumptionWh <= 0) {
-        transaction.currentTotalInactivitySecs = Utils.createDecimal(transaction.currentTotalInactivitySecs).plus(duration).toNumber();
+        transaction.currentTotalInactivitySecs = Utils.createDecimal(transaction.currentTotalInactivitySecs).plus(durationSecs).toNumber();
         transaction.currentInactivityStatus = Utils.getInactivityStatusLevel(
           transaction.chargeBox, transaction.connectorId, transaction.currentTotalInactivitySecs);
       }
+      // Create Consumption
       const consumption: Consumption = {
         transactionId: transaction.id,
         connectorId: transaction.connectorId,
         chargeBoxID: transaction.chargeBoxID,
+        siteAreaID: transaction.siteAreaID,
+        siteID: transaction.siteID,
         userID: transaction.userID,
+        pricingSource: transaction.pricingSource,
         startedAt: new Date(transaction.lastConsumption.timestamp),
         endedAt: new Date(session.last_updated),
         consumptionWh: transaction.currentConsumptionWh,
+        consumptionAmps: Utils.convertWattToAmp(chargingStation, null, transaction.connectorId, transaction.currentConsumptionWh),
         instantWatts: Math.floor(transaction.currentInstantWatts),
-        instantAmps: Math.floor(transaction.currentInstantAmps) ?? Math.floor(transaction.currentInstantWatts / Voltage.VOLTAGE_230),
+        instantAmps: Utils.convertWattToAmp(chargingStation, null, transaction.connectorId, transaction.currentInstantWatts),
         cumulatedConsumptionWh: transaction.currentTotalConsumptionWh,
-        cumulatedConsumptionAmps: Math.floor(transaction.currentTotalConsumptionWh / Voltage.VOLTAGE_230),
+        cumulatedConsumptionAmps: Utils.convertWattToAmp(
+          chargingStation, null, transaction.connectorId, transaction.currentTotalConsumptionWh),
         totalInactivitySecs: transaction.currentTotalInactivitySecs,
         totalDurationSecs: transaction.stop ?
           moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds() :
           moment.duration(moment(transaction.lastConsumption.timestamp).diff(moment(transaction.timestamp))).asSeconds(),
         stateOfCharge: transaction.currentStateOfCharge,
         amount: amount,
+        roundedAmount: Utils.truncTo(amount, 2),
         currencyCode: session.currency,
         cumulatedAmount: session.total_cost
       } as Consumption;
@@ -971,37 +1046,5 @@ export default class OCPIUtilsService {
       return false;
     }
     return true;
-  }
-
-  private static async updateConnector(tenant: Tenant, transaction: Transaction): Promise<void> {
-    const chargingStation = await ChargingStationStorage.getChargingStation(tenant, transaction.chargeBoxID);
-    if (chargingStation && chargingStation.connectors) {
-      for (const connector of chargingStation.connectors) {
-        if (connector.connectorId === transaction.connectorId && connector.currentTransactionID === 0 || connector.currentTransactionID === transaction.id) {
-          if (!transaction.stop) {
-            connector.status = transaction.status;
-            connector.currentTransactionID = transaction.id;
-            connector.currentInactivityStatus = transaction.currentInactivityStatus;
-            connector.currentTagID = transaction.tagID;
-            connector.currentStateOfCharge = transaction.currentStateOfCharge;
-            connector.currentInstantWatts = transaction.currentInstantWatts;
-            connector.currentTotalConsumptionWh = transaction.currentTotalConsumptionWh;
-            connector.currentTransactionDate = transaction.currentTimestamp;
-            connector.currentTotalInactivitySecs = transaction.currentTotalInactivitySecs;
-          } else {
-            connector.status = ChargePointStatus.AVAILABLE;
-            connector.currentTransactionID = 0;
-            connector.currentTransactionDate = null;
-            connector.currentTagID = null;
-            connector.currentTotalConsumptionWh = 0;
-            connector.currentStateOfCharge = 0;
-            connector.currentTotalInactivitySecs = 0;
-            connector.currentInstantWatts = 0;
-            connector.currentInactivityStatus = null;
-          }
-          await ChargingStationStorage.saveChargingStationConnectors(tenant, chargingStation.id, chargingStation.connectors);
-        }
-      }
-    }
   }
 }

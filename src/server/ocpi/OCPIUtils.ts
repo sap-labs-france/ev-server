@@ -27,6 +27,7 @@ import SiteArea from '../../types/SiteArea';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
+import { OCPISessionStatus } from '../../types/ocpi/OCPISession';
 
 
 const MODULE_NAME = 'OCPIUtils';
@@ -342,6 +343,19 @@ export default class OCPIUtils {
         return ChargePointStatus.RESERVED;
       default:
         return ChargePointStatus.UNAVAILABLE;
+    }
+  }
+
+  public static convertOCPISessionStatus2ConnectorStatus(status: OCPISessionStatus): ChargePointStatus {
+    switch (status) {
+      case OCPISessionStatus.PENDING:
+        return ChargePointStatus.PREPARING;
+      case OCPISessionStatus.COMPLETED:
+        return ChargePointStatus.AVAILABLE;
+      case OCPISessionStatus.INVALID:
+        return ChargePointStatus.FAULTED;
+      case OCPISessionStatus.ACTIVE:
+        return ChargePointStatus.CHARGING;
     }
   }
 

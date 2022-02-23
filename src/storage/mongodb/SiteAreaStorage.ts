@@ -221,6 +221,9 @@ export default class SiteAreaStorage {
         { 'address.country': { $regex: params.search, $options: 'i' } },
         { 'ocpiData.location.id': { $regex: params.search, $options: 'im' } },
       ];
+      if (DatabaseUtils.isObjectID(params.search)) {
+        filters.$or.push({ '_id': DatabaseUtils.convertToObjectID(params.search) });
+      }
     }
     // Site Area
     if (!Utils.isEmptyArray(params.siteAreaIDs)) {

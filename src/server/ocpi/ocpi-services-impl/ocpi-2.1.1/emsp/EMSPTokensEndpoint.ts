@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import AppError from '../../../../../exception/AppError';
 import ChargingStationStorage from '../../../../../storage/mongodb/ChargingStationStorage';
 import TagStorage from '../../../../../storage/mongodb/TagStorage';
+import UserStorage from '../../../../../storage/mongodb/UserStorage';
 import { HTTPError } from '../../../../../types/HTTPError';
 import { OCPIAllowed } from '../../../../../types/ocpi/OCPIAuthorizationInfo';
 import OCPIEndpoint from '../../../../../types/ocpi/OCPIEndpoint';
@@ -116,35 +117,48 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
       });
     }
     const tag = await TagStorage.getTag(tenant, tokenID, { withUser: true });
-    if (!tag?.user) {
+    if (!tag) {
+      throw new AppError({
+        action: ServerAction.OCPI_AUTHORIZE_TOKEN,
+        module: MODULE_NAME, method: 'authorizeRequest',
+        errorCode: HTTPError.GENERAL_ERROR,
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR,
+        message: `Unkwnown Tag ID '${tokenID}'`,
+        detailedMessages: { tokenID, location }
+      });
+    }
+    // Check Tag
+    if (!tag.issuer || !tag.active) {
+      return OCPIUtils.success({
+        allowed: OCPIAllowed.NOT_ALLOWED,
+        authorization_id: Utils.generateUUID(), location
+      });
+    }
+    // Check User
+    const user = tag.user;
+    if (!user) {
       throw new AppError({
         action: ServerAction.OCPI_AUTHORIZE_TOKEN,
         module: MODULE_NAME, method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR,
         message: `Unkwnown User for OCPI Token ID '${tokenID}'`,
-        detailedMessages: { tokenID, location }
+        detailedMessages: { tokenID, location, tag }
       });
     }
-    let allowedStatus: OCPIAllowed;
-    if (!tag.issuer) {
-      allowedStatus = OCPIAllowed.NOT_ALLOWED;
-    } else {
-      switch (tag.user.status) {
-        case UserStatus.ACTIVE:
-          allowedStatus = OCPIAllowed.ALLOWED;
-          break;
-        case UserStatus.BLOCKED:
-          allowedStatus = OCPIAllowed.BLOCKED;
-          break;
-        default:
-          allowedStatus = OCPIAllowed.NOT_ALLOWED;
-      }
+    if (user.status !== UserStatus.ACTIVE) {
+      return OCPIUtils.success({
+        allowed: tag.user.status === UserStatus.BLOCKED ? OCPIAllowed.BLOCKED : OCPIAllowed.NOT_ALLOWED,
+        authorization_id: Utils.generateUUID(), location
+      });
     }
+    // Generate and Save Auth ID
+    user.authorizationID = Utils.generateUUID();
+    await UserStorage.saveUser(tenant, user);
     return OCPIUtils.success({
-      allowed: allowedStatus,
-      authorization_id: Utils.generateUUID(),
-      location: location
+      allowed: OCPIAllowed.ALLOWED,
+      authorization_id: user.authorizationID,
+      location
     });
   }
 }

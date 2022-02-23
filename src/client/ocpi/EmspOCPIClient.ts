@@ -228,7 +228,7 @@ export default class EmspOCPIClient extends OCPIClient {
       if (!Utils.isEmptyArray(sessions)) {
         await Promise.map(sessions, async (session: OCPISession) => {
           try {
-            await OCPIUtilsService.updateTransaction(this.tenant, session);
+            await OCPIUtilsService.updateTransaction(this.tenant, session, ServerAction.OCPI_PULL_SESSIONS);
             result.success++;
           } catch (error) {
             result.failure++;
