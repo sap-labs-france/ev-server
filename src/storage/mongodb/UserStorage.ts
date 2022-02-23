@@ -539,6 +539,9 @@ export default class UserStorage {
         { 'email': { $regex: params.search, $options: 'i' } },
         { 'plateID': { $regex: params.search, $options: 'i' } }
       ];
+      if (DatabaseUtils.isObjectID(params.search)) {
+        filters.$or.push({ '_id': DatabaseUtils.convertToObjectID(params.search) });
+      }
     }
     // Users
     if (!Utils.isEmptyArray(params.userIDs)) {

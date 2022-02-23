@@ -341,6 +341,9 @@ export default class SiteStorage {
         { 'address.country': { $regex: params.search, $options: 'i' } },
         { 'ocpiData.location.id': { $regex: params.search, $options: 'im' } },
       ];
+      if (DatabaseUtils.isObjectID(params.search)) {
+        filters.$or.push({ '_id': DatabaseUtils.convertToObjectID(params.search) });
+      }
     }
     // Site Name
     if (params.name) {
