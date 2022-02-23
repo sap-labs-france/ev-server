@@ -231,6 +231,7 @@ export default class UserStorage {
       costCenter: userToSave.costCenter,
       importedData: userToSave.importedData,
       notificationsActive: userToSave.notificationsActive,
+      authorizationID: userToSave.authorizationID,
       notifications: {
         sendSessionStarted: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendSessionStarted) : false,
         sendOptimalChargeReached: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendOptimalChargeReached) : false,

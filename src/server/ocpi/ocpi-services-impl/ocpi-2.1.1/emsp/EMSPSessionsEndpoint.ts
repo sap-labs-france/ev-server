@@ -95,7 +95,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
         detailedMessages: { sessionID, session }
       });
     }
-    await OCPIUtilsService.updateTransaction(tenant, session);
+    await OCPIUtilsService.updateTransaction(tenant, session, ServerAction.OCPI_PUT_SESSION);
     return OCPIUtils.success({});
   }
 
@@ -129,7 +129,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
     // Merge
     _.merge(transaction.ocpiData.session, req.body);
     // Update
-    await OCPIUtilsService.updateTransaction(tenant, transaction.ocpiData.session, transaction);
+    await OCPIUtilsService.updateTransaction(tenant, transaction.ocpiData.session, ServerAction.OCPI_PATCH_SESSION, transaction);
     return OCPIUtils.success({});
   }
 }

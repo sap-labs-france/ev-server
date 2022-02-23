@@ -69,7 +69,7 @@ export default class TransactionStorage {
       priceUnit: transactionToSave.priceUnit,
       pricingSource: transactionToSave.pricingSource,
       pricingModel: transactionToSave.pricingModel,
-      stateOfCharge: transactionToSave.stateOfCharge,
+      stateOfCharge: Utils.convertToInt(transactionToSave.stateOfCharge),
       timezone: transactionToSave.timezone,
       signedData: transactionToSave.signedData,
       numberOfMeterValues: Utils.convertToInt(transactionToSave.numberOfMeterValues),
