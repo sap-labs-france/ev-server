@@ -538,8 +538,8 @@ export default class OCPIUtilsService {
     const chargingStation = await ChargingStationStorage.getChargingStation(tenant, transaction.chargeBoxID);
     if (!chargingStation) {
       throw new AppError({
+        ...LoggingHelper.getTransactionProperties(transaction),
         module: MODULE_NAME, method: 'processCdr',
-        chargingStationID: transaction.chargeBoxID,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Charging Station does not exist',
         detailedMessages: { transaction, cdr },
@@ -558,25 +558,22 @@ export default class OCPIUtilsService {
     if (!cdr.total_parking_time) {
       cdr.total_parking_time = 0;
     }
-    transaction.priceUnit = cdr.currency;
-    transaction.price = cdr.total_cost;
-    transaction.roundedPrice = Utils.truncTo(cdr.total_cost, 2);
-    transaction.currentTimestamp = cdr.last_updated;
     transaction.stop = {
-      extraInactivityComputed: false,
+      extraInactivityComputed: true,
       extraInactivitySecs: 0,
-      meterStop: cdr.total_energy * 1000,
+      inactivityStatus: Utils.getInactivityStatusLevel(
+        transaction.chargeBox, transaction.connectorId, Utils.createDecimal(cdr.total_parking_time).mul(3600).toNumber()),
+      meterStop: Utils.createDecimal(cdr.total_energy).mul(1000).toNumber(),
       price: cdr.total_cost,
       priceUnit: cdr.currency,
-      pricingSource: 'ocpi',
+      pricingSource: PricingSource.OCPI,
       roundedPrice: Utils.truncTo(cdr.total_cost, 2),
       stateOfCharge: 0,
       tagID: cdr.auth_id,
       timestamp: cdr.stop_date_time,
-      totalConsumptionWh: cdr.total_energy * 1000,
-      totalDurationSecs: cdr.total_time * 3600,
-      totalInactivitySecs: cdr.total_parking_time * 3600,
-      inactivityStatus: transaction.currentInactivityStatus,
+      totalConsumptionWh: Utils.createDecimal(cdr.total_energy).mul(1000).toNumber(),
+      totalDurationSecs: Utils.createDecimal(cdr.total_time).mul(3600).toNumber(),
+      totalInactivitySecs: Utils.createDecimal(cdr.total_parking_time).mul(3600).toNumber(),
       userID: transaction.userID
     };
     if (!transaction.ocpiData) {
