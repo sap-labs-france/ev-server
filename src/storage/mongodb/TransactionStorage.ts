@@ -371,7 +371,8 @@ export default class TransactionStorage {
         { '_id': Utils.convertToInt(params.search) },
         { 'tagID': { $regex: params.search, $options: 'i' } },
         { 'chargeBoxID': { $regex: params.search, $options: 'i' } },
-        { 'ocpiData.session.authorization_id': { $regex: params.search, $options: 'i' } }
+        { 'ocpiData.session.id': params.search },
+        { 'ocpiData.session.authorization_id': params.search },
       ];
     }
     // OCPI ID
