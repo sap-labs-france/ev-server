@@ -94,7 +94,7 @@ export default class OCPIUtilsService {
       tokens.push({
         uid: tag.id,
         type: OCPIUtils.getOCPITokenTypeFromID(tag.id),
-        auth_id: tag.userID,
+        auth_id: tag.id,
         visual_number: tag.visualID,
         issuer: tenant.name,
         valid: !Utils.isNullOrUndefined(tag.user),
