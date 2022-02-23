@@ -367,6 +367,7 @@ export default class OCPIUtilsService {
       const tag = await TagStorage.getTag(tenant, session.auth_id, { withUser: true });
       if (!tag) {
         throw new AppError({
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
           module: MODULE_NAME, method: 'updateTransaction', action,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `No Tag has been found with ID '${session.auth_id}'`,
@@ -378,6 +379,7 @@ export default class OCPIUtilsService {
       const user = tag.user;
       if (!user) {
         throw new AppError({
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
           module: MODULE_NAME, method: 'updateTransaction', action,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `No User has been found with Tag ID '${session.auth_id}'`,
@@ -388,6 +390,7 @@ export default class OCPIUtilsService {
       // Check Auth ID
       if (!user.authorizationID) {
         throw new AppError({
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
           module: MODULE_NAME, method: 'updateTransaction', action,
           errorCode: HTTPError.GENERAL_ERROR,
           actionOnUser: user,
@@ -398,6 +401,7 @@ export default class OCPIUtilsService {
       }
       if (user.authorizationID !== session.authorization_id) {
         throw new AppError({
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
           module: MODULE_NAME, method: 'updateTransaction', action,
           errorCode: HTTPError.GENERAL_ERROR,
           actionOnUser: user,
@@ -419,7 +423,7 @@ export default class OCPIUtilsService {
       // Create the Transaction
       transaction = {
         issuer: false,
-        userID: tag.user.id,
+        userID: user.id,
         tagID: tag.id,
         timestamp: session.start_datetime,
         chargeBoxID: chargingStation.id,
@@ -435,6 +439,18 @@ export default class OCPIUtilsService {
           timestamp: session.start_datetime
         },
       } as Transaction;
+    }
+    // Check
+    if (transaction.stop) {
+      throw new AppError({
+        ...LoggingHelper.getTransactionProperties(transaction),
+        module: MODULE_NAME, method: 'updateTransaction', action,
+        errorCode: HTTPError.GENERAL_ERROR,
+        actionOnUser: transaction.userID,
+        message: `Transaction ID '${transaction.id}' is already stopped`,
+        detailedMessages: { transaction, session, chargingStation },
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
+      });
     }
     // Set the connector
     const connector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
@@ -453,6 +469,7 @@ export default class OCPIUtilsService {
       await Logging.logDebug({
         ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: tenant.id,
+        actionOnUser: transaction.userID,
         module: MODULE_NAME, method: 'updateTransaction', action,
         message: `Ignore session update session.last_updated < transaction.currentTimestamp for transaction ${transaction.id}`,
         detailedMessages: { session }
