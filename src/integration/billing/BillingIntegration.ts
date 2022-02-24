@@ -1,19 +1,22 @@
-import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
+import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser } from '../../types/Billing';
+import Tenant, { TenantComponents } from '../../types/Tenant';
 import Transaction, { StartTransactionErrorCode } from '../../types/Transaction';
 import User, { UserStatus } from '../../types/User';
 
 import BackendError from '../../exception/BackendError';
 import { BillingSettings } from '../../types/Setting';
 import BillingStorage from '../../storage/mongodb/BillingStorage';
+import ChargingStation from '../../types/ChargingStation';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import { Decimal } from 'decimal.js';
 import Logging from '../../utils/Logging';
+import LoggingHelper from '../../utils/LoggingHelper';
 import NotificationHandler from '../../notification/NotificationHandler';
 import { Promise } from 'bluebird';
 import { Request } from 'express';
 import { ServerAction } from '../../types/Server';
-import Tenant from '../../types/Tenant';
+import SiteArea from '../../types/SiteArea';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
@@ -21,7 +24,6 @@ import Utils from '../../utils/Utils';
 import moment from 'moment';
 
 const MODULE_NAME = 'BillingIntegration';
-
 export default abstract class BillingIntegration {
   // Production Mode is set to true when the target account is a live one!
   protected productionMode = false;
@@ -162,9 +164,9 @@ export default abstract class BillingIntegration {
         // Send link to the user using our notification framework (link to the front-end + download)
         const tenant = await TenantStorage.getTenant(this.tenant.id);
         // Stripe saves amount in cents
-        const decimInvoiceAmount = new Decimal(billingInvoice.amount).div(100);
-        // Format amunt with currency symbol depending on locale
-        const invoiceAmount = new Intl.NumberFormat(Utils.convertLocaleForCurrency(billingInvoice.user.locale), { style: 'currency', currency: billingInvoice.currency.toUpperCase() }).format(decimInvoiceAmount.toNumber());
+        const invoiceAmountAsDecimal = new Decimal(billingInvoice.amount).div(100);
+        // Format amount with currency symbol depending on locale
+        const invoiceAmount = new Intl.NumberFormat(Utils.convertLocaleForCurrency(billingInvoice.user.locale), { style: 'currency', currency: billingInvoice.currency.toUpperCase() }).format(invoiceAmountAsDecimal.toNumber());
         // Send async notification
         void NotificationHandler.sendBillingNewInvoiceNotification(
           this.tenant,
@@ -228,17 +230,20 @@ export default abstract class BillingIntegration {
     }
   }
 
-  public checkStartTransaction(transaction: Transaction): void {
+  public checkStartTransaction(transaction: Transaction, chargingStation: ChargingStation, siteArea: SiteArea): boolean {
+    if (!this.settings.billing.isTransactionBillingActivated) {
+      return false;
+    }
     // Check User
     if (!transaction.userID || !transaction.user) {
       throw new BackendError({
-        message: 'User is not provided',
+        message: 'User ID is not provided',
         module: MODULE_NAME,
         method: 'checkStartTransaction',
         action: ServerAction.BILLING_TRANSACTION
       });
     }
-    // Check Billing Data (only in Live Mode)
+    // Check Billing Data
     if (!transaction.user?.billingData?.customerID) {
       throw new BackendError({
         message: 'User has no billing data or no customer ID',
@@ -247,18 +252,102 @@ export default abstract class BillingIntegration {
         action: ServerAction.BILLING_TRANSACTION
       });
     }
+    if (!chargingStation) {
+      throw new BackendError({
+        message: 'The charging station is mandatory to start a transaction',
+        module: MODULE_NAME,
+        method: 'checkStartTransaction',
+        action: ServerAction.BILLING_TRANSACTION
+      });
+    }
+    if (Utils.isTenantComponentActive(this.tenant, TenantComponents.ORGANIZATION)) {
+      // Check for the Site Area
+      if (!siteArea) {
+        throw new BackendError({
+          message: 'The site area is mandatory to start a transaction',
+          module: MODULE_NAME,
+          method: 'checkStartTransaction',
+          action: ServerAction.BILLING_TRANSACTION
+        });
+      }
+      if (!siteArea.accessControl) {
+        return false;
+      }
+    }
+    // Check Free Access
+    if (transaction.user.freeAccess) {
+      return false;
+    }
+    return true;
   }
 
-  private async _getUsersWithNoBillingData(): Promise<User[]> {
-    const newUsers = await UserStorage.getUsers(this.tenant,
-      {
-        statuses: [UserStatus.ACTIVE],
-        notSynchronizedBillingData: true
-      }, Constants.DB_PARAMS_MAX_LIMIT);
-    if (newUsers.count > 0) {
-      return newUsers.result;
+  protected async updateTransactionsBillingData(billingInvoice: BillingInvoice): Promise<void> {
+    if (!billingInvoice.sessions) {
+      // This should not happen - but it happened once!
+      throw new Error(`Unexpected situation - Invoice ${billingInvoice.id} has no sessions attached to it`);
     }
-    return [];
+    await Promise.all(billingInvoice.sessions.map(async (session) => {
+      const transactionID = session.transactionID;
+      try {
+        const transaction = await TransactionStorage.getTransaction(this.tenant, Number(transactionID));
+        // Update Billing Data
+        if (transaction?.billingData?.stop) {
+          transaction.billingData.stop.invoiceStatus = billingInvoice.status;
+          transaction.billingData.stop.invoiceNumber = billingInvoice.number;
+          transaction.billingData.lastUpdate = new Date();
+          // Save
+          await TransactionStorage.saveTransactionBillingData(this.tenant, transaction.id, transaction.billingData);
+        }
+      } catch (error) {
+        // Catch stripe errors and send the information back to the client
+        await Logging.logError({
+          tenantID: this.tenant.id,
+          action: ServerAction.BILLING_CHARGE_INVOICE,
+          actionOnUser: billingInvoice.user,
+          module: MODULE_NAME, method: 'updateTransactionsBillingData',
+          message: `Failed to update transaction billing data - transaction: ${transactionID}`,
+          detailedMessages: { error: error.stack }
+        });
+      }
+    }));
+  }
+
+  protected async checkBillingDataThreshold(transaction: Transaction): Promise<boolean> {
+    // Do not bill suspicious StopTransaction events
+    if (!Utils.isDevelopmentEnv()) {
+    // Suspicious StopTransaction may occur after a 'Housing temperature approaching limit' error on some charging stations
+      const timeSpent = this.computeTimeSpentInSeconds(transaction);
+      // TODO - make it part of the pricing or billing settings!
+      if (timeSpent < 60 /* seconds */ || transaction.stop.totalConsumptionWh < 1000 /* 1kWh */) {
+        await Logging.logWarning({
+          ...LoggingHelper.getTransactionProperties(transaction),
+          tenantID: this.tenant.id,
+          user: transaction.userID,
+          action: ServerAction.BILLING_TRANSACTION,
+          module: MODULE_NAME, method: 'stopTransaction',
+          message: `Transaction data is suspicious - billing operation has been aborted - transaction ID: ${transaction.id}`,
+        });
+        // Abort the billing process - thresholds are not met!
+        return false;
+      }
+    }
+    // billing data sounds correct
+    return true;
+  }
+
+  protected computeTimeSpentInSeconds(transaction: Transaction): number {
+    let totalDuration: number;
+    if (!transaction.stop) {
+      totalDuration = moment.duration(moment(transaction.lastConsumption.timestamp).diff(moment(transaction.timestamp))).asSeconds();
+    } else {
+      totalDuration = moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
+    }
+    return totalDuration;
+  }
+
+  protected convertTimeSpentToString(transaction: Transaction): string {
+    const totalDuration = this.computeTimeSpentInSeconds(transaction);
+    return moment.duration(totalDuration, 's').format('h[h]mm', { trim: false });
   }
 
   private async _synchronizeUser(user: User, forceMode = false): Promise<BillingUser> {
@@ -468,10 +557,10 @@ export default abstract class BillingIntegration {
     // Filter the invoice status based on the billing settings
     let invoiceStatus;
     if (this.settings.billing?.periodicBillingAllowed) {
-      // Let's finalize DRAFT invoices and trigger a payment attemnpt for unpaid invoices as well
+      // Let's finalize DRAFT invoices and trigger a payment attempt for unpaid invoices as well
       invoiceStatus = [ BillingInvoiceStatus.DRAFT, BillingInvoiceStatus.OPEN ];
     } else {
-      // Let's trigger a new payment attemnpt for unpaid invoices
+      // Let's trigger a new payment attempt for unpaid invoices
       invoiceStatus = [ BillingInvoiceStatus.OPEN ];
     }
     // Now return the query parameters

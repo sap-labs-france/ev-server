@@ -727,6 +727,8 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           async () => {
             await billingTestHelper.initChargingStationContext2TestDaysOfTheWeek('TODAY');
             await billingTestHelper.initChargingStationContext2TestDaysOfTheWeek('OTHER_DAYS');
+            // Check the charging station timezone
+            billingTestHelper.checkTimezone();
             // A tariff applied immediately
             await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
             const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
@@ -743,6 +745,8 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           await billingTestHelper.initChargingStationContext2TestTimeRestrictions('OTHER_HOURS', atThatParticularMoment);
           await billingTestHelper.initChargingStationContext2TestTimeRestrictions('NEXT_HOUR', atThatParticularMoment);
           await billingTestHelper.initChargingStationContext2TestTimeRestrictions('FOR_HALF_AN_HOUR', atThatParticularMoment);
+          // Check the charging station timezone
+          billingTestHelper.checkTimezone();
           // A tariff applied immediately
           await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
           const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
@@ -759,6 +763,8 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
             const atThatParticularMoment = moment();
             await billingTestHelper.initChargingStationContext2TestTimeRestrictions('OTHER_HOURS', atThatParticularMoment);
             await billingTestHelper.initChargingStationContext2TestTimeRestrictions('FROM_23:59', atThatParticularMoment);
+            // Check the charging station timezone
+            billingTestHelper.checkTimezone();
             // A tariff applied immediately
             await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
             const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
@@ -775,6 +781,8 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       describe('When basic user has a free access', () => {
         // eslint-disable-next-line @typescript-eslint/require-await
         beforeAll(async () => {
+          // Initialize the charging station context
+          await billingTestHelper.initChargingStationContext();
           billingTestHelper.billingImpl = await billingTestHelper.setBillingSystemValidCredentials();
           billingTestHelper.adminUserContext = await billingTestHelper.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
           expect(billingTestHelper.adminUserContext).to.not.be.null;
@@ -815,6 +823,8 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       describe('When basic user does not have a free access', () => {
         // eslint-disable-next-line @typescript-eslint/require-await
         beforeAll(async () => {
+          // Initialize the charging station context
+          await billingTestHelper.initChargingStationContext();
           billingTestHelper.billingImpl = await billingTestHelper.setBillingSystemValidCredentials();
           billingTestHelper.adminUserContext = await billingTestHelper.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
           expect(billingTestHelper.adminUserContext).to.not.be.null;

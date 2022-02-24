@@ -8,6 +8,7 @@ import PricingDefinition, { DayOfWeek, PricingDimension, PricingDimensions, Pric
 import chai, { expect } from 'chai';
 
 import AsyncTaskStorage from '../../src/storage/mongodb/AsyncTaskStorage';
+import BillingFacade from '../../src/integration/billing/BillingFacade';
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
 import Constants from '../../src/utils/Constants';
@@ -17,7 +18,6 @@ import Cypher from '../../src/utils/Cypher';
 import { DataResult } from '../../src/types/DataResult';
 import Decimal from 'decimal.js';
 import LoggingStorage from '../../src/storage/mongodb/LoggingStorage';
-import OCPPUtils from '../../src/server/ocpp/utils/OCPPUtils';
 import SiteAreaContext from './context/SiteAreaContext';
 import SiteContext from './context/SiteContext';
 import { StatusCodes } from 'http-status-codes';
@@ -27,14 +27,13 @@ import { TenantComponents } from '../../src/types/Tenant';
 import TenantContext from './context/TenantContext';
 import TestConstants from './client/utils/TestConstants';
 import TestUtils from './TestUtils';
-import { TransactionAction } from '../../src/types/Transaction';
 import TransactionStorage from '../../src/storage/mongodb/TransactionStorage';
 import User from '../../src/types/User';
 import Utils from '../../src/utils/Utils';
 import assert from 'assert';
 import chaiSubset from 'chai-subset';
 import config from '../config';
-import moment from 'moment';
+import moment from 'moment-timezone';
 import responseHelper from '../helpers/responseHelper';
 
 chai.use(chaiSubset);
@@ -319,6 +318,13 @@ export default class BillingTestHelper {
     return this.chargingStationContext;
   }
 
+  public checkTimezone(): void {
+    const timezone = Utils.getTimezone(this.chargingStationContext.getChargingStation().coordinates);
+    // Simulated sessions last 2 hours - Some tests cannot work when the day is about to change!
+    assert(moment().tz(timezone).isoWeekday() === moment().add(2, 'hours').tz(timezone).isoWeekday(),
+      'Timezone is set  to ' + timezone + ' - test execution can not work in that context');
+  }
+
   public async initChargingStationContext2TestTimeRestrictions(testMode = 'E', aParticularMoment: moment.Moment) : Promise<ChargingStationContext> {
     // Charging Station Context
     this.siteContext = this.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
@@ -599,7 +605,7 @@ export default class BillingTestHelper {
         transaction = await TransactionStorage.getTransaction(tenant, transactionId, { withUser: true, withChargingStation: true });
         transaction.stop.extraInactivityComputed = true;
         transaction.stop.extraInactivitySecs = 0;
-        await OCPPUtils.processTransactionBilling(tenant, transaction, TransactionAction.END);
+        await BillingFacade.processEndTransaction(tenant, transaction);
       } else {
         // #end
         const stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate.toDate());

@@ -64,7 +64,11 @@ export default class UserRouter {
 
   private buildRouteUserDefaultCarTag(): void {
     this.router.get(`/${ServerRoute.REST_USER_DEFAULT_TAG_CAR}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.query.ID = req.params.id;
+      // TODO: Backward compatibility issue - remove it as soon as possible
+      if (!req.query.UserID) {
+        // UserID was passed as an URL parameter - URL /:id/ pattern was not resolved properly client-side!
+        req.query.UserID = req.params.id;
+      }
       await RouterUtils.handleServerAction(UserService.handleGetUserDefaultTagCar.bind(this), ServerAction.USER_DEFAULT_TAG_CAR, req, res, next);
     });
   }
