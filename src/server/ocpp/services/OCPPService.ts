@@ -8,6 +8,7 @@ import Transaction, { InactivityStatus, TransactionAction } from '../../../types
 import { Action } from '../../../types/Authorization';
 import Authorizations from '../../../authorization/Authorizations';
 import BackendError from '../../../exception/BackendError';
+import BillingFacade from '../../../integration/billing/BillingFacade';
 import CarConnectorFactory from '../../../integration/car-connector/CarConnectorFactory';
 import CarStorage from '../../../storage/mongodb/CarStorage';
 import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
@@ -217,7 +218,7 @@ export default class OCPPService {
           // Pricing
           await OCPPUtils.processTransactionPricing(tenant, transaction, chargingStation, consumption, TransactionAction.UPDATE);
           // Billing
-          await OCPPUtils.processTransactionBilling(tenant, transaction, TransactionAction.UPDATE);
+          await BillingFacade.processUpdateTransaction(tenant, transaction, transaction.user);
         }
         // Save
         await ConsumptionStorage.saveConsumption(tenant, consumption);
@@ -382,7 +383,7 @@ export default class OCPPService {
       const firstConsumption = await OCPPUtils.createFirstConsumption(tenant, chargingStation, newTransaction);
       await OCPPUtils.processTransactionPricing(tenant, newTransaction, chargingStation, firstConsumption, TransactionAction.START);
       // Billing
-      await OCPPUtils.processTransactionBilling(tenant, newTransaction, TransactionAction.START);
+      await BillingFacade.processStartTransaction(tenant, newTransaction, chargingStation, chargingStation.siteArea, user);
       // Roaming
       await OCPPUtils.processTransactionRoaming(tenant, newTransaction, chargingStation, chargingStation.siteArea, tag, TransactionAction.START);
       // Save it
@@ -489,7 +490,7 @@ export default class OCPPService {
       // Update Transaction with Stop Transaction and Stop MeterValues
       OCPPUtils.updateTransactionWithStopTransaction(transaction, chargingStation, stopTransaction, user, alternateUser, tagID, isSoftStop);
       // Bill
-      await OCPPUtils.processTransactionBilling(tenant, transaction, TransactionAction.STOP);
+      await BillingFacade.processStopTransaction(tenant, transaction, transaction.user);
       // Roaming
       await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, chargingStation.siteArea, transaction.tag, TransactionAction.STOP);
       // Save the transaction
@@ -917,7 +918,7 @@ export default class OCPPService {
     if (transaction.stop?.extraInactivityComputed) {
       transactionUpdated = true;
       // Billing - Start the asynchronous billing flow
-      await OCPPUtils.processTransactionBilling(tenant, transaction, TransactionAction.END);
+      await BillingFacade.processEndTransaction(tenant, transaction);
     }
     return transactionUpdated;
   }
@@ -1950,7 +1951,8 @@ export default class OCPPService {
         detailedMessages: { meterValues }
       });
     }
-    const transaction = await TransactionStorage.getTransaction(tenant, meterValues.transactionId, { withUser: true, withTag: true, withCar: true });
+    const transaction = await TransactionStorage.getTransaction(
+      tenant, meterValues.transactionId, { withUser: true, withTag: true, withCar: true });
     if (!transaction) {
       // Abort the ongoing Transaction
       if (meterValues.transactionId) {
