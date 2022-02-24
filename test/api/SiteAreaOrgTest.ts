@@ -499,7 +499,7 @@ describe('Site Area', () => {
 
     describe('Sub Site Area Tests', () => {
 
-      before(async () => {
+      beforeAll(async () => {
         login(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
         // Create the entity
         testData.newSiteArea = await testData.userService.createEntity(
