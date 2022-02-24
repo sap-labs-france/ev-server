@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import AppError from '../../../../../exception/AppError';
 import ChargingStationStorage from '../../../../../storage/mongodb/ChargingStationStorage';
 import TagStorage from '../../../../../storage/mongodb/TagStorage';
+import UserStorage from '../../../../../storage/mongodb/UserStorage';
 import { HTTPError } from '../../../../../types/HTTPError';
 import { OCPIAllowed } from '../../../../../types/ocpi/OCPIAuthorizationInfo';
 import OCPIEndpoint from '../../../../../types/ocpi/OCPIEndpoint';
@@ -134,7 +135,8 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
       });
     }
     // Check User
-    if (!tag.user) {
+    const user = tag.user;
+    if (!user) {
       throw new AppError({
         action: ServerAction.OCPI_AUTHORIZE_TOKEN,
         module: MODULE_NAME, method: 'authorizeRequest',
@@ -144,15 +146,19 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         detailedMessages: { tokenID, location, tag }
       });
     }
-    if (tag.user.status !== UserStatus.ACTIVE) {
+    if (user.status !== UserStatus.ACTIVE) {
       return OCPIUtils.success({
         allowed: tag.user.status === UserStatus.BLOCKED ? OCPIAllowed.BLOCKED : OCPIAllowed.NOT_ALLOWED,
         authorization_id: Utils.generateUUID(), location
       });
     }
+    // Generate and Save Auth ID
+    user.authorizationID = Utils.generateUUID();
+    await UserStorage.saveUser(tenant, user);
     return OCPIUtils.success({
       allowed: OCPIAllowed.ALLOWED,
-      authorization_id: Utils.generateUUID(), location
+      authorization_id: user.authorizationID,
+      location
     });
   }
 }

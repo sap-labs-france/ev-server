@@ -1,8 +1,7 @@
 /* eslint-disable max-len */
 import { BillingChargeInvoiceAction, BillingInvoiceStatus } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType } from '../../src/types/Setting';
-import FeatureToggles, { Feature } from '../../src/utils/FeatureToggles';
-import chai, { assert, expect } from 'chai';
+import chai, { expect } from 'chai';
 
 import BillingTestHelper from './BillingTestHelper';
 import CentralServerService from './client/CentralServerService';
@@ -15,6 +14,7 @@ import { StatusCodes } from 'http-status-codes';
 import StripeTestHelper from './StripeTestHelper';
 import TestConstants from './client/utils/TestConstants';
 import User from '../../src/types/User';
+import assert from 'assert';
 import chaiSubset from 'chai-subset';
 import config from '../config';
 import global from '../../src/types/GlobalType';
@@ -727,6 +727,8 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           async () => {
             await billingTestHelper.initChargingStationContext2TestDaysOfTheWeek('TODAY');
             await billingTestHelper.initChargingStationContext2TestDaysOfTheWeek('OTHER_DAYS');
+            // Check the charging station timezone
+            billingTestHelper.checkTimezone();
             // A tariff applied immediately
             await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
             const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
@@ -743,6 +745,8 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           await billingTestHelper.initChargingStationContext2TestTimeRestrictions('OTHER_HOURS', atThatParticularMoment);
           await billingTestHelper.initChargingStationContext2TestTimeRestrictions('NEXT_HOUR', atThatParticularMoment);
           await billingTestHelper.initChargingStationContext2TestTimeRestrictions('FOR_HALF_AN_HOUR', atThatParticularMoment);
+          // Check the charging station timezone
+          billingTestHelper.checkTimezone();
           // A tariff applied immediately
           await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
           const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
@@ -759,6 +763,8 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
             const atThatParticularMoment = moment();
             await billingTestHelper.initChargingStationContext2TestTimeRestrictions('OTHER_HOURS', atThatParticularMoment);
             await billingTestHelper.initChargingStationContext2TestTimeRestrictions('FROM_23:59', atThatParticularMoment);
+            // Check the charging station timezone
+            billingTestHelper.checkTimezone();
             // A tariff applied immediately
             await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
             const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);

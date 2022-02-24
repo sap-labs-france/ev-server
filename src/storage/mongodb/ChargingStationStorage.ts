@@ -175,6 +175,7 @@ export default class ChargingStationStorage {
     if (params.search) {
       filters.$or = [
         { _id: { $regex: params.search, $options: 'im' } },
+        { _id: params.search },
         { 'ocpiData.evses.uid': { $regex: params.search, $options: 'im' } },
         { 'ocpiData.evses.location_id': { $regex: params.search, $options: 'im' } },
         { chargePointModel: { $regex: params.search, $options: 'im' } },

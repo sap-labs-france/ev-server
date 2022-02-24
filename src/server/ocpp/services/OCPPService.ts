@@ -234,11 +234,11 @@ export default class OCPPService {
       // Save Transaction
       await TransactionStorage.saveTransaction(tenant, transaction);
       // Update Charging Station
-      await this.updateChargingStationWithTransaction(tenant, chargingStation, transaction);
-      // Handle End Of charge
-      await this.checkNotificationEndOfCharge(tenant, chargingStation, transaction);
+      await OCPPUtils.updateChargingStationConnectorRuntimeDataWithTransaction(tenant, chargingStation, transaction);
       // Save Charging Station
       await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
+      // Handle End Of charge
+      await this.checkNotificationEndOfCharge(tenant, chargingStation, transaction);
       // First Meter Value -> Trigger Smart Charging to adjust the limit
       if (transaction.numberOfMeterValues === 1 && transaction.phasesUsed) {
         // Yes: Trigger Smart Charging
@@ -389,7 +389,7 @@ export default class OCPPService {
       // Save it
       await TransactionStorage.saveTransaction(tenant, newTransaction);
       // Clean up
-      await this.updateChargingStationConnectorWithTransaction(tenant, newTransaction, chargingStation, user);
+      await OCPPUtils.updateChargingStationConnectorRuntimeDataWithTransaction(tenant, chargingStation, newTransaction);
       // Save
       await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
       // Notify
@@ -1190,38 +1190,6 @@ export default class OCPPService {
     }
   }
 
-  private async updateChargingStationWithTransaction(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction) {
-    // Get the connector
-    const foundConnector: Connector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
-    // Active transaction?
-    if (!transaction.stop && foundConnector) {
-      // Set consumption
-      foundConnector.currentInstantWatts = transaction.currentInstantWatts;
-      foundConnector.currentTotalConsumptionWh = transaction.currentTotalConsumptionWh;
-      foundConnector.currentTotalInactivitySecs = transaction.currentTotalInactivitySecs;
-      foundConnector.currentInactivityStatus = Utils.getInactivityStatusLevel(
-        transaction.chargeBox, transaction.connectorId, transaction.currentTotalInactivitySecs);
-      foundConnector.currentStateOfCharge = transaction.currentStateOfCharge;
-      foundConnector.currentTagID = transaction.tagID;
-      // Set Transaction ID
-      foundConnector.currentTransactionID = transaction.id;
-      foundConnector.currentUserID = transaction.userID;
-      const instantPower = Utils.truncTo(Utils.createDecimal(foundConnector.currentInstantWatts).div(1000).toNumber(), 3);
-      const totalConsumption = Utils.truncTo(Utils.createDecimal(foundConnector.currentTotalConsumptionWh).div(1000).toNumber(), 3);
-      await Logging.logInfo({
-        ...LoggingHelper.getChargingStationProperties(chargingStation),
-        tenantID: tenant.id,
-        module: MODULE_NAME, method: 'updateChargingStationWithTransaction',
-        action: ServerAction.CONSUMPTION,
-        user: transaction.userID,
-        message: `${Utils.buildConnectorInfo(foundConnector.connectorId, foundConnector.currentTransactionID)} Instant: ${instantPower} kW, Total: ${totalConsumption} kW.h${foundConnector.currentStateOfCharge ? ', SoC: ' + foundConnector.currentStateOfCharge.toString() + ' %' : ''}`
-      });
-      // Cleanup connector transaction data
-    } else if (foundConnector) {
-      OCPPUtils.clearChargingStationConnectorRuntimeData(chargingStation, foundConnector.connectorId);
-    }
-  }
-
   private notifyEndOfCharge(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction) {
     if (this.chargingStationConfig.notifEndOfChargeEnabled && transaction.user) {
       // Get the i18n lib
@@ -1639,29 +1607,6 @@ export default class OCPPService {
           }
         }
       }
-    }
-  }
-
-  private async updateChargingStationConnectorWithTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, user: User): Promise<void> {
-    const foundConnector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
-    if (foundConnector) {
-      foundConnector.currentInstantWatts = 0;
-      foundConnector.currentTotalConsumptionWh = 0;
-      foundConnector.currentTotalInactivitySecs = 0;
-      foundConnector.currentInactivityStatus = InactivityStatus.INFO;
-      foundConnector.currentStateOfCharge = 0;
-      foundConnector.currentTransactionID = transaction.id;
-      foundConnector.currentTransactionDate = transaction.timestamp;
-      foundConnector.currentTagID = transaction.tagID;
-      foundConnector.currentUserID = transaction.userID;
-    } else {
-      await Logging.logWarning({
-        ...LoggingHelper.getChargingStationProperties(chargingStation),
-        tenantID: tenant.id,
-        module: MODULE_NAME, method: 'clearChargingStationConnectorRuntimeData',
-        action: ServerAction.OCPP_START_TRANSACTION, user: user,
-        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Connector does not exist`
-      });
     }
   }
 
