@@ -319,6 +319,13 @@ export default class BillingTestHelper {
     return this.chargingStationContext;
   }
 
+  public checkTimezone(): void {
+    const timezone = Utils.getTimezone(this.chargingStationContext.getChargingStation().coordinates);
+    // Simulated sessions last 2 hours - Some tests cannot work when the day is about to change!
+    assert(moment().tz(timezone).isoWeekday() === moment().add(2, 'hours').tz(timezone).isoWeekday(),
+      'Timezone is set  to ' + timezone + ' - test execution can not work in that context');
+  }
+
   public async initChargingStationContext2TestTimeRestrictions(testMode = 'E', aParticularMoment: moment.Moment) : Promise<ChargingStationContext> {
     // Charging Station Context
     this.siteContext = this.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
