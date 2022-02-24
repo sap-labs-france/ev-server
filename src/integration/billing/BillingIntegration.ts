@@ -11,6 +11,7 @@ import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import { Decimal } from 'decimal.js';
 import Logging from '../../utils/Logging';
+import LoggingHelper from '../../utils/LoggingHelper';
 import NotificationHandler from '../../notification/NotificationHandler';
 import { Promise } from 'bluebird';
 import { Request } from 'express';
