@@ -73,7 +73,7 @@ export default class OCPIPushCdrsTask extends TenantSchedulerTask {
                       continue;
                     }
                     // Get Charging Station
-                    const chargingStation = await ChargingStationStorage.getChargingStation(tenant, transaction.chargeBoxID);
+                    const chargingStation = await ChargingStationStorage.getChargingStation(tenant, transaction.chargeBoxID, { withSiteArea: true });
                     if (!chargingStation) {
                       await Logging.logError({
                         tenantID: tenant.id,
@@ -95,7 +95,7 @@ export default class OCPIPushCdrsTask extends TenantSchedulerTask {
                       continue;
                     }
                     // Roaming
-                    await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, tag, TransactionAction.END);
+                    await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, chargingStation.siteArea, tag, TransactionAction.END);
                     // Save
                     await TransactionStorage.saveTransactionOcpiData(tenant, transaction.id, transaction.ocpiData);
                     await Logging.logInfo({

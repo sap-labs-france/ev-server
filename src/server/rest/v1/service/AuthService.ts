@@ -590,7 +590,6 @@ export default class AuthService {
   }
 
   public static handleUserLogOut(action: ServerAction, req: Request, res: Response, next: NextFunction): void {
-    req.logout();
     res.status(StatusCodes.OK).send({});
   }
 

@@ -1,7 +1,7 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import ChargingStation, { ChargingStationOcppParameters, ChargingStationQRCode, Command, OCPPParams, OcppParameter, StaticLimitAmps } from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
-import { HttpChargingStationChangeConfigurationRequest, HttpChargingStationGetCompositeScheduleRequest, HttpChargingStationStartTransactionRequest, HttpChargingStationStopTransactionRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpChargingStationChangeConfigurationRequest, HttpChargingStationGetCompositeScheduleRequest, HttpChargingStationStartTransactionRequest, HttpChargingStationStopTransactionRequest, HttpChargingStationsRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { NextFunction, Request, Response } from 'express';
 import { OCPPChangeConfigurationResponse, OCPPConfigurationStatus, OCPPGetCompositeScheduleResponse, OCPPStatus, OCPPUnlockStatus } from '../../../../types/ocpp/OCPPClient';
 
@@ -451,8 +451,8 @@ export default class ChargingStationService {
         }
         // Log
         await Logging.logWarning({
-          tenantID: req.user.tenantID,
           ...LoggingHelper.getChargingStationProperties(chargingStation),
+          tenantID: req.user.tenantID,
           action: action,
           user: req.user,
           module: MODULE_NAME, method: 'handleChargingStationLimitPower',
@@ -479,8 +479,8 @@ export default class ChargingStationService {
       });
     }
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
       ...LoggingHelper.getChargingStationProperties(chargingStation),
+      tenantID: req.user.tenantID,
       action: action,
       user: req.user,
       module: MODULE_NAME, method: 'handleChargingStationLimitPower',
@@ -934,7 +934,10 @@ export default class ChargingStationService {
   }
 
   public static async handleGetChargingStations(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    res.json(await ChargingStationService.getChargingStations(req));
+    // Filter
+    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationsGetReq(req.query);
+    // Get Charging Stations
+    res.json(await ChargingStationService.getChargingStations(req, filteredRequest));
     next();
   }
 
@@ -942,8 +945,10 @@ export default class ChargingStationService {
     // Always with site
     req.query.WithSite = 'true';
     req.query.WithSiteArea = 'true';
+    // Filter
+    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationsGetReq(req.query);
     // Get Charging Stations
-    const chargingStations = await ChargingStationService.getChargingStations(req);
+    const chargingStations = await ChargingStationService.getChargingStations(req, filteredRequest);
     for (const chargingStation of chargingStations.result) {
       // Check all chargers
       if (!await Authorizations.canExportParams(req.user, chargingStation.siteArea.siteID)) {
@@ -978,8 +983,12 @@ export default class ChargingStationService {
   }
 
   public static async handleExportChargingStations(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Force params
+    req.query.Limit = Constants.EXPORT_PAGE_SIZE.toString();
+    // Filter
+    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationsGetReq(req.query);
     // Export
-    await UtilsService.exportToCSV(req, res, 'exported-charging-stations.csv',
+    await UtilsService.exportToCSV(req, res, 'exported-charging-stations.csv', filteredRequest,
       ChargingStationService.getChargingStations.bind(this),
       ChargingStationService.convertToCSV.bind(this));
   }
@@ -1332,8 +1341,8 @@ export default class ChargingStationService {
       // OCPP Command with status
       if (Utils.objectHasProperty(result, 'status') && ![OCPPStatus.ACCEPTED, OCPPUnlockStatus.UNLOCKED].includes(result.status)) {
         await Logging.logError({
-          tenantID: req.tenant.id,
           ...LoggingHelper.getChargingStationProperties(chargingStation),
+          tenantID: req.tenant.id,
           user: req.user,
           module: MODULE_NAME, method: 'handleAction',
           action: action,
@@ -1343,8 +1352,8 @@ export default class ChargingStationService {
       } else {
         // OCPP Command with no status
         await Logging.logInfo({
-          tenantID: req.tenant.id,
           ...LoggingHelper.getChargingStationProperties(chargingStation),
+          tenantID: req.tenant.id,
           user: req.user,
           module: MODULE_NAME, method: 'handleAction',
           action: action,
@@ -1398,7 +1407,7 @@ export default class ChargingStationService {
     next();
   }
 
-  private static async getChargingStations(req: Request, projectFields?: string[]): Promise<DataResult<ChargingStation>> {
+  private static async getChargingStations(req: Request, filteredRequest: HttpChargingStationsRequest, projectFields?: string[]): Promise<DataResult<ChargingStation>> {
     // Check auth
     if (!await Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError({
@@ -1408,8 +1417,6 @@ export default class ChargingStationService {
         module: MODULE_NAME, method: 'getChargingStations',
       });
     }
-    // Filter
-    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationsGetReq(req.query);
     // Create GPS Coordinates
     if (filteredRequest.LocLongitude && filteredRequest.LocLatitude) {
       filteredRequest.LocCoordinates = [
@@ -1569,7 +1576,10 @@ export default class ChargingStationService {
   }
 
   private static async getChargingStationsForQrCode(req: Request): Promise<DataResult<ChargingStation>> {
-    return ChargingStationService.getChargingStations(req, ['id', 'connectors.connectorId', 'siteArea.name']);
+    // Filter
+    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationsGetReq(req.query);
+    // Get Charging Stations
+    return ChargingStationService.getChargingStations(req, filteredRequest, ['id', 'connectors.connectorId', 'siteArea.name']);
   }
 
   private static async convertQrCodeToPDF(req: Request, pdfDocument: PDFKit.PDFDocument, chargingStations: ChargingStation[]): Promise<void> {
@@ -1666,12 +1676,12 @@ export default class ChargingStationService {
     // Check Auth
     if (!await Authorizations.canUpdateChargingStation(req.user, siteID)) {
       throw new AppAuthError({
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'setAndSaveChargingProfile',
         value: chargingStation.id,
-        ...LoggingHelper.getChargingStationProperties(chargingStation),
       });
     }
     // Check if Charging Profile is supported
@@ -1800,7 +1810,7 @@ export default class ChargingStationService {
         lastChangedOn: new Date(),
         lastSelectedCarID: filteredRequest.carID,
         lastSelectedCar: true,
-        lastCarSoc: filteredRequest.carSoc,
+        lastCarStateOfCharge: filteredRequest.carStateOfCharge,
         lastCarOdometer: filteredRequest.carOdometer,
         lastDepartureTime: filteredRequest.departureTime
       });
@@ -1821,7 +1831,7 @@ export default class ChargingStationService {
       MODULE_NAME, 'handleAction', req.user);
     // Get default Tag
     const tags = await TagStorage.getTags(req.tenant, { userIDs: [req.user.id], active: true }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);
-    if (Utils.isEmptyArray(tags)) {
+    if (Utils.isEmptyArray(tags.result)) {
       throw new AppError({
         errorCode: HTTPError.USER_NO_BADGE_ERROR,
         message: 'The user does not have any active badge',
@@ -1863,8 +1873,8 @@ export default class ChargingStationService {
       // Reboot?
       if (result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
         await Logging.logWarning({
-          tenantID: req.tenant.id,
           ...LoggingHelper.getChargingStationProperties(chargingStation),
+          tenantID: req.tenant.id,
           user: req.user,
           action: action,
           module: MODULE_NAME, method: 'handleChargingStationCommand',

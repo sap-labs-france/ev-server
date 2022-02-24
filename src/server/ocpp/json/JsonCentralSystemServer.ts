@@ -206,6 +206,8 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
 
   private async onOpen(ws: uWS.WebSocket) {
     let wsConnection: WSConnection;
+    // Debug
+    // Logging.logConsoleDebug(`WS Connection - '${ws.url as string}'`);
     // Create WS Wrapper
     const wsWrapper = new WSWrapper(ws);
     // Keep it on the ws
@@ -359,16 +361,25 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
   }
 
   private async onMessage(ws: uWS.WebSocket, message: string, isBinary: boolean): Promise<void> {
-    // Convert
-    const [ocppMessageType] = JSON.parse(message);
-    const wsWrapper = ws.wsWrapper;
-    // Lock incoming WS messages
-    await this.aquireLockForWSRequest(wsWrapper, ocppMessageType);
+    const wsWrapper: WSWrapper = ws.wsWrapper;
     try {
-      this.runningWSMessages++;
-      // OCPP Request?
-      if (ocppMessageType === OCPPMessageType.CALL_MESSAGE) {
-        if (!wsWrapper.closed) {
+      // Convert
+      const [ocppMessageType] = JSON.parse(message);
+      // Lock incoming WS messages
+      await this.aquireLockForWSRequest(wsWrapper, ocppMessageType);
+      try {
+        this.runningWSMessages++;
+        // OCPP Request?
+        if (ocppMessageType === OCPPMessageType.CALL_MESSAGE) {
+          if (!wsWrapper.closed) {
+            // Get the WS connection
+            const wsConnection = await this.getWSConnectionFromWebSocket(wsWrapper);
+            // Process the message
+            if (wsConnection) {
+              await wsConnection.receivedMessage(message, isBinary);
+            }
+          }
+        } else {
           // Get the WS connection
           const wsConnection = await this.getWSConnectionFromWebSocket(wsWrapper);
           // Process the message
@@ -376,17 +387,18 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
             await wsConnection.receivedMessage(message, isBinary);
           }
         }
-      } else {
-        // Get the WS connection
-        const wsConnection = await this.getWSConnectionFromWebSocket(wsWrapper);
-        // Process the message
-        if (wsConnection) {
-          await wsConnection.receivedMessage(message, isBinary);
-        }
+      } finally {
+        this.runningWSMessages--;
+        this.releaseLockForWSMessageRequest(wsWrapper, ocppMessageType);
       }
-    } finally {
-      this.runningWSMessages--;
-      this.releaseLockForWSMessageRequest(wsWrapper, ocppMessageType);
+    } catch (error) {
+      await Logging.logError({
+        ...LoggingHelper.getWSWrapperProperties(wsWrapper),
+        action: ServerAction.WS_MESSAGE,
+        module: MODULE_NAME, method: 'processTransactionRoaming',
+        message: `Error occurred: ${error.message as string}`,
+        detailedMessages: { message, isBinary, error: error.stack }
+      });
     }
   }
 

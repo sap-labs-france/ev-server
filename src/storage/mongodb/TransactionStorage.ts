@@ -13,6 +13,7 @@ import Logging from '../../utils/Logging';
 import { NotifySessionNotStarted } from '../../types/UserNotifications';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
+import { UpdateResult } from 'mongodb';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
 
@@ -56,7 +57,7 @@ export default class TransactionStorage {
       tagID: transactionToSave.tagID,
       carID: transactionToSave.carID ? DatabaseUtils.convertToObjectID(transactionToSave.carID) : null,
       carCatalogID: transactionToSave.carCatalogID ? Utils.convertToInt(transactionToSave.carCatalogID) : null,
-      carSoc: Utils.convertToInt(transactionToSave.carSoc),
+      carStateOfCharge: Utils.convertToInt(transactionToSave.carStateOfCharge),
       carOdometer: Utils.convertToInt(transactionToSave.carOdometer),
       departureTime: Utils.convertToDate(transactionToSave.departureTime),
       userID: DatabaseUtils.convertToObjectID(transactionToSave.userID),
@@ -68,7 +69,7 @@ export default class TransactionStorage {
       priceUnit: transactionToSave.priceUnit,
       pricingSource: transactionToSave.pricingSource,
       pricingModel: transactionToSave.pricingModel,
-      stateOfCharge: transactionToSave.stateOfCharge,
+      stateOfCharge: Utils.convertToInt(transactionToSave.stateOfCharge),
       timezone: transactionToSave.timezone,
       signedData: transactionToSave.signedData,
       numberOfMeterValues: Utils.convertToInt(transactionToSave.numberOfMeterValues),
@@ -227,6 +228,36 @@ export default class TransactionStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveTransactionOcpiData', startTime, ocpiData);
   }
 
+  public static async updateTransactionsWithOrganizationIDs(tenant: Tenant, companyID: string, siteID: string, siteAreaID?: string): Promise<number> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    DatabaseUtils.checkTenantObject(tenant);
+    let result: UpdateResult;
+    if (siteAreaID) {
+      result = await global.database.getCollection<any>(tenant.id, 'transactions').updateMany(
+        {
+          siteAreaID: DatabaseUtils.convertToObjectID(siteAreaID),
+        },
+        {
+          $set: {
+            siteID: DatabaseUtils.convertToObjectID(siteID),
+            companyID: DatabaseUtils.convertToObjectID(companyID)
+          }
+        }) as UpdateResult;
+    } else {
+      result = await global.database.getCollection<any>(tenant.id, 'transactions').updateMany(
+        {
+          siteID: DatabaseUtils.convertToObjectID(siteID),
+        },
+        {
+          $set: {
+            companyID: DatabaseUtils.convertToObjectID(companyID)
+          }
+        }) as UpdateResult;
+    }
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'updateTransactionsWithOrganizationIDs', startTime, { siteID, companyID, siteAreaID });
+    return result.modifiedCount;
+  }
+
   public static async saveTransactionOicpData(tenant: Tenant, id: number,
       oicpData: TransactionOicpData): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
@@ -340,7 +371,8 @@ export default class TransactionStorage {
         { '_id': Utils.convertToInt(params.search) },
         { 'tagID': { $regex: params.search, $options: 'i' } },
         { 'chargeBoxID': { $regex: params.search, $options: 'i' } },
-        { 'ocpiData.session.authorization_id': { $regex: params.search, $options: 'i' } }
+        { 'ocpiData.session.id': params.search },
+        { 'ocpiData.session.authorization_id': params.search },
       ];
     }
     // OCPI ID
@@ -724,6 +756,7 @@ export default class TransactionStorage {
     DatabaseUtils.pushRenameDatabaseIDToNumber(aggregation);
     // Convert Object ID to string
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'companyID');
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'stop.userID');

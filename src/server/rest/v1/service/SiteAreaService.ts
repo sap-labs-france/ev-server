@@ -294,7 +294,7 @@ export default class SiteAreaService {
       }
     }
     // Save
-    siteArea.id = await SiteAreaStorage.saveSiteArea(req.tenant, siteArea, true);
+    siteArea.id = await SiteAreaStorage.saveSiteArea(req.tenant, siteArea, Utils.objectHasProperty(filteredRequest, 'image'));
     await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleCreateSiteArea',
@@ -369,9 +369,10 @@ export default class SiteAreaService {
     siteArea.lastChangedOn = new Date();
     // Save
     await SiteAreaStorage.saveSiteArea(req.tenant, siteArea, Utils.objectHasProperty(filteredRequest, 'image'));
+    // Update all refs
+    void SiteAreaStorage.updateEntitiesWithOrganizationIDs(req.tenant, site.companyID, filteredRequest.siteID, filteredRequest.id);
     // Retrigger Smart Charging
     if (filteredRequest.smartCharging) {
-      // FIXME: the lock acquisition can wait for 30s before timeout and the whole code execution timeout at 3s
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       setTimeout(async () => {
         const siteAreaLock = await LockingHelper.acquireSiteAreaSmartChargingLock(req.user.tenantID, siteArea);

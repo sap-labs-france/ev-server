@@ -9,7 +9,7 @@
     "carID": {
       "$ref": "common#/definitions/id"
     },
-    "carSoc": {
+    "carStateOfCharge": {
       "type": "integer",
       "sanitize": "mongo",
       "minimum": 1,

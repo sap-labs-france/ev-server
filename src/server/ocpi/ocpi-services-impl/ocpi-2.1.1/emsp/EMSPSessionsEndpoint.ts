@@ -15,6 +15,7 @@ import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../../../../types/Tenant';
 import Transaction from '../../../../../types/Transaction';
 import TransactionStorage from '../../../../../storage/mongodb/TransactionStorage';
+import _ from 'lodash';
 
 const MODULE_NAME = 'EMSPSessionsEndpoint';
 
@@ -26,11 +27,11 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
   public async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
       case 'GET':
-        return await this.getSessionRequest(req, res, next, tenant);
+        return this.getSessionRequest(req, res, next, tenant);
       case 'PATCH':
-        return await this.patchSessionRequest(req, res, next, tenant);
+        return this.patchSessionRequest(req, res, next, tenant);
       case 'PUT':
-        return await this.putSessionRequest(req, res, next, tenant);
+        return this.putSessionRequest(req, res, next, tenant);
     }
   }
 
@@ -57,7 +58,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
         action: ServerAction.OCPI_PULL_SESSIONS,
         module: MODULE_NAME, method: 'getSessionRequest',
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `No Transaction found for ocpi session ${sessionId}`,
+        message: `No Transaction found for OCPI Session ID ${sessionId}`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
@@ -70,9 +71,9 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
     urlSegment.shift();
     // Get filters
     const countryCode = urlSegment.shift();
-    const partyId = urlSegment.shift();
-    const sessionId = urlSegment.shift();
-    if (!countryCode || !partyId || !sessionId) {
+    const partyID = urlSegment.shift();
+    const sessionID = urlSegment.shift();
+    if (!countryCode || !partyID || !sessionID) {
       throw new AppError({
         action: ServerAction.OCPI_PUT_SESSION,
         module: MODULE_NAME, method: 'putSessionRequest',
@@ -81,19 +82,20 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    const session: OCPISession = req.body as OCPISession;
+    const session = req.body as OCPISession;
     if (!session.id) {
-      session.id = sessionId;
-    } else if (session.id !== sessionId) {
+      session.id = sessionID;
+    } else if (session.id !== sessionID) {
       throw new AppError({
         action: ServerAction.OCPI_PUT_SESSION,
         module: MODULE_NAME, method: 'putSessionRequest',
         errorCode: StatusCodes.BAD_REQUEST,
-        message: `Transaction ID '${session.id}' does not match request parameter '${sessionId}'`,
-        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR,
+        message: `Transaction ID '${session.id}' mismatch in URL`,
+        detailedMessages: { sessionID, session }
       });
     }
-    await OCPIUtilsService.updateTransaction(tenant, session);
+    await OCPIUtilsService.updateTransaction(tenant, session, ServerAction.OCPI_PUT_SESSION);
     return OCPIUtils.success({});
   }
 
@@ -103,9 +105,9 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
     urlSegment.shift();
     // Get filters
     const countryCode = urlSegment.shift();
-    const partyId = urlSegment.shift();
-    const sessionId = urlSegment.shift();
-    if (!countryCode || !partyId || !sessionId) {
+    const partyID = urlSegment.shift();
+    const sessionID = urlSegment.shift();
+    if (!countryCode || !partyID || !sessionID) {
       throw new AppError({
         action: ServerAction.OCPI_PATCH_SESSION,
         module: MODULE_NAME, method: 'patchSessionRequest',
@@ -114,49 +116,20 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    const transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant, sessionId);
+    const transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant, sessionID);
     if (!transaction) {
       throw new AppError({
         action: ServerAction.OCPI_PATCH_SESSION,
         module: MODULE_NAME, method: 'patchSessionRequest',
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `No Transaction found for OCPI Transaction ID '${sessionId}'`,
+        message: `Transaction not found with OCPI Session ID '${sessionID}'`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    let patched = false;
-    const sessionPatched: Partial<OCPISession> = req.body as Partial<OCPISession>;
-    if (sessionPatched.status) {
-      transaction.ocpiData.session.status = sessionPatched.status;
-      patched = true;
-    }
-    if (sessionPatched.end_datetime) {
-      transaction.ocpiData.session.end_datetime = sessionPatched.end_datetime;
-      patched = true;
-    }
-    if (sessionPatched.kwh) {
-      transaction.ocpiData.session.kwh = sessionPatched.kwh;
-      patched = true;
-    }
-    if (sessionPatched.currency) {
-      transaction.ocpiData.session.currency = sessionPatched.currency;
-      patched = true;
-    }
-    if (sessionPatched.total_cost) {
-      transaction.ocpiData.session.total_cost = sessionPatched.total_cost;
-      patched = true;
-    }
-    if (!patched) {
-      throw new AppError({
-        action: ServerAction.OCPI_PATCH_SESSION,
-        module: MODULE_NAME, method: 'patchSessionRequest',
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Missing request parameters',
-        detailedMessages: { sessionPatched },
-        ocpiError: OCPIStatusCode.CODE_2002_NOT_ENOUGH_INFORMATION_ERROR
-      });
-    }
-    await OCPIUtilsService.updateTransaction(tenant, transaction.ocpiData.session);
+    // Merge
+    _.merge(transaction.ocpiData.session, req.body);
+    // Update
+    await OCPIUtilsService.updateTransaction(tenant, transaction.ocpiData.session, ServerAction.OCPI_PATCH_SESSION, transaction);
     return OCPIUtils.success({});
   }
 }

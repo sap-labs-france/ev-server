@@ -23,10 +23,10 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('Transaction', function() {
-  this.timeout(1000000); // Will automatically stop the unit test after that period of time
+describe('Transaction', () => {
+  jest.setTimeout(1000000); // Will automatically stop the unit test after that period of time
 
-  before(async () => {
+  beforeAll(async () => {
     chai.config.includeStack = true;
     await ContextProvider.defaultInstance.prepareContexts();
   });
@@ -35,14 +35,14 @@ describe('Transaction', function() {
     // Can be called after each UT to clean up created data
   });
 
-  after(async () => {
+  afterAll(async () => {
     // Final clean up at the end
     await ContextProvider.defaultInstance.cleanUpCreatedContent();
   });
 
   describe('With components Organization and Pricing (utall)', () => {
 
-    before(async () => {
+    beforeAll(async () => {
       testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
       testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       testData.transactionCommonTests = new TransactionCommonTests(testData.tenantContext, testData.centralUserContext);
@@ -54,14 +54,14 @@ describe('Transaction', function() {
       testData.transactionCommonTests.setChargingStation(testData.chargingStationContext);
     });
 
-    after(async () => {
+    afterAll(async () => {
       await testData.transactionCommonTests.after();
       await testData.chargingStationContext.cleanUpCreatedData();
     });
 
     describe('Where basic user', () => {
 
-      before(() => {
+      beforeAll(() => {
         testData.transactionCommonTests.setUser(
           testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER)
         );
@@ -69,7 +69,7 @@ describe('Transaction', function() {
 
       describe('Using function "readById"', () => {
 
-        after(async () => {
+        afterAll(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
@@ -77,19 +77,28 @@ describe('Transaction', function() {
           await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, true, true);
         });
 
-        it('Should not be authorized on a transaction started by another', async () => {
-          const anotherUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
-          await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, false, false, anotherUser.tags[0].id);
-        });
+        it(
+          'Should not be authorized on a transaction started by another',
+          async () => {
+            const anotherUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+            await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, false, false, anotherUser.tags[0].id);
+          }
+        );
 
-        it('Should be authorized to stop a transaction started by itself', async () => {
-          await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, true);
-        });
+        it(
+          'Should be authorized to stop a transaction started by itself',
+          async () => {
+            await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, true);
+          }
+        );
 
-        it('Should not be authorized to stop a transaction started by another', async () => {
-          const anotherUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
-          await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, false, anotherUser.tags[0].id);
-        });
+        it(
+          'Should not be authorized to stop a transaction started by another',
+          async () => {
+            const anotherUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+            await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, false, anotherUser.tags[0].id);
+          }
+        );
 
         it('Cannot read a not existing transaction', async () => {
           await testData.transactionCommonTests.testReadNonExistingTransaction();
@@ -120,13 +129,19 @@ describe('Transaction', function() {
           await testData.transactionCommonTests.testReadStartedTransactionWithMultipleMeterValues();
         });
 
-        it('Can read a closed transaction without meter values and no meterStart', async () => {
-          await testData.transactionCommonTests.testReadClosedTransactionWithoutMeterStartAndMeterValues();
-        });
+        it(
+          'Can read a closed transaction without meter values and no meterStart',
+          async () => {
+            await testData.transactionCommonTests.testReadClosedTransactionWithoutMeterStartAndMeterValues();
+          }
+        );
 
-        it('Can read a closed transaction without meter values and a meterStart different from meterStop', async () => {
-          await testData.transactionCommonTests.testReadClosedTransactionWithDifferentMeterStartAndMeterStop();
-        });
+        it(
+          'Can read a closed transaction without meter values and a meterStart different from meterStop',
+          async () => {
+            await testData.transactionCommonTests.testReadClosedTransactionWithDifferentMeterStartAndMeterStop();
+          }
+        );
 
       });
 
@@ -136,25 +151,37 @@ describe('Transaction', function() {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
-        it('Cannot find any completed transactions if all transactions are still running', async () => {
-          await testData.transactionCommonTests.testReadNoCompletedTransactions();
-        });
+        it(
+          'Cannot find any completed transactions if all transactions are still running',
+          async () => {
+            await testData.transactionCommonTests.testReadNoCompletedTransactions();
+          }
+        );
 
         it('Can read some completed transactions without statistics', async () => {
           await testData.transactionCommonTests.testReadSomeCompletedTransactionsWithoutStatistics();
         });
 
-        it('Can read some completed transactions with historical statistics', async () => {
-          await testData.transactionCommonTests.testReadSomeCompletedTransactionsWithHistoricalStatistics();
-        });
+        it(
+          'Can read some completed transactions with historical statistics',
+          async () => {
+            await testData.transactionCommonTests.testReadSomeCompletedTransactionsWithHistoricalStatistics();
+          }
+        );
 
-        it('Can read some completed transactions completed with refund statistics', async () => {
-          await testData.transactionCommonTests.testReadSomeCompletedTransactionsWithRefundStatistics();
-        });
+        it(
+          'Can read some completed transactions completed with refund statistics',
+          async () => {
+            await testData.transactionCommonTests.testReadSomeCompletedTransactionsWithRefundStatistics();
+          }
+        );
 
-        it('Should increase sessions count by only one after a completed session', async () => {
-          await testData.transactionCommonTests.testSessionsAmountIncreaseByOne({});
-        });
+        it(
+          'Should increase sessions count by only one after a completed session',
+          async () => {
+            await testData.transactionCommonTests.testSessionsAmountIncreaseByOne({});
+          }
+        );
 
       });
 
@@ -164,23 +191,32 @@ describe('Transaction', function() {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
-        it('Can read consumption of a started transaction without meter values', async () => {
-          await testData.transactionCommonTests.testReadConsumptionStartedTransactionWithoutMeterValues();
-        });
+        it(
+          'Can read consumption of a started transaction without meter values',
+          async () => {
+            await testData.transactionCommonTests.testReadConsumptionStartedTransactionWithoutMeterValues();
+          }
+        );
 
-        it('Can read consumption of a started transaction with multiple meter values', async () => {
-          await testData.transactionCommonTests.testReadConsumptionStartedTransactionWithMultipleMeterValues();
-        });
+        it(
+          'Can read consumption of a started transaction with multiple meter values',
+          async () => {
+            await testData.transactionCommonTests.testReadConsumptionStartedTransactionWithMultipleMeterValues();
+          }
+        );
 
-        it('Can read consumption of a stopped transaction without meter values', async () => {
-          await testData.transactionCommonTests.testReadConsumptionStoppedTransactionWithoutMeterValues();
-        });
+        it(
+          'Can read consumption of a stopped transaction without meter values',
+          async () => {
+            await testData.transactionCommonTests.testReadConsumptionStoppedTransactionWithoutMeterValues();
+          }
+        );
 
       });
 
       describe('Using function "getTransactionsActive"', () => {
 
-        after(async () => {
+        afterAll(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
@@ -199,7 +235,7 @@ describe('Transaction', function() {
       });
       describe('Using function "deleteMany"', () => {
 
-        after(async () => {
+        afterAll(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
@@ -209,7 +245,7 @@ describe('Transaction', function() {
       });
       describe('Using function "delete"', () => {
 
-        after(async () => {
+        afterAll(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
@@ -237,7 +273,7 @@ describe('Transaction', function() {
 
       describe('Using other functionalities', () => {
 
-        after(async () => {
+        afterAll(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
@@ -259,7 +295,7 @@ describe('Transaction', function() {
 
     describe('Where admin user', () => {
 
-      before(() => {
+      beforeAll(() => {
         testData.transactionCommonTests.setUser(
           testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN)
         );
@@ -267,7 +303,7 @@ describe('Transaction', function() {
 
       describe('Using function "readById"', () => {
 
-        after(async () => {
+        afterAll(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
@@ -280,14 +316,20 @@ describe('Transaction', function() {
           await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, true, true, anotherUser.tags[0].id);
         });
 
-        it('Should be authorized to stop a transaction started by itself', async () => {
-          await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, true);
-        });
+        it(
+          'Should be authorized to stop a transaction started by itself',
+          async () => {
+            await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, true);
+          }
+        );
 
-        it('Should be authorized to stop a transaction started by another', async () => {
-          const anotherUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
-          await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, true, anotherUser.tags[0].id);
-        });
+        it(
+          'Should be authorized to stop a transaction started by another',
+          async () => {
+            const anotherUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
+            await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, true, anotherUser.tags[0].id);
+          }
+        );
 
         it('Can read a transaction of another user', async () => {
           const anotherUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
@@ -297,7 +339,7 @@ describe('Transaction', function() {
 
       describe('Using function "readAllInError"', () => {
 
-        after(async () => {
+        afterAll(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
@@ -305,9 +347,12 @@ describe('Transaction', function() {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
-        it('Cannot find any transactions in error if all transactions are still running', async () => {
-          await testData.transactionCommonTests.testReadNoTransactionsInError();
-        });
+        it(
+          'Cannot find any transactions in error if all transactions are still running',
+          async () => {
+            await testData.transactionCommonTests.testReadNoTransactionsInError();
+          }
+        );
 
         it('Can find some transactions in error', async () => {
           await testData.transactionCommonTests.testReadSomeTransactionsInError();
@@ -316,13 +361,16 @@ describe('Transaction', function() {
       });
 
       describe('Using function "readAllCompleted"', () => {
-        it('Should increase sessions count by only one after a completed session', async () => {
-          await testData.transactionCommonTests.testSessionsAmountIncreaseByOne({ OnlyRecordCount: true });
-        });
+        it(
+          'Should increase sessions count by only one after a completed session',
+          async () => {
+            await testData.transactionCommonTests.testSessionsAmountIncreaseByOne({ OnlyRecordCount: true });
+          }
+        );
       });
       describe('Using function "deleteMany"', () => {
 
-        after(async () => {
+        afterAll(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
         it('Can delete only existent transactions', async () => {
@@ -337,7 +385,7 @@ describe('Transaction', function() {
       });
       describe('Using function "delete"', () => {
 
-        after(async () => {
+        afterAll(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
@@ -351,9 +399,12 @@ describe('Transaction', function() {
 
       });
 
-      it('Should be able to export transactions to refund data to a file', async () => {
-        await testData.transactionCommonTests.testExportTransactionsToRefund({});
-      });
+      it(
+        'Should be able to export transactions to refund data to a file',
+        async () => {
+          await testData.transactionCommonTests.testExportTransactionsToRefund({});
+        }
+      );
 
     });
 
@@ -361,7 +412,7 @@ describe('Transaction', function() {
 
   describe('With component Organization without ACL (utorg)', () => {
 
-    before(async () => {
+    beforeAll(async () => {
       testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_ORGANIZATION);
       testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       testData.transactionCommonTests = new TransactionCommonTests(testData.tenantContext, testData.centralUserContext);
@@ -373,14 +424,14 @@ describe('Transaction', function() {
       testData.transactionCommonTests.setChargingStation(testData.chargingStationContext);
     });
 
-    after(async () => {
+    afterAll(async () => {
       await testData.transactionCommonTests.after();
       await testData.chargingStationContext.cleanUpCreatedData();
     });
 
     describe('Where basic user', () => {
 
-      before(() => {
+      beforeAll(() => {
         testData.transactionCommonTests.setUser(
           testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER)
         );
@@ -388,7 +439,7 @@ describe('Transaction', function() {
 
       describe('Using function "readById"', () => {
 
-        after(async () => {
+        afterAll(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
@@ -397,22 +448,34 @@ describe('Transaction', function() {
           await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, true, true);
         });
 
-        it('Should not be authorized on a transaction started by unknown user', async () => {
-          await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, false, false, faker.random.alphaNumeric(8));
-        });
+        it(
+          'Should not be authorized on a transaction started by unknown user',
+          async () => {
+            await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, false, false, faker.random.alphaNumeric(8));
+          }
+        );
 
-        it('Should be authorized to stop a transaction started by itself', async () => {
-          await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, true);
-        });
+        it(
+          'Should be authorized to stop a transaction started by itself',
+          async () => {
+            await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, true);
+          }
+        );
 
-        it('Should not be authorized to stop a transaction started by another user', async () => {
-          const anotherUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
-          await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, false, anotherUser.tags[0].id);
-        });
+        it(
+          'Should not be authorized to stop a transaction started by another user',
+          async () => {
+            const anotherUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+            await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, false, anotherUser.tags[0].id);
+          }
+        );
 
-        it('Should not be authorized to stop a transaction started by unknown user', async () => {
-          await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, false, faker.random.alphaNumeric(8));
-        });
+        it(
+          'Should not be authorized to stop a transaction started by unknown user',
+          async () => {
+            await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, false, faker.random.alphaNumeric(8));
+          }
+        );
 
         it('Cannot read a not existing transaction', async () => {
           await testData.transactionCommonTests.testReadNonExistingTransaction();
@@ -447,19 +510,25 @@ describe('Transaction', function() {
           await testData.transactionCommonTests.testReadStartedTransactionWithMultipleMeterValues();
         });
 
-        it('Can read a closed transaction without meter values and no meterStart', async () => {
-          await testData.transactionCommonTests.testReadClosedTransactionWithoutMeterStartAndMeterValues();
-        });
+        it(
+          'Can read a closed transaction without meter values and no meterStart',
+          async () => {
+            await testData.transactionCommonTests.testReadClosedTransactionWithoutMeterStartAndMeterValues();
+          }
+        );
 
-        it('Can read a closed transaction without meter values and a meterStart different from meterStop', async () => {
-          await testData.transactionCommonTests.testReadClosedTransactionWithDifferentMeterStartAndMeterStop();
-        });
+        it(
+          'Can read a closed transaction without meter values and a meterStart different from meterStop',
+          async () => {
+            await testData.transactionCommonTests.testReadClosedTransactionWithDifferentMeterStartAndMeterStop();
+          }
+        );
 
       });
 
       describe('Using function "delete"', () => {
 
-        after(async () => {
+        afterAll(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
@@ -488,7 +557,7 @@ describe('Transaction', function() {
 
     describe('Where admin user', () => {
 
-      before(() => {
+      beforeAll(() => {
         testData.transactionCommonTests.setUser(
           testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN)
         );
@@ -496,7 +565,7 @@ describe('Transaction', function() {
 
       describe('Using function "readById"', () => {
 
-        after(async () => {
+        afterAll(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
@@ -509,14 +578,20 @@ describe('Transaction', function() {
           await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, true, true, anotherUser.tags[0].id);
         });
 
-        it('Should be authorized to stop a transaction started by itself', async () => {
-          await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, true);
-        });
+        it(
+          'Should be authorized to stop a transaction started by itself',
+          async () => {
+            await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, true);
+          }
+        );
 
-        it('Should be authorized to stop a transaction started by another', async () => {
-          const anotherUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
-          await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, true, anotherUser.tags[0].id);
-        });
+        it(
+          'Should be authorized to stop a transaction started by another',
+          async () => {
+            const anotherUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
+            await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, true, anotherUser.tags[0].id);
+          }
+        );
 
         it('Can read a transaction of another user', async () => {
           const anotherUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
@@ -526,7 +601,7 @@ describe('Transaction', function() {
 
       describe('Using function "readAllInError"', () => {
 
-        after(async () => {
+        afterAll(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
@@ -534,9 +609,12 @@ describe('Transaction', function() {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
-        it('Cannot find any transactions in error if all transactions are still running', async () => {
-          await testData.transactionCommonTests.testReadNoTransactionsInError();
-        });
+        it(
+          'Cannot find any transactions in error if all transactions are still running',
+          async () => {
+            await testData.transactionCommonTests.testReadNoTransactionsInError();
+          }
+        );
 
         it('Can find some transactions in error', async () => {
           await testData.transactionCommonTests.testReadSomeTransactionsInError();
@@ -546,7 +624,7 @@ describe('Transaction', function() {
 
       describe('Using function "delete"', () => {
 
-        after(async () => {
+        afterAll(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
@@ -566,7 +644,7 @@ describe('Transaction', function() {
 
   describe('Without any component (utnothing)', () => {
 
-    before(async () => {
+    beforeAll(async () => {
       testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS);
       testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       testData.transactionCommonTests = new TransactionCommonTests(testData.tenantContext, testData.centralUserContext);
@@ -575,14 +653,14 @@ describe('Transaction', function() {
       testData.transactionCommonTests.setChargingStation(testData.chargingStationContext);
     });
 
-    after(async () => {
+    afterAll(async () => {
       await testData.transactionCommonTests.after();
       await testData.chargingStationContext.cleanUpCreatedData();
     });
 
     describe('Where basic user', () => {
 
-      before(() => {
+      beforeAll(() => {
         testData.transactionCommonTests.setUser(
           testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER)
         );
@@ -590,7 +668,7 @@ describe('Transaction', function() {
 
       describe('Using function "readById"', () => {
 
-        after(async () => {
+        afterAll(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
@@ -598,19 +676,28 @@ describe('Transaction', function() {
           await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, true, true);
         });
 
-        it('Should not be authorized on a transaction started by another', async () => {
-          const anotherUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
-          await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, false, false, anotherUser.tags[0].id);
-        });
+        it(
+          'Should not be authorized on a transaction started by another',
+          async () => {
+            const anotherUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+            await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, false, false, anotherUser.tags[0].id);
+          }
+        );
 
-        it('Should be authorized to stop a transaction started by itself', async () => {
-          await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, true);
-        });
+        it(
+          'Should be authorized to stop a transaction started by itself',
+          async () => {
+            await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, true);
+          }
+        );
 
-        it('Should not be authorized to stop a transaction started by another', async () => {
-          const anotherUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
-          await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, false, anotherUser.tags[0].id);
-        });
+        it(
+          'Should not be authorized to stop a transaction started by another',
+          async () => {
+            const anotherUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+            await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, false, anotherUser.tags[0].id);
+          }
+        );
 
         it('Cannot read a not existing transaction', async () => {
           await testData.transactionCommonTests.testReadNonExistingTransaction();
@@ -641,19 +728,25 @@ describe('Transaction', function() {
           await testData.transactionCommonTests.testReadStartedTransactionWithMultipleMeterValues();
         });
 
-        it('Can read a closed transaction without meter values and no meterStart', async () => {
-          await testData.transactionCommonTests.testReadClosedTransactionWithoutMeterStartAndMeterValues();
-        });
+        it(
+          'Can read a closed transaction without meter values and no meterStart',
+          async () => {
+            await testData.transactionCommonTests.testReadClosedTransactionWithoutMeterStartAndMeterValues();
+          }
+        );
 
-        it('Can read a closed transaction without meter values and a meterStart different from meterStop', async () => {
-          await testData.transactionCommonTests.testReadClosedTransactionWithDifferentMeterStartAndMeterStop();
-        });
+        it(
+          'Can read a closed transaction without meter values and a meterStart different from meterStop',
+          async () => {
+            await testData.transactionCommonTests.testReadClosedTransactionWithDifferentMeterStartAndMeterStop();
+          }
+        );
 
       });
 
       describe('Using function "readAllConsumption"', () => {
 
-        after(async () => {
+        afterAll(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
@@ -661,23 +754,32 @@ describe('Transaction', function() {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
-        it('Can read consumption of a started transaction without meter values', async () => {
-          await testData.transactionCommonTests.testReadConsumptionStartedTransactionWithoutMeterValues();
-        });
+        it(
+          'Can read consumption of a started transaction without meter values',
+          async () => {
+            await testData.transactionCommonTests.testReadConsumptionStartedTransactionWithoutMeterValues();
+          }
+        );
 
-        it('Can read consumption of a started transaction with multiple meter values', async () => {
-          await testData.transactionCommonTests.testReadConsumptionStartedTransactionWithMultipleMeterValues();
-        });
+        it(
+          'Can read consumption of a started transaction with multiple meter values',
+          async () => {
+            await testData.transactionCommonTests.testReadConsumptionStartedTransactionWithMultipleMeterValues();
+          }
+        );
 
-        it('Can read consumption of a stopped transaction without meter values', async () => {
-          await testData.transactionCommonTests.testReadConsumptionStoppedTransactionWithoutMeterValues();
-        });
+        it(
+          'Can read consumption of a stopped transaction without meter values',
+          async () => {
+            await testData.transactionCommonTests.testReadConsumptionStoppedTransactionWithoutMeterValues();
+          }
+        );
 
       });
 
       describe('Using function "getTransactionsActive"', () => {
 
-        after(async () => {
+        afterAll(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
@@ -697,7 +799,7 @@ describe('Transaction', function() {
 
       describe('Using function "delete"', () => {
 
-        after(async () => {
+        afterAll(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
@@ -732,7 +834,7 @@ describe('Transaction', function() {
 
     describe('Where admin user', () => {
 
-      before(() => {
+      beforeAll(() => {
         testData.transactionCommonTests.setUser(
           testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN)
         );
@@ -740,7 +842,7 @@ describe('Transaction', function() {
 
       describe('Using function "readById"', () => {
 
-        after(async () => {
+        afterAll(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
@@ -753,14 +855,20 @@ describe('Transaction', function() {
           await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, true, true, anotherUser.tags[0].id);
         });
 
-        it('Should be authorized to stop a transaction started by itself', async () => {
-          await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, true);
-        });
+        it(
+          'Should be authorized to stop a transaction started by itself',
+          async () => {
+            await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, true);
+          }
+        );
 
-        it('Should be authorized to stop a transaction started by another', async () => {
-          const anotherUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
-          await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, true, anotherUser.tags[0].id);
-        });
+        it(
+          'Should be authorized to stop a transaction started by another',
+          async () => {
+            const anotherUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
+            await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, true, anotherUser.tags[0].id);
+          }
+        );
 
         it('Can read a transaction of another user', async () => {
           const anotherUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
@@ -770,7 +878,7 @@ describe('Transaction', function() {
 
       describe('Using function "delete"', () => {
 
-        after(async () => {
+        afterAll(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
