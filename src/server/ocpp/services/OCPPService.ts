@@ -218,7 +218,7 @@ export default class OCPPService {
           // Pricing
           await OCPPUtils.processTransactionPricing(tenant, transaction, chargingStation, consumption, TransactionAction.UPDATE);
           // Billing
-          await BillingFacade.processUpdateTransaction(tenant, transaction);
+          await BillingFacade.processUpdateTransaction(tenant, transaction, transaction.user);
         }
         // Save
         await ConsumptionStorage.saveConsumption(tenant, consumption);
@@ -383,7 +383,7 @@ export default class OCPPService {
       const firstConsumption = await OCPPUtils.createFirstConsumption(tenant, chargingStation, newTransaction);
       await OCPPUtils.processTransactionPricing(tenant, newTransaction, chargingStation, firstConsumption, TransactionAction.START);
       // Billing
-      await BillingFacade.processStartTransaction(tenant, newTransaction, chargingStation, chargingStation.siteArea);
+      await BillingFacade.processStartTransaction(tenant, newTransaction, chargingStation, chargingStation.siteArea, user);
       // Roaming
       await OCPPUtils.processTransactionRoaming(tenant, newTransaction, chargingStation, chargingStation.siteArea, tag, TransactionAction.START);
       // Save it
@@ -490,7 +490,7 @@ export default class OCPPService {
       // Update Transaction with Stop Transaction and Stop MeterValues
       OCPPUtils.updateTransactionWithStopTransaction(transaction, chargingStation, stopTransaction, user, alternateUser, tagID, isSoftStop);
       // Bill
-      await BillingFacade.processStopTransaction(tenant, transaction);
+      await BillingFacade.processStopTransaction(tenant, transaction, transaction.user);
       // Roaming
       await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, chargingStation.siteArea, transaction.tag, TransactionAction.STOP);
       // Save the transaction
@@ -1951,7 +1951,8 @@ export default class OCPPService {
         detailedMessages: { meterValues }
       });
     }
-    const transaction = await TransactionStorage.getTransaction(tenant, meterValues.transactionId, { withUser: true, withTag: true, withCar: true });
+    const transaction = await TransactionStorage.getTransaction(
+      tenant, meterValues.transactionId, { withUser: true, withTag: true, withCar: true });
     if (!transaction) {
       // Abort the ongoing Transaction
       if (meterValues.transactionId) {

@@ -8,13 +8,13 @@ import { ServerAction } from '../../types/Server';
 import SiteArea from '../../types/SiteArea';
 import Tenant from '../../types/Tenant';
 import Transaction from '../../types/Transaction';
+import User from '../../types/User';
 
 const MODULE_NAME = 'BillingFacade';
 
 export default class BillingFacade {
-
-  public static async processStartTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, siteArea: SiteArea): Promise<void> {
-    if (!transaction.user || !transaction.user.issuer) {
+  public static async processStartTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, siteArea: SiteArea, user: User): Promise<void> {
+    if (!user?.issuer) {
       return;
     }
     const billingImpl = await BillingFactory.getBillingImpl(tenant);
@@ -33,7 +33,7 @@ export default class BillingFacade {
           lastUpdate: new Date()
         };
       } catch (error) {
-        const message = `Billing - startTransaction failed - transaction ID '${transaction.id}'`;
+        const message = `Billing - Start Transaction failed with Transaction ID '${transaction.id}'`;
         await Logging.logError({
           ...LoggingHelper.getTransactionProperties(transaction),
           tenantID: tenant.id,
@@ -46,14 +46,14 @@ export default class BillingFacade {
           ...LoggingHelper.getTransactionProperties(transaction),
           action: ServerAction.BILLING_TRANSACTION,
           module: MODULE_NAME, method: 'processStartTransaction',
-          message, detailedMessages: { error: error.stack }
+          message, detailedMessages: { error: error.stack, transaction }
         });
       }
     }
   }
 
-  public static async processUpdateTransaction(tenant: Tenant, transaction: Transaction): Promise<void> {
-    if (!transaction.user || !transaction.user.issuer) {
+  public static async processUpdateTransaction(tenant: Tenant, transaction: Transaction, user: User): Promise<void> {
+    if (!user?.issuer) {
       return;
     }
     const billingImpl = await BillingFactory.getBillingImpl(tenant);
@@ -65,20 +65,20 @@ export default class BillingFacade {
           transaction.billingData.lastUpdate = new Date();
         }
       } catch (error) {
-        const message = `Billing - updateTransaction failed - transaction ID '${transaction.id}'`;
+        const message = `Billing - Update Transaction failed with Transaction ID '${transaction.id}'`;
         await Logging.logError({
           ...LoggingHelper.getTransactionProperties(transaction),
           tenantID: tenant.id,
           action: ServerAction.BILLING_TRANSACTION,
           module: MODULE_NAME, method: 'processUpdateTransaction',
-          message, detailedMessages: { error: error.stack }
+          message, detailedMessages: { error: error.stack, transaction }
         });
       }
     }
   }
 
-  public static async processStopTransaction(tenant: Tenant, transaction: Transaction): Promise<void> {
-    if (!transaction.user || !transaction.user.issuer) {
+  public static async processStopTransaction(tenant: Tenant, transaction: Transaction, user: User): Promise<void> {
+    if (!user?.issuer) {
       return;
     }
     const billingImpl = await BillingFactory.getBillingImpl(tenant);
@@ -91,13 +91,13 @@ export default class BillingFacade {
           transaction.billingData.lastUpdate = new Date();
         }
       } catch (error) {
-        const message = `Billing - stopTransaction failed - transaction ID '${transaction.id}'`;
+        const message = `Billing - Stop Transaction failed with Transaction ID '${transaction.id}'`;
         await Logging.logError({
           ...LoggingHelper.getTransactionProperties(transaction),
           tenantID: tenant.id,
           action: ServerAction.BILLING_TRANSACTION,
           module: MODULE_NAME, method: 'processStopTransaction',
-          message, detailedMessages: { error: error.stack }
+          message, detailedMessages: { error: error.stack, transaction }
         });
       }
     }
@@ -118,16 +118,15 @@ export default class BillingFacade {
           transaction.billingData.lastUpdate = new Date();
         }
       } catch (error) {
-        const message = `Billing - endTransaction failed - transaction ID '${transaction.id}'`;
+        const message = `Billing - End Transaction failed with Transaction ID '${transaction.id}'`;
         await Logging.logError({
           ...LoggingHelper.getTransactionProperties(transaction),
           tenantID: tenant.id,
           action: ServerAction.BILLING_TRANSACTION,
           module: MODULE_NAME, method: 'processEndTransaction',
-          message, detailedMessages: { error: error.stack }
+          message, detailedMessages: { error: error.stack, transaction }
         });
       }
     }
   }
-
 }
