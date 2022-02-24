@@ -1033,29 +1033,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     };
   }
 
-  private async checkBillingDataThreshold(transaction: Transaction): Promise<boolean> {
-    // Do not bill suspicious StopTransaction events
-    if (!Utils.isDevelopmentEnv()) {
-    // Suspicious StopTransaction may occur after a 'Housing temperature approaching limit' error on some charging stations
-      const timeSpent = this.computeTimeSpentInSeconds(transaction);
-      // TODO - make it part of the pricing or billing settings!
-      if (timeSpent < 60 /* seconds */ || transaction.stop.totalConsumptionWh < 1000 /* 1kWh */) {
-        await Logging.logWarning({
-          ...LoggingHelper.getTransactionProperties(transaction),
-          tenantID: this.tenant.id,
-          user: transaction.userID,
-          action: ServerAction.BILLING_TRANSACTION,
-          module: MODULE_NAME, method: 'stopTransaction',
-          message: `Transaction data is suspicious - billing operation has been aborted - transaction ID: ${transaction.id}`,
-        });
-        // Abort the billing process - thresholds are not met!
-        return false;
-      }
-    }
-    // billing data sounds correct
-    return true;
-  }
-
   public async billTransaction(transaction: Transaction): Promise<BillingDataTransactionStop> {
     // Check Stripe
     await this.checkConnection();
@@ -1357,21 +1334,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
 
   private getUserLocale(transaction: Transaction) {
     return transaction.user.locale ? transaction.user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-');
-  }
-
-  private computeTimeSpentInSeconds(transaction: Transaction): number {
-    let totalDuration: number;
-    if (!transaction.stop) {
-      totalDuration = moment.duration(moment(transaction.lastConsumption.timestamp).diff(moment(transaction.timestamp))).asSeconds();
-    } else {
-      totalDuration = moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
-    }
-    return totalDuration;
-  }
-
-  private convertTimeSpentToString(transaction: Transaction): string {
-    const totalDuration = this.computeTimeSpentInSeconds(transaction);
-    return moment.duration(totalDuration, 's').format('h[h]mm', { trim: false });
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
