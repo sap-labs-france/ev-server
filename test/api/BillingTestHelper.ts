@@ -5,7 +5,7 @@ import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types
 import { ChargePointErrorCode, ChargePointStatus, OCPPStatusNotificationRequest } from '../../src/types/ocpp/OCPPServer';
 import ChargingStation, { ConnectorType } from '../../src/types/ChargingStation';
 import PricingDefinition, { DayOfWeek, PricingDimension, PricingDimensions, PricingEntity, PricingRestriction } from '../../src/types/Pricing';
-import chai, { assert, expect } from 'chai';
+import chai, { expect } from 'chai';
 
 import AsyncTaskStorage from '../../src/storage/mongodb/AsyncTaskStorage';
 import CentralServerService from './client/CentralServerService';
@@ -31,6 +31,7 @@ import { TransactionAction } from '../../src/types/Transaction';
 import TransactionStorage from '../../src/storage/mongodb/TransactionStorage';
 import User from '../../src/types/User';
 import Utils from '../../src/utils/Utils';
+import assert from 'assert';
 import chaiSubset from 'chai-subset';
 import config from '../config';
 import moment from 'moment';
@@ -316,6 +317,13 @@ export default class BillingTestHelper {
     }
     await this.createTariff4ChargingStation(testMode, this.chargingStationContext.getChargingStation(), new Date(), dimensions, ConnectorType.COMBO_CCS, restrictions);
     return this.chargingStationContext;
+  }
+
+  public checkTimezone(): void {
+    const timezone = Utils.getTimezone(this.chargingStationContext.getChargingStation().coordinates);
+    // Simulated sessions last 2 hours - Some tests cannot work when the day is about to change!
+    assert(moment().tz(timezone).isoWeekday() === moment().add(2, 'hours').tz(timezone).isoWeekday(),
+      'Timezone is set  to ' + timezone + ' - test execution can not work in that context');
   }
 
   public async initChargingStationContext2TestTimeRestrictions(testMode = 'E', aParticularMoment: moment.Moment) : Promise<ChargingStationContext> {

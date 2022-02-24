@@ -26,10 +26,10 @@ class TestData {
 
 const testData = new TestData();
 
-describe('Company, Site, Site Area', function() {
-  this.timeout(1000000); // Will automatically stop the unit test after that period of time
+describe('Company, Site, Site Area', () => {
+  jest.setTimeout(60000); // Will automatically stop the unit test after that period of time
 
-  before(async () => {
+  beforeAll(async () => {
     chai.config.includeStack = true;
     await ContextProvider.defaultInstance.prepareContexts();
   });
@@ -38,14 +38,14 @@ describe('Company, Site, Site Area', function() {
     // Can be called after each UT to clean up created data
   });
 
-  after(async () => {
+  afterAll(async () => {
     // Final clean up at the end
     await ContextProvider.defaultInstance.cleanUpCreatedContent();
   });
 
   describe('With component Organization (utorg)', () => {
 
-    before(async () => {
+    beforeAll(async () => {
       testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_ORGANIZATION);
       testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       testData.centralUserService = new CentralServerService(
@@ -54,7 +54,7 @@ describe('Company, Site, Site Area', function() {
       );
     });
 
-    after(async () => {
+    afterAll(async () => {
       // Delete any created site area
       for (const siteArea of testData.createdSiteAreas) {
         await testData.centralUserService.deleteEntity(
@@ -95,7 +95,7 @@ describe('Company, Site, Site Area', function() {
 
     describe('Where admin user', () => {
 
-      before(async () => {
+      beforeAll(async () => {
         testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
         if (testData.userContext === testData.centralUserContext) {
           // Reuse the central user service (to avoid double login)
@@ -157,46 +157,52 @@ describe('Company, Site, Site Area', function() {
         );
       });
 
-      it('Should be able to delete a site which will automatically delete the site area', async () => {
-        // Delete the Site
-        await testData.userService.deleteEntity(
-          testData.userService.siteApi,
-          testData.newSite
-        );
-        // Check Site does not exist
-        await testData.userService.checkDeletedEntityById(
-          testData.userService.siteApi,
-          testData.newSite
-        );
-        // Check Site Area does not exist
-        await testData.userService.checkDeletedEntityById(
-          testData.userService.siteAreaApi,
-          testData.newSiteArea
-        );
-      });
+      it(
+        'Should be able to delete a site which will automatically delete the site area',
+        async () => {
+          // Delete the Site
+          await testData.userService.deleteEntity(
+            testData.userService.siteApi,
+            testData.newSite
+          );
+          // Check Site does not exist
+          await testData.userService.checkDeletedEntityById(
+            testData.userService.siteApi,
+            testData.newSite
+          );
+          // Check Site Area does not exist
+          await testData.userService.checkDeletedEntityById(
+            testData.userService.siteAreaApi,
+            testData.newSiteArea
+          );
+        }
+      );
 
-      it('Should be able to delete a company which will automatically delete the site and the site area', async () => {
-        // Delete the Site
-        await testData.userService.deleteEntity(
-          testData.userService.companyApi,
-          testData.newCompany
-        );
-        // Check Company does not exist
-        await testData.userService.checkDeletedEntityById(
-          testData.userService.companyApi,
-          testData.newCompany
-        );
-        // Check Site does not exist
-        await testData.userService.checkDeletedEntityById(
-          testData.userService.siteApi,
-          testData.newSite
-        );
-        // Check Site Area does not exist
-        await testData.userService.checkDeletedEntityById(
-          testData.userService.siteAreaApi,
-          testData.newSiteArea
-        );
-      });
+      it(
+        'Should be able to delete a company which will automatically delete the site and the site area',
+        async () => {
+          // Delete the Site
+          await testData.userService.deleteEntity(
+            testData.userService.companyApi,
+            testData.newCompany
+          );
+          // Check Company does not exist
+          await testData.userService.checkDeletedEntityById(
+            testData.userService.companyApi,
+            testData.newCompany
+          );
+          // Check Site does not exist
+          await testData.userService.checkDeletedEntityById(
+            testData.userService.siteApi,
+            testData.newSite
+          );
+          // Check Site Area does not exist
+          await testData.userService.checkDeletedEntityById(
+            testData.userService.siteAreaApi,
+            testData.newSiteArea
+          );
+        }
+      );
 
     });
 

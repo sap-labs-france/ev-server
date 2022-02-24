@@ -308,7 +308,7 @@ export default class SiteAreaService {
       }
     }
     // Save
-    siteArea.id = await SiteAreaStorage.saveSiteArea(req.tenant, siteArea, true);
+    siteArea.id = await SiteAreaStorage.saveSiteArea(req.tenant, siteArea, Utils.objectHasProperty(filteredRequest, 'image'));
     await Logging.logInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleCreateSiteArea',

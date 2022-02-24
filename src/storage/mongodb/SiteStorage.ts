@@ -1,3 +1,4 @@
+import Site, { SiteOcpiData } from '../../types/Site';
 import global, { DatabaseCount, FilterParams, Image } from '../../types/GlobalType';
 
 import AssetStorage from './AssetStorage';
@@ -8,7 +9,6 @@ import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { ObjectId } from 'mongodb';
-import Site from '../../types/Site';
 import SiteAreaStorage from './SiteAreaStorage';
 import Tenant from '../../types/Tenant';
 import TransactionStorage from './TransactionStorage';
@@ -238,7 +238,7 @@ export default class SiteStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'updateSiteUserAdmin', startTime, { siteID, userID, siteAdmin });
   }
 
-  public static async saveSite(tenant: Tenant, siteToSave: Site, saveImage = true): Promise<string> {
+  public static async saveSite(tenant: Tenant, siteToSave: Site, saveImage = false): Promise<string> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     const siteFilter: any = {};
@@ -339,7 +339,11 @@ export default class SiteStorage {
         { 'address.city': { $regex: params.search, $options: 'i' } },
         { 'address.region': { $regex: params.search, $options: 'i' } },
         { 'address.country': { $regex: params.search, $options: 'i' } },
+        { 'ocpiData.location.id': { $regex: params.search, $options: 'im' } },
       ];
+      if (DatabaseUtils.isObjectID(params.search)) {
+        filters.$or.push({ '_id': DatabaseUtils.convertToObjectID(params.search) });
+      }
     }
     // Site Name
     if (params.name) {

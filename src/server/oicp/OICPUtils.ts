@@ -42,7 +42,7 @@ export default class OICPUtils {
   public static convertConnector2EvseStatus(chargingStation: ChargingStation, connector: Connector,
       options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseStatusRecord {
     return {
-      EvseID: RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation.id, connector.connectorId),
+      EvseID: RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connector.connectorId),
       EvseStatus: chargingStation.inactive ? OICPEvseStatus.OutOfService : OICPUtils.convertStatus2OICPEvseStatus(connector.status),
       ChargingStationID: chargingStation.id,
     };
@@ -134,7 +134,7 @@ export default class OICPUtils {
     let foundConnector: Connector;
     if (chargingStation) {
       for (const connector of chargingStation.connectors) {
-        if (evseID === RoamingUtils.buildEvseID(evseIDComponents.countryCode, evseIDComponents.partyId, chargingStation.id, connector.connectorId)) {
+        if (evseID === RoamingUtils.buildEvseID(evseIDComponents.countryCode, evseIDComponents.partyId, chargingStation, connector.connectorId)) {
           foundConnector = connector;
         }
       }
@@ -415,7 +415,7 @@ export default class OICPUtils {
     const evse: OICPEvseDataRecord = {} as OICPEvseDataRecord;
     evse.deltaType; // Optional
     evse.lastUpdate; // Optional
-    evse.EvseID = RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation.id, connector.connectorId);
+    evse.EvseID = RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connector.connectorId);
     evse.ChargingPoolID = OICPUtils.buildEChargingPoolID(options.countryID, options.partyID, siteArea.id); // Optional
     evse.ChargingStationID = chargingStation.id; // Optional
     evse.ChargingStationNames = [

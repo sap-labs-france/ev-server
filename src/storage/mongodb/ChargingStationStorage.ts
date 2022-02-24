@@ -17,6 +17,7 @@ import { InactivityStatus } from '../../types/Transaction';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
+import { ServerAction } from '../../types/Server';
 
 const MODULE_NAME = 'ChargingStationStorage';
 
@@ -114,22 +115,14 @@ export default class ChargingStationStorage {
     return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
   }
 
-  public static async getChargingStationByOcpiEvseID(tenant: Tenant, ocpiEvseID: string = Constants.UNKNOWN_STRING_ID,
-      projectFields?: string[]): Promise<ChargingStation> {
-    const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenant, {
-      ocpiEvseID,
-      withSiteArea: true,
-    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
-    return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
-  }
-
-  public static async getChargingStationByOcpiLocationUid(tenant: Tenant, ocpiLocationID: string = Constants.UNKNOWN_STRING_ID,
+  public static async getChargingStationByOcpiLocationEvseUid(tenant: Tenant, ocpiLocationID: string = Constants.UNKNOWN_STRING_ID,
       ocpiEvseUid: string = Constants.UNKNOWN_STRING_ID,
       projectFields?: string[]): Promise<ChargingStation> {
     const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenant, {
       ocpiLocationID,
       ocpiEvseUid,
-      withSiteArea: true
+      withSite: true,
+      withSiteArea: true,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
   }
@@ -147,7 +140,7 @@ export default class ChargingStationStorage {
       params: {
         search?: string; chargingStationIDs?: string[]; chargingStationSerialNumbers?: string[]; siteAreaIDs?: string[]; withNoSiteArea?: boolean;
         connectorStatuses?: string[]; connectorTypes?: string[]; statusChangedBefore?: Date; withSiteArea?: boolean; withUser?: boolean;
-        ocpiEvseUid?: string; ocpiEvseID?: string; ocpiLocationID?: string; oicpEvseID?: string;
+        ocpiEvseUid?: string; ocpiLocationID?: string; oicpEvseID?: string;
         siteIDs?: string[]; companyIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
         locCoordinates?: number[]; locMaxDistanceMeters?: number; public?: boolean;
       },
@@ -182,6 +175,9 @@ export default class ChargingStationStorage {
     if (params.search) {
       filters.$or = [
         { _id: { $regex: params.search, $options: 'im' } },
+        { _id: params.search },
+        { 'ocpiData.evses.uid': { $regex: params.search, $options: 'im' } },
+        { 'ocpiData.evses.location_id': { $regex: params.search, $options: 'im' } },
         { chargePointModel: { $regex: params.search, $options: 'im' } },
         { chargePointVendor: { $regex: params.search, $options: 'im' } }
       ];
@@ -213,10 +209,6 @@ export default class ChargingStationStorage {
     // OCPI Location ID
     if (params.ocpiLocationID) {
       filters['ocpiData.evses.location_id'] = params.ocpiLocationID;
-    }
-    // OCPI Evse ID
-    if (params.ocpiEvseID) {
-      filters['ocpiData.evses.evse_id'] = params.ocpiEvseID;
     }
     // OICP Evse ID
     if (params.oicpEvseID) {
@@ -637,8 +629,7 @@ export default class ChargingStationStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveChargingStationRuntimeData', startTime, runtimeData);
   }
 
-  public static async saveChargingStationOcpiData(tenant: Tenant, id: string,
-      ocpiData: ChargingStationOcpiData): Promise<void> {
+  public static async saveChargingStationOcpiData(tenant: Tenant, id: string, ocpiData: ChargingStationOcpiData): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Modify document
