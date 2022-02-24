@@ -1,4 +1,4 @@
-import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
+import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser } from '../../types/Billing';
 import Tenant, { TenantComponents } from '../../types/Tenant';
 import Transaction, { StartTransactionErrorCode } from '../../types/Transaction';
 import User, { UserStatus } from '../../types/User';
@@ -310,6 +310,44 @@ export default abstract class BillingIntegration {
         });
       }
     }));
+  }
+
+  protected async checkBillingDataThreshold(transaction: Transaction): Promise<boolean> {
+    // Do not bill suspicious StopTransaction events
+    if (!Utils.isDevelopmentEnv()) {
+    // Suspicious StopTransaction may occur after a 'Housing temperature approaching limit' error on some charging stations
+      const timeSpent = this.computeTimeSpentInSeconds(transaction);
+      // TODO - make it part of the pricing or billing settings!
+      if (timeSpent < 60 /* seconds */ || transaction.stop.totalConsumptionWh < 1000 /* 1kWh */) {
+        await Logging.logWarning({
+          ...LoggingHelper.getTransactionProperties(transaction),
+          tenantID: this.tenant.id,
+          user: transaction.userID,
+          action: ServerAction.BILLING_TRANSACTION,
+          module: MODULE_NAME, method: 'stopTransaction',
+          message: `Transaction data is suspicious - billing operation has been aborted - transaction ID: ${transaction.id}`,
+        });
+        // Abort the billing process - thresholds are not met!
+        return false;
+      }
+    }
+    // billing data sounds correct
+    return true;
+  }
+
+  protected computeTimeSpentInSeconds(transaction: Transaction): number {
+    let totalDuration: number;
+    if (!transaction.stop) {
+      totalDuration = moment.duration(moment(transaction.lastConsumption.timestamp).diff(moment(transaction.timestamp))).asSeconds();
+    } else {
+      totalDuration = moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
+    }
+    return totalDuration;
+  }
+
+  protected convertTimeSpentToString(transaction: Transaction): string {
+    const totalDuration = this.computeTimeSpentInSeconds(transaction);
+    return moment.duration(totalDuration, 's').format('h[h]mm', { trim: false });
   }
 
   private async _synchronizeUser(user: User, forceMode = false): Promise<BillingUser> {
