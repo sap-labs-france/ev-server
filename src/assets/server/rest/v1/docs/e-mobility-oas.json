@@ -346,7 +346,7 @@
         }
       }
     },
-    "/api/tenants/logo": {
+    "/util/tenants/logo": {
       "get": {
         "description": "Retrieve a Tenant logo",
         "security": [
@@ -680,7 +680,7 @@
         }
       }
     },
-    "/api/site-areas/{id}/image": {
+    "/util/site-areas/{id}/image": {
       "get": {
         "description": "Retrieve Site Area's image",
         "security": [
@@ -5593,7 +5593,7 @@
         }
       }
     },
-    "/api/charging-stations/firmware/download": {
+    "/util/charging-stations/firmware/download": {
       "get": {
         "security": [
           {
@@ -8745,7 +8745,7 @@
         }
       }
     },
-    "/api/sites/{id}/image": {
+    "/util/sites/{id}/image": {
       "get": {
         "description": "Retrieve site's image",
         "tags": [
@@ -9403,7 +9403,7 @@
         }
       }
     },
-    "/api/car-catalogs/{id}/image": {
+    "/util/car-catalogs/{id}/image": {
       "get": {
         "security": [
           {
@@ -9970,6 +9970,9 @@
           },
           {
             "$ref": "#/components/parameters/SiteIDs"
+          },
+          {
+            "$ref": "#/components/parameters/WithSite"
           },
           {
             "$ref": "#/components/parameters/WithSiteArea"
@@ -10542,7 +10545,7 @@
         }
       }
     },
-    "/api/assets/{id}/image": {
+    "/util/assets/{id}/image": {
       "get": {
         "security": [
           {

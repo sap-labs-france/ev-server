@@ -2,7 +2,7 @@ import { ChargePointStatus, OCPPFirmwareStatus } from '../../types/ocpp/OCPPServ
 import { ChargingProfile, ChargingProfilePurposeType, ChargingRateUnitType } from '../../types/ChargingProfile';
 import ChargingStation, { ChargePoint, ChargingStationOcpiData, ChargingStationOcppParameters, ChargingStationOicpData, ChargingStationTemplate, Connector, ConnectorType, CurrentType, OcppParameter, PhaseAssignmentToGrid, RemoteAuthorization, Voltage } from '../../types/ChargingStation';
 import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
-import { GridFSBucket, GridFSBucketReadStream, GridFSBucketWriteStream, ObjectId } from 'mongodb';
+import { GridFSBucket, GridFSBucketReadStream, GridFSBucketWriteStream, ObjectId, UpdateResult } from 'mongodb';
 import Tenant, { TenantComponents } from '../../types/Tenant';
 import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
@@ -17,6 +17,7 @@ import { InactivityStatus } from '../../types/Transaction';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
+import { ServerAction } from '../../types/Server';
 
 const MODULE_NAME = 'ChargingStationStorage';
 
@@ -114,22 +115,14 @@ export default class ChargingStationStorage {
     return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
   }
 
-  public static async getChargingStationByOcpiEvseID(tenant: Tenant, ocpiEvseID: string = Constants.UNKNOWN_STRING_ID,
-      projectFields?: string[]): Promise<ChargingStation> {
-    const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenant, {
-      ocpiEvseID,
-      withSiteArea: true,
-    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
-    return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
-  }
-
-  public static async getChargingStationByOcpiLocationUid(tenant: Tenant, ocpiLocationID: string = Constants.UNKNOWN_STRING_ID,
+  public static async getChargingStationByOcpiLocationEvseUid(tenant: Tenant, ocpiLocationID: string = Constants.UNKNOWN_STRING_ID,
       ocpiEvseUid: string = Constants.UNKNOWN_STRING_ID,
       projectFields?: string[]): Promise<ChargingStation> {
     const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenant, {
       ocpiLocationID,
       ocpiEvseUid,
-      withSiteArea: true
+      withSite: true,
+      withSiteArea: true,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
   }
@@ -147,7 +140,7 @@ export default class ChargingStationStorage {
       params: {
         search?: string; chargingStationIDs?: string[]; chargingStationSerialNumbers?: string[]; siteAreaIDs?: string[]; withNoSiteArea?: boolean;
         connectorStatuses?: string[]; connectorTypes?: string[]; statusChangedBefore?: Date; withSiteArea?: boolean; withUser?: boolean;
-        ocpiEvseUid?: string; ocpiEvseID?: string; ocpiLocationID?: string; oicpEvseID?: string;
+        ocpiEvseUid?: string; ocpiLocationID?: string; oicpEvseID?: string;
         siteIDs?: string[]; companyIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
         locCoordinates?: number[]; locMaxDistanceMeters?: number; public?: boolean;
       },
@@ -163,7 +156,7 @@ export default class ChargingStationStorage {
     // Create Aggregation
     const aggregation = [];
     // Position coordinates
-    if (Utils.containsGPSCoordinates(params.locCoordinates)) {
+    if (Utils.hasValidGpsCoordinates(params.locCoordinates)) {
       aggregation.push({
         $geoNear: {
           near: {
@@ -182,6 +175,9 @@ export default class ChargingStationStorage {
     if (params.search) {
       filters.$or = [
         { _id: { $regex: params.search, $options: 'im' } },
+        { _id: params.search },
+        { 'ocpiData.evses.uid': { $regex: params.search, $options: 'im' } },
+        { 'ocpiData.evses.location_id': { $regex: params.search, $options: 'im' } },
         { chargePointModel: { $regex: params.search, $options: 'im' } },
         { chargePointVendor: { $regex: params.search, $options: 'im' } }
       ];
@@ -213,10 +209,6 @@ export default class ChargingStationStorage {
     // OCPI Location ID
     if (params.ocpiLocationID) {
       filters['ocpiData.evses.location_id'] = params.ocpiLocationID;
-    }
-    // OCPI Evse ID
-    if (params.ocpiEvseID) {
-      filters['ocpiData.evses.evse_id'] = params.ocpiEvseID;
     }
     // OICP Evse ID
     if (params.oicpEvseID) {
@@ -321,7 +313,7 @@ export default class ChargingStationStorage {
       dbParams.sort = { _id: 1 };
     }
     // Position coordinates
-    if (Utils.containsGPSCoordinates(params.locCoordinates)) {
+    if (Utils.hasValidGpsCoordinates(params.locCoordinates)) {
       // Override (can have only one sort)
       dbParams.sort = { distanceMeters: 1 };
     }
@@ -370,7 +362,7 @@ export default class ChargingStationStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Reorder connector ID
-    if (!Utils.containsGPSCoordinates(params.locCoordinates)) {
+    if (!Utils.hasValidGpsCoordinates(params.locCoordinates)) {
       aggregation.push({
         $sort: dbParams.sort
       });
@@ -554,7 +546,7 @@ export default class ChargingStationStorage {
         (backupConnector) => ChargingStationStorage.filterConnectorMDB(backupConnector)) : [],
       chargePoints: chargingStationToSave.chargePoints ? chargingStationToSave.chargePoints.map(
         (chargePoint) => ChargingStationStorage.filterChargePointMDB(chargePoint)) : [],
-      coordinates: Utils.containsGPSCoordinates(chargingStationToSave.coordinates) ? chargingStationToSave.coordinates.map(
+      coordinates: Utils.hasValidGpsCoordinates(chargingStationToSave.coordinates) ? chargingStationToSave.coordinates.map(
         (coordinate) => Utils.convertToFloat(coordinate)) : [],
       currentIPAddress: chargingStationToSave.currentIPAddress,
       capabilities: chargingStationToSave.capabilities,
@@ -637,8 +629,7 @@ export default class ChargingStationStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveChargingStationRuntimeData', startTime, runtimeData);
   }
 
-  public static async saveChargingStationOcpiData(tenant: Tenant, id: string,
-      ocpiData: ChargingStationOcpiData): Promise<void> {
+  public static async saveChargingStationOcpiData(tenant: Tenant, id: string, ocpiData: ChargingStationOcpiData): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Modify document
@@ -967,6 +958,36 @@ export default class ChargingStationStorage {
     const firmware = bucket.openUploadStream(filename);
     void Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'putChargingStationFirmware', startTime, filename, firmware);
     return firmware;
+  }
+
+  public static async updateChargingStationsWithOrganizationIDs(tenant: Tenant, companyID: string, siteID: string, siteAreaID?: string): Promise<number> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    DatabaseUtils.checkTenantObject(tenant);
+    let result: UpdateResult;
+    if (siteAreaID) {
+      result = await global.database.getCollection<any>(tenant.id, 'chargingstations').updateMany(
+        {
+          siteAreaID: DatabaseUtils.convertToObjectID(siteAreaID),
+        },
+        {
+          $set: {
+            siteID: DatabaseUtils.convertToObjectID(siteID),
+            companyID: DatabaseUtils.convertToObjectID(companyID)
+          }
+        }) as UpdateResult;
+    } else {
+      result = await global.database.getCollection<any>(tenant.id, 'chargingstations').updateMany(
+        {
+          siteID: DatabaseUtils.convertToObjectID(siteID),
+        },
+        {
+          $set: {
+            companyID: DatabaseUtils.convertToObjectID(companyID)
+          }
+        }) as UpdateResult;
+    }
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'updateChargingStationsWithOrganizationIDs', startTime, { siteID, companyID, siteAreaID });
+    return result.modifiedCount;
   }
 
   private static getChargerInErrorFacet(errorType: string) {

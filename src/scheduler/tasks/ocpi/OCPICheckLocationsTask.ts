@@ -61,7 +61,7 @@ export default class OCPICheckLocationsTask extends TenantSchedulerTask {
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_CHECK_SESSIONS,
-          message: `The check locations process for endpoint '${ocpiEndpoint.name}' is being processed`
+          message: `Check of Locations for endpoint '${ocpiEndpoint.name}' is being processed`
         });
         // Build OCPI Client
         const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
@@ -70,7 +70,7 @@ export default class OCPICheckLocationsTask extends TenantSchedulerTask {
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_CHECK_SESSIONS,
-          message: `The check locations process for endpoint '${ocpiEndpoint.name}' is completed`,
+          message: `Check of Locations for endpoint '${ocpiEndpoint.name}' is completed`,
           detailedMessages: { result }
         });
       } catch (error) {

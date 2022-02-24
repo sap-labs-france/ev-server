@@ -16,7 +16,9 @@ import User from './User';
 import bluebird from 'bluebird';
 import path from 'path';
 
-import Global = NodeJS.Global;
+declare global {
+  interface Global {}
+}
 
 export interface Data {
   id: string;

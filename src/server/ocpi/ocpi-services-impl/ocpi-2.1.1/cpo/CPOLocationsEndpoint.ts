@@ -13,6 +13,7 @@ import { OCPIResponse } from '../../../../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../../../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from '../../../OCPIUtils';
 import OCPIUtilsService from '../OCPIUtilsService';
+import { OcpiSetting } from '../../../../../types/Setting';
 import { ServerAction } from '../../../../../types/Server';
 import SiteStorage from '../../../../../storage/mongodb/SiteStorage';
 import Tenant from '../../../../../types/Tenant';
@@ -54,7 +55,7 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
     };
     // Process request
     if (locationId && evseUid && evseConnectorId) {
-      evseConnector = await this.getConnector(tenant, locationId, evseUid, evseConnectorId, options);
+      evseConnector = await this.getConnector(tenant, locationId, evseUid, evseConnectorId, options, ocpiClient.getSettings());
       // Check if at least of site found
       if (!evseConnector) {
         throw new AppError({
@@ -67,7 +68,7 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
         });
       }
     } else if (locationId && evseUid) {
-      evseConnector = await OCPIUtilsService.getEvse(tenant, locationId, evseUid, options);
+      evseConnector = await OCPIUtilsService.getEvse(tenant, locationId, evseUid, options, ocpiClient.getSettings());
       // Check if at least of site found
       if (!evseConnector) {
         throw new AppError({
@@ -81,7 +82,7 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
       }
     } else if (locationId) {
       // Get single location
-      evseConnector = await this.getLocation(tenant, locationId, options);
+      evseConnector = await this.getLocation(tenant, locationId, options, ocpiClient.getSettings());
       // Check if at least of site found
       if (!evseConnector) {
         throw new AppError({
@@ -98,7 +99,7 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
       const offset = (req.query.offset) ? Utils.convertToInt(req.query.offset) : 0;
       const limit = (req.query.limit && Utils.convertToInt(req.query.limit) < Constants.OCPI_RECORDS_LIMIT) ? Utils.convertToInt(req.query.limit) : Constants.OCPI_RECORDS_LIMIT;
       // Get all locations
-      const locations = await OCPIUtilsService.getAllLocations(tenant, limit, offset, options, true);
+      const locations = await OCPIUtilsService.getAllLocations(tenant, limit, offset, options, true, ocpiClient.getSettings());
       evseConnector = locations.result;
       // Set header
       res.set({
@@ -117,17 +118,17 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
     return OCPIUtils.success(evseConnector);
   }
 
-  private async getLocation(tenant: Tenant, locationId: string, options: OCPILocationOptions): Promise<OCPILocation> {
+  private async getLocation(tenant: Tenant, locationId: string, options: OCPILocationOptions, settings: OcpiSetting): Promise<OCPILocation> {
     // Get site
     const site = await SiteStorage.getSite(tenant, locationId);
     if (site) {
-      return await OCPIUtilsService.convertSite2Location(tenant, site, options, true);
+      return await OCPIUtilsService.convertCPOSite2Location(tenant, site, options, true, settings);
     }
   }
 
-  private async getConnector(tenant: Tenant, locationId: string, evseUid: string, connectorId: string, options: OCPILocationOptions): Promise<OCPIConnector> {
+  private async getConnector(tenant: Tenant, locationId: string, evseUid: string, connectorId: string, options: OCPILocationOptions, settings: OcpiSetting): Promise<OCPIConnector> {
     // Get site
-    const evse = await OCPIUtilsService.getEvse(tenant, locationId, evseUid, options);
+    const evse = await OCPIUtilsService.getEvse(tenant, locationId, evseUid, options, settings);
     // Find the Connector
     return evse?.connectors.find((connector) => connector.id === connectorId);
   }

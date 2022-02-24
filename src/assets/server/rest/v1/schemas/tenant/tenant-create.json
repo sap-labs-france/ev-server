@@ -4,10 +4,10 @@
   "type": "object",
   "properties": {
     "id": {
-      "$ref": "tenant#/definitions/id"
+      "$ref": "tenant#/properties/id"
     },
     "name": {
-      "$ref": "tenant#/definitions/name"
+      "$ref": "tenant#/properties/name"
     },
     "email": {
       "$ref": "user#/definitions/email"

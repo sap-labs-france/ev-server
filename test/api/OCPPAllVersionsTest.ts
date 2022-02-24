@@ -25,10 +25,10 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('OCPP Service (all versions)', function() {
-  this.timeout(300000); // Will automatically stop the unit test after that period of time
+describe('OCPP Service (all versions)', () => {
+  jest.setTimeout(300000); // Will automatically stop the unit test after that period of time
 
-  before(async () => {
+  beforeAll(async () => {
     chai.config.includeStack = true;
     await ContextProvider.defaultInstance.prepareContexts();
   });
@@ -37,14 +37,14 @@ describe('OCPP Service (all versions)', function() {
     // Can be called after each UT to clean up created data
   });
 
-  after(async () => {
+  afterAll(async () => {
     // Final clean up at the end
     await ContextProvider.defaultInstance.cleanUpCreatedContent();
   });
 
   describe('Without any component (utnothing)', () => {
 
-    before(async () => {
+    beforeAll(async () => {
       testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS);
       testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       testData.ocppCommonTests = new OCPPCommonTests(testData.tenantContext, testData.centralUserContext, true);
@@ -52,92 +52,128 @@ describe('OCPP Service (all versions)', function() {
       await testData.ocppCommonTests.before();
     });
 
-    after(async () => {
+    afterAll(async () => {
       await testData.ocppCommonTests.after();
     });
 
     describe('For OCPP Version 1.5 (SOAP)', () => {
 
-      before(() => {
+      beforeAll(() => {
         testData.chargingStationContext = testData.tenantContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.UNASSIGNED_OCPP15);
         testData.ocppCommonTests.setChargingStation(testData.chargingStationContext);
       });
 
-      after(async () => {
+      afterAll(async () => {
         await testData.chargingStationContext.cleanUpCreatedData();
       });
 
       describe('Where any user', () => {
 
-        it('With tag as integer should be authorized to start a transaction', async () => {
-          await testData.ocppCommonTests.testAuthorizeTagAsInteger();
-        });
+        it(
+          'With tag as integer should be authorized to start a transaction',
+          async () => {
+            await testData.ocppCommonTests.testAuthorizeTagAsInteger();
+          }
+        );
 
-        it('With invalid tag should not be authorized to start a transaction', async () => {
-          await testData.ocppCommonTests.testAuthorizeInvalidTag();
-        });
+        it(
+          'With invalid tag should not be authorized to start a transaction',
+          async () => {
+            await testData.ocppCommonTests.testAuthorizeInvalidTag();
+          }
+        );
 
-        it('Should be able to start a transaction with connectorId as string', async () => {
-          await testData.ocppCommonTests.testStartTransactionWithConnectorIdAsString();
-        });
+        it(
+          'Should be able to start a transaction with connectorId as string',
+          async () => {
+            await testData.ocppCommonTests.testStartTransactionWithConnectorIdAsString();
+          }
+        );
 
-        it('Should be able to start a transaction with meterStart greater than 0', async () => {
-          await testData.ocppCommonTests.testStartTransactionWithMeterStartGreaterZero();
-        });
+        it(
+          'Should be able to start a transaction with meterStart greater than 0',
+          async () => {
+            await testData.ocppCommonTests.testStartTransactionWithMeterStartGreaterZero();
+          }
+        );
 
-        it('Should not be able to start a transaction with invalid tag', async () => {
-          await testData.ocppCommonTests.testStartTransactionWithInvalidTag();
-        });
+        it(
+          'Should not be able to start a transaction with invalid tag',
+          async () => {
+            await testData.ocppCommonTests.testStartTransactionWithInvalidTag();
+          }
+        );
 
-        it('Should be able to stop a transaction without transactionData', async () => {
-          await testData.ocppCommonTests.testStopTransactionWithoutTransactionData();
-        });
+        it(
+          'Should be able to stop a transaction without transactionData',
+          async () => {
+            await testData.ocppCommonTests.testStopTransactionWithoutTransactionData();
+          }
+        );
 
         it('Should be able to stop a transaction with transactionData', async () => {
           await testData.ocppCommonTests.testStopTransactionWithTransactionData();
         });
 
-        it('Should not be able to stop a transaction with invalid transactionData', async () => {
-          await testData.ocppCommonTests.testStopTransactionWithInvalidTransactionData();
-        });
+        it(
+          'Should not be able to stop a transaction with invalid transactionData',
+          async () => {
+            await testData.ocppCommonTests.testStopTransactionWithInvalidTransactionData();
+          }
+        );
 
         it('Should be able to retrieve the last reboot date', async () => {
           await testData.ocppCommonTests.testRetrieveLastRebootDate();
         });
 
-        it('Should be able to perform a transaction, where Keba clock meterValues are ignored', async () => {
-          await testData.ocppCommonTests.testTransactionIgnoringClockMeterValues();
-        });
+        it(
+          'Should be able to perform a transaction, where Keba clock meterValues are ignored',
+          async () => {
+            await testData.ocppCommonTests.testTransactionIgnoringClockMeterValues();
+          }
+        );
 
-        it('Charging station should set both of its connectors to Available', async () => {
-          await testData.ocppCommonTests.testConnectorStatus();
-        });
+        it(
+          'Charging station should set both of its connectors to Available',
+          async () => {
+            await testData.ocppCommonTests.testConnectorStatus();
+          }
+        );
 
         it('Charging station should send its heartbeat', async () => {
           await testData.ocppCommonTests.testHeartbeat();
         });
 
-        it('Charging station should have saved the connection\'s IP address', async () => {
-          await testData.ocppCommonTests.testClientIP();
-        });
+        it(
+          'Charging station should have saved the connection\'s IP address',
+          async () => {
+            await testData.ocppCommonTests.testClientIP();
+          }
+        );
 
-        it('Charging station can change its connector status to Occupied', async () => {
-          await testData.ocppCommonTests.testChangeConnectorStatus();
-        });
+        it(
+          'Charging station can change its connector status to Occupied',
+          async () => {
+            await testData.ocppCommonTests.testChangeConnectorStatus();
+          }
+        );
 
         it('Charging station should send data transfer', async () => {
           await testData.ocppCommonTests.testDataTransfer();
         });
 
-        it('Should not be able to remote start transaction without a badge', async () => {
-          await testData.ocppCommonTests.testRemoteStartTransactionWithNoBadge();
-        });
+        it(
+          'Should not be able to remote start transaction without a badge',
+          async () => {
+            await testData.ocppCommonTests.testRemoteStartTransactionWithNoBadge();
+          }
+        );
 
       });
 
       describe('Where basic user', () => {
 
-        before(() => {
+        beforeAll(() => {
           testData.ocppCommonTests.setUsers(
             testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED)
           );
@@ -151,7 +187,7 @@ describe('OCPP Service (all versions)', function() {
 
       describe('Where admin user', () => {
 
-        before(() => {
+        beforeAll(() => {
           testData.ocppCommonTests.setUsers(
             testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.ADMIN_UNASSIGNED)
           );
@@ -165,7 +201,7 @@ describe('OCPP Service (all versions)', function() {
 
       describe('Where external user', () => {
 
-        before(() => {
+        beforeAll(() => {
           testData.ocppCommonTests.setUsers(
             testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.EXTERNAL_USER)
           );
@@ -181,86 +217,122 @@ describe('OCPP Service (all versions)', function() {
 
     describe('For OCPP Version 1.6 (JSON)', () => {
 
-      before(() => {
+      beforeAll(() => {
         testData.chargingStationContext = testData.tenantContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.UNASSIGNED_OCPP16);
         testData.ocppCommonTests.setChargingStation(testData.chargingStationContext);
       });
 
-      after(async () => {
+      afterAll(async () => {
         await testData.chargingStationContext.cleanUpCreatedData();
       });
 
       describe('Where any user', () => {
 
-        it('With tag as integer should be authorized to start a transaction', async () => {
-          await testData.ocppCommonTests.testAuthorizeTagAsInteger();
-        });
+        it(
+          'With tag as integer should be authorized to start a transaction',
+          async () => {
+            await testData.ocppCommonTests.testAuthorizeTagAsInteger();
+          }
+        );
 
-        it('With invalid tag should not be authorized to start a transaction', async () => {
-          await testData.ocppCommonTests.testAuthorizeInvalidTag();
-        });
+        it(
+          'With invalid tag should not be authorized to start a transaction',
+          async () => {
+            await testData.ocppCommonTests.testAuthorizeInvalidTag();
+          }
+        );
 
-        it('Should be able to start a transaction with connectorId as string', async () => {
-          await testData.ocppCommonTests.testStartTransactionWithConnectorIdAsString();
-        });
+        it(
+          'Should be able to start a transaction with connectorId as string',
+          async () => {
+            await testData.ocppCommonTests.testStartTransactionWithConnectorIdAsString();
+          }
+        );
 
-        it('Should be able to start a transaction with meterStart greater than 0', async () => {
-          await testData.ocppCommonTests.testStartTransactionWithMeterStartGreaterZero();
-        });
+        it(
+          'Should be able to start a transaction with meterStart greater than 0',
+          async () => {
+            await testData.ocppCommonTests.testStartTransactionWithMeterStartGreaterZero();
+          }
+        );
 
-        it('Should not be able to start a transaction with invalid tag', async () => {
-          await testData.ocppCommonTests.testStartTransactionWithInvalidTag();
-        });
+        it(
+          'Should not be able to start a transaction with invalid tag',
+          async () => {
+            await testData.ocppCommonTests.testStartTransactionWithInvalidTag();
+          }
+        );
 
-        it('Should be able to stop a transaction without transactionData', async () => {
-          await testData.ocppCommonTests.testStopTransactionWithoutTransactionData();
-        });
+        it(
+          'Should be able to stop a transaction without transactionData',
+          async () => {
+            await testData.ocppCommonTests.testStopTransactionWithoutTransactionData();
+          }
+        );
 
         it('Should be able to stop a transaction with transactionData', async () => {
           await testData.ocppCommonTests.testStopTransactionWithTransactionData();
         });
 
-        it('Should not be able to stop a transaction with invalid transactionData', async () => {
-          await testData.ocppCommonTests.testStopTransactionWithInvalidTransactionData();
-        });
+        it(
+          'Should not be able to stop a transaction with invalid transactionData',
+          async () => {
+            await testData.ocppCommonTests.testStopTransactionWithInvalidTransactionData();
+          }
+        );
 
         it('Should be able to retrieve the last reboot date', async () => {
           await testData.ocppCommonTests.testRetrieveLastRebootDate();
         });
 
-        it('Should be able to perform a transaction, where Keba clock meterValues are ignored', async () => {
-          await testData.ocppCommonTests.testTransactionIgnoringClockMeterValues();
-        });
+        it(
+          'Should be able to perform a transaction, where Keba clock meterValues are ignored',
+          async () => {
+            await testData.ocppCommonTests.testTransactionIgnoringClockMeterValues();
+          }
+        );
 
-        it('Charging station should set both of its connectors to Available', async () => {
-          await testData.ocppCommonTests.testConnectorStatus();
-        });
+        it(
+          'Charging station should set both of its connectors to Available',
+          async () => {
+            await testData.ocppCommonTests.testConnectorStatus();
+          }
+        );
 
         it('Charging station should send its heartbeat', async () => {
           await testData.ocppCommonTests.testHeartbeat();
         });
 
-        it('Charging station should have saved the connection\'s IP address', async () => {
-          await testData.ocppCommonTests.testClientIP();
-        });
+        it(
+          'Charging station should have saved the connection\'s IP address',
+          async () => {
+            await testData.ocppCommonTests.testClientIP();
+          }
+        );
 
-        it('Charging station can change its connector status to Occupied', async () => {
-          await testData.ocppCommonTests.testChangeConnectorStatus();
-        });
+        it(
+          'Charging station can change its connector status to Occupied',
+          async () => {
+            await testData.ocppCommonTests.testChangeConnectorStatus();
+          }
+        );
 
         it('Charging station should send data transfer', async () => {
           await testData.ocppCommonTests.testDataTransfer();
         });
 
-        it('Should not be able to remote start transaction without a badge', async () => {
-          await testData.ocppCommonTests.testRemoteStartTransactionWithNoBadge();
-        });
+        it(
+          'Should not be able to remote start transaction without a badge',
+          async () => {
+            await testData.ocppCommonTests.testRemoteStartTransactionWithNoBadge();
+          }
+        );
 
       });
 
       describe('Where basic user', () => {
 
-        before(() => {
+        beforeAll(() => {
           testData.ocppCommonTests.setUsers(
             testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED)
           );
@@ -274,7 +346,7 @@ describe('OCPP Service (all versions)', function() {
 
       describe('Where admin user', () => {
 
-        before(() => {
+        beforeAll(() => {
           testData.ocppCommonTests.setUsers(
             testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.ADMIN_UNASSIGNED)
           );
@@ -288,7 +360,7 @@ describe('OCPP Service (all versions)', function() {
 
       describe('Where external user', () => {
 
-        before(() => {
+        beforeAll(() => {
           testData.ocppCommonTests.setUsers(
             testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.EXTERNAL_USER)
           );
@@ -306,7 +378,7 @@ describe('OCPP Service (all versions)', function() {
 
   describe('With component Organization only (utorg)', () => {
 
-    before(async () => {
+    beforeAll(async () => {
       testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_ORGANIZATION);
       testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       testData.ocppCommonTests = new OCPPCommonTests(testData.tenantContext, testData.centralUserContext);
@@ -317,55 +389,61 @@ describe('OCPP Service (all versions)', function() {
       await testData.ocppCommonTests.before();
     });
 
-    after(async () => {
+    afterAll(async () => {
       await testData.ocppCommonTests.after();
     });
 
     describe('For OCPP Version 1.5 (SOAP)', () => {
       describe('With unregistered charger', () => {
-        before(() => {
+        beforeAll(() => {
           testData.chargingStationContext = testData.tenantContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.UNREGISTERED_OCPP15);
           testData.ocppCommonTests.setChargingStation(testData.chargingStationContext);
         });
 
-        after(async () => {
+        afterAll(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
-        it('Should not be possible to register a charging station with invalid token', async () => {
-          await testData.ocppCommonTests.testChargingStationRegistrationWithInvalidToken();
-        });
+        it(
+          'Should not be possible to register a charging station with invalid token',
+          async () => {
+            await testData.ocppCommonTests.testChargingStationRegistrationWithInvalidToken();
+          }
+        );
       });
 
       describe('With invalid charging station identifier', () => {
-        before(() => {
+        beforeAll(() => {
           testData.chargingStationContext = testData.tenantContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.INVALID_IDENTIFIER_OCPP15);
           testData.ocppCommonTests.setChargingStation(testData.chargingStationContext);
         });
 
-        after(async () => {
+        afterAll(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
-        it('Should not be possible to register a charging station with invalid identifier', async () => {
-          await testData.ocppCommonTests.testChargingStationRegistrationWithInvalidIdentifier();
-        });
+        it(
+          'Should not be possible to register a charging station with invalid identifier',
+          async () => {
+            await testData.ocppCommonTests.testChargingStationRegistrationWithInvalidIdentifier();
+          }
+        );
       });
 
       describe('With charger assigned to a site area', () => {
 
-        before(() => {
+        beforeAll(() => {
           testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15);
           testData.ocppCommonTests.setChargingStation(testData.chargingStationContext);
         });
 
-        after(async () => {
+        afterAll(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
         describe('Where basic user', () => {
 
-          before(() => {
+          beforeAll(() => {
             testData.ocppCommonTests.setUsers(
               testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER)
             );
@@ -379,7 +457,7 @@ describe('OCPP Service (all versions)', function() {
 
         describe('Where unassigned basic user', () => {
 
-          before(() => {
+          beforeAll(() => {
             testData.ocppCommonTests.setUsers(
               testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED)
             );
@@ -393,7 +471,7 @@ describe('OCPP Service (all versions)', function() {
 
         describe('Where admin user', () => {
 
-          before(() => {
+          beforeAll(() => {
             testData.ocppCommonTests.setUsers(
               testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN)
             );
@@ -407,7 +485,7 @@ describe('OCPP Service (all versions)', function() {
 
         describe('Where unassigned admin user', () => {
 
-          before(() => {
+          beforeAll(() => {
             testData.ocppCommonTests.setUsers(
               testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.ADMIN_UNASSIGNED)
             );
@@ -421,7 +499,7 @@ describe('OCPP Service (all versions)', function() {
 
         describe('Where external user', () => {
 
-          before(() => {
+          beforeAll(() => {
             testData.ocppCommonTests.setUsers(
               testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.EXTERNAL_USER)
             );
@@ -437,18 +515,18 @@ describe('OCPP Service (all versions)', function() {
 
       describe('With charger not assigned to a site area', () => {
 
-        before(() => {
+        beforeAll(() => {
           testData.chargingStationContext = testData.tenantContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.UNASSIGNED_OCPP15);
           testData.ocppCommonTests.setChargingStation(testData.chargingStationContext);
         });
 
-        after(async () => {
+        afterAll(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
         describe('Where basic user', () => {
 
-          before(() => {
+          beforeAll(() => {
             testData.ocppCommonTests.setUsers(
               testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER)
             );
@@ -466,7 +544,7 @@ describe('OCPP Service (all versions)', function() {
 
         describe('Where unassigned basic user', () => {
 
-          before(() => {
+          beforeAll(() => {
             testData.ocppCommonTests.setUsers(
               testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED)
             );
@@ -484,7 +562,7 @@ describe('OCPP Service (all versions)', function() {
 
         describe('Where admin user', () => {
 
-          before(() => {
+          beforeAll(() => {
             testData.ocppCommonTests.setUsers(
               testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN)
             );
@@ -502,7 +580,7 @@ describe('OCPP Service (all versions)', function() {
 
         describe('Where unassigned admin user', () => {
 
-          before(() => {
+          beforeAll(() => {
             testData.ocppCommonTests.setUsers(
               testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.ADMIN_UNASSIGNED)
             );
@@ -520,7 +598,7 @@ describe('OCPP Service (all versions)', function() {
 
         describe('Where external user', () => {
 
-          before(() => {
+          beforeAll(() => {
             testData.ocppCommonTests.setUsers(
               testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.EXTERNAL_USER)
             );
@@ -538,49 +616,55 @@ describe('OCPP Service (all versions)', function() {
 
     describe('For OCPP Version 1.6 (JSON)', () => {
       describe('With unregistered charger', () => {
-        before(() => {
+        beforeAll(() => {
           testData.chargingStationContext = testData.tenantContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.UNREGISTERED_OCPP16);
           testData.ocppCommonTests.setChargingStation(testData.chargingStationContext);
         });
 
-        after(async () => {
+        afterAll(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
-        it('Should not be possible to register a charging station with invalid token', async () => {
-          await testData.ocppCommonTests.testChargingStationRegistrationWithInvalidToken();
-        });
+        it(
+          'Should not be possible to register a charging station with invalid token',
+          async () => {
+            await testData.ocppCommonTests.testChargingStationRegistrationWithInvalidToken();
+          }
+        );
       });
 
       describe('With invalid charging station identifier', () => {
-        before(() => {
+        beforeAll(() => {
           testData.chargingStationContext = testData.tenantContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.INVALID_IDENTIFIER_OCPP16);
           testData.ocppCommonTests.setChargingStation(testData.chargingStationContext);
         });
 
-        after(async () => {
+        afterAll(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
-        it('Should not be possible to register a charging station with invalid identifier', async () => {
-          await testData.ocppCommonTests.testChargingStationRegistrationWithInvalidIdentifier();
-        });
+        it(
+          'Should not be possible to register a charging station with invalid identifier',
+          async () => {
+            await testData.ocppCommonTests.testChargingStationRegistrationWithInvalidIdentifier();
+          }
+        );
       });
 
       describe('With charger assigned to a site area', () => {
 
-        before(() => {
+        beforeAll(() => {
           testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
           testData.ocppCommonTests.setChargingStation(testData.chargingStationContext);
         });
 
-        after(async () => {
+        afterAll(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
         describe('Where basic user', () => {
 
-          before(() => {
+          beforeAll(() => {
             testData.ocppCommonTests.setUsers(
               testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER)
             );
@@ -594,7 +678,7 @@ describe('OCPP Service (all versions)', function() {
 
         describe('Where unassigned basic user', () => {
 
-          before(() => {
+          beforeAll(() => {
             testData.ocppCommonTests.setUsers(
               testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED)
             );
@@ -608,7 +692,7 @@ describe('OCPP Service (all versions)', function() {
 
         describe('Where admin user', () => {
 
-          before(() => {
+          beforeAll(() => {
             testData.ocppCommonTests.setUsers(
               testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN)
             );
@@ -622,7 +706,7 @@ describe('OCPP Service (all versions)', function() {
 
         describe('Where unassigned admin user', () => {
 
-          before(() => {
+          beforeAll(() => {
             testData.ocppCommonTests.setUsers(
               testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.ADMIN_UNASSIGNED)
             );
@@ -636,7 +720,7 @@ describe('OCPP Service (all versions)', function() {
 
         describe('Where external user', () => {
 
-          before(() => {
+          beforeAll(() => {
             testData.ocppCommonTests.setUsers(
               testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.EXTERNAL_USER)
             );
@@ -652,18 +736,18 @@ describe('OCPP Service (all versions)', function() {
 
       describe('With charger not assigned to a site area', () => {
 
-        before(() => {
+        beforeAll(() => {
           testData.chargingStationContext = testData.tenantContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.UNASSIGNED_OCPP16);
           testData.ocppCommonTests.setChargingStation(testData.chargingStationContext);
         });
 
-        after(async () => {
+        afterAll(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
         describe('Where basic user', () => {
 
-          before(() => {
+          beforeAll(() => {
             testData.ocppCommonTests.setUsers(
               testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER)
             );
@@ -677,7 +761,7 @@ describe('OCPP Service (all versions)', function() {
 
         describe('Where unassigned basic user', () => {
 
-          before(() => {
+          beforeAll(() => {
             testData.ocppCommonTests.setUsers(
               testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED)
             );
@@ -695,7 +779,7 @@ describe('OCPP Service (all versions)', function() {
 
         describe('Where admin user', () => {
 
-          before(() => {
+          beforeAll(() => {
             testData.ocppCommonTests.setUsers(
               testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN)
             );
@@ -713,7 +797,7 @@ describe('OCPP Service (all versions)', function() {
 
         describe('Where unassigned admin user', () => {
 
-          before(() => {
+          beforeAll(() => {
             testData.ocppCommonTests.setUsers(
               testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.ADMIN_UNASSIGNED)
             );
@@ -731,7 +815,7 @@ describe('OCPP Service (all versions)', function() {
 
         describe('Where external user', () => {
 
-          before(() => {
+          beforeAll(() => {
             testData.ocppCommonTests.setUsers(
               testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.EXTERNAL_USER)
             );
@@ -751,7 +835,7 @@ describe('OCPP Service (all versions)', function() {
 
   describe('With components Organization and Pricing (utall)', () => {
 
-    before(async () => {
+    beforeAll(async () => {
       testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
       testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       testData.ocppCommonTests = new OCPPCommonTests(testData.tenantContext, testData.centralUserContext, true);
@@ -763,91 +847,127 @@ describe('OCPP Service (all versions)', function() {
       await testData.ocppCommonTests.assignAnyUserToSite(testData.siteContext);
     });
 
-    after(async () => {
+    afterAll(async () => {
       await testData.ocppCommonTests.after();
     });
 
     describe('For OCPP Version 1.5 (SOAP)', () => {
 
-      before(() => {
+      beforeAll(() => {
         testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15);
         testData.ocppCommonTests.setChargingStation(testData.chargingStationContext);
       });
 
-      after(async () => {
+      afterAll(async () => {
         await testData.chargingStationContext.cleanUpCreatedData();
       });
       describe('Where any user', () => {
 
-        it('With tag as integer should be authorized to start a transaction', async () => {
-          await testData.ocppCommonTests.testAuthorizeTagAsInteger();
-        });
+        it(
+          'With tag as integer should be authorized to start a transaction',
+          async () => {
+            await testData.ocppCommonTests.testAuthorizeTagAsInteger();
+          }
+        );
 
-        it('With invalid tag should not be authorized to start a transaction', async () => {
-          await testData.ocppCommonTests.testAuthorizeInvalidTag();
-        });
+        it(
+          'With invalid tag should not be authorized to start a transaction',
+          async () => {
+            await testData.ocppCommonTests.testAuthorizeInvalidTag();
+          }
+        );
 
-        it('Should be able to start a transaction with connectorId as string', async () => {
-          await testData.ocppCommonTests.testStartTransactionWithConnectorIdAsString();
-        });
+        it(
+          'Should be able to start a transaction with connectorId as string',
+          async () => {
+            await testData.ocppCommonTests.testStartTransactionWithConnectorIdAsString();
+          }
+        );
 
-        it('Should be able to start a transaction with meterStart greater than 0', async () => {
-          await testData.ocppCommonTests.testStartTransactionWithMeterStartGreaterZero();
-        });
+        it(
+          'Should be able to start a transaction with meterStart greater than 0',
+          async () => {
+            await testData.ocppCommonTests.testStartTransactionWithMeterStartGreaterZero();
+          }
+        );
 
-        it('Should not be able to start a transaction with invalid tag', async () => {
-          await testData.ocppCommonTests.testStartTransactionWithInvalidTag();
-        });
+        it(
+          'Should not be able to start a transaction with invalid tag',
+          async () => {
+            await testData.ocppCommonTests.testStartTransactionWithInvalidTag();
+          }
+        );
 
-        it('Should be able to stop a transaction without transactionData', async () => {
-          await testData.ocppCommonTests.testStopTransactionWithoutTransactionData();
-        });
+        it(
+          'Should be able to stop a transaction without transactionData',
+          async () => {
+            await testData.ocppCommonTests.testStopTransactionWithoutTransactionData();
+          }
+        );
 
         it('Should be able to stop a transaction with transactionData', async () => {
           await testData.ocppCommonTests.testStopTransactionWithTransactionData();
         });
 
-        it('Should not be able to stop a transaction with invalid transactionData', async () => {
-          await testData.ocppCommonTests.testStopTransactionWithInvalidTransactionData();
-        });
+        it(
+          'Should not be able to stop a transaction with invalid transactionData',
+          async () => {
+            await testData.ocppCommonTests.testStopTransactionWithInvalidTransactionData();
+          }
+        );
 
         it('Should be able to retrieve the last reboot date', async () => {
           await testData.ocppCommonTests.testRetrieveLastRebootDate();
         });
 
-        it('Should be able to perform a transaction, where Keba clock meterValues are ignored', async () => {
-          await testData.ocppCommonTests.testTransactionIgnoringClockMeterValues();
-        });
+        it(
+          'Should be able to perform a transaction, where Keba clock meterValues are ignored',
+          async () => {
+            await testData.ocppCommonTests.testTransactionIgnoringClockMeterValues();
+          }
+        );
 
-        it('Charging station should set both of its connectors to Available', async () => {
-          await testData.ocppCommonTests.testConnectorStatus();
-        });
+        it(
+          'Charging station should set both of its connectors to Available',
+          async () => {
+            await testData.ocppCommonTests.testConnectorStatus();
+          }
+        );
 
         it('Charging station should send its heartbeat', async () => {
           await testData.ocppCommonTests.testHeartbeat();
         });
 
-        it('Charging station should have saved the connection\'s IP address', async () => {
-          await testData.ocppCommonTests.testClientIP();
-        });
+        it(
+          'Charging station should have saved the connection\'s IP address',
+          async () => {
+            await testData.ocppCommonTests.testClientIP();
+          }
+        );
 
-        it('Charging station can change its connector status to Occupied', async () => {
-          await testData.ocppCommonTests.testChangeConnectorStatus();
-        });
+        it(
+          'Charging station can change its connector status to Occupied',
+          async () => {
+            await testData.ocppCommonTests.testChangeConnectorStatus();
+          }
+        );
 
         it('Charging station should send data transfer', async () => {
           await testData.ocppCommonTests.testDataTransfer();
         });
 
-        it('Should not be able to remote start transaction without a badge', async () => {
-          await testData.ocppCommonTests.testRemoteStartTransactionWithNoBadge();
-        });
+        it(
+          'Should not be able to remote start transaction without a badge',
+          async () => {
+            await testData.ocppCommonTests.testRemoteStartTransactionWithNoBadge();
+          }
+        );
 
       });
 
       describe('Where basic user as start and stop user', () => {
 
-        before(() => {
+        beforeAll(() => {
           testData.ocppCommonTests.setUsers(
             testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER)
           );
@@ -855,7 +975,7 @@ describe('OCPP Service (all versions)', function() {
 
         describe('Users should be able to perform a complete regular transaction cycle', () => {
 
-          after(async () => {
+          afterAll(async () => {
             await testData.chargingStationContext.cleanUpCreatedData();
           });
 
@@ -863,9 +983,12 @@ describe('OCPP Service (all versions)', function() {
             await testData.ocppCommonTests.testStartTransaction();
           });
 
-          it('User should be able to start a second time a new transaction', async () => {
-            await testData.ocppCommonTests.testStartSecondTransaction();
-          });
+          it(
+            'User should be able to start a second time a new transaction',
+            async () => {
+              await testData.ocppCommonTests.testStartSecondTransaction();
+            }
+          );
 
           it('Charging station should send meter values', async () => {
             await testData.ocppCommonTests.testSendMeterValues();
@@ -875,9 +998,12 @@ describe('OCPP Service (all versions)', function() {
             await testData.ocppCommonTests.testStopTransaction();
           });
 
-          it('Transaction must have the right consumption metrics, pricing and inactivity', async () => {
-            await testData.ocppCommonTests.testTransactionMetrics();
-          });
+          it(
+            'Transaction must have the right consumption metrics, pricing and inactivity',
+            async () => {
+              await testData.ocppCommonTests.testTransactionMetrics();
+            }
+          );
 
           it('Start user should not be able to delete his transaction', async () => {
             await testData.ocppCommonTests.testDeleteTransaction(true);
@@ -889,7 +1015,7 @@ describe('OCPP Service (all versions)', function() {
 
       describe('Where basic user as start user and admin user as stop user', () => {
 
-        before(() => {
+        beforeAll(() => {
           testData.ocppCommonTests.setUsers(
             testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER),
             testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN)
@@ -898,7 +1024,7 @@ describe('OCPP Service (all versions)', function() {
 
         describe('Users should be able to perform a complete regular transaction cycle', () => {
 
-          after(async () => {
+          afterAll(async () => {
             await testData.chargingStationContext.cleanUpCreatedData();
           });
 
@@ -906,9 +1032,12 @@ describe('OCPP Service (all versions)', function() {
             await testData.ocppCommonTests.testStartTransaction();
           });
 
-          it('Start user should be able to start a second time a new transaction', async () => {
-            await testData.ocppCommonTests.testStartSecondTransaction();
-          });
+          it(
+            'Start user should be able to start a second time a new transaction',
+            async () => {
+              await testData.ocppCommonTests.testStartSecondTransaction();
+            }
+          );
 
           it('Charging station should send meter values', async () => {
             await testData.ocppCommonTests.testSendMeterValues();
@@ -918,9 +1047,12 @@ describe('OCPP Service (all versions)', function() {
             await testData.ocppCommonTests.testStopTransaction();
           });
 
-          it('Transaction must have the right consumption metrics, pricing and inactivity', async () => {
-            await testData.ocppCommonTests.testTransactionMetrics();
-          });
+          it(
+            'Transaction must have the right consumption metrics, pricing and inactivity',
+            async () => {
+              await testData.ocppCommonTests.testTransactionMetrics();
+            }
+          );
 
           it('Start user should not be able to delete his transaction', async () => {
             await testData.ocppCommonTests.testDeleteTransaction(true);
@@ -934,86 +1066,122 @@ describe('OCPP Service (all versions)', function() {
 
     describe('For OCPP Version 1.6 (JSON)', () => {
 
-      before(() => {
+      beforeAll(() => {
         testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
         testData.ocppCommonTests.setChargingStation(testData.chargingStationContext);
       });
 
-      after(async () => {
+      afterAll(async () => {
         await testData.chargingStationContext.cleanUpCreatedData();
       });
 
       describe('Where any user', () => {
 
-        it('With tag as integer should be authorized to start a transaction', async () => {
-          await testData.ocppCommonTests.testAuthorizeTagAsInteger();
-        });
+        it(
+          'With tag as integer should be authorized to start a transaction',
+          async () => {
+            await testData.ocppCommonTests.testAuthorizeTagAsInteger();
+          }
+        );
 
-        it('With invalid tag should not be authorized to start a transaction', async () => {
-          await testData.ocppCommonTests.testAuthorizeInvalidTag();
-        });
+        it(
+          'With invalid tag should not be authorized to start a transaction',
+          async () => {
+            await testData.ocppCommonTests.testAuthorizeInvalidTag();
+          }
+        );
 
-        it('Should be able to start a transaction with connectorId as string', async () => {
-          await testData.ocppCommonTests.testStartTransactionWithConnectorIdAsString();
-        });
+        it(
+          'Should be able to start a transaction with connectorId as string',
+          async () => {
+            await testData.ocppCommonTests.testStartTransactionWithConnectorIdAsString();
+          }
+        );
 
-        it('Should be able to start a transaction with meterStart greater than 0', async () => {
-          await testData.ocppCommonTests.testStartTransactionWithMeterStartGreaterZero();
-        });
+        it(
+          'Should be able to start a transaction with meterStart greater than 0',
+          async () => {
+            await testData.ocppCommonTests.testStartTransactionWithMeterStartGreaterZero();
+          }
+        );
 
-        it('Should not be able to start a transaction with invalid tag', async () => {
-          await testData.ocppCommonTests.testStartTransactionWithInvalidTag();
-        });
+        it(
+          'Should not be able to start a transaction with invalid tag',
+          async () => {
+            await testData.ocppCommonTests.testStartTransactionWithInvalidTag();
+          }
+        );
 
-        it('Should be able to stop a transaction without transactionData', async () => {
-          await testData.ocppCommonTests.testStopTransactionWithoutTransactionData();
-        });
+        it(
+          'Should be able to stop a transaction without transactionData',
+          async () => {
+            await testData.ocppCommonTests.testStopTransactionWithoutTransactionData();
+          }
+        );
 
         it('Should be able to stop a transaction with transactionData', async () => {
           await testData.ocppCommonTests.testStopTransactionWithTransactionData();
         });
 
-        it('Should not be able to stop a transaction with invalid transactionData', async () => {
-          await testData.ocppCommonTests.testStopTransactionWithInvalidTransactionData();
-        });
+        it(
+          'Should not be able to stop a transaction with invalid transactionData',
+          async () => {
+            await testData.ocppCommonTests.testStopTransactionWithInvalidTransactionData();
+          }
+        );
 
         it('Should be able to retrieve the last reboot date', async () => {
           await testData.ocppCommonTests.testRetrieveLastRebootDate();
         });
 
-        it('Should be able to perform a transaction, where Keba clock meterValues are ignored', async () => {
-          await testData.ocppCommonTests.testTransactionIgnoringClockMeterValues();
-        });
+        it(
+          'Should be able to perform a transaction, where Keba clock meterValues are ignored',
+          async () => {
+            await testData.ocppCommonTests.testTransactionIgnoringClockMeterValues();
+          }
+        );
 
-        it('Charging station should set both of its connectors to Available', async () => {
-          await testData.ocppCommonTests.testConnectorStatus();
-        });
+        it(
+          'Charging station should set both of its connectors to Available',
+          async () => {
+            await testData.ocppCommonTests.testConnectorStatus();
+          }
+        );
 
         it('Charging station should send its heartbeat', async () => {
           await testData.ocppCommonTests.testHeartbeat();
         });
 
-        it('Charging station should have saved the connection\'s IP address', async () => {
-          await testData.ocppCommonTests.testClientIP();
-        });
+        it(
+          'Charging station should have saved the connection\'s IP address',
+          async () => {
+            await testData.ocppCommonTests.testClientIP();
+          }
+        );
 
-        it('Charging station can change its connector status to Occupied', async () => {
-          await testData.ocppCommonTests.testChangeConnectorStatus();
-        });
+        it(
+          'Charging station can change its connector status to Occupied',
+          async () => {
+            await testData.ocppCommonTests.testChangeConnectorStatus();
+          }
+        );
 
         it('Charging station should send data transfer', async () => {
           await testData.ocppCommonTests.testDataTransfer();
         });
 
-        it('Should not be able to remote start transaction without a badge', async () => {
-          await testData.ocppCommonTests.testRemoteStartTransactionWithNoBadge();
-        });
+        it(
+          'Should not be able to remote start transaction without a badge',
+          async () => {
+            await testData.ocppCommonTests.testRemoteStartTransactionWithNoBadge();
+          }
+        );
 
       });
 
       describe('Where basic user as start and stop user', () => {
 
-        before(() => {
+        beforeAll(() => {
           testData.ocppCommonTests.setUsers(
             testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER)
           );
@@ -1021,7 +1189,7 @@ describe('OCPP Service (all versions)', function() {
 
         describe('Users should be able to perform a complete regular transaction cycle', () => {
 
-          after(async () => {
+          afterAll(async () => {
             await testData.chargingStationContext.cleanUpCreatedData();
           });
 
@@ -1029,9 +1197,12 @@ describe('OCPP Service (all versions)', function() {
             await testData.ocppCommonTests.testStartTransaction();
           });
 
-          it('Start user should be able to start a second time a new transaction', async () => {
-            await testData.ocppCommonTests.testStartSecondTransaction();
-          });
+          it(
+            'Start user should be able to start a second time a new transaction',
+            async () => {
+              await testData.ocppCommonTests.testStartSecondTransaction();
+            }
+          );
 
           it('Charging station should send meter values', async () => {
             await testData.ocppCommonTests.testSendMeterValues();
@@ -1041,9 +1212,12 @@ describe('OCPP Service (all versions)', function() {
             await testData.ocppCommonTests.testStopTransaction();
           });
 
-          it('Transaction must have the right consumption metrics, pricing and inactivity', async () => {
-            await testData.ocppCommonTests.testTransactionMetrics(false, true);
-          });
+          it(
+            'Transaction must have the right consumption metrics, pricing and inactivity',
+            async () => {
+              await testData.ocppCommonTests.testTransactionMetrics(false, true);
+            }
+          );
 
           it('Start user should not be able to delete his transaction', async () => {
             await testData.ocppCommonTests.testDeleteTransaction(true);
@@ -1053,85 +1227,127 @@ describe('OCPP Service (all versions)', function() {
 
         describe('Users should be able to perform a complete transaction cycle with SoC', () => {
 
-          after(async () => {
+          afterAll(async () => {
             await testData.chargingStationContext.cleanUpCreatedData();
           });
 
-          it('Start user should be able to start a new transaction (with SoC)', async () => {
-            await testData.ocppCommonTests.testStartTransaction(true);
-          });
+          it(
+            'Start user should be able to start a new transaction (with SoC)',
+            async () => {
+              await testData.ocppCommonTests.testStartTransaction(true);
+            }
+          );
 
           it('Charging station should send meter values (with SoC)', async () => {
             await testData.ocppCommonTests.testSendMeterValues(true);
           });
 
-          it('Stop user should be able to stop the transaction (with SoC)', async () => {
-            await testData.ocppCommonTests.testStopTransaction(true);
-          });
+          it(
+            'Stop user should be able to stop the transaction (with SoC)',
+            async () => {
+              await testData.ocppCommonTests.testStopTransaction(true);
+            }
+          );
 
-          it('Transaction must have the right consumption metrics, pricing and inactivity (with SoC)', async () => {
-            await testData.ocppCommonTests.testTransactionMetrics(true, true);
-          });
+          it(
+            'Transaction must have the right consumption metrics, pricing and inactivity (with SoC)',
+            async () => {
+              await testData.ocppCommonTests.testTransactionMetrics(true, true);
+            }
+          );
 
-          it('Start user should not be able to delete his transaction (with SoC)', async () => {
-            await testData.ocppCommonTests.testDeleteTransaction(true);
-          });
+          it(
+            'Start user should not be able to delete his transaction (with SoC)',
+            async () => {
+              await testData.ocppCommonTests.testDeleteTransaction(true);
+            }
+          );
 
         });
 
         describe('Users should be able to perform a complete transaction cycle with SignedData(Continual Updates)', () => {
 
-          after(async () => {
+          afterAll(async () => {
             await testData.chargingStationContext.cleanUpCreatedData();
           });
 
-          it('Start user should be able to start a new transaction (with SignedData)', async () => {
-            await testData.ocppCommonTests.testStartTransaction();
-          });
+          it(
+            'Start user should be able to start a new transaction (with SignedData)',
+            async () => {
+              await testData.ocppCommonTests.testStartTransaction();
+            }
+          );
 
-          it('Charging station should send meter values (with SignedData)', async () => {
-            await testData.ocppCommonTests.testSendMeterValues(false, true);
-          });
+          it(
+            'Charging station should send meter values (with SignedData)',
+            async () => {
+              await testData.ocppCommonTests.testSendMeterValues(false, true);
+            }
+          );
 
-          it('Stop user should be able to stop the transaction (with SignedData)', async () => {
-            await testData.ocppCommonTests.testStopTransaction(false, true);
-          });
+          it(
+            'Stop user should be able to stop the transaction (with SignedData)',
+            async () => {
+              await testData.ocppCommonTests.testStopTransaction(false, true);
+            }
+          );
 
-          it('Transaction must have the right consumption metrics, pricing and inactivity (with SignedData)', async () => {
-            await testData.ocppCommonTests.testTransactionMetrics(false, true);
-          });
+          it(
+            'Transaction must have the right consumption metrics, pricing and inactivity (with SignedData)',
+            async () => {
+              await testData.ocppCommonTests.testTransactionMetrics(false, true);
+            }
+          );
 
-          it('Start user should not be able to delete his transaction (with SignedData)', async () => {
-            await testData.ocppCommonTests.testDeleteTransaction(true);
-          });
+          it(
+            'Start user should not be able to delete his transaction (with SignedData)',
+            async () => {
+              await testData.ocppCommonTests.testDeleteTransaction(true);
+            }
+          );
 
         });
 
         describe('Users should be able to perform a complete transaction cycle with SignedData(Only in StopTransaction)', () => {
 
-          after(async () => {
+          afterAll(async () => {
             await testData.chargingStationContext.cleanUpCreatedData();
           });
 
-          it('Start user should be able to start a new transaction (with SignedData)', async () => {
-            await testData.ocppCommonTests.testStartTransaction();
-          });
+          it(
+            'Start user should be able to start a new transaction (with SignedData)',
+            async () => {
+              await testData.ocppCommonTests.testStartTransaction();
+            }
+          );
 
-          it('Charging station should send meter values (with SignedData)', async () => {
-            await testData.ocppCommonTests.testSendMeterValues(false, true, true);
-          });
+          it(
+            'Charging station should send meter values (with SignedData)',
+            async () => {
+              await testData.ocppCommonTests.testSendMeterValues(false, true, true);
+            }
+          );
 
-          it('Stop user should be able to stop the transaction (with SignedData)', async () => {
-            await testData.ocppCommonTests.testStopTransaction(false, true);
-          });
+          it(
+            'Stop user should be able to stop the transaction (with SignedData)',
+            async () => {
+              await testData.ocppCommonTests.testStopTransaction(false, true);
+            }
+          );
 
-          it('Transaction must have the right consumption metrics, pricing and inactivity (with SignedData)', async () => {
-            await testData.ocppCommonTests.testTransactionMetrics(false, true);
-          });
+          it(
+            'Transaction must have the right consumption metrics, pricing and inactivity (with SignedData)',
+            async () => {
+              await testData.ocppCommonTests.testTransactionMetrics(false, true);
+            }
+          );
 
-          it('Start user should not be able to delete his transaction (with SignedData)', async () => {
-            await testData.ocppCommonTests.testDeleteTransaction(true);
-          });
+          it(
+            'Start user should not be able to delete his transaction (with SignedData)',
+            async () => {
+              await testData.ocppCommonTests.testDeleteTransaction(true);
+            }
+          );
 
         });
 
@@ -1139,7 +1355,7 @@ describe('OCPP Service (all versions)', function() {
 
       describe('Where basic user as start user and admin user as stop user', () => {
 
-        before(() => {
+        beforeAll(() => {
           testData.ocppCommonTests.setUsers(
             testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER),
             testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN)
@@ -1148,7 +1364,7 @@ describe('OCPP Service (all versions)', function() {
 
         describe('Users should be able to perform a complete regular transaction cycle', () => {
 
-          after(async () => {
+          afterAll(async () => {
             await testData.chargingStationContext.cleanUpCreatedData();
           });
 
@@ -1156,9 +1372,12 @@ describe('OCPP Service (all versions)', function() {
             await testData.ocppCommonTests.testStartTransaction();
           });
 
-          it('Start user should be able to start a second time a new transaction', async () => {
-            await testData.ocppCommonTests.testStartSecondTransaction();
-          });
+          it(
+            'Start user should be able to start a second time a new transaction',
+            async () => {
+              await testData.ocppCommonTests.testStartSecondTransaction();
+            }
+          );
 
           it('Charging station should send meter values', async () => {
             await testData.ocppCommonTests.testSendMeterValues();
@@ -1168,9 +1387,12 @@ describe('OCPP Service (all versions)', function() {
             await testData.ocppCommonTests.testStopTransaction();
           });
 
-          it('Transaction must have the right consumption metrics, pricing and inactivity', async () => {
-            await testData.ocppCommonTests.testTransactionMetrics(false, true);
-          });
+          it(
+            'Transaction must have the right consumption metrics, pricing and inactivity',
+            async () => {
+              await testData.ocppCommonTests.testTransactionMetrics(false, true);
+            }
+          );
 
           it('Start user should not be able to delete his transaction', async () => {
             await testData.ocppCommonTests.testDeleteTransaction(true);
@@ -1180,85 +1402,127 @@ describe('OCPP Service (all versions)', function() {
 
         describe('Users should be able to perform a complete transaction cycle with SoC', () => {
 
-          after(async () => {
+          afterAll(async () => {
             await testData.chargingStationContext.cleanUpCreatedData();
           });
 
-          it('Start user should be able to start a new transaction (with SoC)', async () => {
-            await testData.ocppCommonTests.testStartTransaction(true);
-          });
+          it(
+            'Start user should be able to start a new transaction (with SoC)',
+            async () => {
+              await testData.ocppCommonTests.testStartTransaction(true);
+            }
+          );
 
           it('Charging station should send meter values (with SoC)', async () => {
             await testData.ocppCommonTests.testSendMeterValues(true);
           });
 
-          it('Stop user should be able to stop the transaction (with SoC)', async () => {
-            await testData.ocppCommonTests.testStopTransaction(true);
-          });
+          it(
+            'Stop user should be able to stop the transaction (with SoC)',
+            async () => {
+              await testData.ocppCommonTests.testStopTransaction(true);
+            }
+          );
 
-          it('Transaction must have the right consumption metrics, pricing and inactivity (with SoC)', async () => {
-            await testData.ocppCommonTests.testTransactionMetrics(true, true);
-          });
+          it(
+            'Transaction must have the right consumption metrics, pricing and inactivity (with SoC)',
+            async () => {
+              await testData.ocppCommonTests.testTransactionMetrics(true, true);
+            }
+          );
 
-          it('Start user should not be able to delete his transaction (with SoC)', async () => {
-            await testData.ocppCommonTests.testDeleteTransaction(true);
-          });
+          it(
+            'Start user should not be able to delete his transaction (with SoC)',
+            async () => {
+              await testData.ocppCommonTests.testDeleteTransaction(true);
+            }
+          );
 
         });
 
         describe('Users should be able to perform a complete transaction cycle with SignedData(Continual Updates)', () => {
 
-          after(async () => {
+          afterAll(async () => {
             await testData.chargingStationContext.cleanUpCreatedData();
           });
 
-          it('Start user should be able to start a new transaction (with SignedData)', async () => {
-            await testData.ocppCommonTests.testStartTransaction();
-          });
+          it(
+            'Start user should be able to start a new transaction (with SignedData)',
+            async () => {
+              await testData.ocppCommonTests.testStartTransaction();
+            }
+          );
 
-          it('Charging station should send meter values (with SignedData)', async () => {
-            await testData.ocppCommonTests.testSendMeterValues(false, true);
-          });
+          it(
+            'Charging station should send meter values (with SignedData)',
+            async () => {
+              await testData.ocppCommonTests.testSendMeterValues(false, true);
+            }
+          );
 
-          it('Stop user should be able to stop the transaction (with SignedData)', async () => {
-            await testData.ocppCommonTests.testStopTransaction(false, true);
-          });
+          it(
+            'Stop user should be able to stop the transaction (with SignedData)',
+            async () => {
+              await testData.ocppCommonTests.testStopTransaction(false, true);
+            }
+          );
 
-          it('Transaction must have the right consumption metrics, pricing and inactivity (with SignedData)', async () => {
-            await testData.ocppCommonTests.testTransactionMetrics(false, true);
-          });
+          it(
+            'Transaction must have the right consumption metrics, pricing and inactivity (with SignedData)',
+            async () => {
+              await testData.ocppCommonTests.testTransactionMetrics(false, true);
+            }
+          );
 
-          it('Start user should not be able to delete his transaction (with SignedData)', async () => {
-            await testData.ocppCommonTests.testDeleteTransaction(true);
-          });
+          it(
+            'Start user should not be able to delete his transaction (with SignedData)',
+            async () => {
+              await testData.ocppCommonTests.testDeleteTransaction(true);
+            }
+          );
 
         });
 
         describe('Users should be able to perform a complete transaction cycle with SignedData(Only in StopTransaction)', () => {
 
-          after(async () => {
+          afterAll(async () => {
             await testData.chargingStationContext.cleanUpCreatedData();
           });
 
-          it('Start user should be able to start a new transaction (with SignedData)', async () => {
-            await testData.ocppCommonTests.testStartTransaction();
-          });
+          it(
+            'Start user should be able to start a new transaction (with SignedData)',
+            async () => {
+              await testData.ocppCommonTests.testStartTransaction();
+            }
+          );
 
-          it('Charging station should send meter values (with SignedData)', async () => {
-            await testData.ocppCommonTests.testSendMeterValues(false, true, true);
-          });
+          it(
+            'Charging station should send meter values (with SignedData)',
+            async () => {
+              await testData.ocppCommonTests.testSendMeterValues(false, true, true);
+            }
+          );
 
-          it('Stop user should be able to stop the transaction (with SignedData)', async () => {
-            await testData.ocppCommonTests.testStopTransaction(false, true);
-          });
+          it(
+            'Stop user should be able to stop the transaction (with SignedData)',
+            async () => {
+              await testData.ocppCommonTests.testStopTransaction(false, true);
+            }
+          );
 
-          it('Transaction must have the right consumption metrics, pricing and inactivity (with SignedData)', async () => {
-            await testData.ocppCommonTests.testTransactionMetrics(false, true);
-          });
+          it(
+            'Transaction must have the right consumption metrics, pricing and inactivity (with SignedData)',
+            async () => {
+              await testData.ocppCommonTests.testTransactionMetrics(false, true);
+            }
+          );
 
-          it('Start user should not be able to delete his transaction (with SignedData)', async () => {
-            await testData.ocppCommonTests.testDeleteTransaction(true);
-          });
+          it(
+            'Start user should not be able to delete his transaction (with SignedData)',
+            async () => {
+              await testData.ocppCommonTests.testDeleteTransaction(true);
+            }
+          );
 
         });
 

@@ -37,6 +37,10 @@ class TestData {
 }
 
 const testData: TestData = new TestData();
+// Conditional test execution function
+const describeif = (condition) => condition ? describe : describe.skip;
+// Check if ioThink asset connector parameters are set
+const ioThinkConfigProvided = config.get('assetConnectors.ioThink.user') && config.get('assetConnectors.ioThink.password') && config.get('assetConnectors.ioThink.meterID');
 
 const createOrUpdateSettings = async (settingID: string, url: string, user: string, password: string): Promise<SettingDB> => {
   const settings = await testData.centralUserService.settingApi.readAll({});
@@ -83,10 +87,10 @@ const deleteAssetConnectorSettings = async (setting: SettingDB) => {
   }
 };
 
-describe('Asset', function() {
-  this.timeout(1000000); // Will automatically stop the unit test after that period of time
+describe('Asset', () => {
+  jest.setTimeout(1000000); // Will automatically stop the unit test after that period of time
 
-  before(async () => {
+  beforeAll(async () => {
     chai.config.includeStack = true;
     await ContextProvider.defaultInstance.prepareContexts();
   });
@@ -95,14 +99,14 @@ describe('Asset', function() {
     // Can be called after each UT to clean up created data
   });
 
-  after(async () => {
+  afterAll(async () => {
     // Final clean up at the end
     await ContextProvider.defaultInstance.cleanUpCreatedContent();
   });
 
   describe('With component Asset (utasset)', () => {
 
-    before(async () => {
+    beforeAll(async () => {
       testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_ASSET);
       testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       expect(testData.centralUserContext).to.not.be.null;
@@ -138,7 +142,7 @@ describe('Asset', function() {
       expect(testData.newSiteArea).to.not.be.null;
     });
 
-    after(async () => {
+    afterAll(async () => {
       // Delete any created site area
       for (const siteArea of testData.createdSiteAreas) {
         await testData.centralUserService.deleteEntity(
@@ -179,7 +183,7 @@ describe('Asset', function() {
 
     describe('Where admin user', () => {
 
-      before(() => {
+      beforeAll(() => {
         testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
         if (testData.userContext === testData.centralUserContext) {
           // Reuse the central user service (to avoid double login)
@@ -293,7 +297,7 @@ describe('Asset', function() {
     });
 
     describe('Where basic user', () => {
-      before(async () => {
+      beforeAll(async () => {
         const adminContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
         const basicUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
         if (adminContext === testData.centralUserContext) {
@@ -363,24 +367,20 @@ describe('Asset', function() {
       });
 
       // Should be able to view the assets
-      it('Should be able to view existing assets of sites user is admin of', async () => {
-        // Check if the created entity is in the list
-        await testData.userService.checkEntityInList(
-          testData.userService.assetApi,
-          testData.newAsset
-        );
-      });
+      it(
+        'Should be able to view existing assets of sites user is admin of',
+        async () => {
+          // Check if the created entity is in the list
+          await testData.userService.checkEntityInList(
+            testData.userService.assetApi,
+            testData.newAsset
+          );
+        }
+      );
     });
 
-    describe('IoThink Asset Connector tests', function() {
-
-      before(async () => {
-        // Check if ioThink asset connector parameters are set
-        if (!config.get('assetConnectors.ioThink.user') ||
-          !config.get('assetConnectors.ioThink.password') ||
-          !config.get('assetConnectors.ioThink.meterID')) {
-          this.pending = true;
-        }
+    describeif(ioThinkConfigProvided)('IoThink Asset Connector tests', () => {
+      beforeAll(async () => {
         testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
         if (testData.userContext === testData.centralUserContext) {
           // Reuse the central user service (to avoid double login)
@@ -403,52 +403,61 @@ describe('Asset', function() {
         expect(testData.newAsset).to.not.be.null;
       });
 
-      it('Should be able to create an ioThink asset connector', async function() {
-        const settingID = '0123456789abcdef';
-        const url = config.get('assetConnectors.ioThink.url');
-        const user = config.get('assetConnectors.ioThink.user');
-        const password = config.get('assetConnectors.ioThink.password');
-        testData.settings = await createOrUpdateSettings(settingID, url, user, password);
-        expect(testData.settings.content.asset.connections[0].id).to.be.eq(settingID);
-        testData.ioThinkAssetConnectorID = settingID;
-      });
+      it('Should be able to create an ioThink asset connector', async () => {
+          const settingID = '0123456789abcdef';
+          const url = config.get('assetConnectors.ioThink.url');
+          const user = config.get('assetConnectors.ioThink.user');
+          const password = config.get('assetConnectors.ioThink.password');
+          testData.settings = await createOrUpdateSettings(settingID, url, user, password);
+          expect(testData.settings.content.asset.connections[0].id).to.be.eq(settingID);
+          testData.ioThinkAssetConnectorID = settingID;
+        });
 
-      it('Should be able to connect ioThink asset connector connection', async function() {
-        const response = await testData.centralUserService.assetApi.checkAssetConnectorLink(testData.ioThinkAssetConnectorID);
-        expect(response.data?.status).to.be.eq('Success');
-        expect(response.data?.connectionIsValid).to.be.eq(true);
-      });
+      it(
+        'Should be able to connect ioThink asset connector connection',
+        async () => {
+          const response = await testData.centralUserService.assetApi.checkAssetConnectorLink(testData.ioThinkAssetConnectorID);
+          expect(response.data?.status).to.be.eq('Success');
+          expect(response.data?.connectionIsValid).to.be.eq(true);
+        }
+      );
 
-      it('Should be able to connect existing asset to asset connector', async function() {
-        // Change entity
-        testData.newAsset.dynamicAsset = true;
-        testData.newAsset.meterID = config.get('assetConnectors.ioThink.meterID');
-        testData.newAsset.connectionID = testData.ioThinkAssetConnectorID;
-        // Update
-        await testData.userService.updateEntity(
-          testData.userService.assetApi,
-          testData.newAsset
-        );
-      });
+      it(
+        'Should be able to connect existing asset to asset connector',
+        async () => {
+          // Change entity
+          testData.newAsset.dynamicAsset = true;
+          testData.newAsset.meterID = config.get('assetConnectors.ioThink.meterID');
+          testData.newAsset.connectionID = testData.ioThinkAssetConnectorID;
+          // Update
+          await testData.userService.updateEntity(
+            testData.userService.assetApi,
+            testData.newAsset
+          );
+        }
+      );
 
-      it('Should be able to retrieve latest consumption', async function() {
-        const response = await testData.centralUserService.assetApi.retrieveLatestConsumption(testData.newAsset.id);
-        expect(response.data?.status).to.be.eq('Success');
-      });
+      it('Should be able to retrieve latest consumption', async () => {
+          const response = await testData.centralUserService.assetApi.retrieveLatestConsumption(testData.newAsset.id);
+          expect(response.data?.status).to.be.eq('Success');
+        });
 
-      it('Should not be able to retrieve latest consumption with incorrect credentials', async function() {
-        // Change entity
-        const settingID = '0123456789abcdef';
-        const url = config.get('assetConnectors.ioThink.url');
-        const user = 'WrongUser';
-        const password = 'WrongPassword';
-        testData.settings = await createOrUpdateSettings(settingID, url, user, password);
-        expect(testData.settings.content.asset.connections[0].id).to.be.eq(settingID);
-        const response = await testData.centralUserService.assetApi.retrieveLatestConsumption(testData.newAsset.id);
-        expect(response.status).to.be.eq(StatusCodes.INTERNAL_SERVER_ERROR);
-      });
+      it(
+        'Should not be able to retrieve latest consumption with incorrect credentials',
+        async () => {
+          // Change entity
+          const settingID = '0123456789abcdef';
+          const url = config.get('assetConnectors.ioThink.url');
+          const user = 'WrongUser';
+          const password = 'WrongPassword';
+          testData.settings = await createOrUpdateSettings(settingID, url, user, password);
+          expect(testData.settings.content.asset.connections[0].id).to.be.eq(settingID);
+          const response = await testData.centralUserService.assetApi.retrieveLatestConsumption(testData.newAsset.id);
+          expect(response.status).to.be.eq(StatusCodes.INTERNAL_SERVER_ERROR);
+        }
+      );
 
-      after(async () => {
+      afterAll(async () => {
         await deleteAssetConnectorSettings(testData.settings);
       });
     });

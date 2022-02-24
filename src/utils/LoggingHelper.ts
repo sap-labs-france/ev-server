@@ -7,6 +7,7 @@ import SiteArea from '../types/SiteArea';
 import Tag from '../types/Tag';
 import Transaction from '../types/Transaction';
 import User from '../types/User';
+import WSWrapper from '../server/ocpp/json/WSWrapper';
 
 export default class LoggingHelper {
 
@@ -26,6 +27,16 @@ export default class LoggingHelper {
       siteAreaID: chargingStation.siteAreaID,
       companyID: chargingStation.companyID,
       chargingStationID: chargingStation.id,
+    };
+  }
+
+  public static getWSWrapperProperties(wsWrapper: WSWrapper): { tenantID: string; siteID: string; siteAreaID: string; companyID: string; chargingStationID: string; } {
+    return {
+      tenantID: wsWrapper.tenantID,
+      siteID: wsWrapper.siteID,
+      siteAreaID: wsWrapper.siteAreaID,
+      companyID: wsWrapper.companyID,
+      chargingStationID: wsWrapper.chargingStationID,
     };
   }
 
