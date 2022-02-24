@@ -9,6 +9,7 @@ import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import { Decimal } from 'decimal.js';
 import Logging from '../../utils/Logging';
+import LoggingHelper from '../../utils/LoggingHelper';
 import NotificationHandler from '../../notification/NotificationHandler';
 import { Promise } from 'bluebird';
 import { Request } from 'express';
@@ -249,16 +250,52 @@ export default abstract class BillingIntegration {
     }
   }
 
-  private async _getUsersWithNoBillingData(): Promise<User[]> {
-    const newUsers = await UserStorage.getUsers(this.tenant,
-      {
-        statuses: [UserStatus.ACTIVE],
-        notSynchronizedBillingData: true
-      }, Constants.DB_PARAMS_MAX_LIMIT);
-    if (newUsers.count > 0) {
-      return newUsers.result;
+  protected async checkBillingDataThreshold(transaction: Transaction): Promise<boolean> {
+    // Do not bill suspicious StopTransaction events
+    if (!Utils.isDevelopmentEnv()) {
+      const timeSpent = this.computeTimeSpentInSeconds(transaction);
+      if (timeSpent < Constants.AFIREV_MINIMAL_DURATION_THRESHOLD /* 2 minutes */) {
+        await Logging.logWarning({
+          ...LoggingHelper.getTransactionProperties(transaction),
+          tenantID: this.tenant.id,
+          user: transaction.userID,
+          action: ServerAction.BILLING_TRANSACTION,
+          module: MODULE_NAME, method: 'stopTransaction',
+          message: `Transaction duration is too short - billing operation has been aborted - transaction ID: ${transaction.id}`,
+        });
+        // Abort the billing process - thresholds are not met!
+        return false;
+      }
+      if (transaction.stop.totalConsumptionWh < Constants.AFIREV_MINIMAL_CONSUMPTION_THRESHOLD /* 0.5 kW.h */) {
+        await Logging.logWarning({
+          ...LoggingHelper.getTransactionProperties(transaction),
+          tenantID: this.tenant.id,
+          user: transaction.userID,
+          action: ServerAction.BILLING_TRANSACTION,
+          module: MODULE_NAME, method: 'stopTransaction',
+          message: `Transaction consumption is too low - billing operation has been aborted - transaction ID: ${transaction.id}`,
+        });
+        // Abort the billing process - thresholds are not met!
+        return false;
+      }
     }
-    return [];
+    // Session data seem to be consistent
+    return true;
+  }
+
+  protected convertTimeSpentToString(transaction: Transaction): string {
+    const totalDuration = this.computeTimeSpentInSeconds(transaction);
+    return moment.duration(totalDuration, 's').format('h[h]mm', { trim: false });
+  }
+
+  protected computeTimeSpentInSeconds(transaction: Transaction): number {
+    let totalDuration: number;
+    if (!transaction.stop) {
+      totalDuration = moment.duration(moment(transaction.lastConsumption.timestamp).diff(moment(transaction.timestamp))).asSeconds();
+    } else {
+      totalDuration = moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
+    }
+    return totalDuration;
   }
 
   private async _synchronizeUser(user: User, forceMode = false): Promise<BillingUser> {

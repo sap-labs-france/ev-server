@@ -499,4 +499,7 @@ export default class Constants {
     ...Constants.OCPP_POWER_ACTIVE_IMPORT_ATTRIBUTE,
     phase: OCPPPhase.L3,
   });
+
+  public static readonly AFIREV_MINIMAL_DURATION_THRESHOLD = 120; // Minimal duration - 2 minutes
+  public static readonly AFIREV_MINIMAL_CONSUMPTION_THRESHOLD = 500; // Minimal consumption - 0.5 kW.h
 }
