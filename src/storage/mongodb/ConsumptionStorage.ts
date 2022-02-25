@@ -574,11 +574,11 @@ export default class ConsumptionStorage {
     aggregation.push({
       $group: {
         _id: {
-          year: { '$year': '$startedAt' },
-          month: { '$month': '$startedAt' },
-          day: { '$dayOfMonth': '$startedAt' },
-          hour: { '$hour': '$startedAt' },
-          minute: { '$minute': '$startedAt' }
+          year: { '$year': '$endedAt' },
+          month: { '$month': '$endedAt' },
+          day: { '$dayOfMonth': '$endedAt' },
+          hour: { '$hour': '$endedAt' },
+          minute: { '$minute': '$endedAt' }
         },
         consumptions :{
           $first: {
@@ -635,7 +635,6 @@ export default class ConsumptionStorage {
         'instantAmpsL3': '$consumptions.instantAmpsL3',
         'startedAt': '$consumptions.startedAt',
         'endedAt': '$consumptions.endedAt',
-        'selectorTime': { '$mod': ['$_id.minute', 3] },
       }
     });
     // Remove _id from projected fields
@@ -645,24 +644,21 @@ export default class ConsumptionStorage {
         consumptions: 0,
       }
     });
-    // Select only one out of 3
-    aggregation.push({
-      $match: {
-        'selectorTime': 0,
-      }
-    });
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Sort
     aggregation.push({
       $sort: {
-        'startedAt': 1
+        'endedAt': 1,
       }
     });
     // Read DB
-    const consumptionsMDB = await global.database.getCollection<Consumption>(tenant.id, 'consumptions')
+    let consumptionsMDB = await global.database.getCollection<Consumption>(tenant.id, 'consumptions')
       .aggregate<Consumption>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
+    const lastElement = consumptionsMDB.pop();
+    consumptionsMDB = consumptionsMDB.filter((elem, index) => index % 5 === 0 ? true : false);
+    consumptionsMDB.push(lastElement);
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getOptimizedTransactionConsumptions', startTime, aggregation, consumptionsMDB);
     return consumptionsMDB;
   }
