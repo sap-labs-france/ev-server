@@ -918,7 +918,7 @@ export default class OCPPService {
     if (transaction.stop?.extraInactivityComputed) {
       transactionUpdated = true;
       // Billing - Start the asynchronous billing flow
-      await BillingFacade.processEndTransaction(tenant, transaction);
+      await BillingFacade.processEndTransaction(tenant, transaction, transaction.user);
     }
     return transactionUpdated;
   }
