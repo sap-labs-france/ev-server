@@ -781,6 +781,8 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       describe('When basic user has a free access', () => {
         // eslint-disable-next-line @typescript-eslint/require-await
         beforeAll(async () => {
+          // Initialize the charging station context
+          await billingTestHelper.initChargingStationContext();
           billingTestHelper.billingImpl = await billingTestHelper.setBillingSystemValidCredentials();
           billingTestHelper.adminUserContext = await billingTestHelper.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
           expect(billingTestHelper.adminUserContext).to.not.be.null;
@@ -821,6 +823,8 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       describe('When basic user does not have a free access', () => {
         // eslint-disable-next-line @typescript-eslint/require-await
         beforeAll(async () => {
+          // Initialize the charging station context
+          await billingTestHelper.initChargingStationContext();
           billingTestHelper.billingImpl = await billingTestHelper.setBillingSystemValidCredentials();
           billingTestHelper.adminUserContext = await billingTestHelper.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
           expect(billingTestHelper.adminUserContext).to.not.be.null;

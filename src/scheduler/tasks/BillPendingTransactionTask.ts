@@ -1,15 +1,14 @@
 import Tenant, { TenantComponents } from '../../types/Tenant';
 
+import BillingFacade from '../../integration/billing/BillingFacade';
 import BillingFactory from '../../integration/billing/BillingFactory';
 import { BillingStatus } from '../../types/Billing';
 import { ChargePointStatus } from '../../types/ocpp/OCPPServer';
 import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
-import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import { ServerAction } from '../../types/Server';
 import TenantSchedulerTask from '../TenantSchedulerTask';
-import { TransactionAction } from '../../types/Transaction';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
@@ -110,7 +109,7 @@ export default class BillPendingTransactionTask extends TenantSchedulerTask {
                       transaction.stop.extraInactivityComputed = true;
                       transaction.stop.extraInactivitySecs = 0;
                       // Billing - This starts the billing async task - the BillingStatus will remain PENDING for a while!
-                      await OCPPUtils.processTransactionBilling(tenant, transaction, TransactionAction.END);
+                      await BillingFacade.processEndTransaction(tenant, transaction, transaction.user);
                       // Save
                       await TransactionStorage.saveTransaction(tenant, transaction);
                       await Logging.logInfo({
