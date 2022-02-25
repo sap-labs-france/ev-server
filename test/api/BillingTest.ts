@@ -2,6 +2,7 @@
 import { BillingChargeInvoiceAction, BillingInvoiceStatus } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType } from '../../src/types/Setting';
 import chai, { expect } from 'chai';
+import { BillingPeriodicOperationTaskConfig } from '../../src/types/TaskConfig';
 
 import BillingTestHelper from './BillingTestHelper';
 import CentralServerService from './client/CentralServerService';
@@ -884,7 +885,11 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           // Check that we have a new invoice with an invoiceID and but no invoiceNumber yet
           await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.DRAFT);
           // Let's simulate the periodic billing operation
-          const operationResult: BillingChargeInvoiceAction = await billingTestHelper.billingImpl.chargeInvoices(true /* forceOperation */);
+          const taskConfiguration: BillingPeriodicOperationTaskConfig = {
+            onlyProcessUnpaidInvoices: false,
+            forceOperation: true
+          };
+          const operationResult: BillingChargeInvoiceAction = await billingTestHelper.billingImpl.chargeInvoices(taskConfiguration);
           assert(operationResult.inSuccess > 0, 'The operation should have been able to process at least one invoice');
           assert(operationResult.inError === 0, 'The operation should detect any errors');
           // The transaction should now have a different status and know the final invoice number
