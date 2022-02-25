@@ -243,14 +243,9 @@ export default abstract class BillingIntegration {
         action: ServerAction.BILLING_TRANSACTION
       });
     }
-    // Check Billing Data
-    if (!transaction.user?.billingData?.customerID) {
-      throw new BackendError({
-        message: 'User has no Billing data or no Customer ID',
-        module: MODULE_NAME,
-        method: 'checkStartTransaction',
-        action: ServerAction.BILLING_TRANSACTION
-      });
+    // Check Free Access
+    if (transaction.user.freeAccess) {
+      return false;
     }
     if (!chargingStation) {
       throw new BackendError({
@@ -274,9 +269,14 @@ export default abstract class BillingIntegration {
         return false;
       }
     }
-    // Check Free Access
-    if (transaction.user.freeAccess) {
-      return false;
+    // Check Billing Data
+    if (!transaction.user?.billingData?.customerID) {
+      throw new BackendError({
+        message: 'User has no Billing data or no Customer ID',
+        module: MODULE_NAME,
+        method: 'checkStartTransaction',
+        action: ServerAction.BILLING_TRANSACTION
+      });
     }
     return true;
   }
