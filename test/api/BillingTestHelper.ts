@@ -605,7 +605,7 @@ export default class BillingTestHelper {
         transaction = await TransactionStorage.getTransaction(tenant, transactionId, { withUser: true, withChargingStation: true });
         transaction.stop.extraInactivityComputed = true;
         transaction.stop.extraInactivitySecs = 0;
-        await BillingFacade.processEndTransaction(tenant, transaction);
+        await BillingFacade.processEndTransaction(tenant, transaction, transaction.user);
       } else {
         // #end
         const stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate.toDate());
