@@ -118,7 +118,7 @@
       {
         "name": "BillingPeriodicOperationTask",
         "active": false,
-        "periodicity": "0 1 1 * *",
+        "periodicity": "0 3 * * *",
         "config": {
           "onlyProcessUnpaidInvoices": true
         }
