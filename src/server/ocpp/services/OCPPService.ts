@@ -1,7 +1,6 @@
 import { ChargePointErrorCode, ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPAuthorizeResponse, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequestExtended, OCPPHeartbeatResponse, OCPPLocation, OCPPMeasurand, OCPPMeterValue, OCPPMeterValuesRequest, OCPPMeterValuesRequestExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPPhase, OCPPProtocol, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPStopTransactionResponse, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion, RegistrationStatus } from '../../../types/ocpp/OCPPServer';
 import { ChargingProfilePurposeType, ChargingRateUnitType } from '../../../types/ChargingProfile';
-import ChargingStation, { ChargerVendor, Connector, ConnectorCurrentLimitSource, ConnectorType, CurrentType, StaticLimitAmps, TemplateUpdateResult } from '../../../types/ChargingStation';
-import { OCPPConfigurationStatus, OCPPRemoteStartStopStatus } from '../../../types/ocpp/OCPPClient';
+import ChargingStation, { ChargerVendor, Connector, ConnectorCurrentLimitSource, ConnectorType, CurrentType, StaticLimitAmps } from '../../../types/ChargingStation';
 import Tenant, { TenantComponents } from '../../../types/Tenant';
 import Transaction, { InactivityStatus, TransactionAction } from '../../../types/Transaction';
 
@@ -26,9 +25,11 @@ import Logging from '../../../utils/Logging';
 import LoggingHelper from '../../../utils/LoggingHelper';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
+import OCPIFacade from '../../ocpi/OCPIFacade';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
 import OCPPCommon from '../utils/OCPPCommon';
 import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
+import { OCPPRemoteStartStopStatus } from '../../../types/ocpp/OCPPClient';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../utils/OCPPUtils';
 import OCPPValidation from '../validation/OCPPValidation';
@@ -229,6 +230,8 @@ export default class OCPPService {
         transaction.numberOfMeterValues >= 1) {
         transaction.phasesUsed = Utils.getUsedPhasesInTransactionInProgress(chargingStation, transaction);
       }
+      // OCPI
+      await OCPIFacade.processUpdateTransaction(tenant, transaction, chargingStation, chargingStation.siteArea, transaction.user, ServerAction.OCPP_METER_VALUES);
       // Roaming
       await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, chargingStation.siteArea, transaction.tag, TransactionAction.UPDATE);
       // Save Transaction
@@ -384,6 +387,8 @@ export default class OCPPService {
       await OCPPUtils.processTransactionPricing(tenant, newTransaction, chargingStation, firstConsumption, TransactionAction.START);
       // Billing
       await BillingFacade.processStartTransaction(tenant, newTransaction, chargingStation, chargingStation.siteArea, user);
+      // OCPI
+      await OCPIFacade.processStartTransaction(tenant, newTransaction, chargingStation, chargingStation.siteArea, tag, user, ServerAction.OCPP_START_TRANSACTION);
       // Roaming
       await OCPPUtils.processTransactionRoaming(tenant, newTransaction, chargingStation, chargingStation.siteArea, tag, TransactionAction.START);
       // Save it
@@ -491,6 +496,8 @@ export default class OCPPService {
       OCPPUtils.updateTransactionWithStopTransaction(transaction, chargingStation, stopTransaction, user, alternateUser, tagID, isSoftStop);
       // Bill
       await BillingFacade.processStopTransaction(tenant, transaction, transaction.user);
+      // OCPI
+      await OCPIFacade.processStopTransaction(tenant, transaction, chargingStation, chargingStation.siteArea, user, ServerAction.OCPP_STOP_TRANSACTION);
       // Roaming
       await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, chargingStation.siteArea, transaction.tag, TransactionAction.STOP);
       // Save the transaction
@@ -817,8 +824,8 @@ export default class OCPPService {
           // Billing: Trigger the asynchronous billing task
           const billingDataUpdated = await this.checkAndBillTransaction(tenant, lastTransaction);
           // OCPI: Post the CDR
-          const ocpiUpdated = await this.checkAndSendOCPITransactionCdr(
-            tenant, lastTransaction, chargingStation, lastTransaction.tag);
+          const ocpiUpdated = await OCPIFacade.checkAndSendTransactionCdr(
+            tenant, lastTransaction, chargingStation, chargingStation.siteArea, ServerAction.OCPP_STATUS_NOTIFICATION);
           // OICP: Post the CDR
           const oicpUpdated = await this.checkAndSendOICPTransactionCdr(
             tenant, lastTransaction, chargingStation, lastTransaction.tag);
@@ -919,26 +926,6 @@ export default class OCPPService {
       transactionUpdated = true;
       // Billing - Start the asynchronous billing flow
       await BillingFacade.processEndTransaction(tenant, transaction, transaction.user);
-    }
-    return transactionUpdated;
-  }
-
-  private async checkAndSendOCPITransactionCdr(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, tag: Tag): Promise<boolean> {
-    let transactionUpdated = false;
-    // CDR not already pushed
-    if (transaction.ocpiData?.session && !transaction.ocpiData.cdr?.id) {
-      // Get the lock
-      const ocpiLock = await LockingHelper.acquireOCPIPushCdrLock(tenant.id, transaction.id);
-      if (ocpiLock) {
-        try {
-          // Roaming
-          transactionUpdated = true;
-          await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, chargingStation.siteArea, tag, TransactionAction.END);
-        } finally {
-          // Release the lock
-          await LockingManager.release(ocpiLock);
-        }
-      }
     }
     return transactionUpdated;
   }

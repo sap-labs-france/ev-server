@@ -21,7 +21,7 @@ import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
 import LoggingHelper from '../../../../utils/LoggingHelper';
-import { OCPPAuthorizationStatus } from '../../../../types/ocpp/OCPPServer';
+import OCPIFacade from '../../../ocpi/OCPIFacade';
 import OCPPService from '../../../../server/ocpp/services/OCPPService';
 import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
 import RefundFactory from '../../../../integration/refund/RefundFactory';
@@ -224,26 +224,20 @@ export default class TransactionService {
           user: req.user, action: action
         });
       }
-      // Get the lock
-      const ocpiLock = await LockingHelper.acquireOCPIPushCdrLock(req.user.tenantID, transaction.id);
-      if (ocpiLock) {
-        try {
-          // Roaming
-          await OCPPUtils.processTransactionRoaming(req.tenant, transaction, chargingStation, chargingStation.siteArea, transaction.tag, TransactionAction.END);
-          // Save
-          await TransactionStorage.saveTransactionOcpiData(req.tenant, transaction.id, transaction.ocpiData);
-          await Logging.logInfo({
-            tenantID: req.user.tenantID,
-            action: action,
-            user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
-            module: MODULE_NAME, method: 'handlePushTransactionCdr',
-            message: `CDR of Transaction ID '${transaction.id}' has been pushed successfully`,
-            detailedMessages: { cdr: transaction.ocpiData.cdr }
-          });
-        } finally {
-          // Release the lock
-          await LockingManager.release(ocpiLock);
-        }
+      // OCPI: Post the CDR
+      const ocpiUpdated = await OCPIFacade.checkAndSendTransactionCdr(
+        req.tenant, transaction, chargingStation, chargingStation.siteArea, ServerAction.OCPP_STATUS_NOTIFICATION);
+      if (ocpiUpdated) {
+        // Save
+        await TransactionStorage.saveTransactionOcpiData(req.tenant, transaction.id, transaction.ocpiData);
+        await Logging.logInfo({
+          tenantID: req.user.tenantID,
+          action: action,
+          user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
+          module: MODULE_NAME, method: 'handlePushTransactionCdr',
+          message: `CDR of Transaction ID '${transaction.id}' has been pushed successfully`,
+          detailedMessages: { cdr: transaction.ocpiData.cdr }
+        });
       }
     }
     // Check OICP

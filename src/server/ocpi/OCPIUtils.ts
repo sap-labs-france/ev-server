@@ -1,34 +1,38 @@
 import ChargingStation, { Connector, ConnectorType } from '../../types/ChargingStation';
+import { OCPIConnector, OCPIConnectorType } from '../../types/ocpi/OCPIConnector';
+import OCPIEndpoint, { OCPIAvailableEndpoints, OCPIEndpointVersions } from '../../types/ocpi/OCPIEndpoint';
+import { OCPIEvse, OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
+import { OCPITariff, OCPITariffDimensionType } from '../../types/ocpi/OCPITariff';
+import { OCPIToken, OCPITokenType } from '../../types/ocpi/OCPIToken';
+
 import AppError from '../../exception/AppError';
 import BackendError from '../../exception/BackendError';
+import { ChargePointStatus } from '../../types/ocpp/OCPPServer';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import Company from '../../types/Company';
 import CompanyStorage from '../../storage/mongodb/CompanyStorage';
+import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import LoggingHelper from '../../utils/LoggingHelper';
-import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
-import RoamingUtils from '../../utils/RoamingUtils';
-import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
-import SiteStorage from '../../storage/mongodb/SiteStorage';
-import { OCPIConnector, OCPIConnectorType } from '../../types/ocpi/OCPIConnector';
-import { OCPIEvse, OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
+import OCPICredential from '../../types/ocpi/OCPICredential';
 import { OCPILocation } from '../../types/ocpi/OCPILocation';
 import { OCPIResponse } from '../../types/ocpi/OCPIResponse';
+import { OCPIRole } from '../../types/ocpi/OCPIRole';
+import { OCPISessionStatus } from '../../types/ocpi/OCPISession';
 import { OCPIStatusCode } from '../../types/ocpi/OCPIStatusCode';
-import { OCPITariff, OCPITariffDimensionType } from '../../types/ocpi/OCPITariff';
-import { OCPIToken, OCPITokenType } from '../../types/ocpi/OCPIToken';
-import { ChargePointStatus } from '../../types/ocpp/OCPPServer';
 import { Request } from 'express';
+import RoamingUtils from '../../utils/RoamingUtils';
 import { ServerAction } from '../../types/Server';
+import SettingStorage from '../../storage/mongodb/SettingStorage';
 import { SimplePricingSetting } from '../../types/Setting';
 import Site from '../../types/Site';
 import SiteArea from '../../types/SiteArea';
+import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
+import SiteStorage from '../../storage/mongodb/SiteStorage';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
-import { OCPISessionStatus } from '../../types/ocpi/OCPISession';
-
 
 const MODULE_NAME = 'OCPIUtils';
 
@@ -39,6 +43,38 @@ export default class OCPIUtils {
 
   public static getConnectorIDFromEvseUID(evseUID: string): string {
     return evseUID.split(Constants.OCPI_SEPARATOR).pop();
+  }
+
+  public static async buildOCPICredentialObject(tenant: Tenant, token: string, role: string, versionUrl?: string): Promise<OCPICredential> {
+    // Credential
+    const credential = {} as OCPICredential;
+    // Get ocpi service configuration
+    const ocpiSetting = await SettingStorage.getOCPISettings(tenant);
+    // Define version url
+    credential.url = (versionUrl ? versionUrl : `${Configuration.getOCPIEndpointConfig().baseUrl}/ocpi/${role.toLowerCase()}/versions`);
+    // Check if available
+    if (ocpiSetting && ocpiSetting.ocpi) {
+      credential.token = token;
+      if (role === OCPIRole.EMSP) {
+        credential.country_code = ocpiSetting.ocpi.emsp.countryCode;
+        credential.party_id = ocpiSetting.ocpi.emsp.partyID;
+      } else {
+        credential.country_code = ocpiSetting.ocpi.cpo.countryCode;
+        credential.party_id = ocpiSetting.ocpi.cpo.partyID;
+      }
+      credential.business_details = ocpiSetting.ocpi.businessDetails;
+    }
+    return credential;
+  }
+
+  public static convertAvailableEndpoints(endpointURLs: OCPIEndpointVersions): OCPIAvailableEndpoints {
+    const availableEndpoints = {} as OCPIAvailableEndpoints;
+    if (!Utils.isEmptyArray(endpointURLs.endpoints)) {
+      for (const endpoint of endpointURLs.endpoints) {
+        availableEndpoints[endpoint.identifier] = endpoint.url;
+      }
+    }
+    return availableEndpoints;
   }
 
   public static success(data?: any): OCPIResponse {
