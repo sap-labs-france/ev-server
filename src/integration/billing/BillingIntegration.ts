@@ -246,7 +246,7 @@ export default abstract class BillingIntegration {
     // Check Billing Data
     if (!transaction.user?.billingData?.customerID) {
       throw new BackendError({
-        message: 'User has no billing data or no customer ID',
+        message: 'User has no Billing data or no Customer ID',
         module: MODULE_NAME,
         method: 'checkStartTransaction',
         action: ServerAction.BILLING_TRANSACTION
@@ -254,7 +254,7 @@ export default abstract class BillingIntegration {
     }
     if (!chargingStation) {
       throw new BackendError({
-        message: 'The charging station is mandatory to start a transaction',
+        message: 'The Charging Station is mandatory to start a Transaction',
         module: MODULE_NAME,
         method: 'checkStartTransaction',
         action: ServerAction.BILLING_TRANSACTION
@@ -264,7 +264,7 @@ export default abstract class BillingIntegration {
       // Check for the Site Area
       if (!siteArea) {
         throw new BackendError({
-          message: 'The site area is mandatory to start a transaction',
+          message: 'The Site Area is mandatory to start a Transaction',
           module: MODULE_NAME,
           method: 'checkStartTransaction',
           action: ServerAction.BILLING_TRANSACTION
@@ -284,7 +284,7 @@ export default abstract class BillingIntegration {
   protected async updateTransactionsBillingData(billingInvoice: BillingInvoice): Promise<void> {
     if (!billingInvoice.sessions) {
       // This should not happen - but it happened once!
-      throw new Error(`Unexpected situation - Invoice ${billingInvoice.id} has no sessions attached to it`);
+      throw new Error(`Unexpected situation - Invoice ID '${billingInvoice.id}' has no sessions attached to it`);
     }
     await Promise.all(billingInvoice.sessions.map(async (session) => {
       const transactionID = session.transactionID;
@@ -305,7 +305,7 @@ export default abstract class BillingIntegration {
           action: ServerAction.BILLING_CHARGE_INVOICE,
           actionOnUser: billingInvoice.user,
           module: MODULE_NAME, method: 'updateTransactionsBillingData',
-          message: `Failed to update transaction billing data - transaction: ${transactionID}`,
+          message: `Failed to update Transaction Billing data of Transaction ID '${transactionID}'`,
           detailedMessages: { error: error.stack }
         });
       }
@@ -325,7 +325,7 @@ export default abstract class BillingIntegration {
           user: transaction.userID,
           action: ServerAction.BILLING_TRANSACTION,
           module: MODULE_NAME, method: 'stopTransaction',
-          message: `Transaction data is suspicious - billing operation has been aborted - transaction ID: ${transaction.id}`,
+          message: `Transaction data is suspicious - Billing operation has been aborted for Transaction ID '${transaction.id}'`,
         });
         // Abort the billing process - thresholds are not met!
         return false;
@@ -389,36 +389,36 @@ export default abstract class BillingIntegration {
     await Logging.logInfo({
       tenantID: this.tenant.id,
       action: ServerAction.BILLING_TEST_DATA_CLEANUP,
-      module: MODULE_NAME, method: '_clearAllInvoiceTestData',
+      module: MODULE_NAME, method: 'clearTestData',
       message: 'Starting test data cleanup'
     });
-    await this._clearAllInvoiceTestData();
+    await this.clearAllInvoiceTestData();
     await Logging.logInfo({
       tenantID: this.tenant.id,
       action: ServerAction.BILLING_TEST_DATA_CLEANUP,
-      module: MODULE_NAME, method: '_clearAllInvoiceTestData',
+      module: MODULE_NAME, method: 'clearTestData',
       message: 'Invoice Test data cleanup has been completed'
     });
-    await this._clearAllUsersTestData();
+    await this.clearAllUsersTestData();
     await Logging.logInfo({
       tenantID: this.tenant.id,
       action: ServerAction.BILLING_TEST_DATA_CLEANUP,
-      module: MODULE_NAME, method: '_clearAllInvoiceTestData',
+      module: MODULE_NAME, method: 'clearTestData',
       message: 'User Test data cleanup has been completed'
     });
   }
 
-  private async _clearAllInvoiceTestData(): Promise<void> {
+  private async clearAllInvoiceTestData(): Promise<void> {
     const invoices: DataResult<BillingInvoice> = await BillingStorage.getInvoices(this.tenant, { liveMode: false }, Constants.DB_PARAMS_MAX_LIMIT);
     // Let's now finalize all invoices and attempt to get it paid
     for (const invoice of invoices.result) {
       try {
-        await this._clearInvoiceTestData(invoice);
+        await this.clearInvoiceTestData(invoice);
         await Logging.logInfo({
           tenantID: this.tenant.id,
           action: ServerAction.BILLING_TEST_DATA_CLEANUP,
           actionOnUser: invoice.user,
-          module: MODULE_NAME, method: '_clearAllInvoiceTestData',
+          module: MODULE_NAME, method: 'clearAllInvoiceTestData',
           message: `Successfully clear test data for invoice '${invoice.id}'`
         });
       } catch (error) {
@@ -426,7 +426,7 @@ export default abstract class BillingIntegration {
           tenantID: this.tenant.id,
           action: ServerAction.BILLING_TEST_DATA_CLEANUP,
           actionOnUser: invoice.user,
-          module: MODULE_NAME, method: '_clearAllInvoiceTestData',
+          module: MODULE_NAME, method: 'clearAllInvoiceTestData',
           message: `Failed to clear invoice test data - Invoice: '${invoice.id}'`,
           detailedMessages: { error: error.stack }
         });
@@ -434,20 +434,20 @@ export default abstract class BillingIntegration {
     }
   }
 
-  private async _clearInvoiceTestData(billingInvoice: BillingInvoice): Promise<void> {
+  private async clearInvoiceTestData(billingInvoice: BillingInvoice): Promise<void> {
     if (billingInvoice.liveMode) {
       throw new BackendError({
-        message: 'Unexpected situation - attempt to clear an invoice with live billing data',
+        message: 'Unexpected situation - Attempt to clear an invoice with live Billing data',
         module: MODULE_NAME,
-        method: '_clearInvoiceTestData',
+        method: 'clearInvoiceTestData',
         action: ServerAction.BILLING_TEST_DATA_CLEANUP
       });
     }
-    await this._clearTransactionsTestData(billingInvoice);
+    await this.clearTransactionsTestData(billingInvoice);
     await BillingStorage.deleteInvoice(this.tenant, billingInvoice.id);
   }
 
-  private async _clearTransactionsTestData(billingInvoice: BillingInvoice): Promise<void> {
+  private async clearTransactionsTestData(billingInvoice: BillingInvoice): Promise<void> {
     await Promise.all(billingInvoice.sessions.map(async (session) => {
       const transactionID = session.transactionID;
       try {
@@ -470,33 +470,33 @@ export default abstract class BillingIntegration {
         await Logging.logError({
           tenantID: this.tenant.id,
           action: ServerAction.BILLING_TEST_DATA_CLEANUP,
-          module: MODULE_NAME, method: '_clearTransactionsTestData',
-          message: 'Failed to clear transaction billing data',
+          module: MODULE_NAME, method: 'clearTransactionsTestData',
+          message: 'Failed to clear transaction Billing data',
           detailedMessages: { error: error.stack }
         });
       }
     }));
   }
 
-  private async _clearAllUsersTestData(): Promise<void> {
-    const users: User[] = await this._getUsersWithTestBillingData();
+  private async clearAllUsersTestData(): Promise<void> {
+    const users: User[] = await this.getUsersWithTestBillingData();
     // Let's now finalize all invoices and attempt to get it paid
     for (const user of users) {
       try {
-        await this._clearUserTestBillingData(user);
+        await this.clearUserTestBillingData(user);
         await Logging.logInfo({
           tenantID: this.tenant.id,
           action: ServerAction.BILLING_TEST_DATA_CLEANUP,
           actionOnUser: user,
-          module: MODULE_NAME, method: '_clearAllUsersTestData',
-          message: `Successfully cleared user test data for invoice '${user.id}'`
+          module: MODULE_NAME, method: 'clearAllUsersTestData',
+          message: `Successfully cleared user test data for Invoice of User ID '${user.id}'`
         });
       } catch (error) {
         await Logging.logError({
           tenantID: this.tenant.id,
           action: ServerAction.BILLING_TEST_DATA_CLEANUP,
           actionOnUser: user,
-          module: MODULE_NAME, method: '_clearAllUsersTestData',
+          module: MODULE_NAME, method: 'clearAllUsersTestData',
           message: `Failed to clear user test data - User: '${user.id}'`,
           detailedMessages: { error: error.stack }
         });
@@ -504,7 +504,7 @@ export default abstract class BillingIntegration {
     }
   }
 
-  private async _getUsersWithTestBillingData(): Promise<User[]> {
+  private async getUsersWithTestBillingData(): Promise<User[]> {
     // Get the users where billingData.liveMode is set to false
     const users = await UserStorage.getUsers(this.tenant,
       {
@@ -517,12 +517,12 @@ export default abstract class BillingIntegration {
     return [];
   }
 
-  private async _clearUserTestBillingData(user: User): Promise<void> {
+  private async clearUserTestBillingData(user: User): Promise<void> {
     if (user?.billingData?.liveMode) {
       throw new BackendError({
-        message: 'Unexpected situation - attempt to clear a user with live billing data',
+        message: 'Unexpected situation - Attempt to clear an User with live Billing data',
         module: MODULE_NAME,
-        method: '_clearUserTestBillingData',
+        method: 'clearUserTestBillingData',
         action: ServerAction.BILLING_TEST_DATA_CLEANUP
       });
     }
