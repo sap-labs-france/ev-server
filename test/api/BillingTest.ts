@@ -57,13 +57,15 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         // Anyway, there is no way to cleanup the utbilling stripe account!
       });
 
-      it('should create a DRAFT invoice and fail to pay', async () => {
+      it('should create a DRAFT invoice and fail to pay, and try again', async () => {
         await stripeTestHelper.checkBusinessProcessBillToPay(true);
+        await stripeTestHelper.assignPaymentMethod('tok_visa');
+        await stripeTestHelper.checkBusinessProcessRetryPayment();
       });
 
-      it('Should add a payment method to BILLING-TEST user', async () => {
-        await stripeTestHelper.assignPaymentMethod('tok_visa');
-      });
+      // it('Should add a payment method to BILLING-TEST user', async () => {
+      //   await stripeTestHelper.assignPaymentMethod('tok_visa');
+      // });
 
       it(
         'should create a DRAFT invoice and pay it for BILLING-TEST user',

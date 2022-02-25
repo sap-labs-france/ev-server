@@ -555,7 +555,7 @@ export default abstract class BillingIntegration {
   }
 
   private preparePeriodicBillingQueryParameters(forceOperation: boolean): { limit: number, sort: Record<string, unknown>, filter: Record<string, unknown> } {
-    if (this.settings.billing?.periodicBillingAllowed) {
+    if (!this.settings.billing?.periodicBillingAllowed) {
       // Nothing to do - periodic billing is OFF
       return null;
     }

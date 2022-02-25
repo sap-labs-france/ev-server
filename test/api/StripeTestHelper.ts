@@ -1,7 +1,8 @@
-import { BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingUser, BillingUserData } from '../../src/types/Billing';
+import { BillingChargeInvoiceAction, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingUser, BillingUserData } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
 import Tenant, { TenantComponents } from '../../src/types/Tenant';
-import chai, { assert, expect } from 'chai';
+import chai, { expect } from 'chai';
+import { BillingPeriodicOperationTaskConfig } from '../../src/types/TaskConfig';
 
 import BillingStorage from '../../src/storage/mongodb/BillingStorage';
 import CentralServerService from './client/CentralServerService';
@@ -17,6 +18,7 @@ import TestConstants from './client/utils/TestConstants';
 import User from '../../src/types/User';
 import UserStorage from '../../src/storage/mongodb/UserStorage';
 import Utils from '../../src/utils/Utils';
+import assert from 'assert';
 import chaiSubset from 'chai-subset';
 import config from '../config';
 import responseHelper from '../helpers/responseHelper';
@@ -184,8 +186,7 @@ export default class StripeTestHelper {
     return taxRate;
   }
 
-  public async checkBusinessProcessBillToPay(paymentShouldFail: boolean, withTax?:boolean) : Promise<number> {
-
+  public async checkBusinessProcessBillToPay(paymentShouldFail: boolean, withTax?:boolean) : Promise<void> {
     let taxId: string = null;
     if (withTax) {
       const taxRate: Stripe.TaxRate = await this.assignTaxRate(20); // VAT 20%
@@ -221,11 +222,23 @@ export default class StripeTestHelper {
       // Let's down load the corresponding PDF document
       await this.checkDownloadInvoiceAsPdf(this.dynamicUser.id);
     }
-    // Next step should not be necessary
-    // await testData.billingImpl.synchronizeInvoices(testData.dynamicUser);
+  }
+
+  public async checkBusinessProcessRetryPayment(): Promise<void> {
     // Let's check that the user do not have any DRAFT invoice anymore
-    const nbDraftInvoice:number = await this.checkForDraftInvoices(this.dynamicUser.id, 0);
-    return nbDraftInvoice;
+    const nbPaidInvoiceBefore = await this.checkForPaidInvoices(this.dynamicUser.id);
+    // Let's simulate the periodic billing operation
+    const taskConfiguration: BillingPeriodicOperationTaskConfig = {
+      onlyProcessUnpaidInvoices: true,
+      forceOperation: true
+    };
+    // Here we simulate the periodic operation which is supposed to try to pay again after a payment failure
+    const operationResult: BillingChargeInvoiceAction = await this.billingImpl.chargeInvoices(taskConfiguration);
+    assert(operationResult.inSuccess > 0, 'The operation should have been able to process at least one invoice');
+    assert(operationResult.inError === 0, 'The operation should detect any errors');
+    // Let's check whether the nb of paid invoices has changed
+    const nbPaidInvoiceAfter = await this.checkForPaidInvoices(this.dynamicUser.id);
+    assert(nbPaidInvoiceAfter > nbPaidInvoiceBefore, 'The number of paid invoices should be different');
   }
 
   public async checkImmediateBillingWithTaxes() : Promise<void> {
@@ -260,7 +273,7 @@ export default class StripeTestHelper {
     const downloadResponse = await this.adminUserService.billingApi.downloadInvoiceDocument({ invoiceID: lastPaidInvoice.id });
     expect(downloadResponse.headers['content-type']).to.be.eq('application/pdf');
     // User should not have any DRAFT invoices
-    const nbDraftInvoice:number = await this.checkForDraftInvoices(this.dynamicUser.id, 0);
+    const nbDraftInvoice = await this.checkForDraftInvoices(this.dynamicUser.id, 0);
     expect(nbDraftInvoice).to.be.eql(0);
   }
 
@@ -355,15 +368,19 @@ export default class StripeTestHelper {
     assert(response?.result.length === 0, 'There should be no invoices with test billing data anymore');
   }
 
-  public async checkForDraftInvoices(userId: string, expectedValue: number): Promise<number> {
+  public async checkForDraftInvoices(userId: string, expectedValue?: number): Promise<number> {
     const result = await this.getInvoicesByState(userId, BillingInvoiceStatus.DRAFT);
-    assert(result?.length === expectedValue, 'The number of invoice is not the expected one');
+    if (!Utils.isNullOrUndefined(expectedValue)) {
+      assert(result?.length === expectedValue, 'The number of invoice is not the expected one');
+    }
     return (result) ? result.length : -1;
   }
 
-  public async checkForPaidInvoices(userId: string, expectedValue: number): Promise<number> {
+  public async checkForPaidInvoices(userId: string, expectedValue?: number): Promise<number> {
     const result = await this.getInvoicesByState(userId, BillingInvoiceStatus.PAID);
-    assert(result?.length === expectedValue, 'The number of invoice is not the expected one');
+    if (!Utils.isNullOrUndefined(expectedValue)) {
+      assert(result?.length === expectedValue, 'The number of invoice is not the expected one');
+    }
     return (result) ? result.length : -1;
   }
 
