@@ -28,11 +28,11 @@ export interface BillingPeriodicOperationTaskConfig extends TaskConfig {
   attemptPayment?: boolean;
 }
 
-export interface OCPIGetTokensTaskConfig extends TaskConfig {
+export interface OCPIPullTokensTaskConfig extends TaskConfig {
   partial?: boolean;
 }
 
-export interface OCPIGetLocationsTaskConfig extends TaskConfig {
+export interface OCPIPullLocationsTaskConfig extends TaskConfig {
   partial?: boolean;
 }
 

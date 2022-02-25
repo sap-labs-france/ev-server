@@ -61,7 +61,7 @@ export default class OCPIPushEVSEStatusesTask extends TenantSchedulerTask {
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_PUSH_EVSE_STATUSES,
-          message: `The push Locations process for endpoint '${ocpiEndpoint.name}' is being processed`
+          message: `Push of Locations for endpoint '${ocpiEndpoint.name}' is being processed`
         });
         // Build OCPI Client
         const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
@@ -71,7 +71,7 @@ export default class OCPIPushEVSEStatusesTask extends TenantSchedulerTask {
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_PUSH_EVSE_STATUSES,
-          message: `The push Locations process for endpoint '${ocpiEndpoint.name}' is completed (Success: ${sendResult.success} / Failure: ${sendResult.failure})`
+          message: `Push of Locations process for endpoint '${ocpiEndpoint.name}' is completed (Success: ${sendResult.success} / Failure: ${sendResult.failure})`
         });
       } catch (error) {
         // Log error

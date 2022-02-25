@@ -79,7 +79,7 @@ export default class UserStorage {
     return eula;
   }
 
-  public static async getUserByTagId(tenant: Tenant, tagID: string = Constants.UNKNOWN_STRING_ID): Promise<User> {
+  public static async getUserByTagID(tenant: Tenant, tagID: string = Constants.UNKNOWN_STRING_ID): Promise<User> {
     const tagMDB = await TagStorage.getTag(tenant, tagID, { withUser: true });
     return tagMDB ? tagMDB.user : null;
   }
@@ -165,6 +165,20 @@ export default class UserStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'addSitesToUser', startTime, siteIDs);
   }
 
+  public static async clearUserSiteAdmin(tenant: Tenant, userID: string): Promise<void> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    DatabaseUtils.checkTenantObject(tenant);
+    // Execute
+    await global.database.getCollection<User>(tenant.id, 'siteusers').updateMany(
+      { userID: DatabaseUtils.convertToObjectID(userID) },
+      {
+        $set: {
+          siteAdmin: false
+        }
+      });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'clearUserSiteAdmin', startTime, { userID });
+  }
+
   public static async addSiteToUser(tenant: Tenant, userID: string, siteID: string): Promise<string> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
@@ -217,6 +231,7 @@ export default class UserStorage {
       costCenter: userToSave.costCenter,
       importedData: userToSave.importedData,
       notificationsActive: userToSave.notificationsActive,
+      authorizationID: userToSave.authorizationID,
       notifications: {
         sendSessionStarted: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendSessionStarted) : false,
         sendOptimalChargeReached: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendOptimalChargeReached) : false,
@@ -525,6 +540,9 @@ export default class UserStorage {
         { 'email': { $regex: params.search, $options: 'i' } },
         { 'plateID': { $regex: params.search, $options: 'i' } }
       ];
+      if (DatabaseUtils.isObjectID(params.search)) {
+        filters.$or.push({ '_id': DatabaseUtils.convertToObjectID(params.search) });
+      }
     }
     // Users
     if (!Utils.isEmptyArray(params.userIDs)) {

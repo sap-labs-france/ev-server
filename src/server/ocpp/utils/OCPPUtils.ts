@@ -300,107 +300,6 @@ export default class OCPPUtils {
     }
   }
 
-  public static async processTransactionBilling(tenant: Tenant, transaction: Transaction, action: TransactionAction): Promise<void> {
-    if (!transaction.user || !transaction.user.issuer) {
-      return;
-    }
-    const billingImpl = await BillingFactory.getBillingImpl(tenant);
-    if (billingImpl) {
-      switch (action) {
-        // Start Transaction
-        case TransactionAction.START:
-          try {
-            // Delegate
-            const billingDataTransactionStart: BillingDataTransactionStart = await billingImpl.startTransaction(transaction);
-            // Update
-            transaction.billingData = {
-              withBillingActive: billingDataTransactionStart.withBillingActive,
-              lastUpdate: new Date()
-            };
-          } catch (error) {
-            const message = `Billing - startTransaction failed - transaction ID '${transaction.id}'`;
-            await Logging.logError({
-              ...LoggingHelper.getTransactionProperties(transaction),
-              tenantID: tenant.id,
-              action: ServerAction.BILLING_TRANSACTION,
-              module: MODULE_NAME, method: 'processTransactionBilling',
-              message, detailedMessages: { error: error.stack }
-            });
-            // Prevent from starting a transaction when Billing prerequisites are not met
-            throw new BackendError({
-              ...LoggingHelper.getTransactionProperties(transaction),
-              action: ServerAction.BILLING_TRANSACTION,
-              module: MODULE_NAME, method: 'processTransactionBilling',
-              message, detailedMessages: { error: error.stack }
-            });
-          }
-          break;
-        // Meter Values
-        case TransactionAction.UPDATE:
-          try {
-            // Delegate
-            await billingImpl.updateTransaction(transaction);
-            // Update
-            if (transaction.billingData) {
-              transaction.billingData.lastUpdate = new Date();
-            }
-          } catch (error) {
-            const message = `Billing - updateTransaction failed - transaction ID '${transaction.id}'`;
-            await Logging.logError({
-              ...LoggingHelper.getTransactionProperties(transaction),
-              tenantID: tenant.id,
-              action: ServerAction.BILLING_TRANSACTION,
-              module: MODULE_NAME, method: 'processTransactionBilling',
-              message, detailedMessages: { error: error.stack }
-            });
-          }
-          break;
-        // Stop Transaction - Extra inactivity is not yet known
-        case TransactionAction.STOP:
-          try {
-            // Delegate
-            const billingDataStop: BillingDataTransactionStop = await billingImpl.stopTransaction(transaction);
-            // Update
-            if (transaction.billingData) {
-              transaction.billingData.stop = billingDataStop;
-              transaction.billingData.lastUpdate = new Date();
-            }
-          } catch (error) {
-            const message = `Billing - stopTransaction failed - transaction ID '${transaction.id}'`;
-            await Logging.logError({
-              ...LoggingHelper.getTransactionProperties(transaction),
-              tenantID: tenant.id,
-              action: ServerAction.BILLING_TRANSACTION,
-              module: MODULE_NAME, method: 'processTransactionBilling',
-              message, detailedMessages: { error: error.stack }
-            });
-          }
-          break;
-        // End Transaction - Extra inactivity is now known
-        case TransactionAction.END:
-          try {
-            // Delegate
-            const billingDataStop: BillingDataTransactionStop = await billingImpl.endTransaction(transaction);
-            // Update
-            if (transaction.billingData) {
-              transaction.billingData.stop = billingDataStop;
-              transaction.billingData.lastUpdate = new Date();
-            }
-          } catch (error) {
-            const message = `Billing - stopTransaction failed - transaction ID '${transaction.id}'`;
-            await Logging.logError({
-              ...LoggingHelper.getTransactionProperties(transaction),
-              tenantID: tenant.id,
-              action: ServerAction.BILLING_TRANSACTION,
-              module: MODULE_NAME, method: 'processTransactionBilling',
-              message, detailedMessages: { error: error.stack }
-            });
-          }
-          break;
-      }
-    }
-  }
-
   public static assertConsistencyInConsumption(chargingStation: ChargingStation, connectorID: number, consumption: Consumption): void {
     // Check Total Power with Meter Value Power L1, L2, L3
     if (consumption.instantWattsL1 > 0 || consumption.instantWattsL2 > 0 || consumption.instantWattsL3 > 0) {
@@ -1678,19 +1577,56 @@ export default class OCPPUtils {
     return result;
   }
 
+  public static async updateChargingStationConnectorRuntimeDataWithTransaction(tenant: Tenant, chargingStation: ChargingStation,
+      transaction: Transaction, saveConnector = false): Promise<void> {
+    const connector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
+    if (connector) {
+      if (!transaction.stop) {
+        // Set Transaction data on Connector
+        connector.currentInstantWatts = transaction.currentInstantWatts;
+        connector.currentTotalConsumptionWh = transaction.currentTotalConsumptionWh;
+        connector.currentTotalInactivitySecs = transaction.currentTotalInactivitySecs;
+        connector.currentInactivityStatus = Utils.getInactivityStatusLevel(
+          transaction.chargeBox, transaction.connectorId, transaction.currentTotalInactivitySecs);
+        connector.currentStateOfCharge = transaction.currentStateOfCharge;
+        connector.currentTransactionDate = transaction.timestamp;
+        connector.currentTagID = transaction.tagID;
+        connector.currentTransactionID = transaction.id;
+        connector.currentUserID = transaction.userID;
+        // Log
+        const instantPower = Utils.truncTo(Utils.createDecimal(connector.currentInstantWatts).div(1000).toNumber(), 3);
+        const totalConsumption = Utils.truncTo(Utils.createDecimal(connector.currentTotalConsumptionWh).div(1000).toNumber(), 3);
+        await Logging.logInfo({
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
+          tenantID: tenant.id,
+          module: MODULE_NAME, method: 'updateChargingStationConnectorRuntimeDataWithTransaction',
+          action: ServerAction.CONSUMPTION,
+          user: transaction.userID,
+          message: `${Utils.buildConnectorInfo(connector.connectorId, connector.currentTransactionID)} Power: ${instantPower} kW, Energy: ${totalConsumption} kW.h${connector.currentStateOfCharge ? ', SoC: ' + connector.currentStateOfCharge.toString() + ' %' : ''}`
+        });
+      // Clear Connector
+      } else {
+        OCPPUtils.clearChargingStationConnectorRuntimeData(chargingStation, connector.connectorId);
+      }
+      if (saveConnector) {
+        await ChargingStationStorage.saveChargingStationConnectors(tenant, chargingStation.id, chargingStation.connectors);
+      }
+    }
+  }
+
   public static clearChargingStationConnectorRuntimeData(chargingStation: ChargingStation, connectorID: number): void {
     // Cleanup connector transaction data
-    const foundConnector = Utils.getConnectorFromID(chargingStation, connectorID);
-    if (foundConnector) {
-      foundConnector.currentInstantWatts = 0;
-      foundConnector.currentTotalConsumptionWh = 0;
-      foundConnector.currentTotalInactivitySecs = 0;
-      foundConnector.currentInactivityStatus = InactivityStatus.INFO;
-      foundConnector.currentStateOfCharge = 0;
-      foundConnector.currentTransactionID = 0;
-      foundConnector.currentTransactionDate = null;
-      foundConnector.currentTagID = null;
-      foundConnector.currentUserID = null;
+    const connector = Utils.getConnectorFromID(chargingStation, connectorID);
+    if (connector) {
+      connector.currentInstantWatts = 0;
+      connector.currentTotalConsumptionWh = 0;
+      connector.currentTotalInactivitySecs = 0;
+      connector.currentInactivityStatus = InactivityStatus.INFO;
+      connector.currentStateOfCharge = 0;
+      connector.currentTransactionID = 0;
+      connector.currentTransactionDate = null;
+      connector.currentTagID = null;
+      connector.currentUserID = null;
     }
   }
 

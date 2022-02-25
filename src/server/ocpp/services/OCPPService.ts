@@ -8,6 +8,7 @@ import Transaction, { InactivityStatus, TransactionAction } from '../../../types
 import { Action } from '../../../types/Authorization';
 import Authorizations from '../../../authorization/Authorizations';
 import BackendError from '../../../exception/BackendError';
+import BillingFacade from '../../../integration/billing/BillingFacade';
 import CarConnectorFactory from '../../../integration/car-connector/CarConnectorFactory';
 import CarStorage from '../../../storage/mongodb/CarStorage';
 import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
@@ -217,7 +218,7 @@ export default class OCPPService {
           // Pricing
           await OCPPUtils.processTransactionPricing(tenant, transaction, chargingStation, consumption, TransactionAction.UPDATE);
           // Billing
-          await OCPPUtils.processTransactionBilling(tenant, transaction, TransactionAction.UPDATE);
+          await BillingFacade.processUpdateTransaction(tenant, transaction, transaction.user);
         }
         // Save
         await ConsumptionStorage.saveConsumption(tenant, consumption);
@@ -233,11 +234,11 @@ export default class OCPPService {
       // Save Transaction
       await TransactionStorage.saveTransaction(tenant, transaction);
       // Update Charging Station
-      await this.updateChargingStationWithTransaction(tenant, chargingStation, transaction);
-      // Handle End Of charge
-      await this.checkNotificationEndOfCharge(tenant, chargingStation, transaction);
+      await OCPPUtils.updateChargingStationConnectorRuntimeDataWithTransaction(tenant, chargingStation, transaction);
       // Save Charging Station
       await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
+      // Handle End Of charge
+      await this.checkNotificationEndOfCharge(tenant, chargingStation, transaction);
       // First Meter Value -> Trigger Smart Charging to adjust the limit
       if (transaction.numberOfMeterValues === 1 && transaction.phasesUsed) {
         // Yes: Trigger Smart Charging
@@ -382,13 +383,13 @@ export default class OCPPService {
       const firstConsumption = await OCPPUtils.createFirstConsumption(tenant, chargingStation, newTransaction);
       await OCPPUtils.processTransactionPricing(tenant, newTransaction, chargingStation, firstConsumption, TransactionAction.START);
       // Billing
-      await OCPPUtils.processTransactionBilling(tenant, newTransaction, TransactionAction.START);
+      await BillingFacade.processStartTransaction(tenant, newTransaction, chargingStation, chargingStation.siteArea, user);
       // Roaming
       await OCPPUtils.processTransactionRoaming(tenant, newTransaction, chargingStation, chargingStation.siteArea, tag, TransactionAction.START);
       // Save it
       await TransactionStorage.saveTransaction(tenant, newTransaction);
       // Clean up
-      await this.updateChargingStationConnectorWithTransaction(tenant, newTransaction, chargingStation, user);
+      await OCPPUtils.updateChargingStationConnectorRuntimeDataWithTransaction(tenant, chargingStation, newTransaction);
       // Save
       await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
       // Notify
@@ -489,7 +490,7 @@ export default class OCPPService {
       // Update Transaction with Stop Transaction and Stop MeterValues
       OCPPUtils.updateTransactionWithStopTransaction(transaction, chargingStation, stopTransaction, user, alternateUser, tagID, isSoftStop);
       // Bill
-      await OCPPUtils.processTransactionBilling(tenant, transaction, TransactionAction.STOP);
+      await BillingFacade.processStopTransaction(tenant, transaction, transaction.user);
       // Roaming
       await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, chargingStation.siteArea, transaction.tag, TransactionAction.STOP);
       // Save the transaction
@@ -589,7 +590,7 @@ export default class OCPPService {
       alternateUser = authorizedUsers.alternateUser;
     } else {
       // Get the User
-      user = await UserStorage.getUserByTagId(tenant, tagId);
+      user = await UserStorage.getUserByTagID(tenant, tagId);
     }
     // Already Stopped?
     if (transaction.stop) {
@@ -917,7 +918,7 @@ export default class OCPPService {
     if (transaction.stop?.extraInactivityComputed) {
       transactionUpdated = true;
       // Billing - Start the asynchronous billing flow
-      await OCPPUtils.processTransactionBilling(tenant, transaction, TransactionAction.END);
+      await BillingFacade.processEndTransaction(tenant, transaction, transaction.user);
     }
     return transactionUpdated;
   }
@@ -1186,38 +1187,6 @@ export default class OCPPService {
       if (OCPPUtils.isEnergyActiveImportMeterValue(meterValue)) {
         transaction.numberOfMeterValues++;
       }
-    }
-  }
-
-  private async updateChargingStationWithTransaction(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction) {
-    // Get the connector
-    const foundConnector: Connector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
-    // Active transaction?
-    if (!transaction.stop && foundConnector) {
-      // Set consumption
-      foundConnector.currentInstantWatts = transaction.currentInstantWatts;
-      foundConnector.currentTotalConsumptionWh = transaction.currentTotalConsumptionWh;
-      foundConnector.currentTotalInactivitySecs = transaction.currentTotalInactivitySecs;
-      foundConnector.currentInactivityStatus = Utils.getInactivityStatusLevel(
-        transaction.chargeBox, transaction.connectorId, transaction.currentTotalInactivitySecs);
-      foundConnector.currentStateOfCharge = transaction.currentStateOfCharge;
-      foundConnector.currentTagID = transaction.tagID;
-      // Set Transaction ID
-      foundConnector.currentTransactionID = transaction.id;
-      foundConnector.currentUserID = transaction.userID;
-      const instantPower = Utils.truncTo(Utils.createDecimal(foundConnector.currentInstantWatts).div(1000).toNumber(), 3);
-      const totalConsumption = Utils.truncTo(Utils.createDecimal(foundConnector.currentTotalConsumptionWh).div(1000).toNumber(), 3);
-      await Logging.logInfo({
-        ...LoggingHelper.getChargingStationProperties(chargingStation),
-        tenantID: tenant.id,
-        module: MODULE_NAME, method: 'updateChargingStationWithTransaction',
-        action: ServerAction.CONSUMPTION,
-        user: transaction.userID,
-        message: `${Utils.buildConnectorInfo(foundConnector.connectorId, foundConnector.currentTransactionID)} Instant: ${instantPower} kW, Total: ${totalConsumption} kW.h${foundConnector.currentStateOfCharge ? ', SoC: ' + foundConnector.currentStateOfCharge.toString() + ' %' : ''}`
-      });
-      // Cleanup connector transaction data
-    } else if (foundConnector) {
-      OCPPUtils.clearChargingStationConnectorRuntimeData(chargingStation, foundConnector.connectorId);
     }
   }
 
@@ -1641,29 +1610,6 @@ export default class OCPPService {
     }
   }
 
-  private async updateChargingStationConnectorWithTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, user: User): Promise<void> {
-    const foundConnector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
-    if (foundConnector) {
-      foundConnector.currentInstantWatts = 0;
-      foundConnector.currentTotalConsumptionWh = 0;
-      foundConnector.currentTotalInactivitySecs = 0;
-      foundConnector.currentInactivityStatus = InactivityStatus.INFO;
-      foundConnector.currentStateOfCharge = 0;
-      foundConnector.currentTransactionID = transaction.id;
-      foundConnector.currentTransactionDate = transaction.timestamp;
-      foundConnector.currentTagID = transaction.tagID;
-      foundConnector.currentUserID = transaction.userID;
-    } else {
-      await Logging.logWarning({
-        ...LoggingHelper.getChargingStationProperties(chargingStation),
-        tenantID: tenant.id,
-        module: MODULE_NAME, method: 'clearChargingStationConnectorRuntimeData',
-        action: ServerAction.OCPP_START_TRANSACTION, user: user,
-        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Connector does not exist`
-      });
-    }
-  }
-
   private async processTransactionCar(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, consumption: Consumption, user: User,
       action: TransactionAction): Promise<void> {
     let soc = null;
@@ -2005,7 +1951,8 @@ export default class OCPPService {
         detailedMessages: { meterValues }
       });
     }
-    const transaction = await TransactionStorage.getTransaction(tenant, meterValues.transactionId, { withUser: true, withTag: true, withCar: true });
+    const transaction = await TransactionStorage.getTransaction(
+      tenant, meterValues.transactionId, { withUser: true, withTag: true, withCar: true });
     if (!transaction) {
       // Abort the ongoing Transaction
       if (meterValues.transactionId) {
