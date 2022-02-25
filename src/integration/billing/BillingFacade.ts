@@ -14,7 +14,7 @@ const MODULE_NAME = 'BillingFacade';
 
 export default class BillingFacade {
   public static async processStartTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, siteArea: SiteArea, user: User): Promise<void> {
-    if (!user?.issuer || user.freeAccess) {
+    if (!user?.issuer) {
       return;
     }
     const billingImpl = await BillingFactory.getBillingImpl(tenant);
@@ -53,7 +53,7 @@ export default class BillingFacade {
   }
 
   public static async processUpdateTransaction(tenant: Tenant, transaction: Transaction, user: User): Promise<void> {
-    if (!user?.issuer || user.freeAccess) {
+    if (!user?.issuer) {
       return;
     }
     const billingImpl = await BillingFactory.getBillingImpl(tenant);
@@ -78,7 +78,7 @@ export default class BillingFacade {
   }
 
   public static async processStopTransaction(tenant: Tenant, transaction: Transaction, user: User): Promise<void> {
-    if (!user?.issuer || user.freeAccess) {
+    if (!user?.issuer) {
       return;
     }
     const billingImpl = await BillingFactory.getBillingImpl(tenant);
@@ -104,7 +104,7 @@ export default class BillingFacade {
   }
 
   public static async processEndTransaction(tenant: Tenant, transaction: Transaction, user: User): Promise<void> {
-    if (!user?.issuer || user.freeAccess) {
+    if (!user?.issuer) {
       return;
     }
     const billingImpl = await BillingFactory.getBillingImpl(tenant);
