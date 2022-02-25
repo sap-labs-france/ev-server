@@ -2,7 +2,6 @@ import { Action, Entity } from '../../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
-import Transaction, { TransactionAction } from '../../../../types/Transaction';
 
 import { ActionsResponse } from '../../../../types/GlobalType';
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -17,18 +16,18 @@ import Consumption from '../../../../types/Consumption';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
 import { DataResult } from '../../../../types/DataResult';
 import { HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
-import LockingHelper from '../../../../locking/LockingHelper';
-import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
 import LoggingHelper from '../../../../utils/LoggingHelper';
 import OCPIFacade from '../../../ocpi/OCPIFacade';
 import OCPPService from '../../../../server/ocpp/services/OCPPService';
 import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
+import OICPFacade from '../../../oicp/OICPFacade';
 import RefundFactory from '../../../../integration/refund/RefundFactory';
 import { RefundStatus } from '../../../../types/Refund';
 import { ServerAction } from '../../../../types/Server';
 import SynchronizeRefundTransactionsTask from '../../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
+import Transaction from '../../../../types/Transaction';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import TransactionValidator from '../validator/TransactionValidator';
 import User from '../../../../types/User';
@@ -93,7 +92,7 @@ export default class TransactionService {
         message: 'Transaction IDs must be provided',
         module: MODULE_NAME, method: 'handleRefundTransactions',
         user: req.user,
-        action: action
+        action
       });
     }
     const transactionsToRefund: Transaction[] = [];
@@ -105,7 +104,7 @@ export default class TransactionService {
           user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
           module: MODULE_NAME, method: 'handleRefundTransactions',
           message: `Transaction '${transaction.id}' does not exist`,
-          action: action,
+          action,
           detailedMessages: { transaction }
         });
         continue;
@@ -116,7 +115,7 @@ export default class TransactionService {
           user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
           module: MODULE_NAME, method: 'handleRefundTransactions',
           message: `Transaction '${transaction.id}' is already refunded`,
-          action: action,
+          action,
           detailedMessages: { transaction }
         });
         continue;
@@ -143,7 +142,7 @@ export default class TransactionService {
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'No Refund Implementation Found',
         module: MODULE_NAME, method: 'handleRefundTransactions',
-        user: req.user, action: action
+        user: req.user, action
       });
     }
     // Check user connection
@@ -154,7 +153,7 @@ export default class TransactionService {
         errorCode: HTTPError.REFUND_CONNECTION_ERROR,
         message: 'No Refund valid connection found',
         module: MODULE_NAME, method: 'handleRefundTransactions',
-        user: req.user, action: action
+        user: req.user, action
       });
     }
     // Refund
@@ -201,7 +200,7 @@ export default class TransactionService {
         errorCode: HTTPError.TRANSACTION_NOT_FROM_TENANT,
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction belongs to an external organization`,
         module: MODULE_NAME, method: 'handlePushTransactionCdr',
-        user: req.user, action: action
+        user: req.user, action
       });
     }
     // No Roaming Cdr to push
@@ -210,7 +209,7 @@ export default class TransactionService {
         errorCode: HTTPError.TRANSACTION_WITH_NO_OCPI_DATA,
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} No OCPI or OICP Session data`,
         module: MODULE_NAME, method: 'handlePushTransactionCdr',
-        user: req.user, action: action
+        user: req.user, action
       });
     }
     // Check OCPI
@@ -221,20 +220,19 @@ export default class TransactionService {
           errorCode: HTTPError.TRANSACTION_CDR_ALREADY_PUSHED,
           message: `The CDR of the Transaction ID '${transaction.id}' has already been pushed`,
           module: MODULE_NAME, method: 'handlePushTransactionCdr',
-          user: req.user, action: action
+          user: req.user, action
         });
       }
       // OCPI: Post the CDR
       const ocpiUpdated = await OCPIFacade.checkAndSendTransactionCdr(
-        req.tenant, transaction, chargingStation, chargingStation.siteArea, ServerAction.OCPP_STATUS_NOTIFICATION);
+        req.tenant, transaction, chargingStation, chargingStation.siteArea, action);
       if (ocpiUpdated) {
         // Save
         await TransactionStorage.saveTransactionOcpiData(req.tenant, transaction.id, transaction.ocpiData);
         await Logging.logInfo({
           tenantID: req.user.tenantID,
-          action: action,
+          action, module: MODULE_NAME, method: 'handlePushTransactionCdr',
           user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
-          module: MODULE_NAME, method: 'handlePushTransactionCdr',
           message: `CDR of Transaction ID '${transaction.id}' has been pushed successfully`,
           detailedMessages: { cdr: transaction.ocpiData.cdr }
         });
@@ -248,30 +246,23 @@ export default class TransactionService {
           errorCode: HTTPError.TRANSACTION_CDR_ALREADY_PUSHED,
           message: `The CDR of the transaction ID '${transaction.id}' has already been pushed`,
           module: MODULE_NAME, method: 'handlePushTransactionCdr',
-          user: req.user,
-          action: action
+          user: req.user, action
         });
       }
-      // Get the lock
-      const oicpLock = await LockingHelper.acquireOICPPushCdrLock(req.user.tenantID, transaction.id);
-      if (oicpLock) {
-        try {
-          // Post CDR
-          await OCPPUtils.processOICPTransaction(req.tenant, transaction, chargingStation, TransactionAction.END);
-          // Save
-          await TransactionStorage.saveTransactionOicpData(req.tenant, transaction.id, transaction.oicpData);
-          await Logging.logInfo({
-            tenantID: req.user.tenantID,
-            action: action,
-            user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
-            module: MODULE_NAME, method: 'handlePushTransactionCdr',
-            message: `CDR of Transaction ID '${transaction.id}' has been pushed successfully`,
-            detailedMessages: { cdr: transaction.ocpiData.cdr }
-          });
-        } finally {
-          // Release the lock
-          await LockingManager.release(oicpLock);
-        }
+      // OICP: Post the CDR
+      const oicpUpdated = await OICPFacade.checkAndSendTransactionCdr(
+        req.tenant, transaction, chargingStation, chargingStation.siteArea, action);
+      if (oicpUpdated) {
+        // Save
+        await TransactionStorage.saveTransactionOicpData(req.tenant, transaction.id, transaction.oicpData);
+        await Logging.logInfo({
+          tenantID: req.user.tenantID,
+          action,
+          user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
+          module: MODULE_NAME, method: 'handlePushTransactionCdr',
+          message: `CDR of Transaction ID '${transaction.id}' has been pushed successfully`,
+          detailedMessages: { cdr: transaction.ocpiData.cdr }
+        });
       }
     }
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -351,7 +342,7 @@ export default class TransactionService {
         errorCode: HTTPError.GENERAL_ERROR,
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} The Connector ID has not been found`,
         module: MODULE_NAME, method: 'handleTransactionSoftStop',
-        user: req.user, action: action
+        user: req.user, action
       });
     }
     // Check if already stopped
@@ -364,9 +355,8 @@ export default class TransactionService {
       await Logging.logInfo({
         tenantID: req.user.tenantID,
         user: req.user, actionOnUser: transaction.userID,
-        module: MODULE_NAME, method: 'handleTransactionSoftStop',
+        action, module: MODULE_NAME, method: 'handleTransactionSoftStop',
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has already been stopped`,
-        action: action,
       });
     } else {
       // Transaction is still ongoing
@@ -376,7 +366,7 @@ export default class TransactionService {
           errorCode: HTTPError.GENERAL_ERROR,
           message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Cannot soft stop an ongoing Transaction`,
           module: MODULE_NAME, method: 'handleTransactionSoftStop',
-          user: req.user, action: action
+          user: req.user, action
         });
       }
       // Stop Transaction
@@ -388,7 +378,7 @@ export default class TransactionService {
           errorCode: HTTPError.GENERAL_ERROR,
           message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction cannot be stopped`,
           module: MODULE_NAME, method: 'handleTransactionSoftStop',
-          user: req.user, action: action
+          user: req.user, action
         });
       }
       await Logging.logInfo({
@@ -397,8 +387,7 @@ export default class TransactionService {
         user: req.user, actionOnUser: transaction.userID,
         module: MODULE_NAME, method: 'handleTransactionSoftStop',
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has been soft stopped successfully`,
-        action: action,
-        detailedMessages: { transaction }
+        action, detailedMessages: { transaction }
       });
     }
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -475,7 +464,7 @@ export default class TransactionService {
         errorCode: HTTPError.GENERAL_ERROR,
         message: `The requested start date '${new Date(filteredRequest.StartDateTime).toISOString()}' is after the requested end date '${new Date(filteredRequest.StartDateTime).toISOString()}' `,
         module: MODULE_NAME, method: 'handleGetConsumptionFromTransaction',
-        user: req.user, action: action
+        user: req.user, action
       });
     }
     // Get the consumption
@@ -745,8 +734,7 @@ export default class TransactionService {
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Transaction ID '${transaction.id}' does not contain roaming data`,
         module: MODULE_NAME, method: 'handleExportTransactionOcpiCdr',
-        user: req.user,
-        action: action
+        user: req.user, action
       });
     }
     // Get Ocpi Data
@@ -896,9 +884,8 @@ export default class TransactionService {
         await Logging.logError({
           tenantID: loggedUser.tenantID,
           user: loggedUser,
-          module: MODULE_NAME, method: 'handleDeleteTransactions',
+          action, module: MODULE_NAME, method: 'handleDeleteTransactions',
           message: `Transaction ID '${transactionID}' does not exist`,
-          action: action,
           detailedMessages: { transaction }
         });
         // Already Refunded
@@ -907,9 +894,8 @@ export default class TransactionService {
         await Logging.logError({
           tenantID: loggedUser.tenantID,
           user: loggedUser,
-          module: MODULE_NAME, method: 'handleDeleteTransactions',
+          action, module: MODULE_NAME, method: 'handleDeleteTransactions',
           message: `Transaction ID '${transactionID}' has been refunded and cannot be deleted`,
-          action: action,
           detailedMessages: { transaction }
         });
         // Billed
@@ -918,9 +904,8 @@ export default class TransactionService {
         await Logging.logError({
           tenantID: loggedUser.tenantID,
           user: loggedUser,
-          module: MODULE_NAME, method: 'handleDeleteTransactions',
+          action, module: MODULE_NAME, method: 'handleDeleteTransactions',
           message: `Transaction ID '${transactionID}' has been billed and cannot be deleted`,
-          action: action,
           detailedMessages: { transaction }
         });
         // Transaction in progress

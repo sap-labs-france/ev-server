@@ -2,62 +2,68 @@ import ChargingStation, { Connector } from '../../types/ChargingStation';
 import Tenant, { TenantComponents } from '../../types/Tenant';
 
 import BackendError from '../../exception/BackendError';
-import CpoOCPIClient from '../../client/ocpi/CpoOCPIClient';
+import CpoOICPClient from '../../client/oicp/CpoOICPClient';
 import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
 import LoggingHelper from '../../utils/LoggingHelper';
-import OCPIClientFactory from '../../client/ocpi/OCPIClientFactory';
-import { OCPIRole } from '../../types/ocpi/OCPIRole';
+import OICPClientFactory from '../../client/oicp/OICPClientFactory';
+import { OICPRole } from '../../types/oicp/OICPRole';
+import OICPUtils from './OICPUtils';
 import { ServerAction } from '../../types/Server';
 import SiteArea from '../../types/SiteArea';
-import Tag from '../../types/Tag';
 import Transaction from '../../types/Transaction';
 import User from '../../types/User';
 import Utils from '../../utils/Utils';
 
-const MODULE_NAME = 'OCPIFacade';
+const MODULE_NAME = 'OICPFacade';
 
-export default class OCPIFacade {
+export default class OICPFacade {
   public static async processStartTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation,
-      siteArea: SiteArea, tag: Tag, user: User, action: ServerAction): Promise<void> {
-    if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI) ||
+      siteArea: SiteArea, user: User, action: ServerAction): Promise<void> {
+    if (!Utils.isTenantComponentActive(tenant, TenantComponents.OICP) ||
         !chargingStation.issuer || !chargingStation.public || !siteArea.accessControl) {
       return;
     }
-    // Get OCPI CPO client
-    const ocpiClient = await OCPIFacade.checkAndGetOcpiCpoClient(tenant, transaction, user, action);
-    // Check Authorization
-    if (!transaction.authorizationID) {
+    // Get OICP CPO client
+    const oicpClient = await OICPFacade.checkAndGetOICPCpoClient(tenant, transaction, user, action);
+    // Get the Session ID and Identification from (remote) authorization stored in Charging Station
+    let authorization = OICPUtils.getOICPIdentificationFromRemoteAuthorization(
+      chargingStation, transaction.connectorId, ServerAction.OCPP_START_TRANSACTION);
+    if (!authorization) {
+      // Get the Session ID and Identification from OCPP Authorize message
+      authorization = await OICPUtils.getOICPIdentificationFromAuthorization(tenant, transaction);
+    }
+    if (!authorization) {
       throw new BackendError({
-        ...LoggingHelper.getTransactionProperties(transaction),
-        action: action,
-        module: MODULE_NAME, method: 'processStartTransaction',
-        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Tag ID '${transaction.tagID}' is not authorized`
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
+        action: ServerAction.OICP_PUSH_SESSIONS,
+        message: 'No Authorization found, OICP Session not started',
+        module: MODULE_NAME, method: 'processOICPTransaction',
       });
     }
-    await ocpiClient.startSession(tag.ocpiToken, chargingStation, transaction);
+    await oicpClient.startSession(chargingStation, transaction, authorization.sessionId, authorization.identification);
   }
 
   public static async processUpdateTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation,
       siteArea: SiteArea, user: User, action: ServerAction): Promise<void> {
-    if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI) ||
+    if (!Utils.isTenantComponentActive(tenant, TenantComponents.OICP) ||
         !chargingStation.issuer || !chargingStation.public || !siteArea.accessControl) {
       return;
     }
     try {
-      // Get OCPI CPO client
-      const ocpiClient = await OCPIFacade.checkAndGetOcpiCpoClient(
+      // Get OICP CPO client
+      const oicpClient = await OICPFacade.checkAndGetOICPCpoClient(
         tenant, transaction, user, action);
-      // Update OCPI Session
-      await ocpiClient.updateSession(transaction);
+      // Update OICP Session
+      await oicpClient.updateSession(transaction);
     } catch (error) {
       await Logging.logWarning({
         ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: tenant.id,
         action, module: MODULE_NAME, method: 'processUpdateTransaction',
         user: transaction.userID,
-        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Cannot process OCPI Update Transaction: ${error.message as string}`,
+        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Cannot process OICP Update Transaction: ${error.message as string}`,
         detailedMessages: { error: error.stack }
       });
     }
@@ -65,60 +71,60 @@ export default class OCPIFacade {
 
   public static async processStopTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation,
       siteArea: SiteArea, user: User, action: ServerAction): Promise<void> {
-    if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI) ||
+    if (!Utils.isTenantComponentActive(tenant, TenantComponents.OICP) ||
         !chargingStation.issuer || !chargingStation.public || !siteArea.accessControl) {
       return;
     }
-    // Get OCPI CPO client
-    const ocpiClient = await OCPIFacade.checkAndGetOcpiCpoClient(
+    // Get OICP CPO client
+    const oicpClient = await OICPFacade.checkAndGetOICPCpoClient(
       tenant, transaction, user, action);
-    // Stop OCPI Session
-    await ocpiClient.stopSession(transaction);
+    // Stop OICP Session
+    await oicpClient.stopSession(transaction);
   }
 
   public static async processEndTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation,
       siteArea: SiteArea, user: User, action: ServerAction): Promise<void> {
-    if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI) ||
+    if (!Utils.isTenantComponentActive(tenant, TenantComponents.OICP) ||
         !chargingStation.issuer || !chargingStation.public || !siteArea.accessControl) {
       return;
     }
-    // Get OCPI CPO client
-    const ocpiClient = await OCPIFacade.checkAndGetOcpiCpoClient(
+    // Get OICP CPO client
+    const oicpClient = await OICPFacade.checkAndGetOICPCpoClient(
       tenant, transaction, user, action);
-    // Send OCPI CDR
-    await ocpiClient.postCdr(transaction);
+    // Send OICP CDR
+    await oicpClient.pushCdr(transaction);
   }
 
   public static async checkAndSendTransactionCdr(tenant: Tenant, transaction: Transaction,
       chargingStation: ChargingStation, siteArea: SiteArea, action: ServerAction): Promise<boolean> {
-    let ocpiCdrSent = false;
+    let OICPCdrSent = false;
     // CDR not already pushed
-    if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI) &&
-        transaction.ocpiData?.session && !transaction.ocpiData.cdr?.id) {
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.OICP) &&
+        transaction.oicpData?.session && !transaction.oicpData.cdr?.SessionID) {
       // Get the lock
-      const ocpiLock = await LockingHelper.acquireOCPIPushCdrLock(tenant.id, transaction.id);
-      if (ocpiLock) {
+      const OICPLock = await LockingHelper.acquireOICPPushCdrLock(tenant.id, transaction.id);
+      if (OICPLock) {
         try {
           // Roaming
-          ocpiCdrSent = true;
-          await OCPIFacade.processEndTransaction(tenant, transaction, chargingStation, siteArea, transaction.user, action);
+          OICPCdrSent = true;
+          await OICPFacade.processEndTransaction(tenant, transaction, chargingStation, siteArea, transaction.user, action);
         } finally {
           // Release the lock
-          await LockingManager.release(ocpiLock);
+          await LockingManager.release(OICPLock);
         }
       }
     }
-    return ocpiCdrSent;
+    return OICPCdrSent;
   }
 
   public static async updateConnectorStatus(tenant: Tenant, chargingStation: ChargingStation, connector: Connector): Promise<void> {
     try {
-      if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI) &&
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.OICP) &&
           chargingStation.issuer && chargingStation.public) {
-        const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
+        const oicpClient = await OICPClientFactory.getAvailableOicpClient(tenant, OICPRole.CPO) as CpoOICPClient;
         // Patch status
-        if (ocpiClient) {
-          await ocpiClient.patchChargingStationStatus(chargingStation, connector);
+        if (oicpClient) {
+          await oicpClient.updateEVSEStatus(chargingStation, connector);
         }
       }
     } catch (error) {
@@ -126,38 +132,39 @@ export default class OCPIFacade {
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         tenantID: tenant.id,
         module: MODULE_NAME, method: 'updateConnectorStatus',
-        action: ServerAction.OCPI_PATCH_STATUS,
+        action: ServerAction.OICP_UPDATE_EVSE_STATUS,
         message: `${Utils.buildConnectorInfo(connector.connectorId)} An error occurred while patching the connector's Status`,
         detailedMessages: { error: error.stack, connector, chargingStation }
       });
     }
   }
 
-  private static async checkAndGetOcpiCpoClient(tenant: Tenant, transaction: Transaction,
-      user: User, action: ServerAction): Promise<CpoOCPIClient> {
+  private static async checkAndGetOICPCpoClient(tenant: Tenant, transaction: Transaction,
+      user: User, action: ServerAction): Promise<CpoOICPClient> {
     // Check User
     if (!user) {
       throw new BackendError({
         ...LoggingHelper.getTransactionProperties(transaction),
-        action, module: MODULE_NAME, method: 'checkAndGetOcpiCpoClient',
+        action, module: MODULE_NAME, method: 'checkAndGetOICPCpoClient',
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} User is mandatory`
       });
     }
     if (user.issuer) {
       throw new BackendError({
         ...LoggingHelper.getTransactionProperties(transaction),
-        action, module: MODULE_NAME, method: 'checkAndGetOcpiCpoClient',
+        action, module: MODULE_NAME, method: 'checkAndGetOICPCpoClient',
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} User does not belong to the local organization`
       });
     }
-    const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
-    if (!ocpiClient) {
+    // Get the client
+    const oicpClient = await OICPClientFactory.getAvailableOicpClient(tenant, OICPRole.CPO) as CpoOICPClient;
+    if (!oicpClient) {
       throw new BackendError({
         ...LoggingHelper.getTransactionProperties(transaction),
-        action, module: MODULE_NAME, method: 'checkAndGetOcpiCpoClient',
-        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OCPI component requires at least one CPO endpoint to start a Transaction`
+        action, module: MODULE_NAME, method: 'checkAndGetOICPCpoClient',
+        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OICP component requires at least one CPO endpoint to start a Transaction`
       });
     }
-    return ocpiClient;
+    return oicpClient;
   }
 }

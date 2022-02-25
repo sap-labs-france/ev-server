@@ -2,7 +2,6 @@ import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/Char
 import ChargingStation, { ChargingStationCapabilities, ChargingStationTemplate, ChargingStationTemplateConnector, Command, Connector, ConnectorCurrentLimitSource, CurrentType, OcppParameter, SiteAreaLimitSource, StaticLimitAmps, TemplateUpdateResult } from '../../../types/ChargingStation';
 import { OCPPChangeConfigurationResponse, OCPPChargingProfileStatus, OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
 import { OCPPMeasurand, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat } from '../../../types/ocpp/OCPPServer';
-import { OICPIdentification, OICPSessionID } from '../../../types/oicp/OICPIdentification';
 import Tenant, { TenantComponents } from '../../../types/Tenant';
 import Transaction, { InactivityStatus, TransactionAction } from '../../../types/Transaction';
 
@@ -14,15 +13,11 @@ import ChargingStationVendorFactory from '../../../integration/charging-station-
 import Constants from '../../../utils/Constants';
 import Consumption from '../../../types/Consumption';
 import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
-import CpoOICPClient from '../../../client/oicp/CpoOICPClient';
 import DatabaseUtils from '../../../storage/mongodb/DatabaseUtils';
 import Logging from '../../../utils/Logging';
 import LoggingHelper from '../../../utils/LoggingHelper';
 import OCPPCommon from './OCPPCommon';
 import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
-import OICPClientFactory from '../../../client/oicp/OICPClientFactory';
-import { OICPRole } from '../../../types/oicp/OICPRole';
-import OICPUtils from '../../oicp/OICPUtils';
 import { PricedConsumption } from '../../../types/Pricing';
 import PricingFactory from '../../../integration/pricing/PricingFactory';
 import { PricingSettingsType } from '../../../types/Setting';
@@ -32,7 +27,6 @@ import RegistrationTokenStorage from '../../../storage/mongodb/RegistrationToken
 import { ServerAction } from '../../../types/Server';
 import SiteArea from '../../../types/SiteArea';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
-import Tag from '../../../types/Tag';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
@@ -92,99 +86,6 @@ export default class OCPPUtils {
       });
     }
     return token;
-  }
-
-  public static async processTransactionRoaming(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation,
-      siteArea: SiteArea, tag: Tag, transactionAction: TransactionAction): Promise<void> {
-    try {
-      // Roaming User and ACL must be active in Site Area
-      if (transaction.user && !transaction.user.issuer && siteArea?.accessControl) {
-        // OICP
-        if (Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {
-          await OCPPUtils.processOICPTransaction(tenant, transaction, chargingStation, transactionAction);
-        }
-      }
-    } catch (error) {
-      // Cancel Start/Stop Transaction
-      if (transactionAction !== TransactionAction.UPDATE) {
-        throw error;
-      } else {
-        await Logging.logWarning({
-          ...LoggingHelper.getChargingStationProperties(chargingStation),
-          tenantID: tenant.id,
-          action: ServerAction.ROAMING,
-          user: transaction.userID,
-          module: MODULE_NAME, method: 'processTransactionRoaming',
-          message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Roaming exception occurred: ${error.message as string}`,
-          detailedMessages: { error: error.stack }
-        });
-      }
-    }
-  }
-
-  public static async processOICPTransaction(tenant: Tenant, transaction: Transaction,
-      chargingStation: ChargingStation, transactionAction: TransactionAction): Promise<void> {
-    if (!transaction.user || transaction.user.issuer) {
-      return;
-    }
-    const user = transaction.user;
-    let action: ServerAction;
-    switch (transactionAction) {
-      case TransactionAction.START:
-        action = ServerAction.OCPP_START_TRANSACTION;
-        break;
-      case TransactionAction.UPDATE:
-        action = ServerAction.UPDATE_TRANSACTION;
-        break;
-      case TransactionAction.STOP:
-      case TransactionAction.END:
-        action = ServerAction.OCPP_STOP_TRANSACTION;
-        break;
-    }
-    // Get the client
-    const oicpClient = await OICPClientFactory.getAvailableOicpClient(tenant, OICPRole.CPO) as CpoOICPClient;
-    if (!oicpClient) {
-      throw new BackendError({
-        ...LoggingHelper.getChargingStationProperties(chargingStation),
-        user: user,
-        action: action,
-        module: MODULE_NAME, method: 'processOICPTransaction',
-        message: `OICP component requires at least one CPO endpoint to ${transactionAction} a Session`
-      });
-    }
-    let authorization: {
-      sessionId: OICPSessionID;
-      identification: OICPIdentification;
-    };
-    switch (transactionAction) {
-      case TransactionAction.START:
-        // Get the Session ID and Identification from (remote) authorization stored in Charging Station
-        authorization = OICPUtils.getOICPIdentificationFromRemoteAuthorization(
-          chargingStation, transaction.connectorId, ServerAction.OCPP_START_TRANSACTION);
-        if (!authorization) {
-          // Get the Session ID and Identification from OCPP Authorize message
-          authorization = await OICPUtils.getOICPIdentificationFromAuthorization(tenant, transaction);
-        }
-        if (!authorization) {
-          throw new BackendError({
-            ...LoggingHelper.getChargingStationProperties(chargingStation),
-            action: ServerAction.OICP_PUSH_SESSIONS,
-            message: 'No Authorization found, OICP Session not started',
-            module: MODULE_NAME, method: 'processOICPTransaction',
-          });
-        }
-        await oicpClient.startSession(chargingStation, transaction, authorization.sessionId, authorization.identification);
-        break;
-      case TransactionAction.UPDATE:
-        await oicpClient.updateSession(transaction);
-        break;
-      case TransactionAction.STOP:
-        await oicpClient.stopSession(transaction);
-        break;
-      case TransactionAction.END:
-        await oicpClient.pushCdr(transaction);
-        break;
-    }
   }
 
   public static async buildAndPriceExtraConsumptionInactivity(tenant: Tenant, chargingStation: ChargingStation, lastTransaction: Transaction): Promise<void> {
