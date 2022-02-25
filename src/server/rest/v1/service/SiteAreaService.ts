@@ -37,7 +37,7 @@ export default class SiteAreaService {
     // Check and Get Site Area
     const authAction = action === ServerAction.ADD_ASSET_TO_SITE_AREA ? Action.ASSIGN_ASSETS_TO_SITE_AREA : Action.UNASSIGN_ASSETS_FROM_SITE_AREA;
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
-      req.tenant, req.user, filteredRequest.siteAreaID, authAction, action);
+      req.tenant, req.user, filteredRequest.siteAreaID, authAction, action, null, { withSite: true });
     // Check and Get Assets
     const assets = await UtilsService.checkSiteAreaAssetsAuthorization(
       req.tenant, req.user, siteArea, filteredRequest.assetIDs, action);

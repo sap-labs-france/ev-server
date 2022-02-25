@@ -44,7 +44,8 @@ export default class SiteAreaStorage {
           {
             $set: {
               siteAreaID: DatabaseUtils.convertToObjectID(siteArea.id),
-              siteID: DatabaseUtils.convertToObjectID(siteArea.siteID)
+              siteID: DatabaseUtils.convertToObjectID(siteArea.siteID),
+              companyID: DatabaseUtils.convertToObjectID(siteArea.site?.companyID)
             }
           });
       }
@@ -65,7 +66,8 @@ export default class SiteAreaStorage {
           {
             $set: {
               siteAreaID: null,
-              siteID: null
+              siteID: null,
+              companyID: null
             }
           });
       }

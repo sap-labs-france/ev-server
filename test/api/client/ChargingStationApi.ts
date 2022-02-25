@@ -14,7 +14,7 @@ export default class ChargingStationApi extends CrudApi {
   }
 
   public async readById(id) {
-    return super.read({}, `/v1/api/${ServerRoute.REST_CHARGING_STATIONS}/${id}`);
+    return super.readById(id, this.buildRestEndpointUrl(ServerRoute.REST_CHARGING_STATION, { id }));
   }
 
   public async readAll(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {

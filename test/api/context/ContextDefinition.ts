@@ -604,6 +604,9 @@ export default class ContextDefinition {
   static readonly TENANT_COMPANY_LIST: any[] = [
     { // Default company no settings yet
       id: '5ce249a2372f0b1c8caf928f'
+    },
+    { // Second company no settings yet
+      id: '5ce249a2372f0b1c8caf928e'
     }
   ];
 
