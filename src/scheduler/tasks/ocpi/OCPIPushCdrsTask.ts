@@ -4,12 +4,11 @@ import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStor
 import LockingHelper from '../../../locking/LockingHelper';
 import LockingManager from '../../../locking/LockingManager';
 import Logging from '../../../utils/Logging';
-import OCPPUtils from '../../../server/ocpp/utils/OCPPUtils';
+import OCPIFacade from '../../../server/ocpi/OCPIFacade';
 import { ServerAction } from '../../../types/Server';
 import TagStorage from '../../../storage/mongodb/TagStorage';
 import { TaskConfig } from '../../../types/TaskConfig';
 import TenantSchedulerTask from '../../TenantSchedulerTask';
-import { TransactionAction } from '../../../types/Transaction';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import Utils from '../../../utils/Utils';
 import global from '../../../types/GlobalType';
@@ -95,7 +94,7 @@ export default class OCPIPushCdrsTask extends TenantSchedulerTask {
                       continue;
                     }
                     // Roaming
-                    await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, chargingStation.siteArea, tag, TransactionAction.END);
+                    await OCPIFacade.processEndTransaction(tenant, transaction, chargingStation, chargingStation.siteArea, transaction.user, ServerAction.OCPI_PUSH_CDRS);
                     // Save
                     await TransactionStorage.saveTransactionOcpiData(tenant, transaction.id, transaction.ocpiData);
                     await Logging.logInfo({

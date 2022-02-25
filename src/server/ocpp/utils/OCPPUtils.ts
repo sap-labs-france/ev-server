@@ -1,9 +1,7 @@
-import { BillingDataTransactionStart, BillingDataTransactionStop } from '../../../types/Billing';
 import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargingStationCapabilities, ChargingStationTemplate, ChargingStationTemplateConnector, Command, Connector, ConnectorCurrentLimitSource, CurrentType, OcppParameter, SiteAreaLimitSource, StaticLimitAmps, TemplateUpdateResult } from '../../../types/ChargingStation';
 import { OCPPChangeConfigurationResponse, OCPPChargingProfileStatus, OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
 import { OCPPMeasurand, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat } from '../../../types/ocpp/OCPPServer';
-import { OICPIdentification, OICPSessionID } from '../../../types/oicp/OICPIdentification';
 import Tenant, { TenantComponents } from '../../../types/Tenant';
 import Transaction, { InactivityStatus, TransactionAction } from '../../../types/Transaction';
 
@@ -15,18 +13,11 @@ import ChargingStationVendorFactory from '../../../integration/charging-station-
 import Constants from '../../../utils/Constants';
 import Consumption from '../../../types/Consumption';
 import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
-import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
-import CpoOICPClient from '../../../client/oicp/CpoOICPClient';
 import DatabaseUtils from '../../../storage/mongodb/DatabaseUtils';
 import Logging from '../../../utils/Logging';
 import LoggingHelper from '../../../utils/LoggingHelper';
-import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
-import { OCPIRole } from '../../../types/ocpi/OCPIRole';
 import OCPPCommon from './OCPPCommon';
 import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
-import OICPClientFactory from '../../../client/oicp/OICPClientFactory';
-import { OICPRole } from '../../../types/oicp/OICPRole';
-import OICPUtils from '../../oicp/OICPUtils';
 import { PricedConsumption } from '../../../types/Pricing';
 import PricingFactory from '../../../integration/pricing/PricingFactory';
 import { PricingSettingsType } from '../../../types/Setting';
@@ -36,7 +27,6 @@ import RegistrationTokenStorage from '../../../storage/mongodb/RegistrationToken
 import { ServerAction } from '../../../types/Server';
 import SiteArea from '../../../types/SiteArea';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
-import Tag from '../../../types/Tag';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
@@ -98,105 +88,8 @@ export default class OCPPUtils {
     return token;
   }
 
-  public static async processTransactionRoaming(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation,
-      siteArea: SiteArea, tag: Tag, transactionAction: TransactionAction): Promise<void> {
-    try {
-      // Roaming User and ACL must be active in Site Area
-      if (transaction.user && !transaction.user.issuer && siteArea?.accessControl) {
-        // OCPI
-        if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
-          await OCPPUtils.processOCPITransaction(tenant, transaction, chargingStation, tag, transactionAction);
-        }
-        // OICP
-        if (Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {
-          await OCPPUtils.processOICPTransaction(tenant, transaction, chargingStation, transactionAction);
-        }
-      }
-    } catch (error) {
-      // Cancel Start/Stop Transaction
-      if (transactionAction !== TransactionAction.UPDATE) {
-        throw error;
-      } else {
-        await Logging.logWarning({
-          ...LoggingHelper.getChargingStationProperties(chargingStation),
-          tenantID: tenant.id,
-          action: ServerAction.ROAMING,
-          user: transaction.userID,
-          module: MODULE_NAME, method: 'processTransactionRoaming',
-          message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Roaming exception occurred: ${error.message as string}`,
-          detailedMessages: { error: error.stack }
-        });
-      }
-    }
-  }
-
-  public static async processOICPTransaction(tenant: Tenant, transaction: Transaction,
-      chargingStation: ChargingStation, transactionAction: TransactionAction): Promise<void> {
-    if (!transaction.user || transaction.user.issuer) {
-      return;
-    }
-    const user = transaction.user;
-    let action: ServerAction;
-    switch (transactionAction) {
-      case TransactionAction.START:
-        action = ServerAction.OCPP_START_TRANSACTION;
-        break;
-      case TransactionAction.UPDATE:
-        action = ServerAction.UPDATE_TRANSACTION;
-        break;
-      case TransactionAction.STOP:
-      case TransactionAction.END:
-        action = ServerAction.OCPP_STOP_TRANSACTION;
-        break;
-    }
-    // Get the client
-    const oicpClient = await OICPClientFactory.getAvailableOicpClient(tenant, OICPRole.CPO) as CpoOICPClient;
-    if (!oicpClient) {
-      throw new BackendError({
-        ...LoggingHelper.getChargingStationProperties(chargingStation),
-        user: user,
-        action: action,
-        module: MODULE_NAME, method: 'processOICPTransaction',
-        message: `OICP component requires at least one CPO endpoint to ${transactionAction} a Session`
-      });
-    }
-    let authorization: {
-      sessionId: OICPSessionID;
-      identification: OICPIdentification;
-    };
-    switch (transactionAction) {
-      case TransactionAction.START:
-        // Get the Session ID and Identification from (remote) authorization stored in Charging Station
-        authorization = OICPUtils.getOICPIdentificationFromRemoteAuthorization(
-          chargingStation, transaction.connectorId, ServerAction.OCPP_START_TRANSACTION);
-        if (!authorization) {
-          // Get the Session ID and Identification from OCPP Authorize message
-          authorization = await OICPUtils.getOICPIdentificationFromAuthorization(tenant, transaction);
-        }
-        if (!authorization) {
-          throw new BackendError({
-            ...LoggingHelper.getChargingStationProperties(chargingStation),
-            action: ServerAction.OICP_PUSH_SESSIONS,
-            message: 'No Authorization found, OICP Session not started',
-            module: MODULE_NAME, method: 'processOICPTransaction',
-          });
-        }
-        await oicpClient.startSession(chargingStation, transaction, authorization.sessionId, authorization.identification);
-        break;
-      case TransactionAction.UPDATE:
-        await oicpClient.updateSession(transaction);
-        break;
-      case TransactionAction.STOP:
-        await oicpClient.stopSession(transaction);
-        break;
-      case TransactionAction.END:
-        await oicpClient.pushCdr(transaction);
-        break;
-    }
-  }
-
   public static async buildAndPriceExtraConsumptionInactivity(tenant: Tenant, chargingStation: ChargingStation, lastTransaction: Transaction): Promise<void> {
-    const lastConsumption = await OCPPUtils.buildExtraConsumptionInactivity(tenant, chargingStation, lastTransaction);
+    const lastConsumption = await OCPPUtils.buildExtraConsumptionInactivity(tenant, lastTransaction);
     if (lastConsumption) {
       // Pricing of the extra inactivity
       if (lastConsumption?.toPrice) {
@@ -212,7 +105,7 @@ export default class OCPPUtils {
     }
   }
 
-  public static async buildExtraConsumptionInactivity(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction): Promise<Consumption> {
+  public static async buildExtraConsumptionInactivity(tenant: Tenant, transaction: Transaction): Promise<Consumption> {
     // Extra inactivity
     const extraInactivitySecs = transaction.stop?.extraInactivitySecs || 0;
     if (extraInactivitySecs > 0) {
@@ -1434,7 +1327,7 @@ export default class OCPPUtils {
           ...LoggingHelper.getChargingStationProperties(chargingStation),
           tenantID: tenant.id,
           action, module: MODULE_NAME, method: 'checkAndGetChargingStationData',
-          message: `New Token ID '${tokenID}' has been set (old was '${chargingStation.tokenID}')`
+          message: `New security Token ID '${tokenID}' has been assigned to the Charging Station (old one was '${chargingStation.tokenID}')`
         });
         chargingStation.tokenID = tokenID;
       }
@@ -1985,81 +1878,6 @@ export default class OCPPUtils {
     const val = _.get(headers, name);
     if (val && val.$value) {
       _.set(headers, name, val.$value);
-    }
-  }
-
-  private static async processOCPITransaction(tenant: Tenant, transaction: Transaction,
-      chargingStation: ChargingStation, tag: Tag, transactionAction: TransactionAction): Promise<void> {
-    // Set Action
-    let action: ServerAction;
-    switch (transactionAction) {
-      case TransactionAction.START:
-        action = ServerAction.OCPP_START_TRANSACTION;
-        break;
-      case TransactionAction.UPDATE:
-        action = ServerAction.UPDATE_TRANSACTION;
-        break;
-      case TransactionAction.STOP:
-      case TransactionAction.END:
-        action = ServerAction.OCPP_STOP_TRANSACTION;
-        break;
-    }
-    // Check User
-    if (!transaction.user) {
-      throw new BackendError({
-        ...LoggingHelper.getTransactionProperties(transaction),
-        action,
-        module: MODULE_NAME, method: 'processOCPITransaction',
-        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} User does not exist`
-      });
-    }
-    if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
-      throw new BackendError({
-        ...LoggingHelper.getTransactionProperties(transaction),
-        action,
-        module: MODULE_NAME, method: 'processOCPITransaction',
-        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OCPI Component is not active in this Tenant`
-      });
-    }
-    if (transaction.user.issuer) {
-      throw new BackendError({
-        ...LoggingHelper.getTransactionProperties(transaction),
-        action,
-        module: MODULE_NAME, method: 'processOCPITransaction',
-        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} User does not belong to the local organization`
-      });
-    }
-    const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
-    if (!ocpiClient) {
-      throw new BackendError({
-        ...LoggingHelper.getTransactionProperties(transaction),
-        action,
-        module: MODULE_NAME, method: 'processOCPITransaction',
-        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OCPI component requires at least one CPO endpoint to ${transactionAction} a Transaction`
-      });
-    }
-    switch (transactionAction) {
-      case TransactionAction.START:
-        // Check Authorization
-        if (!transaction.authorizationID) {
-          throw new BackendError({
-            ...LoggingHelper.getTransactionProperties(transaction),
-            action: action,
-            module: MODULE_NAME, method: 'processOCPITransaction',
-            message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Tag ID '${transaction.tagID}' is not authorized`
-          });
-        }
-        await ocpiClient.startSession(tag.ocpiToken, chargingStation, transaction);
-        break;
-      case TransactionAction.UPDATE:
-        await ocpiClient.updateSession(transaction);
-        break;
-      case TransactionAction.STOP:
-        await ocpiClient.stopSession(transaction);
-        break;
-      case TransactionAction.END:
-        await ocpiClient.postCdr(transaction);
-        break;
     }
   }
 

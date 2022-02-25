@@ -1,17 +1,14 @@
-import Tenant, { TenantComponents } from '../../types/Tenant';
-
 import ChargingStation from '../../types/ChargingStation';
 import ChargingStationClient from './ChargingStationClient';
 import JsonRestChargingStationClient from './json/JsonRestChargingStationClient';
-import OCPIClientFactory from '../ocpi/OCPIClientFactory';
 import { OCPPProtocol } from '../../types/ocpp/OCPPServer';
 import SoapChargingStationClient from './soap/SoapChargingStationClient';
-import Utils from '../../utils/Utils';
+import Tenant from '../../types/Tenant';
 import global from '../../types/GlobalType';
 
 export default class ChargingStationClientFactory {
   public static async getChargingStationClient(tenant: Tenant, chargingStation: ChargingStation): Promise<ChargingStationClient> {
-    let chargingClient = null;
+    let chargingClient: ChargingStationClient = null;
     if (chargingStation.issuer) {
       // Check protocol
       switch (chargingStation.ocppProtocol) {
@@ -32,8 +29,6 @@ export default class ChargingStationClientFactory {
           chargingClient = await SoapChargingStationClient.getChargingStationClient(tenant, chargingStation);
           break;
       }
-    } else if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
-      chargingClient = OCPIClientFactory.getChargingStationClient(tenant, chargingStation);
     }
     return chargingClient;
   }
