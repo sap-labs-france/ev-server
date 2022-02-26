@@ -1,5 +1,5 @@
-import ChargingStation, { Connector, ConnectorType } from '../../types/ChargingStation';
-import { OCPIConnector, OCPIConnectorType } from '../../types/ocpi/OCPIConnector';
+import ChargingStation, { Connector, ConnectorType, CurrentType } from '../../types/ChargingStation';
+import { OCPIConnector, OCPIConnectorType, OCPIPowerType } from '../../types/ocpi/OCPIConnector';
 import OCPIEndpoint, { OCPIAvailableEndpoints, OCPIEndpointVersions } from '../../types/ocpi/OCPIEndpoint';
 import { OCPIEvse, OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
 import { OCPITariff, OCPITariffDimensionType } from '../../types/ocpi/OCPITariff';
@@ -284,6 +284,7 @@ export default class OCPIUtils {
         maximumPower: 0,
         issuer: false,
         connectors: [],
+        public: true,
         companyID: site.companyID,
         siteID: site.id,
         siteAreaID: siteArea.id,
@@ -295,6 +296,7 @@ export default class OCPIUtils {
       chargingStation = {
         ...chargingStation,
         maximumPower: 0,
+        public: true,
         lastChangedOn: new Date(),
         connectors: [],
         ocpiData: {
@@ -333,8 +335,10 @@ export default class OCPIUtils {
       status: OCPIUtils.convertOCPIStatus2Status(evse.status),
       amperage: evseConnector.amperage,
       voltage: evseConnector.voltage,
+      currentType: evseConnector.power_type === OCPIPowerType.DC ? CurrentType.DC : CurrentType.AC,
       connectorId: connectorID,
       currentInstantWatts: 0,
+      tariffID: evseConnector.tariff_id,
       power: evseConnector.amperage * evseConnector.voltage,
       type: OCPIUtils.convertOCPIConnectorType2ConnectorType(evseConnector.standard),
     };
