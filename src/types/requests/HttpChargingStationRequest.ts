@@ -1,4 +1,5 @@
 import { ChargePoint, ConnectorType, CurrentType, PhaseAssignmentToGrid, Voltage } from '../ChargingStation';
+import { OCPPAvailabilityType, OCPPResetType } from '../ocpp/OCPPClient';
 
 import { ChargingRateUnitType } from '../ChargingProfile';
 import HttpByIDRequest from './HttpByIDRequest';
@@ -119,8 +120,8 @@ export type HttpChargingStationCacheClearCommandRequest = HttpChargingStationCom
 
 export interface HttpChargingStationChangeAvailabilityRequest extends HttpChargingStationCommandRequest {
   args: {
-    connectorId: string,
-    type: 'Inoperative' | 'Operative';
+    connectorId: number,
+    type: OCPPAvailabilityType;
   }
 }
 
@@ -136,7 +137,7 @@ export interface HttpChargingStationCommandDataTransferRequest extends HttpCharg
   args: {
     vendorId: string,
     messageId?: string,
-    data?: string
+    data: string
   }
 }
 
@@ -182,7 +183,7 @@ export interface HttpChargingStationGetCompositeScheduleRequest extends HttpChar
 
 export interface HttpChargingStationCommandUnlockConnectorRequest extends HttpChargingStationCommandRequest {
   args: {
-    connectorId: string
+    connectorId: number
   }
 }
 
@@ -207,7 +208,7 @@ export interface HttpChargingStationReserveNowRequest extends HttpChargingStatio
 
 export interface HttpChargingStationResetRequest extends HttpChargingStationCommandRequest {
   args: {
-    type: 'Soft' | 'Hard';
+    type: OCPPResetType;
   }
 }
 

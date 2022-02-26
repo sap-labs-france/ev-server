@@ -243,6 +243,8 @@ export default class Constants {
 
   public static readonly REST_RESPONSE_SUCCESS = Object.freeze({ status: 'Success' });
 
+  public static readonly REST_CHARGING_STATION_COMMAND_RESPONSE_SUCCESS = Object.freeze({ status: 'Accepted' });
+
   public static readonly DELAY_SMART_CHARGING_EXECUTION_MILLIS = 3000;
   public static readonly DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS = 10000;
 
