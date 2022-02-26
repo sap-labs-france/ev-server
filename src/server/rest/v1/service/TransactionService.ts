@@ -1,4 +1,5 @@
 import { Action, Entity } from '../../../../types/Authorization';
+import ChargingStation, { Connector } from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
@@ -9,6 +10,7 @@ import AppError from '../../../../exception/AppError';
 import Authorizations from '../../../../authorization/Authorizations';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
 import { BillingStatus } from '../../../../types/Billing';
+import ChargingStationService from './ChargingStationService';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
@@ -311,10 +313,60 @@ export default class TransactionService {
     next();
   }
 
+  public static async handleTransactionStop(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const transactionId = TransactionValidator.getInstance().validateTransactionGetReq(req.body).ID;
+    UtilsService.assertIdIsProvided(action, transactionId, MODULE_NAME, 'handleTransactionStop', req.user);
+    // Get Transaction
+    const transaction = await TransactionStorage.getTransaction(req.tenant, transactionId);
+    UtilsService.assertObjectExists(action, transaction, `Transaction ID ${transactionId} does not exist`,
+      MODULE_NAME, 'handleTransactionStop', req.user);
+    // Check auth
+    if (!await Authorizations.canUpdateTransaction(req.user, transaction)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.UPDATE, entity: Entity.TRANSACTION,
+        module: MODULE_NAME, method: 'handleTransactionStop',
+        value: transactionId.toString()
+      });
+    }
+    // Get the Charging Station
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, transaction.chargeBoxID, { withSiteArea: true });
+    UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${transaction.chargeBoxID}' does not exist`,
+      MODULE_NAME, 'handleTransactionStop', req.user);
+    // Check connector
+    const connector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
+    if (!connector) {
+      throw new AppError({
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} The Connector ID has not been found`,
+        module: MODULE_NAME, method: 'handleTransactionSoftStop',
+        user: req.user, action
+      });
+    }
+    // Handle the routing
+    if (chargingStation.issuer) {
+      // OCPP Stop
+      if (!chargingStation.inactive && connector.currentTransactionID === transaction.id) {
+        req.body.chargingStationID = transaction.chargeBoxID;
+        req.body.args = { transactionId: transaction.id };
+        await ChargingStationService.handleOcppAction(ServerAction.CHARGING_STATION_REMOTE_STOP_TRANSACTION, req, res, next);
+      // Transaction Soft Stop
+      } else {
+        await TransactionService.transactionSoftStop(ServerAction.TRANSACTION_SOFT_STOP,
+          transaction, chargingStation, connector, req, res, next);
+      }
+    } else {
+      // OCPI Stop
+      await ChargingStationService.handleOcpiAction(ServerAction.OCPI_STOP_SESSION, req, res, next);
+    }
+  }
+
   public static async handleTransactionSoftStop(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const transactionId = TransactionValidator.getInstance().validateTransactionGetReq(req.body).ID;
-    // Transaction Id is mandatory
     UtilsService.assertIdIsProvided(action, transactionId, MODULE_NAME, 'handleTransactionSoftStop', req.user);
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.tenant, transactionId);
@@ -345,53 +397,8 @@ export default class TransactionService {
         user: req.user, action
       });
     }
-    // Check if already stopped
-    if (transaction.stop) {
-      // Clear Connector
-      if (connector.currentTransactionID === transaction.id) {
-        OCPPUtils.clearChargingStationConnectorRuntimeData(chargingStation, transaction.connectorId);
-        await ChargingStationStorage.saveChargingStationConnectors(req.tenant, chargingStation.id, chargingStation.connectors);
-      }
-      await Logging.logInfo({
-        tenantID: req.user.tenantID,
-        user: req.user, actionOnUser: transaction.userID,
-        action, module: MODULE_NAME, method: 'handleTransactionSoftStop',
-        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has already been stopped`,
-      });
-    } else {
-      // Transaction is still ongoing
-      if (!chargingStation.inactive && connector.currentTransactionID === transaction.id) {
-        throw new AppError({
-          ...LoggingHelper.getChargingStationProperties(chargingStation),
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Cannot soft stop an ongoing Transaction`,
-          module: MODULE_NAME, method: 'handleTransactionSoftStop',
-          user: req.user, action
-        });
-      }
-      // Stop Transaction
-      const success = await new OCPPService(Configuration.getChargingStationConfig()).softStopTransaction(
-        req.tenant, transaction, chargingStation, chargingStation.siteArea);
-      if (!success) {
-        throw new AppError({
-          ...LoggingHelper.getChargingStationProperties(chargingStation),
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction cannot be stopped`,
-          module: MODULE_NAME, method: 'handleTransactionSoftStop',
-          user: req.user, action
-        });
-      }
-      await Logging.logInfo({
-        ...LoggingHelper.getChargingStationProperties(chargingStation),
-        tenantID: req.user.tenantID,
-        user: req.user, actionOnUser: transaction.userID,
-        module: MODULE_NAME, method: 'handleTransactionSoftStop',
-        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has been soft stopped successfully`,
-        action, detailedMessages: { transaction }
-      });
-    }
-    res.json(Constants.REST_RESPONSE_SUCCESS);
-    next();
+    // Soft Stop
+    await TransactionService.transactionSoftStop(action, transaction, chargingStation, connector, req, res, next);
   }
 
   public static async handleGetTransactionConsumption(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -1051,5 +1058,56 @@ export default class TransactionService {
       'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs',
       'billingData.stop.invoiceNumber', 'stop.reason', 'tagID', 'stop.tagID',
     ]);
+  }
+
+  private static async transactionSoftStop(action: ServerAction, transaction: Transaction, chargingStation: ChargingStation,
+      connector: Connector, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if already stopped
+    if (transaction.stop) {
+      // Clear Connector
+      if (connector.currentTransactionID === transaction.id) {
+        OCPPUtils.clearChargingStationConnectorRuntimeData(chargingStation, transaction.connectorId);
+        await ChargingStationStorage.saveChargingStationConnectors(req.tenant, chargingStation.id, chargingStation.connectors);
+      }
+      await Logging.logInfo({
+        tenantID: req.user.tenantID,
+        user: req.user, actionOnUser: transaction.userID,
+        action, module: MODULE_NAME, method: 'transactionSoftStop',
+        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has already been stopped`,
+      });
+    } else {
+      // Transaction is still ongoing
+      if (!chargingStation.inactive && connector.currentTransactionID === transaction.id) {
+        throw new AppError({
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Cannot soft stop an ongoing Transaction`,
+          module: MODULE_NAME, method: 'transactionSoftStop',
+          user: req.user, action
+        });
+      }
+      // Stop Transaction
+      const success = await new OCPPService(Configuration.getChargingStationConfig()).softStopTransaction(
+        req.tenant, transaction, chargingStation, chargingStation.siteArea);
+      if (!success) {
+        throw new AppError({
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction cannot be stopped`,
+          module: MODULE_NAME, method: 'transactionSoftStop',
+          user: req.user, action
+        });
+      }
+      await Logging.logInfo({
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
+        tenantID: req.user.tenantID,
+        user: req.user, actionOnUser: transaction.userID,
+        module: MODULE_NAME, method: 'transactionSoftStop',
+        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has been soft stopped successfully`,
+        action, detailedMessages: { transaction }
+      });
+    }
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
   }
 }

@@ -24,6 +24,7 @@ export default class TransactionRouter {
     this.buildRouteDeleteTransactions();
     this.buildRoutePushTransactionCDR();
     this.buildRouteExportTransactionCDR();
+    this.buildRouteTransactionStop();
     this.buildRouteTransactionSoftStop();
     this.buildRouteTransactionsRefund();
     this.buildRouteTransactionsExport();
@@ -108,6 +109,13 @@ export default class TransactionRouter {
     this.router.put(`/${ServerRoute.REST_TRANSACTION_SOFT_STOP}`, async (req: Request, res: Response, next: NextFunction) => {
       req.body.ID = req.params.id;
       await RouterUtils.handleServerAction(TransactionService.handleTransactionSoftStop.bind(this), ServerAction.TRANSACTION_SOFT_STOP, req, res, next);
+    });
+  }
+
+  private buildRouteTransactionStop(): void {
+    this.router.put(`/${ServerRoute.REST_TRANSACTION_STOP}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.body.ID = req.params.id;
+      await RouterUtils.handleServerAction(TransactionService.handleTransactionStop.bind(this), ServerAction.TRANSACTION_STOP, req, res, next);
     });
   }
 
