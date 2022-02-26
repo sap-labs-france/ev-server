@@ -360,19 +360,10 @@ export default class EmspOCPIClient extends OCPIClient {
         detailedMessages: { user: tag.user }
       });
     }
-    const token: OCPIToken = {
-      uid: tag.id,
-      type: OCPIUtils.getOCPITokenTypeFromID(tag.id),
-      auth_id: tag.user.id,
-      visual_number: tag.visualID,
-      issuer: this.tenant.name,
-      valid: true,
-      whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
-      last_updated: new Date()
-    };
+    const token = OCPIUtils.buildOCPITokenFromTag(this.tenant, tag);
     const authorizationId = Utils.generateUUID();
     // Get the location ID from the Site Area name
-    const locationID = OCPIUtils.getOCPIEmspLocationIDFromSiteAreaName(chargingStation.siteArea.name);
+    const locationID = chargingStation.ocpiData.evses[0].location_id;
     const remoteStart: OCPIStartSession = {
       response_url: callbackUrl + '/' + authorizationId,
       token: token,
