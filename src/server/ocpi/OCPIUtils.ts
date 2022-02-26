@@ -165,11 +165,6 @@ export default class OCPIUtils {
     return tagID.length % 8 === 0 ? OCPITokenType.RFID : OCPITokenType.OTHER;
   }
 
-  public static getOCPIEmspLocationIDFromSiteAreaName(siteAreaName: string): string {
-    const siteParts = siteAreaName.split(Constants.OCPI_SEPARATOR);
-    return siteParts.pop();
-  }
-
   public static generateLocalToken(tenantSubdomain: string): string {
     const newToken: any = {};
     // Generate random

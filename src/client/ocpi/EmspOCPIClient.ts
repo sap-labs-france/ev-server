@@ -372,7 +372,7 @@ export default class EmspOCPIClient extends OCPIClient {
     };
     const authorizationId = Utils.generateUUID();
     // Get the location ID from the Site Area name
-    const locationID = OCPIUtils.getOCPIEmspLocationIDFromSiteAreaName(chargingStation.siteArea.name);
+    const locationID = chargingStation.ocpiData.evses[0].location_id;
     const remoteStart: OCPIStartSession = {
       response_url: callbackUrl + '/' + authorizationId,
       token: token,

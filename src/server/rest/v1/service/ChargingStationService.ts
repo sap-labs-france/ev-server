@@ -1233,6 +1233,24 @@ export default class ChargingStationService {
       if (action === ServerAction.OCPI_START_SESSION) {
         const remoteStartRequest = ChargingStationValidator.getInstance().validateChargingStationActionTransactionStartReq(req.body);
         filteredRequest = remoteStartRequest;
+        // Get the Tag
+        let tagID = remoteStartRequest.args.tagID;
+        if (!tagID && remoteStartRequest.args.visualTagID) {
+          // Check and Get Tag
+          const tag = await UtilsService.checkAndGetTagByVisualIDAuthorization(
+            req.tenant, req.user, remoteStartRequest.args.visualTagID, Action.READ, action, null, {}, true);
+          if (!tag) {
+            throw new AppError({
+              ...LoggingHelper.getChargingStationProperties(chargingStation),
+              user: req.user,
+              errorCode: HTTPError.GENERAL_ERROR,
+              module: MODULE_NAME, method: 'handleOcpiAction', action,
+              message: `Tag with Visual ID '${remoteStartRequest.args.visualTagID}' does not exist`,
+              detailedMessages: { remoteStartRequest, chargingStation },
+            });
+          }
+          tagID = tag.id;
+        }
         // Get OCPI client
         const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(req.tenant, OCPIRole.EMSP) as EmspOCPIClient;
         if (!ocpiClient) {
@@ -1243,8 +1261,7 @@ export default class ChargingStationService {
           });
         }
         // Start the Transaction
-        result = await ocpiClient.remoteStartSession(
-          chargingStation, remoteStartRequest.args.connectorId, remoteStartRequest.args.tagID);
+        result = await ocpiClient.remoteStartSession(chargingStation, remoteStartRequest.args.connectorId, tagID);
       }
       // Stop Transaction
       if (action === ServerAction.OCPI_STOP_SESSION) {
