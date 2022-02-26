@@ -22,7 +22,7 @@ export default class OCPIFacade {
   public static async processStartTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation,
       siteArea: SiteArea, tag: Tag, user: User, action: ServerAction): Promise<void> {
     if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI) ||
-        !chargingStation.issuer || !chargingStation.public || !siteArea.accessControl) {
+        !chargingStation.issuer || !chargingStation.public || !siteArea.accessControl || user.issuer) {
       return;
     }
     // Get OCPI CPO client
@@ -42,7 +42,7 @@ export default class OCPIFacade {
   public static async processUpdateTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation,
       siteArea: SiteArea, user: User, action: ServerAction): Promise<void> {
     if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI) ||
-        !chargingStation.issuer || !chargingStation.public || !siteArea.accessControl) {
+        !chargingStation.issuer || !chargingStation.public || !siteArea.accessControl || user.issuer) {
       return;
     }
     try {
@@ -66,7 +66,7 @@ export default class OCPIFacade {
   public static async processStopTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation,
       siteArea: SiteArea, user: User, action: ServerAction): Promise<void> {
     if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI) ||
-        !chargingStation.issuer || !chargingStation.public || !siteArea.accessControl) {
+        !chargingStation.issuer || !chargingStation.public || !siteArea.accessControl || user.issuer) {
       return;
     }
     // Get OCPI CPO client
@@ -79,7 +79,7 @@ export default class OCPIFacade {
   public static async processEndTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation,
       siteArea: SiteArea, user: User, action: ServerAction): Promise<void> {
     if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI) ||
-        !chargingStation.issuer || !chargingStation.public || !siteArea.accessControl) {
+        !chargingStation.issuer || !chargingStation.public || !siteArea.accessControl || user.issuer) {
       return;
     }
     // Get OCPI CPO client

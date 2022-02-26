@@ -2726,14 +2726,14 @@
         }
       }
     },
-    "/api/transactions/{id}/soft-stop": {
+    "/api/transactions/{id}/stop": {
       "put": {
         "security": [
           {
             "bearerAuth": []
           }
         ],
-        "description": "Stop a Transaction",
+        "description": "Stop a Transaction by using the right method (OCPP, OCPI, Soft)",
         "parameters": [
           {
             "$ref": "#/components/parameters/transactionID"
@@ -2748,7 +2748,46 @@
             "content": {
               "application/json": {
                 "example": {
-                  "status": "Success"
+                  "status": "Accepted"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/transactions/{id}/soft-stop": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Stop a Transaction without calling the Charging Station",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/transactionID"
+          }
+        ],
+        "tags": [
+          "Transactions"
+        ],
+        "responses": {
+          "200": {
+            "description": "Transaction stopped successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Accepted"
                 }
               }
             }
@@ -4394,7 +4433,7 @@
         }
       }
     },
-    "/api/charging-stations/{id}/compositeschedule": {
+    "/api/charging-stations/{id}/composite-schedule/get": {
       "put": {
         "security": [
           {
@@ -4537,7 +4576,7 @@
         }
       }
     },
-    "/api/charging-stations/{id}/diagnostics": {
+    "/api/charging-stations/{id}/diagnostics/get": {
       "put": {
         "security": [
           {
