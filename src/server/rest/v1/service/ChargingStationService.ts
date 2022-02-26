@@ -1858,7 +1858,7 @@ export default class ChargingStationService {
     // Save Transaction
     await TransactionStorage.saveTransaction(req.tenant, transaction);
     // Ok: Execute it
-    return await chargingStationClient.remoteStopTransaction({
+    return chargingStationClient.remoteStopTransaction({
       transactionId: filteredRequest.args.transactionId
     });
   }

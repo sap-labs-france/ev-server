@@ -1107,7 +1107,7 @@ export default class TransactionService {
         action, detailedMessages: { transaction }
       });
     }
-    res.json(Constants.REST_RESPONSE_SUCCESS);
+    res.json({ status: 'Accepted' });
     next();
   }
 }
