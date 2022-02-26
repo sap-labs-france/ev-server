@@ -88,19 +88,12 @@ export default class OCPIUtilsService {
     const tags = await TagStorage.getTags(tenant,
       { issuer: true, dateFrom, dateTo, withUsersOnly: true, withUser: true },
       { limit, skip },
-      [ 'id', 'userID', 'user.deleted', 'lastChangedOn' ]);
+      [ 'id', 'visualID', 'active', 'userID', 'user.status', 'user.deleted', 'lastChangedOn' ]);
     // Convert Sites to Locations
     for (const tag of tags.result) {
-      tokens.push({
-        uid: tag.id,
-        type: OCPIUtils.getOCPITokenTypeFromID(tag.id),
-        auth_id: tag.id,
-        visual_number: tag.visualID,
-        issuer: tenant.name,
-        valid: !Utils.isNullOrUndefined(tag.user),
-        whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
-        last_updated: tag.lastChangedOn ? tag.lastChangedOn : new Date()
-      });
+      // Create Token
+      const ocpiToken = OCPIUtils.buildOCPITokenFromTag(tenant, tag);
+      tokens.push(ocpiToken);
     }
     let nbrOfTags = tags.count;
     if (nbrOfTags === -1) {

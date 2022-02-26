@@ -3,7 +3,7 @@ import { OCPIConnector, OCPIConnectorType } from '../../types/ocpi/OCPIConnector
 import OCPIEndpoint, { OCPIAvailableEndpoints, OCPIEndpointVersions } from '../../types/ocpi/OCPIEndpoint';
 import { OCPIEvse, OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
 import { OCPITariff, OCPITariffDimensionType } from '../../types/ocpi/OCPITariff';
-import { OCPIToken, OCPITokenType } from '../../types/ocpi/OCPIToken';
+import { OCPIToken, OCPITokenType, OCPITokenWhitelist } from '../../types/ocpi/OCPIToken';
 
 import AppError from '../../exception/AppError';
 import BackendError from '../../exception/BackendError';
@@ -30,7 +30,9 @@ import Site from '../../types/Site';
 import SiteArea from '../../types/SiteArea';
 import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../storage/mongodb/SiteStorage';
+import Tag from '../../types/Tag';
 import Tenant from '../../types/Tenant';
+import { UserStatus } from '../../types/User';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
 
@@ -163,6 +165,19 @@ export default class OCPIUtils {
   public static getOCPITokenTypeFromID(tagID: string): OCPITokenType {
     // Virtual badges handling
     return tagID.length % 8 === 0 ? OCPITokenType.RFID : OCPITokenType.OTHER;
+  }
+
+  public static buildOCPITokenFromTag(tenant: Tenant, tag: Tag): OCPIToken {
+    return {
+      uid: tag.id,
+      type: OCPIUtils.getOCPITokenTypeFromID(tag.id),
+      auth_id: tag.id,
+      visual_number: tag.visualID,
+      issuer: tenant.name,
+      valid: tag.active && tag.user?.status === UserStatus.ACTIVE,
+      whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
+      last_updated: tag.lastChangedOn ?? new Date()
+    };
   }
 
   public static generateLocalToken(tenantSubdomain: string): string {
