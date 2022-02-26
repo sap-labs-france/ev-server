@@ -2787,7 +2787,7 @@
             "content": {
               "application/json": {
                 "example": {
-                  "status": "Success"
+                  "status": "Accepted"
                 }
               }
             }
