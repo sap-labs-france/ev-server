@@ -314,38 +314,8 @@ export default class TransactionService {
   }
 
   public static async handleTransactionStop(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Filter
-    const transactionId = TransactionValidator.getInstance().validateTransactionGetReq(req.body).ID;
-    UtilsService.assertIdIsProvided(action, transactionId, MODULE_NAME, 'handleTransactionStop', req.user);
-    // Get Transaction
-    const transaction = await TransactionStorage.getTransaction(req.tenant, transactionId);
-    UtilsService.assertObjectExists(action, transaction, `Transaction ID ${transactionId} does not exist`,
-      MODULE_NAME, 'handleTransactionStop', req.user);
-    // Check auth
-    if (!await Authorizations.canUpdateTransaction(req.user, transaction)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.UPDATE, entity: Entity.TRANSACTION,
-        module: MODULE_NAME, method: 'handleTransactionStop',
-        value: transactionId.toString()
-      });
-    }
-    // Get the Charging Station
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, transaction.chargeBoxID, { withSiteArea: true });
-    UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${transaction.chargeBoxID}' does not exist`,
-      MODULE_NAME, 'handleTransactionStop', req.user);
-    // Check connector
-    const connector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
-    if (!connector) {
-      throw new AppError({
-        ...LoggingHelper.getChargingStationProperties(chargingStation),
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} The Connector ID has not been found`,
-        module: MODULE_NAME, method: 'handleTransactionSoftStop',
-        user: req.user, action
-      });
-    }
+    // Get data
+    const { transaction, chargingStation, connector } = await TransactionService.checkAndGetTransactionData(action, req);
     // Handle the routing
     if (chargingStation.issuer) {
       // OCPP Stop
@@ -365,38 +335,8 @@ export default class TransactionService {
   }
 
   public static async handleTransactionSoftStop(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Filter
-    const transactionId = TransactionValidator.getInstance().validateTransactionGetReq(req.body).ID;
-    UtilsService.assertIdIsProvided(action, transactionId, MODULE_NAME, 'handleTransactionSoftStop', req.user);
-    // Get Transaction
-    const transaction = await TransactionStorage.getTransaction(req.tenant, transactionId);
-    UtilsService.assertObjectExists(action, transaction, `Transaction ID ${transactionId} does not exist`,
-      MODULE_NAME, 'handleTransactionSoftStop', req.user);
-    // Check auth
-    if (!await Authorizations.canUpdateTransaction(req.user, transaction)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.UPDATE, entity: Entity.TRANSACTION,
-        module: MODULE_NAME, method: 'handleTransactionSoftStop',
-        value: transactionId.toString()
-      });
-    }
-    // Get the Charging Station
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, transaction.chargeBoxID, { withSiteArea: true });
-    UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${transaction.chargeBoxID}' does not exist`,
-      MODULE_NAME, 'handleTransactionSoftStop', req.user);
-    // Check connector
-    const connector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
-    if (!connector) {
-      throw new AppError({
-        ...LoggingHelper.getChargingStationProperties(chargingStation),
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} The Connector ID has not been found`,
-        module: MODULE_NAME, method: 'handleTransactionSoftStop',
-        user: req.user, action
-      });
-    }
+    // Get data
+    const { transaction, chargingStation, connector } = await TransactionService.checkAndGetTransactionData(action, req);
     // Soft Stop
     await TransactionService.transactionSoftStop(action, transaction, chargingStation, connector, req, res, next);
   }
@@ -1109,5 +1049,42 @@ export default class TransactionService {
     }
     res.json(Constants.REST_CHARGING_STATION_COMMAND_RESPONSE_SUCCESS);
     next();
+  }
+
+  private static async checkAndGetTransactionData(action: ServerAction, req: Request):
+  Promise<{ transaction: Transaction; chargingStation: ChargingStation; connector: Connector; }> {
+    // Filter
+    const transactionId = TransactionValidator.getInstance().validateTransactionGetReq(req.body).ID;
+    UtilsService.assertIdIsProvided(action, transactionId, MODULE_NAME, 'handleTransactionStop', req.user);
+    // Get Transaction
+    const transaction = await TransactionStorage.getTransaction(req.tenant, transactionId);
+    UtilsService.assertObjectExists(action, transaction, `Transaction ID ${transactionId} does not exist`,
+      MODULE_NAME, 'handleTransactionStop', req.user);
+    // Check auth
+    if (!await Authorizations.canUpdateTransaction(req.user, transaction)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.UPDATE, entity: Entity.TRANSACTION,
+        module: MODULE_NAME, method: 'handleTransactionStop',
+        value: transactionId.toString()
+      });
+    }
+    // Get the Charging Station
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, transaction.chargeBoxID, { withSiteArea: true });
+    UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${transaction.chargeBoxID}' does not exist`,
+      MODULE_NAME, 'handleTransactionStop', req.user);
+    // Check connector
+    const connector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
+    if (!connector) {
+      throw new AppError({
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} The Connector ID has not been found`,
+        module: MODULE_NAME, method: 'handleTransactionSoftStop',
+        user: req.user, action
+      });
+    }
+    return { transaction, chargingStation, connector };
   }
 }

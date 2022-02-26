@@ -1229,6 +1229,23 @@ export default class ChargingStationService {
     try {
       let filteredRequest: any;
       let result: OCPICommandResponse;
+      // Start Transaction
+      if (action === ServerAction.OCPI_START_SESSION) {
+        const remoteStartRequest = ChargingStationValidator.getInstance().validateChargingStationActionTransactionStartReq(req.body);
+        filteredRequest = remoteStartRequest;
+        // Get OCPI client
+        const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(req.tenant, OCPIRole.EMSP) as EmspOCPIClient;
+        if (!ocpiClient) {
+          throw new BackendError({
+            ...LoggingHelper.getChargingStationProperties(chargingStation),
+            action, module: MODULE_NAME, method: 'handleOcpiAction',
+            message: `${Utils.buildConnectorInfo(remoteStartRequest.args.connectorId)} OCPI component requires at least one eMSP endpoint to stop a Transaction`
+          });
+        }
+        // Start the Transaction
+        result = await ocpiClient.remoteStartSession(
+          chargingStation, remoteStartRequest.args.connectorId, remoteStartRequest.args.tagID);
+      }
       // Stop Transaction
       if (action === ServerAction.OCPI_STOP_SESSION) {
         const remoteStopRequest = ChargingStationValidator.getInstance().validateChargingStationActionTransactionStopReq(req.body);
@@ -1249,23 +1266,6 @@ export default class ChargingStationService {
         }
         // Stop the Transaction
         result = await ocpiClient.remoteStopSession(transaction.id);
-      }
-      // Start Transaction
-      if (action === ServerAction.OCPI_START_SESSION) {
-        const remoteStartRequest = ChargingStationValidator.getInstance().validateChargingStationActionTransactionStartReq(req.body);
-        filteredRequest = remoteStartRequest;
-        // Get OCPI client
-        const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(req.tenant, OCPIRole.EMSP) as EmspOCPIClient;
-        if (!ocpiClient) {
-          throw new BackendError({
-            ...LoggingHelper.getChargingStationProperties(chargingStation),
-            action, module: MODULE_NAME, method: 'handleOcpiAction',
-            message: `${Utils.buildConnectorInfo(remoteStartRequest.args.connectorId)} OCPI component requires at least one eMSP endpoint to stop a Transaction`
-          });
-        }
-        // Start the Transaction
-        result = await ocpiClient.remoteStartSession(
-          chargingStation, remoteStartRequest.args.connectorId, remoteStartRequest.args.tagID);
       }
       // Action not found
       if (!filteredRequest) {
