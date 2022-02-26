@@ -12,6 +12,7 @@ import BillingFactory from '../../../../integration/billing/BillingFactory';
 import { BillingStatus } from '../../../../types/Billing';
 import ChargingStationService from './ChargingStationService';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
+import ChargingStationValidator from '../validator/ChargingStationValidator';
 import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
 import Consumption from '../../../../types/Consumption';
@@ -313,12 +314,34 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleTransactionStop(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleTransactionStart(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const remoteStartRequest = ChargingStationValidator.getInstance().validateChargingStationActionTransactionStartReq(req.body);
     // Get data
-    const { transaction, chargingStation, connector } = await TransactionService.checkAndGetTransactionData(action, req);
+    const { chargingStation } = await TransactionService.checkAndGetChargingStationConnector(
+      action, req.tenant, req.user, remoteStartRequest.chargingStationID, remoteStartRequest.args.connectorId);
     // Handle the routing
     if (chargingStation.issuer) {
-      // OCPP Stop
+      // OCPP Remote Start
+      await ChargingStationService.handleOcppAction(
+        ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION, req, res, next);
+    } else {
+      // OCPI Remote Start
+      await ChargingStationService.handleOcpiAction(
+        ServerAction.OCPI_START_SESSION, req, res, next);
+    }
+  }
+
+  public static async handleTransactionStop(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const transactionID = TransactionValidator.getInstance().validateTransactionGetReq(req.body).ID;
+    UtilsService.assertIdIsProvided(action, transactionID, MODULE_NAME, 'handleTransactionStop', req.user);
+    // Get data
+    const { transaction, chargingStation, connector } =
+      await TransactionService.checkAndGetTransactionChargingStationConnector(action, req.tenant, req.user, transactionID);
+    // Handle the routing
+    if (chargingStation.issuer) {
+      // OCPP Remote Stop
       if (!chargingStation.inactive && connector.currentTransactionID === transaction.id) {
         req.body.chargingStationID = transaction.chargeBoxID;
         req.body.args = { transactionId: transaction.id };
@@ -329,14 +352,18 @@ export default class TransactionService {
           transaction, chargingStation, connector, req, res, next);
       }
     } else {
-      // OCPI Stop
+      // OCPI Remote Stop
       await ChargingStationService.handleOcpiAction(ServerAction.OCPI_STOP_SESSION, req, res, next);
     }
   }
 
   public static async handleTransactionSoftStop(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const transactionID = TransactionValidator.getInstance().validateTransactionGetReq(req.body).ID;
+    UtilsService.assertIdIsProvided(action, transactionID, MODULE_NAME, 'handleTransactionSoftStop', req.user);
     // Get data
-    const { transaction, chargingStation, connector } = await TransactionService.checkAndGetTransactionData(action, req);
+    const { transaction, chargingStation, connector } =
+      await TransactionService.checkAndGetTransactionChargingStationConnector(action, req.tenant, req.user, transactionID);
     // Soft Stop
     await TransactionService.transactionSoftStop(action, transaction, chargingStation, connector, req, res, next);
   }
@@ -1051,40 +1078,42 @@ export default class TransactionService {
     next();
   }
 
-  private static async checkAndGetTransactionData(action: ServerAction, req: Request):
-  Promise<{ transaction: Transaction; chargingStation: ChargingStation; connector: Connector; }> {
-    // Filter
-    const transactionId = TransactionValidator.getInstance().validateTransactionGetReq(req.body).ID;
-    UtilsService.assertIdIsProvided(action, transactionId, MODULE_NAME, 'handleTransactionStop', req.user);
+  private static async checkAndGetTransactionChargingStationConnector(action: ServerAction, tenant: Tenant, user: UserToken,
+      transactionID: number): Promise<{ transaction: Transaction; chargingStation: ChargingStation; connector: Connector; }> {
     // Get Transaction
-    const transaction = await TransactionStorage.getTransaction(req.tenant, transactionId);
-    UtilsService.assertObjectExists(action, transaction, `Transaction ID ${transactionId} does not exist`,
-      MODULE_NAME, 'handleTransactionStop', req.user);
+    const transaction = await TransactionStorage.getTransaction(tenant, transactionID);
+    UtilsService.assertObjectExists(action, transaction, `Transaction ID ${transactionID} does not exist`,
+      MODULE_NAME, 'checkAndGetTransactionChargingStationConnector', user);
     // Check auth
-    if (!await Authorizations.canUpdateTransaction(req.user, transaction)) {
+    if (!await Authorizations.canUpdateTransaction(user, transaction)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.UPDATE, entity: Entity.TRANSACTION,
-        module: MODULE_NAME, method: 'handleTransactionStop',
-        value: transactionId.toString()
+        user, action: Action.UPDATE, entity: Entity.TRANSACTION,
+        module: MODULE_NAME, method: 'checkAndGetTransactionChargingStationConnector',
+        value: transactionID.toString()
       });
     }
+    const { chargingStation, connector } =
+      await TransactionService.checkAndGetChargingStationConnector(action, tenant, user, transaction.chargeBoxID, transaction.connectorId);
+    return { transaction, chargingStation, connector };
+  }
+
+  private static async checkAndGetChargingStationConnector(action: ServerAction, tenant: Tenant, user: UserToken,
+      chargingStationID: string, connectorID: number): Promise<{ chargingStation: ChargingStation; connector: Connector; }> {
     // Get the Charging Station
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, transaction.chargeBoxID, { withSiteArea: true });
-    UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${transaction.chargeBoxID}' does not exist`,
-      MODULE_NAME, 'handleTransactionStop', req.user);
+    const chargingStation = await ChargingStationStorage.getChargingStation(tenant, chargingStationID, { withSiteArea: true });
+    UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${chargingStationID}' does not exist`,
+      MODULE_NAME, 'checkAndGetChargingStationConnector', user);
     // Check connector
-    const connector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
+    const connector = Utils.getConnectorFromID(chargingStation, connectorID);
     if (!connector) {
       throw new AppError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} The Connector ID has not been found`,
-        module: MODULE_NAME, method: 'handleTransactionSoftStop',
-        user: req.user, action
+        message: `${Utils.buildConnectorInfo(connectorID)} The Connector ID has not been found`,
+        user, action, module: MODULE_NAME, method: 'checkAndGetChargingStationConnector',
       });
     }
-    return { transaction, chargingStation, connector };
+    return { chargingStation, connector };
   }
 }

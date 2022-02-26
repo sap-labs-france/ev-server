@@ -52,6 +52,7 @@ export enum ServerAction {
   BOOT_NOTIFICATIONS = 'BootNotifications',
   STATUS_NOTIFICATIONS = 'StatusNotifications',
 
+  TRANSACTION_START = 'TransactionStart',
   TRANSACTION_STOP = 'TransactionStop',
   TRANSACTION_SOFT_STOP = 'TransactionSoftStop',
   TRANSACTION_DELETE = 'TransactionDelete',
@@ -519,6 +520,7 @@ export enum ServerRoute {
   REST_TRANSACTION_CDR = 'transactions/:id/ocpi/cdr',
   REST_TRANSACTION_CDR_EXPORT = 'transactions/:id/ocpi/cdr/export',
   REST_TRANSACTION_CONSUMPTIONS = 'transactions/:id/consumptions',
+  REST_TRANSACTION_START = 'transactions/start',
   REST_TRANSACTION_STOP = 'transactions/:id/stop',
   REST_TRANSACTION_SOFT_STOP = 'transactions/:id/soft-stop',
   REST_TRANSACTIONS_REFUND_ACTION = 'transactions/action/refund',
