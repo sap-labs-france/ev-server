@@ -1,8 +1,8 @@
-import { AxiosInstance, AxiosResponse } from 'axios';
 import OCPIEndpoint, { OCPIEndpointVersions, OCPIPingResult, OCPIRegisterResult, OCPIUnregisterResult, OCPIVersion } from '../../types/ocpi/OCPIEndpoint';
 import { ReasonPhrases, StatusCodes } from 'http-status-codes';
 
 import AxiosFactory from '../../utils/AxiosFactory';
+import { AxiosInstance } from 'axios';
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
 import { HTTPError } from '../../types/HTTPError';
@@ -12,7 +12,6 @@ import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import { OCPIRegistrationStatus } from '../../types/ocpi/OCPIRegistrationStatus';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
 import OCPIUtils from '../../server/ocpi/OCPIUtils';
-import OCPIUtilsService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIUtilsService';
 import { OcpiSetting } from '../../types/Setting';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
@@ -97,7 +96,7 @@ export default abstract class OCPIClient {
       // Try to read services
       const endpointVersions = await this.getEndpointVersions();
       // Set available endpoints
-      this.ocpiEndpoint.availableEndpoints = OCPIUtilsService.convertAvailableEndpoints(endpointVersions);
+      this.ocpiEndpoint.availableEndpoints = OCPIUtils.convertAvailableEndpoints(endpointVersions);
       this.ocpiEndpoint.localToken = OCPIUtils.generateLocalToken(this.tenant.subdomain);
       // Post credentials and receive response
       const credentials = await this.postCredentials();
@@ -176,7 +175,7 @@ export default abstract class OCPIClient {
   public async postCredentials(): Promise<OCPICredential> {
     // Get credentials url
     const credentialsUrl = this.getEndpointUrl('credentials', ServerAction.OCPI_POST_CREDENTIALS);
-    const credentials = await OCPIUtilsService.buildOCPICredentialObject(this.tenant, this.ocpiEndpoint.localToken, this.ocpiEndpoint.role);
+    const credentials = await OCPIUtils.buildOCPICredentialObject(this.tenant, this.ocpiEndpoint.localToken, this.ocpiEndpoint.role);
     await Logging.logInfo({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_POST_CREDENTIALS,

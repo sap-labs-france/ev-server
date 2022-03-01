@@ -372,11 +372,6 @@ export default class Utils {
     return connectorStats;
   }
 
-  /**
-   * Map user locale (en_US, fr_FR...) to language (en, fr...)
-   *
-   * @param locale
-   */
   public static getLanguageFromLocale(locale: string): string {
     let language = Constants.DEFAULT_LANGUAGE;
     // Get the language
@@ -386,12 +381,7 @@ export default class Utils {
     return language;
   }
 
-  /**
-   * Map language (en, fr...) to user locale (en_US, fr_FR...)
-   *
-   * @param language
-   */
-  static getLocaleFromLanguage(language: string): string {
+  public static getLocaleFromLanguage(language: string): string {
     if (language === 'fr') {
       return 'fr_FR';
     } else if (language === 'es') {

@@ -1,49 +1,50 @@
 import * as CountriesList from 'countries-list';
-import { StatusCodes } from 'http-status-codes';
-import countries from 'i18n-iso-countries';
-import moment from 'moment';
-import AppError from '../../../../exception/AppError';
-import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
-import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
-import SettingStorage from '../../../../storage/mongodb/SettingStorage';
-import SiteStorage from '../../../../storage/mongodb/SiteStorage';
-import TagStorage from '../../../../storage/mongodb/TagStorage';
-import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
+
 import ChargingStation, { ChargePoint, Connector, ConnectorType, CurrentType, Voltage } from '../../../../types/ChargingStation';
-import Consumption from '../../../../types/Consumption';
-import DbParams from '../../../../types/database/DbParams';
-import { DataResult } from '../../../../types/DataResult';
-import { HTTPError } from '../../../../types/HTTPError';
-import { OCPIBusinessDetails } from '../../../../types/ocpi/OCPIBusinessDetails';
-import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
-import { OCPIConnector, OCPIConnectorFormat, OCPIConnectorType, OCPIPowerType, OCPIVoltage } from '../../../../types/ocpi/OCPIConnector';
-import OCPICredential from '../../../../types/ocpi/OCPICredential';
 import { OCPIAvailableEndpoints, OCPIEndpointVersions } from '../../../../types/ocpi/OCPIEndpoint';
 import { OCPICapability, OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
+import { OCPIConnector, OCPIConnectorFormat, OCPIConnectorType, OCPIPowerType, OCPIVoltage } from '../../../../types/ocpi/OCPIConnector';
 import { OCPILocation, OCPILocationOptions, OCPILocationType, OCPIOpeningTimes } from '../../../../types/ocpi/OCPILocation';
-import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
-import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import { OCPISession, OCPISessionStatus } from '../../../../types/ocpi/OCPISession';
-import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 import { OCPIToken, OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
-import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
-import { PricingSource } from '../../../../types/Pricing';
-import { ServerAction } from '../../../../types/Server';
-import { OcpiSetting } from '../../../../types/Setting';
-import Site from '../../../../types/Site';
-import Tag from '../../../../types/Tag';
-import Tenant from '../../../../types/Tenant';
 import Transaction, { InactivityStatus } from '../../../../types/Transaction';
-import User from '../../../../types/User';
+
+import AppError from '../../../../exception/AppError';
+import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
+import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
+import Consumption from '../../../../types/Consumption';
+import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
+import { DataResult } from '../../../../types/DataResult';
+import DbParams from '../../../../types/database/DbParams';
+import { HTTPError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
 import LoggingHelper from '../../../../utils/LoggingHelper';
-import RoamingUtils from '../../../../utils/RoamingUtils';
-import Utils from '../../../../utils/Utils';
-import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
+import { OCPIBusinessDetails } from '../../../../types/ocpi/OCPIBusinessDetails';
+import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
+import OCPICredential from '../../../../types/ocpi/OCPICredential';
+import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
+import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
+import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from '../../OCPIUtils';
-
+import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
+import { OcpiSetting } from '../../../../types/Setting';
+import { PricingSource } from '../../../../types/Pricing';
+import RoamingUtils from '../../../../utils/RoamingUtils';
+import { ServerAction } from '../../../../types/Server';
+import SettingStorage from '../../../../storage/mongodb/SettingStorage';
+import Site from '../../../../types/Site';
+import SiteStorage from '../../../../storage/mongodb/SiteStorage';
+import { StatusCodes } from 'http-status-codes';
+import Tag from '../../../../types/Tag';
+import TagStorage from '../../../../storage/mongodb/TagStorage';
+import Tenant from '../../../../types/Tenant';
+import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
+import User from '../../../../types/User';
+import Utils from '../../../../utils/Utils';
+import countries from 'i18n-iso-countries';
+import moment from 'moment';
 
 const MODULE_NAME = 'OCPIUtilsService';
 
@@ -87,19 +88,12 @@ export default class OCPIUtilsService {
     const tags = await TagStorage.getTags(tenant,
       { issuer: true, dateFrom, dateTo, withUsersOnly: true, withUser: true },
       { limit, skip },
-      [ 'id', 'userID', 'user.deleted', 'lastChangedOn' ]);
+      [ 'id', 'visualID', 'active', 'userID', 'user.status', 'user.deleted', 'lastChangedOn' ]);
     // Convert Sites to Locations
     for (const tag of tags.result) {
-      tokens.push({
-        uid: tag.id,
-        type: OCPIUtils.getOCPITokenTypeFromID(tag.id),
-        auth_id: tag.id,
-        visual_number: tag.visualID,
-        issuer: tenant.name,
-        valid: !Utils.isNullOrUndefined(tag.user),
-        whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
-        last_updated: tag.lastChangedOn ? tag.lastChangedOn : new Date()
-      });
+      // Create Token
+      const ocpiToken = OCPIUtils.buildOCPITokenFromTag(tenant, tag);
+      tokens.push(ocpiToken);
     }
     let nbrOfTags = tags.count;
     if (nbrOfTags === -1) {
@@ -248,38 +242,6 @@ export default class OCPIUtilsService {
     return {
       twentyfourseven: true,
     };
-  }
-
-  public static async buildOCPICredentialObject(tenant: Tenant, token: string, role: string, versionUrl?: string): Promise<OCPICredential> {
-    // Credential
-    const credential = {} as OCPICredential;
-    // Get ocpi service configuration
-    const ocpiSetting = await SettingStorage.getOCPISettings(tenant);
-    // Define version url
-    credential.url = (versionUrl ? versionUrl : `${Configuration.getOCPIEndpointConfig().baseUrl}/ocpi/${role.toLowerCase()}/versions`);
-    // Check if available
-    if (ocpiSetting && ocpiSetting.ocpi) {
-      credential.token = token;
-      if (role === OCPIRole.EMSP) {
-        credential.country_code = ocpiSetting.ocpi.emsp.countryCode;
-        credential.party_id = ocpiSetting.ocpi.emsp.partyID;
-      } else {
-        credential.country_code = ocpiSetting.ocpi.cpo.countryCode;
-        credential.party_id = ocpiSetting.ocpi.cpo.partyID;
-      }
-      credential.business_details = ocpiSetting.ocpi.businessDetails;
-    }
-    return credential;
-  }
-
-  public static convertAvailableEndpoints(endpointURLs: OCPIEndpointVersions): OCPIAvailableEndpoints {
-    const availableEndpoints = {} as OCPIAvailableEndpoints;
-    if (!Utils.isEmptyArray(endpointURLs.endpoints)) {
-      for (const endpoint of endpointURLs.endpoints) {
-        availableEndpoints[endpoint.identifier] = endpoint.url;
-      }
-    }
-    return availableEndpoints;
   }
 
   public static async getEvsesFromSite(tenant: Tenant, siteID: string,

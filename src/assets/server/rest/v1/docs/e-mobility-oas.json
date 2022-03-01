@@ -2726,14 +2726,88 @@
         }
       }
     },
-    "/api/transactions/{id}/soft-stop": {
+    "/api/transactions/start": {
       "put": {
         "security": [
           {
             "bearerAuth": []
           }
         ],
-        "description": "Stop a Transaction",
+        "description": "Start a Transaction by using the right method (OCPP, OCPI...)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "chargingStationID": {
+                    "type": "string",
+                    "example": ""
+                  },
+                  "args": {
+                    "type": "object",
+                    "properties": {
+                      "tagID": {
+                        "type": "string",
+                        "description": "The identifier that Charge Point must use to start a transaction.",
+                        "example": "123456"
+                      },
+                      "visualTagID": {
+                        "type": "string",
+                        "description": "The identifier that Charge Point must use to start a transaction.",
+                        "example": "123456-123456"
+                      },
+                      "connectorId": {
+                        "type": "integer",
+                        "description": "Optional. Number of the connector on which to start the transaction. connectorId SHALL be > 0",
+                        "minimum": 1,
+                        "example": 1
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "chargingStationID",
+                  "args"
+                ]
+              }
+            }
+          }
+        },
+        "tags": [
+          "Transactions"
+        ],
+        "responses": {
+          "200": {
+            "description": "Transaction started successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Accepted"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/transactions/{id}/stop": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Stop a Transaction by using the right method (OCPP, OCPI, Soft...)",
         "parameters": [
           {
             "$ref": "#/components/parameters/transactionID"
@@ -2748,7 +2822,46 @@
             "content": {
               "application/json": {
                 "example": {
-                  "status": "Success"
+                  "status": "Accepted"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/transactions/{id}/soft-stop": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Stop a Transaction without calling the Charging Station",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/transactionID"
+          }
+        ],
+        "tags": [
+          "Transactions"
+        ],
+        "responses": {
+          "200": {
+            "description": "Transaction stopped successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Accepted"
                 }
               }
             }
@@ -4158,7 +4271,7 @@
                   "departureTime": {
                     "type": "string",
                     "format": "date-time"
-                },
+                  },
                   "args": {
                     "type": "object",
                     "properties": {
@@ -4394,7 +4507,7 @@
         }
       }
     },
-    "/api/charging-stations/{id}/compositeschedule": {
+    "/api/charging-stations/{id}/composite-schedule/get": {
       "put": {
         "security": [
           {
@@ -4537,7 +4650,7 @@
         }
       }
     },
-    "/api/charging-stations/{id}/diagnostics": {
+    "/api/charging-stations/{id}/diagnostics/get": {
       "put": {
         "security": [
           {
