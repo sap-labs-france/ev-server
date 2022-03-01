@@ -20,6 +20,8 @@ class TestData {
   public siteContext: SiteContext;
   public siteAreaContext: any;
   public newSite: any;
+  public newSiteArea: any;
+  public testAsset: any;
   public newUser: any;
   public createdSites: any[] = [];
   public createdUsers: any[] = [];
@@ -99,7 +101,7 @@ describe('Site', () => {
   describe('With component Organization (utorg)', () => {
 
     beforeAll(async () => {
-      testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_ORGANIZATION);
+      testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
       testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       testData.centralUserService = new CentralServerService(
         testData.tenantContext.getTenant().subdomain,
@@ -141,6 +143,57 @@ describe('Site', () => {
           Factory.site.build({ companyID: testData.tenantContext.getContext().companies[0].id })
         );
         testData.createdSites.push(testData.newSite);
+      });
+
+      it('Assets and Charging stations should be aligned with organizations entities', async () => {
+        const chargingStations = await testData.userService.chargingStationApi.readAll({});
+        // Create the entity
+        testData.newSiteArea = await testData.userService.createEntity(
+          testData.userService.siteAreaApi,
+          Factory.siteArea.build({ siteID: testData.createdSites[0].id })
+        );
+        // Create Asset
+        testData.testAsset = await testData.userService.createEntity(
+          testData.userService.assetApi,
+          Factory.asset.build({
+            siteAreaID: testData.newSiteArea.id,
+            assetType: 'PR'
+          })
+        );
+        // Create Charging Station
+        let response = await testData.userService.siteAreaApi.assignChargingStations(
+          testData.newSiteArea.id, [chargingStations.data.result[0].id]);
+        expect(response.status).to.equal(StatusCodes.OK);
+        response = await testData.userService.siteAreaApi.assignAssets(
+          testData.newSiteArea.id, [testData.testAsset.id]);
+        expect(response.status).to.equal(StatusCodes.OK);
+        // Get the assigned asset
+        let asset = (await testData.userService.assetApi.readById(testData.testAsset.id)).data;
+        expect(asset.siteAreaID).to.equal(testData.newSiteArea.id);
+        expect(asset.siteID).to.equal(testData.createdSites[0].id);
+        expect(asset.companyID).to.equal(testData.createdSites[0].companyID);
+        // Get the assigned charging station
+        let chargingStation = (await testData.userService.chargingStationApi.readById(chargingStations.data.result[0].id)).data;
+        expect(chargingStation.siteAreaID).to.equal(testData.newSiteArea.id);
+        expect(chargingStation.siteID).to.equal(testData.createdSites[0].id);
+        expect(chargingStation.companyID).to.equal(testData.createdSites[0].companyID);
+        // Change company
+        testData.createdSites[0].companyID = testData.tenantContext.getContext().companies[1].id;
+        // Update
+        response = await testData.userService.updateEntity(
+          testData.userService.siteApi,
+          testData.createdSites[0]
+        );
+        // Get the assigned asset
+        asset = (await testData.userService.assetApi.readById(testData.testAsset.id)).data;
+        expect(asset.siteAreaID).to.equal(testData.newSiteArea.id);
+        expect(asset.siteID).to.equal(testData.createdSites[0].id);
+        expect(asset.companyID).to.equal(testData.createdSites[0].companyID);
+        // Get the assigned charging station
+        chargingStation = (await testData.userService.chargingStationApi.readById(chargingStations.data.result[0].id)).data;
+        expect(chargingStation.siteAreaID).to.equal(testData.newSiteArea.id);
+        expect(chargingStation.siteID).to.equal(testData.createdSites[0].id);
+        expect(chargingStation.companyID).to.equal(testData.createdSites[0].companyID);
       });
 
       it('Should find the created site by id', async () => {
@@ -280,7 +333,18 @@ describe('Site', () => {
             false
           );
         }
+        // Delete created asset
         testData.createdUsers = [];
+        await testData.centralUserService.deleteEntity(
+          testData.centralUserService.assetApi,
+          testData.testAsset,
+          false
+        );
+        await testData.centralUserService.deleteEntity(
+          testData.centralUserService.siteAreaApi,
+          testData.newSiteArea,
+          false
+        );
       });
 
       it('Should find a site he is assigned to', async () => {
@@ -313,7 +377,7 @@ describe('Site', () => {
         'Should not find a site he is not assigned to in the site list',
         async () => {
           try {
-          // Check if the created entity is in the list
+            // Check if the created entity is in the list
             await testData.userService.checkEntityInList(
               testData.userService.siteApi,
               testData.createdSites[1]
