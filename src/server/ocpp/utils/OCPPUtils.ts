@@ -1287,7 +1287,7 @@ export default class OCPPUtils {
       tokenID: string): Promise<{ tenant: Tenant; chargingStation?: ChargingStation; token?: RegistrationToken }> {
     // Check parameters
     OCPPUtils.checkChargingStationOcppParameters(
-      ServerAction.WS_CONNECTION, tenantID, tokenID, chargingStationID);
+      ServerAction.WS_SERVER_CONNECTION, tenantID, tokenID, chargingStationID);
     // Get Tenant
     const tenant = await TenantStorage.getTenant(tenantID);
     if (!tenant) {
@@ -1305,7 +1305,7 @@ export default class OCPPUtils {
       // Must have a valid connection Token
       token = await OCPPUtils.ensureChargingStationHasValidConnectionToken(action, tenant, chargingStationID, tokenID);
       // Check Action
-      if (action !== ServerAction.WS_CONNECTION &&
+      if (action !== ServerAction.WS_SERVER_CONNECTION &&
           action !== ServerAction.OCPP_BOOT_NOTIFICATION) {
         throw new BackendError({
           chargingStationID,
