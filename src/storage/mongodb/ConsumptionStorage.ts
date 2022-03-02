@@ -653,11 +653,11 @@ export default class ConsumptionStorage {
       }
     });
     // Read DB
-    let consumptions = await global.database.getCollection<Consumption>(tenant.id, 'consumptions')
+    const consumptionsMDB = await global.database.getCollection<Consumption>(tenant.id, 'consumptions')
       .aggregate<Consumption>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray();
-    const lastElement = consumptions.pop();
-    consumptions = consumptions.filter((elem, index) => index % 5 === 0 ? true : false);
+    const lastElement = consumptionsMDB.pop();
+    const consumptions = consumptionsMDB.filter((elem, index) => index % 5 === 0 ? true : false);
     consumptions.push(lastElement);
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getOptimizedTransactionConsumptions', startTime, aggregation, consumptions);
     return consumptions;
