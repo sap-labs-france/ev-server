@@ -56,7 +56,7 @@ export default class UtilsService {
     // Assign user to sites
     if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
       let siteIDs = [];
-      if (!Utils.isEmptyArray(authorizationFilter.filters.siteIDs)) {
+      if (!Utils.isEmptyArray(authorizationFilter?.filters?.siteIDs)) {
         siteIDs = authorizationFilter.filters.siteIDs;
       } else {
         // Assign user to all sites with auto-assign flag set

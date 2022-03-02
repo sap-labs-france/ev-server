@@ -233,6 +233,22 @@ export default class Utils {
     return true;
   }
 
+  public static computeTimeDurationSecs(timeStart: number): number {
+    return Utils.createDecimal(Date.now()).minus(timeStart).div(1000).toNumber();
+  }
+
+  public static computeTimeDurationMins(timeStart: number): number {
+    return Utils.createDecimal(Date.now()).minus(timeStart).div(60 * 1000).toNumber();
+  }
+
+  public static computeTimeDurationHours(timeStart: number): number {
+    return Utils.createDecimal(Date.now()).minus(timeStart).div(60 * 60 * 1000).toNumber();
+  }
+
+  public static computeTimeDurationDays(timeStart: number): number {
+    return Utils.createDecimal(Date.now()).minus(timeStart).div(24 * 60 * 60 * 1000).toNumber();
+  }
+
   public static objectHasProperty(obj: any, key: string): boolean {
     return _.has(obj, key);
   }

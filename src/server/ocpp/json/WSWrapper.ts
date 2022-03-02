@@ -1,11 +1,12 @@
 import { RecognizedString, WebSocket } from 'uWebSockets.js';
 
-import JsonRestWSConnection from './JsonRestWSConnection';
-import JsonWSConnection from './JsonWSConnection';
 import Utils from '../../../utils/Utils';
+import WSConnection from './WSConnection';
+import { WSServerProtocol } from '../../../types/Server';
 
 export default class WSWrapper {
   public key: string;
+  public guid: string;
   public siteID: string;
   public siteAreaID: string;
   public companyID: string;
@@ -15,21 +16,24 @@ export default class WSWrapper {
   public url: string;
   public clientIP: string | string[];
   public closed: boolean;
-  public protocol: string;
-  public jsonWSConnection: JsonWSConnection;
-  public jsonRestWSConnection: JsonRestWSConnection;
+  public protocol: WSServerProtocol;
+  public wsConnection: WSConnection;
   public remoteAddress: string;
   public firstConnectionDate: Date;
+  public nbrPingFailed: number;
   public lastPingDate: Date;
   public lastPongDate: Date;
 
   private ws: WebSocket;
 
   public constructor(ws: WebSocket) {
+    this.guid = Utils.generateShortNonUniqueID();
     this.ws = ws;
     this.url = ws.url;
     this.remoteAddress = Utils.convertBufferArrayToString(ws.getRemoteAddressAsText()).toString();
     this.firstConnectionDate = new Date();
+    this.nbrPingFailed = 0;
+    this.closed = false;
   }
 
   public send(message: RecognizedString, isBinary?: boolean, compress?: boolean): boolean {
@@ -42,17 +46,10 @@ export default class WSWrapper {
     return this.ws.getBufferedAmount();
   }
 
-  public close(code: number, shortMessage: RecognizedString, fromCloseEvent = false): void {
+  public close(code: number, shortMessage: RecognizedString): void {
     if (!this.closed) {
       this.closed = true;
-      try {
-        // Already clsoed?
-        if (!fromCloseEvent) {
-          this.ws.end(code, shortMessage);
-        }
-      } catch (error) {
-        console.log(`Error closing WS: ${error?.message as string}`);
-      }
+      this.ws.end(code, shortMessage);
     }
   }
 

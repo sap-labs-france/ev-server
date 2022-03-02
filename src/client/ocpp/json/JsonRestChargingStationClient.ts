@@ -148,7 +148,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             siteAreaID: this.chargingStation.siteAreaID,
             companyID: this.chargingStation.companyID,
             chargingStationID: this.chargingStation.id,
-            action: ServerAction.WS_REST_CLIENT_CONNECTION_OPENED,
+            action: ServerAction.WS_REST_CLIENT_CONNECTION_OPEN,
             module: MODULE_NAME, method: 'onOpen',
             message: `Connection opened to '${this.serverURL}'`
           });
@@ -163,7 +163,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             siteAreaID: this.chargingStation.siteAreaID,
             companyID: this.chargingStation.companyID,
             chargingStationID: this.chargingStation.id,
-            action: ServerAction.WS_REST_CLIENT_CONNECTION_CLOSED,
+            action: ServerAction.WS_REST_CLIENT_CONNECTION_CLOSE,
             module: MODULE_NAME, method: 'onClose',
             message: `Connection closed to '${this.serverURL}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`,
             detailedMessages: { code }

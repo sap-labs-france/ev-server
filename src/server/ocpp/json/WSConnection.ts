@@ -27,7 +27,7 @@ export default abstract class WSConnection {
   private ws: WSWrapper;
   private ocppRequests: Record<string, OCPPRequest> = {};
 
-  constructor(ws: WSWrapper) {
+  public constructor(ws: WSWrapper) {
     // Init
     this.url = ws.url.trim().replace(/\b(\?|&).*/, ''); // Filter trailing URL parameters
     this.ws = ws;
@@ -117,7 +117,7 @@ export default abstract class WSConnection {
             siteID: this.siteID,
             siteAreaID: this.siteAreaID,
             module: MODULE_NAME, method: 'sendMessage',
-            action: ServerAction.WS_JSON_CONNECTION_ERROR,
+            action: ServerAction.WS_CONNECTION_ERROR,
             message, detailedMessages: { message: messageToSend }
           });
           Utils.isDevelopmentEnv() && Logging.logConsoleError(message);
@@ -132,7 +132,7 @@ export default abstract class WSConnection {
           siteID: this.siteID,
           siteAreaID: this.siteAreaID,
           module: MODULE_NAME, method: 'sendMessage',
-          action: ServerAction.WS_JSON_CONNECTION_ERROR,
+          action: ServerAction.WS_CONNECTION_ERROR,
           message, detailedMessages: { message: messageToSend, error: wsError?.stack }
         });
         Utils.isDevelopmentEnv() && Logging.logConsoleError(message);
@@ -324,7 +324,7 @@ export default abstract class WSConnection {
     if (splittedURL.length !== 4) {
       throw new BackendError({
         module: MODULE_NAME, method: 'checkMandatoryFieldsInRequest',
-        message: `OCPP wrong number of arguments in URL connection '${this.url}'`
+        message: `Wrong number of arguments in URL '/${this.url}'`
       });
     }
     // URL /OCPPxx/TENANTID/TOKEN/CHARGEBOXID
