@@ -221,7 +221,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     // Keep it on the ws
     ws.wsWrapper = wsWrapper;
     // Lock incoming WS messages
-    await this.aquireLockForWSRequest(ServerAction.WS_SERVER_CONNECTION_OPEN, wsWrapper);
+    await this.aquireLockForWSRequest(WebSocketAction.OPEN, ServerAction.WS_SERVER_CONNECTION_OPEN, wsWrapper);
     try {
       this.runningWSMessages++;
       // Path must contain /OCPP16 or /REST as it is already checked during the Upgrade process
@@ -328,13 +328,13 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     }
   }
 
-  private async aquireLockForWSRequest(action: ServerAction, wsWrapper: WSWrapper, ocppMessageType?: OCPPMessageType): Promise<void> {
+  private async aquireLockForWSRequest(wsAction: WebSocketAction, action: ServerAction, wsWrapper: WSWrapper, ocppMessageType?: OCPPMessageType): Promise<void> {
     // Only lock requests, not responses
     if (ocppMessageType && ocppMessageType !== OCPPMessageType.CALL_MESSAGE) {
       return;
     }
     // Wait for Init (avoid WS connection with same URL), ocppMessageType only provided when a WS Message is received
-    await this.waitForWSLockToRelease(action, wsWrapper, ocppMessageType ? false : true);
+    await this.waitForWSLockToRelease(wsAction, action, wsWrapper);
     // Lock
     this.runningWSRequestsMessages[wsWrapper.url] = true;
   }
@@ -354,7 +354,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       // Convert
       const [ocppMessageType] = JSON.parse(message);
       // Lock incoming WS messages
-      await this.aquireLockForWSRequest(ServerAction.WS_SERVER_MESSAGE, wsWrapper, ocppMessageType);
+      await this.aquireLockForWSRequest(WebSocketAction.MESSAGE, ServerAction.WS_SERVER_MESSAGE, wsWrapper, ocppMessageType);
       try {
         this.runningWSMessages++;
         // Check if connection is available in Map
@@ -471,7 +471,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     });
   }
 
-  private async waitForWSLockToRelease(action: ServerAction, wsWrapper: WSWrapper, incomingConnection: boolean): Promise<boolean> {
+  private async waitForWSLockToRelease(wsAction: WebSocketAction, action: ServerAction, wsWrapper: WSWrapper): Promise<boolean> {
     // Wait for init to handle multiple same WS Connection
     if (this.runningWSRequestsMessages[wsWrapper.url]) {
       const maxNumberOfTrials = 10;
@@ -481,7 +481,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         tenantID: Constants.DEFAULT_TENANT,
         chargingStationID: wsWrapper.chargingStationID,
         action, module: MODULE_NAME, method: 'waitForWSLockToRelease',
-        message: `WS ${incomingConnection ? 'Connection' : 'Request'} ID '${wsWrapper.guid}' - Lock is taken: Wait and try to acquire the lock after ${Constants.WS_LOCK_TIME_OUT_MILLIS} ms...`,
+        message: `${wsAction} > WS Connection ID '${wsWrapper.guid}' - Lock is taken: Wait and try to acquire the lock after ${Constants.WS_LOCK_TIME_OUT_MILLIS} ms...`,
         detailedMessages: { wsWrapper: this.getWSWrapperData(wsWrapper) }
       });
       this.waitingWSMessages++;
@@ -496,7 +496,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
             tenantID: Constants.DEFAULT_TENANT,
             chargingStationID: wsWrapper.chargingStationID,
             action, module: MODULE_NAME, method: 'waitForWSLockToRelease',
-            message: `WS ${incomingConnection ? 'Connection' : 'Request'} ID '${wsWrapper.guid}' - Lock has been acquired successfully after ${numberOfTrials} trial(s) and ${Utils.computeTimeDurationSecs(timeStart)} secs`,
+            message: `${wsAction} > WS Connection ID '${wsWrapper.guid}' - Lock has been acquired successfully after ${numberOfTrials} trial(s) and ${Utils.computeTimeDurationSecs(timeStart)} secs`,
             detailedMessages: { wsWrapper: this.getWSWrapperData(wsWrapper) }
           });
           // Free the lock
@@ -510,7 +510,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
             tenantID: Constants.DEFAULT_TENANT,
             chargingStationID: wsWrapper.chargingStationID,
             action, module: MODULE_NAME, method: 'waitForWSLockToRelease',
-            message: `WS ${incomingConnection ? 'Connection' : 'Request'} ID '${wsWrapper.guid}' - Cannot acquire the lock after ${numberOfTrials} trial(s) and ${Utils.computeTimeDurationSecs(timeStart)} secs - Lock will be forced to be released`,
+            message: `${wsAction} > WS Connection ID '${wsWrapper.guid}' - Cannot acquire the lock after ${numberOfTrials} trial(s) and ${Utils.computeTimeDurationSecs(timeStart)} secs - Lock will be forced to be released`,
             detailedMessages: { wsWrapper: this.getWSWrapperData(wsWrapper) }
           });
           // Free the lock
