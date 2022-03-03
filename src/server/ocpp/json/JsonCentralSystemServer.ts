@@ -281,8 +281,6 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       wsWrapper.companyID = wsConnection.getCompanyID();
       // Check already existing WS Connection
       await this.checkAndCloseIdenticalOpenedWSConnection(wsWrapper, wsConnection);
-      // Keep WS connection in cache
-      await this.setWSConnection(WebSocketAction.OPEN, ServerAction.WS_SERVER_CONNECTION_OPEN, wsConnection, wsWrapper);
       const message = `${WebSocketAction.OPEN} > WS Connection ID '${wsWrapper.guid}' has been accepted in ${Utils.computeTimeDurationSecs(timeStart)} secs`;
       await Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
@@ -295,6 +293,8 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         action: ServerAction.WS_SERVER_CONNECTION_OPEN, module: MODULE_NAME, method: 'checkAndStoreWSOpenedConnection',
         message, detailedMessages: { wsWrapper: this.getWSWrapperData(wsWrapper) }
       });
+      // Keep WS connection in cache
+      await this.setWSConnection(WebSocketAction.OPEN, ServerAction.WS_SERVER_CONNECTION_OPEN, wsConnection, wsWrapper);
     } else {
       await this.logWSConnectionClosed(wsWrapper, ServerAction.WS_SERVER_CONNECTION_OPEN, WebSocketCloseEventStatusCode.CLOSE_ABNORMAL,
         `${WebSocketAction.OPEN} > WS Connection ID '${wsWrapper.guid}' has been closed during initialization in ${Utils.computeTimeDurationSecs(timeStart)} secs ('${wsWrapper.url}')`);
