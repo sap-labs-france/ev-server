@@ -666,7 +666,7 @@ export default class UserService {
     // Update User Admin Data
     await UserService.updateUserAdminData(req.tenant, newUser, authorizationFilter.projectFields);
     // Assign Site to new User
-    await UserService.assignCreatedUserToSites(req.tenant, req.user, newUser, authorizationFilter);
+    await UtilsService.assignCreatedUserToSites(req.tenant, newUser, authorizationFilter);
     // Update Billing
     await UserService.updateUserBilling(ServerAction.USER_CREATE, req.tenant, req.user, newUser);
     // Log
@@ -944,24 +944,6 @@ export default class UserService {
           });
         }
       }
-    }
-  }
-
-  private static async assignCreatedUserToSites(tenant: Tenant, loggedUser: UserToken, user: User, authorizationFilter: AuthorizationFilter) {
-    // Assign user to sites
-    if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.ORGANIZATION)) {
-      let siteIDs = [];
-      if (!Utils.isEmptyArray(authorizationFilter.filters.siteIDs)) {
-        siteIDs = authorizationFilter.filters.siteIDs;
-      } else {
-        // Assign user to all sites with auto-assign flag set
-        const sites = await SiteStorage.getSites(tenant,
-          { withAutoUserAssignment: true },
-          Constants.DB_PARAMS_MAX_LIMIT
-        );
-        siteIDs = sites.result.map((site) => site.id);
-      }
-      await UserStorage.addSitesToUser(tenant, user.id, siteIDs);
     }
   }
 

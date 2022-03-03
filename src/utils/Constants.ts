@@ -291,6 +291,8 @@ export default class Constants {
 
   public static readonly ANONYMIZED_VALUE = '####';
 
+  public static readonly WS_MAX_NBR_OF_FAILED_PINGS = 3;
+  public static readonly WS_LOCK_TIME_OUT_MILLIS = 500;
   public static readonly WS_DEFAULT_KEEP_ALIVE_MILLIS = 180 * 1000;
   public static readonly WS_RECONNECT_DISABLED = 0;
   public static readonly WS_RECONNECT_UNLIMITED = -1;
