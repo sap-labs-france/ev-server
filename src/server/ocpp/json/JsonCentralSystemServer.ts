@@ -692,15 +692,15 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
   }
 
   private checkAndCleanupAllWebSockets() {
-    // // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    // setTimeout(async () => {
-    //   // Check Json connections
-    //   await this.checkAndCleanupWebSockets(this.jsonWSConnections, 'CS');
-    //   // Check Rest connections
-    //   await this.checkAndCleanupWebSockets(this.jsonRestWSConnections, 'REST');
-    //   // Relaunch it
-    //   this.checkAndCleanupAllWebSockets();
-    // }, Configuration.getChargingStationConfig().pingIntervalOCPPJSecs * 1000);
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    setTimeout(async () => {
+      // Check Json connections
+      await this.checkAndCleanupWebSockets(this.jsonWSConnections, 'CS');
+      // Check Rest connections
+      await this.checkAndCleanupWebSockets(this.jsonRestWSConnections, 'REST');
+      // Relaunch it
+      this.checkAndCleanupAllWebSockets();
+    }, Configuration.getChargingStationConfig().pingIntervalOCPPJSecs * 1000);
   }
 
   private async checkAndCleanupWebSockets(wsConnections: Map<string, WSConnection>, type: 'CS'|'REST') {
