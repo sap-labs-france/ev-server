@@ -60,7 +60,7 @@ export default class WSWrapper {
 
   private checkWSClosed(wsAction: WebSocketAction): void {
     if (this.closed) {
-      throw new Error(`${wsAction} > WS Connection ID '${this.guid}' is closed ('${this.url}'), cannot perform action`);
+      throw new Error(`${wsAction} > WS Connection ID '${this.guid}' is already closed ('${this.url}'), cannot perform action`);
     }
   }
 }
