@@ -522,7 +522,6 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     return true;
   }
 
-
   private async pingWebSocket(wsWrapper: WSWrapper): Promise<WebSocketPingResult> {
     try {
       // Ping the WS
