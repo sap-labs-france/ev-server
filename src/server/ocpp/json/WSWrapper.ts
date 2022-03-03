@@ -3,6 +3,7 @@ import { RecognizedString, WebSocket } from 'uWebSockets.js';
 import Utils from '../../../utils/Utils';
 import WSConnection from './WSConnection';
 import { WSServerProtocol } from '../../../types/Server';
+import { WebSocketAction } from '../../../types/WebSocket';
 
 export default class WSWrapper {
   public key: string;
@@ -37,13 +38,8 @@ export default class WSWrapper {
   }
 
   public send(message: RecognizedString, isBinary?: boolean, compress?: boolean): boolean {
-    this.checkWSClosed();
+    this.checkWSClosed(WebSocketAction.MESSAGE);
     return this.ws.send(message, isBinary, compress);
-  }
-
-  public getBufferedAmount() : number {
-    this.checkWSClosed();
-    return this.ws.getBufferedAmount();
   }
 
   public close(code: number, shortMessage: RecognizedString): void {
@@ -54,7 +50,7 @@ export default class WSWrapper {
   }
 
   public ping(message?: RecognizedString) : boolean {
-    this.checkWSClosed();
+    this.checkWSClosed(WebSocketAction.PING);
     return this.ws.ping(message);
   }
 
@@ -62,9 +58,9 @@ export default class WSWrapper {
     return this.remoteAddress;
   }
 
-  private checkWSClosed(): void {
+  private checkWSClosed(wsAction: WebSocketAction): void {
     if (this.closed) {
-      throw new Error(`WS Connection - Closed: '${this.ws.url as string}'`);
+      throw new Error(`${wsAction} > WS Connection ID '${this.guid}' is closed ('${this.url}'), cannot perform action`);
     }
   }
 }
