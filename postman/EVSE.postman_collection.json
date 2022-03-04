@@ -1522,7 +1522,7 @@
 					"raw": "{\n  \"args\": {\n    \"connectorId\": 0,\n    \"duration\": 36000,\n    \"chargingRateUnit\": \"A\"\n  }\n}"
 				},
 				"url": {
-					"raw": "{{base_url}}/v1/api/charging-stations/{{chargingStation}}/compositeschedule",
+					"raw": "{{base_url}}/v1/api/charging-stations/{{chargingStation}}/composite-schedule/get",
 					"host": [
 						"{{base_url}}"
 					],
@@ -1531,7 +1531,7 @@
 						"api",
 						"charging-stations",
 						"{{chargingStation}}",
-						"compositeschedule"
+						"composite-schedule/get"
 					]
 				}
 			},
@@ -1564,7 +1564,7 @@
 					"raw": "{\n  \"args\": {\n    \"location\": \"\",\n    \"retries\": 1,\n    \"retryInterval\": 5,\n    \"startTime\": \"2021-06-01T13:35:14.118Z\",\n    \"stopTime\": \"2021-06-01T13:35:14.118Z\"\n  }\n}"
 				},
 				"url": {
-					"raw": "{{base_url}}/v1/api/charging-stations/{{chargingStation}}/diagnostics",
+					"raw": "{{base_url}}/v1/api/charging-stations/{{chargingStation}}/diagnostics/get",
 					"host": [
 						"{{base_url}}"
 					],

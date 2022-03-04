@@ -24,7 +24,7 @@ export default class JsonWSConnection extends WSConnection {
   private headers: OCPPHeader;
   private lastSeen: Date;
 
-  constructor(ws: WSWrapper) {
+  public constructor(ws: WSWrapper) {
     super(ws);
   }
 

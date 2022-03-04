@@ -360,24 +360,23 @@ export default class EmspOCPIClient extends OCPIClient {
         detailedMessages: { user: tag.user }
       });
     }
-    const token: OCPIToken = {
-      uid: tag.id,
-      type: OCPIUtils.getOCPITokenTypeFromID(tag.id),
-      auth_id: tag.user.id,
-      visual_number: tag.visualID,
-      issuer: this.tenant.name,
-      valid: true,
-      whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
-      last_updated: new Date()
-    };
+    if (Utils.isEmptyArray(chargingStation.ocpiData?.evses)) {
+      throw new BackendError({
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
+        action: ServerAction.OCPI_START_SESSION,
+        message: `${Utils.buildConnectorInfo(connectorID)} Charging Station has no OCPI EVSE data`,
+        module: MODULE_NAME, method: 'remoteStartSession',
+        detailedMessages: { user: tag.user }
+      });
+    }
+    const evse = chargingStation.ocpiData.evses[0];
+    const token = OCPIUtils.buildOCPITokenFromTag(this.tenant, tag);
     const authorizationId = Utils.generateUUID();
-    // Get the location ID from the Site Area name
-    const locationID = OCPIUtils.getOCPIEmspLocationIDFromSiteAreaName(chargingStation.siteArea.name);
     const remoteStart: OCPIStartSession = {
       response_url: callbackUrl + '/' + authorizationId,
       token: token,
-      evse_uid: chargingStation.id,
-      location_id: locationID,
+      evse_uid: evse.uid,
+      location_id: evse.location_id,
       authorization_id: authorizationId
     };
     // Call IOP
@@ -401,31 +400,23 @@ export default class EmspOCPIClient extends OCPIClient {
     return response.data.data as OCPICommandResponse;
   }
 
-  public async remoteStopSession(transactionId: number): Promise<OCPICommandResponse> {
+  public async remoteStopSession(transactionID: number): Promise<OCPICommandResponse> {
     // Get command endpoint url
     const commandUrl = this.getEndpointUrl('commands', ServerAction.OCPI_START_SESSION) + '/' + OCPICommandType.STOP_SESSION;
     const callbackUrl = this.getLocalEndpointUrl('commands') + '/' + OCPICommandType.STOP_SESSION;
     // Get transaction
-    const transaction = await TransactionStorage.getTransaction(this.tenant, transactionId);
+    const transaction = await TransactionStorage.getTransaction(this.tenant, transactionID);
     if (!transaction) {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,
-        chargingStationID: transaction?.chargeBoxID,
-        siteID: transaction?.siteID,
-        siteAreaID: transaction?.siteAreaID,
-        companyID: transaction?.companyID,
-        message: `Transaction ID '${transactionId}' does not exist`,
-        module: MODULE_NAME, method: 'remoteStopSession',
-        detailedMessages: { transaction }
+        message: `Transaction ID '${transactionID}' does not exist`,
+        module: MODULE_NAME, method: 'remoteStopSession'
       });
     }
     if (!transaction.issuer) {
       throw new BackendError({
+        ...LoggingHelper.getTransactionProperties(transaction),
         action: ServerAction.OCPI_START_SESSION,
-        chargingStationID: transaction?.chargeBoxID,
-        siteID: transaction?.siteID,
-        siteAreaID: transaction?.siteAreaID,
-        companyID: transaction?.companyID,
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction belongs to an external organization`,
         module: MODULE_NAME, method: 'remoteStopSession',
         detailedMessages: { transaction }
@@ -433,11 +424,8 @@ export default class EmspOCPIClient extends OCPIClient {
     }
     if (!transaction.ocpiData?.session) {
       throw new BackendError({
+        ...LoggingHelper.getTransactionProperties(transaction),
         action: ServerAction.OCPI_START_SESSION,
-        chargingStationID: transaction?.chargeBoxID,
-        siteID: transaction?.siteID,
-        siteAreaID: transaction?.siteAreaID,
-        companyID: transaction?.companyID,
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} No OCPI Session data`,
         module: MODULE_NAME, method: 'remoteStopSession',
         detailedMessages: { transaction }
@@ -463,7 +451,7 @@ export default class EmspOCPIClient extends OCPIClient {
       action: ServerAction.OCPI_STOP_SESSION,
       message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OCPI Remote Stop response status '${response.status}'`,
       module: MODULE_NAME, method: 'remoteStopSession',
-      detailedMessages: { response: response.data }
+      detailedMessages: { transaction, response: response.data }
     });
     return response.data.data as OCPICommandResponse;
   }
