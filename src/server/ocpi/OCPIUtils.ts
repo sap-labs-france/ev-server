@@ -134,10 +134,6 @@ export default class OCPIUtils {
     return `${countryCode}*${partyId}`;
   }
 
-  public static buildSiteAreaName(countryCode: string, partyId: string, locationId: string): string {
-    return `${countryCode}*${partyId}-${locationId}`;
-  }
-
   public static buildEvseUIDs(chargingStation: ChargingStation): string[] {
     const evseUIDs: string[] = [];
     for (const connector of chargingStation.connectors) {
@@ -485,16 +481,14 @@ export default class OCPIUtils {
   public static async processEMSPLocationSiteArea(tenant: Tenant, location: OCPILocation, site: Site, siteArea: SiteArea): Promise<SiteArea> {
     // Create Site Area
     if (!siteArea) {
-      const siteAreaName = `${site.name}${Constants.OCPI_SEPARATOR}${location.id}`;
       siteArea = {
-        name: siteAreaName,
+        name: location.name,
         createdOn: new Date(),
         siteID: site.id,
         issuer: false,
         ocpiData: { location },
         address: {
           address1: location.address,
-          address2: location.name,
           postalCode: location.postal_code,
           city: location.city,
           country: location.country,
@@ -504,12 +498,12 @@ export default class OCPIUtils {
     } else {
       siteArea = {
         ...siteArea,
+        name: location.name,
         lastChangedOn: new Date(),
         siteID: site.id,
         ocpiData: { location },
         address: {
           address1: location.address,
-          address2: location.name,
           postalCode: location.postal_code,
           city: location.city,
           country: location.country,
