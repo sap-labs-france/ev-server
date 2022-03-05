@@ -259,7 +259,7 @@ export default class OCPIUtils {
         tenantID: tenant.id,
         action, module: MODULE_NAME, method: 'processEMSPLocationChargingStation',
         message: `${currentChargingStation ? 'Updated' : 'Created'} Charging Station ID '${chargingStation.id}' in Location '${location.name}' with ID '${location.id}'`,
-        detailedMessages: location
+        detailedMessages: { evse, location }
       });
     }
   }
