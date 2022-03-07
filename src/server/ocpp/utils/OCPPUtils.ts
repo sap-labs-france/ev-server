@@ -1177,7 +1177,7 @@ export default class OCPPUtils {
         }
       }
     } else {
-      resultStatus = (result).status;
+      resultStatus = result.status;
     }
     if (resultStatus !== OCPPChargingProfileStatus.ACCEPTED) {
       throw new BackendError({
