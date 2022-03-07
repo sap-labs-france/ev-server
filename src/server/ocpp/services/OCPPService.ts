@@ -72,7 +72,7 @@ export default class OCPPService {
       // Enrich Charging Station
       await this.enrichChargingStationFromBootNotification(tenant, chargingStation, headers, bootNotification);
       // Apply template
-      const templateUpdateResult = await OCPPUtils.checkAndApplyTemplateToChargingStation(tenant, chargingStation, false);
+      await OCPPUtils.checkAndApplyTemplateToChargingStation(tenant, chargingStation, false);
       // Save Charging Station
       await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
       // Save Boot Notification
@@ -80,12 +80,10 @@ export default class OCPPService {
       // Notify
       this.notifyBootNotification(tenant, chargingStation);
       // Request OCPP configuration
-      if (!templateUpdateResult.chargingStationUpdated) {
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        setTimeout(async () => {
-          await OCPPCommon.requestAndSaveChargingStationOcppParameters(tenant, chargingStation);
-        }, Constants.DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS);
-      }
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      setTimeout(async () => {
+        await OCPPCommon.requestAndSaveChargingStationOcppParameters(tenant, chargingStation);
+      }, Constants.DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS);
       await Logging.logInfo({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         tenantID: tenant.id,
