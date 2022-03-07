@@ -30,8 +30,9 @@ export default class OCPIPushCdrsTask extends TenantSchedulerTask {
               [
                 {
                   $match: {
-                    'stop': { $exists: true },
-                    'ocpiData': { $exists: true },
+                    issuer: true,
+                    stop: { $exists: true },
+                    ocpiData: { $exists: true },
                     'ocpiData.cdr': null
                   }
                 },

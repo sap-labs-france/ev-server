@@ -136,8 +136,6 @@ export default class EmspOCPIClient extends OCPIClient {
     const company = await OCPIUtils.checkAndGetEMSPCompany(this.tenant, this.ocpiEndpoint);
     const sites = await SiteStorage.getSites(this.tenant,
       { companyIDs: [ company.id ] }, Constants.DB_PARAMS_MAX_LIMIT);
-    const siteAreas = await SiteAreaStorage.getSiteAreas(this.tenant,
-      { companyIDs: [ company.id ] }, Constants.DB_PARAMS_MAX_LIMIT);
     let nextResult = true;
     do {
       // Call IOP
@@ -161,11 +159,10 @@ export default class EmspOCPIClient extends OCPIClient {
             const foundSite = sites.result.find((existingSite) => existingSite.name === siteName);
             const site = await OCPIUtils.processEMSPLocationSite(
               this.tenant, location, company, foundSite, siteName);
+            // Get Site Area
+            const foundSiteArea = await SiteAreaStorage.getSiteAreaByOcpiLocationUid(this.tenant, location.id);
             // Process Site Area
-            const siteAreaName = `${location.operator.name}${Constants.OCPI_SEPARATOR}${location.id}`;
-            const foundSiteArea = siteAreas.result.find((existingSiteArea) => existingSiteArea.name === siteAreaName);
-            const siteArea = await OCPIUtils.processEMSPLocationSiteArea(
-              this.tenant, location, site, foundSiteArea);
+            const siteArea = await OCPIUtils.processEMSPLocationSiteArea(this.tenant, location, site, foundSiteArea);
             // Process Charging Station
             await OCPIUtils.processEMSPLocationChargingStations(
               this.tenant, location, site, siteArea, evses, ServerAction.OCPI_PULL_LOCATIONS);
