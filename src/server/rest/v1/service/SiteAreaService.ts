@@ -274,6 +274,8 @@ export default class SiteAreaService {
       Action.CREATE, Entity.SITE_AREA, MODULE_NAME, 'handleCreateSiteArea');
     // Filter request
     const filteredRequest = SiteAreaValidator.getInstance().validateSiteAreaCreateReq(req.body);
+    // Additional sites for tree check
+    const additionalSiteIDs = [];
     // Check request data is valid
     UtilsService.checkIfSiteAreaValid(filteredRequest, req);
     // Check auth
@@ -292,8 +294,9 @@ export default class SiteAreaService {
       req.tenant, req.user, filteredRequest.siteID, Action.UPDATE, action);
     if (filteredRequest.parentSiteAreaID) {
       // Check parent site area auth
-      await UtilsService.checkAndGetSiteAreaAuthorization(
+      const parentSiteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
         req.tenant, req.user, filteredRequest.parentSiteAreaID, Action.UPDATE, action);
+      additionalSiteIDs.push(parentSiteArea.siteID);
     }
     // Create Site Area
     const siteArea: SiteArea = {
@@ -303,7 +306,7 @@ export default class SiteAreaService {
       createdOn: new Date()
     } as SiteArea;
     // Check site area chain validity
-    await UtilsService.checkIfSiteAreaTreeValid(siteArea, req);
+    await UtilsService.checkIfSiteAreaTreeValid(siteArea, req, additionalSiteIDs);
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
       if (!site.public) {
         delete siteArea.tariffID;
@@ -329,6 +332,8 @@ export default class SiteAreaService {
       Action.UPDATE, Entity.SITE_AREA, MODULE_NAME, 'handleUpdateSiteArea');
     // Filter request
     const filteredRequest = SiteAreaValidator.getInstance().validateSiteAreaUpdateReq(req.body);
+    // Additional sites for tree check
+    const additionalSiteIDs = [];
     // Check Mandatory fields
     UtilsService.checkIfSiteAreaValid(filteredRequest, req);
     // Check and Get SiteArea
@@ -342,8 +347,12 @@ export default class SiteAreaService {
       req.tenant, req.user, filteredRequest.siteID, Action.READ, action);
     if (filteredRequest.parentSiteAreaID) {
       // Check parent site area auth
-      await UtilsService.checkAndGetSiteAreaAuthorization(
+      const parentSiteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
         req.tenant, req.user, filteredRequest.parentSiteAreaID, Action.UPDATE, action);
+      additionalSiteIDs.push(parentSiteArea.siteID);
+    }
+    if (siteArea.siteID !== filteredRequest.siteID) {
+      additionalSiteIDs.push(siteArea.siteID);
     }
     // Update
     siteArea.name = filteredRequest.name;
@@ -388,9 +397,8 @@ export default class SiteAreaService {
     siteArea.smartCharging = filteredRequest.smartCharging;
     siteArea.accessControl = filteredRequest.accessControl;
     siteArea.parentSiteAreaID = filteredRequest.parentSiteAreaID;
-    const formerSiteID = siteArea.siteID;
     siteArea.siteID = filteredRequest.siteID;
-    await UtilsService.checkIfSiteAreaTreeValid(siteArea, req, formerSiteID);
+    await UtilsService.checkIfSiteAreaTreeValid(siteArea, req, additionalSiteIDs);
     siteArea.lastChangedBy = { 'id': req.user.id };
     siteArea.lastChangedOn = new Date();
     // Save

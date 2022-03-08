@@ -481,11 +481,11 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
       const connector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
       const chargePoint = Utils.getChargePointFromID(chargingStation, connector?.chargePointID);
       if (chargePoint?.efficiency > 0) {
-        customCar.maxCurrentPerPhase /= chargePoint.efficiency / 100;
+        customCar.maxCurrentPerPhase = Utils.createDecimal(customCar.maxCurrentPerPhase).div(chargePoint.efficiency).mul(100).toNumber();
         customCar.maxCurrent = customCar.maxCurrentPerPhase * 3;
       } else {
         // Use safe value if efficiency is not provided
-        customCar.maxCurrentPerPhase /= Constants.DC_CHARGING_STATION_DEFAULT_EFFICIENCY_PERCENT / 100;
+        customCar.maxCurrentPerPhase = Utils.createDecimal(customCar.maxCurrentPerPhase).div(Constants.DC_CHARGING_STATION_DEFAULT_EFFICIENCY_PERCENT).mul(100).toNumber();
         customCar.maxCurrent = customCar.maxCurrentPerPhase * 3;
       }
     }
@@ -615,10 +615,10 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
     if (Utils.getChargingStationCurrentType(chargingStation, null, connector.connectorId) === CurrentType.DC) {
       const chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
       if (chargePoint?.efficiency > 0) {
-        connectorAmpsPerPhase /= chargePoint.efficiency / 100;
+        connectorAmpsPerPhase = Utils.createDecimal(connectorAmpsPerPhase).div(chargePoint.efficiency).mul(100).toNumber();
       } else {
         // Use safe value if efficiency is not provided
-        connectorAmpsPerPhase /= Constants.DC_CHARGING_STATION_DEFAULT_EFFICIENCY_PERCENT;
+        connectorAmpsPerPhase = Utils.createDecimal(connectorAmpsPerPhase).div(Constants.DC_CHARGING_STATION_DEFAULT_EFFICIENCY_PERCENT).mul(100).toNumber();
       }
     }
     // Build charging station from connector
