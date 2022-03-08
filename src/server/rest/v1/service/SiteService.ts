@@ -47,7 +47,6 @@ export default class SiteService {
       req.tenant, req.user, filteredRequest.userID, Action.READ, action);
     // Update
     await SiteStorage.updateSiteUserAdmin(req.tenant, filteredRequest.siteID, filteredRequest.userID, filteredRequest.siteAdmin);
-    // Log
     await Logging.logInfo({
       ...LoggingHelper.getSiteProperties(site),
       tenantID: req.user.tenantID,
@@ -74,7 +73,6 @@ export default class SiteService {
       req.tenant, req.user, filteredRequest.userID, Action.READ, action);
     // Update
     await SiteStorage.updateSiteOwner(req.tenant, filteredRequest.siteID, filteredRequest.userID, filteredRequest.siteOwner);
-    // Log
     await Logging.logInfo({
       ...LoggingHelper.getSiteProperties(site),
       tenantID: req.user.tenantID,
@@ -105,7 +103,6 @@ export default class SiteService {
     } else {
       await SiteStorage.removeUsersFromSite(req.tenant, site.id, users.map((user) => user.id));
     }
-    // Log
     await Logging.logInfo({
       ...LoggingHelper.getSiteProperties(site),
       tenantID: req.user.tenantID,
@@ -164,7 +161,6 @@ export default class SiteService {
       req.tenant, req.user, siteID, Action.DELETE, action);
     // Delete
     await SiteStorage.deleteSite(req.tenant, site.id);
-    // Log
     await Logging.logInfo({
       ...LoggingHelper.getSiteProperties(site),
       tenantID: req.user.tenantID,
