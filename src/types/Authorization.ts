@@ -129,7 +129,6 @@ export enum Action {
   EXPORT = 'Export',
   CHANGE_AVAILABILITY = 'ChangeAvailability',
   REFUND_TRANSACTION = 'RefundTransaction',
-  SYNCHRONIZE_BILLING_USERS = 'SynchronizeBillingUsers',
   SYNCHRONIZE_BILLING_USER = 'SynchronizeBillingUser',
   BILLING_SETUP_PAYMENT_METHOD = 'BillingSetupPaymentMethod',
   BILLING_PAYMENT_METHODS = 'BillingPaymentMethods',
@@ -201,6 +200,7 @@ export interface AssetAuthorizationActions extends AuthorizationActions {
   canRetrieveConsumption?:boolean;
   canReadConsumption?:boolean;
   canCheckConnection?:boolean;
+  canCreateConsumption?:boolean;
 }
 
 export interface SiteAreaAuthorizationActions extends AuthorizationActions {

@@ -14,14 +14,14 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [14.x]
-        mongodb-version: [4.2]
+        node-version: [16.x]
+        mongodb-version: [4.4]
     steps:
     - uses: actions/checkout@v2
       with:
         ssh-key: ${{ secrets.ACTION_ACCESS_SUB_MODULES_PRIVATE_REPOS }}
         submodules: true
-    - name: Start MongoDB
+    - name: Start MongoDB ${{ matrix.mongodb-version }}
       uses: supercharge/mongodb-github-action@1.3.0
       with:
         mongodb-version: ${{ matrix.mongodb-version }}
@@ -30,24 +30,25 @@ jobs:
       run: |
         mongo docker/initdb/000_createMongoUsers.js
         mongo docker/initdb/002_createSuperAdmin.js
-    - name: Install NodeJs
+    - name: Install NodeJs ${{ matrix.node-version }}
       uses: actions/setup-node@v2
       with:
         node-version: ${{ matrix.node-version }}
+        cache: npm
     - name: Install NodeJs Packages
       run: npm ci
-    - name: Build production sources
+    - name: Build sources
       run: |
         cp src/assets/configs-ci/config.json src/assets
-        npm run build:prod
-    - name: Start Server in Prod mode
+        npm run build:dev
+    - name: Start Server
       run: |
-        npm run start:prod
-    - name: Create Unit Test context
+        npm run start:dev & sleep 10
+    - name: Create Integration Test data
       run: |
         if [ ! -d test/config ]; then mkdir -p test/config; fi
         cp src/assets/configs-ci/local.json test/config
-        npm run mochatest:createContext
-    - name: Run Unit Test
-      run: npm run mochatest
+        npm run test:createContext
+    - name: Run Integration Tests
+      run: npm run test
 

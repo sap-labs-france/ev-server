@@ -5,9 +5,10 @@ import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types
 import { ChargePointErrorCode, ChargePointStatus, OCPPStatusNotificationRequest } from '../../src/types/ocpp/OCPPServer';
 import ChargingStation, { ConnectorType } from '../../src/types/ChargingStation';
 import PricingDefinition, { DayOfWeek, PricingDimension, PricingDimensions, PricingEntity, PricingRestriction } from '../../src/types/Pricing';
-import chai, { assert, expect } from 'chai';
+import chai, { expect } from 'chai';
 
 import AsyncTaskStorage from '../../src/storage/mongodb/AsyncTaskStorage';
+import BillingFacade from '../../src/integration/billing/BillingFacade';
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
 import Constants from '../../src/utils/Constants';
@@ -16,6 +17,7 @@ import ContextProvider from './context/ContextProvider';
 import Cypher from '../../src/utils/Cypher';
 import { DataResult } from '../../src/types/DataResult';
 import Decimal from 'decimal.js';
+import LoggingStorage from '../../src/storage/mongodb/LoggingStorage';
 import SiteAreaContext from './context/SiteAreaContext';
 import SiteContext from './context/SiteContext';
 import { StatusCodes } from 'http-status-codes';
@@ -25,11 +27,13 @@ import { TenantComponents } from '../../src/types/Tenant';
 import TenantContext from './context/TenantContext';
 import TestConstants from './client/utils/TestConstants';
 import TestUtils from './TestUtils';
+import TransactionStorage from '../../src/storage/mongodb/TransactionStorage';
 import User from '../../src/types/User';
 import Utils from '../../src/utils/Utils';
+import assert from 'assert';
 import chaiSubset from 'chai-subset';
 import config from '../config';
-import moment from 'moment';
+import moment from 'moment-timezone';
 import responseHelper from '../helpers/responseHelper';
 
 chai.use(chaiSubset);
@@ -108,7 +112,7 @@ export default class BillingTestHelper {
     this.siteAreaContext = this.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED);
     this.chargingStationContext = this.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16 + '-' + ContextDefinition.SITE_CONTEXTS.SITE_BASIC + '-' + ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED + '-singlePhased');
     assert(!!this.chargingStationContext, 'Charging station context should not be null');
-    await this.createTariff4ChargingStation('FF+CT', this.chargingStationContext.getChargingStation(), {
+    const dimensions = {
       flatFee: {
         price: 1,
         active: true
@@ -117,7 +121,8 @@ export default class BillingTestHelper {
         price: 0.4,
         active: true
       }
-    });
+    };
+    await this.createTariff4ChargingStation('FF+CT', this.chargingStationContext.getChargingStation(), new Date(), dimensions);
     return this.chargingStationContext;
   }
 
@@ -155,11 +160,11 @@ export default class BillingTestHelper {
         }
       };
     }
-    await this.createTariff4ChargingStation(testMode, this.chargingStationContext.getChargingStation(), dimensions);
+    await this.createTariff4ChargingStation(testMode, this.chargingStationContext.getChargingStation(), new Date(), dimensions);
     return this.chargingStationContext;
   }
 
-  public async initChargingStationContext2TestFastCharger(testMode = 'E') : Promise<ChargingStationContext> {
+  public async initChargingStationContext2TestFastCharger(testMode = 'E', expectedStartDate = new Date()) : Promise<ChargingStationContext> {
     this.siteContext = this.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
     this.siteAreaContext = this.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC);
     this.chargingStationContext = this.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16 + '-' + ContextDefinition.SITE_CONTEXTS.SITE_BASIC + '-' + ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC);
@@ -265,7 +270,7 @@ export default class BillingTestHelper {
         }
       };
     }
-    await this.createTariff4ChargingStation(testMode, this.chargingStationContext.getChargingStation(), dimensions, ConnectorType.COMBO_CCS, restrictions);
+    await this.createTariff4ChargingStation(testMode, this.chargingStationContext.getChargingStation(), expectedStartDate, dimensions, ConnectorType.COMBO_CCS, restrictions);
     return this.chargingStationContext;
   }
 
@@ -309,8 +314,15 @@ export default class BillingTestHelper {
         daysOfWeek: [ DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, DayOfWeek.SATURDAY, DayOfWeek.SUNDAY ].filter((day) => day !== moment().tz(timezone).isoWeekday())
       };
     }
-    await this.createTariff4ChargingStation(testMode, this.chargingStationContext.getChargingStation(), dimensions, ConnectorType.COMBO_CCS, restrictions);
+    await this.createTariff4ChargingStation(testMode, this.chargingStationContext.getChargingStation(), new Date(), dimensions, ConnectorType.COMBO_CCS, restrictions);
     return this.chargingStationContext;
+  }
+
+  public checkTimezone(): void {
+    const timezone = Utils.getTimezone(this.chargingStationContext.getChargingStation().coordinates);
+    // Simulated sessions last 2 hours - Some tests cannot work when the day is about to change!
+    assert(moment().tz(timezone).isoWeekday() === moment().add(2, 'hours').tz(timezone).isoWeekday(),
+      'Timezone is set  to ' + timezone + ' - test execution can not work in that context');
   }
 
   public async initChargingStationContext2TestTimeRestrictions(testMode = 'E', aParticularMoment: moment.Moment) : Promise<ChargingStationContext> {
@@ -381,7 +393,7 @@ export default class BillingTestHelper {
         daysOfWeek: [ atThatMoment.isoWeekday() ], // Sets today as the only day allowed for this pricing definition
       };
     }
-    await this.createTariff4ChargingStation(testMode, this.chargingStationContext.getChargingStation(), dimensions, ConnectorType.COMBO_CCS, restrictions);
+    await this.createTariff4ChargingStation(testMode, this.chargingStationContext.getChargingStation(), new Date(), dimensions, ConnectorType.COMBO_CCS, restrictions);
     return this.chargingStationContext;
   }
 
@@ -499,28 +511,42 @@ export default class BillingTestHelper {
     await this.chargingStationContext.setConnectorStatus(occpStatusFinishing);
   }
 
+  public async dumpLastErrors(): Promise<void> {
+    const params = { levels: ['E'] };
+    const dbParams = { limit: 2, skip: 0, sort: { timestamp: -1 } }; // the 2 last errors
+    const loggedErrors = await LoggingStorage.getLogs(this.tenantContext.getTenant(), params, dbParams, null);
+    if (loggedErrors?.result.length > 0) {
+      for (const loggedError of loggedErrors.result) {
+        console.error(
+          '-----------------------------------------------\n' +
+          'Logged Error: \n' +
+          '-----------------------------------------------\n' +
+          JSON.stringify(loggedError));
+      }
+    }
+  }
 
-  public async generateTransaction(user: any, expectedStatus = 'Accepted', withExtraNotificationStatus = true): Promise<number> {
-
+  public async generateTransaction(user: any, expectedStatus = 'Accepted', expectedStartDate = new Date(), withSoftStopSimulation = false): Promise<number> {
     const meterStart = 0;
     const meterStop = 32325; // Unit: Wh
     const meterValueRampUp = Utils.createDecimal(meterStop).divToInt(80).toNumber();
     const meterValueHighConsumption = Utils.createDecimal(meterStop).divToInt(30).toNumber();
     const meterValuePoorConsumption = 0; // Simulate a gap in the energy provisioning
     const meterValuePhaseOut = Utils.createDecimal(meterStop).divToInt(60).toNumber();
-
     // const user:any = this.userContext;
     const connectorId = 1;
     assert((user.tags && user.tags.length), 'User must have a valid tag');
     const tagId = user.tags[0].id;
     // # Begin
-    const startDate = moment();
+    const startDate = moment(expectedStartDate);
     // Let's send an OCCP status notification to simulate some extra inactivities
     await this.sendStatusNotification(connectorId, startDate.toDate(), ChargePointStatus.PREPARING);
     const startTransactionResponse = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
+    if (expectedStatus === 'Accepted' && startTransactionResponse.idTagInfo.status !== expectedStatus) {
+      await this.dumpLastErrors();
+    }
     expect(startTransactionResponse).to.be.transactionStatus(expectedStatus);
     const transactionId = startTransactionResponse.transactionId;
-
     const currentTime = startDate.clone();
     let cumulated = 0;
     // Phase #0 - not charging yet
@@ -563,14 +589,34 @@ export default class BillingTestHelper {
       // cumulated += 0; // Parking time - not charging anymore
       await this.sendConsumptionMeterValue(connectorId, transactionId, currentTime, meterStop);
     }
-    // #end
     const stopDate = startDate.clone().add(1, 'hour');
     if (expectedStatus === 'Accepted') {
-      const stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate.toDate());
-      expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
-      // Let's send an OCCP status notification to simulate some extra inactivities
-      await this.sendStatusNotification(connectorId, stopDate.clone().add(29, 'minutes').toDate(), ChargePointStatus.FINISHING);
-      await this.sendStatusNotification(connectorId, stopDate.clone().add(30, 'minutes').toDate(), ChargePointStatus.AVAILABLE);
+      if (withSoftStopSimulation) {
+        const tenant = this.tenantContext.getTenant();
+        // #end - simulating the situation where the stop is not received
+        await this.sendConsumptionMeterValue(connectorId, transactionId, currentTime, meterStop);
+        await this.sendStatusNotification(connectorId, stopDate.clone().add(29, 'minutes').toDate(), ChargePointStatus.FINISHING);
+        await this.sendStatusNotification(connectorId, stopDate.clone().add(30, 'minutes').toDate(), ChargePointStatus.AVAILABLE);
+        // SOFT STOP TRANSACTION
+        const stopTransactionResponse = await this.chargingStationContext.softStopTransaction(transactionId);
+        expect(stopTransactionResponse).to.be.not.null;
+        // Force the billing as this is normally done by a job every 15 minutes
+        let transaction = await TransactionStorage.getTransaction(tenant, transactionId, { withUser: true, withChargingStation: true });
+        transaction = await TransactionStorage.getTransaction(tenant, transactionId, { withUser: true, withChargingStation: true });
+        transaction.stop.extraInactivityComputed = true;
+        transaction.stop.extraInactivitySecs = 0;
+        await BillingFacade.processEndTransaction(tenant, transaction, transaction.user);
+      } else {
+        // #end
+        const stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate.toDate());
+        if (expectedStatus === 'Accepted' && stopTransactionResponse.idTagInfo.status !== expectedStatus) {
+          await this.dumpLastErrors();
+        }
+        expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
+        // Let's send an OCCP status notification to simulate some extra inactivities
+        await this.sendStatusNotification(connectorId, stopDate.clone().add(29, 'minutes').toDate(), ChargePointStatus.FINISHING);
+        await this.sendStatusNotification(connectorId, stopDate.clone().add(30, 'minutes').toDate(), ChargePointStatus.AVAILABLE);
+      }
       // Give some time to the asyncTask to bill the transaction
       await this.waitForAsyncTasks();
     }
@@ -653,11 +699,13 @@ export default class BillingTestHelper {
   public async createTariff4ChargingStation(
       testMode: string,
       chargingStation: ChargingStation,
+      expectedStartDate: Date,
       dimensions: PricingDimensions,
       connectorType: ConnectorType = null,
       restrictions: PricingRestriction = null): Promise<void> {
 
     // Set a default value
+    expectedStartDate = expectedStartDate || new Date();
     connectorType = connectorType || ConnectorType.TYPE_2;
 
     const tariffName = testMode;
@@ -668,8 +716,8 @@ export default class BillingTestHelper {
       description: 'Tariff for CS ' + chargingStation.id + ' - ' + tariffName + ' - ' + connectorType,
       staticRestrictions: {
         connectorType,
-        validFrom: new Date(),
-        validTo: moment().add(10, 'minutes').toDate()
+        validFrom: expectedStartDate,
+        validTo: moment(expectedStartDate).add(10, 'minutes').toDate()
       },
       restrictions,
       dimensions
@@ -688,7 +736,7 @@ export default class BillingTestHelper {
     tariff.name = tariffName + ' - In the future';
     tariff.staticRestrictions = {
       connectorType,
-      validFrom: moment().add(10, 'years').toDate(),
+      validFrom: moment(expectedStartDate).add(10, 'years').toDate(),
     },
     tariff.dimensions.flatFee = {
       active: true,
@@ -702,7 +750,7 @@ export default class BillingTestHelper {
     tariff.name = tariffName + ' - In the past';
     tariff.staticRestrictions = {
       connectorType,
-      validTo: moment().add(-1, 'hours').toDate(),
+      validTo: moment(expectedStartDate).add(-1, 'hours').toDate(),
     },
     tariff.dimensions.flatFee = {
       active: true,

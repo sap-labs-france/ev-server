@@ -1,9 +1,13 @@
 import Asset from '../types/Asset';
+import { Car } from '../types/Car';
 import ChargingStation from '../types/ChargingStation';
+import RegistrationToken from '../types/RegistrationToken';
 import Site from '../types/Site';
 import SiteArea from '../types/SiteArea';
+import Tag from '../types/Tag';
 import Transaction from '../types/Transaction';
 import User from '../types/User';
+import WSWrapper from '../server/ocpp/json/WSWrapper';
 
 export default class LoggingHelper {
 
@@ -26,6 +30,16 @@ export default class LoggingHelper {
     };
   }
 
+  public static getWSWrapperProperties(wsWrapper: WSWrapper): { tenantID: string; siteID: string; siteAreaID: string; companyID: string; chargingStationID: string; } {
+    return {
+      tenantID: wsWrapper.tenantID,
+      siteID: wsWrapper.siteID,
+      siteAreaID: wsWrapper.siteAreaID,
+      companyID: wsWrapper.companyID,
+      chargingStationID: wsWrapper.chargingStationID,
+    };
+  }
+
   public static getAssetProperties(asset: Asset): { siteID: string; siteAreaID: string; } {
     return {
       siteID: asset.siteID,
@@ -44,6 +58,24 @@ export default class LoggingHelper {
     return {
       siteAreaID: siteArea.id,
       siteID: siteArea.siteID,
+    };
+  }
+
+  public static getCarProperties(car: Car): { userID: string } {
+    return {
+      userID: car.userID,
+    };
+  }
+
+  public static getRegistrationTokenProperties(registrationToken: RegistrationToken): { siteAreaID: string } {
+    return {
+      siteAreaID: registrationToken.siteAreaID
+    };
+  }
+
+  public static getTagProperties(tag: Tag): { userID: string } {
+    return {
+      userID: tag.userID
     };
   }
 }

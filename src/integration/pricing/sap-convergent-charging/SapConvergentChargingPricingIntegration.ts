@@ -167,8 +167,8 @@ export default class SapConvergentChargingPricingIntegration extends PricingInte
     const chargingResult = result.data.chargingResult;
     const chargingStation: ChargingStation = await ChargingStationStorage.getChargingStation(this.tenant, transaction.chargeBoxID);
     await Logging.logError({
-      tenantID: this.tenant.id,
       ...LoggingHelper.getChargingStationProperties(chargingStation),
+      tenantID: this.tenant.id,
       module: MODULE_NAME, method: 'handleError',
       action: action,
       message: chargingResult.message,

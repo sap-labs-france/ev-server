@@ -126,8 +126,8 @@ export default class NotificationHandler {
               }
             } else {
               await Logging.logDebug({
-                tenantID: tenant.id,
                 ...LoggingHelper.getChargingStationProperties(chargingStation),
+                tenantID: tenant.id,
                 module: MODULE_NAME, method: 'sendEndOfCharge',
                 action: ServerAction.END_OF_CHARGE,
                 user: user.id,
@@ -177,8 +177,8 @@ export default class NotificationHandler {
               }
             } else {
               await Logging.logDebug({
-                tenantID: tenant.id,
                 ...LoggingHelper.getChargingStationProperties(chargingStation),
+                tenantID: tenant.id,
                 module: MODULE_NAME, method: 'sendOptimalChargeReached',
                 action: ServerAction.OPTIMAL_CHARGE_REACHED,
                 user: user.id,
@@ -228,8 +228,8 @@ export default class NotificationHandler {
               }
             } else {
               await Logging.logDebug({
-                tenantID: tenant.id,
                 ...LoggingHelper.getChargingStationProperties(chargingStation),
+                tenantID: tenant.id,
                 module: MODULE_NAME, method: 'sendEndOfSession',
                 action: ServerAction.END_OF_SESSION,
                 user: user.id,
@@ -279,8 +279,8 @@ export default class NotificationHandler {
               }
             } else {
               await Logging.logDebug({
-                tenantID: tenant.id,
                 ...LoggingHelper.getChargingStationProperties(chargingStation),
+                tenantID: tenant.id,
                 module: MODULE_NAME, method: 'sendEndOfSignedSession',
                 action: ServerAction.END_OF_SESSION,
                 user: user.id,
@@ -559,8 +559,8 @@ export default class NotificationHandler {
                 }
               } else {
                 await Logging.logDebug({
-                  tenantID: tenant.id,
                   ...LoggingHelper.getChargingStationProperties(chargingStation),
+                  tenantID: tenant.id,
                   module: MODULE_NAME, method: 'sendChargingStationStatusError',
                   action: ServerAction.CHARGING_STATION_STATUS_ERROR,
                   message: `Notification via '${notificationSource.channel}' has already been sent`
@@ -680,8 +680,8 @@ export default class NotificationHandler {
               }
             } else {
               await Logging.logDebug({
-                tenantID: tenant.id,
                 ...LoggingHelper.getChargingStationProperties(chargingStation),
+                tenantID: tenant.id,
                 module: MODULE_NAME, method: 'sendSessionStarted',
                 action: ServerAction.TRANSACTION_STARTED,
                 user: user.id,
@@ -927,8 +927,8 @@ export default class NotificationHandler {
               }
             } else {
               await Logging.logDebug({
-                tenantID: tenant.id,
                 ...LoggingHelper.getChargingStationProperties(chargingStation),
+                tenantID: tenant.id,
                 module: MODULE_NAME, method: 'sendPreparingSessionNotStarted',
                 action: ServerAction.PREPARING_SESSION_NOT_STARTED,
                 user: user.id,
@@ -1141,10 +1141,8 @@ export default class NotificationHandler {
   }
 
   public static async sendCarsSynchronizationFailed(sourceData: CarCatalogSynchronizationFailedNotification): Promise<void> {
-    // Get the tenant
-    const tenant = await TenantStorage.getTenant(Constants.DEFAULT_TENANT);
     // Get admin users
-    const adminUsers = await NotificationHandler.getAdminUsers(tenant);
+    const adminUsers = await NotificationHandler.getAdminUsers(Constants.DEFAULT_TENANT_OBJECT);
     if (!Utils.isEmptyArray(adminUsers)) {
       // For each Sources
       for (const notificationSource of NotificationHandler.notificationSources) {
@@ -1153,13 +1151,13 @@ export default class NotificationHandler {
           try {
             // Check notification
             const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
-              tenant, notificationSource.channel, ServerAction.CAR_CATALOG_SYNCHRONIZATION_FAILED,
+              Constants.DEFAULT_TENANT_OBJECT, notificationSource.channel, ServerAction.CAR_CATALOG_SYNCHRONIZATION_FAILED,
               null, null, { intervalMins: 60 * 24 });
             // Notified?
             if (!hasBeenNotified) {
               // Save
               await NotificationHandler.saveNotification(
-                tenant, notificationSource.channel, null, ServerAction.CAR_CATALOG_SYNCHRONIZATION_FAILED);
+                Constants.DEFAULT_TENANT_OBJECT, notificationSource.channel, null, ServerAction.CAR_CATALOG_SYNCHRONIZATION_FAILED);
               // Send
               for (const adminUser of adminUsers) {
                 // Enabled?
@@ -1170,7 +1168,7 @@ export default class NotificationHandler {
               }
             } else {
               await Logging.logDebug({
-                tenantID: tenant.id,
+                tenantID: Constants.DEFAULT_TENANT_OBJECT.id,
                 module: MODULE_NAME, method: 'sendCarsSynchronizationFailed',
                 action: ServerAction.CAR_CATALOG_SYNCHRONIZATION_FAILED,
                 message: `Notification via '${notificationSource.channel}' has already been sent`
@@ -1220,8 +1218,8 @@ export default class NotificationHandler {
                 }
               } else {
                 await Logging.logDebug({
-                  tenantID: tenant.id,
                   ...LoggingHelper.getChargingStationProperties(chargingStation),
+                  tenantID: tenant.id,
                   module: MODULE_NAME, method: 'sendComputeAndApplyChargingProfilesFailed',
                   action: ServerAction.COMPUTE_AND_APPLY_CHARGING_PROFILES_FAILED,
                   message: `Notification via '${notificationSource.channel}' has already been sent`
@@ -1307,8 +1305,8 @@ export default class NotificationHandler {
               }
             } else {
               await Logging.logDebug({
-                tenantID: tenant.id,
                 ...LoggingHelper.getChargingStationProperties(chargingStation),
+                tenantID: tenant.id,
                 module: MODULE_NAME, method: 'sendSessionNotStarted',
                 action: ServerAction.SESSION_NOT_STARTED_AFTER_AUTHORIZE,
                 message: `Notification via '${notificationSource.channel}' has already been sent`

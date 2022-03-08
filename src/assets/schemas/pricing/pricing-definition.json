@@ -39,12 +39,14 @@
         "validFrom": {
           "type": "string",
           "format": "date-time",
+          "customType": "date",
           "sanitize": "mongo",
           "nullable": true
         },
         "validTo": {
           "type": "string",
           "format": "date-time",
+          "customType": "date",
           "sanitize": "mongo",
           "nullable": true
         },

@@ -55,6 +55,9 @@ export default interface Transaction extends AbstractCurrentConsumption {
   car?: Car;
   carCatalogID?: number;
   carCatalog?: CarCatalog;
+  carStateOfCharge?: number;
+  carOdometer?: number;
+  departureTime?: Date;
   phasesUsed?: CSPhasesUsed;
   companyID?: string;
   company?: Company;
@@ -95,7 +98,6 @@ export default interface Transaction extends AbstractCurrentConsumption {
   currentCumulatedPrice?: number;
   currentCumulatedRoundedPrice?: number; // added to address rounding issues on multiple pricing dimension
   currentSignedData?: string;
-  status?: ChargePointStatus;
   numberOfMeterValues: number;
   uniqueId?: string;
   values?: Consumption[];

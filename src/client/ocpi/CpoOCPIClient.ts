@@ -134,7 +134,7 @@ export default class CpoOCPIClient extends OCPIClient {
           } catch (error) {
             result.failure++;
             result.logs.push(
-              `Failed to update Issuer '${token.issuer}' - Token ID '${token.uid}': ${error.message as string}`
+              `Failed to update Issuer '${token.issuer}' - ID '${token.uid}': ${error.message as string}`
             );
           }
         },
@@ -175,7 +175,7 @@ export default class CpoOCPIClient extends OCPIClient {
     {
       location_id: chargingStation.siteID,
       // Gireve does not support authorization request on multiple EVSE
-      evse_uids: [OCPIUtils.buildEvseUID(chargingStation, connector)]
+      evse_uids: [RoamingUtils.buildEvseUID(chargingStation, connector.connectorId)]
     };
     // Call IOP
     const response = await this.axiosInstance.post(
@@ -216,8 +216,8 @@ export default class CpoOCPIClient extends OCPIClient {
       });
     }
     await Logging.logInfo({
-      tenantID: this.tenant.id,
       ...LoggingHelper.getChargingStationProperties(chargingStation),
+      tenantID: this.tenant.id,
       action: ServerAction.OCPI_AUTHORIZE_TOKEN,
       message: `OCPI Tag ID '${token.uid}' has been authorized successfully`,
       module: MODULE_NAME, method: 'authorizeToken',
@@ -230,7 +230,7 @@ export default class CpoOCPIClient extends OCPIClient {
     // Get tokens endpoint url
     const sessionsUrl = `${this.getEndpointUrl('sessions', ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalCountryCode(ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalPartyID(ServerAction.OCPI_PUSH_SESSIONS)}/${transaction.id.toString()}`;
     const site = await SiteStorage.getSite(this.tenant, chargingStation.siteID);
-    const ocpiLocation: OCPILocation = await this.convertChargingStationToOCPILocation(this.tenant, site, chargingStation,
+    const ocpiLocation: OCPILocation = this.convertChargingStationToOCPILocation(this.tenant, site, chargingStation,
       transaction.connectorId, this.getLocalCountryCode(ServerAction.OCPI_PUSH_SESSIONS), this.getLocalPartyID(ServerAction.OCPI_PUSH_SESSIONS));
     // Build payload
     const ocpiSession: OCPISession = {
@@ -261,8 +261,8 @@ export default class CpoOCPIClient extends OCPIClient {
       session: ocpiSession
     };
     await Logging.logInfo({
-      tenantID: this.tenant.id,
       ...LoggingHelper.getChargingStationProperties(chargingStation),
+      tenantID: this.tenant.id,
       action: ServerAction.OCPI_START_SESSION,
       message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OCPI Transaction has been started successfully`,
       module: MODULE_NAME, method: 'startSession',
@@ -462,13 +462,13 @@ export default class CpoOCPIClient extends OCPIClient {
           siteID: chargingStation.siteID,
           siteAreaID: chargingStation.siteAreaID,
           companyID: chargingStation.companyID
-        }, chargingStation.siteID, OCPIUtils.buildEvseUID(chargingStation, connector),
-        status ?? OCPIUtilsService.convertStatus2OCPIStatus(connector.status));
+        }, chargingStation.siteID, RoamingUtils.buildEvseUID(chargingStation, connector.connectorId),
+        status ?? OCPIUtils.convertStatus2OCPIStatus(connector.status));
       results.push(result.data);
     }
     await Logging.logInfo({
-      tenantID: this.tenant.id,
       ...LoggingHelper.getChargingStationProperties(chargingStation),
+      tenantID: this.tenant.id,
       action: ServerAction.OCPI_PATCH_STATUS,
       message: 'Charging Station has been removed successfully',
       module: MODULE_NAME, method: 'removeChargingStation',
@@ -507,7 +507,7 @@ export default class CpoOCPIClient extends OCPIClient {
       siteAreaID: chargingStation.siteAreaID,
       companyID: chargingStation.companyID,
     }, chargingStation.siteID,
-    OCPIUtils.buildEvseUID(chargingStation, connector), OCPIUtilsService.convertStatus2OCPIStatus(connector.status));
+    RoamingUtils.buildEvseUID(chargingStation, connector.connectorId), OCPIUtils.convertStatus2OCPIStatus(connector.status));
   }
 
   public async checkSessions(): Promise<OCPIResult> {
@@ -576,7 +576,7 @@ export default class CpoOCPIClient extends OCPIClient {
       partyID: this.getLocalPartyID(ServerAction.OCPI_CHECK_LOCATIONS)
     };
     // Get all EVSEs from all locations
-    const locations = await OCPIUtilsService.getAllLocations(this.tenant, 0, 0, options, true);
+    const locations = await OCPIUtilsService.getAllLocations(this.tenant, 0, 0, options, true, this.settings);
     if (!Utils.isEmptyArray(locations.result)) {
       await Promise.map(locations.result, async (location) => {
         if (location) {
@@ -688,7 +688,7 @@ export default class CpoOCPIClient extends OCPIClient {
       chargeBoxIDsToProcess = _.uniq(chargeBoxIDsToProcess);
     }
     // Get all locations
-    const locations = await OCPIUtilsService.getAllLocations(this.tenant, 0, 0, options, false);
+    const locations = await OCPIUtilsService.getAllLocations(this.tenant, 0, 0, options, false, this.settings);
     if (!Utils.isEmptyArray(locations.result)) {
       await Promise.map(locations.result, async (location) => {
         // Get the Charging Station should be processed
@@ -702,7 +702,7 @@ export default class CpoOCPIClient extends OCPIClient {
           }
           evses = await OCPIUtilsService.getEvsesFromSite(this.tenant, location.id, options,
             { skip: currentSkip, limit: Constants.DB_RECORD_COUNT_DEFAULT },
-            { chargingStationIDs });
+            { chargingStationIDs }, this.settings);
           // Loop through EVSE
           if (!Utils.isEmptyArray(evses)) {
             await Promise.map(evses, async (evse) => {
@@ -864,8 +864,8 @@ export default class CpoOCPIClient extends OCPIClient {
         },
       });
     await Logging.logInfo({
-      tenantID: this.tenant.id,
       ...LoggingHelper.getChargingStationProperties(chargingStation as ChargingStation),
+      tenantID: this.tenant.id,
       action: ServerAction.OCPI_PATCH_STATUS,
       message: `OCPI Charging Station ID '${evseUID}' has been patched successfully to '${newStatus}'`,
       module: MODULE_NAME, method: 'patchEVSEStatus',
@@ -1071,14 +1071,16 @@ export default class CpoOCPIClient extends OCPIClient {
     return chargingPeriods;
   }
 
-  private async convertChargingStationToOCPILocation(tenant: Tenant, site: Site, chargingStation: ChargingStation,
-      connectorId: number, countryId: string, partyId: string): Promise<OCPILocation> {
+  private convertChargingStationToOCPILocation(tenant: Tenant, site: Site, chargingStation: ChargingStation,
+      connectorID: number, countryID: string, partyID: string): OCPILocation {
+    const hasValidSiteGpsCoordinates = Utils.hasValidGpsCoordinates(site.address?.coordinates);
+    const hasValidChargingStationGpsCoordinates = Utils.hasValidGpsCoordinates(chargingStation?.coordinates);
     const connectors: OCPIConnector[] = [];
     let status: ChargePointStatus;
-    const connector = Utils.getConnectorFromID(chargingStation, connectorId);
+    const connector = Utils.getConnectorFromID(chargingStation, connectorID);
     let chargePoint;
     if (connector) {
-      connectors.push(await OCPIUtilsService.convertConnector2OCPIConnector(tenant, chargingStation, connector, countryId, partyId));
+      connectors.push(OCPIUtilsService.convertConnector2OCPIConnector(tenant, chargingStation, connector, countryID, partyID, this.settings));
       status = connector.status;
       chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
     }
@@ -1088,22 +1090,22 @@ export default class CpoOCPIClient extends OCPIClient {
       address: Utils.convertAddressToOneLine(site.address),
       city: site.address?.city,
       postal_code: site.address?.postalCode,
-      country: countries.getAlpha3Code(site.address.country, CountriesList.countries[countryId].languages[0]),
+      country: countries.getAlpha3Code(site.address.country, CountriesList.countries[countryID].languages[0]),
       coordinates: {
-        latitude: site.address?.coordinates[1]?.toString(),
-        longitude: site.address?.coordinates[0]?.toString()
+        longitude: hasValidSiteGpsCoordinates ? site.address.coordinates[0].toString() : Constants.SFDP_LONGITUDE.toString(),
+        latitude: hasValidSiteGpsCoordinates ? site.address.coordinates[1].toString() : Constants.SFDP_LATTITUDE.toString()
       },
       type: OCPILocationType.UNKNOWN,
       evses: [{
-        uid: OCPIUtils.buildEvseUID(chargingStation, Utils.getConnectorFromID(chargingStation, connectorId)),
-        evse_id: RoamingUtils.buildEvseID(countryId, partyId, chargingStation.id, chargePoint && chargePoint.cannotChargeInParallel ? chargePoint.chargePointID : connectorId),
+        uid: RoamingUtils.buildEvseUID(chargingStation, connectorID),
+        evse_id: RoamingUtils.buildEvseID(countryID, partyID, chargingStation, connectorID),
         location_id: chargingStation.siteID,
-        status: OCPIUtilsService.convertStatus2OCPIStatus(status),
+        status: OCPIUtils.convertStatus2OCPIStatus(status),
         capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
         connectors: connectors,
         coordinates: {
-          latitude: chargingStation.coordinates[1]?.toString(),
-          longitude: chargingStation.coordinates[0]?.toString()
+          longitude: hasValidChargingStationGpsCoordinates ? chargingStation.coordinates[0].toString() : Constants.SFDP_LONGITUDE.toString(),
+          latitude: hasValidChargingStationGpsCoordinates ? chargingStation.coordinates[1].toString() : Constants.SFDP_LATTITUDE.toString()
         },
         last_updated: chargingStation.lastSeen
       }],

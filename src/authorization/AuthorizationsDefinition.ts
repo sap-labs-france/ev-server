@@ -98,7 +98,6 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   },
   admin: {
     grants: [
-      { resource: Entity.USER, action: Action.SYNCHRONIZE_BILLING_USERS },
       {
         resource: Entity.USER,
         action: [
@@ -184,7 +183,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['LocalIssuer'],
+            filters: [],
           }
         },
         attributes: [
@@ -305,7 +304,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.CHARGING_STATION, action: [Action.LIST, Action.IN_ERROR],
         attributes: [
-          'id', 'inactive', 'public', 'chargingStationURL', 'issuer', 'maximumPower', 'excludeFromSmartCharging', 'lastReboot',
+          'id', 'inactive', 'public', 'chargingStationURL', 'issuer', 'maximumPower', 'masterSlave', 'excludeFromSmartCharging', 'lastReboot',
           'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.smartCharging', 'siteArea.siteID',
           'site.id', 'site.name', 'siteID', 'voltage', 'coordinates', 'forceInactive', 'manualConfiguration', 'firmwareUpdateStatus',
           'capabilities', 'endpoint', 'chargePointVendor', 'chargePointModel', 'ocppVersion', 'ocppProtocol', 'lastSeen',
@@ -425,7 +424,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.ASSET, action: Action.LIST,
         attributes: [
           'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteID', 'assetType', 'coordinates',
-          'dynamicAsset', 'usesPushAPI', 'connectionID', 'meterID', 'currentInstantWatts', 'currentStateOfCharge', 'issuer'
+          'dynamicAsset', 'usesPushAPI', 'connectionID', 'meterID', 'currentInstantWatts', 'currentStateOfCharge', 'issuer',
+          'site.id', 'site.name'
         ]
       },
       {
@@ -502,6 +502,18 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       {
         resource: Entity.CAR, action: Action.LIST,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: [],
+            metadata: {
+              createPoolCar: {
+                visible: true
+              }
+            }
+          }
+        },
         attributes: [
           'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'createdOn', 'lastChangedOn',
           'carCatalog.id', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
@@ -727,7 +739,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.CHARGING_STATION, action: Action.LIST,
         attributes: [
-          'id', 'inactive', 'public', 'chargingStationURL', 'issuer', 'maximumPower', 'excludeFromSmartCharging', 'lastReboot',
+          'id', 'inactive', 'public', 'chargingStationURL', 'issuer', 'maximumPower', 'masterSlave', 'excludeFromSmartCharging', 'lastReboot',
           'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.smartCharging', 'siteArea.siteID',
           'site.id', 'site.name', 'siteID', 'voltage', 'coordinates', 'forceInactive', 'manualConfiguration', 'firmwareUpdateStatus',
           'capabilities', 'endpoint', 'chargePointVendor', 'chargePointModel', 'ocppVersion', 'ocppProtocol', 'lastSeen',
@@ -872,7 +884,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.ASSET, action: Action.LIST,
         attributes: [
           'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteID', 'assetType', 'coordinates',
-          'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts', 'currentStateOfCharge'
+          'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts', 'currentStateOfCharge', 'site.id', 'site.name'
         ]
       },
       { resource: Entity.ASSET, action: Action.READ },
@@ -976,7 +988,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.CHARGING_STATION, action: Action.LIST,
         attributes: [
-          'id', 'inactive', 'public', 'chargingStationURL', 'issuer', 'maximumPower', 'excludeFromSmartCharging', 'lastReboot',
+          'id', 'inactive', 'public', 'chargingStationURL', 'issuer', 'maximumPower', 'masterSlave', 'excludeFromSmartCharging', 'lastReboot',
           'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.smartCharging', 'siteArea.siteID',
           'site.id', 'site.name', 'siteID', 'voltage', 'coordinates', 'forceInactive', 'manualConfiguration', 'firmwareUpdateStatus',
           'capabilities', 'endpoint', 'chargePointVendor', 'chargePointModel', 'ocppVersion', 'ocppProtocol', 'lastSeen',
@@ -1171,7 +1183,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteID', 'assetType', 'coordinates',
           'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts', 'currentStateOfCharge', 'excludeFromSmartCharging',
-          'staticValueWatt', 'variationThresholdPercent', 'fluctuationPercent'
+          'staticValueWatt', 'variationThresholdPercent', 'fluctuationPercent', 'site.id', 'site.name'
         ],
       },
       {
@@ -1210,7 +1222,12 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['SitesAdmin']
+            filters: ['SitesAdmin'],
+            metadata: {
+              createPoolCar: {
+                visible: true
+              }
+            }
           }
         },
         attributes: [

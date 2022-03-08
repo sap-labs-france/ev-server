@@ -59,7 +59,7 @@ const config = convict({
       port: {
         doc: 'The OCPP server port to bind.',
         format: 'port',
-        default: 8010,
+        default: 8001,
         env: 'OCPP_JSON_PORT',
         arg: 'ocpp_json_port'
       },
@@ -87,7 +87,7 @@ const config = convict({
     port: {
       doc: 'The OCPI server port to bind.',
       format: 'port',
-      default: 9090,
+      default: 8004,
       env: 'OCPI_PORT',
       arg: 'ocpi_port'
     },
@@ -132,7 +132,7 @@ const config = convict({
     port: {
       doc: 'The SERVER server port to bind.',
       format: 'port',
-      default: 8081,
+      default: 8002,
       env: 'SERVER_PORT',
       arg: 'server_port'
     },

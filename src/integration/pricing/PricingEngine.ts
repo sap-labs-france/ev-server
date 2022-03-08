@@ -22,19 +22,19 @@ export default class PricingEngine {
     // Merge the pricing definitions from the different contexts
     const pricingDefinitions: ResolvedPricingDefinition[] = [];
     // pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction.userID));
-    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.CHARGING_STATION, transaction.chargeBoxID.toString()));
-    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.SITE_AREA, transaction.siteAreaID.toString()));
-    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.SITE, transaction.siteID.toString()));
-    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.COMPANY, transaction.companyID.toString()));
+    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.CHARGING_STATION, transaction.chargeBoxID?.toString()));
+    // pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.SITE_AREA, transaction.siteAreaID?.toString()));
+    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.SITE, transaction.siteID?.toString()));
+    // pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.COMPANY, transaction.companyID?.toString()));
     pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.TENANT, tenant.id));
     if (!transaction.timezone) {
       await Logging.logWarning({
+        ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: tenant.id,
         module: MODULE_NAME,
         action: ServerAction.PRICING,
         method: 'resolvePricingContext',
         message: 'Unexpected situation: The timezone of the transaction is unknown. Make sure the location of the charging station is properly set!',
-        ...LoggingHelper.getTransactionProperties(transaction)
       });
     }
     // Return the resolution result as a resolved pricing model
@@ -47,13 +47,13 @@ export default class PricingEngine {
       pricingDefinitions
     };
     await Logging.logInfo({
+      ...LoggingHelper.getTransactionProperties(transaction),
       tenantID: tenant.id,
       module: MODULE_NAME,
       action: ServerAction.PRICING,
       method: 'resolvePricingContext',
       message: `Pricing context has been resolved - ${pricingDefinitions.length} pricing definitions have been found`,
       detailedMessages: { resolvedPricingModel },
-      ...LoggingHelper.getTransactionProperties(transaction)
     });
     return Promise.resolve(resolvedPricingModel);
   }
@@ -64,6 +64,10 @@ export default class PricingEngine {
   }
 
   public static extractFinalPricingData(pricingModel: ResolvedPricingModel): PricedConsumptionData[] {
+    if (!pricingModel) {
+      // Happens only when billing "ghost" sessions that were created with the former "Simple Pricing" module
+      return [];
+    }
     // Iterate throw the list of pricing definitions
     const pricedData: PricedConsumptionData[] = pricingModel.pricingDefinitions.map((pricingDefinition) =>
       PricingEngine.extractFinalPricedConsumptionData(pricingDefinition)
@@ -73,6 +77,17 @@ export default class PricingEngine {
   }
 
   private static async getPricingDefinitions4Entity(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, entityType: PricingEntity, entityID: string): Promise<ResolvedPricingDefinition[]> {
+    if (!entityID) {
+      await Logging.logWarning({
+        ...LoggingHelper.getTransactionProperties(transaction),
+        tenantID: tenant.id,
+        module: MODULE_NAME,
+        action: ServerAction.PRICING,
+        method: 'getPricingDefinitions4Entity',
+        message: `Pricing context resolution - unexpected situation - entity ID is null for type ${entityType}`,
+      });
+      return [];
+    }
     let pricingDefinitions = await PricingEngine.fetchPricingDefinitions4Entity(tenant, entityType, entityID);
     pricingDefinitions = pricingDefinitions || [];
     const actualPricingDefinitions = pricingDefinitions.filter((pricingDefinition) =>
@@ -83,12 +98,12 @@ export default class PricingEngine {
       PricingEngine.shrinkPricingDefinition(pricingDefinition)
     );
     await Logging.logDebug({
+      ...LoggingHelper.getTransactionProperties(transaction),
       tenantID: tenant.id,
       module: MODULE_NAME,
       action: ServerAction.PRICING,
       method: 'getPricingDefinitions4Entity',
       message: `Pricing context resolution - ${actualPricingDefinitions.length || 0} pricing definitions found for ${entityType}: '${entityID}'`,
-      ...LoggingHelper.getTransactionProperties(transaction)
     });
     return actualPricingDefinitions || [];
   }
@@ -129,7 +144,7 @@ export default class PricingEngine {
       entityID: pricingDefinition.entityID,
       entityType: pricingDefinition.entityType,
       name: pricingDefinition.name,
-      description: pricingDefinition.name,
+      description: pricingDefinition.description,
       staticRestrictions: pricingDefinition.staticRestrictions,
       restrictions: pricingDefinition.restrictions,
       dimensions: pricingDefinition.dimensions,

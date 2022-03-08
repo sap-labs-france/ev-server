@@ -35,9 +35,11 @@ export default class SchemaValidator {
   private static registrationTokenSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/registration-token/registration-token.json`, 'utf8'));
   private static siteAreasSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/site-area/site-area.json`, 'utf8'));
   private static siteSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/site/site.json`, 'utf8'));
+
+  protected moduleName: string;
   private readonly ajv: Ajv;
 
-  constructor(readonly moduleName: string,
+  protected constructor(moduleName: string,
       config: Options = {
         strict: false, // When 'true', it fails with anyOf required fields: https://github.com/ajv-validator/ajv/issues/1571
         allErrors: true,
@@ -47,6 +49,7 @@ export default class SchemaValidator {
         coerceTypes: true,
         verbose: true,
       }) {
+    this.moduleName = moduleName;
     // Create AJV
     this.ajv = new Ajv(config);
     // Add keywords
@@ -150,6 +153,10 @@ export default class SchemaValidator {
           // Convert to Mongo ObjectID
           if (data && schema === 'objectId') {
             dataValidationCxt.parentData[dataValidationCxt.parentDataProperty] = new ObjectId(data);
+          }
+          // Convert to Date
+          if (data && schema === 'date') {
+            dataValidationCxt.parentData[dataValidationCxt.parentDataProperty] = new Date(data);
           }
           return true;
         };

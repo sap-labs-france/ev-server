@@ -57,7 +57,7 @@ export default class CompanyStorage {
         department: companyToSave.address.department,
         region: companyToSave.address.region,
         country: companyToSave.address.country,
-        coordinates: Utils.containsGPSCoordinates(companyToSave.address.coordinates) ? companyToSave.address.coordinates.map(
+        coordinates: Utils.hasValidGpsCoordinates(companyToSave.address.coordinates) ? companyToSave.address.coordinates.map(
           (coordinate) => Utils.convertToFloat(coordinate)) : [],
       };
     }
@@ -92,7 +92,7 @@ export default class CompanyStorage {
     // Create Aggregation
     const aggregation = [];
     // Position coordinates
-    if (Utils.containsGPSCoordinates(params.locCoordinates)) {
+    if (Utils.hasValidGpsCoordinates(params.locCoordinates)) {
       aggregation.push({
         $geoNear: {
           near: {
@@ -110,11 +110,15 @@ export default class CompanyStorage {
     if (params.search) {
       filters.$or = [
         { 'name': { $regex: params.search, $options: 'i' } },
+        { 'address.address1': { $regex: params.search, $options: 'i' } },
         { 'address.postalCode': { $regex: params.search, $options: 'i' } },
         { 'address.city': { $regex: params.search, $options: 'i' } },
         { 'address.region': { $regex: params.search, $options: 'i' } },
         { 'address.country': { $regex: params.search, $options: 'i' } },
       ];
+      if (DatabaseUtils.isObjectID(params.search)) {
+        filters.$or.push({ '_id': DatabaseUtils.convertToObjectID(params.search) });
+      }
     }
     // Limit on Company for Basic Users
     if (!Utils.isEmptyArray(params.companyIDs)) {
@@ -161,7 +165,7 @@ export default class CompanyStorage {
       dbParams.sort = { name: 1 };
     }
     // Position coordinates
-    if (Utils.containsGPSCoordinates(params.locCoordinates)) {
+    if (Utils.hasValidGpsCoordinates(params.locCoordinates)) {
       dbParams.sort = { distanceMeters: 1 };
     }
     aggregation.push({

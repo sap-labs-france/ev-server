@@ -1,21 +1,23 @@
-import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
-import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
+import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser } from '../../types/Billing';
+import Tenant, { TenantComponents } from '../../types/Tenant';
 import Transaction, { StartTransactionErrorCode } from '../../types/Transaction';
 import User, { UserStatus } from '../../types/User';
 
 import BackendError from '../../exception/BackendError';
+import { BillingPeriodicOperationTaskConfig } from '../../types/TaskConfig';
 import { BillingSettings } from '../../types/Setting';
 import BillingStorage from '../../storage/mongodb/BillingStorage';
+import ChargingStation from '../../types/ChargingStation';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import { Decimal } from 'decimal.js';
 import Logging from '../../utils/Logging';
+import LoggingHelper from '../../utils/LoggingHelper';
 import NotificationHandler from '../../notification/NotificationHandler';
 import { Promise } from 'bluebird';
 import { Request } from 'express';
 import { ServerAction } from '../../types/Server';
-import SettingStorage from '../../storage/mongodb/SettingStorage';
-import Tenant from '../../types/Tenant';
+import SiteArea from '../../types/SiteArea';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
@@ -23,7 +25,6 @@ import Utils from '../../utils/Utils';
 import moment from 'moment';
 
 const MODULE_NAME = 'BillingIntegration';
-
 export default abstract class BillingIntegration {
   // Production Mode is set to true when the target account is a live one!
   protected productionMode = false;
@@ -34,55 +35,6 @@ export default abstract class BillingIntegration {
   protected constructor(tenant: Tenant, settings: BillingSettings) {
     this.tenant = tenant;
     this.settings = settings;
-  }
-
-  public async synchronizeUsers(): Promise<BillingUserSynchronizeAction> {
-    await this.checkConnection();
-    const actionsDone: BillingUserSynchronizeAction = {
-      inSuccess: 0,
-      inError: 0
-    };
-    if (FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USERS)) {
-      // Sync e-Mobility Users with no billing data
-      const users = await this._getUsersWithNoBillingData();
-      if (!Utils.isEmptyArray(users)) {
-        // Process them
-        await Logging.logInfo({
-          tenantID: this.tenant.id,
-          action: ServerAction.BILLING_SYNCHRONIZE_USERS,
-          module: MODULE_NAME, method: 'synchronizeUsers',
-          message: `${users.length} new user(s) are going to be synchronized`
-        });
-        for (const user of users) {
-          // Synchronize user
-          if (await this.synchronizeUser(user)) {
-            actionsDone.inSuccess++;
-          } else {
-            actionsDone.inError++;
-          }
-        }
-      }
-    } else {
-      await Logging.logWarning({
-        tenantID: this.tenant.id,
-        action: ServerAction.BILLING_SYNCHRONIZE_USERS,
-        module: MODULE_NAME, method: 'synchronizeUsers',
-        message: 'Feature is switched OFF - operation has been aborted'
-      });
-    }
-    // Log
-    await Logging.logActionsResponse(this.tenant.id, ServerAction.BILLING_SYNCHRONIZE_USERS,
-      MODULE_NAME, 'synchronizeUsers', actionsDone,
-      '{{inSuccess}} user(s) were successfully synchronized',
-      '{{inError}} user(s) failed to be synchronized',
-      '{{inSuccess}} user(s) were successfully synchronized and {{inError}} failed to be synchronized',
-      'All the users are up to date'
-    );
-    // Update last synchronization
-    this.settings.billing.usersLastSynchronizedOn = new Date();
-    await SettingStorage.saveBillingSetting(this.tenant, this.settings);
-    // Result
-    return actionsDone;
   }
 
   public async synchronizeUser(user: User): Promise<BillingUser> {
@@ -142,22 +94,7 @@ export default abstract class BillingIntegration {
     return billingUser;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async synchronizeInvoices(user?: User): Promise<BillingUserSynchronizeAction> {
-    const actionsDone: BillingUserSynchronizeAction = {
-      inSuccess: 0,
-      inError: 0
-    };
-    await Logging.logWarning({
-      tenantID: this.tenant.id,
-      action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
-      module: MODULE_NAME, method: 'synchronizeInvoices',
-      message: 'Method is deprecated - operation skipped'
-    });
-    return actionsDone;
-  }
-
-  public async chargeInvoices(forceOperation = false): Promise<BillingChargeInvoiceAction> {
+  public async chargeInvoices(taskConfig: BillingPeriodicOperationTaskConfig): Promise<BillingChargeInvoiceAction> {
     const actionsDone: BillingChargeInvoiceAction = {
       inSuccess: 0,
       inError: 0
@@ -165,7 +102,19 @@ export default abstract class BillingIntegration {
     // Check connection
     await this.checkConnection();
     // Prepare filtering and sorting
-    const { filter, sort, limit } = this.preparePeriodicBillingQueryParameters(forceOperation);
+    let queryParameters : { limit: number, sort: Record<string, unknown>, filter: Record<string, unknown> };
+    if (taskConfig?.onlyProcessUnpaidInvoices) {
+      // ACHTUNG - Job configuration is sensitive - Too many payment retries may violate card network rules
+      queryParameters = this.prepareRetryPaymentQueryParameters(taskConfig?.forceOperation);
+    } else {
+      queryParameters = this.preparePeriodicBillingQueryParameters(taskConfig?.forceOperation);
+    }
+    if (!queryParameters) {
+      // Nothing to do!
+      return actionsDone;
+    }
+    // Let's perform the operation
+    const { filter, sort, limit } = queryParameters;
     let skip = 0;
     // eslint-disable-next-line no-constant-condition
     while (true) {
@@ -176,12 +125,8 @@ export default abstract class BillingIntegration {
       skip += limit;
       for (const invoice of invoices.result) {
         try {
-          // Skip invoices that are already PAID or not relevant for the current billing process
-          if (this.isInvoiceOutOfPeriodicOperationScope(invoice)) {
-            continue;
-          }
           // Make sure to avoid trying to charge it again too soon
-          if (!forceOperation && moment(invoice.createdOn).isSame(moment(), 'day')) {
+          if (!taskConfig?.forceOperation && moment(invoice.createdOn).isSame(moment(), 'day')) {
             actionsDone.inSuccess++;
             await Logging.logWarning({
               tenantID: this.tenant.id,
@@ -193,7 +138,7 @@ export default abstract class BillingIntegration {
             continue;
           }
           const newInvoice = await this.chargeInvoice(invoice);
-          if (this.isInvoiceOutOfPeriodicOperationScope(newInvoice)) {
+          if (this.isInvoiceOutOfPaginationScope(newInvoice, taskConfig)) {
             // The new invoice may now have a different status - and this impacts the pagination
             skip--; // This is very important!
           }
@@ -228,9 +173,9 @@ export default abstract class BillingIntegration {
         // Send link to the user using our notification framework (link to the front-end + download)
         const tenant = await TenantStorage.getTenant(this.tenant.id);
         // Stripe saves amount in cents
-        const decimInvoiceAmount = new Decimal(billingInvoice.amount).div(100);
-        // Format amunt with currency symbol depending on locale
-        const invoiceAmount = new Intl.NumberFormat(Utils.convertLocaleForCurrency(billingInvoice.user.locale), { style: 'currency', currency: billingInvoice.currency.toUpperCase() }).format(decimInvoiceAmount.toNumber());
+        const invoiceAmountAsDecimal = new Decimal(billingInvoice.amount).div(100);
+        // Format amount with currency symbol depending on locale
+        const invoiceAmount = new Intl.NumberFormat(Utils.convertLocaleForCurrency(billingInvoice.user.locale), { style: 'currency', currency: billingInvoice.currency.toUpperCase() }).format(invoiceAmountAsDecimal.toNumber());
         // Send async notification
         void NotificationHandler.sendBillingNewInvoiceNotification(
           this.tenant,
@@ -264,13 +209,13 @@ export default abstract class BillingIntegration {
     }
   }
 
-  public checkStopTransaction(transaction: Transaction): void {
+  public checkBillTransaction(transaction: Transaction): void {
     // Check User
     if (!transaction.userID || !transaction.user) {
       throw new BackendError({
         message: 'User is not provided',
         module: MODULE_NAME,
-        method: 'checkStopTransaction',
+        method: 'checkBillTransaction',
         action: ServerAction.BILLING_TRANSACTION
       });
     }
@@ -279,7 +224,7 @@ export default abstract class BillingIntegration {
       throw new BackendError({
         message: 'Charging Station is not provided',
         module: MODULE_NAME,
-        method: 'checkStopTransaction',
+        method: 'checkBillTransaction',
         action: ServerAction.BILLING_TRANSACTION
       });
     }
@@ -288,43 +233,130 @@ export default abstract class BillingIntegration {
       throw new BackendError({
         message: 'User has no Billing Data',
         module: MODULE_NAME,
-        method: 'checkStopTransaction',
+        method: 'checkBillTransaction',
         action: ServerAction.BILLING_TRANSACTION
       });
     }
   }
 
-  public checkStartTransaction(transaction: Transaction): void {
+  public checkStartTransaction(transaction: Transaction, chargingStation: ChargingStation, siteArea: SiteArea): boolean {
+    if (!this.settings.billing.isTransactionBillingActivated) {
+      return false;
+    }
     // Check User
     if (!transaction.userID || !transaction.user) {
       throw new BackendError({
-        message: 'User is not provided',
+        message: 'User ID is not provided',
         module: MODULE_NAME,
         method: 'checkStartTransaction',
         action: ServerAction.BILLING_TRANSACTION
       });
     }
-    // Check Billing Data (only in Live Mode)
+    // Check Free Access
+    if (transaction.user.freeAccess) {
+      return false;
+    }
+    if (!chargingStation) {
+      throw new BackendError({
+        message: 'The Charging Station is mandatory to start a Transaction',
+        module: MODULE_NAME,
+        method: 'checkStartTransaction',
+        action: ServerAction.BILLING_TRANSACTION
+      });
+    }
+    if (Utils.isTenantComponentActive(this.tenant, TenantComponents.ORGANIZATION)) {
+      // Check for the Site Area
+      if (!siteArea) {
+        throw new BackendError({
+          message: 'The Site Area is mandatory to start a Transaction',
+          module: MODULE_NAME,
+          method: 'checkStartTransaction',
+          action: ServerAction.BILLING_TRANSACTION
+        });
+      }
+      if (!siteArea.accessControl) {
+        return false;
+      }
+    }
+    // Check Billing Data
     if (!transaction.user?.billingData?.customerID) {
       throw new BackendError({
-        message: 'User has no billing data or no customer ID',
+        message: 'User has no Billing data or no Customer ID',
         module: MODULE_NAME,
         method: 'checkStartTransaction',
         action: ServerAction.BILLING_TRANSACTION
       });
     }
+    return true;
   }
 
-  private async _getUsersWithNoBillingData(): Promise<User[]> {
-    const newUsers = await UserStorage.getUsers(this.tenant,
-      {
-        statuses: [UserStatus.ACTIVE],
-        notSynchronizedBillingData: true
-      }, Constants.DB_PARAMS_MAX_LIMIT);
-    if (newUsers.count > 0) {
-      return newUsers.result;
+  protected async updateTransactionsBillingData(billingInvoice: BillingInvoice): Promise<void> {
+    if (!billingInvoice.sessions) {
+      // This should not happen - but it happened once!
+      throw new Error(`Unexpected situation - Invoice ID '${billingInvoice.id}' has no sessions attached to it`);
     }
-    return [];
+    await Promise.all(billingInvoice.sessions.map(async (session) => {
+      const transactionID = session.transactionID;
+      try {
+        const transaction = await TransactionStorage.getTransaction(this.tenant, Number(transactionID));
+        // Update Billing Data
+        if (transaction?.billingData?.stop) {
+          transaction.billingData.stop.invoiceStatus = billingInvoice.status;
+          transaction.billingData.stop.invoiceNumber = billingInvoice.number;
+          transaction.billingData.lastUpdate = new Date();
+          // Save
+          await TransactionStorage.saveTransactionBillingData(this.tenant, transaction.id, transaction.billingData);
+        }
+      } catch (error) {
+        // Catch stripe errors and send the information back to the client
+        await Logging.logError({
+          tenantID: this.tenant.id,
+          action: ServerAction.BILLING_CHARGE_INVOICE,
+          actionOnUser: billingInvoice.user,
+          module: MODULE_NAME, method: 'updateTransactionsBillingData',
+          message: `Failed to update Transaction Billing data of Transaction ID '${transactionID}'`,
+          detailedMessages: { error: error.stack }
+        });
+      }
+    }));
+  }
+
+  protected async checkBillingDataThreshold(transaction: Transaction): Promise<boolean> {
+    // Do not bill suspicious StopTransaction events
+    if (!Utils.isDevelopmentEnv()) {
+    // Suspicious StopTransaction may occur after a 'Housing temperature approaching limit' error on some charging stations
+      const timeSpent = this.computeTimeSpentInSeconds(transaction);
+      // TODO - make it part of the pricing or billing settings!
+      if (timeSpent < 60 /* seconds */ || transaction.stop.totalConsumptionWh < 1000 /* 1kWh */) {
+        await Logging.logWarning({
+          ...LoggingHelper.getTransactionProperties(transaction),
+          tenantID: this.tenant.id,
+          user: transaction.userID,
+          action: ServerAction.BILLING_TRANSACTION,
+          module: MODULE_NAME, method: 'stopTransaction',
+          message: `Transaction data is suspicious - Billing operation has been aborted for Transaction ID '${transaction.id}'`,
+        });
+        // Abort the billing process - thresholds are not met!
+        return false;
+      }
+    }
+    // billing data sounds correct
+    return true;
+  }
+
+  protected computeTimeSpentInSeconds(transaction: Transaction): number {
+    let totalDuration: number;
+    if (!transaction.stop) {
+      totalDuration = moment.duration(moment(transaction.lastConsumption.timestamp).diff(moment(transaction.timestamp))).asSeconds();
+    } else {
+      totalDuration = moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
+    }
+    return totalDuration;
+  }
+
+  protected convertTimeSpentToString(transaction: Transaction): string {
+    const totalDuration = this.computeTimeSpentInSeconds(transaction);
+    return moment.duration(totalDuration, 's').format('h[h]mm', { trim: false });
   }
 
   private async _synchronizeUser(user: User, forceMode = false): Promise<BillingUser> {
@@ -366,36 +398,36 @@ export default abstract class BillingIntegration {
     await Logging.logInfo({
       tenantID: this.tenant.id,
       action: ServerAction.BILLING_TEST_DATA_CLEANUP,
-      module: MODULE_NAME, method: '_clearAllInvoiceTestData',
+      module: MODULE_NAME, method: 'clearTestData',
       message: 'Starting test data cleanup'
     });
-    await this._clearAllInvoiceTestData();
+    await this.clearAllInvoiceTestData();
     await Logging.logInfo({
       tenantID: this.tenant.id,
       action: ServerAction.BILLING_TEST_DATA_CLEANUP,
-      module: MODULE_NAME, method: '_clearAllInvoiceTestData',
+      module: MODULE_NAME, method: 'clearTestData',
       message: 'Invoice Test data cleanup has been completed'
     });
-    await this._clearAllUsersTestData();
+    await this.clearAllUsersTestData();
     await Logging.logInfo({
       tenantID: this.tenant.id,
       action: ServerAction.BILLING_TEST_DATA_CLEANUP,
-      module: MODULE_NAME, method: '_clearAllInvoiceTestData',
+      module: MODULE_NAME, method: 'clearTestData',
       message: 'User Test data cleanup has been completed'
     });
   }
 
-  private async _clearAllInvoiceTestData(): Promise<void> {
+  private async clearAllInvoiceTestData(): Promise<void> {
     const invoices: DataResult<BillingInvoice> = await BillingStorage.getInvoices(this.tenant, { liveMode: false }, Constants.DB_PARAMS_MAX_LIMIT);
     // Let's now finalize all invoices and attempt to get it paid
     for (const invoice of invoices.result) {
       try {
-        await this._clearInvoiceTestData(invoice);
+        await this.clearInvoiceTestData(invoice);
         await Logging.logInfo({
           tenantID: this.tenant.id,
           action: ServerAction.BILLING_TEST_DATA_CLEANUP,
           actionOnUser: invoice.user,
-          module: MODULE_NAME, method: '_clearAllInvoiceTestData',
+          module: MODULE_NAME, method: 'clearAllInvoiceTestData',
           message: `Successfully clear test data for invoice '${invoice.id}'`
         });
       } catch (error) {
@@ -403,7 +435,7 @@ export default abstract class BillingIntegration {
           tenantID: this.tenant.id,
           action: ServerAction.BILLING_TEST_DATA_CLEANUP,
           actionOnUser: invoice.user,
-          module: MODULE_NAME, method: '_clearAllInvoiceTestData',
+          module: MODULE_NAME, method: 'clearAllInvoiceTestData',
           message: `Failed to clear invoice test data - Invoice: '${invoice.id}'`,
           detailedMessages: { error: error.stack }
         });
@@ -411,20 +443,20 @@ export default abstract class BillingIntegration {
     }
   }
 
-  private async _clearInvoiceTestData(billingInvoice: BillingInvoice): Promise<void> {
+  private async clearInvoiceTestData(billingInvoice: BillingInvoice): Promise<void> {
     if (billingInvoice.liveMode) {
       throw new BackendError({
-        message: 'Unexpected situation - attempt to clear an invoice with live billing data',
+        message: 'Unexpected situation - Attempt to clear an invoice with live Billing data',
         module: MODULE_NAME,
-        method: '_clearInvoiceTestData',
+        method: 'clearInvoiceTestData',
         action: ServerAction.BILLING_TEST_DATA_CLEANUP
       });
     }
-    await this._clearTransactionsTestData(billingInvoice);
+    await this.clearTransactionsTestData(billingInvoice);
     await BillingStorage.deleteInvoice(this.tenant, billingInvoice.id);
   }
 
-  private async _clearTransactionsTestData(billingInvoice: BillingInvoice): Promise<void> {
+  private async clearTransactionsTestData(billingInvoice: BillingInvoice): Promise<void> {
     await Promise.all(billingInvoice.sessions.map(async (session) => {
       const transactionID = session.transactionID;
       try {
@@ -447,33 +479,33 @@ export default abstract class BillingIntegration {
         await Logging.logError({
           tenantID: this.tenant.id,
           action: ServerAction.BILLING_TEST_DATA_CLEANUP,
-          module: MODULE_NAME, method: '_clearTransactionsTestData',
-          message: 'Failed to clear transaction billing data',
+          module: MODULE_NAME, method: 'clearTransactionsTestData',
+          message: 'Failed to clear transaction Billing data',
           detailedMessages: { error: error.stack }
         });
       }
     }));
   }
 
-  private async _clearAllUsersTestData(): Promise<void> {
-    const users: User[] = await this._getUsersWithTestBillingData();
+  private async clearAllUsersTestData(): Promise<void> {
+    const users: User[] = await this.getUsersWithTestBillingData();
     // Let's now finalize all invoices and attempt to get it paid
     for (const user of users) {
       try {
-        await this._clearUserTestBillingData(user);
+        await this.clearUserTestBillingData(user);
         await Logging.logInfo({
           tenantID: this.tenant.id,
           action: ServerAction.BILLING_TEST_DATA_CLEANUP,
           actionOnUser: user,
-          module: MODULE_NAME, method: '_clearAllUsersTestData',
-          message: `Successfully cleared user test data for invoice '${user.id}'`
+          module: MODULE_NAME, method: 'clearAllUsersTestData',
+          message: `Successfully cleared user test data for Invoice of User ID '${user.id}'`
         });
       } catch (error) {
         await Logging.logError({
           tenantID: this.tenant.id,
           action: ServerAction.BILLING_TEST_DATA_CLEANUP,
           actionOnUser: user,
-          module: MODULE_NAME, method: '_clearAllUsersTestData',
+          module: MODULE_NAME, method: 'clearAllUsersTestData',
           message: `Failed to clear user test data - User: '${user.id}'`,
           detailedMessages: { error: error.stack }
         });
@@ -481,7 +513,7 @@ export default abstract class BillingIntegration {
     }
   }
 
-  private async _getUsersWithTestBillingData(): Promise<User[]> {
+  private async getUsersWithTestBillingData(): Promise<User[]> {
     // Get the users where billingData.liveMode is set to false
     const users = await UserStorage.getUsers(this.tenant,
       {
@@ -494,12 +526,12 @@ export default abstract class BillingIntegration {
     return [];
   }
 
-  private async _clearUserTestBillingData(user: User): Promise<void> {
+  private async clearUserTestBillingData(user: User): Promise<void> {
     if (user?.billingData?.liveMode) {
       throw new BackendError({
-        message: 'Unexpected situation - attempt to clear a user with live billing data',
+        message: 'Unexpected situation - Attempt to clear an User with live Billing data',
         module: MODULE_NAME,
-        method: '_clearUserTestBillingData',
+        method: 'clearUserTestBillingData',
         action: ServerAction.BILLING_TEST_DATA_CLEANUP
       });
     }
@@ -507,17 +539,26 @@ export default abstract class BillingIntegration {
     await UserStorage.saveUserBillingData(this.tenant, user.id, null);
   }
 
-  private isInvoiceOutOfPeriodicOperationScope(invoice: BillingInvoice): boolean {
-    if (invoice.status === BillingInvoiceStatus.DRAFT && this.settings.billing?.periodicBillingAllowed) {
-      return false;
+  private isInvoiceInPaginationScope(invoice: BillingInvoice, taskConfig: BillingPeriodicOperationTaskConfig): boolean {
+    if (taskConfig.onlyProcessUnpaidInvoices) {
+      if (invoice.status === BillingInvoiceStatus.OPEN) {
+        return true;
+      }
+    } else if (invoice.status === BillingInvoiceStatus.DRAFT) {
+      return true;
     }
-    if (invoice.status === BillingInvoiceStatus.OPEN) {
-      return false;
-    }
-    return true;
+    return false;
+  }
+
+  private isInvoiceOutOfPaginationScope(invoice: BillingInvoice, taskConfig: BillingPeriodicOperationTaskConfig): boolean {
+    return !this.isInvoiceInPaginationScope(invoice, taskConfig);
   }
 
   private preparePeriodicBillingQueryParameters(forceOperation: boolean): { limit: number, sort: Record<string, unknown>, filter: Record<string, unknown> } {
+    if (!this.settings.billing?.periodicBillingAllowed) {
+      // Nothing to do - periodic billing is OFF
+      return null;
+    }
     // Prepare filtering to process Invoices of the previous month
     let startDateTime: Date, endDateTime: Date, limit: number;
     if (forceOperation) {
@@ -532,14 +573,39 @@ export default abstract class BillingIntegration {
       endDateTime = moment().date(1).startOf('day').toDate(); // 1st day of this month 00:00:00 (AM)
     }
     // Filter the invoice status based on the billing settings
-    let invoiceStatus;
-    if (this.settings.billing?.periodicBillingAllowed) {
-      // Let's finalize DRAFT invoices and trigger a payment attemnpt for unpaid invoices as well
-      invoiceStatus = [ BillingInvoiceStatus.DRAFT, BillingInvoiceStatus.OPEN ];
+    const invoiceStatus = [ BillingInvoiceStatus.DRAFT ];
+    // Now return the query parameters
+    return {
+      // --------------------------------------------------------------------------------
+      // ACHTUNG!!! Make sure to adapt the paging logic when the data used for filtering
+      // is also updated by the periodic operation
+      // --------------------------------------------------------------------------------
+      filter: {
+        startDateTime,
+        endDateTime,
+        invoiceStatus
+      },
+      limit,
+      sort: { createdOn: 1 } // Sort by creation date - process the eldest first!
+    };
+  }
+
+  private prepareRetryPaymentQueryParameters(forceOperation: boolean): { limit: number, sort: Record<string, unknown>, filter: Record<string, unknown> } {
+    // Prepare filtering to process Invoices of the previous month
+    let startDateTime: Date, endDateTime: Date, limit: number;
+    if (forceOperation) {
+      // Only used when running tests
+      limit = 1; // Specific limit to test the pagination
+      startDateTime = moment().startOf('day').toDate(); // Today at 00:00:00 (AM)
+      endDateTime = moment().endOf('day').toDate(); // Today at 23:59:59 (PM)
     } else {
-      // Let's trigger a new payment attemnpt for unpaid invoices
-      invoiceStatus = [ BillingInvoiceStatus.OPEN ];
+      // Used once a month
+      limit = Constants.BATCH_PAGE_SIZE;
+      startDateTime = moment().date(1).startOf('day').toDate(); // 1st day of this month 00:00:00 (AM)
+      endDateTime = moment().add(-1,'days').endOf('day').toDate(); // yesterday at midnight
     }
+    // Filter the invoice status based on the billing settings
+    const invoiceStatus = [ BillingInvoiceStatus.OPEN ];
     // Now return the query parameters
     return {
       // --------------------------------------------------------------------------------

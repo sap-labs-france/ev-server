@@ -346,7 +346,7 @@
         }
       }
     },
-    "/api/tenants/logo": {
+    "/util/tenants/logo": {
       "get": {
         "description": "Retrieve a Tenant logo",
         "security": [
@@ -698,7 +698,7 @@
         }
       }
     },
-    "/api/site-areas/{id}/image": {
+    "/util/site-areas/{id}/image": {
       "get": {
         "description": "Retrieve Site Area's image",
         "security": [
@@ -2744,14 +2744,88 @@
         }
       }
     },
-    "/api/transactions/{id}/soft-stop": {
+    "/api/transactions/start": {
       "put": {
         "security": [
           {
             "bearerAuth": []
           }
         ],
-        "description": "Stop a Transaction",
+        "description": "Start a Transaction by using the right method (OCPP, OCPI...)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "chargingStationID": {
+                    "type": "string",
+                    "example": ""
+                  },
+                  "args": {
+                    "type": "object",
+                    "properties": {
+                      "tagID": {
+                        "type": "string",
+                        "description": "The identifier that Charge Point must use to start a transaction.",
+                        "example": "123456"
+                      },
+                      "visualTagID": {
+                        "type": "string",
+                        "description": "The identifier that Charge Point must use to start a transaction.",
+                        "example": "123456-123456"
+                      },
+                      "connectorId": {
+                        "type": "integer",
+                        "description": "Optional. Number of the connector on which to start the transaction. connectorId SHALL be > 0",
+                        "minimum": 1,
+                        "example": 1
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "chargingStationID",
+                  "args"
+                ]
+              }
+            }
+          }
+        },
+        "tags": [
+          "Transactions"
+        ],
+        "responses": {
+          "200": {
+            "description": "Transaction started successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Accepted"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/transactions/{id}/stop": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Stop a Transaction by using the right method (OCPP, OCPI, Soft...)",
         "parameters": [
           {
             "$ref": "#/components/parameters/transactionID"
@@ -2766,7 +2840,46 @@
             "content": {
               "application/json": {
                 "example": {
-                  "status": "Success"
+                  "status": "Accepted"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/transactions/{id}/soft-stop": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Stop a Transaction without calling the Charging Station",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/transactionID"
+          }
+        ],
+        "tags": [
+          "Transactions"
+        ],
+        "responses": {
+          "200": {
+            "description": "Transaction stopped successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Accepted"
                 }
               }
             }
@@ -4157,13 +4270,25 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "userID": {
+                    "type": "string",
+                    "example": ""
+                  },
                   "carID": {
                     "type": "string",
                     "example": ""
                   },
-                  "userID": {
-                    "type": "string",
+                  "carStateOfCharge": {
+                    "type": "integer",
                     "example": ""
+                  },
+                  "carOdometer": {
+                    "type": "integer",
+                    "example": ""
+                  },
+                  "departureTime": {
+                    "type": "string",
+                    "format": "date-time"
                   },
                   "args": {
                     "type": "object",
@@ -4400,7 +4525,7 @@
         }
       }
     },
-    "/api/charging-stations/{id}/compositeschedule": {
+    "/api/charging-stations/{id}/composite-schedule/get": {
       "put": {
         "security": [
           {
@@ -4543,7 +4668,7 @@
         }
       }
     },
-    "/api/charging-stations/{id}/diagnostics": {
+    "/api/charging-stations/{id}/diagnostics/get": {
       "put": {
         "security": [
           {
@@ -5599,7 +5724,7 @@
         }
       }
     },
-    "/api/charging-stations/firmware/download": {
+    "/util/charging-stations/firmware/download": {
       "get": {
         "security": [
           {
@@ -8751,7 +8876,7 @@
         }
       }
     },
-    "/api/sites/{id}/image": {
+    "/util/sites/{id}/image": {
       "get": {
         "description": "Retrieve site's image",
         "tags": [
@@ -9409,7 +9534,7 @@
         }
       }
     },
-    "/api/car-catalogs/{id}/image": {
+    "/util/car-catalogs/{id}/image": {
       "get": {
         "security": [
           {
@@ -9976,6 +10101,9 @@
           },
           {
             "$ref": "#/components/parameters/SiteIDs"
+          },
+          {
+            "$ref": "#/components/parameters/WithSite"
           },
           {
             "$ref": "#/components/parameters/WithSiteArea"
@@ -10548,7 +10676,7 @@
         }
       }
     },
-    "/api/assets/{id}/image": {
+    "/util/assets/{id}/image": {
       "get": {
         "security": [
           {
@@ -13475,6 +13603,165 @@
           }
         }
       }
+    },
+    "/api/invoices": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get Invoices",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/UserIDs"
+          },
+          {
+            "in": "query",
+            "name": "Status",
+            "description": "Pipe separated invoice status (paid, open, draft, void, uncollectible, deleted)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/StartDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/EndDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return invoices",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "number",
+                      "example": 1
+                    },
+                    "result": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Invoice"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/invoices/{id}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get Invoice by id",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/invoiceID"
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return invoice",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Invoice"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/invoices/{id}/download": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Download Invoice as PDF",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/invoiceID"
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return invoice as PDF",
+            "content": {
+              "application/pdf": {
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -15578,6 +15865,83 @@
             "type": "object"
           }
         }
+      },
+      "Invoice": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number"
+          },
+          "createdOn": {
+            "$ref": "#/components/schemas/CreatedOn"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "downloadable": {
+            "type": "boolean"
+          },
+          "number": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "paid",
+              "open",
+              "draft",
+              "void",
+              "uncollectible",
+              "deleted"
+            ]
+          },
+          "userID": {
+            "type": "string"
+          },
+          "user": {
+            "$ref": "#/components/schemas/User"
+          },
+          "id": {
+            "type": "string"
+          },
+          "sessions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "transactionID": {
+                  "type": "number"
+                },
+                "pricingData": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "quantity": {
+                        "type": "number"
+                      },
+                      "amount": {
+                        "type": "number"
+                      },
+                      "roundedAmount": {
+                        "type": "number"
+                      },
+                      "itemDescription": {
+                        "type": "string"
+                      },
+                      "taxes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "parameters": {
@@ -15586,7 +15950,7 @@
         "name": "Limit",
         "description": "Limit the number of records",
         "example": 100,
-        "required": false,
+        "required": true,
         "schema": {
           "type": "integer"
         }
@@ -16286,6 +16650,15 @@
         "in": "path",
         "name": "paymentMethodID",
         "description": "Payment Method ID",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "invoiceID": {
+        "in": "path",
+        "name": "id",
+        "description": "Invoice ID",
         "required": true,
         "schema": {
           "type": "string"

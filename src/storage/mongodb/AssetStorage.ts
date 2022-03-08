@@ -1,3 +1,4 @@
+import { ObjectId, UpdateResult } from 'mongodb';
 import global, { DatabaseCount, FilterParams, Image } from '../../types/GlobalType';
 
 import Asset from '../../types/Asset';
@@ -7,7 +8,6 @@ import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
-import { ObjectId } from 'mongodb';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 
@@ -45,9 +45,10 @@ export default class AssetStorage {
     const assetMDB: any = {
       _id: assetToSave.id ? DatabaseUtils.convertToObjectID(assetToSave.id) : new ObjectId(),
       name: assetToSave.name,
-      siteAreaID: DatabaseUtils.convertToObjectID(assetToSave.siteAreaID),
+      companyID: DatabaseUtils.convertToObjectID(assetToSave.companyID),
       siteID: DatabaseUtils.convertToObjectID(assetToSave.siteID),
-      coordinates: Utils.containsGPSCoordinates(assetToSave.coordinates) ? assetToSave.coordinates.map(
+      siteAreaID: DatabaseUtils.convertToObjectID(assetToSave.siteAreaID),
+      coordinates: Utils.hasValidGpsCoordinates(assetToSave.coordinates) ? assetToSave.coordinates.map(
         (coordinate) => Utils.convertToFloat(coordinate)) : [],
       assetType: assetToSave.assetType,
       excludeFromSmartCharging: Utils.convertToBoolean(assetToSave.excludeFromSmartCharging),
@@ -99,7 +100,7 @@ export default class AssetStorage {
 
   public static async getAssets(tenant: Tenant,
       params: { search?: string; assetIDs?: string[]; siteAreaIDs?: string[]; siteIDs?: string[]; withSiteArea?: boolean;
-        withNoSiteArea?: boolean; dynamicOnly?: boolean; issuer?: boolean; } = {},
+        withSite?: boolean; withNoSiteArea?: boolean; dynamicOnly?: boolean; issuer?: boolean; } = {},
       dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Asset>> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
@@ -118,6 +119,9 @@ export default class AssetStorage {
       filters.$or = [
         { 'name': { $regex: params.search, $options: 'i' } },
       ];
+      if (DatabaseUtils.isObjectID(params.search)) {
+        filters.$or.push({ '_id': DatabaseUtils.convertToObjectID(params.search) });
+      }
     }
     // With no Site Area
     if (params.withNoSiteArea) {
@@ -195,6 +199,13 @@ export default class AssetStorage {
         asField: 'siteArea', oneToOneCardinality: true
       });
     }
+    // Site
+    if (params.withSite) {
+      DatabaseUtils.pushSiteLookupInAggregation({
+        tenantID: tenant.id, aggregation: aggregation, localField: 'siteID', foreignField: '_id',
+        asField: 'site', oneToOneCardinality: true
+      });
+    }
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
@@ -212,6 +223,36 @@ export default class AssetStorage {
       count: DatabaseUtils.getCountFromDatabaseCount(assetsCountMDB[0]),
       result: assetsMDB
     };
+  }
+
+  public static async updateAssetsWithOrganizationIDs(tenant: Tenant, companyID: string, siteID: string, siteAreaID?: string): Promise<number> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    DatabaseUtils.checkTenantObject(tenant);
+    let result: UpdateResult;
+    if (siteAreaID) {
+      result = await global.database.getCollection<any>(tenant.id, 'assets').updateMany(
+        {
+          siteAreaID: DatabaseUtils.convertToObjectID(siteAreaID),
+        },
+        {
+          $set: {
+            siteID: DatabaseUtils.convertToObjectID(siteID),
+            companyID: DatabaseUtils.convertToObjectID(companyID)
+          }
+        }) as UpdateResult;
+    } else {
+      result = await global.database.getCollection<any>(tenant.id, 'assets').updateMany(
+        {
+          siteID: DatabaseUtils.convertToObjectID(siteID),
+        },
+        {
+          $set: {
+            companyID: DatabaseUtils.convertToObjectID(companyID)
+          }
+        }) as UpdateResult;
+    }
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'updateAssetsWithOrganizationIDs', startTime, { siteID, companyID });
+    return result.modifiedCount;
   }
 
   public static async getAssetsInError(tenant: Tenant,

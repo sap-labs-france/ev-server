@@ -6,9 +6,9 @@ import ContextBuilder from './ContextBuilder';
 // Mocha is the test framework and chai provides functions to check expectations
 
 describe('Unit test Context Builder', function() {
-  this.timeout(500000); // Not mandatory will automatically stop the unit test after that period of time
+  jest.setTimeout(500000); // Not mandatory will automatically stop the unit test after that period of time
 
-  before(async () => {
+  beforeAll(async () => {
     chai.config.includeStack = true;
     // Used to create data before teh whole test chain is started
     // To simplify you can use the ContextBuilder to get a tenant and some preloaded entities
@@ -29,7 +29,7 @@ describe('Unit test Context Builder', function() {
     // await ContextBuilder.initializeAllTenantContents(); //.then(() => done());
   });
 
-  after(async () => {
+  afterAll(async () => {
     // pragma console.log('Reinitialize content after complete test scenario');
     // await ContextBuilder.initializeAllTenantContents();
   });

@@ -12,7 +12,7 @@ import Tenant from '../../../../../types/Tenant';
 
 const MODULE_NAME = 'EMSPCommandsEndpoint';
 
-export default class CPOCommandsEndpoint extends AbstractEndpoint {
+export default class EMSPCommandsEndpoint extends AbstractEndpoint {
   public constructor(ocpiService: AbstractOCPIService) {
     super(ocpiService, 'commands');
   }
@@ -36,12 +36,12 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
           case OCPICommandType.STOP_SESSION:
           case OCPICommandType.RESERVE_NOW:
           case OCPICommandType.UNLOCK_CONNECTOR:
-            await Logging.logWarning({
+            await Logging.logInfo({
               tenantID: tenant.id,
               action: this.getAction(command),
-              message: `OCPI command response received for action '${command}' with ID '${commandId}' - No action done` ,
+              message: `OCPI response received for Command '${command}' with ID '${commandId}' - No action to be done` ,
               module: MODULE_NAME, method: 'process',
-              detailedMessages: { response : req.body }
+              detailedMessages: { response : req.body, ocpiEndpoint }
             });
             return OCPIUtils.success();
         }

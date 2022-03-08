@@ -1,6 +1,5 @@
-import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
 import Tenant, { TenantComponents } from '../../types/Tenant';
-import User, { ImportedUser, UserRole, UserStatus } from '../../types/User';
+import User, { ImportedUser, StartTransactionUserData, UserRole, UserStatus } from '../../types/User';
 import { UserInError, UserInErrorType } from '../../types/InError';
 import global, { DatabaseCount, FilterParams, Image, ImportStatus } from '../../types/GlobalType';
 
@@ -80,7 +79,7 @@ export default class UserStorage {
     return eula;
   }
 
-  public static async getUserByTagId(tenant: Tenant, tagID: string = Constants.UNKNOWN_STRING_ID): Promise<User> {
+  public static async getUserByTagID(tenant: Tenant, tagID: string = Constants.UNKNOWN_STRING_ID): Promise<User> {
     const tagMDB = await TagStorage.getTag(tenant, tagID, { withUser: true });
     return tagMDB ? tagMDB.user : null;
   }
@@ -166,6 +165,20 @@ export default class UserStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'addSitesToUser', startTime, siteIDs);
   }
 
+  public static async clearUserSiteAdmin(tenant: Tenant, userID: string): Promise<void> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    DatabaseUtils.checkTenantObject(tenant);
+    // Execute
+    await global.database.getCollection<User>(tenant.id, 'siteusers').updateMany(
+      { userID: DatabaseUtils.convertToObjectID(userID) },
+      {
+        $set: {
+          siteAdmin: false
+        }
+      });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'clearUserSiteAdmin', startTime, { userID });
+  }
+
   public static async addSiteToUser(tenant: Tenant, userID: string, siteID: string): Promise<string> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
@@ -218,6 +231,7 @@ export default class UserStorage {
       costCenter: userToSave.costCenter,
       importedData: userToSave.importedData,
       notificationsActive: userToSave.notificationsActive,
+      authorizationID: userToSave.authorizationID,
       notifications: {
         sendSessionStarted: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendSessionStarted) : false,
         sendOptimalChargeReached: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendOptimalChargeReached) : false,
@@ -253,7 +267,7 @@ export default class UserStorage {
         department: userToSave.address.department,
         region: userToSave.address.region,
         country: userToSave.address.country,
-        coordinates: Utils.containsGPSCoordinates(userToSave.address.coordinates) ? userToSave.address.coordinates.map(
+        coordinates: Utils.hasValidGpsCoordinates(userToSave.address.coordinates) ? userToSave.address.coordinates.map(
           (coordinate) => Utils.convertToFloat(coordinate)) : [],
       };
     }
@@ -361,14 +375,14 @@ export default class UserStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveUserStatus', startTime, { status });
   }
 
-  public static async saveLastSelectedCarID(tenant: Tenant, userID: string, lastSelectedCarID: string, lastSelectedCar: boolean): Promise<void> {
+  public static async saveStartTransactionData(tenant: Tenant, userID: string, startTransactionData: StartTransactionUserData): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Modify and return the modified document
     await global.database.getCollection<any>(tenant.id, 'users').findOneAndUpdate(
       { '_id': DatabaseUtils.convertToObjectID(userID) },
-      { $set: { lastSelectedCarID, lastSelectedCar } });
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveUserLastSelectedCarID', startTime, { lastSelectedCarID });
+      { $set: { startTransactionData } });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveUserLastSelectedCarID', startTime, { startTransactionData });
   }
 
   public static async saveUserMobileToken(tenant: Tenant, userID: string,
@@ -526,6 +540,9 @@ export default class UserStorage {
         { 'email': { $regex: params.search, $options: 'i' } },
         { 'plateID': { $regex: params.search, $options: 'i' } }
       ];
+      if (DatabaseUtils.isObjectID(params.search)) {
+        filters.$or.push({ '_id': DatabaseUtils.convertToObjectID(params.search) });
+      }
     }
     // Users
     if (!Utils.isEmptyArray(params.userIDs)) {
@@ -825,11 +842,7 @@ export default class UserStorage {
     const array = [];
     for (const type of params.errorTypes) {
       if ((type === UserInErrorType.NOT_ASSIGNED && !Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) ||
-        ((type === UserInErrorType.NO_BILLING_DATA || type === UserInErrorType.FAILED_BILLING_SYNCHRO) && !Utils.isTenantComponentActive(tenant, TenantComponents.BILLING))) {
-        continue;
-      }
-      if (type === UserInErrorType.NO_BILLING_DATA && !FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USERS)) {
-        // LAZY User Synchronization - no BillingData is not an Error anymore
+        (type === UserInErrorType.FAILED_BILLING_SYNCHRO && !Utils.isTenantComponentActive(tenant, TenantComponents.BILLING))) {
         continue;
       }
       array.push(`$${type}`);
@@ -1082,11 +1095,6 @@ export default class UserStorage {
         return [
           { $match: { $or: [{ 'billingData.hasSynchroError': { $eq: true } }, { $and: [{ billingData: { $exists: true } }, { 'billingData.hasSynchroError': { $exists: false } }] }] } },
           { $addFields: { 'errorCode': UserInErrorType.FAILED_BILLING_SYNCHRO } }
-        ];
-      case UserInErrorType.NO_BILLING_DATA:
-        return [
-          { $match: { $and: [{ 'status': { $eq: UserStatus.ACTIVE } }, { 'billingData': { $exists: false } }] } },
-          { $addFields: { 'errorCode': UserInErrorType.NO_BILLING_DATA } }
         ];
       default:
         return [];

@@ -17,7 +17,7 @@ import Tenant from '../../../../../types/Tenant';
 const MODULE_NAME = 'CPOTokensEndpoint';
 
 export default class CPOTokensEndpoint extends AbstractEndpoint {
-  constructor(ocpiService: AbstractOCPIService) {
+  public constructor(ocpiService: AbstractOCPIService) {
     super(ocpiService, 'tokens');
   }
 
@@ -28,7 +28,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
       case 'PATCH':
         return this.patchTokenRequest(req, res, next, tenant);
       case 'GET':
-        return await this.getTokenRequest(req, res, next, tenant);
+        return this.getTokenRequest(req, res, next, tenant);
     }
   }
 

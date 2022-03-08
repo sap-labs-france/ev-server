@@ -212,7 +212,6 @@ export default class AuthorizationService {
     users.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.CREATE, authorizationFilter);
     users.canExport = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.EXPORT, authorizationFilter);
     users.canImport = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.IMPORT, authorizationFilter);
-    users.canSynchronizeBilling = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.SYNCHRONIZE_BILLING_USERS, authorizationFilter);
     for (const user of users.result) {
       await AuthorizationService.addUserAuthorizations(tenant, userToken, user, authorizationFilter);
     }
@@ -284,6 +283,8 @@ export default class AuthorizationService {
       await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.ASSET, Action.RETRIEVE_CONSUMPTION, authorizationFilter, {}, asset);
     asset.canReadConsumption = asset.dynamicAsset &&
       await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.ASSET, Action.READ_CONSUMPTION, authorizationFilter, {}, asset);
+    asset.canCreateConsumption = asset.dynamicAsset && asset.usesPushAPI &&
+      await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.ASSET, Action.CREATE_CONSUMPTION, authorizationFilter, {}, asset);
     // Optimize data over the net
     Utils.removeCanPropertiesWithFalseValue(asset);
   }
@@ -548,9 +549,9 @@ export default class AuthorizationService {
       filters: {},
       dataSources: new Map(),
       projectFields: [
-        'id', 'inactive', 'public', 'chargingStationURL', 'issuer', 'maximumPower', 'excludeFromSmartCharging', 'lastReboot',
-        'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.smartCharging', 'siteArea.siteID',
-        'site.id', 'site.public', 'site.name', 'siteID', 'voltage', 'coordinates', 'forceInactive', 'manualConfiguration', 'firmwareUpdateStatus', 'tariffID',
+        'id', 'inactive', 'public', 'chargingStationURL', 'issuer', 'maximumPower', 'masterSlave', 'excludeFromSmartCharging', 'lastReboot',
+        'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.address', 'siteArea.smartCharging', 'siteArea.siteID',
+        'site.id', 'site.public', 'site.name', 'site.address', 'siteID', 'voltage', 'coordinates', 'forceInactive', 'manualConfiguration', 'firmwareUpdateStatus', 'tariffID',
         'capabilities', 'endpoint', 'chargePointVendor', 'chargePointModel', 'ocppVersion', 'ocppProtocol', 'lastSeen',
         'firmwareVersion', 'currentIPAddress', 'ocppStandardParameters', 'ocppVendorParameters', 'connectors', 'chargePoints',
         'createdOn', 'chargeBoxSerialNumber', 'chargePointSerialNumber', 'powerLimitUnit'
@@ -593,6 +594,8 @@ export default class AuthorizationService {
     cars.metadata = authorizationFilter.metadata;
     // Add Authorizations
     cars.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR, Action.CREATE, authorizationFilter);
+    cars.canListUsers = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.LIST, authorizationFilter);
+    cars.canListCarCatalog = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR_CATALOG, Action.LIST, authorizationFilter);
     for (const car of cars.result) {
       await AuthorizationService.addCarAuthorizations(tenant, userToken, car, authorizationFilter);
     }
@@ -600,16 +603,15 @@ export default class AuthorizationService {
 
   public static async addCarAuthorizations(tenant: Tenant, userToken: UserToken, car: Car, authorizationFilter: AuthorizationFilter): Promise<void> {
     car.canRead = true; // Always true as it should be filtered upfront
-    car.canDelete = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.CAR, Action.DELETE, authorizationFilter, { CarID: car.id }, car);
-    car.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.CAR, Action.UPDATE, authorizationFilter, { CarID: car.id }, car);
+    car.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR, Action.DELETE, authorizationFilter, { CarID: car.id }, car);
+    car.canUpdate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR, Action.UPDATE, authorizationFilter, { CarID: car.id }, car);
+    car.canListUsers = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.LIST, authorizationFilter);
     // Optimize data over the net
     Utils.removeCanPropertiesWithFalseValue(car);
   }
 
-  public static async checkAndGetCarCatalogsAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Partial<HttpCarCatalogsRequest>): Promise<AuthorizationFilter> {
+  public static async checkAndGetCarCatalogsAuthorizations(tenant: Tenant, userToken: UserToken, authAction: Action,
+      filteredRequest?: Partial<HttpCarCatalogsRequest>): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -617,7 +619,7 @@ export default class AuthorizationService {
       authorized: false
     };
     // Check static & dynamic authorization
-    await this.canPerformAuthorizationAction(tenant, userToken, Entity.CAR_CATALOG, Action.LIST,
+    await this.canPerformAuthorizationAction(tenant, userToken, Entity.CAR_CATALOG, authAction,
       authorizationFilters, filteredRequest, null, true);
     return authorizationFilters;
   }

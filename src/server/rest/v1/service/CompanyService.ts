@@ -48,10 +48,8 @@ export default class CompanyService {
     // Filter
     const filteredRequest = CompanyValidator.getInstance().validateCompanyGetReq(req.query);
     // Check and Get Company
-    const company = await UtilsService.checkAndGetCompanyAuthorization(
-      req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {
-        withLogo: true
-      }, true);
+    const company = await UtilsService.checkAndGetCompanyAuthorization(req.tenant, req.user, filteredRequest.ID, Action.READ, action, null,
+      { withLogo: true }, true);
     res.json(company);
     next();
   }

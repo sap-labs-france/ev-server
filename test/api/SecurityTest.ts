@@ -78,10 +78,10 @@ function checkSensitiveDataIsObfuscated(message: any): void {
   }
 }
 
-describe('Security', function() {
-  this.timeout(120000);
+describe('Security', () => {
+  jest.setTimeout(120000);
 
-  before(async function() {
+  beforeAll(async () => {
     global.database = new MongoDBStorage(config.get('storage'));
     await global.database.start();
     // Init values
@@ -94,7 +94,7 @@ describe('Security', function() {
     initialTenant = (await testData.superCentralService.tenantApi.readById(testData.credentials.tenantId)).data;
   });
 
-  after(async function() {
+  afterAll(async () => {
     // Housekeeping
     // Reset components before leaving
     const res = await testData.superCentralService.updateEntity(
@@ -103,123 +103,150 @@ describe('Security', function() {
   });
 
   describe('Success cases (utall)', () => {
-    it('Check that sensitive data string (containing "=") is anonymized', async () => {
-      const logId: string = await Logging.logDebug({
-        tenantID: testData.credentials.tenantId,
-        action: ServerAction.HTTP_REQUEST,
-        message: 'Just a test',
-        module: 'test',
-        method: 'test',
-        detailedMessages: 'repeatPassword=MyDummyPass'
-      });
-      const read = await testData.centralService.logsApi.readById(logId.toString());
-      expect(read.status).to.equal(StatusCodes.OK);
-      checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
-    });
-    it('Check that sensitive data string (containing ":") is anonymized', async () => {
-      const logId: string = await Logging.logDebug({
-        tenantID: testData.credentials.tenantId,
-        action: ServerAction.HTTP_REQUEST,
-        message: 'Just a test',
-        module: 'test',
-        method: 'test',
-        detailedMessages: 'firstName:MyName'
-      });
-      const read = await testData.centralService.logsApi.readById(logId.toString());
-      expect(read.status).to.equal(StatusCodes.OK);
-      checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
-    });
-    it('Check that sensitive data string (containing ",") is anonymized', async () => {
-      const logId: string = await Logging.logDebug({
-        tenantID: testData.credentials.tenantId,
-        action: ServerAction.HTTP_REQUEST,
-        message: 'Just a test',
-        module: 'test',
-        method: 'test',
-        detailedMessages: 'name,MyName'
-      });
-      const read = await testData.centralService.logsApi.readById(logId.toString());
-      expect(read.status).to.equal(StatusCodes.OK);
-      checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
-    });
-    it('Check that sensitive data string (containing ";") is anonymized', async () => {
-      const logId: string = await Logging.logDebug({
-        tenantID: testData.credentials.tenantId,
-        action: ServerAction.HTTP_REQUEST,
-        message: 'Just a test',
-        module: 'test',
-        method: 'test',
-        detailedMessages: 'password;MyPass'
-      });
-      const read = await testData.centralService.logsApi.readById(logId.toString());
-      expect(read.status).to.equal(StatusCodes.OK);
-      checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
-    });
-    it('Check that sensitive data string (containing spaces and =) is anonymized', async () => {
-      const logId: string = await Logging.logDebug({
-        tenantID: testData.credentials.tenantId,
-        action: ServerAction.HTTP_REQUEST,
-        message: 'Just a test',
-        module: 'test',
-        method: 'test',
-        detailedMessages: 'password = MyPass'
-      });
-      const read = await testData.centralService.logsApi.readById(logId.toString());
-      expect(read.status).to.equal(StatusCodes.OK);
-      checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
-    });
-    it('Check that sensitive data string (containing spaces and :) is anonymized', async () => {
-      const logId: string = await Logging.logDebug({
-        tenantID: testData.credentials.tenantId,
-        action: ServerAction.HTTP_REQUEST,
-        message: 'Just a test',
-        module: 'test',
-        method: 'test',
-        detailedMessages: 'password: MyPass'
-      });
-      const read = await testData.centralService.logsApi.readById(logId.toString());
-      expect(read.status).to.equal(StatusCodes.OK);
-      checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
-    });
-    it('Check that sensitive data string (containing spaces and ,) is anonymized', async () => {
-      const logId: string = await Logging.logDebug({
-        tenantID: testData.credentials.tenantId,
-        action: ServerAction.HTTP_REQUEST,
-        message: 'Just a test',
-        module: 'test',
-        method: 'test',
-        detailedMessages: 'password, MyPass'
-      });
-      const read = await testData.centralService.logsApi.readById(logId.toString());
-      expect(read.status).to.equal(StatusCodes.OK);
-      checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
-    });
-    it('Check that sensitive data string (containing spaces and ;) is anonymized', async () => {
-      const logId: string = await Logging.logDebug({
-        tenantID: testData.credentials.tenantId,
-        action: ServerAction.HTTP_REQUEST,
-        message: 'Just a test',
-        module: 'test',
-        method: 'test',
-        detailedMessages: 'password ; MyPass'
-      });
-      const read = await testData.centralService.logsApi.readById(logId.toString());
-      expect(read.status).to.equal(StatusCodes.OK);
-      checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
-    });
-    it('Check that sensitive data string matching a ws url with registration token is anonymized', async () => {
-      const logId: string = await Logging.logDebug({
-        tenantID: testData.credentials.tenantId,
-        action: ServerAction.HTTP_REQUEST,
-        message: 'Just a test',
-        module: 'test',
-        method: 'test',
-        detailedMessages: 'ws://localhost:8010/OCPP16/0be7fb271014d90008992f19/015b4c8ffaeb8d44e2a98315/CS-TEST'
-      });
-      const read = await testData.centralService.logsApi.readById(logId.toString());
-      expect(read.status).to.equal(StatusCodes.OK);
-      checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
-    });
+    it(
+      'Check that sensitive data string (containing "=") is anonymized',
+      async () => {
+        const logId: string = await Logging.logDebug({
+          tenantID: testData.credentials.tenantId,
+          action: ServerAction.HTTP_REQUEST,
+          message: 'Just a test',
+          module: 'test',
+          method: 'test',
+          detailedMessages: 'repeatPassword=MyDummyPass'
+        });
+        const read = await testData.centralService.logsApi.readById(logId.toString());
+        expect(read.status).to.equal(StatusCodes.OK);
+        checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
+      }
+    );
+    it(
+      'Check that sensitive data string (containing ":") is anonymized',
+      async () => {
+        const logId: string = await Logging.logDebug({
+          tenantID: testData.credentials.tenantId,
+          action: ServerAction.HTTP_REQUEST,
+          message: 'Just a test',
+          module: 'test',
+          method: 'test',
+          detailedMessages: 'firstName:MyName'
+        });
+        const read = await testData.centralService.logsApi.readById(logId.toString());
+        expect(read.status).to.equal(StatusCodes.OK);
+        checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
+      }
+    );
+    it(
+      'Check that sensitive data string (containing ",") is anonymized',
+      async () => {
+        const logId: string = await Logging.logDebug({
+          tenantID: testData.credentials.tenantId,
+          action: ServerAction.HTTP_REQUEST,
+          message: 'Just a test',
+          module: 'test',
+          method: 'test',
+          detailedMessages: 'name,MyName'
+        });
+        const read = await testData.centralService.logsApi.readById(logId.toString());
+        expect(read.status).to.equal(StatusCodes.OK);
+        checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
+      }
+    );
+    it(
+      'Check that sensitive data string (containing ";") is anonymized',
+      async () => {
+        const logId: string = await Logging.logDebug({
+          tenantID: testData.credentials.tenantId,
+          action: ServerAction.HTTP_REQUEST,
+          message: 'Just a test',
+          module: 'test',
+          method: 'test',
+          detailedMessages: 'password;MyPass'
+        });
+        const read = await testData.centralService.logsApi.readById(logId.toString());
+        expect(read.status).to.equal(StatusCodes.OK);
+        checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
+      }
+    );
+    it(
+      'Check that sensitive data string (containing spaces and =) is anonymized',
+      async () => {
+        const logId: string = await Logging.logDebug({
+          tenantID: testData.credentials.tenantId,
+          action: ServerAction.HTTP_REQUEST,
+          message: 'Just a test',
+          module: 'test',
+          method: 'test',
+          detailedMessages: 'password = MyPass'
+        });
+        const read = await testData.centralService.logsApi.readById(logId.toString());
+        expect(read.status).to.equal(StatusCodes.OK);
+        checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
+      }
+    );
+    it(
+      'Check that sensitive data string (containing spaces and :) is anonymized',
+      async () => {
+        const logId: string = await Logging.logDebug({
+          tenantID: testData.credentials.tenantId,
+          action: ServerAction.HTTP_REQUEST,
+          message: 'Just a test',
+          module: 'test',
+          method: 'test',
+          detailedMessages: 'password: MyPass'
+        });
+        const read = await testData.centralService.logsApi.readById(logId.toString());
+        expect(read.status).to.equal(StatusCodes.OK);
+        checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
+      }
+    );
+    it(
+      'Check that sensitive data string (containing spaces and ,) is anonymized',
+      async () => {
+        const logId: string = await Logging.logDebug({
+          tenantID: testData.credentials.tenantId,
+          action: ServerAction.HTTP_REQUEST,
+          message: 'Just a test',
+          module: 'test',
+          method: 'test',
+          detailedMessages: 'password, MyPass'
+        });
+        const read = await testData.centralService.logsApi.readById(logId.toString());
+        expect(read.status).to.equal(StatusCodes.OK);
+        checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
+      }
+    );
+    it(
+      'Check that sensitive data string (containing spaces and ;) is anonymized',
+      async () => {
+        const logId: string = await Logging.logDebug({
+          tenantID: testData.credentials.tenantId,
+          action: ServerAction.HTTP_REQUEST,
+          message: 'Just a test',
+          module: 'test',
+          method: 'test',
+          detailedMessages: 'password ; MyPass'
+        });
+        const read = await testData.centralService.logsApi.readById(logId.toString());
+        expect(read.status).to.equal(StatusCodes.OK);
+        checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
+      }
+    );
+    it(
+      'Check that sensitive data string matching a ws url with registration token is anonymized',
+      async () => {
+        const logId: string = await Logging.logDebug({
+          tenantID: testData.credentials.tenantId,
+          action: ServerAction.HTTP_REQUEST,
+          message: 'Just a test',
+          module: 'test',
+          method: 'test',
+          detailedMessages: 'ws://localhost:8010/OCPP16/0be7fb271014d90008992f19/015b4c8ffaeb8d44e2a98315/CS-TEST'
+        });
+        const read = await testData.centralService.logsApi.readById(logId.toString());
+        expect(read.status).to.equal(StatusCodes.OK);
+        checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
+      }
+    );
     it('Check that sensitive data query string is anonymized', async () => {
       const logId: string = await Logging.logDebug({
         tenantID: testData.credentials.tenantId,
@@ -259,100 +286,112 @@ describe('Security', function() {
       expect(read.status).to.equal(StatusCodes.OK);
       checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
     });
-    it('Check that client_id and client_secret are anonymized in object', async () => {
-      const logId: string = await Logging.logDebug({
-        tenantID: testData.credentials.tenantId,
-        action: ServerAction.HTTP_REQUEST,
-        message: 'Just a test',
-        module: 'test',
-        method: 'test',
-        detailedMessages: {
-          client_id: 'tuyebgforijgetighdsf;gjdrpoighj',
-          client_secret: 'fuahsrgoiuarhgpiorhg'
-        }
-      });
-      const read = await testData.centralService.logsApi.readById(logId.toString());
-      expect(read.status).to.equal(StatusCodes.OK);
-      checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
-    });
-    it('Check that sensitive data is anonymized in object with string fields', async () => {
-      const logId: string = await Logging.logDebug({
-        tenantID: testData.credentials.tenantId,
-        action: ServerAction.HTTP_REQUEST,
-        message: 'Just a test',
-        module: 'test',
-        method: 'test',
-        detailedMessages: {
-          'name': 'test',
-          'firstName': 'test',
-          'password': 'test',
-          'repeatPassword': 'test',
-          'captcha': 'test',
-          'email': 'test',
-          'coordinates': 'test',
-          'latitude': 'test',
-          'longitude': 'test',
-          'Authorization': 'test',
-          'client_id': 'test',
-          'client_secret': 'test',
-          'refresh_token': 'test',
-          'localToken': 'test',
-          'Bearer': 'test',
-          'auth_token': 'test',
-          'token': 'test',
-        }
-      });
-      const read = await testData.centralService.logsApi.readById(logId.toString());
-      expect(read.status).to.equal(StatusCodes.OK);
-      checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
-    });
-    it('Check that sensitive data is anonymized in object with query string fields', async () => {
-      const logId: string = await Logging.logDebug({
-        tenantID: testData.credentials.tenantId,
-        action: ServerAction.HTTP_REQUEST,
-        message: 'Just a test',
-        module: 'test',
-        method: 'test',
-        detailedMessages: {
-          'message1': 'name=test&firstName=testtest',
-          'message2': 'text that is ok',
-          'password': 'password=testtesttest',
-          'message3': 'text?auth_token=test&id=text is ok'
-        }
-      });
-      const read = await testData.centralService.logsApi.readById(logId.toString());
-      expect(read.status).to.equal(StatusCodes.OK);
-      checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
-    });
-    it('Check that sensitive data is anonymized in array with strings', async () => {
-      const logId: string = await Logging.logDebug({
-        tenantID: testData.credentials.tenantId,
-        action: ServerAction.HTTP_REQUEST,
-        message: 'Just a test',
-        module: 'test',
-        method: 'test',
-        detailedMessages: [
-          'name=test',
-          'firstName = test',
-          'password= test',
-          'repeatPassword =test',
-          'captcha:test',
-          'email: test',
-          'coordinates : test',
-          'latitude :test',
-          'longitude,test',
-          'Authorization , test',
-          'client_id, test',
-          'client_secret ,test',
-          'refresh_token;test',
-          'localToken ; test',
-          'token; test',
-          'token ;test2'
-        ]
-      });
-      const read = await testData.centralService.logsApi.readById(logId.toString());
-      expect(read.status).to.equal(StatusCodes.OK);
-      checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
-    });
+    it(
+      'Check that client_id and client_secret are anonymized in object',
+      async () => {
+        const logId: string = await Logging.logDebug({
+          tenantID: testData.credentials.tenantId,
+          action: ServerAction.HTTP_REQUEST,
+          message: 'Just a test',
+          module: 'test',
+          method: 'test',
+          detailedMessages: {
+            client_id: 'tuyebgforijgetighdsf;gjdrpoighj',
+            client_secret: 'fuahsrgoiuarhgpiorhg'
+          }
+        });
+        const read = await testData.centralService.logsApi.readById(logId.toString());
+        expect(read.status).to.equal(StatusCodes.OK);
+        checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
+      }
+    );
+    it(
+      'Check that sensitive data is anonymized in object with string fields',
+      async () => {
+        const logId: string = await Logging.logDebug({
+          tenantID: testData.credentials.tenantId,
+          action: ServerAction.HTTP_REQUEST,
+          message: 'Just a test',
+          module: 'test',
+          method: 'test',
+          detailedMessages: {
+            'name': 'test',
+            'firstName': 'test',
+            'password': 'test',
+            'repeatPassword': 'test',
+            'captcha': 'test',
+            'email': 'test',
+            'coordinates': 'test',
+            'latitude': 'test',
+            'longitude': 'test',
+            'Authorization': 'test',
+            'client_id': 'test',
+            'client_secret': 'test',
+            'refresh_token': 'test',
+            'localToken': 'test',
+            'Bearer': 'test',
+            'auth_token': 'test',
+            'token': 'test',
+          }
+        });
+        const read = await testData.centralService.logsApi.readById(logId.toString());
+        expect(read.status).to.equal(StatusCodes.OK);
+        checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
+      }
+    );
+    it(
+      'Check that sensitive data is anonymized in object with query string fields',
+      async () => {
+        const logId: string = await Logging.logDebug({
+          tenantID: testData.credentials.tenantId,
+          action: ServerAction.HTTP_REQUEST,
+          message: 'Just a test',
+          module: 'test',
+          method: 'test',
+          detailedMessages: {
+            'message1': 'name=test&firstName=testtest',
+            'message2': 'text that is ok',
+            'password': 'password=testtesttest',
+            'message3': 'text?auth_token=test&id=text is ok'
+          }
+        });
+        const read = await testData.centralService.logsApi.readById(logId.toString());
+        expect(read.status).to.equal(StatusCodes.OK);
+        checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
+      }
+    );
+    it(
+      'Check that sensitive data is anonymized in array with strings',
+      async () => {
+        const logId: string = await Logging.logDebug({
+          tenantID: testData.credentials.tenantId,
+          action: ServerAction.HTTP_REQUEST,
+          message: 'Just a test',
+          module: 'test',
+          method: 'test',
+          detailedMessages: [
+            'name=test',
+            'firstName = test',
+            'password= test',
+            'repeatPassword =test',
+            'captcha:test',
+            'email: test',
+            'coordinates : test',
+            'latitude :test',
+            'longitude,test',
+            'Authorization , test',
+            'client_id, test',
+            'client_secret ,test',
+            'refresh_token;test',
+            'localToken ; test',
+            'token; test',
+            'token ;test2'
+          ]
+        });
+        const read = await testData.centralService.logsApi.readById(logId.toString());
+        expect(read.status).to.equal(StatusCodes.OK);
+        checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
+      }
+    );
   });
 });

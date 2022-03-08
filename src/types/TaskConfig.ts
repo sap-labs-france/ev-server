@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface TaskConfig {}
 
 export type CheckOfflineChargingStationsTaskConfig = TaskConfig;
@@ -20,19 +21,16 @@ export interface CheckSessionNotStartedAfterAuthorizeTaskConfig extends TaskConf
   checkPastAuthorizeMins?: number;
 }
 
-export interface BillingInvoiceSynchronizationTaskConfig extends TaskConfig {
-  attemptPayment?: boolean;
-}
-
 export interface BillingPeriodicOperationTaskConfig extends TaskConfig {
-  attemptPayment?: boolean;
+  onlyProcessUnpaidInvoices?: boolean;
+  forceOperation?: boolean;
 }
 
-export interface OCPIGetTokensTaskConfig extends TaskConfig {
+export interface OCPIPullTokensTaskConfig extends TaskConfig {
   partial?: boolean;
 }
 
-export interface OCPIGetLocationsTaskConfig extends TaskConfig {
+export interface OCPIPullLocationsTaskConfig extends TaskConfig {
   partial?: boolean;
 }
 

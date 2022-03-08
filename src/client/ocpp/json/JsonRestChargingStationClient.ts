@@ -5,6 +5,7 @@ import { ServerAction, WSServerProtocol } from '../../../types/Server';
 
 import BackendError from '../../../exception/BackendError';
 import ChargingStationClient from '../ChargingStationClient';
+import Configuration from '../../../utils/Configuration';
 import Logging from '../../../utils/Logging';
 import LoggingHelper from '../../../utils/LoggingHelper';
 import Utils from '../../../utils/Utils';
@@ -14,21 +15,22 @@ import { WSClientOptions } from '../../../types/WebSocket';
 const MODULE_NAME = 'JsonRestChargingStationClient';
 
 export default class JsonRestChargingStationClient extends ChargingStationClient {
+  private jsonEndoint = Configuration.getJsonEndpointConfig();
   private serverURL: string;
   private chargingStation: ChargingStation;
   private requests: { [messageUID: string]: { resolve?: (result: Record<string, unknown> | string) => void; reject?: (error: Record<string, unknown>) => void; command: Command } };
   private wsConnection: WSClient;
   private tenantID: string;
 
-  constructor(tenantID: string, chargingStation: ChargingStation) {
+  public constructor(tenantID: string, chargingStation: ChargingStation) {
     super();
     this.tenantID = tenantID;
     // Get URL
     let jsonServerURL: string;
     // Check K8s
-    if (process.env.POD_NAME && chargingStation.cloudHostIP) {
+    if (process.env.K8S && this.jsonEndoint.targetPort && chargingStation.cloudHostIP) {
       // Use K8s internal IP, always in ws
-      jsonServerURL = `ws://${chargingStation.cloudHostIP}`;
+      jsonServerURL = `ws://${chargingStation.cloudHostIP}:${this.jsonEndoint.targetPort}`;
     } else {
       jsonServerURL = chargingStation.chargingStationURL;
       if (!jsonServerURL) {
@@ -121,7 +123,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
       siteAreaID: this.chargingStation.siteAreaID,
       companyID: this.chargingStation.companyID,
       chargingStationID: this.chargingStation.id,
-      action: ServerAction.WS_REST_CLIENT_CONNECTION,
+      action: ServerAction.WS_CLIENT_CONNECTION,
       module: MODULE_NAME, method: 'onOpen',
       message: `Try to connect to '${this.serverURL}'...`
     });
@@ -146,7 +148,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             siteAreaID: this.chargingStation.siteAreaID,
             companyID: this.chargingStation.companyID,
             chargingStationID: this.chargingStation.id,
-            action: ServerAction.WS_REST_CLIENT_CONNECTION_OPENED,
+            action: ServerAction.WS_CLIENT_CONNECTION_OPEN,
             module: MODULE_NAME, method: 'onOpen',
             message: `Connection opened to '${this.serverURL}'`
           });
@@ -161,7 +163,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             siteAreaID: this.chargingStation.siteAreaID,
             companyID: this.chargingStation.companyID,
             chargingStationID: this.chargingStation.id,
-            action: ServerAction.WS_REST_CLIENT_CONNECTION_CLOSED,
+            action: ServerAction.WS_CLIENT_CONNECTION_CLOSE,
             module: MODULE_NAME, method: 'onClose',
             message: `Connection closed to '${this.serverURL}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`,
             detailedMessages: { code }
@@ -175,7 +177,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             siteAreaID: this.chargingStation.siteAreaID,
             companyID: this.chargingStation.companyID,
             chargingStationID: this.chargingStation.id,
-            action: ServerAction.WS_REST_CLIENT_CONNECTION_ERROR,
+            action: ServerAction.WS_CLIENT_CONNECTION_ERROR,
             module: MODULE_NAME, method: 'onError',
             message: `Connection error to '${this.serverURL}: ${error?.message}`,
             detailedMessages: { error: error.stack }
@@ -200,7 +202,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
                   siteAreaID: this.chargingStation.siteAreaID,
                   companyID: this.chargingStation.companyID,
                   chargingStationID: this.chargingStation.id,
-                  action: ServerAction.WS_REST_CLIENT_ERROR_RESPONSE,
+                  action: ServerAction.WS_CLIENT_ERROR,
                   module: MODULE_NAME, method: 'onMessage',
                   message: `${commandPayload.toString()}`,
                   detailedMessages: { messageType, messageId, command, commandPayload, errorDetails }
@@ -221,14 +223,14 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
                 siteAreaID: this.chargingStation.siteAreaID,
                 companyID: this.chargingStation.companyID,
                 chargingStationID: this.chargingStation.id,
-                action: ServerAction.WS_REST_CLIENT_ERROR_RESPONSE,
+                action: ServerAction.WS_CLIENT_ERROR,
                 module: MODULE_NAME, method: 'onMessage',
                 message: 'Received unknown message',
                 detailedMessages: { messageType, messageId, command, commandPayload, errorDetails }
               });
             }
           } catch (error) {
-            await Logging.logException(error, ServerAction.WS_REST_CLIENT_MESSAGE, MODULE_NAME, 'onMessage', this.tenantID);
+            await Logging.logException(error, ServerAction.WS_CLIENT_MESSAGE, MODULE_NAME, 'onMessage', this.tenantID);
           }
         };
       } catch (error) {

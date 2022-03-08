@@ -10,6 +10,7 @@ import CheckOfflineChargingStationsTask from './tasks/CheckOfflineChargingStatio
 import CheckPreparingSessionNotStartedTask from './tasks/CheckPreparingSessionNotStartedTask';
 import CheckSessionNotStartedAfterAuthorizeTask from './tasks/CheckSessionNotStartedAfterAuthorizeTask';
 import CheckUserAccountInactivityTask from './tasks/CheckUserAccountInactivityTask';
+import CloseTransactionsInProgressTask from './tasks/CloseTransactionsInProgressTask';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 import LoggingDatabaseTableCleanupTask from './tasks/LoggingDatabaseTableCleanupTask';
@@ -17,18 +18,17 @@ import MigrateSensitiveDataTask from './tasks/MigrateSensitiveDataTask';
 import OCPICheckCdrsTask from './tasks/ocpi/OCPICheckCdrsTask';
 import OCPICheckLocationsTask from './tasks/ocpi/OCPICheckLocationsTask';
 import OCPICheckSessionsTask from './tasks/ocpi/OCPICheckSessionsTask';
-import OCPIGetCdrsTask from './tasks/ocpi/OCPIGetCdrsTask';
-import OCPIGetLocationsTask from './tasks/ocpi/OCPIGetLocationsTask';
-import OCPIGetSessionsTask from './tasks/ocpi/OCPIGetSessionsTask';
-import OCPIGetTokensTask from './tasks/ocpi/OCPIGetTokensTask';
+import OCPIPullCdrsTask from './tasks/ocpi/OCPIPullCdrsTask';
+import OCPIPullLocationsTask from './tasks/ocpi/OCPIPullLocationsTask';
+import OCPIPullSessionsTask from './tasks/ocpi/OCPIPullSessionsTask';
+import OCPIPushTokensTask from './tasks/ocpi/OCPIPushTokensTask';
+import OCPIPullTokensTask from './tasks/ocpi/OCPIPullTokensTask';
 import OCPIPushCdrsTask from './tasks/ocpi/OCPIPushCdrsTask';
 import OCPIPushEVSEStatusesTask from './tasks/ocpi/OCPIPushEVSEStatusesTask';
 import OICPPushEvseDataTask from './tasks/oicp/OICPPushEvseDataTask';
 import OICPPushEvseStatusTask from './tasks/oicp/OICPPushEvseStatusTask';
 import SchedulerTask from './SchedulerTask';
 import { ServerAction } from '../types/Server';
-import SynchronizeBillingInvoicesTask from './tasks/SynchronizeBillingInvoicesTask';
-import SynchronizeBillingUsersTask from './tasks/SynchronizeBillingUsersTask';
 import SynchronizeCarsTask from './tasks/SynchronizeCarsTask';
 import SynchronizeRefundTransactionsTask from './tasks/SynchronizeRefundTransactionsTask';
 import cron from 'node-cron';
@@ -104,28 +104,26 @@ export default class SchedulerManager {
         return new OICPPushEvseStatusTask();
       case 'OCPIPushEVSEStatusesTask':
         return new OCPIPushEVSEStatusesTask();
-      case 'OCPIGetCdrsTask':
-        return new OCPIGetCdrsTask();
-      case 'OCPIGetLocationsTask':
-        return new OCPIGetLocationsTask();
-      case 'OCPIGetSessionsTask':
-        return new OCPIGetSessionsTask();
+      case 'OCPIPullCdrsTask':
+        return new OCPIPullCdrsTask();
+      case 'OCPIPullLocationsTask':
+        return new OCPIPullLocationsTask();
+      case 'OCPIPullSessionsTask':
+        return new OCPIPullSessionsTask();
       case 'OCPICheckLocationsTask':
         return new OCPICheckLocationsTask();
       case 'OCPICheckSessionsTask':
         return new OCPICheckSessionsTask();
       case 'OCPICheckCdrsTask':
         return new OCPICheckCdrsTask();
-      case 'OCPIGetTokensTask':
-        return new OCPIGetTokensTask();
+      case 'OCPIPullTokensTask':
+        return new OCPIPullTokensTask();
       case 'OCPIPushCdrsTask':
         return new OCPIPushCdrsTask();
+      case 'OCPIPushTokensTask':
+        return new OCPIPushTokensTask();
       case 'SynchronizeRefundTransactionsTask':
         return new SynchronizeRefundTransactionsTask();
-      case 'SynchronizeBillingUsersTask':
-        return new SynchronizeBillingUsersTask();
-      case 'SynchronizeBillingInvoicesTask':
-        return new SynchronizeBillingInvoicesTask();
       case 'BillingPeriodicOperationTask':
         return new BillingPeriodicOperationTask();
       case 'BillPendingTransactionTask':
@@ -142,6 +140,8 @@ export default class SchedulerManager {
         return new CheckChargingStationTemplateTask();
       case 'MigrateSensitiveDataTask':
         return new MigrateSensitiveDataTask();
+      case 'CloseTransactionsInProgressTask':
+        return new CloseTransactionsInProgressTask();
       default:
         await Logging.logError({
           tenantID: Constants.DEFAULT_TENANT,
