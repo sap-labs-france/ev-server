@@ -837,9 +837,9 @@ export default class UtilsService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: authAction, entity: Entity.USER,
-        module: MODULE_NAME, method: 'checkAndGetUserAuthorization',
-        value: carCatalogID.toString()
+        action: authAction, entity: Entity.CAR_CATALOG,
+        module: MODULE_NAME, method: 'checkAndGetCarCatalogAuthorization',
+        value: carCatalogID.toString(),
       });
     }
     return carCatalog;
