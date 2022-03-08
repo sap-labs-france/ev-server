@@ -1,6 +1,5 @@
 {
     "$id": "diagnostics-status-notification-request",
-    "$schema": "http://json-schema.org/draft-04/schema#",
     "title": "DiagnosticsStatusNotificationRequest",
     "type": "object",
     "properties": {

@@ -785,12 +785,12 @@ export default class Logging {
     // Add Exception stack
     if (exception.params.detailedMessages) {
       exception.params.detailedMessages = {
-        'stack': exception.stack,
+        'error': exception.stack,
         'previous': exception.params.detailedMessages
       };
     } else {
       exception.params.detailedMessages = {
-        'stack': exception.stack,
+        'error': exception.stack,
       };
     }
     await Logging.logError({
@@ -813,12 +813,12 @@ export default class Logging {
     // Add Exception stack
     if (exception.params.detailedMessages) {
       exception.params.detailedMessages = {
-        'stack': exception.stack,
+        'error': exception.stack,
         'previous': exception.params.detailedMessages
       };
     } else {
       exception.params.detailedMessages = {
-        'stack': exception.stack,
+        'error': exception.stack,
       };
     }
     await Logging.logError({

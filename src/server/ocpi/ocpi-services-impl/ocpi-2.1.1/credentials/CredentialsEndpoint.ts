@@ -14,7 +14,6 @@ import { OCPIRegistrationStatus } from '../../../../../types/ocpi/OCPIRegistrati
 import { OCPIResponse } from '../../../../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../../../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from '../../../OCPIUtils';
-import OCPIUtilsService from '../OCPIUtilsService';
 import { ServerAction } from '../../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../../../../types/Tenant';
@@ -23,21 +22,21 @@ const EP_IDENTIFIER = 'credentials';
 const MODULE_NAME = 'CredentialsEndpoint';
 
 export default class CredentialsEndpoint extends AbstractEndpoint {
-  constructor(ocpiService: AbstractOCPIService) {
+  public constructor(ocpiService: AbstractOCPIService) {
     super(ocpiService, EP_IDENTIFIER);
   }
 
-  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
+  public async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
       case 'POST':
-        return await this.postCredentials(req, res, next, tenant);
+        return this.postCredentials(req, res, next, tenant);
       case 'DELETE':
-        return await this.deleteCredentials(req, res, next, tenant);
+        return this.deleteCredentials(req, res, next, tenant);
     }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async deleteCredentials(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
+  public async deleteCredentials(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     // Get token from header
     let token;
     if (req.headers && req.headers.authorization) {
@@ -70,7 +69,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     return OCPIUtils.success();
   }
 
-  async postCredentials(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
+  public async postCredentials(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     // Get payload
     const credential: OCPICredential = req.body;
     // Log body
@@ -206,13 +205,13 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
         });
       }
       // Set available endpoints
-      ocpiEndpoint.availableEndpoints = OCPIUtilsService.convertAvailableEndpoints(response.data.data);
+      ocpiEndpoint.availableEndpoints = OCPIUtils.convertAvailableEndpoints(response.data.data);
     } catch (error) {
       throw new AppError({
         module: MODULE_NAME, method: 'postCredentials',
         action: ServerAction.OCPI_POST_CREDENTIALS,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `Unable to use client API: ${error.message}`,
+        message: `Unable to use client API: ${error.message as string}`,
         ocpiError: OCPIStatusCode.CODE_3001_UNABLE_TO_USE_CLIENT_API_ERROR,
         detailedMessages: { error: error.stack }
       });
@@ -225,7 +224,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     // Get base url
     const versionUrl = this.getServiceUrl(req) + AbstractOCPIService.VERSIONS_PATH;
     // Build credential object
-    const respCredential = await OCPIUtilsService.buildOCPICredentialObject(tenant, ocpiEndpoint.localToken, ocpiEndpoint.role, versionUrl);
+    const respCredential = await OCPIUtils.buildOCPICredentialObject(tenant, ocpiEndpoint.localToken, ocpiEndpoint.role, versionUrl);
     // Log available OCPI Versions
     await Logging.logDebug({
       tenantID: tenant.id,
