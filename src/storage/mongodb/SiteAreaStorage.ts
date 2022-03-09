@@ -280,6 +280,8 @@ export default class SiteAreaStorage {
         tenantID: tenant.id, aggregation, localField: '_id', foreignField: 'siteAreaID',
         asField: 'chargingStations', pipelineMatch
       }, additionalPipeline);
+      // Disable
+      params.withChargingStations = false;
     }
     if (Utils.objectHasProperty(params, 'issuer') && Utils.isBoolean(params.issuer)) {
       filters.issuer = params.issuer;
@@ -368,8 +370,7 @@ export default class SiteAreaStorage {
       });
     }
     // Charging Stations
-    if ((params.withChargingStations || params.withOnlyChargingStations || params.withAvailableChargingStations) &&
-    Utils.isEmptyArray(params.chargingStationConnectorStatuses)) {
+    if (params.withChargingStations || params.withOnlyChargingStations || params.withAvailableChargingStations) {
       DatabaseUtils.pushChargingStationLookupInAggregation({
         tenantID: tenant.id, aggregation, localField: '_id', foreignField: 'siteAreaID',
         asField: 'chargingStations'

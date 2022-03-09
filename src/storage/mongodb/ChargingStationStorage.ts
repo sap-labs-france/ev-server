@@ -17,7 +17,6 @@ import { InactivityStatus } from '../../types/Transaction';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
-import { ServerAction } from '../../types/Server';
 
 const MODULE_NAME = 'ChargingStationStorage';
 
