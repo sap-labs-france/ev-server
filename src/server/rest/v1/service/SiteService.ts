@@ -9,6 +9,7 @@ import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationS
 import Constants from '../../../../utils/Constants';
 import DynamicAuthorizationFactory from '../../../../authorization/DynamicAuthorizationFactory';
 import Logging from '../../../../utils/Logging';
+import LoggingHelper from '../../../../utils/LoggingHelper';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
 import { SiteDataResult } from '../../../../types/DataResult';
@@ -29,31 +30,6 @@ export default class SiteService {
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleUpdateSiteUserAdmin');
     // Filter request
     const filteredRequest = SiteValidator.getInstance().validateSiteAdminReq(req.body);
-    // Check mandatory fields
-    if (!filteredRequest.userID) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The User ID must be provided',
-        module: MODULE_NAME, method: 'handleUpdateSiteUserAdmin',
-        user: req.user
-      });
-    }
-    if (!filteredRequest.siteID) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The Site ID must be provided',
-        module: MODULE_NAME, method: 'handleUpdateSiteUserAdmin',
-        user: req.user
-      });
-    }
-    if (!Utils.objectHasProperty(filteredRequest, 'siteAdmin')) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The Site Admin value must be provided',
-        module: MODULE_NAME, method: 'handleUpdateSiteUserAdmin',
-        user: req.user
-      });
-    }
     if (req.user.id === filteredRequest.userID) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
@@ -72,6 +48,7 @@ export default class SiteService {
     // Update
     await SiteStorage.updateSiteUserAdmin(req.tenant, filteredRequest.siteID, filteredRequest.userID, filteredRequest.siteAdmin);
     await Logging.logInfo({
+      ...LoggingHelper.getSiteProperties(site),
       tenantID: req.user.tenantID,
       user: req.user, actionOnUser: user,
       module: MODULE_NAME, method: 'handleUpdateSiteUserAdmin',
@@ -88,31 +65,6 @@ export default class SiteService {
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleUpdateSiteOwner');
     // Filter request
     const filteredRequest = SiteValidator.getInstance().validateSiteOwnerReq(req.body);
-    // Check mandatory fields
-    if (!filteredRequest.userID) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The User ID must be provided',
-        module: MODULE_NAME, method: 'handleUpdateSiteOwner',
-        user: req.user
-      });
-    }
-    if (!filteredRequest.siteID) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The Site ID must be provided',
-        module: MODULE_NAME, method: 'handleUpdateSiteOwner',
-        user: req.user
-      });
-    }
-    if (!Utils.objectHasProperty(filteredRequest, 'siteOwner')) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The Site Owner value must be provided',
-        module: MODULE_NAME, method: 'handleUpdateSiteOwner',
-        user: req.user
-      });
-    }
     // Check and Get Site
     const site = await UtilsService.checkAndGetSiteAuthorization(
       req.tenant, req.user, filteredRequest.siteID, Action.UPDATE, action);
@@ -122,6 +74,7 @@ export default class SiteService {
     // Update
     await SiteStorage.updateSiteOwner(req.tenant, filteredRequest.siteID, filteredRequest.userID, filteredRequest.siteOwner);
     await Logging.logInfo({
+      ...LoggingHelper.getSiteProperties(site),
       tenantID: req.user.tenantID,
       user: req.user, actionOnUser: user,
       module: MODULE_NAME, method: 'handleUpdateSiteOwner',
@@ -151,6 +104,7 @@ export default class SiteService {
       await SiteStorage.removeUsersFromSite(req.tenant, site.id, users.map((user) => user.id));
     }
     await Logging.logInfo({
+      ...LoggingHelper.getSiteProperties(site),
       tenantID: req.user.tenantID,
       user: req.user,
       module: MODULE_NAME,
@@ -168,14 +122,8 @@ export default class SiteService {
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleGetUsers');
     // Filter
     const filteredRequest = SiteValidator.getInstance().validateSiteGetUsersReq(req.query);
-    // Check Site
-    try {
-      await UtilsService.checkAndGetSiteAuthorization(
-        req.tenant, req.user, filteredRequest.SiteID, Action.READ, action);
-    } catch (error) {
-      UtilsService.sendEmptyDataResult(res, next);
-      return;
-    }
+    // Check Site Auth
+    await UtilsService.checkAndGetSiteAuthorization(req.tenant, req.user, filteredRequest.SiteID, Action.READ, action);
     // Check dynamic auth for reading Users
     const authorizationSiteUsersFilter = await AuthorizationService.checkAndGetSiteUsersAuthorizations(req.tenant,
       req.user, filteredRequest);
@@ -214,6 +162,7 @@ export default class SiteService {
     // Delete
     await SiteStorage.deleteSite(req.tenant, site.id);
     await Logging.logInfo({
+      ...LoggingHelper.getSiteProperties(site),
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteSite',
       message: `Site '${site.name}' has been deleted successfully`,
@@ -302,7 +251,6 @@ export default class SiteService {
 
   public static async handleGetSiteImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // This endpoint is not protected, so no need to check user's access
-    // Filter
     const filteredRequest = SiteValidator.getInstance().validateSiteGetImageReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetSiteImage', req.user);
     if (!filteredRequest.TenantID) {
@@ -352,7 +300,7 @@ export default class SiteService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.READ, entity: Entity.SITE,
+        action: Action.CREATE, entity: Entity.SITE,
         module: MODULE_NAME, method: 'handleCreateSite'
       });
     }
@@ -374,6 +322,7 @@ export default class SiteService {
     // Save
     site.id = await SiteStorage.saveSite(req.tenant, site, Utils.objectHasProperty(filteredRequest, 'image'));
     await Logging.logInfo({
+      ...LoggingHelper.getSiteProperties(site),
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleCreateSite',
       message: `Site '${site.name}' has been created successfully`,
@@ -410,6 +359,7 @@ export default class SiteService {
         }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);
         if (publicChargingStations.count > 0) {
           throw new AppError({
+            ...LoggingHelper.getSiteProperties(site),
             errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
             message: `Cannot set site ${site.name} to private as charging station ${publicChargingStations.result[0].id} under site is public`,
             module: MODULE_NAME, method: 'handleUpdateSite',
@@ -443,6 +393,7 @@ export default class SiteService {
     // Update all refs
     void SiteStorage.updateEntitiesWithOrganizationIDs(req.tenant, site.companyID, filteredRequest.id);
     await Logging.logInfo({
+      ...LoggingHelper.getSiteProperties(site),
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateSite',
       message: `Site '${site.name}' has been updated successfully`,

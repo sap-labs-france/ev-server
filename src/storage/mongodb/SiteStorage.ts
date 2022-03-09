@@ -335,6 +335,7 @@ export default class SiteStorage {
     if (params.search) {
       filters.$or = [
         { 'name': { $regex: params.search, $options: 'i' } },
+        { 'address.address1': { $regex: params.search, $options: 'i' } },
         { 'address.postalCode': { $regex: params.search, $options: 'i' } },
         { 'address.city': { $regex: params.search, $options: 'i' } },
         { 'address.region': { $regex: params.search, $options: 'i' } },

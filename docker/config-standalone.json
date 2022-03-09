@@ -116,22 +116,20 @@
         }
       },
       {
-        "name": "SynchronizeBillingUsersTask",
+        "name": "BillingPeriodicOperationTask",
         "active": false,
-        "periodicity": "0 0 * * *",
-        "config": {}
-      },
-      {
-        "name": "SynchronizeBillingInvoicesTask",
-        "active": false,
-        "periodicity": "0 0 * * *",
-        "config": {}
+        "periodicity": "0 3 * * *",
+        "config": {
+          "onlyProcessUnpaidInvoices": true
+        }
       },
       {
         "name": "BillingPeriodicOperationTask",
         "active": false,
-        "periodicity": "0 1 1 * *",
-        "config": {}
+        "periodicity": "0 4 */7 * *",
+        "config": {
+          "onlyProcessUnpaidInvoices": true
+        }
       },
       {
         "name": "BillPendingTransactionTask",

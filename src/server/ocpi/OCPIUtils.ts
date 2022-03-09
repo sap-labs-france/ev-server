@@ -1,34 +1,40 @@
-import ChargingStation, { Connector, ConnectorType } from '../../types/ChargingStation';
+import ChargingStation, { Connector, ConnectorType, CurrentType } from '../../types/ChargingStation';
+import { OCPIConnector, OCPIConnectorType, OCPIPowerType } from '../../types/ocpi/OCPIConnector';
+import OCPIEndpoint, { OCPIAvailableEndpoints, OCPIEndpointVersions } from '../../types/ocpi/OCPIEndpoint';
+import { OCPIEvse, OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
+import { OCPITariff, OCPITariffDimensionType } from '../../types/ocpi/OCPITariff';
+import { OCPIToken, OCPITokenType, OCPITokenWhitelist } from '../../types/ocpi/OCPIToken';
+
 import AppError from '../../exception/AppError';
 import BackendError from '../../exception/BackendError';
+import { ChargePointStatus } from '../../types/ocpp/OCPPServer';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import Company from '../../types/Company';
 import CompanyStorage from '../../storage/mongodb/CompanyStorage';
+import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import LoggingHelper from '../../utils/LoggingHelper';
-import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
-import RoamingUtils from '../../utils/RoamingUtils';
-import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
-import SiteStorage from '../../storage/mongodb/SiteStorage';
-import { OCPIConnector, OCPIConnectorType } from '../../types/ocpi/OCPIConnector';
-import { OCPIEvse, OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
+import OCPICredential from '../../types/ocpi/OCPICredential';
 import { OCPILocation } from '../../types/ocpi/OCPILocation';
 import { OCPIResponse } from '../../types/ocpi/OCPIResponse';
+import { OCPIRole } from '../../types/ocpi/OCPIRole';
+import { OCPISessionStatus } from '../../types/ocpi/OCPISession';
 import { OCPIStatusCode } from '../../types/ocpi/OCPIStatusCode';
-import { OCPITariff, OCPITariffDimensionType } from '../../types/ocpi/OCPITariff';
-import { OCPIToken, OCPITokenType } from '../../types/ocpi/OCPIToken';
-import { ChargePointStatus } from '../../types/ocpp/OCPPServer';
 import { Request } from 'express';
+import RoamingUtils from '../../utils/RoamingUtils';
 import { ServerAction } from '../../types/Server';
+import SettingStorage from '../../storage/mongodb/SettingStorage';
 import { SimplePricingSetting } from '../../types/Setting';
 import Site from '../../types/Site';
 import SiteArea from '../../types/SiteArea';
+import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
+import SiteStorage from '../../storage/mongodb/SiteStorage';
+import Tag from '../../types/Tag';
 import Tenant from '../../types/Tenant';
+import { UserStatus } from '../../types/User';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
-import { OCPISessionStatus } from '../../types/ocpi/OCPISession';
-
 
 const MODULE_NAME = 'OCPIUtils';
 
@@ -39,6 +45,38 @@ export default class OCPIUtils {
 
   public static getConnectorIDFromEvseUID(evseUID: string): string {
     return evseUID.split(Constants.OCPI_SEPARATOR).pop();
+  }
+
+  public static async buildOCPICredentialObject(tenant: Tenant, token: string, role: string, versionUrl?: string): Promise<OCPICredential> {
+    // Credential
+    const credential = {} as OCPICredential;
+    // Get ocpi service configuration
+    const ocpiSetting = await SettingStorage.getOCPISettings(tenant);
+    // Define version url
+    credential.url = (versionUrl ? versionUrl : `${Configuration.getOCPIEndpointConfig().baseUrl}/ocpi/${role.toLowerCase()}/versions`);
+    // Check if available
+    if (ocpiSetting && ocpiSetting.ocpi) {
+      credential.token = token;
+      if (role === OCPIRole.EMSP) {
+        credential.country_code = ocpiSetting.ocpi.emsp.countryCode;
+        credential.party_id = ocpiSetting.ocpi.emsp.partyID;
+      } else {
+        credential.country_code = ocpiSetting.ocpi.cpo.countryCode;
+        credential.party_id = ocpiSetting.ocpi.cpo.partyID;
+      }
+      credential.business_details = ocpiSetting.ocpi.businessDetails;
+    }
+    return credential;
+  }
+
+  public static convertAvailableEndpoints(endpointURLs: OCPIEndpointVersions): OCPIAvailableEndpoints {
+    const availableEndpoints = {} as OCPIAvailableEndpoints;
+    if (!Utils.isEmptyArray(endpointURLs.endpoints)) {
+      for (const endpoint of endpointURLs.endpoints) {
+        availableEndpoints[endpoint.identifier] = endpoint.url;
+      }
+    }
+    return availableEndpoints;
   }
 
   public static success(data?: any): OCPIResponse {
@@ -96,10 +134,6 @@ export default class OCPIUtils {
     return `${countryCode}*${partyId}`;
   }
 
-  public static buildSiteAreaName(countryCode: string, partyId: string, locationId: string): string {
-    return `${countryCode}*${partyId}-${locationId}`;
-  }
-
   public static buildEvseUIDs(chargingStation: ChargingStation): string[] {
     const evseUIDs: string[] = [];
     for (const connector of chargingStation.connectors) {
@@ -129,9 +163,17 @@ export default class OCPIUtils {
     return tagID.length % 8 === 0 ? OCPITokenType.RFID : OCPITokenType.OTHER;
   }
 
-  public static getOCPIEmspLocationIDFromSiteAreaName(siteAreaName: string): string {
-    const siteParts = siteAreaName.split(Constants.OCPI_SEPARATOR);
-    return siteParts.pop();
+  public static buildOCPITokenFromTag(tenant: Tenant, tag: Tag): OCPIToken {
+    return {
+      uid: tag.id,
+      type: OCPIUtils.getOCPITokenTypeFromID(tag.id),
+      auth_id: tag.id,
+      visual_number: tag.visualID,
+      issuer: tenant.name,
+      valid: tag.active && tag.user?.status === UserStatus.ACTIVE,
+      whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
+      last_updated: tag.lastChangedOn ?? new Date()
+    };
   }
 
   public static generateLocalToken(tenantSubdomain: string): string {
@@ -217,7 +259,7 @@ export default class OCPIUtils {
         tenantID: tenant.id,
         action, module: MODULE_NAME, method: 'processEMSPLocationChargingStation',
         message: `${currentChargingStation ? 'Updated' : 'Created'} Charging Station ID '${chargingStation.id}' in Location '${location.name}' with ID '${location.id}'`,
-        detailedMessages: location
+        detailedMessages: { evse, location }
       });
     }
   }
@@ -238,6 +280,7 @@ export default class OCPIUtils {
         maximumPower: 0,
         issuer: false,
         connectors: [],
+        public: true,
         companyID: site.companyID,
         siteID: site.id,
         siteAreaID: siteArea.id,
@@ -249,6 +292,7 @@ export default class OCPIUtils {
       chargingStation = {
         ...chargingStation,
         maximumPower: 0,
+        public: true,
         lastChangedOn: new Date(),
         connectors: [],
         ocpiData: {
@@ -287,8 +331,10 @@ export default class OCPIUtils {
       status: OCPIUtils.convertOCPIStatus2Status(evse.status),
       amperage: evseConnector.amperage,
       voltage: evseConnector.voltage,
+      currentType: evseConnector.power_type === OCPIPowerType.DC ? CurrentType.DC : CurrentType.AC,
       connectorId: connectorID,
       currentInstantWatts: 0,
+      tariffID: evseConnector.tariff_id,
       power: evseConnector.amperage * evseConnector.voltage,
       type: OCPIUtils.convertOCPIConnectorType2ConnectorType(evseConnector.standard),
     };
@@ -364,17 +410,15 @@ export default class OCPIUtils {
       case ChargePointStatus.AVAILABLE:
         return OCPIEvseStatus.AVAILABLE;
       case ChargePointStatus.OCCUPIED:
-        return OCPIEvseStatus.BLOCKED;
+      case ChargePointStatus.PREPARING:
+      case ChargePointStatus.SUSPENDED_EV:
+      case ChargePointStatus.SUSPENDED_EVSE:
+      case ChargePointStatus.FINISHING:
       case ChargePointStatus.CHARGING:
         return OCPIEvseStatus.CHARGING;
       case ChargePointStatus.FAULTED:
       case ChargePointStatus.UNAVAILABLE:
         return OCPIEvseStatus.INOPERATIVE;
-      case ChargePointStatus.PREPARING:
-      case ChargePointStatus.SUSPENDED_EV:
-      case ChargePointStatus.SUSPENDED_EVSE:
-      case ChargePointStatus.FINISHING:
-        return OCPIEvseStatus.BLOCKED;
       case ChargePointStatus.RESERVED:
         return OCPIEvseStatus.RESERVED;
       default:
@@ -437,16 +481,14 @@ export default class OCPIUtils {
   public static async processEMSPLocationSiteArea(tenant: Tenant, location: OCPILocation, site: Site, siteArea: SiteArea): Promise<SiteArea> {
     // Create Site Area
     if (!siteArea) {
-      const siteAreaName = `${site.name}${Constants.OCPI_SEPARATOR}${location.id}`;
       siteArea = {
-        name: siteAreaName,
+        name: location.name,
         createdOn: new Date(),
         siteID: site.id,
         issuer: false,
         ocpiData: { location },
         address: {
           address1: location.address,
-          address2: location.name,
           postalCode: location.postal_code,
           city: location.city,
           country: location.country,
@@ -456,12 +498,12 @@ export default class OCPIUtils {
     } else {
       siteArea = {
         ...siteArea,
+        name: location.name,
         lastChangedOn: new Date(),
         siteID: site.id,
         ocpiData: { location },
         address: {
           address1: location.address,
-          address2: location.name,
           postalCode: location.postal_code,
           city: location.city,
           country: location.country,
