@@ -25,6 +25,8 @@ export default class OCPPValidation extends SchemaValidator {
   private stopTransactionRequest15: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/stop-transaction-request-15.json`, 'utf8'));
   private diagnosticsStatusNotificationRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/diagnostics-status-notification-request.json`, 'utf8'));
   private heartbeatRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/heartbeat-request.json`, 'utf8'));
+  private dataTransferRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/data-transfert-request.json`, 'utf8'));
+
   private constructor() {
     super('OCPPValidation');
   }
@@ -89,6 +91,7 @@ export default class OCPPValidation extends SchemaValidator {
   }
 
   public validateDataTransfer(chargingStation: ChargingStation, dataTransfer: OCPPDataTransferRequestExtended): void {
+    this.validate(this.dataTransferRequest, dataTransfer);
   }
 
   public validateStopTransaction(chargingStation: ChargingStation, stopTransaction: OCPPStopTransactionRequestExtended): void {
