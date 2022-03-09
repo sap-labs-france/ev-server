@@ -125,7 +125,7 @@ export default class SiteAreaService {
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
       req.tenant, req.user, siteAreaID, Action.DELETE, action);
     // Check if site area ha dependencies on other site areas
-    await UtilsService.checkIfSiteAreaHasDependencies(siteArea.id, req);
+    await UtilsService.checkIfSiteAreaHasDependencies(req.tenant, req.user, siteArea);
     // Delete
     await SiteAreaStorage.deleteSiteArea(req.tenant, siteArea.id);
     // Log

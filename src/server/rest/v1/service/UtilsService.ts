@@ -1505,14 +1505,15 @@ export default class UtilsService {
     }
   }
 
-  public static async checkIfSiteAreaHasDependencies(siteAreaToCheck: string, req: Request): Promise<void> {
-    const result = await SiteAreaStorage.getSiteAreas(req.tenant, { parentSiteAreaIDs: [siteAreaToCheck] }, Constants.DB_PARAMS_COUNT_ONLY);
-    if (result.count > 0) {
+  public static async checkIfSiteAreaHasDependencies(tenant: Tenant, user: UserToken, siteArea: SiteArea): Promise<void> {
+    const siteAreas = await SiteAreaStorage.getSiteAreas(tenant, { parentSiteAreaIDs: [siteArea.id] }, Constants.DB_PARAMS_COUNT_ONLY);
+    if (siteAreas.count > 0) {
       throw new AppError({
+        ...LoggingHelper.getSiteAreaProperties(siteArea),
         errorCode: HTTPError.SITE_AREA_HIERARCHY_DEPENDENCY_ERROR,
-        message: 'Site Area has dependencies to other site areas',
-        module: MODULE_NAME, method: 'checkIfSiteAreaTreeValid',
-        user: req.user.id
+        user: user.id,
+        module: MODULE_NAME, method: 'checkIfSiteAreaHasDependencies',
+        message: `Site Area has dependencies to ${siteAreas.count} other Site Area(s)`,
       });
     }
   }
