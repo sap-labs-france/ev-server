@@ -944,11 +944,11 @@ export default class StripeBillingIntegration extends BillingIntegration {
       };
     }
     if (transaction.billingData?.stop?.status === BillingStatus.BILLED) {
-      await Logging.logWarning({
+      await Logging.logInfo({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_TRANSACTION,
         module: MODULE_NAME, method: 'endTransaction',
-        message: `Operation aborted - unexpected situation - the session has already been billed - transaction ID: ${transaction.id}`
+        message: `Operation skipped - the session has already been billed - transaction ID: ${transaction.id}`
       });
       // Preserve the previous state unchanged
       return transaction.billingData.stop;
