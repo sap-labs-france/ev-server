@@ -127,23 +127,22 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
   public async getChargingStationClient(tenant: Tenant, chargingStation: ChargingStation): Promise<ChargingStationClient> {
     // Get the Json Web Socket
     const jsonWebSocket = this.jsonWSConnections.get(`${tenant.id}~${chargingStation.id}`);
-    if (!jsonWebSocket) {
-      const message = 'No opened Web Socket connection found';
-      await Logging.logWarning({
-        ...LoggingHelper.getChargingStationProperties(chargingStation),
-        tenantID: tenant.id,
-        module: MODULE_NAME, method: 'getChargingStationClient',
-        action: ServerAction.WS_SERVER_CONNECTION, message
-      });
-      await Logging.logWarning({
-        tenantID: Constants.DEFAULT_TENANT,
-        chargingStationID: chargingStation.id,
-        module: MODULE_NAME, method: 'getChargingStationClient',
-        action: ServerAction.WS_SERVER_CONNECTION, message
-      });
+    if (jsonWebSocket) {
+      return jsonWebSocket.getChargingStationClient();
     }
-    // Return the client
-    return jsonWebSocket.getChargingStationClient();
+    const message = 'No opened Web Socket connection found';
+    await Logging.logWarning({
+      ...LoggingHelper.getChargingStationProperties(chargingStation),
+      tenantID: tenant.id,
+      module: MODULE_NAME, method: 'getChargingStationClient',
+      action: ServerAction.WS_SERVER_CONNECTION, message
+    });
+    await Logging.logWarning({
+      tenantID: Constants.DEFAULT_TENANT,
+      chargingStationID: chargingStation.id,
+      module: MODULE_NAME, method: 'getChargingStationClient',
+      action: ServerAction.WS_SERVER_CONNECTION, message
+    });
   }
 
   public hasChargingStationConnected(tenant: Tenant, chargingStation: ChargingStation): boolean {
