@@ -113,6 +113,7 @@
     },
     "pricingDimension": {
       "type": "object",
+      "nullable":true,
       "properties": {
         "active" : {
           "type": "boolean",
