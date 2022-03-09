@@ -1535,7 +1535,9 @@ export default class UtilsService {
     }
     let siteAreaTrees: SiteArea[];
     try {
+      // Build Site Area Tree
       siteAreaTrees = Utils.buildSiteAreaTrees(siteAreas.result);
+      // Check Site Area Tree
       Utils.checkSiteAreaTrees(siteAreaTrees, siteAreas.result.length);
     } catch (error) {
       throw new AppError({

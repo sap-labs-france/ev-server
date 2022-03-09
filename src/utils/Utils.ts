@@ -16,6 +16,7 @@ import Configuration from './Configuration';
 import ConnectorStats from '../types/ConnectorStats';
 import Constants from './Constants';
 import { Decimal } from 'decimal.js';
+import LoggingHelper from './LoggingHelper';
 import { Promise } from 'bluebird';
 import QRCode from 'qrcode';
 import { Request } from 'express';
@@ -1659,53 +1660,59 @@ export default class Utils {
     return siteAreaTrees;
   }
 
-  public static checkSiteAreaTrees(siteAreas: SiteArea[], numberOfSiteAreas?: number,
-      parentSiteArea: SiteArea = null, count = 0) : number {
+  public static checkSiteAreaTrees(siteAreas: SiteArea[], expectedNumberOfSiteAreas?: number, parentSiteArea: SiteArea = null) : number {
+    let numberOfSiteAreas = 0;
     // Count and check all children and children of children
     for (const siteArea of siteAreas) {
-      count++;
+      numberOfSiteAreas++;
+      // Check with parent Site Area
       if (parentSiteArea) {
         if (siteArea.smartCharging !== parentSiteArea.smartCharging) {
           throw new BackendError({
             siteAreaID: siteArea.id,
             method: 'checkSiteAreaTrees',
-            message: `Expected smartCharging '${String(parentSiteArea.smartCharging)}' from parent '${parentSiteArea.name}', but got '${String(siteArea.smartCharging)}' from child '${siteArea.name}'`,
+            message: `Expected Smart Charging '${String(parentSiteArea.smartCharging)}' from parent '${parentSiteArea.name}', but got '${String(siteArea.smartCharging)}' from child '${siteArea.name}'`,
+            detailedMessages: { siteArea, parentSiteArea },
           });
         }
         if (siteArea.numberOfPhases !== parentSiteArea.numberOfPhases) {
           throw new BackendError({
             siteAreaID: siteArea.id,
             method: 'checkSiteAreaTrees',
-            message: `Expected numberOfPhases '${parentSiteArea.numberOfPhases}' from parent '${parentSiteArea.name}', but got '${siteArea.numberOfPhases}' from child '${siteArea.name}'`,
+            message: `Expected Number Of Phases '${parentSiteArea.numberOfPhases}' from parent '${parentSiteArea.name}', but got '${siteArea.numberOfPhases}' from child '${siteArea.name}'`,
+            detailedMessages: { siteArea, parentSiteArea },
           });
         }
         if (siteArea.siteID !== parentSiteArea.siteID) {
           throw new BackendError({
             siteAreaID: siteArea.id,
             method: 'checkSiteAreaTrees',
-            message: `Expected siteID '${parentSiteArea.siteID}' from parent '${parentSiteArea.name}', but got '${siteArea.siteID}' from child '${siteArea.name}'`,
+            message: `Expected Site ID '${parentSiteArea.siteID}' from parent '${parentSiteArea.name}', but got '${siteArea.siteID}' from child '${siteArea.name}'`,
+            detailedMessages: { siteArea, parentSiteArea },
           });
         }
         if (siteArea.voltage !== parentSiteArea.voltage) {
           throw new BackendError({
             siteAreaID: siteArea.id,
             method: 'checkSiteAreaTrees',
-            message: `Expected voltage '${parentSiteArea.voltage}' from parent '${parentSiteArea.name}', but got '${siteArea.voltage}' from child '${siteArea.name}'`,
+            message: `Expected Voltage '${parentSiteArea.voltage}' from parent '${parentSiteArea.name}', but got '${siteArea.voltage}' from child '${siteArea.name}'`,
+            detailedMessages: { siteArea, parentSiteArea },
           });
         }
       }
-      count += this.checkSiteAreaTrees(siteArea.siteAreaChildren, null, siteArea);
+      // Check children
+      numberOfSiteAreas += this.checkSiteAreaTrees(siteArea.siteAreaChildren, null, siteArea);
     }
-    if (Utils.isNullOrUndefined(numberOfSiteAreas)) {
-      return count;
+    if (Utils.isNullOrUndefined(expectedNumberOfSiteAreas)) {
+      return numberOfSiteAreas;
     }
-    if (count !== numberOfSiteAreas) {
+    if (numberOfSiteAreas !== expectedNumberOfSiteAreas) {
       throw new BackendError({
-        siteID: siteAreas[0].siteID,
+        ...LoggingHelper.getSiteAreaProperties(siteAreas[0]),
         method: 'checkSiteAreaTrees',
-        message: 'Circular Structure in Site Area Tree',
+        message: 'Circular dependency found in Site Area tree',
+        detailedMessages: { expectedNumberOfSiteAreas, numberOfSiteAreas, siteAreas },
       });
     }
-
   }
 }
