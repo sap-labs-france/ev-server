@@ -274,7 +274,6 @@ export default class SiteAreaService {
       Action.CREATE, Entity.SITE_AREA, MODULE_NAME, 'handleCreateSiteArea');
     // Filter request
     const filteredRequest = SiteAreaValidator.getInstance().validateSiteAreaCreateReq(req.body);
-    // Additional sites for tree check
     const additionalSiteIDs = [];
     // Check request data is valid
     UtilsService.checkIfSiteAreaValid(filteredRequest, req);
@@ -290,10 +289,10 @@ export default class SiteAreaService {
       });
     }
     // Check Site auth
-    const site = await UtilsService.checkAndGetSiteAuthorization(
+    await UtilsService.checkAndGetSiteAuthorization(
       req.tenant, req.user, filteredRequest.siteID, Action.UPDATE, action);
+    // Check parent Site Area auth
     if (filteredRequest.parentSiteAreaID) {
-      // Check parent site area auth
       const parentSiteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
         req.tenant, req.user, filteredRequest.parentSiteAreaID, Action.UPDATE, action);
       additionalSiteIDs.push(parentSiteArea.siteID);
@@ -307,11 +306,6 @@ export default class SiteAreaService {
     } as SiteArea;
     // Check site area chain validity
     await UtilsService.checkIfSiteAreaTreeValid(siteArea, req, additionalSiteIDs);
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
-      if (!site.public) {
-        delete siteArea.tariffID;
-      }
-    }
     // Save
     siteArea.id = await SiteAreaStorage.saveSiteArea(req.tenant, siteArea, Utils.objectHasProperty(filteredRequest, 'image'));
     await Logging.logInfo({
@@ -345,23 +339,13 @@ export default class SiteAreaService {
     // Check Site auth
     const site = await UtilsService.checkAndGetSiteAuthorization(
       req.tenant, req.user, filteredRequest.siteID, Action.READ, action);
+    // Check parent Site Area auth
     if (filteredRequest.parentSiteAreaID) {
-      // Check parent site area auth
       const parentSiteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
         req.tenant, req.user, filteredRequest.parentSiteAreaID, Action.UPDATE, action);
       additionalSiteIDs.push(parentSiteArea.siteID);
     }
-    if (siteArea.siteID !== filteredRequest.siteID) {
-      additionalSiteIDs.push(siteArea.siteID);
-    }
-    // Update
-    siteArea.name = filteredRequest.name;
-    siteArea.address = filteredRequest.address;
-    siteArea.maximumPower = filteredRequest.maximumPower;
-    siteArea.voltage = filteredRequest.voltage;
-    if (Utils.objectHasProperty(filteredRequest, 'image')) {
-      siteArea.image = filteredRequest.image;
-    }
+    // Check that Charging Station's nbr of phases is aligned with Site Area
     if (filteredRequest.smartCharging && filteredRequest.numberOfPhases === 1) {
       for (const chargingStation of siteArea.chargingStations) {
         for (const connector of chargingStation.connectors) {
@@ -379,28 +363,37 @@ export default class SiteAreaService {
         }
       }
     }
-    siteArea.numberOfPhases = filteredRequest.numberOfPhases;
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
-      if (Utils.objectHasProperty(filteredRequest, 'tariffID')) {
-        siteArea.tariffID = filteredRequest.tariffID;
-      }
-      if (!site.public) {
-        delete siteArea.tariffID;
-      }
+    if (siteArea.siteID !== filteredRequest.siteID) {
+      additionalSiteIDs.push(siteArea.siteID);
     }
+    // Delete Charging Profiles
     let actionsResponse: ActionsResponse;
     if (siteArea.smartCharging && !filteredRequest.smartCharging) {
       actionsResponse = await OCPPUtils.clearAndDeleteChargingProfilesForSiteArea(
         req.tenant, siteArea,
         { profilePurposeType: ChargingProfilePurposeType.TX_PROFILE });
     }
+    // Update
+    siteArea.name = filteredRequest.name;
+    siteArea.address = filteredRequest.address;
+    siteArea.maximumPower = filteredRequest.maximumPower;
+    siteArea.voltage = filteredRequest.voltage;
+    if (Utils.objectHasProperty(filteredRequest, 'image')) {
+      siteArea.image = filteredRequest.image;
+    }
+    siteArea.numberOfPhases = filteredRequest.numberOfPhases;
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI) &&
+        Utils.objectHasProperty(filteredRequest, 'tariffID')) {
+      siteArea.tariffID = filteredRequest.tariffID;
+    }
     siteArea.smartCharging = filteredRequest.smartCharging;
     siteArea.accessControl = filteredRequest.accessControl;
     siteArea.parentSiteAreaID = filteredRequest.parentSiteAreaID;
     siteArea.siteID = filteredRequest.siteID;
-    await UtilsService.checkIfSiteAreaTreeValid(siteArea, req, additionalSiteIDs);
     siteArea.lastChangedBy = { 'id': req.user.id };
     siteArea.lastChangedOn = new Date();
+    // Check Site Area tree
+    await UtilsService.checkIfSiteAreaTreeValid(siteArea, req, additionalSiteIDs);
     // Save
     await SiteAreaStorage.saveSiteArea(req.tenant, siteArea, Utils.objectHasProperty(filteredRequest, 'image'));
     // Update all refs
