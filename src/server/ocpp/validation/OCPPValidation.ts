@@ -43,11 +43,11 @@ export default class OCPPValidation extends SchemaValidator {
   }
 
   public validateStatusNotification(statusNotification: OCPPStatusNotificationRequestExtended): void {
+    this.validate(this.statusNotificationRequest, statusNotification);
     // Check non mandatory or wrong timestamp
     if (!statusNotification.timestamp || new Date(statusNotification.timestamp).getFullYear() === new Date(0).getFullYear()) {
       statusNotification.timestamp = new Date().toISOString();
     }
-    this.validate(this.statusNotificationRequest, statusNotification);
   }
 
   public validateAuthorize(authorize: OCPPAuthorizeRequestExtended): void {
@@ -56,6 +56,7 @@ export default class OCPPValidation extends SchemaValidator {
   }
 
   public validateBootNotification(headers: OCPPHeader, bootNotification: OCPPBootNotificationRequestExtended): void {
+    this.validate(this.bootNotificationRequest, bootNotification);
     // Check Charging Station
     if (!headers.chargeBoxIdentity) {
       throw new BackendError({
@@ -65,7 +66,6 @@ export default class OCPPValidation extends SchemaValidator {
         detailedMessages: { headers, bootNotification }
       });
     }
-    this.validate(this.bootNotificationRequest, bootNotification);
   }
 
   public validateDiagnosticsStatusNotification(diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequestExtended): void {
