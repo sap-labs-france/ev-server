@@ -1,4 +1,4 @@
-import { OCPIGetTokensTaskConfig, TaskConfig } from '../../../types/TaskConfig';
+import { OCPIPullTokensTaskConfig, TaskConfig } from '../../../types/TaskConfig';
 import Tenant, { TenantComponents } from '../../../types/Tenant';
 
 import Constants from '../../../utils/Constants';
@@ -14,9 +14,9 @@ import { ServerAction } from '../../../types/Server';
 import TenantSchedulerTask from '../../TenantSchedulerTask';
 import Utils from '../../../utils/Utils';
 
-const MODULE_NAME = 'OCPIGetTokensTask';
+const MODULE_NAME = 'OCPIPullTokensTask';
 
-export default class OCPIGetTokensTask extends TenantSchedulerTask {
+export default class OCPIPullTokensTask extends TenantSchedulerTask {
   public async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     try {
       // Check if OCPI component is active
@@ -33,7 +33,7 @@ export default class OCPIGetTokensTask extends TenantSchedulerTask {
     }
   }
 
-  private async processOCPIEndpoint(tenant: Tenant, ocpiEndpoint: OCPIEndpoint, config: OCPIGetTokensTaskConfig): Promise<void> {
+  private async processOCPIEndpoint(tenant: Tenant, ocpiEndpoint: OCPIEndpoint, config: OCPIPullTokensTaskConfig): Promise<void> {
     // Get the lock
     const ocpiLock = await LockingHelper.createOCPIPullTokensLock(tenant.id, ocpiEndpoint, config.partial);
     if (ocpiLock) {
@@ -61,7 +61,7 @@ export default class OCPIGetTokensTask extends TenantSchedulerTask {
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_PULL_TOKENS,
-          message: `The pull tokens process for endpoint '${ocpiEndpoint.name}' is being processed${config.partial ? ' (only diff)' : ' (full)'}...`
+          message: `Pull of Tokens for endpoint '${ocpiEndpoint.name}' is being processed${config.partial ? ' (only diff)' : ' (full)'}...`
         });
         // Build OCPI Client
         const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
@@ -71,7 +71,7 @@ export default class OCPIGetTokensTask extends TenantSchedulerTask {
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_PULL_TOKENS,
-          message: `The pull tokens process for endpoint '${ocpiEndpoint.name}' has been completed${config.partial ? ' (only diff)' : ' (full)'}`,
+          message: `Pull of Tokens for endpoint '${ocpiEndpoint.name}' has been completed${config.partial ? ' (only diff)' : ' (full)'}`,
           detailedMessages: { result }
         });
       } catch (error) {

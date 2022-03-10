@@ -119,6 +119,9 @@ export default class AssetStorage {
       filters.$or = [
         { 'name': { $regex: params.search, $options: 'i' } },
       ];
+      if (DatabaseUtils.isObjectID(params.search)) {
+        filters.$or.push({ '_id': DatabaseUtils.convertToObjectID(params.search) });
+      }
     }
     // With no Site Area
     if (params.withNoSiteArea) {

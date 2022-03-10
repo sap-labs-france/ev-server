@@ -1,4 +1,5 @@
 import BillingFactory from '../../integration/billing/BillingFactory';
+import { BillingPeriodicOperationTaskConfig } from '../../types/TaskConfig';
 import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
@@ -9,7 +10,7 @@ import TenantSchedulerTask from '../TenantSchedulerTask';
 import Utils from '../../utils/Utils';
 
 export default class BillingPeriodicOperationTask extends TenantSchedulerTask {
-  public async processTenant(tenant: Tenant, /* taskConfig: BillingPeriodicOperationTaskConfig */): Promise<void> {
+  public async processTenant(tenant: Tenant, taskConfig: BillingPeriodicOperationTaskConfig): Promise<void> {
     // Get the lock
     const billingLock = await LockingHelper.acquireBillingPeriodicOperationLock(tenant.id);
     if (billingLock) {
@@ -17,7 +18,7 @@ export default class BillingPeriodicOperationTask extends TenantSchedulerTask {
         const billingImpl = await BillingFactory.getBillingImpl(tenant);
         if (billingImpl) {
           // Attempt to finalize and pay invoices
-          const chargeActionResults = await billingImpl.chargeInvoices();
+          const chargeActionResults = await billingImpl.chargeInvoices(taskConfig);
           if (chargeActionResults.inError > 0) {
             void NotificationHandler.sendBillingPeriodicOperationFailed(
               tenant,

@@ -342,16 +342,10 @@ export default class DatabaseUtils {
   }
 
   public static addLastChangedCreatedProps(dest: any, entity: any): void {
-    dest.createdBy = null;
-    dest.lastChangedBy = null;
-    if (entity.createdBy || entity.createdOn) {
-      dest.createdBy = DatabaseUtils.mongoConvertUserID(entity, 'createdBy');
-      dest.createdOn = Utils.convertToDate(entity.createdOn);
-    }
-    if (entity.lastChangedBy || entity.lastChangedOn) {
-      dest.lastChangedBy = DatabaseUtils.mongoConvertUserID(entity, 'lastChangedBy');
-      dest.lastChangedOn = Utils.convertToDate(entity.lastChangedOn);
-    }
+    dest.createdBy = entity.createdBy ? DatabaseUtils.mongoConvertUserID(entity, 'createdBy') : null;
+    dest.createdOn = entity.createdOn ? Utils.convertToDate(entity.createdOn) : null;
+    dest.lastChangedBy = entity.lastChangedBy ? DatabaseUtils.mongoConvertUserID(entity, 'lastChangedBy') : null;
+    dest.lastChangedOn = entity.lastChangedOn ? Utils.convertToDate(entity.lastChangedOn) : null;
   }
 
   public static pushRenameDatabaseID(aggregation: any[], nestedField?: string): void {

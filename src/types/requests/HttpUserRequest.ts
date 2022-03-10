@@ -102,4 +102,5 @@ export interface HttpEulaRequest {
 
 export interface HttpUserDefaultTagCar {
   UserID: string;
+  ChargingStationID?: string; // TODO: Backward-compatibility issue - This should be mandatory! - change it as soon as possible
 }

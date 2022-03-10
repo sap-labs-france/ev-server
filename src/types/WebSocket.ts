@@ -26,6 +26,15 @@ export interface WebSocketPingResult {
   errorMessage?: string;
 }
 
+export enum WebSocketAction {
+  UPGRADE = 'Upgrade',
+  OPEN = 'Open',
+  CLOSE = 'Close',
+  PING = 'Ping',
+  PONG = 'Pong',
+  MESSAGE = 'Message',
+}
+
 export enum WebSocketCloseEventStatusCode {
   CLOSE_NORMAL = 1000,
   CLOSE_GOING_AWAY = 1001,

@@ -187,33 +187,22 @@ export default class AuthService {
     };
     await TagStorage.saveTag(tenant, tag);
     // Save User password
-    await UserStorage.saveUserPassword(tenant, newUser.id,
-      {
-        password: newPasswordHashed,
-        passwordWrongNbrTrials: 0,
-        passwordResetHash: null,
-        passwordBlockedUntil: null
-      });
+    await UserStorage.saveUserPassword(tenant, newUser.id, {
+      password: newPasswordHashed,
+      passwordWrongNbrTrials: 0,
+      passwordResetHash: null,
+      passwordBlockedUntil: null
+    });
     // Save User Account Verification
     await UserStorage.saveUserAccountVerification(tenant, newUser.id, { verificationToken });
     // Save User EULA
-    await UserStorage.saveUserEULA(tenant, newUser.id,
-      {
-        eulaAcceptedOn: new Date(),
-        eulaAcceptedVersion: endUserLicenseAgreement.version,
-        eulaAcceptedHash: endUserLicenseAgreement.hash
-      });
-    // Assign user to all sites with auto-assign flag set
-    const sites = await SiteStorage.getSites(tenant,
-      { withAutoUserAssignment: true },
-      Constants.DB_PARAMS_MAX_LIMIT
-    );
-    if (sites.count > 0) {
-      const siteIDs = sites.result.map((site) => site.id);
-      if (siteIDs && siteIDs.length > 0) {
-        await UserStorage.addSitesToUser(tenant, newUser.id, siteIDs);
-      }
-    }
+    await UserStorage.saveUserEULA(tenant, newUser.id, {
+      eulaAcceptedOn: new Date(),
+      eulaAcceptedVersion: endUserLicenseAgreement.version,
+      eulaAcceptedHash: endUserLicenseAgreement.hash
+    });
+    // Assign user to all Sites with auto-assign flag
+    await UtilsService.assignCreatedUserToSites(tenant, newUser);
     await Logging.logInfo({
       tenantID: tenant.id,
       user: newUser, action: action,
@@ -590,7 +579,6 @@ export default class AuthService {
   }
 
   public static handleUserLogOut(action: ServerAction, req: Request, res: Response, next: NextFunction): void {
-    req.logout();
     res.status(StatusCodes.OK).send({});
   }
 

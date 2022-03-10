@@ -23,10 +23,10 @@ const testData = {
   createdUsersDefaultTenant: []
 };
 
-describe('Authentication Service (utall)', function() {
-  this.timeout(50000);
+describe('Authentication Service (utall)', () => {
+  jest.setTimeout(60000);
 
-  before(() => {
+  beforeAll(() => {
     // Get credentials
     testData.adminEmail = config.get('admin.username');
     testData.adminPassword = config.get('admin.password');
@@ -34,7 +34,7 @@ describe('Authentication Service (utall)', function() {
     testData.superAdminPassword = config.get('superadmin.password');
   });
 
-  after(async () => {
+  afterAll(async () => {
     // Delete all created users again
     if (testData.centralServiceDefaultTenant) {
       for (const user of testData.createdUsersDefaultTenant) {
@@ -80,7 +80,7 @@ describe('Authentication Service (utall)', function() {
       expect(response.data).to.have.property('count', 1);
       expect(response.data.result).to.have.lengthOf(1);
       expect(user).to.have.property('email', newUser.email.toLowerCase());
-      expect(user).to.have.property('name', newUser.name);
+      expect(user).to.have.property('name', newUser.name.toUpperCase());
       expect(user).to.have.property('firstName', newUser.firstName);
       expect(user).to.have.property('status', 'P');
       expect(user).to.have.property('role', 'B');
@@ -107,32 +107,35 @@ describe('Authentication Service (utall)', function() {
       expect(response.data.status).to.eql('Success');
     });
 
-    it('Should be possible to register a new user on the default tenant', async () => {
-      const newUser = UserFactory.buildRegisterUser();
-      let response = await CentralServerService.defaultInstance.authenticationApi.registerUser(newUser, null);
-      expect(response.status).to.be.eql(StatusCodes.OK);
-      expect(response.data).to.have.property('status', 'Success');
+    it(
+      'Should be possible to register a new user on the default tenant',
+      async () => {
+        const newUser = UserFactory.buildRegisterUser();
+        let response = await CentralServerService.defaultInstance.authenticationApi.registerUser(newUser, null);
+        expect(response.status).to.be.eql(StatusCodes.OK);
+        expect(response.data).to.have.property('status', 'Success');
 
-      testData.centralServiceDefaultTenant = new CentralServerService('',
-        {
-          email: testData.superAdminEmail,
-          password: testData.superAdminPassword
-        },
-        {
-          email: testData.superAdminEmail,
-          password: testData.superAdminPassword
-        });
-      response = await testData.centralServiceDefaultTenant.userApi.getByEmail(newUser.email);
-      expect(response.status).to.be.eql(StatusCodes.OK);
-      expect(response.data).to.have.property('count', 1);
-      const user = response.data.result[0];
-      testData.createdUsersDefaultTenant.push(user);
-      expect(user).to.have.property('email', newUser.email.toLowerCase());
-      expect(user).to.have.property('name', newUser.name);
-      expect(user).to.have.property('firstName', newUser.firstName);
-      expect(user).to.have.property('status', 'P');
-      expect(user).to.have.property('role', 'S');
-    });
+        testData.centralServiceDefaultTenant = new CentralServerService('',
+          {
+            email: testData.superAdminEmail,
+            password: testData.superAdminPassword
+          },
+          {
+            email: testData.superAdminEmail,
+            password: testData.superAdminPassword
+          });
+        response = await testData.centralServiceDefaultTenant.userApi.getByEmail(newUser.email);
+        expect(response.status).to.be.eql(StatusCodes.OK);
+        expect(response.data).to.have.property('count', 1);
+        const user = response.data.result[0];
+        testData.createdUsersDefaultTenant.push(user);
+        expect(user).to.have.property('email', newUser.email.toLowerCase());
+        expect(user).to.have.property('name', newUser.name.toUpperCase());
+        expect(user).to.have.property('firstName', newUser.firstName);
+        expect(user).to.have.property('status', 'P');
+        expect(user).to.have.property('role', 'S');
+      }
+    );
 
     it('Should be possible to reset a user password', async () => {
       const newUser = await CentralServerService.defaultInstance.createEntity(
@@ -252,12 +255,15 @@ describe('Authentication Service (utall)', function() {
       expect(response.data).to.not.have.property('token');
     });
 
-    it('Should not allow authentication of known user with wrong password', async () => {
-      // Call
-      const response = await CentralServerService.defaultInstance.authenticationApi.login(testData.adminEmail, 'A_M4tch1ng_P4ssw0rd', true);
-      expect(response.status).to.be.eql(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
-      expect(response.data).to.not.have.property('token');
-    });
+    it(
+      'Should not allow authentication of known user with wrong password',
+      async () => {
+        // Call
+        const response = await CentralServerService.defaultInstance.authenticationApi.login(testData.adminEmail, 'A_M4tch1ng_P4ssw0rd', true);
+        expect(response.status).to.be.eql(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+        expect(response.data).to.not.have.property('token');
+      }
+    );
 
     it('Should not allow authentication without password', async () => {
       // Call
@@ -310,15 +316,21 @@ describe('Authentication Service (utall)', function() {
       expect(response.data).to.not.have.property('token');
     });
 
-    it('should not be possible to verify email for the Super Tenant', async () => {
-      const response = await CentralServerService.defaultInstance.authenticationApi.verifyEmail('unknown@sap.com', 'unknownVerificationToken', '');
-      expect(response.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
-    });
+    it(
+      'should not be possible to verify email for the Super Tenant',
+      async () => {
+        const response = await CentralServerService.defaultInstance.authenticationApi.verifyEmail('unknown@sap.com', 'unknownVerificationToken', '');
+        expect(response.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
+      }
+    );
 
-    it('should not be possible to request verification email for the Super Tenant', async () => {
-      const response = await CentralServerService.defaultInstance.authenticationApi.resendVerificationEmail('unknown@sap.com', '');
-      expect(response.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
-    });
+    it(
+      'should not be possible to request verification email for the Super Tenant',
+      async () => {
+        const response = await CentralServerService.defaultInstance.authenticationApi.resendVerificationEmail('unknown@sap.com', '');
+        expect(response.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
+      }
+    );
   });
 });
 

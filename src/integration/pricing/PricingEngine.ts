@@ -144,7 +144,7 @@ export default class PricingEngine {
       entityID: pricingDefinition.entityID,
       entityType: pricingDefinition.entityType,
       name: pricingDefinition.name,
-      description: pricingDefinition.name,
+      description: pricingDefinition.description,
       staticRestrictions: pricingDefinition.staticRestrictions,
       restrictions: pricingDefinition.restrictions,
       dimensions: pricingDefinition.dimensions,

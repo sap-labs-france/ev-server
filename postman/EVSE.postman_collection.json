@@ -456,7 +456,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"name\": \"Tenant 1\", \n\t\"email\": \"slf@chargeangels.fr\", \n\t\"subdomain\": \"slf2\"\n}"
+					"raw": "{\n\t\"email\": \"slf@chargeangels.fr\", \n\t\"subdomain\": \"slf2\"\n}"
 				},
 				"url": {
 					"raw": "{{base_url}}/v1/api/tenants",
@@ -778,6 +778,18 @@
 		},
 		{
 			"name": "FE-CompanyCreate",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var responseJson = JSON.parse(responseBody);",
+							"postman.setEnvironmentVariable(\"companyID\", responseJson[\"id\"]);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"request": {
 				"auth": {
 					"type": "bearer",
@@ -801,14 +813,14 @@
 					"raw": "{\n\t\"name\": \"Eurecom2\",\n\t\"address\": {\n\t\t\"address1\": \"805 Av. du Docteur Maurice Donat\",\n\t\t\"address2\": \"Font de l'Orme\",\n\t\t\"postalCode\": \"06150\",\n\t\t\"city\": \"Mougins\",\n\t\t\"region\": \"PACA\",\n\t\t\"country\": \"France\"\n\t}\n}"
 				},
 				"url": {
-					"raw": "{{base_url}}/client/api/CompanyCreate",
+					"raw": "{{base_url}}/v1/api/companies",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
-						"client",
+						"v1",
 						"api",
-						"CompanyCreate"
+						"companies"
 					]
 				}
 			},
@@ -915,7 +927,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/companies/5abeba344bae1457eb565e27",
+					"raw": "{{base_url}}/v1/api/companies/{{companyID}}",
 					"host": [
 						"{{base_url}}"
 					],
@@ -923,7 +935,7 @@
 						"v1",
 						"api",
 						"companies",
-						"5abeba344bae1457eb565e27"
+						"{{companyID}}"
 					]
 				}
 			},
@@ -1023,7 +1035,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{base_url}}/v1/api/companies/5a7234df6a0b293d15ed02e1",
+					"raw": "{{base_url}}/v1/api/companies/{{companyID}}",
 					"host": [
 						"{{base_url}}"
 					],
@@ -1031,7 +1043,7 @@
 						"v1",
 						"api",
 						"companies",
-						"5a7234df6a0b293d15ed02e1"
+						"{{companyID}}"
 					]
 				}
 			},
@@ -1139,7 +1151,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/client/api/Site?ID=5abeba9e4bae1457eb565e66&WithUsers=false",
+					"raw": "{{base_url}}/client/api/Site?ID={{siteID}}&WithUsers=false",
 					"host": [
 						"{{base_url}}"
 					],
@@ -1151,7 +1163,7 @@
 					"query": [
 						{
 							"key": "ID",
-							"value": "5abeba9e4bae1457eb565e66"
+							"value": "{{siteID}}"
 						},
 						{
 							"key": "WithUsers",
@@ -1186,41 +1198,6 @@
 						"client",
 						"api",
 						"SiteImages"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "FE-SiteImage",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{base_url}}/client/api/SiteImage?ID=5abeba9e4bae1457eb565e66",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"client",
-						"api",
-						"SiteImage"
-					],
-					"query": [
-						{
-							"key": "ID",
-							"value": "5abeba9e4bae1457eb565e66"
-						}
 					]
 				}
 			},
@@ -1545,7 +1522,7 @@
 					"raw": "{\n  \"args\": {\n    \"connectorId\": 0,\n    \"duration\": 36000,\n    \"chargingRateUnit\": \"A\"\n  }\n}"
 				},
 				"url": {
-					"raw": "{{base_url}}/v1/api/charging-stations/{{chargingStation}}/compositeschedule",
+					"raw": "{{base_url}}/v1/api/charging-stations/{{chargingStation}}/composite-schedule/get",
 					"host": [
 						"{{base_url}}"
 					],
@@ -1554,7 +1531,7 @@
 						"api",
 						"charging-stations",
 						"{{chargingStation}}",
-						"compositeschedule"
+						"composite-schedule/get"
 					]
 				}
 			},
@@ -1587,7 +1564,7 @@
 					"raw": "{\n  \"args\": {\n    \"location\": \"\",\n    \"retries\": 1,\n    \"retryInterval\": 5,\n    \"startTime\": \"2021-06-01T13:35:14.118Z\",\n    \"stopTime\": \"2021-06-01T13:35:14.118Z\"\n  }\n}"
 				},
 				"url": {
-					"raw": "{{base_url}}/v1/api/charging-stations/{{chargingStation}}/diagnostics",
+					"raw": "{{base_url}}/v1/api/charging-stations/{{chargingStation}}/diagnostics/get",
 					"host": [
 						"{{base_url}}"
 					],
@@ -3671,7 +3648,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{base_url}}/v1/api/transactions/1247155539",
+					"raw": "{{base_url}}/v1/api/transactions/{{transactionId}}",
 					"host": [
 						"{{base_url}}"
 					],
@@ -3679,7 +3656,7 @@
 						"v1",
 						"api",
 						"transactions",
-						"1247155539"
+						"{{transactionId}}"
 					],
 					"query": [
 						{
@@ -3722,7 +3699,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{base_url}}/v1/api/transactions/1247155538",
+					"raw": "{{base_url}}/v1/api/transactions/{{transactionId}}",
 					"host": [
 						"{{base_url}}"
 					],
@@ -3730,7 +3707,7 @@
 						"v1",
 						"api",
 						"transactions",
-						"1247155538"
+						"{{transactionId}}"
 					]
 				}
 			},
@@ -3756,7 +3733,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{base_url}}/v1/api/transactions/1247155539/ocpi/cdr",
+					"raw": "{{base_url}}/v1/api/transactions/{{transactionId}}/ocpi/cdr",
 					"host": [
 						"{{base_url}}"
 					],
@@ -3764,7 +3741,7 @@
 						"v1",
 						"api",
 						"transactions",
-						"1247155539",
+						"{{transactionId}}",
 						"ocpi",
 						"cdr"
 					]
@@ -3795,7 +3772,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{base_url}}/v1/api/transactions/1247155539/ocpi/cdr/action/export",
+					"raw": "{{base_url}}/v1/api/transactions/{{transactionId}}/ocpi/cdr/action/export",
 					"host": [
 						"{{base_url}}"
 					],
@@ -3803,7 +3780,7 @@
 						"v1",
 						"api",
 						"transactions",
-						"1247155539",
+						"{{transactionId}}",
 						"ocpi",
 						"cdr",
 						"action",
@@ -3853,7 +3830,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{base_url}}/v1/api/transactions/1247155539/consumptions",
+					"raw": "{{base_url}}/v1/api/transactions/{{transactionId}}/consumptions",
 					"host": [
 						"{{base_url}}"
 					],
@@ -3861,7 +3838,7 @@
 						"v1",
 						"api",
 						"transactions",
-						"1247155539",
+						"{{transactionId}}",
 						"consumptions"
 					],
 					"query": [
@@ -3910,7 +3887,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{base_url}}/v1/api/transactions/1247155539/consumptions/rebuild",
+					"raw": "{{base_url}}/v1/api/transactions/{{transactionId}}/consumptions/rebuild",
 					"host": [
 						"{{base_url}}"
 					],
@@ -3918,7 +3895,7 @@
 						"v1",
 						"api",
 						"transactions",
-						"1247155539",
+						"{{transactionId}}",
 						"consumptions",
 						"rebuild"
 					]
@@ -3946,7 +3923,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{base_url}}/v1/api/transactions/1247155539/stop/soft",
+					"raw": "{{base_url}}/v1/api/transactions/{{transactionId}}/stop/soft",
 					"host": [
 						"{{base_url}}"
 					],
@@ -3954,7 +3931,7 @@
 						"v1",
 						"api",
 						"transactions",
-						"1247155539",
+						"{{transactionId}}",
 						"stop",
 						"soft"
 					]
@@ -4646,7 +4623,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/users/60d34fc5e5984f1557496c30",
+					"raw": "{{base_url}}/v1/api/users/{{userID}}",
 					"host": [
 						"{{base_url}}"
 					],
@@ -4654,7 +4631,7 @@
 						"v1",
 						"api",
 						"users",
-						"60d34fc5e5984f1557496c30"
+						"{{userID}}"
 					]
 				}
 			},
@@ -5043,6 +5020,18 @@
 		},
 		{
 			"name": "FE-UserCreate",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var responseJson = JSON.parse(responseBody);",
+							"postman.setEnvironmentVariable(\"userID\", responseJson[\"id\"]);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"request": {
 				"auth": {
 					"type": "bearer",
@@ -5102,7 +5091,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"name\": \"FABIANO\",\r\n  \"firstName\": \"Sergio\",\r\n  \"email\": \"sdf3.sdf.sdfssss@free.fr\",\r\n  \"phone\": \"+33 492286307\",\r\n  \"mobile\": \"\",\r\n  \"iNumber\": \"I030367\",\r\n  \"tagIDs\": [\r\n    \"66BDC46F\"\r\n  ],\r\n  \"costCenter\": \"175030602\",\r\n  \"status\": \"A\",\r\n  \"role\": \"A\",\r\n  \"password\": \"\"\r\n}\r\n"
+					"raw": "{\r\n  \"name\": \"UpdateName\",\r\n  \"firstName\": \"UpdateFirstname\",\r\n  \"email\": \"update@email.fr\",\r\n  \"phone\": \"+33 0102030405\",\r\n  \"mobile\": \"\",\r\n  \"iNumber\": \"I010203\",\r\n  \"tagIDs\": [\r\n    \"ABCDE123\"\r\n  ],\r\n  \"costCenter\": \"123456789\",\r\n  \"status\": \"A\",\r\n  \"role\": \"A\",\r\n  \"password\": \"Azerty123!\"\r\n}\r\n"
 				},
 				"url": {
 					"raw": "{{base_url}}/v1/api/users/{{userID}}",
@@ -6202,6 +6191,56 @@
 			"response": []
 		},
 		{
+			"name": "FE-CarCreate",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var responseJson = JSON.parse(responseBody);",
+							"postman.setEnvironmentVariable(\"carID\", responseJson[\"id\"]);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"vin\": \"string\",\n  \"licensePlate\": \"AB-123-CD\",\n  \"carCatalogID\": 1160,\n  \"forced\": true,\n  \"type\": \"P\",\n  \"userID\": \"{{userID}}\",\n  \"default\": true,\n  \"converter\": {\n    \"amperagePerPhase\": 1,\n    \"numberOfPhases\": 1,\n    \"powerWatts\": 1,\n    \"type\": \"S\"\n  }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/cars",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"cars"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "FE-Cars",
 			"request": {
 				"auth": {
@@ -6292,7 +6331,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/cars/5ff8303fe4f49300181eb0d9",
+					"raw": "{{base_url}}/v1/api/cars/{{carID}}",
 					"host": [
 						"{{base_url}}"
 					],
@@ -6300,7 +6339,7 @@
 						"v1",
 						"api",
 						"cars",
-						"5ff8303fe4f49300181eb0d9"
+						"{{carID}}"
 					],
 					"query": [
 						{
@@ -6354,45 +6393,19 @@
 			"response": []
 		},
 		{
-			"name": "FE-CarCreate",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"vin\": \"string\",\n  \"licensePlate\": \"AB-123-CD\",\n  \"carCatalogID\": 1160,\n  \"forced\": true,\n  \"type\": \"P\",\n  \"userID\": \"{{userID}}\",\n  \"default\": true,\n  \"converter\": {\n    \"amperagePerPhase\": 1,\n    \"numberOfPhases\": 1,\n    \"powerWatts\": 1,\n    \"type\": \"S\"\n  }\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{base_url}}/v1/api/cars",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"v1",
-						"api",
-						"cars"
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "FE-Logs",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var responseJson = JSON.parse(responseBody);",
+							"postman.setEnvironmentVariable(\"logID\", responseJson[\"result\"][0][\"id\"]);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"request": {
 				"auth": {
 					"type": "bearer",
@@ -6507,7 +6520,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/loggings/611cca6c77d54005ca90a595",
+					"raw": "{{base_url}}/v1/api/loggings/{{logID}}",
 					"host": [
 						"{{base_url}}"
 					],
@@ -6515,7 +6528,7 @@
 						"v1",
 						"api",
 						"loggings",
-						"611cca6c77d54005ca90a595"
+						"{{logID}}"
 					]
 				}
 			},
@@ -6537,7 +6550,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/connections?UserID=60d476d8b6194a5a35c9ff6b",
+					"raw": "{{base_url}}/v1/api/connections?UserID={{userID}}",
 					"host": [
 						"{{base_url}}"
 					],
@@ -6549,7 +6562,7 @@
 					"query": [
 						{
 							"key": "UserID",
-							"value": "60d476d8b6194a5a35c9ff6b"
+							"value": "{{userID}}"
 						}
 					]
 				}
@@ -6558,6 +6571,18 @@
 		},
 		{
 			"name": "FE-IntegrationConnectionsCreate",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var responseJson = JSON.parse(responseBody);",
+							"postman.setEnvironmentVariable(\"connectionID\", responseJson[\"id\"]);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"request": {
 				"auth": {
 					"type": "bearer",
@@ -6610,7 +6635,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/connections/60d476d8b6194a5a35c9ff6b",
+					"raw": "{{base_url}}/v1/api/connections/{{connectionID}}",
 					"host": [
 						"{{base_url}}"
 					],
@@ -6618,7 +6643,7 @@
 						"v1",
 						"api",
 						"connections",
-						"60d476d8b6194a5a35c9ff6b"
+						"{{connectionID}}"
 					]
 				}
 			},
@@ -6640,7 +6665,7 @@
 				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/connections/60d476d8b6194a5a35c9ff6b",
+					"raw": "{{base_url}}/v1/api/connections/{{connectionID}}",
 					"host": [
 						"{{base_url}}"
 					],
@@ -6648,7 +6673,7 @@
 						"v1",
 						"api",
 						"connections",
-						"60d476d8b6194a5a35c9ff6b"
+						"{{connectionID}}"
 					]
 				}
 			},
@@ -6819,69 +6844,19 @@
 			"response": []
 		},
 		{
-			"name": "FE-OCPIEndpoint",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{base_url}}/v1/api/ocpi/endpoints/5c823acfab55f900083fead0",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"v1",
-						"api",
-						"ocpi",
-						"endpoints",
-						"5c823acfab55f900083fead0"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "FE-OCPIEndpointDelete",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "DELETE",
-				"header": [],
-				"url": {
-					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c399fb1be2e11af30c052",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"v1",
-						"api",
-						"ocpi",
-						"endpoints",
-						"614c399fb1be2e11af30c052"
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "FE-OCPIEndpointCreate",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var responseJson = JSON.parse(responseBody);",
+							"postman.setEnvironmentVariable(\"ocpiEndpointID\", responseJson[\"id\"]);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"request": {
 				"auth": {
 					"type": "bearer",
@@ -6920,6 +6895,68 @@
 			"response": []
 		},
 		{
+			"name": "FE-OCPIEndpoint",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/{{ocpiEndpointID}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"ocpi",
+						"endpoints",
+						"{{ocpiEndpointID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-OCPIEndpointDelete",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/{{ocpiEndpointID}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"ocpi",
+						"endpoints",
+						"{{ocpiEndpointID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "FE-OCPIEndpointUpdate",
 			"request": {
 				"auth": {
@@ -6944,7 +6981,7 @@
 					}
 				},
 				"url": {
-					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7",
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/{{ocpiEndpointID}}",
 					"host": [
 						"{{base_url}}"
 					],
@@ -6953,7 +6990,7 @@
 						"api",
 						"ocpi",
 						"endpoints",
-						"614c3e32b1ef6620c9dfcdc7"
+						"{{ocpiEndpointID}}"
 					]
 				}
 			},
@@ -6984,7 +7021,7 @@
 					}
 				},
 				"url": {
-					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7/ping",
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/{{ocpiEndpointID}}/ping",
 					"host": [
 						"{{base_url}}"
 					],
@@ -6993,7 +7030,7 @@
 						"api",
 						"ocpi",
 						"endpoints",
-						"614c3e32b1ef6620c9dfcdc7",
+						"{{ocpiEndpointID}}",
 						"ping"
 					]
 				}
@@ -7016,7 +7053,7 @@
 				"method": "PUT",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7/cdrs/check",
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/{{ocpiEndpointID}}/cdrs/check",
 					"host": [
 						"{{base_url}}"
 					],
@@ -7025,7 +7062,7 @@
 						"api",
 						"ocpi",
 						"endpoints",
-						"614c3e32b1ef6620c9dfcdc7",
+						"{{ocpiEndpointID}}",
 						"cdrs",
 						"check"
 					]
@@ -7049,7 +7086,7 @@
 				"method": "PUT",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7/locations/check",
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/{{ocpiEndpointID}}/locations/check",
 					"host": [
 						"{{base_url}}"
 					],
@@ -7058,7 +7095,7 @@
 						"api",
 						"ocpi",
 						"endpoints",
-						"614c3e32b1ef6620c9dfcdc7",
+						"{{ocpiEndpointID}}",
 						"locations",
 						"check"
 					]
@@ -7082,7 +7119,7 @@
 				"method": "PUT",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7/sessions/check",
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/{{ocpiEndpointID}}/sessions/check",
 					"host": [
 						"{{base_url}}"
 					],
@@ -7091,7 +7128,7 @@
 						"api",
 						"ocpi",
 						"endpoints",
-						"614c3e32b1ef6620c9dfcdc7",
+						"{{ocpiEndpointID}}",
 						"sessions",
 						"check"
 					]
@@ -7115,7 +7152,7 @@
 				"method": "PUT",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7/cdrs/pull",
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/{{ocpiEndpointID}}/cdrs/pull",
 					"host": [
 						"{{base_url}}"
 					],
@@ -7124,7 +7161,7 @@
 						"api",
 						"ocpi",
 						"endpoints",
-						"614c3e32b1ef6620c9dfcdc7",
+						"{{ocpiEndpointID}}",
 						"cdrs",
 						"pull"
 					]
@@ -7148,7 +7185,7 @@
 				"method": "PUT",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7/locations/pull",
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/{{ocpiEndpointID}}/locations/pull",
 					"host": [
 						"{{base_url}}"
 					],
@@ -7157,7 +7194,7 @@
 						"api",
 						"ocpi",
 						"endpoints",
-						"614c3e32b1ef6620c9dfcdc7",
+						"{{ocpiEndpointID}}",
 						"locations",
 						"pull"
 					]
@@ -7181,7 +7218,7 @@
 				"method": "PUT",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7/sessions/pull",
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/{{ocpiEndpointID}}/sessions/pull",
 					"host": [
 						"{{base_url}}"
 					],
@@ -7190,7 +7227,7 @@
 						"api",
 						"ocpi",
 						"endpoints",
-						"614c3e32b1ef6620c9dfcdc7",
+						"{{ocpiEndpointID}}",
 						"sessions",
 						"pull"
 					]
@@ -7214,7 +7251,7 @@
 				"method": "PUT",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7/tokens/pull",
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/{{ocpiEndpointID}}/tokens/pull",
 					"host": [
 						"{{base_url}}"
 					],
@@ -7223,7 +7260,7 @@
 						"api",
 						"ocpi",
 						"endpoints",
-						"614c3e32b1ef6620c9dfcdc7",
+						"{{ocpiEndpointID}}",
 						"tokens",
 						"pull"
 					]
@@ -7247,7 +7284,7 @@
 				"method": "PUT",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7/evses/statuses/send",
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/{{ocpiEndpointID}}/evses/statuses/send",
 					"host": [
 						"{{base_url}}"
 					],
@@ -7256,7 +7293,7 @@
 						"api",
 						"ocpi",
 						"endpoints",
-						"614c3e32b1ef6620c9dfcdc7",
+						"{{ocpiEndpointID}}",
 						"evses",
 						"statuses",
 						"send"
@@ -7281,7 +7318,7 @@
 				"method": "PUT",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7/tokens/send",
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/{{ocpiEndpointID}}/tokens/send",
 					"host": [
 						"{{base_url}}"
 					],
@@ -7290,7 +7327,7 @@
 						"api",
 						"ocpi",
 						"endpoints",
-						"614c3e32b1ef6620c9dfcdc7",
+						"{{ocpiEndpointID}}",
 						"tokens",
 						"send"
 					]
@@ -7314,7 +7351,7 @@
 				"method": "PUT",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7/register",
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/{{ocpiEndpointID}}/register",
 					"host": [
 						"{{base_url}}"
 					],
@@ -7323,7 +7360,7 @@
 						"api",
 						"ocpi",
 						"endpoints",
-						"614c3e32b1ef6620c9dfcdc7",
+						"{{ocpiEndpointID}}",
 						"register"
 					]
 				}
@@ -7346,7 +7383,7 @@
 				"method": "PUT",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/ocpi/endpoints/614c3e32b1ef6620c9dfcdc7/unregister",
+					"raw": "{{base_url}}/v1/api/ocpi/endpoints/{{ocpiEndpointID}}/unregister",
 					"host": [
 						"{{base_url}}"
 					],
@@ -7355,7 +7392,7 @@
 						"api",
 						"ocpi",
 						"endpoints",
-						"614c3e32b1ef6620c9dfcdc7",
+						"{{ocpiEndpointID}}",
 						"unregister"
 					]
 				}
@@ -8239,7 +8276,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"name\": \"SAP Labs Mougins\",\n\t\"address\": {\n\t\t\"address1\": \"805 Av. du Docteur Maurice Donat\",\n\t\t\"address2\": \"Font de l'Orme\",\n\t\t\"postalCode\": \"06150\",\n\t\t\"city\": \"Mougins\",\n\t\t\"region\": \"PACA\",\n\t\t\"country\": \"France\"\n\t},\n\t\"companyID\": \"5abeba344bae1457eb565e27\"\n}"
+					"raw": "{\n\t\"name\": \"SAP Labs Mougins\",\n\t\"address\": {\n\t\t\"address1\": \"805 Av. du Docteur Maurice Donat\",\n\t\t\"address2\": \"Font de l'Orme\",\n\t\t\"postalCode\": \"06150\",\n\t\t\"city\": \"Mougins\",\n\t\t\"region\": \"PACA\",\n\t\t\"country\": \"France\"\n\t},\n\t\"companyID\": \"{{companyID}}\"\n}"
 				},
 				"url": {
 					"raw": "{{base_url}}/v1/api/sites",
@@ -8381,7 +8418,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"name\": \"SAP Labs Mougins updated\",\n\t\"address\": {\n\t\t\"address1\": \"805 Av. du Docteur Maurice Donat\",\n\t\t\"address2\": \"Font de l'Orme\",\n\t\t\"postalCode\": \"06150\",\n\t\t\"city\": \"Mougins\",\n\t\t\"region\": \"PACA\",\n\t\t\"country\": \"France\"\n\t},\n\t\"companyID\": \"5abeba344bae1457eb565e27\"\n}"
+					"raw": "{\n\t\"name\": \"SAP Labs Mougins updated\",\n\t\"address\": {\n\t\t\"address1\": \"805 Av. du Docteur Maurice Donat\",\n\t\t\"address2\": \"Font de l'Orme\",\n\t\t\"postalCode\": \"06150\",\n\t\t\"city\": \"Mougins\",\n\t\t\"region\": \"PACA\",\n\t\t\"country\": \"France\"\n\t},\n\t\"companyID\": \"{{companyID}}\"\n}"
 				},
 				"url": {
 					"raw": "{{base_url}}/v1/api/sites/{{siteID}}",
@@ -8400,58 +8437,6 @@
 		},
 		{
 			"name": "FE-SiteAssignUsers",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"userIDs\": [\"{{userID}}\"]\n}"
-				},
-				"url": {
-					"raw": "{{base_url}}/v1/api/sites/{{siteID}}/users/assign",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"v1",
-						"api",
-						"sites",
-						"{{siteID}}",
-						"users",
-						"assign"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "FE-SiteAssignUsers Copy",
 			"event": [
 				{
 					"listen": "test",
@@ -8638,7 +8623,7 @@
 					}
 				],
 				"url": {
-					"raw": "{{base_url}}/v1/util/sites/{{siteID}}/image?TenantID=aaaaaaaaaaaaaaaaaaaaaaa1",
+					"raw": "{{base_url}}/v1/util/sites/{{siteID}}/image?TenantID={{tenantID}}",
 					"host": [
 						"{{base_url}}"
 					],
@@ -8652,7 +8637,7 @@
 					"query": [
 						{
 							"key": "TenantID",
-							"value": "aaaaaaaaaaaaaaaaaaaaaaa1"
+							"value": "{{tenantID}}"
 						}
 					]
 				}
@@ -9715,7 +9700,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"id\": \"61efb66864118300f06ea3f1\",\n    \"identifier\": \"billing\",\n    \"sensitiveData\": [],\n    \"type\": \"stripe\",\n    \"billing\": {\n        \"isTransactionBillingActivated\": true,\n        \"immediateBillingAllowed\": true,\n        \"periodicBillingAllowed\": true,\n        \"taxID\": \"\"\n    },\n    \"stripe\": {\n        \"url\": \"string\",\n        \"secretKey\": \"string\",\n        \"publicKey\": \"string\"\n    }\n}"
+					"raw": "{\n    \"id\": \"\",\n    \"identifier\": \"billing\",\n    \"sensitiveData\": [],\n    \"type\": \"stripe\",\n    \"billing\": {\n        \"isTransactionBillingActivated\": true,\n        \"immediateBillingAllowed\": true,\n        \"periodicBillingAllowed\": true,\n        \"taxID\": \"\"\n    },\n    \"stripe\": {\n        \"url\": \"string\",\n        \"secretKey\": \"string\",\n        \"publicKey\": \"string\"\n    }\n}"
 				},
 				"url": {
 					"raw": "{{base_url}}/v1/api/billing-setting",
@@ -9767,7 +9752,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"id\": \"61efb66864118300f06ea3f1\",\n    \"identifier\": \"billing\",\n    \"sensitiveData\": [],\n    \"type\": \"stripe\",\n    \"billing\": {\n        \"isTransactionBillingActivated\": true,\n        \"immediateBillingAllowed\": true,\n        \"periodicBillingAllowed\": true,\n        \"taxID\": \"\"\n    },\n    \"stripe\": {\n        \"url\": \"string\",\n        \"secretKey\": \"string\",\n        \"publicKey\": \"string\"\n    }\n}"
+					"raw": "{\n    \"id\": \"\",\n    \"identifier\": \"billing\",\n    \"sensitiveData\": [],\n    \"type\": \"stripe\",\n    \"billing\": {\n        \"isTransactionBillingActivated\": true,\n        \"immediateBillingAllowed\": true,\n        \"periodicBillingAllowed\": true,\n        \"taxID\": \"\"\n    },\n    \"stripe\": {\n        \"url\": \"string\",\n        \"secretKey\": \"string\",\n        \"publicKey\": \"string\"\n    }\n}"
 				},
 				"url": {
 					"raw": "{{base_url}}/v1/api/users/{{userID}}/payment-methods?Limit=100",
@@ -9828,7 +9813,7 @@
 					}
 				],
 				"url": {
-					"raw": "{{base_url}}/v1/api/users/{{userID}}/payment-methods/pm_1Ib3MxF5e1VSb1v6eH3Zhn4K",
+					"raw": "{{base_url}}/v1/api/users/{{userID}}/payment-methods/{{paymentMethodID}}",
 					"host": [
 						"{{base_url}}"
 					],
@@ -9838,7 +9823,7 @@
 						"users",
 						"{{userID}}",
 						"payment-methods",
-						"pm_1Ib3MxF5e1VSb1v6eH3Zhn4K"
+						"{{paymentMethodID}}"
 					],
 					"query": [
 						{
@@ -9884,7 +9869,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"paymentMethodId\": \"pm_1Ib3MxF5e1VSb1v6eH3Zhn4K\"\n}"
+					"raw": "{\n    \"paymentMethodId\": \"{{paymentMethodID}}\"\n}"
 				},
 				"url": {
 					"raw": "{{base_url}}/v1/api/users/{{userID}}/payment-methods/setup",
@@ -9946,7 +9931,7 @@
 					"raw": "{\n    \"paymentMethodId\": \"pm_1Ib3MxF5e1VSb1v6eH3Zhn4K\"\n}"
 				},
 				"url": {
-					"raw": "{{base_url}}/v1/api/users/{{userID}}/payment-methods/pm_1Ib3MxF5e1VSb1v6eH3Zhn4K/attach",
+					"raw": "{{base_url}}/v1/api/users/{{userID}}/payment-methods/{{paymentMethodID}}/attach",
 					"host": [
 						"{{base_url}}"
 					],
@@ -9956,7 +9941,7 @@
 						"users",
 						"{{userID}}",
 						"payment-methods",
-						"pm_1Ib3MxF5e1VSb1v6eH3Zhn4K",
+						"{{paymentMethodID}}",
 						"attach"
 					],
 					"query": [
@@ -10002,7 +9987,7 @@
 					}
 				],
 				"url": {
-					"raw": "{{base_url}}/v1/api/users/{{userID}}/payment-methods/pm_1Ib3MxF5e1VSb1v6eH3Zhn4K/attach",
+					"raw": "{{base_url}}/v1/api/users/{{userID}}/payment-methods/{{paymentMethodID}}/attach",
 					"host": [
 						"{{base_url}}"
 					],
@@ -10012,7 +9997,7 @@
 						"users",
 						"{{userID}}",
 						"payment-methods",
-						"pm_1Ib3MxF5e1VSb1v6eH3Zhn4K",
+						"{{paymentMethodID}}",
 						"attach"
 					],
 					"query": [
@@ -10220,7 +10205,7 @@
 					}
 				],
 				"url": {
-					"raw": "{{base_url}}/v1/api/invoices/5bbd06cd4598d76ea07dd3cf",
+					"raw": "{{base_url}}/v1/api/invoices/{{invoiceID}}",
 					"host": [
 						"{{base_url}}"
 					],
@@ -10228,7 +10213,7 @@
 						"v1",
 						"api",
 						"invoices",
-						"5bbd06cd4598d76ea07dd3cf"
+						"{{invoiceID}}"
 					]
 				}
 			},
@@ -10266,7 +10251,7 @@
 					}
 				],
 				"url": {
-					"raw": "{{base_url}}/v1/api/invoices/5bbd06cd4598d76ea07dd3cf/download",
+					"raw": "{{base_url}}/v1/api/invoices/{{invoiceID}}/download",
 					"host": [
 						"{{base_url}}"
 					],
@@ -10274,7 +10259,7 @@
 						"v1",
 						"api",
 						"invoices",
-						"5bbd06cd4598d76ea07dd3cf",
+						"{{invoiceID}}",
 						"download"
 					]
 				}
@@ -10303,7 +10288,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"name\": \"DEMO\",\r\n  \"firstName\": \"Demo\",\r\n  \"email\": \"demo.basic@sap.com\",\r\n  \"phone\": \"+33 492286307\",\r\n  \"mobile\": \"\",\r\n  \"iNumber\": \"I030367\",\r\n  \"tagIDs\": [\r\n    \"66BDC46F\"\r\n  ],\r\n  \"costCenter\": \"175030602\",\r\n  \"status\": \"A\",\r\n  \"role\": \"A\",\r\n  \"password\": \"\"\r\n}\r\n"
+					"raw": "{\r\n  \"name\": \"DEMO\",\r\n  \"firstName\": \"Demo\",\r\n  \"email\": \"demo.basic@sap.com\",\r\n  \"phone\": \"+33 123456789\",\r\n  \"mobile\": \"\",\r\n  \"iNumber\": \"I123456\",\r\n  \"tagIDs\": [\r\n    \"ABCDE123\"\r\n  ],\r\n  \"costCenter\": \"123456789\",\r\n  \"status\": \"A\",\r\n  \"role\": \"A\",\r\n  \"password\": \"\"\r\n}\r\n"
 				},
 				"url": {
 					"raw": "{{base_url}}/v1/api/users/{{userID}}",
@@ -10315,44 +10300,6 @@
 						"api",
 						"users",
 						"{{userID}}"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "FE-SiteUpdate",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"id\": \"5abeba8d4bae1457eb565e5b\",\r\n  \"name\": \"SAP Labs Mouginsss\",\r\n  \"companyID\": \"5abeba344bae1457eb565e27\",\r\n  \"userIDs\" : [\"592e969f89d8e07a2b16a79b\",\"59f08d7cf2c8c0ed9ed46cb4\"]\r\n}\r\n"
-				},
-				"url": {
-					"raw": "{{base_url}}/client/api/SiteUpdate",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"client",
-						"api",
-						"SiteUpdate"
 					]
 				}
 			},

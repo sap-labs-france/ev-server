@@ -48,7 +48,7 @@ jobs:
       run: |
         if [ ! -d test/config ]; then mkdir -p test/config; fi
         cp src/assets/configs-ci/local.json test/config
-        npm run mochatest:createContext
+        npm run test:createContext
     - name: Run Integration Tests
-      run: npm run mochatest:firmwareUpdateStatus
+      run: npm run test
 

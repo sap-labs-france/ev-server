@@ -1,4 +1,4 @@
-import { Action, Entity } from '../../../../types/Authorization';
+import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
 import { Car, CarCatalog } from '../../../../types/Car';
 import ChargingStation, { ChargePoint, Voltage } from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
@@ -52,6 +52,23 @@ import moment from 'moment';
 const MODULE_NAME = 'UtilsService';
 
 export default class UtilsService {
+  public static async assignCreatedUserToSites(tenant: Tenant, user: User, authorizationFilter?: AuthorizationFilter) {
+    // Assign user to sites
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
+      let siteIDs = [];
+      if (!Utils.isEmptyArray(authorizationFilter?.filters?.siteIDs)) {
+        siteIDs = authorizationFilter.filters.siteIDs;
+      } else {
+        // Assign user to all sites with auto-assign flag set
+        const sites = await SiteStorage.getSites(tenant,
+          { withAutoUserAssignment: true },
+          Constants.DB_PARAMS_MAX_LIMIT
+        );
+        siteIDs = sites.result.map((site) => site.id);
+      }
+      await UserStorage.addSitesToUser(tenant, user.id, siteIDs);
+    }
+  }
 
   public static async checkReCaptcha(tenant: Tenant, action: ServerAction, method: string,
       centralSystemRestConfig: CentralSystemRestServiceConfiguration, captcha: string, remoteAddress: string): Promise<void> {
@@ -820,9 +837,9 @@ export default class UtilsService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: authAction, entity: Entity.USER,
-        module: MODULE_NAME, method: 'checkAndGetUserAuthorization',
-        value: carCatalogID.toString()
+        action: authAction, entity: Entity.CAR_CATALOG,
+        module: MODULE_NAME, method: 'checkAndGetCarCatalogAuthorization',
+        value: carCatalogID.toString(),
       });
     }
     return carCatalog;

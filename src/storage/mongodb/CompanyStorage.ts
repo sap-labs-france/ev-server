@@ -110,11 +110,15 @@ export default class CompanyStorage {
     if (params.search) {
       filters.$or = [
         { 'name': { $regex: params.search, $options: 'i' } },
+        { 'address.address1': { $regex: params.search, $options: 'i' } },
         { 'address.postalCode': { $regex: params.search, $options: 'i' } },
         { 'address.city': { $regex: params.search, $options: 'i' } },
         { 'address.region': { $regex: params.search, $options: 'i' } },
         { 'address.country': { $regex: params.search, $options: 'i' } },
       ];
+      if (DatabaseUtils.isObjectID(params.search)) {
+        filters.$or.push({ '_id': DatabaseUtils.convertToObjectID(params.search) });
+      }
     }
     // Limit on Company for Basic Users
     if (!Utils.isEmptyArray(params.companyIDs)) {
