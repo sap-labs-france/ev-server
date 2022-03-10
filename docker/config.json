@@ -151,22 +151,20 @@
         }
       },
       {
-        "name": "SynchronizeBillingUsersTask",
+        "name": "BillingPeriodicOperationTask",
         "active": false,
-        "periodicity": "0 0 * * *",
-        "config": {}
-      },
-      {
-        "name": "SynchronizeBillingInvoicesTask",
-        "active": false,
-        "periodicity": "0 0 * * *",
-        "config": {}
+        "periodicity": "0 3 * * *",
+        "config": {
+          "onlyProcessUnpaidInvoices": false
+        }
       },
       {
         "name": "BillingPeriodicOperationTask",
         "active": false,
-        "periodicity": "0 1 1 * *",
-        "config": {}
+        "periodicity": "0 4 */7 * *",
+        "config": {
+          "onlyProcessUnpaidInvoices": true
+        }
       },
       {
         "name": "BillPendingTransactionTask",
@@ -225,25 +223,30 @@
         "config": {}
       },
       {
-        "name": "OCPIGetLocationsTask",
+        "name": "OCPIPullLocationsTask",
         "active": false,
         "periodicity": "*/10 * * * *",
         "config": {}
       },
       {
-        "name": "OCPIGetTokensTask",
+        "name": "OCPIPullTokensTask",
         "active": false,
         "periodicity": "0 2 * * *",
         "config": {}
       },
       {
-        "name": "OCPIGetSessionsTask",
+        "name": "OCPIPushTokensTask",
+        "active": true,
+        "periodicity": "0 0 1 * *"
+      },
+      {
+        "name": "OCPIPullSessionsTask",
         "active": false,
         "periodicity": "0 3 * * *",
         "config": {}
       },
       {
-        "name": "OCPIGetCdrsTask",
+        "name": "OCPIPullCdrsTask",
         "active": false,
         "periodicity": "0 4 * * *",
         "config": {}

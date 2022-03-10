@@ -233,6 +233,22 @@ export default class Utils {
     return true;
   }
 
+  public static computeTimeDurationSecs(timeStart: number): number {
+    return Utils.createDecimal(Date.now()).minus(timeStart).div(1000).toNumber();
+  }
+
+  public static computeTimeDurationMins(timeStart: number): number {
+    return Utils.createDecimal(Date.now()).minus(timeStart).div(60 * 1000).toNumber();
+  }
+
+  public static computeTimeDurationHours(timeStart: number): number {
+    return Utils.createDecimal(Date.now()).minus(timeStart).div(60 * 60 * 1000).toNumber();
+  }
+
+  public static computeTimeDurationDays(timeStart: number): number {
+    return Utils.createDecimal(Date.now()).minus(timeStart).div(24 * 60 * 60 * 1000).toNumber();
+  }
+
   public static objectHasProperty(obj: any, key: string): boolean {
     return _.has(obj, key);
   }
@@ -251,6 +267,13 @@ export default class Utils {
 
   public static generateShortNonUniqueID(length = 5): string {
     return nanoid(length);
+  }
+
+  public static last5Chars(data: string): string {
+    if (!data || data.length <= 5) {
+      return data;
+    }
+    return data.slice(data.length - 5, data.length);
   }
 
   public static generateTagID(name: string, firstName: string): string {
@@ -365,11 +388,6 @@ export default class Utils {
     return connectorStats;
   }
 
-  /**
-   * Map user locale (en_US, fr_FR...) to language (en, fr...)
-   *
-   * @param locale
-   */
   public static getLanguageFromLocale(locale: string): string {
     let language = Constants.DEFAULT_LANGUAGE;
     // Get the language
@@ -379,12 +397,7 @@ export default class Utils {
     return language;
   }
 
-  /**
-   * Map language (en, fr...) to user locale (en_US, fr_FR...)
-   *
-   * @param language
-   */
-  static getLocaleFromLanguage(language: string): string {
+  public static getLocaleFromLanguage(language: string): string {
     if (language === 'fr') {
       return 'fr_FR';
     } else if (language === 'es') {
@@ -1172,15 +1185,15 @@ export default class Utils {
     });
   }
 
-  public static containsAddressGPSCoordinates(address: Address): boolean {
+  public static hasValidAddressGpsCoordinates(address: Address): boolean {
     // Check if GPS are available
-    if (address && Utils.containsGPSCoordinates(address.coordinates)) {
+    if (address && Utils.hasValidGpsCoordinates(address.coordinates)) {
       return true;
     }
     return false;
   }
 
-  public static containsGPSCoordinates(coordinates: number[]): boolean {
+  public static hasValidGpsCoordinates(coordinates: number[]): boolean {
     // Check if GPs are available
     if (!Utils.isEmptyArray(coordinates) && coordinates.length === 2 && coordinates[0] && coordinates[1]) {
       // Check Longitude & Latitude

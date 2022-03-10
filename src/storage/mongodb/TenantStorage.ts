@@ -8,6 +8,7 @@ import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { ObjectId } from 'mongodb';
+import TenantValidatorStorage from './validator/TenantValidatorStorage';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'TenantStorage';
@@ -39,44 +40,17 @@ export default class TenantStorage {
 
   public static async saveTenant(tenantToSave: Partial<Tenant>, saveLogo = true): Promise<string> {
     const startTime = Logging.traceDatabaseRequestStart();
-    if (!tenantToSave.id && !tenantToSave.name) {
-      throw new BackendError({
-        module: MODULE_NAME,
-        method: 'saveTenant',
-        message: 'Tenant has no ID and no Name'
-      });
-    }
     const tenantFilter: any = {};
+    const tenantMDB = TenantValidatorStorage.getInstance().validateTenant(tenantToSave);
     // Build Request
-    if (tenantToSave.id) {
-      tenantFilter._id = DatabaseUtils.convertToObjectID(tenantToSave.id);
+    if (tenantMDB.id) {
+      tenantFilter._id = DatabaseUtils.convertToObjectID(tenantMDB.id);
     } else {
       tenantFilter._id = new ObjectId();
     }
-    // Properties to save
-    // eslint-disable-next-line prefer-const
-    let tenantMDB = {
-      _id: tenantFilter._id,
-      name: tenantToSave.name,
-      email: tenantToSave.email,
-      subdomain: tenantToSave.subdomain,
-      components: tenantToSave.components ? tenantToSave.components : {},
-    };
-    if (tenantToSave.address) {
-      Object.assign(tenantMDB, {
-        address: {
-          address1: tenantToSave.address.address1,
-          address2: tenantToSave.address.address2,
-          postalCode: tenantToSave.address.postalCode,
-          city: tenantToSave.address.city,
-          department: tenantToSave.address.department,
-          region: tenantToSave.address.region,
-          country: tenantToSave.address.country,
-          coordinates: Utils.containsGPSCoordinates(tenantToSave.address.coordinates) ? tenantToSave.address.coordinates.map(
-            (coordinate) => Utils.convertToFloat(coordinate)) : [],
-        }
-      });
-    }
+    // Remove ID
+    delete tenantMDB.id;
+    // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(tenantMDB, tenantToSave);
     // Modify
     await global.database.getCollection<Tenant>(Constants.DEFAULT_TENANT, 'tenants').findOneAndUpdate(
@@ -87,11 +61,11 @@ export default class TenantStorage {
     if (saveLogo) {
       // Modify
       await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenantlogos').findOneAndUpdate(
-        { '_id': tenantMDB._id },
-        { $set: { logo: tenantToSave.logo } },
+        { '_id': tenantFilter._id },
+        { $set: { logo: tenantMDB.logo } },
         { upsert: true });
     }
-    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'saveTenant', startTime, { tenant: tenantMDB, logo: tenantToSave.logo });
+    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'saveTenant', startTime, { tenant: tenantMDB, logo: tenantMDB.logo });
     return tenantFilter._id.toString();
   }
 
@@ -214,6 +188,11 @@ export default class TenantStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     // Delete
     await global.database.getCollection<Tenant>(Constants.DEFAULT_TENANT, 'tenants')
+      .findOneAndDelete({
+        '_id': DatabaseUtils.convertToObjectID(id)
+      });
+    // Delete logo
+    await global.database.getCollection<Tenant>(Constants.DEFAULT_TENANT, 'tenantlogos')
       .findOneAndDelete({
         '_id': DatabaseUtils.convertToObjectID(id)
       });

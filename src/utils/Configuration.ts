@@ -303,7 +303,7 @@ export default class Configuration {
   // Dup method: Avoid circular deps with Utils class
   private static isUndefined(name: string, value: any): boolean {
     if (typeof value === 'undefined') {
-      console.error(chalk.red(`Missing property '${name}' in config.json`));
+      console.error(chalk.yellow(`[Warning] Missing property '${name}' in config.json`));
       return true;
     }
     return false;

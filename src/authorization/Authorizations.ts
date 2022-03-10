@@ -209,7 +209,7 @@ export default class Authorizations {
       alternateUser = result.user;
       alternateTag = result.tag;
       // Get User and Tag that started the Transaction
-      user = await UserStorage.getUserByTagId(tenant, transaction.tagID);
+      user = await UserStorage.getUserByTagID(tenant, transaction.tagID);
       tag = await TagStorage.getTag(tenant, transaction.tagID);
     } else {
       // Check User
@@ -807,7 +807,7 @@ export default class Authorizations {
       // Access Control is disabled?
       if (!chargingStation.siteArea.accessControl) {
         // No ACL: Always try to get the user
-        const user = await UserStorage.getUserByTagId(tenant, tagID);
+        const user = await UserStorage.getUserByTagID(tenant, tagID);
         const tag = await TagStorage.getTag(tenant, tagID);
         return { user, tag };
       }

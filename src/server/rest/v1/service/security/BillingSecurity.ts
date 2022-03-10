@@ -1,5 +1,4 @@
-import { HttpForceSynchronizeUserInvoicesRequest, HttpSynchronizeUserRequest } from '../../../../../types/requests/HttpUserRequest';
-
+import { HttpSynchronizeUserRequest } from '../../../../../types/requests/HttpUserRequest';
 import Utils from '../../../../../utils/Utils';
 import sanitize from 'mongo-sanitize';
 
@@ -13,11 +12,5 @@ export default class BillingSecurity {
       filteredUser.email = sanitize(requestBody.email);
     }
     return filteredUser;
-  }
-
-  public static filterForceSynchronizeUserInvoicesRequest(requestBody: any): HttpForceSynchronizeUserInvoicesRequest {
-    return {
-      userID: sanitize(requestBody.userID)
-    };
   }
 }

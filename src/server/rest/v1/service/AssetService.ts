@@ -42,8 +42,8 @@ export default class AssetService {
     // Check dates
     if (!filteredRequest.StartDate || !filteredRequest.EndDate) {
       throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
         ...LoggingHelper.getAssetProperties(asset),
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Start date and end date must be provided',
         module: MODULE_NAME, method: 'handleGetAssetConsumption',
         user: req.user,
@@ -70,7 +70,8 @@ export default class AssetService {
     // Validate request
     const filteredRequest = AssetValidator.getInstance().validateAssetConsumptionCreateReq({ ...req.query, ...req.body });
     // Check and get Asset
-    const asset = await UtilsService.checkAndGetAssetAuthorization(req.tenant, req.user, filteredRequest.assetID, Action.CREATE_CONSUMPTION, action, null, { withSiteArea: true });
+    const asset = await UtilsService.checkAndGetAssetAuthorization(
+      req.tenant, req.user, filteredRequest.assetID, Action.CREATE_CONSUMPTION, action, null, { withSiteArea: true });
     // Check if connection ID exists
     if (!Utils.isNullOrUndefined(asset.connectionID)) {
       throw new AppError({
@@ -363,6 +364,7 @@ export default class AssetService {
         siteAreaIDs: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         withSiteArea: filteredRequest.WithSiteArea,
+        withSite: filteredRequest.WithSite,
         withNoSiteArea: filteredRequest.WithNoSiteArea,
         dynamicOnly: filteredRequest.DynamicOnly,
         ...authorizationAssetsFilter.filters
@@ -407,11 +409,12 @@ export default class AssetService {
     let siteArea: SiteArea = null;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredAssetRequest.siteAreaID) {
       siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
-        req.tenant, req.user, filteredAssetRequest.siteAreaID, Action.UPDATE, action, filteredAssetRequest, null, false);
+        req.tenant, req.user, filteredAssetRequest.siteAreaID, Action.UPDATE, action, filteredAssetRequest, { withSite: true }, false);
     }
     // Create asset
     const newAsset: Asset = {
       ...filteredAssetRequest,
+      companyID: siteArea?.site ? siteArea.site.companyID : null,
       siteID: siteArea ? siteArea.siteID : null,
       issuer: true,
       createdBy: { id: req.user.id },
@@ -421,8 +424,8 @@ export default class AssetService {
     newAsset.id = await AssetStorage.saveAsset(req.tenant, newAsset);
     // Log
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
       ...LoggingHelper.getAssetProperties(newAsset),
+      tenantID: req.user.tenantID,
       user: req.user,
       module: MODULE_NAME, method: 'handleCreateAsset',
       message: `Asset '${newAsset.id}' has been created successfully`,
@@ -444,14 +447,15 @@ export default class AssetService {
     let siteArea: SiteArea = null;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredRequest.siteAreaID) {
       siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
-        req.tenant, req.user, filteredRequest.siteAreaID, Action.UPDATE, action, filteredRequest, null, false);
+        req.tenant, req.user, filteredRequest.siteAreaID, Action.UPDATE, action, filteredRequest, { withSite: true }, false);
     }
     // Check and get asset
     const asset = await UtilsService.checkAndGetAssetAuthorization(req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest);
     // Update Asset values and persist
     asset.name = filteredRequest.name;
-    asset.siteAreaID = filteredRequest.siteAreaID;
+    asset.companyID = siteArea?.site ? siteArea.site.companyID : null;
     asset.siteID = siteArea ? siteArea.siteID : null;
+    asset.siteAreaID = filteredRequest.siteAreaID;
     asset.assetType = filteredRequest.assetType;
     asset.excludeFromSmartCharging = filteredRequest.excludeFromSmartCharging;
     asset.variationThresholdPercent = filteredRequest.variationThresholdPercent;

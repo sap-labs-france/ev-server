@@ -19,7 +19,7 @@ export default class JsonChargingStationClient extends ChargingStationClient {
   private tenant: Tenant;
   private wsConnection: JsonWSConnection;
 
-  constructor(wsConnection: JsonWSConnection, tenant: Tenant, chargingStationID: string) {
+  public constructor(wsConnection: JsonWSConnection, tenant: Tenant, chargingStationID: string) {
     super();
     this.wsConnection = wsConnection;
     this.tenant = tenant;
@@ -29,7 +29,7 @@ export default class JsonChargingStationClient extends ChargingStationClient {
     this.siteAreaID = wsConnection.getSiteAreaID();
   }
 
-  getChargingStationID(): string {
+  public getChargingStationID(): string {
     return this.wsConnection.getChargingStationID();
   }
 

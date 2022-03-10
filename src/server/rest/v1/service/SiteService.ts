@@ -47,7 +47,6 @@ export default class SiteService {
       req.tenant, req.user, filteredRequest.userID, Action.READ, action);
     // Update
     await SiteStorage.updateSiteUserAdmin(req.tenant, filteredRequest.siteID, filteredRequest.userID, filteredRequest.siteAdmin);
-    // Log
     await Logging.logInfo({
       ...LoggingHelper.getSiteProperties(site),
       tenantID: req.user.tenantID,
@@ -74,7 +73,6 @@ export default class SiteService {
       req.tenant, req.user, filteredRequest.userID, Action.READ, action);
     // Update
     await SiteStorage.updateSiteOwner(req.tenant, filteredRequest.siteID, filteredRequest.userID, filteredRequest.siteOwner);
-    // Log
     await Logging.logInfo({
       ...LoggingHelper.getSiteProperties(site),
       tenantID: req.user.tenantID,
@@ -105,7 +103,6 @@ export default class SiteService {
     } else {
       await SiteStorage.removeUsersFromSite(req.tenant, site.id, users.map((user) => user.id));
     }
-    // Log
     await Logging.logInfo({
       ...LoggingHelper.getSiteProperties(site),
       tenantID: req.user.tenantID,
@@ -164,7 +161,6 @@ export default class SiteService {
       req.tenant, req.user, siteID, Action.DELETE, action);
     // Delete
     await SiteStorage.deleteSite(req.tenant, site.id);
-    // Log
     await Logging.logInfo({
       ...LoggingHelper.getSiteProperties(site),
       tenantID: req.user.tenantID,
@@ -324,8 +320,7 @@ export default class SiteService {
       }
     }
     // Save
-    site.id = await SiteStorage.saveSite(req.tenant, site);
-    // Log
+    site.id = await SiteStorage.saveSite(req.tenant, site, Utils.objectHasProperty(filteredRequest, 'image'));
     await Logging.logInfo({
       ...LoggingHelper.getSiteProperties(site),
       tenantID: req.user.tenantID,
@@ -394,8 +389,9 @@ export default class SiteService {
     site.lastChangedBy = { 'id': req.user.id };
     site.lastChangedOn = new Date();
     // Save
-    await SiteStorage.saveSite(req.tenant, site, Utils.objectHasProperty(filteredRequest, 'image') ? true : false);
-    // Log
+    await SiteStorage.saveSite(req.tenant, site, Utils.objectHasProperty(filteredRequest, 'image'));
+    // Update all refs
+    void SiteStorage.updateEntitiesWithOrganizationIDs(req.tenant, site.companyID, filteredRequest.id);
     await Logging.logInfo({
       ...LoggingHelper.getSiteProperties(site),
       tenantID: req.user.tenantID,

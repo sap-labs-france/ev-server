@@ -16,6 +16,7 @@ import Authorizations from '../../../../authorization/Authorizations';
 import CSVError from 'csvtojson/v2/CSVError';
 import Constants from '../../../../utils/Constants';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
+import { HttpTagsRequest } from '../../../../types/requests/HttpTagRequest';
 import { ImportedUser } from '../../../../types/User';
 import JSONStream from 'JSONStream';
 import LockingHelper from '../../../../locking/LockingHelper';
@@ -53,7 +54,10 @@ export default class TagService {
   }
 
   public static async handleGetTags(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    res.json(await TagService.getTags(req));
+    // Filter
+    const filteredRequest = TagValidator.getInstance().validateTagsGetReq(req.query);
+    // Get Tags
+    res.json(await TagService.getTags(req, filteredRequest));
     next();
   }
 
@@ -616,8 +620,12 @@ export default class TagService {
         module: MODULE_NAME, method: 'handleImportTags'
       });
     }
-    // Export with users
-    await UtilsService.exportToCSV(req, res, 'exported-tags.csv',
+    // Force params
+    req.query.Limit = Constants.EXPORT_PAGE_SIZE.toString();
+    // Filter
+    const filteredRequest = TagValidator.getInstance().validateTagsGetReq(req.query);
+    // Export
+    await UtilsService.exportToCSV(req, res, 'exported-tags.csv', filteredRequest,
       TagService.getTags.bind(this),
       TagService.convertToCSV.bind(this));
   }
@@ -771,9 +779,7 @@ export default class TagService {
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
   }
 
-  private static async getTags(req: Request): Promise<DataResult<Tag>> {
-    // Filter
-    const filteredRequest = TagValidator.getInstance().validateTagsGetReq(req.query);
+  private static async getTags(req: Request, filteredRequest: HttpTagsRequest): Promise<DataResult<Tag>> {
     // Get authorization filters
     const authorizationTagsFilters = await AuthorizationService.checkAndGetTagsAuthorizations(
       req.tenant, req.user, filteredRequest);

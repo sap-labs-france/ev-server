@@ -7,7 +7,7 @@ import { DataResult, UserDataResult } from '../../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
-import User, { ImportedUser, UserRequiredImportProperties } from '../../../../types/User';
+import User, { ImportedUser, UserRequiredImportProperties, UserRole } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
@@ -17,8 +17,10 @@ import Authorizations from '../../../../authorization/Authorizations';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
 import CSVError from 'csvtojson/v2/CSVError';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
+import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../../utils/Constants';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
+import { HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
 import JSONStream from 'JSONStream';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
@@ -80,9 +82,22 @@ export default class UserService {
         );
       }
     }
+    let withBillingChecks = true ;
+    if (filteredRequest.ChargingStationID) {
+      // TODO - The ChargingStationID is optional but only for backward compatibility reasons - make it mandatory as soon as possible
+      const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, filteredRequest.ChargingStationID,
+        { withSiteArea: true },
+        ['id', 'siteArea.id', 'siteArea.accessControl']);
+      if (!chargingStation.siteArea.accessControl) {
+        // The access control is switched off - so billing checks are useless
+        withBillingChecks = false;
+      }
+    }
     const errorCodes: Array<StartTransactionErrorCode> = [];
-    // Check Billing errors
-    await UserService.checkBillingErrorCodes(action, req.tenant, req.user, user, errorCodes);
+    if (withBillingChecks) {
+      // Check for the billing prerequisites (such as the user's payment method)
+      await UserService.checkBillingErrorCodes(action, req.tenant, req.user, user, errorCodes);
+    }
     res.json({
       tag, car, errorCodes
     });
@@ -195,12 +210,6 @@ export default class UserService {
       lastChangedBy: lastChangedBy,
       lastChangedOn: lastChangedOn,
     };
-    if (filteredRequest.name) {
-      user.name = filteredRequest.name.toUpperCase();
-    }
-    if (filteredRequest.email) {
-      user.email = filteredRequest.email.toLowerCase();
-    }
     // Update User (override TagIDs because it's not of the same type as in filteredRequest)
     await UserStorage.saveUser(req.tenant, user, true);
     // Save User's password
@@ -306,7 +315,12 @@ export default class UserService {
   }
 
   public static async handleExportUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    await UtilsService.exportToCSV(req, res, 'exported-users.csv',
+    // Force params
+    req.query.Limit = Constants.EXPORT_PAGE_SIZE.toString();
+    // Filter
+    const filteredRequest = UserValidator.getInstance().validateUsersGetReq(req.query);
+    // Get Users
+    await UtilsService.exportToCSV(req, res, 'exported-users.csv', filteredRequest,
       UserService.getUsers.bind(this),
       UserService.convertToCSV.bind(this));
   }
@@ -358,7 +372,10 @@ export default class UserService {
   }
 
   public static async handleGetUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    res.json(await UserService.getUsers(req));
+    // Filter
+    const filteredRequest = UserValidator.getInstance().validateUsersGetReq(req.query);
+    // Get Users
+    res.json(await UserService.getUsers(req, filteredRequest));
     next();
   }
 
@@ -627,8 +644,8 @@ export default class UserService {
     // Create
     const newUser: User = {
       ...filteredRequest,
-      name: filteredRequest.name.toUpperCase(),
-      email: filteredRequest.email.toLowerCase(),
+      name: filteredRequest.name,
+      email: filteredRequest.email,
       createdBy: { id: req.user.id },
       createdOn: new Date(),
       issuer: true,
@@ -649,7 +666,7 @@ export default class UserService {
     // Update User Admin Data
     await UserService.updateUserAdminData(req.tenant, newUser, authorizationFilter.projectFields);
     // Assign Site to new User
-    await UserService.assignCreatedUserToSites(req.tenant, req.user, newUser, authorizationFilter);
+    await UtilsService.assignCreatedUserToSites(req.tenant, newUser, authorizationFilter);
     // Update Billing
     await UserService.updateUserBilling(ServerAction.USER_CREATE, req.tenant, req.user, newUser);
     // Log
@@ -722,9 +739,7 @@ export default class UserService {
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
   }
 
-  private static async getUsers(req: Request): Promise<DataResult<User>> {
-    // Filter
-    const filteredRequest = UserValidator.getInstance().validateUsersGetReq(req.query);
+  private static async getUsers(req: Request, filteredRequest: HttpUsersRequest): Promise<DataResult<User>> {
     // Get authorization filters
     const authorizationUsersFilters = await AuthorizationService.checkAndGetUsersAuthorizations(
       req.tenant, req.user, filteredRequest);
@@ -932,24 +947,6 @@ export default class UserService {
     }
   }
 
-  private static async assignCreatedUserToSites(tenant: Tenant, loggedUser: UserToken, user: User, authorizationFilter: AuthorizationFilter) {
-    // Assign user to sites
-    if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.ORGANIZATION)) {
-      let siteIDs = [];
-      if (!Utils.isEmptyArray(authorizationFilter.filters.siteIDs)) {
-        siteIDs = authorizationFilter.filters.siteIDs;
-      } else {
-        // Assign user to all sites with auto-assign flag set
-        const sites = await SiteStorage.getSites(tenant,
-          { withAutoUserAssignment: true },
-          Constants.DB_PARAMS_MAX_LIMIT
-        );
-        siteIDs = sites.result.map((site) => site.id);
-      }
-      await UserStorage.addSitesToUser(tenant, user.id, siteIDs);
-    }
-  }
-
   private static async updateUserAdminData(tenant: Tenant, user: User, projectFields: string[]) {
     // Save User Status
     if (Utils.objectHasProperty(user, 'status') &&
@@ -960,6 +957,10 @@ export default class UserService {
     if (Utils.objectHasProperty(user, 'role') &&
         projectFields.includes('role')) {
       await UserStorage.saveUserRole(tenant, user.id, user.role);
+      // Check Admin
+      if (user.role === UserRole.ADMIN) {
+        await UserStorage.clearUserSiteAdmin(tenant, user.id);
+      }
     }
     // Save Admin Data
     if (projectFields.includes('plateID') ||
