@@ -64,7 +64,7 @@ export default class CloseTransactionsInProgressTask extends TenantSchedulerTask
           `{{inSuccess}} Transaction(s) have been soft stopped successfully in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`,
           `{{inError}} Transaction(s) failed to be soft stopped in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`,
           `{{inSuccess}} Transaction(s) have been soft stopped successfully but {{inError}} failed in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`,
-          `Not Transaction has been soft stopped in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`
+          `No Transaction has been soft stopped in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`
         );
       } catch (error) {
         await Logging.logActionExceptionMessage(tenant.id, ServerAction.TRANSACTION_SOFT_STOP, error);
