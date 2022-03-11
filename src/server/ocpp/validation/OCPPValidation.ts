@@ -25,6 +25,9 @@ export default class OCPPValidation extends SchemaValidator {
   private stopTransactionRequest15: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/stop-transaction-request-15.json`, 'utf8'));
   private diagnosticsStatusNotificationRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/diagnostics-status-notification-request.json`, 'utf8'));
   private heartbeatRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/heartbeat-request.json`, 'utf8'));
+  private firmwareStatusNotificationRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/firmware-status-notification-request.json`, 'utf8'));
+  private dataTransferRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/data-transfert-request.json`, 'utf8'));
+
   private constructor() {
     super('OCPPValidation');
   }
@@ -41,11 +44,11 @@ export default class OCPPValidation extends SchemaValidator {
   }
 
   public validateStatusNotification(statusNotification: OCPPStatusNotificationRequestExtended): void {
+    this.validate(this.statusNotificationRequest, statusNotification);
     // Check non mandatory or wrong timestamp
     if (!statusNotification.timestamp || new Date(statusNotification.timestamp).getFullYear() === new Date(0).getFullYear()) {
       statusNotification.timestamp = new Date().toISOString();
     }
-    this.validate(this.statusNotificationRequest, statusNotification);
   }
 
   public validateAuthorize(authorize: OCPPAuthorizeRequestExtended): void {
@@ -54,6 +57,7 @@ export default class OCPPValidation extends SchemaValidator {
   }
 
   public validateBootNotification(headers: OCPPHeader, bootNotification: OCPPBootNotificationRequestExtended): void {
+    this.validate(this.bootNotificationRequest, bootNotification);
     // Check Charging Station
     if (!headers.chargeBoxIdentity) {
       throw new BackendError({
@@ -63,7 +67,6 @@ export default class OCPPValidation extends SchemaValidator {
         detailedMessages: { headers, bootNotification }
       });
     }
-    this.validate(this.bootNotificationRequest, bootNotification);
   }
 
   public validateDiagnosticsStatusNotification(diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequestExtended): void {
@@ -72,6 +75,7 @@ export default class OCPPValidation extends SchemaValidator {
 
   public validateFirmwareStatusNotification(chargingStation: ChargingStation,
       firmwareStatusNotification: OCPPFirmwareStatusNotificationRequestExtended): void {
+    this.validate(this.firmwareStatusNotificationRequest, firmwareStatusNotification);
   }
 
   public validateStartTransaction(chargingStation: ChargingStation, startTransaction: OCPPStartTransactionRequestExtended): void {
@@ -89,6 +93,7 @@ export default class OCPPValidation extends SchemaValidator {
   }
 
   public validateDataTransfer(chargingStation: ChargingStation, dataTransfer: OCPPDataTransferRequestExtended): void {
+    this.validate(this.dataTransferRequest, dataTransfer);
   }
 
   public validateStopTransaction(chargingStation: ChargingStation, stopTransaction: OCPPStopTransactionRequestExtended): void {
