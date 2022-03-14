@@ -646,42 +646,48 @@ export default class ContextDefinition {
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
       numberOfPhases: 3,
       accessControl: true,
-      siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC
+      siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC,
+      voltage: Voltage.VOLTAGE_230
     },
     { // Without access control
       id: '5ce249a2372f0b1c8caf5476',
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
       numberOfPhases: 3,
       accessControl: false,
-      siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC
+      siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC,
+      voltage: Voltage.VOLTAGE_230
     },
     { // With access control
       id: '5ce249a2372f0b1c8caf1234',
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
       numberOfPhases: 3,
       accessControl: true,
-      siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT
+      siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT,
+      voltage: Voltage.VOLTAGE_230
     },
     { // Without access control
       id: '5ce249a2372f0b1c8caf4678',
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
       numberOfPhases: 3,
       accessControl: false,
-      siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT
+      siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT,
+      voltage: Voltage.VOLTAGE_230
     },
     { // With access control
       id: '5ce249a2372f0b1c8caf5497',
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
       numberOfPhases: 3,
       accessControl: true,
-      siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION
+      siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION,
+      voltage: Voltage.VOLTAGE_230
     },
     { // Without access control
       id: '5ce249a2372f0b1c8caf5432',
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
       numberOfPhases: 3,
       accessControl: false,
-      siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION
+      siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION,
+      voltage: Voltage.VOLTAGE_230
     },
     // Smart Charging must be deactivated. (Connection to CS will fail, because they do not exist)
     { // With smart charging three phased
