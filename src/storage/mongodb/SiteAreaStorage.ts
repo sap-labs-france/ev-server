@@ -434,7 +434,7 @@ export default class SiteAreaStorage {
             siteAreaMDB.connectorStats = Utils.getConnectorStatusesFromChargingStations(siteAreaMDB.chargingStations);
           }
           // Charging stations
-          if (!params.withChargingStations && siteAreaMDB.chargingStations) {
+          if (!params.withChargingStations && siteAreaMDB.chargingStations && !params.chargingStationConnectorStatuses) {
             delete siteAreaMDB.chargingStations;
           }
         }
