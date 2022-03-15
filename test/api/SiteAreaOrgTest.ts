@@ -55,6 +55,25 @@ function login(userRole) {
   }
 }
 
+async function createSiteArea() {
+  // Create the site area
+  testData.newSiteArea = await testData.userService.createEntity(
+    testData.userService.siteAreaApi,
+    Factory.siteArea.build({ siteID: testData.siteContext.getSite().id })
+  );
+}
+
+async function createAsset() {
+  // Create Asset
+  testData.testAsset = await testData.userService.createEntity(
+    testData.userService.assetApi,
+    Factory.asset.build({
+      siteAreaID: testData.newSiteArea.id,
+      assetType: 'PR'
+    })
+  );
+}
+
 /**
  *
  */
@@ -164,18 +183,9 @@ describe('Site Area', () => {
 
       beforeAll(async () => {
         login(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
-        // Create the entity
-        testData.newSiteArea = await testData.userService.createEntity(
-          testData.userService.siteAreaApi,
-          Factory.siteArea.build({ siteID: testData.siteContext.getSite().id })
-        );
-        testData.testAsset = await testData.userService.createEntity(
-          testData.userService.assetApi,
-          Factory.asset.build({
-            siteAreaID: testData.newSiteArea.id,
-            assetType: 'PR'
-          })
-        );
+        await createSiteArea();
+        await createAsset();
+
         await createSiteWithSiteAdmin();
         await createSiteWithoutSiteAdmin();
       });
@@ -315,7 +325,6 @@ describe('Site Area', () => {
         let chargingStation = (await testData.userService.chargingStationApi.readById(chargingStations.data.result[0].id)).data;
         // Conserve site areas IDs to re init the context
         const oldChargingStationSiteAreaID = chargingStation.siteAreaID;
-        const oldTransactionSiteAreaID = transaction.siteAreaID;
         const oldTransactionSiteID = transaction.siteID;
         const transactionSiteArea = (await testData.userService.siteAreaApi.readById(oldTransactionSiteAreaID)).data;
         transactionSiteArea.siteID = testData.createdSites[1].id;
@@ -376,9 +385,6 @@ describe('Site Area', () => {
         // Remove charging station from site area
         await testData.userService.siteAreaApi.removeChargingStations(
           testData.newSiteArea.id, [chargingStation.id]);
-        // Remove asset from site area
-        await testData.userService.siteAreaApi.removeAssets(
-          testData.newSiteArea.id, [testData.testAsset.id]);
         chargingStation = (await testData.userService.chargingStationApi.readById(chargingStation.id)).data;
         expect(chargingStation.siteAreaID).to.be.null;
         expect(chargingStation.siteID).to.be.null;

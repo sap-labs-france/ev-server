@@ -51,6 +51,25 @@ async function createSite() {
   testData.createdSites.push(testData.newSite);
 }
 
+async function createSiteArea() {
+  // Create the site area
+  testData.newSiteArea = await testData.userService.createEntity(
+    testData.userService.siteAreaApi,
+    Factory.siteArea.build({ siteID: testData.createdSites[0].id })
+  );
+}
+
+async function createAsset() {
+  // Create Asset
+  testData.testAsset = await testData.userService.createEntity(
+    testData.userService.assetApi,
+    Factory.asset.build({
+      siteAreaID: testData.newSiteArea.id,
+      assetType: 'PR'
+    })
+  );
+}
+
 async function assignUserToSite(userRole, site): Promise<any> {
   // Assign the user to the site
   const userContext = await testData.tenantContext.getUserContext(userRole);
@@ -113,6 +132,9 @@ describe('Site', () => {
 
       beforeAll(async () => {
         login(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+        await createSite();
+        await createSiteArea();
+        await createAsset();
       });
 
       afterAll(async () => {
@@ -133,6 +155,18 @@ describe('Site', () => {
             false
           );
         }
+        // Delete Asset
+        await testData.centralUserService.deleteEntity(
+          testData.centralUserService.assetApi,
+          testData.testAsset,
+          false
+        );
+        // Delete site area
+        await testData.centralUserService.deleteEntity(
+          testData.centralUserService.siteAreaApi,
+          testData.newSiteArea,
+          false
+        );
         testData.createdUsers = [];
       });
 
@@ -145,55 +179,63 @@ describe('Site', () => {
         testData.createdSites.push(testData.newSite);
       });
 
-      it('Assets and Charging stations should be aligned with organizations entities', async () => {
+      it('Assets, Charging stations and transactions should be aligned with organizations entities', async () => {
         const chargingStations = await testData.userService.chargingStationApi.readAll({});
-        // Create the entity
-        testData.newSiteArea = await testData.userService.createEntity(
-          testData.userService.siteAreaApi,
-          Factory.siteArea.build({ siteID: testData.createdSites[0].id })
-        );
-        // Create Asset
-        testData.testAsset = await testData.userService.createEntity(
-          testData.userService.assetApi,
-          Factory.asset.build({
-            siteAreaID: testData.newSiteArea.id,
-            assetType: 'PR'
-          })
-        );
-        // Create Charging Station
-        let response = await testData.userService.siteAreaApi.assignChargingStations(
-          testData.newSiteArea.id, [chargingStations.data.result[0].id]);
-        expect(response.status).to.equal(StatusCodes.OK);
-        response = await testData.userService.siteAreaApi.assignAssets(
-          testData.newSiteArea.id, [testData.testAsset.id]);
-        expect(response.status).to.equal(StatusCodes.OK);
-        // Get the assigned asset
-        let asset = (await testData.userService.assetApi.readById(testData.testAsset.id)).data;
-        expect(asset.siteAreaID).to.equal(testData.newSiteArea.id);
-        expect(asset.siteID).to.equal(testData.createdSites[0].id);
-        expect(asset.companyID).to.equal(testData.createdSites[0].companyID);
-        // Get the assigned charging station
+        let transaction = (await testData.userService.transactionApi.readAllCompleted({}, { limit: 1, skip: 0 })).data.result[0];
         let chargingStation = (await testData.userService.chargingStationApi.readById(chargingStations.data.result[0].id)).data;
-        expect(chargingStation.siteAreaID).to.equal(testData.newSiteArea.id);
-        expect(chargingStation.siteID).to.equal(testData.createdSites[0].id);
-        expect(chargingStation.companyID).to.equal(testData.createdSites[0].companyID);
-        // Change company
+        // Conserve site areas ID to re init the context
+        const oldChargingStationSiteAreaID = chargingStation.siteAreaID;
+        // Conserve company ID to re init the context
+        const oldTransactionCompanyID = transaction.companyID;
+        // Get the site of the transaction
+        const transactionSite = (await testData.userService.siteApi.readById(transaction.siteID)).data;
+        // Change the companyID of the Site
+        transactionSite.companyID = testData.tenantContext.getContext().companies[0].id;
+        // Update
+        await testData.userService.updateEntity(
+          testData.userService.siteApi,
+          transactionSite
+        );
+        // Get the updated site
+        transaction = (await testData.userService.transactionApi.readById(transaction.id)).data;
+        expect(transaction.companyID).to.equal(testData.tenantContext.getContext().companies[0].id);
+        // Assign Charging Station
+        await testData.userService.siteAreaApi.assignChargingStations(
+          testData.newSiteArea.id, [chargingStation.id]);
         testData.createdSites[0].companyID = testData.tenantContext.getContext().companies[1].id;
         // Update
-        response = await testData.userService.updateEntity(
+        await testData.userService.updateEntity(
           testData.userService.siteApi,
           testData.createdSites[0]
         );
         // Get the assigned asset
-        asset = (await testData.userService.assetApi.readById(testData.testAsset.id)).data;
-        expect(asset.siteAreaID).to.equal(testData.newSiteArea.id);
-        expect(asset.siteID).to.equal(testData.createdSites[0].id);
-        expect(asset.companyID).to.equal(testData.createdSites[0].companyID);
+        testData.testAsset = (await testData.userService.assetApi.readById(testData.testAsset.id)).data;
+        expect(testData.testAsset.companyID).to.equal(testData.tenantContext.getContext().companies[1].id);
         // Get the assigned charging station
         chargingStation = (await testData.userService.chargingStationApi.readById(chargingStations.data.result[0].id)).data;
-        expect(chargingStation.siteAreaID).to.equal(testData.newSiteArea.id);
-        expect(chargingStation.siteID).to.equal(testData.createdSites[0].id);
-        expect(chargingStation.companyID).to.equal(testData.createdSites[0].companyID);
+        expect(chargingStation.companyID).to.equal(testData.tenantContext.getContext().companies[1].id);
+        // Put back the context in place
+        testData.createdSites[0].companyID = testData.tenantContext.getContext().companies[0].id;
+        // Update
+        await testData.userService.updateEntity(
+          testData.userService.siteApi,
+          testData.createdSites[0]
+        );
+        transactionSite.companyID = oldTransactionCompanyID;
+        // Update
+        await testData.userService.updateEntity(
+          testData.userService.siteApi,
+          transactionSite
+        );
+        // Remove charging station from site area
+        await testData.userService.siteAreaApi.removeChargingStations(
+          testData.newSiteArea.id, [chargingStation.id]);
+        chargingStation = (await testData.userService.chargingStationApi.readById(chargingStation.id)).data;
+        // Put back the context in place
+        if (oldChargingStationSiteAreaID) {
+          await testData.userService.siteAreaApi.assignChargingStations(
+            oldChargingStationSiteAreaID, [chargingStation.id]);
+        }
       });
 
       it('Should find the created site by id', async () => {
