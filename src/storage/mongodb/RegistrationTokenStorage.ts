@@ -13,7 +13,7 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'RegistrationTokenStorage';
 
 export default class RegistrationTokenStorage {
-  static async saveRegistrationToken(tenant: Tenant, registrationToken: RegistrationToken): Promise<string> {
+  public static async saveRegistrationToken(tenant: Tenant, registrationToken: RegistrationToken): Promise<string> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Set
@@ -36,7 +36,7 @@ export default class RegistrationTokenStorage {
     return registrationTokenMDB._id.toString();
   }
 
-  static async getRegistrationTokens(tenant: Tenant,
+  public static async getRegistrationTokens(tenant: Tenant,
       params: { search?: string; tokenIDs?: string[]; siteIDs?: string[]; siteAreaIDs?: string[] } = {},
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<RegistrationToken>> {
     const startTime = Logging.traceDatabaseRequestStart();
@@ -143,7 +143,7 @@ export default class RegistrationTokenStorage {
     };
   }
 
-  static async getRegistrationToken(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID,
+  public static async getRegistrationToken(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID,
       params: { siteIDs?: string[]; } = {},
       projectFields?: string[]): Promise<RegistrationToken> {
     const registrationTokensMDB = await RegistrationTokenStorage.getRegistrationTokens(tenant, {
@@ -153,7 +153,7 @@ export default class RegistrationTokenStorage {
     return registrationTokensMDB.count === 1 ? registrationTokensMDB.result[0] : null;
   }
 
-  static async deleteRegistrationToken(tenant: Tenant, id: string): Promise<void> {
+  public static async deleteRegistrationToken(tenant: Tenant, id: string): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     await global.database.getCollection<any>(tenant.id, 'registrationtokens')
       .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
