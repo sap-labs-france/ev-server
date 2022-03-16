@@ -5,6 +5,7 @@ import { NextFunction, Request, Response } from 'express';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
+import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
 import BillingSecurity from './security/BillingSecurity';
@@ -84,16 +85,9 @@ export default class BillingService {
 
   public static async handleCheckBillingConnection(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.CHECK_CONNECTION, Entity.BILLING, MODULE_NAME, 'handleCheckBillingConnection');
-    if (!await Authorizations.canCheckBillingConnection(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        entity: Entity.BILLING, action: Action.CHECK_CONNECTION,
-        module: MODULE_NAME, method: 'handleCheckBillingConnection',
-      });
-    }
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING, Action.CHECK_CONNECTION, Entity.BILLING, MODULE_NAME, 'handleCheckBillingConnection');
+    // Check dynamic authorization
+    await AuthorizationService.checkAndGetBillingAuthorizations(req.tenant, req.user, Action.CHECK_CONNECTION);
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({

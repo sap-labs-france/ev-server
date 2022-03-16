@@ -570,6 +570,13 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
+  // Billing
+  public static async checkAndGetBillingAuthorizations(tenant: Tenant, userToken: UserToken, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
+    return AuthorizationService.checkAndGetEntityAuthorizations(
+      tenant, Entity.BILLING, userToken, {}, {}, authAction, entityData);
+  }
+  // End billing
+
   public static async checkAndGetCarsAuthorizations(tenant: Tenant, userToken: UserToken, filteredRequest: Partial<HttpCarsRequest>): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
