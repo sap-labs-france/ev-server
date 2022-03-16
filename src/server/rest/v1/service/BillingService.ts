@@ -165,17 +165,14 @@ export default class BillingService {
   }
 
   public static async handleGetBillingTaxes(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    if (!await Authorizations.canReadTaxesBilling(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        entity: Entity.TAX, action: Action.LIST,
-        module: MODULE_NAME, method: 'handleGetBillingTaxes',
-      });
-    }
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.LIST, Entity.TAX, MODULE_NAME, 'handleGetBillingTaxes');
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING, Action.LIST, Entity.TAX, MODULE_NAME, 'handleGetBillingTaxes');
+    // Check dynamic authorization
+    const authorizationsTaxes = await AuthorizationService.checkAndGetTaxesAuthorizations(req.tenant, req.user);
+    if (!authorizationsTaxes.authorized) {
+      UtilsService.sendEmptyDataResult(res, next);
+      return;
+    }
     // Get Billing implementation from factory
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {

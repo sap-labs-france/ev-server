@@ -577,6 +577,20 @@ export default class AuthorizationService {
   }
   // End billing
 
+  // Taxes
+  public static async checkAndGetTaxesAuthorizations(tenant: Tenant, userToken: UserToken): Promise<AuthorizationFilter> {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      dataSources: new Map(),
+      projectFields: [],
+      authorized: false
+    };
+    // Check static & dynamic authorization
+    await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAX, Action.LIST, authorizationFilters, {}, null, true);
+    return authorizationFilters;
+  }
+  // End taxes
+
   public static async checkAndGetCarsAuthorizations(tenant: Tenant, userToken: UserToken, filteredRequest: Partial<HttpCarsRequest>): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
