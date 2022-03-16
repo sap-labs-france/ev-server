@@ -160,6 +160,8 @@ export default class AuthService {
     newUser.name = filteredRequest.name;
     newUser.firstName = filteredRequest.firstName;
     newUser.locale = filteredRequest.locale;
+    newUser.mobile = filteredRequest.mobile;
+    newUser.phone = filteredRequest.phone;
     newUser.createdOn = new Date();
     const verificationToken = Utils.generateToken(filteredRequest.email);
     const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenant, Utils.getLanguageFromLocale(newUser.locale));

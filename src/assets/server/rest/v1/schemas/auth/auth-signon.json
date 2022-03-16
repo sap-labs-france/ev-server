@@ -24,6 +24,12 @@
     "captcha": {
       "$ref": "common#/definitions/captcha"
     },
+    "phone": {
+      "$ref": "user#/definitions/phone"
+    },
+    "mobile": {
+      "$ref": "user#/definitions/mobile"
+    },
     "locale": {
       "type": "string",
       "sanitize": "mongo",
