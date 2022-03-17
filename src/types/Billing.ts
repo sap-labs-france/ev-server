@@ -1,4 +1,6 @@
 import { ActionsResponse } from './GlobalType';
+import { BillingInvoiceAuthorizationActions } from './Authorization';
+import CreatedUpdatedProps from './CreatedUpdatedProps';
 import { PricedConsumptionData } from './Pricing';
 import User from './User';
 
@@ -60,7 +62,7 @@ export interface BillingTax {
   percentage: number;
 }
 
-export interface BillingInvoice {
+export interface BillingInvoice extends CreatedUpdatedProps, BillingInvoiceAuthorizationActions {
   id: string;
   invoiceID: string;
   liveMode: boolean;

@@ -3,6 +3,7 @@ import Transaction, { TransactionStats } from './Transaction';
 
 import Asset from './Asset';
 import { AuthorizationDefinitionFieldMetadata } from './Authorization';
+import { BillingInvoice } from './Billing';
 import Company from './Company';
 import { Log } from './Log';
 import PricingDefinition from './Pricing';
@@ -79,6 +80,9 @@ export interface TagDataResult extends DataResult<Tag> {
 export interface TransactionDataResult extends DataResult<Transaction> {
   stats: TransactionStats;
 }
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface BillingInvoiceDataResult extends DataResult<BillingInvoice> {}
 
 export interface TransactionRefundDataResult {
   count: number;

@@ -1,5 +1,5 @@
 import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity } from '../../../../types/Authorization';
-import { AssetDataResult, CarCatalogDataResult, CarDataResult, CompanyDataResult, LogDataResult, PricingDefinitionDataResult, RegistrationTokenDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, UserDataResult } from '../../../../types/DataResult';
+import { AssetDataResult, BillingInvoiceDataResult, CarCatalogDataResult, CarDataResult, CompanyDataResult, LogDataResult, PricingDefinitionDataResult, RegistrationTokenDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, UserDataResult } from '../../../../types/DataResult';
 import { Car, CarCatalog } from '../../../../types/Car';
 import { HttpAssetRequest, HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
 import { HttpCarCatalogRequest, HttpCarCatalogsRequest, HttpCarRequest, HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
@@ -17,10 +17,12 @@ import User, { UserRole } from '../../../../types/User';
 import AppAuthError from '../../../../exception/AppAuthError';
 import Asset from '../../../../types/Asset';
 import Authorizations from '../../../../authorization/Authorizations';
+import { BillingInvoice } from '../../../../types/Billing';
 import Company from '../../../../types/Company';
 import DynamicAuthorizationFactory from '../../../../authorization/DynamicAuthorizationFactory';
 import { EntityData } from '../../../../types/GlobalType';
 import { HTTPAuthError } from '../../../../types/HTTPError';
+import { HttpBillingInvoicesRequest } from '../../../../types/requests/HttpBillingRequest';
 import { HttpLogRequest } from '../../../../types/requests/HttpLoggingRequest';
 import { HttpRegistrationTokenRequest } from '../../../../types/requests/HttpRegistrationToken';
 import { Log } from '../../../../types/Log';
@@ -590,6 +592,37 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
   // End taxes
+
+  // Invoices
+  public static async checkAndGetInvoicesAuthorizations(tenant: Tenant, userToken: UserToken, filteredRequest: Partial<HttpBillingInvoicesRequest>): Promise<AuthorizationFilter> {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      dataSources: new Map(),
+      projectFields: [],
+      authorized: false
+    };
+    // Check static & dynamic authorization
+    await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.INVOICE, Action.LIST,
+      authorizationFilters, filteredRequest, null, true);
+    return authorizationFilters;
+  }
+
+  public static async addInvoicesAuthorizations(tenant: Tenant, userToken: UserToken, billingInvoices: BillingInvoiceDataResult,
+      authorizationFilter: AuthorizationFilter): Promise<void> {
+    // Add Meta Data
+    billingInvoices.metadata = authorizationFilter.metadata;
+    for (const billingInvoice of billingInvoices.result) {
+      await AuthorizationService.addInvoiceAuthorizations(tenant, userToken, billingInvoice, authorizationFilter);
+    }
+  }
+
+  public static async addInvoiceAuthorizations(tenant: Tenant, userToken: UserToken, billingInvoice: BillingInvoice, authorizationFilter: AuthorizationFilter): Promise<void> {
+    billingInvoice.canRead = true; // Always true as it should be filtered upfront
+    billingInvoice.canDownload = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.INVOICE, Action.DOWNLOAD, authorizationFilter);
+    // Optimize data over the net
+    Utils.removeCanPropertiesWithFalseValue(billingInvoice);
+  }
+  // end invoices
 
   public static async checkAndGetCarsAuthorizations(tenant: Tenant, userToken: UserToken, filteredRequest: Partial<HttpCarsRequest>): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {

@@ -379,7 +379,12 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       // ---------------------------------------------------------------------------------------------------
       // { resource: Entity.INVOICES, action: [Action.LIST, Action.SYNCHRONIZE] },
       // { resource: Entity.INVOICE, action: [Action.DOWNLOAD, Action.CREATE] },
-      { resource: Entity.INVOICE, action: [Action.LIST] },
+      {
+        resource: Entity.INVOICE, action: [Action.LIST],
+        attributes: [
+          'id', 'number', 'status', 'amount', 'createdOn', 'currency', 'downloadable', 'sessions', 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email'
+        ]
+      },
       { resource: Entity.INVOICE, action: [Action.DOWNLOAD, Action.READ] },
       {
         resource: Entity.ASSET, action: [Action.CREATE, Action.READ,
@@ -664,7 +669,12 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'name', 'issuer', 'logo', 'address'
         ]
       },
-      { resource: Entity.INVOICE, action: [Action.LIST] },
+      {
+        resource: Entity.INVOICE, action: [Action.LIST],
+        attributes: [
+          'id', 'number', 'status', 'amount', 'createdOn', 'currency', 'downloadable', 'sessions', 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email'
+        ]
+      },
       {
         resource: Entity.INVOICE, action: [Action.DOWNLOAD, Action.READ],
         condition: {

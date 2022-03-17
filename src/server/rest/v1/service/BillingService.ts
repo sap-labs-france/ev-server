@@ -1,4 +1,5 @@
 import { Action, Entity } from '../../../../types/Authorization';
+import { BillingInvoiceDataResult, DataResult } from '../../../../types/DataResult';
 import { BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod } from '../../../../types/Billing';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
@@ -13,7 +14,6 @@ import { BillingSettings } from '../../../../types/Setting';
 import BillingStorage from '../../../../storage/mongodb/BillingStorage';
 import BillingValidator from '../validator/BillingValidator';
 import Constants from '../../../../utils/Constants';
-import { DataResult } from '../../../../types/DataResult';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
@@ -32,16 +32,9 @@ export default class BillingService {
 
   public static async handleClearBillingTestData(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.CLEAR_BILLING_TEST_DATA, Entity.BILLING, MODULE_NAME, 'handleClearBillingTestData');
-    if (!await Authorizations.canClearBillingTestData(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        entity: Entity.BILLING, action: Action.CLEAR_BILLING_TEST_DATA,
-        module: MODULE_NAME, method: 'handleClearBillingTestData',
-      });
-    }
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING, Action.CLEAR_BILLING_TEST_DATA, Entity.BILLING, MODULE_NAME, 'handleClearBillingTestData');
+    // Check dynamic auth
+    await AuthorizationService.checkAndGetBillingAuthorizations(req.tenant, req.user, Action.CLEAR_BILLING_TEST_DATA);
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
@@ -192,8 +185,11 @@ export default class BillingService {
 
   public static async handleGetInvoices(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.LIST, Entity.INVOICE, MODULE_NAME, 'handleGetInvoices');
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING, Action.LIST, Entity.INVOICE, MODULE_NAME, 'handleGetInvoices');
+    // Filter
+    const filteredRequest = BillingValidator.getInstance().validateBillingInvoicesGetReq(req.query);
+    // Check dynamic authorization
+    const authorizations = await AuthorizationService.checkAndGetInvoicesAuthorizations(req.tenant, req.user, filteredRequest);
     if (!await Authorizations.canListInvoicesBilling(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -202,14 +198,7 @@ export default class BillingService {
         module: MODULE_NAME, method: 'handleGetInvoices',
       });
     }
-    // Check Users
-    let userProject: string[] = [];
-    // Temporary fix before new auth migration
-    if (!Authorizations.isDemo(req.user)) {
-      userProject = [ 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email' ];
-    }
-    // Filter
-    const filteredRequest = BillingValidator.getInstance().validateBillingInvoicesGetReq(req.query);
+
     // Get invoices
     const invoices = await BillingStorage.getInvoices(req.tenant,
       {
@@ -225,10 +214,15 @@ export default class BillingService {
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      [
-        'id', 'number', 'status', 'amount', 'createdOn', 'currency', 'downloadable', 'sessions',
-        ...userProject
-      ]);
+      authorizations.projectFields
+    );
+    // Assign projected fields
+    if (authorizations.projectFields) {
+      invoices.projectFields = authorizations.projectFields;
+    }
+    // Add Auth flags
+    await AuthorizationService.addInvoicesAuthorizations(
+      req.tenant, req.user, invoices as BillingInvoiceDataResult, authorizations);
     res.json(invoices);
     next();
   }
