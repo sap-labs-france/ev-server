@@ -1624,18 +1624,16 @@ export default class Utils {
   }
 
   public static findSiteAreaInTrees(siteAreaID: string, siteAreaTrees: SiteArea[] = []): SiteArea {
-    if (!Utils.isEmptyArray(siteAreaTrees)) {
-      // Loop through trees to find specific tree
-      for (const siteAreaTree of siteAreaTrees) {
-        // Check node
-        if (siteAreaTree.id === siteAreaID) {
-          return siteAreaTree;
-        }
-        // Site Area ID is defined return tree, which contains the site area
-        const requestedTree = this.findSiteAreaInTrees(siteAreaID, siteAreaTree.siteAreaChildren);
-        if (requestedTree) {
-          return siteAreaTree;
-        }
+    // Loop through trees to find specific tree
+    for (const siteAreaTree of siteAreaTrees) {
+      // Check node
+      if (siteAreaTree.id === siteAreaID) {
+        return siteAreaTree;
+      }
+      // Site Area ID is defined return tree, which contains the site area
+      const requestedTree = this.findSiteAreaInTrees(siteAreaID, siteAreaTree.siteAreaChildren);
+      if (requestedTree) {
+        return siteAreaTree;
       }
     }
   }
@@ -1699,6 +1697,13 @@ export default class Utils {
             detailedMessages: { siteArea, parentSiteArea },
           });
         }
+      } else if (siteArea.parentSiteAreaID) {
+        throw new BackendError({
+          siteAreaID: siteArea.id,
+          method: 'checkSiteAreaTrees',
+          message: `Root site area '${siteArea.name}' is not allowed to have Parent Site Area ID '${siteArea.parentSiteAreaID}'. Site Areas of one tree need to have the same Site.`,
+          detailedMessages: { siteArea, parentSiteArea },
+        });
       }
       // Check children
       numberOfSiteAreas += this.checkSiteAreaTrees(siteArea.siteAreaChildren, null, siteArea);

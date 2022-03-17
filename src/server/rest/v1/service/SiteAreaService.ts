@@ -125,7 +125,7 @@ export default class SiteAreaService {
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
       req.tenant, req.user, siteAreaID, Action.DELETE, action);
     // Check if site area ha dependencies on other site areas
-    await UtilsService.checkIfSiteAreaHasDependencies(req.tenant, req.user, siteArea);
+    await UtilsService.checkIfSiteAreaHasDependencies(siteArea, req.tenant, req.user);
     // Delete
     await SiteAreaStorage.deleteSiteArea(req.tenant, siteArea.id);
     // Log
@@ -274,7 +274,6 @@ export default class SiteAreaService {
       Action.CREATE, Entity.SITE_AREA, MODULE_NAME, 'handleCreateSiteArea');
     // Filter request
     const filteredRequest = SiteAreaValidator.getInstance().validateSiteAreaCreateReq(req.body);
-    const additionalSiteIDs = [];
     // Check request data is valid
     UtilsService.checkIfSiteAreaValid(filteredRequest, req);
     // Check auth
@@ -293,9 +292,8 @@ export default class SiteAreaService {
       req.tenant, req.user, filteredRequest.siteID, Action.UPDATE, action);
     // Check parent Site Area auth
     if (filteredRequest.parentSiteAreaID) {
-      const parentSiteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
+      await UtilsService.checkAndGetSiteAreaAuthorization(
         req.tenant, req.user, filteredRequest.parentSiteAreaID, Action.UPDATE, action);
-      additionalSiteIDs.push(parentSiteArea.siteID);
     }
     // Create Site Area
     const siteArea: SiteArea = {
@@ -305,7 +303,7 @@ export default class SiteAreaService {
       createdOn: new Date()
     } as SiteArea;
     // Check site area chain validity
-    await UtilsService.checkIfSiteAreaTreeValid(siteArea, req, additionalSiteIDs);
+    await UtilsService.checkIfSiteAreaTreeValid(siteArea, req.tenant, req.user);
     // Save
     siteArea.id = await SiteAreaStorage.saveSiteArea(req.tenant, siteArea, Utils.objectHasProperty(filteredRequest, 'image'));
     await Logging.logInfo({
@@ -326,8 +324,6 @@ export default class SiteAreaService {
       Action.UPDATE, Entity.SITE_AREA, MODULE_NAME, 'handleUpdateSiteArea');
     // Filter request
     const filteredRequest = SiteAreaValidator.getInstance().validateSiteAreaUpdateReq(req.body);
-    // Additional sites for tree check
-    const additionalSiteIDs = [];
     // Check Mandatory fields
     UtilsService.checkIfSiteAreaValid(filteredRequest, req);
     // Check and Get SiteArea
@@ -341,9 +337,8 @@ export default class SiteAreaService {
       req.tenant, req.user, filteredRequest.siteID, Action.READ, action);
     // Check parent Site Area auth
     if (filteredRequest.parentSiteAreaID) {
-      const parentSiteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
+      await UtilsService.checkAndGetSiteAreaAuthorization(
         req.tenant, req.user, filteredRequest.parentSiteAreaID, Action.UPDATE, action);
-      additionalSiteIDs.push(parentSiteArea.siteID);
     }
     // Check that Charging Station's nbr of phases is aligned with Site Area
     if (filteredRequest.smartCharging && filteredRequest.numberOfPhases === 1) {
@@ -364,7 +359,7 @@ export default class SiteAreaService {
       }
     }
     if (siteArea.siteID !== filteredRequest.siteID) {
-      additionalSiteIDs.push(siteArea.siteID);
+      await UtilsService.checkIfSiteAreaHasDependencies(siteArea, req.tenant, req.user);
     }
     // Delete Charging Profiles
     let actionsResponse: ActionsResponse;
@@ -393,7 +388,7 @@ export default class SiteAreaService {
     siteArea.lastChangedBy = { 'id': req.user.id };
     siteArea.lastChangedOn = new Date();
     // Check Site Area tree
-    await UtilsService.checkIfSiteAreaTreeValid(siteArea, req, additionalSiteIDs);
+    await UtilsService.checkIfSiteAreaTreeValid(siteArea, req.tenant, req.user);
     // Save
     await SiteAreaStorage.saveSiteArea(req.tenant, siteArea, Utils.objectHasProperty(filteredRequest, 'image'));
     // Update all refs

@@ -1505,7 +1505,7 @@ export default class UtilsService {
     }
   }
 
-  public static async checkIfSiteAreaHasDependencies(tenant: Tenant, user: UserToken, siteArea: SiteArea): Promise<void> {
+  public static async checkIfSiteAreaHasDependencies(siteArea: SiteArea, tenant: Tenant, user: UserToken): Promise<void> {
     const siteAreas = await SiteAreaStorage.getSiteAreas(tenant, { parentSiteAreaIDs: [siteArea.id] }, Constants.DB_PARAMS_COUNT_ONLY);
     if (siteAreas.count > 0) {
       throw new AppError({
@@ -1518,10 +1518,9 @@ export default class UtilsService {
     }
   }
 
-  public static async checkIfSiteAreaTreeValid(siteArea: SiteArea, req: Request, siteIDs: string[] = []): Promise<void> {
-    siteIDs.push(siteArea.siteID);
-    const siteAreas = await SiteAreaStorage.getSiteAreas(req.tenant,
-      { siteIDs: siteIDs }, Constants.DB_PARAMS_MAX_LIMIT,
+  public static async checkIfSiteAreaTreeValid(siteArea: SiteArea, tenant: Tenant, user: UserToken): Promise<void> {
+    const siteAreas = await SiteAreaStorage.getSiteAreas(tenant,
+      { siteIDs: [siteArea.siteID] }, Constants.DB_PARAMS_MAX_LIMIT,
       ['id', 'name', 'parentSiteAreaID', 'siteID', 'smartCharging', 'name', 'voltage', 'numberOfPhases']);
     // Check if site area exists or should be created
     if (siteArea.id) {
@@ -1544,7 +1543,7 @@ export default class UtilsService {
         errorCode: HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR,
         message: `Error when checking site area tree: ${error.message as string}`,
         module: MODULE_NAME, method: 'checkIfSiteAreaTreeValid',
-        user: req.user.id
+        user: user.id
       });
     }
   }
