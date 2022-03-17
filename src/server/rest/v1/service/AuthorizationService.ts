@@ -539,9 +539,6 @@ export default class AuthorizationService {
       tenant, userToken, Entity.SITE_AREA, Action.EXPORT_OCPP_PARAMS, authorizationFilter, { SiteAreaID: siteArea.id, SiteID: siteArea.siteID }, siteArea);
     siteArea.canGenerateQrCode = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.SITE_AREA, Action.GENERATE_QR, authorizationFilter, { SiteAreaID: siteArea.id, SiteID: siteArea.siteID }, siteArea);
-    // Special auth flag that depends on other authorisations
-    const canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.CREATE, authorizationFilter);
-    siteArea.canCrudSiteArea = canCreate && siteArea.canRead && siteArea.canUpdate && siteArea.canDelete;
     // Optimize data over the net
     Utils.removeCanPropertiesWithFalseValue(siteArea);
   }
