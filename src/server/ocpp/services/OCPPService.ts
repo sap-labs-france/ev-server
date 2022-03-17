@@ -372,10 +372,11 @@ export default class OCPPService {
       }
       // Cleanup ongoing Transaction
       await this.processExistingTransaction(tenant, chargingStation, startTransaction.connectorId);
-      // Handle car and current SOC
+      // Handle Car
       await this.processTransactionCar(tenant, newTransaction, chargingStation, null, user, TransactionAction.START);
-      // Pricing
+      // Create consumption
       const firstConsumption = await OCPPUtils.createFirstConsumption(tenant, chargingStation, newTransaction);
+      // Pricing
       await OCPPUtils.processTransactionPricing(tenant, newTransaction, chargingStation, firstConsumption, TransactionAction.START);
       // Billing
       await BillingFacade.processStartTransaction(tenant, newTransaction, chargingStation, chargingStation.siteArea, user);

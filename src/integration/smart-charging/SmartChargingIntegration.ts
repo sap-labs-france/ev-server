@@ -58,7 +58,6 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
           continue;
         }
         actionsResponse.inError++;
-        // Log failed
         await Logging.logError({
           tenantID: this.tenant.id,
           siteID: chargingProfile.chargingStation.siteID,
