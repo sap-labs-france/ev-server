@@ -1,11 +1,11 @@
 import Address from './Address';
-import { AuthorizationActions } from './Authorization';
 import { BillingUserData } from './Billing';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import { ImportStatus } from './GlobalType';
+import { UserAuthorizationActions } from './Authorization';
 import UserNotifications from './UserNotifications';
 
-export default interface User extends CreatedUpdatedProps, AuthorizationActions {
+export default interface User extends CreatedUpdatedProps, UserAuthorizationActions {
   id: string;
   issuer: boolean;
   name: string;

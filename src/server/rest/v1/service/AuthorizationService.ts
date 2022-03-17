@@ -192,7 +192,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetUsersInErrorAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Partial<HttpUsersRequest>): Promise<AuthorizationFilter> {
+      authAction: Action, filteredRequest: Partial<HttpUsersRequest>): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -200,7 +200,7 @@ export default class AuthorizationService {
       authorized: false
     };
     // Check static & dynamic authorization
-    await this.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.IN_ERROR,
+    await this.canPerformAuthorizationAction(tenant, userToken, Entity.USER, authAction,
       authorizationFilters, filteredRequest, null, true);
     return authorizationFilters;
   }
@@ -223,12 +223,14 @@ export default class AuthorizationService {
       tenant, userToken, Entity.USER, Action.UPDATE, authorizationFilter, { UserID: user.id }, user);
     user.canDelete = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.USER, Action.DELETE, authorizationFilter, { UserID: user.id }, user);
+    user.canAssignSites = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.USERS_SITES, Action.ASSIGN, authorizationFilter, { UserID: user.id }, user);
     // Optimize data over the net
     Utils.removeCanPropertiesWithFalseValue(user);
   }
 
   public static async checkAndGetUsersAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Partial<HttpUsersRequest>): Promise<AuthorizationFilter> {
+      authAction: Action, filteredRequest: Partial<HttpUsersRequest>): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -236,7 +238,7 @@ export default class AuthorizationService {
       authorized: false,
     };
     // Check static & dynamic authorization
-    await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.LIST,
+    await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, authAction,
       authorizationFilters, filteredRequest, null, true);
     return authorizationFilters;
   }

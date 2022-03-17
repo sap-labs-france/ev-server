@@ -186,6 +186,10 @@ export interface AuthorizationActions {
   metadata?: Record<string, unknown>;
 }
 
+export interface UserAuthorizationActions extends AuthorizationActions {
+  canAssignSites?: boolean;
+}
+
 export interface TagAuthorizationActions extends AuthorizationActions {
   canUnassign?: boolean;
   canAssign?: boolean;

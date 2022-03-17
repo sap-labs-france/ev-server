@@ -1,4 +1,4 @@
-import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
+import { Action, Entity } from '../../../../types/Authorization';
 import { ActionsResponse, ImportStatus } from '../../../../types/GlobalType';
 import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
 import Busboy, { FileInfo } from 'busboy';
@@ -32,7 +32,6 @@ import { OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../../ocpi/OCPIUtils';
 import { Readable } from 'stream';
 import { ServerAction } from '../../../../types/Server';
-import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { StartTransactionErrorCode } from '../../../../types/Transaction';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import { UserInErrorType } from '../../../../types/InError';
@@ -379,12 +378,15 @@ export default class UserService {
     next();
   }
 
-  public static async handleGetUsersInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetUsersInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<DataResult<User>> {
     // Filter
     const filteredRequest = UserValidator.getInstance().validateUsersInErrorGetReq(req.query);
     // Get authorization filters
     const authorizationUserInErrorFilters = await AuthorizationService.checkAndGetUsersInErrorAuthorizations(
-      req.tenant, req.user, filteredRequest);
+      req.tenant, req.user, Action.IN_ERROR, filteredRequest);
+    if (!authorizationUserInErrorFilters.authorized) {
+      return Constants.DB_EMPTY_DATA_RESULT;
+    }
     // Get users
     const users = await UserStorage.getUsersInError(req.tenant,
       {
@@ -742,16 +744,21 @@ export default class UserService {
   private static async getUsers(req: Request, filteredRequest: HttpUsersRequest): Promise<DataResult<User>> {
     // Get authorization filters
     const authorizationUsersFilters = await AuthorizationService.checkAndGetUsersAuthorizations(
-      req.tenant, req.user, filteredRequest);
+      req.tenant, req.user, Action.LIST, filteredRequest);
     if (!authorizationUsersFilters.authorized) {
       return Constants.DB_EMPTY_DATA_RESULT;
     }
     // Optimization: Get Tag IDs from Visual IDs
     if (filteredRequest.VisualTagID) {
+      const authorizationTagsFilters = await AuthorizationService.checkAndGetTagsAuthorizations(
+        req.tenant, req.user, filteredRequest);
+      if (!authorizationTagsFilters.authorized) {
+        return Constants.DB_EMPTY_DATA_RESULT;
+      }
       const tagIDs = await TagStorage.getTags(req.tenant, {
-        visualIDs: filteredRequest.VisualTagID.split('|')
-      },
-      Constants.DB_PARAMS_MAX_LIMIT, ['userID']);
+        visualIDs: filteredRequest.VisualTagID.split('|'),
+        ...authorizationUsersFilters.filters
+      }, Constants.DB_PARAMS_MAX_LIMIT, ['userID']);
       if (!Utils.isEmptyArray(tagIDs.result)) {
         const userIDs = _.uniq(tagIDs.result.map((tag) => tag.userID));
         filteredRequest.UserID = userIDs.join('|');
