@@ -1523,8 +1523,8 @@ export default class UtilsService {
       { siteIDs: [siteArea.siteID] }, Constants.DB_PARAMS_MAX_LIMIT,
       ['id', 'name', 'parentSiteAreaID', 'siteID', 'smartCharging', 'name', 'voltage', 'numberOfPhases']);
     // Check if site area exists or should be created
-    if (siteArea.id) {
-      const index = siteAreas.result.findIndex((siteAreaToChange) => siteAreaToChange.id === siteArea.id);
+    const index = siteAreas.result.findIndex((siteAreaToChange) => siteAreaToChange.id === siteArea.id);
+    if (index >= 0) {
       siteAreas.result[index] = { id: siteArea.id, parentSiteAreaID: siteArea.parentSiteAreaID, siteID: siteArea.siteID, smartCharging: siteArea.smartCharging,
         voltage: siteArea.voltage, numberOfPhases: siteArea.numberOfPhases, name: siteArea.name } as SiteArea;
     } else {
