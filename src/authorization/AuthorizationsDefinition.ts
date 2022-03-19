@@ -789,7 +789,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
         attributes: [
           'userID', 'active', 'description', 'visualID', 'issuer', 'default',
-          'createdOn', 'lastChangedOn'
+          'createdOn', 'lastChangedOn', 'limit'
         ],
       },
       {
@@ -808,7 +808,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
         attributes: [
           'userID', 'issuer', 'active', 'description', 'visualID', 'default',
-          'user.id', 'user.name', 'user.firstName', 'user.email', 'user.issuer'
+          'user.id', 'user.name', 'user.firstName', 'user.email', 'user.issuer', 'limit'
         ],
       },
       {
@@ -1408,7 +1408,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
         attributes: [
           'id', 'userID', 'active', 'ocpiToken', 'description', 'visualID', 'issuer', 'default',
-          'user.name', 'user.firstName', 'user.email', 'createdOn', 'lastChangedOn'
+          'user.name', 'user.firstName', 'user.email', 'createdOn', 'lastChangedOn', 'limit'
         ],
       },
       {
