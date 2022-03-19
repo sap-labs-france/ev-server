@@ -7790,6 +7790,9 @@
                     "type": "string",
                     "example": "Badge description"
                   },
+                  "limit": {
+                    "$ref": "#/components/schemas/Tag/properties/limit"
+                  },
                   "default": {
                     "type": "boolean",
                     "example": true
@@ -14694,6 +14697,23 @@
           "description": {
             "type": "string",
             "example": "Badge description"
+          },
+          "limit": {
+            "type": "object",
+            "properties": {
+              "limitKwhEnabled": {
+                "type": "boolean",
+                "example": true
+              },
+              "limitKwh": {
+                "type": "number",
+                "example": 75
+              },
+              "limitKwhConsumed": {
+                "type": "number",
+                "example": 0
+              }
+            }
           },
           "default": {
             "type": "boolean",

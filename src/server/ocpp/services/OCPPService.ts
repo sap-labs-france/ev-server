@@ -34,6 +34,8 @@ import { ServerAction } from '../../../types/Server';
 import SiteArea from '../../../types/SiteArea';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
+import Tag from '../../../types/Tag';
+import TagStorage from '../../../storage/mongodb/TagStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
@@ -194,7 +196,7 @@ export default class OCPPService {
         return {};
       }
       // Get Transaction
-      const transaction = await this.getTransactionFromMeterValues(tenant, chargingStation, headers, meterValues);
+      const transaction = await this.getTransactionFromMeterValues(tenant, chargingStation, meterValues);
       // Save Meter Values
       await OCPPStorage.saveMeterValues(tenant, normalizedMeterValues);
       // Update Transaction
@@ -216,6 +218,8 @@ export default class OCPPService {
         // Save
         await ConsumptionStorage.saveConsumption(tenant, consumption);
       }
+      // Process Tag Limitation
+      await this.processTagLimitationsWithMeterValues(tenant, chargingStation, transaction, transaction.tag, consumptions, meterValues);
       // Get the phases really used from Meter Values (for AC single phase charger/car)
       if (!transaction.phasesUsed &&
         Utils.checkIfPhasesProvidedInTransactionInProgress(transaction) &&
@@ -605,6 +609,34 @@ export default class OCPPService {
       });
     }
     return { user, alternateUser };
+  }
+
+  private async processTagLimitationsWithMeterValues(tenant: Tenant, chargingStation: ChargingStation,
+      transaction: Transaction, tag: Tag, consumptions: Consumption[], meterValues: OCPPMeterValuesRequest) {
+    if (tag?.limit?.limitKwhEnabled && !Utils.isEmptyArray(consumptions)) {
+      // Get total consumption
+      let totalConsumtionKWh = 0;
+      for (const consumption of consumptions) {
+        totalConsumtionKWh = Utils.createDecimal(consumption.consumptionWh).div(1000).plus(totalConsumtionKWh).toNumber();
+      }
+      // Update the tag limits
+      tag.limit.limitKwhConsumed = Utils.createDecimal(tag.limit.limitKwhConsumed).plus(totalConsumtionKWh).toNumber();
+      await TagStorage.saveTagLimit(tenant, tag.id, tag.limit);
+      // Check
+      if (tag.limit.limitKwhConsumed >= tag.limit.limitKwh) {
+        await Logging.logWarning({
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
+          tenantID: tenant.id,
+          module: MODULE_NAME, method: 'processTagLimitationWithConsumptions',
+          action: ServerAction.OCPP_METER_VALUES,
+          user: tag.user,
+          message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Tag ID '${tag.id}' limitation has been reached: max ${tag.limit.limitKwh} kWh, consumed ${tag.limit.limitKwhConsumed} kWh. Transaction will be stopped`,
+          detailedMessages: { tag, transaction, chargingStation }
+        });
+        // Stop Transaction
+        await this.abortOngoingTransactionInMeterValues(tenant, chargingStation, meterValues);
+      }
+    }
   }
 
   private checkAndUpdateTransactionWithSignedDataInStopTransaction(transaction: Transaction, stopTransaction: OCPPStopTransactionRequestExtended) {
@@ -1850,8 +1882,8 @@ export default class OCPPService {
     return false;
   }
 
-  private async getTransactionFromMeterValues(tenant: Tenant, chargingStation: ChargingStation, headers: OCPPHeader, meterValues: OCPPMeterValuesRequest): Promise<Transaction> {
-    // Handle Meter Value only for transaction
+  private async getTransactionFromMeterValues(tenant: Tenant, chargingStation: ChargingStation, meterValues: OCPPMeterValuesRequest): Promise<Transaction> {
+  // Handle Meter Value only for transaction
     if (!meterValues.transactionId) {
       throw new BackendError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
