@@ -32,6 +32,7 @@ export interface ImportedTag {
   id: string;
   visualID: string;
   description: string;
+  limitKwh: number;
   importedBy?: string;
   importedOn?: Date;
   status?: ImportStatus;

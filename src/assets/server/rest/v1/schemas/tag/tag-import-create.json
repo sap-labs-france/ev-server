@@ -9,6 +9,9 @@
     "description": {
       "$ref": "tag#/definitions/description"
     },
+    "limitKwh": {
+      "$ref": "tag#/definitions/limit/properties/limitKwh"
+    },
     "visualID": {
       "$ref": "tag#/definitions/visualID"
     },

@@ -826,6 +826,7 @@ export default class TagService {
       const newImportedTag: ImportedTag = {
         id: importedTag.id.toUpperCase(),
         visualID: importedTag.visualID,
+        limitKwh: importedTag.limitKwh,
         description: importedTag.description ? importedTag.description : `Tag ID '${importedTag.id}'`,
         importedData: importedTag.importedData
       };

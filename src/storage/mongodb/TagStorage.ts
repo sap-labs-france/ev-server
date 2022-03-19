@@ -81,6 +81,7 @@ export default class TagStorage {
       _id: importedTagToSave.id,
       visualID: importedTagToSave.visualID,
       description: importedTagToSave.description,
+      limitKwh: importedTagToSave.limitKwh,
       name: importedTagToSave.name,
       firstName: importedTagToSave.firstName,
       email: importedTagToSave.email,

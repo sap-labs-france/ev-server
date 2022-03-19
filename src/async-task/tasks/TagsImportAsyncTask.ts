@@ -28,7 +28,7 @@ export default class TagsImportAsyncTask extends AbstractAsyncTask {
       try {
         // If we never got the sites from db -> construct array of existing sites
         if (existingSites.size === 0) {
-          const sites = await SiteStorage.getSites(tenant, {}, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'name']);
+          const sites = await SiteStorage.getSites(tenant, { issuer: true }, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'name']);
           for (const site of sites.result) {
             existingSites.set(site.id, site);
           }
@@ -70,7 +70,7 @@ export default class TagsImportAsyncTask extends AbstractAsyncTask {
                 tenantID: tenant.id,
                 action: ServerAction.TAGS_IMPORT,
                 module: MODULE_NAME, method: 'processTenant',
-                message: `Cannot import Tag ID '${importedTag.id}': ${error.message}`,
+                message: `Cannot import Tag ID '${importedTag.id}': ${error.message as string}`,
                 detailedMessages: { importedTag, error: error.stack }
               });
             }

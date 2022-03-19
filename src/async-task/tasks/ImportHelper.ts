@@ -53,8 +53,11 @@ export default class ImportHelper {
       await TagStorage.clearDefaultUserTag(tenant, user.id);
       tag.default = true;
     }
-    // Save the new Tag
+    // Save the Tag
     await TagStorage.saveTag(tenant, tag);
+    if (tag.limit) {
+      await TagStorage.saveTagLimit(tenant, tag.id, tag.limit);
+    }
     return tag;
   }
 
@@ -79,12 +82,19 @@ export default class ImportHelper {
     tag.visualID = importedTag.visualID;
     tag.active = importedTag.importedData?.autoActivateTagAtImport;
     tag.description = importedTag.description;
+    if (importedTag.limitKwh > 0 && !tag.limit?.limitKwhEnabled) {
+      tag.limit = {
+        limitKwhEnabled: true,
+        limitKwh: importedTag.limitKwh,
+        limitKwhConsumed: 0,
+      };
+    }
     tag.importedData = importedTag.importedData;
   }
 
   private createTag(importedTag: ImportedTag): Tag {
     // New Tag
-    return {
+    const newTag: Tag = {
       id: importedTag.id,
       visualID: importedTag.visualID,
       description: importedTag.description,
@@ -94,6 +104,14 @@ export default class ImportHelper {
       createdOn: importedTag.importedOn,
       importedData: importedTag.importedData
     };
+    if (importedTag.limitKwh > 0) {
+      newTag.limit = {
+        limitKwhEnabled: true,
+        limitKwh: importedTag.limitKwh,
+        limitKwhConsumed: 0,
+      };
+    }
+    return newTag;
   }
 
   private async updateUser(tenant: Tenant, user: User, importedUser: ImportedUser): Promise<void> {
