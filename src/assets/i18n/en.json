@@ -99,7 +99,7 @@
     },
     "unknownUserBadged": {
       "title": "Unknown User",
-      "body": "An unknown user has just badged on '{{chargeBoxID}}' with the RFID card ID '{{badgeID}}' in organization '{{tenantName}}'"
+      "body": "An unknown user has just badged on '{{chargeBoxID}}' with the RFID '{{badgeID}}' in organization '{{tenantName}}'"
     },
     "chargingStationRegistered": {
       "title": "Charging Station Connected",
