@@ -165,7 +165,7 @@
     "usage": "Usage (Hours)"
   },
   "tags": {
-    "id": "RFID Card ID",
+    "id": "RFID",
     "description": "RFID Card Description",
     "virtualBadge": "Virtual RFID Card"
   },

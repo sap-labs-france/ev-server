@@ -15,6 +15,9 @@ export default interface Tag extends CreatedUpdatedProps, TagAuthorizationAction
   ocpiToken?: OCPIToken;
   user?: User;
   default?: boolean
+  limitKwhEnabled?: boolean;
+  limitKwh?: number;
+  limitKwhConsumed?: number;
   importedData?: {
     autoActivateUserAtImport: boolean;
     autoActivateTagAtImport: boolean;
