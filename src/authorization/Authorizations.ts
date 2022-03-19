@@ -1089,6 +1089,20 @@ export default class Authorizations {
           detailedMessages: { tag }
         });
       }
+      // Check Limits
+      if (tag.limit) {
+        // Limit kWh
+        if (tag.limit.limitKwhEnabled && (tag.limit.limitKwhConsumed >= tag.limit.limitKwh)) {
+          throw new BackendError({
+            ...LoggingHelper.getChargingStationProperties(chargingStation),
+            action: action,
+            message: `Tag ID '${tagID}' limitation has been reached: max ${tag.limit.limitKwh} kWh, consumed ${tag.limit.limitKwhConsumed} kWh`,
+            module: MODULE_NAME, method: 'checkAndGetAuthorizedTag',
+            user: tag.user,
+            detailedMessages: { tag }
+          });
+        }
+      }
     }
     return tag;
   }
