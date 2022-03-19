@@ -23,6 +23,9 @@
     },
     "userID": {
       "$ref": "tag#/definitions/userID"
+    },
+    "limit": {
+      "$ref": "tag#/definitions/limit"
     }
   },
   "required": [

@@ -24,6 +24,23 @@
       "type": "boolean",
       "sanitize": "mongo"
     },
+    "limit": {
+      "type": "object",
+      "properties": {
+        "limitKwhEnabled": {
+          "type": "boolean",
+          "sanitize": "mongo"
+            },
+        "limitKwh": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "limitKwhConsumed": {
+          "type": "number",
+          "sanitize": "mongo"
+        }
+      }
+    },
     "userID": {
       "$ref": "user#/definitions/id"
     }

@@ -195,6 +195,10 @@ export default class TagService {
     } as Tag;
     // Save
     await TagStorage.saveTag(req.tenant, newTag);
+    // Save limit
+    if (filteredRequest.limit) {
+      await TagStorage.saveTagLimit(req.tenant, tag.id, filteredRequest.limit);
+    }
     // OCPI
     await TagService.updateTagOCPI(action, req.tenant, req.user, newTag);
     await Logging.logInfo({
@@ -386,6 +390,10 @@ export default class TagService {
     tag.lastChangedOn = new Date();
     // Save
     await TagStorage.saveTag(req.tenant, tag);
+    // Save limit
+    if (filteredRequest.limit) {
+      await TagStorage.saveTagLimit(req.tenant, tag.id, filteredRequest.limit);
+    }
     // Ensure former User has a default Tag
     if (formerTagUserID && formerTagDefault) {
       await TagService.setDefaultTagForUser(req.tenant, formerTagUserID);

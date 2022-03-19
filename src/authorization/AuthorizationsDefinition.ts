@@ -173,7 +173,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.TAG, action: Action.LIST,
         attributes: [
           'id', 'userID', 'active', 'ocpiToken', 'description', 'visualID', 'issuer', 'default',
-          'user.name', 'user.firstName', 'user.email', 'createdOn', 'lastChangedOn'
+          'user.name', 'user.firstName', 'user.email', 'createdOn', 'lastChangedOn', 'limit'
         ]
       },
       { resource: Entity.TAG, action: [Action.IMPORT, Action.EXPORT] },
@@ -188,7 +188,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
         attributes: [
           'id', 'userID', 'issuer', 'active', 'description', 'visualID', 'default', 'user.id',
-          'user.name', 'user.firstName', 'user.email'
+          'user.name', 'user.firstName', 'user.email', 'limit'
         ]
       },
       {
@@ -1432,7 +1432,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
         attributes: [
           'id', 'userID', 'issuer', 'active', 'description', 'visualID', 'default', 'user.id',
-          'user.name', 'user.firstName', 'user.email'
+          'user.name', 'user.firstName', 'user.email', 'limit'
         ],
       },
       {

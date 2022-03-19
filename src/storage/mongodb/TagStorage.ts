@@ -1,4 +1,4 @@
-import Tag, { ImportedTag } from '../../types/Tag';
+import Tag, { ImportedTag, TagLimit } from '../../types/Tag';
 import global, { DatabaseCount, FilterParams, ImportStatus } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
@@ -37,6 +37,17 @@ export default class TagStorage {
       { $set: tagMDB },
       { upsert: true, returnDocument: 'after' });
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveTag', startTime, tagMDB);
+  }
+
+  public static async saveTagLimit(tenant: Tenant, tagID: string, tagLimit: TagLimit): Promise<void> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    DatabaseUtils.checkTenantObject(tenant);
+    // Save
+    await global.database.getCollection<any>(tenant.id, 'tags').findOneAndUpdate(
+      { '_id': tagID },
+      { $set: { limit: tagLimit } },
+      { upsert: true, returnDocument: 'after' });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveTagLimit', startTime, tagLimit);
   }
 
   public static async saveImportedTag(tenant: Tenant, importedTagToSave: ImportedTag): Promise<string> {
