@@ -18,9 +18,6 @@ jobs:
         mongodb-version: [4.4]
     steps:
     - uses: actions/checkout@v2
-      with:
-        ssh-key: ${{ secrets.ACTION_ACCESS_SUB_MODULES_PRIVATE_REPOS }}
-        submodules: true
     - name: Start MongoDB ${{ matrix.mongodb-version }}
       uses: supercharge/mongodb-github-action@1.3.0
       with:
