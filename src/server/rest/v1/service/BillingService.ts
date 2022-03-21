@@ -110,18 +110,13 @@ export default class BillingService {
   }
 
   public static async handleForceSynchronizeUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    const filteredRequest = BillingSecurity.filterSynchronizeUserRequest(req.body);
-    if (!(await Authorizations.canSynchronizeUserBilling(req.user)).authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        entity: Entity.USER, action: Action.SYNCHRONIZE_BILLING_USER,
-        module: MODULE_NAME, method: 'handleForceSynchronizeUser',
-      });
-    }
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.SYNCHRONIZE_BILLING_USER, Entity.USER, MODULE_NAME, 'handleForceSynchronizeUser');
+    // Filter
+    const filteredRequest = BillingSecurity.filterSynchronizeUserRequest(req.body);
+    // Check dynamic authorization
+    await AuthorizationService.checkAndGetUserAuthorizations(req.tenant, req.user, {}, Action.SYNCHRONIZE_BILLING_USER);
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
@@ -190,7 +185,7 @@ export default class BillingService {
     const filteredRequest = BillingValidator.getInstance().validateBillingInvoicesGetReq(req.query);
     // Check dynamic authorization
     const authorizations = await AuthorizationService.checkAndGetInvoicesAuthorizations(req.tenant, req.user, filteredRequest);
-    if (!await Authorizations.canListInvoicesBilling(req.user)) {
+    if (!authorizations.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -202,11 +197,12 @@ export default class BillingService {
     // Get invoices
     const invoices = await BillingStorage.getInvoices(req.tenant,
       {
-        userIDs: !Authorizations.isAdmin(req.user) ? [req.user.id] : (filteredRequest.UserID ? filteredRequest.UserID.split('|') : null),
+        userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
         invoiceStatus: filteredRequest.Status ? filteredRequest.Status.split('|') as BillingInvoiceStatus[] : null,
         search: filteredRequest.Search ? filteredRequest.Search : null,
         startDateTime: filteredRequest.StartDateTime ? filteredRequest.StartDateTime : null,
         endDateTime: filteredRequest.EndDateTime ? filteredRequest.EndDateTime : null,
+        ...authorizations.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -233,28 +229,18 @@ export default class BillingService {
       Action.LIST, Entity.INVOICE, MODULE_NAME, 'handleGetInvoice');
     // Filter
     const filteredRequest = BillingValidator.getInstance().validateBillingInvoiceGetReq(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetInvoice', req.user);
-    // Check Users
-    let userProject: string[] = [];
-    if ((await Authorizations.canListUsers(req.user)).authorized) {
-      userProject = [ 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email' ];
+    // Get Users authorizations and retrieve projected fields
+    const authorizationUsersFilters = await AuthorizationService.checkAndGetUsersAuthorizations(req.tenant, req.user, filteredRequest, false);
+    // User projected field if authorized
+    let userProjectedField : string[] = [];
+    if (authorizationUsersFilters.authorized) {
+      userProjectedField = [ 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email' ];
     }
-    // Get invoice
-    const invoice = await BillingStorage.getInvoice(req.tenant, filteredRequest.ID,
-      [
-        'id', 'number', 'status', 'amount', 'createdOn', 'currency', 'downloadable', 'sessions',
-        ...userProject
-      ]);
-    UtilsService.assertObjectExists(action, invoice, `Invoice ID '${filteredRequest.ID}' does not exist`, MODULE_NAME, 'handleGetInvoice', req.user);
-    // Check auth
-    if (!await Authorizations.canReadInvoiceBilling(req.user, invoice.userID)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        entity: Entity.INVOICE, action: Action.READ,
-        module: MODULE_NAME, method: 'handleGetInvoice',
-      });
-    }
+    // Build dynamic projected fields based on user authorizations
+    const projectedFields = ['id', 'number', 'status', 'amount', 'createdOn', 'currency', 'downloadable', 'sessions', ...userProjectedField];
+    // Check and get invoice, pass custom projected fields
+    const invoice = await UtilsService.checkAndGetInvoiceAuthorization(req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {},
+      projectedFields, true);
     res.json(invoice);
     next();
   }

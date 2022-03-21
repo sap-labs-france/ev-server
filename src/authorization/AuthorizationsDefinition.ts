@@ -671,6 +671,13 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       {
         resource: Entity.INVOICE, action: [Action.LIST],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser']
+          }
+        },
         attributes: [
           'id', 'number', 'status', 'amount', 'createdOn', 'currency', 'downloadable', 'sessions', 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email'
         ]

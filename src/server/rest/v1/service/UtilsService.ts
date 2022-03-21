@@ -13,6 +13,8 @@ import AssetStorage from '../../../../storage/mongodb/AssetStorage';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import AxiosFactory from '../../../../utils/AxiosFactory';
+import { BillingInvoice } from '../../../../types/Billing';
+import BillingStorage from '../../../../storage/mongodb/BillingStorage';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
 import CentralSystemRestServiceConfiguration from '../../../../types/configuration/CentralSystemRestServiceConfiguration';
 import { ChargingProfile } from '../../../../types/ChargingProfile';
@@ -843,6 +845,59 @@ export default class UtilsService {
       });
     }
     return carCatalog;
+  }
+
+  public static async checkAndGetInvoiceAuthorization(tenant: Tenant, userToken: UserToken, invoiceID: string, authAction: Action,
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, additionalProjectedFields: string[] = [],
+      applyProjectFields = false): Promise<BillingInvoice> {
+    // Check mandatory fields
+    UtilsService.assertIdIsProvided(action, invoiceID, MODULE_NAME, 'checkAndGetInvoiceAuthorization', userToken);
+    // Get dynamic auth
+    const authorizationFilter = await AuthorizationService.checkAndGetInvoiceAuthorizations(
+      tenant, userToken, { ID: invoiceID }, authAction, entityData);
+    if (!authorizationFilter.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: authAction, entity: Entity.INVOICE,
+        module: MODULE_NAME, method: 'checkAndGetInvoiceAuthorization',
+        value: invoiceID
+      });
+    }
+
+    const projectedFields: string[] = [ ...authorizationFilter.projectFields, ...additionalProjectedFields ];
+
+    // Get Invoice
+    const invoice = await BillingStorage.getInvoice(tenant, invoiceID,
+      {
+        ...additionalFilters,
+        ...authorizationFilter.filters
+      },
+      applyProjectFields ? projectedFields : null
+    );
+    UtilsService.assertObjectExists(action, invoice, `Invoice ID '${invoiceID}' does not exist`,
+      MODULE_NAME, 'checkAndGetInvoiceAuthorization', userToken);
+    // Assign projected fields
+    if (projectedFields) {
+      invoice.projectFields = projectedFields;
+    }
+    // Assign Metadata
+    if (authorizationFilter.metadata) {
+      invoice.metadata = authorizationFilter.metadata;
+    }
+    // Add Actions
+    await AuthorizationService.addInvoiceAuthorizations(tenant, userToken, invoice, authorizationFilter);
+    const authorized = AuthorizationService.canPerformAction(invoice, authAction);
+    if (!authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: authAction, entity: Entity.INVOICE,
+        module: MODULE_NAME, method: 'checkAndGetInvoiceAuthorization',
+        value: invoiceID
+      });
+    }
+    return invoice;
   }
 
   public static async checkAndGetTagAuthorization(tenant: Tenant, userToken:UserToken, tagID: string, authAction: Action,

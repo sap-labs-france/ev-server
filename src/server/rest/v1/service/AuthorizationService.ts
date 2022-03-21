@@ -2,6 +2,7 @@ import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter
 import { AssetDataResult, BillingInvoiceDataResult, CarCatalogDataResult, CarDataResult, CompanyDataResult, LogDataResult, PricingDefinitionDataResult, RegistrationTokenDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, UserDataResult } from '../../../../types/DataResult';
 import { Car, CarCatalog } from '../../../../types/Car';
 import { HttpAssetRequest, HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
+import { HttpBillingInvoiceRequest, HttpBillingInvoicesRequest } from '../../../../types/requests/HttpBillingRequest';
 import { HttpCarCatalogRequest, HttpCarCatalogsRequest, HttpCarRequest, HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
 import { HttpChargingStationRequest, HttpChargingStationsRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
@@ -22,7 +23,6 @@ import Company from '../../../../types/Company';
 import DynamicAuthorizationFactory from '../../../../authorization/DynamicAuthorizationFactory';
 import { EntityData } from '../../../../types/GlobalType';
 import { HTTPAuthError } from '../../../../types/HTTPError';
-import { HttpBillingInvoicesRequest } from '../../../../types/requests/HttpBillingRequest';
 import { HttpLogRequest } from '../../../../types/requests/HttpLoggingRequest';
 import { HttpRegistrationTokenRequest } from '../../../../types/requests/HttpRegistrationToken';
 import { Log } from '../../../../types/Log';
@@ -230,7 +230,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetUsersAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Partial<HttpUsersRequest>): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpUsersRequest>, failsWithException = true): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -239,7 +239,7 @@ export default class AuthorizationService {
     };
     // Check static & dynamic authorization
     await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.LIST,
-      authorizationFilters, filteredRequest, null, true);
+      authorizationFilters, filteredRequest, null, failsWithException);
     return authorizationFilters;
   }
 
@@ -605,6 +605,12 @@ export default class AuthorizationService {
     await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.INVOICE, Action.LIST,
       authorizationFilters, filteredRequest, null, true);
     return authorizationFilters;
+  }
+
+  public static async checkAndGetInvoiceAuthorizations(tenant: Tenant, userToken: UserToken,
+      filteredRequest: Partial<HttpBillingInvoiceRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
+    return AuthorizationService.checkAndGetEntityAuthorizations(
+      tenant, Entity.INVOICE, userToken, filteredRequest, filteredRequest.ID ? { invoiceID: filteredRequest.ID } : {}, authAction, entityData);
   }
 
   public static async addInvoicesAuthorizations(tenant: Tenant, userToken: UserToken, billingInvoices: BillingInvoiceDataResult,
