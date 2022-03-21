@@ -42,14 +42,16 @@ export default class TenantStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     const tenantFilter: any = {};
     const tenantMDB = TenantValidatorStorage.getInstance().validateTenant(tenantToSave);
+    const logo = tenantToSave.logo;
     // Build Request
     if (tenantMDB.id) {
       tenantFilter._id = DatabaseUtils.convertToObjectID(tenantMDB.id);
     } else {
       tenantFilter._id = new ObjectId();
     }
-    // Remove ID
+    // Remove fields
     delete tenantMDB.id;
+    delete tenantMDB.logo;
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(tenantMDB, tenantToSave);
     // Modify
@@ -62,7 +64,7 @@ export default class TenantStorage {
       // Modify
       await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenantlogos').findOneAndUpdate(
         { '_id': tenantFilter._id },
-        { $set: { logo: tenantMDB.logo } },
+        { $set: { logo } },
         { upsert: true });
     }
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'saveTenant', startTime, { tenant: tenantMDB, logo: tenantMDB.logo });
