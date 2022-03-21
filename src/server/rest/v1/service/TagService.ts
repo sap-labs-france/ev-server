@@ -197,7 +197,7 @@ export default class TagService {
     await TagStorage.saveTag(req.tenant, newTag);
     // Save limit
     if (filteredRequest.limit) {
-      await TagStorage.saveTagLimit(req.tenant, tag.id, filteredRequest.limit);
+      await TagStorage.saveTagLimit(req.tenant, newTag.id, filteredRequest.limit);
     }
     // OCPI
     await TagService.updateTagOCPI(action, req.tenant, req.user, newTag);
