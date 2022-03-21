@@ -1,8 +1,9 @@
 import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity } from '../../../../types/Authorization';
-import { AssetDataResult, BillingInvoiceDataResult, CarCatalogDataResult, CarDataResult, CompanyDataResult, LogDataResult, PricingDefinitionDataResult, RegistrationTokenDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, UserDataResult } from '../../../../types/DataResult';
+import { AssetDataResult, BillingInvoiceDataResult, BillingPaymentMethodDataResult, CarCatalogDataResult, CarDataResult, CompanyDataResult, LogDataResult, PricingDefinitionDataResult, RegistrationTokenDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, UserDataResult } from '../../../../types/DataResult';
+import { BillingInvoice, BillingPaymentMethod } from '../../../../types/Billing';
 import { Car, CarCatalog } from '../../../../types/Car';
 import { HttpAssetRequest, HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
-import { HttpBillingInvoiceRequest, HttpBillingInvoicesRequest } from '../../../../types/requests/HttpBillingRequest';
+import { HttpBillingInvoiceRequest, HttpBillingInvoicesRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
 import { HttpCarCatalogRequest, HttpCarCatalogsRequest, HttpCarRequest, HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
 import { HttpChargingStationRequest, HttpChargingStationsRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
@@ -18,7 +19,6 @@ import User, { UserRole } from '../../../../types/User';
 import AppAuthError from '../../../../exception/AppAuthError';
 import Asset from '../../../../types/Asset';
 import Authorizations from '../../../../authorization/Authorizations';
-import { BillingInvoice } from '../../../../types/Billing';
 import Company from '../../../../types/Company';
 import DynamicAuthorizationFactory from '../../../../authorization/DynamicAuthorizationFactory';
 import { EntityData } from '../../../../types/GlobalType';
@@ -617,6 +617,7 @@ export default class AuthorizationService {
       authorizationFilter: AuthorizationFilter): Promise<void> {
     // Add Meta Data
     billingInvoices.metadata = authorizationFilter.metadata;
+    billingInvoices.canListUsers = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.LIST, authorizationFilter);
     for (const billingInvoice of billingInvoices.result) {
       await AuthorizationService.addInvoiceAuthorizations(tenant, userToken, billingInvoice, authorizationFilter);
     }
@@ -629,6 +630,54 @@ export default class AuthorizationService {
     Utils.removeCanPropertiesWithFalseValue(billingInvoice);
   }
   // end invoices
+
+  // payment
+  public static async checkAndGetPaymentMethodsAuthorizations(tenant: Tenant, userToken: UserToken,
+      filteredRequest: Partial<HttpPaymentMethods>): Promise<AuthorizationFilter> {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      dataSources: new Map(),
+      projectFields: [],
+      authorized: false
+    };
+    // Check static & dynamic authorization
+    await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.PAYMENT_METHOD, Action.LIST,
+      authorizationFilters, filteredRequest.userID ? { UserID: filteredRequest.userID } : {}, null, true);
+    return authorizationFilters;
+  }
+
+  // Entity data is not usable as is since we use API calls
+  public static async checkAndGetPaymentMethodAuthorizations(tenant: Tenant, userToken: UserToken,
+      filteredRequest: Partial<HttpSetupPaymentMethod | HttpDeletePaymentMethod>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
+    return AuthorizationService.checkAndGetEntityAuthorizations(
+      tenant, Entity.PAYMENT_METHOD, userToken, filteredRequest, filteredRequest.userID ? { UserID: filteredRequest.userID } : {},
+      authAction, entityData);
+  }
+
+  // SPECIAL CASE: to apply dynamic filters we need the filtered request as it contains the userID (can be different from the userToken)
+  public static async addPaymentMethodsAuthorizations(tenant: Tenant, userToken: UserToken, billingPaymentMethods: BillingPaymentMethodDataResult,
+      authorizationFilter: AuthorizationFilter, filteredRequest: Partial<HttpPaymentMethods>): Promise<void> {
+    // Add Meta Data
+    billingPaymentMethods.metadata = authorizationFilter.metadata;
+    // Add Authorizations
+    billingPaymentMethods.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.PAYMENT_METHOD,
+      Action.CREATE, authorizationFilter, filteredRequest.userID ? { UserID: filteredRequest.userID } : {});
+    for (const billingPaymentMethod of billingPaymentMethods.result) {
+      await AuthorizationService.addPaymentMethodAuthorizations(tenant, userToken, billingPaymentMethod, authorizationFilter);
+    }
+  }
+
+  public static async addPaymentMethodAuthorizations(tenant: Tenant, userToken: UserToken, billingPaymentMethod: BillingPaymentMethod,
+      authorizationFilter: AuthorizationFilter): Promise<void> {
+    billingPaymentMethod.canRead = true; // Always true as it should be filtered upfront
+    // Cannot delete default payment
+    billingPaymentMethod.canDelete = !billingPaymentMethod.isDefault && await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.PAYMENT_METHOD, Action.DELETE, authorizationFilter, { billingPaymentMethodID: billingPaymentMethod.id }, billingPaymentMethod);
+    // Optimize data over the net
+    Utils.removeCanPropertiesWithFalseValue(billingPaymentMethod);
+  }
+
+  // end payment
 
   public static async checkAndGetCarsAuthorizations(tenant: Tenant, userToken: UserToken, filteredRequest: Partial<HttpCarsRequest>): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {

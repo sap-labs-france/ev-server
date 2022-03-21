@@ -692,8 +692,26 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         }
       },
-      { resource: Entity.PAYMENT_METHOD, action: Action.LIST },
-      { resource: Entity.PAYMENT_METHOD, action: [Action.READ, Action.CREATE, Action.DELETE] },
+      {
+        resource: Entity.PAYMENT_METHOD, action: Action.LIST,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser']
+          }
+        }
+      },
+      {
+        resource: Entity.PAYMENT_METHOD, action: [Action.READ, Action.CREATE, Action.DELETE],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser']
+          }
+        }
+      },
       {
         resource: Entity.SITE, action: Action.LIST,
         condition: {

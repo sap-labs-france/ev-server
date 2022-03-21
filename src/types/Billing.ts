@@ -1,5 +1,6 @@
+import { AuthorizationActions, BillingInvoiceAuthorizationActions } from './Authorization';
+
 import { ActionsResponse } from './GlobalType';
-import { BillingInvoiceAuthorizationActions } from './Authorization';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import { PricedConsumptionData } from './Pricing';
 import User from './User';
@@ -114,7 +115,7 @@ export interface BillingOperationResult {
   internalData?: unknown // an object returned by the concrete implementation - e.g.: STRIPE
 }
 
-export interface BillingPaymentMethod {
+export interface BillingPaymentMethod extends AuthorizationActions {
   id: string;
   brand: string;
   expiringOn: Date;
