@@ -367,15 +367,8 @@ export default class BillingService {
     const billingInvoice = await BillingStorage.getInvoice(req.tenant, filteredRequest.ID);
     UtilsService.assertObjectExists(action, billingInvoice, `Invoice ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleDownloadInvoice', req.user);
-    // Check Auth
-    if (!await Authorizations.canDownloadInvoiceBilling(req.user, billingInvoice.userID)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        entity: Entity.INVOICE, action: Action.DOWNLOAD,
-        module: MODULE_NAME, method: 'handleDownloadInvoice',
-      });
-    }
+    // Check and get authorizations
+    await UtilsService.checkAndGetInvoiceAuthorization(req.tenant, req.user, filteredRequest.ID, Action.DOWNLOAD, action, null, {}, [], true);
     // Get the billing impl
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {

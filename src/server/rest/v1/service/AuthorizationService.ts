@@ -625,7 +625,8 @@ export default class AuthorizationService {
 
   public static async addInvoiceAuthorizations(tenant: Tenant, userToken: UserToken, billingInvoice: BillingInvoice, authorizationFilter: AuthorizationFilter): Promise<void> {
     billingInvoice.canRead = true; // Always true as it should be filtered upfront
-    billingInvoice.canDownload = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.INVOICE, Action.DOWNLOAD, authorizationFilter);
+    billingInvoice.canDownload = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.INVOICE, Action.DOWNLOAD,
+      authorizationFilter, billingInvoice.userID ? { UserID : billingInvoice.userID } : {}, billingInvoice);
     // Optimize data over the net
     Utils.removeCanPropertiesWithFalseValue(billingInvoice);
   }
