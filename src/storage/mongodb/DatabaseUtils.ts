@@ -119,6 +119,13 @@ export default class DatabaseUtils {
     }, additionalPipeline);
   }
 
+  public static pushTenantLogoLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []): void {
+    DatabaseUtils.pushCollectionLookupInAggregation('tenantlogos', {
+      ...lookupParams
+    }, additionalPipeline);
+  }
+
+
   public static pushArrayLookupInAggregation(arrayName: string,
       lookupMethod: (lookupParams: DbLookup, additionalPipeline?: Record<string, any>[]) => void,
       lookupParams: DbLookup, additionalParams: { pipeline?: Record<string, any>[], sort?: any } = {}): void {

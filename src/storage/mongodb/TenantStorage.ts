@@ -156,16 +156,24 @@ export default class TenantStorage {
     });
     // Company Logo
     if (params.withLogo) {
+      DatabaseUtils.pushTenantLogoLookupInAggregation({
+        tenantID: Constants.DEFAULT_TENANT, aggregation, localField: '_id', foreignField: '_id',
+        asField: 'tenantLogo', oneToOneCardinality: true
+      });
       aggregation.push({
         $addFields: {
           logo: {
-            $concat: [
-              `${Utils.buildRestServerURL()}/v1/util/tenants/logo?ID=`,
-              { $toString: '$_id' },
-              {
-                $ifNull: [{ $concat: ['&LastChangedOn=', { $toString: '$lastChangedOn' }] }, ''] // Only concat 'lastChangedOn' if not null
-              }
-            ]
+            $cond: {
+              if: { $and: [{ $gt: ['$tenantLogo.logo', null] }, { $ne: ['$tenantLogo.logo', ''] }] }, then: {
+                $concat: [
+                  `${Utils.buildRestServerURL()}/v1/util/tenants/logo?ID=`,
+                  { $toString: '$_id' },
+                  {
+                    $ifNull: [{ $concat: ['&LastChangedOn=', { $toString: '$lastChangedOn' }] }, ''] // Only concat 'lastChangedOn' if not null
+                  }
+                ]
+              }, else: null
+            }
           }
         }
       });
