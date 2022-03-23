@@ -66,7 +66,6 @@ export default abstract class AbstractOCPIService {
 
   public async restService(req: TenantIdHoldingRequest, res: Response, next: NextFunction): Promise<void> {
     // Parse the action
-    // FIXME: use a express request parameter instead of using regexp to parse the request URL
     const regexResult = /^\/\w*/g.exec(req.url);
     if (!regexResult) {
       throw new BackendError({
@@ -134,7 +133,7 @@ export default abstract class AbstractOCPIService {
       // Get tenant from the called URL - TODO: review this handle tenant and tid in decoded token
       const tenantSubdomain = (decodedToken.tenant ? decodedToken.tenant : decodedToken.tid);
       // Get tenant from database
-      const tenant: Tenant = await TenantStorage.getTenantBySubdomain(tenantSubdomain);
+      const tenant = await TenantStorage.getTenantBySubdomain(tenantSubdomain);
       // Check if tenant is found
       if (!tenant) {
         throw new AppError({
@@ -207,7 +206,7 @@ export default abstract class AbstractOCPIService {
       }
     } catch (error) {
       await Logging.logError({
-        tenantID: req.user && req.user.tenantID ? req.user.tenantID : Constants.DEFAULT_TENANT,
+        tenantID: req.tenant?.id ?? Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: action,
         message: `<< OCPI Response Error ${req.method} ${req.originalUrl}`,
         action: ServerAction.OCPI_ENDPOINT,

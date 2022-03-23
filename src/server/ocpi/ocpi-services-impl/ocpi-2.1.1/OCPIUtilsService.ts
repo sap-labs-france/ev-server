@@ -1,18 +1,15 @@
 import * as CountriesList from 'countries-list';
 
 import ChargingStation, { ChargePoint, Connector, ConnectorType, CurrentType, Voltage } from '../../../../types/ChargingStation';
-import { OCPIAvailableEndpoints, OCPIEndpointVersions } from '../../../../types/ocpi/OCPIEndpoint';
 import { OCPICapability, OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
 import { OCPIConnector, OCPIConnectorFormat, OCPIConnectorType, OCPIPowerType, OCPIVoltage } from '../../../../types/ocpi/OCPIConnector';
 import { OCPILocation, OCPILocationOptions, OCPILocationType, OCPIOpeningTimes } from '../../../../types/ocpi/OCPILocation';
 import { OCPISession, OCPISessionStatus } from '../../../../types/ocpi/OCPISession';
-import { OCPIToken, OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
 import Transaction, { InactivityStatus } from '../../../../types/Transaction';
 
 import AppError from '../../../../exception/AppError';
 import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
-import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
 import Consumption from '../../../../types/Consumption';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
@@ -23,17 +20,15 @@ import Logging from '../../../../utils/Logging';
 import LoggingHelper from '../../../../utils/LoggingHelper';
 import { OCPIBusinessDetails } from '../../../../types/ocpi/OCPIBusinessDetails';
 import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
-import OCPICredential from '../../../../types/ocpi/OCPICredential';
 import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
-import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
+import { OCPIToken } from '../../../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../OCPIUtils';
 import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
 import { OcpiSetting } from '../../../../types/Setting';
 import { PricingSource } from '../../../../types/Pricing';
 import RoamingUtils from '../../../../utils/RoamingUtils';
 import { ServerAction } from '../../../../types/Server';
-import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import Site from '../../../../types/Site';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { StatusCodes } from 'http-status-codes';

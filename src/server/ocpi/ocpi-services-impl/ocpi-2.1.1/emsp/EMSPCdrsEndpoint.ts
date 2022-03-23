@@ -25,9 +25,9 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
   public async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
       case 'GET':
-        return await this.getCdrRequest(req, res, next, tenant);
+        return this.getCdrRequest(req, res, next, tenant);
       case 'POST':
-        return await this.postCdrRequest(req, res, next, tenant);
+        return this.postCdrRequest(req, res, next, tenant);
     }
   }
 
