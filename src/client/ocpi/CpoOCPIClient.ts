@@ -129,7 +129,7 @@ export default class CpoOCPIClient extends OCPIClient {
             const emspUser = emspUsersMap.get(email);
             // Get the Tag
             const emspTag = tags.result.find((tag) => tag.id === token.uid);
-            await OCPIUtilsService.updateToken(this.tenant, token, emspTag, emspUser);
+            await OCPIUtilsService.updateToken(this.tenant, token, emspTag, emspUser, ServerAction.OCPI_CPO_PULL_TOKENS);
             result.success++;
           } catch (error) {
             result.failure++;

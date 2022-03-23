@@ -267,7 +267,7 @@ export default class EmspOCPIClient extends OCPIClient {
     const startTime = new Date().getTime();
     // Get cdrs endpoint url
     let cdrsUrl = this.getEndpointUrl('cdrs', ServerAction.OCPI_EMSP_PULL_CDRS);
-    const momentFrom = moment().utc().subtract(2, 'days').startOf('day');
+    const momentFrom = moment().utc().subtract(7, 'days').startOf('day');
     cdrsUrl = `${cdrsUrl}?date_from=${momentFrom.format()}&limit=10`;
     let nextResult = true;
     do {
@@ -283,7 +283,7 @@ export default class EmspOCPIClient extends OCPIClient {
       if (!Utils.isEmptyArray(cdrs)) {
         await Promise.map(cdrs, async (cdr: OCPICdr) => {
           try {
-            await OCPIUtilsService.processCdr(this.tenant, cdr);
+            await OCPIUtilsService.processCdr(this.tenant, cdr, ServerAction.OCPI_EMSP_PULL_CDRS);
             result.success++;
           } catch (error) {
             result.failure++;

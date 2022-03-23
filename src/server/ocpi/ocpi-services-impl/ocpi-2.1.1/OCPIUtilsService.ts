@@ -470,10 +470,10 @@ export default class OCPIUtilsService {
     await OCPPUtils.updateChargingStationConnectorRuntimeDataWithTransaction(tenant, chargingStation, transaction, true);
   }
 
-  public static async processCdr(tenant: Tenant, cdr: OCPICdr): Promise<void> {
+  public static async processCdr(tenant: Tenant, cdr: OCPICdr, action: ServerAction): Promise<void> {
     if (!OCPIUtilsService.validateCdr(cdr)) {
       throw new AppError({
-        module: MODULE_NAME, method: 'processCdr',
+        module: MODULE_NAME, method: 'processCdr', action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Cdr object is invalid',
         detailedMessages: { cdr },
@@ -484,7 +484,7 @@ export default class OCPIUtilsService {
     const transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant, cdr.id);
     if (!transaction) {
       throw new AppError({
-        module: MODULE_NAME, method: 'processCdr',
+        module: MODULE_NAME, method: 'processCdr', action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `No Transaction found for OCPI CDR ID '${cdr.id}'`,
         detailedMessages: { cdr },
@@ -496,7 +496,7 @@ export default class OCPIUtilsService {
     if (!chargingStation) {
       throw new AppError({
         ...LoggingHelper.getTransactionProperties(transaction),
-        module: MODULE_NAME, method: 'processCdr',
+        module: MODULE_NAME, method: 'processCdr', action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Charging Station does not exist',
         detailedMessages: { transaction, cdr },
@@ -541,10 +541,10 @@ export default class OCPIUtilsService {
     await OCPPUtils.updateChargingStationConnectorRuntimeDataWithTransaction(tenant, chargingStation, transaction, true);
   }
 
-  public static async updateToken(tenant: Tenant, token: OCPIToken, tag: Tag, emspUser: User): Promise<void> {
+  public static async updateToken(tenant: Tenant, token: OCPIToken, tag: Tag, emspUser: User, action: ServerAction): Promise<void> {
     if (!OCPIUtilsService.validateToken(token)) {
       throw new AppError({
-        module: MODULE_NAME, method: 'updateToken',
+        module: MODULE_NAME, method: 'updateToken', action,
         errorCode: StatusCodes.BAD_REQUEST,
         message: 'Token object is invalid',
         detailedMessages: { token },
@@ -554,7 +554,7 @@ export default class OCPIUtilsService {
     // External organization
     if (!emspUser) {
       throw new AppError({
-        module: MODULE_NAME, method: 'updateToken',
+        module: MODULE_NAME, method: 'updateToken', action,
         errorCode: StatusCodes.CONFLICT,
         message: 'eMSP User is mandatory',
         detailedMessages: { token },
@@ -564,7 +564,7 @@ export default class OCPIUtilsService {
     // External organization
     if (emspUser.issuer) {
       throw new AppError({
-        module: MODULE_NAME, method: 'updateToken',
+        module: MODULE_NAME, method: 'updateToken', action,
         errorCode: StatusCodes.CONFLICT,
         message: 'Token already assigned to an internal user',
         actionOnUser: emspUser,
@@ -575,7 +575,7 @@ export default class OCPIUtilsService {
     // Check the tag
     if (tag?.issuer) {
       throw new AppError({
-        module: MODULE_NAME, method: 'checkExistingTag',
+        module: MODULE_NAME, method: 'updateToken', action,
         errorCode: StatusCodes.CONFLICT,
         message: 'Token already exists in the current organization',
         detailedMessages: token,
