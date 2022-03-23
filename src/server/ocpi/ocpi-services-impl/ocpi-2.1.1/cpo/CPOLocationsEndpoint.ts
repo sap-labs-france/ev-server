@@ -50,8 +50,8 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
     // Define get option
     const options: OCPILocationOptions = {
       addChargeBoxAndOrgIDs: false,
-      countryID: ocpiClient.getLocalCountryCode(ServerAction.OCPI_GET_LOCATIONS),
-      partyID: ocpiClient.getLocalPartyID(ServerAction.OCPI_GET_LOCATIONS)
+      countryID: ocpiClient.getLocalCountryCode(ServerAction.OCPI_CPO_GET_LOCATIONS),
+      partyID: ocpiClient.getLocalPartyID(ServerAction.OCPI_CPO_GET_LOCATIONS)
     };
     // Process request
     if (locationId && evseUid && evseConnectorId) {
@@ -60,7 +60,7 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
       if (!evseConnector) {
         throw new AppError({
           module: MODULE_NAME, method: 'getLocationRequest',
-          action: ServerAction.OCPI_GET_LOCATIONS,
+          action: ServerAction.OCPI_CPO_GET_LOCATIONS,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `EVSE Connector ID '${evseConnectorId}' not found on Charging Station ID '${evseUid}' and Location ID '${locationId}'`,
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR,
@@ -73,7 +73,7 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
       if (!evseConnector) {
         throw new AppError({
           module: MODULE_NAME, method: 'getLocationRequest',
-          action: ServerAction.OCPI_GET_LOCATIONS,
+          action: ServerAction.OCPI_CPO_GET_LOCATIONS,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `EVSE UID not found '${evseUid}' in Location ID '${locationId}'`,
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR,
@@ -87,7 +87,7 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
       if (!evseConnector) {
         throw new AppError({
           module: MODULE_NAME, method: 'getLocationRequest',
-          action: ServerAction.OCPI_GET_LOCATIONS,
+          action: ServerAction.OCPI_CPO_GET_LOCATIONS,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `Location ID '${locationId}' not found`,
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR,

@@ -39,7 +39,7 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
     const id = urlSegment.shift();
     if (!id) {
       throw new AppError({
-        action: ServerAction.OCPI_PULL_CDRS,
+        action: ServerAction.OCPI_EMSP_PULL_CDRS,
         module: MODULE_NAME, method: 'getCdrRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',
@@ -49,7 +49,7 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
     const transaction: Transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant, id);
     if (!transaction) {
       throw new AppError({
-        action: ServerAction.OCPI_PULL_CDRS,
+        action: ServerAction.OCPI_EMSP_PULL_CDRS,
         module: MODULE_NAME, method: 'getCdrRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: `No Transaction found for CDR ID '${id}'`,
@@ -58,7 +58,7 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
     }
     if (!transaction.ocpiData?.cdr) {
       throw new AppError({
-        action: ServerAction.OCPI_PULL_CDRS,
+        action: ServerAction.OCPI_EMSP_PULL_CDRS,
         module: MODULE_NAME, method: 'getCdrRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: `No CDR found in Transaction ID '${transaction.id}'`,

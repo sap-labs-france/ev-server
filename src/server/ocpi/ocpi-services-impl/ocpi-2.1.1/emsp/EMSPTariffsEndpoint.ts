@@ -40,7 +40,7 @@ export default class EMSPTariffsEndpoint extends AbstractEndpoint {
     const tariffId = urlSegment.shift();
     if (!countryCode || !partyId || !tariffId) {
       throw new AppError({
-        action: ServerAction.OCPI_GET_TARIFF,
+        action: ServerAction.OCPI_EMSP_GET_TARIFF,
         module: MODULE_NAME, method: 'getTariffRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',
@@ -56,7 +56,7 @@ export default class EMSPTariffsEndpoint extends AbstractEndpoint {
       } else {
         throw new AppError({
           module: MODULE_NAME, method: 'getTariffRequest',
-          action: ServerAction.OCPI_GET_TARIFF,
+          action: ServerAction.OCPI_EMSP_GET_TARIFF,
           errorCode: StatusCodes.BAD_REQUEST,
           message: `Simple Pricing setting not found in Tenant ${Utils.buildTenantName(tenant)}`,
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR

@@ -1,24 +1,24 @@
 import { NextFunction, Request, Response } from 'express';
+
+import AbstractEndpoint from '../../AbstractEndpoint';
+import AbstractOCPIService from '../../../AbstractOCPIService';
 import AppError from '../../../../../exception/AppError';
 import ChargingStationStorage from '../../../../../storage/mongodb/ChargingStationStorage';
-import TagStorage from '../../../../../storage/mongodb/TagStorage';
-import UserStorage from '../../../../../storage/mongodb/UserStorage';
+import Constants from '../../../../../utils/Constants';
 import { HTTPError } from '../../../../../types/HTTPError';
 import { OCPIAllowed } from '../../../../../types/ocpi/OCPIAuthorizationInfo';
 import OCPIEndpoint from '../../../../../types/ocpi/OCPIEndpoint';
 import { OCPILocationReference } from '../../../../../types/ocpi/OCPILocation';
 import { OCPIResponse } from '../../../../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../../../../types/ocpi/OCPIStatusCode';
+import OCPIUtils from '../../../OCPIUtils';
+import OCPIUtilsService from '../OCPIUtilsService';
 import { ServerAction } from '../../../../../types/Server';
+import TagStorage from '../../../../../storage/mongodb/TagStorage';
 import Tenant from '../../../../../types/Tenant';
 import { UserStatus } from '../../../../../types/User';
-import Constants from '../../../../../utils/Constants';
+import UserStorage from '../../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../../utils/Utils';
-import AbstractOCPIService from '../../../AbstractOCPIService';
-import OCPIUtils from '../../../OCPIUtils';
-import AbstractEndpoint from '../../AbstractEndpoint';
-import OCPIUtilsService from '../OCPIUtilsService';
-
 
 const MODULE_NAME = 'EMSPTokensEndpoint';
 
@@ -65,7 +65,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     const tokenID = urlSegment.shift();
     if (!tokenID) {
       throw new AppError({
-        action: ServerAction.OCPI_AUTHORIZE_TOKEN,
+        action: ServerAction.OCPI_EMSP_AUTHORIZE_TOKEN,
         module: MODULE_NAME, method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',
@@ -75,7 +75,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     const location = req.body as OCPILocationReference;
     if (!location) {
       throw new AppError({
-        action: ServerAction.OCPI_AUTHORIZE_TOKEN,
+        action: ServerAction.OCPI_EMSP_AUTHORIZE_TOKEN,
         module: MODULE_NAME, method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         ocpiError: OCPIStatusCode.CODE_2002_NOT_ENOUGH_INFORMATION_ERROR,
@@ -85,7 +85,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     }
     if (Utils.isEmptyArray(location.evse_uids)) {
       throw new AppError({
-        action: ServerAction.OCPI_AUTHORIZE_TOKEN,
+        action: ServerAction.OCPI_EMSP_AUTHORIZE_TOKEN,
         module: MODULE_NAME, method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         ocpiError: OCPIStatusCode.CODE_2002_NOT_ENOUGH_INFORMATION_ERROR,
@@ -95,7 +95,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     }
     if (location.evse_uids.length > 1) {
       throw new AppError({
-        action: ServerAction.OCPI_AUTHORIZE_TOKEN,
+        action: ServerAction.OCPI_EMSP_AUTHORIZE_TOKEN,
         module: MODULE_NAME, method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR,
@@ -108,7 +108,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
       tenant, location.location_id, location.evse_uids[0]);
     if (!chargingStation) {
       throw new AppError({
-        action: ServerAction.OCPI_AUTHORIZE_TOKEN,
+        action: ServerAction.OCPI_EMSP_AUTHORIZE_TOKEN,
         module: MODULE_NAME, method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
@@ -119,7 +119,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     const tag = await TagStorage.getTag(tenant, tokenID, { withUser: true });
     if (!tag) {
       throw new AppError({
-        action: ServerAction.OCPI_AUTHORIZE_TOKEN,
+        action: ServerAction.OCPI_EMSP_AUTHORIZE_TOKEN,
         module: MODULE_NAME, method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR,
@@ -138,7 +138,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     const user = tag.user;
     if (!user) {
       throw new AppError({
-        action: ServerAction.OCPI_AUTHORIZE_TOKEN,
+        action: ServerAction.OCPI_EMSP_AUTHORIZE_TOKEN,
         module: MODULE_NAME, method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR,
