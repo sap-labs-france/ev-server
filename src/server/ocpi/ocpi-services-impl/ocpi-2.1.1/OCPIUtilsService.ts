@@ -1,18 +1,15 @@
 import * as CountriesList from 'countries-list';
 
 import ChargingStation, { ChargePoint, Connector, ConnectorType, CurrentType, Voltage } from '../../../../types/ChargingStation';
-import { OCPIAvailableEndpoints, OCPIEndpointVersions } from '../../../../types/ocpi/OCPIEndpoint';
 import { OCPICapability, OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
 import { OCPIConnector, OCPIConnectorFormat, OCPIConnectorType, OCPIPowerType, OCPIVoltage } from '../../../../types/ocpi/OCPIConnector';
 import { OCPILocation, OCPILocationOptions, OCPILocationType, OCPIOpeningTimes } from '../../../../types/ocpi/OCPILocation';
 import { OCPISession, OCPISessionStatus } from '../../../../types/ocpi/OCPISession';
-import { OCPIToken, OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
 import Transaction, { InactivityStatus } from '../../../../types/Transaction';
 
 import AppError from '../../../../exception/AppError';
 import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
-import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
 import Consumption from '../../../../types/Consumption';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
@@ -23,17 +20,15 @@ import Logging from '../../../../utils/Logging';
 import LoggingHelper from '../../../../utils/LoggingHelper';
 import { OCPIBusinessDetails } from '../../../../types/ocpi/OCPIBusinessDetails';
 import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
-import OCPICredential from '../../../../types/ocpi/OCPICredential';
 import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
-import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
+import { OCPIToken } from '../../../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../OCPIUtils';
 import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
 import { OcpiSetting } from '../../../../types/Setting';
 import { PricingSource } from '../../../../types/Pricing';
 import RoamingUtils from '../../../../utils/RoamingUtils';
 import { ServerAction } from '../../../../types/Server';
-import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import Site from '../../../../types/Site';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { StatusCodes } from 'http-status-codes';
@@ -475,10 +470,10 @@ export default class OCPIUtilsService {
     await OCPPUtils.updateChargingStationConnectorRuntimeDataWithTransaction(tenant, chargingStation, transaction, true);
   }
 
-  public static async processCdr(tenant: Tenant, cdr: OCPICdr): Promise<void> {
+  public static async processCdr(tenant: Tenant, cdr: OCPICdr, action: ServerAction): Promise<void> {
     if (!OCPIUtilsService.validateCdr(cdr)) {
       throw new AppError({
-        module: MODULE_NAME, method: 'processCdr',
+        module: MODULE_NAME, method: 'processCdr', action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Cdr object is invalid',
         detailedMessages: { cdr },
@@ -489,7 +484,7 @@ export default class OCPIUtilsService {
     const transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant, cdr.id);
     if (!transaction) {
       throw new AppError({
-        module: MODULE_NAME, method: 'processCdr',
+        module: MODULE_NAME, method: 'processCdr', action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `No Transaction found for OCPI CDR ID '${cdr.id}'`,
         detailedMessages: { cdr },
@@ -501,7 +496,7 @@ export default class OCPIUtilsService {
     if (!chargingStation) {
       throw new AppError({
         ...LoggingHelper.getTransactionProperties(transaction),
-        module: MODULE_NAME, method: 'processCdr',
+        module: MODULE_NAME, method: 'processCdr', action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Charging Station does not exist',
         detailedMessages: { transaction, cdr },
@@ -546,10 +541,10 @@ export default class OCPIUtilsService {
     await OCPPUtils.updateChargingStationConnectorRuntimeDataWithTransaction(tenant, chargingStation, transaction, true);
   }
 
-  public static async updateToken(tenant: Tenant, token: OCPIToken, tag: Tag, emspUser: User): Promise<void> {
+  public static async updateToken(tenant: Tenant, token: OCPIToken, tag: Tag, emspUser: User, action: ServerAction): Promise<void> {
     if (!OCPIUtilsService.validateToken(token)) {
       throw new AppError({
-        module: MODULE_NAME, method: 'updateToken',
+        module: MODULE_NAME, method: 'updateToken', action,
         errorCode: StatusCodes.BAD_REQUEST,
         message: 'Token object is invalid',
         detailedMessages: { token },
@@ -559,7 +554,7 @@ export default class OCPIUtilsService {
     // External organization
     if (!emspUser) {
       throw new AppError({
-        module: MODULE_NAME, method: 'updateToken',
+        module: MODULE_NAME, method: 'updateToken', action,
         errorCode: StatusCodes.CONFLICT,
         message: 'eMSP User is mandatory',
         detailedMessages: { token },
@@ -569,7 +564,7 @@ export default class OCPIUtilsService {
     // External organization
     if (emspUser.issuer) {
       throw new AppError({
-        module: MODULE_NAME, method: 'updateToken',
+        module: MODULE_NAME, method: 'updateToken', action,
         errorCode: StatusCodes.CONFLICT,
         message: 'Token already assigned to an internal user',
         actionOnUser: emspUser,
@@ -580,7 +575,7 @@ export default class OCPIUtilsService {
     // Check the tag
     if (tag?.issuer) {
       throw new AppError({
-        module: MODULE_NAME, method: 'checkExistingTag',
+        module: MODULE_NAME, method: 'updateToken', action,
         errorCode: StatusCodes.CONFLICT,
         message: 'Token already exists in the current organization',
         detailedMessages: token,

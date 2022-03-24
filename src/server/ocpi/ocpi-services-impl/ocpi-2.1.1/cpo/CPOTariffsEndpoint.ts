@@ -40,7 +40,7 @@ export default class CPOTariffsEndpoint extends AbstractEndpoint {
     if (tariffs.count === 0) {
       throw new AppError({
         module: MODULE_NAME, method: 'getTariffsRequest',
-        action: ServerAction.OCPI_GET_TARIFFS,
+        action: ServerAction.OCPI_CPO_GET_TARIFFS,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'No tariffs found',
         ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR

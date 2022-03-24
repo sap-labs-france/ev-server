@@ -328,7 +328,7 @@ export default class TransactionService {
     } else {
       // OCPI Remote Start
       await ChargingStationService.handleOcpiAction(
-        ServerAction.OCPI_START_SESSION, req, res, next);
+        ServerAction.OCPI_EMSP_START_SESSION, req, res, next);
     }
   }
 
@@ -353,7 +353,7 @@ export default class TransactionService {
       }
     } else {
       // OCPI Remote Stop
-      await ChargingStationService.handleOcpiAction(ServerAction.OCPI_STOP_SESSION, req, res, next);
+      await ChargingStationService.handleOcpiAction(ServerAction.OCPI_EMSP_STOP_SESSION, req, res, next);
     }
   }
 
