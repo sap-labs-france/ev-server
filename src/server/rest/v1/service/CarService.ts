@@ -86,21 +86,17 @@ export default class CarService {
     const filteredRequest = CarValidator.getInstance().validateCarCatalogGetReq(req.query);
     // Get the car Image
     const carCatalog = await CarStorage.getCarCatalogImage(filteredRequest.ID);
-    if (carCatalog?.image) {
-      // Remove encoding header
-      let header = 'image';
-      let encoding: BufferEncoding = 'base64';
-      if (carCatalog?.image.startsWith('data:image/')) {
-        header = carCatalog.image.substring(5, carCatalog.image.indexOf(';'));
-        encoding = carCatalog.image.substring(carCatalog.image.indexOf(';') + 1, carCatalog.image.indexOf(',')) as BufferEncoding;
-        carCatalog.image = carCatalog.image.substring(carCatalog.image.indexOf(',') + 1);
-      }
-      // Revert to binary
-      res.setHeader('content-type', header);
-      res.send(carCatalog.image ? Buffer.from(carCatalog.image, encoding) : null);
-    } else {
-      res.send(null);
+    let logo = carCatalog && !Utils.isNullOrEmptyString(carCatalog.image) ? carCatalog.image : Constants.NO_CAR_IMAGE;
+    let header = 'image';
+    let encoding: BufferEncoding = 'base64';
+    // Remove encoding header
+    if (logo.startsWith('data:image/')) {
+      header = logo.substring(5, logo.indexOf(';'));
+      encoding = logo.substring(logo.indexOf(';') + 1, logo.indexOf(',')) as BufferEncoding;
+      logo = logo.substring(logo.indexOf(',') + 1);
     }
+    res.setHeader('content-type', header);
+    res.send(Buffer.from(logo, encoding));
     next();
   }
 

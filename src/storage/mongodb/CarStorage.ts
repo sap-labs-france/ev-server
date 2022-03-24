@@ -15,8 +15,8 @@ const MODULE_NAME = 'CarStorage';
 
 export default class CarStorage {
   public static async getCarCatalog(id: number = Constants.UNKNOWN_NUMBER_ID,
-      params: { withImage?: boolean; } = {},
-      projectFields?: string[]): Promise<CarCatalog> {
+    params: { withImage?: boolean; } = {},
+    projectFields?: string[]): Promise<CarCatalog> {
     const carCatalogsMDB = await CarStorage.getCarCatalogs({
       carCatalogIDs: [id],
       withImage: params.withImage,
@@ -25,8 +25,8 @@ export default class CarStorage {
   }
 
   public static async getCarCatalogs(
-      params: { search?: string; carCatalogIDs?: number[]; carMaker?: string[], withImage?: boolean; } = {},
-      dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<CarCatalog>> {
+    params: { search?: string; carCatalogIDs?: number[]; carMaker?: string[], withImage?: boolean; } = {},
+    dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<CarCatalog>> {
     const startTime = Logging.traceDatabaseRequestStart();
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -346,7 +346,7 @@ export default class CarStorage {
   }
 
   public static async getCar(tenant: Tenant, id: string = Constants.UNKNOWN_STRING_ID,
-      params: { withUser?: boolean, userIDs?: string[]; type?: CarType } = {}, projectFields?: string[]): Promise<Car> {
+    params: { withUser?: boolean, userIDs?: string[]; type?: CarType } = {}, projectFields?: string[]): Promise<Car> {
     const carsMDB = await CarStorage.getCars(tenant, {
       carIDs: [id],
       withUser: params.withUser,
@@ -357,7 +357,7 @@ export default class CarStorage {
   }
 
   public static async getDefaultUserCar(tenant: Tenant, userID: string,
-      params = {}, projectFields?: string[]): Promise<Car> {
+    params = {}, projectFields?: string[]): Promise<Car> {
     const carMDB = await CarStorage.getCars(tenant, {
       userIDs: [userID],
       defaultCar: true,
@@ -366,7 +366,7 @@ export default class CarStorage {
   }
 
   public static async getFirstAvailableUserCar(tenant: Tenant, userID: string,
-      params = {}, projectFields?: string[]): Promise<Car> {
+    params = {}, projectFields?: string[]): Promise<Car> {
     const carMDB = await CarStorage.getCars(tenant, {
       userIDs: [userID],
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
@@ -374,8 +374,8 @@ export default class CarStorage {
   }
 
   public static async getCarByVinLicensePlate(tenant: Tenant,
-      licensePlate: string = Constants.UNKNOWN_STRING_ID, vin: string = Constants.UNKNOWN_STRING_ID,
-      params: { withUser?: boolean, userIDs?: string[]; } = {}, projectFields?: string[]): Promise<Car> {
+    licensePlate: string = Constants.UNKNOWN_STRING_ID, vin: string = Constants.UNKNOWN_STRING_ID,
+    params: { withUser?: boolean, userIDs?: string[]; } = {}, projectFields?: string[]): Promise<Car> {
     const carsMDB = await CarStorage.getCars(tenant, {
       licensePlate: licensePlate,
       vin: vin,
@@ -386,11 +386,11 @@ export default class CarStorage {
   }
 
   public static async getCars(tenant: Tenant,
-      params: {
-        search?: string; userIDs?: string[]; carIDs?: string[]; licensePlate?: string; vin?: string;
-        withUser?: boolean; defaultCar?: boolean; carMakers?: string[], type?: CarType; siteIDs?: string[];
-      } = {},
-      dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Car>> {
+    params: {
+      search?: string; userIDs?: string[]; carIDs?: string[]; licensePlate?: string; vin?: string;
+      withUser?: boolean; defaultCar?: boolean; carMakers?: string[], type?: CarType; siteIDs?: string[];
+    } = {},
+    dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Car>> {
     let withCarCatalog = true;
     const startTime = Logging.traceDatabaseRequestStart();
     // Clone before updating the values
@@ -510,25 +510,21 @@ export default class CarStorage {
     if (withCarCatalog) {
       DatabaseUtils.pushCarCatalogLookupInAggregation({
         tenantID: Constants.DEFAULT_TENANT, aggregation, localField: 'carCatalogID', foreignField: '_id',
-        asField: 'carCatalog', oneToOneCardinality: true
+        asField: 'carCatalog', oneToOneCardinality: true, projectFields: ['id', 'vehicleMake', 'vehicleModel', 'vehicleModelVersion',
+          'fastChargePowerMax', 'batteryCapacityFull']
       });
       // Car Image
       aggregation.push({
         $addFields: {
           'carCatalog.image': {
-            $cond: {
-              if: { $gt: ['$carCatalog.image', null] }, then: {
-                $concat: [
-                  `${Utils.buildRestServerURL()}/v1/util/car-catalogs/`,
-                  '$carCatalog.id',
-                  '/image',
-                  {
-                    $ifNull: [{ $concat: ['?LastChangedOn=', { $toString: '$carCatalog.lastChangedOn' }] }, ''] // Only concat 'lastChangedOn' if not null
-                  }
-                ]
-              }, else: null
-            }
-
+            $concat: [
+              `${Utils.buildRestServerURL()}/v1/util/car-catalogs/`,
+              '$carCatalog.id',
+              '/image',
+              {
+                $ifNull: [{ $concat: ['?LastChangedOn=', { $toString: '$carCatalog.lastChangedOn' }] }, ''] // Only concat 'lastChangedOn' if not null
+              }
+            ]
           }
         }
       });
