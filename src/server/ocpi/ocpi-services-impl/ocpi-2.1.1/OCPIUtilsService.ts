@@ -278,10 +278,10 @@ export default class OCPIUtilsService {
     }
   }
 
-  public static async processEmspTransaction(tenant: Tenant, session: OCPISession, action: ServerAction, transaction?: Transaction): Promise<void> {
+  public static async processEmspTransactionFromSession(tenant: Tenant, session: OCPISession, action: ServerAction, transaction?: Transaction): Promise<void> {
     if (!OCPIUtilsService.validateEmspSession(session)) {
       throw new AppError({
-        module: MODULE_NAME, method: 'updateTransaction', action,
+        module: MODULE_NAME, method: 'processEmspTransactionFromSession', action,
         errorCode: StatusCodes.BAD_REQUEST,
         message: 'Session object is invalid',
         detailedMessages: { session },
@@ -299,6 +299,18 @@ export default class OCPIUtilsService {
     if (!transaction) {
       transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant, session.id);
     }
+    // Check the CDR
+    if (transaction && transaction.ocpiData?.cdr?.id) {
+      await Logging.logWarning({
+        ...LoggingHelper.getTransactionProperties(transaction),
+        tenantID: tenant.id,
+        actionOnUser: transaction.userID,
+        module: MODULE_NAME, method: 'processEmspTransactionFromSession', action,
+        message: `Transaction ID '${transaction.id}' already has a CDR, Session update will be ignored`,
+        detailedMessages: { session, transaction }
+      });
+      return;
+    }
     // Get the Charging Station
     const evse = session.location.evses[0];
     let chargingStation: ChargingStation;
@@ -311,7 +323,7 @@ export default class OCPIUtilsService {
     }
     if (!chargingStation) {
       throw new AppError({
-        module: MODULE_NAME, method: 'updateTransaction', action,
+        module: MODULE_NAME, method: 'processEmspTransactionFromSession', action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Charging Station with EVSE ID '${evse.uid}' and Location ID '${session.location.id}' does not exist`,
         detailedMessages: { session },
@@ -325,7 +337,7 @@ export default class OCPIUtilsService {
       if (!tag) {
         throw new AppError({
           ...LoggingHelper.getChargingStationProperties(chargingStation),
-          module: MODULE_NAME, method: 'updateTransaction', action,
+          module: MODULE_NAME, method: 'processEmspTransactionFromSession', action,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `No Tag has been found with ID '${session.auth_id}'`,
           detailedMessages: { session },
@@ -337,7 +349,7 @@ export default class OCPIUtilsService {
       if (!user) {
         throw new AppError({
           ...LoggingHelper.getChargingStationProperties(chargingStation),
-          module: MODULE_NAME, method: 'updateTransaction', action,
+          module: MODULE_NAME, method: 'processEmspTransactionFromSession', action,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `No User has been found with Tag ID '${session.auth_id}'`,
           detailedMessages: { session },
@@ -345,12 +357,12 @@ export default class OCPIUtilsService {
         });
       }
       // Get the connector ID
-      let connectorId = 1;
+      let connectorID = 1;
       if (evse.connectors && evse.connectors.length === 1) {
-        const evseConnectorId = evse.connectors[0].id;
+        const evseConnectorID = evse.connectors[0].id;
         for (const chargingStationConnector of chargingStation.connectors) {
-          if (evseConnectorId === chargingStationConnector.id) {
-            connectorId = chargingStationConnector.connectorId;
+          if (evseConnectorID === chargingStationConnector.id) {
+            connectorID = chargingStationConnector.connectorId;
           }
         }
       }
@@ -366,7 +378,7 @@ export default class OCPIUtilsService {
         siteID: chargingStation.siteID,
         siteAreaID: chargingStation.siteAreaID,
         timezone: Utils.getTimezone(chargingStation.coordinates),
-        connectorId: connectorId,
+        connectorId: connectorID,
         price: session.total_cost,
         roundedPrice: Utils.truncTo(session.total_cost, 2),
         priceUnit: session.currency,
@@ -396,7 +408,7 @@ export default class OCPIUtilsService {
         ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: tenant.id,
         actionOnUser: transaction.userID,
-        module: MODULE_NAME, method: 'updateTransaction', action,
+        module: MODULE_NAME, method: 'processEmspTransactionFromSession', action,
         message: `Ignore session update session.last_updated < transaction.currentTimestamp for transaction ${transaction.id}`,
         detailedMessages: { session, transaction }
       });
@@ -439,7 +451,7 @@ export default class OCPIUtilsService {
   public static async processEmspCdr(tenant: Tenant, cdr: OCPICdr, action: ServerAction): Promise<void> {
     if (!OCPIUtilsService.validateEmspCdr(cdr)) {
       throw new AppError({
-        module: MODULE_NAME, method: 'processCdr', action,
+        module: MODULE_NAME, method: 'processEmspCdr', action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Cdr object is invalid',
         detailedMessages: { cdr },
@@ -450,7 +462,7 @@ export default class OCPIUtilsService {
     const transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant, cdr.id);
     if (!transaction) {
       throw new AppError({
-        module: MODULE_NAME, method: 'processCdr', action,
+        module: MODULE_NAME, method: 'processEmspCdr', action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `No Transaction found for OCPI CDR ID '${cdr.id}'`,
         detailedMessages: { cdr },
@@ -462,7 +474,7 @@ export default class OCPIUtilsService {
     if (!chargingStation) {
       throw new AppError({
         ...LoggingHelper.getTransactionProperties(transaction),
-        module: MODULE_NAME, method: 'processCdr', action,
+        module: MODULE_NAME, method: 'processEmspCdr', action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Charging Station does not exist',
         detailedMessages: { transaction, cdr },
@@ -510,7 +522,7 @@ export default class OCPIUtilsService {
   public static async updateCpoToken(tenant: Tenant, token: OCPIToken, tag: Tag, emspUser: User, action: ServerAction): Promise<void> {
     if (!OCPIUtilsService.validateCpoToken(token)) {
       throw new AppError({
-        module: MODULE_NAME, method: 'updateToken', action,
+        module: MODULE_NAME, method: 'updateCpoToken', action,
         errorCode: StatusCodes.BAD_REQUEST,
         message: 'Token object is invalid',
         detailedMessages: { token },
@@ -520,7 +532,7 @@ export default class OCPIUtilsService {
     // External organization
     if (!emspUser) {
       throw new AppError({
-        module: MODULE_NAME, method: 'updateToken', action,
+        module: MODULE_NAME, method: 'updateCpoToken', action,
         errorCode: StatusCodes.CONFLICT,
         message: 'eMSP User is mandatory',
         detailedMessages: { token },
@@ -530,7 +542,7 @@ export default class OCPIUtilsService {
     // External organization
     if (emspUser.issuer) {
       throw new AppError({
-        module: MODULE_NAME, method: 'updateToken', action,
+        module: MODULE_NAME, method: 'updateCpoToken', action,
         errorCode: StatusCodes.CONFLICT,
         message: 'Token already assigned to an internal user',
         actionOnUser: emspUser,
@@ -541,7 +553,7 @@ export default class OCPIUtilsService {
     // Check the tag
     if (tag?.issuer) {
       throw new AppError({
-        module: MODULE_NAME, method: 'updateToken', action,
+        module: MODULE_NAME, method: 'updateCpoToken', action,
         errorCode: StatusCodes.CONFLICT,
         message: 'Token already exists in the current organization',
         detailedMessages: token,
