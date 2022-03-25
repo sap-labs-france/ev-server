@@ -356,6 +356,7 @@ export default class OCPIUtilsService {
       }
       // Create the Transaction
       transaction = {
+        id: await TransactionStorage.findAvailableID(tenant),
         issuer: false,
         userID: user.id,
         tagID: tag.id,
@@ -366,6 +367,9 @@ export default class OCPIUtilsService {
         siteAreaID: chargingStation.siteAreaID,
         timezone: Utils.getTimezone(chargingStation.coordinates),
         connectorId: connectorId,
+        price: session.total_cost,
+        roundedPrice: Utils.truncTo(session.total_cost, 2),
+        priceUnit: session.currency,
         pricingSource: PricingSource.OCPI,
         currentInactivityStatus: InactivityStatus.INFO,
         lastConsumption: {
@@ -373,18 +377,6 @@ export default class OCPIUtilsService {
           timestamp: session.start_datetime
         },
       } as Transaction;
-    }
-    // Check
-    if (transaction.stop) {
-      throw new AppError({
-        ...LoggingHelper.getTransactionProperties(transaction),
-        module: MODULE_NAME, method: 'updateTransaction', action,
-        errorCode: HTTPError.GENERAL_ERROR,
-        actionOnUser: transaction.userID,
-        message: `Transaction ID '${transaction.id}' is already stopped`,
-        detailedMessages: { transaction, session, chargingStation },
-        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
-      });
     }
     // Set the connector
     const connector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
@@ -400,25 +392,22 @@ export default class OCPIUtilsService {
     }
     // Session in the past
     if (moment(session.last_updated).isBefore(transaction.lastConsumption.timestamp)) {
-      await Logging.logDebug({
+      await Logging.logError({
         ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: tenant.id,
         actionOnUser: transaction.userID,
         module: MODULE_NAME, method: 'updateTransaction', action,
         message: `Ignore session update session.last_updated < transaction.currentTimestamp for transaction ${transaction.id}`,
-        detailedMessages: { session }
+        detailedMessages: { session, transaction }
       });
       return;
     }
     // Create Consumption
     if (session.kwh > 0) {
-      await OCPIUtilsService.computeAndSaveEmspConsumption(tenant, chargingStation, transaction, session);
+      await OCPIUtilsService.createAndSaveEmspConsumption(tenant, chargingStation, transaction, session);
     }
     transaction.ocpiData = { session };
     transaction.currentTimestamp = session.last_updated;
-    transaction.price = session.total_cost;
-    transaction.priceUnit = session.currency;
-    transaction.roundedPrice = Utils.truncTo(session.total_cost, 2);
     transaction.lastConsumption = {
       value: session.kwh * 1000,
       timestamp: session.last_updated
@@ -430,9 +419,9 @@ export default class OCPIUtilsService {
         extraInactivitySecs: 0,
         meterStop: session.kwh * 1000,
         price: session.total_cost,
-        priceUnit: session.currency,
-        pricingSource: 'ocpi',
         roundedPrice: Utils.truncTo(session.total_cost, 2),
+        priceUnit: session.currency,
+        pricingSource: PricingSource.OCPI,
         stateOfCharge: 0,
         tagID: session.auth_id,
         timestamp: stopTimestamp,
@@ -896,14 +885,13 @@ export default class OCPIUtilsService {
     }
   }
 
-  private static async computeAndSaveEmspConsumption(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction, session: OCPISession): Promise<void> {
+  private static async createAndSaveEmspConsumption(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction, session: OCPISession): Promise<void> {
     const consumptionWh = Utils.createDecimal(session.kwh).mul(1000).minus(Utils.convertToFloat(transaction.lastConsumption.value)).toNumber();
     const durationSecs = Utils.createDecimal(moment(session.last_updated).diff(transaction.lastConsumption.timestamp, 'milliseconds')).div(1000).toNumber();
     if (consumptionWh > 0 || durationSecs > 0) {
       // Update Transaction
       const sampleMultiplier = durationSecs > 0 ? Utils.createDecimal(3600).div(durationSecs).toNumber() : 0;
       const currentInstantWatts = consumptionWh > 0 ? Utils.createDecimal(consumptionWh).mul(sampleMultiplier).toNumber() : 0;
-      const amount = Utils.createDecimal(session.total_cost).minus(transaction.price).toNumber();
       transaction.currentInstantWatts = currentInstantWatts;
       transaction.currentConsumptionWh = consumptionWh > 0 ? consumptionWh : 0;
       transaction.currentTotalConsumptionWh = Utils.createDecimal(transaction.currentTotalConsumptionWh).plus(transaction.currentConsumptionWh).toNumber();
@@ -935,8 +923,8 @@ export default class OCPIUtilsService {
           moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds() :
           moment.duration(moment(transaction.lastConsumption.timestamp).diff(moment(transaction.timestamp))).asSeconds(),
         stateOfCharge: transaction.currentStateOfCharge,
-        amount: amount,
-        roundedAmount: Utils.truncTo(amount, 2),
+        amount: 0,
+        roundedAmount: 0,
         currencyCode: session.currency,
         cumulatedAmount: session.total_cost
       } as Consumption;

@@ -1,5 +1,3 @@
-import { OCPIToken, OCPITokenWhitelist } from '../../types/ocpi/OCPIToken';
-
 import BackendError from '../../exception/BackendError';
 import ChargingStation from '../../types/ChargingStation';
 import Constants from '../../utils/Constants';
@@ -18,6 +16,7 @@ import { OCPIRole } from '../../types/ocpi/OCPIRole';
 import { OCPISession } from '../../types/ocpi/OCPISession';
 import { OCPIStartSession } from '../../types/ocpi/OCPIStartSession';
 import { OCPIStopSession } from '../../types/ocpi/OCPIStopSession';
+import { OCPIToken } from '../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../server/ocpi/OCPIUtils';
 import OCPIUtilsService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIUtilsService';
 import { OcpiSetting } from '../../types/Setting';
@@ -234,7 +233,7 @@ export default class EmspOCPIClient extends OCPIClient {
             );
           }
         },
-        { concurrency: Constants.OCPI_MAX_PARALLEL_REQUESTS });
+        { concurrency: 1 });
       }
       const nextUrl = OCPIUtils.getNextUrl(response.headers.link);
       if (nextUrl && nextUrl.length > 0 && nextUrl !== sessionsUrl) {
