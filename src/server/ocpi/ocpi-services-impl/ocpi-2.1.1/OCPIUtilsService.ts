@@ -306,7 +306,7 @@ export default class OCPIUtilsService {
         tenantID: tenant.id,
         actionOnUser: transaction.userID,
         module: MODULE_NAME, method: 'processEmspTransactionFromSession', action,
-        message: `Transaction ID '${transaction.id}' already has a CDR, Session update will be ignored`,
+        message: `Transaction ID '${transaction.id}' already has a CDR and will not be updated with OCPI Session`,
         detailedMessages: { session, transaction }
       });
       return;
