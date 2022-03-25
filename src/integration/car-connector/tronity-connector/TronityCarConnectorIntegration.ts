@@ -18,7 +18,7 @@ const MODULE_NAME = 'TronityCarConnectorIntegration';
 export default class TronityCarConnectorIntegration extends CarConnectorIntegration<CarConnectorSettings> {
   private axiosInstance: AxiosInstance;
 
-  constructor(tenant: Tenant, settings: CarConnectorSettings, connection: CarConnectorConnectionSetting) {
+  public constructor(tenant: Tenant, settings: CarConnectorSettings, connection: CarConnectorConnectionSetting) {
     super(tenant, settings, connection);
     // Get Axios
     this.axiosInstance = AxiosFactory.getAxiosInstance(this.tenant);

@@ -25,7 +25,7 @@ export default class TagApi extends CrudApi {
   }
 
   public async updateTagByVisualID(params?) {
-    return super.update(params, this.buildRestEndpointUrl(ServerRoute.REST_TAGS));
+    return super.update(params, this.buildRestEndpointUrl(ServerRoute.REST_TAG, { id: params.visualID }));
   }
 
   public async unassignTag(params?) {
