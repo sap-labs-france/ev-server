@@ -233,7 +233,7 @@ export default class EmspOCPIClient extends OCPIClient {
             );
           }
         },
-        { concurrency: 1 });
+        { concurrency: Constants.OCPI_MAX_PARALLEL_REQUESTS });
       }
       const nextUrl = OCPIUtils.getNextUrl(response.headers.link);
       if (nextUrl && nextUrl.length > 0 && nextUrl !== sessionsUrl) {
@@ -266,7 +266,7 @@ export default class EmspOCPIClient extends OCPIClient {
     const startTime = new Date().getTime();
     // Get cdrs endpoint url
     let cdrsUrl = this.getEndpointUrl('cdrs', ServerAction.OCPI_EMSP_PULL_CDRS);
-    const momentFrom = moment().utc().subtract(7, 'days').startOf('day');
+    const momentFrom = moment().utc().subtract(2, 'days').startOf('day');
     cdrsUrl = `${cdrsUrl}?date_from=${momentFrom.format()}&limit=10`;
     let nextResult = true;
     do {
