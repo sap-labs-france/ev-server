@@ -1,4 +1,4 @@
-import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
+import { Action, Entity } from '../../../../types/Authorization';
 import { ActionsResponse, ImportStatus } from '../../../../types/GlobalType';
 import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
 import Busboy, { FileInfo } from 'busboy';
@@ -32,7 +32,6 @@ import { OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../../ocpi/OCPIUtils';
 import { Readable } from 'stream';
 import { ServerAction } from '../../../../types/Server';
-import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { StartTransactionErrorCode } from '../../../../types/Transaction';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import { UserInErrorType } from '../../../../types/InError';

@@ -57,7 +57,7 @@ export default class SettingStorage {
     };
     DatabaseUtils.addLastChangedCreatedProps(settingMDB, settingToSave);
     // Modify
-    await global.database.getCollection<SettingDB>(tenant.id, 'settings').findOneAndUpdate(
+    await global.database.getCollection<any>(tenant.id, 'settings').findOneAndUpdate(
       settingFilter,
       { $set: settingMDB },
       { upsert: true, returnDocument: 'after' });
@@ -372,9 +372,9 @@ export default class SettingStorage {
       });
     }
     // Count Records
-    const settingsCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'settings')
+    const settingsCountMDB = await global.database.getCollection<any>(tenant.id, 'settings')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
-      .toArray();
+      .toArray() as DatabaseCount[];
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenant.id, aggregation);
     // Rename ID
@@ -397,9 +397,9 @@ export default class SettingStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const settingsMDB = await global.database.getCollection<SettingDB>(tenant.id, 'settings')
-      .aggregate<SettingDB>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const settingsMDB = await global.database.getCollection<any>(tenant.id, 'settings')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as SettingDB[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSettings', startTime, aggregation, settingsMDB);
     return {
       count: (settingsCountMDB.length > 0 ? settingsCountMDB[0].count : 0),

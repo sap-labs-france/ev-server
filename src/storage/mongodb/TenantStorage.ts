@@ -1,7 +1,6 @@
 import Tenant, { TenantLogo } from '../../types/Tenant';
 import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
-import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
@@ -55,7 +54,7 @@ export default class TenantStorage {
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(tenantMDB, tenantToSave);
     // Modify
-    await global.database.getCollection<Tenant>(Constants.DEFAULT_TENANT, 'tenants').findOneAndUpdate(
+    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenants').findOneAndUpdate(
       tenantFilter,
       { $set: tenantMDB },
       { upsert: true, returnDocument: 'after' });
@@ -125,9 +124,9 @@ export default class TenantStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const tenantsCountMDB = await global.database.getCollection<DatabaseCount>(Constants.DEFAULT_TENANT, 'tenants')
+    const tenantsCountMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenants')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
-      .toArray();
+      .toArray() as DatabaseCount[];
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
@@ -177,8 +176,9 @@ export default class TenantStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const tenantsMDB = await global.database.getCollection<Tenant>(Constants.DEFAULT_TENANT, 'tenants')
-      .aggregate<Tenant>(aggregation, DatabaseUtils.buildAggregateOptions()).toArray();
+    const tenantsMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenants')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as Tenant[];
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'getTenants', startTime, aggregation, tenantsMDB);
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(tenantsCountMDB[0]),
@@ -189,12 +189,12 @@ export default class TenantStorage {
   public static async deleteTenant(id: string): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     // Delete
-    await global.database.getCollection<Tenant>(Constants.DEFAULT_TENANT, 'tenants')
+    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenants')
       .findOneAndDelete({
         '_id': DatabaseUtils.convertToObjectID(id)
       });
     // Delete logo
-    await global.database.getCollection<Tenant>(Constants.DEFAULT_TENANT, 'tenantlogos')
+    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenantlogos')
       .findOneAndDelete({
         '_id': DatabaseUtils.convertToObjectID(id)
       });

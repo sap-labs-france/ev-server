@@ -26,7 +26,7 @@ export default class EMSPTariffsEndpoint extends AbstractEndpoint {
   public async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
       case 'GET':
-        return await this.getTariffRequest(req, res, next, tenant);
+        return this.getTariffRequest(req, res, next, tenant);
     }
   }
 

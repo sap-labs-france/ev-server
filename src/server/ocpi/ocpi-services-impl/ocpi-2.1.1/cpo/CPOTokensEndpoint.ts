@@ -142,7 +142,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
         detailedMessages: { operator, token, tag }
       });
     }
-    await OCPIUtilsService.updateToken(tenant, token, tag, tag.user, ServerAction.OCPI_CPO_PUT_TOKEN);
+    await OCPIUtilsService.updateCpoToken(tenant, token, tag, tag.user, ServerAction.OCPI_CPO_PUT_TOKEN);
     return OCPIUtils.success();
   }
 
