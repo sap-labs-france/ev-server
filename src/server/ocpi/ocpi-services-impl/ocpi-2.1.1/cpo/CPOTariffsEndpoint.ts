@@ -27,7 +27,7 @@ export default class CPOTariffsEndpoint extends AbstractEndpoint {
   public async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
       case 'GET':
-        return await this.getTariffsRequest(req, res, next, tenant, ocpiEndpoint);
+        return this.getTariffsRequest(req, res, next, tenant, ocpiEndpoint);
     }
   }
 

@@ -1589,7 +1589,7 @@ export default class OCPPService {
       const carImplementation = await CarConnectorFactory.getCarConnectorImpl(tenant, transaction.car.carConnectorData.carConnectorID);
       if (carImplementation) {
         try {
-          return await carImplementation.getCurrentSoC(transaction.car, transaction.userID);
+          return carImplementation.getCurrentSoC(transaction.car, transaction.userID);
         } catch {
           return null;
         }

@@ -26,7 +26,7 @@ export default class CPOSessionsEndpoint extends AbstractEndpoint {
   public async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
       case 'GET':
-        return await this.getSessionsRequest(req, res, next, tenant);
+        return this.getSessionsRequest(req, res, next, tenant);
     }
   }
 

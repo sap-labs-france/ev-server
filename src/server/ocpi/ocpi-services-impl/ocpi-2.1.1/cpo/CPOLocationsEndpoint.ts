@@ -29,7 +29,7 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
   public async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
       case 'GET':
-        return await this.getLocationsRequest(req, res, next, tenant, ocpiEndpoint);
+        return this.getLocationsRequest(req, res, next, tenant, ocpiEndpoint);
     }
   }
 
@@ -122,7 +122,7 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
     // Get site
     const site = await SiteStorage.getSite(tenant, locationId);
     if (site) {
-      return await OCPIUtilsService.convertSite2Location(tenant, site, options, true, settings);
+      return OCPIUtilsService.convertSite2Location(tenant, site, options, true, settings);
     }
   }
 
