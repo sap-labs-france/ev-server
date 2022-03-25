@@ -278,7 +278,7 @@ export default class OCPIUtilsService {
     }
   }
 
-  public static async updateTransaction(tenant: Tenant, session: OCPISession, action: ServerAction, transaction?: Transaction): Promise<void> {
+  public static async processTransaction(tenant: Tenant, session: OCPISession, action: ServerAction, transaction?: Transaction): Promise<void> {
     if (!OCPIUtilsService.validateSession(session)) {
       throw new AppError({
         module: MODULE_NAME, method: 'updateTransaction', action,

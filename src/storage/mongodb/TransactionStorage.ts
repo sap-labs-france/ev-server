@@ -309,11 +309,11 @@ export default class TransactionStorage {
   public static async getTransactionYears(tenant: Tenant): Promise<Date[]> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
-    const firstTransactionsMDB = await global.database.getCollection<Transaction>(tenant.id, 'transactions')
+    const firstTransactionsMDB = await global.database.getCollection<any>(tenant.id, 'transactions')
       .find({})
       .sort({ timestamp: 1 })
       .limit(1)
-      .toArray();
+      .toArray() as Transaction[];
     // Found?
     if (Utils.isEmptyArray(firstTransactionsMDB)) {
       return null;
@@ -596,9 +596,9 @@ export default class TransactionStorage {
         break;
     }
     // Count Records
-    const transactionsCountMDB = await global.database.getCollection<TransactionStats>(tenant.id, 'transactions')
-      .aggregate<TransactionStats>([...aggregation, statsQuery], DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const transactionsCountMDB = await global.database.getCollection<any>(tenant.id, 'transactions')
+      .aggregate<any>([...aggregation, statsQuery], DatabaseUtils.buildAggregateOptions())
+      .toArray() as TransactionStats[];
     let transactionCountMDB = (transactionsCountMDB && transactionsCountMDB.length > 0) ? transactionsCountMDB[0] : null;
     // Initialize statistics
     if (!transactionCountMDB) {
@@ -767,9 +767,9 @@ export default class TransactionStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const transactionsMDB = await global.database.getCollection<Transaction>(tenant.id, 'transactions')
-      .aggregate<Transaction>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const transactionsMDB = await global.database.getCollection<any>(tenant.id, 'transactions')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as Transaction[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getTransactions', startTime, aggregation, transactionsMDB);
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(transactionCountMDB),
@@ -894,9 +894,9 @@ export default class TransactionStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const reportsMDB = await global.database.getCollection<RefundReport>(tenant.id, 'transactions')
+    const reportsMDB = await global.database.getCollection<any>(tenant.id, 'transactions')
       .aggregate(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+      .toArray() as RefundReport[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getRefundReports', startTime, aggregation, reportsMDB);
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(reportCountMDB),
@@ -1053,9 +1053,9 @@ export default class TransactionStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const transactionsMDB = await global.database.getCollection<TransactionInError>(tenant.id, 'transactions')
-      .aggregate<TransactionInError>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const transactionsMDB = await global.database.getCollection<any>(tenant.id, 'transactions')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as TransactionInError[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getTransactionsInError', startTime, aggregation, transactionsMDB);
     return {
       count: transactionsMDB.length,
@@ -1128,9 +1128,9 @@ export default class TransactionStorage {
     DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'stop', 'timestamp');
     DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'remotestop', 'timestamp');
     // Read DB
-    const transactionsMDB = await global.database.getCollection<Transaction>(tenant.id, 'transactions')
-      .aggregate<Transaction>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const transactionsMDB = await global.database.getCollection<any>(tenant.id, 'transactions')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as Transaction[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getActiveTransaction', startTime, aggregation, transactionsMDB);
     return transactionsMDB.length === 1 ? transactionsMDB[0] : null;
   }
@@ -1191,9 +1191,9 @@ export default class TransactionStorage {
     DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'stop', 'timestamp');
     DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'remotestop', 'timestamp');
     // Read DB
-    const transactionsMDB = await global.database.getCollection<Transaction>(tenant.id, 'transactions')
-      .aggregate<Transaction>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const transactionsMDB = await global.database.getCollection<any>(tenant.id, 'transactions')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as Transaction[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getLastTransactionFromChargingStation', startTime, aggregation, transactionsMDB);
     return transactionsMDB.length === 1 ? transactionsMDB[0] : null;
   }
@@ -1321,9 +1321,9 @@ export default class TransactionStorage {
       }
     });
     // Read DB
-    const notifySessionNotStartedMDB = await global.database.getCollection<NotifySessionNotStarted>(tenant.id, 'authorizes')
-      .aggregate<NotifySessionNotStarted>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const notifySessionNotStartedMDB = await global.database.getCollection<any>(tenant.id, 'authorizes')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as NotifySessionNotStarted[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getNotStartedTransactions', startTime, aggregation, notifySessionNotStartedMDB);
     return {
       count: notifySessionNotStartedMDB.length,

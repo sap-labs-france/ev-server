@@ -139,9 +139,9 @@ export default class ConsumptionStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const consumptionsMDB = await global.database.getCollection<Consumption>(tenant.id, 'consumptions')
-      .aggregate<Consumption>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const consumptionsMDB = await global.database.getCollection<any>(tenant.id, 'consumptions')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as Consumption[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getAssetConsumptions', startTime, aggregation, consumptionsMDB);
     return consumptionsMDB;
   }
@@ -171,9 +171,9 @@ export default class ConsumptionStorage {
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Read DB
-    const consumptionsMDB = await global.database.getCollection<Consumption>(tenant.id, 'consumptions')
-      .aggregate<Consumption>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const consumptionsMDB = await global.database.getCollection<any>(tenant.id, 'consumptions')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as Consumption[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getLastAssetConsumption', startTime, aggregation, consumptionsMDB);
     return !Utils.isEmptyArray(consumptionsMDB) ? consumptionsMDB[0] : null;
   }
@@ -372,9 +372,9 @@ export default class ConsumptionStorage {
       }
     });
     // Read DB
-    const consumptionsMDB = await global.database.getCollection<Consumption>(tenant.id, 'consumptions')
-      .aggregate<Consumption>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const consumptionsMDB = await global.database.getCollection<any>(tenant.id, 'consumptions')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as Consumption[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSiteAreaConsumptions', startTime, aggregation, consumptionsMDB);
     return consumptionsMDB;
   }
@@ -463,9 +463,9 @@ export default class ConsumptionStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields, ['_id']);
     // Read DB
-    const consumptionsMDB = await global.database.getCollection<Consumption>(tenant.id, 'consumptions')
-      .aggregate<Consumption>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const consumptionsMDB = await global.database.getCollection<any>(tenant.id, 'consumptions')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as Consumption[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSiteAreaChargingStationConsumptions', startTime, aggregation, consumptionsMDB);
     return {
       count: consumptionsMDB.length,
@@ -513,9 +513,9 @@ export default class ConsumptionStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const consumptionsMDB = await global.database.getCollection<Consumption>(tenant.id, 'consumptions')
-      .aggregate<Consumption>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const consumptionsMDB = await global.database.getCollection<any>(tenant.id, 'consumptions')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as Consumption[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getTransactionConsumptions', startTime, aggregation, consumptionsMDB);
     return {
       count: consumptionsMDB.length,
@@ -549,9 +549,9 @@ export default class ConsumptionStorage {
     });
     let consumption: Consumption = null;
     // Read DB
-    const consumptionsMDB = await global.database.getCollection<Consumption>(tenant.id, 'consumptions')
-      .aggregate<Consumption>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const consumptionsMDB = await global.database.getCollection<any>(tenant.id, 'consumptions')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as Consumption[];
     if (!Utils.isEmptyArray(consumptionsMDB)) {
       consumption = consumptionsMDB[0];
     }

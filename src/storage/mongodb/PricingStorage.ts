@@ -190,9 +190,9 @@ export default class PricingStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const pricingDefinitions = await global.database.getCollection<PricingDefinition>(tenant.id, 'pricingdefinitions')
-      .aggregate<PricingDefinition>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const pricingDefinitions = await global.database.getCollection<any>(tenant.id, 'pricingdefinitions')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as PricingDefinition[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getPricingDefinitions', uniqueTimerID, pricingDefinitions);
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(pricingDefinitionsCountMDB[0]),
