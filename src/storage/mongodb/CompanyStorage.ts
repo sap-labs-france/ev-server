@@ -209,9 +209,9 @@ export default class CompanyStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const companiesMDB = await global.database.getCollection<Company>(tenant.id, 'companies')
-      .aggregate<Company>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const companiesMDB = await global.database.getCollection<any>(tenant.id, 'companies')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as Company[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getCompanies', startTime, aggregation, companiesMDB);
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(companiesCountMDB[0]),

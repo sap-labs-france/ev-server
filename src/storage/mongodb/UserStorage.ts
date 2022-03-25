@@ -788,7 +788,7 @@ export default class UserStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const usersImportMDB = await global.database.getCollection<any>(tenant.id, 'importedusers')
-      .aggregate<ImportedUser>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray() as ImportedUser[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getImportedUsers', startTime, usersImportMDB);
     return {
@@ -880,7 +880,7 @@ export default class UserStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const usersMDB = await global.database.getCollection<any>(tenant.id, 'users')
-      .aggregate<User>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray() as User[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getUsersInError', startTime, usersMDB);
     return {
@@ -960,7 +960,6 @@ export default class UserStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    console.log(JSON.stringify(aggregation));
     const sitesCountMDB = await global.database.getCollection<any>(tenant.id, 'siteusers')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
       .toArray() as DatabaseCount[];
@@ -998,7 +997,7 @@ export default class UserStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const siteUsersMDB = await global.database.getCollection<any>(tenant.id, 'siteusers')
-      .aggregate<SiteUser>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray() as SiteUser[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getUserSites', startTime, siteUsersMDB);
     return {

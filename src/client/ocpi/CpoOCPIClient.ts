@@ -129,7 +129,7 @@ export default class CpoOCPIClient extends OCPIClient {
             const emspUser = emspUsersMap.get(email);
             // Get the Tag
             const emspTag = tags.result.find((tag) => tag.id === token.uid);
-            await OCPIUtilsService.updateToken(this.tenant, token, emspTag, emspUser, ServerAction.OCPI_CPO_PULL_TOKENS);
+            await OCPIUtilsService.updateCpoToken(this.tenant, token, emspTag, emspUser, ServerAction.OCPI_CPO_PULL_TOKENS);
             result.success++;
           } catch (error) {
             result.failure++;
@@ -242,7 +242,6 @@ export default class CpoOCPIClient extends OCPIClient {
       location: ocpiLocation,
       currency: this.settings.currency,
       status: OCPISessionStatus.PENDING,
-      authorization_id: transaction.authorizationID,
       total_cost: transaction.currentCumulatedPrice > 0 ? transaction.currentCumulatedPrice : 0,
       last_updated: transaction.timestamp
     };
@@ -397,7 +396,6 @@ export default class CpoOCPIClient extends OCPIClient {
       total_energy: Utils.createDecimal(transaction.stop.totalConsumptionWh).div(1000).toNumber(), // In kW.h
       currency: this.settings.currency,
       auth_id: transaction.ocpiData.session.auth_id,
-      authorization_id: transaction.ocpiData.session.authorization_id,
       auth_method: transaction.ocpiData.session.auth_method,
       location: transaction.ocpiData.session.location,
       total_cost: transaction.stop.roundedPrice > 0 ? transaction.stop.roundedPrice : 0,
@@ -576,7 +574,7 @@ export default class CpoOCPIClient extends OCPIClient {
       partyID: this.getLocalPartyID(ServerAction.OCPI_CPO_CHECK_LOCATIONS)
     };
     // Get all EVSEs from all locations
-    const locations = await OCPIUtilsService.getAllLocations(this.tenant, 0, 0, options, true, this.settings);
+    const locations = await OCPIUtilsService.getAllCpoLocations(this.tenant, 0, 0, options, true, this.settings);
     if (!Utils.isEmptyArray(locations.result)) {
       await Promise.map(locations.result, async (location) => {
         if (location) {
@@ -688,7 +686,7 @@ export default class CpoOCPIClient extends OCPIClient {
       chargeBoxIDsToProcess = _.uniq(chargeBoxIDsToProcess);
     }
     // Get all locations
-    const locations = await OCPIUtilsService.getAllLocations(this.tenant, 0, 0, options, false, this.settings);
+    const locations = await OCPIUtilsService.getAllCpoLocations(this.tenant, 0, 0, options, false, this.settings);
     if (!Utils.isEmptyArray(locations.result)) {
       await Promise.map(locations.result, async (location) => {
         // Get the Charging Station should be processed
@@ -700,7 +698,7 @@ export default class CpoOCPIClient extends OCPIClient {
           if (!processAllEVSEs && !Utils.isEmptyArray(chargeBoxIDsToProcess)) {
             chargingStationIDs = chargeBoxIDsToProcess;
           }
-          evses = await OCPIUtilsService.getEvsesFromSite(this.tenant, location.id, options,
+          evses = await OCPIUtilsService.getCpoEvsesFromSite(this.tenant, location.id, options,
             { skip: currentSkip, limit: Constants.DB_RECORD_COUNT_DEFAULT },
             { chargingStationIDs }, this.settings);
           // Loop through EVSE
@@ -1080,7 +1078,7 @@ export default class CpoOCPIClient extends OCPIClient {
     const connector = Utils.getConnectorFromID(chargingStation, connectorID);
     let chargePoint;
     if (connector) {
-      connectors.push(OCPIUtilsService.convertConnector2OCPIConnector(tenant, chargingStation, connector, countryID, partyID, this.settings));
+      connectors.push(OCPIUtilsService.convertConnector2OcpiConnector(tenant, chargingStation, connector, countryID, partyID, this.settings));
       status = connector.status;
       chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
     }
@@ -1110,7 +1108,7 @@ export default class CpoOCPIClient extends OCPIClient {
         last_updated: chargingStation.lastSeen
       }],
       last_updated: site.lastChangedOn ? site.lastChangedOn : site.createdOn,
-      opening_times: OCPIUtilsService.buildOpeningTimes(tenant, site)
+      opening_times: OCPIUtilsService.buildCpoOpeningTimes(tenant, site)
     };
     return ocpiLocation;
   }

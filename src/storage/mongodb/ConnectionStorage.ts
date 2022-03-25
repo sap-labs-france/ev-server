@@ -48,9 +48,9 @@ export default class ConnectionStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Exec
-    const connections = await global.database.getCollection<Connection>(tenant.id, 'connections')
-      .aggregate<Connection>(aggregation)
-      .toArray();
+    const connections = await global.database.getCollection<any>(tenant.id, 'connections')
+      .aggregate<any>(aggregation)
+      .toArray() as Connection[];
     let connection: Connection;
     if (!Utils.isEmptyArray(connections)) {
       connection = connections[0];
@@ -73,9 +73,9 @@ export default class ConnectionStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Get connections
-    const connectionsMDB = await global.database.getCollection<Connection>(tenant.id, 'connections')
-      .aggregate<Connection>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const connectionsMDB = await global.database.getCollection<any>(tenant.id, 'connections')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as Connection[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getConnectionByUserId', startTime, aggregation, connectionsMDB);
     return {
       count: connectionsMDB.length,
@@ -98,9 +98,9 @@ export default class ConnectionStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Exec
-    const connections = await global.database.getCollection<Connection>(tenant.id, 'connections')
-      .aggregate<Connection>(aggregation)
-      .toArray();
+    const connections = await global.database.getCollection<any>(tenant.id, 'connections')
+      .aggregate<any>(aggregation)
+      .toArray() as Connection[];
     let connection: Connection;
     if (!Utils.isEmptyArray(connections)) {
       connection = connections[0];
@@ -113,7 +113,7 @@ export default class ConnectionStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Delete
-    await global.database.getCollection<Connection>(tenant.id, 'connections')
+    await global.database.getCollection<any>(tenant.id, 'connections')
       .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteConnectionById', startTime, { id });
   }
