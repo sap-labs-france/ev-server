@@ -383,7 +383,15 @@ export default class OCPIUtilsService {
         roundedPrice: Utils.truncTo(session.total_cost, 2),
         priceUnit: session.currency,
         pricingSource: PricingSource.OCPI,
+        stateOfCharge: 0,
         currentInactivityStatus: InactivityStatus.INFO,
+        currentInstantWatts: 0,
+        currentStateOfCharge: 0,
+        currentConsumptionWh: 0,
+        currentTotalConsumptionWh: 0,
+        currentTotalInactivitySecs: 0,
+        currentCumulatedPrice: 0,
+        currentCumulatedRoundedPrice: 0,
         lastConsumption: {
           value: 0,
           timestamp: session.start_datetime
@@ -464,7 +472,7 @@ export default class OCPIUtilsService {
       throw new AppError({
         module: MODULE_NAME, method: 'processEmspCdr', action,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `No Transaction found for OCPI CDR ID '${cdr.id}'`,
+        message: `No Transaction found for OCPI Session ID '${cdr.id}'`,
         detailedMessages: { cdr },
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
@@ -898,17 +906,21 @@ export default class OCPIUtilsService {
   }
 
   private static async createAndSaveEmspConsumption(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction, session: OCPISession): Promise<void> {
-    const consumptionWh = Utils.createDecimal(session.kwh).mul(1000).minus(Utils.convertToFloat(transaction.lastConsumption.value)).toNumber();
-    const durationSecs = Utils.createDecimal(moment(session.last_updated).diff(transaction.lastConsumption.timestamp, 'milliseconds')).div(1000).toNumber();
-    if (consumptionWh > 0 || durationSecs > 0) {
-      // Update Transaction
-      const sampleMultiplier = durationSecs > 0 ? Utils.createDecimal(3600).div(durationSecs).toNumber() : 0;
-      const currentInstantWatts = consumptionWh > 0 ? Utils.createDecimal(consumptionWh).mul(sampleMultiplier).toNumber() : 0;
-      transaction.currentInstantWatts = currentInstantWatts;
-      transaction.currentConsumptionWh = consumptionWh > 0 ? consumptionWh : 0;
+    const consumptionEnergyWh = Utils.createDecimal(session.kwh).mul(1000).minus(Utils.convertToFloat(transaction.lastConsumption.value)).toNumber();
+    const consumptionDurationSecs = Utils.createDecimal(moment(session.last_updated).diff(transaction.lastConsumption.timestamp, 'milliseconds')).div(1000).toNumber();
+    if (consumptionEnergyWh > 0 || consumptionDurationSecs > 0) {
+      // Compute Consumption data
+      const sampleMultiplier = consumptionDurationSecs > 0 ? Utils.createDecimal(3600).div(consumptionDurationSecs).toNumber() : 0;
+      const consumptionInstantWatts = consumptionEnergyWh > 0 ? Utils.createDecimal(consumptionEnergyWh).mul(sampleMultiplier).toNumber() : 0;
+      const consumptionAmount = Utils.createDecimal(session.total_cost).minus(transaction.currentCumulatedPrice).toNumber();
+      // Update Transaction runtime data
+      transaction.currentInstantWatts = consumptionInstantWatts;
+      transaction.currentConsumptionWh = consumptionEnergyWh > 0 ? consumptionEnergyWh : 0;
       transaction.currentTotalConsumptionWh = Utils.createDecimal(transaction.currentTotalConsumptionWh).plus(transaction.currentConsumptionWh).toNumber();
-      if (consumptionWh <= 0) {
-        transaction.currentTotalInactivitySecs = Utils.createDecimal(transaction.currentTotalInactivitySecs).plus(durationSecs).toNumber();
+      transaction.currentCumulatedPrice = session.total_cost;
+      transaction.currentCumulatedRoundedPrice = Utils.truncTo(session.total_cost, 2);
+      if (consumptionEnergyWh <= 0) {
+        transaction.currentTotalInactivitySecs = Utils.createDecimal(transaction.currentTotalInactivitySecs).plus(consumptionDurationSecs).toNumber();
         transaction.currentInactivityStatus = Utils.getInactivityStatusLevel(
           transaction.chargeBox, transaction.connectorId, transaction.currentTotalInactivitySecs);
       }
@@ -935,11 +947,11 @@ export default class OCPIUtilsService {
           moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds() :
           moment.duration(moment(transaction.lastConsumption.timestamp).diff(moment(transaction.timestamp))).asSeconds(),
         stateOfCharge: transaction.currentStateOfCharge,
-        amount: 0,
-        roundedAmount: 0,
+        amount: consumptionAmount,
+        roundedAmount: Utils.truncTo(consumptionAmount, 2),
         currencyCode: session.currency,
         cumulatedAmount: session.total_cost
-      } as Consumption;
+      };
       await ConsumptionStorage.saveConsumption(tenant, consumption);
     }
   }
