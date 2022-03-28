@@ -1,22 +1,22 @@
-import { ObjectId } from 'mongodb';
-
-import { Car, CarCatalog, CarCatalogConverter, CarMaker, CarType } from '../../types/Car';
-import DbParams from '../../types/database/DbParams';
-import { DataResult } from '../../types/DataResult';
+import { Car, CarCatalog, CarMaker, CarType } from '../../types/Car';
 import global, { DatabaseCount, FilterParams, Image } from '../../types/GlobalType';
-import Tenant from '../../types/Tenant';
-import Constants from '../../utils/Constants';
-import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
-import DatabaseUtils from './DatabaseUtils';
+
 import CarValidatorStorage from './validator/CarValidatorStorage';
+import Constants from '../../utils/Constants';
+import { DataResult } from '../../types/DataResult';
+import DatabaseUtils from './DatabaseUtils';
+import DbParams from '../../types/database/DbParams';
+import Logging from '../../utils/Logging';
+import { ObjectId } from 'mongodb';
+import Tenant from '../../types/Tenant';
+import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'CarStorage';
 
 export default class CarStorage {
   public static async getCarCatalog(id: number = Constants.UNKNOWN_NUMBER_ID,
-    params: { withImage?: boolean; } = {},
-    projectFields?: string[]): Promise<CarCatalog> {
+      params: { withImage?: boolean; } = {},
+      projectFields?: string[]): Promise<CarCatalog> {
     const carCatalogsMDB = await CarStorage.getCarCatalogs({
       carCatalogIDs: [id],
       withImage: params.withImage,
@@ -25,8 +25,8 @@ export default class CarStorage {
   }
 
   public static async getCarCatalogs(
-    params: { search?: string; carCatalogIDs?: number[]; carMaker?: string[], withImage?: boolean; } = {},
-    dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<CarCatalog>> {
+      params: { search?: string; carCatalogIDs?: number[]; carMaker?: string[], withImage?: boolean; } = {},
+      dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<CarCatalog>> {
     const startTime = Logging.traceDatabaseRequestStart();
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -341,7 +341,7 @@ export default class CarStorage {
   }
 
   public static async getCar(tenant: Tenant, id: string = Constants.UNKNOWN_STRING_ID,
-    params: { withUser?: boolean, userIDs?: string[]; type?: CarType } = {}, projectFields?: string[]): Promise<Car> {
+      params: { withUser?: boolean, userIDs?: string[]; type?: CarType } = {}, projectFields?: string[]): Promise<Car> {
     const carsMDB = await CarStorage.getCars(tenant, {
       carIDs: [id],
       withUser: params.withUser,
@@ -352,7 +352,7 @@ export default class CarStorage {
   }
 
   public static async getDefaultUserCar(tenant: Tenant, userID: string,
-    params = {}, projectFields?: string[]): Promise<Car> {
+      params = {}, projectFields?: string[]): Promise<Car> {
     const carMDB = await CarStorage.getCars(tenant, {
       userIDs: [userID],
       defaultCar: true,
@@ -361,7 +361,7 @@ export default class CarStorage {
   }
 
   public static async getFirstAvailableUserCar(tenant: Tenant, userID: string,
-    params = {}, projectFields?: string[]): Promise<Car> {
+      params = {}, projectFields?: string[]): Promise<Car> {
     const carMDB = await CarStorage.getCars(tenant, {
       userIDs: [userID],
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
@@ -369,8 +369,8 @@ export default class CarStorage {
   }
 
   public static async getCarByVinLicensePlate(tenant: Tenant,
-    licensePlate: string = Constants.UNKNOWN_STRING_ID, vin: string = Constants.UNKNOWN_STRING_ID,
-    params: { withUser?: boolean, userIDs?: string[]; } = {}, projectFields?: string[]): Promise<Car> {
+      licensePlate: string = Constants.UNKNOWN_STRING_ID, vin: string = Constants.UNKNOWN_STRING_ID,
+      params: { withUser?: boolean, userIDs?: string[]; } = {}, projectFields?: string[]): Promise<Car> {
     const carsMDB = await CarStorage.getCars(tenant, {
       licensePlate: licensePlate,
       vin: vin,
@@ -381,10 +381,10 @@ export default class CarStorage {
   }
 
   public static async getCars(tenant: Tenant,
-    params: {
-      search?: string; userIDs?: string[]; carIDs?: string[]; licensePlate?: string; vin?: string;
-      withUser?: boolean; defaultCar?: boolean; carMakers?: string[], type?: CarType; siteIDs?: string[];
-    } = {},
+      params: {
+        search?: string; userIDs?: string[]; carIDs?: string[]; licensePlate?: string; vin?: string;
+        withUser?: boolean; defaultCar?: boolean; carMakers?: string[], type?: CarType; siteIDs?: string[];
+      } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Car>> {
     let withCarCatalog = true;
     const startTime = Logging.traceDatabaseRequestStart();
