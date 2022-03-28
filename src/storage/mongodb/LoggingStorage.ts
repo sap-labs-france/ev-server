@@ -22,7 +22,7 @@ export default class LoggingStorage {
       return;
     }
     // Delete Logs
-    const result = await global.database.getCollection<Log>(tenant.id, 'logs')
+    const result = await global.database.getCollection<any>(tenant.id, 'logs')
       .deleteMany(filters);
     // Return the result
     return { acknowledged: result.acknowledged, deletedCount: result.deletedCount };
@@ -49,7 +49,7 @@ export default class LoggingStorage {
     };
     // Insert
     if (global.database) {
-      await global.database.getCollection<Log>(tenantID, 'logs').insertOne(logMDB);
+      await global.database.getCollection<any>(tenantID, 'logs').insertOne(logMDB);
       return logMDB._id.toString();
     }
   }
@@ -150,9 +150,9 @@ export default class LoggingStorage {
       // Always limit the nbr of record to avoid perfs issues
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
-    const loggingsCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'logs')
+    const loggingsCountMDB = await global.database.getCollection<any>(tenant.id, 'logs')
       .aggregate([...aggregation, { $count: 'count' }])
-      .toArray();
+      .toArray() as DatabaseCount[];
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       return {
@@ -211,9 +211,9 @@ export default class LoggingStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const loggingsMDB = await global.database.getCollection<Log>(tenant.id, 'logs')
-      .aggregate<Log>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const loggingsMDB = await global.database.getCollection<any>(tenant.id, 'logs')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as Log[];
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(loggingsCountMDB[0]),
       result: loggingsMDB

@@ -48,10 +48,8 @@ export default class CompanyService {
     // Filter
     const filteredRequest = CompanyValidator.getInstance().validateCompanyGetReq(req.query);
     // Check and Get Company
-    const company = await UtilsService.checkAndGetCompanyAuthorization(
-      req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {
-        withLogo: true
-      }, true);
+    const company = await UtilsService.checkAndGetCompanyAuthorization(req.tenant, req.user, filteredRequest.ID, Action.READ, action, null,
+      { withLogo: true }, true);
     res.json(company);
     next();
   }
@@ -65,20 +63,17 @@ export default class CompanyService {
       MODULE_NAME, 'handleGetCompanyLogo', req.user);
     // Get the Logo
     const companyLogo = await CompanyStorage.getCompanyLogo(tenant, filteredRequest.ID);
-    if (companyLogo?.logo) {
-      let header = 'image';
-      let encoding: BufferEncoding = 'base64';
-      // Remove encoding header
-      if (companyLogo.logo.startsWith('data:image/')) {
-        header = companyLogo.logo.substring(5, companyLogo.logo.indexOf(';'));
-        encoding = companyLogo.logo.substring(companyLogo.logo.indexOf(';') + 1, companyLogo.logo.indexOf(',')) as BufferEncoding;
-        companyLogo.logo = companyLogo.logo.substring(companyLogo.logo.indexOf(',') + 1);
-      }
-      res.setHeader('content-type', header);
-      res.send(companyLogo.logo ? Buffer.from(companyLogo.logo, encoding) : null);
-    } else {
-      res.send(null);
+    let logo = companyLogo && !Utils.isNullOrEmptyString(companyLogo.logo) ? companyLogo.logo : Constants.NO_IMAGE;
+    let header = 'image';
+    let encoding: BufferEncoding = 'base64';
+    // Remove encoding header
+    if (logo.startsWith('data:image/')) {
+      header = logo.substring(5, logo.indexOf(';'));
+      encoding = logo.substring(logo.indexOf(';') + 1, logo.indexOf(',')) as BufferEncoding;
+      logo = logo.substring(logo.indexOf(',') + 1);
     }
+    res.setHeader('content-type', header);
+    res.send(Buffer.from(logo, encoding));
     next();
   }
 

@@ -589,7 +589,7 @@ export default class OCPPUtils {
       value: transaction.meterStart,
       attribute: Constants.OCPP_ENERGY_ACTIVE_IMPORT_REGISTER_ATTRIBUTE
     };
-    return await OCPPUtils.createConsumptionFromMeterValue(tenant, chargingStation, transaction, lastConsumption, meterValue);
+    return OCPPUtils.createConsumptionFromMeterValue(tenant, chargingStation, transaction, lastConsumption, meterValue);
   }
 
   public static async createConsumptionFromMeterValue(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction,
@@ -1177,7 +1177,7 @@ export default class OCPPUtils {
         }
       }
     } else {
-      resultStatus = (result).status;
+      resultStatus = result.status;
     }
     if (resultStatus !== OCPPChargingProfileStatus.ACCEPTED) {
       throw new BackendError({

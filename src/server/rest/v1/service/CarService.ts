@@ -1,24 +1,25 @@
-import { Action, Entity } from '../../../../types/Authorization';
-import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
-import { Car, CarCatalog } from '../../../../types/Car';
-import { CarCatalogDataResult, CarDataResult } from '../../../../types/DataResult';
-import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-import Tenant, { TenantComponents } from '../../../../types/Tenant';
 
+import AsyncTaskBuilder from '../../../../async-task/AsyncTaskBuilder';
+import Authorizations from '../../../../authorization/Authorizations';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
-import AsyncTaskBuilder from '../../../../async-task/AsyncTaskBuilder';
-import AuthorizationService from './AuthorizationService';
-import Authorizations from '../../../../authorization/Authorizations';
-import CarStorage from '../../../../storage/mongodb/CarStorage';
-import CarValidator from '../validator/CarValidator';
-import Constants from '../../../../utils/Constants';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
-import Logging from '../../../../utils/Logging';
+import CarStorage from '../../../../storage/mongodb/CarStorage';
+import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
+import { Action, Entity } from '../../../../types/Authorization';
+import { Car } from '../../../../types/Car';
+import { CarCatalogDataResult, CarDataResult } from '../../../../types/DataResult';
+import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { ServerAction } from '../../../../types/Server';
+import Tenant, { TenantComponents } from '../../../../types/Tenant';
+import Constants from '../../../../utils/Constants';
+import Logging from '../../../../utils/Logging';
+import LoggingHelper from '../../../../utils/LoggingHelper';
 import Utils from '../../../../utils/Utils';
+import CarValidator from '../validator/CarValidator';
+import AuthorizationService from './AuthorizationService';
 import UtilsService from './UtilsService';
 
 const MODULE_NAME = 'CarService';
@@ -33,7 +34,7 @@ export default class CarService {
     // Filter
     const filteredRequest = CarValidator.getInstance().validateCarCatalogsGetReq(req.query);
     // Check auth
-    const authorizationCarCatalogsFilter = await AuthorizationService.checkAndGetCarCatalogsAuthorizations(req.tenant, req.user, filteredRequest);
+    const authorizationCarCatalogsFilter = await AuthorizationService.checkAndGetCarCatalogsAuthorizations(req.tenant, req.user, Action.LIST, filteredRequest);
     if (!authorizationCarCatalogsFilter.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
@@ -44,6 +45,7 @@ export default class CarService {
         search: filteredRequest.Search,
         carMaker: filteredRequest.CarMaker ? filteredRequest.CarMaker.split('|') : null,
         withImage: true,
+        ...authorizationCarCatalogsFilter.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -80,27 +82,21 @@ export default class CarService {
   }
 
   public static async handleGetCarCatalogImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Unprotected Endpoint: No JWT token is provided
-    // Filter
+    // This endpoint is not protected, so no need to check user's access
     const filteredRequest = CarValidator.getInstance().validateCarCatalogGetReq(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCarCatalogImage', req.user);
     // Get the car Image
     const carCatalog = await CarStorage.getCarCatalogImage(filteredRequest.ID);
-    if (carCatalog?.image) {
-      // Remove encoding header
-      let header = 'image';
-      let encoding: BufferEncoding = 'base64';
-      if (carCatalog?.image.startsWith('data:image/')) {
-        header = carCatalog.image.substring(5, carCatalog.image.indexOf(';'));
-        encoding = carCatalog.image.substring(carCatalog.image.indexOf(';') + 1, carCatalog.image.indexOf(',')) as BufferEncoding;
-        carCatalog.image = carCatalog.image.substring(carCatalog.image.indexOf(',') + 1);
-      }
-      // Revert to binary
-      res.setHeader('content-type', header);
-      res.send(Buffer.from(carCatalog.image, encoding));
-    } else {
-      res.send(null);
+    let image = !Utils.isNullOrEmptyString(carCatalog?.image) ? carCatalog.image : Constants.NO_IMAGE;
+    let header = 'image';
+    let encoding: BufferEncoding = 'base64';
+    // Remove encoding header
+    if (image.startsWith('data:image/')) {
+      header = image.substring(5, image.indexOf(';'));
+      encoding = image.substring(image.indexOf(';') + 1, image.indexOf(',')) as BufferEncoding;
+      image = image.substring(image.indexOf(',') + 1);
     }
+    res.setHeader('content-type', header);
+    res.send(Buffer.from(image, encoding));
     next();
   }
 
@@ -112,8 +108,6 @@ export default class CarService {
     }
     // Filter
     const filteredRequest = CarValidator.getInstance().validateCarCatalogImagesGetReq(req.query);
-    // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCarCatalogImages', req.user);
     // Check dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetCarCatalogAuthorizations(
       req.tenant, req.user, { ID: filteredRequest.ID }, Action.READ);
@@ -142,7 +136,8 @@ export default class CarService {
         Action.SYNCHRONIZE, Entity.CAR_CATALOG, MODULE_NAME, 'handleSynchronizeCarCatalogs');
     }
     // Check auth
-    if (!await Authorizations.canSynchronizeCarCatalogs(req.user)) {
+    const authorizationFilter = await AuthorizationService.checkAndGetCarCatalogsAuthorizations(req.tenant, req.user, Action.SYNCHRONIZE);
+    if (!authorizationFilter.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -188,7 +183,8 @@ export default class CarService {
     // Filter
     const filteredRequest = CarValidator.getInstance().validateCarMakersGetReq(req.query);
     // Check auth
-    if (!await Authorizations.canListCarCatalogs(req.user)) {
+    const authorizationCarCatalogsFilter = await AuthorizationService.checkAndGetCarCatalogsAuthorizations(req.tenant, req.user, Action.LIST, filteredRequest);
+    if (!authorizationCarCatalogsFilter.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -262,6 +258,7 @@ export default class CarService {
     newCar.id = await CarStorage.saveCar(req.tenant, newCar);
     await Logging.logInfo({
       tenantID: req.user.tenantID,
+      ...LoggingHelper.getCarProperties(newCar),
       user: req.user, module: MODULE_NAME, method: 'handleCreateCar',
       message: `Car with VIN '${newCar.vin}' and plate ID '${newCar.licensePlate}' has been created successfully`,
       action: action,
@@ -343,6 +340,7 @@ export default class CarService {
     }
     await Logging.logInfo({
       tenantID: req.user.tenantID,
+      ...LoggingHelper.getCarProperties(car),
       user: req.user, module: MODULE_NAME, method: 'handleUpdateCar',
       message: `Car '${car.id}' has been updated successfully`,
       action: action,
@@ -422,6 +420,7 @@ export default class CarService {
       await CarService.setDefaultCarForUser(req.tenant, car.userID);
     }
     await Logging.logInfo({
+      ...LoggingHelper.getCarProperties(car),
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteCar',
       message: `Car '${Utils.buildCarName(car)}' has been deleted successfully`,

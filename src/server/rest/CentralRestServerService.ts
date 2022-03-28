@@ -6,6 +6,7 @@ import CarService from './v1/service/CarService';
 import ChargingStationService from './v1/service/ChargingStationService';
 import CompanyService from './v1/service/CompanyService';
 import ConnectionService from './v1/service/ConnectionService';
+import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import LoggingService from './v1/service/LoggingService';
 import NotificationService from './v1/service/NotificationService';
@@ -250,6 +251,12 @@ export default class CentralRestServerService {
     try {
       // Parse the action
       const action = req.params.action as ServerAction;
+      await Logging.logWarning({
+        tenantID: Constants.DEFAULT_TENANT,
+        message: `REST Endpoint 'restServiceUtil' should not be used for action '${action}'`,
+        action: ServerAction.DEPRECATED_REST_ENDPOINT,
+        module: 'CentralRestServerService', method: 'restServiceUtil',
+      });
       // Check Context
       switch (req.method) {
         // Create Request
@@ -301,6 +308,13 @@ export default class CentralRestServerService {
   public static async restServiceSecured(req: Request, res: Response, next: NextFunction): Promise<void> {
     // Parse the action
     const action = req.params.action as ServerAction;
+    // Old endpoint: should not be used
+    await Logging.logWarning({
+      tenantID: req.tenant?.id,
+      message: `REST Endpoint 'restServiceSecured' should not be used for action '${action}'`,
+      action: ServerAction.DEPRECATED_REST_ENDPOINT,
+      module: 'CentralRestServerService', method: 'restServiceSecured',
+    });
     // Check HTTP Verbs
     if (!['POST', 'GET', 'PUT', 'DELETE'].includes(req.method)) {
       await Logging.logActionExceptionMessageAndSendResponse(

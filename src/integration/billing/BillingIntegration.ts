@@ -4,6 +4,7 @@ import Transaction, { StartTransactionErrorCode } from '../../types/Transaction'
 import User, { UserStatus } from '../../types/User';
 
 import BackendError from '../../exception/BackendError';
+import { BillingPeriodicOperationTaskConfig } from '../../types/TaskConfig';
 import { BillingSettings } from '../../types/Setting';
 import BillingStorage from '../../storage/mongodb/BillingStorage';
 import ChargingStation from '../../types/ChargingStation';
@@ -93,7 +94,7 @@ export default abstract class BillingIntegration {
     return billingUser;
   }
 
-  public async chargeInvoices(forceOperation = false): Promise<BillingChargeInvoiceAction> {
+  public async chargeInvoices(taskConfig: BillingPeriodicOperationTaskConfig): Promise<BillingChargeInvoiceAction> {
     const actionsDone: BillingChargeInvoiceAction = {
       inSuccess: 0,
       inError: 0
@@ -101,7 +102,19 @@ export default abstract class BillingIntegration {
     // Check connection
     await this.checkConnection();
     // Prepare filtering and sorting
-    const { filter, sort, limit } = this.preparePeriodicBillingQueryParameters(forceOperation);
+    let queryParameters : { limit: number, sort: Record<string, unknown>, filter: Record<string, unknown> };
+    if (taskConfig?.onlyProcessUnpaidInvoices) {
+      // ACHTUNG - Job configuration is sensitive - Too many payment retries may violate card network rules
+      queryParameters = this.prepareRetryPaymentQueryParameters(taskConfig?.forceOperation);
+    } else {
+      queryParameters = this.preparePeriodicBillingQueryParameters(taskConfig?.forceOperation);
+    }
+    if (!queryParameters) {
+      // Nothing to do!
+      return actionsDone;
+    }
+    // Let's perform the operation
+    const { filter, sort, limit } = queryParameters;
     let skip = 0;
     // eslint-disable-next-line no-constant-condition
     while (true) {
@@ -112,12 +125,8 @@ export default abstract class BillingIntegration {
       skip += limit;
       for (const invoice of invoices.result) {
         try {
-          // Skip invoices that are already PAID or not relevant for the current billing process
-          if (this.isInvoiceOutOfPeriodicOperationScope(invoice)) {
-            continue;
-          }
           // Make sure to avoid trying to charge it again too soon
-          if (!forceOperation && moment(invoice.createdOn).isSame(moment(), 'day')) {
+          if (!taskConfig?.forceOperation && moment(invoice.createdOn).isSame(moment(), 'day')) {
             actionsDone.inSuccess++;
             await Logging.logWarning({
               tenantID: this.tenant.id,
@@ -129,7 +138,7 @@ export default abstract class BillingIntegration {
             continue;
           }
           const newInvoice = await this.chargeInvoice(invoice);
-          if (this.isInvoiceOutOfPeriodicOperationScope(newInvoice)) {
+          if (this.isInvoiceOutOfPaginationScope(newInvoice, taskConfig)) {
             // The new invoice may now have a different status - and this impacts the pagination
             skip--; // This is very important!
           }
@@ -530,17 +539,26 @@ export default abstract class BillingIntegration {
     await UserStorage.saveUserBillingData(this.tenant, user.id, null);
   }
 
-  private isInvoiceOutOfPeriodicOperationScope(invoice: BillingInvoice): boolean {
-    if (invoice.status === BillingInvoiceStatus.DRAFT && this.settings.billing?.periodicBillingAllowed) {
-      return false;
+  private isInvoiceInPaginationScope(invoice: BillingInvoice, taskConfig: BillingPeriodicOperationTaskConfig): boolean {
+    if (taskConfig.onlyProcessUnpaidInvoices) {
+      if (invoice.status === BillingInvoiceStatus.OPEN) {
+        return true;
+      }
+    } else if (invoice.status === BillingInvoiceStatus.DRAFT) {
+      return true;
     }
-    if (invoice.status === BillingInvoiceStatus.OPEN) {
-      return false;
-    }
-    return true;
+    return false;
+  }
+
+  private isInvoiceOutOfPaginationScope(invoice: BillingInvoice, taskConfig: BillingPeriodicOperationTaskConfig): boolean {
+    return !this.isInvoiceInPaginationScope(invoice, taskConfig);
   }
 
   private preparePeriodicBillingQueryParameters(forceOperation: boolean): { limit: number, sort: Record<string, unknown>, filter: Record<string, unknown> } {
+    if (!this.settings.billing?.periodicBillingAllowed) {
+      // Nothing to do - periodic billing is OFF
+      return null;
+    }
     // Prepare filtering to process Invoices of the previous month
     let startDateTime: Date, endDateTime: Date, limit: number;
     if (forceOperation) {
@@ -555,14 +573,39 @@ export default abstract class BillingIntegration {
       endDateTime = moment().date(1).startOf('day').toDate(); // 1st day of this month 00:00:00 (AM)
     }
     // Filter the invoice status based on the billing settings
-    let invoiceStatus;
-    if (this.settings.billing?.periodicBillingAllowed) {
-      // Let's finalize DRAFT invoices and trigger a payment attempt for unpaid invoices as well
-      invoiceStatus = [ BillingInvoiceStatus.DRAFT, BillingInvoiceStatus.OPEN ];
+    const invoiceStatus = [ BillingInvoiceStatus.DRAFT ];
+    // Now return the query parameters
+    return {
+      // --------------------------------------------------------------------------------
+      // ACHTUNG!!! Make sure to adapt the paging logic when the data used for filtering
+      // is also updated by the periodic operation
+      // --------------------------------------------------------------------------------
+      filter: {
+        startDateTime,
+        endDateTime,
+        invoiceStatus
+      },
+      limit,
+      sort: { createdOn: 1 } // Sort by creation date - process the eldest first!
+    };
+  }
+
+  private prepareRetryPaymentQueryParameters(forceOperation: boolean): { limit: number, sort: Record<string, unknown>, filter: Record<string, unknown> } {
+    // Prepare filtering to process Invoices of the previous month
+    let startDateTime: Date, endDateTime: Date, limit: number;
+    if (forceOperation) {
+      // Only used when running tests
+      limit = 1; // Specific limit to test the pagination
+      startDateTime = moment().startOf('day').toDate(); // Today at 00:00:00 (AM)
+      endDateTime = moment().endOf('day').toDate(); // Today at 23:59:59 (PM)
     } else {
-      // Let's trigger a new payment attempt for unpaid invoices
-      invoiceStatus = [ BillingInvoiceStatus.OPEN ];
+      // Used once a month
+      limit = Constants.BATCH_PAGE_SIZE;
+      startDateTime = moment().date(1).startOf('day').toDate(); // 1st day of this month 00:00:00 (AM)
+      endDateTime = moment().add(-1,'days').endOf('day').toDate(); // yesterday at midnight
     }
+    // Filter the invoice status based on the billing settings
+    const invoiceStatus = [ BillingInvoiceStatus.OPEN ];
     // Now return the query parameters
     return {
       // --------------------------------------------------------------------------------

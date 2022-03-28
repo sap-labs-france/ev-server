@@ -72,7 +72,7 @@ export default class OCPPService {
       // Enrich Charging Station
       await this.enrichChargingStationFromBootNotification(tenant, chargingStation, headers, bootNotification);
       // Apply template
-      const templateUpdateResult = await OCPPUtils.checkAndApplyTemplateToChargingStation(tenant, chargingStation, false);
+      await OCPPUtils.checkAndApplyTemplateToChargingStation(tenant, chargingStation, false);
       // Save Charging Station
       await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
       // Save Boot Notification
@@ -80,12 +80,10 @@ export default class OCPPService {
       // Notify
       this.notifyBootNotification(tenant, chargingStation);
       // Request OCPP configuration
-      if (!templateUpdateResult.chargingStationUpdated) {
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        setTimeout(async () => {
-          await OCPPCommon.requestAndSaveChargingStationOcppParameters(tenant, chargingStation);
-        }, Constants.DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS);
-      }
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      setTimeout(async () => {
+        await OCPPCommon.requestAndSaveChargingStationOcppParameters(tenant, chargingStation);
+      }, Constants.DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS);
       await Logging.logInfo({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         tenantID: tenant.id,
@@ -374,10 +372,11 @@ export default class OCPPService {
       }
       // Cleanup ongoing Transaction
       await this.processExistingTransaction(tenant, chargingStation, startTransaction.connectorId);
-      // Handle car and current SOC
+      // Handle Car
       await this.processTransactionCar(tenant, newTransaction, chargingStation, null, user, TransactionAction.START);
-      // Pricing
+      // Create consumption
       const firstConsumption = await OCPPUtils.createFirstConsumption(tenant, chargingStation, newTransaction);
+      // Pricing
       await OCPPUtils.processTransactionPricing(tenant, newTransaction, chargingStation, firstConsumption, TransactionAction.START);
       // Billing
       await BillingFacade.processStartTransaction(tenant, newTransaction, chargingStation, chargingStation.siteArea, user);
@@ -462,7 +461,7 @@ export default class OCPPService {
       // Set header
       this.enrichOCPPRequest(chargingStation, stopTransaction, false);
       // Bypass Stop Transaction?
-      if (await this.bypassStopTransaction(tenant, chargingStation, headers, stopTransaction)) {
+      if (await this.bypassStopTransaction(tenant, chargingStation, stopTransaction)) {
         return {
           idTagInfo: {
             status: OCPPAuthorizationStatus.ACCEPTED
@@ -1590,7 +1589,7 @@ export default class OCPPService {
       const carImplementation = await CarConnectorFactory.getCarConnectorImpl(tenant, transaction.car.carConnectorData.carConnectorID);
       if (carImplementation) {
         try {
-          return await carImplementation.getCurrentSoC(transaction.car, transaction.userID);
+          return carImplementation.getCurrentSoC(transaction.car, transaction.userID);
         } catch {
           return null;
         }
@@ -1835,7 +1834,7 @@ export default class OCPPService {
   }
 
   private async bypassStopTransaction(tenant: Tenant, chargingStation: ChargingStation,
-      headers: OCPPHeader, stopTransaction: OCPPStopTransactionRequestExtended): Promise<boolean> {
+      stopTransaction: OCPPStopTransactionRequestExtended): Promise<boolean> {
     // Ignore it (DELTA bug)?
     if (stopTransaction.transactionId === 0) {
       await Logging.logWarning({
@@ -1867,7 +1866,7 @@ export default class OCPPService {
     if (!transaction) {
       // Abort the ongoing Transaction
       if (meterValues.transactionId) {
-        await this.abortOngoingTransactionInMeterValues(tenant, chargingStation, headers, meterValues);
+        await this.abortOngoingTransactionInMeterValues(tenant, chargingStation, meterValues);
       }
       // Unkown Transaction
       throw new BackendError({
@@ -1881,7 +1880,7 @@ export default class OCPPService {
     // Transaction finished
     if (transaction?.stop) {
       // Abort the ongoing Transaction
-      await this.abortOngoingTransactionInMeterValues(tenant, chargingStation, headers, meterValues);
+      await this.abortOngoingTransactionInMeterValues(tenant, chargingStation, meterValues);
       throw new BackendError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         module: MODULE_NAME, method: 'getTransactionFromMeterValues',
@@ -1904,7 +1903,7 @@ export default class OCPPService {
     return transaction;
   }
 
-  private async abortOngoingTransactionInMeterValues(tenant: Tenant, chargingStation: ChargingStation, headers: OCPPHeader, meterValues: OCPPMeterValuesRequest) {
+  private async abortOngoingTransactionInMeterValues(tenant: Tenant, chargingStation: ChargingStation, meterValues: OCPPMeterValuesRequest) {
     // Get the OCPP Client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant, chargingStation);
     if (!chargingStationClient) {

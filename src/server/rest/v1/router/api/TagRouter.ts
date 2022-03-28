@@ -19,7 +19,6 @@ export default class TagRouter {
     this.buildRouteDeleteTag();
     this.buildRouteDeleteTags();
     this.buildRouteUpdateTag();
-    this.buildRouteUpdateTagByVisualID();
     this.buildRouteImportTag();
     this.buildRouteExportTag();
     this.buildRouteAssignTag();
@@ -67,13 +66,11 @@ export default class TagRouter {
 
   private buildRouteUpdateTag(): void {
     this.router.put(`/${ServerRoute.REST_TAG}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(TagService.handleUpdateTag.bind(this), ServerAction.TAG_UPDATE, req, res, next);
-    });
-  }
-
-  private buildRouteUpdateTagByVisualID(): void {
-    this.router.put(`/${ServerRoute.REST_TAGS}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(TagService.handleUpdateTagByVisualID.bind(this), ServerAction.TAG_UPDATE_BY_VISUAL_ID, req, res, next);
+      if (req.body.id) {
+        await RouterUtils.handleServerAction(TagService.handleUpdateTag.bind(this), ServerAction.TAG_UPDATE, req, res, next);
+      } else {
+        await RouterUtils.handleServerAction(TagService.handleUpdateTagByVisualID.bind(this), ServerAction.TAG_UPDATE, req, res, next);
+      }
     });
   }
 

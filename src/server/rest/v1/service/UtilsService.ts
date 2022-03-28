@@ -837,9 +837,9 @@ export default class UtilsService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: authAction, entity: Entity.USER,
-        module: MODULE_NAME, method: 'checkAndGetUserAuthorization',
-        value: carCatalogID.toString()
+        action: authAction, entity: Entity.CAR_CATALOG,
+        module: MODULE_NAME, method: 'checkAndGetCarCatalogAuthorization',
+        value: carCatalogID.toString(),
       });
     }
     return carCatalog;
@@ -1720,17 +1720,6 @@ export default class UtilsService {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
         message: `User Email '${filteredRequest.email}' is not valid`,
-        module: MODULE_NAME,
-        method: 'checkIfUserValid',
-        user: req.user.id,
-        actionOnUser: filteredRequest.id
-      });
-    }
-    // Check for password requirement and validity if user is created
-    if (req.method === 'POST' && (!filteredRequest.password || !Utils.isPasswordValid(filteredRequest.password))) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'User Password is empty or not valid',
         module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id,

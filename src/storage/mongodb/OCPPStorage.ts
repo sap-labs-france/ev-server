@@ -64,9 +64,9 @@ export default class OCPPStorage {
       });
     }
     // Count Records
-    const authorizesCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'authorizes')
+    const authorizesCountMDB = await global.database.getCollection<any>(tenant.id, 'authorizes')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
-      .toArray();
+      .toArray() as DatabaseCount[];
     // Sort
     if (!dbParams.sort) {
       dbParams.sort = { timestamp: -1 };
@@ -84,9 +84,9 @@ export default class OCPPStorage {
       $limit: dbParams.limit
     });
     // Read DB
-    const authorizesMDB = await global.database.getCollection<OCPPAuthorizeRequestExtended>(tenant.id, 'authorizes')
-      .aggregate<OCPPAuthorizeRequestExtended>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const authorizesMDB = await global.database.getCollection<any>(tenant.id, 'authorizes')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as OCPPAuthorizeRequestExtended[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getAuthorizes', startTime, aggregation, authorizesMDB);
     return {
       count: (authorizesCountMDB.length > 0 ? authorizesCountMDB[0].count : 0),
@@ -149,9 +149,9 @@ export default class OCPPStorage {
       });
     }
     // Count Records
-    const statusNotificationsCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'statusnotifications')
+    const statusNotificationsCountMDB = await global.database.getCollection<any>(tenant.id, 'statusnotifications')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
-      .toArray();
+      .toArray() as DatabaseCount[];
     // Sort
     if (!dbParams.sort) {
       dbParams.sort = { _id: 1 };
@@ -168,9 +168,9 @@ export default class OCPPStorage {
       $limit: dbParams.limit
     });
     // Read DB
-    const statusNotificationsMDB = await global.database.getCollection<OCPPStatusNotificationRequestExtended>(tenant.id, 'statusnotifications')
-      .aggregate<OCPPStatusNotificationRequestExtended>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const statusNotificationsMDB = await global.database.getCollection<any>(tenant.id, 'statusnotifications')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as OCPPStatusNotificationRequestExtended[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getStatusNotifications', startTime, aggregation, statusNotificationsMDB);
     return {
       count: (statusNotificationsCountMDB.length > 0 ? statusNotificationsCountMDB[0].count : 0),
@@ -217,9 +217,9 @@ export default class OCPPStorage {
     // Limit
     aggregation.push({ $limit: 1 });
     // Read DB
-    const statusNotificationsMDB = await global.database.getCollection<OCPPStatusNotificationRequestExtended>(tenant.id, 'statusnotifications')
-      .aggregate<OCPPStatusNotificationRequestExtended>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const statusNotificationsMDB = await global.database.getCollection<any>(tenant.id, 'statusnotifications')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as OCPPStatusNotificationRequestExtended[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getLastStatusNotifications', startTime, aggregation, statusNotificationsMDB);
     return statusNotificationsMDB;
   }
@@ -314,9 +314,9 @@ export default class OCPPStorage {
       $match: filters
     });
     // Count Records
-    const bootNotificationsCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'bootnotifications')
+    const bootNotificationsCountMDB = await global.database.getCollection<any>(tenant.id, 'bootnotifications')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
-      .toArray();
+      .toArray() as DatabaseCount[];
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenant.id, aggregation);
     // Sort
@@ -335,9 +335,9 @@ export default class OCPPStorage {
       $limit: dbParams.limit
     });
     // Read DB
-    const bootNotificationsMDB = await global.database.getCollection<OCPPBootNotificationRequestExtended>(tenant.id, 'bootnotifications')
-      .aggregate<OCPPBootNotificationRequestExtended>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const bootNotificationsMDB = await global.database.getCollection<any>(tenant.id, 'bootnotifications')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as OCPPBootNotificationRequestExtended[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getBootNotifications', startTime, aggregation, bootNotificationsMDB);
     return {
       count: (bootNotificationsCountMDB.length > 0 ? bootNotificationsCountMDB[0].count : 0),
@@ -422,9 +422,9 @@ export default class OCPPStorage {
       $match: filters
     });
     // Count Records
-    const meterValuesCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'metervalues')
+    const meterValuesCountMDB = await global.database.getCollection<any>(tenant.id, 'metervalues')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
-      .toArray();
+      .toArray() as DatabaseCount[];
     // Sort
     if (!dbParams.sort) {
       dbParams.sort = { timestamp: 1 };
@@ -441,9 +441,9 @@ export default class OCPPStorage {
       $limit: dbParams.limit
     });
     // Read DB
-    const meterValuesMDB = await global.database.getCollection<OCPPNormalizedMeterValue>(tenant.id, 'metervalues')
-      .aggregate<OCPPNormalizedMeterValue>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const meterValuesMDB = await global.database.getCollection<any>(tenant.id, 'metervalues')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as OCPPNormalizedMeterValue[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getMeterValues', startTime, aggregation, meterValuesMDB);
     return {
       count: (meterValuesCountMDB.length > 0 ? meterValuesCountMDB[0].count : 0),

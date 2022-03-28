@@ -7,6 +7,7 @@ import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
 import Constants from '../../../../utils/Constants';
 import Logging from '../../../../utils/Logging';
+import LoggingHelper from '../../../../utils/LoggingHelper';
 import RegistrationToken from '../../../../types/RegistrationToken';
 import { RegistrationTokenDataResult } from '../../../../types/DataResult';
 import RegistrationTokenStorage from '../../../../storage/mongodb/RegistrationTokenStorage';
@@ -20,7 +21,7 @@ import moment from 'moment';
 const MODULE_NAME = 'RegistrationTokenService';
 
 export default class RegistrationTokenService {
-  static async handleCreateRegistrationToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleCreateRegistrationToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = RegistrationTokenValidator.getInstance().validateRegistrationTokenCreateReq(req.body);
     // Check the Site Area
@@ -29,8 +30,7 @@ export default class RegistrationTokenService {
         req.tenant, req.user, filteredRequest.siteAreaID, Action.UPDATE, action, filteredRequest, null, false);
     }
     // Get dynamic auth
-    const authorizationFilter = await AuthorizationService.checkAndGetRegistrationTokenAuthorizations(
-      req.tenant, req.user, {}, Action.CREATE, filteredRequest);
+    const authorizationFilter = await AuthorizationService.checkAndGetRegistrationTokenAuthorizations(req.tenant, req.user, {}, Action.CREATE, filteredRequest);
     if (!authorizationFilter.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -50,6 +50,7 @@ export default class RegistrationTokenService {
     // Save
     registrationToken.id = await RegistrationTokenStorage.saveRegistrationToken(req.tenant, registrationToken);
     await Logging.logInfo({
+      ...LoggingHelper.getRegistrationTokenProperties(registrationToken),
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleCreateRegistrationToken',
       message: `Registration Token '${registrationToken.description}' has been created successfully`,
@@ -59,7 +60,7 @@ export default class RegistrationTokenService {
     next();
   }
 
-  static async handleUpdateRegistrationToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdateRegistrationToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = RegistrationTokenValidator.getInstance().validateRegistrationTokenUpdateReq(req.body);
     // Check and Get Registration Token
@@ -80,6 +81,7 @@ export default class RegistrationTokenService {
     // Save
     await RegistrationTokenStorage.saveRegistrationToken(req.tenant, registrationToken);
     await Logging.logInfo({
+      ...LoggingHelper.getRegistrationTokenProperties(registrationToken),
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateRegistrationToken',
       message: `Registration Token '${registrationToken.description}' has been updated successfully`,
@@ -89,7 +91,7 @@ export default class RegistrationTokenService {
     next();
   }
 
-  static async handleDeleteRegistrationToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleDeleteRegistrationToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const registrationTokenID = RegistrationTokenValidator.getInstance().validateRegistrationTokenGetReq(req.query).ID;
     // Check and Get Registration Token
@@ -98,6 +100,7 @@ export default class RegistrationTokenService {
     // Delete
     await RegistrationTokenStorage.deleteRegistrationToken(req.tenant, registrationToken.id);
     await Logging.logInfo({
+      ...LoggingHelper.getRegistrationTokenProperties(registrationToken),
       tenantID: req.user.tenantID,
       user: req.user,
       module: MODULE_NAME, method: 'handleDeleteRegistrationToken',
@@ -108,7 +111,7 @@ export default class RegistrationTokenService {
     next();
   }
 
-  static async handleRevokeRegistrationToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleRevokeRegistrationToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const registrationTokenID = RegistrationTokenValidator.getInstance().validateRegistrationTokenGetReq(req.query).ID;
     // Check and Get Registration Token
@@ -117,6 +120,7 @@ export default class RegistrationTokenService {
     if (registrationToken.expirationDate &&
         moment(registrationToken.expirationDate).isBefore(new Date())) {
       throw new AppError({
+        ...LoggingHelper.getRegistrationTokenProperties(registrationToken),
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Cannot revoke a token that has expired',
         module: MODULE_NAME, method: 'handleRevokeRegistrationToken',
@@ -124,12 +128,14 @@ export default class RegistrationTokenService {
       });
     }
     // Update
-    registrationToken.revocationDate = new Date();
+    const now = new Date();
+    registrationToken.revocationDate = now;
     registrationToken.lastChangedBy = { 'id': req.user.id };
-    registrationToken.lastChangedOn = new Date();
+    registrationToken.lastChangedOn = now;
     // Save
     await RegistrationTokenStorage.saveRegistrationToken(req.tenant, registrationToken);
     await Logging.logInfo({
+      ...LoggingHelper.getRegistrationTokenProperties(registrationToken),
       tenantID: req.user.tenantID,
       user: req.user,
       module: MODULE_NAME, method: 'handleRevokeRegistrationToken',
@@ -140,7 +146,7 @@ export default class RegistrationTokenService {
     next();
   }
 
-  static async handleGetRegistrationTokens(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetRegistrationTokens(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = RegistrationTokenValidator.getInstance().validateRegistrationTokensGetReq(req.query);
     // Check dynamic auth
@@ -175,7 +181,7 @@ export default class RegistrationTokenService {
     next();
   }
 
-  static async handleGetRegistrationToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetRegistrationToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = RegistrationTokenValidator.getInstance().validateRegistrationTokenGetReq(req.query);
     // Check and Get Registration Token
