@@ -385,7 +385,7 @@ export default class CarStorage {
         search?: string; userIDs?: string[]; carIDs?: string[]; licensePlate?: string; vin?: string;
         withUser?: boolean; defaultCar?: boolean; carMakers?: string[], type?: CarType; siteIDs?: string[];
       } = {},
-    dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Car>> {
+      dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Car>> {
     let withCarCatalog = true;
     const startTime = Logging.traceDatabaseRequestStart();
     // Clone before updating the values
