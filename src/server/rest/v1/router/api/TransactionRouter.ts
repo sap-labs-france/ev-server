@@ -88,7 +88,7 @@ export default class TransactionRouter {
   private buildRoutePushTransactionCDR(): void {
     this.router.post(`/${ServerRoute.REST_TRANSACTION_CDR}`, async (req: Request, res: Response, next: NextFunction) => {
       req.body.transactionId = req.params.id;
-      await RouterUtils.handleServerAction(TransactionService.handlePushTransactionCdr.bind(this), ServerAction.OCPI_PUSH_CDRS, req, res, next);
+      await RouterUtils.handleServerAction(TransactionService.handlePushTransactionCdr.bind(this), ServerAction.OCPI_CPO_PUSH_CDRS, req, res, next);
     });
   }
 

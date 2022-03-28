@@ -98,7 +98,8 @@
   "Storage": {
     "implementation": "mongodb",
     "uri": "YourConnectionURI",
-    "debug": false
+    "debug": false,
+    "poolSize": 10
   },
   "Notification": {
     "Email": {

@@ -281,10 +281,13 @@ describe('Tag', () => {
 
         it('Should be able to update his own badge', async () => {
           testData.newTagUnassigned.description = 'My new description';
+          const id = testData.newTagUnassigned.id;
+          delete testData.newTagUnassigned.id; // Basic User should not be able to see his ID
           const response = await testData.userService.tagApi.updateTagByVisualID(testData.newTagUnassigned);
           expect(response.status).to.equal(StatusCodes.OK);
           const tag = (await testData.userService.tagApi.readTagByVisualID(testData.newTagUnassigned.visualID)).data;
           expect(tag.description).to.equal('My new description');
+          testData.newTagUnassigned.id = id;
         });
 
         it('Should get the user default car tag', async () => {

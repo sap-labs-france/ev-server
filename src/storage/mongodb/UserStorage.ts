@@ -36,11 +36,11 @@ export default class UserStorage {
     // Get current eula
     const currentEula = UserStorage.getEndUserLicenseAgreementFromFile(language);
     // Read DB
-    const eulasMDB = await global.database.getCollection<Eula>(tenant.id, 'eulas')
+    const eulasMDB = await global.database.getCollection<any>(tenant.id, 'eulas')
       .find({ 'language': language })
       .sort({ 'version': -1 })
       .limit(1)
-      .toArray();
+      .toArray() as Eula[];
     // Found?
     if (!Utils.isEmptyArray(eulasMDB)) {
       // Get
@@ -57,7 +57,7 @@ export default class UserStorage {
           hash: currentEulaHash
         };
         // Create
-        await global.database.getCollection<Eula>(tenant.id, 'eulas')
+        await global.database.getCollection<any>(tenant.id, 'eulas')
           .insertOne(eula);
         await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getEndUserLicenseAgreement', startTime, eula);
         return eula;
@@ -74,7 +74,7 @@ export default class UserStorage {
       hash: Utils.hash(currentEula)
     };
     // Create
-    await global.database.getCollection<Eula>(tenant.id, 'eulas').insertOne(eula);
+    await global.database.getCollection<any>(tenant.id, 'eulas').insertOne(eula);
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getEndUserLicenseAgreement', startTime, eula);
     return eula;
   }
@@ -135,7 +135,7 @@ export default class UserStorage {
       // At least one Site
       if (!Utils.isEmptyArray(siteIDs)) {
         // Create the lis
-        await global.database.getCollection<User>(tenant.id, 'siteusers').deleteMany({
+        await global.database.getCollection<any>(tenant.id, 'siteusers').deleteMany({
           'userID': DatabaseUtils.convertToObjectID(userID),
           'siteID': { $in: siteIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID)) }
         });
@@ -160,7 +160,7 @@ export default class UserStorage {
         });
       }
       // Execute
-      await global.database.getCollection<User>(tenant.id, 'siteusers').insertMany(siteUsersMDB);
+      await global.database.getCollection<any>(tenant.id, 'siteusers').insertMany(siteUsersMDB);
     }
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'addSitesToUser', startTime, siteIDs);
   }
@@ -169,7 +169,7 @@ export default class UserStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Execute
-    await global.database.getCollection<User>(tenant.id, 'siteusers').updateMany(
+    await global.database.getCollection<any>(tenant.id, 'siteusers').updateMany(
       { userID: DatabaseUtils.convertToObjectID(userID) },
       {
         $set: {
@@ -189,7 +189,7 @@ export default class UserStorage {
       'siteAdmin': false
     };
     // Execute
-    await global.database.getCollection<User>(tenant.id, 'siteusers').findOneAndUpdate(
+    await global.database.getCollection<any>(tenant.id, 'siteusers').findOneAndUpdate(
       { userID: siteUserMDB.userID, siteID: siteUserMDB.siteID },
       { $set: siteUserMDB },
       { upsert: true }
@@ -657,9 +657,9 @@ export default class UserStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const usersCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'users')
+    const usersCountMDB = await global.database.getCollection<any>(tenant.id, 'users')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
-      .toArray();
+      .toArray() as DatabaseCount[];
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
@@ -693,9 +693,9 @@ export default class UserStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const usersMDB = await global.database.getCollection<User>(tenant.id, 'users')
-      .aggregate<User>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const usersMDB = await global.database.getCollection<any>(tenant.id, 'users')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as User[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getUsers', startTime, usersMDB);
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(usersCountMDB[0]),
@@ -749,9 +749,9 @@ export default class UserStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const usersImportCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'importedusers')
+    const usersImportCountMDB = await global.database.getCollection<any>(tenant.id, 'importedusers')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
-      .toArray();
+      .toArray() as DatabaseCount[];
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
@@ -787,9 +787,9 @@ export default class UserStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const usersImportMDB = await global.database.getCollection<ImportedUser>(tenant.id, 'importedusers')
-      .aggregate<ImportedUser>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const usersImportMDB = await global.database.getCollection<any>(tenant.id, 'importedusers')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as ImportedUser[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getImportedUsers', startTime, usersImportMDB);
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(usersImportCountMDB[0]),
@@ -879,9 +879,9 @@ export default class UserStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const usersMDB = await global.database.getCollection<User>(tenant.id, 'users')
-      .aggregate<User>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const usersMDB = await global.database.getCollection<any>(tenant.id, 'users')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as User[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getUsersInError', startTime, usersMDB);
     return {
       count: usersMDB.length,
@@ -960,9 +960,9 @@ export default class UserStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const sitesCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'siteusers')
+    const sitesCountMDB = await global.database.getCollection<any>(tenant.id, 'siteusers')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
-      .toArray();
+      .toArray() as DatabaseCount[];
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getUserSites', startTime, sitesCountMDB);
@@ -996,9 +996,9 @@ export default class UserStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const siteUsersMDB = await global.database.getCollection<SiteUser>(tenant.id, 'siteusers')
-      .aggregate<SiteUser>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const siteUsersMDB = await global.database.getCollection<any>(tenant.id, 'siteusers')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as SiteUser[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getUserSites', startTime, siteUsersMDB);
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(sitesCountMDB[0]),
