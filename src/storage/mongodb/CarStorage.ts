@@ -1,4 +1,4 @@
-import { Car, CarCatalog, CarCatalogConverter, CarMaker, CarType } from '../../types/Car';
+import { Car, CarCatalog, CarMaker, CarType } from '../../types/Car';
 import global, { DatabaseCount, FilterParams, Image } from '../../types/GlobalType';
 
 import CarValidatorStorage from './validator/CarValidatorStorage';
@@ -105,19 +105,14 @@ export default class CarStorage {
       aggregation.push({
         $addFields: {
           image: {
-            $cond: {
-              if: { $gt: ['$image', null] }, then: {
-                $concat: [
-                  `${Utils.buildRestServerURL()}/v1/util/car-catalogs/`,
-                  { $toString: '$_id' },
-                  '/image',
-                  {
-                    $ifNull: [{ $concat: ['?LastChangedOn=', { $toString: '$lastChangedOn' }] }, ''] // Only concat 'lastChangedOn' if not null
-                  }
-                ]
-              }, else: null
-            }
-
+            $concat: [
+              `${Utils.buildRestServerURL()}/v1/util/car-catalogs/`,
+              { $toString: '$_id' },
+              '/image',
+              {
+                $ifNull: [{ $concat: ['?LastChangedOn=', { $toString: '$lastChangedOn' }] }, ''] // Only concat 'lastChangedOn' if not null
+              }
+            ]
           }
         }
       });
@@ -510,25 +505,21 @@ export default class CarStorage {
     if (withCarCatalog) {
       DatabaseUtils.pushCarCatalogLookupInAggregation({
         tenantID: Constants.DEFAULT_TENANT, aggregation, localField: 'carCatalogID', foreignField: '_id',
-        asField: 'carCatalog', oneToOneCardinality: true
+        asField: 'carCatalog', oneToOneCardinality: true, projectFields: ['id', 'vehicleMake', 'vehicleModel', 'vehicleModelVersion',
+          'fastChargePowerMax', 'batteryCapacityFull']
       });
       // Car Image
       aggregation.push({
         $addFields: {
           'carCatalog.image': {
-            $cond: {
-              if: { $gt: ['$carCatalog.image', null] }, then: {
-                $concat: [
-                  `${Utils.buildRestServerURL()}/v1/util/car-catalogs/`,
-                  '$carCatalog.id',
-                  '/image',
-                  {
-                    $ifNull: [{ $concat: ['?LastChangedOn=', { $toString: '$carCatalog.lastChangedOn' }] }, ''] // Only concat 'lastChangedOn' if not null
-                  }
-                ]
-              }, else: null
-            }
-
+            $concat: [
+              `${Utils.buildRestServerURL()}/v1/util/car-catalogs/`,
+              '$carCatalog.id',
+              '/image',
+              {
+                $ifNull: [{ $concat: ['?LastChangedOn=', { $toString: '$carCatalog.lastChangedOn' }] }, ''] // Only concat 'lastChangedOn' if not null
+              }
+            ]
           }
         }
       });
