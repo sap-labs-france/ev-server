@@ -29,7 +29,7 @@ export default class OCPIPullSessionsTask extends TenantSchedulerTask {
       }
     } catch (error) {
       // Log error
-      await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PULL_SESSIONS, error);
+      await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_PULL_SESSIONS, error);
     }
   }
 
@@ -43,7 +43,7 @@ export default class OCPIPullSessionsTask extends TenantSchedulerTask {
           await Logging.logDebug({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
-            action: ServerAction.OCPI_PULL_SESSIONS,
+            action: ServerAction.OCPI_EMSP_PULL_SESSIONS,
             message: `The OCPI endpoint '${ocpiEndpoint.name}' is not registered. Skipping the OCPI endpoint.`
           });
           return;
@@ -52,7 +52,7 @@ export default class OCPIPullSessionsTask extends TenantSchedulerTask {
           await Logging.logDebug({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
-            action: ServerAction.OCPI_PULL_SESSIONS,
+            action: ServerAction.OCPI_EMSP_PULL_SESSIONS,
             message: `The OCPI endpoint '${ocpiEndpoint.name}' is inactive.`
           });
           return;
@@ -60,7 +60,7 @@ export default class OCPIPullSessionsTask extends TenantSchedulerTask {
         await Logging.logInfo({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
-          action: ServerAction.OCPI_PULL_SESSIONS,
+          action: ServerAction.OCPI_EMSP_PULL_SESSIONS,
           message: `Pull of Sessions for endpoint '${ocpiEndpoint.name}' is being processed`
         });
         // Build OCPI Client
@@ -70,13 +70,13 @@ export default class OCPIPullSessionsTask extends TenantSchedulerTask {
         await Logging.logInfo({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
-          action: ServerAction.OCPI_PULL_SESSIONS,
+          action: ServerAction.OCPI_EMSP_PULL_SESSIONS,
           message: `Pull of Sessions for endpoint '${ocpiEndpoint.name}' is completed`,
           detailedMessages: { result }
         });
       } catch (error) {
         // Log error
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PULL_SESSIONS, error);
+        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_PULL_SESSIONS, error);
       } finally {
         // Release the lock
         await LockingManager.release(ocpiLock);

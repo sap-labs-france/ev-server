@@ -11,7 +11,7 @@ import OCPIServiceConfiguration from '../../../../types/configuration/OCPIServic
 export default class EMSPService extends AbstractOCPIService {
   public static readonly VERSION = '2.1.1';
   public static readonly PATH = '/ocpi/emsp';
-  // Create OCPI Service
+
   public constructor(ocpiRestConfig: OCPIServiceConfiguration) {
     super(ocpiRestConfig, EMSPService.PATH, EMSPService.VERSION);
     // Register Endpoints

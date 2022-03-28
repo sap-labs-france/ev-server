@@ -29,7 +29,7 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
   public async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
       case 'GET':
-        return await this.getLocationsRequest(req, res, next, tenant, ocpiEndpoint);
+        return this.getLocationsRequest(req, res, next, tenant, ocpiEndpoint);
     }
   }
 
@@ -50,8 +50,8 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
     // Define get option
     const options: OCPILocationOptions = {
       addChargeBoxAndOrgIDs: false,
-      countryID: ocpiClient.getLocalCountryCode(ServerAction.OCPI_GET_LOCATIONS),
-      partyID: ocpiClient.getLocalPartyID(ServerAction.OCPI_GET_LOCATIONS)
+      countryID: ocpiClient.getLocalCountryCode(ServerAction.OCPI_CPO_GET_LOCATIONS),
+      partyID: ocpiClient.getLocalPartyID(ServerAction.OCPI_CPO_GET_LOCATIONS)
     };
     // Process request
     if (locationId && evseUid && evseConnectorId) {
@@ -60,7 +60,7 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
       if (!evseConnector) {
         throw new AppError({
           module: MODULE_NAME, method: 'getLocationRequest',
-          action: ServerAction.OCPI_GET_LOCATIONS,
+          action: ServerAction.OCPI_CPO_GET_LOCATIONS,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `EVSE Connector ID '${evseConnectorId}' not found on Charging Station ID '${evseUid}' and Location ID '${locationId}'`,
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR,
@@ -68,12 +68,12 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
         });
       }
     } else if (locationId && evseUid) {
-      evseConnector = await OCPIUtilsService.getEvse(tenant, locationId, evseUid, options, ocpiClient.getSettings());
+      evseConnector = await OCPIUtilsService.getCpoEvse(tenant, locationId, evseUid, options, ocpiClient.getSettings());
       // Check if at least of site found
       if (!evseConnector) {
         throw new AppError({
           module: MODULE_NAME, method: 'getLocationRequest',
-          action: ServerAction.OCPI_GET_LOCATIONS,
+          action: ServerAction.OCPI_CPO_GET_LOCATIONS,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `EVSE UID not found '${evseUid}' in Location ID '${locationId}'`,
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR,
@@ -87,7 +87,7 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
       if (!evseConnector) {
         throw new AppError({
           module: MODULE_NAME, method: 'getLocationRequest',
-          action: ServerAction.OCPI_GET_LOCATIONS,
+          action: ServerAction.OCPI_CPO_GET_LOCATIONS,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `Location ID '${locationId}' not found`,
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR,
@@ -99,7 +99,7 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
       const offset = (req.query.offset) ? Utils.convertToInt(req.query.offset) : 0;
       const limit = (req.query.limit && Utils.convertToInt(req.query.limit) < Constants.OCPI_RECORDS_LIMIT) ? Utils.convertToInt(req.query.limit) : Constants.OCPI_RECORDS_LIMIT;
       // Get all locations
-      const locations = await OCPIUtilsService.getAllLocations(tenant, limit, offset, options, true, ocpiClient.getSettings());
+      const locations = await OCPIUtilsService.getAllCpoLocations(tenant, limit, offset, options, true, ocpiClient.getSettings());
       evseConnector = locations.result;
       // Set header
       res.set({
@@ -122,13 +122,13 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
     // Get site
     const site = await SiteStorage.getSite(tenant, locationId);
     if (site) {
-      return await OCPIUtilsService.convertCPOSite2Location(tenant, site, options, true, settings);
+      return OCPIUtilsService.convertSite2Location(tenant, site, options, true, settings);
     }
   }
 
   private async getConnector(tenant: Tenant, locationId: string, evseUid: string, connectorId: string, options: OCPILocationOptions, settings: OcpiSetting): Promise<OCPIConnector> {
     // Get site
-    const evse = await OCPIUtilsService.getEvse(tenant, locationId, evseUid, options, settings);
+    const evse = await OCPIUtilsService.getCpoEvse(tenant, locationId, evseUid, options, settings);
     // Find the Connector
     return evse?.connectors.find((connector) => connector.id === connectorId);
   }

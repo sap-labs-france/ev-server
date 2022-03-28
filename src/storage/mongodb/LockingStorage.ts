@@ -36,7 +36,7 @@ export default class LockingStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const locksCountMDB = await global.database.getCollection<DatabaseCount>(Constants.DEFAULT_TENANT, 'locks')
+    const locksCountMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Check if only the total count is requested
@@ -62,9 +62,9 @@ export default class LockingStorage {
       $limit: dbParams.limit
     });
     // Read DB
-    const locksMDB = await global.database.getCollection<Lock>(Constants.DEFAULT_TENANT, 'locks')
-      .aggregate<Lock>(aggregation)
-      .toArray();
+    const locksMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
+      .aggregate<any>(aggregation)
+      .toArray() as Lock[];
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'getLocks', startTime, aggregation, locksMDB);
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(locksCountMDB[0]),
