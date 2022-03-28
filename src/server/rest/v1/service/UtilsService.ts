@@ -923,7 +923,7 @@ export default class UtilsService {
     UtilsService.assertObjectExists(action, invoice, `Invoice ID '${invoiceID}' does not exist`,
       MODULE_NAME, 'checkAndGetInvoiceAuthorization', userToken);
     // Assign projected fields
-    if (projectedFields) {
+    if (projectedFields && applyProjectFields) {
       invoice.projectFields = projectedFields;
     }
     // Assign Metadata

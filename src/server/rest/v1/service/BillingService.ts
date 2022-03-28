@@ -7,7 +7,6 @@ import { NextFunction, Request, Response } from 'express';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
-import Authorizations from '../../../../authorization/Authorizations';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
 import BillingSecurity from './security/BillingSecurity';
 import { BillingSettings } from '../../../../types/Setting';
