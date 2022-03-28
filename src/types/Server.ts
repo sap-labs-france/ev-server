@@ -2,6 +2,7 @@
 export enum ServerAction {
   UNKNOWN_ACTION = 'Unknown',
 
+  DEPRECATED_REST_ENDPOINT = 'DeprecatedRestEndpoint',
   LOGIN = 'Login',
   LOGOUT = 'Logout',
   PASSWORD_RESET = 'Reset',
