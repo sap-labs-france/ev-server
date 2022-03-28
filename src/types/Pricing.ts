@@ -33,7 +33,6 @@ export interface PricingContext {
   connectorPower: number,
   timezone: string,
   timestamp: Date,
-  // chargingStation: ChargingStation
 }
 
 export interface ResolvedPricingModel {
