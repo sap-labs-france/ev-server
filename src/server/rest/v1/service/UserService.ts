@@ -1,4 +1,4 @@
-import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
+import { Action, Entity } from '../../../../types/Authorization';
 import { ActionsResponse, ImportStatus } from '../../../../types/GlobalType';
 import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
 import Busboy, { FileInfo } from 'busboy';
@@ -6,6 +6,7 @@ import { Car, CarType } from '../../../../types/Car';
 import { DataResult, UserDataResult } from '../../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
+import { ResolvedPricingDefinition, ResolvedPricingModel } from '../../../../types/Pricing';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
 import User, { ImportedUser, UserRequiredImportProperties, UserRole } from '../../../../types/User';
 
@@ -17,6 +18,7 @@ import Authorizations from '../../../../authorization/Authorizations';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
 import CSVError from 'csvtojson/v2/CSVError';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
+import ChargingStation from '../../../../types/ChargingStation';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../../utils/Constants';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
@@ -30,9 +32,10 @@ import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import { OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../../ocpi/OCPIUtils';
+import PricingFactory from '../../../../integration/pricing/PricingFactory';
+import PricingHelper from '../../../../integration/pricing/PricingHelper';
 import { Readable } from 'stream';
 import { ServerAction } from '../../../../types/Server';
-import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { StartTransactionErrorCode } from '../../../../types/Transaction';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import { UserInErrorType } from '../../../../types/InError';
@@ -83,23 +86,29 @@ export default class UserService {
       }
     }
     let withBillingChecks = true ;
+    let pricingDefinitions = null;
     if (filteredRequest.ChargingStationID) {
       // TODO - The ChargingStationID is optional but only for backward compatibility reasons - make it mandatory as soon as possible
       const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, filteredRequest.ChargingStationID,
         { withSiteArea: true },
-        ['id', 'siteArea.id', 'siteArea.accessControl']);
+        ['id', 'companyID', 'siteID', 'siteAreaID', 'coordinates', 'siteArea.accessControl']);
       if (!chargingStation.siteArea.accessControl) {
         // The access control is switched off - so billing checks are useless
         withBillingChecks = false;
       }
+      if (filteredRequest.ConnectorId) {
+        // Fetch all pricing definitions matching the current context + connectorId
+        pricingDefinitions = await UserService.fetchPricingDefinitions(action, req.tenant, req.user, user, chargingStation, filteredRequest.ConnectorId);
+      }
     }
+    // Check for billing errors
     const errorCodes: Array<StartTransactionErrorCode> = [];
     if (withBillingChecks) {
       // Check for the billing prerequisites (such as the user's payment method)
       await UserService.checkBillingErrorCodes(action, req.tenant, req.user, user, errorCodes);
     }
     res.json({
-      tag, car, errorCodes
+      tag, car, errorCodes, pricingDefinitions
     });
     next();
   }
@@ -816,6 +825,21 @@ export default class UserService {
       });
       return false;
     }
+  }
+
+  // await UserService.fetchPricingDefinitions(action, req.tenant, req.user, user, filteredRequest.ChargingStationID, filteredRequest.args?.connectorId,  pricingDefinitions);
+  private static async fetchPricingDefinitions(action: ServerAction, tenant: Tenant,
+      loggedUser: UserToken, user: User, chargingStation: ChargingStation, connectorId: number) : Promise<ResolvedPricingDefinition[]> {
+
+    if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.PRICING)) {
+      const pricingImpl = await PricingFactory.getPricingImpl(tenant);
+      if (pricingImpl) {
+        const pricingContext = PricingHelper.buildUserPricingContext(tenant, user, chargingStation, connectorId, new Date());
+        const pricingModel: ResolvedPricingModel = await pricingImpl.resolvePricingContext(pricingContext);
+        return pricingModel.pricingDefinitions;
+      }
+    }
+    return null;
   }
 
   private static async checkBillingErrorCodes(action: ServerAction, tenant: Tenant,

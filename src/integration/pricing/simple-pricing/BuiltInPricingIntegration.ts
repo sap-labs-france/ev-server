@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-import { PricedConsumption, PricingDimensions, PricingSource, ResolvedPricingDefinition, ResolvedPricingModel } from '../../../types/Pricing';
+import { PricedConsumption, PricingContext, PricingDimensions, PricingSource, ResolvedPricingDefinition, ResolvedPricingModel } from '../../../types/Pricing';
 
 import ChargingStation from '../../../types/ChargingStation';
 import Consumption from '../../../types/Consumption';
@@ -67,11 +67,30 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
     return pricedConsumption;
   }
 
+  public async resolvePricingContext(pricingContext: PricingContext): Promise<ResolvedPricingModel> {
+    if (!PricingHelper.checkContextConsistency(pricingContext)) {
+      await Logging.logError({
+        ...LoggingHelper.getPricingContextProperties(pricingContext),
+        tenantID: this.tenant.id,
+        module: MODULE_NAME,
+        action: ServerAction.PRICING,
+        method: 'resolvePricingContext',
+        message: 'Pricing context does not provide the required information'
+      });
+      return null;
+    }
+    const resolvedPricingModel: ResolvedPricingModel = await PricingEngine.resolvePricingContext(pricingContext);
+    // Fallback when no pricing definition matches
+    resolvedPricingModel.pricingDefinitions.push(this.getDefaultPricingDefinition());
+    return resolvedPricingModel;
+  }
+
   private async computePrice(transaction: Transaction, consumptionData: Consumption, chargingStation: ChargingStation): Promise<PricedConsumption> {
     let pricingModel = transaction.pricingModel;
     if (!pricingModel) {
       // This should happen only on the first call (i.e.: on a start transaction)
-      pricingModel = await this.resolvePricingContext(this.tenant, transaction, chargingStation);
+      const pricingContext = PricingHelper.buildTransactionPricingContext(this.tenant, transaction, chargingStation);
+      pricingModel = await this.resolvePricingContext(pricingContext);
     }
     const pricingConsumptionData = PricingEngine.priceConsumption(this.tenant, pricingModel, consumptionData);
     const { flatFee, energy, chargingTime, parkingTime } = pricingConsumptionData;
@@ -103,13 +122,6 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
       }
     });
     return PricingHelper.accumulatePricingDimensions(allDimensions);
-  }
-
-  private async resolvePricingContext(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation): Promise<ResolvedPricingModel> {
-    const resolvedPricingModel: ResolvedPricingModel = await PricingEngine.resolvePricingContext(tenant, transaction, chargingStation);
-    // Fallback when no pricing definition matches
-    resolvedPricingModel.pricingDefinitions.push(this.getDefaultPricingDefinition());
-    return resolvedPricingModel;
   }
 
   private getDefaultPricingDefinition(): ResolvedPricingDefinition {
