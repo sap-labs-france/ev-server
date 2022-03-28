@@ -14,6 +14,7 @@ import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import AxiosFactory from '../../../../utils/AxiosFactory';
 import { BillingInvoice } from '../../../../types/Billing';
+import { BillingSettings } from '../../../../types/Setting';
 import BillingStorage from '../../../../storage/mongodb/BillingStorage';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
 import CentralSystemRestServiceConfiguration from '../../../../types/configuration/CentralSystemRestServiceConfiguration';
@@ -37,6 +38,7 @@ import PricingStorage from '../../../../storage/mongodb/PricingStorage';
 import RegistrationToken from '../../../../types/RegistrationToken';
 import RegistrationTokenStorage from '../../../../storage/mongodb/RegistrationTokenStorage';
 import { ServerAction } from '../../../../types/Server';
+import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
@@ -845,6 +847,49 @@ export default class UtilsService {
       });
     }
     return carCatalog;
+  }
+
+  // This function is tailored for SETTING authorization, do not use it for "general" entities !
+  public static async checkAndGetBillingSettingAuthorization(tenant: Tenant, userToken: UserToken, billingSettingID: number, authAction: Action,
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<BillingSettings> {
+    // Get dynamic auth
+    const authorizationFilter = await AuthorizationService.checkAndGetSettingAuthorizations(tenant, userToken, authAction, entityData);
+    if (!authorizationFilter.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: authAction, entity: Entity.SETTING,
+        module: MODULE_NAME, method: 'checkAndGetBillingSettingAuthorization',
+      });
+    }
+    // Get the entity from storage
+    const billingSetting = await SettingStorage.getBillingSetting(
+      tenant,
+      applyProjectFields ? authorizationFilter.projectFields : null
+    );
+    // Check it exists
+    UtilsService.assertObjectExists(action, billingSetting, `Billing setting for tenantID '${tenant.id}' does not exist`,
+      MODULE_NAME, 'checkAndGetBillingSettingAuthorization', userToken);
+    // Assign projected fields
+    if (applyProjectFields && authorizationFilter.projectFields) {
+      billingSetting.projectFields = authorizationFilter.projectFields;
+    }
+    // Assign Metadata
+    if (authorizationFilter.metadata) {
+      billingSetting.metadata = authorizationFilter.metadata;
+    }
+    // Add actions
+    await AuthorizationService.addSettingAuthorizations(tenant, userToken, billingSetting, authorizationFilter);
+    const authorized = AuthorizationService.canPerformAction(billingSetting, authAction);
+    if (!authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: authAction, entity: Entity.SETTING,
+        module: MODULE_NAME, method: 'checkAndGetBillingSettingAuthorization',
+      });
+    }
+    return billingSetting;
   }
 
   public static async checkAndGetInvoiceAuthorization(tenant: Tenant, userToken: UserToken, invoiceID: string, authAction: Action,

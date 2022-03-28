@@ -401,17 +401,8 @@ export default class BillingService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.READ, Entity.SETTING, MODULE_NAME, 'handleGetBillingSetting');
-    // Check auth
-    if (!await Authorizations.canReadBillingSetting(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.READ, entity: Entity.SETTING,
-        module: MODULE_NAME, method: 'handleGetBillingSetting',
-      });
-    }
-    const billingSettings: BillingSettings = await SettingStorage.getBillingSetting(req.tenant);
-    UtilsService.assertObjectExists(action, billingSettings, 'Failed to load billing settings', MODULE_NAME, 'handleGetBillingSetting', req.user);
+    const billingSettings: BillingSettings = await UtilsService.checkAndGetBillingSettingAuthorization(req.tenant, req.user, null, Action.READ, action);
+    // Process sensitive data
     UtilsService.hashSensitiveData(req.user.tenantID, billingSettings);
     res.json(billingSettings);
     next();
@@ -421,19 +412,10 @@ export default class BillingService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.UPDATE, Entity.SETTING, MODULE_NAME, 'handleUpdateBillingSetting');
-    // Check auth
-    if (!await Authorizations.canUpdateBillingSetting(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.UPDATE, entity: Entity.SETTING,
-        module: MODULE_NAME, method: 'handleUpdateBillingSetting',
-      });
-    }
     const newBillingProperties = BillingValidator.getInstance().validateBillingSettingUpdateReq({ ...req.params, ...req.body });
-    // Load previous settings
-    const billingSettings = await SettingStorage.getBillingSetting(req.tenant);
-    UtilsService.assertObjectExists(action, billingSettings, 'Failed to load billing settings', MODULE_NAME, 'handleUpdateBillingSetting', req.user);
+    // Check and get previous settings that we want to update
+    const billingSettings: BillingSettings = await UtilsService.checkAndGetBillingSettingAuthorization(req.tenant, req.user, null, Action.UPDATE, action);
+    // Process sensitive data
     await UtilsService.processSensitiveData(req.tenant, billingSettings, newBillingProperties);
     // Billing properties to preserve
     const { usersLastSynchronizedOn } = billingSettings.billing;

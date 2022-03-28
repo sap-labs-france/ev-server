@@ -9,6 +9,7 @@ import MongoDBStorage from '../storage/mongodb/MongoDBStorage';
 import PricingDefinition from './Pricing';
 import RegistrationToken from './RegistrationToken';
 import { ServerType } from './Server';
+import { Setting } from './Setting';
 import Site from './Site';
 import SiteArea from './SiteArea';
 import SoapCentralSystemServer from '../server/ocpp/soap/SoapCentralSystemServer';
@@ -75,7 +76,7 @@ export enum ImportStatus {
   ERROR = 'E',
 }
 
-export type EntityData = Car|User|Company|Site|SiteArea|Tag|CarCatalog|ChargingStation|PricingDefinition|Log|RegistrationToken|BillingInvoice|BillingPaymentMethod;
+export type EntityData = Car|User|Company|Site|SiteArea|Tag|CarCatalog|ChargingStation|PricingDefinition|Log|RegistrationToken|BillingInvoice|BillingPaymentMethod|Setting;
 
 interface TSGlobal extends Global {
   database: MongoDBStorage;

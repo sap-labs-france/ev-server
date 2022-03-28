@@ -1,3 +1,4 @@
+import { AuthorizationActions } from './Authorization';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import { TenantComponents } from './Tenant';
 
@@ -21,7 +22,7 @@ export enum IntegrationSettings {
   STATISTICS = 'statistics'
 }
 
-export interface Setting extends CreatedUpdatedProps {
+export interface Setting extends AuthorizationActions, CreatedUpdatedProps {
   id?: string;
   identifier: TenantComponents | TechnicalSettings;
   sensitiveData?: string[];
