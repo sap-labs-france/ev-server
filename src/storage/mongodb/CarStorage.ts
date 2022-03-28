@@ -1,15 +1,15 @@
-import { Car, CarCatalog, CarCatalogConverter, CarMaker, CarType } from '../../types/Car';
-import global, { DatabaseCount, FilterParams, Image } from '../../types/GlobalType';
-
-import CarValidatorStorage from './validator/CarValidatorStorage';
-import Constants from '../../utils/Constants';
-import { DataResult } from '../../types/DataResult';
-import DatabaseUtils from './DatabaseUtils';
-import DbParams from '../../types/database/DbParams';
-import Logging from '../../utils/Logging';
 import { ObjectId } from 'mongodb';
+
+import { Car, CarCatalog, CarCatalogConverter, CarMaker, CarType } from '../../types/Car';
+import DbParams from '../../types/database/DbParams';
+import { DataResult } from '../../types/DataResult';
+import global, { DatabaseCount, FilterParams, Image } from '../../types/GlobalType';
 import Tenant from '../../types/Tenant';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
+import DatabaseUtils from './DatabaseUtils';
+import CarValidatorStorage from './validator/CarValidatorStorage';
 
 const MODULE_NAME = 'CarStorage';
 
@@ -105,19 +105,14 @@ export default class CarStorage {
       aggregation.push({
         $addFields: {
           image: {
-            $cond: {
-              if: { $gt: ['$image', null] }, then: {
-                $concat: [
-                  `${Utils.buildRestServerURL()}/v1/util/car-catalogs/`,
-                  { $toString: '$_id' },
-                  '/image',
-                  {
-                    $ifNull: [{ $concat: ['?LastChangedOn=', { $toString: '$lastChangedOn' }] }, ''] // Only concat 'lastChangedOn' if not null
-                  }
-                ]
-              }, else: null
-            }
-
+            $concat: [
+              `${Utils.buildRestServerURL()}/v1/util/car-catalogs/`,
+              { $toString: '$_id' },
+              '/image',
+              {
+                $ifNull: [{ $concat: ['?LastChangedOn=', { $toString: '$lastChangedOn' }] }, ''] // Only concat 'lastChangedOn' if not null
+              }
+            ]
           }
         }
       });

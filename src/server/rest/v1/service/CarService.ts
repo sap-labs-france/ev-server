@@ -86,7 +86,7 @@ export default class CarService {
     const filteredRequest = CarValidator.getInstance().validateCarCatalogGetReq(req.query);
     // Get the car Image
     const carCatalog = await CarStorage.getCarCatalogImage(filteredRequest.ID);
-    let image = carCatalog && !Utils.isNullOrEmptyString(carCatalog.image) ? carCatalog.image : Constants.NO_CAR_IMAGE;
+    let image = !Utils.isNullOrEmptyString(carCatalog?.image) ? carCatalog.image : Constants.NO_IMAGE;
     let header = 'image';
     let encoding: BufferEncoding = 'base64';
     // Remove encoding header
