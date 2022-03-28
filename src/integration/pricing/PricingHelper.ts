@@ -12,6 +12,9 @@ import Utils from '../../utils/Utils';
 export default class PricingHelper {
 
   public static buildTransactionPricingContext(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation): PricingContext {
+    const connectorId = transaction.connectorId ;
+    const connectorType = Utils.getConnectorFromID(chargingStation, connectorId)?.type;
+    const connectorPower = Utils.getConnectorFromID(chargingStation, connectorId)?.power;
     return {
       tenant,
       userID: transaction.userID,
@@ -19,14 +22,17 @@ export default class PricingHelper {
       siteID : transaction.siteID,
       siteAreaID: transaction.siteAreaID,
       chargingStationID : transaction.chargeBoxID,
-      connectorId : transaction.connectorId,
+      connectorId,
+      connectorType,
+      connectorPower,
       timestamp : transaction.timestamp,
       timezone : transaction.timezone,
-      chargingStation : chargingStation,
     };
   }
 
   public static buildUserPricingContext(tenant: Tenant, user: User, chargingStation: ChargingStation, connectorId: number, timestamp: Date): PricingContext {
+    const connectorType = Utils.getConnectorFromID(chargingStation, connectorId)?.type;
+    const connectorPower = Utils.getConnectorFromID(chargingStation, connectorId)?.power;
     return {
       tenant,
       userID: user.id,
@@ -34,18 +40,25 @@ export default class PricingHelper {
       siteID : chargingStation.siteID,
       siteAreaID: chargingStation.siteAreaID,
       chargingStationID : chargingStation.id,
-      connectorId : connectorId,
+      connectorId,
+      connectorType,
+      connectorPower,
       timestamp,
       timezone : Utils.getTimezone(chargingStation.coordinates),
-      chargingStation,
     };
   }
 
   public static checkContextConsistency(pricingContext: PricingContext): boolean {
-    if (pricingContext.tenant && pricingContext.userID && pricingContext.companyID && pricingContext.siteID && pricingContext.siteAreaID
-      && pricingContext.chargingStationID && pricingContext.chargingStation && pricingContext.chargingStation.coordinates
-      && pricingContext.connectorId && pricingContext.timestamp
-      && pricingContext.timestamp) {
+    if (pricingContext.tenant
+      && pricingContext.userID
+      && pricingContext.companyID
+      && pricingContext.siteID
+      && pricingContext.siteAreaID
+      && pricingContext.chargingStationID
+      && !Utils.isNullOrUndefined(pricingContext.connectorId)
+      && pricingContext.connectorType
+      && !Utils.isNullOrUndefined(pricingContext.connectorPower)
+      && pricingContext.timestamp && pricingContext.timezone) {
       return true;
     }
     return false;

@@ -166,8 +166,7 @@ export default class PricingEngine {
 
   private static checkConnectorType(staticRestrictions: PricingStaticRestriction, pricingContext: PricingContext): boolean {
     if (!Utils.isNullOrUndefined(staticRestrictions.connectorType)) {
-      const connectorType = Utils.getConnectorFromID(pricingContext.chargingStation, pricingContext.connectorId)?.type;
-      if (staticRestrictions.connectorType !== connectorType) {
+      if (staticRestrictions.connectorType !== pricingContext.connectorType) {
         return false;
       }
     }
@@ -176,8 +175,7 @@ export default class PricingEngine {
 
   private static checkConnectorPower(staticRestrictions: PricingStaticRestriction, pricingContext: PricingContext): boolean {
     if (!Utils.isNullOrUndefined(staticRestrictions.connectorPowerkW)) {
-      const connectorPowerWatts = Utils.getConnectorFromID(pricingContext.chargingStation, pricingContext.connectorId)?.power;
-      if (!Utils.createDecimal(connectorPowerWatts).div(1000).equals(staticRestrictions.connectorPowerkW)) {
+      if (!Utils.createDecimal(pricingContext.connectorPower).div(1000).equals(staticRestrictions.connectorPowerkW)) {
         return false;
       }
     }

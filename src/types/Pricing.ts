@@ -29,9 +29,11 @@ export interface PricingContext {
   siteAreaID: string,
   chargingStationID: string,
   connectorId: number,
+  connectorType: ConnectorType,
+  connectorPower: number,
   timezone: string,
   timestamp: Date,
-  chargingStation: ChargingStation
+  // chargingStation: ChargingStation
 }
 
 export interface ResolvedPricingModel {
