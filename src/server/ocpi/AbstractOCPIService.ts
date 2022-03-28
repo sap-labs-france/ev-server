@@ -66,7 +66,6 @@ export default abstract class AbstractOCPIService {
 
   public async restService(req: TenantIdHoldingRequest, res: Response, next: NextFunction): Promise<void> {
     // Parse the action
-    // FIXME: use a express request parameter instead of using regexp to parse the request URL
     const regexResult = /^\/\w*/g.exec(req.url);
     if (!regexResult) {
       throw new BackendError({
@@ -103,7 +102,7 @@ export default abstract class AbstractOCPIService {
     res.json(OCPIUtils.success({ 'version': this.getVersion(), 'endpoints': supportedEndpoints }));
   }
 
-  public async processEndpointAction(action: ServerAction, req: TenantIdHoldingRequest, res: Response, next: NextFunction): Promise<void> {
+  public async processEndpointAction(ocpiAction: string, req: TenantIdHoldingRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const registeredEndpoints = this.getRegisteredEndpoints();
       // Get token from header
@@ -134,7 +133,7 @@ export default abstract class AbstractOCPIService {
       // Get tenant from the called URL - TODO: review this handle tenant and tid in decoded token
       const tenantSubdomain = (decodedToken.tenant ? decodedToken.tenant : decodedToken.tid);
       // Get tenant from database
-      const tenant: Tenant = await TenantStorage.getTenantBySubdomain(tenantSubdomain);
+      const tenant = await TenantStorage.getTenantBySubdomain(tenantSubdomain);
       // Check if tenant is found
       if (!tenant) {
         throw new AppError({
@@ -168,11 +167,11 @@ export default abstract class AbstractOCPIService {
       // Pass tenant id to req
       req.user.tenantID = tenant.id;
       // Handle request action (endpoint)
-      const endpoint = registeredEndpoints.get(action);
+      const endpoint = registeredEndpoints.get(ocpiAction);
       if (endpoint) {
         await Logging.logDebug({
           tenantID: tenant.id,
-          module: MODULE_NAME, method: action,
+          module: MODULE_NAME, method: ocpiAction,
           message: `>> OCPI Request ${req.method} ${req.originalUrl}`,
           action: ServerAction.OCPI_ENDPOINT,
           detailedMessages: { params: req.body }
@@ -181,7 +180,7 @@ export default abstract class AbstractOCPIService {
         if (response) {
           await Logging.logDebug({
             tenantID: tenant.id,
-            module: MODULE_NAME, method: action,
+            module: MODULE_NAME, method: ocpiAction,
             message: `<< OCPI Response ${req.method} ${req.originalUrl}`,
             action: ServerAction.OCPI_ENDPOINT,
             detailedMessages: { response }
@@ -190,7 +189,7 @@ export default abstract class AbstractOCPIService {
         } else {
           await Logging.logWarning({
             tenantID: tenant.id,
-            module: MODULE_NAME, method: action,
+            module: MODULE_NAME, method: ocpiAction,
             message: `<< OCPI Endpoint ${req.method} ${req.originalUrl} not implemented`,
             action: ServerAction.OCPI_ENDPOINT
           });
@@ -201,26 +200,20 @@ export default abstract class AbstractOCPIService {
           module: MODULE_NAME, method: 'processEndpointAction',
           action: ServerAction.OCPI_ENDPOINT,
           errorCode: HTTPError.NOT_IMPLEMENTED_ERROR,
-          message: `Endpoint ${action} not implemented`,
+          message: `Endpoint '${ocpiAction}' not implemented`,
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
         });
       }
     } catch (error) {
       await Logging.logError({
-        tenantID: req.user && req.user.tenantID ? req.user.tenantID : Constants.DEFAULT_TENANT,
-        module: MODULE_NAME, method: action,
+        tenantID: req.tenant?.id ?? Constants.DEFAULT_TENANT,
+        module: MODULE_NAME, method: ocpiAction,
         message: `<< OCPI Response Error ${req.method} ${req.originalUrl}`,
-        action: ServerAction.OCPI_ENDPOINT,
+        action: error.params?.action ?? ServerAction.OCPI_ENDPOINT,
         detailedMessages: { error: error.stack }
       });
-      await Logging.logActionExceptionMessage(req.user && req.user.tenantID ? req.user.tenantID : Constants.DEFAULT_TENANT, ServerAction.OCPI_ENDPOINT, error);
-      let errorCode: any = {};
-      if (error instanceof AppError || error instanceof AppAuthError) {
-        errorCode = error.params.errorCode;
-      } else {
-        errorCode = HTTPError.GENERAL_ERROR;
-      }
-      res.status(errorCode).json(OCPIUtils.toErrorResponse(error));
+      await Logging.logActionExceptionMessage(req.tenant?.id ?? Constants.DEFAULT_TENANT, error.params?.action ?? ServerAction.OCPI_ENDPOINT, error);
+      res.status(error.params?.errorCode ?? HTTPError.GENERAL_ERROR).json(OCPIUtils.toErrorResponse(error));
     }
   }
 }

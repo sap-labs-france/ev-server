@@ -26,7 +26,7 @@ export default class CPOSessionsEndpoint extends AbstractEndpoint {
   public async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
       case 'GET':
-        return await this.getSessionsRequest(req, res, next, tenant);
+        return this.getSessionsRequest(req, res, next, tenant);
     }
   }
 
@@ -42,7 +42,7 @@ export default class CPOSessionsEndpoint extends AbstractEndpoint {
     const limit = (req.query.limit && Utils.convertToInt(req.query.limit) < Constants.OCPI_RECORDS_LIMIT) ? Utils.convertToInt(req.query.limit) : Constants.OCPI_RECORDS_LIMIT;
     if (!req.query.date_from) {
       throw new AppError({
-        action: ServerAction.OCPI_PULL_SESSIONS,
+        action: ServerAction.OCPI_CPO_PULL_SESSIONS,
         module: MODULE_NAME, method: 'getSessionsRequest',
         errorCode: StatusCodes.BAD_REQUEST,
         message: 'Missing \'date_from\' parameter',

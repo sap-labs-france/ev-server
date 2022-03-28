@@ -35,7 +35,7 @@ export default class OCPICheckSessionsAsyncTask extends AbstractAsyncTask {
           }
         }
       } catch (error) {
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CHECK_SESSIONS, error);
+        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_CHECK_SESSIONS, error);
       }
     }
   }

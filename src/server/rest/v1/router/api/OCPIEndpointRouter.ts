@@ -71,28 +71,28 @@ export default class OCPIEndpointRouter {
   private buildRouteOcpiEndpointPullCDRs(): void {
     this.router.put(`/${ServerRoute.REST_OCPI_ENDPOINT_PULL_CDRS}`, async (req: Request, res: Response, next: NextFunction) => {
       req.body.id = req.params.id;
-      await RouterUtils.handleServerAction(OCPIEndpointService.handlePullCdrsEndpoint.bind(this), ServerAction.OCPI_PULL_CDRS, req, res, next);
+      await RouterUtils.handleServerAction(OCPIEndpointService.handlePullCdrsEndpoint.bind(this), ServerAction.OCPI_EMSP_PULL_CDRS, req, res, next);
     });
   }
 
   private buildRouteOcpiEndpointPullLocations(): void {
     this.router.put(`/${ServerRoute.REST_OCPI_ENDPOINT_PULL_LOCATIONS}`, async (req: Request, res: Response, next: NextFunction) => {
       req.body.id = req.params.id;
-      await RouterUtils.handleServerAction(OCPIEndpointService.handlePullLocationsEndpoint.bind(this), ServerAction.OCPI_PULL_LOCATIONS, req, res, next);
+      await RouterUtils.handleServerAction(OCPIEndpointService.handlePullLocationsEndpoint.bind(this), ServerAction.OCPI_EMSP_PULL_LOCATIONS, req, res, next);
     });
   }
 
   private buildRouteOcpiEndpointPullSessions(): void {
     this.router.put(`/${ServerRoute.REST_OCPI_ENDPOINT_PULL_SESSIONS}`, async (req: Request, res: Response, next: NextFunction) => {
       req.body.id = req.params.id;
-      await RouterUtils.handleServerAction(OCPIEndpointService.handlePullSessionsEndpoint.bind(this), ServerAction.OCPI_PULL_SESSIONS, req, res, next);
+      await RouterUtils.handleServerAction(OCPIEndpointService.handlePullSessionsEndpoint.bind(this), ServerAction.OCPI_EMSP_PULL_SESSIONS, req, res, next);
     });
   }
 
   private buildRouteOcpiEndpointPullTokens(): void {
     this.router.put(`/${ServerRoute.REST_OCPI_ENDPOINT_PULL_TOKENS}`, async (req: Request, res: Response, next: NextFunction) => {
       req.body.id = req.params.id;
-      await RouterUtils.handleServerAction(OCPIEndpointService.handlePullTokensEndpoint.bind(this), ServerAction.OCPI_PULL_TOKENS, req, res, next);
+      await RouterUtils.handleServerAction(OCPIEndpointService.handlePullTokensEndpoint.bind(this), ServerAction.OCPI_CPO_PULL_TOKENS, req, res, next);
     });
   }
 

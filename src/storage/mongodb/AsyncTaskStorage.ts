@@ -42,7 +42,7 @@ export default class AsyncTaskStorage {
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(asyncTaskMDB, asyncTaskToSave);
     // Modify
-    await global.database.getCollection<AsyncTask>(Constants.DEFAULT_TENANT, 'asynctasks').findOneAndUpdate(
+    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'asynctasks').findOneAndUpdate(
       { _id: asyncTaskMDB._id },
       { $set: asyncTaskMDB },
       { upsert: true }
@@ -84,9 +84,9 @@ export default class AsyncTaskStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const asyncTasksCountMDB = await global.database.getCollection<DatabaseCount>(Constants.DEFAULT_TENANT, 'asynctasks')
+    const asyncTasksCountMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'asynctasks')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
-      .toArray();
+      .toArray() as DatabaseCount[];
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
@@ -120,9 +120,9 @@ export default class AsyncTaskStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const asyncTasksMDB = await global.database.getCollection<AsyncTask>(Constants.DEFAULT_TENANT, 'asynctasks')
-      .aggregate<AsyncTask>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const asyncTasksMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'asynctasks')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as AsyncTask[];
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'getAsyncTasks', startTime, aggregation, asyncTasksMDB);
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(asyncTasksCountMDB[0]),
@@ -133,7 +133,7 @@ export default class AsyncTaskStorage {
   public static async updateRunningAsyncTaskToPending(): Promise<number> {
     const startTime = Logging.traceDatabaseRequestStart();
     // Delete the AsyncTask
-    const result = await global.database.getCollection<AsyncTask>(Constants.DEFAULT_TENANT, 'asynctasks').updateMany(
+    const result = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'asynctasks').updateMany(
       { 'status': AsyncTaskStatus.RUNNING },
       { '$set': { 'status': AsyncTaskStatus.PENDING } }
     );

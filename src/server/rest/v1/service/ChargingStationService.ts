@@ -1230,7 +1230,7 @@ export default class ChargingStationService {
       let filteredRequest: any;
       let result: OCPICommandResponse;
       // Start Transaction
-      if (action === ServerAction.OCPI_START_SESSION) {
+      if (action === ServerAction.OCPI_EMSP_START_SESSION) {
         const remoteStartRequest = ChargingStationValidator.getInstance().validateChargingStationActionTransactionStartReq(req.body);
         filteredRequest = remoteStartRequest;
         // Get the Tag
@@ -1264,7 +1264,7 @@ export default class ChargingStationService {
         result = await ocpiClient.remoteStartSession(chargingStation, remoteStartRequest.args.connectorId, tagID);
       }
       // Stop Transaction
-      if (action === ServerAction.OCPI_STOP_SESSION) {
+      if (action === ServerAction.OCPI_EMSP_STOP_SESSION) {
         const remoteStopRequest = ChargingStationValidator.getInstance().validateChargingStationActionTransactionStopReq(req.body);
         filteredRequest = remoteStopRequest;
         // Get Transaction

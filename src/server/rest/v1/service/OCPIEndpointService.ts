@@ -309,7 +309,7 @@ export default class OCPIEndpointService {
     const pullSessionsLock = await LockingHelper.createOCPIPullSessionsLock(req.tenant.id, ocpiEndpoint);
     if (!pullSessionsLock) {
       throw new AppError({
-        action: ServerAction.OCPI_PULL_SESSIONS,
+        action: ServerAction.OCPI_EMSP_PULL_SESSIONS,
         errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
         message: 'Error in pulling the OCPI Sessions: cannot acquire the lock',
         module: MODULE_NAME, method: 'handlePullSessionsEndpoint',
@@ -359,7 +359,7 @@ export default class OCPIEndpointService {
     const pullTokensLock = await LockingHelper.createOCPIPullTokensLock(req.tenant.id, ocpiEndpoint, false);
     if (!pullTokensLock) {
       throw new AppError({
-        action: ServerAction.OCPI_PULL_TOKENS,
+        action: ServerAction.OCPI_CPO_PULL_TOKENS,
         errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
         message: 'Error in pulling the OCPI tokens: cannot acquire the lock',
         module: MODULE_NAME, method: 'handlePullTokensEndpoint',
@@ -409,7 +409,7 @@ export default class OCPIEndpointService {
     const pullCdrsLock = await LockingHelper.createOCPIPullCdrsLock(req.tenant.id, ocpiEndpoint);
     if (!pullCdrsLock) {
       throw new AppError({
-        action: ServerAction.OCPI_PULL_CDRS,
+        action: ServerAction.OCPI_EMSP_PULL_CDRS,
         errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
         message: 'Error in pulling the OCPI CDRs: cannot acquire the lock',
         module: MODULE_NAME, method: 'handlePullCdrsEndpoint',
@@ -459,7 +459,7 @@ export default class OCPIEndpointService {
     const checkCdrsLock = await LockingHelper.createOCPICheckCdrsLock(req.tenant.id, ocpiEndpoint);
     if (!checkCdrsLock) {
       throw new AppError({
-        action: ServerAction.OCPI_CHECK_CDRS,
+        action: ServerAction.OCPI_CPO_CHECK_CDRS,
         errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
         message: 'Error in checking the OCPI CDRs: cannot acquire the lock',
         module: MODULE_NAME, method: 'handleCheckCdrsEndpoint',
@@ -509,7 +509,7 @@ export default class OCPIEndpointService {
     const checkSessionsLock = await LockingHelper.createOCPICheckSessionsLock(req.tenant.id, ocpiEndpoint);
     if (!checkSessionsLock) {
       throw new AppError({
-        action: ServerAction.OCPI_CHECK_SESSIONS,
+        action: ServerAction.OCPI_CPO_CHECK_SESSIONS,
         errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
         message: 'Error in checking the OCPI Sessions: cannot acquire the lock',
         module: MODULE_NAME, method: 'handleCheckSessionsEndpoint',
@@ -559,7 +559,7 @@ export default class OCPIEndpointService {
     const checkLocationsLock = await LockingHelper.createOCPICheckLocationsLock(req.tenant.id, ocpiEndpoint);
     if (!checkLocationsLock) {
       throw new AppError({
-        action: ServerAction.OCPI_CHECK_LOCATIONS,
+        action: ServerAction.OCPI_CPO_CHECK_LOCATIONS,
         errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
         message: 'Error in checking the OCPI Locations: cannot acquire the lock',
         module: MODULE_NAME, method: 'handleCheckLocationsEndpoint',
@@ -609,7 +609,7 @@ export default class OCPIEndpointService {
     const patchStatusesLock = await LockingHelper.createOCPIPatchEVSEStatusesLock(req.tenant.id, ocpiEndpoint);
     if (!patchStatusesLock) {
       throw new AppError({
-        action: ServerAction.OCPI_PATCH_LOCATION,
+        action: ServerAction.OCPI_EMSP_PATCH_LOCATION,
         errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
         message: 'Error in pushing the OCPI EVSE Statuses: cannot acquire the lock',
         module: MODULE_NAME, method: 'handlePushEVSEStatusesOcpiEndpoint',

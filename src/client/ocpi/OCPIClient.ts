@@ -69,7 +69,14 @@ export default abstract class OCPIClient {
     const unregisterResult = {} as OCPIUnregisterResult;
     try {
       // Check versions
-      await this.getAndCheckVersions(ServerAction.OCPI_UNREGISTER);
+      const versionFound = await this.checkVersions();
+      if (!versionFound) {
+        throw new BackendError({
+          action: ServerAction.OCPI_UNREGISTER,
+          message: 'OCPI Endpoint version 2.1.1 not found',
+          module: MODULE_NAME, method: 'constructor',
+        });
+      }
       // Delete credentials
       await this.deleteCredentials();
       // Save endpoint
@@ -92,7 +99,14 @@ export default abstract class OCPIClient {
     const registerResult = {} as OCPIRegisterResult;
     try {
       // Check versions
-      await this.getAndCheckVersions(ServerAction.OCPI_UNREGISTER);
+      const versionFound = await this.checkVersions();
+      if (!versionFound) {
+        throw new BackendError({
+          action: ServerAction.OCPI_REGISTER,
+          message: 'OCPI Endpoint version 2.1.1 not found',
+          module: MODULE_NAME, method: 'constructor',
+        });
+      }
       // Try to read services
       const endpointVersions = await this.getEndpointVersions();
       // Set available endpoints
@@ -240,7 +254,7 @@ export default abstract class OCPIClient {
     return `${Configuration.getOCPIEndpointConfig().baseUrl}/ocpi/${this.role}/${this.ocpiEndpoint.version}/${service}`;
   }
 
-  private async getAndCheckVersions(action: ServerAction) {
+  private async checkVersions(): Promise<boolean> {
     // Get available version.
     const ocpiVersions = await this.getVersions();
     // Loop through versions and pick the same one
@@ -253,13 +267,6 @@ export default abstract class OCPIClient {
         break;
       }
     }
-    // If not found trigger exception
-    if (!versionFound) {
-      throw new BackendError({
-        action,
-        message: 'OCPI Endpoint version 2.1.1 not found',
-        module: MODULE_NAME, method: 'constructor',
-      });
-    }
+    return versionFound;
   }
 }

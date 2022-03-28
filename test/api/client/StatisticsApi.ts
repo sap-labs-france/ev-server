@@ -73,7 +73,7 @@ export default class StatisticsApi extends CrudApi {
   }
 
   public async exportStatistics(params) {
-    return await super.read(params, this.buildRestEndpointUrl(ServerRoute.REST_STATISTICS_EXPORT));
+    return super.read(params, this.buildRestEndpointUrl(ServerRoute.REST_STATISTICS_EXPORT));
   }
 
 }

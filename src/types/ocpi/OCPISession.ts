@@ -3,7 +3,6 @@ import { OCPILocation } from './OCPILocation';
 
 export interface OCPISession {
   id: string;
-  authorization_id?: string;
   start_datetime: Date;
   end_datetime?: Date;
   kwh: number;
