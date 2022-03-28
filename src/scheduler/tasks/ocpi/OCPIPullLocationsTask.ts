@@ -29,7 +29,7 @@ export default class OCPIPullLocationsTask extends TenantSchedulerTask {
       }
     } catch (error) {
       // Log error
-      await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PULL_LOCATIONS, error);
+      await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_PULL_LOCATIONS, error);
     }
   }
 
@@ -42,7 +42,7 @@ export default class OCPIPullLocationsTask extends TenantSchedulerTask {
         if (ocpiEndpoint.status !== OCPIRegistrationStatus.REGISTERED) {
           await Logging.logDebug({
             tenantID: tenant.id,
-            action: ServerAction.OCPI_PULL_LOCATIONS,
+            action: ServerAction.OCPI_EMSP_PULL_LOCATIONS,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             message: `The OCPI endpoint '${ocpiEndpoint.name}' is not registered. Skipping the OCPI endpoint.`
           });
@@ -51,7 +51,7 @@ export default class OCPIPullLocationsTask extends TenantSchedulerTask {
         if (!ocpiEndpoint.backgroundPatchJob) {
           await Logging.logDebug({
             tenantID: tenant.id,
-            action: ServerAction.OCPI_PULL_LOCATIONS,
+            action: ServerAction.OCPI_EMSP_PULL_LOCATIONS,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             message: `The OCPI endpoint '${ocpiEndpoint.name}' is inactive.`
           });
@@ -59,7 +59,7 @@ export default class OCPIPullLocationsTask extends TenantSchedulerTask {
         }
         await Logging.logInfo({
           tenantID: tenant.id,
-          action: ServerAction.OCPI_PULL_LOCATIONS,
+          action: ServerAction.OCPI_EMSP_PULL_LOCATIONS,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           message: `Pull of Locations for endpoint '${ocpiEndpoint.name}' is being processed`
         });
@@ -69,14 +69,14 @@ export default class OCPIPullLocationsTask extends TenantSchedulerTask {
         const result = await ocpiClient.pullLocations(config.partial);
         await Logging.logInfo({
           tenantID: tenant.id,
-          action: ServerAction.OCPI_PULL_LOCATIONS,
+          action: ServerAction.OCPI_EMSP_PULL_LOCATIONS,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           message: `Pull of Locations process for endpoint '${ocpiEndpoint.name}' is completed`,
           detailedMessages: { result }
         });
       } catch (error) {
         // Log error
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PULL_LOCATIONS, error);
+        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_PULL_LOCATIONS, error);
       } finally {
         // Release the lock
         await LockingManager.release(ocpiLock);

@@ -71,9 +71,9 @@ export default class CarStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const carCatalogsCountMDB = await global.database.getCollection<DatabaseCount>(Constants.DEFAULT_TENANT, 'carcatalogs')
+    const carCatalogsCountMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogs')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
-      .toArray();
+      .toArray() as DatabaseCount[];
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
@@ -129,9 +129,9 @@ export default class CarStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const carCatalogs = await global.database.getCollection<CarCatalog>(Constants.DEFAULT_TENANT, 'carcatalogs')
-      .aggregate<CarCatalog>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const carCatalogs = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogs')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as CarCatalog[];
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'getCarCatalogs', startTime, aggregation, carCatalogs);
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(carCatalogsCountMDB[0]),
@@ -217,9 +217,9 @@ export default class CarStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const carCatalogImagesCountMDB = await global.database.getCollection<DatabaseCount>(Constants.DEFAULT_TENANT, 'carcatalogimages')
+    const carCatalogImagesCountMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogimages')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
-      .toArray();
+      .toArray() as DatabaseCount[];
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'getCarCatalogImages', startTime, aggregation, carCatalogImagesCountMDB);
@@ -243,9 +243,9 @@ export default class CarStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, ['image']);
     // Read DB
-    const carCatalogImages = await global.database.getCollection<Image>(Constants.DEFAULT_TENANT, 'carcatalogimages')
-      .aggregate<Image>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const carCatalogImages = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogimages')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as Image[];
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'getCarCatalogImages', startTime, aggregation, carCatalogImages);
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(carCatalogImagesCountMDB[0]),
@@ -298,9 +298,9 @@ export default class CarStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Execute
-    const carMakersMDB = await global.database.getCollection<CarMaker>(Constants.DEFAULT_TENANT, 'carcatalogs')
-      .aggregate<CarMaker>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const carMakersMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogs')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as CarMaker[];
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'getCarMakers', startTime, aggregation, carMakersMDB);
     return {
       count: carMakersMDB.length,
@@ -336,7 +336,7 @@ export default class CarStorage {
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(carMDB, carToSave);
     // Modify
-    await global.database.getCollection<Car>(tenant.id, 'cars').findOneAndUpdate(
+    await global.database.getCollection<any>(tenant.id, 'cars').findOneAndUpdate(
       { _id: carMDB._id },
       { $set: carMDB },
       { upsert: true, returnDocument: 'after' }
@@ -465,9 +465,9 @@ export default class CarStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const carsCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'cars')
+    const carsCountMDB = await global.database.getCollection<any>(tenant.id, 'cars')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
-      .toArray();
+      .toArray() as DatabaseCount[];
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
@@ -538,9 +538,9 @@ export default class CarStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const cars = await global.database.getCollection<Car>(tenant.id, 'cars')
-      .aggregate<Car>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const cars = await global.database.getCollection<any>(tenant.id, 'cars')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as Car[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getCars', startTime, aggregation, cars);
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(carsCountMDB[0]),

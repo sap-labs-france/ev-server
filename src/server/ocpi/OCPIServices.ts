@@ -12,8 +12,7 @@ export default class OCPIServices {
   private cpoServices: AbstractOCPIService[] = [];
   private emspServices: AbstractOCPIService[] = [];
 
-  // Create OCPI Service
-  constructor(ocpiRestConfig: OCPIServiceConfiguration) {
+  public constructor(ocpiRestConfig: OCPIServiceConfiguration) {
     // Add available OCPI services
     // version 2.1.1
     this.cpoServices.push(new CPOService211(ocpiRestConfig));
@@ -23,13 +22,6 @@ export default class OCPIServices {
     this.emspServices.push(new EMSPCPOService200(ocpiRestConfig, EMSPService211.PATH));
   }
 
-  /**
-   * Get all implemented versions of OCPI
-   *
-   * @param req
-   * @param res
-   * @param next
-   */
   public getCPOVersions(req: Request, res: Response, next: NextFunction): void {
     try {
       // Get all the versions
@@ -52,7 +44,6 @@ export default class OCPIServices {
     }
   }
 
-  // Return all OCPI Service Implementation
   public getOCPIServiceImplementations(): AbstractOCPIService[] {
     return this.cpoServices.concat(this.emspServices);
   }

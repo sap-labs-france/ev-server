@@ -29,7 +29,7 @@ export default class OCPIPullCdrsTask extends TenantSchedulerTask {
       }
     } catch (error) {
       // Log error
-      await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PULL_CDRS, error);
+      await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_PULL_CDRS, error);
     }
   }
 
@@ -43,7 +43,7 @@ export default class OCPIPullCdrsTask extends TenantSchedulerTask {
         if (ocpiEndpoint.status !== OCPIRegistrationStatus.REGISTERED) {
           await Logging.logDebug({
             tenantID: tenant.id,
-            action: ServerAction.OCPI_PULL_CDRS,
+            action: ServerAction.OCPI_EMSP_PULL_CDRS,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             message: `The OCPI endpoint '${ocpiEndpoint.name}' is not registered. Skipping the OCPI endpoint.`
           });
@@ -52,7 +52,7 @@ export default class OCPIPullCdrsTask extends TenantSchedulerTask {
         if (!ocpiEndpoint.backgroundPatchJob) {
           await Logging.logDebug({
             tenantID: tenant.id,
-            action: ServerAction.OCPI_PULL_CDRS,
+            action: ServerAction.OCPI_EMSP_PULL_CDRS,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             message: `The OCPI endpoint '${ocpiEndpoint.name}' is inactive.`
           });
@@ -60,7 +60,7 @@ export default class OCPIPullCdrsTask extends TenantSchedulerTask {
         }
         await Logging.logInfo({
           tenantID: tenant.id,
-          action: ServerAction.OCPI_PULL_CDRS,
+          action: ServerAction.OCPI_EMSP_PULL_CDRS,
           module: MODULE_NAME, method: 'processOCPIEndpointatch',
           message: `Pull of CDRs for endpoint '${ocpiEndpoint.name}' is being processed`
         });
@@ -70,14 +70,14 @@ export default class OCPIPullCdrsTask extends TenantSchedulerTask {
         const result = await ocpiClient.pullCdrs();
         await Logging.logInfo({
           tenantID: tenant.id,
-          action: ServerAction.OCPI_PULL_CDRS,
+          action: ServerAction.OCPI_EMSP_PULL_CDRS,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           message: `Pull of CDRs for endpoint '${ocpiEndpoint.name}' is completed`,
           detailedMessages: { result }
         });
       } catch (error) {
         // Log error
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PULL_CDRS, error);
+        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_PULL_CDRS, error);
       } finally {
         // Release the lock
         await LockingManager.release(ocpiLock);
