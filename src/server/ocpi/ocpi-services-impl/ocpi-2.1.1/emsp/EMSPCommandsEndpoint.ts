@@ -51,13 +51,13 @@ export default class EMSPCommandsEndpoint extends AbstractEndpoint {
   private getAction(command: OCPICommandType): ServerAction {
     switch (command) {
       case OCPICommandType.START_SESSION:
-        return ServerAction.OCPI_START_SESSION;
+        return ServerAction.OCPI_EMSP_START_SESSION;
       case OCPICommandType.STOP_SESSION:
-        return ServerAction.OCPI_STOP_SESSION;
+        return ServerAction.OCPI_EMSP_STOP_SESSION;
       case OCPICommandType.RESERVE_NOW:
-        return ServerAction.OCPI_RESERVE_NOW;
+        return ServerAction.OCPI_EMSP_RESERVE_NOW;
       case OCPICommandType.UNLOCK_CONNECTOR:
-        return ServerAction.OCPI_UNLOCK_CONNECTOR;
+        return ServerAction.OCPI_EMSP_UNLOCK_CONNECTOR;
     }
   }
 }

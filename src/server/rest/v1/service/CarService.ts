@@ -1,25 +1,25 @@
-import { Action, Entity } from '../../../../types/Authorization';
-import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
-import { CarCatalogDataResult, CarDataResult } from '../../../../types/DataResult';
-import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-import Tenant, { TenantComponents } from '../../../../types/Tenant';
 
+import AsyncTaskBuilder from '../../../../async-task/AsyncTaskBuilder';
+import Authorizations from '../../../../authorization/Authorizations';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
-import AsyncTaskBuilder from '../../../../async-task/AsyncTaskBuilder';
-import AuthorizationService from './AuthorizationService';
-import Authorizations from '../../../../authorization/Authorizations';
-import { Car } from '../../../../types/Car';
-import CarStorage from '../../../../storage/mongodb/CarStorage';
-import CarValidator from '../validator/CarValidator';
-import Constants from '../../../../utils/Constants';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
+import CarStorage from '../../../../storage/mongodb/CarStorage';
+import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
+import { Action, Entity } from '../../../../types/Authorization';
+import { Car } from '../../../../types/Car';
+import { CarCatalogDataResult, CarDataResult } from '../../../../types/DataResult';
+import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
+import { ServerAction } from '../../../../types/Server';
+import Tenant, { TenantComponents } from '../../../../types/Tenant';
+import Constants from '../../../../utils/Constants';
 import Logging from '../../../../utils/Logging';
 import LoggingHelper from '../../../../utils/LoggingHelper';
-import { ServerAction } from '../../../../types/Server';
 import Utils from '../../../../utils/Utils';
+import CarValidator from '../validator/CarValidator';
+import AuthorizationService from './AuthorizationService';
 import UtilsService from './UtilsService';
 
 const MODULE_NAME = 'CarService';
@@ -86,21 +86,17 @@ export default class CarService {
     const filteredRequest = CarValidator.getInstance().validateCarCatalogGetReq(req.query);
     // Get the car Image
     const carCatalog = await CarStorage.getCarCatalogImage(filteredRequest.ID);
-    if (carCatalog?.image) {
-      // Remove encoding header
-      let header = 'image';
-      let encoding: BufferEncoding = 'base64';
-      if (carCatalog?.image.startsWith('data:image/')) {
-        header = carCatalog.image.substring(5, carCatalog.image.indexOf(';'));
-        encoding = carCatalog.image.substring(carCatalog.image.indexOf(';') + 1, carCatalog.image.indexOf(',')) as BufferEncoding;
-        carCatalog.image = carCatalog.image.substring(carCatalog.image.indexOf(',') + 1);
-      }
-      // Revert to binary
-      res.setHeader('content-type', header);
-      res.send(carCatalog.image ? Buffer.from(carCatalog.image, encoding) : null);
-    } else {
-      res.send(null);
+    let image = !Utils.isNullOrEmptyString(carCatalog?.image) ? carCatalog.image : Constants.NO_IMAGE;
+    let header = 'image';
+    let encoding: BufferEncoding = 'base64';
+    // Remove encoding header
+    if (image.startsWith('data:image/')) {
+      header = image.substring(5, image.indexOf(';'));
+      encoding = image.substring(image.indexOf(';') + 1, image.indexOf(',')) as BufferEncoding;
+      image = image.substring(image.indexOf(',') + 1);
     }
+    res.setHeader('content-type', header);
+    res.send(Buffer.from(image, encoding));
     next();
   }
 

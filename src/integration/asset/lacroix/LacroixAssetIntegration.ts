@@ -71,7 +71,7 @@ export default class LacroixAssetIntegration extends AssetIntegration<AssetSetti
         module: MODULE_NAME, method: 'retrieveConsumption',
         detailedMessages: { response: response.data }
       });
-      return await this.filterConsumptionRequest(asset, response.data, manualCall);
+      return this.filterConsumptionRequest(asset, response.data, manualCall);
     } catch (error) {
       throw new BackendError({
         module: MODULE_NAME,

@@ -9,6 +9,7 @@ import Logging from '../utils/Logging';
 import MigrationStorage from '../storage/mongodb/MigrationStorage';
 import MigrationTask from './MigrationTask';
 import RemoveDuplicateTagVisualIDsTask from './tasks/RemoveDuplicateTagVisualIDsTask';
+import RemoveLogoFromTenantTask from './tasks/RemoveLogoFromTenantTask';
 import RepairInvoiceInconsistencies from './tasks/RepairInvoiceInconsistencies';
 import RepairTransactionBillingData from './tasks/RepairTransactionBillingData';
 import RepairTransactionPricedAtZero from './tasks/RepairTransactionPricedAtZeroTask';
@@ -150,6 +151,7 @@ export default class MigrationHandler {
     currentMigrationTasks.push(new UpdateEmailsToLowercaseTask());
     currentMigrationTasks.push(new UserCleanUpTask());
     currentMigrationTasks.push(new AlignEntitiesWithOrganizationIDsTask());
+    currentMigrationTasks.push(new RemoveLogoFromTenantTask());
     return currentMigrationTasks;
   }
 }

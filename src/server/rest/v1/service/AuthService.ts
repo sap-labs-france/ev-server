@@ -176,17 +176,6 @@ export default class AuthService {
     await UserStorage.saveUserStatus(tenant, newUser.id, UserStatus.PENDING);
     // Get the i18n translation class
     const i18nManager = I18nManager.getInstanceForLocale(newUser.locale);
-    const tag: Tag = {
-      id: Utils.generateTagID(newUser.name, newUser.firstName),
-      active: true,
-      issuer: true,
-      userID: newUser.id,
-      createdBy: { id: newUser.id },
-      createdOn: new Date(),
-      description: i18nManager.translate('tags.virtualBadge'),
-      default: true
-    };
-    await TagStorage.saveTag(tenant, tag);
     // Save User password
     await UserStorage.saveUserPassword(tenant, newUser.id, {
       password: newPasswordHashed,
@@ -204,6 +193,20 @@ export default class AuthService {
     });
     // Assign user to all Sites with auto-assign flag
     await UtilsService.assignCreatedUserToSites(tenant, newUser);
+    // Create default Tag
+    if (tenant.id !== Constants.DEFAULT_TENANT) {
+      const tag: Tag = {
+        id: Utils.generateTagID(newUser.name, newUser.firstName),
+        active: true,
+        issuer: true,
+        userID: newUser.id,
+        createdBy: { id: newUser.id },
+        createdOn: new Date(),
+        description: i18nManager.translate('tags.virtualBadge'),
+        default: true
+      };
+      await TagStorage.saveTag(tenant, tag);
+    }
     await Logging.logInfo({
       tenantID: tenant.id,
       user: newUser, action: action,

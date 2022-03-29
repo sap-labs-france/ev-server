@@ -220,7 +220,6 @@ describe('OCPI Service Tests (utocpi)', () => {
     it('should have correct OCPI Error Response value', () => {
       expect(response.data).to.not.be.empty;
       expect(response.data).to.have.property('status_code', 3000);
-      expect(response.data).to.have.property('status_message', 'Endpoint invalidEndpoint not implemented');
     });
   });
 
@@ -251,7 +250,6 @@ describe('OCPI Service Tests (utocpi)', () => {
     it('should have correct OCPI Error Response value', () => {
       expect(response.data).to.not.be.empty;
       expect(response.data).to.have.property('status_code', 3000);
-      expect(response.data).to.have.property('status_message', 'Endpoint invalidEndpoint not implemented');
     });
   });
 

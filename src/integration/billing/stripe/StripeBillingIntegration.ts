@@ -1370,11 +1370,11 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   public async createUser(user: User): Promise<BillingUser> {
-    return await this.createBillingUser(user, false);
+    return this.createBillingUser(user, false);
   }
 
   public async repairUser(user: User): Promise<BillingUser> {
-    return await this.createBillingUser(user, true);
+    return this.createBillingUser(user, true);
   }
 
   private async createBillingUser(user: User, forceUserCreation: boolean): Promise<BillingUser> {

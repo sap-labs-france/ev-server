@@ -27,7 +27,7 @@ export default class UsersImportAsyncTask extends AbstractAsyncTask {
       const tenant = await TenantStorage.getTenant(this.getAsyncTask().tenantID);
       try {
         if (existingSites.size === 0) {
-          const sites = await SiteStorage.getSites(tenant, {}, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'name']);
+          const sites = await SiteStorage.getSites(tenant, { issuer: true }, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'name']);
           for (const site of sites.result) {
             existingSites.set(site.id, site);
           }
