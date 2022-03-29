@@ -370,8 +370,12 @@ export default class StripeBillingIntegration extends BillingIntegration {
 
   public async downloadInvoiceDocument(invoice: BillingInvoice): Promise<Buffer> {
     if (invoice.downloadUrl) {
+      await this.checkConnection();
+      // Get fresh data becausse persisted url expires after 30 days
+      const stripeInvoice = await this.getStripeInvoice(invoice.invoiceID);
+      const downloadUrl = stripeInvoice.hosted_invoice_url;
       // Get document
-      const response = await this.axiosInstance.get(invoice.downloadUrl, {
+      const response = await this.axiosInstance.get(downloadUrl, {
         responseType: 'arraybuffer'
       });
       // Convert
