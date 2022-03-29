@@ -361,20 +361,18 @@ export default class SiteAreaStorage {
     if (siteAreasMDB && siteAreasMDB.length > 0) {
       // Create
       for (const siteAreaMDB of siteAreasMDB) {
-        if (siteAreaMDB.issuer) {
-          // Skip site area with no charging stations if asked
-          if (params.withOnlyChargingStations && Utils.isEmptyArray(siteAreaMDB.chargingStations)) {
-            continue;
-          }
-          // Add counts of Available/Occupied Chargers/Connectors
-          if (params.withAvailableChargingStations) {
-            // Set the Charging Stations' Connector statuses
-            siteAreaMDB.connectorStats = Utils.getConnectorStatusesFromChargingStations(siteAreaMDB.chargingStations);
-          }
-          // Charging stations
-          if (!params.withChargingStations && siteAreaMDB.chargingStations) {
-            delete siteAreaMDB.chargingStations;
-          }
+        // Skip site area with no charging stations if asked
+        if (params.withOnlyChargingStations && Utils.isEmptyArray(siteAreaMDB.chargingStations)) {
+          continue;
+        }
+        // Add counts of Available/Occupied Chargers/Connectors
+        if (params.withAvailableChargingStations) {
+          // Set the Charging Stations' Connector statuses
+          siteAreaMDB.connectorStats = Utils.getConnectorStatusesFromChargingStations(siteAreaMDB.chargingStations);
+        }
+        // Charging stations
+        if (!params.withChargingStations && siteAreaMDB.chargingStations) {
+          delete siteAreaMDB.chargingStations;
         }
         // Add
         siteAreas.push(siteAreaMDB);

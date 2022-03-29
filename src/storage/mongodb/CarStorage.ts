@@ -505,8 +505,7 @@ export default class CarStorage {
     if (withCarCatalog) {
       DatabaseUtils.pushCarCatalogLookupInAggregation({
         tenantID: Constants.DEFAULT_TENANT, aggregation, localField: 'carCatalogID', foreignField: '_id',
-        asField: 'carCatalog', oneToOneCardinality: true, projectFields: ['id', 'vehicleMake', 'vehicleModel', 'vehicleModelVersion',
-          'fastChargePowerMax', 'batteryCapacityFull']
+        asField: 'carCatalog', oneToOneCardinality: true
       });
       // Car Image
       aggregation.push({
