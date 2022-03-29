@@ -8,7 +8,6 @@ import global from '../../../../types/GlobalType';
 export default class AuthValidator extends SchemaValidator {
   private static instance: AuthValidator|null = null;
   private authSignIn: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-signin.json`, 'utf8'));
-  private authSignOn: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-signon.json`, 'utf8'));
   private authPasswordReset: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-password-reset.json`, 'utf8'));
   private authEulaCheck: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-eula-check.json`, 'utf8'));
   private authEmailVerify: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-email-verify.json`, 'utf8'));
@@ -28,10 +27,6 @@ export default class AuthValidator extends SchemaValidator {
 
   public validateAuthSignInReq(data: Record<string, unknown>): HttpLoginRequest {
     return this.validate(this.authSignIn, data);
-  }
-
-  public validateAuthSignOnReq(data: Record<string, unknown>): Partial<HttpRegisterUserRequest> {
-    return this.validate(this.authSignOn, data);
   }
 
   public validateAuthPasswordResetReq(data: Record<string, unknown>): Partial<HttpResetPasswordRequest> {

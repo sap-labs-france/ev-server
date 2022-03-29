@@ -82,8 +82,7 @@ export interface HttpRegisterUserRequest extends HttpLoginRequest {
   captcha: string;
   status: string;
   locale: string;
-  mobile?: string;
-  phone?: string;
+  mobile: string;
 }
 
 export interface HttpVerifyEmailRequest {

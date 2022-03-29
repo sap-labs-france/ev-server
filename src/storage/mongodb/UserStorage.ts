@@ -1015,7 +1015,6 @@ export default class UserStorage {
       name: 'Unknown',
       firstName: 'User',
       mobile: '',
-      phone: '',
       email: '',
       address: null,
       createdBy: null,

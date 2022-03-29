@@ -5,6 +5,7 @@ import User, { UserRole, UserStatus } from '../../../../types/User';
 
 import AppError from '../../../../exception/AppError';
 import AuthValidator from '../validator/AuthValidator';
+import AuthValidatorStorage from '../../../../storage/mongodb/validator/AuthValidatorStorage';
 import Authorizations from '../../../../authorization/Authorizations';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
 import Configuration from '../../../../utils/Configuration';
@@ -15,7 +16,6 @@ import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
 import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
-import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
@@ -120,7 +120,7 @@ export default class AuthService {
 
   public static async handleRegisterUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = AuthValidator.getInstance().validateAuthSignOnReq(req.body);
+    const filteredRequest = AuthValidatorStorage.getInstance().validateAuthSignOn(req.body);
     // Override
     filteredRequest.status = UserStatus.PENDING;
     if (!filteredRequest.locale) {
@@ -161,7 +161,6 @@ export default class AuthService {
     newUser.firstName = filteredRequest.firstName;
     newUser.locale = filteredRequest.locale;
     newUser.mobile = filteredRequest.mobile;
-    newUser.phone = filteredRequest.phone;
     newUser.createdOn = new Date();
     const verificationToken = Utils.generateToken(filteredRequest.email);
     const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenant, Utils.getLanguageFromLocale(newUser.locale));
