@@ -1127,7 +1127,7 @@ export default class ChargingStationService {
     // Handle Errors
     bucketStream.on('error', (error) => {
       void Logging.logError({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: Constants.DEFAULT_TENANT_ID,
         action,
         message: `Firmware '${filteredRequest.FileName}' has not been found!`,
         module: MODULE_NAME, method: 'handleGetFirmware',
@@ -1142,7 +1142,7 @@ export default class ChargingStationService {
     await new Promise((resolve) => {
       bucketStream.on('end', () => {
         void Logging.logInfo({
-          tenantID: Constants.DEFAULT_TENANT,
+          tenantID: Constants.DEFAULT_TENANT_ID,
           action,
           message: `Firmware '${filteredRequest.FileName}' has been downloaded with success`,
           module: MODULE_NAME, method: 'handleGetFirmware',

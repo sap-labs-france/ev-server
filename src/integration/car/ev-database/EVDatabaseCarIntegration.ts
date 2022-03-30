@@ -25,7 +25,7 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
     const evDatabaseConfig = Configuration.getEVDatabaseConfig();
     if (!evDatabaseConfig) {
       await Logging.logWarning({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: Constants.DEFAULT_TENANT_ID,
         message: 'No configuration is provided to access the EVDatabase system, skipping',
         module: MODULE_NAME, method: 'getCarCatalogs',
         action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
@@ -221,7 +221,7 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
         image = 'data:' + response.headers['content-type'] + ';base64,' + base64Image;
       } catch (error) {
         await Logging.logError({
-          tenantID: Constants.DEFAULT_TENANT,
+          tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
           module: MODULE_NAME, method: 'getCarCatalogThumb',
           message: `${carCatalog.id} - ${carCatalog.vehicleMake} - ${carCatalog.vehicleModel} - Cannot retrieve image from URL '${carCatalog.imageURLs[0]}'`,
@@ -240,7 +240,7 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
       return encodedImage;
     } catch (error) {
       await Logging.logError({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
         module: MODULE_NAME, method: 'getCarCatalogImage',
         message: `${carCatalog.id} - ${carCatalog.vehicleMake} - ${carCatalog.vehicleModel} - Cannot retrieve image from URL '${imageURL}'`,

@@ -1,6 +1,7 @@
-import { OcppParameter } from '../types/ChargingStation';
-import DbParams from '../types/database/DbParams';
 import { OCPPAttribute, OCPPLocation, OCPPMeasurand, OCPPPhase, OCPPReadingContext, OCPPUnitOfMeasure, OCPPValueFormat } from '../types/ocpp/OCPPServer';
+
+import DbParams from '../types/database/DbParams';
+import { OcppParameter } from '../types/ChargingStation';
 import Tenant from '../types/Tenant';
 
 export default class Constants {
@@ -51,11 +52,11 @@ export default class Constants {
 
   public static readonly HEALTH_CHECK_ROUTE = '/health-check';
 
-  public static readonly DEFAULT_TENANT = 'default';
+  public static readonly DEFAULT_TENANT_ID = 'default';
   public static readonly DEFAULT_TENANT_OBJECT = Object.freeze({
-    id: Constants.DEFAULT_TENANT,
-    name: Constants.DEFAULT_TENANT,
-    subdomain: Constants.DEFAULT_TENANT
+    id: Constants.DEFAULT_TENANT_ID,
+    name: Constants.DEFAULT_TENANT_ID,
+    subdomain: Constants.DEFAULT_TENANT_ID
   } as Tenant);
 
   // Output of crypto.getCiphers()

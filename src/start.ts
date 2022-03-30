@@ -85,7 +85,7 @@ export default class Bootstrap {
         // eslint-disable-next-line no-console
         Logging.logConsoleError(`Unhandled Rejection: ${p?.toString()}, reason: ${reason as string}`);
         void Logging.logError({
-          tenantID: Constants.DEFAULT_TENANT,
+          tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.UNKNOWN_ACTION,
           module: MODULE_NAME, method: 'start',
           message: `Unhandled Rejection: ${(reason ? (reason.message ?? reason) : 'Not provided')}`,
@@ -134,7 +134,7 @@ export default class Bootstrap {
           const message = `Monitoring Server implementation does not exist '${this.monitoringConfig.implementation}'`;
           Logging.logConsoleError(message);
           await Logging.logError({
-            tenantID: Constants.DEFAULT_TENANT,
+            tenantID: Constants.DEFAULT_TENANT_ID,
             action: ServerAction.STARTUP,
             module: MODULE_NAME, method: 'startServers', message
           });
@@ -195,7 +195,7 @@ export default class Bootstrap {
     } catch (error) {
       Logging.logConsoleError(error);
       global.database && await Logging.logError({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.BOOTSTRAP_STARTUP,
         module: MODULE_NAME, method: 'start',
         message: `Unexpected exception in ${serverStarted.join(', ')}`,
@@ -209,7 +209,7 @@ export default class Bootstrap {
     Logging.logConsoleDebug(logMessage);
     if (global.database) {
       await Logging.logInfo({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.STARTUP,
         module: MODULE_NAME, method: 'start',
         message: logMessage
@@ -224,7 +224,7 @@ export default class Bootstrap {
     Logging.logConsoleDebug(logMessage);
     if (global.database) {
       await Logging.logInfo({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: Constants.DEFAULT_TENANT_ID,
         action,
         module: MODULE_NAME, method: 'start',
         message: logMessage
@@ -310,7 +310,7 @@ export default class Bootstrap {
     } catch (error) {
       Logging.logConsoleError(error.stack);
       await Logging.logError({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.STARTUP,
         module: MODULE_NAME, method: 'startServers',
         message: `Unexpected exception in ${serverTypes.join(', ')}: ${error?.message as string}`,

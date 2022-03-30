@@ -235,7 +235,7 @@ export default class UserService {
       message: 'User has been updated successfully',
       action: action
     });
-    if (statusHasChanged && req.tenant.id !== Constants.DEFAULT_TENANT) {
+    if (statusHasChanged && req.tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Notify
       void NotificationHandler.sendUserAccountStatusChanged(
         req.tenant,

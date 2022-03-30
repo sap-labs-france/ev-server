@@ -75,7 +75,7 @@ export default abstract class AbstractOCPIService {
     }
     const action = regexResult[0].substring(1) as ServerAction;
     // Set default tenant in case of exception
-    req.user = { tenantID: Constants.DEFAULT_TENANT };
+    req.user = { tenantID: Constants.DEFAULT_TENANT_ID };
     // Check action
     switch (action) {
       // If empty - return available endpoints
@@ -206,13 +206,13 @@ export default abstract class AbstractOCPIService {
       }
     } catch (error) {
       await Logging.logError({
-        tenantID: req.tenant?.id ?? Constants.DEFAULT_TENANT,
+        tenantID: req.tenant?.id ?? Constants.DEFAULT_TENANT_ID,
         module: MODULE_NAME, method: ocpiAction,
         message: `<< OCPI Response Error ${req.method} ${req.originalUrl}`,
         action: error.params?.action ?? ServerAction.OCPI_ENDPOINT,
         detailedMessages: { error: error.stack }
       });
-      await Logging.logActionExceptionMessage(req.tenant?.id ?? Constants.DEFAULT_TENANT, error.params?.action ?? ServerAction.OCPI_ENDPOINT, error);
+      await Logging.logActionExceptionMessage(req.tenant?.id ?? Constants.DEFAULT_TENANT_ID, error.params?.action ?? ServerAction.OCPI_ENDPOINT, error);
       res.status(error.params?.errorCode ?? HTTPError.GENERAL_ERROR).json(OCPIUtils.toErrorResponse(error));
     }
   }

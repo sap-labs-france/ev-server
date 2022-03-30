@@ -34,7 +34,7 @@ export default class WSClient {
       'onmaximum': () => { }
     };
     this.dbLogging = dbLogging;
-    this.logTenantID = options.logTenantID ? options.logTenantID : Constants.DEFAULT_TENANT;
+    this.logTenantID = options.logTenantID ? options.logTenantID : Constants.DEFAULT_TENANT_ID;
     this.open();
   }
 

@@ -136,7 +136,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         action: ServerAction.WS_SERVER_CONNECTION, message
       });
       await Logging.logError({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: Constants.DEFAULT_TENANT_ID,
         chargingStationID: chargingStation.id,
         module: MODULE_NAME, method: 'getChargingStationClient',
         action: ServerAction.WS_SERVER_CONNECTION, message
@@ -163,7 +163,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       // Check URI (/OCPP16/<TENANT_ID>/<TOKEN_ID>/<CHARGING_STATION_ID> or /REST/<TENANT_ID>/<TOKEN_ID>/<CHARGING_STATION_ID>)
       if (!url.startsWith('/OCPP16') && !url.startsWith('/REST')) {
         await Logging.logError({
-          tenantID: Constants.DEFAULT_TENANT,
+          tenantID: Constants.DEFAULT_TENANT_ID,
           module: MODULE_NAME, method: 'onUpgrade',
           action: ServerAction.WS_SERVER_CONNECTION,
           message: `${WebSocketAction.UPGRADE} > WS Connection with URL '${url}' is invalid: No 'OCPP16' or 'REST' in path`
@@ -175,7 +175,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       const protocol = req.getHeader('sec-websocket-protocol');
       if (url.startsWith('/OCPP16') && (protocol !== WSServerProtocol.OCPP16)) {
         await Logging.logError({
-          tenantID: Constants.DEFAULT_TENANT,
+          tenantID: Constants.DEFAULT_TENANT_ID,
           module: MODULE_NAME, method: 'onUpgrade',
           action: ServerAction.WS_SERVER_CONNECTION,
           message: `${WebSocketAction.UPGRADE} > WS Connection with URL '${url}' is invalid, expected protocol 'ocpp1.6' but got '${protocol}'`,
@@ -186,7 +186,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       }
       if (url.startsWith('/REST') && (protocol !== WSServerProtocol.REST)) {
         await Logging.logError({
-          tenantID: Constants.DEFAULT_TENANT,
+          tenantID: Constants.DEFAULT_TENANT_ID,
           module: MODULE_NAME, method: 'onUpgrade',
           action: ServerAction.WS_SERVER_CONNECTION,
           message: `${WebSocketAction.UPGRADE} > WS Connection with URL '${url}' is invalid, expected protocol 'rest' but got '${protocol}'`,
@@ -208,7 +208,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       res.end(message);
       this.isDebug() && Logging.logConsoleDebug(message);
       await Logging.logError({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.WS_SERVER_CONNECTION,
         module: MODULE_NAME, method: 'onUpgrade',
         message, detailedMessages: { error: error.stack }
@@ -237,7 +237,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         await this.checkAndStoreWSOpenedConnection(WSServerProtocol.REST, wsWrapper);
       }
     } catch (error) {
-      await Logging.logException(error, ServerAction.WS_SERVER_CONNECTION_OPEN, MODULE_NAME, 'onOpen', Constants.DEFAULT_TENANT);
+      await Logging.logException(error, ServerAction.WS_SERVER_CONNECTION_OPEN, MODULE_NAME, 'onOpen', Constants.DEFAULT_TENANT_ID);
       if (wsWrapper.tenantID) {
         await Logging.logException(error, ServerAction.WS_SERVER_CONNECTION_OPEN, MODULE_NAME, 'onOpen', wsWrapper.tenantID);
       }
@@ -263,7 +263,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       wsConnection = new JsonRestWSConnection(wsWrapper);
     }
     await Logging.logDebug({
-      tenantID: Constants.DEFAULT_TENANT,
+      tenantID: Constants.DEFAULT_TENANT_ID,
       action: ServerAction.WS_SERVER_CONNECTION_OPEN, module: MODULE_NAME, method: 'checkAndStoreWSOpenedConnection',
       message: `${WebSocketAction.OPEN} > WS Connection ID '${wsWrapper.guid}'  is being checked ('${wsWrapper.url}')`,
       detailedMessages: { wsWrapper: this.getWSWrapperData(wsWrapper) }
@@ -284,7 +284,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       await this.checkAndCloseIdenticalOpenedWSConnection(wsWrapper, wsConnection);
       const message = `${WebSocketAction.OPEN} > WS Connection ID '${wsWrapper.guid}' has been accepted in ${Utils.computeTimeDurationSecs(timeStart)} secs`;
       await Logging.logInfo({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: Constants.DEFAULT_TENANT_ID,
         chargingStationID: wsWrapper.chargingStationID,
         action: ServerAction.WS_SERVER_CONNECTION_OPEN, module: MODULE_NAME, method: 'checkAndStoreWSOpenedConnection',
         message, detailedMessages: { wsWrapper: this.getWSWrapperData(wsWrapper) }
@@ -316,7 +316,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         if (result.ok) {
           // Close the old WS and keep the new incoming one
           await Logging.logWarning({
-            tenantID: Constants.DEFAULT_TENANT,
+            tenantID: Constants.DEFAULT_TENANT_ID,
             chargingStationID: wsWrapper.chargingStationID,
             action: ServerAction.WS_SERVER_CONNECTION, module: MODULE_NAME, method: 'checkAndCloseIdenticalOpenedWSConnection',
             message: `${WebSocketAction.OPEN} > Existing WS Connection ID '${existingWSWrapper.guid}' will be closed and replaced by new incoming one with ID '${wsWrapper.guid}'`,
@@ -386,7 +386,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         detailedMessages: { message, isBinary, wsWrapper: this.getWSWrapperData(wsWrapper), error: error.stack }
       });
       await Logging.logError({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: Constants.DEFAULT_TENANT_ID,
         chargingStationID: wsWrapper.chargingStationID,
         action: ServerAction.WS_SERVER_MESSAGE,
         module: MODULE_NAME, method: 'onMessage',
@@ -404,7 +404,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       this.getWSConnectionFromProtocolAndID(wsWrapper.protocol, wsWrapper.key);
     if (!wsExistingConnection) {
       await Logging.logError({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: Constants.DEFAULT_TENANT_ID,
         chargingStationID: wsWrapper.chargingStationID,
         action: ServerAction.WS_SERVER_MESSAGE,
         module: MODULE_NAME, method: 'checkWSConnectionFromOnMessage',
@@ -419,7 +419,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     const wsExistingWrapper = wsExistingConnection.getWS();
     if (wsExistingWrapper.guid !== wsWrapper.guid) {
       await Logging.logError({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: Constants.DEFAULT_TENANT_ID,
         chargingStationID: wsWrapper.chargingStationID,
         action: ServerAction.WS_SERVER_MESSAGE,
         module: MODULE_NAME, method: 'checkWSConnectionFromOnMessage',
@@ -430,7 +430,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       const result = await this.pingWebSocket(wsExistingWrapper);
       if (result.ok) {
         await Logging.logError({
-          tenantID: Constants.DEFAULT_TENANT,
+          tenantID: Constants.DEFAULT_TENANT_ID,
           chargingStationID: wsWrapper.chargingStationID,
           action: ServerAction.WS_SERVER_MESSAGE,
           module: MODULE_NAME, method: 'checkWSConnectionFromOnMessage',
@@ -442,7 +442,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
           WebSocketCloseEventStatusCode.CLOSE_ABNORMAL, `${WebSocketAction.MESSAGE} > Existing WS Connection ID '${wsExistingWrapper.guid}' has been closed successfully by server (duplicate WS Connection)`);
       } else {
         await Logging.logWarning({
-          tenantID: Constants.DEFAULT_TENANT,
+          tenantID: Constants.DEFAULT_TENANT_ID,
           chargingStationID: wsWrapper.chargingStationID,
           action: ServerAction.WS_SERVER_MESSAGE,
           module: MODULE_NAME, method: 'checkWSConnectionFromOnMessage',
@@ -465,7 +465,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       });
     }
     await Logging.logInfo({
-      tenantID: Constants.DEFAULT_TENANT,
+      tenantID: Constants.DEFAULT_TENANT_ID,
       chargingStationID: wsWrapper.chargingStationID,
       action, module: MODULE_NAME, method: 'logWSConnectionClosed',
       message: message, detailedMessages: { code, message, wsWrapper: this.getWSWrapperData(wsWrapper) }
@@ -479,7 +479,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       let numberOfTrials = 0;
       const timeStart = Date.now();
       await Logging.logWarning({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: Constants.DEFAULT_TENANT_ID,
         chargingStationID: wsWrapper.chargingStationID,
         action, module: MODULE_NAME, method: 'waitForWSLockToRelease',
         message: `${wsAction} > WS Connection ID '${wsWrapper.guid}' - Lock is taken: Wait and try to acquire the lock after ${Constants.WS_LOCK_TIME_OUT_MILLIS} ms...`,
@@ -494,7 +494,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         // Message has been processed
         if (!this.runningWSRequestsMessages[wsWrapper.url]) {
           await Logging.logInfo({
-            tenantID: Constants.DEFAULT_TENANT,
+            tenantID: Constants.DEFAULT_TENANT_ID,
             chargingStationID: wsWrapper.chargingStationID,
             action, module: MODULE_NAME, method: 'waitForWSLockToRelease',
             message: `${wsAction} > WS Connection ID '${wsWrapper.guid}' - Lock has been acquired successfully after ${numberOfTrials} trial(s) and ${Utils.computeTimeDurationSecs(timeStart)} secs`,
@@ -508,7 +508,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         if (numberOfTrials >= maxNumberOfTrials) {
           // Abnormal situation: The lock should not be taken for so long!
           await Logging.logError({
-            tenantID: Constants.DEFAULT_TENANT,
+            tenantID: Constants.DEFAULT_TENANT_ID,
             chargingStationID: wsWrapper.chargingStationID,
             action, module: MODULE_NAME, method: 'waitForWSLockToRelease',
             message: `${wsAction} > WS Connection ID '${wsWrapper.guid}' - Cannot acquire the lock after ${numberOfTrials} trial(s) and ${Utils.computeTimeDurationSecs(timeStart)} secs - Lock will be forced to be released`,
@@ -537,7 +537,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       // Close WS
       if (wsWrapper.nbrPingFailed >= Constants.WS_MAX_NBR_OF_FAILED_PINGS) {
         await Logging.logError({
-          tenantID: Constants.DEFAULT_TENANT,
+          tenantID: Constants.DEFAULT_TENANT_ID,
           chargingStationID: wsWrapper.chargingStationID,
           action: ServerAction.WS_SERVER_CONNECTION_PING, module: MODULE_NAME, method: 'pingWebSocket',
           message: `${WebSocketAction.PING} > Failed to ping the WS Connection ID '${wsWrapper.guid}' after ${wsWrapper.nbrPingFailed} trial(s), will be removed from WS cache`,
@@ -547,7 +547,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
           WebSocketCloseEventStatusCode.CLOSE_ABNORMAL, `${WebSocketAction.PING} > WS Connection ID '${wsWrapper.guid}' has been closed by server after ${wsWrapper.nbrPingFailed} failed ping`);
       } else {
         await Logging.logWarning({
-          tenantID: Constants.DEFAULT_TENANT,
+          tenantID: Constants.DEFAULT_TENANT_ID,
           chargingStationID: wsWrapper.chargingStationID,
           action: ServerAction.WS_SERVER_CONNECTION_PING, module: MODULE_NAME, method: 'pingWebSocket',
           message: `${WebSocketAction.PING} > Failed to ping the WS Connection ID '${wsWrapper.guid}' after ${wsWrapper.nbrPingFailed} trial(s) (${Constants.WS_MAX_NBR_OF_FAILED_PINGS - wsWrapper.nbrPingFailed} remaining)`,
@@ -571,7 +571,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       } catch (error) {
         // Just log and ignore issue
         await Logging.logError({
-          tenantID: Constants.DEFAULT_TENANT,
+          tenantID: Constants.DEFAULT_TENANT_ID,
           chargingStationID: wsWrapper.chargingStationID,
           action, module: MODULE_NAME, method: 'closeWebSocket',
           message: `${wsAction} > Failed to close WS Connection ID '${wsWrapper.guid}': ${error.message as string}`,
@@ -588,7 +588,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     if (wsWrapper.protocol === WSServerProtocol.OCPP16) {
       this.jsonWSConnections.set(wsConnection.getID(), wsConnection as JsonWSConnection);
       await Logging.logDebug({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: Constants.DEFAULT_TENANT_ID,
         chargingStationID: wsWrapper.chargingStationID,
         action, module: MODULE_NAME, method: 'setWSConnection',
         message: `${wsAction} > WS Connection ID '${wsWrapper.guid}' has been added in the WS cache`,
@@ -598,7 +598,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     if (wsWrapper.protocol === WSServerProtocol.REST) {
       this.jsonRestWSConnections.set(wsConnection.getID(), wsConnection as JsonRestWSConnection);
       await Logging.logDebug({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: Constants.DEFAULT_TENANT_ID,
         chargingStationID: wsWrapper.chargingStationID,
         action, module: MODULE_NAME, method: 'setWSConnection',
         message: `${wsAction} > WS Connection ID '${wsWrapper.guid}' has been added in the WS cache`,
@@ -639,7 +639,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
           // Remove from WS Cache
           wsConnections.delete(wsConnection.getID());
           await Logging.logDebug({
-            tenantID: Constants.DEFAULT_TENANT,
+            tenantID: Constants.DEFAULT_TENANT_ID,
             chargingStationID: wsWrapper.chargingStationID,
             action, module: MODULE_NAME, method: 'setWSConnection',
             message: `${wsAction} > WS Connection ID '${wsWrapper.guid}' has been removed from the WS cache`,
@@ -648,7 +648,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         } else {
           // WS Connection not identical
           await Logging.logWarning({
-            tenantID: Constants.DEFAULT_TENANT,
+            tenantID: Constants.DEFAULT_TENANT_ID,
             chargingStationID: wsWrapper.chargingStationID,
             action, module: MODULE_NAME, method: 'removeWSConnection',
             message: `${wsAction} > Failed to remove WS Connection ID '${wsWrapper.guid}' from WS cache due to an already existing WS with different ID '${existingWsWrapper.guid}'`,
@@ -658,7 +658,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       } else {
         // WS Connection not found
         await Logging.logWarning({
-          tenantID: Constants.DEFAULT_TENANT,
+          tenantID: Constants.DEFAULT_TENANT_ID,
           chargingStationID: wsWrapper.chargingStationID,
           action, module: MODULE_NAME, method: 'removeWSConnection',
           message: `${wsAction} > Failed to remove WS Connection ID '${wsWrapper.guid}' from WS cache as it does not exist anymore in it`,
@@ -676,7 +676,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     setInterval(async () => {
       await Logging.logDebug({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.WS_SERVER_CONNECTION, module: MODULE_NAME, method: 'monitorWSConnections',
         message: `${this.jsonWSConnections.size} WS connections, ${this.jsonRestWSConnections.size} REST connections, ${this.runningWSMessages} Messages, ${Object.keys(this.runningWSRequestsMessages).length} Requests, ${this.waitingWSMessages} queued WS Message(s)`,
       });
@@ -728,14 +728,14 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         this.isDebug() && Logging.logConsoleDebug(message);
         if (invalidConnections.length) {
           await Logging.logError({
-            tenantID: Constants.DEFAULT_TENANT,
+            tenantID: Constants.DEFAULT_TENANT_ID,
             module: MODULE_NAME, method: 'checkAndCleanupWebSockets',
             action: ServerAction.WS_SERVER_CONNECTION_PING,
             message, detailedMessages: { validConnections, invalidConnections }
           });
         } else {
           await Logging.logInfo({
-            tenantID: Constants.DEFAULT_TENANT,
+            tenantID: Constants.DEFAULT_TENANT_ID,
             module: MODULE_NAME, method: 'checkAndCleanupWebSockets',
             action: ServerAction.WS_SERVER_CONNECTION_PING,
             message, detailedMessages: { validConnections, invalidConnections }
