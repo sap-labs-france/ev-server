@@ -30,8 +30,7 @@ export default class RegistrationTokenService {
         req.tenant, req.user, filteredRequest.siteAreaID, Action.UPDATE, action, filteredRequest, null, false);
     }
     // Get dynamic auth
-    const authorizationFilter = await AuthorizationService.checkAndGetRegistrationTokenAuthorizations(
-      req.tenant, req.user, {}, Action.CREATE, filteredRequest);
+    const authorizationFilter = await AuthorizationService.checkAndGetRegistrationTokenAuthorizations(req.tenant, req.user, {}, Action.CREATE, filteredRequest);
     if (!authorizationFilter.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -129,9 +128,10 @@ export default class RegistrationTokenService {
       });
     }
     // Update
-    registrationToken.revocationDate = new Date();
+    const now = new Date();
+    registrationToken.revocationDate = now;
     registrationToken.lastChangedBy = { 'id': req.user.id };
-    registrationToken.lastChangedOn = new Date();
+    registrationToken.lastChangedOn = now;
     // Save
     await RegistrationTokenStorage.saveRegistrationToken(req.tenant, registrationToken);
     await Logging.logInfo({

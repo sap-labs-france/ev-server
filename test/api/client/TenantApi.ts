@@ -29,7 +29,7 @@ export default class TenantApi extends CrudApi {
   }
 
   public async delete(id: string) {
-    return await this._authenticatedApi.send({
+    return this._authenticatedApi.send({
       method: 'DELETE',
       url: this.buildRestEndpointUrl(ServerRoute.REST_TENANT, { id }),
       params: {

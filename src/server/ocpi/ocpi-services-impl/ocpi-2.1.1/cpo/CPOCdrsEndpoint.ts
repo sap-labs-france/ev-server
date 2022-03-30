@@ -20,7 +20,7 @@ export default class CPOCdrsEndpoint extends AbstractEndpoint {
   public async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
       case 'GET':
-        return await this.getCdrsRequest(req, res, next, tenant);
+        return this.getCdrsRequest(req, res, next, tenant);
     }
   }
 

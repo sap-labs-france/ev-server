@@ -17,7 +17,6 @@ import { InactivityStatus } from '../../types/Transaction';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
-import { ServerAction } from '../../types/Server';
 
 const MODULE_NAME = 'ChargingStationStorage';
 
@@ -59,9 +58,9 @@ export default class ChargingStationStorage {
     // Change ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Query Templates
-    const chargingStationTemplatesMDB = await global.database.getCollection<ChargingStationTemplate>(Constants.DEFAULT_TENANT, 'chargingstationtemplates')
-      .aggregate<ChargingStationTemplate>(aggregation)
-      .toArray();
+    const chargingStationTemplatesMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'chargingstationtemplates')
+      .aggregate<any>(aggregation)
+      .toArray() as ChargingStationTemplate[];
     const chargingStationTemplates: ChargingStationTemplate[] = [];
     // Reverse match the regexp in JSON template records against the charging station vendor string
     for (const chargingStationTemplateMDB of chargingStationTemplatesMDB) {
@@ -77,7 +76,7 @@ export default class ChargingStationStorage {
   public static async deleteChargingStationTemplates(): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     // Delete all records
-    await global.database.getCollection<ChargingStationTemplate>(Constants.DEFAULT_TENANT, 'chargingstationtemplates').deleteMany(
+    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'chargingstationtemplates').deleteMany(
       { qa: { $not: { $eq: true } } }
     );
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'deleteChargingStationTemplates', startTime, { qa: { $not: { $eq: true } } });
@@ -294,9 +293,9 @@ export default class ChargingStationStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const chargingStationsCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'chargingstations')
+    const chargingStationsCountMDB = await global.database.getCollection<any>(tenant.id, 'chargingstations')
       .aggregate([...aggregation, { $count: 'count' }])
-      .toArray();
+      .toArray() as DatabaseCount[];
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
@@ -368,9 +367,9 @@ export default class ChargingStationStorage {
       });
     }
     // Read DB
-    const chargingStationsMDB = await global.database.getCollection<ChargingStation>(tenant.id, 'chargingstations')
-      .aggregate<ChargingStation>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const chargingStationsMDB = await global.database.getCollection<any>(tenant.id, 'chargingstations')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as ChargingStation[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getChargingStations', startTime, aggregation, chargingStationsMDB);
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(chargingStationsCountMDB[0]),
@@ -486,9 +485,9 @@ export default class ChargingStationStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const chargingStationsMDB = await global.database.getCollection<ChargingStation>(tenant.id, 'chargingstations')
-      .aggregate<ChargingStation>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const chargingStationsMDB = await global.database.getCollection<any>(tenant.id, 'chargingstations')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as ChargingStation[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getChargingStationsInError', startTime, aggregation, chargingStationsMDB);
     return {
       count: chargingStationsMDB.length,
@@ -845,9 +844,9 @@ export default class ChargingStationStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const chargingProfilesCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'chargingprofiles')
+    const chargingProfilesCountMDB = await global.database.getCollection<any>(tenant.id, 'chargingprofiles')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
-      .toArray();
+      .toArray() as DatabaseCount[];
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getChargingProfiles', startTime, aggregation, chargingProfilesCountMDB);
@@ -885,9 +884,9 @@ export default class ChargingStationStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const chargingProfilesMDB = await global.database.getCollection<ChargingProfile>(tenant.id, 'chargingprofiles')
-      .aggregate<ChargingProfile>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const chargingProfilesMDB = await global.database.getCollection<any>(tenant.id, 'chargingprofiles')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as ChargingProfile[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getChargingProfiles', startTime, aggregation, chargingProfilesMDB);
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(chargingProfilesCountMDB[0]),

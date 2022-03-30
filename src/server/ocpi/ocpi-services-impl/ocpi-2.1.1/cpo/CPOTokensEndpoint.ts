@@ -42,7 +42,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const tokenId = urlSegment.shift();
     if (!tokenId) {
       throw new AppError({
-        action: ServerAction.OCPI_GET_TOKEN,
+        action: ServerAction.OCPI_CPO_GET_TOKEN,
         module: MODULE_NAME, method: 'getToken',
         errorCode: StatusCodes.BAD_REQUEST,
         message: 'Token ID is not provided',
@@ -53,7 +53,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const token = await this.getToken(tenant, countryCode, partyId, tokenId);
     if (!token) {
       throw new AppError({
-        action: ServerAction.OCPI_GET_TOKEN,
+        action: ServerAction.OCPI_CPO_GET_TOKEN,
         module: MODULE_NAME, method: 'getToken',
         errorCode: StatusCodes.BAD_REQUEST,
         message: `Token ID '${tokenId}' not found`,
@@ -82,7 +82,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const tokenId = urlSegment.shift();
     if (!tokenId) {
       throw new AppError({
-        action: ServerAction.OCPI_PUT_TOKEN,
+        action: ServerAction.OCPI_CPO_PUT_TOKEN,
         module: MODULE_NAME, method: 'putToken',
         errorCode: StatusCodes.BAD_REQUEST,
         message: 'Token ID is not provided',
@@ -92,7 +92,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const token = req.body as OCPIToken;
     if (!token) {
       throw new AppError({
-        action: ServerAction.OCPI_PUT_TOKEN,
+        action: ServerAction.OCPI_CPO_PUT_TOKEN,
         module: MODULE_NAME, method: 'putToken',
         errorCode: StatusCodes.BAD_REQUEST,
         message: `Missing content to put Token ID '${tokenId}'`,
@@ -103,7 +103,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const tag = await TagStorage.getTag(tenant, tokenId, { withUser: true });
     if (!tag) {
       throw new AppError({
-        action: ServerAction.OCPI_PUT_TOKEN,
+        action: ServerAction.OCPI_CPO_PUT_TOKEN,
         module: MODULE_NAME, method: 'putToken',
         errorCode: StatusCodes.BAD_REQUEST,
         message: `Token ID '${tokenId}' not found`,
@@ -113,7 +113,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     }
     if (tag.issuer) {
       throw new AppError({
-        action: ServerAction.OCPI_PUT_TOKEN,
+        action: ServerAction.OCPI_CPO_PUT_TOKEN,
         module: MODULE_NAME, method: 'putToken',
         errorCode: StatusCodes.NOT_FOUND,
         message: `Token ID '${tokenId}' is local to the tenant`,
@@ -123,7 +123,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     }
     if (tag.user?.issuer) {
       throw new AppError({
-        action: ServerAction.OCPI_PUT_TOKEN,
+        action: ServerAction.OCPI_CPO_PUT_TOKEN,
         module: MODULE_NAME, method: 'putToken',
         errorCode: StatusCodes.NOT_FOUND,
         message: `User found for Token ID '${tokenId}' is local to the tenant`,
@@ -134,7 +134,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const operator = OCPIUtils.buildOperatorName(countryCode, partyId);
     if (tag.user.name !== operator) {
       throw new AppError({
-        action: ServerAction.OCPI_PUT_TOKEN,
+        action: ServerAction.OCPI_CPO_PUT_TOKEN,
         module: MODULE_NAME, method: 'putToken',
         errorCode: StatusCodes.CONFLICT,
         message: `${operator} is not the owner of the Token ID '${tokenId}'`,
@@ -142,7 +142,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
         detailedMessages: { operator, token, tag }
       });
     }
-    await OCPIUtilsService.updateToken(tenant, token, tag, tag.user);
+    await OCPIUtilsService.updateCpoToken(tenant, token, tag, tag.user, ServerAction.OCPI_CPO_PUT_TOKEN);
     return OCPIUtils.success();
   }
 
@@ -157,7 +157,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const token = req.body as OCPIToken;
     if (!token) {
       throw new AppError({
-        action: ServerAction.OCPI_PATCH_TOKEN,
+        action: ServerAction.OCPI_CPO_PATCH_TOKEN,
         module: MODULE_NAME, method: 'patchToken',
         errorCode: StatusCodes.BAD_REQUEST,
         message: `Missing content to patch Token ID '${tokenId}'`,
@@ -168,7 +168,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const tag = await TagStorage.getTag(tenant, tokenId, { withUser: true });
     if (!tag?.ocpiToken || tag?.issuer) {
       throw new AppError({
-        action: ServerAction.OCPI_PATCH_TOKEN,
+        action: ServerAction.OCPI_CPO_PATCH_TOKEN,
         module: MODULE_NAME, method: 'patchToken',
         errorCode: StatusCodes.NOT_FOUND,
         message: `Token ID '${tokenId}' is local to the tenant`,
@@ -178,7 +178,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     }
     if (!tag.user) {
       throw new AppError({
-        action: ServerAction.OCPI_PATCH_TOKEN,
+        action: ServerAction.OCPI_CPO_PATCH_TOKEN,
         module: MODULE_NAME, method: 'patchToken',
         errorCode: StatusCodes.NOT_FOUND,
         message: `Token ID '${tokenId}' is not assigned to a user`,
@@ -188,7 +188,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     }
     if (tag.user.issuer) {
       throw new AppError({
-        action: ServerAction.OCPI_PATCH_TOKEN,
+        action: ServerAction.OCPI_CPO_PATCH_TOKEN,
         module: MODULE_NAME, method: 'patchToken',
         errorCode: StatusCodes.NOT_FOUND,
         message: `Token ID '${tokenId}' is assigned to a user that belongs to the local tenant`,
@@ -199,7 +199,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const operator = OCPIUtils.buildOperatorName(countryCode, partyId);
     if (tag.user.name !== operator) {
       throw new AppError({
-        action: ServerAction.OCPI_PATCH_TOKEN,
+        action: ServerAction.OCPI_CPO_PATCH_TOKEN,
         module: MODULE_NAME, method: 'patchToken',
         errorCode: StatusCodes.CONFLICT,
         message: `${operator} is not the owner of the Token ID '${tokenId}'`,
@@ -235,7 +235,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     }
     if (!patched) {
       throw new AppError({
-        action: ServerAction.OCPI_PATCH_TOKEN,
+        action: ServerAction.OCPI_CPO_PATCH_TOKEN,
         module: MODULE_NAME, method: 'patchToken',
         errorCode: StatusCodes.BAD_REQUEST,
         message: `Missing or invalid content to patch Token ID '${tokenId}'`,

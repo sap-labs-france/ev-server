@@ -328,7 +328,7 @@ export default class TransactionService {
     } else {
       // OCPI Remote Start
       await ChargingStationService.handleOcpiAction(
-        ServerAction.OCPI_START_SESSION, req, res, next);
+        ServerAction.OCPI_EMSP_START_SESSION, req, res, next);
     }
   }
 
@@ -353,7 +353,7 @@ export default class TransactionService {
       }
     } else {
       // OCPI Remote Stop
-      await ChargingStationService.handleOcpiAction(ServerAction.OCPI_STOP_SESSION, req, res, next);
+      await ChargingStationService.handleOcpiAction(ServerAction.OCPI_EMSP_STOP_SESSION, req, res, next);
     }
   }
 
@@ -379,7 +379,7 @@ export default class TransactionService {
       'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge', 'currentInactivityStatus',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
       'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.pricingSource', 'stop.reason',
-      'userID',
+      'userID', 'priceUnit'
     ];
     // Check Cars
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {

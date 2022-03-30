@@ -41,6 +41,7 @@ export interface SiteDataResult extends DataResult<Site> {
   canCreate: boolean;
   canAssignUsers: boolean;
   canUnassignUsers: boolean;
+  canListCompanies: boolean;
 }
 
 export interface LogDataResult extends DataResult<Log> {

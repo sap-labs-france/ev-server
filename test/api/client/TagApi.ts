@@ -21,15 +21,15 @@ export default class TagApi extends CrudApi {
   }
 
   public async assignTag(params?) {
-    return await super.update(params, this.buildRestEndpointUrl(ServerRoute.REST_TAG_ASSIGN, { id: params.visualID }));
+    return super.update(params, this.buildRestEndpointUrl(ServerRoute.REST_TAG_ASSIGN, { id: params.visualID }));
   }
 
   public async updateTagByVisualID(params?) {
-    return await super.update(params, this.buildRestEndpointUrl(ServerRoute.REST_TAGS));
+    return super.update(params, this.buildRestEndpointUrl(ServerRoute.REST_TAG, { id: params.visualID }));
   }
 
   public async unassignTag(params?) {
-    return await super.update(params, this.buildRestEndpointUrl(ServerRoute.REST_TAG_UNASSIGN, { id: params.visualID }));
+    return super.update(params, this.buildRestEndpointUrl(ServerRoute.REST_TAG_UNASSIGN, { id: params.visualID }));
   }
 
   public async readTagByVisualID(visualID: string) {
@@ -45,6 +45,6 @@ export default class TagApi extends CrudApi {
   }
 
   public async exportTags(params) {
-    return await super.read(params, this.buildRestEndpointUrl(ServerRoute.REST_TAGS_EXPORT));
+    return super.read(params, this.buildRestEndpointUrl(ServerRoute.REST_TAGS_EXPORT));
   }
 }
