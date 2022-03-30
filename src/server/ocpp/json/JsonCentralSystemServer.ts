@@ -141,6 +141,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         module: MODULE_NAME, method: 'getChargingStationClient',
         action: ServerAction.WS_SERVER_CONNECTION, message
       });
+      return;
     }
     // Return the client
     return jsonWebSocket.getChargingStationClient();
