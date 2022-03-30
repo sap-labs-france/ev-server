@@ -18,7 +18,7 @@ import { OCPIStartSession } from '../../../../../types/ocpi/OCPIStartSession';
 import { OCPIStatusCode } from '../../../../../types/ocpi/OCPIStatusCode';
 import { OCPIStopSession } from '../../../../../types/ocpi/OCPIStopSession';
 import OCPIUtils from '../../../OCPIUtils';
-import OCPIUtilsService from '../OCPIUtilsService';
+import OCPIUtilsService from '../../../service/OCPIUtilsService';
 import { OCPPRemoteStartStopStatus } from '../../../../../types/ocpp/OCPPClient';
 import { ServerAction } from '../../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';

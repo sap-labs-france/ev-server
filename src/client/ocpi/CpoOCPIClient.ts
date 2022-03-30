@@ -26,7 +26,7 @@ import { OCPIResult } from '../../types/ocpi/OCPIResult';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
 import { OCPIToken } from '../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../server/ocpi/OCPIUtils';
-import OCPIUtilsService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIUtilsService';
+import OCPIUtilsService from '../../server/ocpi/service/OCPIUtilsService';
 import OCPPStorage from '../../storage/mongodb/OCPPStorage';
 import { OcpiSetting } from '../../types/Setting';
 import { Promise } from 'bluebird';

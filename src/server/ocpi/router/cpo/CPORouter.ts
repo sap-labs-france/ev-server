@@ -2,7 +2,7 @@
 import { OCPIServerRoute, ServerAction } from '../../../../types/Server';
 import express, { NextFunction, Request, Response } from 'express';
 
-import CPOVersionsService from './service/CPOVersionsService';
+import CPOVersionsService from '../../service/cpo/CPOVersionsService';
 import OCPICPOV211Router from './V2.1.1/OCPICPOV211Router';
 import RouterUtils from '../../../../utils/RouterUtils';
 

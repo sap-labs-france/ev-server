@@ -9,7 +9,7 @@ import { OCPIResponse } from '../../../../../types/ocpi/OCPIResponse';
 import { OCPISession } from '../../../../../types/ocpi/OCPISession';
 import { OCPIStatusCode } from '../../../../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from '../../../OCPIUtils';
-import OCPIUtilsService from '../OCPIUtilsService';
+import OCPIUtilsService from '../../../service/OCPIUtilsService';
 import { ServerAction } from '../../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../../../../types/Tenant';

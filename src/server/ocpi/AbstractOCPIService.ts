@@ -1,8 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
-import Tenant, { TenantComponents } from '../../types/Tenant';
 
 import AbstractEndpoint from './ocpi-services-impl/AbstractEndpoint';
-import AppAuthError from '../../exception/AppAuthError';
 import AppError from '../../exception/AppError';
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
@@ -14,6 +12,7 @@ import { OCPIStatusCode } from '../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from './OCPIUtils';
 import { ServerAction } from '../../types/Server';
 import { StatusCodes } from 'http-status-codes';
+import { TenantComponents } from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
 

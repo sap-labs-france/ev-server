@@ -2,7 +2,7 @@
 import { OCPIServerRoute, ServerAction } from '../../../../types/Server';
 import express, { NextFunction, Request, Response } from 'express';
 
-import EMSPVersionsService from './service/EMSPVersionsService';
+import EMSPVersionsService from '../../service/emsp/EMSPVersionsService';
 import OCPIEMSPV211Router from './V2.1.1/OCPIEMSPV211Router';
 import RouterUtils from '../../../../utils/RouterUtils';
 

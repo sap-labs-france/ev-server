@@ -8,7 +8,7 @@ import { OCPIResponse } from '../../../../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../../../../types/ocpi/OCPIStatusCode';
 import { OCPIToken } from '../../../../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../../OCPIUtils';
-import OCPIUtilsService from '../OCPIUtilsService';
+import OCPIUtilsService from '../../../service/OCPIUtilsService';
 import { ServerAction } from '../../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
 import TagStorage from '../../../../../storage/mongodb/TagStorage';

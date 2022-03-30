@@ -18,7 +18,7 @@ import { OCPIStartSession } from '../../types/ocpi/OCPIStartSession';
 import { OCPIStopSession } from '../../types/ocpi/OCPIStopSession';
 import { OCPIToken } from '../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../server/ocpi/OCPIUtils';
-import OCPIUtilsService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIUtilsService';
+import OCPIUtilsService from '../../server/ocpi/service/OCPIUtilsService';
 import { OcpiSetting } from '../../types/Setting';
 import { Promise } from 'bluebird';
 import { ServerAction } from '../../types/Server';

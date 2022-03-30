@@ -12,7 +12,7 @@ import { OCPILocationReference } from '../../../../../types/ocpi/OCPILocation';
 import { OCPIResponse } from '../../../../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../../../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from '../../../OCPIUtils';
-import OCPIUtilsService from '../OCPIUtilsService';
+import OCPIUtilsService from '../../../service/OCPIUtilsService';
 import { ServerAction } from '../../../../../types/Server';
 import TagStorage from '../../../../../storage/mongodb/TagStorage';
 import Tenant from '../../../../../types/Tenant';

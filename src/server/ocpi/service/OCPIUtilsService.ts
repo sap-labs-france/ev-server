@@ -1,49 +1,57 @@
 import * as CountriesList from 'countries-list';
 
-import ChargingStation, { ChargePoint, Connector, ConnectorType, CurrentType, Voltage } from '../../../../types/ChargingStation';
-import { OCPICapability, OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
-import { OCPIConnector, OCPIConnectorFormat, OCPIConnectorType, OCPIPowerType, OCPIVoltage } from '../../../../types/ocpi/OCPIConnector';
-import { OCPILocation, OCPILocationOptions, OCPILocationType, OCPIOpeningTimes } from '../../../../types/ocpi/OCPILocation';
-import { OCPISession, OCPISessionStatus } from '../../../../types/ocpi/OCPISession';
-import Transaction, { InactivityStatus } from '../../../../types/Transaction';
+import ChargingStation, { ChargePoint, Connector, ConnectorType, CurrentType, Voltage } from '../../../types/ChargingStation';
+import { OCPICapability, OCPIEvse, OCPIEvseStatus } from '../../../types/ocpi/OCPIEvse';
+import { OCPIConnector, OCPIConnectorFormat, OCPIConnectorType, OCPIPowerType, OCPIVoltage } from '../../../types/ocpi/OCPIConnector';
+import { OCPILocation, OCPILocationOptions, OCPILocationType, OCPIOpeningTimes } from '../../../types/ocpi/OCPILocation';
+import { OCPISession, OCPISessionStatus } from '../../../types/ocpi/OCPISession';
+import Transaction, { InactivityStatus } from '../../../types/Transaction';
 
-import AppError from '../../../../exception/AppError';
-import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
-import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
-import Constants from '../../../../utils/Constants';
-import Consumption from '../../../../types/Consumption';
-import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
-import { DataResult } from '../../../../types/DataResult';
-import DbParams from '../../../../types/database/DbParams';
-import { HTTPError } from '../../../../types/HTTPError';
-import Logging from '../../../../utils/Logging';
-import LoggingHelper from '../../../../utils/LoggingHelper';
-import { OCPIBusinessDetails } from '../../../../types/ocpi/OCPIBusinessDetails';
-import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
-import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
-import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
-import { OCPIToken } from '../../../../types/ocpi/OCPIToken';
-import OCPIUtils from '../../OCPIUtils';
-import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
-import { OcpiSetting } from '../../../../types/Setting';
-import { PricingSource } from '../../../../types/Pricing';
-import RoamingUtils from '../../../../utils/RoamingUtils';
-import { ServerAction } from '../../../../types/Server';
-import Site from '../../../../types/Site';
-import SiteStorage from '../../../../storage/mongodb/SiteStorage';
+import AppError from '../../../exception/AppError';
+import { ChargePointStatus } from '../../../types/ocpp/OCPPServer';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import Constants from '../../../utils/Constants';
+import Consumption from '../../../types/Consumption';
+import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
+import { DataResult } from '../../../types/DataResult';
+import DbParams from '../../../types/database/DbParams';
+import { HTTPError } from '../../../types/HTTPError';
+import Logging from '../../../utils/Logging';
+import LoggingHelper from '../../../utils/LoggingHelper';
+import { OCPIBusinessDetails } from '../../../types/ocpi/OCPIBusinessDetails';
+import { OCPICdr } from '../../../types/ocpi/OCPICdr';
+import { OCPIResponse } from '../../../types/ocpi/OCPIResponse';
+import { OCPIStatusCode } from '../../../types/ocpi/OCPIStatusCode';
+import { OCPIToken } from '../../../types/ocpi/OCPIToken';
+import OCPIUtils from '../OCPIUtils';
+import OCPPUtils from '../../ocpp/utils/OCPPUtils';
+import { OcpiSetting } from '../../../types/Setting';
+import { PricingSource } from '../../../types/Pricing';
+import { Request } from 'express';
+import RoamingUtils from '../../../utils/RoamingUtils';
+import { ServerAction } from '../../../types/Server';
+import Site from '../../../types/Site';
+import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import { StatusCodes } from 'http-status-codes';
-import Tag from '../../../../types/Tag';
-import TagStorage from '../../../../storage/mongodb/TagStorage';
-import Tenant from '../../../../types/Tenant';
-import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
-import User from '../../../../types/User';
-import Utils from '../../../../utils/Utils';
+import Tag from '../../../types/Tag';
+import TagStorage from '../../../storage/mongodb/TagStorage';
+import Tenant from '../../../types/Tenant';
+import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
+import User from '../../../types/User';
+import Utils from '../../../utils/Utils';
 import countries from 'i18n-iso-countries';
 import moment from 'moment';
 
 const MODULE_NAME = 'OCPIUtilsService';
 
 export default class OCPIUtilsService {
+  public static getBaseUrl(req: Request): string {
+    // Get host from the req
+    const host = req.get('host');
+    // Return Service url
+    return `https://${host}`;
+  }
+
   public static isSuccessResponse(response: OCPIResponse): boolean {
     return !Utils.objectHasProperty(response, 'status_code') ||
       response.status_code === 1000;

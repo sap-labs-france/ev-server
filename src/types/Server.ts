@@ -671,6 +671,7 @@ export enum RESTServerRoute {
 
 export enum OCPIServerRoute {
   OCPI_VERSIONS = 'versions',
+  OCPI_LOCATIONS = 'locations',
 }
 
 export enum ServerProtocol {

@@ -1,15 +1,21 @@
-import AbstractOCPIService, { TenantIdHoldingRequest } from './AbstractOCPIService';
 import { Application, NextFunction, Request, Response } from 'express';
+import { ServerAction, ServerType } from '../../types/Server';
 
-import CPOService211 from './ocpi-services-impl/ocpi-2.1.1/CPOService';
-import EMSPService211 from './ocpi-services-impl/ocpi-2.1.1/EMSPService';
+import AppError from '../../exception/AppError';
+import Constants from '../../utils/Constants';
 import ExpressUtils from '../ExpressUtils';
+import { HTTPError } from '../../types/HTTPError';
 import Logging from '../../utils/Logging';
+import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import OCPIGlobalRouter from './router/OCPIGlobalRouter';
 import OCPIServiceConfiguration from '../../types/configuration/OCPIServiceConfiguration';
 import OCPIServices from './OCPIServices';
-import { ServerType } from '../../types/Server';
+import { OCPIStatusCode } from '../../types/ocpi/OCPIStatusCode';
+import OCPIUtils from './OCPIUtils';
 import { ServerUtils } from '../ServerUtils';
+import { StatusCodes } from 'http-status-codes';
+import { TenantComponents } from '../../types/Tenant';
+import { TenantIdHoldingRequest } from './AbstractOCPIService';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
 
@@ -31,13 +37,8 @@ export default class OCPIServer {
     this.expressApplication.use(Logging.traceExpressRequest.bind(this));
     // Routers
     this.expressApplication.use('/ocpi', new OCPIGlobalRouter().buildRoutes());
-    // New OCPI Services Instances
-    const ocpiServices = new OCPIServices(this.ocpiRestConfig);
-    // // OCPI versions
-    // this.expressApplication.use(CPOService211.PATH + AbstractOCPIService.VERSIONS_PATH,
-    //   (req: Request, res: Response, next: NextFunction) => ocpiServices.getCPOVersions(req, res, next));
-    // this.expressApplication.use(EMSPService211.PATH + AbstractOCPIService.VERSIONS_PATH,
-    //   (req: Request, res: Response, next: NextFunction) => ocpiServices.getEMSPVersions(req, res, next));
+    // // New OCPI Services Instances
+    // const ocpiServices = new OCPIServices(this.ocpiRestConfig);
     // // Register all services in express
     // for (const ocpiService of ocpiServices.getOCPIServiceImplementations()) {
     //   // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -59,23 +60,79 @@ export default class OCPIServer {
   }
 
   private async initialize(req: Request, res: Response, next: NextFunction): Promise<void> {
-    if (req.headers?.authorization?.startsWith('Token')) {
-      try {
-        if (req.headers?.authorization.startsWith('Token')) {
-          const token = req.headers.authorization.slice(6);
-          const decodedToken = JSON.parse(Buffer.from(token, 'base64').toString());
-          if (Utils.objectHasProperty(decodedToken, 'tid')) {
-            const tenantSubdomain = decodedToken['tid'];
-            const tenant = await TenantStorage.getTenantBySubdomain(tenantSubdomain);
-            if (tenant) {
-              req['tenant'] = tenant;
-            }
-          }
-        }
-      } catch (error) {
-        // Ignore
+    try {
+      // Get Token
+      if (!req.headers || !req.headers.authorization) {
+        throw new AppError({
+          module: MODULE_NAME, method: 'initialize',
+          action: ServerAction.OCPI_ENDPOINT,
+          errorCode: StatusCodes.UNAUTHORIZED,
+          message: 'Missing authorization token',
+          ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
+        });
       }
+      let decodedToken: { tenant: string; tid: string };
+      const token = req.headers.authorization.split(' ')[1];
+      try {
+        decodedToken = JSON.parse(OCPIUtils.atob(token));
+      } catch (error) {
+        throw new AppError({
+          module: MODULE_NAME, method: 'initialize',
+          action: ServerAction.OCPI_ENDPOINT,
+          errorCode: StatusCodes.UNAUTHORIZED,
+          message: 'Invalid authorization token',
+          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR,
+          detailedMessages: { error: error.stack }
+        });
+      }
+      const tenantSubdomain = decodedToken.tenant ?? decodedToken.tid;
+      // Get Tenant
+      const tenant = await TenantStorage.getTenantBySubdomain(tenantSubdomain);
+      if (!tenant) {
+        throw new AppError({
+          module: MODULE_NAME, method: 'initialize',
+          action: ServerAction.OCPI_ENDPOINT,
+          errorCode: StatusCodes.UNAUTHORIZED,
+          message: `The Tenant '${tenantSubdomain}' does not exist`,
+          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
+        });
+      }
+      req.tenant = tenant;
+      if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
+        throw new AppError({
+          module: MODULE_NAME, method: 'initialize',
+          action: ServerAction.OCPI_ENDPOINT,
+          errorCode: StatusCodes.UNAUTHORIZED,
+          message: `The Tenant '${tenantSubdomain}' does not support OCPI`,
+          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
+        });
+      }
+      // Get Endpoint
+      const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpointByLocalToken(tenant, token);
+      if (!ocpiEndpoint) {
+        throw new AppError({
+          module: MODULE_NAME, method: 'initialize',
+          action: ServerAction.OCPI_ENDPOINT,
+          errorCode: StatusCodes.UNAUTHORIZED,
+          message: 'Invalid Token',
+          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
+        });
+      }
+      req.ocpiEndpoint = ocpiEndpoint;
+      // Check that the Token belongs to the right role (CPO or EMSP)
+      if (!req.url.includes(ocpiEndpoint.role.toLocaleLowerCase())) {
+        throw new AppError({
+          module: MODULE_NAME, method: 'initialize',
+          action: ServerAction.OCPI_ENDPOINT,
+          errorCode: StatusCodes.UNAUTHORIZED,
+          message: `Invalid Token for URL '${req.url}' (endpoint URL: '${ocpiEndpoint.versionUrl}')`,
+          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
+        });
+      }
+      next();
+    } catch (error) {
+      await Logging.logActionExceptionMessage(req.tenant?.id ?? Constants.DEFAULT_TENANT_ID, error.params?.action ?? ServerAction.OCPI_ENDPOINT, error);
+      res.status(error.params?.errorCode ?? HTTPError.GENERAL_ERROR).json(OCPIUtils.toErrorResponse(error));
     }
-    next();
   }
 }
