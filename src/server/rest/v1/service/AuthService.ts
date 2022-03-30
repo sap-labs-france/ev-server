@@ -5,7 +5,6 @@ import User, { UserRole, UserStatus } from '../../../../types/User';
 
 import AppError from '../../../../exception/AppError';
 import AuthValidator from '../validator/AuthValidator';
-import AuthValidatorStorage from '../../../../storage/mongodb/validator/AuthValidatorStorage';
 import Authorizations from '../../../../authorization/Authorizations';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
 import Configuration from '../../../../utils/Configuration';
@@ -120,7 +119,7 @@ export default class AuthService {
 
   public static async handleRegisterUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = AuthValidatorStorage.getInstance().validateAuthSignOn(req.body);
+    const filteredRequest = AuthValidator.getInstance().validateAuthSignOnReq(req.body);
     // Override
     filteredRequest.status = UserStatus.PENDING;
     if (!filteredRequest.locale) {
