@@ -199,7 +199,7 @@ export default class TagService {
     void TagService.updateTagRoaming(action, req.tenant, req.user, newTag);
     await Logging.logInfo({
       ...LoggingHelper.getTagProperties(newTag),
-      tenantID: req.tenant.id,
+      tenantID: req.user.tenantID,
       action: action,
       user: req.user,
       module: MODULE_NAME, method: 'handleCreateTag',
@@ -275,7 +275,7 @@ export default class TagService {
     void TagService.updateTagRoaming(action, req.tenant, req.user, tag);
     await Logging.logInfo({
       ...LoggingHelper.getTagProperties(tag),
-      tenantID: req.tenant.id,
+      tenantID: req.user.tenantID,
       action: action,
       user: req.user, actionOnUser: user,
       module: MODULE_NAME, method: 'handleAssignTag',
@@ -317,7 +317,7 @@ export default class TagService {
     void TagService.updateTagRoaming(action, req.tenant, req.user, tag);
     await Logging.logInfo({
       ...LoggingHelper.getTagProperties(tag),
-      tenantID: req.tenant.id,
+      tenantID: req.user.tenantID,
       action: action,
       module: MODULE_NAME, method: 'handleUpdateTagByVisualID',
       message: `Tag with ID '${tag.id}' has been updated successfully`,
@@ -394,7 +394,7 @@ export default class TagService {
     void TagService.updateTagRoaming(action, req.tenant, req.user, tag);
     await Logging.logInfo({
       ...LoggingHelper.getTagProperties(tag),
-      tenantID: req.tenant.id,
+      tenantID: req.user.tenantID,
       action: action,
       module: MODULE_NAME, method: 'handleUpdateTag',
       message: `Tag with ID '${tag.id}' has been updated successfully`,
@@ -501,7 +501,7 @@ export default class TagService {
               // Release the lock
               await LockingManager.release(importTagsLock);
               await Logging.logError({
-                tenantID: req.tenant.id,
+                tenantID: req.user.tenantID,
                 module: MODULE_NAME, method: 'handleImportTags',
                 action: action,
                 user: req.user.id,
@@ -526,7 +526,7 @@ export default class TagService {
               await LockingManager.release(importTagsLock);
               const executionDurationSecs = Utils.truncTo((new Date().getTime() - startTime) / 1000, 2);
               await Logging.logActionsResponse(
-                req.tenant.id, action,
+                req.user.tenantID, action,
                 MODULE_NAME, 'handleImportTags', result,
                 `{{inSuccess}} Tag(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import`,
                 `{{inError}} Tag(s) failed to be uploaded in ${executionDurationSecs}s`,
@@ -573,7 +573,7 @@ export default class TagService {
               // Release the lock
               await LockingManager.release(importTagsLock);
               await Logging.logError({
-                tenantID: req.tenant.id,
+                tenantID: req.user.tenantID,
                 module: MODULE_NAME, method: 'handleImportTags',
                 action: action,
                 user: req.user.id,
@@ -591,7 +591,7 @@ export default class TagService {
             // Release the lock
             await LockingManager.release(importTagsLock);
             await Logging.logError({
-              tenantID: req.tenant.id,
+              tenantID: req.user.tenantID,
               module: MODULE_NAME, method: 'handleImportTags',
               action: action,
               user: req.user.id,
@@ -842,7 +842,7 @@ export default class TagService {
           tagToImport = { ...tagToImport, ...newImportedUser as ImportedTag };
         } catch (error) {
           await Logging.logWarning({
-            tenantID: req.tenant.id,
+            tenantID: req.user.tenantID,
             module: MODULE_NAME, method: 'processTag',
             action: action,
             message: `User cannot be imported with tag ${newImportedTag.id}`,
@@ -855,7 +855,7 @@ export default class TagService {
       return true;
     } catch (error) {
       await Logging.logError({
-        tenantID: req.tenant.id,
+        tenantID: req.user.tenantID,
         module: MODULE_NAME, method: 'importTag',
         action: action,
         message: `Tag ID '${importedTag.id}' cannot be imported`,

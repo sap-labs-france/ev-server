@@ -43,7 +43,7 @@ export default class SettingService {
     await SettingStorage.deleteSetting(req.tenant, settingID);
     // Log
     await Logging.logInfo({
-      tenantID: req.tenant.id,
+      tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteSetting',
       message: `Setting '${setting.identifier}' has been deleted successfully`,
       action: action,
@@ -161,7 +161,7 @@ export default class SettingService {
     filteredRequest.id = await SettingStorage.saveSettings(req.tenant, filteredRequest);
     // Log
     await Logging.logInfo({
-      tenantID: req.tenant.id,
+      tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleCreateSetting',
       message: `Setting '${filteredRequest.identifier}' has been created successfully`,
       action: action,
@@ -286,7 +286,7 @@ export default class SettingService {
     }
     // Log
     await Logging.logInfo({
-      tenantID: req.tenant.id,
+      tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateSetting',
       message: `Setting '${filteredRequest.id}' has been updated successfully`,
       action: action,

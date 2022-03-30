@@ -50,7 +50,7 @@ export default class SiteAreaService {
     }
     await Logging.logInfo({
       ...LoggingHelper.getSiteAreaProperties(siteArea),
-      tenantID: req.tenant.id,
+      tenantID: req.user.tenantID,
       user: req.user,
       module: MODULE_NAME,
       method: 'handleAssignAssetsToSiteArea',
@@ -104,7 +104,7 @@ export default class SiteAreaService {
     // Log
     await Logging.logInfo({
       ...LoggingHelper.getSiteAreaProperties(siteArea),
-      tenantID: req.tenant.id,
+      tenantID: req.user.tenantID,
       user: req.user,
       module: MODULE_NAME, method: 'handleAssignChargingStationsToSiteArea',
       message: 'Site Area\'s Charging Stations have been assigned successfully',
@@ -129,7 +129,7 @@ export default class SiteAreaService {
     // Log
     await Logging.logInfo({
       ...LoggingHelper.getSiteAreaProperties(siteArea),
-      tenantID: req.tenant.id,
+      tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteSiteArea',
       message: `Site Area '${siteArea.name}' has been deleted successfully`,
       action: action,
@@ -297,7 +297,7 @@ export default class SiteAreaService {
     siteArea.id = await SiteAreaStorage.saveSiteArea(req.tenant, siteArea, Utils.objectHasProperty(filteredRequest, 'image'));
     await Logging.logInfo({
       ...LoggingHelper.getSiteAreaProperties(siteArea),
-      tenantID: req.tenant.id,
+      tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleCreateSiteArea',
       message: `Site Area '${siteArea.name}' has been created successfully`,
       action: action,
@@ -374,7 +374,7 @@ export default class SiteAreaService {
     if (filteredRequest.smartCharging) {
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       setTimeout(async () => {
-        const siteAreaLock = await LockingHelper.acquireSiteAreaSmartChargingLock(req.tenant.id, siteArea);
+        const siteAreaLock = await LockingHelper.acquireSiteAreaSmartChargingLock(req.user.tenantID, siteArea);
         if (siteAreaLock) {
           try {
             const smartCharging = await SmartChargingFactory.getSmartChargingImpl(req.tenant);
@@ -384,7 +384,7 @@ export default class SiteAreaService {
           } catch (error) {
             await Logging.logError({
               ...LoggingHelper.getSiteAreaProperties(siteArea),
-              tenantID: req.tenant.id,
+              tenantID: req.user.tenantID,
               module: MODULE_NAME, method: 'handleUpdateSiteArea',
               action: action,
               message: 'An error occurred while trying to call smart charging',
@@ -399,7 +399,7 @@ export default class SiteAreaService {
     }
     await Logging.logInfo({
       ...LoggingHelper.getSiteAreaProperties(siteArea),
-      tenantID: req.tenant.id,
+      tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateSiteArea',
       message: `Site Area '${siteArea.name}' has been updated successfully`,
       action: action,

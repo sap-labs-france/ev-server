@@ -51,7 +51,7 @@ export default class RegistrationTokenService {
     registrationToken.id = await RegistrationTokenStorage.saveRegistrationToken(req.tenant, registrationToken);
     await Logging.logInfo({
       ...LoggingHelper.getRegistrationTokenProperties(registrationToken),
-      tenantID: req.tenant.id,
+      tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleCreateRegistrationToken',
       message: `Registration Token '${registrationToken.description}' has been created successfully`,
       action, detailedMessages: { registrationToken }
@@ -82,7 +82,7 @@ export default class RegistrationTokenService {
     await RegistrationTokenStorage.saveRegistrationToken(req.tenant, registrationToken);
     await Logging.logInfo({
       ...LoggingHelper.getRegistrationTokenProperties(registrationToken),
-      tenantID: req.tenant.id,
+      tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateRegistrationToken',
       message: `Registration Token '${registrationToken.description}' has been updated successfully`,
       action, detailedMessages: { registrationToken }
@@ -101,7 +101,7 @@ export default class RegistrationTokenService {
     await RegistrationTokenStorage.deleteRegistrationToken(req.tenant, registrationToken.id);
     await Logging.logInfo({
       ...LoggingHelper.getRegistrationTokenProperties(registrationToken),
-      tenantID: req.tenant.id,
+      tenantID: req.user.tenantID,
       user: req.user,
       module: MODULE_NAME, method: 'handleDeleteRegistrationToken',
       message: `Registration token with ID '${registrationTokenID}' has been deleted successfully`,
@@ -136,7 +136,7 @@ export default class RegistrationTokenService {
     await RegistrationTokenStorage.saveRegistrationToken(req.tenant, registrationToken);
     await Logging.logInfo({
       ...LoggingHelper.getRegistrationTokenProperties(registrationToken),
-      tenantID: req.tenant.id,
+      tenantID: req.user.tenantID,
       user: req.user,
       module: MODULE_NAME, method: 'handleRevokeRegistrationToken',
       message: `Registration token with ID '${registrationTokenID}' has been revoked successfully`,

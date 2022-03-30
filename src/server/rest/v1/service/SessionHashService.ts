@@ -18,7 +18,7 @@ export default class SessionHashService {
   public static async checkUserAndTenantValidity(req: Request, res: Response, next: NextFunction): Promise<void> {
     // Get tenant id, user id and hash ID
     const userID = req.user.id;
-    const tenantID = req.tenant.id;
+    const tenantID = req.user.tenantID;
     const userHashID = req.user.userHashID;
     const tenantHashID = req.user.tenantHashID;
     try {

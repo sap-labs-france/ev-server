@@ -99,7 +99,7 @@ export default abstract class AbstractOICPService {
         });
       }
       // Pass tenant id to req
-      req.tenant.id = tenant.id;
+      req.user.tenantID = tenant.id;
       // Handle request action (endpoint)
       const endpoint = registeredEndpoints.get(endpointName);
       if (endpoint) {
@@ -140,13 +140,13 @@ export default abstract class AbstractOICPService {
       }
     } catch (error) {
       await Logging.logError({
-        tenantID: req.user && req.tenant.id ? req.tenant.id : Constants.DEFAULT_TENANT_ID,
+        tenantID: req.user && req.user.tenantID ? req.user.tenantID : Constants.DEFAULT_TENANT_ID,
         module: MODULE_NAME, method: endpointName,
         message: `<< OICP Response Error ${req.method} ${req.originalUrl}`,
         action: ServerAction.OICP_ENDPOINT,
         detailedMessages: { error: error.stack }
       });
-      await Logging.logActionExceptionMessage(req.user && req.tenant.id ? req.tenant.id : Constants.DEFAULT_TENANT_ID, ServerAction.OICP_ENDPOINT, error);
+      await Logging.logActionExceptionMessage(req.user && req.user.tenantID ? req.user.tenantID : Constants.DEFAULT_TENANT_ID, ServerAction.OICP_ENDPOINT, error);
       let errorCode: any = {};
       if (error instanceof AppError || error instanceof AppAuthError) {
         errorCode = error.params.errorCode;

@@ -103,7 +103,7 @@ export default class TransactionService {
       const transaction = await TransactionStorage.getTransaction(req.tenant, transactionId, { withUser: true });
       if (!transaction) {
         await Logging.logError({
-          tenantID: req.tenant.id,
+          tenantID: req.user.tenantID,
           user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
           module: MODULE_NAME, method: 'handleRefundTransactions',
           message: `Transaction '${transaction.id}' does not exist`,
@@ -114,7 +114,7 @@ export default class TransactionService {
       }
       if (transaction.refundData && !!transaction.refundData.refundId && transaction.refundData.status !== RefundStatus.CANCELLED) {
         await Logging.logError({
-          tenantID: req.tenant.id,
+          tenantID: req.user.tenantID,
           user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
           module: MODULE_NAME, method: 'handleRefundTransactions',
           message: `Transaction '${transaction.id}' is already refunded`,
@@ -233,7 +233,7 @@ export default class TransactionService {
         // Save
         await TransactionStorage.saveTransactionOcpiData(req.tenant, transaction.id, transaction.ocpiData);
         await Logging.logInfo({
-          tenantID: req.tenant.id,
+          tenantID: req.user.tenantID,
           action, module: MODULE_NAME, method: 'handlePushTransactionCdr',
           user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
           message: `CDR of Transaction ID '${transaction.id}' has been pushed successfully`,
@@ -259,7 +259,7 @@ export default class TransactionService {
         // Save
         await TransactionStorage.saveTransactionOicpData(req.tenant, transaction.id, transaction.oicpData);
         await Logging.logInfo({
-          tenantID: req.tenant.id,
+          tenantID: req.user.tenantID,
           action,
           user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
           module: MODULE_NAME, method: 'handlePushTransactionCdr',
@@ -1037,7 +1037,7 @@ export default class TransactionService {
         await ChargingStationStorage.saveChargingStationConnectors(req.tenant, chargingStation.id, chargingStation.connectors);
       }
       await Logging.logInfo({
-        tenantID: req.tenant.id,
+        tenantID: req.user.tenantID,
         user: req.user, actionOnUser: transaction.userID,
         action, module: MODULE_NAME, method: 'transactionSoftStop',
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has already been stopped`,
@@ -1067,7 +1067,7 @@ export default class TransactionService {
       }
       await Logging.logInfo({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
-        tenantID: req.tenant.id,
+        tenantID: req.user.tenantID,
         user: req.user, actionOnUser: transaction.userID,
         module: MODULE_NAME, method: 'transactionSoftStop',
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has been soft stopped successfully`,

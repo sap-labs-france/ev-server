@@ -648,8 +648,8 @@ export default class Logging {
     if (action === ServerAction.LOGIN && req.body.password) {
       req.body.password = '####';
     }
-    if (req.user && req.tenant.id) {
-      tenantID = req.tenant.id;
+    if (req.user && req.user.tenantID) {
+      tenantID = req.user.tenantID;
     }
     let statusCode;
     // Log App Error

@@ -49,7 +49,7 @@ export default class SiteService {
     await SiteStorage.updateSiteUserAdmin(req.tenant, filteredRequest.siteID, filteredRequest.userID, filteredRequest.siteAdmin);
     await Logging.logInfo({
       ...LoggingHelper.getSiteProperties(site),
-      tenantID: req.tenant.id,
+      tenantID: req.user.tenantID,
       user: req.user, actionOnUser: user,
       module: MODULE_NAME, method: 'handleUpdateSiteUserAdmin',
       message: `The User has been ${filteredRequest.siteAdmin ? 'assigned' : 'removed'} the Site Admin role on site '${site.name}'`,
@@ -75,7 +75,7 @@ export default class SiteService {
     await SiteStorage.updateSiteOwner(req.tenant, filteredRequest.siteID, filteredRequest.userID, filteredRequest.siteOwner);
     await Logging.logInfo({
       ...LoggingHelper.getSiteProperties(site),
-      tenantID: req.tenant.id,
+      tenantID: req.user.tenantID,
       user: req.user, actionOnUser: user,
       module: MODULE_NAME, method: 'handleUpdateSiteOwner',
       message: `The User has been granted Site Owner on Site '${site.name}'`,
@@ -105,7 +105,7 @@ export default class SiteService {
     }
     await Logging.logInfo({
       ...LoggingHelper.getSiteProperties(site),
-      tenantID: req.tenant.id,
+      tenantID: req.user.tenantID,
       user: req.user,
       module: MODULE_NAME,
       method: 'handleAssignUsersToSite',
@@ -163,7 +163,7 @@ export default class SiteService {
     await SiteStorage.deleteSite(req.tenant, site.id);
     await Logging.logInfo({
       ...LoggingHelper.getSiteProperties(site),
-      tenantID: req.tenant.id,
+      tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteSite',
       message: `Site '${site.name}' has been deleted successfully`,
       action: action,
@@ -318,7 +318,7 @@ export default class SiteService {
     site.id = await SiteStorage.saveSite(req.tenant, site, Utils.objectHasProperty(filteredRequest, 'image'));
     await Logging.logInfo({
       ...LoggingHelper.getSiteProperties(site),
-      tenantID: req.tenant.id,
+      tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleCreateSite',
       message: `Site '${site.name}' has been created successfully`,
       action: action,
@@ -386,7 +386,7 @@ export default class SiteService {
     void SiteStorage.updateEntitiesWithOrganizationIDs(req.tenant, site.companyID, filteredRequest.id);
     await Logging.logInfo({
       ...LoggingHelper.getSiteProperties(site),
-      tenantID: req.tenant.id,
+      tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateSite',
       message: `Site '${site.name}' has been updated successfully`,
       action: action,

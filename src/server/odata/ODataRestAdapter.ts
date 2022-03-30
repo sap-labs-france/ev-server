@@ -63,7 +63,7 @@ export default class ODataRestAdapter {
       if (!req.user) {
         req.user = {};
       }
-      req.tenant.id = tenant.id;
+      req.user.tenantID = tenant.id;
       switch (collection) {
         case 'Transactions':
           await new ODataTransactions().getTransactionsCompleted(centralServiceApi, query, req, cb);
@@ -98,7 +98,7 @@ export default class ODataRestAdapter {
     } catch (error) {
       // Add logging
       await Logging.logError({
-        tenantID: req.tenant.id,
+        tenantID: req.user.tenantID,
         module: MODULE_NAME, method: 'query',
         action: ServerAction.ODATA_SERVER,
         message: error.message,

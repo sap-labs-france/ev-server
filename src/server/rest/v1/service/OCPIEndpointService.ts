@@ -48,7 +48,7 @@ export default class OCPIEndpointService {
     // Delete
     await OCPIEndpointStorage.deleteOcpiEndpoint(req.tenant, ocpiEndpoint.id);
     await Logging.logInfo({
-      tenantID: req.tenant.id,
+      tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteOcpiEndpoint',
       message: `Ocpi Endpoint '${ocpiEndpoint.name}' has been deleted successfully`,
       action,
@@ -149,7 +149,7 @@ export default class OCPIEndpointService {
     } as OCPIEndpoint;
     const endpointID = await OCPIEndpointStorage.saveOcpiEndpoint(req.tenant, ocpiEndpoint);
     await Logging.logInfo({
-      tenantID: req.tenant.id,
+      tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleCreateOcpiEndpoint',
       message: `Ocpi Endpoint '${filteredRequest.name}' has been created successfully`,
       action,
@@ -185,7 +185,7 @@ export default class OCPIEndpointService {
     // Update OcpiEndpoint
     await OCPIEndpointStorage.saveOcpiEndpoint(req.tenant, { ...ocpiEndpoint, ...filteredRequest });
     await Logging.logInfo({
-      tenantID: req.tenant.id,
+      tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateOcpiEndpoint',
       message: `Ocpi Endpoint '${ocpiEndpoint.name}' has been updated successfully`,
       action,
@@ -217,7 +217,7 @@ export default class OCPIEndpointService {
     // Check ping result
     if (result.statusCode === StatusCodes.OK) {
       await Logging.logInfo({
-        tenantID: req.tenant.id,
+        tenantID: req.user.tenantID,
         user: req.user, module: MODULE_NAME, method: 'handlePingOcpiEndpoint',
         message: `Ocpi Endpoint '${filteredRequest.name}' can be reached successfully`,
         action,
@@ -713,7 +713,7 @@ export default class OCPIEndpointService {
     // Check ping result
     if (result.statusCode === StatusCodes.OK) {
       await Logging.logInfo({
-        tenantID: req.tenant.id,
+        tenantID: req.user.tenantID,
         user: req.user, module: MODULE_NAME, method: 'handleUnregisterOcpiEndpoint',
         message: `Ocpi Endpoint '${ocpiEndpoint.name}' can be reached successfully`,
         action,
@@ -766,7 +766,7 @@ export default class OCPIEndpointService {
     // Check ping result
     if (result.statusCode === StatusCodes.OK) {
       await Logging.logInfo({
-        tenantID: req.tenant.id,
+        tenantID: req.user.tenantID,
         user: req.user, module: MODULE_NAME, method: 'handleRegisterOcpiEndpoint',
         message: `Ocpi Endpoint '${ocpiEndpoint.name}' can be reached successfully`,
         action,
@@ -809,7 +809,7 @@ export default class OCPIEndpointService {
     // Generate endpoint
     const localToken = OCPIUtils.generateLocalToken(req.tenant.subdomain);
     await Logging.logInfo({
-      tenantID: req.tenant.id,
+      tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleGenerateLocalTokenOcpiEndpoint',
       message: 'Local Token for Ocpi Endpoint has been generated successfully',
       action,
