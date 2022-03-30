@@ -1,7 +1,7 @@
 import AuthenticatedBaseApi from './utils/AuthenticatedBaseApi';
 import CrudApi from './utils/CrudApi';
+import { RESTServerRoute } from '../../../src/types/Server';
 import RegistrationToken from '../../../src/types/RegistrationToken';
-import { ServerRoute } from '../../../src/types/Server';
 import TestConstants from './utils/TestConstants';
 
 export default class RegistrationTokenApi extends CrudApi {
@@ -10,15 +10,15 @@ export default class RegistrationTokenApi extends CrudApi {
   }
 
   public async readById(id) {
-    return super.readById(id, this.buildRestEndpointUrl(ServerRoute.REST_REGISTRATION_TOKEN, { id }));
+    return super.readById(id, this.buildRestEndpointUrl(RESTServerRoute.REST_REGISTRATION_TOKEN, { id }));
   }
 
   public async readAll(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(ServerRoute.REST_REGISTRATION_TOKENS));
+    return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(RESTServerRoute.REST_REGISTRATION_TOKENS));
   }
 
   public async create(data: Partial<RegistrationToken>) {
-    return super.create(data, this.buildRestEndpointUrl(ServerRoute.REST_REGISTRATION_TOKENS));
+    return super.create(data, this.buildRestEndpointUrl(RESTServerRoute.REST_REGISTRATION_TOKENS));
   }
 
   public async update(data) {

@@ -456,7 +456,7 @@ export enum ServerAction {
 }
 
 // RESTful API
-export enum ServerRoute {
+export enum RESTServerRoute {
   REST_SIGNIN = 'signin',
   REST_SIGNON = 'signon',
   REST_SIGNOUT = 'signout',
@@ -667,6 +667,10 @@ export enum ServerRoute {
   // PRICING URLs for CRUD operations
   REST_PRICING_DEFINITIONS = 'pricing-definitions',
   REST_PRICING_DEFINITION = 'pricing-definitions/:id'
+}
+
+export enum OCPIServerRoute {
+  OCPI_VERSIONS = 'versions',
 }
 
 export enum ServerProtocol {

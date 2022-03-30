@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 
-import Logging from '../../../../utils/Logging';
-import { ServerAction } from '../../../../types/Server';
-import Utils from '../../../../utils/Utils';
+import Logging from './Logging';
+import { ServerAction } from '../types/Server';
+import Utils from './Utils';
 
 export default class RouterUtils {
   public static async handleServerAction(

@@ -3,8 +3,8 @@ import { Application, NextFunction, Request, Response } from 'express';
 import AuthService from './v1/service/AuthService';
 import CentralSystemRestServiceConfiguration from '../../types/configuration/CentralSystemRestServiceConfiguration';
 import ExpressUtils from '../ExpressUtils';
-import GlobalRouter from './v1/router/GlobalRouter';
 import Logging from '../../utils/Logging';
+import RestGlobalRouterV1 from './v1/router/RestGlobalRouterV1';
 import RestServerService from './RestServerService';
 import { ServerType } from '../../types/Server';
 import { ServerUtils } from '../ServerUtils';
@@ -27,7 +27,7 @@ export default class RestServer {
     // Authentication
     this.expressApplication.use(AuthService.initialize());
     // Routers
-    this.expressApplication.use('/v1', new GlobalRouter().buildRoutes());
+    this.expressApplication.use('/v1', new RestGlobalRouterV1().buildRoutes());
     // Secured API
     this.expressApplication.use('/client/api/:action',
       AuthService.authenticate(),
