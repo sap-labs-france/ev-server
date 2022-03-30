@@ -129,13 +129,13 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     const jsonWebSocket = this.jsonWSConnections.get(`${tenant.id}~${chargingStation.id}`);
     if (!jsonWebSocket) {
       const message = 'No opened Web Socket connection found';
-      await Logging.logWarning({
+      await Logging.logError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         tenantID: tenant.id,
         module: MODULE_NAME, method: 'getChargingStationClient',
         action: ServerAction.WS_SERVER_CONNECTION, message
       });
-      await Logging.logWarning({
+      await Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         chargingStationID: chargingStation.id,
         module: MODULE_NAME, method: 'getChargingStationClient',
