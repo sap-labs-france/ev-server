@@ -257,7 +257,7 @@ export default class CarService {
     // Save
     newCar.id = await CarStorage.saveCar(req.tenant, newCar);
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       ...LoggingHelper.getCarProperties(newCar),
       user: req.user, module: MODULE_NAME, method: 'handleCreateCar',
       message: `Car with VIN '${newCar.vin}' and plate ID '${newCar.licensePlate}' has been created successfully`,
@@ -339,7 +339,7 @@ export default class CarService {
       await CarService.setDefaultCarForUser(req.tenant, setDefaultCarToOldUserID);
     }
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       ...LoggingHelper.getCarProperties(car),
       user: req.user, module: MODULE_NAME, method: 'handleUpdateCar',
       message: `Car '${car.id}' has been updated successfully`,
@@ -421,7 +421,7 @@ export default class CarService {
     }
     await Logging.logInfo({
       ...LoggingHelper.getCarProperties(car),
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteCar',
       message: `Car '${Utils.buildCarName(car)}' has been deleted successfully`,
       action: action,

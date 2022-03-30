@@ -275,7 +275,7 @@ export default class ChargingStationService {
       }
     }
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       action,
       user: req.user, module: MODULE_NAME,
       method: 'handleUpdateChargingStationParams',
@@ -399,7 +399,7 @@ export default class ChargingStationService {
         // Log
         await Logging.logWarning({
           ...LoggingHelper.getChargingStationProperties(chargingStation),
-          tenantID: req.user.tenantID,
+          tenantID: req.tenant.id,
           action,
           user: req.user,
           module: MODULE_NAME, method: 'handleChargingStationLimitPower',
@@ -427,7 +427,7 @@ export default class ChargingStationService {
     }
     await Logging.logInfo({
       ...LoggingHelper.getChargingStationProperties(chargingStation),
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       action,
       user: req.user,
       module: MODULE_NAME, method: 'handleChargingStationLimitPower',
@@ -528,7 +528,7 @@ export default class ChargingStationService {
         user: req.user
       });
     }
-    const siteAreaLock = await LockingHelper.acquireSiteAreaSmartChargingLock(req.user.tenantID, siteArea);
+    const siteAreaLock = await LockingHelper.acquireSiteAreaSmartChargingLock(req.tenant.id, siteArea);
     if (siteAreaLock) {
       try {
         // Call
@@ -810,7 +810,7 @@ export default class ChargingStationService {
           }
         } catch (error) {
           await Logging.logError({
-            tenantID: req.user.tenantID,
+            tenantID: req.tenant.id,
             module: MODULE_NAME, method: 'handleDeleteChargingStation',
             action,
             user: req.user,
@@ -839,7 +839,7 @@ export default class ChargingStationService {
       await ChargingStationStorage.deleteChargingStation(req.tenant, chargingStation.id);
     }
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteChargingStation',
       message: `Charging Station '${chargingStation.id}' has been deleted successfully`,
       action,
