@@ -1,10 +1,10 @@
-import BackendError from '../../../exception/BackendError';
-import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import { Command } from '../../../types/ChargingStation';
-import OCPPUtils from '../utils/OCPPUtils';
+import BackendError from '../../../../exception/BackendError';
+import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
+import { Command } from '../../../../types/ChargingStation';
+import OCPPUtils from '../../utils/OCPPUtils';
 import WSConnection from './WSConnection';
 import WSWrapper from './WSWrapper';
-import global from '../../../types/GlobalType';
+import global from '../../../../types/GlobalType';
 
 const MODULE_NAME = 'JsonRestWSConnection';
 

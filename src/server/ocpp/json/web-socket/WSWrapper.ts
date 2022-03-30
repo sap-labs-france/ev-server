@@ -1,9 +1,9 @@
 import { RecognizedString, WebSocket } from 'uWebSockets.js';
 
-import Utils from '../../../utils/Utils';
+import Utils from '../../../../utils/Utils';
 import WSConnection from './WSConnection';
-import { WSServerProtocol } from '../../../types/Server';
-import { WebSocketAction } from '../../../types/WebSocket';
+import { WSServerProtocol } from '../../../../types/Server';
+import { WebSocketAction } from '../../../../types/WebSocket';
 
 export default class WSWrapper {
   public key: string;

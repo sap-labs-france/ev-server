@@ -1,14 +1,14 @@
-import ChargingStation, { Command } from '../../../types/ChargingStation';
-import { FctOCPPReject, FctOCPPResponse, OCPPErrorType, OCPPIncomingRequest, OCPPIncomingResponse, OCPPMessageType, OCPPRequest } from '../../../types/ocpp/OCPPCommon';
+import ChargingStation, { Command } from '../../../../types/ChargingStation';
+import { FctOCPPReject, FctOCPPResponse, OCPPErrorType, OCPPIncomingRequest, OCPPIncomingResponse, OCPPMessageType, OCPPRequest } from '../../../../types/ocpp/OCPPCommon';
 
-import BackendError from '../../../exception/BackendError';
-import Constants from '../../../utils/Constants';
-import Logging from '../../../utils/Logging';
-import OCPPError from '../../../exception/OcppError';
-import OCPPUtils from '../utils/OCPPUtils';
-import { ServerAction } from '../../../types/Server';
-import Tenant from '../../../types/Tenant';
-import Utils from '../../../utils/Utils';
+import BackendError from '../../../../exception/BackendError';
+import Constants from '../../../../utils/Constants';
+import Logging from '../../../../utils/Logging';
+import OCPPError from '../../../../exception/OcppError';
+import OCPPUtils from '../../utils/OCPPUtils';
+import { ServerAction } from '../../../../types/Server';
+import Tenant from '../../../../types/Tenant';
+import Utils from '../../../../utils/Utils';
 import WSWrapper from './WSWrapper';
 
 const MODULE_NAME = 'WSConnection';

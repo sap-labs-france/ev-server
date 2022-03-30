@@ -245,7 +245,7 @@ class RequestMapper {
   }
 }
 
-export default class CentralRestServerService {
+export default class RestServerService {
   // Util Service
   public static async restServiceUtil(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {

@@ -5,26 +5,26 @@ import { ServerAction, ServerType, WSServerProtocol } from '../../../types/Serve
 import { WebSocketAction, WebSocketCloseEventStatusCode, WebSocketPingResult } from '../../../types/WebSocket';
 
 import CentralSystemConfiguration from '../../../types/configuration/CentralSystemConfiguration';
-import CentralSystemServer from '../CentralSystemServer';
 import ChargingStation from '../../../types/ChargingStation';
 import ChargingStationClient from '../../../client/ocpp/ChargingStationClient';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
-import JsonRestWSConnection from './JsonRestWSConnection';
-import JsonWSConnection from './JsonWSConnection';
+import JsonRestWSConnection from './web-socket/JsonRestWSConnection';
+import JsonWSConnection from './web-socket/JsonWSConnection';
 import Logging from '../../../utils/Logging';
 import LoggingHelper from '../../../utils/LoggingHelper';
 import { OCPPMessageType } from '../../../types/ocpp/OCPPCommon';
+import OCPPServer from '../OCPPServer';
 import Tenant from '../../../types/Tenant';
 import Utils from '../../../utils/Utils';
-import WSConnection from './WSConnection';
-import WSWrapper from './WSWrapper';
+import WSConnection from './web-socket/WSConnection';
+import WSWrapper from './web-socket/WSWrapper';
 import global from '../../../types/GlobalType';
 
-const MODULE_NAME = 'JsonCentralSystemServer';
+const MODULE_NAME = 'JsonOCPPServer';
 
-export default class JsonCentralSystemServer extends CentralSystemServer {
+export default class JsonOCPPServer extends OCPPServer {
   private waitingWSMessages = 0;
   private runningWSMessages = 0;
   private runningWSRequestsMessages: Record<string, boolean> = {};

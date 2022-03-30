@@ -3,13 +3,13 @@ import ChargingStationConfiguration from '../../types/configuration/ChargingStat
 import OCPPService from './services/OCPPService';
 import { OCPPVersion } from '../../types/ocpp/OCPPServer';
 
-export default abstract class CentralSystemServer {
+export default abstract class OCPPServer {
   private static chargingStationService: OCPPService | null = null;
   protected centralSystemConfig: CentralSystemConfiguration;
   protected chargingStationConfig: ChargingStationConfiguration;
 
   // Common constructor for Central System Server
-  constructor(centralSystemConfig: CentralSystemConfiguration, chargingStationConfig: ChargingStationConfiguration) {
+  public constructor(centralSystemConfig: CentralSystemConfiguration, chargingStationConfig: ChargingStationConfiguration) {
     // Init
     this.centralSystemConfig = centralSystemConfig;
     this.chargingStationConfig = chargingStationConfig;
@@ -20,10 +20,10 @@ export default abstract class CentralSystemServer {
       case OCPPVersion.VERSION_15:
       case OCPPVersion.VERSION_16:
       default:
-        if (!CentralSystemServer.chargingStationService) {
-          CentralSystemServer.chargingStationService = new OCPPService(this.chargingStationConfig);
+        if (!OCPPServer.chargingStationService) {
+          OCPPServer.chargingStationService = new OCPPService(this.chargingStationConfig);
         }
-        return CentralSystemServer.chargingStationService;
+        return OCPPServer.chargingStationService;
     }
   }
 

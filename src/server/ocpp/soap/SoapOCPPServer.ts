@@ -1,11 +1,11 @@
 import { ServerAction, ServerType } from '../../../types/Server';
 
 import CentralSystemConfiguration from '../../../types/configuration/CentralSystemConfiguration';
-import CentralSystemServer from '../CentralSystemServer';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 import Constants from '../../../utils/Constants';
 import ExpressUtils from '../../ExpressUtils';
 import Logging from '../../../utils/Logging';
+import OCPPServer from '../OCPPServer';
 import { OCPPVersion } from '../../../types/ocpp/OCPPServer';
 import { ServerUtils } from '../../ServerUtils';
 import Utils from '../../../utils/Utils';
@@ -17,9 +17,9 @@ import global from '../../../types/GlobalType';
 import http from 'http';
 import { soap } from 'strong-soap';
 
-const MODULE_NAME = 'SoapCentralSystemServer';
+const MODULE_NAME = 'SoapOCPPServer';
 
-export default class SoapCentralSystemServer extends CentralSystemServer {
+export default class SoapOCPPServer extends OCPPServer {
   public httpServer: http.Server;
   private expressApplication: express.Application;
 

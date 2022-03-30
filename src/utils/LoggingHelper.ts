@@ -7,7 +7,7 @@ import SiteArea from '../types/SiteArea';
 import Tag from '../types/Tag';
 import Transaction from '../types/Transaction';
 import User from '../types/User';
-import WSWrapper from '../server/ocpp/json/WSWrapper';
+import WSWrapper from '../server/ocpp/json/web-socket/WSWrapper';
 
 export default class LoggingHelper {
 

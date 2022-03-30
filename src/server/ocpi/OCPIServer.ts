@@ -24,8 +24,8 @@ export default class OCPIServer {
     this.ocpiRestConfig = ocpiRestConfig;
     // Initialize express app
     this.expressApplication = ExpressUtils.initApplication(null, ocpiRestConfig.debug);
-    // Log Express Request
-    this.expressApplication.use(this.resolveTenant.bind(this));
+    // Authenticate
+    this.expressApplication.use(this.initialize.bind(this));
     // Log Express Request
     this.expressApplication.use(Logging.traceExpressRequest.bind(this));
     // New OCPI Services Instances
@@ -55,7 +55,7 @@ export default class OCPIServer {
     ServerUtils.startHttpServer(this.ocpiRestConfig, ServerUtils.createHttpServer(this.ocpiRestConfig, this.expressApplication), MODULE_NAME, ServerType.OCPI_SERVER);
   }
 
-  private async resolveTenant(req: Request, res: Response, next: NextFunction): Promise<void> {
+  private async initialize(req: Request, res: Response, next: NextFunction): Promise<void> {
     if (req.headers?.authorization?.startsWith('Token')) {
       try {
         if (req.headers?.authorization.startsWith('Token')) {

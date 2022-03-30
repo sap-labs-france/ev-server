@@ -1,19 +1,19 @@
 import { Application, NextFunction, Request, Response } from 'express';
 
 import AuthService from './v1/service/AuthService';
-import CentralRestServerService from './CentralRestServerService';
 import CentralSystemRestServiceConfiguration from '../../types/configuration/CentralSystemRestServiceConfiguration';
 import ExpressUtils from '../ExpressUtils';
 import GlobalRouter from './v1/router/GlobalRouter';
 import Logging from '../../utils/Logging';
+import RestServerService from './RestServerService';
 import { ServerType } from '../../types/Server';
 import { ServerUtils } from '../ServerUtils';
 import SessionHashService from './v1/service/SessionHashService';
 import http from 'http';
 
-const MODULE_NAME = 'CentralRestServer';
+const MODULE_NAME = 'RestServer';
 
-export default class CentralRestServer {
+export default class RestServer {
   private static centralSystemRestConfig: CentralSystemRestServiceConfiguration;
   private static restHttpServer: http.Server;
   private expressApplication: Application;
@@ -21,7 +21,7 @@ export default class CentralRestServer {
   // Create the rest server
   public constructor(centralSystemRestConfig: CentralSystemRestServiceConfiguration) {
     // Keep params
-    CentralRestServer.centralSystemRestConfig = centralSystemRestConfig;
+    RestServer.centralSystemRestConfig = centralSystemRestConfig;
     // Initialize express app
     this.expressApplication = ExpressUtils.initApplication('1mb', centralSystemRestConfig.debug);
     // Authentication
@@ -33,20 +33,20 @@ export default class CentralRestServer {
       AuthService.authenticate(),
       SessionHashService.checkUserAndTenantValidity.bind(this),
       Logging.traceExpressRequest.bind(this),
-      CentralRestServerService.restServiceSecured.bind(this)
+      RestServerService.restServiceSecured.bind(this)
     );
     // Util API
     this.expressApplication.use('/client/util/:action',
       Logging.traceExpressRequest.bind(this),
-      CentralRestServerService.restServiceUtil.bind(this)
+      RestServerService.restServiceUtil.bind(this)
     );
     // Post init
     ExpressUtils.postInitApplication(this.expressApplication);
     // Create HTTP server to serve the express app
-    CentralRestServer.restHttpServer = ServerUtils.createHttpServer(CentralRestServer.centralSystemRestConfig, this.expressApplication);
+    RestServer.restHttpServer = ServerUtils.createHttpServer(RestServer.centralSystemRestConfig, this.expressApplication);
   }
 
   public start(): void {
-    ServerUtils.startHttpServer(CentralRestServer.centralSystemRestConfig, CentralRestServer.restHttpServer, MODULE_NAME, ServerType.REST_SERVER);
+    ServerUtils.startHttpServer(RestServer.centralSystemRestConfig, RestServer.restHttpServer, MODULE_NAME, ServerType.REST_SERVER);
   }
 }
