@@ -314,11 +314,6 @@ export default class SiteService {
       createdBy: { id: req.user.id },
       createdOn: new Date()
     } as Site;
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
-      if (!filteredRequest.public) {
-        delete site.tariffID;
-      }
-    }
     // Save
     site.id = await SiteStorage.saveSite(req.tenant, site, Utils.objectHasProperty(filteredRequest, 'image'));
     await Logging.logInfo({
@@ -372,9 +367,6 @@ export default class SiteService {
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
       if (Utils.objectHasProperty(filteredRequest, 'tariffID')) {
         site.tariffID = filteredRequest.tariffID;
-      }
-      if (!filteredRequest.public) {
-        delete site.tariffID;
       }
     }
     if (Utils.objectHasProperty(filteredRequest, 'autoUserSiteAssignment')) {

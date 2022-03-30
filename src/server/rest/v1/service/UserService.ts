@@ -156,7 +156,7 @@ export default class UserService {
     // Delete Billing
     await UserService.checkAndDeleteUserBilling(req.tenant, req.user, user);
     // Delete OCPI
-    await UserService.checkAndDeleteUserOCPI(req.tenant, req.user, user);
+    void UserService.checkAndDeleteUserRoaming(req.tenant, req.user, user);
     // Delete Car
     await UserService.checkAndDeleteCar(req.tenant, req.user, user);
     // Delete User
@@ -872,7 +872,7 @@ export default class UserService {
     }
   }
 
-  private static async checkAndDeleteUserOCPI(tenant: Tenant, loggedUser: UserToken, user: User): Promise<void> {
+  private static async checkAndDeleteUserRoaming(tenant: Tenant, loggedUser: UserToken, user: User): Promise<void> {
     // Synchronize badges with IOP (eMSP)
     if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.OCPI)) {
       try {

@@ -293,11 +293,6 @@ export default class SiteAreaService {
       createdBy: { id: req.user.id },
       createdOn: new Date()
     } as SiteArea;
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
-      if (!site.public) {
-        delete siteArea.tariffID;
-      }
-    }
     // Save
     siteArea.id = await SiteAreaStorage.saveSiteArea(req.tenant, siteArea, Utils.objectHasProperty(filteredRequest, 'image'));
     await Logging.logInfo({
@@ -358,9 +353,6 @@ export default class SiteAreaService {
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
       if (Utils.objectHasProperty(filteredRequest, 'tariffID')) {
         siteArea.tariffID = filteredRequest.tariffID;
-      }
-      if (!site.public) {
-        delete siteArea.tariffID;
       }
     }
     let actionsResponse: ActionsResponse;
