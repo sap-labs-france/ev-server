@@ -496,7 +496,7 @@ export default class TagService {
               if (!Utils.isEmptyArray(tagsToBeImported) && (tagsToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
                 await TagService.insertTags(req.tenant, req.user, action, tagsToBeImported, result);
               }
-              // eslint-disable-next-line @typescript-eslint/no-misused-promises
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             }, async (error: CSVError) => {
               // Release the lock
               await LockingManager.release(importTagsLock);
@@ -513,8 +513,8 @@ export default class TagService {
                 res.end();
                 resolve();
               }
-              // Completed
-              // eslint-disable-next-line @typescript-eslint/no-misused-promises
+            // Completed
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             }, async () => {
               // Consider the connection closed
               connectionClosed = true;
@@ -543,7 +543,9 @@ export default class TagService {
                 method: 'handleImportTags',
               });
               // Respond
-              res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
+              if (!res.headersSent) {
+                res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
+              }
               next();
               resolve();
             });
@@ -603,10 +605,9 @@ export default class TagService {
           }
         });
       });
-    } catch (error) {
+    } finally {
       // Release the lock
       await LockingManager.release(importTagsLock);
-      throw error;
     }
   }
 

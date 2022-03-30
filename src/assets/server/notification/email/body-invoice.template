@@ -65,7 +65,7 @@
       <!-- Action -->
       <% if (body.actions) { %>
         <tr><td colspan="3">&nbsp;</td></tr>
-        <% for (var i = 0; i < body.actions.length; i++) { %> 
+        <% for (var i = 0; i < body.actions.length; i++) { %>
           <% if (body.actions[i].url) { %>
             <tr style="margin-bottom: 10px;">
               <td style="width: 30%;"></td>
@@ -105,7 +105,7 @@
               <td align="center">
               </td>
               <td width="180" align="right" style="padding-right: 15px;">
-                <a style="text-decoration:none" href="http://chargeangels.fr/" target="_blank">
+                <a style="text-decoration:none" href="http://open-e-mobility.fr/" target="_blank">
                   <font size="3" color="white" face="sans-serif"><i>e-Mobility</i></font>
                 </a>
               </td>
