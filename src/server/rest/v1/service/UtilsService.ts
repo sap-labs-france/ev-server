@@ -1630,7 +1630,7 @@ export default class UtilsService {
   }
 
   public static checkIfUserValid(filteredRequest: Partial<User>, user: User, req: Request): void {
-    const tenantID = req.user.tenantID;
+    const tenantID = req.tenant.id;
     if (!tenantID) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,

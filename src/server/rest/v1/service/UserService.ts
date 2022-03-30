@@ -122,7 +122,7 @@ export default class UserService {
     }
     // Log
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user,
       module: MODULE_NAME,
       method: 'handleAssignSitesToUser',
@@ -143,7 +143,7 @@ export default class UserService {
       // Delete User
       await UserStorage.deleteUser(req.tenant, user.id);
       await Logging.logInfo({
-        tenantID: req.user.tenantID,
+        tenantID: req.tenant.id,
         user: req.user, actionOnUser: user,
         module: MODULE_NAME, method: 'handleDeleteUser',
         message: `User with ID '${user.id}' has been deleted successfully`,
@@ -163,7 +163,7 @@ export default class UserService {
     await UserStorage.deleteUser(req.tenant, user.id);
     // Log
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user, actionOnUser: user,
       module: MODULE_NAME, method: 'handleDeleteUser',
       message: `User with ID '${user.id}' has been deleted successfully`,
@@ -229,7 +229,7 @@ export default class UserService {
     await UserService.updateUserBilling(ServerAction.USER_UPDATE, req.tenant, req.user, user);
     // Log
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user, actionOnUser: user,
       module: MODULE_NAME, method: 'handleUpdateUser',
       message: 'User has been updated successfully',
@@ -274,7 +274,7 @@ export default class UserService {
       mobileLastChangedOn: new Date()
     });
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: user,
       module: MODULE_NAME, method: 'handleUpdateUserMobileToken',
       message: 'User\'s mobile token has been updated successfully',
@@ -501,7 +501,7 @@ export default class UserService {
               await LockingManager.release(importUsersLock);
               // Log
               await Logging.logError({
-                tenantID: req.user.tenantID,
+                tenantID: req.tenant.id,
                 module: MODULE_NAME, method: 'handleImportUsers',
                 action: action,
                 user: req.user.id,
@@ -527,7 +527,7 @@ export default class UserService {
               // Log
               const executionDurationSecs = Utils.truncTo((new Date().getTime() - startTime) / 1000, 2);
               await Logging.logActionsResponse(
-                req.user.tenantID, action,
+                req.tenant.id, action,
                 MODULE_NAME, 'handleImportUsers', result,
                 `{{inSuccess}} User(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import`,
                 `{{inError}} User(s) failed to be uploaded in ${executionDurationSecs}s`,
@@ -576,7 +576,7 @@ export default class UserService {
               await LockingManager.release(importUsersLock);
               // Log
               await Logging.logError({
-                tenantID: req.user.tenantID,
+                tenantID: req.tenant.id,
                 module: MODULE_NAME, method: 'handleImportUsers',
                 action: action,
                 user: req.user.id,
@@ -595,7 +595,7 @@ export default class UserService {
             await LockingManager.release(importUsersLock);
             // Log
             await Logging.logError({
-              tenantID: req.user.tenantID,
+              tenantID: req.tenant.id,
               module: MODULE_NAME, method: 'handleImportUsers',
               action: action,
               user: req.user.id,
@@ -671,7 +671,7 @@ export default class UserService {
     await UserService.updateUserBilling(ServerAction.USER_CREATE, req.tenant, req.user, newUser);
     // Log
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user, actionOnUser: req.user,
       module: MODULE_NAME, method: 'handleCreateUser',
       message: `User with ID '${newUser.id}' has been created successfully`,
@@ -808,7 +808,7 @@ export default class UserService {
       return true;
     } catch (error) {
       await Logging.logError({
-        tenantID: req.user.tenantID,
+        tenantID: req.tenant.id,
         module: MODULE_NAME, method: 'importUser',
         action: action,
         message: 'User cannot be imported',

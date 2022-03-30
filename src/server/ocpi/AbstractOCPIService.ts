@@ -165,7 +165,7 @@ export default abstract class AbstractOCPIService {
         });
       }
       // Pass tenant id to req
-      req.user.tenantID = tenant.id;
+      req.tenant.id = tenant.id;
       // Handle request action (endpoint)
       const endpoint = registeredEndpoints.get(ocpiAction);
       if (endpoint) {

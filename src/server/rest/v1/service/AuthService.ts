@@ -81,7 +81,7 @@ export default class AuthService {
         if (user.passwordBlockedUntil && moment(user.passwordBlockedUntil).isBefore(moment())) {
           // Time elapsed: activate the account again
           await Logging.logInfo({
-            tenantID: req.user.tenantID,
+            tenantID: req.tenant.id,
             actionOnUser: user,
             module: MODULE_NAME, method: 'handleLogIn', action: action,
             message: 'User has been unlocked after a period of time can try to login again'
