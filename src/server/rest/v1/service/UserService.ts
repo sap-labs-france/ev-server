@@ -828,10 +828,8 @@ export default class UserService {
     }
   }
 
-  // await UserService.fetchPricingDefinitions(action, req.tenant, req.user, user, filteredRequest.ChargingStationID, filteredRequest.args?.connectorId,  pricingDefinitions);
   private static async fetchPricingDefinitions(action: ServerAction, tenant: Tenant,
       loggedUser: UserToken, user: User, chargingStation: ChargingStation, connectorId: number) : Promise<ResolvedPricingDefinition[]> {
-
     if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.PRICING)) {
       const pricingImpl = await PricingFactory.getPricingImpl(tenant);
       if (pricingImpl) {
