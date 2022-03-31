@@ -833,7 +833,7 @@ export default class UserService {
     if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.PRICING)) {
       const pricingImpl = await PricingFactory.getPricingImpl(tenant);
       if (pricingImpl) {
-        const pricingContext = PricingHelper.buildUserPricingContext(tenant, user, chargingStation, connectorId, new Date());
+        const pricingContext = PricingHelper.buildUserPricingContext(tenant, user.id, chargingStation, connectorId, new Date());
         const pricingModel: ResolvedPricingModel = await pricingImpl.resolvePricingContext(pricingContext);
         return pricingModel.pricingDefinitions;
       }

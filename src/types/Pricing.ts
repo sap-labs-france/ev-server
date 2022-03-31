@@ -1,9 +1,7 @@
-import ChargingStation, { ConnectorType } from './ChargingStation';
-
 import { AuthorizationActions } from './Authorization';
+import { ConnectorType } from './ChargingStation';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import Decimal from 'decimal.js';
-import Tenant from './Tenant';
 
 export enum PricingEntity {
   TENANT = 'Tenant',
@@ -22,7 +20,6 @@ export enum DimensionType {
 }
 
 export interface PricingContext {
-  tenant: Tenant,
   userID: string
   companyID: string,
   siteID: string,

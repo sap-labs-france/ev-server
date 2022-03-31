@@ -79,7 +79,7 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
       });
       return null;
     }
-    const resolvedPricingModel: ResolvedPricingModel = await PricingEngine.resolvePricingContext(pricingContext);
+    const resolvedPricingModel: ResolvedPricingModel = await PricingEngine.resolvePricingContext(this.tenant, pricingContext);
     // Fallback when no pricing definition matches
     resolvedPricingModel.pricingDefinitions.push(this.getDefaultPricingDefinition());
     return resolvedPricingModel;

@@ -1,6 +1,6 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { NextFunction, Request, Response } from 'express';
-import PricingDefinition, { PricingEntity } from '../../../../types/Pricing';
+import PricingDefinition, { PricingContext, PricingEntity, ResolvedPricingDefinition, ResolvedPricingModel } from '../../../../types/Pricing';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AuthorizationService from './AuthorizationService';
@@ -9,17 +9,48 @@ import Constants from '../../../../utils/Constants';
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
 import { PricingDefinitionDataResult } from '../../../../types/DataResult';
+import PricingFactory from '../../../../integration/pricing/PricingFactory';
+import PricingHelper from '../../../../integration/pricing/PricingHelper';
 import PricingStorage from '../../../../storage/mongodb/PricingStorage';
 import PricingValidator from '../validator/PricingValidator';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
 import { TenantComponents } from '../../../../types/Tenant';
+import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 
 const MODULE_NAME = 'PricingService';
 
 export default class PricingService {
+
+  public static async handleResolvePricingModel(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
+      Action.RESOLVE, Entity.PRICING_DEFINITION, MODULE_NAME, 'handleResolvePricingModel');
+    // Filter
+    const filteredRequest = PricingValidator.getInstance().validatePricingModelResolve(req.query);
+    let pricingContext: PricingContext = null;
+    let pricingDefinitions: ResolvedPricingDefinition[] = [];
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.PRICING)) {
+      const pricingImpl = await PricingFactory.getPricingImpl(req.tenant);
+      if (pricingImpl) {
+        // Fetch the charging station data required for resolving the pricing context
+        // TODO: how to only read the required data? - require projected fields: ['id', 'companyID', 'siteID', 'siteAreaID', 'coordinates']
+        const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(req.tenant, req.user, filteredRequest.ChargingStationID, action);
+        // Resolve the pricing context
+        pricingContext = PricingHelper.buildUserPricingContext(req.tenant, filteredRequest.UserID, chargingStation, filteredRequest.ConnectorID, filteredRequest.StartDateTime);
+        const pricingModel: ResolvedPricingModel = await pricingImpl.resolvePricingContext(pricingContext);
+        pricingDefinitions = pricingModel.pricingDefinitions;
+      }
+    }
+    res.json({
+      pricingContext,
+      pricingDefinitions
+    });
+    next();
+  }
+
 
   public static async handleGetPricingDefinition(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active

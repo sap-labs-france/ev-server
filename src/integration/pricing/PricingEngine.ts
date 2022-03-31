@@ -16,19 +16,18 @@ const MODULE_NAME = 'PricingEngine';
 
 export default class PricingEngine {
 
-  public static async resolvePricingContext(pricingContext: PricingContext): Promise<ResolvedPricingModel> {
+  public static async resolvePricingContext(tenant: Tenant, pricingContext: PricingContext): Promise<ResolvedPricingModel> {
     // Merge the pricing definitions from the different contexts
     const pricingDefinitions: ResolvedPricingDefinition[] = [];
-    // pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction.userID));
-    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(pricingContext, PricingEntity.CHARGING_STATION, pricingContext.chargingStationID));
+    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, pricingContext, PricingEntity.CHARGING_STATION, pricingContext.chargingStationID));
     // pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, pricingContext, PricingEntity.SITE_AREA, transaction.siteAreaID));
-    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(pricingContext, PricingEntity.SITE, pricingContext.siteID));
+    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, pricingContext, PricingEntity.SITE, pricingContext.siteID));
     // pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, pricingContext, PricingEntity.COMPANY, transaction.companyID));
-    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(pricingContext, PricingEntity.TENANT, pricingContext.tenant.id));
+    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, pricingContext, PricingEntity.TENANT, tenant.id));
     if (!pricingContext.timezone) {
       await Logging.logWarning({
         ...LoggingHelper.getPricingContextProperties(pricingContext),
-        tenantID: pricingContext.tenant.id,
+        tenantID: tenant.id,
         module: MODULE_NAME,
         action: ServerAction.PRICING,
         method: 'resolvePricingContext',
@@ -46,7 +45,7 @@ export default class PricingEngine {
     };
     await Logging.logInfo({
       ...LoggingHelper.getPricingContextProperties(pricingContext),
-      tenantID: pricingContext.tenant.id,
+      tenantID: tenant.id,
       module: MODULE_NAME,
       action: ServerAction.PRICING,
       method: 'resolvePricingContext',
@@ -74,11 +73,11 @@ export default class PricingEngine {
     return pricedData.filter((pricingConsumptionData) => !!pricingConsumptionData);
   }
 
-  private static async getPricingDefinitions4Entity(pricingContext: PricingContext, entityType: PricingEntity, entityID: string): Promise<ResolvedPricingDefinition[]> {
+  private static async getPricingDefinitions4Entity(tenant: Tenant, pricingContext: PricingContext, entityType: PricingEntity, entityID: string): Promise<ResolvedPricingDefinition[]> {
     if (!entityID) {
       await Logging.logWarning({
         ...LoggingHelper.getPricingContextProperties(pricingContext),
-        tenantID: pricingContext.tenant.id,
+        tenantID: tenant.id,
         module: MODULE_NAME,
         action: ServerAction.PRICING,
         method: 'getPricingDefinitions4Entity',
@@ -86,7 +85,7 @@ export default class PricingEngine {
       });
       return [];
     }
-    let pricingDefinitions = await PricingEngine.fetchPricingDefinitions4Entity(pricingContext.tenant, entityType, entityID);
+    let pricingDefinitions = await PricingEngine.fetchPricingDefinitions4Entity(tenant, entityType, entityID);
     pricingDefinitions = pricingDefinitions || [];
     const actualPricingDefinitions = pricingDefinitions.filter((pricingDefinition) =>
       PricingEngine.checkEntityType(pricingDefinition, entityType)
@@ -97,7 +96,7 @@ export default class PricingEngine {
     );
     await Logging.logDebug({
       ...LoggingHelper.getPricingContextProperties(pricingContext),
-      tenantID: pricingContext.tenant.id,
+      tenantID: tenant.id,
       module: MODULE_NAME,
       action: ServerAction.PRICING,
       method: 'getPricingDefinitions4Entity',

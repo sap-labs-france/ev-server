@@ -6,7 +6,6 @@ import ChargingStation from '../../types/ChargingStation';
 import Decimal from 'decimal.js';
 import Tenant from '../../types/Tenant';
 import Transaction from '../../types/Transaction';
-import User from '../../types/User';
 import Utils from '../../utils/Utils';
 
 export default class PricingHelper {
@@ -16,7 +15,6 @@ export default class PricingHelper {
     const connectorType = Utils.getConnectorFromID(chargingStation, connectorId)?.type;
     const connectorPower = Utils.getConnectorFromID(chargingStation, connectorId)?.power;
     return {
-      tenant,
       userID: transaction.userID,
       companyID: transaction.companyID,
       siteID : transaction.siteID,
@@ -30,12 +28,11 @@ export default class PricingHelper {
     };
   }
 
-  public static buildUserPricingContext(tenant: Tenant, user: User, chargingStation: ChargingStation, connectorId: number, timestamp: Date): PricingContext {
+  public static buildUserPricingContext(tenant: Tenant, userID: string, chargingStation: ChargingStation, connectorId: number, timestamp = new Date()): PricingContext {
     const connectorType = Utils.getConnectorFromID(chargingStation, connectorId)?.type;
     const connectorPower = Utils.getConnectorFromID(chargingStation, connectorId)?.power;
     return {
-      tenant,
-      userID: user.id,
+      userID,
       companyID: chargingStation.companyID,
       siteID : chargingStation.siteID,
       siteAreaID: chargingStation.siteAreaID,
@@ -49,8 +46,7 @@ export default class PricingHelper {
   }
 
   public static checkContextConsistency(pricingContext: PricingContext): boolean {
-    if (pricingContext.tenant
-      && pricingContext.userID
+    if (pricingContext.userID
       && pricingContext.companyID
       && pricingContext.siteID
       && pricingContext.siteAreaID
