@@ -46,15 +46,16 @@ export default class PricingHelper {
   }
 
   public static checkContextConsistency(pricingContext: PricingContext): boolean {
-    if (pricingContext.userID
-      && pricingContext.companyID
+    if (pricingContext.companyID
       && pricingContext.siteID
       && pricingContext.siteAreaID
       && pricingContext.chargingStationID
       && !Utils.isNullOrUndefined(pricingContext.connectorId)
       && pricingContext.connectorType
       && !Utils.isNullOrUndefined(pricingContext.connectorPower)
-      && pricingContext.timestamp && pricingContext.timezone) {
+      && pricingContext.timestamp && pricingContext.timezone
+    // && pricingContext.userID - not yet used - should we have user groups instead
+    ) {
       return true;
     }
     return false;

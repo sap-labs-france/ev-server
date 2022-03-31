@@ -12,7 +12,7 @@
     "UserID": {
       "$ref": "common#/definitions/id"
     },
-    "DateTime": {
+    "StartDateTime": {
       "type": "string",
       "format": "date-time",
       "customType": "date",

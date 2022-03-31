@@ -41,7 +41,7 @@ export default class PricingService {
         // Resolve the pricing context
         pricingContext = PricingHelper.buildUserPricingContext(req.tenant, filteredRequest.UserID, chargingStation, filteredRequest.ConnectorID, filteredRequest.StartDateTime);
         const pricingModel: ResolvedPricingModel = await pricingImpl.resolvePricingContext(pricingContext);
-        pricingDefinitions = pricingModel.pricingDefinitions;
+        pricingDefinitions = pricingModel?.pricingDefinitions;
       }
     }
     res.json({
