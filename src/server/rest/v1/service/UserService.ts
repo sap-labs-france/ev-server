@@ -86,7 +86,7 @@ export default class UserService {
       // TODO - The ChargingStationID is optional but only for backward compatibility reasons - make it mandatory as soon as possible
       const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, filteredRequest.ChargingStationID,
         { withSiteArea: true },
-        ['id', 'companyID', 'siteID', 'siteAreaID', 'coordinates', 'siteArea.accessControl']);
+        ['id', 'siteArea.id', 'siteArea.accessControl']);
       if (!chargingStation.siteArea.accessControl) {
         // The access control is switched off - so billing checks are useless
         withBillingChecks = false;

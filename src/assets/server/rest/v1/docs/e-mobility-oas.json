@@ -7254,7 +7254,7 @@
             "bearerAuth": []
           }
         ],
-        "description": "Get Pricing Definitions",
+        "description": "Get pricing definitions",
         "parameters": [
           {
             "$ref": "#/components/parameters/EntityID"
@@ -7280,7 +7280,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Return the pricing definitions",
+            "description": "Return pricing definitions",
             "content": {
               "application/json": {
                 "schema": {
@@ -7320,7 +7320,7 @@
             "bearerAuth": []
           }
         ],
-        "description": "Get Pricing Definition by id",
+        "description": "Get pricing definition by id",
         "parameters": [
           {
             "$ref": "#/components/parameters/pricingDefinitionID"
@@ -7331,7 +7331,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Returns a pricing definition",
+            "description": "Return pricing definition",
             "content": {
               "application/json": {
                 "schema": {
@@ -7362,7 +7362,7 @@
             "bearerAuth": []
           }
         ],
-        "description": "Resolves the pricing context and returns tariffs",
+        "description": "Resolve pricing context",
         "parameters": [
           {
             "$ref": "#/components/parameters/ChargingStationID"
@@ -7382,7 +7382,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Returns the tariffs matching the pricing context",
+            "description": "Return tariffs matching a pricing context",
             "content": {
               "application/json": {
                 "schema": {
