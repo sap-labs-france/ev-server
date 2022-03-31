@@ -58,8 +58,8 @@ export default class AuthorizationService {
     // Add Meta Data
     sites.metadata = authorizationFilter.metadata;
     // Add Authorizations
-    sites.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE, Action.CREATE,
-      authorizationFilter);
+    sites.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE, Action.CREATE, authorizationFilter);
+    sites.canListCompanies = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.COMPANY, Action.LIST, authorizationFilter);
     for (const site of sites.result) {
       await AuthorizationService.addSiteAuthorizations(tenant, userToken, site, authorizationFilter);
     }
@@ -544,7 +544,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetChargingStationAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Partial<HttpChargingStationRequest>, entityData?: EntityData): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpChargingStationRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),

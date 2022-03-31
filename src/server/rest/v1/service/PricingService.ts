@@ -111,7 +111,7 @@ export default class PricingService {
     newPricingDefinition.id = await PricingStorage.savePricingDefinition(req.tenant, newPricingDefinition);
     // Log
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleCreatePricingDefinition',
       message: `Pricing model '${newPricingDefinition.id}' has been created successfully`,
       action: action,
@@ -153,7 +153,7 @@ export default class PricingService {
     await PricingStorage.savePricingDefinition(req.tenant, pricingDefinition);
     // Log
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleUpdatePricingDefinition',
       message: `Pricing model '${pricingDefinition.id}' has been updated successfully`,
       action: action,
@@ -182,7 +182,7 @@ export default class PricingService {
     await PricingStorage.deletePricingDefinition(req.tenant, pricingDefinition.id);
     // Log
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleDeletePricingDefinition',
       message: `Pricing model '${pricingDefinitionID}' has been deleted successfully`,
       action: action,
@@ -209,7 +209,7 @@ export default class PricingService {
         siteID = siteArea.siteID;
         break;
       case PricingEntity.CHARGING_STATION:
-        chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(req.tenant, req.user, entityID, action);
+        chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(req.tenant, req.user, entityID, Action.READ, action);
         siteID = chargingStation.siteID;
         break;
       default:
@@ -230,7 +230,7 @@ export default class PricingService {
         canCreate = false;
         if (!(error instanceof AppAuthError)) {
           await Logging.logError({
-            tenantID: req.user.tenantID,
+            tenantID: req.tenant.id,
             user: req.user, module: MODULE_NAME, method: 'alterCanCreate',
             message: 'Unexpected error while checking site access permissions',
             action: action,

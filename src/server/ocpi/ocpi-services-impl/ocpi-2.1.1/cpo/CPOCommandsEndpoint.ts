@@ -274,7 +274,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     ) {
       return false;
     }
-    return OCPIUtilsService.validateToken(startSession.token);
+    return OCPIUtilsService.validateCpoToken(startSession.token);
   }
 
   private validateStopSession(stopSession: OCPIStopSession): boolean {

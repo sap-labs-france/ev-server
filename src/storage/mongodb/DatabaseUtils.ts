@@ -27,7 +27,12 @@ export default class DatabaseUtils {
   }
 
   public static isObjectID(id: string): boolean {
-    return ObjectId.isValid(id);
+    if (ObjectId.isValid(id)) {
+      if (new ObjectId(id).toString() === id) {
+        return true;
+      }
+    }
+    return false;
   }
 
   public static buildAggregateOptions(): AggregateOptions {
@@ -46,8 +51,8 @@ export default class DatabaseUtils {
   }
 
   public static getCollectionName(tenantID: string, collectionNameSuffix: string): string {
-    let prefix = Constants.DEFAULT_TENANT;
-    if (!FIXED_COLLECTIONS.includes(collectionNameSuffix) && ObjectId.isValid(tenantID)) {
+    let prefix = Constants.DEFAULT_TENANT_ID;
+    if (!FIXED_COLLECTIONS.includes(collectionNameSuffix) && DatabaseUtils.isObjectID(tenantID)) {
       prefix = tenantID;
     }
     return `${prefix}.${collectionNameSuffix}`;
@@ -446,7 +451,7 @@ export default class DatabaseUtils {
     if (!obj || !obj[prop]) {
       return null;
     }
-    if (ObjectId.isValid(obj[prop])) {
+    if (DatabaseUtils.isObjectID(obj[prop])) {
       return obj[prop] as ObjectId;
     }
     if (obj[prop].id) {

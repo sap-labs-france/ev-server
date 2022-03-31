@@ -7,7 +7,9 @@ import Tenant from '../../../types/Tenant';
 
 export default abstract class AbstractEndpoint {
   // Create OCPI Service
-  public constructor(protected readonly ocpiService: AbstractOCPIService, protected readonly identifier: string = 'default') {
+  public constructor(
+    protected readonly ocpiService: AbstractOCPIService,
+    protected readonly identifier: string = 'default') {
   }
 
   // Get Endpoint Identifier

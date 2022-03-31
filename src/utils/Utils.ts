@@ -1284,7 +1284,7 @@ export default class Utils {
   }
 
   public static async generateQrCode(data: string) :Promise<string> {
-    return await QRCode.toDataURL(data);
+    return QRCode.toDataURL(data);
   }
 
   public static createDefaultSettingContent(componentName: string, activeComponentContent: TenantComponentContent, currentSettingContent: SettingDBContent): SettingDBContent {

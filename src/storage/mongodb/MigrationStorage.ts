@@ -8,20 +8,20 @@ import global from '../../types/GlobalType';
 const MODULE_NAME = 'MigrationStorage';
 
 export default class MigrationStorage {
-  static async getMigrations(): Promise<Migration[]> {
+  public static async getMigrations(): Promise<Migration[]> {
     const startTime = Logging.traceDatabaseRequestStart();
     const aggregation = [];
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Read DB
-    const migrationsMDB = await global.database.getCollection<Migration>(Constants.DEFAULT_TENANT, 'migrations')
-      .aggregate<Migration>(aggregation)
-      .toArray();
+    const migrationsMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'migrations')
+      .aggregate<any>(aggregation)
+      .toArray() as Migration[];
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'getMigrations', startTime, aggregation, migrationsMDB);
     return migrationsMDB;
   }
 
-  static async saveMigration(migrationToSave: Migration): Promise<void> {
+  public static async saveMigration(migrationToSave: Migration): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     // Transfer
     const migrationMDB = {
@@ -33,7 +33,7 @@ export default class MigrationStorage {
       durationSecs: Utils.convertToFloat(migrationToSave.durationSecs)
     };
     // Create
-    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'migrations')
+    await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'migrations')
       .insertOne(migrationMDB);
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'saveMigration', startTime, migrationMDB);
   }

@@ -86,21 +86,17 @@ export default class CarService {
     const filteredRequest = CarValidator.getInstance().validateCarCatalogGetReq(req.query);
     // Get the car Image
     const carCatalog = await CarStorage.getCarCatalogImage(filteredRequest.ID);
-    if (carCatalog?.image) {
-      // Remove encoding header
-      let header = 'image';
-      let encoding: BufferEncoding = 'base64';
-      if (carCatalog?.image.startsWith('data:image/')) {
-        header = carCatalog.image.substring(5, carCatalog.image.indexOf(';'));
-        encoding = carCatalog.image.substring(carCatalog.image.indexOf(';') + 1, carCatalog.image.indexOf(',')) as BufferEncoding;
-        carCatalog.image = carCatalog.image.substring(carCatalog.image.indexOf(',') + 1);
-      }
-      // Revert to binary
-      res.setHeader('content-type', header);
-      res.send(carCatalog.image ? Buffer.from(carCatalog.image, encoding) : null);
-    } else {
-      res.send(null);
+    let image = !Utils.isNullOrEmptyString(carCatalog?.image) ? carCatalog.image : Constants.NO_IMAGE;
+    let header = 'image';
+    let encoding: BufferEncoding = 'base64';
+    // Remove encoding header
+    if (image.startsWith('data:image/')) {
+      header = image.substring(5, image.indexOf(';'));
+      encoding = image.substring(image.indexOf(';') + 1, image.indexOf(',')) as BufferEncoding;
+      image = image.substring(image.indexOf(',') + 1);
     }
+    res.setHeader('content-type', header);
+    res.send(Buffer.from(image, encoding));
     next();
   }
 
@@ -150,7 +146,7 @@ export default class CarService {
       });
     }
     // Get the lock
-    const syncCarCatalogsLock = await LockingHelper.acquireSyncCarCatalogsLock(Constants.DEFAULT_TENANT);
+    const syncCarCatalogsLock = await LockingHelper.acquireSyncCarCatalogsLock(Constants.DEFAULT_TENANT_ID);
     if (!syncCarCatalogsLock) {
       throw new AppError({
         action: action,
@@ -261,7 +257,7 @@ export default class CarService {
     // Save
     newCar.id = await CarStorage.saveCar(req.tenant, newCar);
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       ...LoggingHelper.getCarProperties(newCar),
       user: req.user, module: MODULE_NAME, method: 'handleCreateCar',
       message: `Car with VIN '${newCar.vin}' and plate ID '${newCar.licensePlate}' has been created successfully`,
@@ -343,7 +339,7 @@ export default class CarService {
       await CarService.setDefaultCarForUser(req.tenant, setDefaultCarToOldUserID);
     }
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       ...LoggingHelper.getCarProperties(car),
       user: req.user, module: MODULE_NAME, method: 'handleUpdateCar',
       message: `Car '${car.id}' has been updated successfully`,
@@ -425,7 +421,7 @@ export default class CarService {
     }
     await Logging.logInfo({
       ...LoggingHelper.getCarProperties(car),
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteCar',
       message: `Car '${Utils.buildCarName(car)}' has been deleted successfully`,
       action: action,

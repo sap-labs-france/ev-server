@@ -41,23 +41,23 @@ export default class UserApi extends CrudApi {
   }
 
   public async exportUsers(params) {
-    return await super.read(params, this.buildRestEndpointUrl(ServerRoute.REST_USERS_EXPORT));
+    return super.read(params, this.buildRestEndpointUrl(ServerRoute.REST_USERS_EXPORT));
   }
 
   public async updateMobileToken(userID: string, mobileToken: string, mobileOS: string) {
     const url = this.buildRestEndpointUrl(ServerRoute.REST_USER_UPDATE_MOBILE_TOKEN, { id: userID });
-    return await super.update({
+    return super.update({
       mobileToken, mobileOS
     }, url);
   }
 
   public async getImage(userID: string) {
     const url = this.buildRestEndpointUrl(ServerRoute.REST_USER_IMAGE, { id: userID });
-    return await super.read({}, url);
+    return super.read({}, url);
   }
 
   public async getDefaultTagCar(userID: string) {
     const url = this.buildRestEndpointUrl(ServerRoute.REST_USER_DEFAULT_TAG_CAR, { });
-    return await super.read({ UserID: userID }, url);
+    return super.read({ UserID: userID }, url);
   }
 }

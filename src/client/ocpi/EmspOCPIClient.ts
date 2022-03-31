@@ -1,5 +1,3 @@
-import { OCPIToken, OCPITokenWhitelist } from '../../types/ocpi/OCPIToken';
-
 import BackendError from '../../exception/BackendError';
 import ChargingStation from '../../types/ChargingStation';
 import Constants from '../../utils/Constants';
@@ -18,6 +16,7 @@ import { OCPIRole } from '../../types/ocpi/OCPIRole';
 import { OCPISession } from '../../types/ocpi/OCPISession';
 import { OCPIStartSession } from '../../types/ocpi/OCPIStartSession';
 import { OCPIStopSession } from '../../types/ocpi/OCPIStopSession';
+import { OCPIToken } from '../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../server/ocpi/OCPIUtils';
 import OCPIUtilsService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIUtilsService';
 import { OcpiSetting } from '../../types/Setting';
@@ -62,7 +61,7 @@ export default class EmspOCPIClient extends OCPIClient {
     let tokens: DataResult<OCPIToken>;
     do {
       // Get all tokens
-      tokens = await OCPIUtilsService.getTokens(
+      tokens = await OCPIUtilsService.getEmspTokens(
         this.tenant, Constants.DB_RECORD_COUNT_DEFAULT, currentSkip);
       if (!Utils.isEmptyArray(tokens.result)) {
         await Promise.map(tokens.result, async (token: OCPIToken) => {
@@ -225,7 +224,7 @@ export default class EmspOCPIClient extends OCPIClient {
       if (!Utils.isEmptyArray(sessions)) {
         await Promise.map(sessions, async (session: OCPISession) => {
           try {
-            await OCPIUtilsService.updateTransaction(this.tenant, session, ServerAction.OCPI_EMSP_PULL_SESSIONS);
+            await OCPIUtilsService.processEmspTransactionFromSession(this.tenant, session, ServerAction.OCPI_EMSP_PULL_SESSIONS);
             result.success++;
           } catch (error) {
             result.failure++;
@@ -267,7 +266,7 @@ export default class EmspOCPIClient extends OCPIClient {
     const startTime = new Date().getTime();
     // Get cdrs endpoint url
     let cdrsUrl = this.getEndpointUrl('cdrs', ServerAction.OCPI_EMSP_PULL_CDRS);
-    const momentFrom = moment().utc().subtract(7, 'days').startOf('day');
+    const momentFrom = moment().utc().subtract(2, 'days').startOf('day');
     cdrsUrl = `${cdrsUrl}?date_from=${momentFrom.format()}&limit=10`;
     let nextResult = true;
     do {
@@ -283,7 +282,7 @@ export default class EmspOCPIClient extends OCPIClient {
       if (!Utils.isEmptyArray(cdrs)) {
         await Promise.map(cdrs, async (cdr: OCPICdr) => {
           try {
-            await OCPIUtilsService.processCdr(this.tenant, cdr, ServerAction.OCPI_EMSP_PULL_CDRS);
+            await OCPIUtilsService.processEmspCdr(this.tenant, cdr, ServerAction.OCPI_EMSP_PULL_CDRS);
             result.success++;
           } catch (error) {
             result.failure++;

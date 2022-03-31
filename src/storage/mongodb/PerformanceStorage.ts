@@ -47,7 +47,7 @@ export default class PerformanceStorage {
       filters.timestamp.$lte = Utils.convertToDate(params.deleteUpToDate);
     }
     // Delete
-    const result = await global.database.getCollection<PerformanceRecord>(Constants.DEFAULT_TENANT, 'performances')
+    const result = await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'performances')
       .deleteMany(filters);
     // Return the result
     return { acknowledged: result.acknowledged, deletedCount: result.deletedCount };

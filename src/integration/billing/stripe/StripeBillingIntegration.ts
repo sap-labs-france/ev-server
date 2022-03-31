@@ -370,8 +370,12 @@ export default class StripeBillingIntegration extends BillingIntegration {
 
   public async downloadInvoiceDocument(invoice: BillingInvoice): Promise<Buffer> {
     if (invoice.downloadUrl) {
+      await this.checkConnection();
+      // Get fresh data because persisted url expires after 30 days
+      const stripeInvoice = await this.getStripeInvoice(invoice.invoiceID);
+      const downloadUrl = stripeInvoice.invoice_pdf;
       // Get document
-      const response = await this.axiosInstance.get(invoice.downloadUrl, {
+      const response = await this.axiosInstance.get(downloadUrl, {
         responseType: 'arraybuffer'
       });
       // Convert
@@ -1370,11 +1374,11 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   public async createUser(user: User): Promise<BillingUser> {
-    return await this.createBillingUser(user, false);
+    return this.createBillingUser(user, false);
   }
 
   public async repairUser(user: User): Promise<BillingUser> {
-    return await this.createBillingUser(user, true);
+    return this.createBillingUser(user, true);
   }
 
   private async createBillingUser(user: User, forceUserCreation: boolean): Promise<BillingUser> {

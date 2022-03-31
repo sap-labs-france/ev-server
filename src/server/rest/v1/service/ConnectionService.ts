@@ -105,7 +105,7 @@ export default class ConnectionService {
       // Create
       const connection: Connection = await integrationConnector.createConnection(filteredRequest.userId, filteredRequest.data);
       await Logging.logInfo({
-        tenantID: req.user.tenantID, user: req.user,
+        tenantID: req.tenant.id, user: req.user,
         module: MODULE_NAME, method: 'handleCreateConnection',
         message: `Connection to '${connection.connectorId}' has been created successfully`,
         action: action,
@@ -119,7 +119,7 @@ export default class ConnectionService {
         message: `No integration found for connector '${filteredRequest.connectorId}' `
       });
     }
-    res.status(StatusCodes.OK).json(Object.assign({ id: req.user.tenantID }, Constants.REST_RESPONSE_SUCCESS));
+    res.status(StatusCodes.OK).json(Object.assign({ id: req.tenant.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 
@@ -142,7 +142,7 @@ export default class ConnectionService {
     await ConnectionStorage.deleteConnectionById(req.tenant, connection.id);
     // Log
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user,
       actionOnUser: connection.userId,
       module: MODULE_NAME, method: 'handleDeleteConnection',
