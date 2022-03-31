@@ -16011,10 +16011,52 @@
         }
       },
       "PricingStaticRestrictions": {
-        "type": "object"
+        "type": "object",
+        "properties": {
+          "validFrom": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "validTo": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "connectorType": {
+            "type": "string"
+          },
+          "connectorPowerkW": {
+            "type": "number"
+          }
+        }
       },
       "PricingRestrictions": {
-        "type": "object"
+        "type": "object",
+        "properties": {
+          "daysOfWeek": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "timeFrom": {
+            "type": "string"
+          },
+          "timeTo": {
+            "type": "string"
+          },
+          "minEnergykWh": {
+            "type": "number"
+          },
+          "maxEnergykWh": {
+            "type": "number"
+          },
+          "minDurationSeconds": {
+            "type": "number"
+          },
+          "maxDurationSeconds": {
+            "type": "number"
+          }
+        }
       },
       "BillingPaymentMethod": {
         "type": "object",
