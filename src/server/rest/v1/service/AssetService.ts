@@ -169,7 +169,7 @@ export default class AssetService {
     } catch (error) {
       // KO
       await Logging.logError({
-        tenantID: req.user.tenantID,
+        tenantID: req.tenant.id,
         user: req.user,
         module: MODULE_NAME, method: 'handleCheckAssetConnection',
         message: 'Asset connection failed',
@@ -294,7 +294,7 @@ export default class AssetService {
     // Log
     await Logging.logInfo({
       ...LoggingHelper.getAssetProperties(asset),
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user,
       module: MODULE_NAME, method: 'handleDeleteAsset',
       message: `Asset '${asset.name}' has been deleted successfully`,
@@ -425,7 +425,7 @@ export default class AssetService {
     // Log
     await Logging.logInfo({
       ...LoggingHelper.getAssetProperties(newAsset),
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user,
       module: MODULE_NAME, method: 'handleCreateAsset',
       message: `Asset '${newAsset.id}' has been created successfully`,
@@ -473,7 +473,7 @@ export default class AssetService {
     // Log
     await Logging.logInfo({
       ...LoggingHelper.getAssetProperties(asset),
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user,
       module: MODULE_NAME, method: 'handleUpdateAsset',
       message: `Asset '${asset.name}' has been updated successfully`,

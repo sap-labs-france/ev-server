@@ -18,7 +18,7 @@ export default class SimplePricingMigrationTask extends TenantMigrationTask {
     if (pricingSetting?.content?.type === PricingSettingsType.SIMPLE) {
       await this.createDefaultPricingDefinition(tenant, pricingSetting.content.simple);
       await Logging.logDebug({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: Constants.DEFAULT_TENANT_ID,
         module: MODULE_NAME, method: 'migrateTenant',
         action: ServerAction.MIGRATION,
         message: `Simple pricing definition has been migrated for tenant ${Utils.buildTenantName(tenant)}`

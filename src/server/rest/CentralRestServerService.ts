@@ -252,7 +252,7 @@ export default class CentralRestServerService {
       // Parse the action
       const action = req.params.action as ServerAction;
       await Logging.logWarning({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: Constants.DEFAULT_TENANT_ID,
         message: `REST Endpoint 'restServiceUtil' should not be used for action '${action}'`,
         action: ServerAction.DEPRECATED_REST_ENDPOINT,
         module: 'CentralRestServerService', method: 'restServiceUtil',

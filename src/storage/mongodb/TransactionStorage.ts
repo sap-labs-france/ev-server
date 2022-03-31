@@ -748,7 +748,7 @@ export default class TransactionStorage {
         foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
       });
       DatabaseUtils.pushCarCatalogLookupInAggregation({
-        tenantID: Constants.DEFAULT_TENANT, aggregation: aggregation, asField: 'carCatalog', localField: 'carCatalogID',
+        tenantID: Constants.DEFAULT_TENANT_ID, aggregation: aggregation, asField: 'carCatalog', localField: 'carCatalogID',
         foreignField: '_id', oneToOneCardinality: true
       });
     }
@@ -992,7 +992,7 @@ export default class TransactionStorage {
     });
     // Car Catalog
     DatabaseUtils.pushCarCatalogLookupInAggregation({
-      tenantID: Constants.DEFAULT_TENANT, aggregation: aggregation, asField: 'carCatalog', localField: 'carCatalogID',
+      tenantID: Constants.DEFAULT_TENANT_ID, aggregation: aggregation, asField: 'carCatalog', localField: 'carCatalogID',
       foreignField: '_id', oneToOneCardinality: true
     });
     // Used only in the error type : missing_user

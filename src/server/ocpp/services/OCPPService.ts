@@ -699,9 +699,9 @@ export default class OCPPService {
       // Save Status Notification
       await OCPPStorage.saveStatusNotification(tenant, statusNotification);
       // OCPI
-      await OCPIFacade.updateConnectorStatus(tenant, chargingStation, connector);
+      void OCPIFacade.updateConnectorStatus(tenant, chargingStation, connector);
       // OICP
-      await OICPFacade.updateConnectorStatus(tenant, chargingStation, connector);
+      void OICPFacade.updateConnectorStatus(tenant, chargingStation, connector);
       // Sort connectors
       if (!Utils.isEmptyArray(chargingStation?.connectors)) {
         chargingStation.connectors.sort((connector1: Connector, connector2: Connector) =>

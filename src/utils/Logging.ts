@@ -73,7 +73,7 @@ export default class Logging {
         });
         if (Utils.isDevelopmentEnv()) {
           Logging.logConsoleWarning('====================================');
-          Logging.logConsoleWarning(`Tenant ID '${tenant.id ? tenant.id : Constants.DEFAULT_TENANT}'`);
+          Logging.logConsoleWarning(`Tenant ID '${tenant.id ? tenant.id : Constants.DEFAULT_TENANT_ID}'`);
           Logging.logConsoleWarning(error.stack);
           Logging.logConsoleWarning(message);
           Logging.logConsoleWarning('====================================');
@@ -90,7 +90,7 @@ export default class Logging {
         });
         if (Utils.isDevelopmentEnv()) {
           Logging.logConsoleWarning('====================================');
-          Logging.logConsoleWarning(`Tenant ID '${tenant.id ? tenant.id : Constants.DEFAULT_TENANT}'`);
+          Logging.logConsoleWarning(`Tenant ID '${tenant.id ? tenant.id : Constants.DEFAULT_TENANT_ID}'`);
           Logging.logConsoleWarning(error.stack);
           Logging.logConsoleWarning(message);
           Logging.logConsoleWarning('====================================');
@@ -135,7 +135,7 @@ export default class Logging {
         });
         if (Utils.isDevelopmentEnv()) {
           Logging.logConsoleWarning('====================================');
-          Logging.logConsoleWarning(`Tenant ID '${tenant.id ? tenant.id : Constants.DEFAULT_TENANT}'`);
+          Logging.logConsoleWarning(`Tenant ID '${tenant.id ? tenant.id : Constants.DEFAULT_TENANT_ID}'`);
           Logging.logConsoleWarning(error.stack);
           Logging.logConsoleWarning(message);
           Logging.logConsoleWarning('====================================');
@@ -315,7 +315,7 @@ export default class Logging {
           userID = user.id;
         }
         // Clear Default Tenant
-        if (tenantID === Constants.DEFAULT_TENANT) {
+        if (tenantID === Constants.DEFAULT_TENANT_ID) {
           tenantID = null;
         }
         // Keep Tenant in request
@@ -394,7 +394,7 @@ export default class Logging {
           });
           if (Utils.isDevelopmentEnv()) {
             Logging.logConsoleWarning('====================================');
-            Logging.logConsoleWarning(`Tenant ID '${tenantID ? tenantID : Constants.DEFAULT_TENANT}'`);
+            Logging.logConsoleWarning(`Tenant ID '${tenantID ? tenantID : Constants.DEFAULT_TENANT_ID}'`);
             Logging.logConsoleWarning(error.stack);
             Logging.logConsoleWarning(message);
             Logging.logConsoleWarning('====================================');
@@ -411,7 +411,7 @@ export default class Logging {
           });
           if (Utils.isDevelopmentEnv()) {
             Logging.logConsoleWarning('====================================');
-            Logging.logConsoleWarning(`Tenant ID '${tenantID ? tenantID : Constants.DEFAULT_TENANT}'`);
+            Logging.logConsoleWarning(`Tenant ID '${tenantID ? tenantID : Constants.DEFAULT_TENANT_ID}'`);
             Logging.logConsoleWarning(error.stack);
             Logging.logConsoleWarning(message);
             Logging.logConsoleWarning('====================================');
@@ -512,7 +512,7 @@ export default class Logging {
         });
         if (Utils.isDevelopmentEnv()) {
           Logging.logConsoleWarning('====================================');
-          Logging.logConsoleWarning(`Tenant ID '${tenant.id ? tenant.id : Constants.DEFAULT_TENANT}'`);
+          Logging.logConsoleWarning(`Tenant ID '${tenant.id ? tenant.id : Constants.DEFAULT_TENANT_ID}'`);
           Logging.logConsoleWarning(error.stack);
           Logging.logConsoleWarning(message);
           Logging.logConsoleWarning('====================================');
@@ -529,7 +529,7 @@ export default class Logging {
         });
         if (Utils.isDevelopmentEnv()) {
           Logging.logConsoleWarning('====================================');
-          Logging.logConsoleWarning(`Tenant ID '${tenant.id ? tenant.id : Constants.DEFAULT_TENANT}'`);
+          Logging.logConsoleWarning(`Tenant ID '${tenant.id ? tenant.id : Constants.DEFAULT_TENANT_ID}'`);
           Logging.logConsoleWarning(error.stack);
           Logging.logConsoleWarning(message);
           Logging.logConsoleWarning('====================================');
@@ -643,7 +643,7 @@ export default class Logging {
 
   // Used to log exception in catch(...) only
   public static async logActionExceptionMessageAndSendResponse(action: ServerAction, exception: Error,
-      req: Request, res: Response, next: NextFunction, tenantID = Constants.DEFAULT_TENANT): Promise<void> {
+      req: Request, res: Response, next: NextFunction, tenantID = Constants.DEFAULT_TENANT_ID): Promise<void> {
     // Clear password
     if (action === ServerAction.LOGIN && req.body.password) {
       req.body.password = '####';
@@ -731,7 +731,7 @@ export default class Logging {
         });
         if (Utils.isDevelopmentEnv()) {
           Logging.logConsoleWarning('====================================');
-          Logging.logConsoleWarning(`Tenant ID '${tenant?.id ? tenant.id : Constants.DEFAULT_TENANT}'`);
+          Logging.logConsoleWarning(`Tenant ID '${tenant?.id ? tenant.id : Constants.DEFAULT_TENANT_ID}'`);
           Logging.logConsoleWarning(error.stack);
           Logging.logConsoleWarning(message);
           Logging.logConsoleWarning('====================================');
@@ -926,7 +926,7 @@ export default class Logging {
       log.message = log.message[0].toUpperCase() + log.message.substring(1);
     }
     if (!log.tenantID || log.tenantID === '') {
-      log.tenantID = Constants.DEFAULT_TENANT;
+      log.tenantID = Constants.DEFAULT_TENANT_ID;
     }
     // Save
     return LoggingStorage.saveLog(log.tenantID, log);
@@ -997,7 +997,7 @@ export default class Logging {
       return message;
     }
     await Logging.logError({
-      tenantID: Constants.DEFAULT_TENANT,
+      tenantID: Constants.DEFAULT_TENANT_ID,
       module: MODULE_NAME,
       method: 'anonymizeSensitiveData',
       action: ServerAction.LOGGING,
@@ -1009,7 +1009,7 @@ export default class Logging {
 
   private static buildLogError(action: ServerAction, module: string,
       method: string, tenantID: string, user: UserToken | User | string, error: any): Log {
-    const tenant = tenantID ? tenantID : Constants.DEFAULT_TENANT;
+    const tenant = tenantID ? tenantID : Constants.DEFAULT_TENANT_ID;
     if (error.params) {
       return {
         user: user,

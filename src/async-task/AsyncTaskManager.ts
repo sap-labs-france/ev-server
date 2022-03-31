@@ -54,7 +54,7 @@ export default class AsyncTaskManager {
 
   public static async handleAsyncTasks(): Promise<void> {
     await Logging.logDebug({
-      tenantID: Constants.DEFAULT_TENANT,
+      tenantID: Constants.DEFAULT_TENANT_ID,
       action: ServerAction.ASYNC_TASK,
       module: MODULE_NAME, method: 'handleAsyncTasks',
       message: 'Checking asynchronous task to process...'
@@ -75,7 +75,7 @@ export default class AsyncTaskManager {
     // Process them
     if (!Utils.isEmptyArray(asyncTasks.result)) {
       await Logging.logInfo({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.ASYNC_TASK,
         module: MODULE_NAME, method: 'handleAsyncTasks',
         message: `${asyncTasks.result.length} asynchronous task(s) are going to be processed...`
@@ -86,7 +86,7 @@ export default class AsyncTaskManager {
           const abstractAsyncTask = await AsyncTaskManager.createTask(asyncTask);
           if (abstractAsyncTask) {
             // Get the lock
-            const asyncTaskLock = await LockingHelper.acquireAsyncTaskLock(Constants.DEFAULT_TENANT, asyncTask.id);
+            const asyncTaskLock = await LockingHelper.acquireAsyncTaskLock(Constants.DEFAULT_TENANT_ID, asyncTask.id);
             if (asyncTaskLock) {
               const startAsyncTaskTime = new Date().getTime();
               try {
@@ -98,7 +98,7 @@ export default class AsyncTaskManager {
                 await AsyncTaskStorage.saveAsyncTask(asyncTask);
                 // Log
                 await Logging.logInfo({
-                  tenantID: Constants.DEFAULT_TENANT,
+                  tenantID: Constants.DEFAULT_TENANT_ID,
                   action: ServerAction.ASYNC_TASK,
                   module: MODULE_NAME, method: 'handleAsyncTasks',
                   message: `The Task '${asyncTask.name}~${abstractAsyncTask.getCorrelationID()}' is running...`
@@ -115,7 +115,7 @@ export default class AsyncTaskManager {
                 processedTask.inSuccess++;
                 // Log
                 await Logging.logInfo({
-                  tenantID: Constants.DEFAULT_TENANT,
+                  tenantID: Constants.DEFAULT_TENANT_ID,
                   action: ServerAction.ASYNC_TASK,
                   module: MODULE_NAME, method: 'handleAsyncTasks',
                   message: `The Task '${asyncTask.name}~${abstractAsyncTask.getCorrelationID()}' has been processed in ${asyncTaskTotalDurationSecs} secs`
@@ -130,7 +130,7 @@ export default class AsyncTaskManager {
                 await AsyncTaskStorage.saveAsyncTask(asyncTask);
                 // Log error
                 await Logging.logError({
-                  tenantID: Constants.DEFAULT_TENANT,
+                  tenantID: Constants.DEFAULT_TENANT_ID,
                   module: MODULE_NAME, method: 'handleAsyncTasks',
                   action: ServerAction.ASYNC_TASK,
                   message: `Error while running the Task '${asyncTask.name}~${abstractAsyncTask.getCorrelationID()}': ${error.message as string}`,
@@ -146,7 +146,7 @@ export default class AsyncTaskManager {
         { concurrency: nbrTasksInParallel });
       // Log result
       const totalDurationSecs = Utils.truncTo((new Date().getTime() - startTime) / 1000, 2);
-      void Logging.logActionsResponse(Constants.DEFAULT_TENANT, ServerAction.ASYNC_TASK,
+      void Logging.logActionsResponse(Constants.DEFAULT_TENANT_ID, ServerAction.ASYNC_TASK,
         MODULE_NAME, 'handleAsyncTasks', processedTask,
         `{{inSuccess}} asynchronous task(s) were successfully processed in ${totalDurationSecs} secs`,
         `{{inError}} asynchronous task(s) failed to be processed in ${totalDurationSecs} secs`,
@@ -155,7 +155,7 @@ export default class AsyncTaskManager {
       );
     } else {
       await Logging.logInfo({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.ASYNC_TASK,
         module: MODULE_NAME, method: 'handleAsyncTasks',
         message: 'No asynchronous task to process'
@@ -194,7 +194,7 @@ export default class AsyncTaskManager {
         return new OCPIPushEVSEStatusesAsyncTask(asyncTask, correlationID);
       default:
         await Logging.logError({
-          tenantID: Constants.DEFAULT_TENANT,
+          tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.ASYNC_TASK,
           module: MODULE_NAME, method: 'handleAsyncTasks',
           message: `The asynchronous task '${asyncTask.name as string}' is unknown`

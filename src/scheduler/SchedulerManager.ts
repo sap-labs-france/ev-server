@@ -43,7 +43,7 @@ export default class SchedulerManager {
     SchedulerManager.schedulerConfig = schedulerConfig;
     // Log
     await Logging.logInfo({
-      tenantID: Constants.DEFAULT_TENANT,
+      tenantID: Constants.DEFAULT_TENANT_ID,
       action: ServerAction.SCHEDULER,
       module: MODULE_NAME, method: 'init',
       message: 'The Scheduler is active'
@@ -53,7 +53,7 @@ export default class SchedulerManager {
       // Active?
       if (!task.active) {
         await Logging.logWarning({
-          tenantID: Constants.DEFAULT_TENANT,
+          tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.SCHEDULER,
           module: MODULE_NAME, method: 'init',
           message: `The task '${task.name}' is inactive`
@@ -65,7 +65,7 @@ export default class SchedulerManager {
         // Register task to cron engine
         cron.schedule(task.periodicity, () => SchedulerManager.runTask(schedulerTask, task));
         await Logging.logInfo({
-          tenantID: Constants.DEFAULT_TENANT,
+          tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.SCHEDULER,
           module: MODULE_NAME, method: 'init',
           message: `The task '${task.name}' has been scheduled with periodicity ''${task.periodicity}'`
@@ -144,7 +144,7 @@ export default class SchedulerManager {
         return new CloseTransactionsInProgressTask();
       default:
         await Logging.logError({
-          tenantID: Constants.DEFAULT_TENANT,
+          tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.SCHEDULER,
           module: MODULE_NAME, method: 'createTask',
           message: `The task '${name}' is unknown`
