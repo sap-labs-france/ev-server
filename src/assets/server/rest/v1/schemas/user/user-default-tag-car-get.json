@@ -9,9 +9,6 @@
     "ChargingStationID": {
       "$ref": "chargingstation#/definitions/id"
     },
-    "ConnectorID": {
-      "$ref": "chargingstation#/definitions/connector/properties/connectorId"
-    },
     "ProjectFields": {
       "$ref": "common#/definitions/projectFields"
     }
