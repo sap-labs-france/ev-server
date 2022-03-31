@@ -36,8 +36,8 @@ export default class PricingService {
       const pricingImpl = await PricingFactory.getPricingImpl(req.tenant);
       if (pricingImpl) {
         // Fetch the charging station data required for resolving the pricing context
-        // TODO: how to only read the required data? - require projected fields: ['id', 'companyID', 'siteID', 'siteAreaID', 'coordinates']
-        const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(req.tenant, req.user, filteredRequest.ChargingStationID, action, null, {});
+        // TODO: how to only read the required data? - required projected fields: ['id', 'companyID', 'siteID', 'siteAreaID', 'coordinates']
+        const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(req.tenant, req.user, filteredRequest.ChargingStationID, Action.READ, action);
         // Resolve the pricing context
         pricingContext = PricingHelper.buildUserPricingContext(req.tenant, filteredRequest.UserID, chargingStation, filteredRequest.ConnectorID, filteredRequest.StartDateTime);
         const pricingModel: ResolvedPricingModel = await pricingImpl.resolvePricingContext(pricingContext);
@@ -50,7 +50,6 @@ export default class PricingService {
     });
     next();
   }
-
 
   public static async handleGetPricingDefinition(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
