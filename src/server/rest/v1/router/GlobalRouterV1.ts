@@ -26,7 +26,7 @@ import UserRouter from './api/UserRouter';
 import UtilRouter from './util/UtilRouter';
 import express from 'express';
 
-export default class RestGlobalRouterV1 {
+export default class GlobalRouterV1 {
   private router: express.Router;
 
   public constructor() {

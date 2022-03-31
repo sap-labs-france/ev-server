@@ -1,38 +1,20 @@
 import { NextFunction, Request, Response } from 'express';
 
-import AbstractEndpoint from '../../AbstractEndpoint';
-import AbstractOCPIService from '../../../AbstractOCPIService';
 import AppError from '../../../../../exception/AppError';
-import OCPIEndpoint from '../../../../../types/ocpi/OCPIEndpoint';
-import { OCPIResponse } from '../../../../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../../../../types/ocpi/OCPIStatusCode';
 import { OCPIToken } from '../../../../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../../OCPIUtils';
-import OCPIUtilsService from '../../../service/OCPIUtilsService';
+import OCPIUtilsService from '../../OCPIUtilsService';
 import { ServerAction } from '../../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
 import TagStorage from '../../../../../storage/mongodb/TagStorage';
 import Tenant from '../../../../../types/Tenant';
 
-const MODULE_NAME = 'CPOTokensEndpoint';
+const MODULE_NAME = 'CPOTokensService';
 
-export default class CPOTokensEndpoint extends AbstractEndpoint {
-  public constructor(ocpiService: AbstractOCPIService) {
-    super(ocpiService, 'tokens');
-  }
-
-  public async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
-    switch (req.method) {
-      case 'PUT':
-        return this.putTokenRequest(req, res, next, tenant, ocpiEndpoint);
-      case 'PATCH':
-        return this.patchTokenRequest(req, res, next, tenant);
-      case 'GET':
-        return this.getTokenRequest(req, res, next, tenant);
-    }
-  }
-
-  private async getTokenRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
+export default class CPOTokensService {
+  public static async handleGetToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { tenant } = req;
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
     urlSegment.shift();
@@ -42,37 +24,28 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const tokenId = urlSegment.shift();
     if (!tokenId) {
       throw new AppError({
-        action: ServerAction.OCPI_CPO_GET_TOKEN,
-        module: MODULE_NAME, method: 'getToken',
+        module: MODULE_NAME, method: 'handleGetToken', action,
         errorCode: StatusCodes.BAD_REQUEST,
         message: 'Token ID is not provided',
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
     // Retrieve token
-    const token = await this.getToken(tenant, countryCode, partyId, tokenId);
+    const token = await CPOTokensService.getToken(tenant, countryCode, partyId, tokenId);
     if (!token) {
       throw new AppError({
-        action: ServerAction.OCPI_CPO_GET_TOKEN,
-        module: MODULE_NAME, method: 'getToken',
+        module: MODULE_NAME, method: 'handleGetToken', action,
         errorCode: StatusCodes.BAD_REQUEST,
         message: `Token ID '${tokenId}' not found`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    return OCPIUtils.success(token);
+    res.json(OCPIUtils.success(token));
+    next();
   }
 
-  private async getToken(tenant: Tenant, countryId: string, partyId: string, tokenId: string): Promise<OCPIToken> {
-    const tag = await TagStorage.getTag(tenant, tokenId, { withUser: true });
-    if (tag?.user) {
-      if (!tag.user.issuer && tag.user.name === OCPIUtils.buildOperatorName(countryId, partyId) && tag.ocpiToken) {
-        return tag.ocpiToken;
-      }
-    }
-  }
-
-  private async putTokenRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
+  public static async handlePutToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { tenant } = req;
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
     urlSegment.shift();
@@ -82,8 +55,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const tokenId = urlSegment.shift();
     if (!tokenId) {
       throw new AppError({
-        action: ServerAction.OCPI_CPO_PUT_TOKEN,
-        module: MODULE_NAME, method: 'putToken',
+        module: MODULE_NAME, method: 'handlePutToken', action,
         errorCode: StatusCodes.BAD_REQUEST,
         message: 'Token ID is not provided',
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
@@ -92,8 +64,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const token = req.body as OCPIToken;
     if (!token) {
       throw new AppError({
-        action: ServerAction.OCPI_CPO_PUT_TOKEN,
-        module: MODULE_NAME, method: 'putToken',
+        module: MODULE_NAME, method: 'handlePutToken', action,
         errorCode: StatusCodes.BAD_REQUEST,
         message: `Missing content to put Token ID '${tokenId}'`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
@@ -103,8 +74,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const tag = await TagStorage.getTag(tenant, tokenId, { withUser: true });
     if (!tag) {
       throw new AppError({
-        action: ServerAction.OCPI_CPO_PUT_TOKEN,
-        module: MODULE_NAME, method: 'putToken',
+        module: MODULE_NAME, method: 'handlePutToken', action,
         errorCode: StatusCodes.BAD_REQUEST,
         message: `Token ID '${tokenId}' not found`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR,
@@ -113,8 +83,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     }
     if (tag.issuer) {
       throw new AppError({
-        action: ServerAction.OCPI_CPO_PUT_TOKEN,
-        module: MODULE_NAME, method: 'putToken',
+        module: MODULE_NAME, method: 'handlePutToken', action,
         errorCode: StatusCodes.NOT_FOUND,
         message: `Token ID '${tokenId}' is local to the tenant`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR,
@@ -123,8 +92,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     }
     if (tag.user?.issuer) {
       throw new AppError({
-        action: ServerAction.OCPI_CPO_PUT_TOKEN,
-        module: MODULE_NAME, method: 'putToken',
+        module: MODULE_NAME, method: 'handlePutToken', action,
         errorCode: StatusCodes.NOT_FOUND,
         message: `User found for Token ID '${tokenId}' is local to the tenant`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR,
@@ -134,8 +102,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const operator = OCPIUtils.buildOperatorName(countryCode, partyId);
     if (tag.user.name !== operator) {
       throw new AppError({
-        action: ServerAction.OCPI_CPO_PUT_TOKEN,
-        module: MODULE_NAME, method: 'putToken',
+        module: MODULE_NAME, method: 'handlePutToken', action,
         errorCode: StatusCodes.CONFLICT,
         message: `${operator} is not the owner of the Token ID '${tokenId}'`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR,
@@ -143,10 +110,12 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
       });
     }
     await OCPIUtilsService.updateCpoToken(tenant, token, tag, tag.user, ServerAction.OCPI_CPO_PUT_TOKEN);
-    return OCPIUtils.success();
+    res.json(OCPIUtils.success());
+    next();
   }
 
-  private async patchTokenRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
+  public static async handlePatchToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { tenant } = req;
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
     urlSegment.shift();
@@ -157,8 +126,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const token = req.body as OCPIToken;
     if (!token) {
       throw new AppError({
-        action: ServerAction.OCPI_CPO_PATCH_TOKEN,
-        module: MODULE_NAME, method: 'patchToken',
+        module: MODULE_NAME, method: 'handlePatchToken', action,
         errorCode: StatusCodes.BAD_REQUEST,
         message: `Missing content to patch Token ID '${tokenId}'`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
@@ -168,8 +136,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const tag = await TagStorage.getTag(tenant, tokenId, { withUser: true });
     if (!tag?.ocpiToken || tag?.issuer) {
       throw new AppError({
-        action: ServerAction.OCPI_CPO_PATCH_TOKEN,
-        module: MODULE_NAME, method: 'patchToken',
+        module: MODULE_NAME, method: 'handlePatchToken', action,
         errorCode: StatusCodes.NOT_FOUND,
         message: `Token ID '${tokenId}' is local to the tenant`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR,
@@ -178,8 +145,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     }
     if (!tag.user) {
       throw new AppError({
-        action: ServerAction.OCPI_CPO_PATCH_TOKEN,
-        module: MODULE_NAME, method: 'patchToken',
+        module: MODULE_NAME, method: 'handlePatchToken', action,
         errorCode: StatusCodes.NOT_FOUND,
         message: `Token ID '${tokenId}' is not assigned to a user`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR,
@@ -188,8 +154,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     }
     if (tag.user.issuer) {
       throw new AppError({
-        action: ServerAction.OCPI_CPO_PATCH_TOKEN,
-        module: MODULE_NAME, method: 'patchToken',
+        module: MODULE_NAME, method: 'handlePatchToken', action,
         errorCode: StatusCodes.NOT_FOUND,
         message: `Token ID '${tokenId}' is assigned to a user that belongs to the local tenant`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR,
@@ -199,8 +164,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const operator = OCPIUtils.buildOperatorName(countryCode, partyId);
     if (tag.user.name !== operator) {
       throw new AppError({
-        action: ServerAction.OCPI_CPO_PATCH_TOKEN,
-        module: MODULE_NAME, method: 'patchToken',
+        module: MODULE_NAME, method: 'handlePatchToken', action,
         errorCode: StatusCodes.CONFLICT,
         message: `${operator} is not the owner of the Token ID '${tokenId}'`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR,
@@ -235,8 +199,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     }
     if (!patched) {
       throw new AppError({
-        action: ServerAction.OCPI_CPO_PATCH_TOKEN,
-        module: MODULE_NAME, method: 'patchToken',
+        module: MODULE_NAME, method: 'handlePatchToken', action,
         errorCode: StatusCodes.BAD_REQUEST,
         message: `Missing or invalid content to patch Token ID '${tokenId}'`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
@@ -244,7 +207,16 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     }
     tag.userID = tag.user.id;
     await TagStorage.saveTag(tenant, tag);
-    return OCPIUtils.success();
+    res.json(OCPIUtils.success());
+    next();
+  }
+
+  private static async getToken(tenant: Tenant, countryId: string, partyId: string, tokenId: string): Promise<OCPIToken> {
+    const tag = await TagStorage.getTag(tenant, tokenId, { withUser: true });
+    if (tag?.user) {
+      if (!tag.user.issuer && tag.user.name === OCPIUtils.buildOperatorName(countryId, partyId) && tag.ocpiToken) {
+        return tag.ocpiToken;
+      }
+    }
   }
 }
-

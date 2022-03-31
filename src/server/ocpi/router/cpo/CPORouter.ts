@@ -2,8 +2,9 @@
 import { OCPIServerRoute, ServerAction } from '../../../../types/Server';
 import express, { NextFunction, Request, Response } from 'express';
 
+import CPOLocationsRouterV211 from './V2.1.1/CPOLocationsRouterV211';
+import CPOTokensRouterV211 from './V2.1.1/CPOTokensRouterV211';
 import CPOVersionsService from '../../service/cpo/CPOVersionsService';
-import OCPICPOV211Router from './V2.1.1/OCPICPOV211Router';
 import RouterUtils from '../../../../utils/RouterUtils';
 
 export default class CPORouter {
@@ -26,6 +27,9 @@ export default class CPORouter {
   }
 
   protected buildRouteCpoV211(): void {
-    this.router.use('/2.1.1', new OCPICPOV211Router().buildRoutes());
+    this.router.use('/2.1.1', [
+      new CPOLocationsRouterV211().buildRoutes(),
+      new CPOTokensRouterV211().buildRoutes(),
+    ]);
   }
 }

@@ -2,7 +2,7 @@ import CPORouter from './cpo/CPORouter';
 import EMSPRouter from './emsp/EMSPRouter';
 import express from 'express';
 
-export default class OCPIGlobalRouterV211 {
+export default class GlobalRouter {
   private router: express.Router;
 
   public constructor() {

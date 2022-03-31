@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import express from 'express';
 
-export default class OCPIEMSPV211Router {
+export default class EMSPRouterV211 {
   private router: express.Router;
 
   public constructor() {

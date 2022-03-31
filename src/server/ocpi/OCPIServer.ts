@@ -4,10 +4,10 @@ import { ServerAction, ServerType } from '../../types/Server';
 import AppError from '../../exception/AppError';
 import Constants from '../../utils/Constants';
 import ExpressUtils from '../ExpressUtils';
+import GlobalRouter from './router/GlobalRouter';
 import { HTTPError } from '../../types/HTTPError';
 import Logging from '../../utils/Logging';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
-import OCPIGlobalRouter from './router/OCPIGlobalRouter';
 import OCPIServiceConfiguration from '../../types/configuration/OCPIServiceConfiguration';
 import OCPIServices from './OCPIServices';
 import { OCPIStatusCode } from '../../types/ocpi/OCPIStatusCode';
@@ -36,7 +36,7 @@ export default class OCPIServer {
     // Log Express Request
     this.expressApplication.use(Logging.traceExpressRequest.bind(this));
     // Routers
-    this.expressApplication.use('/ocpi', new OCPIGlobalRouter().buildRoutes());
+    this.expressApplication.use('/ocpi', new GlobalRouter().buildRoutes());
     // // New OCPI Services Instances
     // const ocpiServices = new OCPIServices(this.ocpiRestConfig);
     // // Register all services in express

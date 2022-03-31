@@ -2,8 +2,8 @@
 import { OCPIServerRoute, ServerAction } from '../../../../types/Server';
 import express, { NextFunction, Request, Response } from 'express';
 
+import EMSPRouterV211 from './V2.1.1/EMSPRouterV211';
 import EMSPVersionsService from '../../service/emsp/EMSPVersionsService';
-import OCPIEMSPV211Router from './V2.1.1/OCPIEMSPV211Router';
 import RouterUtils from '../../../../utils/RouterUtils';
 
 export default class EMSPRouter {
@@ -26,6 +26,6 @@ export default class EMSPRouter {
   }
 
   protected buildRouteEmspV211(): void {
-    this.router.use('/2.1.1', new OCPIEMSPV211Router().buildRoutes());
+    this.router.use('/2.1.1', new EMSPRouterV211().buildRoutes());
   }
 }

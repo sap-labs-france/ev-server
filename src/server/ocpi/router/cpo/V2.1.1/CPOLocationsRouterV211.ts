@@ -1,11 +1,11 @@
-import { OCPIServerRoute, ServerAction } from '../../../../../types/Server';
 /* eslint-disable @typescript-eslint/no-misused-promises */
+import { OCPIServerRoute, ServerAction } from '../../../../../types/Server';
 import express, { NextFunction, Request, Response } from 'express';
 
 import CPOLocationsService from '../../../service/cpo/v2.1.1/CPOLocationsService';
 import RouterUtils from '../../../../../utils/RouterUtils';
 
-export default class OCPICPOV211Router {
+export default class CPOLocationsRouterV211 {
   private router: express.Router;
 
   public constructor() {
