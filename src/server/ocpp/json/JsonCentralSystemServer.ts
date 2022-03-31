@@ -143,19 +143,8 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       });
       return;
     }
-    const message = 'No opened Web Socket connection found';
-    await Logging.logWarning({
-      ...LoggingHelper.getChargingStationProperties(chargingStation),
-      tenantID: tenant.id,
-      module: MODULE_NAME, method: 'getChargingStationClient',
-      action: ServerAction.WS_SERVER_CONNECTION, message
-    });
-    await Logging.logWarning({
-      tenantID: Constants.DEFAULT_TENANT,
-      chargingStationID: chargingStation.id,
-      module: MODULE_NAME, method: 'getChargingStationClient',
-      action: ServerAction.WS_SERVER_CONNECTION, message
-    });
+    // Return the client
+    return jsonWebSocket.getChargingStationClient();
   }
 
   public hasChargingStationConnected(tenant: Tenant, chargingStation: ChargingStation): boolean {
