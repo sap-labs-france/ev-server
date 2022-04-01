@@ -29,7 +29,7 @@ import moment from 'moment';
 const MODULE_NAME = 'CPOCommandsService';
 
 export default class CPOCommandsService {
-  public static async handleCommands(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleCommand(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     const { tenant, ocpiEndpoint } = req;
     // Split URL Segments
     // /ocpi/cpo/2.0/commands/{command}
@@ -42,7 +42,7 @@ export default class CPOCommandsService {
     const command = urlSegment.shift();
     if (!command) {
       throw new AppError({
-        module: MODULE_NAME, method: 'handleCommands', action,
+        module: MODULE_NAME, method: 'handleCommand', action,
         errorCode: StatusCodes.BAD_REQUEST,
         message: 'OCPI Command is not provided',
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
@@ -61,7 +61,7 @@ export default class CPOCommandsService {
         break;
       default:
         throw new AppError({
-          module: MODULE_NAME, method: 'handleCommands', action,
+          module: MODULE_NAME, method: 'handleCommand', action,
           errorCode: StatusCodes.BAD_REQUEST,
           message: `OCPI Command '${command}' is unknown`,
           ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR

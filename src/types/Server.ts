@@ -165,6 +165,7 @@ export enum ServerAction {
   OCPI_CPO_AUTHORIZE_TOKEN = 'OcpiCpoAuthorizeToken',
   OCPI_CPO_GET_TARIFFS = 'OcpiCpoGetTariffs',
 
+  OCPI_EMSP_COMMAND = 'OcpiEmspCommand',
   OCPI_EMSP_AUTHORIZE_TOKEN = 'OcpiEmspAuthorizeToken',
   OCPI_EMSP_UPDATE_LOCATION = 'OcpiEmspUpdateLocation',
   OCPI_EMSP_GET_LOCATIONS = 'OcpiEmspGetLocations',

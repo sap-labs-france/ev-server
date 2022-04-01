@@ -1,9 +1,10 @@
-import { OCPIServerRoute, ServerAction } from '../../../../types/Server';
 /* eslint-disable @typescript-eslint/no-misused-promises */
+import { OCPIServerRoute, ServerAction } from '../../../../types/Server';
 import express, { NextFunction, Request, Response } from 'express';
 
 import CPOEMSPCredentialsRouterV211 from '../common/V2.1.1/CPOEMSPCredentialsRouterV211';
 import EMSPCdrsRouterV211 from './V2.1.1/EMSPCdrsRouterV211';
+import EMSPCommandsRouterV211 from './V2.1.1/EMSPCommandsRouterV211';
 import EMSPLocationsRouterV211 from './V2.1.1/EMSPLocationsRouterV211';
 import EMSPSessionsRouterV211 from './V2.1.1/EMSPSessionsRouterV211';
 import EMSPTokensRouterV211 from './V2.1.1/EMSPTokensRouterV211';
@@ -35,6 +36,7 @@ export default class EMSPRouter {
       new EMSPLocationsRouterV211().buildRoutes(),
       new EMSPSessionsRouterV211().buildRoutes(),
       new EMSPCdrsRouterV211().buildRoutes(),
+      new EMSPCommandsRouterV211().buildRoutes(),
       new CPOEMSPCredentialsRouterV211().buildRoutes(),
     ]);
   }

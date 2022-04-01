@@ -2,10 +2,10 @@
 import { OCPIServerRoute, ServerAction } from '../../../../../types/Server';
 import express, { NextFunction, Request, Response } from 'express';
 
-import CPOCommandsService from '../../../service/cpo/v2.1.1/CPOCommandsService';
+import EMSPCommandsService from '../../../service/emsp/v2.1.1/EMSPCommandsService';
 import RouterUtils from '../../../../../utils/RouterUtils';
 
-export default class CPOCommandsRouterV211 {
+export default class EMSPCdrsREMSPCommandsRouterV211uterV211 {
   private router: express.Router;
 
   public constructor() {
@@ -19,7 +19,7 @@ export default class CPOCommandsRouterV211 {
 
   protected buildRouteCommand(): void {
     this.router.post(`/${OCPIServerRoute.OCPI_COMMANDS}*`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(CPOCommandsService.handleCommand.bind(this), ServerAction.OCPI_CPO_COMMAND, req, res, next);
+      await RouterUtils.handleServerAction(EMSPCommandsService.handleCommand.bind(this), ServerAction.OCPI_EMSP_COMMAND, req, res, next);
     });
   }
 }
