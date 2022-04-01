@@ -37,7 +37,6 @@ export default class OCPIServer {
     this.expressApplication.use(Logging.traceExpressRequest.bind(this));
     // Routers
     this.expressApplication.use('/ocpi', new GlobalRouter().buildRoutes());
-
     // const ocpiServices = new OCPIServices(this.ocpiRestConfig);
     // // Register all services in express
     // for (const ocpiService of ocpiServices.getOCPIServiceImplementations()) {

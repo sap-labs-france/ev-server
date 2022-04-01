@@ -674,6 +674,7 @@ export enum OCPIServerRoute {
   OCPI_VERSIONS = 'versions',
   OCPI_LOCATIONS = 'locations',
   OCPI_CDRS = 'cdrs',
+  OCPI_COMMANDS = 'commands',
   OCPI_TOKENS = 'tokens',
 }
 
