@@ -2,6 +2,7 @@
 import { OCPIServerRoute, ServerAction } from '../../../../types/Server';
 import express, { NextFunction, Request, Response } from 'express';
 
+import CPOCdrsRouterV211 from './V2.1.1/CPOCdrsRouterV211';
 import CPOLocationsRouterV211 from './V2.1.1/CPOLocationsRouterV211';
 import CPOTokensRouterV211 from './V2.1.1/CPOTokensRouterV211';
 import CPOVersionsService from '../../service/cpo/CPOVersionsService';
@@ -30,6 +31,7 @@ export default class CPORouter {
     this.router.use('/2.1.1', [
       new CPOLocationsRouterV211().buildRoutes(),
       new CPOTokensRouterV211().buildRoutes(),
+      new CPOCdrsRouterV211().buildRoutes(),
     ]);
   }
 }

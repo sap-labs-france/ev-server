@@ -155,6 +155,7 @@ export enum ServerAction {
   OCPI_CPO_STOP_SESSION = 'OcpiCpoStopSession',
   OCPI_CPO_CHECK_LOCATIONS = 'OcpiCpoCheckLocations',
   OCPI_CPO_GET_LOCATIONS = 'OcpiCpoGetLocations',
+  OCPI_CPO_GET_CDRS = 'OcpiCpoGetCdrs',
   OCPI_CPO_PUSH_EVSE_STATUSES = 'OcpiCpoPushEVSEStatuses',
   OCPI_CPO_PUSH_CDRS = 'OcpiCpoPushCdrs',
   OCPI_CPO_PULL_TOKENS = 'OcpiCpoPullTokens',
@@ -672,6 +673,7 @@ export enum RESTServerRoute {
 export enum OCPIServerRoute {
   OCPI_VERSIONS = 'versions',
   OCPI_LOCATIONS = 'locations',
+  OCPI_CDRS = 'cdrs',
   OCPI_TOKENS = 'tokens',
 }
 

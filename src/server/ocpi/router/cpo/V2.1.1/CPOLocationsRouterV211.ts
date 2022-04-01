@@ -13,11 +13,11 @@ export default class CPOLocationsRouterV211 {
   }
 
   public buildRoutes(): express.Router {
-    this.buildRouteCpoLocations();
+    this.buildRouteLocations();
     return this.router;
   }
 
-  protected buildRouteCpoLocations(): void {
+  protected buildRouteLocations(): void {
     this.router.get(`/${OCPIServerRoute.OCPI_LOCATIONS}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(CPOLocationsService.handleGetLocations.bind(this), ServerAction.OCPI_CPO_GET_LOCATIONS, req, res, next);
     });
