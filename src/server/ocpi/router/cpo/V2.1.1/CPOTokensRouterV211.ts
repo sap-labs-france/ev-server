@@ -20,19 +20,19 @@ export default class CPOTokensRouterV211 {
   }
 
   protected buildRouteGetTokens(): void {
-    this.router.get(`/${OCPIServerRoute.OCPI_TOKENS}/*`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.get(`/${OCPIServerRoute.OCPI_TOKENS}*`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(CPOTokensService.handleGetToken.bind(this), ServerAction.OCPI_CPO_GET_TOKEN, req, res, next);
     });
   }
 
   protected buildRoutePutTokens(): void {
-    this.router.put(`/${OCPIServerRoute.OCPI_TOKENS}/*`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.put(`/${OCPIServerRoute.OCPI_TOKENS}*`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(CPOTokensService.handlePutToken.bind(this), ServerAction.OCPI_CPO_PUT_TOKEN, req, res, next);
     });
   }
 
   protected buildRoutePatchTokens(): void {
-    this.router.patch(`/${OCPIServerRoute.OCPI_TOKENS}/*`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.patch(`/${OCPIServerRoute.OCPI_TOKENS}*`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(CPOTokensService.handlePatchToken.bind(this), ServerAction.OCPI_CPO_PATCH_TOKEN, req, res, next);
     });
   }

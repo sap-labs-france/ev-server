@@ -149,7 +149,7 @@ export enum ServerAction {
   OCPI_CPO_PATCH_STATUS = 'OcpiCpoPatchStatus',
   OCPI_CPO_CHECK_CDRS = 'OcpiCpoCheckCdrs',
   OCPI_CPO_CHECK_SESSIONS = 'OcpiCpoCheckSessions',
-  OCPI_CPO_PULL_SESSIONS = 'OcpiCpoPullSessions',
+  OCPI_CPO_GET_SESSIONS = 'OcpiCpoGetSessions',
   OCPI_CPO_PUSH_SESSIONS = 'OcpiCpoPushSessions',
   OCPI_CPO_START_SESSION = 'OcpiCpoStartSession',
   OCPI_CPO_STOP_SESSION = 'OcpiCpoStopSession',
@@ -677,6 +677,7 @@ export enum OCPIServerRoute {
   OCPI_COMMANDS = 'commands',
   OCPI_TOKENS = 'tokens',
   OCPI_TARIFFS = 'tariffs',
+  OCPI_SESSIONS = 'sessions',
 }
 
 export enum ServerProtocol {

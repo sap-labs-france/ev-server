@@ -18,7 +18,7 @@ export default class CPOCommandsRouterV211 {
   }
 
   protected buildRouteCommands(): void {
-    this.router.post(`/${OCPIServerRoute.OCPI_COMMANDS}/*`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.post(`/${OCPIServerRoute.OCPI_COMMANDS}*`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(CPOCommandsService.handleCommands.bind(this), ServerAction.OCPI_CPO_COMMAND, req, res, next);
     });
   }
