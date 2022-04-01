@@ -1,7 +1,6 @@
 /* eslint-disable max-len */
-import PricingDefinition, { PricedConsumptionData, PricingEntity, PricingStaticRestriction, ResolvedPricingDefinition, ResolvedPricingModel } from '../../types/Pricing';
+import PricingDefinition, { PricedConsumptionData, PricingContext, PricingEntity, PricingStaticRestriction, ResolvedPricingDefinition, ResolvedPricingModel } from '../../types/Pricing';
 
-import ChargingStation from '../../types/ChargingStation';
 import Constants from '../../utils/Constants';
 import Consumption from '../../types/Consumption';
 import ConsumptionPricer from './ConsumptionPricer';
@@ -10,7 +9,6 @@ import LoggingHelper from '../../utils/LoggingHelper';
 import PricingStorage from '../../storage/mongodb/PricingStorage';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
-import Transaction from '../../types/Transaction';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
 
@@ -18,18 +16,17 @@ const MODULE_NAME = 'PricingEngine';
 
 export default class PricingEngine {
 
-  public static async resolvePricingContext(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation): Promise<ResolvedPricingModel> {
+  public static async resolvePricingContext(tenant: Tenant, pricingContext: PricingContext): Promise<ResolvedPricingModel> {
     // Merge the pricing definitions from the different contexts
     const pricingDefinitions: ResolvedPricingDefinition[] = [];
-    // pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction.userID));
-    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.CHARGING_STATION, transaction.chargeBoxID?.toString()));
-    // pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.SITE_AREA, transaction.siteAreaID?.toString()));
-    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.SITE, transaction.siteID?.toString()));
-    // pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.COMPANY, transaction.companyID?.toString()));
-    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, PricingEntity.TENANT, tenant.id));
-    if (!transaction.timezone) {
+    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, pricingContext, PricingEntity.CHARGING_STATION, pricingContext.chargingStationID));
+    // pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, pricingContext, PricingEntity.SITE_AREA, transaction.siteAreaID));
+    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, pricingContext, PricingEntity.SITE, pricingContext.siteID));
+    // pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, pricingContext, PricingEntity.COMPANY, transaction.companyID));
+    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, pricingContext, PricingEntity.TENANT, tenant.id));
+    if (!pricingContext.timezone) {
       await Logging.logWarning({
-        ...LoggingHelper.getTransactionProperties(transaction),
+        ...LoggingHelper.getPricingContextProperties(pricingContext),
         tenantID: tenant.id,
         module: MODULE_NAME,
         action: ServerAction.PRICING,
@@ -41,13 +38,13 @@ export default class PricingEngine {
     const resolvedPricingModel: ResolvedPricingModel = {
       pricerContext: {
         flatFeeAlreadyPriced: false,
-        sessionStartDate: transaction.timestamp,
-        timezone: transaction.timezone
+        sessionStartDate: pricingContext.timestamp,
+        timezone: pricingContext.timezone
       },
       pricingDefinitions
     };
     await Logging.logInfo({
-      ...LoggingHelper.getTransactionProperties(transaction),
+      ...LoggingHelper.getPricingContextProperties(pricingContext),
       tenantID: tenant.id,
       module: MODULE_NAME,
       action: ServerAction.PRICING,
@@ -76,10 +73,10 @@ export default class PricingEngine {
     return pricedData.filter((pricingConsumptionData) => !!pricingConsumptionData);
   }
 
-  private static async getPricingDefinitions4Entity(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, entityType: PricingEntity, entityID: string): Promise<ResolvedPricingDefinition[]> {
+  private static async getPricingDefinitions4Entity(tenant: Tenant, pricingContext: PricingContext, entityType: PricingEntity, entityID: string): Promise<ResolvedPricingDefinition[]> {
     if (!entityID) {
       await Logging.logWarning({
-        ...LoggingHelper.getTransactionProperties(transaction),
+        ...LoggingHelper.getPricingContextProperties(pricingContext),
         tenantID: tenant.id,
         module: MODULE_NAME,
         action: ServerAction.PRICING,
@@ -93,12 +90,12 @@ export default class PricingEngine {
     const actualPricingDefinitions = pricingDefinitions.filter((pricingDefinition) =>
       PricingEngine.checkEntityType(pricingDefinition, entityType)
     ).filter((pricingDefinition) =>
-      PricingEngine.checkStaticRestrictions(pricingDefinition, transaction, chargingStation)
+      PricingEngine.checkStaticRestrictions(pricingDefinition, pricingContext)
     ).map((pricingDefinition) =>
       PricingEngine.shrinkPricingDefinition(pricingDefinition)
     );
     await Logging.logDebug({
-      ...LoggingHelper.getTransactionProperties(transaction),
+      ...LoggingHelper.getPricingContextProperties(pricingContext),
       tenantID: tenant.id,
       module: MODULE_NAME,
       action: ServerAction.PRICING,
@@ -124,12 +121,12 @@ export default class PricingEngine {
     return (pricingDefinition.entityType === entityType) ? pricingDefinition : null;
   }
 
-  private static checkStaticRestrictions(pricingDefinition: PricingDefinition, transaction: Transaction, chargingStation: ChargingStation) : PricingDefinition {
+  private static checkStaticRestrictions(pricingDefinition: PricingDefinition, pricingContext: PricingContext) : PricingDefinition {
     if (pricingDefinition.staticRestrictions) {
       if (
-        !PricingEngine.checkDateValidity(pricingDefinition.staticRestrictions, transaction)
-      || !PricingEngine.checkConnectorType(pricingDefinition.staticRestrictions, transaction, chargingStation)
-      || !PricingEngine.checkConnectorPower(pricingDefinition.staticRestrictions, transaction, chargingStation)
+        !PricingEngine.checkDateValidity(pricingDefinition.staticRestrictions, pricingContext)
+      || !PricingEngine.checkConnectorType(pricingDefinition.staticRestrictions, pricingContext)
+      || !PricingEngine.checkConnectorPower(pricingDefinition.staticRestrictions, pricingContext)
       ) {
         return null;
       }
@@ -152,34 +149,32 @@ export default class PricingEngine {
     return resolvedPricingDefinition;
   }
 
-  private static checkDateValidity(staticRestrictions: PricingStaticRestriction, transaction: Transaction): boolean {
+  private static checkDateValidity(staticRestrictions: PricingStaticRestriction, pricingContext: PricingContext): boolean {
     if (!Utils.isNullOrUndefined(staticRestrictions.validFrom)) {
-      if (moment(transaction.timestamp).isBefore(staticRestrictions.validFrom)) {
+      if (moment(pricingContext.timestamp).isBefore(staticRestrictions.validFrom)) {
         return false;
       }
     }
     if (!Utils.isNullOrUndefined(staticRestrictions.validTo)) {
-      if (moment(transaction.timestamp).isSameOrAfter(staticRestrictions.validTo)) {
+      if (moment(pricingContext.timestamp).isSameOrAfter(staticRestrictions.validTo)) {
         return false;
       }
     }
     return true;
   }
 
-  private static checkConnectorType(staticRestrictions: PricingStaticRestriction, transaction: Transaction, chargingStation: ChargingStation): boolean {
+  private static checkConnectorType(staticRestrictions: PricingStaticRestriction, pricingContext: PricingContext): boolean {
     if (!Utils.isNullOrUndefined(staticRestrictions.connectorType)) {
-      const connectorType = Utils.getConnectorFromID(chargingStation, transaction.connectorId)?.type;
-      if (staticRestrictions.connectorType !== connectorType) {
+      if (staticRestrictions.connectorType !== pricingContext.connectorType) {
         return false;
       }
     }
     return true;
   }
 
-  private static checkConnectorPower(staticRestrictions: PricingStaticRestriction, transaction: Transaction, chargingStation: ChargingStation): boolean {
+  private static checkConnectorPower(staticRestrictions: PricingStaticRestriction, pricingContext: PricingContext): boolean {
     if (!Utils.isNullOrUndefined(staticRestrictions.connectorPowerkW)) {
-      const connectorPowerWatts = Utils.getConnectorFromID(chargingStation, transaction.connectorId)?.power;
-      if (!Utils.createDecimal(connectorPowerWatts).div(1000).equals(staticRestrictions.connectorPowerkW)) {
+      if (!Utils.createDecimal(pricingContext.connectorPower).div(1000).equals(staticRestrictions.connectorPowerkW)) {
         return false;
       }
     }

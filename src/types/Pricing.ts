@@ -2,7 +2,6 @@ import { AuthorizationActions } from './Authorization';
 import { ConnectorType } from './ChargingStation';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import Decimal from 'decimal.js';
-import Utils from '../utils/Utils';
 
 export enum PricingEntity {
   TENANT = 'Tenant',
@@ -18,6 +17,19 @@ export enum DimensionType {
   ENERGY = 'energy',
   CHARGING_TIME = 'chargingTime',
   PARKING_TIME = 'parkingTime'
+}
+
+export interface PricingContext {
+  userID: string
+  companyID: string,
+  siteID: string,
+  siteAreaID: string,
+  chargingStationID: string,
+  connectorId: number,
+  connectorType: ConnectorType,
+  connectorPower: number,
+  timezone: string,
+  timestamp: Date,
 }
 
 export interface ResolvedPricingModel {

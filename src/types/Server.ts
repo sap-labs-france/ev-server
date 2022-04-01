@@ -439,6 +439,7 @@ export enum ServerAction {
   PRICING_DEFINITION_CREATE = 'PricingDefinitionCreate',
   PRICING_DEFINITION_UPDATE = 'PricingDefinitionUpdate',
   PRICING_DEFINITION_DELETE = 'PricingDefinitionDelete',
+  PRICING_MODEL_RESOLVE = 'PricingModelResolve',
 
   MONGO_DB = 'MongoDB',
 
@@ -666,7 +667,10 @@ export enum ServerRoute {
 
   // PRICING URLs for CRUD operations
   REST_PRICING_DEFINITIONS = 'pricing-definitions',
-  REST_PRICING_DEFINITION = 'pricing-definitions/:id'
+  REST_PRICING_DEFINITION = 'pricing-definitions/:id',
+
+  // PRICING URLs for Non-CRUD operations
+  REST_PRICING_MODEL_RESOLVE = 'pricing-model/resolve',
 }
 
 export enum ServerProtocol {
