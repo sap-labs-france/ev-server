@@ -9,13 +9,11 @@ import { HTTPError } from '../../types/HTTPError';
 import Logging from '../../utils/Logging';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import OCPIServiceConfiguration from '../../types/configuration/OCPIServiceConfiguration';
-import OCPIServices from './OCPIServices';
 import { OCPIStatusCode } from '../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from './OCPIUtils';
 import { ServerUtils } from '../ServerUtils';
 import { StatusCodes } from 'http-status-codes';
 import { TenantComponents } from '../../types/Tenant';
-import { TenantIdHoldingRequest } from './AbstractOCPIService';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
 
@@ -37,18 +35,6 @@ export default class OCPIServer {
     this.expressApplication.use(Logging.traceExpressRequest.bind(this));
     // Routers
     this.expressApplication.use('/ocpi', new GlobalRouter().buildRoutes());
-    // const ocpiServices = new OCPIServices(this.ocpiRestConfig);
-    // // Register all services in express
-    // for (const ocpiService of ocpiServices.getOCPIServiceImplementations()) {
-    //   // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    //   this.expressApplication.use(ocpiService.getPath(), async (req: TenantIdHoldingRequest, res: Response, next: NextFunction) => {
-    //     try {
-    //       await ocpiService.restService(req, res, next);
-    //     } catch (error) {
-    //       next(error);
-    //     }
-    //   });
-    // }
     // Post init
     ExpressUtils.postInitApplication(this.expressApplication);
   }

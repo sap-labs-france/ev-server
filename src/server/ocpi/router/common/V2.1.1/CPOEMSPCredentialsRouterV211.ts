@@ -1,5 +1,5 @@
-import { OCPIServerRoute, ServerAction } from '../../../../../types/Server';
 /* eslint-disable @typescript-eslint/no-misused-promises */
+import { OCPIServerRoute, ServerAction } from '../../../../../types/Server';
 import express, { NextFunction, Request, Response } from 'express';
 
 import CPOEMSPCredentialsService from '../../../service/common/v2.1.1/CPOEMSPCredentialsService';

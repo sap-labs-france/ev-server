@@ -7,6 +7,7 @@ import EMSPCdrsRouterV211 from './V2.1.1/EMSPCdrsRouterV211';
 import EMSPCommandsRouterV211 from './V2.1.1/EMSPCommandsRouterV211';
 import EMSPLocationsRouterV211 from './V2.1.1/EMSPLocationsRouterV211';
 import EMSPSessionsRouterV211 from './V2.1.1/EMSPSessionsRouterV211';
+import EMSPTariffsRouterV211 from './V2.1.1/EMSPTariffsRouterV211';
 import EMSPTokensRouterV211 from './V2.1.1/EMSPTokensRouterV211';
 import EMSPVersionsService from '../../service/emsp/EMSPVersionsService';
 import RouterUtils from '../../../../utils/RouterUtils';
@@ -37,6 +38,7 @@ export default class EMSPRouter {
       new EMSPSessionsRouterV211().buildRoutes(),
       new EMSPCdrsRouterV211().buildRoutes(),
       new EMSPCommandsRouterV211().buildRoutes(),
+      new EMSPTariffsRouterV211().buildRoutes(),
       new CPOEMSPCredentialsRouterV211().buildRoutes(),
     ]);
   }

@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
 
-import AbstractOCPIService from '../../../AbstractOCPIService';
 import AppError from '../../../../../exception/AppError';
 import AxiosFactory from '../../../../../utils/AxiosFactory';
 import BackendError from '../../../../../exception/BackendError';
@@ -180,7 +179,7 @@ export default class CPOEMSPCredentialsService {
     // Save ocpi endpoint
     await OCPIEndpointStorage.saveOcpiEndpoint(tenant, ocpiEndpoint);
     // Get base url
-    const versionUrl = OCPIUtilsService.getServiceUrl(req, ocpiEndpoint.role.toLocaleLowerCase()) + AbstractOCPIService.VERSIONS_PATH;
+    const versionUrl = OCPIUtilsService.getServiceUrl(req, ocpiEndpoint.role.toLocaleLowerCase()) + '/versions';
     // Build credential object
     const respCredential = await OCPIUtils.buildOCPICredentialObject(tenant, ocpiEndpoint.localToken, ocpiEndpoint.role, versionUrl);
     // Log available OCPI Versions
