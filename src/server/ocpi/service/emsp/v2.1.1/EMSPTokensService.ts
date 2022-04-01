@@ -1,63 +1,49 @@
 import { NextFunction, Request, Response } from 'express';
 
-import AbstractEndpoint from '../../AbstractEndpoint';
-import AbstractOCPIService from '../../../AbstractOCPIService';
 import AppError from '../../../../../exception/AppError';
 import ChargingStationStorage from '../../../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../../../utils/Constants';
 import { HTTPError } from '../../../../../types/HTTPError';
 import { OCPIAllowed } from '../../../../../types/ocpi/OCPIAuthorizationInfo';
-import OCPIEndpoint from '../../../../../types/ocpi/OCPIEndpoint';
 import { OCPILocationReference } from '../../../../../types/ocpi/OCPILocation';
-import { OCPIResponse } from '../../../../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../../../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from '../../../OCPIUtils';
-import OCPIUtilsService from '../../../service/OCPIUtilsService';
+import OCPIUtilsService from '../../OCPIUtilsService';
 import { ServerAction } from '../../../../../types/Server';
 import TagStorage from '../../../../../storage/mongodb/TagStorage';
-import Tenant from '../../../../../types/Tenant';
 import { UserStatus } from '../../../../../types/User';
 import UserStorage from '../../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../../utils/Utils';
 
-const MODULE_NAME = 'EMSPTokensEndpoint';
+const MODULE_NAME = 'EMSPTokensService';
 
-export default class EMSPTokensEndpoint extends AbstractEndpoint {
-  public constructor(ocpiService: AbstractOCPIService) {
-    super(ocpiService, 'tokens');
-  }
-
-  public async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
-    switch (req.method) {
-      case 'POST':
-        return this.authorizeRequest(req, res, next, tenant);
-      case 'GET':
-        return this.getTokensRequest(req, res, next, tenant);
-    }
-  }
-
-  private async getTokensRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
+export default class EMSPTokensService {
+  public static async handleGetTokens(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { tenant } = req;
     // Get query parameters
     const offset = (req.query.offset) ? Utils.convertToInt(req.query.offset) : 0;
     const limit = Utils.convertToInt(req.query.limit) > 0 ? Utils.convertToInt(req.query.limit) : Constants.DB_RECORD_COUNT_NO_LIMIT;
     // Get all tokens
-    const tokens = await OCPIUtilsService.getEmspTokens(tenant, limit, offset, Utils.convertToDate(req.query.date_from), Utils.convertToDate(req.query.date_to));
+    const tokens = await OCPIUtilsService.getEmspTokens(
+      tenant, limit, offset, Utils.convertToDate(req.query.date_from), Utils.convertToDate(req.query.date_to));
     // Set header
     res.set({
       'X-Total-Count': tokens.count,
       'X-Limit': Constants.OCPI_RECORDS_LIMIT
     });
     // Return next link
-    const nextUrl = OCPIUtils.buildNextUrl(req, this.getBaseUrl(req), offset, limit, tokens.count);
+    const nextUrl = OCPIUtils.buildNextUrl(req, OCPIUtilsService.getBaseUrl(req), offset, limit, tokens.count);
     if (nextUrl) {
       res.links({
         next: nextUrl
       });
     }
-    return OCPIUtils.success(tokens.result);
+    res.json(OCPIUtils.success(tokens.result));
+    next();
   }
 
-  private async authorizeRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
+  public static async handleAuthorizeToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { tenant } = req;
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
     urlSegment.shift();
@@ -65,8 +51,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     const tokenID = urlSegment.shift();
     if (!tokenID) {
       throw new AppError({
-        action: ServerAction.OCPI_EMSP_AUTHORIZE_TOKEN,
-        module: MODULE_NAME, method: 'authorizeRequest',
+        module: MODULE_NAME, method: 'handleAuthorizeToken', action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
@@ -75,8 +60,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     const location = req.body as OCPILocationReference;
     if (!location) {
       throw new AppError({
-        action: ServerAction.OCPI_EMSP_AUTHORIZE_TOKEN,
-        module: MODULE_NAME, method: 'authorizeRequest',
+        module: MODULE_NAME, method: 'handleAuthorizeToken', action,
         errorCode: HTTPError.GENERAL_ERROR,
         ocpiError: OCPIStatusCode.CODE_2002_NOT_ENOUGH_INFORMATION_ERROR,
         message: 'Missing Location data',
@@ -85,8 +69,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     }
     if (Utils.isEmptyArray(location.evse_uids)) {
       throw new AppError({
-        action: ServerAction.OCPI_EMSP_AUTHORIZE_TOKEN,
-        module: MODULE_NAME, method: 'authorizeRequest',
+        module: MODULE_NAME, method: 'handleAuthorizeToken', action,
         errorCode: HTTPError.GENERAL_ERROR,
         ocpiError: OCPIStatusCode.CODE_2002_NOT_ENOUGH_INFORMATION_ERROR,
         message: 'Missing Charging Station ID',
@@ -95,8 +78,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     }
     if (location.evse_uids.length > 1) {
       throw new AppError({
-        action: ServerAction.OCPI_EMSP_AUTHORIZE_TOKEN,
-        module: MODULE_NAME, method: 'authorizeRequest',
+        module: MODULE_NAME, method: 'handleAuthorizeToken', action,
         errorCode: HTTPError.GENERAL_ERROR,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR,
         message: 'Does not support authorization on multiple Charging Stations',
@@ -108,8 +90,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
       tenant, location.location_id, location.evse_uids[0]);
     if (!chargingStation) {
       throw new AppError({
-        action: ServerAction.OCPI_EMSP_AUTHORIZE_TOKEN,
-        module: MODULE_NAME, method: 'authorizeRequest',
+        module: MODULE_NAME, method: 'handleAuthorizeToken', action,
         errorCode: HTTPError.GENERAL_ERROR,
         ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
         message: `Charging Station with EVSE ID '${location.evse_uids[0]}' and Location ID '${location.location_id}' does not exist`,
@@ -119,8 +100,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     const tag = await TagStorage.getTag(tenant, tokenID, { withUser: true });
     if (!tag) {
       throw new AppError({
-        action: ServerAction.OCPI_EMSP_AUTHORIZE_TOKEN,
-        module: MODULE_NAME, method: 'authorizeRequest',
+        module: MODULE_NAME, method: 'handleAuthorizeToken', action,
         errorCode: HTTPError.GENERAL_ERROR,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR,
         message: `Unkwnown Tag ID '${tokenID}'`,
@@ -129,17 +109,18 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     }
     // Check Tag
     if (!tag.issuer || !tag.active) {
-      return OCPIUtils.success({
+      res.json(OCPIUtils.success({
         allowed: OCPIAllowed.NOT_ALLOWED,
         authorization_id: Utils.generateUUID(), location
-      });
+      }));
+      next();
+      return;
     }
     // Check User
     const user = tag.user;
     if (!user) {
       throw new AppError({
-        action: ServerAction.OCPI_EMSP_AUTHORIZE_TOKEN,
-        module: MODULE_NAME, method: 'authorizeRequest',
+        module: MODULE_NAME, method: 'handleAuthorizeToken', action,
         errorCode: HTTPError.GENERAL_ERROR,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR,
         message: `Unkwnown User for OCPI Token ID '${tokenID}'`,
@@ -147,19 +128,22 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
       });
     }
     if (user.status !== UserStatus.ACTIVE) {
-      return OCPIUtils.success({
+      res.json(OCPIUtils.success({
         allowed: tag.user.status === UserStatus.BLOCKED ? OCPIAllowed.BLOCKED : OCPIAllowed.NOT_ALLOWED,
         authorization_id: Utils.generateUUID(), location
-      });
+      }));
+      next();
+      return;
     }
     // Generate and Save Auth ID
     user.authorizationID = Utils.generateUUID();
     await UserStorage.saveUser(tenant, user);
-    return OCPIUtils.success({
+    res.json(OCPIUtils.success({
       allowed: OCPIAllowed.ALLOWED,
       authorization_id: user.authorizationID,
       location
-    });
+    }));
+    next();
   }
 }
 

@@ -180,7 +180,7 @@ export default class CPOEMSPCredentialsService {
     // Save ocpi endpoint
     await OCPIEndpointStorage.saveOcpiEndpoint(tenant, ocpiEndpoint);
     // Get base url
-    const versionUrl = OCPIUtilsService.getServiceUrl(req) + AbstractOCPIService.VERSIONS_PATH;
+    const versionUrl = OCPIUtilsService.getServiceUrl(req, ocpiEndpoint.role.toLocaleLowerCase()) + AbstractOCPIService.VERSIONS_PATH;
     // Build credential object
     const respCredential = await OCPIUtils.buildOCPICredentialObject(tenant, ocpiEndpoint.localToken, ocpiEndpoint.role, versionUrl);
     // Log available OCPI Versions

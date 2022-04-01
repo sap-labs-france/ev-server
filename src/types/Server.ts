@@ -174,6 +174,7 @@ export enum ServerAction {
   OCPI_EMSP_STOP_SESSION = 'OcpiEmspStopSession',
   OCPI_EMSP_UPDATE_TOKENS = 'OcpiEmspUpdateTokens',
   OCPI_EMSP_GET_CDRS = 'OcpiEmspGetCdrs',
+  OCPI_EMSP_GET_TOKENS = 'OcpiEmspGetTokens',
   OCPI_EMSP_CREATE_CDR = 'OcpiEmspCreateCdr',
   OCPI_EMSP_RESERVE_NOW = 'OcpiEmspReserveNow',
   OCPI_EMSP_UNLOCK_CONNECTOR = 'OcpiEmspUnlockConnector',
