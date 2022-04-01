@@ -91,7 +91,7 @@ export default class BillPendingTransactionTask extends TenantSchedulerTask {
                           tenantID: tenant.id,
                           action: ServerAction.BILLING_BILL_PENDING_TRANSACTION,
                           module: MODULE_NAME, method: 'processTenant',
-                          message: `Transaction '${transactionMDB._id}' is not pending anymore`,
+                          message: `Transaction '${transaction.id}' is not pending anymore`,
                         });
                         continue;
                       }
@@ -101,7 +101,7 @@ export default class BillPendingTransactionTask extends TenantSchedulerTask {
                           tenantID: tenant.id,
                           action: ServerAction.BILLING_BILL_PENDING_TRANSACTION,
                           module: MODULE_NAME, method: 'processTenant',
-                          message: `Unexpected situation - Transaction '${transactionMDB._id}' has already been billed`,
+                          message: `Unexpected situation - Transaction '${transaction.id}' has already been billed`,
                         });
                         continue;
                       }
@@ -115,10 +115,9 @@ export default class BillPendingTransactionTask extends TenantSchedulerTask {
                       await Logging.logInfo({
                         tenantID: tenant.id,
                         action: ServerAction.BILLING_BILL_PENDING_TRANSACTION,
-                        actionOnUser: (transaction.user ? transaction.user : null),
+                        actionOnUser: transaction.user,
                         module: MODULE_NAME, method: 'processTenant',
                         message: `The billing process has been started for transaction '${transaction.id}'`,
-                        detailedMessages: { cdr: transaction.ocpiData.cdr }
                       });
                     } catch (error) {
                       await Logging.logError({
