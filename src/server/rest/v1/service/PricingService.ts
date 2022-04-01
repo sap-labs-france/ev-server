@@ -32,17 +32,15 @@ export default class PricingService {
     const filteredRequest = PricingValidator.getInstance().validatePricingModelResolve(req.query);
     let pricingContext: PricingContext = null;
     let pricingDefinitions: ResolvedPricingDefinition[] = [];
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.PRICING)) {
-      const pricingImpl = await PricingFactory.getPricingImpl(req.tenant);
-      if (pricingImpl) {
-        // Fetch the charging station data required for resolving the pricing context
-        // TODO: how to only read the required data? - required projected fields: ['id', 'companyID', 'siteID', 'siteAreaID', 'coordinates']
-        const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(req.tenant, req.user, filteredRequest.ChargingStationID, Action.READ, action);
-        // Resolve the pricing context
-        pricingContext = PricingHelper.buildUserPricingContext(req.tenant, filteredRequest.UserID, chargingStation, filteredRequest.ConnectorID, filteredRequest.StartDateTime);
-        const pricingModel: ResolvedPricingModel = await pricingImpl.resolvePricingContext(pricingContext);
-        pricingDefinitions = pricingModel?.pricingDefinitions;
-      }
+    const pricingImpl = await PricingFactory.getPricingImpl(req.tenant);
+    if (pricingImpl) {
+      // Fetch the charging station data required for resolving the pricing context
+      // TODO: how to only read the required data? - required projected fields: ['id', 'companyID', 'siteID', 'siteAreaID', 'coordinates']
+      const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(req.tenant, req.user, filteredRequest.ChargingStationID, Action.READ, action);
+      // Resolve the pricing context
+      pricingContext = PricingHelper.buildUserPricingContext(req.tenant, filteredRequest.UserID, chargingStation, filteredRequest.ConnectorID, filteredRequest.StartDateTime);
+      const pricingModel: ResolvedPricingModel = await pricingImpl.resolvePricingContext(pricingContext);
+      pricingDefinitions = pricingModel?.pricingDefinitions;
     }
     res.json({
       pricingContext,
