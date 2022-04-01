@@ -27,6 +27,7 @@ export default class OCPPValidation extends SchemaValidator {
   private heartbeatRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/heartbeat-request.json`, 'utf8'));
   private firmwareStatusNotificationRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/firmware-status-notification-request.json`, 'utf8'));
   private dataTransferRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/data-transfert-request.json`, 'utf8'));
+  private meterValueRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/meter-values-request.json`, 'utf8'));
 
   private constructor() {
     super('OCPPValidation');
@@ -108,6 +109,8 @@ export default class OCPPValidation extends SchemaValidator {
   public async validateMeterValues(tenantID: string, chargingStation: ChargingStation, meterValues: OCPPMeterValuesRequestExtended): Promise<void> {
     // Always integer
     meterValues.connectorId = Utils.convertToInt(meterValues.connectorId);
+    this.validate(this.meterValueRequest, meterValues);
+
     // Check Connector ID
     if (meterValues.connectorId === 0) {
       // KEBA: Connector ID must be > 0 according to OCPP
