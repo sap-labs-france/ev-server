@@ -305,37 +305,6 @@ describe('Tenant Settings', () => {
     );
 
     it(
-      'Pricing/Convergent : Check that the setting has been created in the tenant after activation',
-      async () => {
-        // Test SAP CC with Pricing
-        testData.data = {
-          id: testData.credentials.tenantId,
-          name: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
-          email: testData.credentials.email,
-          subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
-          components: {
-            ocpi: { active: false, type: null },
-            organization: { active: false, type: null },
-            pricing: { active: true, type: 'convergentCharging' },
-            refund: { active: false, type: null },
-            billing: { active: false, type: null },
-            smartCharging: { active: false, type: null },
-            statistics: { active: false, type: null },
-            analytics: { active: false, type: null },
-            asset: { active: false, type: null }
-          }
-        };
-        const res = await testData.superAdminCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
-        expect(res.status).to.equal(StatusCodes.OK);
-        testData.connectUser();
-        const settings = await testData.centralService.settingApi.readAll({});
-        expect(settings.status).to.equal(StatusCodes.OK);
-        expect(settings.data.count).to.equal(3);
-        expect(settings.data.result[1]).to.be.validatedSetting(TenantComponents.PRICING, PricingSettingsType.CONVERGENT_CHARGING);
-      }
-    );
-
-    it(
       'Analytics : Check that the setting has been created in the tenant after activation',
       async () => {
         // Fill in the data

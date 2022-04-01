@@ -220,74 +220,6 @@ describe('Setting', () => {
       const response = await testData.centralService.settingApi.readById(read.data.id);
       expect(response.status).to.equal(StatusCodes.OK);
     });
-    it(
-      'Check that changing the pricing component from simple to convergent charging back and forth works',
-      async () => {
-        // Retrieve the setting id
-        const read = await testData.centralService.settingApi.readByIdentifier({ 'Identifier': 'pricing' });
-        expect(read.status).to.equal(StatusCodes.OK);
-        expect(read.data).to.not.be.null;
-        // Store the old setting
-        const oldSetting = read.data;
-        // Activate convergent charging
-        testData.data = JSON.parse(`{
-          "id":"${testData.credentials.tenantId}",
-          "name":"${ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS}",
-          "email":"${testData.credentials.email}",
-          "subdomain":"utall",
-          "components":{
-            "ocpi":{ "active":true,"type":"ocpi" },
-            "organization":{ "active":true,"type":null },
-            "pricing":{ "active":true,"type":"convergentCharging" },
-            "refund":{ "active":true,"type":"concur" },
-            "statistics":{ "active":true,"type":null },
-            "analytics":{ "active":true,"type":null }
-          }
-        }`);
-        // Updating Tenant's components will trigger a logout
-        let activation = await testData.superCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
-        expect(activation.status).to.equal(StatusCodes.OK);
-        // Login again
-        testData.centralService = new CentralServerService(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS, { email: config.get('admin.username'), password: config.get('admin.password') });
-        // Update convergent charging setting
-        testData.data = JSON.parse(`{
-              "id":"${read.data.id}",
-              "identifier":"pricing",
-              "sensitiveData":["content.convergentCharging.password"],
-              "content":{
-                  "type":"convergentCharging",
-                  "convergentCharging":{
-                      "url":"http://test.com",
-                      "chargeableItemName":"IN",
-                      "user":"HarryPotter",
-                      "password":"Th1sI5aFakePa55*"
-                  }
-              }
-          }`);
-        let update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
-        expect(update.status).to.equal(StatusCodes.OK);
-        // Activate back simple pricing
-        testData.data = JSON.parse(`{
-          "id":"${testData.credentials.tenantId}",
-          "name":"${ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS}",
-          "email":"${testData.credentials.email}",
-          "subdomain":"utall",
-          "components":{
-            "ocpi":{ "active":true,"type":"ocpi" },
-            "organization":{ "active":true,"type":null },
-            "pricing":{ "active":true,"type":"simple" },
-            "refund":{ "active":true,"type":"concur" },
-            "statistics":{ "active":true,"type":null },
-            "analytics":{"active":true,"type":null }
-          }
-        }`);
-        activation = await testData.superCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
-        expect(activation.status).to.equal(StatusCodes.OK);
-        // Restore default simple pricing setting
-        update = await testData.centralService.updateEntity(testData.centralService.settingApi, oldSetting, false);
-        expect(update.status).to.equal(HTTPError.TENANT_COMPONENT_CHANGED);
-      }
-    );
 
     describe('Crypto settings update tests', () => {
       beforeAll(async () => {
@@ -680,11 +612,11 @@ describe('Setting', () => {
         const read = await testData.centralService.settingApi.readByIdentifier({ 'Identifier': 'pricing' });
         const oldPricingType = read.data.content.type;
         // Update the setting
-        read.data.content.type = 'convergentCharging';
+        read.data.content.type = 'anotherChargingServiceProvider';
         let update = await testData.centralService.settingApi.update(read.data);
         expect(update.status).to.equal(StatusCodes.OK);
         let readUpdated = await testData.centralService.settingApi.readByIdentifier({ 'Identifier': 'pricing' });
-        expect(readUpdated.data.content.type).to.equal('convergentCharging');
+        expect(readUpdated.data.content.type).to.equal('anotherChargingServiceProvider');
         // Set back the setting's type
         read.data.content.type = oldPricingType;
         update = await testData.centralService.settingApi.update(read.data);
