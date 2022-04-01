@@ -430,9 +430,17 @@ export default class OCPIUtils {
     const tariff = {} as OCPITariff;
     tariff.id = '1';
     tariff.currency = simplePricingSetting.currency;
-    tariff.elements[0].price_components[0].type = OCPITariffDimensionType.TIME;
-    tariff.elements[0].price_components[0].price = simplePricingSetting.price;
-    tariff.elements[0].price_components[0].step_size = 60;
+    tariff.elements = [
+      {
+        price_components: [
+          {
+            type: OCPITariffDimensionType.TIME,
+            price: simplePricingSetting.price,
+            step_size: 60,
+          }
+        ]
+      }
+    ];
     tariff.last_updated = simplePricingSetting.last_updated;
     return tariff;
   }

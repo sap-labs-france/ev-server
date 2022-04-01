@@ -676,6 +676,7 @@ export enum OCPIServerRoute {
   OCPI_CDRS = 'cdrs',
   OCPI_COMMANDS = 'commands',
   OCPI_TOKENS = 'tokens',
+  OCPI_TARIFFS = 'tariffs',
 }
 
 export enum ServerProtocol {
