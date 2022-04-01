@@ -608,22 +608,6 @@ describe('Setting', () => {
         const create = await testData.centralService.settingApi.create(settingData);
         expect(create.status).to.equal(StatusCodes.OK);
       });
-      it('Should be able to update a setting', async () => {
-        const read = await testData.centralService.settingApi.readByIdentifier({ 'Identifier': 'pricing' });
-        const oldPricingType = read.data.content.type;
-        // Update the setting
-        read.data.content.type = 'anotherChargingServiceProvider';
-        let update = await testData.centralService.settingApi.update(read.data);
-        expect(update.status).to.equal(StatusCodes.OK);
-        let readUpdated = await testData.centralService.settingApi.readByIdentifier({ 'Identifier': 'pricing' });
-        expect(readUpdated.data.content.type).to.equal('anotherChargingServiceProvider');
-        // Set back the setting's type
-        read.data.content.type = oldPricingType;
-        update = await testData.centralService.settingApi.update(read.data);
-        expect(update.status).to.equal(StatusCodes.OK);
-        readUpdated = await testData.centralService.settingApi.readByIdentifier({ 'Identifier': 'pricing' });
-        expect(readUpdated.data.content.type).to.equal(oldPricingType);
-      });
       it('Should be able to delete the created setting', async () => {
         const read = await testData.centralService.settingApi.readByIdentifier({ 'Identifier': 'statistics' });
         const deleted = await testData.centralService.settingApi.delete(read.data.id);
