@@ -1,5 +1,4 @@
 import AbstractOCPIService from '../../AbstractOCPIService';
-import CredentialsEndpoint from './credentials/CredentialsEndpoint';
 import EMSPCdrsEndpoint from './emsp/EMSPCdrsEndpoint';
 import EMSPCommandsEndpoint from './emsp/EMSPCommandsEndpoint';
 import EMSPLocationsEndpoint from './emsp/EMSPLocationsEndpoint';
@@ -14,8 +13,6 @@ export default class EMSPService extends AbstractOCPIService {
 
   public constructor(ocpiRestConfig: OCPIServiceConfiguration) {
     super(ocpiRestConfig, EMSPService.PATH, EMSPService.VERSION);
-    // Register Endpoints
-    this.registerEndpoint(new CredentialsEndpoint(this));
     this.registerEndpoint(new EMSPLocationsEndpoint(this));
     this.registerEndpoint(new EMSPTokensEndpoint(this));
     this.registerEndpoint(new EMSPSessionsEndpoint(this));
