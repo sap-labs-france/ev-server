@@ -17,7 +17,6 @@ import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
 import { TenantComponents } from '../../../../types/Tenant';
-import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 
 const MODULE_NAME = 'PricingService';
