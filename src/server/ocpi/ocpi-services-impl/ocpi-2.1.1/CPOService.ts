@@ -1,6 +1,5 @@
 import AbstractOCPIService from '../../AbstractOCPIService';
 import CPOSessionsEndpoint from './cpo/CPOSessionsEndpoint';
-import CPOTariffsEndpoint from './cpo/CPOTariffsEndpoint';
 import CredentialsEndpoint from './credentials/CredentialsEndpoint';
 import OCPIServiceConfiguration from '../../../../types/configuration/OCPIServiceConfiguration';
 
@@ -12,7 +11,6 @@ export default class CPOService extends AbstractOCPIService {
     super(ocpiRestConfig, CPOService.PATH, CPOService.VERSION);
     // Register Endpoints
     this.registerEndpoint(new CPOSessionsEndpoint(this));
-    this.registerEndpoint(new CPOTariffsEndpoint(this));
     this.registerEndpoint(new CredentialsEndpoint(this));
   }
 }
