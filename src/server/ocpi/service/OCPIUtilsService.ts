@@ -45,6 +45,13 @@ import moment from 'moment';
 const MODULE_NAME = 'OCPIUtilsService';
 
 export default class OCPIUtilsService {
+  public static getServiceUrl(req: Request): string {
+    const baseUrl = OCPIUtilsService.getBaseUrl(req);
+    const path = req.path;
+    // Return Service url
+    return `${baseUrl}${path}`;
+  }
+
   public static getBaseUrl(req: Request): string {
     // Get host from the req
     const host = req.get('host');

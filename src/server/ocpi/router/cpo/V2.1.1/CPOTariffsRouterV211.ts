@@ -1,5 +1,5 @@
-import { OCPIServerRoute, ServerAction } from '../../../../../types/Server';
 /* eslint-disable @typescript-eslint/no-misused-promises */
+import { OCPIServerRoute, ServerAction } from '../../../../../types/Server';
 import express, { NextFunction, Request, Response } from 'express';
 
 import CPOTariffsService from '../../../service/cpo/v2.1.1/CPOTariffsService';
@@ -13,11 +13,11 @@ export default class CPOTariffsRouterV211 {
   }
 
   public buildRoutes(): express.Router {
-    this.buildRouteTariffs();
+    this.buildRouteGetTariffs();
     return this.router;
   }
 
-  protected buildRouteTariffs(): void {
+  protected buildRouteGetTariffs(): void {
     this.router.get(`/${OCPIServerRoute.OCPI_TARIFFS}*`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(CPOTariffsService.handleGetTariffs.bind(this), ServerAction.OCPI_CPO_GET_TARIFFS, req, res, next);
     });

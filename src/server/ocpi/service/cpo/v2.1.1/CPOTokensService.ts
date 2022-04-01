@@ -109,7 +109,7 @@ export default class CPOTokensService {
         detailedMessages: { operator, token, tag }
       });
     }
-    await OCPIUtilsService.updateCpoToken(tenant, token, tag, tag.user, ServerAction.OCPI_CPO_PUT_TOKEN);
+    await OCPIUtilsService.updateCpoToken(tenant, token, tag, tag.user, ServerAction.OCPI_CPO_UPDATE_TOKEN);
     res.json(OCPIUtils.success());
     next();
   }

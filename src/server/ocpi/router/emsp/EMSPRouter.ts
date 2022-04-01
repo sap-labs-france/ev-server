@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/no-misused-promises */
 import { OCPIServerRoute, ServerAction } from '../../../../types/Server';
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import express, { NextFunction, Request, Response } from 'express';
 
-import EMSPRouterV211 from './V2.1.1/EMSPRouterV211';
+import CPOEMSPCredentialsRouterV211 from '../common/V2.1.1/CPOEMSPCredentialsRouterV211';
 import EMSPVersionsService from '../../service/emsp/EMSPVersionsService';
 import RouterUtils from '../../../../utils/RouterUtils';
 
@@ -26,6 +26,8 @@ export default class EMSPRouter {
   }
 
   protected buildRouteEmspV211(): void {
-    this.router.use('/2.1.1', new EMSPRouterV211().buildRoutes());
+    this.router.use('/2.1.1', [
+      new CPOEMSPCredentialsRouterV211().buildRoutes(),
+    ]);
   }
 }

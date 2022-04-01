@@ -13,11 +13,11 @@ export default class CPOCdrsRouterV211 {
   }
 
   public buildRoutes(): express.Router {
-    this.buildRouteCdrs();
+    this.buildRouteGetCdrs();
     return this.router;
   }
 
-  protected buildRouteCdrs(): void {
+  protected buildRouteGetCdrs(): void {
     this.router.get(`/${OCPIServerRoute.OCPI_CDRS}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(CPOCdrsService.handleGetCdrs.bind(this), ServerAction.OCPI_CPO_GET_CDRS, req, res, next);
     });

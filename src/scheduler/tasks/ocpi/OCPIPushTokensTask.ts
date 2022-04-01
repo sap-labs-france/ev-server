@@ -29,7 +29,7 @@ export default class OCPIPushTokensTask extends TenantSchedulerTask {
       }
     } catch (error) {
       // Log error
-      await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_PUSH_TOKENS, error);
+      await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_UPDATE_TOKENS, error);
     }
   }
 
@@ -42,7 +42,7 @@ export default class OCPIPushTokensTask extends TenantSchedulerTask {
         if (ocpiEndpoint.status !== OCPIRegistrationStatus.REGISTERED) {
           await Logging.logDebug({
             tenantID: tenant.id,
-            action: ServerAction.OCPI_EMSP_PUSH_TOKENS,
+            action: ServerAction.OCPI_EMSP_UPDATE_TOKENS,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             message: `The OCPI endpoint '${ocpiEndpoint.name}' is not registered. Skipping the OCPI endpoint.`
           });
@@ -51,7 +51,7 @@ export default class OCPIPushTokensTask extends TenantSchedulerTask {
         if (!ocpiEndpoint.backgroundPatchJob) {
           await Logging.logDebug({
             tenantID: tenant.id,
-            action: ServerAction.OCPI_EMSP_PUSH_TOKENS,
+            action: ServerAction.OCPI_EMSP_UPDATE_TOKENS,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             message: `The OCPI endpoint '${ocpiEndpoint.name}' is inactive.`
           });
@@ -59,7 +59,7 @@ export default class OCPIPushTokensTask extends TenantSchedulerTask {
         }
         await Logging.logInfo({
           tenantID: tenant.id,
-          action: ServerAction.OCPI_EMSP_PUSH_TOKENS,
+          action: ServerAction.OCPI_EMSP_UPDATE_TOKENS,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           message: `Push of Tokens for endpoint '${ocpiEndpoint.name}' is being processed`
         });
@@ -69,14 +69,14 @@ export default class OCPIPushTokensTask extends TenantSchedulerTask {
         const result = await ocpiClient.pushTokens();
         await Logging.logInfo({
           tenantID: tenant.id,
-          action: ServerAction.OCPI_EMSP_PUSH_TOKENS,
+          action: ServerAction.OCPI_EMSP_UPDATE_TOKENS,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           message: `Push of Tokens for endpoint '${ocpiEndpoint.name}' is completed`,
           detailedMessages: { result }
         });
       } catch (error) {
         // Log error
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_PUSH_TOKENS, error);
+        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_UPDATE_TOKENS, error);
       } finally {
         // Release the lock
         await LockingManager.release(ocpiLock);

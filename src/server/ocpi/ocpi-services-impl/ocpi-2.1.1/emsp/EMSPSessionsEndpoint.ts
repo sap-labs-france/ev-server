@@ -45,7 +45,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
     const sessionId = urlSegment.shift();
     if (!countryCode || !partyId || !sessionId) {
       throw new AppError({
-        action: ServerAction.OCPI_EMSP_PULL_SESSIONS,
+        action: ServerAction.OCPI_EMSP_GET_SESSIONS,
         module: MODULE_NAME, method: 'getSessionRequest',
         errorCode: StatusCodes.BAD_REQUEST,
         message: 'Missing request parameters',
@@ -55,7 +55,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
     const transaction: Transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant, sessionId);
     if (!transaction) {
       throw new AppError({
-        action: ServerAction.OCPI_EMSP_PULL_SESSIONS,
+        action: ServerAction.OCPI_EMSP_GET_SESSIONS,
         module: MODULE_NAME, method: 'getSessionRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: `No Transaction found for OCPI Session ID ${sessionId}`,
@@ -75,7 +75,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
     const sessionID = urlSegment.shift();
     if (!countryCode || !partyID || !sessionID) {
       throw new AppError({
-        action: ServerAction.OCPI_EMSP_PUT_SESSION,
+        action: ServerAction.OCPI_EMSP_UPDATE_SESSION,
         module: MODULE_NAME, method: 'putSessionRequest',
         errorCode: StatusCodes.BAD_REQUEST,
         message: 'Missing request parameters',
@@ -87,7 +87,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
       session.id = sessionID;
     } else if (session.id !== sessionID) {
       throw new AppError({
-        action: ServerAction.OCPI_EMSP_PUT_SESSION,
+        action: ServerAction.OCPI_EMSP_UPDATE_SESSION,
         module: MODULE_NAME, method: 'putSessionRequest',
         errorCode: StatusCodes.BAD_REQUEST,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR,
@@ -95,7 +95,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
         detailedMessages: { sessionID, session }
       });
     }
-    await OCPIUtilsService.processEmspTransactionFromSession(tenant, session, ServerAction.OCPI_EMSP_PUT_SESSION);
+    await OCPIUtilsService.processEmspTransactionFromSession(tenant, session, ServerAction.OCPI_EMSP_UPDATE_SESSION);
     return OCPIUtils.success({});
   }
 
@@ -109,7 +109,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
     const sessionID = urlSegment.shift();
     if (!countryCode || !partyID || !sessionID) {
       throw new AppError({
-        action: ServerAction.OCPI_EMSP_PATCH_SESSION,
+        action: ServerAction.OCPI_EMSP_UPDATE_SESSION,
         module: MODULE_NAME, method: 'patchSessionRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',
@@ -119,7 +119,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
     const transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant, sessionID);
     if (!transaction) {
       throw new AppError({
-        action: ServerAction.OCPI_EMSP_PATCH_SESSION,
+        action: ServerAction.OCPI_EMSP_UPDATE_SESSION,
         module: MODULE_NAME, method: 'patchSessionRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Transaction not found with OCPI Session ID '${sessionID}'`,
@@ -129,7 +129,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
     // Merge
     _.merge(transaction.ocpiData.session, req.body);
     // Update
-    await OCPIUtilsService.processEmspTransactionFromSession(tenant, transaction.ocpiData.session, ServerAction.OCPI_EMSP_PATCH_SESSION, transaction);
+    await OCPIUtilsService.processEmspTransactionFromSession(tenant, transaction.ocpiData.session, ServerAction.OCPI_EMSP_UPDATE_SESSION, transaction);
     return OCPIUtils.success({});
   }
 }
