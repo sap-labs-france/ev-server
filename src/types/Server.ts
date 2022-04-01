@@ -169,6 +169,7 @@ export enum ServerAction {
   OCPI_EMSP_UPDATE_LOCATION = 'OcpiEmspUpdateLocation',
   OCPI_EMSP_GET_LOCATIONS = 'OcpiEmspGetLocations',
   OCPI_EMSP_GET_SESSIONS = 'OcpiEmspGetSessions',
+  OCPI_EMSP_GET_SESSION = 'OcpiEmspGetSession',
   OCPI_EMSP_UPDATE_SESSION = 'OcpiEmspUpdateSession',
   OCPI_EMSP_START_SESSION = 'OcpiEmspStartSession',
   OCPI_EMSP_STOP_SESSION = 'OcpiEmspStopSession',

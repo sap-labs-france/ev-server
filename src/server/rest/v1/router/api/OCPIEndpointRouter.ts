@@ -85,7 +85,7 @@ export default class OCPIEndpointRouter {
   private buildRouteOcpiEndpointPullSessions(): void {
     this.router.put(`/${RESTServerRoute.REST_OCPI_ENDPOINT_PULL_SESSIONS}`, async (req: Request, res: Response, next: NextFunction) => {
       req.body.id = req.params.id;
-      await RouterUtils.handleServerAction(OCPIEndpointService.handlePullSessionsEndpoint.bind(this), ServerAction.OCPI_EMSP_GET_SESSIONS, req, res, next);
+      await RouterUtils.handleServerAction(OCPIEndpointService.handlePullSessionsEndpoint.bind(this), ServerAction.OCPI_EMSP_GET_SESSION, req, res, next);
     });
   }
 

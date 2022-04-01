@@ -4,6 +4,7 @@ import express, { NextFunction, Request, Response } from 'express';
 
 import CPOEMSPCredentialsRouterV211 from '../common/V2.1.1/CPOEMSPCredentialsRouterV211';
 import EMSPLocationsRouterV211 from './V2.1.1/EMSPLocationsRouterV211';
+import EMSPSessionsRouterV211 from './V2.1.1/EMSPSessionsRouterV211';
 import EMSPTokensRouterV211 from './V2.1.1/EMSPTokensRouterV211';
 import EMSPVersionsService from '../../service/emsp/EMSPVersionsService';
 import RouterUtils from '../../../../utils/RouterUtils';
@@ -31,6 +32,7 @@ export default class EMSPRouter {
     this.router.use('/2.1.1', [
       new EMSPTokensRouterV211().buildRoutes(),
       new EMSPLocationsRouterV211().buildRoutes(),
+      new EMSPSessionsRouterV211().buildRoutes(),
       new CPOEMSPCredentialsRouterV211().buildRoutes(),
     ]);
   }

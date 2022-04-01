@@ -309,7 +309,7 @@ export default class OCPIEndpointService {
     const pullSessionsLock = await LockingHelper.createOCPIPullSessionsLock(req.tenant.id, ocpiEndpoint);
     if (!pullSessionsLock) {
       throw new AppError({
-        action: ServerAction.OCPI_EMSP_GET_SESSIONS,
+        action: ServerAction.OCPI_EMSP_GET_SESSION,
         errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
         message: 'Error in pulling the OCPI Sessions: cannot acquire the lock',
         module: MODULE_NAME, method: 'handlePullSessionsEndpoint',
