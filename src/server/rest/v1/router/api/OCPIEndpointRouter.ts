@@ -71,7 +71,7 @@ export default class OCPIEndpointRouter {
   private buildRouteOcpiEndpointPullCDRs(): void {
     this.router.put(`/${RESTServerRoute.REST_OCPI_ENDPOINT_PULL_CDRS}`, async (req: Request, res: Response, next: NextFunction) => {
       req.body.id = req.params.id;
-      await RouterUtils.handleServerAction(OCPIEndpointService.handlePullCdrsEndpoint.bind(this), ServerAction.OCPI_EMSP_GET_CDRS, req, res, next);
+      await RouterUtils.handleServerAction(OCPIEndpointService.handlePullCdrsEndpoint.bind(this), ServerAction.OCPI_EMSP_GET_CDR, req, res, next);
     });
   }
 

@@ -1,5 +1,5 @@
-import { OCPIServerRoute, ServerAction } from '../../../../../types/Server';
 /* eslint-disable @typescript-eslint/no-misused-promises */
+import { OCPIServerRoute, ServerAction } from '../../../../../types/Server';
 import express, { NextFunction, Request, Response } from 'express';
 
 import EMSPSessionsService from '../../../service/emsp/v2.1.1/EMSPSessionsService';
