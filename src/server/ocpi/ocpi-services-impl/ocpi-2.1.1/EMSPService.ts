@@ -1,7 +1,6 @@
 import AbstractOCPIService from '../../AbstractOCPIService';
 import EMSPCdrsEndpoint from './emsp/EMSPCdrsEndpoint';
 import EMSPCommandsEndpoint from './emsp/EMSPCommandsEndpoint';
-import EMSPLocationsEndpoint from './emsp/EMSPLocationsEndpoint';
 import EMSPSessionsEndpoint from './emsp/EMSPSessionsEndpoint';
 import EMSPTariffsEndpoint from './emsp/EMSPTariffsEndpoint';
 import EMSPTokensEndpoint from './emsp/EMSPTokensEndpoint';
@@ -13,7 +12,6 @@ export default class EMSPService extends AbstractOCPIService {
 
   public constructor(ocpiRestConfig: OCPIServiceConfiguration) {
     super(ocpiRestConfig, EMSPService.PATH, EMSPService.VERSION);
-    this.registerEndpoint(new EMSPLocationsEndpoint(this));
     this.registerEndpoint(new EMSPTokensEndpoint(this));
     this.registerEndpoint(new EMSPSessionsEndpoint(this));
     this.registerEndpoint(new EMSPCdrsEndpoint(this));
@@ -21,4 +19,3 @@ export default class EMSPService extends AbstractOCPIService {
     this.registerEndpoint(new EMSPTariffsEndpoint(this));
   }
 }
-

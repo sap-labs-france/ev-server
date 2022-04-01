@@ -18,7 +18,7 @@ export default class CPOCdrsRouterV211 {
   }
 
   protected buildRouteGetCdrs(): void {
-    this.router.get(`/${OCPIServerRoute.OCPI_CDRS}`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.get(`/${OCPIServerRoute.OCPI_CDRS}*`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(CPOCdrsService.handleGetCdrs.bind(this), ServerAction.OCPI_CPO_GET_CDRS, req, res, next);
     });
   }

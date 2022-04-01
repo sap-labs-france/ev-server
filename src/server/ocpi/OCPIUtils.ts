@@ -445,7 +445,7 @@ export default class OCPIUtils {
     return tariff;
   }
 
-  public static async processEMSPLocationSite(tenant: Tenant, location: OCPILocation, company: Company, site: Site, siteName?: string): Promise<Site> {
+  public static async updateEMSPLocationSite(tenant: Tenant, location: OCPILocation, company: Company, site: Site, siteName?: string): Promise<Site> {
     // Create Site
     if (!site) {
       site = {
@@ -486,7 +486,7 @@ export default class OCPIUtils {
     return site;
   }
 
-  public static async processEMSPLocationSiteArea(tenant: Tenant, location: OCPILocation, site: Site, siteArea: SiteArea): Promise<SiteArea> {
+  public static async updateEMSPLocationSiteArea(tenant: Tenant, location: OCPILocation, site: Site, siteArea: SiteArea): Promise<SiteArea> {
     // Create Site Area
     if (!siteArea) {
       siteArea = {

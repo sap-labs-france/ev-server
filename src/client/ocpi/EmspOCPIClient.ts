@@ -156,12 +156,12 @@ export default class EmspOCPIClient extends OCPIClient {
             // Process Site
             const siteName = location.operator.name;
             const foundSite = sites.result.find((existingSite) => existingSite.name === siteName);
-            const site = await OCPIUtils.processEMSPLocationSite(
+            const site = await OCPIUtils.updateEMSPLocationSite(
               this.tenant, location, company, foundSite, siteName);
             // Get Site Area
             const foundSiteArea = await SiteAreaStorage.getSiteAreaByOcpiLocationUid(this.tenant, location.id);
             // Process Site Area
-            const siteArea = await OCPIUtils.processEMSPLocationSiteArea(this.tenant, location, site, foundSiteArea);
+            const siteArea = await OCPIUtils.updateEMSPLocationSiteArea(this.tenant, location, site, foundSiteArea);
             // Process Charging Station
             await OCPIUtils.processEMSPLocationChargingStations(
               this.tenant, location, site, siteArea, evses, ServerAction.OCPI_EMSP_GET_LOCATIONS);

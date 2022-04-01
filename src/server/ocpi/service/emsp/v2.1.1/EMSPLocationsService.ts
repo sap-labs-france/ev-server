@@ -1,7 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
 
-import AbstractEndpoint from '../../AbstractEndpoint';
-import AbstractOCPIService from '../../../AbstractOCPIService';
 import AppError from '../../../../../exception/AppError';
 import ChargingStationStorage from '../../../../../storage/mongodb/ChargingStationStorage';
 import Company from '../../../../../types/Company';
@@ -11,7 +9,6 @@ import { OCPIConnector } from '../../../../../types/ocpi/OCPIConnector';
 import OCPIEndpoint from '../../../../../types/ocpi/OCPIEndpoint';
 import { OCPIEvse } from '../../../../../types/ocpi/OCPIEvse';
 import { OCPILocation } from '../../../../../types/ocpi/OCPILocation';
-import { OCPIResponse } from '../../../../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../../../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from '../../../OCPIUtils';
 import { ServerAction } from '../../../../../types/Server';
@@ -23,23 +20,11 @@ import Tenant from '../../../../../types/Tenant';
 import Utils from '../../../../../utils/Utils';
 import _ from 'lodash';
 
-const MODULE_NAME = 'EMSPLocationsEndpoint';
+const MODULE_NAME = 'EMSPLocationsService';
 
-export default class EMSPLocationsEndpoint extends AbstractEndpoint {
-  public constructor(ocpiService: AbstractOCPIService) {
-    super(ocpiService, 'locations');
-  }
-
-  public async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
-    switch (req.method) {
-      case 'PUT':
-        return this.putLocationRequest(req, res, next, tenant, ocpiEndpoint);
-      case 'PATCH':
-        return this.patchLocationRequest(req, res, next, tenant, ocpiEndpoint);
-    }
-  }
-
-  private async putLocationRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
+export default class EMSPLocationsService {
+  public static async handlePutLocation(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { tenant, ocpiEndpoint } = req;
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
     urlSegment.shift();
@@ -51,31 +36,36 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     const evseConnectorID = urlSegment.shift();
     if (!countryCode || !partyID || !locationID) {
       throw new AppError({
-        action: ServerAction.OCPI_EMSP_UPDATE_LOCATION, module: MODULE_NAME, method: 'putLocationRequest',
+        module: MODULE_NAME, method: 'handlePutLocation', action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
     // Get Orgs
-    const { company, site, siteArea } = await this.getOrganizationsFromLocationID(
-      tenant, ocpiEndpoint, locationID, ServerAction.OCPI_EMSP_UPDATE_LOCATION, false);
+    const { company, site, siteArea } = await EMSPLocationsService.getOrganizationsFromLocationID(
+      action, tenant, ocpiEndpoint, locationID, false);
     // Update/Create Location
     if (locationID && !evseUID && !evseConnectorID) {
-      await this.putLocation(tenant, locationID, req.body as OCPILocation, company, site, siteArea, countryCode, partyID);
+      await EMSPLocationsService.putLocation(
+        action, tenant, locationID, req.body as OCPILocation, company, site, siteArea, countryCode, partyID);
     }
     // Update Evse
     if (locationID && evseUID && !evseConnectorID) {
-      await this.putEvse(tenant, locationID, evseUID, req.body as OCPIEvse, company, site, siteArea);
+      await EMSPLocationsService.putEvse(
+        action, tenant, locationID, evseUID, req.body as OCPIEvse, company, site, siteArea);
     }
     // Update Connector
     if (locationID && evseUID && evseConnectorID) {
-      await this.putEvseConnector(tenant, locationID, evseUID, evseConnectorID, req.body as OCPIConnector, company, site, siteArea);
+      await EMSPLocationsService.putEvseConnector(
+        action, tenant, locationID, evseUID, evseConnectorID, req.body as OCPIConnector, company, site, siteArea);
     }
-    return OCPIUtils.success();
+    res.json(OCPIUtils.success());
+    next();
   }
 
-  private async patchLocationRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
+  public static async handlePatchLocation(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { tenant, ocpiEndpoint } = req;
     const urlSegment = req.path.substring(1).split('/');
     urlSegment.shift();
     const countryCode = urlSegment.shift();
@@ -85,35 +75,39 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     const evseConnectorID = urlSegment.shift();
     if (!countryCode || !partyID || !locationID) {
       throw new AppError({
-        action: ServerAction.OCPI_EMSP_UPDATE_LOCATION, module: MODULE_NAME, method: 'patchLocationRequest',
+        module: MODULE_NAME, method: 'handlePatchLocation', action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
     // Get the Orgs
-    const { company, site, siteArea } = await this.getOrganizationsFromLocationID(
-      tenant, ocpiEndpoint, locationID, ServerAction.OCPI_EMSP_UPDATE_LOCATION, true);
+    const { company, site, siteArea } = await EMSPLocationsService.getOrganizationsFromLocationID(
+      action, tenant, ocpiEndpoint, locationID, true);
     // Update Location
     if (locationID && !evseUID && !evseConnectorID) {
-      await this.patchLocation(tenant, locationID, req.body as OCPILocation, company, site, siteArea);
+      await EMSPLocationsService.patchLocation(
+        action, tenant, locationID, req.body as OCPILocation, company, site, siteArea);
     }
     // Update Evse
     if (locationID && evseUID && !evseConnectorID) {
-      await this.patchEvse(tenant, locationID, evseUID, req.body as OCPIEvse, company, site, siteArea);
+      await EMSPLocationsService.patchEvse(
+        action, tenant, locationID, evseUID, req.body as OCPIEvse, company, site, siteArea);
     }
     // Update Connector
     if (locationID && evseUID && evseConnectorID) {
-      await this.patchEvseConnector(tenant, locationID, evseUID, evseConnectorID, req.body as OCPIConnector, company, site, siteArea);
+      await EMSPLocationsService.patchEvseConnector(
+        action, tenant, locationID, evseUID, evseConnectorID, req.body as OCPIConnector, company, site, siteArea);
     }
-    return OCPIUtils.success();
+    res.json(OCPIUtils.success());
+    next();
   }
 
-  private async putLocation(tenant: Tenant, locationID: string, location: OCPILocation,
+  private static async putLocation(action: ServerAction, tenant: Tenant, locationID: string, location: OCPILocation,
       company: Company, site: Site, siteArea: SiteArea, countryCode: string, partyID: string): Promise<void> {
     if (location.id !== locationID) {
       throw new AppError({
-        action: ServerAction.OCPI_EMSP_UPDATE_LOCATION, module: MODULE_NAME, method: 'putLocation',
+        module: MODULE_NAME, method: 'putLocation', action,
         errorCode: StatusCodes.NOT_FOUND,
         message: `Location ID '${locationID}' mismatch in URL`,
         ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
@@ -125,19 +119,19 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     delete location.evses;
     // Process Site
     const siteName = OCPIUtils.buildOperatorName(countryCode, partyID);
-    site = await OCPIUtils.processEMSPLocationSite(tenant, location, company, site, siteName);
+    site = await OCPIUtils.updateEMSPLocationSite(tenant, location, company, site, siteName);
     // Process Site Area
-    siteArea = await OCPIUtils.processEMSPLocationSiteArea(tenant, location, site, siteArea);
+    siteArea = await OCPIUtils.updateEMSPLocationSiteArea(tenant, location, site, siteArea);
     // Process Charging Station
     await OCPIUtils.processEMSPLocationChargingStations(tenant, location, site, siteArea, evses, ServerAction.OCPI_EMSP_UPDATE_LOCATION);
   }
 
-  private async putEvse(tenant: Tenant, locationID: string, evseUID: string, evse: OCPIEvse,
+  private static async putEvse(action: ServerAction, tenant: Tenant, locationID: string, evseUID: string, evse: OCPIEvse,
       company: Company, site: Site, siteArea: SiteArea): Promise<void> {
     if (evse.uid !== evseUID) {
       throw new AppError({
         chargingStationID: evseUID, companyID: company.id, siteID: site?.id, siteAreaID: siteArea?.id,
-        action: ServerAction.OCPI_EMSP_UPDATE_LOCATION, module: MODULE_NAME, method: 'putEvse',
+        module: MODULE_NAME, method: 'putEvse', action,
         errorCode: StatusCodes.NOT_FOUND,
         message: `EVSE ID '${evseUID}' mismatch in URL for Location ID '${locationID}'`,
         ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
@@ -148,7 +142,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     if (!siteArea?.ocpiData?.location) {
       throw new AppError({
         chargingStationID: evseUID, companyID: company.id, siteID: site?.id, siteAreaID: siteArea?.id,
-        action: ServerAction.OCPI_EMSP_UPDATE_LOCATION, module: MODULE_NAME, method: 'putEvse',
+        module: MODULE_NAME, method: 'putEvse', action,
         errorCode: StatusCodes.NOT_FOUND,
         message: `Site Area does not exists for Location ID'${locationID}' and EVSE ID '${evseUID}'`,
         ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
@@ -160,12 +154,12 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       tenant, siteArea.ocpiData.location, site, siteArea, evse, ServerAction.OCPI_EMSP_UPDATE_LOCATION);
   }
 
-  private async putEvseConnector(tenant: Tenant, locationID: string, evseUID: string, evseConnectorID: string, evseConnector: OCPIConnector,
+  private static async putEvseConnector(action: ServerAction, tenant: Tenant, locationID: string, evseUID: string, evseConnectorID: string, evseConnector: OCPIConnector,
       company: Company, site: Site, siteArea: SiteArea): Promise<void> {
     if (evseConnector.id !== evseConnectorID) {
       throw new AppError({
         chargingStationID: evseUID, companyID: company.id, siteID: site.id, siteAreaID: siteArea.id,
-        action: ServerAction.OCPI_EMSP_UPDATE_LOCATION, module: MODULE_NAME, method: 'putEvseConnector',
+        module: MODULE_NAME, method: 'putEvseConnector', action,
         errorCode: StatusCodes.NOT_FOUND,
         message: `EVSE Connector ID '${evseConnectorID}' mismatch in URL for Location ID '${locationID}' and EVSE ID '${evseUID}'`,
         ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
@@ -173,13 +167,13 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       });
     }
     // Get Evse
-    const evse = await this.checkAndGetEvse(
-      tenant, locationID, evseUID, company, site, siteArea, ServerAction.OCPI_EMSP_UPDATE_LOCATION);
+    const evse = await EMSPLocationsService.checkAndGetEvse(
+      action, tenant, locationID, evseUID, company, site, siteArea);
     // Check Evse Connectors
     if (Utils.isEmptyArray(evse.connectors)) {
       throw new AppError({
         chargingStationID: evseUID, companyID: company.id, siteID: site.id, siteAreaID: siteArea.id,
-        action: ServerAction.OCPI_EMSP_UPDATE_LOCATION, module: MODULE_NAME, method: 'putEvseConnector',
+        module: MODULE_NAME, method: 'putEvseConnector', action,
         errorCode: StatusCodes.NOT_FOUND,
         message: 'Charging Station does not have an OCPI EVSE Connector',
         ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
@@ -196,12 +190,12 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       tenant, siteArea.ocpiData.location, site, siteArea, evse, ServerAction.OCPI_EMSP_UPDATE_LOCATION);
   }
 
-  private async patchLocation(tenant: Tenant, locationID: string, location: OCPILocation,
+  private static async patchLocation(action: ServerAction, tenant: Tenant, locationID: string, location: OCPILocation,
       company: Company, site: Site, siteArea: SiteArea): Promise<void> {
     // Check Location in Site Area
     if (!siteArea.ocpiData?.location) {
       throw new AppError({
-        action: ServerAction.OCPI_EMSP_UPDATE_LOCATION, module: MODULE_NAME, method: 'patchLocation',
+        module: MODULE_NAME, method: 'patchLocation', action,
         errorCode: StatusCodes.NOT_FOUND,
         message: 'Site Area does not have an OCPI Location',
         ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
@@ -214,16 +208,16 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       ...location,
     };
     // Process Site
-    await OCPIUtils.processEMSPLocationSite(tenant, patchedLocation, company, site);
+    await OCPIUtils.updateEMSPLocationSite(tenant, patchedLocation, company, site);
     // Process Site Area
-    await OCPIUtils.processEMSPLocationSiteArea(tenant, patchedLocation, site, siteArea);
+    await OCPIUtils.updateEMSPLocationSiteArea(tenant, patchedLocation, site, siteArea);
   }
 
-  private async patchEvse(tenant: Tenant, locationID: string, evseUID: string, evse: OCPIEvse,
+  private static async patchEvse(action: ServerAction, tenant: Tenant, locationID: string, evseUID: string, evse: OCPIEvse,
       company: Company, site: Site, siteArea: SiteArea): Promise<void> {
     // Get Evse
-    const foundEvse = await this.checkAndGetEvse(
-      tenant, locationID, evseUID, company, site, siteArea, ServerAction.OCPI_EMSP_UPDATE_LOCATION);
+    const foundEvse = await EMSPLocationsService.checkAndGetEvse(
+      action, tenant, locationID, evseUID, company, site, siteArea);
     // Patch
     const patchedEvse = {
       ...foundEvse,
@@ -234,16 +228,16 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       tenant, siteArea.ocpiData.location, site, siteArea, patchedEvse, ServerAction.OCPI_EMSP_UPDATE_LOCATION);
   }
 
-  private async patchEvseConnector(tenant: Tenant, locationID: string, evseUID: string, evseConnectorID: string, evseConnector: OCPIConnector,
+  private static async patchEvseConnector(action: ServerAction, tenant: Tenant, locationID: string, evseUID: string, evseConnectorID: string, evseConnector: OCPIConnector,
       company: Company, site: Site, siteArea: SiteArea): Promise<void> {
     // Get Evse
-    const evse = await this.checkAndGetEvse(
-      tenant, locationID, evseUID, company, site, siteArea, ServerAction.OCPI_EMSP_UPDATE_LOCATION);
+    const evse = await EMSPLocationsService.checkAndGetEvse(
+      action, tenant, locationID, evseUID, company, site, siteArea);
     // Check Evse Connectors
     if (Utils.isEmptyArray(evse.connectors)) {
       throw new AppError({
         chargingStationID: evseUID, companyID: company.id, siteID: site.id, siteAreaID: siteArea.id,
-        action: ServerAction.OCPI_EMSP_UPDATE_LOCATION, module: MODULE_NAME, method: 'patchEvseConnector',
+        module: MODULE_NAME, method: 'patchEvseConnector', action,
         errorCode: StatusCodes.NOT_FOUND,
         message: 'Charging Station does not have an OCPI EVSE Connector',
         ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
@@ -256,7 +250,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     if (!foundEvseConnector) {
       throw new AppError({
         chargingStationID: evseUID, companyID: company.id, siteID: site.id, siteAreaID: siteArea.id,
-        action: ServerAction.OCPI_EMSP_UPDATE_LOCATION, module: MODULE_NAME, method: 'patchEvseConnector',
+        module: MODULE_NAME, method: 'patchEvseConnector', action,
         errorCode: StatusCodes.NOT_FOUND,
         message: `Charging Station has no EVSE Connector with ID '${locationID}'`,
         ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
@@ -270,13 +264,13 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       tenant, siteArea.ocpiData.location, site, siteArea, evse, ServerAction.OCPI_EMSP_UPDATE_LOCATION);
   }
 
-  private async getOrganizationsFromLocationID(tenant: Tenant, ocpiEndpoint: OCPIEndpoint, locationID: string,
-      action: ServerAction, orgMustExist: boolean): Promise<{ company: Company; site: Site; siteArea: SiteArea; }> {
+  private static async getOrganizationsFromLocationID(action: ServerAction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint, locationID: string,
+      orgMustExist: boolean): Promise<{ company: Company; site: Site; siteArea: SiteArea; }> {
     // Get Company
     const company = await OCPIUtils.checkAndGetEMSPCompany(tenant, ocpiEndpoint);
     if (orgMustExist && !company) {
       throw new AppError({
-        action, module: MODULE_NAME, method: 'getOrganizationFromLocationID',
+        module: MODULE_NAME, method: 'getOrganizationsFromLocationID', action,
         errorCode: StatusCodes.NOT_FOUND,
         message: `Company does not exist for endpoint '${ocpiEndpoint.name}' (ID '${ocpiEndpoint.id}'`,
         ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
@@ -287,7 +281,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     const siteArea = await SiteAreaStorage.getSiteAreaByOcpiLocationUid(tenant, locationID);
     if (orgMustExist && !siteArea) {
       throw new AppError({
-        action, module: MODULE_NAME, method: 'getOrganizationFromLocationID',
+        module: MODULE_NAME, method: 'getOrganizationsFromLocationID', action,
         errorCode: StatusCodes.NOT_FOUND,
         message: `Site Area does not exist for Location ID '${locationID}'`,
         ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
@@ -296,7 +290,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     }
     if (orgMustExist && !siteArea?.ocpiData?.location?.id) {
       throw new AppError({
-        action, module: MODULE_NAME, method: 'getOrganizationFromLocationID',
+        module: MODULE_NAME, method: 'getOrganizationsFromLocationID', action,
         errorCode: StatusCodes.NOT_FOUND,
         message: 'Site Area does not have an OCPI Location',
         ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
@@ -305,7 +299,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     }
     if (orgMustExist && !siteArea.site) {
       throw new AppError({
-        action, module: MODULE_NAME, method: 'getOrganizationFromLocationID',
+        module: MODULE_NAME, method: 'getOrganizationsFromLocationID', action,
         errorCode: StatusCodes.NOT_FOUND,
         message: `Site Area does not have a Site for Location ID '${locationID}'`,
         ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
@@ -315,13 +309,13 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     return { company, siteArea, site: siteArea?.site };
   }
 
-  private async checkAndGetEvse(tenant: Tenant, locationID: string, evseUID: string,
-      company: Company, site: Site, siteArea: SiteArea, action: ServerAction): Promise<OCPIEvse> {
+  private static async checkAndGetEvse(action: ServerAction, tenant: Tenant, locationID: string, evseUID: string,
+      company: Company, site: Site, siteArea: SiteArea): Promise<OCPIEvse> {
     // Site Area (Location) must exists
     if (!siteArea?.ocpiData?.location) {
       throw new AppError({
         chargingStationID: evseUID, companyID: company.id, siteID: site.id, siteAreaID: siteArea.id,
-        action, module: MODULE_NAME, method: 'checkAndGetEvse',
+        module: MODULE_NAME, method: 'checkAndGetEvse', action,
         errorCode: StatusCodes.NOT_FOUND,
         message: `Site Area with Location ID'${locationID}' does not exists`,
         ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
@@ -334,7 +328,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     if (!chargingStation) {
       throw new AppError({
         chargingStationID: evseUID, companyID: company.id, siteID: site.id, siteAreaID: siteArea.id,
-        action, module: MODULE_NAME, method: 'checkAndGetEvse',
+        module: MODULE_NAME, method: 'checkAndGetEvse', action,
         errorCode: StatusCodes.NOT_FOUND,
         message: `Charging Station with EVSE ID '${evseUID}' and Location ID '${locationID}' does not exist`,
         ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
@@ -345,7 +339,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     if (Utils.isEmptyArray(chargingStation.ocpiData?.evses)) {
       throw new AppError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
-        action, module: MODULE_NAME, method: 'checkAndGetEvse',
+        module: MODULE_NAME, method: 'checkAndGetEvse', action,
         errorCode: StatusCodes.NOT_FOUND,
         message: 'Charging Station does not have an OCPI EVSE',
         ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
@@ -358,7 +352,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     if (!foundEvse) {
       throw new AppError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
-        action, module: MODULE_NAME, method: 'checkAndGetEvse',
+        module: MODULE_NAME, method: 'checkAndGetEvse', action,
         errorCode: StatusCodes.NOT_FOUND,
         message: `Charging Station has no EVSE with ID '${evseUID}'`,
         ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
