@@ -1,5 +1,5 @@
+import { OCPIServerRoute, OCPIServerRouteVersions, ServerAction } from '../../../../types/Server';
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { OCPIServerRoute, ServerAction } from '../../../../types/Server';
 import express, { NextFunction, Request, Response } from 'express';
 
 import CPOEMSPCredentialsRouterV211 from '../common/V2.1.1/CPOEMSPCredentialsRouterV211';
@@ -10,11 +10,8 @@ import EMSPSessionsRouterV211 from './V2.1.1/EMSPSessionsRouterV211';
 import EMSPTariffsRouterV211 from './V2.1.1/EMSPTariffsRouterV211';
 import EMSPTokensRouterV211 from './V2.1.1/EMSPTokensRouterV211';
 import EMSPVersionsService from '../../service/emsp/EMSPVersionsService';
-import OCPIUtils from '../../OCPIUtils';
-import OCPIUtilsService from '../../service/OCPIUtilsService';
 import RouterUtils from '../../../../utils/RouterUtils';
 
-const VERSION = '2.1.1';
 export default class EMSPRouter {
   private router: express.Router;
 
@@ -35,10 +32,10 @@ export default class EMSPRouter {
   }
 
   protected buildRouteEmspV211(): void {
-    this.router.get(`/${VERSION}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(this.getSupportedServices.bind(this), ServerAction.OCPI_CPO_GET_SERVICES, req, res, next);
+    this.router.get(`/${OCPIServerRouteVersions.VERSION_211}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(EMSPVersionsService.getSupportedServices.bind(this), ServerAction.OCPI_EMSP_GET_SERVICES, req, res, next);
     });
-    this.router.use(`/${VERSION}`, [
+    this.router.use(`/${OCPIServerRouteVersions.VERSION_211}`, [
       new EMSPTokensRouterV211().buildRoutes(),
       new EMSPLocationsRouterV211().buildRoutes(),
       new EMSPSessionsRouterV211().buildRoutes(),
@@ -47,15 +44,5 @@ export default class EMSPRouter {
       new EMSPTariffsRouterV211().buildRoutes(),
       new CPOEMSPCredentialsRouterV211().buildRoutes(),
     ]);
-  }
-
-  protected getSupportedServices(action: ServerAction, req: Request, res: Response, next: NextFunction): void {
-    const identifiers = Array.from(Object.values(OCPIServerRoute));
-    const fullUrl = OCPIUtilsService.getServiceUrl(req, 'emsp');
-    // Build payload
-    const supportedEndpoints = identifiers.map((identifier: string) => ({ identifier, url: `${fullUrl}/${identifier}/` }));
-    // Return payload
-    res.json(OCPIUtils.success({ 'version': VERSION, 'endpoints': supportedEndpoints }));
-    next();
   }
 }

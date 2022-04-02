@@ -339,7 +339,7 @@ describe('OCPI Service Tests (utocpi)', () => {
    *    - /ocpi/cpo/2.1.1/locations/{locationId}/{evseUid}
    *    - /ocpi/cpo/2.1.1/locations/{locationId}/{evseId}/{connectorId}
    */
-   describe('Test single entity /ocpi/cpo/2.1.1/locations/...', () => {
+  describe('Test single entity /ocpi/cpo/2.1.1/locations/...', () => {
     let response;
     describe('Success cases', () => {
       // Call once agian the GET Locations

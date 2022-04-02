@@ -166,6 +166,7 @@ export enum ServerAction {
   OCPI_CPO_AUTHORIZE_TOKEN = 'OcpiCpoAuthorizeToken',
   OCPI_CPO_GET_TARIFFS = 'OcpiCpoGetTariffs',
 
+  OCPI_EMSP_GET_SERVICES = 'OcpiEmspGetServices',
   OCPI_EMSP_COMMAND = 'OcpiEmspCommand',
   OCPI_EMSP_AUTHORIZE_TOKEN = 'OcpiEmspAuthorizeToken',
   OCPI_EMSP_UPDATE_LOCATION = 'OcpiEmspUpdateLocation',
@@ -674,14 +675,18 @@ export enum RESTServerRoute {
 }
 
 export enum OCPIServerRoute {
-  OCPI_VERSIONS = 'versions',
+  OCPI_CREDENTIALS = 'credentials',
   OCPI_LOCATIONS = 'locations',
+  OCPI_TOKENS = 'tokens',
+  OCPI_SESSIONS = 'sessions',
   OCPI_CDRS = 'cdrs',
   OCPI_COMMANDS = 'commands',
-  OCPI_TOKENS = 'tokens',
-  OCPI_CREDENTIALS = 'credentials',
   OCPI_TARIFFS = 'tariffs',
-  OCPI_SESSIONS = 'sessions',
+  OCPI_VERSIONS = 'versions',
+}
+
+export enum OCPIServerRouteVersions {
+  VERSION_211 = '2.1.1'
 }
 
 export enum ServerProtocol {

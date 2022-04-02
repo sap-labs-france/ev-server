@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { OCPIServerRoute, ServerAction } from '../../../../types/Server';
+import { OCPIServerRoute, OCPIServerRouteVersions, ServerAction } from '../../../../types/Server';
 import express, { NextFunction, Request, Response } from 'express';
 
 import CPOCdrsRouterV211 from './V2.1.1/CPOCdrsRouterV211';
@@ -32,7 +32,10 @@ export default class CPORouter {
   }
 
   protected buildRouteCpoV211(): void {
-    this.router.use('/2.1.1', [
+    this.router.get(`/${OCPIServerRouteVersions.VERSION_211}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(CPOVersionsService.getSupportedServices.bind(this), ServerAction.OCPI_CPO_GET_SERVICES, req, res, next);
+    });
+    this.router.use(`/${OCPIServerRouteVersions.VERSION_211}`, [
       new CPOLocationsRouterV211().buildRoutes(),
       new CPOTokensRouterV211().buildRoutes(),
       new CPOCdrsRouterV211().buildRoutes(),
