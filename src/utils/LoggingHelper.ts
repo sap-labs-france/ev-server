@@ -1,6 +1,7 @@
 import Asset from '../types/Asset';
 import { Car } from '../types/Car';
 import ChargingStation from '../types/ChargingStation';
+import { PricingContext } from '../types/Pricing';
 import RegistrationToken from '../types/RegistrationToken';
 import Site from '../types/Site';
 import SiteArea from '../types/SiteArea';
@@ -10,6 +11,16 @@ import User from '../types/User';
 import WSWrapper from '../server/ocpp/json/web-socket/WSWrapper';
 
 export default class LoggingHelper {
+
+  public static getPricingContextProperties(pricingContext: PricingContext): { siteID: string; siteAreaID: string; companyID: string; chargingStationID: string; actionOnUser: string } {
+    return {
+      siteID: pricingContext.siteID,
+      siteAreaID: pricingContext.siteAreaID,
+      companyID: pricingContext.companyID,
+      chargingStationID: pricingContext.chargingStationID,
+      actionOnUser: pricingContext.userID,
+    };
+  }
 
   public static getTransactionProperties(transaction: Transaction): { siteID: string; siteAreaID: string; companyID: string; chargingStationID: string; actionOnUser: User } {
     return {

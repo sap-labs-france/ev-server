@@ -21,6 +21,7 @@ export default class PricingRouter {
     this.buildRouteCreatePricingDefinition();
     this.buildRouteDeletePricingDefinition();
     this.buildRouteUpdatePricingDefinition();
+    this.buildRouteResolvePricingModel();
     return this.router;
   }
 
@@ -56,4 +57,12 @@ export default class PricingRouter {
       await RouterUtils.handleRestServerAction(PricingService.handleUpdatePricingDefinition.bind(this), ServerAction.PRICING_DEFINITION_UPDATE, req, res, next);
     });
   }
+
+  protected buildRouteResolvePricingModel(): void {
+    this.router.get(`/${ServerRoute.REST_PRICING_MODEL_RESOLVE}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = req.params.id;
+      await RouterUtils.handleServerAction(PricingService.handleResolvePricingModel.bind(this), ServerAction.PRICING_MODEL_RESOLVE, req, res, next);
+    });
+  }
+
 }

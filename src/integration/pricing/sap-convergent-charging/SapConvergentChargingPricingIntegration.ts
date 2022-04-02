@@ -1,6 +1,6 @@
 import { ChargeableItemProperty, ConfirmationItem, ReservationItem, Type } from './model/ChargeableItem';
 import { ChargingProfilePurposeType, Profile } from '../../../types/ChargingProfile';
-import { PricedConsumption, PricingSource } from '../../../types/Pricing';
+import { PricedConsumption, PricingContext, PricingSource, ResolvedPricingModel } from '../../../types/Pricing';
 import { StartRateRequest, StopRateRequest, UpdateRateRequest } from './model/RateRequest';
 
 import BackendError from '../../../exception/BackendError';
@@ -28,11 +28,16 @@ const MODULE_NAME = 'ConvergentChargingPricingIntegration';
 export default class SapConvergentChargingPricingIntegration extends PricingIntegration<ConvergentChargingPricingSetting> {
   public statefulChargingService: StatefulChargingService;
 
-  constructor(tenant: Tenant, setting: ConvergentChargingPricingSetting) {
+  public constructor(tenant: Tenant, setting: ConvergentChargingPricingSetting) {
     super(tenant, setting);
   }
 
-  public consumptionToChargeableItemProperties(transaction: Transaction, consumptionData: Consumption) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public async resolvePricingContext(pricingContext: PricingContext): Promise<ResolvedPricingModel> {
+    return Promise.resolve(null);
+  }
+
+  public consumptionToChargeableItemProperties(transaction: Transaction, consumptionData: Consumption): any {
     const timezone = transaction.timezone;
     const startedAt = timezone ? moment.tz(consumptionData.startedAt, timezone) : moment.utc(consumptionData.startedAt).local();
     const endedAt = timezone ? moment.tz(consumptionData.endedAt, timezone) : moment.utc(consumptionData.endedAt).local();
@@ -50,7 +55,7 @@ export default class SapConvergentChargingPricingIntegration extends PricingInte
     ];
   }
 
-  public computeSessionId(transaction: Transaction, consumptionData: Consumption) {
+  public computeSessionId(transaction: Transaction, consumptionData: Consumption): number {
     const timestamp = transaction.timestamp instanceof Date ? transaction.timestamp : new Date(transaction.timestamp);
     const dataId = consumptionData.userID + consumptionData.chargeBoxID + consumptionData.connectorId.toString() + timestamp.toISOString();
     if (dataId.length === 0) {
@@ -163,7 +168,7 @@ export default class SapConvergentChargingPricingIntegration extends PricingInte
     return null;
   }
 
-  public async handleError(transaction: Transaction, action: ServerAction, consumptionData: Consumption, result) {
+  public async handleError(transaction: Transaction, action: ServerAction, consumptionData: Consumption, result): Promise<void> {
     const chargingResult = result.data.chargingResult;
     const chargingStation: ChargingStation = await ChargingStationStorage.getChargingStation(this.tenant, transaction.chargeBoxID);
     await Logging.logError({
@@ -196,7 +201,7 @@ export default class SapConvergentChargingPricingIntegration extends PricingInte
     }
   }
 
-  public async handleAlertNotification(transaction: Transaction, consumptionData: Consumption, rateResult) {
+  public async handleAlertNotification(transaction: Transaction, consumptionData: Consumption, rateResult): Promise<void> {
     let chargingStation: ChargingStation = null;
     if (rateResult.transactionsToConfirm) {
       for (const ccTransaction of rateResult.transactionsToConfirm.ccTransactions) {

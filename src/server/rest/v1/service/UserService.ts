@@ -92,6 +92,7 @@ export default class UserService {
         withBillingChecks = false;
       }
     }
+    // Check for billing errors
     const errorCodes: Array<StartTransactionErrorCode> = [];
     if (withBillingChecks) {
       // Check for the billing prerequisites (such as the user's payment method)
