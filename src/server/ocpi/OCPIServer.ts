@@ -48,7 +48,7 @@ export default class OCPIServer {
       }
     });
     // Post init
-    ExpressUtils.postInitApplication(this.expressApplication, false);
+    ExpressUtils.postInitApplication(this.expressApplication);
   }
 
   // Start the server

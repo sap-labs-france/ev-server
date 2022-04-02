@@ -39,7 +39,7 @@ export default class RestServer {
       RestServerService.restServiceUtil.bind(this)
     );
     // Post init
-    ExpressUtils.postInitApplication(this.expressApplication, false);
+    ExpressUtils.postInitApplication(this.expressApplication);
     // Create HTTP server to serve the express app
     RestServer.restHttpServer = ServerUtils.createHttpServer(RestServer.centralSystemRestConfig, this.expressApplication);
   }

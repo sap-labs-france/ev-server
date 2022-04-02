@@ -220,6 +220,7 @@ export enum ServerAction {
 
   DB_WATCH = 'DBWatch',
   DB_MONITOR = 'DBMonitor',
+  MONITORING = 'Monitoring',
 
   EXPRESS_SERVER = 'ExpressServer',
   ODATA_SERVER = 'ODataServer',

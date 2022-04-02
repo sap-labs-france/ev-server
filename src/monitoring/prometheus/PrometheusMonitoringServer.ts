@@ -1,10 +1,10 @@
 import { Application, NextFunction, Request, Response } from 'express';
+import { ServerAction, ServerType } from '../../types/Server';
 
 import ExpressUtils from '../../server/ExpressUtils';
 import Logging from '../../utils/Logging';
 import MonitoringConfiguration from '../../types/configuration/MonitoringConfiguration';
 import MonitoringServer from '../MonitoringServer';
-import { ServerType } from '../../types/Server';
 import { ServerUtils } from '../../server/ServerUtils';
 import client from 'prom-client';
 
@@ -30,17 +30,18 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
     });
     // Create HTTP Server
     this.expressApplication = ExpressUtils.initApplication();
-    // Log Express Request
-    this.expressApplication.use(
-      async (req: Request, res: Response, next: NextFunction) => Logging.traceExpressRequest(req, res, next)
-    );
     // Handle requests
     this.expressApplication.use(
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       '/metrics', async (req: Request, res: Response, next: NextFunction) => {
+        // Trace Request
+        await Logging.traceExpressRequest(req, res, next, ServerAction.MONITORING);
+        // Process
         res.setHeader('Content-Type', register.contentType);
         res.end(await register.metrics());
         next();
+        // Trace Response
+        Logging.traceExpressResponse(req, res, next, ServerAction.MONITORING);
       }
     );
     // Post init

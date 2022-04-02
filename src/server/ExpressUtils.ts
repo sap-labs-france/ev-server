@@ -57,13 +57,7 @@ export default class ExpressUtils {
     return app;
   }
 
-  public static postInitApplication(expressApplication: Application, traceHttpRequest = true): void {
-    // Log Express Response
-    if (traceHttpRequest) {
-      expressApplication.use(
-        async (req: Request, res: Response, next: NextFunction) => Logging.traceExpressResponse(req, res, next)
-      );
-    }
+  public static postInitApplication(expressApplication: Application): void {
     // Error Handling
     expressApplication.use(Logging.traceExpressError.bind(this));
   }

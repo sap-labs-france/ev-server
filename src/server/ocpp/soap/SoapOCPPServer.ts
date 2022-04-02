@@ -28,25 +28,18 @@ export default class SoapOCPPServer extends OCPPServer {
     super(centralSystemConfig, chargingStationConfig);
     // Initialize express app
     this.expressApplication = ExpressUtils.initApplication(null, centralSystemConfig.debug);
-    // Log Express Request
-    this.expressApplication.use(
-      async (req: Request, res: Response, next: NextFunction) => Logging.traceExpressRequest(req, res, next)
-    );
     // Initialize the HTTP server
     this.httpServer = ServerUtils.createHttpServer(this.centralSystemConfig, this.expressApplication);
   }
 
-  /**
-   * Start the server and listen to all SOAP OCPP versions
-   * Listen to external command to send request to charging stations
-   */
   public start(): void {
     // Make it global for SOAP Services
     global.centralSystemSoapServer = this;
     ServerUtils.startHttpServer(this.centralSystemConfig, this.httpServer, MODULE_NAME, ServerType.SOAP_SERVER);
     // Create Soap Servers
     // OCPP 1.5 -----------------------------------------
-    const soapServer15 = soap.listen(this.httpServer, `/${Utils.getOCPPServerVersionURLPath(OCPPVersion.VERSION_15)}`, centralSystemService15, this.readWsdl('OCPPCentralSystemService15.wsdl'));
+    const soapServer15 = soap.listen(this.httpServer, `/${Utils.getOCPPServerVersionURLPath(OCPPVersion.VERSION_15)}`,
+      centralSystemService15, this.readWsdl('OCPPCentralSystemService15.wsdl'));
     if (this.centralSystemConfig.debug) {
       // Listen
       soapServer15.log = async (type, data) => {
@@ -58,7 +51,8 @@ export default class SoapOCPPServer extends OCPPServer {
       });
     }
     // OCPP 1.6 -----------------------------------------
-    const soapServer16 = soap.listen(this.httpServer, `/${Utils.getOCPPServerVersionURLPath(OCPPVersion.VERSION_16)}`, centralSystemService16, this.readWsdl('OCPPCentralSystemService16.wsdl'));
+    const soapServer16 = soap.listen(this.httpServer, `/${Utils.getOCPPServerVersionURLPath(OCPPVersion.VERSION_16)}`,
+      centralSystemService16, this.readWsdl('OCPPCentralSystemService16.wsdl'));
     if (this.centralSystemConfig.debug) {
       // Listen
       soapServer16.log = async (type, data) => {
