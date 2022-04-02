@@ -23,7 +23,13 @@ export default class RouterUtils {
       handleMethod: (serverAction: ServerAction, req: Request, res: Response, next: NextFunction) => Promise<void>,
       serverAction: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      // Trace Request
+      await Logging.traceExpressRequest(req, res, next, serverAction);
+      // Process
       await handleMethod(serverAction, req, res, next);
+      // Trace Response
+      Logging.traceExpressResponse(req, res, next, serverAction);
+      // Trace
     } catch (error) {
       Utils.isDevelopmentEnv() && Logging.logConsoleError(error.stack);
       void Logging.logActionExceptionMessage(req.tenant?.id ?? Constants.DEFAULT_TENANT_ID, error.params?.action ?? ServerAction.OCPI_ENDPOINT, error);

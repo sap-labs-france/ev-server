@@ -31,7 +31,9 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
     // Create HTTP Server
     this.expressApplication = ExpressUtils.initApplication();
     // Log Express Request
-    this.expressApplication.use(Logging.traceExpressRequest.bind(this));
+    this.expressApplication.use(
+      async (req: Request, res: Response, next: NextFunction) => Logging.traceExpressRequest(req, res, next)
+    );
     // Handle requests
     this.expressApplication.use(
       // eslint-disable-next-line @typescript-eslint/no-misused-promises

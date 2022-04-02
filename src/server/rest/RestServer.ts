@@ -32,12 +32,12 @@ export default class RestServer {
     this.expressApplication.use('/client/api/:action',
       AuthService.authenticate(),
       SessionHashService.checkUserAndTenantValidity.bind(this),
-      Logging.traceExpressRequest.bind(this),
+      async (req: Request, res: Response, next: NextFunction) => Logging.traceExpressRequest(req, res, next),
       RestServerService.restServiceSecured.bind(this)
     );
     // Util API
     this.expressApplication.use('/client/util/:action',
-      Logging.traceExpressRequest.bind(this),
+      async (req: Request, res: Response, next: NextFunction) => Logging.traceExpressRequest(req, res, next),
       RestServerService.restServiceUtil.bind(this)
     );
     // Post init

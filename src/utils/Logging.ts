@@ -294,7 +294,7 @@ export default class Logging {
       messageSuccess, messageError, messageSuccessAndError, messageNoSuccessNoError);
   }
 
-  public static async traceExpressRequest(req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async traceExpressRequest(req: Request, res: Response, next: NextFunction, action?: ServerAction): Promise<void> {
     if (Logging.getTraceConfiguration().traceIngressHttp) {
       try {
         // Get Tenant info
@@ -339,7 +339,7 @@ export default class Logging {
         Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
         await Logging.logDebug({
           tenantID,
-          action: ServerAction.HTTP_REQUEST,
+          action: action ?? ServerAction.HTTP_REQUEST,
           user: userID,
           message,
           module: MODULE_NAME, method: 'logExpressRequest',
@@ -358,14 +358,18 @@ export default class Logging {
         });
         req['performanceID'] = performanceID;
       } finally {
-        next();
+        // Express call does not provide action
+        if (!action) {
+          next();
+        }
       }
-    } else {
+    // Express call does not provide action
+    } else if (!action) {
       next();
     }
   }
 
-  public static traceExpressResponse(req: Request, res: Response, next: NextFunction): void {
+  public static traceExpressResponse(req: Request, res: Response, next: NextFunction, action?: ServerAction): void {
     if (Logging.getTraceConfiguration().traceIngressHttp) {
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       res.on('finish', async () => {
@@ -420,7 +424,7 @@ export default class Logging {
         await Logging.logDebug({
           tenantID: tenantID,
           user: req.user,
-          action: ServerAction.HTTP_RESPONSE,
+          action: action ?? ServerAction.HTTP_RESPONSE,
           message,
           module: MODULE_NAME, method: 'logExpressResponse',
           detailedMessages: {
@@ -441,7 +445,10 @@ export default class Logging {
         }
       });
     }
-    next();
+    // Express call does not provide action
+    if (!action) {
+      next();
+    }
   }
 
   public static async traceExpressError(error: Error, req: Request, res: Response, next: NextFunction): Promise<void> {

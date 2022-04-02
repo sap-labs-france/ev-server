@@ -1,3 +1,5 @@
+import express, { NextFunction, Request, Response } from 'express';
+
 import AssetRouter from './api/AssetRouter';
 import AuthRouter from './auth/AuthRouter';
 import AuthService from '../service/AuthService';
@@ -24,7 +26,6 @@ import TenantRouter from './api/TenantRouter';
 import TransactionRouter from './api/TransactionRouter';
 import UserRouter from './api/UserRouter';
 import UtilRouter from './util/UtilRouter';
-import express from 'express';
 
 export default class GlobalRouterV1 {
   private router: express.Router;
@@ -49,7 +50,7 @@ export default class GlobalRouterV1 {
     this.router.use('/api',
       AuthService.authenticate(),
       SessionHashService.checkUserAndTenantValidity.bind(this),
-      Logging.traceExpressRequest.bind(this),
+      async (req: Request, res: Response, next: NextFunction) => Logging.traceExpressRequest(req, res, next),
       [
         new AssetRouter().buildRoutes(),
         new BillingRouter().buildRoutes(),

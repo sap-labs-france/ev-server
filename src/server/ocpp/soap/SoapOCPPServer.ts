@@ -1,4 +1,5 @@
 import { ServerAction, ServerType } from '../../../types/Server';
+import express, { NextFunction, Request, Response } from 'express';
 
 import CentralSystemConfiguration from '../../../types/configuration/CentralSystemConfiguration';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
@@ -11,7 +12,6 @@ import { ServerUtils } from '../../ServerUtils';
 import Utils from '../../../utils/Utils';
 import centralSystemService15 from './services/SoapCentralSystemService15';
 import centralSystemService16 from './services/SoapCentralSystemService16';
-import express from 'express';
 import fs from 'fs';
 import global from '../../../types/GlobalType';
 import http from 'http';
@@ -29,7 +29,9 @@ export default class SoapOCPPServer extends OCPPServer {
     // Initialize express app
     this.expressApplication = ExpressUtils.initApplication(null, centralSystemConfig.debug);
     // Log Express Request
-    this.expressApplication.use(Logging.traceExpressRequest.bind(this));
+    this.expressApplication.use(
+      async (req: Request, res: Response, next: NextFunction) => Logging.traceExpressRequest(req, res, next)
+    );
     // Initialize the HTTP server
     this.httpServer = ServerUtils.createHttpServer(this.centralSystemConfig, this.expressApplication);
   }

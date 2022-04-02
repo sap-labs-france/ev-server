@@ -20,7 +20,9 @@ export default class OICPServer {
     // Initialize express app
     this.expressApplication = ExpressUtils.initApplication(null, oicpRestConfig.debug);
     // Log Express Request
-    this.expressApplication.use(Logging.traceExpressRequest.bind(this));
+    this.expressApplication.use(
+      async (req: Request, res: Response, next: NextFunction) => Logging.traceExpressRequest(req, res, next)
+    );
     // New OICP Services Instances
     const oicpServices = new OICPServices(this.oicpRestConfig);
     // Register all services in express

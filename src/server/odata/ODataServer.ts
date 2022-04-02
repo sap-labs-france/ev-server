@@ -23,7 +23,9 @@ export default class ODataServer {
     // Initialize express app
     this.expressApplication = ExpressUtils.initApplication(null, oDataServerConfig.debug);
     // Log Express Request
-    this.expressApplication.use(Logging.traceExpressRequest.bind(this));
+    this.expressApplication.use(
+      async (req: Request, res: Response, next: NextFunction) => Logging.traceExpressRequest(req, res, next)
+    );
     // Get URL of the CentralSystemRestServer
     const restConf = Configuration.getCentralSystemRestServerConfig();
     const restServerUrl = `${restConf.protocol}://${restConf.host}:${restConf.port}/`;

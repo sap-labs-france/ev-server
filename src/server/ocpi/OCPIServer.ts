@@ -31,8 +31,6 @@ export default class OCPIServer {
     this.expressApplication = ExpressUtils.initApplication(null, ocpiRestConfig.debug);
     // Authenticate
     this.expressApplication.use(this.initialize.bind(this));
-    // Log Express Request
-    this.expressApplication.use(Logging.traceExpressRequest.bind(this));
     // Routers
     this.expressApplication.use('/ocpi', new GlobalRouter().buildRoutes());
     // Handle 404
@@ -50,7 +48,7 @@ export default class OCPIServer {
       }
     });
     // Post init
-    ExpressUtils.postInitApplication(this.expressApplication);
+    ExpressUtils.postInitApplication(this.expressApplication, false);
   }
 
   // Start the server
