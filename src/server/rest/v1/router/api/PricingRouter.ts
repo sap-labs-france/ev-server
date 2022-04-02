@@ -13,9 +13,6 @@ export default class PricingRouter {
   }
 
   public buildRoutes(): express.Router {
-    // -----------------------------------
-    // ROUTES for PRICING MODELS
-    // -----------------------------------
     this.buildRoutePricingDefinitions();
     this.buildRoutePricingDefinition();
     this.buildRouteCreatePricingDefinition();
@@ -59,9 +56,9 @@ export default class PricingRouter {
   }
 
   protected buildRouteResolvePricingModel(): void {
-    this.router.get(`/${ServerRoute.REST_PRICING_MODEL_RESOLVE}`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.get(`/${RESTServerRoute.REST_PRICING_MODEL_RESOLVE}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
-      await RouterUtils.handleServerAction(PricingService.handleResolvePricingModel.bind(this), ServerAction.PRICING_MODEL_RESOLVE, req, res, next);
+      await RouterUtils.handleRestServerAction(PricingService.handleResolvePricingModel.bind(this), ServerAction.PRICING_MODEL_RESOLVE, req, res, next);
     });
   }
 
