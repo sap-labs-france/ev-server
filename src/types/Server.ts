@@ -146,6 +146,7 @@ export enum ServerAction {
   OCPI_UPDATE_CREDENTIALS = 'OcpiUpdateCredentials',
   OCPI_DELETE_CREDENTIALS = 'OcpiDeleteCredentials',
 
+  OCPI_CPO_GET_SERVICES = 'OcpiCpoGetServices',
   OCPI_CPO_COMMAND = 'OcpiCpoCommand',
   OCPI_CPO_UPDATE_STATUS = 'OcpiCpoUpdateStatus',
   OCPI_CPO_CHECK_CDRS = 'OcpiCpoCheckCdrs',
