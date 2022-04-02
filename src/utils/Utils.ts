@@ -1511,6 +1511,60 @@ export default class Utils {
     return PerformanceRecordGroup.UNKNOWN;
   }
 
+  public static getAxiosActionFromURL(url: string): ServerAction {
+    if (!url) {
+      return ServerAction.HTTP_REQUEST;
+    }
+    // OCPI
+    if (url.includes('ocpi/cpo')) {
+      return ServerAction.OCPI_CPO_REQUEST;
+    }
+    if (url.includes('ocpi/emsp')) {
+      return ServerAction.OCPI_EMSP_REQUEST;
+    }
+    // Hubject
+    if (url.includes('hubject')) {
+      return ServerAction.OICP_CPO_REQUEST;
+    }
+    // Concur
+    if (url.includes('concursolutions')) {
+      return ServerAction.SAP_CONCUR_REQUEST;
+    }
+    // Recaptcha
+    if (url.includes('recaptcha')) {
+      return ServerAction.RECAPTCHA_REQUEST;
+    }
+    // Greencom
+    if (url.includes('gcn-eibp')) {
+      return ServerAction.GREENCOM_REQUEST;
+    }
+    // Stripe
+    if (url.includes('stripe')) {
+      return ServerAction.STRIPE_REQUEST;
+    }
+    // ioThink
+    if (url.includes('kheiron')) {
+      return ServerAction.IOTHINK_REQUEST;
+    }
+    // Lacroix
+    if (url.includes('esoftlink ')) {
+      return ServerAction.LACROIX_REQUEST;
+    }
+    // EV Database
+    if (url.includes('ev-database')) {
+      return ServerAction.EV_DATABASE_REQUEST;
+    }
+    // WIT
+    if (url.includes('wit-datacenter')) {
+      return ServerAction.WIT_REQUEST;
+    }
+    // SAP Smart Charging
+    if (url.includes('smart-charging')) {
+      return ServerAction.SAP_SMART_CHARGING_REQUEST;
+    }
+    return ServerAction.HTTP_REQUEST;
+  }
+
   public static buildPerformanceRecord(params: {
     tenantSubdomain?: string; durationMs?: number; resSizeKb?: number; reqSizeKb?: number;
     action: ServerAction|string; group?: PerformanceRecordGroup; httpUrl?: string;

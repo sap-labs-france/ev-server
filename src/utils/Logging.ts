@@ -472,14 +472,14 @@ export default class Logging {
           httpUrl: request.url,
           httpMethod: request.method.toLocaleUpperCase(),
           reqSizeKb: sizeOfRequestDataKB,
-          action: ServerAction.HTTP_REQUEST,
+          action: Utils.getAxiosActionFromURL(request.url),
         })
       );
       const message = `Axios HTTP Request - '${Utils.last5Chars(performanceID)}' >> Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB - ${request.method.toLocaleUpperCase()} '${request.url}'`;
       Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
       await Logging.logDebug({
         tenantID: tenant.id,
-        action: ServerAction.HTTP_REQUEST,
+        action: Utils.getAxiosActionFromURL(request.url),
         module: Constants.MODULE_AXIOS, method: 'interceptor',
         message,
         detailedMessages: {
@@ -545,7 +545,7 @@ export default class Logging {
       try {
         await Logging.logDebug({
           tenantID: tenant.id,
-          action: ServerAction.HTTP_RESPONSE,
+          action: Utils.getAxiosActionFromURL(response.config.url),
           message,
           module: Constants.MODULE_AXIOS, method: 'logAxiosResponse',
           detailedMessages: {
@@ -568,7 +568,7 @@ export default class Logging {
       } catch (error) {
         await Logging.logDebug({
           tenantID: tenant.id,
-          action: ServerAction.HTTP_RESPONSE,
+          action: Utils.getAxiosActionFromURL(response.config.url),
           message: `Axios HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`,
           module: Constants.MODULE_AXIOS, method: 'logAxiosResponse',
           detailedMessages: {

@@ -2,6 +2,16 @@
 export enum ServerAction {
   UNKNOWN_ACTION = 'Unknown',
 
+  SAP_CONCUR_REQUEST = 'SapConcurRequest',
+  RECAPTCHA_REQUEST = 'RecaptchaRequest',
+  GREENCOM_REQUEST = 'GreencomRequest',
+  STRIPE_REQUEST = 'StripeRequest',
+  IOTHINK_REQUEST = 'IOThinkRequest',
+  LACROIX_REQUEST = 'LacroixRequest',
+  EV_DATABASE_REQUEST = 'EVDatabaseRequest',
+  WIT_REQUEST = 'WitRequest',
+  SAP_SMART_CHARGING_REQUEST = 'SapSmartChargingRequest',
+
   DEPRECATED_REST_ENDPOINT = 'DeprecatedRestEndpoint',
   LOGIN = 'Login',
   LOGOUT = 'Logout',
@@ -146,6 +156,7 @@ export enum ServerAction {
   OCPI_UPDATE_CREDENTIALS = 'OcpiUpdateCredentials',
   OCPI_DELETE_CREDENTIALS = 'OcpiDeleteCredentials',
 
+  OCPI_CPO_REQUEST = 'OcpiCpoRequest',
   OCPI_CPO_GET_SERVICES = 'OcpiCpoGetServices',
   OCPI_CPO_COMMAND = 'OcpiCpoCommand',
   OCPI_CPO_UPDATE_STATUS = 'OcpiCpoUpdateStatus',
@@ -166,6 +177,7 @@ export enum ServerAction {
   OCPI_CPO_AUTHORIZE_TOKEN = 'OcpiCpoAuthorizeToken',
   OCPI_CPO_GET_TARIFFS = 'OcpiCpoGetTariffs',
 
+  OCPI_EMSP_REQUEST = 'OcpiEmspRequest',
   OCPI_EMSP_GET_SERVICES = 'OcpiEmspGetServices',
   OCPI_EMSP_COMMAND = 'OcpiEmspCommand',
   OCPI_EMSP_AUTHORIZE_TOKEN = 'OcpiEmspAuthorizeToken',
@@ -185,6 +197,7 @@ export enum ServerAction {
   OCPI_EMSP_UNLOCK_CONNECTOR = 'OcpiEmspUnlockConnector',
   OCPI_EMSP_GET_TARIFF = 'OcpiEmspGetTariff',
 
+  OICP_CPO_REQUEST = 'OicpCpoRequest',
   OICP_SETTINGS = 'OicpSettings',
   OICP_ENDPOINT_CREATE = 'OicpEndpointCreate',
   OICP_ENDPOINT_PING = 'OicpEndpointPing',
