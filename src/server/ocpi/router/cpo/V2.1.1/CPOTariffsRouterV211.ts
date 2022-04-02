@@ -19,7 +19,7 @@ export default class CPOTariffsRouterV211 {
 
   protected buildRouteGetTariffs(): void {
     this.router.get(`/${OCPIServerRoute.OCPI_TARIFFS}*`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(CPOTariffsService.handleGetTariffs.bind(this), ServerAction.OCPI_CPO_GET_TARIFFS, req, res, next);
+      await RouterUtils.handleOCPIServerAction(CPOTariffsService.handleGetTariffs.bind(this), ServerAction.OCPI_CPO_GET_TARIFFS, req, res, next);
     });
   }
 }

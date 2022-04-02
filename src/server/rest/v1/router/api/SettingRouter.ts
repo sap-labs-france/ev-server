@@ -26,9 +26,9 @@ export default class SettingRouter {
     this.router.get(`/${RESTServerRoute.REST_SETTINGS}`, async (req: Request, res: Response, next: NextFunction) => {
       if (req.query.Identifier) {
         req.query.ID = req.query.Identifier;
-        await RouterUtils.handleServerAction(SettingService.handleGetSettingByIdentifier.bind(this), ServerAction.SETTING_BY_IDENTIFIER, req, res, next);
+        await RouterUtils.handleRestServerAction(SettingService.handleGetSettingByIdentifier.bind(this), ServerAction.SETTING_BY_IDENTIFIER, req, res, next);
       } else {
-        await RouterUtils.handleServerAction(SettingService.handleGetSettings.bind(this), ServerAction.SETTINGS, req, res, next);
+        await RouterUtils.handleRestServerAction(SettingService.handleGetSettings.bind(this), ServerAction.SETTINGS, req, res, next);
       }
     });
   }
@@ -36,27 +36,27 @@ export default class SettingRouter {
   private buildRouteSetting(): void {
     this.router.get(`/${RESTServerRoute.REST_SETTING}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = sanitize(req.params.id);
-      await RouterUtils.handleServerAction(SettingService.handleGetSetting.bind(this), ServerAction.SETTING, req, res, next);
+      await RouterUtils.handleRestServerAction(SettingService.handleGetSetting.bind(this), ServerAction.SETTING, req, res, next);
     });
   }
 
   private buildRouteCreateSetting(): void {
     this.router.post(`/${RESTServerRoute.REST_SETTINGS}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(SettingService.handleCreateSetting.bind(this), ServerAction.SETTING_CREATE, req, res, next);
+      await RouterUtils.handleRestServerAction(SettingService.handleCreateSetting.bind(this), ServerAction.SETTING_CREATE, req, res, next);
     });
   }
 
   private buildRouteUpdateSetting(): void {
     this.router.put(`/${RESTServerRoute.REST_SETTING}`, async (req: Request, res: Response, next: NextFunction) => {
       req.body.id = req.params.id;
-      await RouterUtils.handleServerAction(SettingService.handleUpdateSetting.bind(this), ServerAction.SETTING_UPDATE, req, res, next);
+      await RouterUtils.handleRestServerAction(SettingService.handleUpdateSetting.bind(this), ServerAction.SETTING_UPDATE, req, res, next);
     });
   }
 
   private buildRouteDeleteSetting(): void {
     this.router.delete(`/${RESTServerRoute.REST_SETTING}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
-      await RouterUtils.handleServerAction(SettingService.handleDeleteSetting.bind(this), ServerAction.SETTING_DELETE, req, res, next);
+      await RouterUtils.handleRestServerAction(SettingService.handleDeleteSetting.bind(this), ServerAction.SETTING_DELETE, req, res, next);
     });
   }
 }

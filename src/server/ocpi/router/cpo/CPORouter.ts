@@ -27,13 +27,13 @@ export default class CPORouter {
 
   protected buildRouteCpoVersions(): void {
     this.router.get(`/${OCPIServerRoute.OCPI_VERSIONS}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(CPOVersionsService.handleGetVersions.bind(this), ServerAction.OCPI_GET_VERSIONS, req, res, next);
+      await RouterUtils.handleOCPIServerAction(CPOVersionsService.handleGetVersions.bind(this), ServerAction.OCPI_GET_VERSIONS, req, res, next);
     });
   }
 
   protected buildRouteCpoV211(): void {
     this.router.get(`/${OCPIServerRouteVersions.VERSION_211}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(CPOVersionsService.getSupportedServices.bind(this), ServerAction.OCPI_CPO_GET_SERVICES, req, res, next);
+      await RouterUtils.handleOCPIServerAction(CPOVersionsService.getSupportedServices.bind(this), ServerAction.OCPI_CPO_GET_SERVICES, req, res, next);
     });
     this.router.use(`/${OCPIServerRouteVersions.VERSION_211}`, [
       new CPOLocationsRouterV211().buildRoutes(),

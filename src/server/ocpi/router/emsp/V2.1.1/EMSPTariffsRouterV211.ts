@@ -19,7 +19,7 @@ export default class EMSPTariffsRouterV211 {
 
   protected buildRouteGetTariff(): void {
     this.router.get(`/${OCPIServerRoute.OCPI_TARIFFS}*`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(EMSPTariffsService.handleGetTariff.bind(this), ServerAction.OCPI_EMSP_GET_TARIFF, req, res, next);
+      await RouterUtils.handleOCPIServerAction(EMSPTariffsService.handleGetTariff.bind(this), ServerAction.OCPI_EMSP_GET_TARIFF, req, res, next);
     });
   }
 }

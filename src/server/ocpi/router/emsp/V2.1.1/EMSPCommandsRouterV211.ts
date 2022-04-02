@@ -19,7 +19,7 @@ export default class EMSPCdrsREMSPCommandsRouterV211uterV211 {
 
   protected buildRouteCommand(): void {
     this.router.post(`/${OCPIServerRoute.OCPI_COMMANDS}*`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(EMSPCommandsService.handleCommand.bind(this), ServerAction.OCPI_EMSP_COMMAND, req, res, next);
+      await RouterUtils.handleOCPIServerAction(EMSPCommandsService.handleCommand.bind(this), ServerAction.OCPI_EMSP_COMMAND, req, res, next);
     });
   }
 }

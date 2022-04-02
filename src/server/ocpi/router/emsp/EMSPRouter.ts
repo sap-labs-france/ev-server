@@ -27,13 +27,13 @@ export default class EMSPRouter {
 
   protected buildRouteEmspVersions(): void {
     this.router.get(`/${OCPIServerRoute.OCPI_VERSIONS}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(EMSPVersionsService.handleGetVersions.bind(this), ServerAction.OCPI_GET_VERSIONS, req, res, next);
+      await RouterUtils.handleOCPIServerAction(EMSPVersionsService.handleGetVersions.bind(this), ServerAction.OCPI_GET_VERSIONS, req, res, next);
     });
   }
 
   protected buildRouteEmspV211(): void {
     this.router.get(`/${OCPIServerRouteVersions.VERSION_211}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(EMSPVersionsService.getSupportedServices.bind(this), ServerAction.OCPI_EMSP_GET_SERVICES, req, res, next);
+      await RouterUtils.handleOCPIServerAction(EMSPVersionsService.getSupportedServices.bind(this), ServerAction.OCPI_EMSP_GET_SERVICES, req, res, next);
     });
     this.router.use(`/${OCPIServerRouteVersions.VERSION_211}`, [
       new EMSPTokensRouterV211().buildRoutes(),

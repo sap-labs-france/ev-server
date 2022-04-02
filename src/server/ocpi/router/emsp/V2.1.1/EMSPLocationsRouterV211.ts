@@ -20,13 +20,13 @@ export default class EMSPLocationsRouterV211 {
 
   protected buildRoutePutLocation(): void {
     this.router.put(`/${OCPIServerRoute.OCPI_LOCATIONS}*`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(EMSPLocationsService.handlePutLocation.bind(this), ServerAction.OCPI_EMSP_UPDATE_LOCATION, req, res, next);
+      await RouterUtils.handleOCPIServerAction(EMSPLocationsService.handlePutLocation.bind(this), ServerAction.OCPI_EMSP_UPDATE_LOCATION, req, res, next);
     });
   }
 
   protected buildRoutePatchLocation(): void {
     this.router.patch(`/${OCPIServerRoute.OCPI_LOCATIONS}*`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(EMSPLocationsService.handlePatchLocation.bind(this), ServerAction.OCPI_EMSP_UPDATE_LOCATION, req, res, next);
+      await RouterUtils.handleOCPIServerAction(EMSPLocationsService.handlePatchLocation.bind(this), ServerAction.OCPI_EMSP_UPDATE_LOCATION, req, res, next);
     });
   }
 }

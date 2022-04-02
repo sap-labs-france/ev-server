@@ -20,13 +20,13 @@ export default class EMSPCdrsRouterV211 {
 
   protected buildRouteGetCdr(): void {
     this.router.get(`/${OCPIServerRoute.OCPI_CDRS}*`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(EMSPCdrsService.handleGetCdr.bind(this), ServerAction.OCPI_EMSP_GET_CDR, req, res, next);
+      await RouterUtils.handleOCPIServerAction(EMSPCdrsService.handleGetCdr.bind(this), ServerAction.OCPI_EMSP_GET_CDR, req, res, next);
     });
   }
 
   protected buildRoutePostCdr(): void {
     this.router.post(`/${OCPIServerRoute.OCPI_CDRS}*`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(EMSPCdrsService.handlePostCdr.bind(this), ServerAction.OCPI_EMSP_CREATE_CDR, req, res, next);
+      await RouterUtils.handleOCPIServerAction(EMSPCdrsService.handlePostCdr.bind(this), ServerAction.OCPI_EMSP_CREATE_CDR, req, res, next);
     });
   }
 }

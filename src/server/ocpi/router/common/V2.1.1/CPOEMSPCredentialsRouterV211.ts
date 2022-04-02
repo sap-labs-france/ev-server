@@ -21,19 +21,19 @@ export default class CPOEMSPCredentialsRouterV211 {
 
   protected buildRouteCreateCredentials(): void {
     this.router.post(`/${OCPIServerRoute.OCPI_CREDENTIALS}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(CPOEMSPCredentialsService.handleCreateCredentials.bind(this), ServerAction.OCPI_CREATE_CREDENTIALS, req, res, next);
+      await RouterUtils.handleOCPIServerAction(CPOEMSPCredentialsService.handleCreateCredentials.bind(this), ServerAction.OCPI_CREATE_CREDENTIALS, req, res, next);
     });
   }
 
   protected buildRouteUpdateCredentials(): void {
     this.router.put(`/${OCPIServerRoute.OCPI_CREDENTIALS}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(CPOEMSPCredentialsService.handleCreateCredentials.bind(this), ServerAction.OCPI_CREATE_CREDENTIALS, req, res, next);
+      await RouterUtils.handleOCPIServerAction(CPOEMSPCredentialsService.handleCreateCredentials.bind(this), ServerAction.OCPI_CREATE_CREDENTIALS, req, res, next);
     });
   }
 
   protected buildRouteDeleteCredentials(): void {
     this.router.delete(`/${OCPIServerRoute.OCPI_CREDENTIALS}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(CPOEMSPCredentialsService.handleDeleteCredentials.bind(this), ServerAction.OCPI_DELETE_CREDENTIALS, req, res, next);
+      await RouterUtils.handleOCPIServerAction(CPOEMSPCredentialsService.handleDeleteCredentials.bind(this), ServerAction.OCPI_DELETE_CREDENTIALS, req, res, next);
     });
   }
 }

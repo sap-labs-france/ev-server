@@ -21,19 +21,19 @@ export default class EMSPSessionsRouterV211 {
 
   protected buildRouteGetSession(): void {
     this.router.get(`/${OCPIServerRoute.OCPI_SESSIONS}*`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(EMSPSessionsService.handleGetSession.bind(this), ServerAction.OCPI_EMSP_GET_SESSION, req, res, next);
+      await RouterUtils.handleOCPIServerAction(EMSPSessionsService.handleGetSession.bind(this), ServerAction.OCPI_EMSP_GET_SESSION, req, res, next);
     });
   }
 
   protected buildRoutePatchSession(): void {
     this.router.patch(`/${OCPIServerRoute.OCPI_SESSIONS}*`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(EMSPSessionsService.handlePatchSession.bind(this), ServerAction.OCPI_EMSP_UPDATE_SESSION, req, res, next);
+      await RouterUtils.handleOCPIServerAction(EMSPSessionsService.handlePatchSession.bind(this), ServerAction.OCPI_EMSP_UPDATE_SESSION, req, res, next);
     });
   }
 
   protected buildRoutePutSession(): void {
     this.router.put(`/${OCPIServerRoute.OCPI_SESSIONS}*`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(EMSPSessionsService.handlePutSession.bind(this), ServerAction.OCPI_EMSP_UPDATE_SESSION, req, res, next);
+      await RouterUtils.handleOCPIServerAction(EMSPSessionsService.handlePutSession.bind(this), ServerAction.OCPI_EMSP_UPDATE_SESSION, req, res, next);
     });
   }
 }

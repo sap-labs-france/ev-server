@@ -35,6 +35,20 @@ export default class OCPIServer {
     this.expressApplication.use(Logging.traceExpressRequest.bind(this));
     // Routers
     this.expressApplication.use('/ocpi', new GlobalRouter().buildRoutes());
+    // Handle 404
+    this.expressApplication.use((req: Request, res: Response, next: NextFunction) => {
+      if (!res.headersSent) {
+        const error = new AppError({
+          module: MODULE_NAME, method: 'constructor',
+          action: ServerAction.OCPI_ENDPOINT,
+          errorCode: HTTPError.NOT_IMPLEMENTED_ERROR,
+          message: `Endpoint '${req.path}' not implemented`,
+          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
+        });
+        void Logging.logActionExceptionMessage(req.tenant?.id ?? Constants.DEFAULT_TENANT_ID, error.params?.action ?? ServerAction.OCPI_ENDPOINT, error);
+        res.status(HTTPError.NOT_IMPLEMENTED_ERROR).json(OCPIUtils.toErrorResponse(error));
+      }
+    });
     // Post init
     ExpressUtils.postInitApplication(this.expressApplication);
   }

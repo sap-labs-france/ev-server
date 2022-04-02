@@ -20,13 +20,13 @@ export default class NotificationRouter {
 
   private buildRouteNotifications(): void {
     this.router.get(`/${RESTServerRoute.REST_NOTIFICATIONS}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(NotificationService.handleGetNotifications.bind(this), ServerAction.NOTIFICATIONS, req, res, next);
+      await RouterUtils.handleRestServerAction(NotificationService.handleGetNotifications.bind(this), ServerAction.NOTIFICATIONS, req, res, next);
     });
   }
 
   private buildRouteEndUserReportError(): void {
     this.router.post(`/${RESTServerRoute.REST_NOTIFICATIONS_END_USER_REPORT_ERROR}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(NotificationService.handleEndUserReportError.bind(this), ServerAction.END_USER_REPORT_ERROR, req, res, next);
+      await RouterUtils.handleRestServerAction(NotificationService.handleEndUserReportError.bind(this), ServerAction.END_USER_REPORT_ERROR, req, res, next);
     });
   }
 }
