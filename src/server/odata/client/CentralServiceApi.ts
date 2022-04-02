@@ -1,5 +1,5 @@
 import AuthenticatedApi from './AuthenticatedApi';
-import { ServerRoute } from '../../../../src/types/Server';
+import { RESTServerRoute } from '../../../../src/types/Server';
 
 export default class CentralServiceApi extends AuthenticatedApi {
 
@@ -58,7 +58,7 @@ export default class CentralServiceApi extends AuthenticatedApi {
   async getStatusNotifications(params) {
     return this.send({
       method: 'GET',
-      url: `/v1/api/${ServerRoute.REST_CHARGING_STATIONS_STATUS_NOTIFICATIONS}`,
+      url: `/v1/api/${RESTServerRoute.REST_CHARGING_STATIONS_STATUS_NOTIFICATIONS}`,
       params: params
     });
   }
@@ -66,7 +66,7 @@ export default class CentralServiceApi extends AuthenticatedApi {
   async getBootNotifications(params) {
     return this.send({
       method: 'GET',
-      url: `/v1/api/${ServerRoute.REST_CHARGING_STATIONS_BOOT_NOTIFICATIONS}`,
+      url: `/v1/api/${RESTServerRoute.REST_CHARGING_STATIONS_BOOT_NOTIFICATIONS}`,
       params: params
     });
   }

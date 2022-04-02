@@ -26,7 +26,7 @@ import { OCPIResult } from '../../types/ocpi/OCPIResult';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
 import { OCPIToken } from '../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../server/ocpi/OCPIUtils';
-import OCPIUtilsService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIUtilsService';
+import OCPIUtilsService from '../../server/ocpi/service/OCPIUtilsService';
 import OCPPStorage from '../../storage/mongodb/OCPPStorage';
 import { OcpiSetting } from '../../types/Setting';
 import { Promise } from 'bluebird';
@@ -75,7 +75,7 @@ export default class CpoOCPIClient extends OCPIClient {
     // Perfs trace
     const startTime = new Date().getTime();
     // Get tokens endpoint url
-    let tokensUrl = this.getEndpointUrl('tokens', ServerAction.OCPI_CPO_PULL_TOKENS);
+    let tokensUrl = this.getEndpointUrl('tokens', ServerAction.OCPI_CPO_GET_TOKENS);
     if (partial) {
       tokensUrl = `${tokensUrl}?date_from=${momentFrom.format()}&limit=1000`;
     } else {
@@ -96,7 +96,7 @@ export default class CpoOCPIClient extends OCPIClient {
       );
       if (!response.data.data) {
         throw new BackendError({
-          action: ServerAction.OCPI_CPO_PULL_TOKENS,
+          action: ServerAction.OCPI_CPO_GET_TOKENS,
           message: 'Invalid response from Pull tokens',
           module: MODULE_NAME, method: 'pullTokens',
           detailedMessages: { data: response.data }
@@ -106,7 +106,7 @@ export default class CpoOCPIClient extends OCPIClient {
       totalNumberOfToken += numberOfTags;
       await Logging.logDebug({
         tenantID: this.tenant.id,
-        action: ServerAction.OCPI_CPO_PULL_TOKENS,
+        action: ServerAction.OCPI_CPO_GET_TOKENS,
         message: `${numberOfTags.toString()} Tokens retrieved from ${tokensUrl}`,
         module: MODULE_NAME, method: 'pullTokens'
       });
@@ -129,7 +129,7 @@ export default class CpoOCPIClient extends OCPIClient {
             const emspUser = emspUsersMap.get(email);
             // Get the Tag
             const emspTag = tags.result.find((tag) => tag.id === token.uid);
-            await OCPIUtilsService.updateCpoToken(this.tenant, token, emspTag, emspUser, ServerAction.OCPI_CPO_PULL_TOKENS);
+            await OCPIUtilsService.updateCpoToken(this.tenant, token, emspTag, emspUser, ServerAction.OCPI_CPO_GET_TOKENS);
             result.success++;
           } catch (error) {
             result.failure++;
@@ -150,14 +150,14 @@ export default class CpoOCPIClient extends OCPIClient {
       const executionDurationTotalLoopSecs = (new Date().getTime() - startTime) / 1000;
       await Logging.logDebug({
         tenantID: this.tenant.id,
-        action: ServerAction.OCPI_CPO_PULL_TOKENS,
+        action: ServerAction.OCPI_CPO_GET_TOKENS,
         message: `${numberOfTags.toString()} token(s) processed in ${executionDurationLoopSecs}s - Total of ${totalNumberOfToken} token(s) processed in ${executionDurationTotalLoopSecs}s`,
         module: MODULE_NAME, method: 'pullTokens',
         detailedMessages: { tokens }
       });
     } while (nextResult);
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
-    await Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_CPO_PULL_TOKENS,
+    await Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_CPO_GET_TOKENS,
       MODULE_NAME, 'pullTokens', result,
       `{{inSuccess}} token(s) were successfully pulled in ${executionDurationSecs}s ${partial ? 'from ' + momentFrom.format() : ''}`,
       `{{inError}} token(s) failed to be pulled in ${executionDurationSecs}s ${partial ? 'from ' + momentFrom.format() : ''}`,
@@ -439,7 +439,7 @@ export default class CpoOCPIClient extends OCPIClient {
     if (!chargingStation.siteAreaID) {
       throw new BackendError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
-        action: ServerAction.OCPI_CPO_PATCH_STATUS,
+        action: ServerAction.OCPI_CPO_UPDATE_STATUS,
         message: 'Charging Station must be associated to a Site Area',
         module: MODULE_NAME, method: 'removeChargingStation',
       });
@@ -447,7 +447,7 @@ export default class CpoOCPIClient extends OCPIClient {
     if (!chargingStation.issuer) {
       throw new BackendError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
-        action: ServerAction.OCPI_CPO_PATCH_STATUS,
+        action: ServerAction.OCPI_CPO_UPDATE_STATUS,
         message: 'Only charging Station issued locally can be exposed to IOP',
         module: MODULE_NAME, method: 'removeChargingStation',
       });
@@ -467,7 +467,7 @@ export default class CpoOCPIClient extends OCPIClient {
     await Logging.logInfo({
       ...LoggingHelper.getChargingStationProperties(chargingStation),
       tenantID: this.tenant.id,
-      action: ServerAction.OCPI_CPO_PATCH_STATUS,
+      action: ServerAction.OCPI_CPO_UPDATE_STATUS,
       message: 'Charging Station has been removed successfully',
       module: MODULE_NAME, method: 'removeChargingStation',
       detailedMessages: { responses: results }
@@ -478,7 +478,7 @@ export default class CpoOCPIClient extends OCPIClient {
     if (!chargingStation.siteAreaID && !chargingStation.siteArea) {
       throw new BackendError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
-        action: ServerAction.OCPI_CPO_PATCH_STATUS,
+        action: ServerAction.OCPI_CPO_UPDATE_STATUS,
         message: 'Charging Station must be associated to a site area',
         module: MODULE_NAME, method: 'patchChargingStationStatus',
       });
@@ -486,7 +486,7 @@ export default class CpoOCPIClient extends OCPIClient {
     if (!chargingStation.issuer) {
       throw new BackendError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
-        action: ServerAction.OCPI_CPO_PATCH_STATUS,
+        action: ServerAction.OCPI_CPO_UPDATE_STATUS,
         message: 'Only charging Station issued locally can be exposed to IOP',
         module: MODULE_NAME, method: 'patchChargingStationStatus',
       });
@@ -494,7 +494,7 @@ export default class CpoOCPIClient extends OCPIClient {
     if (!chargingStation.public) {
       throw new BackendError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
-        action: ServerAction.OCPI_CPO_PATCH_STATUS,
+        action: ServerAction.OCPI_CPO_UPDATE_STATUS,
         message: 'Private charging Station cannot be exposed to IOP',
         module: MODULE_NAME, method: 'patchChargingStationStatus',
       });
@@ -671,8 +671,8 @@ export default class CpoOCPIClient extends OCPIClient {
     // Define get option
     const options: OCPILocationOptions = {
       addChargeBoxAndOrgIDs: true,
-      countryID: this.getLocalCountryCode(ServerAction.OCPI_CPO_PATCH_STATUS),
-      partyID: this.getLocalPartyID(ServerAction.OCPI_CPO_PATCH_STATUS)
+      countryID: this.getLocalCountryCode(ServerAction.OCPI_CPO_UPDATE_STATUS),
+      partyID: this.getLocalPartyID(ServerAction.OCPI_CPO_UPDATE_STATUS)
     };
     // Get timestamp before starting process - to be saved in DB at the end of the process
     const startDate = new Date();
@@ -769,7 +769,7 @@ export default class CpoOCPIClient extends OCPIClient {
     // Save
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
     await OCPIEndpointStorage.saveOcpiEndpoint(this.tenant, this.ocpiEndpoint);
-    await Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_CPO_PATCH_STATUS,
+    await Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_CPO_UPDATE_STATUS,
       MODULE_NAME, 'sendEVSEStatuses', result,
       `{{inSuccess}} EVSE Status(es) were successfully patched in ${executionDurationSecs}s`,
       `{{inError}} EVSE Status(es) failed to be patched in ${executionDurationSecs}s`,
@@ -840,16 +840,16 @@ export default class CpoOCPIClient extends OCPIClient {
     if (!locationId || !evseUID || !newStatus) {
       throw new BackendError({
         ...LoggingHelper.getChargingStationProperties(chargingStation as ChargingStation),
-        action: ServerAction.OCPI_CPO_PATCH_STATUS,
+        action: ServerAction.OCPI_CPO_UPDATE_STATUS,
         module: MODULE_NAME, method: 'patchEVSEStatus',
         message: 'Invalid parameters',
       });
     }
     // Get locations endpoint url
-    const locationsUrl = this.getEndpointUrl('locations', ServerAction.OCPI_CPO_PATCH_STATUS);
+    const locationsUrl = this.getEndpointUrl('locations', ServerAction.OCPI_CPO_UPDATE_STATUS);
     // Read configuration to retrieve
-    const countryCode = this.getLocalCountryCode(ServerAction.OCPI_CPO_PATCH_STATUS);
-    const partyID = this.getLocalPartyID(ServerAction.OCPI_CPO_PATCH_STATUS);
+    const countryCode = this.getLocalCountryCode(ServerAction.OCPI_CPO_UPDATE_STATUS);
+    const partyID = this.getLocalPartyID(ServerAction.OCPI_CPO_UPDATE_STATUS);
     // Build url to EVSE
     const fullUrl = locationsUrl + `/${countryCode}/${partyID}/${locationId}/${evseUID}`;
     // Build payload
@@ -867,7 +867,7 @@ export default class CpoOCPIClient extends OCPIClient {
     await Logging.logInfo({
       ...LoggingHelper.getChargingStationProperties(chargingStation as ChargingStation),
       tenantID: this.tenant.id,
-      action: ServerAction.OCPI_CPO_PATCH_STATUS,
+      action: ServerAction.OCPI_CPO_UPDATE_STATUS,
       message: `OCPI Charging Station ID '${evseUID}' has been patched successfully to '${newStatus}'`,
       module: MODULE_NAME, method: 'patchEVSEStatus',
       detailedMessages: { evseStatus, response: response.data }
