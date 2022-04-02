@@ -12,7 +12,12 @@ export default class RouterUtils {
       handleMethod: (serverAction: ServerAction, req: Request, res: Response, next: NextFunction) => Promise<void>,
       serverAction: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      // Trace Request
+      await Logging.traceExpressRequest(req, res, next, serverAction);
+      // Process
       await handleMethod(serverAction, req, res, next);
+      // Trace Response
+      Logging.traceExpressResponse(req, res, next, serverAction);
     } catch (error) {
       next(error);
       Utils.isDevelopmentEnv() && Logging.logConsoleError(error.stack);

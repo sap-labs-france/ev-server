@@ -28,20 +28,18 @@ export default class RestServer {
     this.expressApplication.use(AuthService.initialize());
     // Routers
     this.expressApplication.use('/v1', new GlobalRouterV1().buildRoutes());
-    // Secured API
+    // TODO: To Remove, Secured API is deprecated
     this.expressApplication.use('/client/api/:action',
       AuthService.authenticate(),
       SessionHashService.checkUserAndTenantValidity.bind(this),
-      async (req: Request, res: Response, next: NextFunction) => Logging.traceExpressRequest(req, res, next),
       RestServerService.restServiceSecured.bind(this)
     );
-    // Util API
+    // TODO: To Remove, Util API is deprecated
     this.expressApplication.use('/client/util/:action',
-      async (req: Request, res: Response, next: NextFunction) => Logging.traceExpressRequest(req, res, next),
       RestServerService.restServiceUtil.bind(this)
     );
     // Post init
-    ExpressUtils.postInitApplication(this.expressApplication);
+    ExpressUtils.postInitApplication(this.expressApplication, false);
     // Create HTTP server to serve the express app
     RestServer.restHttpServer = ServerUtils.createHttpServer(RestServer.centralSystemRestConfig, this.expressApplication);
   }

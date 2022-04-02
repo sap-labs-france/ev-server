@@ -50,7 +50,6 @@ export default class GlobalRouterV1 {
     this.router.use('/api',
       AuthService.authenticate(),
       SessionHashService.checkUserAndTenantValidity.bind(this),
-      async (req: Request, res: Response, next: NextFunction) => Logging.traceExpressRequest(req, res, next),
       [
         new AssetRouter().buildRoutes(),
         new BillingRouter().buildRoutes(),
