@@ -8,8 +8,6 @@
       "typescript",
       "typescriptreact"
     ],
-    "files.autoSave": "off",
-    "search.usePCRE2": true,
     "jest.jestCommandLine": "npm run test -- ",
     "jest.autoRun": "false"
   }
