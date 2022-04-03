@@ -230,7 +230,7 @@ export default class Logging {
       });
       Utils.isDevelopmentEnv() && Logging.logConsoleError(messageError);
     } else {
-      await Logging.logInfo({
+      await Logging.logDebug({
         tenantID: tenantID,
         user,
         action, module, method,
@@ -278,7 +278,7 @@ export default class Logging {
       });
       Utils.isDevelopmentEnv() && Logging.logConsoleError(messageError);
     } else {
-      await Logging.logInfo({
+      await Logging.logDebug({
         tenantID: tenantID,
         action, module, method,
         message: messageNoSuccessNoError,

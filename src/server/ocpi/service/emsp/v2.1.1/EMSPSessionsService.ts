@@ -70,7 +70,7 @@ export default class EMSPSessionsService {
         module: MODULE_NAME, method: 'handlePutSession', action,
         errorCode: StatusCodes.BAD_REQUEST,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR,
-        message: `Transaction ID '${session.id}' mismatch in URL`,
+        message: `OCPI Session ID '${session.id}' mismatch in URL`,
         detailedMessages: { sessionID, session }
       });
     }
