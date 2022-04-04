@@ -1,11 +1,65 @@
 /* eslint-disable @typescript-eslint/member-ordering */
 /* eslint-disable max-len */
-import { DimensionType, PricedConsumptionData, PricedDimensionData, PricingDimensions } from '../../types/Pricing';
+import { DimensionType, PricedConsumptionData, PricedDimensionData, PricingContext, PricingDimensions } from '../../types/Pricing';
 
+import ChargingStation from '../../types/ChargingStation';
 import Decimal from 'decimal.js';
+import Tenant from '../../types/Tenant';
+import Transaction from '../../types/Transaction';
 import Utils from '../../utils/Utils';
 
 export default class PricingHelper {
+
+  public static buildTransactionPricingContext(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation): PricingContext {
+    const connectorId = transaction.connectorId ;
+    const connectorType = Utils.getConnectorFromID(chargingStation, connectorId)?.type;
+    const connectorPower = Utils.getConnectorFromID(chargingStation, connectorId)?.power;
+    return {
+      userID: transaction.userID,
+      companyID: transaction.companyID,
+      siteID : transaction.siteID,
+      siteAreaID: transaction.siteAreaID,
+      chargingStationID : transaction.chargeBoxID,
+      connectorId,
+      connectorType,
+      connectorPower,
+      timestamp : transaction.timestamp,
+      timezone : transaction.timezone,
+    };
+  }
+
+  public static buildUserPricingContext(tenant: Tenant, userID: string, chargingStation: ChargingStation, connectorId: number, timestamp = new Date()): PricingContext {
+    const connectorType = Utils.getConnectorFromID(chargingStation, connectorId)?.type;
+    const connectorPower = Utils.getConnectorFromID(chargingStation, connectorId)?.power;
+    return {
+      userID,
+      companyID: chargingStation.companyID,
+      siteID : chargingStation.siteID,
+      siteAreaID: chargingStation.siteAreaID,
+      chargingStationID : chargingStation.id,
+      connectorId,
+      connectorType,
+      connectorPower,
+      timestamp,
+      timezone : Utils.getTimezone(chargingStation.coordinates),
+    };
+  }
+
+  public static checkContextConsistency(pricingContext: PricingContext): boolean {
+    if (pricingContext.companyID
+      && pricingContext.siteID
+      && pricingContext.siteAreaID
+      && pricingContext.chargingStationID
+      && !Utils.isNullOrUndefined(pricingContext.connectorId)
+      && pricingContext.connectorType
+      && !Utils.isNullOrUndefined(pricingContext.connectorPower)
+      && pricingContext.timestamp && pricingContext.timezone
+    // && pricingContext.userID - not yet used - should we have user groups instead
+    ) {
+      return true;
+    }
+    return false;
+  }
 
   public static accumulatePricingDimensions(pricingDimensions: PricingDimensions[]): { cumulatedAmount: number, cumulatedRoundedAmount: number } {
     // Apply the same logic than the invoice to avoid rounding issues

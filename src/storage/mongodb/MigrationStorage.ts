@@ -14,7 +14,7 @@ export default class MigrationStorage {
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Read DB
-    const migrationsMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'migrations')
+    const migrationsMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'migrations')
       .aggregate<any>(aggregation)
       .toArray() as Migration[];
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'getMigrations', startTime, aggregation, migrationsMDB);
@@ -33,7 +33,7 @@ export default class MigrationStorage {
       durationSecs: Utils.convertToFloat(migrationToSave.durationSecs)
     };
     // Create
-    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'migrations')
+    await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'migrations')
       .insertOne(migrationMDB);
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'saveMigration', startTime, migrationMDB);
   }

@@ -1,6 +1,6 @@
 import AuthenticatedBaseApi from './utils/AuthenticatedBaseApi';
 import CrudApi from './utils/CrudApi';
-import { ServerRoute } from '../../../src/types/Server';
+import { RESTServerRoute } from '../../../src/types/Server';
 import TestConstants from './utils/TestConstants';
 
 export default class BillingApi extends CrudApi {
@@ -9,7 +9,7 @@ export default class BillingApi extends CrudApi {
   }
 
   public async testConnection() {
-    return super.create(null, this.buildRestEndpointUrl(ServerRoute.REST_BILLING_CHECK));
+    return super.create(null, this.buildRestEndpointUrl(RESTServerRoute.REST_BILLING_CHECK));
   }
 
   public async synchronizeUsers(params?, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
@@ -29,26 +29,26 @@ export default class BillingApi extends CrudApi {
   }
 
   public async downloadInvoiceDocument(params?) {
-    return super.read(params, super.buildRestEndpointUrl(ServerRoute.REST_BILLING_DOWNLOAD_INVOICE, params));
+    return super.read(params, super.buildRestEndpointUrl(RESTServerRoute.REST_BILLING_DOWNLOAD_INVOICE, params));
   }
 
   public async getBillingSetting(params?) {
-    return super.read(params, super.buildRestEndpointUrl(ServerRoute.REST_BILLING_SETTING, params));
+    return super.read(params, super.buildRestEndpointUrl(RESTServerRoute.REST_BILLING_SETTING, params));
   }
 
   public async checkBillingConnection(params?) {
-    return super.create(params, super.buildRestEndpointUrl(ServerRoute.REST_BILLING_CHECK, params));
+    return super.create(params, super.buildRestEndpointUrl(RESTServerRoute.REST_BILLING_CHECK, params));
   }
 
   public async clearBillingTestData(params?) {
-    return super.create(params, super.buildRestEndpointUrl(ServerRoute.REST_BILLING_CLEAR_TEST_DATA, params));
+    return super.create(params, super.buildRestEndpointUrl(RESTServerRoute.REST_BILLING_CLEAR_TEST_DATA, params));
   }
 
   public async updateBillingSetting(params?) {
-    return super.update(params, super.buildRestEndpointUrl(ServerRoute.REST_BILLING_SETTING, params));
+    return super.update(params, super.buildRestEndpointUrl(RESTServerRoute.REST_BILLING_SETTING, params));
   }
 
   public async readInvoices(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, super.buildRestEndpointUrl(ServerRoute.REST_BILLING_INVOICES, params));
+    return super.readAll(params, paging, ordering, super.buildRestEndpointUrl(RESTServerRoute.REST_BILLING_INVOICES, params));
   }
 }

@@ -9,28 +9,24 @@ import config from '../../config';
 chai.use(chaiSubset);
 
 export default class OCPIService {
-
   public baseURL: string;
-  public role: OCPIRole;
+  public role: string;
   public token: string;
   public baseApi: BaseApi;
 
-  constructor(role: OCPIRole) {
+  public constructor(role: OCPIRole) {
     this.baseURL = `${config.get('ocpi.scheme')}://${config.get('ocpi.host')}:${config.get('ocpi.port')}`;
-    this.role = role;
+    this.role = role.toLocaleLowerCase();
     this.baseApi = new BaseApi(this.baseURL);
     this.token = OCPIService.getToken(role);
   }
 
-  /**
-   * Check if Configuration Exist
-   */
-  static isConfigAvailable(): boolean {
+  public static isConfigAvailable(): boolean {
     return (config.get('ocpi.enabled')) ? true : false;
 
   }
 
-  static getToken(role: OCPIRole) {
+  public static getToken(role: OCPIRole) {
     if (role === OCPIRole.CPO) {
       return `Token ${config.get('ocpi.cpoToken')}`;
     }
@@ -38,30 +34,29 @@ export default class OCPIService {
 
   }
 
-  /**
-   * Get Version url
-   */
-  async getVersions() {
+  public async getVersions() {
+    console.log('🚀 ~ this.token', this.token);
+    console.log('🚀 ~ `ocpi/${this.role}/versions`', `ocpi/${this.role}/versions`);
     return this.baseApi.send({
       method: 'GET',
-      url: `ocpi/${this.role}/versions`
+      url: `ocpi/${this.role}/versions`,
+      headers: {
+        Authorization: this.token
+      }
     });
   }
 
-  /**
-   * Get Implementation for 2.1.1
-   */
-  async getImplementation2_1_1() {
+  public async getImplementation2_1_1() {
     return this.baseApi.send({
       method: 'GET',
-      url: `ocpi/${this.role}/2.1.1`
+      url: `ocpi/${this.role}/2.1.1`,
+      headers: {
+        Authorization: this.token
+      }
     });
   }
 
-  /**
-   * Get Locations for 2.1.1
-   */
-  async getLocations2_1_1() {
+  public async getLocations2_1_1() {
     return this.baseApi.send({
       method: 'GET',
       url: `ocpi/${this.role}/2.1.1/locations`,
@@ -71,12 +66,7 @@ export default class OCPIService {
     });
   }
 
-  /**
-   * POST Credentials for 2.1.1
-   *
-   * @param credential
-   */
-  async postCredentials2_1_1(credential) {
+  public async postCredentials2_1_1(credential) {
     return this.baseApi.send({
       method: 'POST',
       url: `ocpi/${this.role}/2.1.1/credentials`,
@@ -87,13 +77,7 @@ export default class OCPIService {
     });
   }
 
-  /**
-   * Access path with specific method
-   *
-   * @param {*} method
-   * @param {*} path
-   */
-  async accessPath(method, path) {
+  public async accessPath(method, path) {
     return this.baseApi.send({
       method: method,
       url: path,
@@ -103,12 +87,7 @@ export default class OCPIService {
     });
   }
 
-  /**
-   * Check basic structure for OCPI Response
-   *
-   * @param {*} ocpiResponse
-   */
-  checkOCPIResponseStructure(ocpiResponse) {
+  public checkOCPIResponseStructure(ocpiResponse) {
     expect(ocpiResponse).to.not.be.empty;
     expect(ocpiResponse).to.have.property('status_code');
     expect(ocpiResponse).to.have.property('status_message');
@@ -116,24 +95,14 @@ export default class OCPIService {
     expect(ocpiResponse).to.have.property('timestamp').that.is.not.empty;
   }
 
-  /**
-   * Check basic structure for OCPI Error Response
-   *
-   * @param {*} ocpiErrorResponse
-   */
-  checkOCPIErrorResponseStructure(ocpiErrorResponse) {
+  public checkOCPIErrorResponseStructure(ocpiErrorResponse) {
     expect(ocpiErrorResponse).to.not.be.empty;
     expect(ocpiErrorResponse).to.have.property('status_code');
     expect(ocpiErrorResponse).to.have.property('status_message').that.is.not.empty;
     expect(ocpiErrorResponse).to.have.property('timestamp').that.is.not.empty;
   }
 
-  /**
-   * Validate Credential Entity
-   *
-   * @param {*} credential
-   */
-  validateCredentialEntity(credential) {
+  public validateCredentialEntity(credential) {
     expect(credential).to.not.be.empty;
     expect(credential).to.have.property('url').that.is.not.empty;
     expect(credential).to.have.property('token').that.is.not.empty;
@@ -141,34 +110,19 @@ export default class OCPIService {
     expect(credential).to.have.property('party_id').that.is.not.empty;
   }
 
-  /**
-   * Validate Location Entity
-   *
-   * @param {*} location
-   */
-  validateLocationEntity(location) {
+  public validateLocationEntity(location) {
     return expect(location).to.have.property('id').that.is.not.empty &&
       expect(location).to.have.property('name').that.is.not.empty;
   }
 
-  /**
-   * Validate EVSE Entity
-   *
-   * @param {*} evse
-   */
-  validateEvseEntity(evse) {
+  public validateEvseEntity(evse) {
     return expect(evse).to.have.property('uid').that.is.not.empty &&
       expect(evse).to.have.property('evse_id').that.is.not.empty &&
       expect(evse).to.have.property('status').that.is.not.empty &&
       expect(evse).to.have.property('connectors').to.be.an('array').that.is.not.empty;
   }
 
-  /**
-   * Validate Connector Entity
-   *
-   * @param {*} connector
-   */
-  validateConnectorEntity(connector) {
+  public validateConnectorEntity(connector) {
     return expect(connector).to.have.property('id') &&
       expect(connector).to.have.property('last_updated').that.is.not.empty;
   }

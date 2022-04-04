@@ -15,7 +15,7 @@ export default class ChargingStationTemplateBootstrap {
       chargingStationTemplates = JSON.parse(
         fs.readFileSync(`${global.appRoot}/assets/charging-station-templates/charging-stations.json`, 'utf8'));
     } catch (error) {
-      await Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, ServerAction.UPDATE_CHARGING_STATION_TEMPLATES, error);
+      await Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT_ID, ServerAction.UPDATE_CHARGING_STATION_TEMPLATES, error);
       return;
     }
     // Delete all previous templates
@@ -33,7 +33,7 @@ export default class ChargingStationTemplateBootstrap {
         await ChargingStationStorage.saveChargingStationTemplate(chargingStationTemplate);
       } catch (error) {
         error.message = `Charging Station Template ID '${chargingStationTemplate.id}' is not valid: ${error.message as string}`;
-        await Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, ServerAction.UPDATE_CHARGING_STATION_TEMPLATES, error);
+        await Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT_ID, ServerAction.UPDATE_CHARGING_STATION_TEMPLATES, error);
         Utils.isDevelopmentEnv() && Logging.logConsoleError(error.message);
       }
     }

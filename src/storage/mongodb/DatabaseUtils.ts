@@ -51,7 +51,7 @@ export default class DatabaseUtils {
   }
 
   public static getCollectionName(tenantID: string, collectionNameSuffix: string): string {
-    let prefix = Constants.DEFAULT_TENANT;
+    let prefix = Constants.DEFAULT_TENANT_ID;
     if (!FIXED_COLLECTIONS.includes(collectionNameSuffix) && DatabaseUtils.isObjectID(tenantID)) {
       prefix = tenantID;
     }

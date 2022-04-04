@@ -36,7 +36,7 @@ export default class AddUserIDToCarsTask extends TenantMigrationTask {
     // Log in the default tenant
     if (updated > 0) {
       await Logging.logDebug({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: Constants.DEFAULT_TENANT_ID,
         module: MODULE_NAME, method: 'migrateTenant',
         action: ServerAction.MIGRATION,
         message: `${updated} Car(s) have been updated with User ID in Tenant ${Utils.buildTenantName(tenant)}`
