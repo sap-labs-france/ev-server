@@ -1747,7 +1747,17 @@ export default class UtilsService {
         actionOnUser: filteredRequest.id
       });
     }
-    if (filteredRequest.mobile && !Utils.isPhoneValid(filteredRequest.mobile)) {
+    if (!filteredRequest.mobile) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'User Mobile is mandatory',
+        module: MODULE_NAME,
+        method: 'checkIfUserValid',
+        user: req.user.id,
+        actionOnUser: filteredRequest.id
+      });
+    }
+    if (!Utils.isPhoneValid(filteredRequest.mobile)) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
         message: `User Mobile '${filteredRequest.mobile}' is not valid`,

@@ -16,14 +16,7 @@ export default class AuthValidator extends SchemaValidator {
   private authEula: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-eula.json`, 'utf8'));
 
   private constructor() {
-    super('AuthValidator', {
-      strict: true, // When 'true', it fails with anyOf required fields: https://github.com/ajv-validator/ajv/issues/1571
-      allErrors: true,
-      removeAdditional: true, // 'all' fails with anyOf documents: Manually added 'additionalProperties: false' in schema due filtering of data in anyOf/oneOf/allOf array (it's standard): https://github.com/ajv-validator/ajv/issues/1784
-      allowUnionTypes: true,
-      coerceTypes: true,
-      verbose: true,
-    });
+    super('AuthValidator');
   }
 
   public static getInstance(): AuthValidator {
