@@ -1,6 +1,6 @@
 import { Car, CarCatalog } from './Car';
-import { ChargePointStatus, OCPP15TransactionData, OCPPMeterValue } from './ocpp/OCPPServer';
 import Consumption, { AbstractCurrentConsumption } from './Consumption';
+import { OCPP15TransactionData, OCPPMeterValue } from './ocpp/OCPPServer';
 
 import ChargingStation from '../types/ChargingStation';
 import Company from './Company';

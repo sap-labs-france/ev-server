@@ -2,7 +2,7 @@ import { OCPPCancelReservationRequest, OCPPCancelReservationResponse, OCPPChange
 
 import ChargingStationClient from '../../ocpp/ChargingStationClient';
 import { Command } from '../../../types/ChargingStation';
-import JsonWSConnection from '../../../server/ocpp/json/JsonWSConnection';
+import JsonWSConnection from '../../../server/ocpp/json/web-socket/JsonWSConnection';
 import Logging from '../../../utils/Logging';
 import { OCPPMessageType } from '../../../types/ocpp/OCPPCommon';
 import OCPPUtils from '../../../server/ocpp/utils/OCPPUtils';

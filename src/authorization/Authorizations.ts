@@ -145,11 +145,11 @@ export default class Authorizations {
         siteOwnerIDs.push(siteUser.site.id);
       }
     }
-    let tenantHashID = Constants.DEFAULT_TENANT;
+    let tenantHashID = Constants.DEFAULT_TENANT_ID;
     let activeComponents = [];
     let tenantName;
     let tenantSubdomain;
-    if (tenant.id !== Constants.DEFAULT_TENANT) {
+    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
       tenantName = tenant.name;
       tenantSubdomain = tenant.subdomain;
       tenantHashID = SessionHashService.buildTenantHashID(tenant);

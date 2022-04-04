@@ -200,10 +200,10 @@ export default class TagService {
       await TagStorage.saveTagLimit(req.tenant, newTag.id, filteredRequest.limit);
     }
     // OCPI
-    await TagService.updateTagOCPI(action, req.tenant, req.user, newTag);
+    void TagService.updateTagRoaming(action, req.tenant, req.user, newTag);
     await Logging.logInfo({
       ...LoggingHelper.getTagProperties(newTag),
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       action: action,
       user: req.user,
       module: MODULE_NAME, method: 'handleCreateTag',
@@ -276,10 +276,10 @@ export default class TagService {
     // Assign
     await TagStorage.saveTag(req.tenant, tag);
     // OCPI
-    await TagService.updateTagOCPI(action, req.tenant, req.user, tag);
+    void TagService.updateTagRoaming(action, req.tenant, req.user, tag);
     await Logging.logInfo({
       ...LoggingHelper.getTagProperties(tag),
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       action: action,
       user: req.user, actionOnUser: user,
       module: MODULE_NAME, method: 'handleAssignTag',
@@ -318,10 +318,10 @@ export default class TagService {
     tag.lastChangedOn = new Date();
     // Save
     await TagStorage.saveTag(req.tenant, tag);
-    await TagService.updateTagOCPI(action, req.tenant, req.user, tag);
+    void TagService.updateTagRoaming(action, req.tenant, req.user, tag);
     await Logging.logInfo({
       ...LoggingHelper.getTagProperties(tag),
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       action: action,
       module: MODULE_NAME, method: 'handleUpdateTagByVisualID',
       message: `Tag with ID '${tag.id}' has been updated successfully`,
@@ -399,10 +399,10 @@ export default class TagService {
       await TagService.setDefaultTagForUser(req.tenant, formerTagUserID);
     }
     // OCPI
-    await TagService.updateTagOCPI(action, req.tenant, req.user, tag);
+    void TagService.updateTagRoaming(action, req.tenant, req.user, tag);
     await Logging.logInfo({
       ...LoggingHelper.getTagProperties(tag),
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       action: action,
       module: MODULE_NAME, method: 'handleUpdateTag',
       message: `Tag with ID '${tag.id}' has been updated successfully`,
@@ -504,12 +504,12 @@ export default class TagService {
               if (!Utils.isEmptyArray(tagsToBeImported) && (tagsToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
                 await TagService.insertTags(req.tenant, req.user, action, tagsToBeImported, result);
               }
-              // eslint-disable-next-line @typescript-eslint/no-misused-promises
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             }, async (error: CSVError) => {
               // Release the lock
               await LockingManager.release(importTagsLock);
               await Logging.logError({
-                tenantID: req.user.tenantID,
+                tenantID: req.tenant.id,
                 module: MODULE_NAME, method: 'handleImportTags',
                 action: action,
                 user: req.user.id,
@@ -521,8 +521,8 @@ export default class TagService {
                 res.end();
                 resolve();
               }
-              // Completed
-              // eslint-disable-next-line @typescript-eslint/no-misused-promises
+            // Completed
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             }, async () => {
               // Consider the connection closed
               connectionClosed = true;
@@ -534,7 +534,7 @@ export default class TagService {
               await LockingManager.release(importTagsLock);
               const executionDurationSecs = Utils.truncTo((new Date().getTime() - startTime) / 1000, 2);
               await Logging.logActionsResponse(
-                req.user.tenantID, action,
+                req.tenant.id, action,
                 MODULE_NAME, 'handleImportTags', result,
                 `{{inSuccess}} Tag(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import`,
                 `{{inError}} Tag(s) failed to be uploaded in ${executionDurationSecs}s`,
@@ -551,7 +551,9 @@ export default class TagService {
                 method: 'handleImportTags',
               });
               // Respond
-              res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
+              if (!res.headersSent) {
+                res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
+              }
               next();
               resolve();
             });
@@ -579,7 +581,7 @@ export default class TagService {
               // Release the lock
               await LockingManager.release(importTagsLock);
               await Logging.logError({
-                tenantID: req.user.tenantID,
+                tenantID: req.tenant.id,
                 module: MODULE_NAME, method: 'handleImportTags',
                 action: action,
                 user: req.user.id,
@@ -597,7 +599,7 @@ export default class TagService {
             // Release the lock
             await LockingManager.release(importTagsLock);
             await Logging.logError({
-              tenantID: req.user.tenantID,
+              tenantID: req.tenant.id,
               module: MODULE_NAME, method: 'handleImportTags',
               action: action,
               user: req.user.id,
@@ -611,10 +613,9 @@ export default class TagService {
           }
         });
       });
-    } catch (error) {
+    } finally {
       // Release the lock
       await LockingManager.release(importTagsLock);
-      throw error;
     }
   }
 
@@ -670,7 +671,7 @@ export default class TagService {
         const tag = await UtilsService.checkAndGetTagAuthorization(
           tenant, loggedUser, tagID, Action.DELETE, action, null, {}, true);
         // Delete OCPI
-        await TagService.checkAndDeleteTagOCPI(tenant, loggedUser, tag);
+        void TagService.checkAndDeleteTagRoaming(tenant, loggedUser, tag);
         // Delete the Tag
         await TagStorage.deleteTag(tenant, tag.id);
         result.inSuccess++;
@@ -712,7 +713,7 @@ export default class TagService {
         const tag = await UtilsService.checkAndGetTagByVisualIDAuthorization(
           tenant, loggedUser, visualID, Action.UNASSIGN, action, null, {});
         // Delete OCPI
-        await TagService.checkAndDeleteTagOCPI(tenant, loggedUser, tag);
+        void TagService.checkAndDeleteTagRoaming(tenant, loggedUser, tag);
         // Unassign the Tag
         const userID = tag.userID;
         tag.userID = null;
@@ -850,7 +851,7 @@ export default class TagService {
           tagToImport = { ...tagToImport, ...newImportedUser as ImportedTag };
         } catch (error) {
           await Logging.logWarning({
-            tenantID: req.user.tenantID,
+            tenantID: req.tenant.id,
             module: MODULE_NAME, method: 'processTag',
             action: action,
             message: `User cannot be imported with tag ${newImportedTag.id}`,
@@ -863,7 +864,7 @@ export default class TagService {
       return true;
     } catch (error) {
       await Logging.logError({
-        tenantID: req.user.tenantID,
+        tenantID: req.tenant.id,
         module: MODULE_NAME, method: 'importTag',
         action: action,
         message: `Tag ID '${importedTag.id}' cannot be imported`,
@@ -873,7 +874,7 @@ export default class TagService {
     }
   }
 
-  private static async checkAndDeleteTagOCPI(tenant: Tenant, loggedUser: UserToken, tag: Tag): Promise<void> {
+  private static async checkAndDeleteTagRoaming(tenant: Tenant, loggedUser: UserToken, tag: Tag): Promise<void> {
     // OCPI
     if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.OCPI)) {
       try {
@@ -902,7 +903,7 @@ export default class TagService {
     }
   }
 
-  private static async updateTagOCPI(action: ServerAction, tenant: Tenant, loggedUser: UserToken, tag: Tag) {
+  private static async updateTagRoaming(action: ServerAction, tenant: Tenant, loggedUser: UserToken, tag: Tag) {
     // Synchronize badges with IOP
     if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.OCPI)) {
       try {

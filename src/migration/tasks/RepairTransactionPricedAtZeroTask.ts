@@ -47,7 +47,7 @@ export default class RepairTransactionPricedAtZero extends TenantMigrationTask {
     if (transactionsMDB.length > 0 && this.pricingSettings?.simple?.price > 0) {
       let message = `${transactionsMDB.length} Transaction(s) are going to be repaired in Tenant ${Utils.buildTenantName(tenant)}...`;
       await Logging.logInfo({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
         message,
@@ -58,7 +58,7 @@ export default class RepairTransactionPricedAtZero extends TenantMigrationTask {
         if (numberOfProcessedTransactions > 0 && (numberOfProcessedTransactions % 100) === 0) {
           message = `> ${transactionsUpdated.inError + transactionsUpdated.inSuccess}/${transactionsMDB.length} - Transaction consumptions recomputed in Tenant ${Utils.buildTenantName(tenant)}`;
           await Logging.logDebug({
-            tenantID: Constants.DEFAULT_TENANT,
+            tenantID: Constants.DEFAULT_TENANT_ID,
             action: ServerAction.MIGRATION,
             module: MODULE_NAME, method: 'migrateTenant',
             message
@@ -79,7 +79,7 @@ export default class RepairTransactionPricedAtZero extends TenantMigrationTask {
         } catch (error) {
           transactionsUpdated.inError++;
           await Logging.logError({
-            tenantID: Constants.DEFAULT_TENANT,
+            tenantID: Constants.DEFAULT_TENANT_ID,
             action: ServerAction.MIGRATION,
             module: MODULE_NAME, method: 'migrateTenant',
             message: `> ${transactionsUpdated.inError + transactionsUpdated.inSuccess}/${transactionsMDB.length} - Cannot price transaction: '${transactionMDB._id}' in Tenant ${Utils.buildTenantName(tenant)}`,
@@ -89,7 +89,7 @@ export default class RepairTransactionPricedAtZero extends TenantMigrationTask {
       }, { concurrency: 5 }).then(() => {
         const totalDurationSecs = Math.trunc((new Date().getTime() - timeTotalFrom) / 1000);
         // Log in the default tenant
-        void Logging.logActionsResponse(Constants.DEFAULT_TENANT, ServerAction.MIGRATION,
+        void Logging.logActionsResponse(Constants.DEFAULT_TENANT_ID, ServerAction.MIGRATION,
           MODULE_NAME, 'migrateTenant', transactionsUpdated,
           `{{inSuccess}} transaction(s) were successfully processed in ${totalDurationSecs} secs in Tenant ${Utils.buildTenantName(tenant)}`,
           `{{inError}} transaction(s) failed to be processed in ${totalDurationSecs} secs in Tenant ${Utils.buildTenantName(tenant)}`,
