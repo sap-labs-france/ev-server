@@ -8,24 +8,13 @@ class JestEvseReporter {
   testInUnknown = [];
 
   /**
-   * 
    * Note there are other hoocks that we could override, please check base reporter implementation:
    * https://github.com/facebook/jest/blob/fb10f7a95161f3d93ec54be3b3f69359913b5691/packages/jest-cli/src/reporters/base_reporter.js
-   * 
-   */
-
-  /** 
-   * Jest hoock
-   * @override
    */
   onTestStart(test) {
     this.log(`\nRunning: ${test.path}`);
   }
 
-  /** 
-   * Jest hoock
-   * @override
-   */
   onTestCaseResult(test, testCaseResult) {
     const testPrintmessage = testCaseResult.title;
     if (testCaseResult.status === 'passed') {
@@ -46,10 +35,6 @@ class JestEvseReporter {
     }
   }
 
-  /**
-   * Report message helper
-   * @returns string message
-   */
   getReportMessage() {
     if (this.testInError.length > 0) {
       return ' #### Errors detected [' + this.testInSuccess.length + ' OK, ' + this.testInError.length + ' ERR, ' + this.testInUnknown.length + ' UNK' + ']';
@@ -57,12 +42,9 @@ class JestEvseReporter {
     return '';
   }
 
-  /**
-   * Log helper
-   */
   log(message) {
     process.stderr.write(message + '\n');
   }
-
 }
+
 module.exports = JestEvseReporter;

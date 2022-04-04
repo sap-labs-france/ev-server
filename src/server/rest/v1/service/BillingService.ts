@@ -66,7 +66,7 @@ export default class BillingService {
     } catch (error) {
       // Ko
       await Logging.logError({
-        tenantID: req.user.tenantID,
+        tenantID: req.tenant.id,
         user: req.user,
         module: MODULE_NAME, method: 'handleClearBillingTestData',
         message: 'Failed to clear billing test data',
@@ -110,7 +110,7 @@ export default class BillingService {
     } catch (error) {
       // Ko
       await Logging.logError({
-        tenantID: req.user.tenantID,
+        tenantID: req.tenant.id,
         user: req.user,
         module: MODULE_NAME, method: 'handleCheckBillingConnection',
         message: 'Billing connection failed',
@@ -150,7 +150,7 @@ export default class BillingService {
     UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleSynchronizeUser', req.user);
     // Get the User lock
-    const billingLock = await LockingHelper.acquireBillingSyncUsersLock(req.user.tenantID);
+    const billingLock = await LockingHelper.acquireBillingSyncUsersLock(req.tenant.id);
     if (billingLock) {
       try {
         await billingImpl.forceSynchronizeUser(user);
@@ -345,7 +345,7 @@ export default class BillingService {
     // Invoke the billing implementation
     const paymentMethods: BillingPaymentMethod[] = await billingImpl.getPaymentMethods(user);
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user,
       action: ServerAction.BILLING_PAYMENT_METHODS,
       module: MODULE_NAME, method: 'getPaymentMethods',
@@ -392,7 +392,7 @@ export default class BillingService {
     const operationResult: BillingOperationResult = await billingImpl.deletePaymentMethod(user, filteredRequest.paymentMethodId);
     // Log
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteSite',
       message: `Payment Method '${filteredRequest.paymentMethodId}' has been deleted successfully`,
       action: action
@@ -463,7 +463,7 @@ export default class BillingService {
     }
     const billingSettings: BillingSettings = await SettingStorage.getBillingSetting(req.tenant);
     UtilsService.assertObjectExists(action, billingSettings, 'Failed to load billing settings', MODULE_NAME, 'handleGetBillingSetting', req.user);
-    UtilsService.hashSensitiveData(req.user.tenantID, billingSettings);
+    UtilsService.hashSensitiveData(req.tenant.id, billingSettings);
     res.json(billingSettings);
     next();
   }

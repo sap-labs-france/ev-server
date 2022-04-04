@@ -51,7 +51,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
         this.initialized = true;
       } catch (error) {
         void Logging.logError({
-          tenantID: Constants.DEFAULT_TENANT,
+          tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.REMOTE_PUSH_NOTIFICATION,
           module: MODULE_NAME, method: 'constructor',
           message: `Error initializing Firebase: '${error.message as string}'`,

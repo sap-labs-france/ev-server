@@ -1297,12 +1297,6 @@ export default class Utils {
               'type': PricingSettingsType.SIMPLE,
               'simple': {}
             } as SettingDBContent;
-          } else if (activeComponentContent.type === PricingSettingsType.CONVERGENT_CHARGING) {
-            // SAP CC
-            return {
-              'type': PricingSettingsType.CONVERGENT_CHARGING,
-              'convergentCharging': {}
-            } as SettingDBContent;
           }
         }
         break;
@@ -1509,6 +1503,60 @@ export default class Utils {
       return PerformanceRecordGroup.SAP_SMART_CHARGING;
     }
     return PerformanceRecordGroup.UNKNOWN;
+  }
+
+  public static getAxiosActionFromURL(url: string): ServerAction {
+    if (!url) {
+      return ServerAction.HTTP_REQUEST;
+    }
+    // OCPI
+    if (url.includes('ocpi/cpo')) {
+      return ServerAction.OCPI_CPO_REQUEST;
+    }
+    if (url.includes('ocpi/emsp')) {
+      return ServerAction.OCPI_EMSP_REQUEST;
+    }
+    // Hubject
+    if (url.includes('hubject')) {
+      return ServerAction.OICP_CPO_REQUEST;
+    }
+    // Concur
+    if (url.includes('concursolutions')) {
+      return ServerAction.SAP_CONCUR_REQUEST;
+    }
+    // Recaptcha
+    if (url.includes('recaptcha')) {
+      return ServerAction.RECAPTCHA_REQUEST;
+    }
+    // Greencom
+    if (url.includes('gcn-eibp')) {
+      return ServerAction.GREENCOM_REQUEST;
+    }
+    // Stripe
+    if (url.includes('stripe')) {
+      return ServerAction.STRIPE_REQUEST;
+    }
+    // ioThink
+    if (url.includes('kheiron')) {
+      return ServerAction.IOTHINK_REQUEST;
+    }
+    // Lacroix
+    if (url.includes('esoftlink ')) {
+      return ServerAction.LACROIX_REQUEST;
+    }
+    // EV Database
+    if (url.includes('ev-database')) {
+      return ServerAction.EV_DATABASE_REQUEST;
+    }
+    // WIT
+    if (url.includes('wit-datacenter')) {
+      return ServerAction.WIT_REQUEST;
+    }
+    // SAP Smart Charging
+    if (url.includes('smart-charging')) {
+      return ServerAction.SAP_SMART_CHARGING_REQUEST;
+    }
+    return ServerAction.HTTP_REQUEST;
   }
 
   public static buildPerformanceRecord(params: {

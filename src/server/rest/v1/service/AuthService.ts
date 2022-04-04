@@ -166,7 +166,7 @@ export default class AuthService {
     // Save User
     newUser.id = await UserStorage.saveUser(tenant, newUser);
     // Save User Status
-    if (tenant.id === Constants.DEFAULT_TENANT) {
+    if (tenant.id === Constants.DEFAULT_TENANT_ID) {
       await UserStorage.saveUserRole(tenant, newUser.id, UserRole.SUPER_ADMIN);
     } else {
       await UserStorage.saveUserRole(tenant, newUser.id, UserRole.BASIC);
@@ -193,7 +193,7 @@ export default class AuthService {
     // Assign user to all Sites with auto-assign flag
     await UtilsService.assignCreatedUserToSites(tenant, newUser);
     // Create default Tag
-    if (tenant.id !== Constants.DEFAULT_TENANT) {
+    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
       const tag: Tag = {
         id: Utils.generateTagID(newUser.name, newUser.firstName),
         active: true,
@@ -214,7 +214,7 @@ export default class AuthService {
       message: `User with Email '${req.body.email as string}' has been created successfully`,
       detailedMessages: { params: req.body }
     });
-    if (tenant.id !== Constants.DEFAULT_TENANT) {
+    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Send notification
       const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +
         '/verify-email?VerificationToken=' + verificationToken + '&Email=' + newUser.email;
@@ -395,7 +395,7 @@ export default class AuthService {
       });
     }
     // Check that this is not the super tenant
-    if (tenant.id === Constants.DEFAULT_TENANT) {
+    if (tenant.id === Constants.DEFAULT_TENANT_ID) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
         action: action,
@@ -512,7 +512,7 @@ export default class AuthService {
       });
     }
     // Check that this is not the super tenant
-    if (tenant.id === Constants.DEFAULT_TENANT) {
+    if (tenant.id === Constants.DEFAULT_TENANT_ID) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Cannot request a verification Email in the Super Tenant',
@@ -673,7 +673,7 @@ export default class AuthService {
 
   public static async getTenantID(subdomain: string): Promise<string> {
     if (!subdomain) {
-      return Constants.DEFAULT_TENANT;
+      return Constants.DEFAULT_TENANT_ID;
     }
     // Get it
     const tenant = await TenantStorage.getTenantBySubdomain(subdomain);
