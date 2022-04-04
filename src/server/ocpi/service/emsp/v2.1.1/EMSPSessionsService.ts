@@ -96,7 +96,7 @@ export default class EMSPSessionsService {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    const transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant, sessionID);
+    const transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant, sessionID, { withUser: true });
     if (!transaction) {
       throw new AppError({
         module: MODULE_NAME, method: 'handlePatchSession', action,
@@ -108,7 +108,7 @@ export default class EMSPSessionsService {
     // Merge
     _.merge(transaction.ocpiData.session, req.body);
     // Update
-    await OCPIUtilsService.processEmspTransactionFromSession(tenant, transaction.ocpiData.session, ServerAction.OCPI_EMSP_UPDATE_SESSION, transaction);
+    await OCPIUtilsService.processEmspTransactionFromSession(tenant, transaction.ocpiData.session, ServerAction.OCPI_EMSP_UPDATE_SESSION, transaction, transaction.user);
     res.json(OCPIUtils.success({}));
     next();
   }
