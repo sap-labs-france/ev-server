@@ -16,6 +16,7 @@ import Configuration from './Configuration';
 import ConnectorStats from '../types/ConnectorStats';
 import Constants from './Constants';
 import { Decimal } from 'decimal.js';
+import I18nManager from './I18nManager';
 import { Promise } from 'bluebird';
 import QRCode from 'qrcode';
 import { Request } from 'express';
@@ -1673,5 +1674,28 @@ export default class Utils {
 
   public static hash(data: string): string {
     return crypto.createHash('sha256').update(data).digest('hex');
+  }
+
+  public static transactionDurationToString(transaction: Transaction): string {
+    let totalDurationSecs;
+    if (transaction.stop) {
+      totalDurationSecs = moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
+    } else {
+      totalDurationSecs = moment.duration(moment(transaction.lastConsumption.timestamp).diff(moment(transaction.timestamp))).asSeconds();
+    }
+    return moment.duration(totalDurationSecs, 's').format('h[h]mm', { trim: false });
+  }
+
+  public static transactionInactivityToString(transaction: Transaction, user: User, i18nHourShort = 'h') {
+    const i18nManager = I18nManager.getInstanceForLocale(user ? user.locale : Constants.DEFAULT_LANGUAGE);
+    // Get total
+    const totalInactivitySecs = transaction.stop.totalInactivitySecs;
+    // None?
+    if (totalInactivitySecs === 0) {
+      return `0${i18nHourShort}00 (${i18nManager.formatPercentage(0)})`;
+    }
+    // Build the inactivity percentage
+    const totalInactivityPercent = i18nManager.formatPercentage(Math.round((totalInactivitySecs / transaction.stop.totalDurationSecs) * 100) / 100);
+    return moment.duration(totalInactivitySecs, 's').format(`h[${i18nHourShort}]mm`, { trim: false }) + ` (${totalInactivityPercent})`;
   }
 }
