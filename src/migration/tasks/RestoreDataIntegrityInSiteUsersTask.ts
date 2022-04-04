@@ -48,7 +48,7 @@ export default class RestoreDataIntegrityInSiteUsersTask extends TenantMigration
     // Log in the default tenant
     if (deleted > 0) {
       await Logging.logDebug({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: Constants.DEFAULT_TENANT_ID,
         module: MODULE_NAME, method: 'migrateTenant',
         action: ServerAction.MIGRATION,
         message: `${deleted} Site/Users have been deleted in Tenant ${Utils.buildTenantName(tenant)}`

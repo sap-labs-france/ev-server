@@ -18,7 +18,7 @@ const MODULE_NAME = 'TronityCarConnectorIntegration';
 export default class TronityCarConnectorIntegration extends CarConnectorIntegration<CarConnectorSettings> {
   private axiosInstance: AxiosInstance;
 
-  constructor(tenant: Tenant, settings: CarConnectorSettings, connection: CarConnectorConnectionSetting) {
+  public constructor(tenant: Tenant, settings: CarConnectorSettings, connection: CarConnectorConnectionSetting) {
     super(tenant, settings, connection);
     // Get Axios
     this.axiosInstance = AxiosFactory.getAxiosInstance(this.tenant);
@@ -26,7 +26,7 @@ export default class TronityCarConnectorIntegration extends CarConnectorIntegrat
 
   public async connect(): Promise<string> {
     if (!this.checkIfTokenExpired(this.connection.token)) {
-      return await Cypher.decrypt(this.tenant, this.connection.token.accessToken);
+      return Cypher.decrypt(this.tenant, this.connection.token.accessToken);
     }
     // Check if connection is initialized
     this.checkConnectionIsProvided();

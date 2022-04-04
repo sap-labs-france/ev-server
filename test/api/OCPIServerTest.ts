@@ -44,9 +44,6 @@ describe('OCPI Service Tests (utocpi)', () => {
   afterAll(async () => {
   });
 
-  /**
-   * Test /ocpi/cpo/versions
-   */
   describe('Test /ocpi/cpo/versions', () => {
     let response;
 
@@ -85,7 +82,6 @@ describe('OCPI Service Tests (utocpi)', () => {
     it('should contains at least implementation version 2.1.1', () => {
       expect(response.data.data, 'OCPI 2.1.1 Not Available').to.satisfy((versions) => {
         let version211exist = false;
-
         for (const version of versions) {
           if (version.version === '2.1.1') {
             version211exist = true;
@@ -96,9 +92,6 @@ describe('OCPI Service Tests (utocpi)', () => {
     });
   });
 
-  /**
-   * Test /ocpi/emsp/versions
-   */
   describe('Test /ocpi/emsp/versions', () => {
     let response;
 
@@ -148,9 +141,6 @@ describe('OCPI Service Tests (utocpi)', () => {
     });
   });
 
-  /**
-   * Test /ocpi/cpo/2.1.1/
-   */
   describe('Test /ocpi/cpo/2.1.1 (Endpoints definition)', () => {
     let response;
 
@@ -195,10 +185,6 @@ describe('OCPI Service Tests (utocpi)', () => {
     });
   });
 
-
-  /**
-   * Test Invalid Endpoint /ocpi/cpo/2.1.1/invalidEndpoint
-   */
   describe('Test Invalid Endpoint /ocpi/cpo/2.1.1/invalidEndpoint', () => {
     let response;
 
@@ -220,26 +206,19 @@ describe('OCPI Service Tests (utocpi)', () => {
     it('should have correct OCPI Error Response value', () => {
       expect(response.data).to.not.be.empty;
       expect(response.data).to.have.property('status_code', 3000);
-      expect(response.data).to.have.property('status_message', 'Endpoint invalidEndpoint not implemented');
     });
   });
 
-  /**
-   * Test Invalid Endpoint /ocpi/emsp/2.1.1/invalidEndpoint
-   */
   describe('Test Invalid Endpoint /ocpi/emsp/2.1.1/invalidEndpoint', () => {
     let response;
 
     // Check call
-    it(
-      'should return 501 on url: /ocpi/emsp/2.1.1/invalidEndpoint',
-      async () => {
-        // Create
-        response = await testData.emspService.accessPath('GET', '/ocpi/emsp/2.1.1/invalidEndpoint');
-        // Check status
-        expect(response.status).to.be.eql(501);
-      }
-    );
+    it('should return 501 on url: /ocpi/emsp/2.1.1/invalidEndpoint', async () => {
+      // Create
+      response = await testData.emspService.accessPath('GET', '/ocpi/emsp/2.1.1/invalidEndpoint');
+      // Check status
+      expect(response.status).to.be.eql(501);
+    });
 
     // Check Response Object
     it('should have correct OCPI Error Response object', () => {
@@ -251,21 +230,13 @@ describe('OCPI Service Tests (utocpi)', () => {
     it('should have correct OCPI Error Response value', () => {
       expect(response.data).to.not.be.empty;
       expect(response.data).to.have.property('status_code', 3000);
-      expect(response.data).to.have.property('status_message', 'Endpoint invalidEndpoint not implemented');
     });
   });
 
-  /**
-   * Test /ocpi/cpo/2.1.1/locations
-   */
   describe('Test /ocpi/cpo/2.1.1/locations', () => {
     let response;
 
-    /**
-     * Access without paging
-     */
     describe('Access without paging', () => {
-
       // Check call
       it('should access url: /ocpi/cpo/2.1.1/locations', async () => {
         // Get locations
@@ -317,9 +288,6 @@ describe('OCPI Service Tests (utocpi)', () => {
       });
     });
 
-    /**
-     * Access with paging
-     */
     describe('Access with paging', () => {
       // Check access for each location
       it(
@@ -327,7 +295,6 @@ describe('OCPI Service Tests (utocpi)', () => {
         async () => {
           // Call
           const locationsResponse = await testData.cpoService.accessPath('GET', '/ocpi/cpo/2.1.1/locations');
-
           expect(locationsResponse.data).to.not.be.empty;
           expect(locationsResponse.data).to.have.property('status_code', 1000);
           expect(locationsResponse.data).to.have.property('status_message', 'Success');
@@ -343,7 +310,6 @@ describe('OCPI Service Tests (utocpi)', () => {
         async () => {
           // Call
           const locationsResponse = await testData.cpoService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/?offset=0&limit=20');
-
           expect(locationsResponse.data).to.not.be.empty;
           expect(locationsResponse.data).to.have.property('status_code', 1000);
           expect(locationsResponse.data).to.have.property('status_message', 'Success');
@@ -357,7 +323,6 @@ describe('OCPI Service Tests (utocpi)', () => {
         async () => {
           // Call
           const locationsResponse = await testData.cpoService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/?offset=0&limit=1');
-
           expect(locationsResponse.data).to.not.be.empty;
           expect(locationsResponse.data).to.have.property('status_code', 1000);
           expect(locationsResponse.data).to.have.property('status_message', 'Success');
@@ -365,9 +330,7 @@ describe('OCPI Service Tests (utocpi)', () => {
           expect(locationsResponse.headers).to.have.property('link').to.match(/^<.*:\/\/.*:.*\/ocpi\/cpo\/.*\/locations\/\?offset=1&limit=1>; rel="next"/);
         }
       );
-
     });
-
   });
 
   /**
@@ -376,11 +339,8 @@ describe('OCPI Service Tests (utocpi)', () => {
    *    - /ocpi/cpo/2.1.1/locations/{locationId}/{evseUid}
    *    - /ocpi/cpo/2.1.1/locations/{locationId}/{evseId}/{connectorId}
    */
-   describe('Test single entity /ocpi/cpo/2.1.1/locations/...', () => {
+  describe('Test single entity /ocpi/cpo/2.1.1/locations/...', () => {
     let response;
-    /**
-     * Success Cases
-     */
     describe('Success cases', () => {
       // Call once agian the GET Locations
       beforeAll(async () => {
@@ -438,9 +398,6 @@ describe('OCPI Service Tests (utocpi)', () => {
       );
     });
 
-    /**
-     * Failure cases
-     */
     describe('Failure cases', () => {
       // Invalid location
       it(
@@ -494,9 +451,6 @@ describe('OCPI Service Tests (utocpi)', () => {
    */
   describe('Test registration process /ocpi/cpo/2.1.1/credentials/...', () => {
     let response;
-    /**
-     * Success Cases
-     */
     describe('Success cases', () => {
       it('Should create a new ocpiEndpoint', async () => {
         expect(testData.newOcpiEndpoint).to.not.be.null;
@@ -514,59 +468,11 @@ describe('OCPI Service Tests (utocpi)', () => {
           testData.centralUserService.ocpiEndpointApi, testData.newOcpiEndpoint);
       });
 
-      // // Check access for each evse
-      // it('should be able to self-register', async () => {
-      //   // Define credential object
-      //   const credential = {
-      //     'url': 'http://localhost:9090/ocpi/cpo/versions',
-      //     'token': '12345',
-      //     'party_id': 'SLF',
-      //     'country_code': 'FR',
-      //     'business_details': {
-      //       'name': 'SAP Labs France',
-      //       'logo': {
-      //         'url': 'https://example.sap.com/img/logo.jpg',
-      //         'thumbnail': 'https://example.sap.com/img/logo_thumb.jpg',
-      //         'category': 'CPO',
-      //         'type': 'jpeg',
-      //         'width': 512,
-      //         'height': 512
-      //       },
-      //       'website': 'http://sap.com'
-      //     }
-      //   };
-
-      //   // Create
-      //   response = await testData.ocpiService.postCredentials2_1_1(credential);
-
-      //   // Check status
-      //   expect(response.status).to.be.eql(StatusCodes.OK);
-      //   testData.ocpiService.checkOCPIResponseStructure(response.data);
-      //   expect(response.data.status_code).to.be.eql(1000);
-      //   testData.ocpiService.validateCredentialEntity(response.data.data);
-      // });
-
       it('Should delete the created ocpiEndpoint', async () => {
         // Delete the created entity
         await testData.centralUserService.deleteEntity(
           testData.centralUserService.ocpiEndpointApi, testData.newOcpiEndpoint);
       });
-    });
-
-    /**
-     * Failure cases
-     */
-    describe('Failure cases', () => {
-      // // Invalid location
-      // it('should not find this non-existing location  /ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e67', async () => {
-      //   // Call
-      //   const locationResponse = await testData.ocpiService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e67');
-      //   // Check status
-      //   expect(locationResponse.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
-      //   expect(locationResponse.data).to.have.property('timestamp');
-      //   expect(locationResponse.data).to.have.property('status_code', 3000);
-      //   expect(locationResponse.data).to.have.property('status_message', 'Site id \'5abeba9e4bae1457eb565e67\' not found');
-      // });
     });
   });
 });

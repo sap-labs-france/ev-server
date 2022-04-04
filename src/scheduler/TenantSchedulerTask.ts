@@ -19,7 +19,7 @@ export default abstract class TenantSchedulerTask extends SchedulerTask {
       const tenantCorrelationID = Utils.generateShortNonUniqueID();
       const startTimeInTenant = moment();
       await Logging.logDebug({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.SCHEDULER,
         module: MODULE_NAME, method: 'processTask',
         message: `The Task '${this.getName()}~${this.getCorrelationID()}~${tenantCorrelationID}' is running for Tenant ${Utils.buildTenantName(tenant)}...`
@@ -39,7 +39,7 @@ export default abstract class TenantSchedulerTask extends SchedulerTask {
         await this.afterProcessTenant(tenant, config);
       } catch (error) {
         await Logging.logError({
-          tenantID: Constants.DEFAULT_TENANT,
+          tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.SCHEDULER,
           module: MODULE_NAME, method: 'processTask',
           message: `Error while running the Task '${this.getName()}~${this.getCorrelationID()}~${tenantCorrelationID}' for Tenant ${Utils.buildTenantName(tenant)}: ${error.message as string}`,
@@ -56,7 +56,7 @@ export default abstract class TenantSchedulerTask extends SchedulerTask {
       // Log Total Processing Time in Tenant
       const totalTimeSecsInTenant = moment.duration(moment().diff(startTimeInTenant)).asSeconds();
       await Logging.logDebug({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.SCHEDULER,
         module: MODULE_NAME, method: 'processTask',
         message: `The Task '${this.getName()}~${this.getCorrelationID()}~${tenantCorrelationID}' has been run successfully in ${totalTimeSecsInTenant} secs for Tenant ${Utils.buildTenantName(tenant)}`

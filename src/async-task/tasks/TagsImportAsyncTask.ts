@@ -28,7 +28,7 @@ export default class TagsImportAsyncTask extends AbstractAsyncTask {
       try {
         // If we never got the sites from db -> construct array of existing sites
         if (existingSites.size === 0) {
-          const sites = await SiteStorage.getSites(tenant, {}, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'name']);
+          const sites = await SiteStorage.getSites(tenant, { issuer: true }, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'name']);
           for (const site of sites.result) {
             existingSites.set(site.id, site);
           }

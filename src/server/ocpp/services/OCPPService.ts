@@ -461,7 +461,7 @@ export default class OCPPService {
       // Set header
       this.enrichOCPPRequest(chargingStation, stopTransaction, false);
       // Bypass Stop Transaction?
-      if (await this.bypassStopTransaction(tenant, chargingStation, headers, stopTransaction)) {
+      if (await this.bypassStopTransaction(tenant, chargingStation, stopTransaction)) {
         return {
           idTagInfo: {
             status: OCPPAuthorizationStatus.ACCEPTED
@@ -699,9 +699,9 @@ export default class OCPPService {
       // Save Status Notification
       await OCPPStorage.saveStatusNotification(tenant, statusNotification);
       // OCPI
-      await OCPIFacade.updateConnectorStatus(tenant, chargingStation, connector);
+      void OCPIFacade.updateConnectorStatus(tenant, chargingStation, connector);
       // OICP
-      await OICPFacade.updateConnectorStatus(tenant, chargingStation, connector);
+      void OICPFacade.updateConnectorStatus(tenant, chargingStation, connector);
       // Sort connectors
       if (!Utils.isEmptyArray(chargingStation?.connectors)) {
         chargingStation.connectors.sort((connector1: Connector, connector2: Connector) =>
@@ -1589,7 +1589,7 @@ export default class OCPPService {
       const carImplementation = await CarConnectorFactory.getCarConnectorImpl(tenant, transaction.car.carConnectorData.carConnectorID);
       if (carImplementation) {
         try {
-          return await carImplementation.getCurrentSoC(transaction.car, transaction.userID);
+          return carImplementation.getCurrentSoC(transaction.car, transaction.userID);
         } catch {
           return null;
         }
@@ -1834,7 +1834,7 @@ export default class OCPPService {
   }
 
   private async bypassStopTransaction(tenant: Tenant, chargingStation: ChargingStation,
-      headers: OCPPHeader, stopTransaction: OCPPStopTransactionRequestExtended): Promise<boolean> {
+      stopTransaction: OCPPStopTransactionRequestExtended): Promise<boolean> {
     // Ignore it (DELTA bug)?
     if (stopTransaction.transactionId === 0) {
       await Logging.logWarning({
@@ -1866,7 +1866,7 @@ export default class OCPPService {
     if (!transaction) {
       // Abort the ongoing Transaction
       if (meterValues.transactionId) {
-        await this.abortOngoingTransactionInMeterValues(tenant, chargingStation, headers, meterValues);
+        await this.abortOngoingTransactionInMeterValues(tenant, chargingStation, meterValues);
       }
       // Unkown Transaction
       throw new BackendError({
@@ -1880,7 +1880,7 @@ export default class OCPPService {
     // Transaction finished
     if (transaction?.stop) {
       // Abort the ongoing Transaction
-      await this.abortOngoingTransactionInMeterValues(tenant, chargingStation, headers, meterValues);
+      await this.abortOngoingTransactionInMeterValues(tenant, chargingStation, meterValues);
       throw new BackendError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         module: MODULE_NAME, method: 'getTransactionFromMeterValues',
@@ -1903,7 +1903,7 @@ export default class OCPPService {
     return transaction;
   }
 
-  private async abortOngoingTransactionInMeterValues(tenant: Tenant, chargingStation: ChargingStation, headers: OCPPHeader, meterValues: OCPPMeterValuesRequest) {
+  private async abortOngoingTransactionInMeterValues(tenant: Tenant, chargingStation: ChargingStation, meterValues: OCPPMeterValuesRequest) {
     // Get the OCPP Client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant, chargingStation);
     if (!chargingStationClient) {

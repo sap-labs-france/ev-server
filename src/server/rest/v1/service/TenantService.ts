@@ -50,7 +50,7 @@ export default class TenantService {
     UtilsService.assertObjectExists(action, tenant, `Tenant ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleDeleteTenant', req.user);
     // Check if current tenant
-    if (tenant.id === req.user.tenantID) {
+    if (tenant.id === req.tenant.id) {
       throw new AppError({
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `Your own tenant with id '${tenant.id}' cannot be deleted`,
@@ -65,7 +65,7 @@ export default class TenantService {
     await TenantStorage.deleteTenantDB(tenant.id);
     // Log
     await Logging.logInfo({
-      tenantID: req.user.tenantID, user: req.user,
+      tenantID: req.tenant.id, user: req.user,
       module: MODULE_NAME, method: 'handleDeleteTenant',
       message: `Tenant '${tenant.name}' has been deleted successfully`,
       action: action,
@@ -93,20 +93,17 @@ export default class TenantService {
         tenantLogo = await TenantStorage.getTenantLogo(tenant);
       }
     }
-    if (tenantLogo?.logo) {
-      let header = 'image';
-      let encoding: BufferEncoding = 'base64';
-      // Remove encoding header
-      if (tenantLogo.logo.startsWith('data:image/')) {
-        header = tenantLogo.logo.substring(5, tenantLogo.logo.indexOf(';'));
-        encoding = tenantLogo.logo.substring(tenantLogo.logo.indexOf(';') + 1, tenantLogo.logo.indexOf(',')) as BufferEncoding;
-        tenantLogo.logo = tenantLogo.logo.substring(tenantLogo.logo.indexOf(',') + 1);
-      }
-      res.setHeader('content-type', header);
-      res.send(tenantLogo.logo ? Buffer.from(tenantLogo.logo, encoding) : null);
-    } else {
-      res.send(null);
+    let logo = tenantLogo && !Utils.isNullOrEmptyString(tenantLogo.logo) ? tenantLogo.logo : Constants.NO_IMAGE;
+    let header = 'image';
+    let encoding: BufferEncoding = 'base64';
+    // Remove encoding header
+    if (logo.startsWith('data:image/')) {
+      header = logo.substring(5, logo.indexOf(';'));
+      encoding = logo.substring(logo.indexOf(';') + 1, logo.indexOf(',')) as BufferEncoding;
+      logo = logo.substring(logo.indexOf(',') + 1);
     }
+    res.setHeader('content-type', header);
+    res.send(Buffer.from(logo, encoding));
     next();
   }
 
@@ -303,7 +300,7 @@ export default class TenantService {
     );
     // Log
     await Logging.logInfo({
-      tenantID: req.user.tenantID, user: req.user,
+      tenantID: req.tenant.id, user: req.user,
       module: MODULE_NAME, method: 'handleCreateTenant',
       message: `Tenant '${filteredRequest.name}' has been created successfully`,
       action: action,
@@ -377,7 +374,7 @@ export default class TenantService {
     await TenantService.updateSettingsWithComponents(filteredRequest, req);
     // Log
     await Logging.logInfo({
-      tenantID: req.user.tenantID, user: req.user,
+      tenantID: req.tenant.id, user: req.user,
       module: MODULE_NAME, method: 'handleUpdateTenant',
       message: `Tenant '${filteredRequest.name}' has been updated successfully`,
       action: action,
