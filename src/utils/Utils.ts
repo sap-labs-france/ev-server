@@ -1298,12 +1298,6 @@ export default class Utils {
               'type': PricingSettingsType.SIMPLE,
               'simple': {}
             } as SettingDBContent;
-          } else if (activeComponentContent.type === PricingSettingsType.CONVERGENT_CHARGING) {
-            // SAP CC
-            return {
-              'type': PricingSettingsType.CONVERGENT_CHARGING,
-              'convergentCharging': {}
-            } as SettingDBContent;
           }
         }
         break;
