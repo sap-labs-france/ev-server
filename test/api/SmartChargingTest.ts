@@ -1076,15 +1076,15 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': 86.
+            'limit': 86
           },
           {
             'startPeriod': 900,
-            'limit': 86.
+            'limit': 86
           },
           {
             'startPeriod': 1800,
-            'limit': 86.
+            'limit': 86
           },
         ]);
         TestData.validateChargingProfile(chargingProfiles[1], transaction1);
@@ -1190,15 +1190,15 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
           expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
             {
               'startPeriod': 0,
-              'limit': 86.0
+              'limit': 86
             },
             {
               'startPeriod': 900,
-              'limit': 86.0
+              'limit': 86
             },
             {
               'startPeriod': 1800,
-              'limit': 86.0
+              'limit': 86
             },
           ]);
           TestData.validateChargingProfile(chargingProfiles[1], transaction1);
@@ -1393,15 +1393,15 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': 87.
+            'limit': 87
           },
           {
             'startPeriod': 900,
-            'limit': 87.
+            'limit': 87
           },
           {
             'startPeriod': 1800,
-            'limit': 87.
+            'limit': 87
           },
         ]);
       }
@@ -1421,15 +1421,15 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': 87.
+            'limit': 87
           },
           {
             'startPeriod': 900,
-            'limit': 87.
+            'limit': 87
           },
           {
             'startPeriod': 1800,
-            'limit': 87.
+            'limit': 87
           },
         ]);
       }
@@ -1459,15 +1459,15 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
       expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
         {
           'startPeriod': 0,
-          'limit': 87.
+          'limit': 87
         },
         {
           'startPeriod': 900,
-          'limit': 87.
+          'limit': 87
         },
         {
           'startPeriod': 1800,
-          'limit': 87.
+          'limit': 87
         },
       ]);
     });
