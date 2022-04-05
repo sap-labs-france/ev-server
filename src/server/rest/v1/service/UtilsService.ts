@@ -1518,34 +1518,14 @@ export default class UtilsService {
     }
   }
 
-  public static async checkIfSiteAreaTreeValid(siteArea: SiteArea, tenant: Tenant, user: UserToken): Promise<void> {
-    const siteAreas = await SiteAreaStorage.getSiteAreas(tenant,
-      { siteIDs: [siteArea.siteID] }, Constants.DB_PARAMS_MAX_LIMIT,
+  public static async checkIfSiteAreaTreeValid(siteArea: SiteArea): Promise<void> {
+    const siteAreas = await SiteAreaStorage.getSiteAreas(req.tenant,
+      { siteIDs: [ siteArea.siteID ] }, Constants.DB_PARAMS_MAX_LIMIT,
       ['id', 'name', 'parentSiteAreaID', 'siteID', 'smartCharging', 'name', 'voltage', 'numberOfPhases']);
-    // Check if site area exists or should be created
-    const index = siteAreas.result.findIndex((siteAreaToChange) => siteAreaToChange.id === siteArea.id);
-    if (index >= 0) {
-      siteAreas.result[index] = { id: siteArea.id, parentSiteAreaID: siteArea.parentSiteAreaID, siteID: siteArea.siteID, smartCharging: siteArea.smartCharging,
-        voltage: siteArea.voltage, numberOfPhases: siteArea.numberOfPhases, name: siteArea.name } as SiteArea;
-    } else {
-      siteAreas.result.push({ id: null, parentSiteAreaID: siteArea.parentSiteAreaID,
-        siteID: siteArea.siteID, smartCharging: siteArea.smartCharging,
-        voltage: siteArea.voltage, numberOfPhases: siteArea.numberOfPhases, name: siteArea.name } as SiteArea) ;
-    }
-    let siteAreaTrees: SiteArea[];
-    try {
-      // Build Site Area Tree
-      siteAreaTrees = Utils.buildSiteAreaTrees(siteAreas.result);
-      // Check Site Area Tree
-      Utils.checkSiteAreaTrees(siteAreaTrees, siteAreas.result.length);
-    } catch (error) {
-      throw new AppError({
-        errorCode: HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR,
-        message: `Error when checking site area tree: ${error.message as string}`,
-        module: MODULE_NAME, method: 'checkIfSiteAreaTreeValid',
-        user: user.id
-      });
-    }
+    // Build Site Area Tree
+    const siteAreaTree = UtilsService.buildSiteAreaTree(siteArea, siteAreas.result);
+    // Check Site Area Tree
+    UtilsService.checkSiteAreaTree(siteAreaTree);
   }
 
   public static checkIfPricingDefinitionValid(pricing: Partial<PricingDefinition>, req: Request): void {
@@ -2024,5 +2004,100 @@ export default class UtilsService {
       });
     }
     return tag;
+  }
+
+  private static buildSiteAreaTree(currentSiteArea: SiteArea, siteAreas: SiteArea[]): SiteArea {
+    let siteAreaTree: SiteArea;
+    // TODO: Check the length of Site Areas vs Element in the Tree
+    // Hash Table helper
+    const hashTable = {};
+    for (const siteArea of siteAreas) {
+      hashTable[siteArea.id] = { ...siteArea, siteAreaChildren: [] } as SiteArea;
+    }
+    const siteAreaTrees: SiteArea[] = [];
+    // Build tree
+    for (const siteArea of siteAreas) {
+      if (!Utils.isNullOrUndefined(siteArea.parentSiteAreaID) && !Utils.isNullOrUndefined(hashTable[siteArea.parentSiteAreaID])) {
+        if (siteArea.id === currentSiteArea.id) {
+          siteAreaTree = hashTable[siteArea.parentSiteAreaID];
+        }
+        // Push sub site area to parent children array
+        hashTable[siteArea.parentSiteAreaID].siteAreaChildren.push(hashTable[siteArea.id]);
+      // Root Site Area
+      } else {
+        if (siteArea.id === currentSiteArea.id) {
+          siteAreaTree = siteArea;
+        }
+        // If no parent ID is defined push root site area to array
+        siteAreaTrees.push(hashTable[siteArea.id]);
+      }
+    }
+    // TODO: Search in Trees and return only the root Site Area where the current SA is located: Return only the parent site area
+    return siteAreaTree;
+  }
+
+  private static checkSiteAreaTree(siteAreaTree: SiteArea, expectedNumberOfSiteAreas?: number, parentSiteArea: SiteArea = null) : number {
+    let numberOfSiteAreas = 0;
+    // Count and check all children and children of children
+    for (const siteAreaChild of siteAreaTree.siteAreaChildren) {
+      numberOfSiteAreas++;
+      // Check with parent Site Area
+      if (parentSiteArea) {
+        if (siteAreaChild.smartCharging !== parentSiteArea.smartCharging) {
+          // TODO: How to send all possible error in UI
+          // TODO: Type the Error + Handle it in the UI (propose to override all children)
+          throw new AppError({
+            ...LoggingHelper.getSiteAreaProperties(siteAreaChild),
+            errorCode: HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR,
+            message: `Expected Smart Charging '${String(parentSiteArea.smartCharging)}' from parent '${parentSiteArea.name}', but got '${String(siteAreaChild.smartCharging)}' from child '${siteAreaChild.name}'`,
+            module: MODULE_NAME, method: 'checkSiteAreaTrees',
+            detailedMessages: { siteArea: siteAreaChild, parentSiteArea },
+          });
+        }
+        if (siteAreaChild.numberOfPhases !== parentSiteArea.numberOfPhases) {
+          // TODO: Type the Error + Handle it in the UI
+          throw new AppError({
+            ...LoggingHelper.getSiteAreaProperties(siteAreaChild),
+            errorCode: HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR,
+            message: `Expected Number Of Phases '${parentSiteArea.numberOfPhases}' from parent '${parentSiteArea.name}', but got '${siteAreaChild.numberOfPhases}' from child '${siteAreaChild.name}'`,
+            module: MODULE_NAME, method: 'checkSiteAreaTrees',
+            detailedMessages: { siteArea: siteAreaChild, parentSiteArea },
+          });
+        }
+        if (siteAreaChild.siteID !== parentSiteArea.siteID) {
+          // TODO: Type the Error + Handle it in the UI
+          throw new AppError({
+            ...LoggingHelper.getSiteAreaProperties(siteAreaChild),
+            errorCode: HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR,
+            message: `Expected Site ID '${parentSiteArea.siteID}' from parent '${parentSiteArea.name}', but got '${siteAreaChild.siteID}' from child '${siteAreaChild.name}'`,
+            module: MODULE_NAME, method: 'checkSiteAreaTrees',
+            detailedMessages: { siteArea: siteAreaChild, parentSiteArea },
+          });
+        }
+        if (siteAreaChild.voltage !== parentSiteArea.voltage) {
+          // TODO: Type the Error + Handle it in the UI
+          throw new AppError({
+            ...LoggingHelper.getSiteAreaProperties(siteAreaChild),
+            errorCode: HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR,
+            message: `Expected Voltage '${parentSiteArea.voltage}' from parent '${parentSiteArea.name}', but got '${siteAreaChild.voltage}' from child '${siteAreaChild.name}'`,
+            module: MODULE_NAME, method: 'checkSiteAreaTrees',
+            detailedMessages: { siteArea: siteAreaChild, parentSiteArea },
+          });
+        }
+      }
+      // Check children
+      numberOfSiteAreas += this.checkSiteAreaTree(siteAreaChild, null, siteAreaChild);
+    }
+    if (Utils.isNullOrUndefined(expectedNumberOfSiteAreas)) {
+      return numberOfSiteAreas;
+    }
+    if (numberOfSiteAreas !== expectedNumberOfSiteAreas) {
+      throw new BackendError({
+        ...LoggingHelper.getSiteAreaProperties(siteAreas[0]),
+        method: 'checkSiteAreaTrees',
+        message: 'Circular dependency found in Site Area tree',
+        detailedMessages: { expectedNumberOfSiteAreas, numberOfSiteAreas, siteArea },
+      });
+    }
   }
 }
