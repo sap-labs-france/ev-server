@@ -17,12 +17,12 @@ export default abstract class SchedulerTask {
     this.name = name;
     this.correlationID = Utils.generateShortNonUniqueID();
     // Get the lock
-    const scheduledTaskLock = await LockingHelper.acquireScheduledTaskLock(Constants.DEFAULT_TENANT, name);
+    const scheduledTaskLock = await LockingHelper.acquireScheduledTaskLock(Constants.DEFAULT_TENANT_ID, name);
     if (scheduledTaskLock) {
       try {
         const startTime = moment();
         await Logging.logInfo({
-          tenantID: Constants.DEFAULT_TENANT,
+          tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.SCHEDULER,
           module: MODULE_NAME, method: 'run',
           message: `The Task '${name}~${this.correlationID}' is running...`
@@ -36,7 +36,7 @@ export default abstract class SchedulerTask {
           await this.afterTaskRun(config);
         } catch (error) {
           await Logging.logError({
-            tenantID: Constants.DEFAULT_TENANT,
+            tenantID: Constants.DEFAULT_TENANT_ID,
             action: ServerAction.SCHEDULER,
             module: MODULE_NAME, method: 'run',
             message: `Error while running the Task '${this.getName()}~${this.correlationID}': ${error.message as string}`,
@@ -46,7 +46,7 @@ export default abstract class SchedulerTask {
         // Log Total Processing Time
         const totalTimeSecs = moment.duration(moment().diff(startTime)).asSeconds();
         await Logging.logInfo({
-          tenantID: Constants.DEFAULT_TENANT,
+          tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.SCHEDULER,
           module: MODULE_NAME, method: 'run',
           message: `The Task '${name}~${this.correlationID}' has been run in ${totalTimeSecs} secs`

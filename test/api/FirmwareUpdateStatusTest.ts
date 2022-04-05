@@ -71,20 +71,20 @@ describe('Firmware Update Status', () => {
         }
       );
 
-      it('Should correctly assign Downloading Status', async () => {
-        const firmwareResponse = await testData.chargingStationContext.sendFirmwareStatusNotification(OCPPFirmwareStatus.DOWNLOADING);
-        expect(firmwareResponse).to.eql({});
-        const chargingStationResponse = await testData.chargingStationContext.readChargingStation();
-        expect(chargingStationResponse.status).to.equal(StatusCodes.OK);
-        expect(chargingStationResponse.data.firmwareUpdateStatus).to.equal(OCPPFirmwareStatus.DOWNLOADING);
-      });
-
       it('Should correctly assign Downloaded Status', async () => {
         const firmwareResponse = await testData.chargingStationContext.sendFirmwareStatusNotification(OCPPFirmwareStatus.DOWNLOADED);
         expect(firmwareResponse).to.eql({});
         const chargingStationResponse = await testData.chargingStationContext.readChargingStation();
         expect(chargingStationResponse.status).to.equal(StatusCodes.OK);
         expect(chargingStationResponse.data.firmwareUpdateStatus).to.equal(OCPPFirmwareStatus.DOWNLOADED);
+      });
+
+      it('Should correctly assign Downloading Status', async () => {
+        const firmwareResponse = await testData.chargingStationContext.sendFirmwareStatusNotification(OCPPFirmwareStatus.DOWNLOADING);
+        expect(firmwareResponse).to.eql({});
+        const chargingStationResponse = await testData.chargingStationContext.readChargingStation();
+        expect(chargingStationResponse.status).to.equal(StatusCodes.OK);
+        expect(chargingStationResponse.data.firmwareUpdateStatus).to.equal(OCPPFirmwareStatus.DOWNLOADING);
       });
 
       it('Should correctly assign Download Failed Status', async () => {

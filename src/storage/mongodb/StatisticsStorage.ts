@@ -10,7 +10,7 @@ const MODULE_NAME = 'StatisticsStorage';
 
 export default class StatisticsStorage {
 
-  static async getChargingStationStats(tenant: Tenant, params: StatisticFilter, groupBy: string): Promise<ChargingStationStats[]> {
+  public static async getChargingStationStats(tenant: Tenant, params: StatisticFilter, groupBy: string): Promise<ChargingStationStats[]> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Build filter
@@ -121,14 +121,14 @@ export default class StatisticsStorage {
       $sort: { 'month': 1, 'unit': 1, 'chargeBox': 1 }
     });
     // Read DB
-    const chargingStationStatsMDB = await global.database.getCollection<ChargingStationStats>(tenant.id, 'transactions')
-      .aggregate<ChargingStationStats>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const chargingStationStatsMDB = await global.database.getCollection<any>(tenant.id, 'transactions')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as ChargingStationStats[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getChargingStationStats', startTime, aggregation, chargingStationStatsMDB);
     return chargingStationStatsMDB;
   }
 
-  static async getUserStats(tenant: Tenant, params: StatisticFilter, groupBy: string): Promise<UserStats[]> {
+  public static async getUserStats(tenant: Tenant, params: StatisticFilter, groupBy: string): Promise<UserStats[]> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Build filter
@@ -248,9 +248,9 @@ export default class StatisticsStorage {
       $sort: { 'month': 1, 'unit': 1, 'userID': 1 } // Instead of chargeBox userID ?
     });
     // Read DB
-    const userStatsMDB = await global.database.getCollection<UserStats>(tenant.id, 'transactions')
-      .aggregate<UserStats>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const userStatsMDB = await global.database.getCollection<any>(tenant.id, 'transactions')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as UserStats[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getUserStats', startTime, aggregation, userStatsMDB);
     return userStatsMDB;
   }

@@ -30,8 +30,8 @@ export default class CompanyStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Read DB
-    const companyLogoMDB = await global.database.getCollection<Logo>(tenant.id, 'companylogos')
-      .findOne({ _id: DatabaseUtils.convertToObjectID(id) });
+    const companyLogoMDB = await global.database.getCollection<any>(tenant.id, 'companylogos')
+      .findOne({ _id: DatabaseUtils.convertToObjectID(id) }) as Logo;
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getCompanyLogo', startTime, { id }, companyLogoMDB);
     return {
       id: id,
@@ -64,7 +64,7 @@ export default class CompanyStorage {
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(companyMDB, companyToSave);
     // Modify
-    await global.database.getCollection<Company>(tenant.id, 'companies').findOneAndUpdate(
+    await global.database.getCollection<any>(tenant.id, 'companies').findOneAndUpdate(
       { _id: companyMDB._id },
       { $set: companyMDB },
       { upsert: true }
@@ -146,9 +146,9 @@ export default class CompanyStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const companiesCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'companies')
+    const companiesCountMDB = await global.database.getCollection<any>(tenant.id, 'companies')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
-      .toArray();
+      .toArray() as DatabaseCount[];
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
@@ -209,9 +209,9 @@ export default class CompanyStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const companiesMDB = await global.database.getCollection<Company>(tenant.id, 'companies')
-      .aggregate<Company>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const companiesMDB = await global.database.getCollection<any>(tenant.id, 'companies')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as Company[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getCompanies', startTime, aggregation, companiesMDB);
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(companiesCountMDB[0]),
@@ -226,7 +226,7 @@ export default class CompanyStorage {
     // Delete sites associated with Company
     await SiteStorage.deleteCompanySites(tenant, id);
     // Delete the Company
-    await global.database.getCollection<Company>(tenant.id, 'companies')
+    await global.database.getCollection<any>(tenant.id, 'companies')
       .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
     // Delete Logo
     await global.database.getCollection<any>(tenant.id, 'companylogos')

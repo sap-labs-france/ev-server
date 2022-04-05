@@ -69,7 +69,14 @@ export default abstract class OCPIClient {
     const unregisterResult = {} as OCPIUnregisterResult;
     try {
       // Check versions
-      await this.getAndCheckVersions(ServerAction.OCPI_UNREGISTER);
+      const versionFound = await this.checkVersions();
+      if (!versionFound) {
+        throw new BackendError({
+          action: ServerAction.OCPI_UNREGISTER,
+          message: 'OCPI Endpoint version 2.1.1 not found',
+          module: MODULE_NAME, method: 'constructor',
+        });
+      }
       // Delete credentials
       await this.deleteCredentials();
       // Save endpoint
@@ -92,7 +99,14 @@ export default abstract class OCPIClient {
     const registerResult = {} as OCPIRegisterResult;
     try {
       // Check versions
-      await this.getAndCheckVersions(ServerAction.OCPI_UNREGISTER);
+      const versionFound = await this.checkVersions();
+      if (!versionFound) {
+        throw new BackendError({
+          action: ServerAction.OCPI_REGISTER,
+          message: 'OCPI Endpoint version 2.1.1 not found',
+          module: MODULE_NAME, method: 'constructor',
+        });
+      }
       // Try to read services
       const endpointVersions = await this.getEndpointVersions();
       // Set available endpoints
@@ -154,10 +168,10 @@ export default abstract class OCPIClient {
 
   public async deleteCredentials(): Promise<OCPICredential> {
     // Get credentials url
-    const credentialsUrl = this.getEndpointUrl('credentials', ServerAction.OCPI_POST_CREDENTIALS);
+    const credentialsUrl = this.getEndpointUrl('credentials', ServerAction.OCPI_CREATE_CREDENTIALS);
     await Logging.logInfo({
       tenantID: this.tenant.id,
-      action: ServerAction.OCPI_POST_CREDENTIALS,
+      action: ServerAction.OCPI_CREATE_CREDENTIALS,
       message: `Delete Credentials at ${credentialsUrl}`,
       module: MODULE_NAME, method: 'postCredentials'
     });
@@ -174,11 +188,11 @@ export default abstract class OCPIClient {
 
   public async postCredentials(): Promise<OCPICredential> {
     // Get credentials url
-    const credentialsUrl = this.getEndpointUrl('credentials', ServerAction.OCPI_POST_CREDENTIALS);
+    const credentialsUrl = this.getEndpointUrl('credentials', ServerAction.OCPI_CREATE_CREDENTIALS);
     const credentials = await OCPIUtils.buildOCPICredentialObject(this.tenant, this.ocpiEndpoint.localToken, this.ocpiEndpoint.role);
     await Logging.logInfo({
       tenantID: this.tenant.id,
-      action: ServerAction.OCPI_POST_CREDENTIALS,
+      action: ServerAction.OCPI_CREATE_CREDENTIALS,
       message: `Post Credentials at ${credentialsUrl}`,
       module: MODULE_NAME, method: 'postCredentials',
       detailedMessages: { credentials }
@@ -240,7 +254,7 @@ export default abstract class OCPIClient {
     return `${Configuration.getOCPIEndpointConfig().baseUrl}/ocpi/${this.role}/${this.ocpiEndpoint.version}/${service}`;
   }
 
-  private async getAndCheckVersions(action: ServerAction) {
+  private async checkVersions(): Promise<boolean> {
     // Get available version.
     const ocpiVersions = await this.getVersions();
     // Loop through versions and pick the same one
@@ -253,13 +267,6 @@ export default abstract class OCPIClient {
         break;
       }
     }
-    // If not found trigger exception
-    if (!versionFound) {
-      throw new BackendError({
-        action,
-        message: 'OCPI Endpoint version 2.1.1 not found',
-        module: MODULE_NAME, method: 'constructor',
-      });
-    }
+    return versionFound;
   }
 }

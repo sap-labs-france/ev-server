@@ -1,6 +1,6 @@
 {
   "name": "ev-server",
-  "version": "2.6.3",
+  "version": "2.6.4",
   "engines": {
     "node": "16.x.x",
     "npm": "8.x.x"
@@ -63,7 +63,6 @@
     "test:authentication": "npm version && cross-env TS_NODE_FILES=true jest --config='./test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent -- test/**/AuthenticationTest.ts",
     "test:billing": "npm version && cross-env TS_NODE_FILES=true jest --config='./test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent -- test/**/BillingTest.ts",
     "test:car": "npm version && cross-env TS_NODE_FILES=true jest --config='./test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent -- test/**/CarTest.ts",
-    "test:company": "npm version && cross-env TS_NODE_FILES=true jest --config='./test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent -- test/**/Company*Test.ts",
     "test:componentActivation": "npm version && cross-env TS_NODE_FILES=true jest --config='./test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent -- test/**/ComponentActivation*Test.ts",
     "test:crypto": "npm version && cross-env TS_NODE_FILES=true jest --config='./test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent -- test/**/EncryptionSettingTest.ts",
     "test:filter": "npm version && cross-env TS_NODE_FILES=true jest --config='./test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent -- test/**/FilterTest.ts",
@@ -75,7 +74,10 @@
     "test:registrationToken": "npm version && cross-env TS_NODE_FILES=true jest --config='./test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent -- test/**/RegistrationTokenTest.ts",
     "test:security": "npm version && cross-env TS_NODE_FILES=true jest --config='./test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent --forceExit -- test/**/SecurityTest.ts",
     "test:setting": "npm version && cross-env TS_NODE_FILES=true jest --config='./test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent -- test/**/*SettingTest.ts",
-    "test:site": "npm version && cross-env TS_NODE_FILES=true jest --config='./test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent test/**/Site*Test.ts",
+    "test:org": "npm version && cross-env TS_NODE_FILES=true jest --config='./test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent test/**/*Org*Test.ts",
+    "test:company": "npm version && cross-env TS_NODE_FILES=true jest --config='./test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent -- test/**/CompanyOrg*Test.ts",
+    "test:site": "npm version && cross-env TS_NODE_FILES=true jest --config='./test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent test/**/SiteOrg*Test.ts",
+    "test:siteArea": "npm version && cross-env TS_NODE_FILES=true jest --config='./test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent test/**/SiteAreaOrg*Test.ts",
     "test:smartCharging": "npm version && cross-env TS_NODE_FILES=true jest --config='./test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent --forceExit -- test/**/SmartChargingTest.ts",
     "test:stat": "npm version && cross-env TS_NODE_FILES=true jest --config='./test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent -- test/**/StatisticsTest.ts",
     "test:tag": "npm version && cross-env TS_NODE_FILES=true jest --config='./test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent --forceExit -- test/**/TagTest.ts",
@@ -124,7 +126,7 @@
     "moment-timezone": "^0.5.34",
     "mongo-sanitize": "^1.1.0",
     "mongo-uri-builder": "^4.0.0",
-    "mongodb": "^4.2.2",
+    "mongodb": "^4.4.1",
     "morgan": "^1.10.0",
     "mustache": "^4.2.0",
     "nanoid": "^3.2.0",

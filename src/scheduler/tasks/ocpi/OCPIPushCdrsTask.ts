@@ -30,8 +30,9 @@ export default class OCPIPushCdrsTask extends TenantSchedulerTask {
               [
                 {
                   $match: {
-                    'stop': { $exists: true },
-                    'ocpiData': { $exists: true },
+                    issuer: true,
+                    stop: { $exists: true },
+                    ocpiData: { $exists: true },
                     'ocpiData.cdr': null
                   }
                 },
@@ -42,7 +43,7 @@ export default class OCPIPushCdrsTask extends TenantSchedulerTask {
             if (!Utils.isEmptyArray(transactionsMDB)) {
               await Logging.logInfo({
                 tenantID: tenant.id,
-                action: ServerAction.OCPI_PUSH_CDRS,
+                action: ServerAction.OCPI_CPO_PUSH_CDRS,
                 module: MODULE_NAME, method: 'processTenant',
                 message: `${transactionsMDB.length} Transaction's CDRs are going to be pushed to OCPI`,
               });
@@ -56,7 +57,7 @@ export default class OCPIPushCdrsTask extends TenantSchedulerTask {
                     if (!transaction) {
                       await Logging.logError({
                         tenantID: tenant.id,
-                        action: ServerAction.OCPI_PUSH_CDRS,
+                        action: ServerAction.OCPI_CPO_PUSH_CDRS,
                         module: MODULE_NAME, method: 'processTenant',
                         message: `Transaction ID '${transactionMDB._id}' not found`,
                       });
@@ -65,7 +66,7 @@ export default class OCPIPushCdrsTask extends TenantSchedulerTask {
                     if (transaction.ocpiData?.cdr) {
                       await Logging.logInfo({
                         tenantID: tenant.id,
-                        action: ServerAction.OCPI_PUSH_CDRS,
+                        action: ServerAction.OCPI_CPO_PUSH_CDRS,
                         module: MODULE_NAME, method: 'processTenant',
                         message: `Transaction ID '${transactionMDB._id}' already has his CDR pushed`,
                       });
@@ -76,7 +77,7 @@ export default class OCPIPushCdrsTask extends TenantSchedulerTask {
                     if (!chargingStation) {
                       await Logging.logError({
                         tenantID: tenant.id,
-                        action: ServerAction.OCPI_PUSH_CDRS,
+                        action: ServerAction.OCPI_CPO_PUSH_CDRS,
                         module: MODULE_NAME, method: 'processTenant',
                         message: `Charging Station ID '${transaction.chargeBoxID}' not found`,
                       });
@@ -87,19 +88,19 @@ export default class OCPIPushCdrsTask extends TenantSchedulerTask {
                     if (!tag) {
                       await Logging.logError({
                         tenantID: tenant.id,
-                        action: ServerAction.OCPI_PUSH_CDRS,
+                        action: ServerAction.OCPI_CPO_PUSH_CDRS,
                         module: MODULE_NAME, method: 'processTenant',
                         message: `Tag ID '${transaction.tagID}' not found`,
                       });
                       continue;
                     }
                     // Roaming
-                    await OCPIFacade.processEndTransaction(tenant, transaction, chargingStation, chargingStation.siteArea, transaction.user, ServerAction.OCPI_PUSH_CDRS);
+                    await OCPIFacade.processEndTransaction(tenant, transaction, chargingStation, chargingStation.siteArea, transaction.user, ServerAction.OCPI_CPO_PUSH_CDRS);
                     // Save
                     await TransactionStorage.saveTransactionOcpiData(tenant, transaction.id, transaction.ocpiData);
                     await Logging.logInfo({
                       tenantID: tenant.id,
-                      action: ServerAction.OCPI_PUSH_CDRS,
+                      action: ServerAction.OCPI_CPO_PUSH_CDRS,
                       actionOnUser: (transaction.user ? transaction.user : null),
                       module: MODULE_NAME, method: 'processTenant',
                       message: `CDR of Transaction ID '${transaction.id}' has been pushed successfully`,
@@ -108,7 +109,7 @@ export default class OCPIPushCdrsTask extends TenantSchedulerTask {
                   } catch (error) {
                     await Logging.logError({
                       tenantID: tenant.id,
-                      action: ServerAction.OCPI_PUSH_CDRS,
+                      action: ServerAction.OCPI_CPO_PUSH_CDRS,
                       module: MODULE_NAME, method: 'processTenant',
                       message: `Failed to pushed the CDR of the Transaction ID '${transactionMDB._id}' to OCPI`,
                       detailedMessages: { error: error.stack, transaction: transactionMDB }
@@ -127,7 +128,7 @@ export default class OCPIPushCdrsTask extends TenantSchedulerTask {
         }
       }
     } catch (error) {
-      await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PULL_CDRS, error);
+      await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_PUSH_CDRS, error);
     }
   }
 }

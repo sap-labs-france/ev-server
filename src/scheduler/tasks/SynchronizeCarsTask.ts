@@ -12,7 +12,7 @@ import Utils from '../../utils/Utils';
 export default class SynchronizeCarsTask extends SchedulerTask {
   public async processTask(config: TaskConfig): Promise<void> {
     // Get the lock
-    const syncCarCatalogLock = await LockingHelper.acquireSyncCarCatalogsLock(Constants.DEFAULT_TENANT);
+    const syncCarCatalogLock = await LockingHelper.acquireSyncCarCatalogsLock(Constants.DEFAULT_TENANT_ID);
     if (syncCarCatalogLock) {
       try {
         const carDatabaseImpl = CarFactory.getCarImpl();
@@ -27,7 +27,7 @@ export default class SynchronizeCarsTask extends SchedulerTask {
         }
       } catch (error) {
         // Log error
-        await Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, ServerAction.SYNCHRONIZE_CAR_CATALOGS, error);
+        await Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT_ID, ServerAction.SYNCHRONIZE_CAR_CATALOGS, error);
       } finally {
         // Release the lock
         await LockingManager.release(syncCarCatalogLock);

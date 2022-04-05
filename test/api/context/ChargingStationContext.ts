@@ -79,11 +79,11 @@ export default class ChargingStationContext {
     if (!userService) {
       userService = new CentralServerService(this.tenantContext.getTenant().subdomain, this.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN));
     }
-    return await userService.chargingStationApi.readById(this.chargingStation.id);
+    return userService.chargingStationApi.readById(this.chargingStation.id);
   }
 
   public async sendHeartbeat(): Promise<OCPPHeartbeatResponse> {
-    return await this.ocppService.executeHeartbeat(this.chargingStation.id, {});
+    return this.ocppService.executeHeartbeat(this.chargingStation.id, {});
   }
 
   public async startTransaction(connectorId: number, tagId: string, meterStart: number, startDate: Date): Promise<OCPPStartTransactionResponse> {

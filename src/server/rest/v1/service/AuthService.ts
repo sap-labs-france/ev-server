@@ -15,7 +15,6 @@ import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
 import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
-import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
@@ -166,7 +165,7 @@ export default class AuthService {
     // Save User
     newUser.id = await UserStorage.saveUser(tenant, newUser);
     // Save User Status
-    if (tenant.id === Constants.DEFAULT_TENANT) {
+    if (tenant.id === Constants.DEFAULT_TENANT_ID) {
       await UserStorage.saveUserRole(tenant, newUser.id, UserRole.SUPER_ADMIN);
     } else {
       await UserStorage.saveUserRole(tenant, newUser.id, UserRole.BASIC);
@@ -175,17 +174,6 @@ export default class AuthService {
     await UserStorage.saveUserStatus(tenant, newUser.id, UserStatus.PENDING);
     // Get the i18n translation class
     const i18nManager = I18nManager.getInstanceForLocale(newUser.locale);
-    const tag: Tag = {
-      id: Utils.generateTagID(newUser.name, newUser.firstName),
-      active: true,
-      issuer: true,
-      userID: newUser.id,
-      createdBy: { id: newUser.id },
-      createdOn: new Date(),
-      description: i18nManager.translate('tags.virtualBadge'),
-      default: true
-    };
-    await TagStorage.saveTag(tenant, tag);
     // Save User password
     await UserStorage.saveUserPassword(tenant, newUser.id, {
       password: newPasswordHashed,
@@ -203,6 +191,20 @@ export default class AuthService {
     });
     // Assign user to all Sites with auto-assign flag
     await UtilsService.assignCreatedUserToSites(tenant, newUser);
+    // Create default Tag
+    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
+      const tag: Tag = {
+        id: Utils.generateTagID(newUser.name, newUser.firstName),
+        active: true,
+        issuer: true,
+        userID: newUser.id,
+        createdBy: { id: newUser.id },
+        createdOn: new Date(),
+        description: i18nManager.translate('tags.virtualBadge'),
+        default: true
+      };
+      await TagStorage.saveTag(tenant, tag);
+    }
     await Logging.logInfo({
       tenantID: tenant.id,
       user: newUser, action: action,
@@ -211,7 +213,7 @@ export default class AuthService {
       message: `User with Email '${req.body.email as string}' has been created successfully`,
       detailedMessages: { params: req.body }
     });
-    if (tenant.id !== Constants.DEFAULT_TENANT) {
+    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Send notification
       const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +
         '/verify-email?VerificationToken=' + verificationToken + '&Email=' + newUser.email;
@@ -392,7 +394,7 @@ export default class AuthService {
       });
     }
     // Check that this is not the super tenant
-    if (tenant.id === Constants.DEFAULT_TENANT) {
+    if (tenant.id === Constants.DEFAULT_TENANT_ID) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
         action: action,
@@ -509,7 +511,7 @@ export default class AuthService {
       });
     }
     // Check that this is not the super tenant
-    if (tenant.id === Constants.DEFAULT_TENANT) {
+    if (tenant.id === Constants.DEFAULT_TENANT_ID) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Cannot request a verification Email in the Super Tenant',
@@ -670,7 +672,7 @@ export default class AuthService {
 
   public static async getTenantID(subdomain: string): Promise<string> {
     if (!subdomain) {
-      return Constants.DEFAULT_TENANT;
+      return Constants.DEFAULT_TENANT_ID;
     }
     // Get it
     const tenant = await TenantStorage.getTenantBySubdomain(subdomain);

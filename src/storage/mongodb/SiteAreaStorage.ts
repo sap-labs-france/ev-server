@@ -151,7 +151,7 @@ export default class SiteAreaStorage {
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(siteAreaMDB, siteAreaToSave);
     // Modify
-    await global.database.getCollection<SiteArea>(tenant.id, 'siteareas').findOneAndUpdate(
+    await global.database.getCollection<any>(tenant.id, 'siteareas').findOneAndUpdate(
       { _id: siteAreaMDB._id },
       { $set: siteAreaMDB },
       { upsert: true, returnDocument: 'after' }
@@ -275,9 +275,9 @@ export default class SiteAreaStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const siteAreasCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'siteareas')
+    const siteAreasCountMDB = await global.database.getCollection<any>(tenant.id, 'siteareas')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
-      .toArray();
+      .toArray() as DatabaseCount[];
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
@@ -353,28 +353,26 @@ export default class SiteAreaStorage {
           'chargingStations.deleted', 'chargingStations.cannotChargeInParallel', 'chargingStations.public', 'chargingStations.inactive']);
     }
     // Read DB
-    const siteAreasMDB = await global.database.getCollection<SiteArea>(tenant.id, 'siteareas')
-      .aggregate<SiteArea>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const siteAreasMDB = await global.database.getCollection<any>(tenant.id, 'siteareas')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as SiteArea[];
     const siteAreas: SiteArea[] = [];
     // TODO: Handle this coding into the MongoDB request
     if (siteAreasMDB && siteAreasMDB.length > 0) {
       // Create
       for (const siteAreaMDB of siteAreasMDB) {
-        if (siteAreaMDB.issuer) {
-          // Skip site area with no charging stations if asked
-          if (params.withOnlyChargingStations && Utils.isEmptyArray(siteAreaMDB.chargingStations)) {
-            continue;
-          }
-          // Add counts of Available/Occupied Chargers/Connectors
-          if (params.withAvailableChargingStations) {
-            // Set the Charging Stations' Connector statuses
-            siteAreaMDB.connectorStats = Utils.getConnectorStatusesFromChargingStations(siteAreaMDB.chargingStations);
-          }
-          // Charging stations
-          if (!params.withChargingStations && siteAreaMDB.chargingStations) {
-            delete siteAreaMDB.chargingStations;
-          }
+        // Skip site area with no charging stations if asked
+        if (params.withOnlyChargingStations && Utils.isEmptyArray(siteAreaMDB.chargingStations)) {
+          continue;
+        }
+        // Add counts of Available/Occupied Chargers/Connectors
+        if (params.withAvailableChargingStations) {
+          // Set the Charging Stations' Connector statuses
+          siteAreaMDB.connectorStats = Utils.getConnectorStatusesFromChargingStations(siteAreaMDB.chargingStations);
+        }
+        // Charging stations
+        if (!params.withChargingStations && siteAreaMDB.chargingStations) {
+          delete siteAreaMDB.chargingStations;
         }
         // Add
         siteAreas.push(siteAreaMDB);

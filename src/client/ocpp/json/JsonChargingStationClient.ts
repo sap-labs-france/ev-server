@@ -2,7 +2,7 @@ import { OCPPCancelReservationRequest, OCPPCancelReservationResponse, OCPPChange
 
 import ChargingStationClient from '../../ocpp/ChargingStationClient';
 import { Command } from '../../../types/ChargingStation';
-import JsonWSConnection from '../../../server/ocpp/json/JsonWSConnection';
+import JsonWSConnection from '../../../server/ocpp/json/web-socket/JsonWSConnection';
 import Logging from '../../../utils/Logging';
 import { OCPPMessageType } from '../../../types/ocpp/OCPPCommon';
 import OCPPUtils from '../../../server/ocpp/utils/OCPPUtils';
@@ -19,7 +19,7 @@ export default class JsonChargingStationClient extends ChargingStationClient {
   private tenant: Tenant;
   private wsConnection: JsonWSConnection;
 
-  constructor(wsConnection: JsonWSConnection, tenant: Tenant, chargingStationID: string) {
+  public constructor(wsConnection: JsonWSConnection, tenant: Tenant, chargingStationID: string) {
     super();
     this.wsConnection = wsConnection;
     this.tenant = tenant;
@@ -29,7 +29,7 @@ export default class JsonChargingStationClient extends ChargingStationClient {
     this.siteAreaID = wsConnection.getSiteAreaID();
   }
 
-  getChargingStationID(): string {
+  public getChargingStationID(): string {
     return this.wsConnection.getChargingStationID();
   }
 
