@@ -731,14 +731,14 @@ export default class JsonOCPPServer extends OCPPServer {
             tenantID: Constants.DEFAULT_TENANT_ID,
             module: MODULE_NAME, method: 'checkAndCleanupWebSockets',
             action: ServerAction.WS_SERVER_CONNECTION_PING,
-            message, detailedMessages: { validConnections, invalidConnections }
+            message, detailedMessages: { invalidConnections, validConnections }
           });
         } else {
           await Logging.logInfo({
             tenantID: Constants.DEFAULT_TENANT_ID,
             module: MODULE_NAME, method: 'checkAndCleanupWebSockets',
             action: ServerAction.WS_SERVER_CONNECTION_PING,
-            message, detailedMessages: { validConnections, invalidConnections }
+            message, detailedMessages: { invalidConnections, validConnections }
           });
         }
       }
@@ -762,7 +762,7 @@ export default class JsonOCPPServer extends OCPPServer {
       protocol: wsWrapper.protocol,
       remoteAddress: wsWrapper.remoteAddress,
       firstConnectionDate: wsWrapper.firstConnectionDate,
-      durantionSecs: Utils.computeTimeDurationSecs(new Date(wsWrapper.firstConnectionDate).getTime()),
+      durationSecs: Utils.computeTimeDurationSecs(new Date(wsWrapper.firstConnectionDate).getTime()),
       lastPingDate: wsWrapper.lastPingDate,
       lastPongDate: wsWrapper.lastPongDate,
     };

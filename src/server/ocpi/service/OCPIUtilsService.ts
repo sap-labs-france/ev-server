@@ -18,6 +18,7 @@ import DbParams from '../../../types/database/DbParams';
 import { HTTPError } from '../../../types/HTTPError';
 import Logging from '../../../utils/Logging';
 import LoggingHelper from '../../../utils/LoggingHelper';
+import NotificationHelper from '../../../utils/NotificationHelper';
 import { OCPIBusinessDetails } from '../../../types/ocpi/OCPIBusinessDetails';
 import { OCPICdr } from '../../../types/ocpi/OCPICdr';
 import { OCPIResponse } from '../../../types/ocpi/OCPIResponse';
@@ -291,7 +292,9 @@ export default class OCPIUtilsService {
     }
   }
 
-  public static async processEmspTransactionFromSession(tenant: Tenant, session: OCPISession, action: ServerAction, transaction?: Transaction): Promise<void> {
+  public static async processEmspTransactionFromSession(tenant: Tenant, session: OCPISession, action: ServerAction,
+      transaction?: Transaction, user?: User): Promise<void> {
+    let newTransaction = false;
     if (!OCPIUtilsService.validateEmspSession(session)) {
       throw new AppError({
         module: MODULE_NAME, method: 'processEmspTransactionFromSession', action,
@@ -310,16 +313,29 @@ export default class OCPIUtilsService {
     }
     // Get Transaction
     if (!transaction) {
-      transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant, session.id);
+      transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant, session.id, { withUser: true });
+      user = transaction?.user;
     }
     // Check the CDR
-    if (transaction && transaction.ocpiData?.cdr?.id) {
+    if (transaction?.ocpiData?.cdr?.id) {
       await Logging.logWarning({
         ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: tenant.id,
         actionOnUser: transaction.userID,
         module: MODULE_NAME, method: 'processEmspTransactionFromSession', action,
-        message: `Transaction ID '${transaction.id}' already has a CDR and will not be updated with OCPI Session`,
+        message: `Transaction ID '${transaction.id}' has already a CDR`,
+        detailedMessages: { session, transaction }
+      });
+      return;
+    }
+    // Check the Session Status
+    if (transaction?.ocpiData?.session?.status === OCPISessionStatus.COMPLETED) {
+      await Logging.logWarning({
+        ...LoggingHelper.getTransactionProperties(transaction),
+        tenantID: tenant.id,
+        actionOnUser: transaction.userID,
+        module: MODULE_NAME, method: 'processEmspTransactionFromSession', action,
+        message: `Transaction ID '${transaction.id}' has already been completed`,
         detailedMessages: { session, transaction }
       });
       return;
@@ -345,6 +361,7 @@ export default class OCPIUtilsService {
     }
     // Create Transaction
     if (!transaction) {
+      newTransaction = true;
       // Get the Tag
       const tag = await TagStorage.getTag(tenant, session.auth_id, { withUser: true });
       if (!tag) {
@@ -358,7 +375,7 @@ export default class OCPIUtilsService {
         });
       }
       // Get User
-      const user = tag.user;
+      user = tag.user;
       if (!user) {
         throw new AppError({
           ...LoggingHelper.getChargingStationProperties(chargingStation),
@@ -464,9 +481,13 @@ export default class OCPIUtilsService {
         inactivityStatus: transaction.currentInactivityStatus,
         userID: transaction.userID
       };
+      NotificationHelper.notifyStopTransaction(tenant, chargingStation, transaction, user);
     }
     await TransactionStorage.saveTransaction(tenant, transaction);
     await OCPPUtils.updateChargingStationConnectorRuntimeDataWithTransaction(tenant, chargingStation, transaction, true);
+    if (newTransaction) {
+      NotificationHelper.notifyStartTransaction(tenant, transaction, chargingStation, user);
+    }
   }
 
   public static async processEmspCdr(tenant: Tenant, cdr: OCPICdr, action: ServerAction): Promise<void> {
