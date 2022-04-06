@@ -2,124 +2,121 @@
   "$id": "meter-values-request",
   "definitions": {
     "meterValue": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "timestamp": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "sampledValue": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "string"
-                },
-                "context": {
-                  "type": "string",
-                  "enum": [
-                    "Interruption.Begin",
-                    "Interruption.End",
-                    "Sample.Clock",
-                    "Sample.Periodic",
-                    "Transaction.Begin",
-                    "Transaction.End",
-                    "Trigger",
-                    "Other"
-                  ]
-                },
-                "format": {
-                  "type": "string",
-                  "enum": [
-                    "Raw",
-                    "SignedData"
-                  ]
-                },
-                "measurand": {
-                  "type": "string",
-                  "enum": [
-                    "Energy.Active.Export.Register",
-                    "Energy.Active.Import.Register",
-                    "Energy.Reactive.Export.Register",
-                    "Energy.Reactive.Import.Register",
-                    "Energy.Active.Export.Interval",
-                    "Energy.Active.Import.Interval",
-                    "Energy.Reactive.Export.Interval",
-                    "Energy.Reactive.Import.Interval",
-                    "Power.Active.Export",
-                    "Power.Active.Import",
-                    "Power.Offered",
-                    "Power.Reactive.Export",
-                    "Power.Reactive.Import",
-                    "Power.Factor",
-                    "Current.Import",
-                    "Current.Export",
-                    "Current.Offered",
-                    "Voltage",
-                    "Frequency",
-                    "Temperature",
-                    "SoC",
-                    "RPM"
-                  ]
-                },
-                "phase": {
-                  "type": "string",
-                  "enum": [
-                    "L1",
-                    "L2",
-                    "L3",
-                    "N",
-                    "L1-N",
-                    "L2-N",
-                    "L3-N",
-                    "L1-L2",
-                    "L2-L3",
-                    "L3-L1"
-                  ]
-                },
-                "location": {
-                  "type": "string",
-                  "enum": [
-                    "Cable",
-                    "EV",
-                    "Inlet",
-                    "Outlet",
-                    "Body"
-                  ]
-                },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "Wh",
-                    "kWh",
-                    "varh",
-                    "kvarh",
-                    "W",
-                    "kW",
-                    "VA",
-                    "kVA",
-                    "var",
-                    "kvar",
-                    "A",
-                    "V",
-                    "K",
-                    "Celcius",
-                    "Fahrenheit",
-                    "Percent"
-                  ]
-                }
+      "type": "object",
+      "properties": {
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "sampledValue": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "string"
+              },
+              "context": {
+                "type": "string",
+                "enum": [
+                  "Interruption.Begin",
+                  "Interruption.End",
+                  "Sample.Clock",
+                  "Sample.Periodic",
+                  "Transaction.Begin",
+                  "Transaction.End",
+                  "Trigger",
+                  "Other"
+                ]
+              },
+              "format": {
+                "type": "string",
+                "enum": [
+                  "Raw",
+                  "SignedData"
+                ]
+              },
+              "measurand": {
+                "type": "string",
+                "enum": [
+                  "Energy.Active.Export.Register",
+                  "Energy.Active.Import.Register",
+                  "Energy.Reactive.Export.Register",
+                  "Energy.Reactive.Import.Register",
+                  "Energy.Active.Export.Interval",
+                  "Energy.Active.Import.Interval",
+                  "Energy.Reactive.Export.Interval",
+                  "Energy.Reactive.Import.Interval",
+                  "Power.Active.Export",
+                  "Power.Active.Import",
+                  "Power.Offered",
+                  "Power.Reactive.Export",
+                  "Power.Reactive.Import",
+                  "Power.Factor",
+                  "Current.Import",
+                  "Current.Export",
+                  "Current.Offered",
+                  "Voltage",
+                  "Frequency",
+                  "Temperature",
+                  "SoC",
+                  "RPM"
+                ]
+              },
+              "phase": {
+                "type": "string",
+                "enum": [
+                  "L1",
+                  "L2",
+                  "L3",
+                  "N",
+                  "L1-N",
+                  "L2-N",
+                  "L3-N",
+                  "L1-L2",
+                  "L2-L3",
+                  "L3-L1"
+                ]
+              },
+              "location": {
+                "type": "string",
+                "enum": [
+                  "Cable",
+                  "EV",
+                  "Inlet",
+                  "Outlet",
+                  "Body"
+                ]
+              },
+              "unit": {
+                "type": "string",
+                "enum": [
+                  "Wh",
+                  "kWh",
+                  "varh",
+                  "kvarh",
+                  "W",
+                  "kW",
+                  "VA",
+                  "kVA",
+                  "var",
+                  "kvar",
+                  "A",
+                  "V",
+                  "K",
+                  "Celcius",
+                  "Fahrenheit",
+                  "Percent"
+                ]
               }
             }
           }
-        },
-        "required": [
-          "timestamp",
-          "sampledValue"
-        ]
-      }
+        }
+      },
+      "required": [
+        "timestamp",
+        "sampledValue"
+      ]
     }
   },
   "title": "MeterValuesRequest",
@@ -132,33 +129,23 @@
       "type": "integer"
     },
     "meterValue": {
-      "type": "array",
-      "properties": {
-        "sampledValue": {
-          "$ref": "#/definitions/meterValue"
-        }
-      },
-      "value": {
-        "type": "object",
-        "properties": {
-          "meterValue": {
-            "$ref": "#/definitions/meterValue"
-          }
-        }
-      },
-      "anyOf": [
-        {
-          "required": [
-            "meterValue"
-          ]
-        },
-        {
-          "required": [
-            "value"
-          ]
-        }
-      ]
+      "$ref": "#/definitions/meterValue"
+    },
+    "value": {
+      "$ref": "#/definitions/meterValue"
     }
   },
+  "anyOf": [
+    {
+      "required": [
+        "meterValue"
+      ]
+    },
+    {
+      "required": [
+        "value"
+      ]
+    }
+  ],
   "additionalProperties": false
 }
