@@ -14053,8 +14053,7 @@
                   "type": {
                     "type": "string",
                     "enum": [
-                      "simple",
-                      "convergentCharging"
+                      "simple"
                     ]
                   },
                   "active": {
@@ -15605,23 +15604,6 @@
                     "type": "string"
                   },
                   "reportName": {
-                    "type": "string"
-                  }
-                }
-              },
-              "convergentCharging": {
-                "type": "object",
-                "properties": {
-                  "url": {
-                    "type": "string"
-                  },
-                  "chargeableItemName": {
-                    "type": "string"
-                  },
-                  "user": {
-                    "type": "string"
-                  },
-                  "password": {
                     "type": "string"
                   }
                 }

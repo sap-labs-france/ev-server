@@ -168,10 +168,10 @@ export default abstract class OCPIClient {
 
   public async deleteCredentials(): Promise<OCPICredential> {
     // Get credentials url
-    const credentialsUrl = this.getEndpointUrl('credentials', ServerAction.OCPI_POST_CREDENTIALS);
+    const credentialsUrl = this.getEndpointUrl('credentials', ServerAction.OCPI_CREATE_CREDENTIALS);
     await Logging.logInfo({
       tenantID: this.tenant.id,
-      action: ServerAction.OCPI_POST_CREDENTIALS,
+      action: ServerAction.OCPI_CREATE_CREDENTIALS,
       message: `Delete Credentials at ${credentialsUrl}`,
       module: MODULE_NAME, method: 'postCredentials'
     });
@@ -188,11 +188,11 @@ export default abstract class OCPIClient {
 
   public async postCredentials(): Promise<OCPICredential> {
     // Get credentials url
-    const credentialsUrl = this.getEndpointUrl('credentials', ServerAction.OCPI_POST_CREDENTIALS);
+    const credentialsUrl = this.getEndpointUrl('credentials', ServerAction.OCPI_CREATE_CREDENTIALS);
     const credentials = await OCPIUtils.buildOCPICredentialObject(this.tenant, this.ocpiEndpoint.localToken, this.ocpiEndpoint.role);
     await Logging.logInfo({
       tenantID: this.tenant.id,
-      action: ServerAction.OCPI_POST_CREDENTIALS,
+      action: ServerAction.OCPI_CREATE_CREDENTIALS,
       message: `Post Credentials at ${credentialsUrl}`,
       module: MODULE_NAME, method: 'postCredentials',
       detailedMessages: { credentials }

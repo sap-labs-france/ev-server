@@ -58,8 +58,6 @@ export default class ExpressUtils {
   }
 
   public static postInitApplication(expressApplication: Application): void {
-    // Log Express Response
-    expressApplication.use(Logging.traceExpressResponse.bind(this));
     // Error Handling
     expressApplication.use(Logging.traceExpressError.bind(this));
   }

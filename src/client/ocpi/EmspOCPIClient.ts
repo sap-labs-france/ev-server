@@ -18,7 +18,7 @@ import { OCPIStartSession } from '../../types/ocpi/OCPIStartSession';
 import { OCPIStopSession } from '../../types/ocpi/OCPIStopSession';
 import { OCPIToken } from '../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../server/ocpi/OCPIUtils';
-import OCPIUtilsService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIUtilsService';
+import OCPIUtilsService from '../../server/ocpi/service/OCPIUtilsService';
 import { OcpiSetting } from '../../types/Setting';
 import { Promise } from 'bluebird';
 import { ServerAction } from '../../types/Server';
@@ -102,7 +102,7 @@ export default class EmspOCPIClient extends OCPIClient {
     // Save
     await OCPIEndpointStorage.saveOcpiEndpoint(this.tenant, this.ocpiEndpoint);
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
-    await Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_EMSP_PUSH_TOKENS,
+    await Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_EMSP_UPDATE_TOKENS,
       MODULE_NAME, 'sendTokens', result,
       `{{inSuccess}} Token(s) were successfully pushed in ${executionDurationSecs}s`,
       `{{inError}} Token(s) failed to be pushed in ${executionDurationSecs}s`,
@@ -123,7 +123,7 @@ export default class EmspOCPIClient extends OCPIClient {
     // Perfs trace
     const startTime = new Date().getTime();
     // Get locations endpoint url
-    let locationsUrl = this.getEndpointUrl('locations', ServerAction.OCPI_EMSP_PULL_LOCATIONS);
+    let locationsUrl = this.getEndpointUrl('locations', ServerAction.OCPI_EMSP_GET_LOCATIONS);
     if (partial) {
       // Take the last day
       const momentFrom = moment().utc().subtract(1, 'days').startOf('day');
@@ -156,15 +156,15 @@ export default class EmspOCPIClient extends OCPIClient {
             // Process Site
             const siteName = location.operator.name;
             const foundSite = sites.result.find((existingSite) => existingSite.name === siteName);
-            const site = await OCPIUtils.processEMSPLocationSite(
+            const site = await OCPIUtils.updateEMSPLocationSite(
               this.tenant, location, company, foundSite, siteName);
             // Get Site Area
             const foundSiteArea = await SiteAreaStorage.getSiteAreaByOcpiLocationUid(this.tenant, location.id);
             // Process Site Area
-            const siteArea = await OCPIUtils.processEMSPLocationSiteArea(this.tenant, location, site, foundSiteArea);
+            const siteArea = await OCPIUtils.updateEMSPLocationSiteArea(this.tenant, location, site, foundSiteArea);
             // Process Charging Station
             await OCPIUtils.processEMSPLocationChargingStations(
-              this.tenant, location, site, siteArea, evses, ServerAction.OCPI_EMSP_PULL_LOCATIONS);
+              this.tenant, location, site, siteArea, evses, ServerAction.OCPI_EMSP_GET_LOCATIONS);
             // Push the Site then it can be retrieve in the next round
             if (!foundSite && site) {
               sites.result.push(site);
@@ -186,7 +186,7 @@ export default class EmspOCPIClient extends OCPIClient {
       }
     } while (nextResult);
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
-    await Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_EMSP_PULL_LOCATIONS,
+    await Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_EMSP_GET_LOCATIONS,
       MODULE_NAME, 'pullLocations', result,
       `{{inSuccess}} Location(s) were successfully pulled in ${executionDurationSecs}s`,
       `{{inError}} Location(s) failed to be pulled in ${executionDurationSecs}s`,
@@ -207,7 +207,7 @@ export default class EmspOCPIClient extends OCPIClient {
     // Perfs trace
     const startTime = new Date().getTime();
     // Get sessions endpoint url
-    let sessionsUrl = this.getEndpointUrl('sessions', ServerAction.OCPI_EMSP_PULL_SESSIONS);
+    let sessionsUrl = this.getEndpointUrl('sessions', ServerAction.OCPI_EMSP_GET_SESSIONS);
     const momentFrom = moment().utc().subtract(2, 'days').startOf('day');
     sessionsUrl = `${sessionsUrl}?date_from=${momentFrom.format()}&limit=10`;
     let nextResult = true;
@@ -224,7 +224,7 @@ export default class EmspOCPIClient extends OCPIClient {
       if (!Utils.isEmptyArray(sessions)) {
         await Promise.map(sessions, async (session: OCPISession) => {
           try {
-            await OCPIUtilsService.processEmspTransactionFromSession(this.tenant, session, ServerAction.OCPI_EMSP_PULL_SESSIONS);
+            await OCPIUtilsService.processEmspTransactionFromSession(this.tenant, session, ServerAction.OCPI_EMSP_GET_SESSIONS);
             result.success++;
           } catch (error) {
             result.failure++;
@@ -244,7 +244,7 @@ export default class EmspOCPIClient extends OCPIClient {
     } while (nextResult);
     result.total = result.failure + result.success;
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
-    await Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_EMSP_PULL_SESSIONS,
+    await Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_EMSP_GET_SESSIONS,
       MODULE_NAME, 'pullSessions', result,
       `{{inSuccess}} Session(s) were successfully pulled in ${executionDurationSecs}s`,
       `{{inError}} Session(s) failed to be pulled in ${executionDurationSecs}s`,
@@ -265,7 +265,7 @@ export default class EmspOCPIClient extends OCPIClient {
     // Perfs trace
     const startTime = new Date().getTime();
     // Get cdrs endpoint url
-    let cdrsUrl = this.getEndpointUrl('cdrs', ServerAction.OCPI_EMSP_PULL_CDRS);
+    let cdrsUrl = this.getEndpointUrl('cdrs', ServerAction.OCPI_EMSP_GET_CDRS);
     const momentFrom = moment().utc().subtract(2, 'days').startOf('day');
     cdrsUrl = `${cdrsUrl}?date_from=${momentFrom.format()}&limit=10`;
     let nextResult = true;
@@ -282,7 +282,7 @@ export default class EmspOCPIClient extends OCPIClient {
       if (!Utils.isEmptyArray(cdrs)) {
         await Promise.map(cdrs, async (cdr: OCPICdr) => {
           try {
-            await OCPIUtilsService.processEmspCdr(this.tenant, cdr, ServerAction.OCPI_EMSP_PULL_CDRS);
+            await OCPIUtilsService.processEmspCdr(this.tenant, cdr, ServerAction.OCPI_EMSP_GET_CDRS);
             result.success++;
           } catch (error) {
             result.failure++;
@@ -302,7 +302,7 @@ export default class EmspOCPIClient extends OCPIClient {
     } while (nextResult);
     result.total = result.failure + result.success;
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
-    await Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_EMSP_PULL_CDRS,
+    await Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_EMSP_GET_CDRS,
       MODULE_NAME, 'pullCdrs', result,
       `{{inSuccess}} CDR(s) were successfully pulled in ${executionDurationSecs}s`,
       `{{inError}} CDR(s) failed to be pulled in ${executionDurationSecs}s`,
@@ -314,10 +314,10 @@ export default class EmspOCPIClient extends OCPIClient {
 
   public async pushToken(token: OCPIToken): Promise<boolean> {
     // Get tokens endpoint url
-    const tokensUrl = this.getEndpointUrl('tokens', ServerAction.OCPI_EMSP_PUSH_TOKENS);
+    const tokensUrl = this.getEndpointUrl('tokens', ServerAction.OCPI_EMSP_UPDATE_TOKENS);
     // Read configuration to retrieve
-    const countryCode = this.getLocalCountryCode(ServerAction.OCPI_EMSP_PUSH_TOKENS);
-    const partyID = this.getLocalPartyID(ServerAction.OCPI_EMSP_PUSH_TOKENS);
+    const countryCode = this.getLocalCountryCode(ServerAction.OCPI_EMSP_UPDATE_TOKENS);
+    const partyID = this.getLocalPartyID(ServerAction.OCPI_EMSP_UPDATE_TOKENS);
     // Build url to IOP
     const fullUrl = tokensUrl + `/${countryCode}/${partyID}/${token.uid}`;
     // Call IOP

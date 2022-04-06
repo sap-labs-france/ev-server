@@ -1,7 +1,6 @@
-import { Application, NextFunction, Request, Response } from 'express';
+import { Application, NextFunction, Response } from 'express';
 
 import ExpressUtils from '../ExpressUtils';
-import Logging from '../../utils/Logging';
 import OICPServiceConfiguration from '../../types/configuration/OICPServiceConfiguration';
 import OICPServices from './OICPServices';
 import { ServerType } from '../../types/Server';
@@ -19,8 +18,6 @@ export default class OICPServer {
     this.oicpRestConfig = oicpRestConfig;
     // Initialize express app
     this.expressApplication = ExpressUtils.initApplication(null, oicpRestConfig.debug);
-    // Log Express Request
-    this.expressApplication.use(Logging.traceExpressRequest.bind(this));
     // New OICP Services Instances
     const oicpServices = new OICPServices(this.oicpRestConfig);
     // Register all services in express

@@ -250,16 +250,6 @@ export default class SettingStorage {
           last_updated: settings.result[0].lastChangedOn ? Utils.convertToDate(settings.result[0].lastChangedOn) : null,
         };
       }
-      // Convergent Charging
-      if (config.convergentCharging) {
-        pricingSettings.type = PricingSettingsType.CONVERGENT_CHARGING;
-        pricingSettings.convergentCharging = {
-          url: config.convergentCharging.url ? config.convergentCharging.url : '',
-          chargeableItemName: config.convergentCharging.chargeableItemName ? config.convergentCharging.chargeableItemName : '',
-          user: config.convergentCharging.user ? config.convergentCharging.user : '',
-          password: config.convergentCharging.password ? config.convergentCharging.password : '',
-        };
-      }
     }
     return pricingSettings;
   }
