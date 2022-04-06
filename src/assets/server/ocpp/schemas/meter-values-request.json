@@ -132,23 +132,33 @@
       "type": "integer"
     },
     "meterValue": {
-      "$ref": "#/definitions/meterValue"
-    },
-    "value": {
-      "$ref": "#/definitions/meterValue"
+      "type": "array",
+      "properties": {
+        "sampledValue": {
+          "$ref": "#/definitions/meterValue"
+        }
+      },
+      "value": {
+        "type": "object",
+        "properties": {
+          "meterValue": {
+            "$ref": "#/definitions/meterValue"
+          }
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "meterValue"
+          ]
+        },
+        {
+          "required": [
+            "value"
+          ]
+        }
+      ]
     }
   },
-  "additionalProperties": false,
-  "anyOf": [
-    {
-      "required": [
-        "meterValue"
-      ]
-    },
-    {
-      "required": [
-        "value"
-      ]
-    }
-  ]
+  "additionalProperties": false
 }

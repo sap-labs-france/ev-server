@@ -134,9 +134,10 @@ export default class OCPPValidation extends SchemaValidator {
         action: ServerAction.OCPP_METER_VALUES,
         message: `Connector ID '${meterValues.connectorId}' not found for Transaction ID '${meterValues.transactionId}'`
       });
+      return;
     }
     // Transaction ID is provided on Connector
-    if (foundConnector.currentTransactionID > 0) {
+    if (foundConnector?.currentTransactionID > 0) {
       // Check if provided in Meter Values
       meterValues.transactionId = Utils.convertToInt(meterValues.transactionId);
       if (meterValues.transactionId === 0 && foundConnector.currentTransactionID > 0) {
