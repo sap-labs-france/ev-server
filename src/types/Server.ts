@@ -271,7 +271,7 @@ export enum ServerAction {
   WS_CLIENT_MESSAGE = 'WsClientMessage',
   WS_CLIENT_CONNECTION = 'WsClientConnection',
   WS_CLIENT_CONNECTION_CLOSE = 'WsClientConnectionClose',
-  WS_CLIENT_CONNECTION_OPEN = 'WsClientConnectionOpened',
+  WS_CLIENT_CONNECTION_OPEN = 'WsClientConnectionOpen',
   WS_CLIENT_CONNECTION_ERROR = 'WsClientConnectionError',
 
   NOTIFICATION = 'Notification',
