@@ -1,4 +1,5 @@
 {
+  "$id": "meter-values-request",
   "title": "MeterValuesRequest",
   "type": "object",
   "properties": {
@@ -28,5 +29,21 @@
         }
       ]
     }
-  }
+  },
+  "required": [
+    "connectorId",
+    "transactionId"
+  ],
+  "oneOf": [
+    {
+      "required": [
+        "meterValue"
+      ]
+    },
+    {
+      "required": [
+        "values"
+      ]
+    }
+  ]
 }
