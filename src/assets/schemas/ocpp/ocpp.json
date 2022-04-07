@@ -18,6 +18,7 @@
               },
               "measurand": {
                 "type": "string",
+                "default": "Energy.Active.Import.Register",
                 "enum": [
                   "Energy.Active.Export.Register",
                   "Energy.Active.Import.Register",
@@ -45,6 +46,7 @@
               },
               "context": {
                 "type": "string",
+                "default": "Sample.Periodic",
                 "enum": [
                   "Interruption.Begin",
                   "Interruption.End",
@@ -58,6 +60,7 @@
               },
               "location": {
                 "type": "string",
+                "default": "Outlet",
                 "enum": [
                   "Cable",
                   "EV",
@@ -68,6 +71,7 @@
               },
               "unit": {
                 "type": "string",
+                "default": "Wh",
                 "enum": [
                   "Wh",
                   "kWh",
@@ -104,13 +108,14 @@
               },
               "format": {
                 "type": "string",
+                "default": "Raw",
                 "enum": [
                   "Raw",
                   "SignedData"
                 ]
               }
             },
-            "required":[
+            "required": [
               "value"
             ]
           }
@@ -123,11 +128,11 @@
     },
     "meterValueOCPP16Array": {
       "type": "array",
-      "items":{
+      "items": {
         "$ref": "#/definitions/meterValueOCPP16Object/properties"
       }
     },
-    "meterValueOCPP15": {
+    "meterValueOCPP15Object": {
       "type": "object",
       "properties": {
         "timestamp": {
@@ -145,6 +150,7 @@
               "properties": {
                 "measurand": {
                   "type": "string",
+                  "default": "Energy.Active.Import.Register",
                   "enum": [
                     "Energy.Active.Export.Register",
                     "Energy.Active.Import.Register",
@@ -179,6 +185,7 @@
                 },
                 "location": {
                   "type": "string",
+                  "default": "Outlet",
                   "enum": [
                     "Cable",
                     "EV",
@@ -189,6 +196,7 @@
                 },
                 "unit": {
                   "type": "string",
+                  "default": "Wh",
                   "enum": [
                     "Wh",
                     "kWh",
@@ -210,6 +218,7 @@
                 },
                 "format": {
                   "type": "string",
+                  "default": "Raw",
                   "enum": [
                     "Raw",
                     "SignedData"
@@ -218,7 +227,7 @@
               }
             }
           },
-          "required":[
+          "required": [
             "$value"
           ]
         }
@@ -227,9 +236,12 @@
         "timestamp",
         "value"
       ]
+    },
+    "meterValueOCPP15Array": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/meterValueOCPP15Object/properties"
+      }
     }
   }
 }
-  
-  
-  

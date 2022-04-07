@@ -30,9 +30,7 @@ export default class OCPPValidation extends SchemaValidator {
   private meterValueRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/meter-values-request.json`, 'utf8'));
 
   private constructor() {
-    super('OCPPValidation', {
-      coerceTypes: true
-    });
+    super('OCPPValidation');
   }
 
   public static getInstance(): OCPPValidation {

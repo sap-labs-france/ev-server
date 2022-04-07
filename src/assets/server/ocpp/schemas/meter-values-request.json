@@ -12,14 +12,21 @@
       "oneOf": [
         {
           "$ref": "ocpp#/definitions/meterValueOCPP16Object"
-        }, 
+        },
         {
           "$ref": "ocpp#/definitions/meterValueOCPP16Array"
         }
       ]
     },
     "values": {
-      "$ref": "ocpp#/definitions/meterValueOCPP15"
+      "oneOf": [
+        {
+          "$ref": "ocpp#/definitions/meterValueOCPP15Object"
+        },
+        {
+          "$ref": "ocpp#/definitions/meterValueOCPP15Array"
+        }
+      ]
     }
   }
 }
