@@ -211,13 +211,19 @@ export default class TenantStorage {
   public static async getTenantLogo(tenant: Tenant): Promise<TenantLogo> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
-    // Read DB
-    const tenantLogoMDB = await global.database.getCollection<{ _id: ObjectId; logo: string }>(Constants.DEFAULT_TENANT_ID, 'tenantlogos')
-      .findOne({ _id: DatabaseUtils.convertToObjectID(tenant.id) });
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getTenantLogo', startTime, { id: tenant.id }, tenantLogoMDB);
+    if (DatabaseUtils.isObjectID(tenant.id)) {
+      // Read DB
+      const tenantLogoMDB = await global.database.getCollection<{ _id: ObjectId; logo: string }>(Constants.DEFAULT_TENANT_ID, 'tenantlogos')
+        .findOne({ _id: DatabaseUtils.convertToObjectID(tenant.id) });
+      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getTenantLogo', startTime, { id: tenant.id }, tenantLogoMDB);
+      return {
+        id: tenant.id,
+        logo: tenantLogoMDB ? tenantLogoMDB.logo : null
+      };
+    }
     return {
       id: tenant.id,
-      logo: tenantLogoMDB ? tenantLogoMDB.logo : null
+      logo: null
     };
   }
 }
