@@ -43,9 +43,10 @@ export default interface SiteArea extends CreatedUpdatedProps, SiteAreaAuthoriza
   connectorStats: ConnectorStats;
   values: Consumption[];
   parentSiteAreaID?: string;
+  parentSiteArea?: SiteArea;
+  childSiteAreas?: SiteArea[];
   distanceMeters?: number;
   openingTimes?: OpeningTimes;
-  siteAreaChildren?: SiteArea[];
   tariffID?: string;
   ocpiData?: SiteAreaOcpiData;
 }

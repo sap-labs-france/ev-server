@@ -37,6 +37,8 @@ import path from 'path';
 import tzlookup from 'tz-lookup';
 import validator from 'validator';
 
+const MODULE_NAME = 'Utils';
+
 export default class Utils {
   public static removeCanPropertiesWithFalseValue(entityData: EntityData): void {
     if (entityData) {
@@ -895,7 +897,7 @@ export default class Utils {
     return true;
   }
 
-  static isEmptyObject(obj: any): boolean {
+  public static isEmptyObject(obj: any): boolean {
     return !Object.keys(obj).length;
   }
 
@@ -1623,6 +1625,78 @@ export default class Utils {
     return crypto.createHash('sha256').update(data).digest('hex');
   }
 
+  public static buildSiteAreasTree(allSiteAreasOfSite: SiteArea[] = []): SiteArea[] {
+    if (Utils.isEmptyArray(allSiteAreasOfSite)) {
+      return [];
+    }
+    // Hash Table helper
+    const siteAreaHashTable: Record<string, SiteArea> = {};
+    for (const siteAreaOfSite of allSiteAreasOfSite) {
+      siteAreaHashTable[siteAreaOfSite.id] = { ...siteAreaOfSite, childSiteAreas: [] } as SiteArea;
+    }
+    const rootSiteAreasOfSite: SiteArea[] = [];
+    // Build tree
+    for (const siteAreaOfSite of allSiteAreasOfSite) {
+      // Site Area has parent and exists in the Map
+      if (!Utils.isNullOrUndefined(siteAreaOfSite.parentSiteAreaID)) {
+        if (!Utils.isNullOrUndefined(siteAreaHashTable[siteAreaOfSite.parentSiteAreaID])) {
+          throw new BackendError({
+            ...LoggingHelper.getSiteAreaProperties(allSiteAreasOfSite[0]),
+            method: 'buildSiteAreasTree',
+            message: `Cannot find parent Site Area of '${siteAreaOfSite.name}' while building Site Area tree`,
+            detailedMessages: { orphanSiteArea: siteAreaOfSite, siteAreaHashTable },
+          });
+        }
+        // Push sub site area to parent children array
+        siteAreaHashTable[siteAreaOfSite.parentSiteAreaID].childSiteAreas.push(siteAreaHashTable[siteAreaOfSite.id]);
+      // Root Site Area
+      } else {
+        // If no parent ID is defined push root site area to array
+        rootSiteAreasOfSite.push(siteAreaHashTable[siteAreaOfSite.id]);
+      }
+    }
+    // Check circular deps
+    let numberOfSiteAreasInRootSiteAreas = 1;
+    for (const rootSiteAreaOfSite of rootSiteAreasOfSite) {
+      numberOfSiteAreasInRootSiteAreas += Utils.numberOfChildrenOfSiteAreaTree(rootSiteAreaOfSite);
+    }
+    // Not all Site Areas in Root
+    if (numberOfSiteAreasInRootSiteAreas !== allSiteAreasOfSite.length) {
+      throw new BackendError({
+        ...LoggingHelper.getSiteAreaProperties(allSiteAreasOfSite[0]),
+        method: 'buildSiteAreasTree',
+        message: 'Circular dependency found in Site Area tree',
+        detailedMessages: { siteAreaHashTable },
+      });
+    }
+    return rootSiteAreasOfSite;
+  }
+
+  public static numberOfChildrenOfSiteAreaTree(siteArea: SiteArea): number {
+    let numberOfChildren = 0;
+    if (!Utils.isEmptyArray(siteArea.childSiteAreas)) {
+      for (const childSiteArea of siteArea.childSiteAreas) {
+        numberOfChildren++;
+        numberOfChildren += Utils.numberOfChildrenOfSiteAreaTree(childSiteArea);
+      }
+    }
+    return numberOfChildren;
+  }
+
+  public static getSiteAreaFromSiteAreasTree(siteAreaID: string, siteAreas: SiteArea[]): SiteArea {
+    if (!Utils.isEmptyArray(siteAreas)) {
+      for (const siteArea of siteAreas) {
+        if (siteArea.id === siteAreaID) {
+          return siteArea;
+        }
+        const foundSiteArea = Utils.getSiteAreaFromSiteAreasTree(siteAreaID, siteArea.childSiteAreas);
+        if (foundSiteArea) {
+          return foundSiteArea;
+        }
+      }
+    }
+  }
+
   public static findSiteAreaInTrees(siteAreaID: string, siteAreaTrees: SiteArea[] = []): SiteArea {
     // Loop through trees to find specific tree
     for (const siteAreaTree of siteAreaTrees) {
@@ -1631,7 +1705,7 @@ export default class Utils {
         return siteAreaTree;
       }
       // Site Area ID is defined return tree, which contains the site area
-      const requestedTree = this.findSiteAreaInTrees(siteAreaID, siteAreaTree.siteAreaChildren);
+      const requestedTree = Utils.findSiteAreaInTrees(siteAreaID, siteAreaTree.childSiteAreas);
       if (requestedTree) {
         return siteAreaTree;
       }

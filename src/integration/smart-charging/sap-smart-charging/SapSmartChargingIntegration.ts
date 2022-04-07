@@ -69,7 +69,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
         chargingStationConnectorStatuses: [ChargePointStatus.CHARGING, ChargePointStatus.SUSPENDED_EVSE] },
       Constants.DB_PARAMS_MAX_LIMIT);
     // Build site area trees
-    const siteAreaTrees = Utils.buildSiteAreaTrees(siteAreas.result);
+    const siteAreaTrees = Utils.buildSiteAreasTree(siteAreas.result);
     // Find tree which contains the source site area of smart charging
     const rootSiteArea = Utils.findSiteAreaInTrees(sourceSiteArea.id, siteAreaTrees);
     // TODO: Store the Site Area ID in the DB profiles and use siteAreaIDs param in this DB request.
@@ -266,9 +266,9 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
       fuseTreeNode.children = rootFuse.children;
     }
     // Check if current site area has children
-    if (!Utils.isEmptyArray(siteArea.siteAreaChildren)) {
+    if (!Utils.isEmptyArray(siteArea.childSiteAreas)) {
       // Build fuse node for each child
-      for (const siteAreaChild of siteArea.siteAreaChildren) {
+      for (const siteAreaChild of siteArea.childSiteAreas) {
         // Use Fuse tree child elements  to build sub site areas
         await this.buildFuseNodes(siteAreaChild,
           (!Array.isArray(fuseTreeNode) ? fuseTreeNode.children : fuseTreeNode[fuseTreeNode.length - 1].children),
