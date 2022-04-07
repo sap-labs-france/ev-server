@@ -9,7 +9,14 @@
       "type": "integer"
     },
     "meterValue": {
-      "$ref": "ocpp#/definitions/meterValueOCPP16"
+      "oneOf": [
+        {
+          "$ref": "ocpp#/definitions/meterValueOCPP16Object"
+        }, 
+        {
+          "$ref": "ocpp#/definitions/meterValueOCPP16Array"
+        }
+      ]
     },
     "values": {
       "$ref": "ocpp#/definitions/meterValueOCPP15"

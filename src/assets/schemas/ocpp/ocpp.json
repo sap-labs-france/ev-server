@@ -1,7 +1,7 @@
 {
   "$id": "ocpp",
   "definitions": {
-    "meterValueOCPP16": {
+    "meterValueOCPP16Object": {
       "type": "object",
       "properties": {
         "timestamp": {
@@ -120,6 +120,19 @@
         "timestamp",
         "sampledValue"
       ]
+    },
+    "meterValueOCPP16Array": {
+      "type": "array",
+      "items":{
+        "type": "object",
+        "properties": {
+          "$ref": "#/definitions/meterValueOCPP16Object"
+        },
+        "required": [
+          "timestamp",
+          "sampledValue"
+        ]
+      }
     },
     "meterValueOCPP15": {
       "type": "object",
