@@ -35,6 +35,7 @@ export default class SchemaValidator {
   private static registrationTokenSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/registration-token/registration-token.json`, 'utf8'));
   private static siteAreasSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/site-area/site-area.json`, 'utf8'));
   private static siteSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/site/site.json`, 'utf8'));
+  private static ocppSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/ocpp/ocpp.json`, 'utf8'));
 
   protected moduleName: string;
   private readonly ajv: Ajv;
@@ -78,7 +79,8 @@ export default class SchemaValidator {
       SchemaValidator.settingSchema,
       SchemaValidator.registrationTokenSchema,
       SchemaValidator.siteAreasSchema,
-      SchemaValidator.siteSchema
+      SchemaValidator.siteSchema,
+      SchemaValidator.ocppSchema
     ]);
   }
 
