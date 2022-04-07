@@ -31,8 +31,7 @@ const config = {
     new webpack.ProgressPlugin(),
     new CopyPlugin({
       patterns: [
-        { from: 'src/assets/', to: 'assets/' },
-        { from: 'src/integration/pricing/convergent-charging/assets/', to: 'integration/pricing/convergent-charging/assets/', noErrorOnMissing: true }
+        { from: 'src/assets/', to: 'assets/' }
       ]
     })
   ],

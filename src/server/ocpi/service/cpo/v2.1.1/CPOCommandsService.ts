@@ -150,7 +150,7 @@ export default class CPOCommandsService {
     if (!chargingStation.remoteAuthorizations) {
       chargingStation.remoteAuthorizations = [];
     }
-    const existingAuthorization: RemoteAuthorization = chargingStation.remoteAuthorizations.find(
+    const existingAuthorization = chargingStation.remoteAuthorizations.find(
       (authorization) => authorization.connectorId === connector.connectorId);
     if (existingAuthorization) {
       if (OCPIUtils.isAuthorizationValid(existingAuthorization.timestamp)) {
@@ -167,14 +167,12 @@ export default class CPOCommandsService {
       existingAuthorization.id = startSession.authorization_id;
       existingAuthorization.tagId = startSession.token.uid;
     } else {
-      chargingStation.remoteAuthorizations.push(
-        {
-          id: startSession.authorization_id,
-          connectorId: connector.connectorId,
-          timestamp: new Date(),
-          tagId: startSession.token.uid
-        }
-      );
+      chargingStation.remoteAuthorizations.push({
+        id: startSession.authorization_id,
+        connectorId: connector.connectorId,
+        timestamp: new Date(),
+        tagId: startSession.token.uid
+      });
     }
     // Save Auth
     await ChargingStationStorage.saveChargingStationRemoteAuthorizations(
