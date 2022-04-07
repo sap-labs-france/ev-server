@@ -124,14 +124,7 @@
     "meterValueOCPP16Array": {
       "type": "array",
       "items":{
-        "type": "object",
-        "properties": {
-          "$ref": "#/definitions/meterValueOCPP16Object"
-        },
-        "required": [
-          "timestamp",
-          "sampledValue"
-        ]
+        "$ref": "#/definitions/meterValueOCPP16Object/properties"
       }
     },
     "meterValueOCPP15": {
