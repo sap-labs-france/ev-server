@@ -1,8 +1,8 @@
-# Open e-Mobility NodeJs Server
+# Charge Angels NodeJs Server
 
 ## Summary
 
-This application server (NodeJs) collects and stores the data (MongoDB) received from the Charging Stations via the OCPP protocol and exposes a REST service to an Angular front-end dashboard application ([Open e-Mobility Angular Dashboard](https://github.com/sap-labs-france/ev-dashboard)).
+This application server (NodeJs) collects and stores the data (MongoDB) received from the Charging Stations via the OCPP protocol and exposes a REST service to an Angular front-end dashboard application ([Charge Angels Angular Dashboard](https://github.com/sap-labs-france/ev-dashboard)).
 
 The application features:
 
