@@ -33,7 +33,7 @@ export default class NotificationHandler {
     }
   ];
 
-  static async getAdminUsers(tenant: Tenant, notificationKey?: UserNotificationKeys): Promise<User[]> {
+  public static async getAdminUsers(tenant: Tenant, notificationKey?: UserNotificationKeys): Promise<User[]> {
     // Get admin users
     let params;
     if (tenant.id === Constants.DEFAULT_TENANT_ID) {

@@ -3,14 +3,13 @@ import { ServerAction, ServerType } from './types/Server';
 
 import AsyncTaskConfiguration from './types/configuration/AsyncTaskConfiguration';
 import AsyncTaskManager from './async-task/AsyncTaskManager';
-import CentralRestServer from './server/rest/CentralRestServer';
 import CentralSystemRestServiceConfiguration from './types/configuration/CentralSystemRestServiceConfiguration';
 import ChargingStationConfiguration from './types/configuration/ChargingStationConfiguration';
 import ChargingStationTemplateBootstrap from './bootstrap/ChargingStationTemplateBootstrap';
 import Configuration from './utils/Configuration';
 import Constants from './utils/Constants';
 import I18nManager from './utils/I18nManager';
-import JsonCentralSystemServer from './server/ocpp/json/JsonCentralSystemServer';
+import JsonOCPPServer from './server/ocpp/json/JsonOCPPServer';
 import LocalCarCatalogBootstrap from './bootstrap/LocalCarCatalogBootstrap';
 import Logging from './utils/Logging';
 import MigrationConfiguration from './types/configuration/MigrationConfiguration';
@@ -25,9 +24,10 @@ import ODataServer from './server/odata/ODataServer';
 import ODataServiceConfiguration from './types/configuration/ODataServiceConfiguration';
 import OICPServer from './server/oicp/OICPServer';
 import OICPServiceConfiguration from './types/configuration/OICPServiceConfiguration';
+import RestServer from './server/rest/RestServer';
 import SchedulerConfiguration from './types/configuration/SchedulerConfiguration';
 import SchedulerManager from './scheduler/SchedulerManager';
-import SoapCentralSystemServer from './server/ocpp/soap/SoapCentralSystemServer';
+import SoapOCPPServer from './server/ocpp/soap/SoapOCPPServer';
 import StorageConfiguration from './types/configuration/StorageConfiguration';
 import Utils from './utils/Utils';
 import global from './types/GlobalType';
@@ -37,10 +37,10 @@ const MODULE_NAME = 'Bootstrap';
 export default class Bootstrap {
   private static database: MongoDBStorage;
 
-  private static centralRestServer: CentralRestServer;
+  private static centralRestServer: RestServer;
   private static storageConfig: StorageConfiguration;
-  private static SoapCentralSystemServer: SoapCentralSystemServer;
-  private static JsonCentralSystemServer: JsonCentralSystemServer;
+  private static SoapCentralSystemServer: SoapOCPPServer;
+  private static JsonCentralSystemServer: JsonOCPPServer;
   private static ocpiServer: OCPIServer;
   private static oicpServer: OICPServer;
   private static oDataServer: ODataServer;
@@ -241,7 +241,7 @@ export default class Bootstrap {
       if (Bootstrap.centralSystemRestConfig) {
         // Create the server
         if (!Bootstrap.centralRestServer) {
-          Bootstrap.centralRestServer = new CentralRestServer(Bootstrap.centralSystemRestConfig);
+          Bootstrap.centralRestServer = new RestServer(Bootstrap.centralSystemRestConfig);
         }
         // Start it
         Bootstrap.centralRestServer.start();
@@ -258,14 +258,14 @@ export default class Bootstrap {
             // SOAP
             case CentralSystemImplementation.SOAP:
               // Create implementation
-              Bootstrap.SoapCentralSystemServer = new SoapCentralSystemServer(centralSystemConfig, Bootstrap.chargingStationConfig);
+              Bootstrap.SoapCentralSystemServer = new SoapOCPPServer(centralSystemConfig, Bootstrap.chargingStationConfig);
               // Start
               Bootstrap.SoapCentralSystemServer.start();
               serverTypes.push(ServerType.SOAP_SERVER);
               break;
             case CentralSystemImplementation.JSON:
               // Create implementation
-              Bootstrap.JsonCentralSystemServer = new JsonCentralSystemServer(centralSystemConfig, Bootstrap.chargingStationConfig);
+              Bootstrap.JsonCentralSystemServer = new JsonOCPPServer(centralSystemConfig, Bootstrap.chargingStationConfig);
               // Start
               Bootstrap.JsonCentralSystemServer.start();
               serverTypes.push(ServerType.JSON_SERVER);

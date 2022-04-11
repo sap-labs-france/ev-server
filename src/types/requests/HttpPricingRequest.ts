@@ -14,3 +14,10 @@ export interface HttpPricingDefinitionsRequest extends HttpDatabaseRequest {
   EntityType?: PricingEntity;
   WithEntityInformation?: boolean;
 }
+
+export interface HttpPricingModelResolutionRequest extends HttpDatabaseRequest {
+  ChargingStationID: string;
+  ConnectorID: number;
+  UserID?: string
+  StartDateTime?: Date;
+}

@@ -29,7 +29,7 @@ const MODULE_NAME = 'CPORemoteAuthorizationsEndpoint';
 export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
 
   // Create OICP Service
-  constructor(oicpService: AbstractOICPService) {
+  public constructor(oicpService: AbstractOICPService) {
     super(oicpService, EP_IDENTIFIER);
   }
 

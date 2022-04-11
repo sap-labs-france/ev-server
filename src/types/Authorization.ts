@@ -156,6 +156,7 @@ export enum Action {
   EXPORT_OCPP_PARAMS = 'ExportOCPPParams',
   GENERATE_QR = 'GenerateQrCode',
   MAINTAIN_PRICING_DEFINITIONS = 'MaintainPricingDefinitions',
+  RESOLVE = 'Resolve',
 }
 
 export interface AuthorizationContext {

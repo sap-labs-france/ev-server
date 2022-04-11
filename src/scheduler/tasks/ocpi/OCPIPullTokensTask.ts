@@ -29,7 +29,7 @@ export default class OCPIPullTokensTask extends TenantSchedulerTask {
       }
     } catch (error) {
       // Log error
-      await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_PULL_TOKENS, error);
+      await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_GET_TOKENS, error);
     }
   }
 
@@ -43,7 +43,7 @@ export default class OCPIPullTokensTask extends TenantSchedulerTask {
           await Logging.logDebug({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
-            action: ServerAction.OCPI_CPO_PULL_TOKENS,
+            action: ServerAction.OCPI_CPO_GET_TOKENS,
             message: `The OCPI endpoint '${ocpiEndpoint.name}' is not registered. Skipping the OCPI endpoint.`
           });
           return;
@@ -52,7 +52,7 @@ export default class OCPIPullTokensTask extends TenantSchedulerTask {
           await Logging.logDebug({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
-            action: ServerAction.OCPI_CPO_PULL_TOKENS,
+            action: ServerAction.OCPI_CPO_GET_TOKENS,
             message: `The OCPI endpoint '${ocpiEndpoint.name}' is inactive.`
           });
           return;
@@ -60,7 +60,7 @@ export default class OCPIPullTokensTask extends TenantSchedulerTask {
         await Logging.logInfo({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
-          action: ServerAction.OCPI_CPO_PULL_TOKENS,
+          action: ServerAction.OCPI_CPO_GET_TOKENS,
           message: `Pull of Tokens for endpoint '${ocpiEndpoint.name}' is being processed${config.partial ? ' (only diff)' : ' (full)'}...`
         });
         // Build OCPI Client
@@ -70,13 +70,13 @@ export default class OCPIPullTokensTask extends TenantSchedulerTask {
         await Logging.logInfo({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
-          action: ServerAction.OCPI_CPO_PULL_TOKENS,
+          action: ServerAction.OCPI_CPO_GET_TOKENS,
           message: `Pull of Tokens for endpoint '${ocpiEndpoint.name}' has been completed${config.partial ? ' (only diff)' : ' (full)'}`,
           detailedMessages: { result }
         });
       } catch (error) {
         // Log error
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_PULL_TOKENS, error);
+        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_GET_TOKENS, error);
       } finally {
         // Release the lock
         await LockingManager.release(ocpiLock);

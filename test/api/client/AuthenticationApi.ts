@@ -1,5 +1,5 @@
 import BaseApi from './utils/BaseApi';
-import { ServerRoute } from '../../../src/types/Server';
+import { RESTServerRoute } from '../../../src/types/Server';
 import User from '../../../src/types/User';
 
 export default class AuthenticationApi {
@@ -26,7 +26,7 @@ export default class AuthenticationApi {
     // Send
     const response = await this.baseApi.send({
       method: 'POST',
-      url: '/v1/auth/' + ServerRoute.REST_SIGNIN,
+      url: '/v1/auth/' + RESTServerRoute.REST_SIGNIN,
       'axios-retry': {
         retries: 0
       },
@@ -42,7 +42,7 @@ export default class AuthenticationApi {
     // Send
     const response = await this.baseApi.send({
       method: 'POST',
-      url: '/v1/auth/' + ServerRoute.REST_SIGNON,
+      url: '/v1/auth/' + RESTServerRoute.REST_SIGNON,
       headers: {
         'Content-Type': 'application/json'
       },
@@ -63,7 +63,7 @@ export default class AuthenticationApi {
     // Send
     const response = await this.baseApi.send({
       method: 'POST',
-      url: '/v1/auth/' + ServerRoute.REST_PASSWORD_RESET,
+      url: '/v1/auth/' + RESTServerRoute.REST_PASSWORD_RESET,
       headers: {
         'Content-Type': 'application/json'
       },
@@ -81,7 +81,7 @@ export default class AuthenticationApi {
     // Send
     const response = await this.baseApi.send({
       method: 'POST',
-      url: '/v1/auth/' + ServerRoute.REST_MAIL_RESEND,
+      url: '/v1/auth/' + RESTServerRoute.REST_MAIL_RESEND,
       headers: {
         'Content-Type': 'application/json'
       },
@@ -94,7 +94,7 @@ export default class AuthenticationApi {
     // Send
     const response = await this.baseApi.send({
       method: 'GET',
-      url: `/v1/auth/${ServerRoute.REST_MAIL_CHECK}?Email=${email}&Tenant=${tenant}&VerificationToken=${verificationToken}`,
+      url: `/v1/auth/${RESTServerRoute.REST_MAIL_CHECK}?Email=${email}&Tenant=${tenant}&VerificationToken=${verificationToken}`,
       headers: {
         'Content-Type': 'application/json'
       }
@@ -106,7 +106,7 @@ export default class AuthenticationApi {
     // Send
     const response = await this.baseApi.send({
       method: 'GET',
-      url: '/v1/auth/' + ServerRoute.REST_END_USER_LICENSE_AGREEMENT,
+      url: '/v1/auth/' + RESTServerRoute.REST_END_USER_LICENSE_AGREEMENT,
       headers: {
         'Content-Type': 'application/json'
       },

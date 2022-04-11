@@ -7265,6 +7265,177 @@
         }
       }
     },
+    "/api/pricing-definitions": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get pricing definitions",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/EntityID"
+          },
+          {
+            "$ref": "#/components/parameters/EntityType"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          }
+        ],
+        "tags": [
+          "Pricing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return pricing definitions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "number",
+                      "example": 1
+                    },
+                    "result": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PricingDefinition"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/pricing-definitions/{id}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get pricing definition by id",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/pricingDefinitionID"
+          }
+        ],
+        "tags": [
+          "Pricing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return pricing definition",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PricingDefinition"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/pricing-model/resolve": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Resolve pricing context",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ChargingStationID"
+          },
+          {
+            "$ref": "#/components/parameters/ConnectorID"
+          },
+          {
+            "$ref": "#/components/parameters/UserID"
+          },
+          {
+            "$ref": "#/components/parameters/StartDateTime"
+          }
+        ],
+        "tags": [
+          "Pricing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return tariffs matching a pricing context",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "number",
+                      "example": 1
+                    },
+                    "result": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PricingDefinition"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
     "/api/users/{id}/payment-methods": {
       "get": {
         "security": [
@@ -13909,8 +14080,7 @@
                   "type": {
                     "type": "string",
                     "enum": [
-                      "simple",
-                      "convergentCharging"
+                      "simple"
                     ]
                   },
                   "active": {
@@ -15480,23 +15650,6 @@
                   }
                 }
               },
-              "convergentCharging": {
-                "type": "object",
-                "properties": {
-                  "url": {
-                    "type": "string"
-                  },
-                  "chargeableItemName": {
-                    "type": "string"
-                  },
-                  "user": {
-                    "type": "string"
-                  },
-                  "password": {
-                    "type": "string"
-                  }
-                }
-              },
               "simple": {
                 "type": "object",
                 "properties": {
@@ -15817,6 +15970,115 @@
               "type": "number",
               "description": "User name"
             }
+          }
+        }
+      },
+      "PricingDefinition": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "readOnly": true
+          },
+          "entityID": {
+            "type": "string"
+          },
+          "entityType": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "staticRestrictions": {
+            "$ref": "#/components/schemas/PricingStaticRestrictions"
+          },
+          "restrictions": {
+            "$ref": "#/components/schemas/PricingRestrictions"
+          },
+          "dimensions": {
+            "$ref": "#/components/schemas/PricingDimensions"
+          }
+        }
+      },
+      "PricingDimensions": {
+        "type": "object",
+        "properties": {
+          "flatFee": {
+            "$ref": "#/components/schemas/PricingDimension"
+          },
+          "energy": {
+            "$ref": "#/components/schemas/PricingDimension"
+          },
+          "chargingTime": {
+            "$ref": "#/components/schemas/PricingDimension"
+          },
+          "parkingTime": {
+            "$ref": "#/components/schemas/PricingDimension"
+          }
+        }
+      },
+      "PricingDimension": {
+        "type": "object",
+        "properties": {
+          "active": {
+            "type": "boolean"
+          },
+          "price": {
+            "type": "number"
+          },
+          "stepSize": {
+            "type": "number"
+          }
+        }
+      },
+      "PricingStaticRestrictions": {
+        "type": "object",
+        "properties": {
+          "validFrom": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "validTo": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "connectorType": {
+            "type": "string"
+          },
+          "connectorPowerkW": {
+            "type": "number"
+          }
+        }
+      },
+      "PricingRestrictions": {
+        "type": "object",
+        "properties": {
+          "daysOfWeek": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "timeFrom": {
+            "type": "string"
+          },
+          "timeTo": {
+            "type": "string"
+          },
+          "minEnergykWh": {
+            "type": "number"
+          },
+          "maxEnergykWh": {
+            "type": "number"
+          },
+          "minDurationSeconds": {
+            "type": "number"
+          },
+          "maxDurationSeconds": {
+            "type": "number"
           }
         }
       },
@@ -16662,6 +16924,39 @@
         "required": true,
         "schema": {
           "type": "string"
+        }
+      },
+      "pricingDefinitionID": {
+        "in": "path",
+        "name": "id",
+        "description": "PricingDefintionID",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "EntityID": {
+        "in": "query",
+        "name": "Entity ID",
+        "description": "Entity ID",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "EntityType": {
+        "in": "query",
+        "name": "Entity Type",
+        "description": "Entity Type",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "WithEntityInformation": {
+        "in": "query",
+        "name": "WithEntityInformation",
+        "description": "With details about the entity",
+        "schema": {
+          "type": "boolean"
         }
       }
     }
