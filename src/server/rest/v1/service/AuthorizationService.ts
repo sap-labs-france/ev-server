@@ -547,7 +547,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetChargingStationAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Partial<HttpChargingStationRequest>, entityData?: EntityData): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpChargingStationRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),

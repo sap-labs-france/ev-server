@@ -748,7 +748,7 @@ export default class TransactionStorage {
         foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
       });
       DatabaseUtils.pushCarCatalogLookupInAggregation({
-        tenantID: Constants.DEFAULT_TENANT, aggregation: aggregation, asField: 'carCatalog', localField: 'carCatalogID',
+        tenantID: Constants.DEFAULT_TENANT_ID, aggregation: aggregation, asField: 'carCatalog', localField: 'carCatalogID',
         foreignField: '_id', oneToOneCardinality: true
       });
     }
@@ -992,7 +992,7 @@ export default class TransactionStorage {
     });
     // Car Catalog
     DatabaseUtils.pushCarCatalogLookupInAggregation({
-      tenantID: Constants.DEFAULT_TENANT, aggregation: aggregation, asField: 'carCatalog', localField: 'carCatalogID',
+      tenantID: Constants.DEFAULT_TENANT_ID, aggregation: aggregation, asField: 'carCatalog', localField: 'carCatalogID',
       foreignField: '_id', oneToOneCardinality: true
     });
     // Used only in the error type : missing_user
@@ -1075,9 +1075,11 @@ export default class TransactionStorage {
     return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
   }
 
-  public static async getOCPITransactionBySessionID(tenant: Tenant, sessionID: string): Promise<Transaction> {
+  public static async getOCPITransactionBySessionID(tenant: Tenant, sessionID: string,
+      params: { withUser?: boolean } = {}): Promise<Transaction> {
     const transactionsMDB = await TransactionStorage.getTransactions(tenant,
       {
+        withUser: params.withUser,
         ocpiSessionID: sessionID
       }, Constants.DB_PARAMS_SINGLE_RECORD);
     return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;

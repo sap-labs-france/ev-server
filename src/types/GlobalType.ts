@@ -3,7 +3,7 @@ import { Car, CarCatalog } from './Car';
 
 import ChargingStation from './ChargingStation';
 import Company from './Company';
-import JsonCentralSystemServer from '../server/ocpp/json/JsonCentralSystemServer';
+import JsonOCPPServer from '../server/ocpp/json/JsonOCPPServer';
 import { Log } from './Log';
 import MongoDBStorage from '../storage/mongodb/MongoDBStorage';
 import PricingDefinition from './Pricing';
@@ -12,7 +12,7 @@ import { ServerType } from './Server';
 import { Setting } from './Setting';
 import Site from './Site';
 import SiteArea from './SiteArea';
-import SoapCentralSystemServer from '../server/ocpp/soap/SoapCentralSystemServer';
+import SoapOCPPServer from '../server/ocpp/soap/SoapOCPPServer';
 import Tag from './Tag';
 import User from './User';
 import bluebird from 'bluebird';
@@ -81,8 +81,8 @@ export type EntityData = Car|User|Company|Site|SiteArea|Tag|CarCatalog|ChargingS
 interface TSGlobal extends Global {
   database: MongoDBStorage;
   appRoot: string;
-  centralSystemJsonServer: JsonCentralSystemServer;
-  centralSystemSoapServer: SoapCentralSystemServer;
+  centralSystemJsonServer: JsonOCPPServer;
+  centralSystemSoapServer: SoapOCPPServer;
   serverType: ServerType;
   Promise: any;
 }
