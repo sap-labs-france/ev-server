@@ -310,17 +310,7 @@ export default class UserService {
       req.tenant, req.user, userID, Action.READ, action, null, null, null, false);
     // Get the user image
     const userImage = await UserStorage.getUserImage(req.tenant, user.id);
-    let image = userImage && !Utils.isNullOrEmptyString(userImage.image) ? userImage.image : Constants.USER_NO_PICTURE;
-    let header = 'image';
-    let encoding: BufferEncoding = 'base64';
-    // Remove encoding header
-    if (image.startsWith('data:image/')) {
-      header = image.substring(5, image.indexOf(';'));
-      encoding = image.substring(image.indexOf(';') + 1, image.indexOf(',')) as BufferEncoding;
-      image = image.substring(image.indexOf(',') + 1);
-    }
-    res.setHeader('content-type', header);
-    res.send(Buffer.from(image, encoding));
+    res.json(userImage);
     next();
   }
 
