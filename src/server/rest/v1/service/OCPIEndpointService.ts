@@ -228,7 +228,7 @@ export default class OCPIEndpointService {
         module: MODULE_NAME, method: 'handlePingOcpiEndpoint',
         action,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `${result.statusText} (${result.statusCode})`,
+        message: `${result.statusText}`,
       });
     }
     res.json(Object.assign(result, Constants.REST_RESPONSE_SUCCESS));
@@ -688,59 +688,58 @@ export default class OCPIEndpointService {
   }
 
   public static async handleUpdateCredentialsOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // // Check if component is active
-    // UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
-    //   Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleUnregisterOcpiEndpoint');
-    // // Check auth
-    // if (!await Authorizations.canRegisterOcpiEndpoint(req.user)) {
-    //   throw new AppAuthError({
-    //     errorCode: HTTPAuthError.FORBIDDEN,
-    //     user: req.user,
-    //     action: Action.REGISTER, entity: Entity.OCPI_ENDPOINT,
-    //     module: MODULE_NAME, method: 'handleUnregisterOcpiEndpoint'
-    //   });
-    // }
-    // // Filter
-    // const filteredRequest = OCPIEndpointValidator.getInstance().validateOCPIEndpointByIdReq(req.body);
-    // // Get OcpiEndpoint
-    // const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
-    // UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
-    //   MODULE_NAME, 'handleUnregisterOcpiEndpoint', req.user);
-    // // Build OCPI Client
-    // const ocpiClient = await OCPIClientFactory.getOcpiClient(req.tenant, ocpiEndpoint);
-    // // Try to register
-    // const result = await ocpiClient.unregister();
-    // // Check ping result
-    // if (result.statusCode === StatusCodes.OK) {
-    //   await Logging.logInfo({
-    //     tenantID: req.tenant.id,
-    //     user: req.user, module: MODULE_NAME, method: 'handleUnregisterOcpiEndpoint',
-    //     message: `Ocpi Endpoint '${ocpiEndpoint.name}' can be reached successfully`,
-    //     action,
-    //     detailedMessages: { result }
-    //   });
-    // } else {
-    //   // Already unregistered
-    //   if (result.statusCode === 405) {
-    //     throw new AppError({
-    //       module: MODULE_NAME, method: 'handleUnregisterOcpiEndpoint',
-    //       action,
-    //       errorCode: HTTPError.OCPI_ENDPOINT_ALREADY_UNREGISTERED,
-    //       message: 'Ocpi Endpoint is already unregistered',
-    //     });
-    //   }
-    //   throw new AppError({
-    //     module: MODULE_NAME, method: 'handleUnregisterOcpiEndpoint',
-    //     action,
-    //     errorCode: HTTPError.GENERAL_ERROR,
-    //     message: `${result.statusText} (${result.statusCode})`,
-    //   });
-    // }
-    // res.json(Object.assign(result, Constants.REST_RESPONSE_SUCCESS));
-    res.json(Constants.REST_RESPONSE_SUCCESS);
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleUpdateCredentialsOcpiEndpoint');
+    // Check auth
+    if (!await Authorizations.canRegisterOcpiEndpoint(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.REGISTER, entity: Entity.OCPI_ENDPOINT,
+        module: MODULE_NAME, method: 'handleUpdateCredentialsOcpiEndpoint'
+      });
+    }
+    // Filter
+    const filteredRequest = OCPIEndpointValidator.getInstance().validateOCPIEndpointByIdReq(req.body);
+    // Get OcpiEndpoint
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
+    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
+      MODULE_NAME, 'handleUpdateCredentialsOcpiEndpoint', req.user);
+    // Build OCPI Client
+    const ocpiClient = await OCPIClientFactory.getOcpiClient(req.tenant, ocpiEndpoint);
+    // Try to register
+    const result = await ocpiClient.updateCredentials();
+    // Check ping result
+    if (result.statusCode === StatusCodes.OK) {
+      await Logging.logInfo({
+        tenantID: req.tenant.id,
+        user: req.user, module: MODULE_NAME, method: 'handleUpdateCredentialsOcpiEndpoint',
+        message: `Ocpi Endpoint '${ocpiEndpoint.name}' can be reached successfully`,
+        action,
+        detailedMessages: { result }
+      });
+    } else {
+      // Not yet registered
+      if (result.statusCode === 405) {
+        throw new AppError({
+          module: MODULE_NAME, method: 'handleUpdateCredentialsOcpiEndpoint',
+          action,
+          errorCode: HTTPError.OCPI_ENDPOINT_ALREADY_UNREGISTERED,
+          message: 'Ocpi Endpoint is not yet registered',
+        });
+      }
+      throw new AppError({
+        module: MODULE_NAME, method: 'handleUpdateCredentialsOcpiEndpoint',
+        action,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `${result.statusText}`,
+      });
+    }
+    res.json(Object.assign(result, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
-  
+
   public static async handleUnregisterOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
@@ -787,7 +786,7 @@ export default class OCPIEndpointService {
         module: MODULE_NAME, method: 'handleUnregisterOcpiEndpoint',
         action,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `${result.statusText} (${result.statusCode})`,
+        message: `${result.statusText}`,
       });
     }
     res.json(Object.assign(result, Constants.REST_RESPONSE_SUCCESS));
@@ -840,7 +839,7 @@ export default class OCPIEndpointService {
         module: MODULE_NAME, method: 'handleRegisterOcpiEndpoint',
         action,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `${result.statusText} (${result.statusCode})`,
+        message: `${result.statusText}`,
       });
     }
     res.json(Object.assign(result, Constants.REST_RESPONSE_SUCCESS));
