@@ -1326,17 +1326,20 @@ export default class TransactionStorage {
   }
 
   private static normalizeBillingData(billingData: TransactionBillingData): any {
-    return {
-      withBillingActive: billingData.withBillingActive,
-      lastUpdate: Utils.convertToDate(billingData.lastUpdate),
-      stop: {
-        status: billingData.stop?.status,
-        invoiceID: DatabaseUtils.convertToObjectID(billingData.stop?.invoiceID),
-        invoiceNumber: billingData.stop?.invoiceNumber,
-        invoiceStatus: billingData.stop?.invoiceStatus,
-        invoiceItem: billingData.stop?.invoiceItem,
-      },
-    };
+    if (billingData) {
+      return {
+        withBillingActive: billingData.withBillingActive,
+        lastUpdate: Utils.convertToDate(billingData.lastUpdate),
+        stop: {
+          status: billingData.stop?.status,
+          invoiceID: DatabaseUtils.convertToObjectID(billingData.stop?.invoiceID),
+          invoiceNumber: billingData.stop?.invoiceNumber,
+          invoiceStatus: billingData.stop?.invoiceStatus,
+          invoiceItem: billingData.stop?.invoiceItem,
+        },
+      };
+    }
+    return null;
   }
 
   private static getTransactionsInErrorFacet(errorType: string) {
