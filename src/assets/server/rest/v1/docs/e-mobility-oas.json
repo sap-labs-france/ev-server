@@ -11940,7 +11940,50 @@
         }
       }
     },
-    "/api/oicp/endpoints": {
+    "/api/ocpi/endpoints/{id}/credentials": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Update credentials of an OCPI Endpoint",
+        "tags": [
+          "OCPI"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OCPIEndpointID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OCPI Endpoint updated",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success",
+                  "statusCode": 200,
+                  "statusText": "OK"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },    "/api/oicp/endpoints": {
       "post": {
         "security": [
           {
