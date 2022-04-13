@@ -58,7 +58,7 @@ export default class ChargingStationStorage {
     // Change ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Query Templates
-    const chargingStationTemplatesMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'chargingstationtemplates')
+    const chargingStationTemplatesMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'chargingstationtemplates')
       .aggregate<any>(aggregation)
       .toArray() as ChargingStationTemplate[];
     const chargingStationTemplates: ChargingStationTemplate[] = [];
@@ -76,7 +76,7 @@ export default class ChargingStationStorage {
   public static async deleteChargingStationTemplates(): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     // Delete all records
-    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'chargingstationtemplates').deleteMany(
+    await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'chargingstationtemplates').deleteMany(
       { qa: { $not: { $eq: true } } }
     );
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'deleteChargingStationTemplates', startTime, { qa: { $not: { $eq: true } } });
@@ -93,7 +93,7 @@ export default class ChargingStationStorage {
     };
     delete chargingStationTemplateMDB.id;
     // Modify and return the modified document
-    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'chargingstationtemplates').findOneAndReplace(
+    await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'chargingstationtemplates').findOneAndReplace(
       { '_id': chargingStationTemplate.id },
       chargingStationTemplateMDB,
       { upsert: true });

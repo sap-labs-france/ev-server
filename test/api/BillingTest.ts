@@ -2,8 +2,8 @@
 import { BillingChargeInvoiceAction, BillingInvoiceStatus } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType } from '../../src/types/Setting';
 import chai, { expect } from 'chai';
-import { BillingPeriodicOperationTaskConfig } from '../../src/types/TaskConfig';
 
+import { BillingPeriodicOperationTaskConfig } from '../../src/types/TaskConfig';
 import BillingTestHelper from './BillingTestHelper';
 import CentralServerService from './client/CentralServerService';
 import Constants from '../../src/utils/Constants';
@@ -666,6 +666,17 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           assert(transactionID, 'transactionID should not be null');
           // Check that we have a new invoice with an invoiceID and an invoiceNumber
           await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 29.49);
+        });
+
+        it('should bill the ENERGY + CT(STEP80S) on COMBO CCS - DC', async () => {
+          await billingTestHelper.initChargingStationContext2TestFastCharger('E+CT(STEP80S)');
+          await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
+          const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
+          await billingTestHelper.assignPaymentMethod(userWithBillingData, 'tok_fr');
+          const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext);
+          assert(transactionID, 'transactionID should not be null');
+          // Check that we have a new invoice with an invoiceID and an invoiceNumber
+          await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 10.11);
         });
 
         it('should bill the FF+E with 2 tariffs on COMBO CCS - DC', async () => {

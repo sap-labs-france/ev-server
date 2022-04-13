@@ -126,7 +126,7 @@ export default class OCPIFacade {
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         tenantID: tenant.id,
         module: MODULE_NAME, method: 'updateConnectorStatus',
-        action: ServerAction.OCPI_CPO_PATCH_STATUS,
+        action: ServerAction.OCPI_CPO_UPDATE_STATUS,
         message: `${Utils.buildConnectorInfo(connector.connectorId)} An error occurred while patching the connector's Status`,
         detailedMessages: { error: error.stack, connector, chargingStation }
       });

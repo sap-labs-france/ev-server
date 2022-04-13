@@ -33,10 +33,10 @@ export default class NotificationHandler {
     }
   ];
 
-  static async getAdminUsers(tenant: Tenant, notificationKey?: UserNotificationKeys): Promise<User[]> {
+  public static async getAdminUsers(tenant: Tenant, notificationKey?: UserNotificationKeys): Promise<User[]> {
     // Get admin users
     let params;
-    if (tenant.id === Constants.DEFAULT_TENANT) {
+    if (tenant.id === Constants.DEFAULT_TENANT_ID) {
       params = { roles: [UserRole.SUPER_ADMIN], notificationsActive: true, notifications: {} as UserNotifications };
     } else {
       params = { roles: [UserRole.ADMIN], notificationsActive: true, notifications: {} as UserNotifications };
@@ -93,7 +93,7 @@ export default class NotificationHandler {
 
   public static async sendEndOfCharge(tenant: Tenant, notificationID: string, user: User, chargingStation: ChargingStation,
       sourceData: EndOfChargeNotification): Promise<void> {
-    if (tenant.id !== Constants.DEFAULT_TENANT) {
+    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Get the Tenant logo
       if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
         const tenantLogo = await TenantStorage.getTenantLogo(tenant);
@@ -144,7 +144,7 @@ export default class NotificationHandler {
 
   public static async sendOptimalChargeReached(tenant: Tenant, notificationID: string, user: User, chargingStation: ChargingStation,
       sourceData: OptimalChargeReachedNotification): Promise<void> {
-    if (tenant.id !== Constants.DEFAULT_TENANT) {
+    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Get the Tenant logo
       if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
         const tenantLogo = await TenantStorage.getTenantLogo(tenant);
@@ -195,7 +195,7 @@ export default class NotificationHandler {
 
   public static async sendEndOfSession(tenant: Tenant, notificationID: string, user: User, chargingStation: ChargingStation,
       sourceData: EndOfSessionNotification): Promise<void> {
-    if (tenant.id !== Constants.DEFAULT_TENANT) {
+    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Get the Tenant logo
       if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
         const tenantLogo = await TenantStorage.getTenantLogo(tenant);
@@ -246,7 +246,7 @@ export default class NotificationHandler {
 
   public static async sendEndOfSignedSession(tenant: Tenant, notificationID: string, user: User, chargingStation: ChargingStation,
       sourceData: EndOfSignedSessionNotification): Promise<void> {
-    if (tenant.id !== Constants.DEFAULT_TENANT) {
+    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Get the Tenant logo
       if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
         const tenantLogo = await TenantStorage.getTenantLogo(tenant);
@@ -297,7 +297,7 @@ export default class NotificationHandler {
 
   public static async sendRequestPassword(tenant: Tenant, notificationID: string, user: User,
       sourceData: RequestPasswordNotification): Promise<void> {
-    if (tenant.id !== Constants.DEFAULT_TENANT) {
+    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Get the Tenant logo
       if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
         const tenantLogo = await TenantStorage.getTenantLogo(tenant);
@@ -325,7 +325,7 @@ export default class NotificationHandler {
 
   public static async sendUserAccountStatusChanged(tenant: Tenant, notificationID: string, user: User,
       sourceData: UserAccountStatusChangedNotification): Promise<void> {
-    if (tenant.id !== Constants.DEFAULT_TENANT) {
+    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Get the Tenant logo
       if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
         const tenantLogo = await TenantStorage.getTenantLogo(tenant);
@@ -356,7 +356,7 @@ export default class NotificationHandler {
 
   public static async sendNewRegisteredUser(tenant: Tenant, notificationID: string, user: User,
       sourceData: NewRegisteredUserNotification): Promise<void> {
-    if (tenant.id !== Constants.DEFAULT_TENANT) {
+    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Get the Tenant logo
       if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
         const tenantLogo = await TenantStorage.getTenantLogo(tenant);
@@ -383,7 +383,7 @@ export default class NotificationHandler {
   }
 
   public static async sendAccountVerification(tenant: Tenant, notificationID: string, user: User, sourceData: AccountVerificationNotification): Promise<void> {
-    if (tenant.id !== Constants.DEFAULT_TENANT) {
+    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Get the Tenant logo
       if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
         const tenantLogo = await TenantStorage.getTenantLogo(tenant);
@@ -421,7 +421,7 @@ export default class NotificationHandler {
   }
 
   public static async sendAdminAccountVerification(tenant: Tenant, notificationID: string, user: User, adminSourceData: AdminAccountVerificationNotification): Promise<void> {
-    if (tenant.id !== Constants.DEFAULT_TENANT) {
+    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Get the Tenant logo
       if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
         const tenantLogo = await TenantStorage.getTenantLogo(tenant);
@@ -454,7 +454,7 @@ export default class NotificationHandler {
 
   public static async sendVerificationEmail(tenant: Tenant, notificationID: string, user: User,
       sourceData: VerificationEmailNotification): Promise<void> {
-    if (tenant.id !== Constants.DEFAULT_TENANT) {
+    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Get the Tenant logo
       if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
         const tenantLogo = await TenantStorage.getTenantLogo(tenant);
@@ -497,7 +497,7 @@ export default class NotificationHandler {
 
   public static async sendVerificationEmailUserImport(tenant: Tenant, notificationID: string, user: User,
       sourceData: VerificationEmailNotification): Promise<void> {
-    if (tenant.id !== Constants.DEFAULT_TENANT) {
+    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Get the Tenant
       sourceData.tenantLogoURL = tenant.logo;
       // For each Sources
@@ -521,7 +521,7 @@ export default class NotificationHandler {
 
   public static async sendChargingStationStatusError(tenant: Tenant, notificationID: string, chargingStation: ChargingStation,
       sourceData: ChargingStationStatusErrorNotification): Promise<void> {
-    if (tenant.id !== Constants.DEFAULT_TENANT) {
+    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Get the Tenant logo
       if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
         const tenantLogo = await TenantStorage.getTenantLogo(tenant);
@@ -577,7 +577,7 @@ export default class NotificationHandler {
 
   public static async sendChargingStationRegistered(tenant: Tenant, notificationID: string, chargingStation: ChargingStation,
       sourceData: ChargingStationRegisteredNotification): Promise<void> {
-    if (tenant.id !== Constants.DEFAULT_TENANT) {
+    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Get the Tenant logo
       if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
         const tenantLogo = await TenantStorage.getTenantLogo(tenant);
@@ -611,7 +611,7 @@ export default class NotificationHandler {
 
   public static async sendUnknownUserBadged(tenant: Tenant, notificationID: string, chargingStation: ChargingStation,
       sourceData: UnknownUserBadgedNotification): Promise<void> {
-    if (tenant.id !== Constants.DEFAULT_TENANT) {
+    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Get the Tenant logo
       if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
         const tenantLogo = await TenantStorage.getTenantLogo(tenant);
@@ -645,7 +645,7 @@ export default class NotificationHandler {
 
   public static async sendSessionStarted(tenant: Tenant, notificationID: string, user: User, chargingStation: ChargingStation,
       sourceData: TransactionStartedNotification): Promise<void> {
-    if (tenant.id !== Constants.DEFAULT_TENANT) {
+    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Get the Tenant logo
       if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
         const tenantLogo = await TenantStorage.getTenantLogo(tenant);
@@ -697,7 +697,7 @@ export default class NotificationHandler {
   }
 
   public static async sendOCPIPatchChargingStationsStatusesError(tenant: Tenant, sourceData: OCPIPatchChargingStationsStatusesErrorNotification): Promise<void> {
-    if (tenant.id !== Constants.DEFAULT_TENANT) {
+    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Get the Tenant logo
       if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
         const tenantLogo = await TenantStorage.getTenantLogo(tenant);
@@ -752,7 +752,7 @@ export default class NotificationHandler {
   }
 
   public static async sendOICPPatchChargingStationsStatusesError(tenant: Tenant, sourceData: OICPPatchChargingStationsStatusesErrorNotification): Promise<void> {
-    if (tenant.id !== Constants.DEFAULT_TENANT) {
+    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Get the Tenant logo
       if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
         const tenantLogo = await TenantStorage.getTenantLogo(tenant);
@@ -802,7 +802,7 @@ export default class NotificationHandler {
   }
 
   public static async sendOICPPatchChargingStationsError(tenant: Tenant, sourceData: OICPPatchChargingStationsErrorNotification): Promise<void> {
-    if (tenant.id !== Constants.DEFAULT_TENANT) {
+    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Get the Tenant logo
       if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
         const tenantLogo = await TenantStorage.getTenantLogo(tenant);
@@ -852,7 +852,7 @@ export default class NotificationHandler {
   }
 
   public static async sendUserAccountInactivity(tenant: Tenant, user: User, sourceData: UserAccountInactivityNotification): Promise<void> {
-    if (tenant.id !== Constants.DEFAULT_TENANT) {
+    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Get the Tenant logo
       if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
         const tenantLogo = await TenantStorage.getTenantLogo(tenant);
@@ -893,7 +893,7 @@ export default class NotificationHandler {
   }
 
   public static async sendPreparingSessionNotStarted(tenant: Tenant, chargingStation: ChargingStation, user: User, sourceData: PreparingSessionNotStartedNotification): Promise<void> {
-    if (tenant.id !== Constants.DEFAULT_TENANT) {
+    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Get the Tenant logo
       if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
         const tenantLogo = await TenantStorage.getTenantLogo(tenant);
@@ -944,7 +944,7 @@ export default class NotificationHandler {
   }
 
   public static async sendOfflineChargingStations(tenant: Tenant, sourceData: OfflineChargingStationNotification): Promise<void> {
-    if (tenant.id !== Constants.DEFAULT_TENANT) {
+    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Get the Tenant logo
       if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
         const tenantLogo = await TenantStorage.getTenantLogo(tenant);
@@ -994,7 +994,7 @@ export default class NotificationHandler {
   }
 
   public static async sendBillingSynchronizationFailed(tenant: Tenant, sourceData: BillingUserSynchronizationFailedNotification): Promise<void> {
-    if (tenant.id !== Constants.DEFAULT_TENANT) {
+    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Get the Tenant logo
       if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
         const tenantLogo = await TenantStorage.getTenantLogo(tenant);
@@ -1043,7 +1043,7 @@ export default class NotificationHandler {
   }
 
   public static async sendBillingInvoicesSynchronizationFailed(tenant: Tenant, sourceData: BillingInvoiceSynchronizationFailedNotification): Promise<void> {
-    if (tenant.id !== Constants.DEFAULT_TENANT) {
+    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Get the Tenant logo
       if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
         const tenantLogo = await TenantStorage.getTenantLogo(tenant);
@@ -1092,7 +1092,7 @@ export default class NotificationHandler {
   }
 
   public static async sendBillingPeriodicOperationFailed(tenant: Tenant, sourceData: BillingInvoiceSynchronizationFailedNotification): Promise<void> {
-    if (tenant.id !== Constants.DEFAULT_TENANT) {
+    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Get the Tenant logo
       if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
         const tenantLogo = await TenantStorage.getTenantLogo(tenant);
@@ -1175,7 +1175,7 @@ export default class NotificationHandler {
               });
             }
           } catch (error) {
-            await Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, ServerAction.CAR_CATALOG_SYNCHRONIZATION_FAILED, error);
+            await Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT_ID, ServerAction.CAR_CATALOG_SYNCHRONIZATION_FAILED, error);
           }
         }
       }
@@ -1184,7 +1184,7 @@ export default class NotificationHandler {
 
   public static async sendComputeAndApplyChargingProfilesFailed(tenant: Tenant, chargingStation: ChargingStation,
       sourceData: ComputeAndApplyChargingProfilesFailedNotification): Promise<void> {
-    if (tenant.id !== Constants.DEFAULT_TENANT) {
+    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Get the Tenant logo
       if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
         const tenantLogo = await TenantStorage.getTenantLogo(tenant);
@@ -1235,7 +1235,7 @@ export default class NotificationHandler {
   }
 
   public static async sendEndUserErrorNotification(tenant: Tenant, sourceData: EndUserErrorNotification): Promise<void> {
-    if (tenant.id !== Constants.DEFAULT_TENANT) {
+    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Get the Tenant logo
       if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
         const tenantLogo = await TenantStorage.getTenantLogo(tenant);
@@ -1276,7 +1276,7 @@ export default class NotificationHandler {
 
   public static async sendSessionNotStarted(tenant: Tenant, notificationID: string, chargingStation: ChargingStation,
       sourceData: SessionNotStartedNotification): Promise<void> {
-    if (tenant.id !== Constants.DEFAULT_TENANT) {
+    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Get the Tenant logo
       if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
         const tenantLogo = await TenantStorage.getTenantLogo(tenant);
@@ -1322,7 +1322,7 @@ export default class NotificationHandler {
 
   public static async sendBillingNewInvoiceNotification(tenant: Tenant, notificationID: string, user: User,
       sourceData: BillingNewInvoiceNotification): Promise<void> {
-    if (tenant.id !== Constants.DEFAULT_TENANT) {
+    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Get the Tenant logo
       if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
         const tenantLogo = await TenantStorage.getTenantLogo(tenant);

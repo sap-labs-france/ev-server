@@ -228,7 +228,7 @@ export default class EMailNotificationTask implements NotificationTask {
       const messageSent: Message = await smtpClient.sendAsync(messageToSend);
       // Email sent successfully
       await Logging.logDebug({
-        tenantID: tenant.id ? tenant.id : Constants.DEFAULT_TENANT,
+        tenantID: tenant.id ? tenant.id : Constants.DEFAULT_TENANT_ID,
         siteID: data?.siteID,
         siteAreaID: data?.siteAreaID,
         companyID: data?.companyID,
@@ -247,7 +247,7 @@ export default class EMailNotificationTask implements NotificationTask {
     } catch (error) {
       try {
         await Logging.logError({
-          tenantID: tenant.id ? tenant.id : Constants.DEFAULT_TENANT,
+          tenantID: tenant.id ? tenant.id : Constants.DEFAULT_TENANT_ID,
           siteID: data?.siteID,
           siteAreaID: data?.siteAreaID,
           companyID: data?.companyID,
@@ -327,8 +327,8 @@ export default class EMailNotificationTask implements NotificationTask {
       // Render the subject
       emailTemplate.subject = ejs.render(emailTemplate.subject, data);
       // Render the tenant name
-      if (tenant.id === Constants.DEFAULT_TENANT) {
-        emailTemplate.tenant = Constants.DEFAULT_TENANT;
+      if (tenant.id === Constants.DEFAULT_TENANT_ID) {
+        emailTemplate.tenant = Constants.DEFAULT_TENANT_ID;
       } else {
         emailTemplate.tenant = tenant.name;
       }

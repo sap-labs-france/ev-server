@@ -19,7 +19,7 @@ export default class RepairTransactionBillingData extends TenantMigrationTask {
       if (billingImpl && billingImpl instanceof StripeBillingIntegration) {
         await this.repairTransactionsBillingData(tenant, billingImpl);
         await Logging.logDebug({
-          tenantID: Constants.DEFAULT_TENANT,
+          tenantID: Constants.DEFAULT_TENANT_ID,
           module: MODULE_NAME, method: 'migrateTenant',
           action: ServerAction.MIGRATION,
           message: `Invoice consistency has been checked for tenant: ${Utils.buildTenantName(tenant)}`

@@ -1,6 +1,6 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { NextFunction, Request, Response } from 'express';
-import PricingDefinition, { PricingEntity } from '../../../../types/Pricing';
+import PricingDefinition, { PricingContext, PricingEntity, ResolvedPricingDefinition, ResolvedPricingModel } from '../../../../types/Pricing';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AuthorizationService from './AuthorizationService';
@@ -9,6 +9,8 @@ import Constants from '../../../../utils/Constants';
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
 import { PricingDefinitionDataResult } from '../../../../types/DataResult';
+import PricingFactory from '../../../../integration/pricing/PricingFactory';
+import PricingHelper from '../../../../integration/pricing/PricingHelper';
 import PricingStorage from '../../../../storage/mongodb/PricingStorage';
 import PricingValidator from '../validator/PricingValidator';
 import { ServerAction } from '../../../../types/Server';
@@ -20,6 +22,31 @@ import UtilsService from './UtilsService';
 const MODULE_NAME = 'PricingService';
 
 export default class PricingService {
+
+  public static async handleResolvePricingModel(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
+      Action.RESOLVE, Entity.PRICING_DEFINITION, MODULE_NAME, 'handleResolvePricingModel');
+    // Filter
+    const filteredRequest = PricingValidator.getInstance().validatePricingModelResolve(req.query);
+    let pricingContext: PricingContext = null;
+    let pricingDefinitions: ResolvedPricingDefinition[] = [];
+    const pricingImpl = await PricingFactory.getPricingImpl(req.tenant);
+    if (pricingImpl) {
+      // Fetch the charging station data required for resolving the pricing context
+      // TODO: how to only read the required data? - required projected fields: ['id', 'companyID', 'siteID', 'siteAreaID', 'coordinates']
+      const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(req.tenant, req.user, filteredRequest.ChargingStationID, Action.READ, action);
+      // Resolve the pricing context
+      pricingContext = PricingHelper.buildUserPricingContext(req.tenant, filteredRequest.UserID, chargingStation, filteredRequest.ConnectorID, filteredRequest.StartDateTime);
+      const pricingModel: ResolvedPricingModel = await pricingImpl.resolvePricingContext(pricingContext);
+      pricingDefinitions = pricingModel?.pricingDefinitions;
+    }
+    res.json({
+      pricingContext,
+      pricingDefinitions
+    });
+    next();
+  }
 
   public static async handleGetPricingDefinition(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
@@ -111,7 +138,7 @@ export default class PricingService {
     newPricingDefinition.id = await PricingStorage.savePricingDefinition(req.tenant, newPricingDefinition);
     // Log
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleCreatePricingDefinition',
       message: `Pricing model '${newPricingDefinition.id}' has been created successfully`,
       action: action,
@@ -153,7 +180,7 @@ export default class PricingService {
     await PricingStorage.savePricingDefinition(req.tenant, pricingDefinition);
     // Log
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleUpdatePricingDefinition',
       message: `Pricing model '${pricingDefinition.id}' has been updated successfully`,
       action: action,
@@ -182,7 +209,7 @@ export default class PricingService {
     await PricingStorage.deletePricingDefinition(req.tenant, pricingDefinition.id);
     // Log
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleDeletePricingDefinition',
       message: `Pricing model '${pricingDefinitionID}' has been deleted successfully`,
       action: action,
@@ -209,7 +236,7 @@ export default class PricingService {
         siteID = siteArea.siteID;
         break;
       case PricingEntity.CHARGING_STATION:
-        chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(req.tenant, req.user, entityID, action);
+        chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(req.tenant, req.user, entityID, Action.READ, action);
         siteID = chargingStation.siteID;
         break;
       default:
@@ -230,7 +257,7 @@ export default class PricingService {
         canCreate = false;
         if (!(error instanceof AppAuthError)) {
           await Logging.logError({
-            tenantID: req.user.tenantID,
+            tenantID: req.tenant.id,
             user: req.user, module: MODULE_NAME, method: 'alterCanCreate',
             message: 'Unexpected error while checking site access permissions',
             action: action,

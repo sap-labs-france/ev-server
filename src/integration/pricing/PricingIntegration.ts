@@ -1,6 +1,7 @@
+import { PricedConsumption, PricingContext, ResolvedPricingModel } from '../../types/Pricing';
+
 import ChargingStation from '../../types/ChargingStation';
 import Consumption from '../../types/Consumption';
-import { PricedConsumption } from '../../types/Pricing';
 import { PricingSetting } from '../../types/Setting';
 import Tenant from '../../types/Tenant';
 import Transaction from '../../types/Transaction';
@@ -25,4 +26,7 @@ export default abstract class PricingIntegration<T extends PricingSetting> {
   public abstract stopSession(transaction: Transaction, consumptionData: Consumption, chargingStation?: ChargingStation): Promise<PricedConsumption>;
 
   public abstract endSession(transaction: Transaction, consumptionData: Consumption, chargingStation?: ChargingStation): Promise<PricedConsumption>;
+
+  public abstract resolvePricingContext(pricingContext: PricingContext): Promise<ResolvedPricingModel>;
 }
+

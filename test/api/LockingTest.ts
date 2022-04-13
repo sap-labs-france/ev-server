@@ -44,7 +44,7 @@ describe('Locking', () => {
     global.database = new MongoDBStorage(config.get('storage'));
     await global.database.start();
     // Clean locks
-    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
+    await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'locks')
       .deleteMany({});
     // Prepare context
     await ContextProvider.defaultInstance.prepareContexts();
@@ -60,12 +60,12 @@ describe('Locking', () => {
 
   describe('Exclusive Locks', () => {
     it('Should create an exclusive lock', () => {
-      testData.exclusiveLock = LockingManager.createExclusiveLock(Constants.DEFAULT_TENANT, LockEntity.DATABASE, lockKey);
+      testData.exclusiveLock = LockingManager.createExclusiveLock(Constants.DEFAULT_TENANT_ID, LockEntity.DATABASE, lockKey);
       expect(testData.exclusiveLock).not.null;
       expect(testData.exclusiveLock.id).not.null;
       expect(testData.exclusiveLock.hostname).not.null;
       expect(testData.exclusiveLock.timestamp).not.null;
-      expect(testData.exclusiveLock.tenantID).to.eql(Constants.DEFAULT_TENANT);
+      expect(testData.exclusiveLock.tenantID).to.eql(Constants.DEFAULT_TENANT_ID);
       expect(testData.exclusiveLock.entity).to.eql(LockEntity.DATABASE);
       expect(testData.exclusiveLock.key).to.eql(lockKey);
       expect(testData.exclusiveLock.type).to.eql(LockType.EXCLUSIVE);

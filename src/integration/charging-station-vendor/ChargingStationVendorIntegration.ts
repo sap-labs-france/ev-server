@@ -474,11 +474,11 @@ export default abstract class ChargingStationVendorIntegration {
       }
       // Divide the power by the number of connectors and number of phases
       for (const schedulePeriod of vendorSpecificChargingProfile.profile.chargingSchedule.chargingSchedulePeriod) {
-        // Limit Amps per phase
+        // Limit Amps per phase rounded to one decimal place (OCPP specification)
         if (chargingStation.powerLimitUnit === ChargingRateUnitType.AMPERE) {
-          schedulePeriod.limit = this.convertLimitAmpPerPhase(
+          schedulePeriod.limit = Utils.roundTo(this.convertLimitAmpPerPhase(
             chargingStation, chargePoint,
-            vendorSpecificChargingProfile.connectorID, schedulePeriod.limit);
+            vendorSpecificChargingProfile.connectorID, schedulePeriod.limit), 1);
         // Limit Watts for all the phases
         } else {
           schedulePeriod.limit = Utils.convertAmpToWatt(

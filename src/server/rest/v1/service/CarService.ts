@@ -1,25 +1,25 @@
-import { NextFunction, Request, Response } from 'express';
-
-import AsyncTaskBuilder from '../../../../async-task/AsyncTaskBuilder';
-import Authorizations from '../../../../authorization/Authorizations';
-import AppAuthError from '../../../../exception/AppAuthError';
-import AppError from '../../../../exception/AppError';
-import LockingHelper from '../../../../locking/LockingHelper';
-import LockingManager from '../../../../locking/LockingManager';
-import CarStorage from '../../../../storage/mongodb/CarStorage';
-import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
 import { Action, Entity } from '../../../../types/Authorization';
-import { Car } from '../../../../types/Car';
+import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
 import { CarCatalogDataResult, CarDataResult } from '../../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
-import { ServerAction } from '../../../../types/Server';
+import { NextFunction, Request, Response } from 'express';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
+
+import AppAuthError from '../../../../exception/AppAuthError';
+import AppError from '../../../../exception/AppError';
+import AsyncTaskBuilder from '../../../../async-task/AsyncTaskBuilder';
+import AuthorizationService from './AuthorizationService';
+import Authorizations from '../../../../authorization/Authorizations';
+import { Car } from '../../../../types/Car';
+import CarStorage from '../../../../storage/mongodb/CarStorage';
+import CarValidator from '../validator/CarValidator';
 import Constants from '../../../../utils/Constants';
+import LockingHelper from '../../../../locking/LockingHelper';
+import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
 import LoggingHelper from '../../../../utils/LoggingHelper';
+import { ServerAction } from '../../../../types/Server';
 import Utils from '../../../../utils/Utils';
-import CarValidator from '../validator/CarValidator';
-import AuthorizationService from './AuthorizationService';
 import UtilsService from './UtilsService';
 
 const MODULE_NAME = 'CarService';
@@ -146,7 +146,7 @@ export default class CarService {
       });
     }
     // Get the lock
-    const syncCarCatalogsLock = await LockingHelper.acquireSyncCarCatalogsLock(Constants.DEFAULT_TENANT);
+    const syncCarCatalogsLock = await LockingHelper.acquireSyncCarCatalogsLock(Constants.DEFAULT_TENANT_ID);
     if (!syncCarCatalogsLock) {
       throw new AppError({
         action: action,
@@ -257,7 +257,7 @@ export default class CarService {
     // Save
     newCar.id = await CarStorage.saveCar(req.tenant, newCar);
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       ...LoggingHelper.getCarProperties(newCar),
       user: req.user, module: MODULE_NAME, method: 'handleCreateCar',
       message: `Car with VIN '${newCar.vin}' and plate ID '${newCar.licensePlate}' has been created successfully`,
@@ -339,7 +339,7 @@ export default class CarService {
       await CarService.setDefaultCarForUser(req.tenant, setDefaultCarToOldUserID);
     }
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       ...LoggingHelper.getCarProperties(car),
       user: req.user, module: MODULE_NAME, method: 'handleUpdateCar',
       message: `Car '${car.id}' has been updated successfully`,
@@ -421,7 +421,7 @@ export default class CarService {
     }
     await Logging.logInfo({
       ...LoggingHelper.getCarProperties(car),
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteCar',
       message: `Car '${Utils.buildCarName(car)}' has been deleted successfully`,
       action: action,
