@@ -1037,11 +1037,11 @@ export default class CpoOCPIClient extends OCPIClient {
       return [];
     }
     const chargingPeriods: OCPIChargingPeriod[] = [];
-    const consumptions = await ConsumptionStorage.getTransactionConsumptions(
+    const consumptions = await ConsumptionStorage.getOptimizedTransactionConsumptions(
       tenant, { transactionId: transaction.id });
-    if (consumptions.result) {
+    if (consumptions) {
       // Build based on consumptions
-      for (const consumption of consumptions.result) {
+      for (const consumption of consumptions) {
         const chargingPeriod = this.buildChargingPeriod(consumption);
         if (!Utils.isEmptyArray(chargingPeriod?.dimensions)) {
           chargingPeriods.push(chargingPeriod);

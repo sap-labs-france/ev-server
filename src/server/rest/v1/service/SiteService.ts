@@ -268,20 +268,17 @@ export default class SiteService {
       MODULE_NAME, 'handleGetSiteImage', req.user);
     // Get the image
     const siteImage = await SiteStorage.getSiteImage(tenant, filteredRequest.ID);
-    if (siteImage?.image) {
-      let header = 'image';
-      let encoding: BufferEncoding = 'base64';
-      // Remove encoding header
-      if (siteImage.image.startsWith('data:image/')) {
-        header = siteImage.image.substring(5, siteImage.image.indexOf(';'));
-        encoding = siteImage.image.substring(siteImage.image.indexOf(';') + 1, siteImage.image.indexOf(',')) as BufferEncoding;
-        siteImage.image = siteImage.image.substring(siteImage.image.indexOf(',') + 1);
-      }
-      res.setHeader('content-type', header);
-      res.send(siteImage.image ? Buffer.from(siteImage.image, encoding) : null);
-    } else {
-      res.send(null);
+    let image = siteImage && !Utils.isNullOrEmptyString(siteImage.image) ? siteImage.image : Constants.NO_IMAGE;
+    let header = 'image';
+    let encoding: BufferEncoding = 'base64';
+    // Remove encoding header
+    if (image.startsWith('data:image/')) {
+      header = image.substring(5, image.indexOf(';'));
+      encoding = image.substring(image.indexOf(';') + 1, image.indexOf(',')) as BufferEncoding;
+      image = image.substring(image.indexOf(',') + 1);
     }
+    res.setHeader('content-type', header);
+    res.send(Buffer.from(image, encoding));
     next();
   }
 
