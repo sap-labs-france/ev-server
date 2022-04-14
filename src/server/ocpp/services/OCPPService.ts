@@ -16,7 +16,6 @@ import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStor
 import Constants from '../../../utils/Constants';
 import Consumption from '../../../types/Consumption';
 import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
-import I18nManager from '../../../utils/I18nManager';
 import LockingHelper from '../../../locking/LockingHelper';
 import LockingManager from '../../../locking/LockingManager';
 import Logging from '../../../utils/Logging';
@@ -1568,8 +1567,8 @@ export default class OCPPService {
     // Existing Charging Station: Update
     // Check if same vendor and model
     if ((chargingStation.chargePointVendor !== bootNotification.chargePointVendor ||
-      chargingStation.chargePointModel !== bootNotification.chargePointModel) ||
-      (chargingStation.chargePointSerialNumber && bootNotification.chargePointSerialNumber &&
+        chargingStation.chargePointModel !== bootNotification.chargePointModel) ||
+        (chargingStation.chargePointSerialNumber && bootNotification.chargePointSerialNumber &&
         chargingStation.chargePointSerialNumber !== bootNotification.chargePointSerialNumber)) {
       throw new BackendError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
