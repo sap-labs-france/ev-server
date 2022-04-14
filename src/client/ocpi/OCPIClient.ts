@@ -313,7 +313,7 @@ export default abstract class OCPIClient {
     const credentials = await OCPIUtils.buildOCPICredentialObject(this.tenant, this.ocpiEndpoint.localToken, this.ocpiEndpoint.role);
     await Logging.logInfo({
       tenantID: this.tenant.id,
-      action: ServerAction.OCPI_CREATE_CREDENTIALS,
+      action: ServerAction.OCPI_UPDATE_CREDENTIALS,
       message: `Put Credentials at ${credentialsUrl}`,
       module: MODULE_NAME, method: 'putCredentials',
       detailedMessages: { credentials }
