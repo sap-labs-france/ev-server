@@ -8,6 +8,7 @@ import BaseApi from './utils/BaseApi';
 import BillingApi from './BillingApi';
 import CarApi from './CarApi';
 import ChargingStationApi from './ChargingStationApi';
+import ChargingStationTemplateApi from './ChargingStationTemplateApi';
 import CompanyApi from './CompanyApi';
 import ContextDefinition from '../context/ContextDefinition';
 import { HTTPError } from '../../../src/types/HTTPError';
@@ -49,6 +50,7 @@ export default class CentralServerService {
   public userApi: UserApi;
   public tagApi: TagApi;
   public chargingStationApi: ChargingStationApi;
+  public chargingStationTemplateApi: ChargingStationTemplateApi;
   public registrationApi: RegistrationTokenApi;
   public transactionApi: TransactionApi;
   public settingApi: SettingApi;
@@ -102,6 +104,7 @@ export default class CentralServerService {
     this.userApi = new UserApi(this.authenticatedApi);
     this.tagApi = new TagApi(this.authenticatedApi);
     this.chargingStationApi = new ChargingStationApi(this.authenticatedApi, this._baseApi);
+    this.chargingStationTemplateApi = new ChargingStationTemplateApi(this.authenticatedApi, this._baseApi);
     this.transactionApi = new TransactionApi(this.authenticatedApi);
     this.settingApi = new SettingApi(this.authenticatedApi);
     this.logsApi = new LogsApi(this.authenticatedApi);
