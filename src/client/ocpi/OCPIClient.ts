@@ -132,6 +132,43 @@ export default abstract class OCPIClient {
     return registerResult;
   }
 
+  public async updateCredentials(): Promise<OCPIRegisterResult> {
+    const registerResult = {} as OCPIRegisterResult;
+    try {
+      // Check versions
+      const versionFound = await this.checkVersions();
+      if (!versionFound) {
+        throw new BackendError({
+          action: ServerAction.OCPI_REGISTER,
+          message: 'OCPI Endpoint version 2.1.1 not found',
+          module: MODULE_NAME, method: 'constructor',
+        });
+      }
+      // Try to read services
+      const endpointVersions = await this.getEndpointVersions();
+      // Set available endpoints
+      this.ocpiEndpoint.availableEndpoints = OCPIUtils.convertAvailableEndpoints(endpointVersions);
+      this.ocpiEndpoint.localToken = OCPIUtils.generateLocalToken(this.tenant.subdomain);
+      // Put credentials and receive response
+      const credentials = await this.putCredentials();
+      // Store information
+      this.ocpiEndpoint.token = credentials.token;
+      this.ocpiEndpoint.countryCode = credentials.country_code;
+      this.ocpiEndpoint.partyId = credentials.party_id;
+      this.ocpiEndpoint.businessDetails = credentials.business_details;
+      // Save endpoint
+      this.ocpiEndpoint.status = OCPIRegistrationStatus.REGISTERED;
+      await OCPIEndpointStorage.saveOcpiEndpoint(this.tenant, this.ocpiEndpoint);
+      // Send success
+      registerResult.statusCode = StatusCodes.OK;
+      registerResult.statusText = ReasonPhrases.OK;
+    } catch (error) {
+      registerResult.statusCode = error.response ? error.response.status : HTTPError.GENERAL_ERROR;
+      registerResult.statusText = error.message;
+    }
+    return registerResult;
+  }
+
   public async getVersions(): Promise<OCPIVersion[]> {
     await Logging.logInfo({
       tenantID: this.tenant.id,
@@ -163,48 +200,6 @@ export default abstract class OCPIClient {
         'Authorization': `Token ${this.ocpiEndpoint.token}`
       },
     });
-    return response.data?.data;
-  }
-
-  public async deleteCredentials(): Promise<OCPICredential> {
-    // Get credentials url
-    const credentialsUrl = this.getEndpointUrl('credentials', ServerAction.OCPI_CREATE_CREDENTIALS);
-    await Logging.logInfo({
-      tenantID: this.tenant.id,
-      action: ServerAction.OCPI_CREATE_CREDENTIALS,
-      message: `Delete Credentials at ${credentialsUrl}`,
-      module: MODULE_NAME, method: 'postCredentials'
-    });
-    // Call eMSP with CPO credentials
-    const response = await this.axiosInstance.delete(credentialsUrl,
-      {
-        headers: {
-          Authorization: `Token ${this.ocpiEndpoint.token}`,
-          'Content-Type': 'application/json'
-        },
-      });
-    return response.data?.data;
-  }
-
-  public async postCredentials(): Promise<OCPICredential> {
-    // Get credentials url
-    const credentialsUrl = this.getEndpointUrl('credentials', ServerAction.OCPI_CREATE_CREDENTIALS);
-    const credentials = await OCPIUtils.buildOCPICredentialObject(this.tenant, this.ocpiEndpoint.localToken, this.ocpiEndpoint.role);
-    await Logging.logInfo({
-      tenantID: this.tenant.id,
-      action: ServerAction.OCPI_CREATE_CREDENTIALS,
-      message: `Post Credentials at ${credentialsUrl}`,
-      module: MODULE_NAME, method: 'postCredentials',
-      detailedMessages: { credentials }
-    });
-    // Call eMSP with CPO credentials
-    const response = await this.axiosInstance.post(credentialsUrl, credentials,
-      {
-        headers: {
-          Authorization: `Token ${this.ocpiEndpoint.token}`,
-          'Content-Type': 'application/json'
-        },
-      });
     return response.data?.data;
   }
 
@@ -268,5 +263,69 @@ export default abstract class OCPIClient {
       }
     }
     return versionFound;
+  }
+
+  private async deleteCredentials(): Promise<OCPICredential> {
+    // Get credentials url
+    const credentialsUrl = this.getEndpointUrl('credentials', ServerAction.OCPI_CREATE_CREDENTIALS);
+    await Logging.logInfo({
+      tenantID: this.tenant.id,
+      action: ServerAction.OCPI_CREATE_CREDENTIALS,
+      message: `Delete Credentials at ${credentialsUrl}`,
+      module: MODULE_NAME, method: 'postCredentials'
+    });
+    // Call eMSP with CPO credentials
+    const response = await this.axiosInstance.delete(credentialsUrl,
+      {
+        headers: {
+          Authorization: `Token ${this.ocpiEndpoint.token}`,
+          'Content-Type': 'application/json'
+        },
+      });
+    return response.data?.data;
+  }
+
+  private async postCredentials(): Promise<OCPICredential> {
+    // Get credentials url
+    const credentialsUrl = this.getEndpointUrl('credentials', ServerAction.OCPI_CREATE_CREDENTIALS);
+    const credentials = await OCPIUtils.buildOCPICredentialObject(this.tenant, this.ocpiEndpoint.localToken, this.ocpiEndpoint.role);
+    await Logging.logInfo({
+      tenantID: this.tenant.id,
+      action: ServerAction.OCPI_CREATE_CREDENTIALS,
+      message: `Post Credentials at ${credentialsUrl}`,
+      module: MODULE_NAME, method: 'postCredentials',
+      detailedMessages: { credentials }
+    });
+    // Call eMSP with CPO credentials
+    const response = await this.axiosInstance.post(credentialsUrl, credentials,
+      {
+        headers: {
+          Authorization: `Token ${this.ocpiEndpoint.token}`,
+          'Content-Type': 'application/json'
+        },
+      });
+    return response.data?.data;
+  }
+
+  private async putCredentials(): Promise<OCPICredential> {
+    // Get credentials url
+    const credentialsUrl = this.getEndpointUrl('credentials', ServerAction.OCPI_UPDATE_CREDENTIALS);
+    const credentials = await OCPIUtils.buildOCPICredentialObject(this.tenant, this.ocpiEndpoint.localToken, this.ocpiEndpoint.role);
+    await Logging.logInfo({
+      tenantID: this.tenant.id,
+      action: ServerAction.OCPI_CREATE_CREDENTIALS,
+      message: `Put Credentials at ${credentialsUrl}`,
+      module: MODULE_NAME, method: 'putCredentials',
+      detailedMessages: { credentials }
+    });
+    // Call eMSP with CPO credentials
+    const response = await this.axiosInstance.put(credentialsUrl, credentials,
+      {
+        headers: {
+          Authorization: `Token ${this.ocpiEndpoint.token}`,
+          'Content-Type': 'application/json'
+        },
+      });
+    return response.data?.data;
   }
 }
