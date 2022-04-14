@@ -21,7 +21,7 @@ export default class CPOVersionsService {
 
   public static getSupportedServices(action: ServerAction, req: Request, res: Response, next: NextFunction): void {
     const identifiers = Array.from(Object.values(OCPIServerRoute)).filter((identifier) => (identifier !== 'versions'));
-    const fullUrl = OCPIUtilsService.getServiceUrl(req, 'emsp');
+    const fullUrl = OCPIUtilsService.getServiceUrl(req, 'cpo');
     // Build payload
     const supportedEndpoints = identifiers.map((identifier: string) => ({ identifier, url: `${fullUrl}/${OCPIServerRouteVersions.VERSION_211}/${identifier}/` }));
     // Return payload

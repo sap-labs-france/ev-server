@@ -695,12 +695,15 @@ export default class JsonOCPPServer extends OCPPServer {
   private checkAndCleanupAllWebSockets() {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     setTimeout(async () => {
-      // Check Json connections
-      await this.checkAndCleanupWebSockets(this.jsonWSConnections, 'CS');
-      // Check Rest connections
-      await this.checkAndCleanupWebSockets(this.jsonRestWSConnections, 'REST');
-      // Relaunch it
-      this.checkAndCleanupAllWebSockets();
+      try {
+        // Check Json connections
+        await this.checkAndCleanupWebSockets(this.jsonWSConnections, 'CS');
+        // Check Rest connections
+        await this.checkAndCleanupWebSockets(this.jsonRestWSConnections, 'REST');
+      } finally {
+        // Relaunch it
+        this.checkAndCleanupAllWebSockets();
+      }
     }, Configuration.getChargingStationConfig().pingIntervalOCPPJSecs * 1000);
   }
 

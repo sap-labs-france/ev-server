@@ -162,20 +162,17 @@ export default class SiteAreaService {
     // Get it
     const siteAreaImage = await SiteAreaStorage.getSiteAreaImage(
       await TenantStorage.getTenant(filteredRequest.TenantID), filteredRequest.ID);
-    if (siteAreaImage?.image) {
-      let header = 'image';
-      let encoding: BufferEncoding = 'base64';
-      // Remove encoding header
-      if (siteAreaImage.image.startsWith('data:image/')) {
-        header = siteAreaImage.image.substring(5, siteAreaImage.image.indexOf(';'));
-        encoding = siteAreaImage.image.substring(siteAreaImage.image.indexOf(';') + 1, siteAreaImage.image.indexOf(',')) as BufferEncoding;
-        siteAreaImage.image = siteAreaImage.image.substring(siteAreaImage.image.indexOf(',') + 1);
-      }
-      res.setHeader('content-type', header);
-      res.send(siteAreaImage.image ? Buffer.from(siteAreaImage.image, encoding) : null);
-    } else {
-      res.send(null);
+    let image = siteAreaImage && !Utils.isNullOrEmptyString(siteAreaImage.image) ? siteAreaImage.image : Constants.NO_IMAGE;
+    let header = 'image';
+    let encoding: BufferEncoding = 'base64';
+    // Remove encoding header
+    if (image.startsWith('data:image/')) {
+      header = image.substring(5, image.indexOf(';'));
+      encoding = image.substring(image.indexOf(';') + 1, image.indexOf(',')) as BufferEncoding;
+      image = image.substring(image.indexOf(',') + 1);
     }
+    res.setHeader('content-type', header);
+    res.send(Buffer.from(image, encoding));
     next();
   }
 

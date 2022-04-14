@@ -173,17 +173,7 @@ export default class TransactionStorage {
       };
     }
     if (transactionToSave.billingData) {
-      transactionMDB.billingData = {
-        withBillingActive: transactionToSave.billingData.withBillingActive,
-        lastUpdate: Utils.convertToDate(transactionToSave.billingData.lastUpdate),
-        stop: {
-          status: transactionToSave.billingData.stop?.status,
-          invoiceID: DatabaseUtils.convertToObjectID(transactionToSave.billingData.stop?.invoiceID),
-          invoiceNumber: transactionToSave.billingData.stop?.invoiceNumber,
-          invoiceStatus: transactionToSave.billingData.stop?.invoiceStatus,
-          invoiceItem: transactionToSave.billingData.stop?.invoiceItem,
-        },
-      };
+      transactionMDB.billingData = TransactionStorage.normalizeBillingData(transactionToSave.billingData);
     }
     if (transactionToSave.ocpiData) {
       transactionMDB.ocpiData = {
@@ -278,12 +268,14 @@ export default class TransactionStorage {
       billingData: TransactionBillingData): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
+    // Normalize billing data
+    const billingDataMDB = TransactionStorage.normalizeBillingData(billingData);
     // Modify document
     await global.database.getCollection<any>(tenant.id, 'transactions').findOneAndUpdate(
       { '_id': id },
       {
         $set: {
-          billingData
+          billingData: billingDataMDB
         }
       },
       { upsert: false });
@@ -1331,6 +1323,23 @@ export default class TransactionStorage {
       count: notifySessionNotStartedMDB.length,
       result: notifySessionNotStartedMDB
     };
+  }
+
+  private static normalizeBillingData(billingData: TransactionBillingData): any {
+    if (billingData) {
+      return {
+        withBillingActive: billingData.withBillingActive,
+        lastUpdate: Utils.convertToDate(billingData.lastUpdate),
+        stop: {
+          status: billingData.stop?.status,
+          invoiceID: DatabaseUtils.convertToObjectID(billingData.stop?.invoiceID),
+          invoiceNumber: billingData.stop?.invoiceNumber,
+          invoiceStatus: billingData.stop?.invoiceStatus,
+          invoiceItem: billingData.stop?.invoiceItem,
+        },
+      };
+    }
+    return null;
   }
 
   private static getTransactionsInErrorFacet(errorType: string) {

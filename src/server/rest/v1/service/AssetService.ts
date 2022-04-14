@@ -326,20 +326,17 @@ export default class AssetService {
     UtilsService.assertObjectExists(action, tenant, 'Tenant does not exist', MODULE_NAME, 'handleGetAssetImage', req.user);
     // Get the image
     const assetImage = await AssetStorage.getAssetImage(tenant, filteredRequest.ID);
-    if (assetImage?.image) {
-      let header = 'image';
-      let encoding: BufferEncoding = 'base64';
-      // Remove encoding header
-      if (assetImage.image.startsWith('data:image/')) {
-        header = assetImage.image.substring(5, assetImage.image.indexOf(';'));
-        encoding = assetImage.image.substring(assetImage.image.indexOf(';') + 1, assetImage.image.indexOf(',')) as BufferEncoding;
-        assetImage.image = assetImage.image.substring(assetImage.image.indexOf(',') + 1);
-      }
-      res.setHeader('content-type', header);
-      res.send(assetImage.image ? Buffer.from(assetImage.image, encoding) : null);
-    } else {
-      res.send(null);
+    let image = assetImage && !Utils.isNullOrEmptyString(assetImage.image) ? assetImage.image : Constants.NO_IMAGE;
+    let header = 'image';
+    let encoding: BufferEncoding = 'base64';
+    // Remove encoding header
+    if (image.startsWith('data:image/')) {
+      header = image.substring(5, image.indexOf(';'));
+      encoding = image.substring(image.indexOf(';') + 1, image.indexOf(',')) as BufferEncoding;
+      image = image.substring(image.indexOf(',') + 1);
     }
+    res.setHeader('content-type', header);
+    res.send(Buffer.from(image, encoding));
     next();
   }
 
