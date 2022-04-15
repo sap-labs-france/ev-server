@@ -19,6 +19,7 @@ import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
 import LoggingHelper from '../../../../utils/LoggingHelper';
 import { ServerAction } from '../../../../types/Server';
+import { StatusCodes } from 'http-status-codes';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 
@@ -86,17 +87,21 @@ export default class CarService {
     const filteredRequest = CarValidator.getInstance().validateCarCatalogGetReq(req.query);
     // Get the car Image
     const carCatalog = await CarStorage.getCarCatalogImage(filteredRequest.ID);
-    let image = !Utils.isNullOrEmptyString(carCatalog?.image) ? carCatalog.image : Constants.NO_IMAGE;
-    let header = 'image';
-    let encoding: BufferEncoding = 'base64';
-    // Remove encoding header
-    if (image.startsWith('data:image/')) {
-      header = image.substring(5, image.indexOf(';'));
-      encoding = image.substring(image.indexOf(';') + 1, image.indexOf(',')) as BufferEncoding;
-      image = image.substring(image.indexOf(',') + 1);
+    let image = carCatalog?.image;
+    if (image) {
+      // Header
+      let header = 'image';
+      let encoding: BufferEncoding = 'base64';
+      if (image.startsWith('data:image/')) {
+        header = image.substring(5, image.indexOf(';'));
+        encoding = image.substring(image.indexOf(';') + 1, image.indexOf(',')) as BufferEncoding;
+        image = image.substring(image.indexOf(',') + 1);
+      }
+      res.setHeader('content-type', header);
+      res.send(Buffer.from(image, encoding));
+    } else {
+      res.status(StatusCodes.NOT_FOUND);
     }
-    res.setHeader('content-type', header);
-    res.send(Buffer.from(image, encoding));
     next();
   }
 

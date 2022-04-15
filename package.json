@@ -1,6 +1,6 @@
 {
   "name": "ev-server",
-  "version": "2.6.3",
+  "version": "2.6.5",
   "engines": {
     "node": "16.x.x",
     "npm": "8.x.x"
@@ -121,7 +121,7 @@
     "jsonwebtoken": "^8.5.1",
     "locale": "^0.1.0",
     "lodash": "^4.17.21",
-    "moment": "^2.29.1",
+    "moment": "^2.29.2",
     "moment-duration-format": "^2.3.2",
     "moment-timezone": "^0.5.34",
     "mongo-sanitize": "^1.1.0",

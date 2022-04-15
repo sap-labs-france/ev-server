@@ -230,7 +230,7 @@ export default class Logging {
       });
       Utils.isDevelopmentEnv() && Logging.logConsoleError(messageError);
     } else {
-      await Logging.logInfo({
+      await Logging.logDebug({
         tenantID: tenantID,
         user,
         action, module, method,
@@ -278,7 +278,7 @@ export default class Logging {
       });
       Utils.isDevelopmentEnv() && Logging.logConsoleError(messageError);
     } else {
-      await Logging.logInfo({
+      await Logging.logDebug({
         tenantID: tenantID,
         action, module, method,
         message: messageNoSuccessNoError,
@@ -294,7 +294,7 @@ export default class Logging {
       messageSuccess, messageError, messageSuccessAndError, messageNoSuccessNoError);
   }
 
-  public static async traceExpressRequest(req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async traceExpressRequest(req: Request, res: Response, next: NextFunction, action?: ServerAction): Promise<void> {
     if (Logging.getTraceConfiguration().traceIngressHttp) {
       try {
         // Get Tenant info
@@ -339,7 +339,7 @@ export default class Logging {
         Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
         await Logging.logDebug({
           tenantID,
-          action: ServerAction.HTTP_REQUEST,
+          action: action ?? ServerAction.HTTP_REQUEST,
           user: userID,
           message,
           module: MODULE_NAME, method: 'logExpressRequest',
@@ -358,14 +358,18 @@ export default class Logging {
         });
         req['performanceID'] = performanceID;
       } finally {
-        next();
+        // Express call does not provide action
+        if (!action) {
+          next();
+        }
       }
-    } else {
+    // Express call does not provide action
+    } else if (!action) {
       next();
     }
   }
 
-  public static traceExpressResponse(req: Request, res: Response, next: NextFunction): void {
+  public static traceExpressResponse(req: Request, res: Response, next: NextFunction, action?: ServerAction): void {
     if (Logging.getTraceConfiguration().traceIngressHttp) {
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       res.on('finish', async () => {
@@ -420,7 +424,7 @@ export default class Logging {
         await Logging.logDebug({
           tenantID: tenantID,
           user: req.user,
-          action: ServerAction.HTTP_RESPONSE,
+          action: action ?? ServerAction.HTTP_RESPONSE,
           message,
           module: MODULE_NAME, method: 'logExpressResponse',
           detailedMessages: {
@@ -441,7 +445,10 @@ export default class Logging {
         }
       });
     }
-    next();
+    // Express call does not provide action
+    if (!action) {
+      next();
+    }
   }
 
   public static async traceExpressError(error: Error, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -465,14 +472,14 @@ export default class Logging {
           httpUrl: request.url,
           httpMethod: request.method.toLocaleUpperCase(),
           reqSizeKb: sizeOfRequestDataKB,
-          action: ServerAction.HTTP_REQUEST,
+          action: Utils.getAxiosActionFromURL(request.url),
         })
       );
       const message = `Axios HTTP Request - '${Utils.last5Chars(performanceID)}' >> Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB - ${request.method.toLocaleUpperCase()} '${request.url}'`;
       Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
       await Logging.logDebug({
         tenantID: tenant.id,
-        action: ServerAction.HTTP_REQUEST,
+        action: Utils.getAxiosActionFromURL(request.url),
         module: Constants.MODULE_AXIOS, method: 'interceptor',
         message,
         detailedMessages: {
@@ -538,7 +545,7 @@ export default class Logging {
       try {
         await Logging.logDebug({
           tenantID: tenant.id,
-          action: ServerAction.HTTP_RESPONSE,
+          action: Utils.getAxiosActionFromURL(response.config.url),
           message,
           module: Constants.MODULE_AXIOS, method: 'logAxiosResponse',
           detailedMessages: {
@@ -561,7 +568,7 @@ export default class Logging {
       } catch (error) {
         await Logging.logDebug({
           tenantID: tenant.id,
-          action: ServerAction.HTTP_RESPONSE,
+          action: Utils.getAxiosActionFromURL(response.config.url),
           message: `Axios HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`,
           module: Constants.MODULE_AXIOS, method: 'logAxiosResponse',
           detailedMessages: {
@@ -577,7 +584,7 @@ export default class Logging {
     // Error handling is done outside to get the proper module information
     await Logging.logError({
       tenantID: tenant.id,
-      action: ServerAction.HTTP_ERROR,
+      action: Utils.getAxiosActionFromURL(error.config.url),
       message: `Axios HTTP Error >> ${error.config?.method?.toLocaleUpperCase()}/${error.response?.status} '${error.config?.url}' - ${error.message}`,
       module: Constants.MODULE_AXIOS, method: 'interceptor',
       detailedMessages: {

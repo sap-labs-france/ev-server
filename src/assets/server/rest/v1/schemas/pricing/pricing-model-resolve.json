@@ -1,0 +1,26 @@
+{
+  "$id": "pricing-model-resolve",
+  "title": "Resolve Pricing Model to Preview Tariffs",
+  "type": "object",
+  "properties": {
+    "ChargingStationID": {
+      "$ref": "chargingstation#/definitions/id"
+    },
+    "ConnectorID": {
+      "$ref": "chargingstation#/definitions/connector/properties/connectorId"
+    },
+    "UserID": {
+      "$ref": "common#/definitions/id"
+    },
+    "StartDateTime": {
+      "type": "string",
+      "format": "date-time",
+      "customType": "date",
+      "sanitize": "mongo"
+    }
+  },
+  "required": [
+    "ChargingStationID",
+    "ConnectorID"
+  ]
+}
