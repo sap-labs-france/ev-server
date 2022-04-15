@@ -16,6 +16,7 @@ import { SiteDataResult } from '../../../../types/DataResult';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import SiteValidator from '../validator/SiteValidator';
 import SitesAdminDynamicAuthorizationDataSource from '../../../../authorization/dynamic-data-source/SitesAdminDynamicAuthorizationDataSource';
+import { StatusCodes } from 'http-status-codes';
 import { TenantComponents } from '../../../../types/Tenant';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import Utils from '../../../../utils/Utils';
@@ -268,17 +269,21 @@ export default class SiteService {
       MODULE_NAME, 'handleGetSiteImage', req.user);
     // Get the image
     const siteImage = await SiteStorage.getSiteImage(tenant, filteredRequest.ID);
-    let image = siteImage && !Utils.isNullOrEmptyString(siteImage.image) ? siteImage.image : Constants.NO_IMAGE;
-    let header = 'image';
-    let encoding: BufferEncoding = 'base64';
-    // Remove encoding header
-    if (image.startsWith('data:image/')) {
-      header = image.substring(5, image.indexOf(';'));
-      encoding = image.substring(image.indexOf(';') + 1, image.indexOf(',')) as BufferEncoding;
-      image = image.substring(image.indexOf(',') + 1);
+    let image = siteImage?.image;
+    if (image) {
+      // Header
+      let header = 'image';
+      let encoding: BufferEncoding = 'base64';
+      if (image.startsWith('data:image/')) {
+        header = image.substring(5, image.indexOf(';'));
+        encoding = image.substring(image.indexOf(';') + 1, image.indexOf(',')) as BufferEncoding;
+        image = image.substring(image.indexOf(',') + 1);
+      }
+      res.setHeader('content-type', header);
+      res.send(Buffer.from(image, encoding));
+    } else {
+      res.status(StatusCodes.NOT_FOUND);
     }
-    res.setHeader('content-type', header);
-    res.send(Buffer.from(image, encoding));
     next();
   }
 

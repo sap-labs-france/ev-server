@@ -93,17 +93,21 @@ export default class TenantService {
         tenantLogo = await TenantStorage.getTenantLogo(tenant);
       }
     }
-    let logo = tenantLogo && !Utils.isNullOrEmptyString(tenantLogo.logo) ? tenantLogo.logo : Constants.NO_IMAGE;
-    let header = 'image';
-    let encoding: BufferEncoding = 'base64';
-    // Remove encoding header
-    if (logo.startsWith('data:image/')) {
-      header = logo.substring(5, logo.indexOf(';'));
-      encoding = logo.substring(logo.indexOf(';') + 1, logo.indexOf(',')) as BufferEncoding;
-      logo = logo.substring(logo.indexOf(',') + 1);
+    let logo = tenantLogo?.logo;
+    if (logo) {
+      // Header
+      let header = 'image';
+      let encoding: BufferEncoding = 'base64';
+      if (logo.startsWith('data:image/')) {
+        header = logo.substring(5, logo.indexOf(';'));
+        encoding = logo.substring(logo.indexOf(';') + 1, logo.indexOf(',')) as BufferEncoding;
+        logo = logo.substring(logo.indexOf(',') + 1);
+      }
+      res.setHeader('content-type', header);
+      res.send(Buffer.from(logo, encoding));
+    } else {
+      res.status(StatusCodes.NOT_FOUND);
     }
-    res.setHeader('content-type', header);
-    res.send(Buffer.from(logo, encoding));
     next();
   }
 
