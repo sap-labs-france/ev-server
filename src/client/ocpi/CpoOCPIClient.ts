@@ -237,6 +237,7 @@ export default class CpoOCPIClient extends OCPIClient {
       id: transaction.id.toString(),
       start_datetime: transaction.timestamp,
       kwh: 0,
+      authorization_id: transaction.authorizationID,
       auth_method: OCPIAuthMethod.AUTH_REQUEST,
       auth_id: ocpiToken.auth_id,
       location: ocpiLocation,
@@ -398,6 +399,7 @@ export default class CpoOCPIClient extends OCPIClient {
       auth_id: transaction.ocpiData.session.auth_id,
       auth_method: transaction.ocpiData.session.auth_method,
       location: transaction.ocpiData.session.location,
+      authorization_id: transaction.ocpiData.session.authorization_id,
       total_cost: transaction.stop.roundedPrice > 0 ? transaction.stop.roundedPrice : 0,
       charging_periods: await this.buildChargingPeriods(this.tenant, transaction),
       last_updated: transaction.stop.timestamp
