@@ -1224,6 +1224,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
         'Test for sticky limit - check if cars are able to go up again, when using the buffer',
         async () => {
           testData.siteAreaContext.getSiteArea().maximumPower = 200000;
+          await testData.userService.siteAreaApi.update(testData.siteAreaContext.getSiteArea());
           // Send meter values for all stations
           await TestData.sendMeterValue(Voltage.VOLTAGE_400, 110, transaction, testData.chargingStationContext);
           await TestData.sendMeterValue(Voltage.VOLTAGE_400, 80, transaction1, testData.chargingStationContext);
@@ -1263,6 +1264,138 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
           await ChargingStationStorage.deleteChargingProfiles(testData.tenantContext.getTenant(), chargingProfiles[1].chargingStationID);
         }
       );
+    });
+  });
+
+  describe('Test for Site Area Tree (Three phased site area is child of DC Site Area)', () => {
+    beforeAll(() => {
+      testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
+      testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC);
+      testData.siteAreaContext1 = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED);
+      testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
+      testData.chargingStationContext1 = testData.siteAreaContext1.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
+      testData.chargingStationContext2 = testData.siteAreaContext1.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16 + '-' + `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED}` + '-' + 'singlePhased');
+    });
+
+    afterAll(async () => {
+      chargingStationConnector1Available.timestamp = new Date().toISOString();
+      chargingStationConnector2Available.timestamp = new Date().toISOString();
+      await testData.chargingStationContext.setConnectorStatus(chargingStationConnector1Available);
+      await testData.chargingStationContext.setConnectorStatus(chargingStationConnector2Available);
+      await testData.chargingStationContext1.setConnectorStatus(chargingStationConnector1Available);
+      await testData.chargingStationContext1.setConnectorStatus(chargingStationConnector2Available);
+      await testData.chargingStationContext2.setConnectorStatus(chargingStationConnector1Available);
+      await testData.chargingStationContext2.setConnectorStatus(chargingStationConnector2Available);
+      testData.siteAreaContext.getSiteArea().maximumPower = 200000;
+      await testData.userService.siteAreaApi.update(testData.siteAreaContext.getSiteArea());
+      testData.siteAreaContext1.getSiteArea().maximumPower = 200000;
+      await testData.userService.siteAreaApi.update(testData.siteAreaContext1.getSiteArea());
+    });
+
+    it('Check for three cars charging on different site areas if enough power is available', async () => {
+      testData.siteAreaContext.getSiteArea().maximumPower = 250000;
+      await testData.userService.siteAreaApi.update(testData.siteAreaContext.getSiteArea());
+      testData.siteAreaContext1.getSiteArea().maximumPower = 50000;
+      await testData.userService.siteAreaApi.update(testData.siteAreaContext1.getSiteArea());
+      let transactionStartResponse = await testData.chargingStationContext.startTransaction(1, testData.userContext.tags[0].id, 180, new Date);
+      let transactionResponse = await testData.centralUserService.transactionApi.readById(transactionStartResponse.transactionId);
+      transaction = transactionResponse.data;
+      transactionStartResponse = await testData.chargingStationContext1.startTransaction(1, testData.userContext.tags[0].id, 180, new Date);
+      transactionResponse = await testData.centralUserService.transactionApi.readById(transactionStartResponse.transactionId);
+      transaction1 = transactionResponse.data;
+      transactionStartResponse = await testData.chargingStationContext2.startTransaction(1, testData.userContext.tags[0].id, 180, new Date);
+      transactionResponse = await testData.centralUserService.transactionApi.readById(transactionStartResponse.transactionId);
+      transaction2 = transactionResponse.data;
+      chargingStationConnector1Charging.timestamp = new Date().toISOString();
+      await testData.chargingStationContext.setConnectorStatus(chargingStationConnector1Charging);
+      await testData.chargingStationContext1.setConnectorStatus(chargingStationConnector1Charging);
+      await testData.chargingStationContext2.setConnectorStatus(chargingStationConnector1Charging);
+      const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
+      expect(chargingProfiles.length).to.be.eq(3);
+      TestData.validateChargingProfile(chargingProfiles[0], transaction);
+      expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
+        {
+          'startPeriod': 0,
+          'limit': 654
+        },
+        {
+          'startPeriod': 900,
+          'limit': 654
+        },
+        {
+          'startPeriod': 1800,
+          'limit': 654
+        }
+      ]);
+      TestData.validateChargingProfile(chargingProfiles[1], transaction1);
+      expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit96);
+      TestData.validateChargingProfile(chargingProfiles[2], transaction2);
+      expect(chargingProfiles[2].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit32);
+    });
+
+    it('Check for three cars charging on different site areas if not enough power is available on root site area', async () => {
+      testData.siteAreaContext.getSiteArea().maximumPower = 100000;
+      await testData.userService.siteAreaApi.update(testData.siteAreaContext.getSiteArea());
+      const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
+      expect(chargingProfiles.length).to.be.eq(3);
+      TestData.validateChargingProfile(chargingProfiles[0], transaction);
+      expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
+        {
+          'startPeriod': 0,
+          'limit': 230.6
+        },
+        {
+          'startPeriod': 900,
+          'limit': 230.6
+        },
+        {
+          'startPeriod': 1800,
+          'limit': 230.6
+        }
+      ]);
+      TestData.validateChargingProfile(chargingProfiles[1], transaction1);
+      expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit96);
+      TestData.validateChargingProfile(chargingProfiles[2], transaction2);
+      expect(chargingProfiles[2].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit32);
+    });
+
+    it('Check for three cars charging on different site areas if not enough power is available on sub site area', async () => {
+      testData.siteAreaContext1.getSiteArea().maximumPower = 30000;
+      await testData.userService.siteAreaApi.update(testData.siteAreaContext1.getSiteArea());
+      const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
+      expect(chargingProfiles.length).to.be.eq(3);
+      TestData.validateChargingProfile(chargingProfiles[0], transaction);
+      expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
+        {
+          'startPeriod': 0,
+          'limit': 289.1
+        },
+        {
+          'startPeriod': 900,
+          'limit': 289.1
+        },
+        {
+          'startPeriod': 1800,
+          'limit': 289.1
+        }
+      ]);
+      TestData.validateChargingProfile(chargingProfiles[1], transaction1);
+      expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
+        {
+          'startPeriod': 0,
+          'limit': 34.4
+        },
+        {
+          'startPeriod': 900,
+          'limit': 34.4
+        },
+        {
+          'startPeriod': 1800,
+          'limit': 34.4
+        }
+      ]);
+      TestData.validateChargingProfile(chargingProfiles[2], transaction2);
+      expect(chargingProfiles[2].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit32);
     });
   });
 
