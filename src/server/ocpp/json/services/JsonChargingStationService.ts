@@ -12,7 +12,7 @@ const MODULE_NAME = 'JsonChargingStationService';
 export default class JsonChargingStationService {
   private chargingStationService: OCPPService;
 
-  constructor() {
+  public constructor() {
     // Get the OCPP service
     this.chargingStationService = global.centralSystemJsonServer.getChargingStationService(OCPPVersion.VERSION_16);
   }
