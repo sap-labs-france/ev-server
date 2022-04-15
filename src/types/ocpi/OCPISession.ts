@@ -5,6 +5,7 @@ export interface OCPISession {
   id: string;
   start_datetime: Date;
   end_datetime?: Date;
+  authorization_id?: string;
   kwh: number;
   auth_id: string;
   auth_method: OCPIAuthMethod;

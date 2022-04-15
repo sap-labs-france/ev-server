@@ -1452,13 +1452,12 @@ export default class OCPPService {
       const carImplementation = await CarConnectorFactory.getCarConnectorImpl(tenant, transaction.car.carConnectorData.carConnectorID);
       if (carImplementation) {
         try {
-          return carImplementation.getCurrentSoC(transaction.car, transaction.userID);
+          return await carImplementation.getCurrentSoC(transaction.car, transaction.userID);
+        // eslint-disable-next-line no-empty
         } catch {
-          return null;
         }
       }
     }
-    return null;
   }
 
   private addChargingStationToException(error: BackendError, chargingStationID: string): void {
