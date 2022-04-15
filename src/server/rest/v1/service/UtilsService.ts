@@ -1793,7 +1793,7 @@ export default class UtilsService {
     if (filteredRequest.mobile && !Utils.isPhoneValid(filteredRequest.mobile)) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `User Mobile '${filteredRequest.mobile}' is not valid`,
+        message: 'User Mobile is mandatory',
         module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id,

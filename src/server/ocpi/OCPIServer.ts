@@ -122,7 +122,7 @@ export default class OCPIServer {
           module: MODULE_NAME, method: 'initialize',
           action: ServerAction.OCPI_ENDPOINT,
           errorCode: StatusCodes.UNAUTHORIZED,
-          message: `Invalid Token for URL '${req.url}' (endpoint URL: '${ocpiEndpoint.versionUrl}')`,
+          message: `Invalid Token for URL '${req.url}', endpoint role is '${ocpiEndpoint.role}'`,
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
         });
       }
