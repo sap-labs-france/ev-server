@@ -128,16 +128,8 @@ export default class TagService {
     const filteredRequest = TagValidator.getInstance().validateTagCreateReq(req.body);
     UtilsService.checkIfUserTagIsValid(filteredRequest, req);
     // Get dynamic auth
-    const authorizationFilter = await AuthorizationService.checkAndGetTagAuthorizations(
+    await AuthorizationService.checkAndGetTagAuthorizations(
       req.tenant, req.user, {}, Action.CREATE, filteredRequest);
-    if (!authorizationFilter.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.CREATE, entity: Entity.TAG,
-        module: MODULE_NAME, method: 'handleCreateTag'
-      });
-    }
     // Check Tag with ID
     let tag = await TagStorage.getTag(req.tenant, filteredRequest.id.toUpperCase());
     if (tag) {
@@ -782,9 +774,9 @@ export default class TagService {
 
   private static async getTags(req: Request, filteredRequest: HttpTagsRequest): Promise<DataResult<Tag>> {
     // Get authorization filters
-    const authorizationTagsFilters = await AuthorizationService.checkAndGetTagsAuthorizations(
+    const authorizations = await AuthorizationService.checkAndGetTagsAuthorizations(
       req.tenant, req.user, filteredRequest);
-    if (!authorizationTagsFilters.authorized) {
+    if (!authorizations.authorized) {
       return Constants.DB_EMPTY_DATA_RESULT;
     }
     // Get the tags
@@ -795,7 +787,7 @@ export default class TagService {
         active: filteredRequest.Active,
         withUser: filteredRequest.WithUser,
         userIDs: (filteredRequest.UserID ? filteredRequest.UserID.split('|') : null),
-        ...authorizationTagsFilters.filters
+        ...authorizations.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -803,14 +795,14 @@ export default class TagService {
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      authorizationTagsFilters.projectFields,
+      authorizations.projectFields,
     );
     // Assign projected fields
-    if (authorizationTagsFilters.projectFields) {
-      tags.projectFields = authorizationTagsFilters.projectFields;
+    if (authorizations.projectFields) {
+      tags.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
-    await AuthorizationService.addTagsAuthorizations(req.tenant, req.user, tags as TagDataResult, authorizationTagsFilters);
+    await AuthorizationService.addTagsAuthorizations(req.tenant, req.user, tags as TagDataResult, authorizations);
     return tags;
   }
 

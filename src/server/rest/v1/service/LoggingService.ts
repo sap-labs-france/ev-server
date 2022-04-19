@@ -85,9 +85,9 @@ export default class LoggingService {
 
   private static async getLogs(req: Request, filteredRequest: HttpLogsRequest): Promise<DataResult<Log>> {
     // Check dynamic auth
-    const authorizationSitesFilter = await AuthorizationService.checkAndGetLoggingsAuthorizations(
+    const authorizations = await AuthorizationService.checkAndGetLoggingsAuthorizations(
       req.tenant, req.user, filteredRequest);
-    if (!authorizationSitesFilter.authorized) {
+    if (!authorizations.authorized) {
       return Constants.DB_EMPTY_DATA_RESULT;
     }
     // Get Logs
@@ -102,20 +102,20 @@ export default class LoggingService {
       levels: filteredRequest.Level ? filteredRequest.Level.split('|') : null,
       sources: filteredRequest.Source ? filteredRequest.Source.split('|') : null,
       actions: filteredRequest.Action ? filteredRequest.Action.split('|') : null,
-      ...authorizationSitesFilter.filters
+      ...authorizations.filters
     }, {
       limit: filteredRequest.Limit,
       skip: filteredRequest.Skip,
       sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
       onlyRecordCount: filteredRequest.OnlyRecordCount
     },
-    authorizationSitesFilter.projectFields);
+    authorizations.projectFields);
     // Assign projected fields
-    if (authorizationSitesFilter.projectFields) {
-      logs.projectFields = authorizationSitesFilter.projectFields;
+    if (authorizations.projectFields) {
+      logs.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
-    await AuthorizationService.addLogsAuthorizations(req.tenant, req.user, logs as LogDataResult, authorizationSitesFilter);
+    await AuthorizationService.addLogsAuthorizations(req.tenant, req.user, logs as LogDataResult, authorizations);
     return logs;
   }
 }

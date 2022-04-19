@@ -339,9 +339,9 @@ export default class UserService {
       return;
     }
     // Check dynamic auth for reading Sites
-    const authorizationUserSitesFilters = await AuthorizationService.checkAndGetUserSitesAuthorizations(req.tenant,
+    const authorizations = await AuthorizationService.checkAndGetUserSitesAuthorizations(req.tenant,
       req.user, filteredRequest);
-    if (!authorizationUserSitesFilters.authorized) {
+    if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
@@ -350,7 +350,7 @@ export default class UserService {
       {
         search: filteredRequest.Search,
         userIDs: [filteredRequest.UserID],
-        ...authorizationUserSitesFilters.filters
+        ...authorizations.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -358,7 +358,7 @@ export default class UserService {
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      authorizationUserSitesFilters.projectFields
+      authorizations.projectFields
     );
     // Filter
     sites.result = sites.result.map((userSite) => ({
@@ -383,7 +383,7 @@ export default class UserService {
     // Filter
     const filteredRequest = UserValidator.getInstance().validateUsersInErrorGetReq(req.query);
     // Get authorization filters
-    const authorizationUserInErrorFilters = await AuthorizationService.checkAndGetUsersInErrorAuthorizations(
+    const authorizations = await AuthorizationService.checkAndGetUsersInErrorAuthorizations(
       req.tenant, req.user, filteredRequest);
     // Get users
     const users = await UserStorage.getUsersInError(req.tenant,
@@ -391,7 +391,7 @@ export default class UserService {
         search: filteredRequest.Search,
         roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
         errorTypes: (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : Object.values(UserInErrorType)),
-        ...authorizationUserInErrorFilters.filters
+        ...authorizations.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -399,10 +399,10 @@ export default class UserService {
         skip: filteredRequest.Skip,
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields)
       },
-      authorizationUserInErrorFilters.projectFields
+      authorizations.projectFields
     );
     // Add Auth flags
-    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users as UserDataResult, authorizationUserInErrorFilters);
+    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users as UserDataResult, authorizations);
     res.json(users);
     next();
   }
@@ -621,16 +621,8 @@ export default class UserService {
     // Check Mandatory fields
     UtilsService.checkIfUserValid(filteredRequest, null, req);
     // Get dynamic auth
-    const authorizationFilter = await AuthorizationService.checkAndGetUserAuthorizations(
+    const authorizations = await AuthorizationService.checkAndGetUserAuthorizations(
       req.tenant, req.user, {}, Action.CREATE, filteredRequest);
-    if (!authorizationFilter.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.READ, entity: Entity.SITE,
-        module: MODULE_NAME, method: 'handleCreateSite'
-      });
-    }
     // Get the email
     const foundUser = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
     if (foundUser) {
@@ -665,9 +657,9 @@ export default class UserService {
         });
     }
     // Update User Admin Data
-    await UserService.updateUserAdminData(req.tenant, newUser, authorizationFilter.projectFields);
+    await UserService.updateUserAdminData(req.tenant, newUser, authorizations.projectFields);
     // Assign Site to new User
-    await UtilsService.assignCreatedUserToSites(req.tenant, newUser, authorizationFilter);
+    await UtilsService.assignCreatedUserToSites(req.tenant, newUser, authorizations);
     // Update Billing
     await UserService.updateUserBilling(ServerAction.USER_CREATE, req.tenant, req.user, newUser);
     // Log
@@ -742,9 +734,9 @@ export default class UserService {
 
   private static async getUsers(req: Request, filteredRequest: HttpUsersRequest): Promise<DataResult<User>> {
     // Get authorization filters
-    const authorizationUsersFilters = await AuthorizationService.checkAndGetUsersAuthorizations(
+    const authorizations = await AuthorizationService.checkAndGetUsersAuthorizations(
       req.tenant, req.user, filteredRequest);
-    if (!authorizationUsersFilters.authorized) {
+    if (!authorizations.authorized) {
       return Constants.DB_EMPTY_DATA_RESULT;
     }
     // Optimization: Get Tag IDs from Visual IDs
@@ -770,7 +762,7 @@ export default class UserService {
         technical: Utils.isBoolean(filteredRequest.Technical) ? filteredRequest.Technical : null,
         freeAccess: Utils.isBoolean(filteredRequest.FreeAccess) ? filteredRequest.FreeAccess : null,
         excludeSiteID: filteredRequest.ExcludeSiteID,
-        ...authorizationUsersFilters.filters
+        ...authorizations.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -778,14 +770,14 @@ export default class UserService {
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      authorizationUsersFilters.projectFields
+      authorizations.projectFields
     );
     // Assign projected fields
-    if (authorizationUsersFilters.projectFields) {
-      users.projectFields = authorizationUsersFilters.projectFields;
+    if (authorizations.projectFields) {
+      users.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
-    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users as UserDataResult, authorizationUsersFilters);
+    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users as UserDataResult, authorizations);
     return users;
   }
 

@@ -96,9 +96,9 @@ export default class CompanyService {
       ];
     }
     // Check dynamic auth
-    const authorizationCompaniesFilter = await AuthorizationService.checkAndGetCompaniesAuthorizations(
+    const authorizations = await AuthorizationService.checkAndGetCompaniesAuthorizations(
       req.tenant, req.user, filteredRequest);
-    if (!authorizationCompaniesFilter.authorized) {
+    if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
@@ -111,7 +111,7 @@ export default class CompanyService {
         withLogo: filteredRequest.WithLogo,
         locCoordinates: filteredRequest.LocCoordinates,
         locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,
-        ...authorizationCompaniesFilter.filters
+        ...authorizations.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -119,14 +119,14 @@ export default class CompanyService {
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      authorizationCompaniesFilter.projectFields
+      authorizations.projectFields
     );
     // Assign projected fields
-    if (authorizationCompaniesFilter.projectFields) {
-      companies.projectFields = authorizationCompaniesFilter.projectFields;
+    if (authorizations.projectFields) {
+      companies.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
-    await AuthorizationService.addCompaniesAuthorizations(req.tenant, req.user, companies as CompanyDataResult, authorizationCompaniesFilter);
+    await AuthorizationService.addCompaniesAuthorizations(req.tenant, req.user, companies as CompanyDataResult, authorizations);
     res.json(companies);
     next();
   }
@@ -138,16 +138,8 @@ export default class CompanyService {
     // Filter
     const filteredRequest = CompanyValidator.getInstance().validateCompanyCreateReq(req.body);
     // Get dynamic auth
-    const authorizationFilter = await AuthorizationService.checkAndGetCompanyAuthorizations(
+    await AuthorizationService.checkAndGetCompanyAuthorizations(
       req.tenant, req.user, {}, Action.CREATE, filteredRequest);
-    if (!authorizationFilter.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.CREATE, entity: Entity.COMPANY,
-        module: MODULE_NAME, method: 'handleCreateCompany'
-      });
-    }
     // Create company
     const newCompany: Company = {
       ...filteredRequest,
