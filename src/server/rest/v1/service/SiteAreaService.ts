@@ -20,6 +20,7 @@ import { SiteAreaDataResult } from '../../../../types/DataResult';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteAreaValidator from '../validator/SiteAreaValidator';
 import SmartChargingFactory from '../../../../integration/smart-charging/SmartChargingFactory';
+import { StatusCodes } from 'http-status-codes';
 import { TenantComponents } from '../../../../types/Tenant';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import Utils from '../../../../utils/Utils';
@@ -162,17 +163,21 @@ export default class SiteAreaService {
     // Get it
     const siteAreaImage = await SiteAreaStorage.getSiteAreaImage(
       await TenantStorage.getTenant(filteredRequest.TenantID), filteredRequest.ID);
-    let image = siteAreaImage && !Utils.isNullOrEmptyString(siteAreaImage.image) ? siteAreaImage.image : Constants.NO_IMAGE;
-    let header = 'image';
-    let encoding: BufferEncoding = 'base64';
-    // Remove encoding header
-    if (image.startsWith('data:image/')) {
-      header = image.substring(5, image.indexOf(';'));
-      encoding = image.substring(image.indexOf(';') + 1, image.indexOf(',')) as BufferEncoding;
-      image = image.substring(image.indexOf(',') + 1);
+    let image = siteAreaImage?.image;
+    if (image) {
+      // Header
+      let header = 'image';
+      let encoding: BufferEncoding = 'base64';
+      if (image.startsWith('data:image/')) {
+        header = image.substring(5, image.indexOf(';'));
+        encoding = image.substring(image.indexOf(';') + 1, image.indexOf(',')) as BufferEncoding;
+        image = image.substring(image.indexOf(',') + 1);
+      }
+      res.setHeader('content-type', header);
+      res.send(Buffer.from(image, encoding));
+    } else {
+      res.status(StatusCodes.NOT_FOUND);
     }
-    res.setHeader('content-type', header);
-    res.send(Buffer.from(image, encoding));
     next();
   }
 

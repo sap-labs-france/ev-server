@@ -11,6 +11,7 @@ import Constants from '../../../../utils/Constants';
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
+import { StatusCodes } from 'http-status-codes';
 import { TenantComponents } from '../../../../types/Tenant';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import Utils from '../../../../utils/Utils';
@@ -63,17 +64,21 @@ export default class CompanyService {
       MODULE_NAME, 'handleGetCompanyLogo', req.user);
     // Get the Logo
     const companyLogo = await CompanyStorage.getCompanyLogo(tenant, filteredRequest.ID);
-    let logo = companyLogo && !Utils.isNullOrEmptyString(companyLogo.logo) ? companyLogo.logo : Constants.NO_IMAGE;
-    let header = 'image';
-    let encoding: BufferEncoding = 'base64';
-    // Remove encoding header
-    if (logo.startsWith('data:image/')) {
-      header = logo.substring(5, logo.indexOf(';'));
-      encoding = logo.substring(logo.indexOf(';') + 1, logo.indexOf(',')) as BufferEncoding;
-      logo = logo.substring(logo.indexOf(',') + 1);
+    let logo = companyLogo?.logo;
+    if (logo) {
+      // Header
+      let header = 'image';
+      let encoding: BufferEncoding = 'base64';
+      if (logo.startsWith('data:image/')) {
+        header = logo.substring(5, logo.indexOf(';'));
+        encoding = logo.substring(logo.indexOf(';') + 1, logo.indexOf(',')) as BufferEncoding;
+        logo = logo.substring(logo.indexOf(',') + 1);
+      }
+      res.setHeader('content-type', header);
+      res.send(Buffer.from(logo, encoding));
+    } else {
+      res.status(StatusCodes.NOT_FOUND);
     }
-    res.setHeader('content-type', header);
-    res.send(Buffer.from(logo, encoding));
     next();
   }
 
