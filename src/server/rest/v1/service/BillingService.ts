@@ -228,18 +228,8 @@ export default class BillingService {
       Action.LIST, Entity.INVOICE, MODULE_NAME, 'handleGetInvoice');
     // Filter
     const filteredRequest = BillingValidator.getInstance().validateBillingInvoiceGetReq(req.query);
-    // Get Users authorizations and retrieve projected fields
-    const authorizationUsersFilters = await AuthorizationService.checkAndGetUsersAuthorizations(req.tenant, req.user, filteredRequest, false);
-    // User projected field if authorized
-    let userProjectedField : string[] = [];
-    if (authorizationUsersFilters.authorized) {
-      userProjectedField = [ 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email' ];
-    }
-    // Build dynamic projected fields based on user authorizations
-    const projectedFields = ['id', 'number', 'status', 'amount', 'createdOn', 'currency', 'downloadable', 'sessions', ...userProjectedField];
-    // Check and get invoice, pass custom projected fields
-    const invoice = await UtilsService.checkAndGetInvoiceAuthorization(req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {},
-      projectedFields, true);
+    // Check and get invoice
+    const invoice = await UtilsService.checkAndGetInvoiceAuthorization(req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {}, true);
     res.json(invoice);
     next();
   }
@@ -367,7 +357,7 @@ export default class BillingService {
     UtilsService.assertObjectExists(action, billingInvoice, `Invoice ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleDownloadInvoice', req.user);
     // Check and get authorizations
-    await UtilsService.checkAndGetInvoiceAuthorization(req.tenant, req.user, filteredRequest.ID, Action.DOWNLOAD, action, null, {}, [], true);
+    await UtilsService.checkAndGetInvoiceAuthorization(req.tenant, req.user, filteredRequest.ID, Action.DOWNLOAD, action, null, {}, true);
     // Get the billing impl
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {

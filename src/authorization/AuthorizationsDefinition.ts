@@ -670,7 +670,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       {
-        resource: Entity.INVOICE, action: [Action.LIST],
+        resource: Entity.INVOICE, action: Action.LIST,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
@@ -679,11 +679,24 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         },
         attributes: [
-          'id', 'number', 'status', 'amount', 'createdOn', 'currency', 'downloadable', 'sessions', 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email'
+          'id', 'number', 'status', 'amount', 'createdOn', 'currency', 'downloadable', 'sessions'
         ]
       },
       {
-        resource: Entity.INVOICE, action: [Action.DOWNLOAD, Action.READ],
+        resource: Entity.INVOICE, action: Action.READ,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser']
+          }
+        },
+        attributes: [
+          'id', 'number', 'status', 'amount', 'createdOn', 'currency', 'downloadable', 'sessions'
+        ]
+      },
+      {
+        resource: Entity.INVOICE, action: Action.DOWNLOAD,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {

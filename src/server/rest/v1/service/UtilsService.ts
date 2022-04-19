@@ -893,8 +893,7 @@ export default class UtilsService {
   }
 
   public static async checkAndGetInvoiceAuthorization(tenant: Tenant, userToken: UserToken, invoiceID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, additionalProjectedFields: string[] = [],
-      applyProjectFields = false): Promise<BillingInvoice> {
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<BillingInvoice> {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, invoiceID, MODULE_NAME, 'checkAndGetInvoiceAuthorization', userToken);
     // Get dynamic auth
@@ -910,21 +909,19 @@ export default class UtilsService {
       });
     }
 
-    const projectedFields: string[] = [ ...authorizationFilter.projectFields, ...additionalProjectedFields ];
-
     // Get Invoice
     const invoice = await BillingStorage.getInvoice(tenant, invoiceID,
       {
         ...additionalFilters,
         ...authorizationFilter.filters
       },
-      applyProjectFields ? projectedFields : null
+      applyProjectFields ? authorizationFilter.projectFields : null
     );
     UtilsService.assertObjectExists(action, invoice, `Invoice ID '${invoiceID}' does not exist`,
       MODULE_NAME, 'checkAndGetInvoiceAuthorization', userToken);
     // Assign projected fields
-    if (projectedFields && applyProjectFields) {
-      invoice.projectFields = projectedFields;
+    if (authorizationFilter.projectFields && applyProjectFields) {
+      invoice.projectFields = authorizationFilter.projectFields;
     }
     // Assign Metadata
     if (authorizationFilter.metadata) {
