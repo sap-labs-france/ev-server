@@ -908,7 +908,6 @@ export default class UtilsService {
         value: invoiceID
       });
     }
-
     // Get Invoice
     const invoice = await BillingStorage.getInvoice(tenant, invoiceID,
       {

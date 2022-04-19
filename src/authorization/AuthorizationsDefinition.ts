@@ -374,18 +374,15 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       { resource: Entity.BILLING, action: [Action.CHECK_CONNECTION, Action.CLEAR_BILLING_TEST_DATA] },
       { resource: Entity.TAX, action: [Action.LIST] },
-      // ---------------------------------------------------------------------------------------------------
-      // TODO - no use-case so far - clarify whether a SYNC INVOICES and CREATE INVOICE makes sense or not!
-      // ---------------------------------------------------------------------------------------------------
-      // { resource: Entity.INVOICES, action: [Action.LIST, Action.SYNCHRONIZE] },
-      // { resource: Entity.INVOICE, action: [Action.DOWNLOAD, Action.CREATE] },
       {
         resource: Entity.INVOICE, action: [Action.LIST],
         attributes: [
           'id', 'number', 'status', 'amount', 'createdOn', 'currency', 'downloadable', 'sessions', 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email'
         ]
       },
-      { resource: Entity.INVOICE, action: [Action.DOWNLOAD, Action.READ] },
+      {
+        resource: Entity.INVOICE, action: [Action.DOWNLOAD, Action.READ]
+      },
       {
         resource: Entity.ASSET, action: [Action.CREATE, Action.READ,
           Action.CHECK_CONNECTION, Action.CREATE_CONSUMPTION]
