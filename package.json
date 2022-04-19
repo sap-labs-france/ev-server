@@ -131,7 +131,7 @@
     "mustache": "^4.2.0",
     "nanoid": "^3.2.0",
     "node-cron": "^3.0.0",
-    "object-sizeof": "^1.6.1",
+    "object-sizeof": "^1.6.3",
     "passport": "^0.5.2",
     "passport-jwt": "^4.0.0",
     "password-generator": "^2.3.2",
