@@ -218,6 +218,7 @@ export default class ConsumptionStorage {
         minute: { '$minute': '$startedAt' },
         assetID: '$assetID',
         chargeBoxID: '$chargeBoxID',
+        connectorID: '$connectorId',
       },
       InstantWattsT: { $avg: '$instantWatts' },
       InstantAmpsT: { $avg: '$instantAmps' },
@@ -245,7 +246,11 @@ export default class ConsumptionStorage {
           }]
         },
         '_id.chargingStation': {
-          $ne: ['$_id.chargeBoxID', null]
+          $and: [{
+            $ne: ['$_id.chargeBoxID', null]
+          },{
+            $ne: ['$_id.connectorID', null]
+          }]
         }
       }
     });
