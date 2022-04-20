@@ -196,7 +196,7 @@ export default class SiteAreaService {
     }
     // Check dynamic auth
     const authorizations = await AuthorizationService.checkAndGetSiteAreasAuthorizations(
-      req.tenant, req.user, filteredRequest);
+      req.tenant, req.user, filteredRequest, false);
     if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;

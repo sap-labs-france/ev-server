@@ -538,7 +538,8 @@ export default class UtilsService {
       });
     }
     // Check dynamic auth
-    const authorizations = await AuthorizationService.checkAndGetAssetsAuthorizations(tenant, userToken, Action.LIST);
+    const authorizations = await AuthorizationService.checkAndGetAssetsAuthorizations(
+      tenant, userToken, Action.LIST);
     // Get Assets
     const assets = (await AssetStorage.getAssets(tenant,
       {

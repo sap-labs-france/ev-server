@@ -36,7 +36,7 @@ export default class CarService {
     const filteredRequest = CarValidator.getInstance().validateCarCatalogsGetReq(req.query);
     // Check auth
     const authorizations = await AuthorizationService.checkAndGetCarCatalogsAuthorizations(
-      req.tenant, req.user, Action.LIST, filteredRequest);
+      req.tenant, req.user, Action.LIST, filteredRequest, false);
     if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
@@ -174,7 +174,7 @@ export default class CarService {
     const filteredRequest = CarValidator.getInstance().validateCarMakersGetReq(req.query);
     // Check auth
     const authorizations = await AuthorizationService.checkAndGetCarCatalogsAuthorizations(
-      req.tenant, req.user, Action.LIST, filteredRequest);
+      req.tenant, req.user, Action.LIST, filteredRequest, false);
     if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
@@ -345,7 +345,7 @@ export default class CarService {
     const filteredRequest = CarValidator.getInstance().validateCarsGetReq(req.query);
     // Check auth
     const authorizations = await AuthorizationService.checkAndGetCarsAuthorizations(
-      req.tenant, req.user, filteredRequest);
+      req.tenant, req.user, filteredRequest, false);
     if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;

@@ -97,7 +97,7 @@ export default class CompanyService {
     }
     // Check dynamic auth
     const authorizations = await AuthorizationService.checkAndGetCompaniesAuthorizations(
-      req.tenant, req.user, filteredRequest);
+      req.tenant, req.user, filteredRequest, false);
     if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;

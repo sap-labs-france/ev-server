@@ -144,7 +144,7 @@ export default class RegistrationTokenService {
     const filteredRequest = RegistrationTokenValidator.getInstance().validateRegistrationTokensGetReq(req.query);
     // Check dynamic auth
     const authorizations = await AuthorizationService.checkAndGetRegistrationTokensAuthorizations(
-      req.tenant, req.user, filteredRequest);
+      req.tenant, req.user, filteredRequest, false);
     if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;

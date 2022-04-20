@@ -775,7 +775,7 @@ export default class TagService {
   private static async getTags(req: Request, filteredRequest: HttpTagsRequest): Promise<DataResult<Tag>> {
     // Get authorization filters
     const authorizations = await AuthorizationService.checkAndGetTagsAuthorizations(
-      req.tenant, req.user, filteredRequest);
+      req.tenant, req.user, filteredRequest, false);
     if (!authorizations.authorized) {
       return Constants.DB_EMPTY_DATA_RESULT;
     }

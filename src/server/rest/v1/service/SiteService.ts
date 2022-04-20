@@ -127,7 +127,7 @@ export default class SiteService {
     await UtilsService.checkAndGetSiteAuthorization(req.tenant, req.user, filteredRequest.SiteID, Action.READ, action);
     // Check dynamic auth for reading Users
     const authorizations = await AuthorizationService.checkAndGetSiteUsersAuthorizations(req.tenant,
-      req.user, filteredRequest);
+      req.user, filteredRequest, false);
     if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
@@ -205,7 +205,7 @@ export default class SiteService {
     }
     // Check dynamic auth
     const authorizations = await AuthorizationService.checkAndGetSitesAuthorizations(
-      req.tenant, req.user, filteredRequest);
+      req.tenant, req.user, filteredRequest, false);
     if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;

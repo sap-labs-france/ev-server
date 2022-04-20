@@ -86,7 +86,7 @@ export default class LoggingService {
   private static async getLogs(req: Request, filteredRequest: HttpLogsRequest): Promise<DataResult<Log>> {
     // Check dynamic auth
     const authorizations = await AuthorizationService.checkAndGetLoggingsAuthorizations(
-      req.tenant, req.user, filteredRequest);
+      req.tenant, req.user, filteredRequest, false);
     if (!authorizations.authorized) {
       return Constants.DB_EMPTY_DATA_RESULT;
     }

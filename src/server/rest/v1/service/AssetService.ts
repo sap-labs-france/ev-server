@@ -246,7 +246,8 @@ export default class AssetService {
     // Filter
     const filteredRequest = AssetValidator.getInstance().validateAssetsGetReq(req.query);
     // Check dynamic auth
-    const authorizations = await AuthorizationService.checkAndGetAssetsAuthorizations(req.tenant, req.user, Action.IN_ERROR, filteredRequest);
+    const authorizations = await AuthorizationService.checkAndGetAssetsAuthorizations(
+      req.tenant, req.user, Action.IN_ERROR, filteredRequest, false);
     if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
@@ -352,7 +353,7 @@ export default class AssetService {
     const filteredRequest = AssetValidator.getInstance().validateAssetsGetReq(req.query);
     // Check dynamic auth
     const authorizations = await AuthorizationService.checkAndGetAssetsAuthorizations(
-      req.tenant, req.user, Action.LIST, filteredRequest);
+      req.tenant, req.user, Action.LIST, filteredRequest, false);
     if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;

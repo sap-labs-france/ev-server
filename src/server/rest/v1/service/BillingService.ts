@@ -155,7 +155,8 @@ export default class BillingService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING, Action.LIST, Entity.TAX, MODULE_NAME, 'handleGetBillingTaxes');
     // Check dynamic authorization
-    const authorizations = await AuthorizationService.checkAndGetTaxesAuthorizations(req.tenant, req.user);
+    const authorizations = await AuthorizationService.checkAndGetTaxesAuthorizations(
+      req.tenant, req.user, false);
     if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
@@ -183,7 +184,8 @@ export default class BillingService {
     // Filter
     const filteredRequest = BillingValidator.getInstance().validateBillingInvoicesGetReq(req.query);
     // Check dynamic authorization
-    const authorizations = await AuthorizationService.checkAndGetInvoicesAuthorizations(req.tenant, req.user, filteredRequest);
+    const authorizations = await AuthorizationService.checkAndGetInvoicesAuthorizations(
+      req.tenant, req.user, filteredRequest, false);
     if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
@@ -266,7 +268,8 @@ export default class BillingService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.BILLING_PAYMENT_METHODS, Entity.BILLING, MODULE_NAME, 'handleBillingGetPaymentMethods');
-    const authorizations = await AuthorizationService.checkAndGetPaymentMethodsAuthorizations(req.tenant, req.user,filteredRequest);
+    const authorizations = await AuthorizationService.checkAndGetPaymentMethodsAuthorizations(
+      req.tenant, req.user,filteredRequest, false);
     if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
