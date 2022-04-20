@@ -187,7 +187,7 @@ export default class SiteAreaStorage {
         siteAreaIDs?: string[]; search?: string; siteIDs?: string[]; parentSiteAreaIDs?: string[]; companyIDs?: string[]; withSite?: boolean; withParentSiteArea?: boolean;
         issuer?: boolean; name?: string; withChargingStations?: boolean; withOnlyChargingStations?: boolean; withAvailableChargingStations?: boolean;
         chargingStationConnectorStatuses?: ChargePointStatus[]; locCoordinates?: number[]; locMaxDistanceMeters?: number; smartCharging?: boolean; withImage?: boolean;
-        ocpiLocationID?: string; withAssets?: boolean; withNoParentSiteArea?: boolean
+        ocpiLocationID?: string; withAssets?: boolean; withNoParentSiteArea?: boolean; excludeSiteAreaIDs?: string[];
       } = {},
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteArea>> {
     const startTime = Logging.traceDatabaseRequestStart();
@@ -235,6 +235,12 @@ export default class SiteAreaStorage {
     if (!Utils.isEmptyArray(params.siteAreaIDs)) {
       filters._id = {
         $in: params.siteAreaIDs.map((siteAreaID) => DatabaseUtils.convertToObjectID(siteAreaID))
+      };
+    }
+    // Exclude Site Area
+    if (!Utils.isEmptyArray(params.excludeSiteAreaIDs)) {
+      filters._id = {
+        $nin: params.excludeSiteAreaIDs.map((siteAreaID) => DatabaseUtils.convertToObjectID(siteAreaID))
       };
     }
     // Parent Site Area

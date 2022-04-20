@@ -1690,7 +1690,7 @@ export default class Utils {
     for (const siteAreaOfSite of allSiteAreasOfSite) {
       // Site Area has parent and exists in the Map
       if (!Utils.isNullOrUndefined(siteAreaOfSite.parentSiteAreaID)) {
-        if (!Utils.isNullOrUndefined(siteAreaHashTable[siteAreaOfSite.parentSiteAreaID])) {
+        if (Utils.isNullOrUndefined(siteAreaHashTable[siteAreaOfSite.parentSiteAreaID])) {
           throw new BackendError({
             ...LoggingHelper.getSiteAreaProperties(allSiteAreasOfSite[0]),
             method: 'buildSiteAreasTree',
@@ -1707,12 +1707,15 @@ export default class Utils {
       }
     }
     // Check circular deps
-    let numberOfSiteAreasInRootSiteAreas = 1;
+    let numberOfSiteAreas = 0;
     for (const rootSiteAreaOfSite of rootSiteAreasOfSite) {
-      numberOfSiteAreasInRootSiteAreas += Utils.numberOfChildrenOfSiteAreaTree(rootSiteAreaOfSite);
+      // Root
+      numberOfSiteAreas++;
+      // Children
+      numberOfSiteAreas += Utils.numberOfChildrenOfSiteAreaTree(rootSiteAreaOfSite);
     }
     // Not all Site Areas in Root
-    if (numberOfSiteAreasInRootSiteAreas !== allSiteAreasOfSite.length) {
+    if (numberOfSiteAreas !== allSiteAreasOfSite.length) {
       throw new BackendError({
         ...LoggingHelper.getSiteAreaProperties(allSiteAreasOfSite[0]),
         method: 'buildSiteAreasTree',

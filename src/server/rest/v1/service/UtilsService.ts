@@ -13,7 +13,6 @@ import AssetStorage from '../../../../storage/mongodb/AssetStorage';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import AxiosFactory from '../../../../utils/AxiosFactory';
-import BackendError from '../../../../exception/BackendError';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
 import CentralSystemRestServiceConfiguration from '../../../../types/configuration/CentralSystemRestServiceConfiguration';
 import { ChargingProfile } from '../../../../types/ChargingProfile';
@@ -1947,47 +1946,53 @@ export default class UtilsService {
     return properties;
   }
 
-  public static checkSiteAreaWithParentSiteArea(siteArea: SiteArea, parentSiteArea: SiteArea) {
-    if (siteArea.smartCharging !== parentSiteArea.smartCharging) {
-      // TODO: How to send all possible error in UI?
-      // TODO: Type the Error + Handle it in the UI (propose to override all children)
-      throw new AppError({
-        ...LoggingHelper.getSiteAreaProperties(siteArea),
-        errorCode: HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR,
-        message: `Expected Smart Charging '${String(parentSiteArea.smartCharging)}' from parent '${parentSiteArea.name}', but got '${String(siteArea.smartCharging)}' from child '${siteArea.name}'`,
-        module: MODULE_NAME, method: 'checkSiteAreaTrees',
-        detailedMessages: { siteArea, parentSiteArea },
-      });
-    }
-    if (siteArea.numberOfPhases !== parentSiteArea.numberOfPhases) {
-      // TODO: Type the Error + Handle it in the UI
-      throw new AppError({
-        ...LoggingHelper.getSiteAreaProperties(siteArea),
-        errorCode: HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR,
-        message: `Expected Number Of Phases '${parentSiteArea.numberOfPhases}' from parent '${parentSiteArea.name}', but got '${siteArea.numberOfPhases}' from child '${siteArea.name}'`,
-        module: MODULE_NAME, method: 'checkSiteAreaTrees',
-        detailedMessages: { siteArea, parentSiteArea },
-      });
-    }
-    if (siteArea.siteID !== parentSiteArea.siteID) {
-      // TODO: Type the Error + Handle it in the UI
-      throw new AppError({
-        ...LoggingHelper.getSiteAreaProperties(siteArea),
-        errorCode: HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR,
-        message: `Expected Site ID '${parentSiteArea.siteID}' from parent '${parentSiteArea.name}', but got '${siteArea.siteID}' from child '${siteArea.name}'`,
-        module: MODULE_NAME, method: 'checkSiteAreaTrees',
-        detailedMessages: { siteArea, parentSiteArea },
-      });
-    }
-    if (siteArea.voltage !== parentSiteArea.voltage) {
-      // TODO: Type the Error + Handle it in the UI
-      throw new AppError({
-        ...LoggingHelper.getSiteAreaProperties(siteArea),
-        errorCode: HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR,
-        message: `Expected Voltage '${parentSiteArea.voltage}' from parent '${parentSiteArea.name}', but got '${siteArea.voltage}' from child '${siteArea.name}'`,
-        module: MODULE_NAME, method: 'checkSiteAreaTrees',
-        detailedMessages: { siteArea, parentSiteArea },
-      });
+  public static checkSiteAreaWithParentSiteArea(siteArea: SiteArea, parentSiteArea: SiteArea): void {
+    if (parentSiteArea) {
+      if (siteArea.id === parentSiteArea.id) {
+        throw new AppError({
+          ...LoggingHelper.getSiteAreaProperties(siteArea),
+          errorCode: HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR,
+          message: `Site Area ID '${siteArea.siteID}' with name '${siteArea.name}' cannot be the parent of itself`,
+          module: MODULE_NAME, method: 'checkSiteAreaWithParentSiteArea',
+          detailedMessages: { siteArea, parentSiteArea },
+        });
+      }
+      if (siteArea.siteID !== parentSiteArea.siteID) {
+        throw new AppError({
+          ...LoggingHelper.getSiteAreaProperties(siteArea),
+          errorCode: HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR,
+          message: `Expected Site ID '${parentSiteArea.siteID}' from parent '${parentSiteArea.name}', but got '${siteArea.siteID}' from child '${siteArea.name}'`,
+          module: MODULE_NAME, method: 'checkSiteAreaWithParentSiteArea',
+          detailedMessages: { siteArea, parentSiteArea },
+        });
+      }
+      if (siteArea.smartCharging !== parentSiteArea.smartCharging) {
+        throw new AppError({
+          ...LoggingHelper.getSiteAreaProperties(siteArea),
+          errorCode: HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR,
+          message: `Expected Smart Charging '${String(parentSiteArea.smartCharging)}' from parent '${parentSiteArea.name}', but got '${String(siteArea.smartCharging)}' from child '${siteArea.name}'`,
+          module: MODULE_NAME, method: 'checkSiteAreaWithParentSiteArea',
+          detailedMessages: { siteArea, parentSiteArea },
+        });
+      }
+      if (siteArea.numberOfPhases !== parentSiteArea.numberOfPhases) {
+        throw new AppError({
+          ...LoggingHelper.getSiteAreaProperties(siteArea),
+          errorCode: HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR,
+          message: `Expected Number Of Phases '${parentSiteArea.numberOfPhases}' from parent '${parentSiteArea.name}', but got '${siteArea.numberOfPhases}' from child '${siteArea.name}'`,
+          module: MODULE_NAME, method: 'checkSiteAreaWithParentSiteArea',
+          detailedMessages: { siteArea, parentSiteArea },
+        });
+      }
+      if (siteArea.voltage !== parentSiteArea.voltage) {
+        throw new AppError({
+          ...LoggingHelper.getSiteAreaProperties(siteArea),
+          errorCode: HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR,
+          message: `Expected Voltage '${parentSiteArea.voltage}' from parent '${parentSiteArea.name}', but got '${siteArea.voltage}' from child '${siteArea.name}'`,
+          module: MODULE_NAME, method: 'checkSiteAreaWithParentSiteArea',
+          detailedMessages: { siteArea, parentSiteArea },
+        });
+      }
     }
   }
 

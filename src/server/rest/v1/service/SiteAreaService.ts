@@ -455,17 +455,20 @@ export default class SiteAreaService {
   }
 
   private static async checkIfSiteAreaParentAndChildrenValid(tenant: Tenant, siteArea: SiteArea, parentSiteArea: SiteArea): Promise<void> {
+    // Get all Site Areas of the same Site
     const allSiteAreasOfSite = await SiteAreaStorage.getSiteAreas(tenant,
-      { siteIDs: [ siteArea.siteID ] }, Constants.DB_PARAMS_MAX_LIMIT,
+      { siteIDs: [ siteArea.siteID ], excludeSiteAreaIDs: siteArea.id ? [siteArea.id] : [] }, Constants.DB_PARAMS_MAX_LIMIT,
       ['id', 'name', 'parentSiteAreaID', 'siteID', 'smartCharging', 'name', 'voltage', 'numberOfPhases']);
+    // Add current Site Area
+    allSiteAreasOfSite.result.push(siteArea);
     // Build tree
     const siteAreas = Utils.buildSiteAreasTree(allSiteAreasOfSite.result);
     // Get Site Area from Tree
     const siteAreaFromTree = Utils.getSiteAreaFromSiteAreasTree(siteArea.id, siteAreas);
-    // Check Site Area Parent
+    // Check parent Site Area
     UtilsService.checkSiteAreaWithParentSiteArea(siteArea, parentSiteArea);
     // Check Site Area children
-    if (!Utils.isEmptyArray(siteAreaFromTree.childSiteAreas)) {
+    if (!Utils.isEmptyArray(siteAreaFromTree?.childSiteAreas)) {
       // Count and check all children and children of children
       for (const childSiteArea of siteAreaFromTree.childSiteAreas) {
         // Check Site Area with Parent
