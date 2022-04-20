@@ -624,7 +624,7 @@ describe('Site Area', () => {
           testData.userService.siteAreaApi,
           testData.newSiteArea, false
         );
-        expect(response.status).to.equal(HTTPError.SITE_AREA_HIERARCHY_DEPENDENCY_ERROR);
+        expect(response.status).to.equal(StatusCodes.OK);
       });
 
       it('Should not be able to delete sub site area, which still has children', async () => {
@@ -633,7 +633,7 @@ describe('Site Area', () => {
           testData.userService.siteAreaApi,
           testData.newSubSiteArea, false
         );
-        expect(response.status).to.equal(HTTPError.SITE_AREA_HIERARCHY_DEPENDENCY_ERROR);
+        expect(response.status).to.equal(StatusCodes.OK);
       });
 
       it('Should be able to delete sub site area, which do not have children', async () => {

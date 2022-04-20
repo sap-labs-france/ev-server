@@ -708,9 +708,6 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "543": {
-            "$ref": "#/components/responses/SiteAreaHierarchyDependencyError"
-          },
           "550": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
@@ -14057,9 +14054,6 @@
       },
       "SiteAreaTreeVoltageError": {
         "description": "Site Area must have the same Voltage as its parent"
-      },
-      "SiteAreaHierarchyDependencyError": {
-        "description": "Site Area has dependencies to other Site Areas"
       }
     },
     "schemas": {
