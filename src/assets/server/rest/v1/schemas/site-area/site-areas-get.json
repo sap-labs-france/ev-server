@@ -22,6 +22,9 @@
     "SiteID": {
       "$ref": "common#/definitions/ids"
     },
+    "ExcludeSiteAreaID": {
+      "$ref": "common#/definitions/ids"
+    },
     "CompanyID": {
       "$ref": "common#/definitions/ids"
     },

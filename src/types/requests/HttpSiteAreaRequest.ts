@@ -12,6 +12,7 @@ export interface HttpSiteAreasRequest extends HttpDatabaseRequest {
   Issuer: boolean;
   Search: string;
   SiteID?: string;
+  ExcludeSiteAreaID?: string;
   CompanyID?: string;
   WithSite?: boolean;
   WithParentSiteArea?: boolean;
