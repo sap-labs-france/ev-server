@@ -584,7 +584,7 @@ export default class Logging {
     // Error handling is done outside to get the proper module information
     await Logging.logError({
       tenantID: tenant.id,
-      action: ServerAction.HTTP_ERROR,
+      action: Utils.getAxiosActionFromURL(error.config.url),
       message: `Axios HTTP Error >> ${error.config?.method?.toLocaleUpperCase()}/${error.response?.status} '${error.config?.url}' - ${error.message}`,
       module: Constants.MODULE_AXIOS, method: 'interceptor',
       detailedMessages: {

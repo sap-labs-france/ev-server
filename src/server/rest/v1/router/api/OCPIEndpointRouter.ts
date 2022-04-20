@@ -30,6 +30,7 @@ export default class OCPIEndpointRouter {
     this.buildRouteOcpiEndpointUpdate();
     this.buildRouteOcpiEndpointRegister();
     this.buildRouteOcpiEndpointUnregister();
+    this.buildRouteOcpiEndpointCredentialsUpdate();
     this.buildRouteOcpiEndpointDelete();
     return this.router;
   }
@@ -148,6 +149,13 @@ export default class OCPIEndpointRouter {
     this.router.put(`/${RESTServerRoute.REST_OCPI_ENDPOINT_UNREGISTER}`, async (req: Request, res: Response, next: NextFunction) => {
       req.body.id = req.params.id;
       await RouterUtils.handleRestServerAction(OCPIEndpointService.handleUnregisterOcpiEndpoint.bind(this), ServerAction.OCPI_ENDPOINT_UNREGISTER, req, res, next);
+    });
+  }
+
+  private buildRouteOcpiEndpointCredentialsUpdate(): void {
+    this.router.put(`/${RESTServerRoute.REST_OCPI_ENDPOINT_CREDENTIALS}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.body.id = req.params.id;
+      await RouterUtils.handleRestServerAction(OCPIEndpointService.handleUpdateCredentialsOcpiEndpoint.bind(this), ServerAction.OCPI_ENDPOINT_CREDENTIALS, req, res, next);
     });
   }
 

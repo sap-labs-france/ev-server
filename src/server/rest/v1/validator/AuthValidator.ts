@@ -6,7 +6,7 @@ import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
 export default class AuthValidator extends SchemaValidator {
-  private static instance: AuthValidator|null = null;
+  private static instance: AuthValidator | null = null;
   private authSignIn: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-signin.json`, 'utf8'));
   private authSignOn: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-signon.json`, 'utf8'));
   private authPasswordReset: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-password-reset.json`, 'utf8'));
