@@ -1,4 +1,4 @@
-import ChargingStation, { Connector, RemoteAuthorization } from '../../../../../types/ChargingStation';
+import ChargingStation, { Connector } from '../../../../../types/ChargingStation';
 import { NextFunction, Request, Response } from 'express';
 import { OCPICommandResponse, OCPICommandResponseType } from '../../../../../types/ocpi/OCPICommandResponse';
 
