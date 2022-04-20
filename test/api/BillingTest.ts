@@ -43,6 +43,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
   describe('Billing Stripe Service (utbilling)', () => {
     beforeAll(async () => {
+      billingTestHelper.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING);
       await stripeTestHelper.initialize();
     });
 
@@ -63,13 +64,8 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           await stripeTestHelper.assignPaymentMethod('tok_visa');
           await stripeTestHelper.checkBusinessProcessRetryPayment();
         } catch (error) {
-          console.error(
-            '-----------------------------------------------\n' +
-            ' Error: \n' +
-            '-----------------------------------------------\n' +
-            error
-          );
           await billingTestHelper.dumpLastErrors();
+          throw error;
         }
       });
 
@@ -79,13 +75,8 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           try {
             await stripeTestHelper.checkBusinessProcessBillToPay(false, true);
           } catch (error) {
-            console.error(
-              '-----------------------------------------------\n' +
-              ' Error: \n' +
-              '-----------------------------------------------\n' +
-              error
-            );
             await billingTestHelper.dumpLastErrors();
+            throw error;
           }
         }
       );
