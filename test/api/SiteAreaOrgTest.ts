@@ -523,7 +523,7 @@ describe('Site Area', () => {
         newSubSiteArea.parentSiteAreaID = testData.newSiteArea.id;
         newSubSiteArea.smartCharging = true;
         const response = await testData.userService.createEntity(testData.userService.siteAreaApi, newSubSiteArea, false);
-        expect(response.status).to.equal(HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR);
+        expect(response.status).to.equal(HTTPError.SITE_AREA_TREE_ERROR_SMART_CHARGING);
       });
 
       it('Should be able to create a new sub site area for sub site area', async () => {
@@ -551,7 +551,7 @@ describe('Site Area', () => {
           testData.userService.siteAreaApi,
           testData.newSiteArea, false
         );
-        expect(response.status).to.equal(HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR);
+        expect(response.status).to.equal(HTTPError.SITE_AREA_TREE_ERROR);
       });
 
       it('Should not be able to set undefined parent', async () => {
@@ -578,7 +578,7 @@ describe('Site Area', () => {
           testData.userService.siteAreaApi,
           testData.newSubSubSiteArea, false
         );
-        expect(response.status).to.equal(HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR);
+        expect(response.status).to.equal(HTTPError.SITE_AREA_TREE_ERROR);
         const newSubSubSiteAreaResponse = await testData.userService.getEntityById(
           testData.userService.siteAreaApi,
           testData.newSubSubSiteArea, false
@@ -594,7 +594,7 @@ describe('Site Area', () => {
           testData.userService.siteAreaApi,
           testData.newSubSubSiteArea, false
         );
-        expect(response.status).to.equal(HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR);
+        expect(response.status).to.equal(HTTPError.SITE_AREA_TREE_ERROR_SMART_NBR_PHASES);
         const newSubSubSiteAreaResponse = await testData.userService.getEntityById(
           testData.userService.siteAreaApi,
           testData.newSubSubSiteArea, false
@@ -610,7 +610,7 @@ describe('Site Area', () => {
           testData.userService.siteAreaApi,
           testData.newSubSubSiteArea, false
         );
-        expect(response.status).to.equal(HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR);
+        expect(response.status).to.equal(HTTPError.SITE_AREA_TREE_ERROR_VOLTAGE);
         const newSubSubSiteAreaResponse = await testData.userService.getEntityById(
           testData.userService.siteAreaApi,
           testData.newSubSubSiteArea, false

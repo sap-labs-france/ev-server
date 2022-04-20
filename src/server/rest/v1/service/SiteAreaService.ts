@@ -125,7 +125,7 @@ export default class SiteAreaService {
     // Check and Get Site Area
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
       req.tenant, req.user, siteAreaID, Action.DELETE, action);
-    // Check if site area ha dependencies on other site areas
+    // Check if site area has dependencies on other site areas
     await UtilsService.checkIfSiteAreaHasDependencies(siteArea, req.tenant, req.user);
     // Delete
     await SiteAreaStorage.deleteSiteArea(req.tenant, siteArea.id);
@@ -461,8 +461,19 @@ export default class SiteAreaService {
       ['id', 'name', 'parentSiteAreaID', 'siteID', 'smartCharging', 'name', 'voltage', 'numberOfPhases']);
     // Add current Site Area
     allSiteAreasOfSite.result.push(siteArea);
+    let siteAreas: SiteArea[];
     // Build tree
-    const siteAreas = Utils.buildSiteAreasTree(allSiteAreasOfSite.result);
+    try {
+      siteAreas = Utils.buildSiteAreasTree(allSiteAreasOfSite.result);
+    } catch (error) {
+      throw new AppError({
+        ...LoggingHelper.getSiteAreaProperties(siteArea),
+        errorCode: HTTPError.SITE_AREA_TREE_ERROR,
+        message: `Error while building the Site Area tree: '${error.message as string}'`,
+        module: MODULE_NAME, method: 'checkIfSiteAreaParentAndChildrenValid',
+        detailedMessages: { error: error.stack, siteArea, parentSiteArea },
+      });
+    }
     // Get Site Area from Tree
     const siteAreaFromTree = Utils.getSiteAreaFromSiteAreasTree(siteArea.id, siteAreas);
     // Check parent Site Area

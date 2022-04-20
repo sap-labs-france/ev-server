@@ -529,11 +529,23 @@
           "403": {
             "$ref": "#/components/responses/ForbiddenError"
           },
+          "540": {
+            "$ref": "#/components/responses/SiteAreaTreeError"
+          },
           "541": {
-            "$ref": "#/components/responses/SiteAreaHierarchyInconsistencyError"
+            "$ref": "#/components/responses/SiteAreaTreeSameSiteAreaError"
           },
           "542": {
-            "$ref": "#/components/responses/SiteAreaHierarchyCircularStructureError"
+            "$ref": "#/components/responses/SiteAreaTreeSiteError"
+          },
+          "543": {
+            "$ref": "#/components/responses/SiteAreaTreeSmartChargingError"
+          },
+          "544": {
+            "$ref": "#/components/responses/SiteAreaTreeNumberOfPhasesError"
+          },
+          "545": {
+            "$ref": "#/components/responses/SiteAreaTreeVoltageError"
           },
           "500": {
             "$ref": "#/components/responses/BackendError"
@@ -638,11 +650,23 @@
           "539": {
             "description": "One of the charging stations is not single phased"
           },
+          "540": {
+            "$ref": "#/components/responses/SiteAreaTreeError"
+          },
           "541": {
-            "$ref": "#/components/responses/SiteAreaHierarchyInconsistencyError"
+            "$ref": "#/components/responses/SiteAreaTreeSameSiteAreaError"
           },
           "542": {
-            "$ref": "#/components/responses/SiteAreaHierarchyCircularStructureError"
+            "$ref": "#/components/responses/SiteAreaTreeSiteError"
+          },
+          "543": {
+            "$ref": "#/components/responses/SiteAreaTreeSmartChargingError"
+          },
+          "544": {
+            "$ref": "#/components/responses/SiteAreaTreeNumberOfPhasesError"
+          },
+          "545": {
+            "$ref": "#/components/responses/SiteAreaTreeVoltageError"
           },
           "550": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
@@ -14016,11 +14040,23 @@
       "InvalidCSVHeaderFormat": {
         "description": "Invalid CSV header format"
       },
-      "SiteAreaHierarchyInconsistencyError": {
-        "description": "Property inconsistency in Site Area Tree"
+      "SiteAreaTreeError": {
+        "description": "Circular dependency error in Site Area Tree"
       },
-      "SiteAreaHierarchyCircularStructureError": {
-        "description": "Circular Structure in Site Area Tree"
+      "SiteAreaTreeSameSiteAreaError": {
+        "description": "Site Area cannot have a parent of itslef"
+      },
+      "SiteAreaTreeSiteError": {
+        "description": "Site Area must have the same Site as its parent"
+      },
+      "SiteAreaTreeSmartChargingError": {
+        "description": "Site Area must have the same Smart Charging value as its parent"
+      },
+      "SiteAreaTreeNumberOfPhasesError": {
+        "description": "Site Area must have the same Number of Phases as its parent"
+      },
+      "SiteAreaTreeVoltageError": {
+        "description": "Site Area must have the same Voltage as its parent"
       },
       "SiteAreaHierarchyDependencyError": {
         "description": "Site Area has dependencies to other Site Areas"

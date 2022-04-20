@@ -1570,7 +1570,7 @@ export default class UtilsService {
         user: req.user.id
       });
     }
-    if (!(typeof asset.staticValueWatt === 'number')) {
+    if (typeof asset.staticValueWatt !== 'number') {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Fallback value must be of type number',
@@ -1579,7 +1579,7 @@ export default class UtilsService {
       });
     }
     if (Utils.objectHasProperty(asset, 'fluctuationPercent')) {
-      if (!(typeof asset.fluctuationPercent === 'number') || asset.fluctuationPercent < 0 || asset.fluctuationPercent > 100) {
+      if (typeof asset.fluctuationPercent !== 'number' || asset.fluctuationPercent < 0 || asset.fluctuationPercent > 100) {
         throw new AppError({
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'Fluctuation percentage should be between 0 and 100',
@@ -1951,7 +1951,7 @@ export default class UtilsService {
       if (siteArea.id === parentSiteArea.id) {
         throw new AppError({
           ...LoggingHelper.getSiteAreaProperties(siteArea),
-          errorCode: HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR,
+          errorCode: HTTPError.SITE_AREA_TREE_ERROR_SMART_SAME_SITE_AREA,
           message: `Site Area ID '${siteArea.siteID}' with name '${siteArea.name}' cannot be the parent of itself`,
           module: MODULE_NAME, method: 'checkSiteAreaWithParentSiteArea',
           detailedMessages: { siteArea, parentSiteArea },
@@ -1960,8 +1960,8 @@ export default class UtilsService {
       if (siteArea.siteID !== parentSiteArea.siteID) {
         throw new AppError({
           ...LoggingHelper.getSiteAreaProperties(siteArea),
-          errorCode: HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR,
-          message: `Expected Site ID '${parentSiteArea.siteID}' from parent '${parentSiteArea.name}', but got '${siteArea.siteID}' from child '${siteArea.name}'`,
+          errorCode: HTTPError.SITE_AREA_TREE_ERROR_SITE,
+          message: `Site ID between parent ('${parentSiteArea.siteID}') and child ('${siteArea.siteID}') differs`,
           module: MODULE_NAME, method: 'checkSiteAreaWithParentSiteArea',
           detailedMessages: { siteArea, parentSiteArea },
         });
@@ -1969,8 +1969,8 @@ export default class UtilsService {
       if (siteArea.smartCharging !== parentSiteArea.smartCharging) {
         throw new AppError({
           ...LoggingHelper.getSiteAreaProperties(siteArea),
-          errorCode: HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR,
-          message: `Expected Smart Charging '${String(parentSiteArea.smartCharging)}' from parent '${parentSiteArea.name}', but got '${String(siteArea.smartCharging)}' from child '${siteArea.name}'`,
+          errorCode: HTTPError.SITE_AREA_TREE_ERROR_SMART_CHARGING,
+          message: `Smart Charging between parent ('${parentSiteArea.smartCharging.toString()}') and child ('${siteArea.smartCharging.toString()}') differs`,
           module: MODULE_NAME, method: 'checkSiteAreaWithParentSiteArea',
           detailedMessages: { siteArea, parentSiteArea },
         });
@@ -1978,8 +1978,8 @@ export default class UtilsService {
       if (siteArea.numberOfPhases !== parentSiteArea.numberOfPhases) {
         throw new AppError({
           ...LoggingHelper.getSiteAreaProperties(siteArea),
-          errorCode: HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR,
-          message: `Expected Number Of Phases '${parentSiteArea.numberOfPhases}' from parent '${parentSiteArea.name}', but got '${siteArea.numberOfPhases}' from child '${siteArea.name}'`,
+          errorCode: HTTPError.SITE_AREA_TREE_ERROR_SMART_NBR_PHASES,
+          message: `Number Of Phases between parent ('${parentSiteArea.numberOfPhases}') and child ('${siteArea.numberOfPhases}') differs`,
           module: MODULE_NAME, method: 'checkSiteAreaWithParentSiteArea',
           detailedMessages: { siteArea, parentSiteArea },
         });
@@ -1987,8 +1987,8 @@ export default class UtilsService {
       if (siteArea.voltage !== parentSiteArea.voltage) {
         throw new AppError({
           ...LoggingHelper.getSiteAreaProperties(siteArea),
-          errorCode: HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR,
-          message: `Expected Voltage '${parentSiteArea.voltage}' from parent '${parentSiteArea.name}', but got '${siteArea.voltage}' from child '${siteArea.name}'`,
+          errorCode: HTTPError.SITE_AREA_TREE_ERROR_VOLTAGE,
+          message: `Voltage between parent ('${parentSiteArea.voltage}') and child ('${siteArea.voltage}') differs`,
           module: MODULE_NAME, method: 'checkSiteAreaWithParentSiteArea',
           detailedMessages: { siteArea, parentSiteArea },
         });
