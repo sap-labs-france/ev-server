@@ -1129,7 +1129,7 @@ export default class OCPPUtils {
     headers.tenantID = urlParts.query.tenantid as string;
     headers.tokenID = urlParts.query.token as string;
     // Get all the necessary entities
-    const { tenant, chargingStation, token } = await OCPPUtils.checkAndGetChargingStationData(
+    const { tenant, chargingStation, token } = await OCPPUtils.checkAndGetChargingStationConnectionData(
       OCPPUtils.buildServerActionFromOcppCommand(command), headers.tenantID, headers.chargeBoxIdentity, headers.tokenID);
     // Set
     headers.tenant = tenant;
@@ -1242,7 +1242,7 @@ export default class OCPPUtils {
         meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC);
   }
 
-  public static checkChargingStationOcppParameters(action: ServerAction, tenantID: string, tokenID: string, chargingStationID: string): void {
+  public static checkChargingStationConnectionData(action: ServerAction, tenantID: string, tokenID: string, chargingStationID: string): void {
     // Check Charging Station
     if (!chargingStationID) {
       throw new BackendError({
@@ -1283,10 +1283,10 @@ export default class OCPPUtils {
     }
   }
 
-  public static async checkAndGetChargingStationData(action: ServerAction, tenantID: string, chargingStationID: string,
+  public static async checkAndGetChargingStationConnectionData(action: ServerAction, tenantID: string, chargingStationID: string,
       tokenID: string): Promise<{ tenant: Tenant; chargingStation?: ChargingStation; token?: RegistrationToken }> {
     // Check parameters
-    OCPPUtils.checkChargingStationOcppParameters(
+    OCPPUtils.checkChargingStationConnectionData(
       ServerAction.WS_SERVER_CONNECTION, tenantID, tokenID, chargingStationID);
     // Get Tenant
     const tenant = await TenantStorage.getTenant(tenantID);
