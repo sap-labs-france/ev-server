@@ -125,10 +125,10 @@ export default class SiteAreaService {
     // Check and Get Site Area
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
       req.tenant, req.user, siteAreaID, Action.DELETE, action);
-    // Check if site area has dependencies on other site areas
-    await UtilsService.checkIfSiteAreaHasDependencies(siteArea, req.tenant, req.user);
     // Delete
     await SiteAreaStorage.deleteSiteArea(req.tenant, siteArea.id);
+    // Update children if any
+    await SiteAreaStorage.assignSiteAreaChildrenToNewParent(req.tenant, siteArea.id, siteArea.parentSiteAreaID);
     // Log
     await Logging.logInfo({
       ...LoggingHelper.getSiteAreaProperties(siteArea),
@@ -363,9 +363,6 @@ export default class SiteAreaService {
           }
         }
       }
-    }
-    if (siteArea.siteID !== filteredRequest.siteID) {
-      await UtilsService.checkIfSiteAreaHasDependencies(siteArea, req.tenant, req.user);
     }
     siteArea.numberOfPhases = filteredRequest.numberOfPhases;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {

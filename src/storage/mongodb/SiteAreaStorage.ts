@@ -1,3 +1,4 @@
+import { ObjectId, UpdateResult } from 'mongodb';
 import SiteArea, { SiteAreaOcpiData } from '../../types/SiteArea';
 import global, { DatabaseCount, FilterParams, Image } from '../../types/GlobalType';
 
@@ -10,7 +11,6 @@ import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
-import { ObjectId } from 'mongodb';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import TransactionStorage from './TransactionStorage';
@@ -31,6 +31,22 @@ export default class SiteAreaStorage {
     updated += await ConsumptionStorage.updateConsumptionsWithOrganizationIDs(tenant, siteID, siteAreaID);
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'updateEntitiesWithOrganizationIDs', startTime, { companyID, siteID, siteAreaID });
     return updated;
+  }
+
+  public static async assignSiteAreaChildrenToNewParent(tenant: Tenant, oldParentSiteAreaID: string, newParentSiteAreaID: string): Promise<number> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    DatabaseUtils.checkTenantObject(tenant);
+    const result = await global.database.getCollection<any>(tenant.id, 'siteareas').updateMany(
+      {
+        parentSiteAreaID: DatabaseUtils.convertToObjectID(oldParentSiteAreaID),
+      },
+      {
+        $set: {
+          parentSiteAreaID: DatabaseUtils.convertToObjectID(newParentSiteAreaID),
+        }
+      }) as UpdateResult;
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'assignSiteAreaChildrenToNewParent', startTime, { oldParentSiteAreaID, newParentSiteAreaID });
+    return result.modifiedCount;
   }
 
   public static async addAssetsToSiteArea(tenant: Tenant, siteArea: SiteArea, assetIDs: string[]): Promise<void> {

@@ -1505,19 +1505,6 @@ export default class UtilsService {
     }
   }
 
-  public static async checkIfSiteAreaHasDependencies(siteArea: SiteArea, tenant: Tenant, user: UserToken): Promise<void> {
-    const siteAreas = await SiteAreaStorage.getSiteAreas(tenant, { parentSiteAreaIDs: [siteArea.id] }, Constants.DB_PARAMS_COUNT_ONLY);
-    if (siteAreas.count > 0) {
-      throw new AppError({
-        ...LoggingHelper.getSiteAreaProperties(siteArea),
-        errorCode: HTTPError.SITE_AREA_HIERARCHY_DEPENDENCY_ERROR,
-        user: user.id,
-        module: MODULE_NAME, method: 'checkIfSiteAreaHasDependencies',
-        message: `Site Area has dependencies to ${siteAreas.count} other Site Area(s)`,
-      });
-    }
-  }
-
   public static checkIfPricingDefinitionValid(pricing: Partial<PricingDefinition>, req: Request): void {
     if (req.method !== 'POST' && !pricing.id) {
       throw new AppError({
