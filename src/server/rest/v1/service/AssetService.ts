@@ -326,19 +326,20 @@ export default class AssetService {
     UtilsService.assertObjectExists(action, tenant, 'Tenant does not exist', MODULE_NAME, 'handleGetAssetImage', req.user);
     // Get the image
     const assetImage = await AssetStorage.getAssetImage(tenant, filteredRequest.ID);
-    if (assetImage?.image) {
+    let image = assetImage?.image;
+    if (image) {
+      // Header
       let header = 'image';
       let encoding: BufferEncoding = 'base64';
-      // Remove encoding header
-      if (assetImage.image.startsWith('data:image/')) {
-        header = assetImage.image.substring(5, assetImage.image.indexOf(';'));
-        encoding = assetImage.image.substring(assetImage.image.indexOf(';') + 1, assetImage.image.indexOf(',')) as BufferEncoding;
-        assetImage.image = assetImage.image.substring(assetImage.image.indexOf(',') + 1);
+      if (image.startsWith('data:image/')) {
+        header = image.substring(5, image.indexOf(';'));
+        encoding = image.substring(image.indexOf(';') + 1, image.indexOf(',')) as BufferEncoding;
+        image = image.substring(image.indexOf(',') + 1);
       }
       res.setHeader('content-type', header);
-      res.send(assetImage.image ? Buffer.from(assetImage.image, encoding) : null);
+      res.send(Buffer.from(image, encoding));
     } else {
-      res.send(null);
+      res.status(StatusCodes.NOT_FOUND);
     }
     next();
   }
