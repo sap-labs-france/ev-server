@@ -38,7 +38,7 @@ export default abstract class WSConnection {
 
   public async initialize(): Promise<void> {
     // Check and Get Charging Station data
-    const { tenant, chargingStation } = await OCPPUtils.checkAndGetChargingStationData(
+    const { tenant, chargingStation } = await OCPPUtils.checkAndGetChargingStationConnectionData(
       ServerAction.WS_SERVER_CONNECTION, this.getTenantID(), this.getChargingStationID(), this.getTokenID());
     // Set
     this.setTenant(tenant);
@@ -332,7 +332,7 @@ export default abstract class WSConnection {
     this.tokenID = splittedURL[2];
     this.chargingStationID = splittedURL[3];
     // Check parameters
-    OCPPUtils.checkChargingStationOcppParameters(
+    OCPPUtils.checkChargingStationConnectionData(
       ServerAction.WS_SERVER_CONNECTION, this.tenantID, this.tokenID, this.chargingStationID);
   }
 
