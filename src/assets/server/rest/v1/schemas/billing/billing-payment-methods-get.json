@@ -7,13 +7,15 @@
       "$ref": "common#/definitions/id"
     },
     "Limit": {
-      "$ref": "common#/definitions/limit"
+      "$ref": "common#/definitions/limit",
+      "default": 50
     },
     "Skip": {
       "$ref": "common#/definitions/skip"
     }
   },
   "required": [
-    "userID"
+    "userID",
+    "Limit"
   ]
 }
