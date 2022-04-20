@@ -70,7 +70,7 @@ export default class JsonWSConnection extends WSConnection {
     if (typeof this.chargingStationService[methodName] === 'function') {
       this.headers.currentIPAddress = this.getClientIP();
       // Check the Charging Station
-      const { tenant, chargingStation, token } = await OCPPUtils.checkAndGetChargingStationData(OCPPUtils.buildServerActionFromOcppCommand(command),
+      const { tenant, chargingStation, token } = await OCPPUtils.checkAndGetChargingStationConnectionData(OCPPUtils.buildServerActionFromOcppCommand(command),
         this.getTenantID(), this.getChargingStationID(), this.getTokenID());
       // Set the header
       this.headers.tenant = tenant;

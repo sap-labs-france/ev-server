@@ -145,6 +145,7 @@ export enum ServerAction {
   OCPI_ENDPOINT_UPDATE = 'OcpiEndpointUpdate',
   OCPI_ENDPOINT_REGISTER = 'OcpiEndpointRegister',
   OCPI_ENDPOINT_UNREGISTER = 'OcpiEndpointUnregister',
+  OCPI_ENDPOINT_CREDENTIALS = 'OcpiEndpointCredentials',
   OCPI_ENDPOINT_DELETE = 'OcpiEndpointDelete',
   OCPI_ENDPOINTS = 'OcpiEndpoints',
   OCPI_ENDPOINT = 'OcpiEndpoint',
@@ -271,7 +272,7 @@ export enum ServerAction {
   WS_CLIENT_MESSAGE = 'WsClientMessage',
   WS_CLIENT_CONNECTION = 'WsClientConnection',
   WS_CLIENT_CONNECTION_CLOSE = 'WsClientConnectionClose',
-  WS_CLIENT_CONNECTION_OPEN = 'WsClientConnectionOpene',
+  WS_CLIENT_CONNECTION_OPEN = 'WsClientConnectionOpen',
   WS_CLIENT_CONNECTION_ERROR = 'WsClientConnectionError',
 
   NOTIFICATION = 'Notification',
@@ -615,6 +616,7 @@ export enum RESTServerRoute {
   REST_OCPI_ENDPOINT = 'ocpi/endpoints/:id',
   REST_OCPI_ENDPOINT_REGISTER = 'ocpi/endpoints/:id/register',
   REST_OCPI_ENDPOINT_UNREGISTER = 'ocpi/endpoints/:id/unregister',
+  REST_OCPI_ENDPOINT_CREDENTIALS = 'ocpi/endpoints/:id/credentials',
 
   REST_OICP_ENDPOINTS = 'oicp/endpoints',
   REST_OICP_ENDPOINT = 'oicp/endpoints/:id',

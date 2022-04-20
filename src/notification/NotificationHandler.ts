@@ -33,7 +33,7 @@ export default class NotificationHandler {
     }
   ];
 
-  static async getAdminUsers(tenant: Tenant, notificationKey?: UserNotificationKeys): Promise<User[]> {
+  public static async getAdminUsers(tenant: Tenant, notificationKey?: UserNotificationKeys): Promise<User[]> {
     // Get admin users
     let params;
     if (tenant.id === Constants.DEFAULT_TENANT_ID) {
@@ -297,27 +297,29 @@ export default class NotificationHandler {
 
   public static async sendRequestPassword(tenant: Tenant, notificationID: string, user: User,
       sourceData: RequestPasswordNotification): Promise<void> {
-    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
-      // Get the Tenant logo
-      if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
-        const tenantLogo = await TenantStorage.getTenantLogo(tenant);
-        tenant.logo = tenantLogo.logo;
-      }
+    // Get the Tenant logo
+    if (tenant.id !== Constants.DEFAULT_TENANT_ID && Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
+      const tenantLogo = await TenantStorage.getTenantLogo(tenant);
+      tenant.logo = tenantLogo.logo;
+    }
+    if (tenant.id === Constants.DEFAULT_TENANT_ID) {
+      sourceData.tenantLogoURL = sourceData.evseDashboardURL.concat(Constants.TENANT_DEFAULT_LOGO);
+    } else {
       sourceData.tenantLogoURL = tenant.logo;
-      // For each Sources
-      for (const notificationSource of NotificationHandler.notificationSources) {
-        // Active?
-        if (notificationSource.enabled) {
-          try {
-            // Save notification
-            await NotificationHandler.saveNotification(
-              tenant, notificationSource.channel, notificationID, ServerAction.REQUEST_PASSWORD, { user });
-            // Send
-            void notificationSource.notificationTask.sendRequestPassword(
-              sourceData, user, tenant, NotificationSeverity.INFO);
-          } catch (error) {
-            await Logging.logActionExceptionMessage(tenant.id, ServerAction.REQUEST_PASSWORD, error);
-          }
+    }
+    // For each Sources
+    for (const notificationSource of NotificationHandler.notificationSources) {
+      // Active?
+      if (notificationSource.enabled) {
+        try {
+          // Save notification
+          await NotificationHandler.saveNotification(
+            tenant, notificationSource.channel, notificationID, ServerAction.REQUEST_PASSWORD, { user });
+          // Send
+          void notificationSource.notificationTask.sendRequestPassword(
+            sourceData, user, tenant, NotificationSeverity.INFO);
+        } catch (error) {
+          await Logging.logActionExceptionMessage(tenant.id, ServerAction.REQUEST_PASSWORD, error);
         }
       }
     }

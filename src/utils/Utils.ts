@@ -1512,10 +1512,12 @@ export default class Utils {
     }
     // OCPI
     if (url.includes('ocpi/cpo')) {
-      return ServerAction.OCPI_CPO_REQUEST;
+      // The CPO is called by the EMSP
+      return ServerAction.OCPI_EMSP_REQUEST;
     }
     if (url.includes('ocpi/emsp')) {
-      return ServerAction.OCPI_EMSP_REQUEST;
+      // The eMSP is called by the CPO
+      return ServerAction.OCPI_CPO_REQUEST;
     }
     // Hubject
     if (url.includes('hubject')) {
