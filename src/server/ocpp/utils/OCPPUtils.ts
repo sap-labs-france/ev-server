@@ -1820,9 +1820,8 @@ export default class OCPPUtils {
       // Return the minimal value
       return connectorAmperageLimitMin;
     }
-    // Return the max value
-    const connectorAmperageLimitMax = Utils.getChargingStationAmperage(chargingStation, null, connector.connectorId);
-    return connectorAmperageLimitMax;
+    // Return the maximal value
+    return Utils.getChargingStationAmperage(chargingStation, null, connector.connectorId);
   }
 
   private static async setConnectorPhaseAssignment(tenant: Tenant, chargingStation: ChargingStation, connector: Connector, nrOfPhases?: number): Promise<void> {
