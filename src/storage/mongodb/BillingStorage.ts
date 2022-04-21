@@ -13,9 +13,9 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'BillingStorage';
 
 export default class BillingStorage {
-  public static async getInvoice(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID, projectFields?: string[]): Promise<BillingInvoice> {
+  public static async getInvoice(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID, params: { userIDs?: string[] } = {}, projectFields?: string[]): Promise<BillingInvoice> {
     const invoicesMDB = await BillingStorage.getInvoices(tenant, {
-      invoiceIDs: [id]
+      invoiceIDs: [id], userIDs: params.userIDs
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return invoicesMDB.count === 1 ? invoicesMDB.result[0] : null;
   }

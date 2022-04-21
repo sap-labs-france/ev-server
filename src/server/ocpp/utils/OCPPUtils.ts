@@ -1814,15 +1814,14 @@ export default class OCPPUtils {
 
   private static checkAndGetConnectorAmperageLimit(chargingStation: ChargingStation, connector: Connector, nrOfPhases?: number): number {
     const numberOfPhases = nrOfPhases ?? Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
-    const connectorAmperageLimitMax = Utils.getChargingStationAmperage(chargingStation, null, connector.connectorId);
     const connectorAmperageLimitMin = StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases;
-    if (!Utils.objectHasProperty(connector, 'amperageLimit') || (Utils.objectHasProperty(connector, 'amperageLimit') && Utils.isNullOrUndefined(connector.amperageLimit))) {
-      return connectorAmperageLimitMax;
-    } else if (Utils.objectHasProperty(connector, 'amperageLimit') && connector.amperageLimit > connectorAmperageLimitMax) {
-      return connectorAmperageLimitMax;
-    } else if (Utils.objectHasProperty(connector, 'amperageLimit') && connector.amperageLimit < connectorAmperageLimitMin) {
+    if (connector.amperageLimit // Must be ignored when set to 0
+      && connector.amperageLimit < connectorAmperageLimitMin) {
+      // Return the minimal value
       return connectorAmperageLimitMin;
     }
+    // Return the maximal value
+    return Utils.getChargingStationAmperage(chargingStation, null, connector.connectorId);
   }
 
   private static async setConnectorPhaseAssignment(tenant: Tenant, chargingStation: ChargingStation, connector: Connector, nrOfPhases?: number): Promise<void> {

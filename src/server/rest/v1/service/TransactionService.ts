@@ -339,12 +339,12 @@ export default class TransactionService {
     // Get data
     const { transaction, chargingStation, connector } =
       await TransactionService.checkAndGetTransactionChargingStationConnector(action, req.tenant, req.user, transactionID);
+    req.body.chargingStationID = transaction.chargeBoxID;
+    req.body.args = { transactionId: transaction.id };
     // Handle the routing
     if (chargingStation.issuer) {
       // OCPP Remote Stop
       if (!chargingStation.inactive && connector.currentTransactionID === transaction.id) {
-        req.body.chargingStationID = transaction.chargeBoxID;
-        req.body.args = { transactionId: transaction.id };
         await ChargingStationService.handleOcppAction(ServerAction.CHARGING_STATION_REMOTE_STOP_TRANSACTION, req, res, next);
       // Transaction Soft Stop
       } else {
@@ -352,8 +352,14 @@ export default class TransactionService {
           transaction, chargingStation, connector, req, res, next);
       }
     } else {
-      // OCPI Remote Stop
-      await ChargingStationService.handleOcpiAction(ServerAction.OCPI_EMSP_STOP_SESSION, req, res, next);
+      // eslint-disable-next-line no-lonely-if
+      if (connector.currentTransactionID === transaction.id) {
+        // OCPI Remote Stop
+        await ChargingStationService.handleOcpiAction(ServerAction.OCPI_EMSP_STOP_SESSION, req, res, next);
+      } else {
+        await TransactionService.transactionSoftStop(ServerAction.TRANSACTION_SOFT_STOP,
+          transaction, chargingStation, connector, req, res, next);
+      }
     }
   }
 
