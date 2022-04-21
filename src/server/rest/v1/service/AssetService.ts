@@ -246,8 +246,9 @@ export default class AssetService {
     // Filter
     const filteredRequest = AssetValidator.getInstance().validateAssetsGetReq(req.query);
     // Check dynamic auth
-    const authorizationAssetsInErrorFilter = await AuthorizationService.checkAndGetAssetsAuthorizations(req.tenant, req.user, Action.IN_ERROR, filteredRequest);
-    if (!authorizationAssetsInErrorFilter.authorized) {
+    const authorizations = await AuthorizationService.checkAndGetAssetsAuthorizations(
+      req.tenant, req.user, Action.IN_ERROR, filteredRequest, false);
+    if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
@@ -259,7 +260,7 @@ export default class AssetService {
         siteAreaIDs: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         errorType: (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : [AssetInErrorType.MISSING_SITE_AREA]),
-        ...authorizationAssetsInErrorFilter.filters
+        ...authorizations.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -267,15 +268,15 @@ export default class AssetService {
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      authorizationAssetsInErrorFilter.projectFields
+      authorizations.projectFields
     );
     // Assign projected fields
-    if (authorizationAssetsInErrorFilter.projectFields) {
-      assets.projectFields = authorizationAssetsInErrorFilter.projectFields;
+    if (authorizations.projectFields) {
+      assets.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
     await AuthorizationService.addAssetsAuthorizations(
-      req.tenant, req.user, assets as AssetDataResult, authorizationAssetsInErrorFilter);
+      req.tenant, req.user, assets as AssetDataResult, authorizations);
     res.json(assets);
     next();
   }
@@ -351,9 +352,9 @@ export default class AssetService {
     // Filter
     const filteredRequest = AssetValidator.getInstance().validateAssetsGetReq(req.query);
     // Check dynamic auth
-    const authorizationAssetsFilter = await AuthorizationService.checkAndGetAssetsAuthorizations(
-      req.tenant, req.user, Action.LIST, filteredRequest);
-    if (!authorizationAssetsFilter.authorized) {
+    const authorizations = await AuthorizationService.checkAndGetAssetsAuthorizations(
+      req.tenant, req.user, Action.LIST, filteredRequest, false);
+    if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
@@ -368,7 +369,7 @@ export default class AssetService {
         withSite: filteredRequest.WithSite,
         withNoSiteArea: filteredRequest.WithNoSiteArea,
         dynamicOnly: filteredRequest.DynamicOnly,
-        ...authorizationAssetsFilter.filters
+        ...authorizations.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -376,15 +377,15 @@ export default class AssetService {
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      authorizationAssetsFilter.projectFields
+      authorizations.projectFields
     );
     // Assign projected fields
-    if (authorizationAssetsFilter.projectFields) {
-      assets.projectFields = authorizationAssetsFilter.projectFields;
+    if (authorizations.projectFields) {
+      assets.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
     await AuthorizationService.addAssetsAuthorizations(
-      req.tenant, req.user, assets as AssetDataResult, authorizationAssetsFilter);
+      req.tenant, req.user, assets as AssetDataResult, authorizations);
     res.json(assets);
     next();
   }
@@ -397,15 +398,8 @@ export default class AssetService {
     const filteredAssetRequest = AssetValidator.getInstance().validateAssetCreateReq(req.body);
     UtilsService.checkIfAssetValid(filteredAssetRequest, req);
     // Check authorizations for current action attempt
-    const authorizationFilter = await AuthorizationService.checkAndGetAssetAuthorizations(req.tenant, req.user, Action.CREATE, {}, filteredAssetRequest);
-    if (!authorizationFilter.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.CREATE, entity: Entity.ASSET,
-        module: MODULE_NAME, method: 'handleCreateAsset'
-      });
-    }
+    await AuthorizationService.checkAndGetAssetAuthorizations(
+      req.tenant, req.user, Action.CREATE, {}, filteredAssetRequest);
     // Check Site Area authorization
     let siteArea: SiteArea = null;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredAssetRequest.siteAreaID) {

@@ -374,13 +374,15 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       { resource: Entity.BILLING, action: [Action.CHECK_CONNECTION, Action.CLEAR_BILLING_TEST_DATA] },
       { resource: Entity.TAX, action: [Action.LIST] },
-      // ---------------------------------------------------------------------------------------------------
-      // TODO - no use-case so far - clarify whether a SYNC INVOICES and CREATE INVOICE makes sense or not!
-      // ---------------------------------------------------------------------------------------------------
-      // { resource: Entity.INVOICES, action: [Action.LIST, Action.SYNCHRONIZE] },
-      // { resource: Entity.INVOICE, action: [Action.DOWNLOAD, Action.CREATE] },
-      { resource: Entity.INVOICE, action: [Action.LIST] },
-      { resource: Entity.INVOICE, action: [Action.DOWNLOAD, Action.READ] },
+      {
+        resource: Entity.INVOICE, action: [Action.LIST],
+        attributes: [
+          'id', 'number', 'status', 'amount', 'createdOn', 'currency', 'downloadable', 'sessions', 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email'
+        ]
+      },
+      {
+        resource: Entity.INVOICE, action: [Action.DOWNLOAD, Action.READ]
+      },
       {
         resource: Entity.ASSET, action: [Action.CREATE, Action.READ,
           Action.CHECK_CONNECTION, Action.CREATE_CONSUMPTION]
@@ -664,9 +666,34 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'name', 'issuer', 'logo', 'address'
         ]
       },
-      { resource: Entity.INVOICE, action: [Action.LIST] },
       {
-        resource: Entity.INVOICE, action: [Action.DOWNLOAD, Action.READ],
+        resource: Entity.INVOICE, action: Action.LIST,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser']
+          }
+        },
+        attributes: [
+          'id', 'number', 'status', 'amount', 'createdOn', 'currency', 'downloadable', 'sessions'
+        ]
+      },
+      {
+        resource: Entity.INVOICE, action: Action.READ,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser']
+          }
+        },
+        attributes: [
+          'id', 'number', 'status', 'amount', 'createdOn', 'currency', 'downloadable', 'sessions'
+        ]
+      },
+      {
+        resource: Entity.INVOICE, action: Action.DOWNLOAD,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
@@ -675,8 +702,26 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         }
       },
-      { resource: Entity.PAYMENT_METHOD, action: Action.LIST },
-      { resource: Entity.PAYMENT_METHOD, action: [Action.READ, Action.CREATE, Action.DELETE] },
+      {
+        resource: Entity.PAYMENT_METHOD, action: Action.LIST,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser']
+          }
+        }
+      },
+      {
+        resource: Entity.PAYMENT_METHOD, action: [Action.READ, Action.CREATE, Action.DELETE],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser']
+          }
+        }
+      },
       {
         resource: Entity.SITE, action: Action.LIST,
         condition: {
