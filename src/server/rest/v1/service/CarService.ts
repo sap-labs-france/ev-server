@@ -35,8 +35,9 @@ export default class CarService {
     // Filter
     const filteredRequest = CarValidator.getInstance().validateCarCatalogsGetReq(req.query);
     // Check auth
-    const authorizationCarCatalogsFilter = await AuthorizationService.checkAndGetCarCatalogsAuthorizations(req.tenant, req.user, Action.LIST, filteredRequest);
-    if (!authorizationCarCatalogsFilter.authorized) {
+    const authorizations = await AuthorizationService.checkAndGetCarCatalogsAuthorizations(
+      req.tenant, req.user, Action.LIST, filteredRequest, false);
+    if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
@@ -46,7 +47,7 @@ export default class CarService {
         search: filteredRequest.Search,
         carMaker: filteredRequest.CarMaker ? filteredRequest.CarMaker.split('|') : null,
         withImage: true,
-        ...authorizationCarCatalogsFilter.filters
+        ...authorizations.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -54,15 +55,15 @@ export default class CarService {
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      authorizationCarCatalogsFilter.projectFields
+      authorizations.projectFields
     );
     // Assign projected fields
-    if (authorizationCarCatalogsFilter.projectFields) {
-      carCatalogs.projectFields = authorizationCarCatalogsFilter.projectFields;
+    if (authorizations.projectFields) {
+      carCatalogs.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
     await AuthorizationService.addCarCatalogsAuthorizationActions(req.tenant, req.user, carCatalogs as CarCatalogDataResult,
-      authorizationCarCatalogsFilter);
+      authorizations);
     res.json(carCatalogs);
     next();
   }
@@ -114,17 +115,8 @@ export default class CarService {
     // Filter
     const filteredRequest = CarValidator.getInstance().validateCarCatalogImagesGetReq(req.query);
     // Check dynamic auth
-    const authorizationFilter = await AuthorizationService.checkAndGetCarCatalogAuthorizations(
+    await AuthorizationService.checkAndGetCarCatalogAuthorizations(
       req.tenant, req.user, { ID: filteredRequest.ID }, Action.READ);
-    if (!authorizationFilter.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.READ, entity: Entity.CAR_CATALOG,
-        module: MODULE_NAME, method: 'handleGetCarCatalogImages',
-        value: filteredRequest.ID.toString()
-      });
-    }
     // Get the car
     const carCatalogImages = await CarStorage.getCarCatalogImages(
       filteredRequest.ID,
@@ -141,15 +133,8 @@ export default class CarService {
         Action.SYNCHRONIZE, Entity.CAR_CATALOG, MODULE_NAME, 'handleSynchronizeCarCatalogs');
     }
     // Check auth
-    const authorizationFilter = await AuthorizationService.checkAndGetCarCatalogsAuthorizations(req.tenant, req.user, Action.SYNCHRONIZE);
-    if (!authorizationFilter.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.SYNCHRONIZE, entity: Entity.CAR_CATALOG,
-        module: MODULE_NAME, method: 'handleSynchronizeCarCatalogs'
-      });
-    }
+    await AuthorizationService.checkAndGetCarCatalogsAuthorizations(
+      req.tenant, req.user, Action.SYNCHRONIZE);
     // Get the lock
     const syncCarCatalogsLock = await LockingHelper.acquireSyncCarCatalogsLock(Constants.DEFAULT_TENANT_ID);
     if (!syncCarCatalogsLock) {
@@ -188,14 +173,11 @@ export default class CarService {
     // Filter
     const filteredRequest = CarValidator.getInstance().validateCarMakersGetReq(req.query);
     // Check auth
-    const authorizationCarCatalogsFilter = await AuthorizationService.checkAndGetCarCatalogsAuthorizations(req.tenant, req.user, Action.LIST, filteredRequest);
-    if (!authorizationCarCatalogsFilter.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.READ, entity: Entity.CAR_CATALOG,
-        module: MODULE_NAME, method: 'handleGetCarMakers'
-      });
+    const authorizations = await AuthorizationService.checkAndGetCarCatalogsAuthorizations(
+      req.tenant, req.user, Action.LIST, filteredRequest, false);
+    if (!authorizations.authorized) {
+      UtilsService.sendEmptyDataResult(res, next);
+      return;
     }
     // Get car makers
     const carMakers = await CarStorage.getCarMakers({ search: filteredRequest.Search }, [ 'carMaker' ]);
@@ -362,9 +344,9 @@ export default class CarService {
     // Filter
     const filteredRequest = CarValidator.getInstance().validateCarsGetReq(req.query);
     // Check auth
-    const authorizationCarsFilter = await AuthorizationService.checkAndGetCarsAuthorizations(
-      req.tenant, req.user, filteredRequest);
-    if (!authorizationCarsFilter.authorized) {
+    const authorizations = await AuthorizationService.checkAndGetCarsAuthorizations(
+      req.tenant, req.user, filteredRequest, false);
+    if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
@@ -375,7 +357,7 @@ export default class CarService {
         carMakers: filteredRequest.CarMaker ? filteredRequest.CarMaker.split('|') : null,
         withUser: filteredRequest.WithUser,
         userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
-        ...authorizationCarsFilter.filters
+        ...authorizations.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -383,15 +365,15 @@ export default class CarService {
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      authorizationCarsFilter.projectFields
+      authorizations.projectFields
     );
     // Assign projected fields
-    if (authorizationCarsFilter.projectFields) {
-      cars.projectFields = authorizationCarsFilter.projectFields;
+    if (authorizations.projectFields) {
+      cars.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
     await AuthorizationService.addCarsAuthorizations(
-      req.tenant, req.user, cars as CarDataResult, authorizationCarsFilter);
+      req.tenant, req.user, cars as CarDataResult, authorizations);
     res.json(cars);
     next();
   }

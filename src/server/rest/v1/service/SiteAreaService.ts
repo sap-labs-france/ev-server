@@ -198,9 +198,9 @@ export default class SiteAreaService {
       ];
     }
     // Check dynamic auth
-    const authorizationSiteAreasFilter = await AuthorizationService.checkAndGetSiteAreasAuthorizations(
-      req.tenant, req.user, filteredRequest);
-    if (!authorizationSiteAreasFilter.authorized) {
+    const authorizations = await AuthorizationService.checkAndGetSiteAreasAuthorizations(
+      req.tenant, req.user, filteredRequest, false);
+    if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
@@ -217,7 +217,7 @@ export default class SiteAreaService {
         locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         companyIDs: (filteredRequest.CompanyID ? filteredRequest.CompanyID.split('|') : null),
-        ...authorizationSiteAreasFilter.filters
+        ...authorizations.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -225,15 +225,15 @@ export default class SiteAreaService {
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      authorizationSiteAreasFilter.projectFields
+      authorizations.projectFields
     );
     // Assign projected fields
-    if (authorizationSiteAreasFilter.projectFields) {
-      siteAreas.projectFields = authorizationSiteAreasFilter.projectFields;
+    if (authorizations.projectFields) {
+      siteAreas.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
     await AuthorizationService.addSiteAreasAuthorizations(req.tenant, req.user, siteAreas as SiteAreaDataResult,
-      authorizationSiteAreasFilter);
+      authorizations);
     res.json(siteAreas);
     next();
   }
@@ -279,9 +279,9 @@ export default class SiteAreaService {
     // Check request data is valid
     UtilsService.checkIfSiteAreaValid(filteredRequest, req);
     // Check auth
-    const authorizationFilters = await AuthorizationService.checkAndGetSiteAreaAuthorizations(req.tenant, req.user,
+    const authorizations = await AuthorizationService.checkAndGetSiteAreaAuthorizations(req.tenant, req.user,
       {}, Action.CREATE, filteredRequest);
-    if (!authorizationFilters.authorized) {
+    if (!authorizations.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
