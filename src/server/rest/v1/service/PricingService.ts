@@ -69,9 +69,9 @@ export default class PricingService {
     // Filter
     const filteredRequest = PricingValidator.getInstance().validatePricingDefinitionsGet(req.query);
     // Check dynamic auth
-    const authorizationPricingDefinitionsFilter = await AuthorizationService.checkAndGetPricingDefinitionsAuthorizations(
-      req.tenant, req.user, filteredRequest);
-    if (!authorizationPricingDefinitionsFilter.authorized) {
+    const authorizations = await AuthorizationService.checkAndGetPricingDefinitionsAuthorizations(
+      req.tenant, req.user, filteredRequest, false);
+    if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
@@ -81,21 +81,21 @@ export default class PricingService {
         entityID: filteredRequest.EntityID || null,
         entityType: filteredRequest.EntityType || null,
         withEntityInformation: filteredRequest?.WithEntityInformation,
-        ...authorizationPricingDefinitionsFilter.filters
+        ...authorizations.filters
       }, {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      authorizationPricingDefinitionsFilter.projectFields
+      authorizations.projectFields
     ) as PricingDefinitionDataResult;
     // Assign projected fields
-    if (authorizationPricingDefinitionsFilter.projectFields) {
-      pricingDefinitions.projectFields = authorizationPricingDefinitionsFilter.projectFields;
+    if (authorizations.projectFields) {
+      pricingDefinitions.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
-    await AuthorizationService.addPricingDefinitionsAuthorizations(req.tenant, req.user, pricingDefinitions, authorizationPricingDefinitionsFilter);
+    await AuthorizationService.addPricingDefinitionsAuthorizations(req.tenant, req.user, pricingDefinitions, authorizations);
     // Alter the canCreate flag according to the pricing definition context
     pricingDefinitions.canCreate = await PricingService.alterCanCreate(req, action, filteredRequest.EntityType, filteredRequest.EntityID, pricingDefinitions.canCreate);
     res.json(pricingDefinitions);
@@ -110,16 +110,8 @@ export default class PricingService {
     const filteredRequest = PricingValidator.getInstance().validatePricingDefinitionCreate(req.body);
     UtilsService.checkIfPricingDefinitionValid(filteredRequest, req);
     // Get dynamic auth
-    const authorizationFilter = await AuthorizationService.checkAndGetPricingDefinitionAuthorizations(
+    await AuthorizationService.checkAndGetPricingDefinitionAuthorizations(
       req.tenant, req.user, {}, Action.CREATE, filteredRequest);
-    if (!authorizationFilter.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.CREATE, entity: Entity.PRICING_DEFINITION,
-        module: MODULE_NAME, method: 'handleCreatePricingDefinition'
-      });
-    }
     // Check authorization and get the site ID depending on the entity type
     const siteID = await PricingService.checkAuthorizationAndGetSiteID(req, action, filteredRequest.entityType, filteredRequest.entityID);
     // Check that the pricing definitions can be changed for that site

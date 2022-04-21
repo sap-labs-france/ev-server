@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-misused-promises */
 import { RESTServerRoute, ServerAction } from '../../../../../types/Server';
 import express, { NextFunction, Request, Response } from 'express';
 
@@ -23,40 +22,40 @@ export default class SettingRouter {
   }
 
   private buildRouteSettings(): void {
-    this.router.get(`/${RESTServerRoute.REST_SETTINGS}`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.get(`/${RESTServerRoute.REST_SETTINGS}`, (req: Request, res: Response, next: NextFunction) => {
       if (req.query.Identifier) {
         req.query.ID = req.query.Identifier;
-        await RouterUtils.handleRestServerAction(SettingService.handleGetSettingByIdentifier.bind(this), ServerAction.SETTING_BY_IDENTIFIER, req, res, next);
+        void RouterUtils.handleRestServerAction(SettingService.handleGetSettingByIdentifier.bind(this), ServerAction.SETTING_BY_IDENTIFIER, req, res, next);
       } else {
-        await RouterUtils.handleRestServerAction(SettingService.handleGetSettings.bind(this), ServerAction.SETTINGS, req, res, next);
+        void RouterUtils.handleRestServerAction(SettingService.handleGetSettings.bind(this), ServerAction.SETTINGS, req, res, next);
       }
     });
   }
 
   private buildRouteSetting(): void {
-    this.router.get(`/${RESTServerRoute.REST_SETTING}`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.get(`/${RESTServerRoute.REST_SETTING}`, (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = sanitize(req.params.id);
-      await RouterUtils.handleRestServerAction(SettingService.handleGetSetting.bind(this), ServerAction.SETTING, req, res, next);
+      void RouterUtils.handleRestServerAction(SettingService.handleGetSetting.bind(this), ServerAction.SETTING, req, res, next);
     });
   }
 
   private buildRouteCreateSetting(): void {
-    this.router.post(`/${RESTServerRoute.REST_SETTINGS}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleRestServerAction(SettingService.handleCreateSetting.bind(this), ServerAction.SETTING_CREATE, req, res, next);
+    this.router.post(`/${RESTServerRoute.REST_SETTINGS}`, (req: Request, res: Response, next: NextFunction) => {
+      void RouterUtils.handleRestServerAction(SettingService.handleCreateSetting.bind(this), ServerAction.SETTING_CREATE, req, res, next);
     });
   }
 
   private buildRouteUpdateSetting(): void {
-    this.router.put(`/${RESTServerRoute.REST_SETTING}`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.put(`/${RESTServerRoute.REST_SETTING}`, (req: Request, res: Response, next: NextFunction) => {
       req.body.id = req.params.id;
-      await RouterUtils.handleRestServerAction(SettingService.handleUpdateSetting.bind(this), ServerAction.SETTING_UPDATE, req, res, next);
+      void RouterUtils.handleRestServerAction(SettingService.handleUpdateSetting.bind(this), ServerAction.SETTING_UPDATE, req, res, next);
     });
   }
 
   private buildRouteDeleteSetting(): void {
-    this.router.delete(`/${RESTServerRoute.REST_SETTING}`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.delete(`/${RESTServerRoute.REST_SETTING}`, (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
-      await RouterUtils.handleRestServerAction(SettingService.handleDeleteSetting.bind(this), ServerAction.SETTING_DELETE, req, res, next);
+      void RouterUtils.handleRestServerAction(SettingService.handleDeleteSetting.bind(this), ServerAction.SETTING_DELETE, req, res, next);
     });
   }
 }
