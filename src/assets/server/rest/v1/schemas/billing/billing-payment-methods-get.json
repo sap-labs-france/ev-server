@@ -5,16 +5,9 @@
   "properties": {
     "userID": {
       "$ref": "common#/definitions/id"
-    },
-    "Limit": {
-      "$ref": "common#/definitions/limit"
-    },
-    "Skip": {
-      "$ref": "common#/definitions/skip"
     }
   },
   "required": [
-    "userID",
-    "Limit"
+    "userID"
   ]
 }
