@@ -3,6 +3,7 @@ import { BillingChargeInvoiceAction, BillingInvoiceStatus } from '../../src/type
 import { BillingSettings, BillingSettingsType } from '../../src/types/Setting';
 import chai, { expect } from 'chai';
 
+import { BillingPeriodicOperationTaskConfig } from '../../src/types/TaskConfig';
 import BillingTestHelper from './BillingTestHelper';
 import CentralServerService from './client/CentralServerService';
 import Constants from '../../src/utils/Constants';
@@ -56,13 +57,15 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         // Anyway, there is no way to cleanup the utbilling stripe account!
       });
 
-      it('should create a DRAFT invoice and fail to pay', async () => {
+      it('should create a DRAFT invoice and fail to pay, and try again', async () => {
         await stripeTestHelper.checkBusinessProcessBillToPay(true);
+        await stripeTestHelper.assignPaymentMethod('tok_visa');
+        await stripeTestHelper.checkBusinessProcessRetryPayment();
       });
 
-      it('Should add a payment method to BILLING-TEST user', async () => {
-        await stripeTestHelper.assignPaymentMethod('tok_visa');
-      });
+      // it('Should add a payment method to BILLING-TEST user', async () => {
+      //   await stripeTestHelper.assignPaymentMethod('tok_visa');
+      // });
 
       it(
         'should create a DRAFT invoice and pay it for BILLING-TEST user',
@@ -665,6 +668,17 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 29.49);
         });
 
+        it('should bill the ENERGY + CT(STEP80S) on COMBO CCS - DC', async () => {
+          await billingTestHelper.initChargingStationContext2TestFastCharger('E+CT(STEP80S)');
+          await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
+          const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
+          await billingTestHelper.assignPaymentMethod(userWithBillingData, 'tok_fr');
+          const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext);
+          assert(transactionID, 'transactionID should not be null');
+          // Check that we have a new invoice with an invoiceID and an invoiceNumber
+          await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 10.11);
+        });
+
         it('should bill the FF+E with 2 tariffs on COMBO CCS - DC', async () => {
           // A first Tariff for the ENERGY Only
           await billingTestHelper.initChargingStationContext2TestFastCharger('FF+E');
@@ -884,7 +898,11 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           // Check that we have a new invoice with an invoiceID and but no invoiceNumber yet
           await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.DRAFT);
           // Let's simulate the periodic billing operation
-          const operationResult: BillingChargeInvoiceAction = await billingTestHelper.billingImpl.chargeInvoices(true /* forceOperation */);
+          const taskConfiguration: BillingPeriodicOperationTaskConfig = {
+            onlyProcessUnpaidInvoices: false,
+            forceOperation: true
+          };
+          const operationResult: BillingChargeInvoiceAction = await billingTestHelper.billingImpl.chargeInvoices(taskConfiguration);
           assert(operationResult.inSuccess > 0, 'The operation should have been able to process at least one invoice');
           assert(operationResult.inError === 0, 'The operation should detect any errors');
           // The transaction should now have a different status and know the final invoice number

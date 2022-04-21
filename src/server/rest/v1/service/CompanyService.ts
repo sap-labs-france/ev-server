@@ -11,6 +11,7 @@ import Constants from '../../../../utils/Constants';
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
+import { StatusCodes } from 'http-status-codes';
 import { TenantComponents } from '../../../../types/Tenant';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import Utils from '../../../../utils/Utils';
@@ -31,7 +32,7 @@ export default class CompanyService {
     // Delete
     await CompanyStorage.deleteCompany(req.tenant, company.id);
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteCompany',
       message: `Company '${company.name}' has been deleted successfully`,
       action: action,
@@ -48,10 +49,8 @@ export default class CompanyService {
     // Filter
     const filteredRequest = CompanyValidator.getInstance().validateCompanyGetReq(req.query);
     // Check and Get Company
-    const company = await UtilsService.checkAndGetCompanyAuthorization(
-      req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {
-        withLogo: true
-      }, true);
+    const company = await UtilsService.checkAndGetCompanyAuthorization(req.tenant, req.user, filteredRequest.ID, Action.READ, action, null,
+      { withLogo: true }, true);
     res.json(company);
     next();
   }
@@ -65,19 +64,20 @@ export default class CompanyService {
       MODULE_NAME, 'handleGetCompanyLogo', req.user);
     // Get the Logo
     const companyLogo = await CompanyStorage.getCompanyLogo(tenant, filteredRequest.ID);
-    if (companyLogo?.logo) {
+    let logo = companyLogo?.logo;
+    if (logo) {
+      // Header
       let header = 'image';
       let encoding: BufferEncoding = 'base64';
-      // Remove encoding header
-      if (companyLogo.logo.startsWith('data:image/')) {
-        header = companyLogo.logo.substring(5, companyLogo.logo.indexOf(';'));
-        encoding = companyLogo.logo.substring(companyLogo.logo.indexOf(';') + 1, companyLogo.logo.indexOf(',')) as BufferEncoding;
-        companyLogo.logo = companyLogo.logo.substring(companyLogo.logo.indexOf(',') + 1);
+      if (logo.startsWith('data:image/')) {
+        header = logo.substring(5, logo.indexOf(';'));
+        encoding = logo.substring(logo.indexOf(';') + 1, logo.indexOf(',')) as BufferEncoding;
+        logo = logo.substring(logo.indexOf(',') + 1);
       }
       res.setHeader('content-type', header);
-      res.send(companyLogo.logo ? Buffer.from(companyLogo.logo, encoding) : null);
+      res.send(Buffer.from(logo, encoding));
     } else {
-      res.send(null);
+      res.status(StatusCodes.NOT_FOUND);
     }
     next();
   }
@@ -158,7 +158,7 @@ export default class CompanyService {
     // Save
     newCompany.id = await CompanyStorage.saveCompany(req.tenant, newCompany);
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleCreateCompany',
       message: `Company '${newCompany.id}' has been created successfully`,
       action: action,
@@ -188,7 +188,7 @@ export default class CompanyService {
     // Update Company
     await CompanyStorage.saveCompany(req.tenant, company, Utils.objectHasProperty(filteredRequest, 'logo') ? true : false);
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateCompany',
       message: `Company '${company.name}' has been updated successfully`,
       action: action,

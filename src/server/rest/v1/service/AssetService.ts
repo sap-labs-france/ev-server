@@ -169,7 +169,7 @@ export default class AssetService {
     } catch (error) {
       // KO
       await Logging.logError({
-        tenantID: req.user.tenantID,
+        tenantID: req.tenant.id,
         user: req.user,
         module: MODULE_NAME, method: 'handleCheckAssetConnection',
         message: 'Asset connection failed',
@@ -269,6 +269,10 @@ export default class AssetService {
       },
       authorizationAssetsInErrorFilter.projectFields
     );
+    // Assign projected fields
+    if (authorizationAssetsInErrorFilter.projectFields) {
+      assets.projectFields = authorizationAssetsInErrorFilter.projectFields;
+    }
     // Add Auth flags
     await AuthorizationService.addAssetsAuthorizations(
       req.tenant, req.user, assets as AssetDataResult, authorizationAssetsInErrorFilter);
@@ -290,7 +294,7 @@ export default class AssetService {
     // Log
     await Logging.logInfo({
       ...LoggingHelper.getAssetProperties(asset),
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user,
       module: MODULE_NAME, method: 'handleDeleteAsset',
       message: `Asset '${asset.name}' has been deleted successfully`,
@@ -322,19 +326,20 @@ export default class AssetService {
     UtilsService.assertObjectExists(action, tenant, 'Tenant does not exist', MODULE_NAME, 'handleGetAssetImage', req.user);
     // Get the image
     const assetImage = await AssetStorage.getAssetImage(tenant, filteredRequest.ID);
-    if (assetImage?.image) {
+    let image = assetImage?.image;
+    if (image) {
+      // Header
       let header = 'image';
       let encoding: BufferEncoding = 'base64';
-      // Remove encoding header
-      if (assetImage.image.startsWith('data:image/')) {
-        header = assetImage.image.substring(5, assetImage.image.indexOf(';'));
-        encoding = assetImage.image.substring(assetImage.image.indexOf(';') + 1, assetImage.image.indexOf(',')) as BufferEncoding;
-        assetImage.image = assetImage.image.substring(assetImage.image.indexOf(',') + 1);
+      if (image.startsWith('data:image/')) {
+        header = image.substring(5, image.indexOf(';'));
+        encoding = image.substring(image.indexOf(';') + 1, image.indexOf(',')) as BufferEncoding;
+        image = image.substring(image.indexOf(',') + 1);
       }
       res.setHeader('content-type', header);
-      res.send(assetImage.image ? Buffer.from(assetImage.image, encoding) : null);
+      res.send(Buffer.from(image, encoding));
     } else {
-      res.send(null);
+      res.status(StatusCodes.NOT_FOUND);
     }
     next();
   }
@@ -373,6 +378,10 @@ export default class AssetService {
       },
       authorizationAssetsFilter.projectFields
     );
+    // Assign projected fields
+    if (authorizationAssetsFilter.projectFields) {
+      assets.projectFields = authorizationAssetsFilter.projectFields;
+    }
     // Add Auth flags
     await AuthorizationService.addAssetsAuthorizations(
       req.tenant, req.user, assets as AssetDataResult, authorizationAssetsFilter);
@@ -417,7 +426,7 @@ export default class AssetService {
     // Log
     await Logging.logInfo({
       ...LoggingHelper.getAssetProperties(newAsset),
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user,
       module: MODULE_NAME, method: 'handleCreateAsset',
       message: `Asset '${newAsset.id}' has been created successfully`,
@@ -465,7 +474,7 @@ export default class AssetService {
     // Log
     await Logging.logInfo({
       ...LoggingHelper.getAssetProperties(asset),
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user,
       module: MODULE_NAME, method: 'handleUpdateAsset',
       message: `Asset '${asset.name}' has been updated successfully`,

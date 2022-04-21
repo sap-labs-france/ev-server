@@ -48,14 +48,14 @@ export default class Constants {
   public static readonly SMART_CHARGING_LOCK_SECS = 5;
   public static readonly CHARGING_STATION_LOCK_SECS = 5;
   public static readonly CHARGING_STATION_CONNECTION_LOCK_SECS = 5;
-
+  public static readonly TENANT_DEFAULT_LOGO = '/assets/img/logo-low.gif';
   public static readonly HEALTH_CHECK_ROUTE = '/health-check';
 
-  public static readonly DEFAULT_TENANT = 'default';
+  public static readonly DEFAULT_TENANT_ID = 'default';
   public static readonly DEFAULT_TENANT_OBJECT = Object.freeze({
-    id: Constants.DEFAULT_TENANT,
-    name: Constants.DEFAULT_TENANT,
-    subdomain: Constants.DEFAULT_TENANT
+    id: Constants.DEFAULT_TENANT_ID,
+    name: Constants.DEFAULT_TENANT_ID,
+    subdomain: Constants.DEFAULT_TENANT_ID
   } as Tenant);
 
   // Output of crypto.getCiphers()
@@ -291,6 +291,8 @@ export default class Constants {
 
   public static readonly ANONYMIZED_VALUE = '####';
 
+  public static readonly WS_MAX_NBR_OF_FAILED_PINGS = 3;
+  public static readonly WS_LOCK_TIME_OUT_MILLIS = 500;
   public static readonly WS_DEFAULT_KEEP_ALIVE_MILLIS = 180 * 1000;
   public static readonly WS_RECONNECT_DISABLED = 0;
   public static readonly WS_RECONNECT_UNLIMITED = -1;

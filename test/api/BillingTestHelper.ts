@@ -212,6 +212,18 @@ export default class BillingTestHelper {
           active: true
         }
       };
+    } else if (testMode === 'E+CT(STEP80S)') {
+      dimensions = {
+        energy: {
+          price: 0.30,
+          active: true
+        },
+        chargingTime: {
+          price: 0.60, // Euro per hour
+          stepSize: 80, // 1 minute + 20 seconds
+          active: true
+        }
+      };
     } else if (testMode === 'E-After30mins+PT') {
       // Create a second tariff with a different pricing strategy
       dimensions = {

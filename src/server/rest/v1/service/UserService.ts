@@ -1,4 +1,4 @@
-import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
+import { Action, Entity } from '../../../../types/Authorization';
 import { ActionsResponse, ImportStatus } from '../../../../types/GlobalType';
 import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
 import Busboy, { FileInfo } from 'busboy';
@@ -32,7 +32,6 @@ import { OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../../ocpi/OCPIUtils';
 import { Readable } from 'stream';
 import { ServerAction } from '../../../../types/Server';
-import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { StartTransactionErrorCode } from '../../../../types/Transaction';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import { UserInErrorType } from '../../../../types/InError';
@@ -93,6 +92,7 @@ export default class UserService {
         withBillingChecks = false;
       }
     }
+    // Check for billing errors
     const errorCodes: Array<StartTransactionErrorCode> = [];
     if (withBillingChecks) {
       // Check for the billing prerequisites (such as the user's payment method)
@@ -123,7 +123,7 @@ export default class UserService {
     }
     // Log
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user,
       module: MODULE_NAME,
       method: 'handleAssignSitesToUser',
@@ -144,7 +144,7 @@ export default class UserService {
       // Delete User
       await UserStorage.deleteUser(req.tenant, user.id);
       await Logging.logInfo({
-        tenantID: req.user.tenantID,
+        tenantID: req.tenant.id,
         user: req.user, actionOnUser: user,
         module: MODULE_NAME, method: 'handleDeleteUser',
         message: `User with ID '${user.id}' has been deleted successfully`,
@@ -157,14 +157,14 @@ export default class UserService {
     // Delete Billing
     await UserService.checkAndDeleteUserBilling(req.tenant, req.user, user);
     // Delete OCPI
-    await UserService.checkAndDeleteUserOCPI(req.tenant, req.user, user);
+    void UserService.checkAndDeleteUserRoaming(req.tenant, req.user, user);
     // Delete Car
     await UserService.checkAndDeleteCar(req.tenant, req.user, user);
     // Delete User
     await UserStorage.deleteUser(req.tenant, user.id);
     // Log
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user, actionOnUser: user,
       module: MODULE_NAME, method: 'handleDeleteUser',
       message: `User with ID '${user.id}' has been deleted successfully`,
@@ -230,13 +230,13 @@ export default class UserService {
     await UserService.updateUserBilling(ServerAction.USER_UPDATE, req.tenant, req.user, user);
     // Log
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user, actionOnUser: user,
       module: MODULE_NAME, method: 'handleUpdateUser',
       message: 'User has been updated successfully',
       action: action
     });
-    if (statusHasChanged && req.tenant.id !== Constants.DEFAULT_TENANT) {
+    if (statusHasChanged && req.tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Notify
       void NotificationHandler.sendUserAccountStatusChanged(
         req.tenant,
@@ -275,7 +275,7 @@ export default class UserService {
       mobileLastChangedOn: new Date()
     });
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: user,
       module: MODULE_NAME, method: 'handleUpdateUserMobileToken',
       message: 'User\'s mobile token has been updated successfully',
@@ -454,7 +454,7 @@ export default class UserService {
           await LockingManager.release(importUsersLock);
         }
       });
-      await new Promise((resolve) => {
+      await new Promise((resolve, reject) => {
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         busboy.on('file', async (fileName: string, fileStream: Readable, fileInfo: FileInfo) => {
           if (fileInfo.filename.slice(-4) === '.csv') {
@@ -466,7 +466,7 @@ export default class UserService {
             void converter.subscribe(async (user: ImportedUser) => {
               // Check connection
               if (connectionClosed) {
-                throw new Error('HTTP connection has been closed');
+                reject(new Error('HTTP connection has been closed'));
               }
               // Check the format of the first entry
               if (!result.inSuccess && !result.inError) {
@@ -478,7 +478,7 @@ export default class UserService {
                     res.end();
                     resolve();
                   }
-                  throw new Error(`Missing one of required properties: '${UserRequiredImportProperties.join(', ')}'`);
+                  reject(new Error(`Missing one of required properties: '${UserRequiredImportProperties.join(', ')}'`));
                 }
               }
               // Set default value
@@ -496,13 +496,13 @@ export default class UserService {
               if (!Utils.isEmptyArray(usersToBeImported) && (usersToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
                 await UserService.insertUsers(req.tenant, req.user, action, usersToBeImported, result);
               }
-              // eslint-disable-next-line @typescript-eslint/no-misused-promises
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             }, async (error: CSVError) => {
               // Release the lock
               await LockingManager.release(importUsersLock);
               // Log
               await Logging.logError({
-                tenantID: req.user.tenantID,
+                tenantID: req.tenant.id,
                 module: MODULE_NAME, method: 'handleImportUsers',
                 action: action,
                 user: req.user.id,
@@ -514,8 +514,8 @@ export default class UserService {
                 res.end();
                 resolve();
               }
-              // Completed
-              // eslint-disable-next-line @typescript-eslint/no-misused-promises
+            // Completed
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             }, async () => {
               // Consider the connection closed
               connectionClosed = true;
@@ -528,7 +528,7 @@ export default class UserService {
               // Log
               const executionDurationSecs = Utils.truncTo((new Date().getTime() - startTime) / 1000, 2);
               await Logging.logActionsResponse(
-                req.user.tenantID, action,
+                req.tenant.id, action,
                 MODULE_NAME, 'handleImportUsers', result,
                 `{{inSuccess}} User(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import`,
                 `{{inError}} User(s) failed to be uploaded in ${executionDurationSecs}s`,
@@ -545,7 +545,9 @@ export default class UserService {
                 method: 'handleImportUsers',
               });
               // Respond
-              res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
+              if (!res.headersSent) {
+                res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
+              }
               next();
               resolve();
             });
@@ -575,7 +577,7 @@ export default class UserService {
               await LockingManager.release(importUsersLock);
               // Log
               await Logging.logError({
-                tenantID: req.user.tenantID,
+                tenantID: req.tenant.id,
                 module: MODULE_NAME, method: 'handleImportUsers',
                 action: action,
                 user: req.user.id,
@@ -594,7 +596,7 @@ export default class UserService {
             await LockingManager.release(importUsersLock);
             // Log
             await Logging.logError({
-              tenantID: req.user.tenantID,
+              tenantID: req.tenant.id,
               module: MODULE_NAME, method: 'handleImportUsers',
               action: action,
               user: req.user.id,
@@ -607,10 +609,9 @@ export default class UserService {
           }
         });
       });
-    } catch (error) {
+    } finally {
       // Release the lock
       await LockingManager.release(importUsersLock);
-      throw error;
     }
   }
 
@@ -666,12 +667,12 @@ export default class UserService {
     // Update User Admin Data
     await UserService.updateUserAdminData(req.tenant, newUser, authorizationFilter.projectFields);
     // Assign Site to new User
-    await UserService.assignCreatedUserToSites(req.tenant, req.user, newUser, authorizationFilter);
+    await UtilsService.assignCreatedUserToSites(req.tenant, newUser, authorizationFilter);
     // Update Billing
     await UserService.updateUserBilling(ServerAction.USER_CREATE, req.tenant, req.user, newUser);
     // Log
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user, actionOnUser: req.user,
       module: MODULE_NAME, method: 'handleCreateUser',
       message: `User with ID '${newUser.id}' has been created successfully`,
@@ -808,7 +809,7 @@ export default class UserService {
       return true;
     } catch (error) {
       await Logging.logError({
-        tenantID: req.user.tenantID,
+        tenantID: req.tenant.id,
         module: MODULE_NAME, method: 'importUser',
         action: action,
         message: 'User cannot be imported',
@@ -872,7 +873,7 @@ export default class UserService {
     }
   }
 
-  private static async checkAndDeleteUserOCPI(tenant: Tenant, loggedUser: UserToken, user: User): Promise<void> {
+  private static async checkAndDeleteUserRoaming(tenant: Tenant, loggedUser: UserToken, user: User): Promise<void> {
     // Synchronize badges with IOP (eMSP)
     if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.OCPI)) {
       try {
@@ -944,24 +945,6 @@ export default class UserService {
           });
         }
       }
-    }
-  }
-
-  private static async assignCreatedUserToSites(tenant: Tenant, loggedUser: UserToken, user: User, authorizationFilter: AuthorizationFilter) {
-    // Assign user to sites
-    if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.ORGANIZATION)) {
-      let siteIDs = [];
-      if (!Utils.isEmptyArray(authorizationFilter.filters.siteIDs)) {
-        siteIDs = authorizationFilter.filters.siteIDs;
-      } else {
-        // Assign user to all sites with auto-assign flag set
-        const sites = await SiteStorage.getSites(tenant,
-          { withAutoUserAssignment: true },
-          Constants.DB_PARAMS_MAX_LIMIT
-        );
-        siteIDs = sites.result.map((site) => site.id);
-      }
-      await UserStorage.addSitesToUser(tenant, user.id, siteIDs);
     }
   }
 

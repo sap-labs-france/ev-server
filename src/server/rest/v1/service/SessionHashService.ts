@@ -24,8 +24,8 @@ export default class SessionHashService {
     try {
       // Get Tenant
       let tenant: Tenant;
-      if (tenantID === Constants.DEFAULT_TENANT) {
-        tenant = { id: Constants.DEFAULT_TENANT } as Tenant;
+      if (tenantID === Constants.DEFAULT_TENANT_ID) {
+        tenant = { id: Constants.DEFAULT_TENANT_ID } as Tenant;
       } else {
         tenant = await TenantStorage.getTenant(tenantID);
       }
@@ -53,7 +53,7 @@ export default class SessionHashService {
       req.user.user = user;
       req.tenant = tenant;
       // Ignore check of session hash in master tenant
-      if (tenantID === Constants.DEFAULT_TENANT) {
+      if (tenantID === Constants.DEFAULT_TENANT_ID) {
         next();
         return;
       }

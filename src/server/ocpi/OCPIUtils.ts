@@ -134,10 +134,6 @@ export default class OCPIUtils {
     return `${countryCode}*${partyId}`;
   }
 
-  public static buildSiteAreaName(countryCode: string, partyId: string, locationId: string): string {
-    return `${countryCode}*${partyId}-${locationId}`;
-  }
-
   public static buildEvseUIDs(chargingStation: ChargingStation): string[] {
     const evseUIDs: string[] = [];
     for (const connector of chargingStation.connectors) {
@@ -263,7 +259,7 @@ export default class OCPIUtils {
         tenantID: tenant.id,
         action, module: MODULE_NAME, method: 'processEMSPLocationChargingStation',
         message: `${currentChargingStation ? 'Updated' : 'Created'} Charging Station ID '${chargingStation.id}' in Location '${location.name}' with ID '${location.id}'`,
-        detailedMessages: location
+        detailedMessages: { evse, location }
       });
     }
   }
@@ -414,17 +410,15 @@ export default class OCPIUtils {
       case ChargePointStatus.AVAILABLE:
         return OCPIEvseStatus.AVAILABLE;
       case ChargePointStatus.OCCUPIED:
-        return OCPIEvseStatus.BLOCKED;
+      case ChargePointStatus.PREPARING:
+      case ChargePointStatus.SUSPENDED_EV:
+      case ChargePointStatus.SUSPENDED_EVSE:
+      case ChargePointStatus.FINISHING:
       case ChargePointStatus.CHARGING:
         return OCPIEvseStatus.CHARGING;
       case ChargePointStatus.FAULTED:
       case ChargePointStatus.UNAVAILABLE:
         return OCPIEvseStatus.INOPERATIVE;
-      case ChargePointStatus.PREPARING:
-      case ChargePointStatus.SUSPENDED_EV:
-      case ChargePointStatus.SUSPENDED_EVSE:
-      case ChargePointStatus.FINISHING:
-        return OCPIEvseStatus.BLOCKED;
       case ChargePointStatus.RESERVED:
         return OCPIEvseStatus.RESERVED;
       default:
@@ -436,14 +430,22 @@ export default class OCPIUtils {
     const tariff = {} as OCPITariff;
     tariff.id = '1';
     tariff.currency = simplePricingSetting.currency;
-    tariff.elements[0].price_components[0].type = OCPITariffDimensionType.TIME;
-    tariff.elements[0].price_components[0].price = simplePricingSetting.price;
-    tariff.elements[0].price_components[0].step_size = 60;
+    tariff.elements = [
+      {
+        price_components: [
+          {
+            type: OCPITariffDimensionType.TIME,
+            price: simplePricingSetting.price,
+            step_size: 60,
+          }
+        ]
+      }
+    ];
     tariff.last_updated = simplePricingSetting.last_updated;
     return tariff;
   }
 
-  public static async processEMSPLocationSite(tenant: Tenant, location: OCPILocation, company: Company, site: Site, siteName?: string): Promise<Site> {
+  public static async updateEMSPLocationSite(tenant: Tenant, location: OCPILocation, company: Company, site: Site, siteName?: string): Promise<Site> {
     // Create Site
     if (!site) {
       site = {
@@ -484,19 +486,17 @@ export default class OCPIUtils {
     return site;
   }
 
-  public static async processEMSPLocationSiteArea(tenant: Tenant, location: OCPILocation, site: Site, siteArea: SiteArea): Promise<SiteArea> {
+  public static async updateEMSPLocationSiteArea(tenant: Tenant, location: OCPILocation, site: Site, siteArea: SiteArea): Promise<SiteArea> {
     // Create Site Area
     if (!siteArea) {
-      const siteAreaName = `${site.name}${Constants.OCPI_SEPARATOR}${location.id}`;
       siteArea = {
-        name: siteAreaName,
+        name: location.name,
         createdOn: new Date(),
         siteID: site.id,
         issuer: false,
         ocpiData: { location },
         address: {
           address1: location.address,
-          address2: location.name,
           postalCode: location.postal_code,
           city: location.city,
           country: location.country,
@@ -506,12 +506,12 @@ export default class OCPIUtils {
     } else {
       siteArea = {
         ...siteArea,
+        name: location.name,
         lastChangedOn: new Date(),
         siteID: site.id,
         ocpiData: { location },
         address: {
           address1: location.address,
-          address2: location.name,
           postalCode: location.postal_code,
           city: location.city,
           country: location.country,

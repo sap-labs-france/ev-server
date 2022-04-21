@@ -34,7 +34,7 @@ export default class WSClient {
       'onmaximum': () => { }
     };
     this.dbLogging = dbLogging;
-    this.logTenantID = options.logTenantID ? options.logTenantID : Constants.DEFAULT_TENANT;
+    this.logTenantID = options.logTenantID ? options.logTenantID : Constants.DEFAULT_TENANT_ID;
     this.open();
   }
 
@@ -174,7 +174,7 @@ export default class WSClient {
           void Logging.logInfo({
             tenantID: this.logTenantID,
             module: MODULE_NAME, method: 'onClose',
-            action: ServerAction.WS_CLIENT_INFO,
+            action: ServerAction.WS_CLIENT_CONNECTION_CLOSE,
             message: `Connection closing to '${this.url}', Reason: '${reason ? reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`
           });
         } else {

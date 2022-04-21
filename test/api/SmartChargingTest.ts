@@ -349,6 +349,8 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
       });
 
       it('Test for one car charging', async () => {
+        // Set site area limit
+        testData.siteAreaContext.getSiteArea().maximumPower = 50000;
         // Start transaction on connector 1
         const transactionStartResponse = await testData.chargingStationContext.startTransaction(1, testData.userContext.tags[0].id, 180, new Date);
         // Get and store started transaction
@@ -383,15 +385,15 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': 43.130
+            'limit': 43.1
           },
           {
             'startPeriod': 900,
-            'limit': 43.130
+            'limit': 43.1
           },
           {
             'startPeriod': 1800,
-            'limit': 43.130
+            'limit': 43.1
           }
         ]);
         TestData.validateChargingProfile(chargingProfiles[1], transaction1);
@@ -413,15 +415,15 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
           expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
             {
               'startPeriod': 0,
-              'limit': 43.130
+              'limit': 43.1
             },
             {
               'startPeriod': 900,
-              'limit': 43.130
+              'limit': 43.1
             },
             {
               'startPeriod': 1800,
-              'limit': 43.130
+              'limit': 43.1
             }
           ]);
           TestData.validateChargingProfile(chargingProfiles[2], transaction2);
@@ -481,15 +483,15 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
           expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
             {
               'startPeriod': 0,
-              'limit': Utils.roundTo(24 * 3 * aCBufferFactor, 3)
+              'limit': Utils.roundTo(24 * 3 * aCBufferFactor, 1)
             },
             {
               'startPeriod': 900,
-              'limit': Utils.roundTo(24 * 3 * aCBufferFactor, 3)
+              'limit': Utils.roundTo(24 * 3 * aCBufferFactor, 1)
             },
             {
               'startPeriod': 1800,
-              'limit': Utils.roundTo(24 * 3 * aCBufferFactor, 3)
+              'limit': Utils.roundTo(24 * 3 * aCBufferFactor, 1)
             }
           ]);
           await ChargingStationStorage.saveChargingProfile(testData.tenantContext.getTenant(), chargingProfiles[0]);
@@ -497,15 +499,15 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
           expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
             {
               'startPeriod': 0,
-              'limit': Utils.roundTo(13 * 3 * aCBufferFactor, 3)
+              'limit': Utils.roundTo(13 * 3 * aCBufferFactor, 1)
             },
             {
               'startPeriod': 900,
-              'limit': Utils.roundTo(13 * 3 * aCBufferFactor, 3)
+              'limit': Utils.roundTo(13 * 3 * aCBufferFactor, 1)
             },
             {
               'startPeriod': 1800,
-              'limit': Utils.roundTo(13 * 3 * aCBufferFactor, 3)
+              'limit': Utils.roundTo(13 * 3 * aCBufferFactor, 1)
             }
           ]);
           await ChargingStationStorage.saveChargingProfile(testData.tenantContext.getTenant(), chargingProfiles[1]);
@@ -513,15 +515,15 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
           expect(chargingProfiles[2].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
             {
               'startPeriod': 0,
-              'limit': Utils.roundTo(20 * aCBufferFactor, 3)
+              'limit': Utils.roundTo(20 * aCBufferFactor, 1)
             },
             {
               'startPeriod': 900,
-              'limit': Utils.roundTo(20 * aCBufferFactor, 3)
+              'limit': Utils.roundTo(20 * aCBufferFactor, 1)
             },
             {
               'startPeriod': 1800,
-              'limit': Utils.roundTo(20 * aCBufferFactor, 3)
+              'limit': Utils.roundTo(20 * aCBufferFactor, 1)
             }
           ]);
           // Do not save the last profile to check if this is the only one build in the upcoming test
@@ -537,15 +539,15 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
           expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
             {
               'startPeriod': 0,
-              'limit': Utils.roundTo(20 * aCBufferFactor, 3)
+              'limit': Utils.roundTo(20 * aCBufferFactor, 1)
             },
             {
               'startPeriod': 900,
-              'limit': Utils.roundTo(20 * aCBufferFactor, 3)
+              'limit': Utils.roundTo(20 * aCBufferFactor, 1)
             },
             {
               'startPeriod': 1800,
-              'limit': Utils.roundTo(20 * aCBufferFactor, 3)
+              'limit': Utils.roundTo(20 * aCBufferFactor, 1)
             }
           ]);
           await ChargingStationStorage.saveChargingProfile(testData.tenantContext.getTenant(), chargingProfiles[0]);
@@ -562,45 +564,45 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
           expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
             {
               'startPeriod': 0,
-              'limit': Utils.roundTo(24 * 3 * 1.05, 3)
+              'limit': Utils.roundTo(24 * 3 * 1.05, 1)
             },
             {
               'startPeriod': 900,
-              'limit': Utils.roundTo(24 * 3 * 1.05, 3)
+              'limit': Utils.roundTo(24 * 3 * 1.05, 1)
             },
             {
               'startPeriod': 1800,
-              'limit': Utils.roundTo(24 * 3 * 1.05, 3)
+              'limit': Utils.roundTo(24 * 3 * 1.05, 1)
             }
           ]);
           TestData.validateChargingProfile(chargingProfiles[1], transaction1);
           expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
             {
               'startPeriod': 0,
-              'limit': Utils.roundTo(13 * 3 * 1.05, 3)
+              'limit': Utils.roundTo(13 * 3 * 1.05, 1)
             },
             {
               'startPeriod': 900,
-              'limit': Utils.roundTo(13 * 3 * 1.05, 3)
+              'limit': Utils.roundTo(13 * 3 * 1.05, 1)
             },
             {
               'startPeriod': 1800,
-              'limit': Utils.roundTo(13 * 3 * 1.05, 3)
+              'limit': Utils.roundTo(13 * 3 * 1.05, 1)
             }
           ]);
           TestData.validateChargingProfile(chargingProfiles[2], transaction2);
           expect(chargingProfiles[2].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
             {
               'startPeriod': 0,
-              'limit': Utils.roundTo(20 * 1.05, 3)
+              'limit': Utils.roundTo(20 * 1.05, 1)
             },
             {
               'startPeriod': 900,
-              'limit': Utils.roundTo(20 * 1.05, 3)
+              'limit': Utils.roundTo(20 * 1.05, 1)
             },
             {
               'startPeriod': 1800,
-              'limit': Utils.roundTo(20 * 1.05, 3)
+              'limit': Utils.roundTo(20 * 1.05, 1)
             }
           ]);
         }
@@ -657,15 +659,15 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
           expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
             {
               'startPeriod': 0,
-              'limit': Utils.roundTo(24 * 3 * aCBufferFactor, 3)
+              'limit': Utils.roundTo(24 * 3 * aCBufferFactor, 1)
             },
             {
               'startPeriod': 900,
-              'limit': Utils.roundTo(24 * 3 * aCBufferFactor, 3)
+              'limit': Utils.roundTo(24 * 3 * aCBufferFactor, 1)
             },
             {
               'startPeriod': 1800,
-              'limit': Utils.roundTo(24 * 3 * aCBufferFactor, 3)
+              'limit': Utils.roundTo(24 * 3 * aCBufferFactor, 1)
             }
           ]);
           TestData.validateChargingProfile(chargingProfiles[2], transaction2);
@@ -686,15 +688,15 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
           expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
             {
               'startPeriod': 0,
-              'limit': Utils.roundTo(24 * 3 * aCBufferFactor, 3)
+              'limit': Utils.roundTo(24 * 3 * aCBufferFactor, 1)
             },
             {
               'startPeriod': 900,
-              'limit': Utils.roundTo(24 * 3 * aCBufferFactor, 3)
+              'limit': Utils.roundTo(24 * 3 * aCBufferFactor, 1)
             },
             {
               'startPeriod': 1800,
-              'limit': Utils.roundTo(24 * 3 * aCBufferFactor, 3)
+              'limit': Utils.roundTo(24 * 3 * aCBufferFactor, 1)
             }
           ]);
           // Check adjustment of site area limit
@@ -729,7 +731,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
     });
 
     describe('Test for single phased site area', () => {
-      beforeAll(async () => {
+      beforeAll(() => {
         testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
         testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_SINGLE_PHASED);
         testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
@@ -795,15 +797,15 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': Utils.roundTo(10000 / 230 - 32, 3)
+            'limit': Utils.roundTo(10000 / 230 - 32, 1)
           },
           {
             'startPeriod': 900,
-            'limit': Utils.roundTo(10000 / 230 - 32, 3)
+            'limit': Utils.roundTo(10000 / 230 - 32, 1)
           },
           {
             'startPeriod': 1800,
-            'limit': Utils.roundTo(10000 / 230 - 32, 3)
+            'limit': Utils.roundTo(10000 / 230 - 32, 1)
           }
         ]);
         TestData.validateChargingProfile(chargingProfiles[1], transaction1);
@@ -820,15 +822,15 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
           expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
             {
               'startPeriod': 0,
-              'limit': Utils.roundTo(16 * aCBufferFactor, 3)
+              'limit': Utils.roundTo(16 * aCBufferFactor, 1)
             },
             {
               'startPeriod': 900,
-              'limit': Utils.roundTo(16 * aCBufferFactor, 3)
+              'limit': Utils.roundTo(16 * aCBufferFactor, 1)
             },
             {
               'startPeriod': 1800,
-              'limit': Utils.roundTo(16 * aCBufferFactor, 3)
+              'limit': Utils.roundTo(16 * aCBufferFactor, 1)
             }
           ]);
           await ChargingStationStorage.saveChargingProfile(testData.tenantContext.getTenant(), chargingProfiles[0]);
@@ -836,15 +838,15 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
           expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
             {
               'startPeriod': 0,
-              'limit': Utils.roundTo(20 * aCBufferFactor, 3)
+              'limit': Utils.roundTo(20 * aCBufferFactor, 1)
             },
             {
               'startPeriod': 900,
-              'limit': Utils.roundTo(20 * aCBufferFactor, 3)
+              'limit': Utils.roundTo(20 * aCBufferFactor, 1)
             },
             {
               'startPeriod': 1800,
-              'limit': Utils.roundTo(20 * aCBufferFactor, 3)
+              'limit': Utils.roundTo(20 * aCBufferFactor, 1)
             }
           ]);
           await ChargingStationStorage.saveChargingProfile(testData.tenantContext.getTenant(), chargingProfiles[1]);
@@ -859,30 +861,30 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
           expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
             {
               'startPeriod': 0,
-              'limit': Utils.roundTo(16 * 1.05, 3)
+              'limit': Utils.roundTo(16 * 1.05, 1)
             },
             {
               'startPeriod': 900,
-              'limit': Utils.roundTo(16 * 1.05, 3)
+              'limit': Utils.roundTo(16 * 1.05, 1)
             },
             {
               'startPeriod': 1800,
-              'limit': Utils.roundTo(16 * 1.05, 3)
+              'limit': Utils.roundTo(16 * 1.05, 1)
             }
           ]);
           TestData.validateChargingProfile(chargingProfiles[1], transaction1);
           expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
             {
               'startPeriod': 0,
-              'limit': Utils.roundTo(20 * 1.05, 3)
+              'limit': Utils.roundTo(20 * 1.05, 1)
             },
             {
               'startPeriod': 900,
-              'limit': Utils.roundTo(20 * 1.05, 3)
+              'limit': Utils.roundTo(20 * 1.05, 1)
             },
             {
               'startPeriod': 1800,
-              'limit': Utils.roundTo(20 * 1.05, 3)
+              'limit': Utils.roundTo(20 * 1.05, 1)
             }
           ]);
         }
@@ -895,15 +897,15 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
           expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
             {
               'startPeriod': 0,
-              'limit': Utils.roundTo(10000 / 230 - 32, 3)
+              'limit': Utils.roundTo(10000 / 230 - 32, 1)
             },
             {
               'startPeriod': 900,
-              'limit': Utils.roundTo(10000 / 230 - 32, 3)
+              'limit': Utils.roundTo(10000 / 230 - 32, 1)
             },
             {
               'startPeriod': 1800,
-              'limit': Utils.roundTo(10000 / 230 - 32, 3)
+              'limit': Utils.roundTo(10000 / 230 - 32, 1)
             }
           ]);
           TestData.validateChargingProfile(chargingProfiles[1], transaction1);
@@ -941,15 +943,15 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
           expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
             {
               'startPeriod': 0,
-              'limit': Utils.roundTo(20 * aCBufferFactor, 3)
+              'limit': Utils.roundTo(20 * aCBufferFactor, 1)
             },
             {
               'startPeriod': 900,
-              'limit': Utils.roundTo(20 * aCBufferFactor, 3)
+              'limit': Utils.roundTo(20 * aCBufferFactor, 1)
             },
             {
               'startPeriod': 1800,
-              'limit': Utils.roundTo(20 * aCBufferFactor, 3)
+              'limit': Utils.roundTo(20 * aCBufferFactor, 1)
             }
           ]);
         }
@@ -1074,15 +1076,15 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': 86.043
+            'limit': 86
           },
           {
             'startPeriod': 900,
-            'limit': 86.043
+            'limit': 86
           },
           {
             'startPeriod': 1800,
-            'limit': 86.043
+            'limit': 86
           },
         ]);
         TestData.validateChargingProfile(chargingProfiles[1], transaction1);
@@ -1112,15 +1114,15 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
           expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
             {
               'startPeriod': 0,
-              'limit': Utils.roundTo(40000 / Voltage.VOLTAGE_230 / 3 * dCBufferFactor, 3) * 3
+              'limit': Utils.roundTo((40000 / Voltage.VOLTAGE_230 / 3 * dCBufferFactor) * 3, 1)
             },
             {
               'startPeriod': 900,
-              'limit': Utils.roundTo(40000 / Voltage.VOLTAGE_230 / 3 * dCBufferFactor, 3) * 3
+              'limit': Utils.roundTo((40000 / Voltage.VOLTAGE_230 / 3 * dCBufferFactor) * 3, 1)
             },
             {
               'startPeriod': 1800,
-              'limit': Utils.roundTo(40000 / Voltage.VOLTAGE_230 / 3 * dCBufferFactor, 3) * 3
+              'limit': Utils.roundTo((40000 / Voltage.VOLTAGE_230 / 3 * dCBufferFactor) * 3, 1)
             },
           ]);
           await ChargingStationStorage.saveChargingProfile(testData.tenantContext.getTenant(), chargingProfiles[0]);
@@ -1128,15 +1130,15 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
           expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
             {
               'startPeriod': 0,
-              'limit': Utils.roundTo(30000 / Voltage.VOLTAGE_230 / 3 * dCBufferFactor, 3) * 3
+              'limit': Utils.roundTo((30000 / Voltage.VOLTAGE_230 / 3 * dCBufferFactor) * 3, 1)
             },
             {
               'startPeriod': 900,
-              'limit': Utils.roundTo(30000 / Voltage.VOLTAGE_230 / 3 * dCBufferFactor, 3) * 3
+              'limit': Utils.roundTo((30000 / Voltage.VOLTAGE_230 / 3 * dCBufferFactor) * 3, 1)
             },
             {
               'startPeriod': 1800,
-              'limit': Utils.roundTo(30000 / Voltage.VOLTAGE_230 / 3 * dCBufferFactor, 3) * 3
+              'limit': Utils.roundTo((30000 / Voltage.VOLTAGE_230 / 3 * dCBufferFactor) * 3, 1)
             }
           ]);
           await ChargingStationStorage.saveChargingProfile(testData.tenantContext.getTenant(), chargingProfiles[1]);
@@ -1151,30 +1153,30 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
           expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
             {
               'startPeriod': 0,
-              'limit': Utils.roundTo(40000 / Voltage.VOLTAGE_230 * 1.1, 3)
+              'limit': Utils.roundTo(40000 / Voltage.VOLTAGE_230 * 1.1, 1)
             },
             {
               'startPeriod': 900,
-              'limit': Utils.roundTo(40000 / Voltage.VOLTAGE_230 * 1.1, 3)
+              'limit': Utils.roundTo(40000 / Voltage.VOLTAGE_230 * 1.1, 1)
             },
             {
               'startPeriod': 1800,
-              'limit': Utils.roundTo(40000 / Voltage.VOLTAGE_230 * 1.1, 3)
+              'limit': Utils.roundTo(40000 / Voltage.VOLTAGE_230 * 1.1, 1)
             },
           ]);
           TestData.validateChargingProfile(chargingProfiles[1], transaction1);
           expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
             {
               'startPeriod': 0,
-              'limit': Utils.roundTo(30000 / Voltage.VOLTAGE_230 * 1.1, 3)
+              'limit': Utils.roundTo(30000 / Voltage.VOLTAGE_230 * 1.1, 1)
             },
             {
               'startPeriod': 900,
-              'limit': Utils.roundTo(30000 / Voltage.VOLTAGE_230 * 1.1, 3)
+              'limit': Utils.roundTo(30000 / Voltage.VOLTAGE_230 * 1.1, 1)
             },
             {
               'startPeriod': 1800,
-              'limit': Utils.roundTo(30000 / Voltage.VOLTAGE_230 * 1.1, 3)
+              'limit': Utils.roundTo(30000 / Voltage.VOLTAGE_230 * 1.1, 1)
             }
           ]);
         }
@@ -1188,15 +1190,15 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
           expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
             {
               'startPeriod': 0,
-              'limit': 86.043
+              'limit': 86
             },
             {
               'startPeriod': 900,
-              'limit': 86.043
+              'limit': 86
             },
             {
               'startPeriod': 1800,
-              'limit': 86.043
+              'limit': 86
             },
           ]);
           TestData.validateChargingProfile(chargingProfiles[1], transaction1);
@@ -1263,7 +1265,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
   });
 
   describe('Test limit adjustments, when charging stations are excluded', () => {
-    beforeAll(async () => {
+    beforeAll(() => {
       testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
       testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED);
       testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
@@ -1391,15 +1393,15 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': 86.957
+            'limit': 87
           },
           {
             'startPeriod': 900,
-            'limit': 86.957
+            'limit': 87
           },
           {
             'startPeriod': 1800,
-            'limit': 86.957
+            'limit': 87
           },
         ]);
       }
@@ -1419,15 +1421,15 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': 86.957
+            'limit': 87
           },
           {
             'startPeriod': 900,
-            'limit': 86.957
+            'limit': 87
           },
           {
             'startPeriod': 1800,
-            'limit': 86.957
+            'limit': 87
           },
         ]);
       }
@@ -1457,15 +1459,15 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
       expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
         {
           'startPeriod': 0,
-          'limit': 86.957
+          'limit': 87
         },
         {
           'startPeriod': 900,
-          'limit': 86.957
+          'limit': 87
         },
         {
           'startPeriod': 1800,
-          'limit': 86.957
+          'limit': 87
         },
       ]);
     });

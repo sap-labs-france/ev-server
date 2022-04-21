@@ -2,6 +2,7 @@ import global, { FilterParams } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
 import { DeletedResult } from '../../types/DataResult';
+import { ObjectId } from 'mongodb';
 import PerformanceRecord from '../../types/Performance';
 import Utils from '../../utils/Utils';
 
@@ -20,7 +21,7 @@ export default class PerformanceStorage {
     // // Set
     // performanceRecord.id = result.insertedId.toString();
     // return performanceRecord.id;
-    return Promise.resolve('NotImplemented');
+    return Promise.resolve(new ObjectId().toString());
   }
 
   public static async updatePerformanceRecord(performanceRecord: PerformanceRecord): Promise<void> {
@@ -46,7 +47,7 @@ export default class PerformanceStorage {
       filters.timestamp.$lte = Utils.convertToDate(params.deleteUpToDate);
     }
     // Delete
-    const result = await global.database.getCollection<PerformanceRecord>(Constants.DEFAULT_TENANT, 'performances')
+    const result = await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'performances')
       .deleteMany(filters);
     // Return the result
     return { acknowledged: result.acknowledged, deletedCount: result.deletedCount };

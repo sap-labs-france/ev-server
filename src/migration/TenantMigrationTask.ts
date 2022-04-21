@@ -16,7 +16,7 @@ export default abstract class TenantMigrationTask extends MigrationTask {
       const tenantCorrelationID = Utils.generateShortNonUniqueID();
       const startTimeInTenant = moment();
       await Logging.logDebug({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrate',
         message: `The Task '${this.getName()}~${tenantCorrelationID}' is running for Tenant ${Utils.buildTenantName(tenant)}...`
@@ -26,7 +26,7 @@ export default abstract class TenantMigrationTask extends MigrationTask {
         await this.migrateTenant(tenant);
       } catch (error) {
         await Logging.logError({
-          tenantID: Constants.DEFAULT_TENANT,
+          tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.MIGRATION,
           module: MODULE_NAME, method: 'migrate',
           message: `Error while running the Task '${this.getName()}~${tenantCorrelationID}' for Tenant ${Utils.buildTenantName(tenant)}: ${error.message as string}`,
@@ -36,7 +36,7 @@ export default abstract class TenantMigrationTask extends MigrationTask {
       // Log Total Processing Time
       const totalTimeSecsInTenant = moment.duration(moment().diff(startTimeInTenant)).asSeconds();
       await Logging.logDebug({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrate',
         message: `The Task '${this.getName()}~${tenantCorrelationID}' has been run successfully in ${totalTimeSecsInTenant} secs for Tenant ${Utils.buildTenantName(tenant)}`

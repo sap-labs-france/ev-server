@@ -173,17 +173,7 @@ export default class TransactionStorage {
       };
     }
     if (transactionToSave.billingData) {
-      transactionMDB.billingData = {
-        withBillingActive: transactionToSave.billingData.withBillingActive,
-        lastUpdate: Utils.convertToDate(transactionToSave.billingData.lastUpdate),
-        stop: {
-          status: transactionToSave.billingData.stop?.status,
-          invoiceID: DatabaseUtils.convertToObjectID(transactionToSave.billingData.stop?.invoiceID),
-          invoiceNumber: transactionToSave.billingData.stop?.invoiceNumber,
-          invoiceStatus: transactionToSave.billingData.stop?.invoiceStatus,
-          invoiceItem: transactionToSave.billingData.stop?.invoiceItem,
-        },
-      };
+      transactionMDB.billingData = TransactionStorage.normalizeBillingData(transactionToSave.billingData);
     }
     if (transactionToSave.ocpiData) {
       transactionMDB.ocpiData = {
@@ -278,12 +268,14 @@ export default class TransactionStorage {
       billingData: TransactionBillingData): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
+    // Normalize billing data
+    const billingDataMDB = TransactionStorage.normalizeBillingData(billingData);
     // Modify document
     await global.database.getCollection<any>(tenant.id, 'transactions').findOneAndUpdate(
       { '_id': id },
       {
         $set: {
-          billingData
+          billingData: billingDataMDB
         }
       },
       { upsert: false });
@@ -309,11 +301,11 @@ export default class TransactionStorage {
   public static async getTransactionYears(tenant: Tenant): Promise<Date[]> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
-    const firstTransactionsMDB = await global.database.getCollection<Transaction>(tenant.id, 'transactions')
+    const firstTransactionsMDB = await global.database.getCollection<any>(tenant.id, 'transactions')
       .find({})
       .sort({ timestamp: 1 })
       .limit(1)
-      .toArray();
+      .toArray() as Transaction[];
     // Found?
     if (Utils.isEmptyArray(firstTransactionsMDB)) {
       return null;
@@ -596,9 +588,9 @@ export default class TransactionStorage {
         break;
     }
     // Count Records
-    const transactionsCountMDB = await global.database.getCollection<TransactionStats>(tenant.id, 'transactions')
-      .aggregate<TransactionStats>([...aggregation, statsQuery], DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const transactionsCountMDB = await global.database.getCollection<any>(tenant.id, 'transactions')
+      .aggregate<any>([...aggregation, statsQuery], DatabaseUtils.buildAggregateOptions())
+      .toArray() as TransactionStats[];
     let transactionCountMDB = (transactionsCountMDB && transactionsCountMDB.length > 0) ? transactionsCountMDB[0] : null;
     // Initialize statistics
     if (!transactionCountMDB) {
@@ -748,7 +740,7 @@ export default class TransactionStorage {
         foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
       });
       DatabaseUtils.pushCarCatalogLookupInAggregation({
-        tenantID: Constants.DEFAULT_TENANT, aggregation: aggregation, asField: 'carCatalog', localField: 'carCatalogID',
+        tenantID: Constants.DEFAULT_TENANT_ID, aggregation: aggregation, asField: 'carCatalog', localField: 'carCatalogID',
         foreignField: '_id', oneToOneCardinality: true
       });
     }
@@ -767,9 +759,9 @@ export default class TransactionStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const transactionsMDB = await global.database.getCollection<Transaction>(tenant.id, 'transactions')
-      .aggregate<Transaction>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const transactionsMDB = await global.database.getCollection<any>(tenant.id, 'transactions')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as Transaction[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getTransactions', startTime, aggregation, transactionsMDB);
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(transactionCountMDB),
@@ -894,9 +886,9 @@ export default class TransactionStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const reportsMDB = await global.database.getCollection<RefundReport>(tenant.id, 'transactions')
+    const reportsMDB = await global.database.getCollection<any>(tenant.id, 'transactions')
       .aggregate(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+      .toArray() as RefundReport[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getRefundReports', startTime, aggregation, reportsMDB);
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(reportCountMDB),
@@ -992,7 +984,7 @@ export default class TransactionStorage {
     });
     // Car Catalog
     DatabaseUtils.pushCarCatalogLookupInAggregation({
-      tenantID: Constants.DEFAULT_TENANT, aggregation: aggregation, asField: 'carCatalog', localField: 'carCatalogID',
+      tenantID: Constants.DEFAULT_TENANT_ID, aggregation: aggregation, asField: 'carCatalog', localField: 'carCatalogID',
       foreignField: '_id', oneToOneCardinality: true
     });
     // Used only in the error type : missing_user
@@ -1053,9 +1045,9 @@ export default class TransactionStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const transactionsMDB = await global.database.getCollection<TransactionInError>(tenant.id, 'transactions')
-      .aggregate<TransactionInError>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const transactionsMDB = await global.database.getCollection<any>(tenant.id, 'transactions')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as TransactionInError[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getTransactionsInError', startTime, aggregation, transactionsMDB);
     return {
       count: transactionsMDB.length,
@@ -1075,9 +1067,11 @@ export default class TransactionStorage {
     return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
   }
 
-  public static async getOCPITransactionBySessionID(tenant: Tenant, sessionID: string): Promise<Transaction> {
+  public static async getOCPITransactionBySessionID(tenant: Tenant, sessionID: string,
+      params: { withUser?: boolean } = {}): Promise<Transaction> {
     const transactionsMDB = await TransactionStorage.getTransactions(tenant,
       {
+        withUser: params.withUser,
         ocpiSessionID: sessionID
       }, Constants.DB_PARAMS_SINGLE_RECORD);
     return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
@@ -1128,9 +1122,9 @@ export default class TransactionStorage {
     DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'stop', 'timestamp');
     DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'remotestop', 'timestamp');
     // Read DB
-    const transactionsMDB = await global.database.getCollection<Transaction>(tenant.id, 'transactions')
-      .aggregate<Transaction>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const transactionsMDB = await global.database.getCollection<any>(tenant.id, 'transactions')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as Transaction[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getActiveTransaction', startTime, aggregation, transactionsMDB);
     return transactionsMDB.length === 1 ? transactionsMDB[0] : null;
   }
@@ -1191,9 +1185,9 @@ export default class TransactionStorage {
     DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'stop', 'timestamp');
     DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'remotestop', 'timestamp');
     // Read DB
-    const transactionsMDB = await global.database.getCollection<Transaction>(tenant.id, 'transactions')
-      .aggregate<Transaction>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const transactionsMDB = await global.database.getCollection<any>(tenant.id, 'transactions')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as Transaction[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getLastTransactionFromChargingStation', startTime, aggregation, transactionsMDB);
     return transactionsMDB.length === 1 ? transactionsMDB[0] : null;
   }
@@ -1321,14 +1315,31 @@ export default class TransactionStorage {
       }
     });
     // Read DB
-    const notifySessionNotStartedMDB = await global.database.getCollection<NotifySessionNotStarted>(tenant.id, 'authorizes')
-      .aggregate<NotifySessionNotStarted>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const notifySessionNotStartedMDB = await global.database.getCollection<any>(tenant.id, 'authorizes')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as NotifySessionNotStarted[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getNotStartedTransactions', startTime, aggregation, notifySessionNotStartedMDB);
     return {
       count: notifySessionNotStartedMDB.length,
       result: notifySessionNotStartedMDB
     };
+  }
+
+  private static normalizeBillingData(billingData: TransactionBillingData): any {
+    if (billingData) {
+      return {
+        withBillingActive: billingData.withBillingActive,
+        lastUpdate: Utils.convertToDate(billingData.lastUpdate),
+        stop: {
+          status: billingData.stop?.status,
+          invoiceID: DatabaseUtils.convertToObjectID(billingData.stop?.invoiceID),
+          invoiceNumber: billingData.stop?.invoiceNumber,
+          invoiceStatus: billingData.stop?.invoiceStatus,
+          invoiceItem: billingData.stop?.invoiceItem,
+        },
+      };
+    }
+    return null;
   }
 
   private static getTransactionsInErrorFacet(errorType: string) {

@@ -30,7 +30,6 @@ export default class ContextDefinition {
     TENANT_WITH_NO_COMPONENTS: 'utnothing', // No components are active
     TENANT_ORGANIZATION: 'utorg', // Only organization component is active
     TENANT_SIMPLE_PRICING: 'utpricing', // Only pricing component is active
-    TENANT_CONVERGENT_CHARGING: 'utconvcharg', // Only convergent charging component is active
     TENANT_OCPI: 'utocpi', // Only ocpi component is active
     TENANT_OICP: 'utoicp', // Only ocpi component is active
     TENANT_FUNDING: 'utrefund', // Only refund component is active
@@ -226,24 +225,6 @@ export default class ContextDefinition {
           simple: {
             price: ContextDefinition.DEFAULT_PRICE,
             currency: 'EUR'
-          }
-        }
-      }
-    },
-  },
-  {
-    tenantName: ContextDefinition.TENANT_CONTEXTS.TENANT_CONVERGENT_CHARGING,
-    id: 'aaaaaaaaaaaaaaaaaaaaaaa5',
-    subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_CONVERGENT_CHARGING,
-    componentSettings: {
-      pricing: {
-        content: {
-          type: PricingSettingsType.CONVERGENT_CHARGING,
-          convergentCharging: {
-            url: '',
-            chargeableItemName: '',
-            user: '',
-            password: ''
           }
         }
       }

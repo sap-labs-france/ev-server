@@ -3,9 +3,9 @@ import { OCPILocation } from './OCPILocation';
 
 export interface OCPISession {
   id: string;
-  authorization_id?: string;
   start_datetime: Date;
   end_datetime?: Date;
+  authorization_id?: string;
   kwh: number;
   auth_id: string;
   auth_method: OCPIAuthMethod;
