@@ -445,7 +445,7 @@ export default class TagService {
           await LockingManager.release(importTagsLock);
         }
       });
-      await new Promise((resolve) => {
+      await new Promise((resolve, reject) => {
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         busboy.on('file', async (fileName: string, fileStream: Readable, fileInfo: FileInfo) => {
           if (fileInfo.filename.slice(-4) === '.csv') {
@@ -457,7 +457,7 @@ export default class TagService {
             void converter.subscribe(async (tag: ImportedTag) => {
               // Check connection
               if (connectionClosed) {
-                throw new Error('HTTP connection has been closed');
+                reject(new Error('HTTP connection has been closed'));
               }
               // Check the format of the first entry
               if (!result.inSuccess && !result.inError) {
@@ -469,7 +469,7 @@ export default class TagService {
                     res.end();
                     resolve();
                   }
-                  throw new Error(`Missing one of required properties: '${TagRequiredImportProperties.join(', ')}'`);
+                  reject(new Error(`Missing one of required properties: '${TagRequiredImportProperties.join(', ')}'`));
                 }
               }
               // Set default value
