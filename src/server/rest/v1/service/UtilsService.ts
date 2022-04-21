@@ -1456,49 +1456,6 @@ export default class UtilsService {
     }
   }
 
-  public static async checkIfSiteAreaHasDependencies(siteArea: SiteArea, tenant: Tenant, user: UserToken): Promise<void> {
-    const siteAreas = await SiteAreaStorage.getSiteAreas(tenant, { parentSiteAreaIDs: [siteArea.id] }, Constants.DB_PARAMS_COUNT_ONLY);
-    if (siteAreas.count > 0) {
-      throw new AppError({
-        ...LoggingHelper.getSiteAreaProperties(siteArea),
-        errorCode: HTTPError.SITE_AREA_HIERARCHY_DEPENDENCY_ERROR,
-        user: user.id,
-        module: MODULE_NAME, method: 'checkIfSiteAreaHasDependencies',
-        message: `Site Area has dependencies to ${siteAreas.count} other Site Area(s)`,
-      });
-    }
-  }
-
-  public static async checkIfSiteAreaTreeValid(siteArea: SiteArea, tenant: Tenant, user: UserToken): Promise<void> {
-    const siteAreas = await SiteAreaStorage.getSiteAreas(tenant,
-      { siteIDs: [siteArea.siteID] }, Constants.DB_PARAMS_MAX_LIMIT,
-      ['id', 'name', 'parentSiteAreaID', 'siteID', 'smartCharging', 'name', 'voltage', 'numberOfPhases']);
-    // Check if site area exists or should be created
-    const index = siteAreas.result.findIndex((siteAreaToChange) => siteAreaToChange.id === siteArea.id);
-    if (index >= 0) {
-      siteAreas.result[index] = { id: siteArea.id, parentSiteAreaID: siteArea.parentSiteAreaID, siteID: siteArea.siteID, smartCharging: siteArea.smartCharging,
-        voltage: siteArea.voltage, numberOfPhases: siteArea.numberOfPhases, name: siteArea.name } as SiteArea;
-    } else {
-      siteAreas.result.push({ id: null, parentSiteAreaID: siteArea.parentSiteAreaID,
-        siteID: siteArea.siteID, smartCharging: siteArea.smartCharging,
-        voltage: siteArea.voltage, numberOfPhases: siteArea.numberOfPhases, name: siteArea.name } as SiteArea) ;
-    }
-    let siteAreaTrees: SiteArea[];
-    try {
-      // Build Site Area Tree
-      siteAreaTrees = Utils.buildSiteAreaTrees(siteAreas.result);
-      // Check Site Area Tree
-      Utils.checkSiteAreaTrees(siteAreaTrees, siteAreas.result.length);
-    } catch (error) {
-      throw new AppError({
-        errorCode: HTTPError.SITE_AREA_HIERARCHY_INCONSISTENCY_ERROR,
-        message: `Error when checking site area tree: ${error.message as string}`,
-        module: MODULE_NAME, method: 'checkIfSiteAreaTreeValid',
-        user: user.id
-      });
-    }
-  }
-
   public static checkIfPricingDefinitionValid(pricing: Partial<PricingDefinition>, req: Request): void {
     if (req.method !== 'POST' && !pricing.id) {
       throw new AppError({
