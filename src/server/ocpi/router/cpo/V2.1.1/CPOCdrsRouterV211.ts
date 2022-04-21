@@ -1,5 +1,4 @@
 import { OCPIServerRoute, ServerAction } from '../../../../../types/Server';
-/* eslint-disable @typescript-eslint/no-misused-promises */
 import express, { NextFunction, Request, Response } from 'express';
 
 import CPOCdrsService from '../../../service/cpo/v2.1.1/CPOCdrsService';
@@ -18,8 +17,8 @@ export default class CPOCdrsRouterV211 {
   }
 
   protected buildRouteGetCdrs(): void {
-    this.router.get(`/${OCPIServerRoute.OCPI_CDRS}*`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleOCPIServerAction(CPOCdrsService.handleGetCdrs.bind(this), ServerAction.OCPI_CPO_GET_CDRS, req, res, next);
+    this.router.get(`/${OCPIServerRoute.OCPI_CDRS}*`, (req: Request, res: Response, next: NextFunction) => {
+      void RouterUtils.handleOCPIServerAction(CPOCdrsService.handleGetCdrs.bind(this), ServerAction.OCPI_CPO_GET_CDRS, req, res, next);
     });
   }
 }
