@@ -73,18 +73,22 @@ export default class BillingTestHelper {
     const concreteImplementation : StripeBillingIntegration = this.billingImpl ;
     const stripeInstance = await concreteImplementation.getStripeInstance();
     const customerID = user.billingData?.customerID;
-    assert(customerID, 'customerID should not be null');
-    // TODO - rethink that part - the concrete billing implementation should be called instead
-    const source = await stripeInstance.customers.createSource(customerID, {
-      source: stripe_test_token // e.g.: tok_visa, tok_amex, tok_fr
-    });
-    assert(source, 'Source should not be null');
-    // TODO - rethink that part - the concrete billing implementation should be called instead
-    const customer = await stripeInstance.customers.update(customerID, {
-      default_source: source.id
-    });
-    assert(customer, 'Customer should not be null');
-    return source;
+    try {
+      assert(customerID, 'customerID should not be null');
+      // TODO - rethink that part - the concrete billing implementation should be called instead
+      const source = await stripeInstance.customers.createSource(customerID, {
+        source: stripe_test_token // e.g.: tok_visa, tok_amex, tok_fr
+      });
+      assert(source, 'Source should not be null');
+      // TODO - rethink that part - the concrete billing implementation should be called instead
+      const customer = await stripeInstance.customers.update(customerID, {
+        default_source: source.id
+      });
+      assert(customer, 'Customer should not be null');
+      return source;
+    } catch (error) {
+      throw new Error('assignPaymentMethod - Failed to create source for ' + customerID);
+    }
   }
 
   public initUserContextAsAdmin() : void {

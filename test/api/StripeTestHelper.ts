@@ -2,8 +2,8 @@ import { BillingChargeInvoiceAction, BillingInvoice, BillingInvoiceItem, Billing
 import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
 import Tenant, { TenantComponents } from '../../src/types/Tenant';
 import chai, { expect } from 'chai';
-import { BillingPeriodicOperationTaskConfig } from '../../src/types/TaskConfig';
 
+import { BillingPeriodicOperationTaskConfig } from '../../src/types/TaskConfig';
 import BillingStorage from '../../src/storage/mongodb/BillingStorage';
 import CentralServerService from './client/CentralServerService';
 import ContextDefinition from './context/ContextDefinition';
@@ -143,11 +143,15 @@ export default class StripeTestHelper {
     // c.f.: https://stripe.com/docs/testing#cards
     const concreteImplementation : StripeBillingIntegration = this.billingImpl ;
     const stripeInstance = await concreteImplementation.getStripeInstance();
-    const source = await stripeInstance.customers.createSource(this.getCustomerID(), {
-      source: stripe_test_token // e.g.: tok_visa, tok_amex, tok_fr
-    });
-    expect(source).to.not.be.null;
-    return source;
+    try {
+      const source = await stripeInstance.customers.createSource(this.getCustomerID(), {
+        source: stripe_test_token // e.g.: tok_visa, tok_amex, tok_fr
+      });
+      expect(source).to.not.be.null;
+      return source;
+    } catch (error) {
+      throw new Error('assignPaymentMethod - Failed to create source for ' + this.getCustomerID());
+    }
   }
 
   // Detach the latest assigned source
@@ -175,15 +179,19 @@ export default class StripeTestHelper {
     // Let's create a tax rate
     const concreteImplementation : StripeBillingIntegration = this.billingImpl ;
     const stripeInstance = await concreteImplementation.getStripeInstance();
-    const taxRate = await stripeInstance.taxRates.create({
-      display_name: 'TVA',
-      description: `TVA France - ${rate}%`,
-      jurisdiction: 'FR',
-      percentage: rate,
-      inclusive: false
-    });
-    expect(taxRate).to.not.be.null;
-    return taxRate;
+    try {
+      const taxRate = await stripeInstance.taxRates.create({
+        display_name: 'TVA',
+        description: `TVA France - ${rate}%`,
+        jurisdiction: 'FR',
+        percentage: rate,
+        inclusive: false
+      });
+      expect(taxRate).to.not.be.null;
+      return taxRate;
+    } catch (error) {
+      throw new Error('assignTaxRate - Failed to create tax rate');
+    }
   }
 
   public async checkBusinessProcessBillToPay(paymentShouldFail: boolean, withTax?:boolean) : Promise<void> {
