@@ -128,16 +128,8 @@ export default class TagService {
     const filteredRequest = TagValidator.getInstance().validateTagCreateReq(req.body);
     UtilsService.checkIfUserTagIsValid(filteredRequest, req);
     // Get dynamic auth
-    const authorizationFilter = await AuthorizationService.checkAndGetTagAuthorizations(
+    await AuthorizationService.checkAndGetTagAuthorizations(
       req.tenant, req.user, {}, Action.CREATE, filteredRequest);
-    if (!authorizationFilter.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.CREATE, entity: Entity.TAG,
-        module: MODULE_NAME, method: 'handleCreateTag'
-      });
-    }
     // Check Tag with ID
     let tag = await TagStorage.getTag(req.tenant, filteredRequest.id.toUpperCase());
     if (tag) {
@@ -453,7 +445,7 @@ export default class TagService {
           await LockingManager.release(importTagsLock);
         }
       });
-      await new Promise((resolve) => {
+      await new Promise((resolve, reject) => {
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         busboy.on('file', async (fileName: string, fileStream: Readable, fileInfo: FileInfo) => {
           if (fileInfo.filename.slice(-4) === '.csv') {
@@ -465,7 +457,7 @@ export default class TagService {
             void converter.subscribe(async (tag: ImportedTag) => {
               // Check connection
               if (connectionClosed) {
-                throw new Error('HTTP connection has been closed');
+                reject(new Error('HTTP connection has been closed'));
               }
               // Check the format of the first entry
               if (!result.inSuccess && !result.inError) {
@@ -477,7 +469,7 @@ export default class TagService {
                     res.end();
                     resolve();
                   }
-                  throw new Error(`Missing one of required properties: '${TagRequiredImportProperties.join(', ')}'`);
+                  reject(new Error(`Missing one of required properties: '${TagRequiredImportProperties.join(', ')}'`));
                 }
               }
               // Set default value
@@ -782,9 +774,9 @@ export default class TagService {
 
   private static async getTags(req: Request, filteredRequest: HttpTagsRequest): Promise<DataResult<Tag>> {
     // Get authorization filters
-    const authorizationTagsFilters = await AuthorizationService.checkAndGetTagsAuthorizations(
-      req.tenant, req.user, filteredRequest);
-    if (!authorizationTagsFilters.authorized) {
+    const authorizations = await AuthorizationService.checkAndGetTagsAuthorizations(
+      req.tenant, req.user, filteredRequest, false);
+    if (!authorizations.authorized) {
       return Constants.DB_EMPTY_DATA_RESULT;
     }
     // Get the tags
@@ -795,7 +787,7 @@ export default class TagService {
         active: filteredRequest.Active,
         withUser: filteredRequest.WithUser,
         userIDs: (filteredRequest.UserID ? filteredRequest.UserID.split('|') : null),
-        ...authorizationTagsFilters.filters
+        ...authorizations.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -803,14 +795,14 @@ export default class TagService {
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      authorizationTagsFilters.projectFields,
+      authorizations.projectFields,
     );
     // Assign projected fields
-    if (authorizationTagsFilters.projectFields) {
-      tags.projectFields = authorizationTagsFilters.projectFields;
+    if (authorizations.projectFields) {
+      tags.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
-    await AuthorizationService.addTagsAuthorizations(req.tenant, req.user, tags as TagDataResult, authorizationTagsFilters);
+    await AuthorizationService.addTagsAuthorizations(req.tenant, req.user, tags as TagDataResult, authorizations);
     return tags;
   }
 

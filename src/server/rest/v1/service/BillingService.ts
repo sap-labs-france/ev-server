@@ -155,8 +155,9 @@ export default class BillingService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING, Action.LIST, Entity.TAX, MODULE_NAME, 'handleGetBillingTaxes');
     // Check dynamic authorization
-    const authorizationsTaxes = await AuthorizationService.checkAndGetTaxesAuthorizations(req.tenant, req.user);
-    if (!authorizationsTaxes.authorized) {
+    const authorizations = await AuthorizationService.checkAndGetTaxesAuthorizations(
+      req.tenant, req.user, false);
+    if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
@@ -183,16 +184,12 @@ export default class BillingService {
     // Filter
     const filteredRequest = BillingValidator.getInstance().validateBillingInvoicesGetReq(req.query);
     // Check dynamic authorization
-    const authorizations = await AuthorizationService.checkAndGetInvoicesAuthorizations(req.tenant, req.user, filteredRequest);
+    const authorizations = await AuthorizationService.checkAndGetInvoicesAuthorizations(
+      req.tenant, req.user, filteredRequest, false);
     if (!authorizations.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        entity: Entity.INVOICE, action: Action.LIST,
-        module: MODULE_NAME, method: 'handleGetInvoices',
-      });
+      UtilsService.sendEmptyDataResult(res, next);
+      return;
     }
-
     // Get invoices
     const invoices = await BillingStorage.getInvoices(req.tenant,
       {
@@ -271,14 +268,11 @@ export default class BillingService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.BILLING_PAYMENT_METHODS, Entity.BILLING, MODULE_NAME, 'handleBillingGetPaymentMethods');
-    const authorizations = await AuthorizationService.checkAndGetPaymentMethodsAuthorizations(req.tenant, req.user,filteredRequest);
+    const authorizations = await AuthorizationService.checkAndGetPaymentMethodsAuthorizations(
+      req.tenant, req.user,filteredRequest, false);
     if (!authorizations.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.LIST, entity: Entity.PAYMENT_METHOD,
-        module: MODULE_NAME, method: 'handleBillingGetPaymentMethods'
-      });
+      UtilsService.sendEmptyDataResult(res, next);
+      return;
     }
     // Get the billing impl
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
