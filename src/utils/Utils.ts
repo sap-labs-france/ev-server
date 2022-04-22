@@ -1751,6 +1751,20 @@ export default class Utils {
     }
   }
 
+  public static getRootSiteAreaFromSiteAreasTree(siteAreaID: string, siteAreas: SiteArea[]): SiteArea {
+    if (!Utils.isEmptyArray(siteAreas)) {
+      for (const siteArea of siteAreas) {
+        if (siteArea.id === siteAreaID) {
+          return siteArea;
+        }
+        const foundSiteArea = Utils.getSiteAreaFromSiteAreasTree(siteAreaID, siteArea.childSiteAreas);
+        if (foundSiteArea) {
+          return siteArea;
+        }
+      }
+    }
+  }
+
   public static findSiteAreaInTrees(siteAreaID: string, siteAreaTrees: SiteArea[] = []): SiteArea {
     // Loop through trees to find specific tree
     for (const siteAreaTree of siteAreaTrees) {

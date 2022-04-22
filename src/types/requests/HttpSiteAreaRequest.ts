@@ -1,3 +1,5 @@
+import SiteArea, { SubSiteAreaAction } from '../SiteArea';
+
 import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 
@@ -43,4 +45,8 @@ export interface HttpSiteAreaImageRequest extends HttpByIDRequest {
 export interface HttpAssignAssetsToSiteAreaRequest {
   siteAreaID: string;
   assetIDs: string[];
+}
+
+export interface HttpSiteAreaUpdateRequest extends SiteArea {
+  subSiteAreasAction?: SubSiteAreaAction;
 }

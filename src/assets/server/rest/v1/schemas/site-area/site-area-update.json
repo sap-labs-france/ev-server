@@ -39,7 +39,16 @@
     },
     "tariffID": {
       "$ref": "common#/definitions/tariff-id"
-    }
+    },
+    "subSiteAreasAction": {
+      "type": "string",
+      "sanitize": "mongo",
+      "enum": [
+        "update",
+        "attach",
+        "clear"
+      ]
+}
   },
   "required": [
     "id",

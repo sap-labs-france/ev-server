@@ -33,7 +33,7 @@ export default class SiteAreaStorage {
     return updated;
   }
 
-  public static async assignSiteAreaChildrenToNewParent(tenant: Tenant, oldParentSiteAreaID: string, newParentSiteAreaID: string): Promise<number> {
+  public static async attachSiteAreaChildrenToNewParent(tenant: Tenant, oldParentSiteAreaID: string, newParentSiteAreaID: string): Promise<number> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     const result = await global.database.getCollection<any>(tenant.id, 'siteareas').updateMany(
@@ -45,7 +45,23 @@ export default class SiteAreaStorage {
           parentSiteAreaID: DatabaseUtils.convertToObjectID(newParentSiteAreaID),
         }
       }) as UpdateResult;
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'assignSiteAreaChildrenToNewParent', startTime, { oldParentSiteAreaID, newParentSiteAreaID });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'attachSiteAreaChildrenToNewParent', startTime, { oldParentSiteAreaID, newParentSiteAreaID });
+    return result.modifiedCount;
+  }
+
+  public static async updateSiteID(tenant: Tenant, siteAreaID: string, siteID: string): Promise<number> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    DatabaseUtils.checkTenantObject(tenant);
+    const result = await global.database.getCollection<any>(tenant.id, 'siteareas').updateMany(
+      {
+        _id: DatabaseUtils.convertToObjectID(siteAreaID),
+      },
+      {
+        $set: {
+          siteID: DatabaseUtils.convertToObjectID(siteID),
+        }
+      }) as UpdateResult;
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'updateSiteID', startTime, { siteAreaID, siteID });
     return result.modifiedCount;
   }
 

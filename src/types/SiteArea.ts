@@ -54,3 +54,9 @@ export default interface SiteArea extends CreatedUpdatedProps, SiteAreaAuthoriza
 export interface SiteAreaOcpiData {
   location: OCPILocation;
 }
+
+export enum SubSiteAreaAction {
+  UPDATE = 'update',
+  ATTACH = 'attach',
+  CLEAR = 'clear',
+}

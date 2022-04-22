@@ -1,6 +1,7 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
+import SiteArea, { SubSiteAreaAction } from '../../../../types/SiteArea';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
 
 import { ActionsResponse } from '../../../../types/GlobalType';
@@ -16,7 +17,6 @@ import Logging from '../../../../utils/Logging';
 import LoggingHelper from '../../../../utils/LoggingHelper';
 import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
 import { ServerAction } from '../../../../types/Server';
-import SiteArea from '../../../../types/SiteArea';
 import { SiteAreaDataResult } from '../../../../types/DataResult';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteAreaValidator from '../validator/SiteAreaValidator';
@@ -127,8 +127,8 @@ export default class SiteAreaService {
       req.tenant, req.user, siteAreaID, Action.DELETE, action);
     // Delete
     await SiteAreaStorage.deleteSiteArea(req.tenant, siteArea.id);
-    // Update children if any
-    await SiteAreaStorage.assignSiteAreaChildrenToNewParent(req.tenant, siteArea.id, siteArea.parentSiteAreaID);
+    // Update children
+    await SiteAreaStorage.attachSiteAreaChildrenToNewParent(req.tenant, siteArea.id, siteArea.parentSiteAreaID);
     // Log
     await Logging.logInfo({
       ...LoggingHelper.getSiteAreaProperties(siteArea),
@@ -308,7 +308,7 @@ export default class SiteAreaService {
       createdOn: new Date(),
     } as SiteArea;
     // Check site area chain validity
-    await SiteAreaService.checkIfSiteAreaParentAndChildrenValid(req.tenant, siteArea, parentSiteArea);
+    await SiteAreaService.checkIfSiteAreaParentAndChildrenValid(req.tenant, siteArea, parentSiteArea, [siteArea.siteID]);
     // Save
     siteArea.id = await SiteAreaStorage.saveSiteArea(req.tenant, siteArea, Utils.objectHasProperty(filteredRequest, 'image'));
     await Logging.logInfo({
@@ -345,6 +345,16 @@ export default class SiteAreaService {
     if (filteredRequest.parentSiteAreaID) {
       parentSiteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
         req.tenant, req.user, filteredRequest.parentSiteAreaID, Action.UPDATE, action);
+      // Same ID as Parent?
+      if (siteArea.id === parentSiteArea.id) {
+        throw new AppError({
+          ...LoggingHelper.getSiteAreaProperties(siteArea),
+          errorCode: HTTPError.SITE_AREA_TREE_ERROR_SMART_SAME_SITE_AREA,
+          message: `Site Area ID '${siteArea.siteID}' with name '${siteArea.name}' cannot be the parent of itself`,
+          module: MODULE_NAME, method: 'handleUpdateSiteArea',
+          detailedMessages: { siteArea, parentSiteArea },
+        });
+      }
     }
     // Check that Charging Station's nbr of phases is aligned with Site Area
     if (filteredRequest.smartCharging && filteredRequest.numberOfPhases === 1) {
@@ -392,13 +402,43 @@ export default class SiteAreaService {
     }
     siteArea.smartCharging = filteredRequest.smartCharging;
     siteArea.accessControl = filteredRequest.accessControl;
+    const formerParentSiteAreaID = siteArea.parentSiteAreaID;
     siteArea.parentSiteAreaID = filteredRequest.parentSiteAreaID;
+    // Keep the Site IDs to build the Site Area tree
+    const treeSiteIDs: string[] = [siteArea.siteID];
+    if (siteArea.siteID !== filteredRequest.siteID) {
+      treeSiteIDs.push(filteredRequest.siteID);
+    }
     siteArea.siteID = filteredRequest.siteID;
     siteArea.lastChangedBy = { 'id': req.user.id };
     siteArea.lastChangedOn = new Date();
-    // Get Children
     // Check Site Area tree
-    await SiteAreaService.checkIfSiteAreaParentAndChildrenValid(req.tenant, siteArea, parentSiteArea);
+    const rootSiteArea = await SiteAreaService.checkIfSiteAreaParentAndChildrenValid(
+      req.tenant, siteArea, parentSiteArea, treeSiteIDs, filteredRequest.subSiteAreasAction);
+    // Handle Site Area has children which have not the same site
+    if (rootSiteArea) {
+      switch (filteredRequest.subSiteAreasAction) {
+        // Update Site ID in children
+        case SubSiteAreaAction.UPDATE:
+          await SiteAreaService.updateSiteAreaChildrenWithSiteID(
+            req.tenant, [rootSiteArea], siteArea.siteID);
+          break;
+        // Clear parent Site Area in children
+        case SubSiteAreaAction.ATTACH:
+          await SiteAreaStorage.attachSiteAreaChildrenToNewParent(
+            req.tenant, siteArea.id, formerParentSiteAreaID);
+          // Parent Site Area not belonging to the new Site
+          if (parentSiteArea.siteID !== siteArea.siteID) {
+            delete siteArea.parentSiteAreaID;
+          }
+          break;
+        // Clear parent Site Area in children
+        case SubSiteAreaAction.CLEAR:
+          await SiteAreaStorage.attachSiteAreaChildrenToNewParent(
+            req.tenant, siteArea.id, null);
+          break;
+      }
+    }
     // Save
     await SiteAreaStorage.saveSiteArea(req.tenant, siteArea, Utils.objectHasProperty(filteredRequest, 'image'));
     // Update all refs
@@ -452,17 +492,80 @@ export default class SiteAreaService {
     next();
   }
 
-  private static async checkIfSiteAreaParentAndChildrenValid(tenant: Tenant, siteArea: SiteArea, parentSiteArea: SiteArea): Promise<void> {
+  private static async updateSiteAreaChildrenWithSiteID(tenant: Tenant, childSiteAreas: SiteArea[], siteID: string): Promise<void> {
+    for (const childSiteArea of childSiteAreas) {
+      await SiteAreaStorage.updateSiteID(tenant, childSiteArea.id, siteID);
+      // Update children 
+      await SiteAreaService.updateSiteAreaChildrenWithSiteID(
+        tenant, childSiteArea.childSiteAreas, siteID);
+    }
+  }
+
+  private static async checkIfSiteAreaParentAndChildrenValid(tenant: Tenant, siteArea: SiteArea,
+      parentSiteArea: SiteArea, siteIDs: string[], subSiteAreaAction?: SubSiteAreaAction): Promise<SiteArea> {
+    // Build Site Area tree
+    const rootSiteArea = await SiteAreaService.buildSiteAreaTree(tenant, siteArea, parentSiteArea, siteIDs);
+    // Check Site Area children
+    SiteAreaService.checkIfSiteAreaTreeISConsistent(rootSiteArea, subSiteAreaAction);
+    return rootSiteArea;
+  }
+
+  private static checkIfSiteAreaTreeISConsistent(siteArea: SiteArea, subSiteAreaAction?: SubSiteAreaAction): void {
+    // Count and check all children and children of children
+    for (const childSiteArea of siteArea.childSiteAreas) {
+      // Check Site Area with Parent
+      if (!subSiteAreaAction && siteArea.siteID !== childSiteArea.siteID) {
+        throw new AppError({
+          ...LoggingHelper.getSiteAreaProperties(siteArea),
+          errorCode: HTTPError.SITE_AREA_TREE_ERROR_SITE,
+          message: `Site ID between Site Area ID ('${siteArea.id}') and its child ID ('${childSiteArea.id}') differs`,
+          module: MODULE_NAME, method: 'checkIfSiteAreaTreeISConsistent',
+          detailedMessages: { siteArea, childSiteArea },
+        });
+      }
+      if (siteArea.smartCharging !== childSiteArea.smartCharging) {
+        throw new AppError({
+          ...LoggingHelper.getSiteAreaProperties(siteArea),
+          errorCode: HTTPError.SITE_AREA_TREE_ERROR_SMART_CHARGING,
+          message: `Smart Charging between Site Area ID ('${siteArea.id}') and its child ID ('${childSiteArea.id}') differs`,
+          module: MODULE_NAME, method: 'checkIfSiteAreaTreeISConsistent',
+          detailedMessages: { siteArea, childSiteArea },
+        });
+      }
+      if (siteArea.numberOfPhases !== childSiteArea.numberOfPhases) {
+        throw new AppError({
+          ...LoggingHelper.getSiteAreaProperties(siteArea),
+          errorCode: HTTPError.SITE_AREA_TREE_ERROR_SMART_NBR_PHASES,
+          message: `Number Of Phases between Site Area ID ('${siteArea.id}') and its child ID ('${childSiteArea.id}') differs`,
+          module: MODULE_NAME, method: 'checkIfSiteAreaTreeISConsistent',
+          detailedMessages: { siteArea, childSiteArea },
+        });
+      }
+      if (siteArea.voltage !== childSiteArea.voltage) {
+        throw new AppError({
+          ...LoggingHelper.getSiteAreaProperties(siteArea),
+          errorCode: HTTPError.SITE_AREA_TREE_ERROR_VOLTAGE,
+          message: `Voltage between Site Area ID ('${siteArea.id}') and its child ID ('${childSiteArea.id}') differs`,
+          module: MODULE_NAME, method: 'checkIfSiteAreaTreeISConsistent',
+          detailedMessages: { siteArea, childSiteArea },
+        });
+      }
+      // Process children
+      SiteAreaService.checkIfSiteAreaTreeISConsistent(childSiteArea, subSiteAreaAction);
+    }
+  }
+
+  private static async buildSiteAreaTree(tenant: Tenant, siteArea: SiteArea, parentSiteArea: SiteArea, siteIDs: string[]): Promise<SiteArea> {
     // Get all Site Areas of the same Site
     const allSiteAreasOfSite = await SiteAreaStorage.getSiteAreas(tenant,
-      { siteIDs: [ siteArea.siteID ], excludeSiteAreaIDs: siteArea.id ? [siteArea.id] : [] }, Constants.DB_PARAMS_MAX_LIMIT,
+      { siteIDs, excludeSiteAreaIDs: siteArea.id ? [siteArea.id] : [] }, Constants.DB_PARAMS_MAX_LIMIT,
       ['id', 'name', 'parentSiteAreaID', 'siteID', 'smartCharging', 'name', 'voltage', 'numberOfPhases']);
     // Add current Site Area
     allSiteAreasOfSite.result.push(siteArea);
-    let siteAreas: SiteArea[];
     // Build tree
+    let rootSiteAreas: SiteArea[];
     try {
-      siteAreas = Utils.buildSiteAreasTree(allSiteAreasOfSite.result);
+      rootSiteAreas = Utils.buildSiteAreasTree(allSiteAreasOfSite.result);
     } catch (error) {
       throw new AppError({
         ...LoggingHelper.getSiteAreaProperties(siteArea),
@@ -473,16 +576,6 @@ export default class SiteAreaService {
       });
     }
     // Get Site Area from Tree
-    const siteAreaFromTree = Utils.getSiteAreaFromSiteAreasTree(siteArea.id, siteAreas);
-    // Check parent Site Area
-    UtilsService.checkSiteAreaWithParentSiteArea(siteArea, parentSiteArea);
-    // Check Site Area children
-    if (!Utils.isEmptyArray(siteAreaFromTree?.childSiteAreas)) {
-      // Count and check all children and children of children
-      for (const childSiteArea of siteAreaFromTree.childSiteAreas) {
-        // Check Site Area with Parent
-        UtilsService.checkSiteAreaWithParentSiteArea(childSiteArea, siteArea);
-      }
-    }
+    return Utils.getRootSiteAreaFromSiteAreasTree(siteArea.id, rootSiteAreas);
   }
 }

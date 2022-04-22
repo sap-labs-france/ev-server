@@ -3,6 +3,7 @@ import { Car, CarCatalog } from '../../../../types/Car';
 import ChargingStation, { ChargePoint, Voltage } from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
+import SiteArea, { SubSiteAreaAction } from '../../../../types/SiteArea';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
 import User, { UserRole, UserStatus } from '../../../../types/User';
 
@@ -40,7 +41,6 @@ import RegistrationTokenStorage from '../../../../storage/mongodb/RegistrationTo
 import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import Site from '../../../../types/Site';
-import SiteArea from '../../../../types/SiteArea';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import Tag from '../../../../types/Tag';
@@ -1882,56 +1882,6 @@ export default class UtilsService {
       }
     }
     return properties;
-  }
-
-  public static checkSiteAreaWithParentSiteArea(siteArea: SiteArea, parentSiteArea: SiteArea): void {
-    if (parentSiteArea) {
-      if (siteArea.id === parentSiteArea.id) {
-        throw new AppError({
-          ...LoggingHelper.getSiteAreaProperties(siteArea),
-          errorCode: HTTPError.SITE_AREA_TREE_ERROR_SMART_SAME_SITE_AREA,
-          message: `Site Area ID '${siteArea.siteID}' with name '${siteArea.name}' cannot be the parent of itself`,
-          module: MODULE_NAME, method: 'checkSiteAreaWithParentSiteArea',
-          detailedMessages: { siteArea, parentSiteArea },
-        });
-      }
-      if (siteArea.siteID !== parentSiteArea.siteID) {
-        throw new AppError({
-          ...LoggingHelper.getSiteAreaProperties(siteArea),
-          errorCode: HTTPError.SITE_AREA_TREE_ERROR_SITE,
-          message: `Site ID between parent ('${parentSiteArea.siteID}') and child ('${siteArea.siteID}') differs`,
-          module: MODULE_NAME, method: 'checkSiteAreaWithParentSiteArea',
-          detailedMessages: { siteArea, parentSiteArea },
-        });
-      }
-      if (siteArea.smartCharging !== parentSiteArea.smartCharging) {
-        throw new AppError({
-          ...LoggingHelper.getSiteAreaProperties(siteArea),
-          errorCode: HTTPError.SITE_AREA_TREE_ERROR_SMART_CHARGING,
-          message: `Smart Charging between parent ('${parentSiteArea.smartCharging.toString()}') and child ('${siteArea.smartCharging.toString()}') differs`,
-          module: MODULE_NAME, method: 'checkSiteAreaWithParentSiteArea',
-          detailedMessages: { siteArea, parentSiteArea },
-        });
-      }
-      if (siteArea.numberOfPhases !== parentSiteArea.numberOfPhases) {
-        throw new AppError({
-          ...LoggingHelper.getSiteAreaProperties(siteArea),
-          errorCode: HTTPError.SITE_AREA_TREE_ERROR_SMART_NBR_PHASES,
-          message: `Number Of Phases between parent ('${parentSiteArea.numberOfPhases}') and child ('${siteArea.numberOfPhases}') differs`,
-          module: MODULE_NAME, method: 'checkSiteAreaWithParentSiteArea',
-          detailedMessages: { siteArea, parentSiteArea },
-        });
-      }
-      if (siteArea.voltage !== parentSiteArea.voltage) {
-        throw new AppError({
-          ...LoggingHelper.getSiteAreaProperties(siteArea),
-          errorCode: HTTPError.SITE_AREA_TREE_ERROR_VOLTAGE,
-          message: `Voltage between parent ('${parentSiteArea.voltage}') and child ('${siteArea.voltage}') differs`,
-          module: MODULE_NAME, method: 'checkSiteAreaWithParentSiteArea',
-          detailedMessages: { siteArea, parentSiteArea },
-        });
-      }
-    }
   }
 
   private static async checkAndGetTagByXXXAuthorization(tenant: Tenant, userToken:UserToken, id: string,
