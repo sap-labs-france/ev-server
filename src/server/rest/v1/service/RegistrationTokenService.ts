@@ -30,15 +30,8 @@ export default class RegistrationTokenService {
         req.tenant, req.user, filteredRequest.siteAreaID, Action.UPDATE, action, filteredRequest, null, false);
     }
     // Get dynamic auth
-    const authorizationFilter = await AuthorizationService.checkAndGetRegistrationTokenAuthorizations(req.tenant, req.user, {}, Action.CREATE, filteredRequest);
-    if (!authorizationFilter.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.CREATE, entity: Entity.REGISTRATION_TOKEN,
-        module: MODULE_NAME, method: 'handleCreateRegistrationToken'
-      });
-    }
+    await AuthorizationService.checkAndGetRegistrationTokenAuthorizations(
+      req.tenant, req.user, {}, Action.CREATE, filteredRequest);
     // Create
     const registrationToken: RegistrationToken = {
       siteAreaID: filteredRequest.siteAreaID,
@@ -150,9 +143,9 @@ export default class RegistrationTokenService {
     // Filter
     const filteredRequest = RegistrationTokenValidator.getInstance().validateRegistrationTokensGetReq(req.query);
     // Check dynamic auth
-    const authorizationRegistrationTokenFilter = await AuthorizationService.checkAndGetRegistrationTokensAuthorizations(
-      req.tenant, req.user, filteredRequest);
-    if (!authorizationRegistrationTokenFilter.authorized) {
+    const authorizations = await AuthorizationService.checkAndGetRegistrationTokensAuthorizations(
+      req.tenant, req.user, filteredRequest, false);
+    if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
@@ -161,7 +154,7 @@ export default class RegistrationTokenService {
       {
         search: filteredRequest.Search,
         siteAreaIDs: filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null,
-        ...authorizationRegistrationTokenFilter.filters
+        ...authorizations.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -169,14 +162,14 @@ export default class RegistrationTokenService {
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      authorizationRegistrationTokenFilter.projectFields
+      authorizations.projectFields
     );
     // Assign projected fields
-    if (authorizationRegistrationTokenFilter.projectFields) {
-      registrationTokens.projectFields = authorizationRegistrationTokenFilter.projectFields;
+    if (authorizations.projectFields) {
+      registrationTokens.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
-    await AuthorizationService.addRegistrationTokensAuthorizations(req.tenant, req.user, registrationTokens as RegistrationTokenDataResult, authorizationRegistrationTokenFilter);
+    await AuthorizationService.addRegistrationTokensAuthorizations(req.tenant, req.user, registrationTokens as RegistrationTokenDataResult, authorizations);
     res.json(registrationTokens);
     next();
   }

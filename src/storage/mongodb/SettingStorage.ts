@@ -436,9 +436,9 @@ export default class SettingStorage {
     await SettingStorage.saveSettings(tenant, settingsToSave);
   }
 
-  public static async getBillingSetting(tenant: Tenant): Promise<BillingSettings> {
+  public static async getBillingSetting(tenant: Tenant, projectedFields?: string[]): Promise<BillingSettings> {
     // Get BILLING Settings by Identifier
-    const setting = await SettingStorage.getSettingByIdentifier(tenant, TenantComponents.BILLING);
+    const setting = await SettingStorage.getSettingByIdentifier(tenant, TenantComponents.BILLING, projectedFields);
     if (setting) {
       const { id, backupSensitiveData, category } = setting;
       const { createdBy, createdOn, lastChangedBy, lastChangedOn } = setting;

@@ -7428,12 +7428,6 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/userID"
-          },
-          {
-            "$ref": "#/components/parameters/Skip"
-          },
-          {
-            "$ref": "#/components/parameters/Limit"
           }
         ],
         "tags": [
