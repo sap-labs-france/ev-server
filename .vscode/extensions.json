@@ -19,6 +19,7 @@
     "chakrounanas.turbo-console-log",
     "adamhartford.vscode-base64",
     "redhat.vscode-yaml",
-    "christian-kohler.npm-intellisense"
+    "christian-kohler.npm-intellisense",
+    "quicktype.quicktype"
   ]
 }
