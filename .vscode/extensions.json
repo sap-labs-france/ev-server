@@ -6,8 +6,19 @@
     "codezombiech.gitignore",
     "dbaeumer.vscode-eslint",
     "eamodio.gitlens",
-    "EditorConfig.EditorConfig",
+    "editorconfig.editorconfig",
     "ms-azuretools.vscode-docker",
-    "streetsidesoftware.code-spell-checker"
+    "streetsidesoftware.code-spell-checker",
+    "formulahendry.auto-rename-tag",
+    "naumovs.color-highlight",
+    "l13rary.l13-diff",
+    "orta.vscode-jest",
+    "sonarsource.sonarlint-vscode",
+    "hbenl.vscode-test-explorer",
+    "gruntfuggly.todo-tree",
+    "chakrounanas.turbo-console-log",
+    "adamhartford.vscode-base64",
+    "redhat.vscode-yaml",
+    "christian-kohler.npm-intellisense"
   ]
 }
