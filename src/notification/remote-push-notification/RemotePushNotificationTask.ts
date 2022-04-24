@@ -40,8 +40,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
                 projectId: tenantConfig.configuration.projectID,
                 clientEmail: tenantConfig.configuration.clientEmail,
                 privateKey: tenantConfig.configuration.privateKey
-              }),
-              databaseURL: tenantConfig.configuration.databaseURL
+              })
             }, tenantConfig.tenantID);
             // Keep it per Tenant
             this.tenantFirebaseApps.set(tenantConfig.tenantID, app);
