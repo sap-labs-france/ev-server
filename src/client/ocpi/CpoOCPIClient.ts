@@ -124,12 +124,14 @@ export default class CpoOCPIClient extends OCPIClient {
         // Update the tags
         await Promise.map(tokens, async (token) => {
           try {
-          // Get eMSP user
-            const email = OCPIUtils.buildEmspEmailFromOCPIToken(token, this.ocpiEndpoint.countryCode, this.ocpiEndpoint.partyId);
+            // Get eMSP user
+            const email = OCPIUtils.buildEmspEmailFromOCPIToken(
+              token, this.ocpiEndpoint.countryCode, this.ocpiEndpoint.partyId);
             const emspUser = emspUsersMap.get(email);
             // Get the Tag
             const emspTag = tags.result.find((tag) => tag.id === token.uid);
-            await OCPIUtilsService.updateCpoToken(this.tenant, token, emspTag, emspUser, ServerAction.OCPI_CPO_GET_TOKENS);
+            await OCPIUtilsService.updateCreateTagWithCpoToken(
+              this.tenant, token, emspTag, emspUser, ServerAction.OCPI_CPO_GET_TOKENS);
             result.success++;
           } catch (error) {
             result.failure++;
@@ -776,7 +778,6 @@ export default class CpoOCPIClient extends OCPIClient {
       `{{inSuccess}} EVSE Status(es) were successfully patched and {{inError}} failed to be patched in ${executionDurationSecs}s`,
       'No EVSE Status have been patched'
     );
-    // Return result
     return result;
   }
 
@@ -784,30 +785,18 @@ export default class CpoOCPIClient extends OCPIClient {
     if (!Utils.isEmptyArray(tokens)) {
       for (const token of tokens) {
         // Get eMSP user
-        const email = OCPIUtils.buildEmspEmailFromOCPIToken(token, this.ocpiEndpoint.countryCode, this.ocpiEndpoint.partyId);
-        // Check cache
+        const email = OCPIUtils.buildEmspEmailFromOCPIToken(
+          token, this.ocpiEndpoint.countryCode, this.ocpiEndpoint.partyId);
+        // Check from cache
         let emspUser = emspUsers.get(email);
         if (!emspUser) {
-          // Get User from DB
-          emspUser = await UserStorage.getUserByEmail(this.tenant, email);
-          // Create user
-          if (!emspUser) {
-            // Create User
-            emspUser = {
-              issuer: false,
-              createdOn: token.last_updated,
-              lastChangedOn: token.last_updated,
-              name: token.issuer,
-              firstName: OCPIUtils.buildOperatorName(this.ocpiEndpoint.countryCode, this.ocpiEndpoint.partyId),
-              email: OCPIUtils.buildEmspEmailFromOCPIToken(token, this.ocpiEndpoint.countryCode, this.ocpiEndpoint.partyId),
-              locale: Utils.getLocaleFromLanguage(token.language),
-            } as User;
-            // Save User
-            emspUser.id = await UserStorage.saveUser(this.tenant, emspUser);
-            await UserStorage.saveUserRole(this.tenant, emspUser.id, UserRole.BASIC);
-            await UserStorage.saveUserStatus(this.tenant, emspUser.id, UserStatus.ACTIVE);
+          // Check eMsp User
+          emspUser = await OCPIUtils.checkAndCreateEMSPUserFromToken(
+            this.tenant, this.ocpiEndpoint.countryCode, this.ocpiEndpoint.partyId, token);
+          if (emspUser) {
+            // Keep in cache
+            emspUsers.set(email, emspUser);
           }
-          emspUsers.set(email, emspUser);
         }
       }
     }

@@ -561,7 +561,7 @@ export default class OCPIUtilsService {
     await OCPPUtils.updateChargingStationConnectorRuntimeDataWithTransaction(tenant, chargingStation, transaction, true);
   }
 
-  public static async updateCpoToken(tenant: Tenant, token: OCPIToken, tag: Tag, emspUser: User, action: ServerAction): Promise<void> {
+  public static async updateCreateTagWithCpoToken(tenant: Tenant, token: OCPIToken, tag: Tag, emspUser: User, action: ServerAction): Promise<Tag> {
     if (!OCPIUtilsService.validateCpoToken(token)) {
       throw new AppError({
         module: MODULE_NAME, method: 'updateCpoToken', action,
@@ -610,12 +610,14 @@ export default class OCPIUtilsService {
       active: token.valid === true ? true : false,
       description: token.visual_number,
       lastChangedOn: token.last_updated,
-      ocpiToken: token
+      ocpiToken: token,
+      user: emspUser,
     };
     // Save Tag
     if (!tag || JSON.stringify(tagToSave.ocpiToken) !== JSON.stringify(tag.ocpiToken)) {
       await TagStorage.saveTag(tenant, tagToSave);
     }
+    return tagToSave;
   }
 
   public static convertConnector2OcpiConnector(tenant: Tenant, chargingStation: ChargingStation,

@@ -4,6 +4,7 @@ import OCPIEndpoint, { OCPIAvailableEndpoints, OCPIEndpointVersions } from '../.
 import { OCPIEvse, OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
 import { OCPITariff, OCPITariffDimensionType } from '../../types/ocpi/OCPITariff';
 import { OCPIToken, OCPITokenType, OCPITokenWhitelist } from '../../types/ocpi/OCPIToken';
+import User, { UserRole, UserStatus } from '../../types/User';
 
 import AppError from '../../exception/AppError';
 import BackendError from '../../exception/BackendError';
@@ -32,7 +33,7 @@ import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../storage/mongodb/SiteStorage';
 import Tag from '../../types/Tag';
 import Tenant from '../../types/Tenant';
-import { UserStatus } from '../../types/User';
+import UserStorage from '../../storage/mongodb/UserStorage';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
 
@@ -145,9 +146,32 @@ export default class OCPIUtils {
   }
 
   public static buildEmspEmailFromOCPIToken(token: OCPIToken, countryCode: string, partyId: string): string {
-    if (token?.issuer) {
-      return `${token.issuer}@${partyId}.${countryCode}`.toLowerCase();
+    return `${token.issuer}@${partyId}.${countryCode}`.toLowerCase();
+  }
+
+  public static async checkAndCreateEMSPUserFromToken(tenant: Tenant, countryCode: string, partyId: string, token: OCPIToken): Promise<User> {
+    // Get eMSP user
+    const email = OCPIUtils.buildEmspEmailFromOCPIToken(token, countryCode, partyId);
+    // Get User from DB
+    let emspUser = await UserStorage.getUserByEmail(tenant, email);
+    // Create user
+    if (!emspUser) {
+      // Create User
+      emspUser = {
+        issuer: false,
+        createdOn: token.last_updated,
+        lastChangedOn: token.last_updated,
+        name: token.issuer,
+        firstName: OCPIUtils.buildOperatorName(countryCode, partyId),
+        email,
+        locale: Utils.getLocaleFromLanguage(token.language),
+      } as User;
+      // Save User
+      emspUser.id = await UserStorage.saveUser(tenant, emspUser);
+      await UserStorage.saveUserRole(tenant, emspUser.id, UserRole.BASIC);
+      await UserStorage.saveUserStatus(tenant, emspUser.id, UserStatus.ACTIVE);
     }
+    return emspUser;
   }
 
   public static atob(base64: string): string {
