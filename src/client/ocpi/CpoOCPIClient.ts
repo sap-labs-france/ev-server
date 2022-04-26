@@ -243,7 +243,7 @@ export default class CpoOCPIClient extends OCPIClient {
       location: ocpiLocation,
       currency: this.settings.currency,
       status: OCPISessionStatus.PENDING,
-      total_cost: transaction.currentCumulatedPrice > 0 ? transaction.currentCumulatedPrice : 0,
+      total_cost: 0, // Never calculate the cost of OCPI transaction
       last_updated: transaction.timestamp
     };
     // Call IOP
@@ -284,7 +284,7 @@ export default class CpoOCPIClient extends OCPIClient {
     // Update transaction
     transaction.ocpiData.session.kwh = Utils.createDecimal(transaction.currentTotalConsumptionWh).div(1000).toNumber();
     transaction.ocpiData.session.last_updated = transaction.currentTimestamp;
-    transaction.ocpiData.session.total_cost = transaction.currentCumulatedPrice > 0 ? transaction.currentCumulatedPrice : 0;
+    transaction.ocpiData.session.total_cost = 0; // Never calculate the cost of OCPI transaction
     transaction.ocpiData.session.currency = this.settings.currency;
     transaction.ocpiData.session.status = OCPISessionStatus.ACTIVE;
     transaction.ocpiData.session.charging_periods = await this.buildChargingPeriods(this.tenant, transaction);
@@ -293,7 +293,7 @@ export default class CpoOCPIClient extends OCPIClient {
       kwh: transaction.ocpiData.session.kwh,
       last_updated: transaction.ocpiData.session.last_updated,
       currency: transaction.ocpiData.session.currency,
-      total_cost: transaction.ocpiData.session.total_cost > 0 ? transaction.ocpiData.session.total_cost : 0,
+      total_cost: 0, // Never calculate the cost of OCPI transaction
       status: transaction.ocpiData.session.status,
       charging_periods: transaction.ocpiData.session.charging_periods
     };
@@ -336,7 +336,7 @@ export default class CpoOCPIClient extends OCPIClient {
     // Get tokens endpoint url
     const tokensUrl = `${this.getEndpointUrl('sessions', ServerAction.OCPI_CPO_PUSH_SESSIONS)}/${this.getLocalCountryCode(ServerAction.OCPI_CPO_PUSH_SESSIONS)}/${this.getLocalPartyID(ServerAction.OCPI_CPO_PUSH_SESSIONS)}/${transaction.ocpiData.session.id}`;
     transaction.ocpiData.session.kwh = Utils.createDecimal(transaction.stop.totalConsumptionWh).div(1000).toNumber();
-    transaction.ocpiData.session.total_cost = transaction.stop.roundedPrice > 0 ? transaction.stop.roundedPrice : 0;
+    transaction.ocpiData.session.total_cost = 0; // Never calculate the cost of OCPI transaction
     transaction.ocpiData.session.end_datetime = transaction.stop.timestamp;
     transaction.ocpiData.session.last_updated = transaction.stop.timestamp;
     transaction.ocpiData.session.status = OCPISessionStatus.COMPLETED;
@@ -400,7 +400,7 @@ export default class CpoOCPIClient extends OCPIClient {
       auth_method: transaction.ocpiData.session.auth_method,
       location: transaction.ocpiData.session.location,
       authorization_id: transaction.ocpiData.session.authorization_id,
-      total_cost: transaction.stop.roundedPrice > 0 ? transaction.stop.roundedPrice : 0,
+      total_cost: 0, // Never calculate the cost of OCPI transaction
       charging_periods: await this.buildChargingPeriods(this.tenant, transaction),
       last_updated: transaction.stop.timestamp
     };
