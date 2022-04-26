@@ -171,10 +171,8 @@ export default class CpoOCPIClient extends OCPIClient {
     // Get tokens endpoint url
     const tokensUrl = `${this.getEndpointUrl('tokens', ServerAction.OCPI_CPO_AUTHORIZE_TOKEN)}/${token.uid}/authorize`;
     // Build payload
-    const locationReference: OCPILocationReference =
-    {
+    const locationReference: OCPILocationReference = {
       location_id: chargingStation.siteID,
-      // Gireve does not support authorization request on multiple EVSE
       evse_uids: [RoamingUtils.buildEvseUID(chargingStation, connector.connectorId)]
     };
     // Call IOP
