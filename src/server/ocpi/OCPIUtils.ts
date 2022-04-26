@@ -407,10 +407,10 @@ export default class OCPIUtils {
 
   public static convertStatus2OCPIStatus(status: ChargePointStatus): OCPIEvseStatus {
     switch (status) {
+      case ChargePointStatus.PREPARING:
       case ChargePointStatus.AVAILABLE:
         return OCPIEvseStatus.AVAILABLE;
       case ChargePointStatus.OCCUPIED:
-      case ChargePointStatus.PREPARING:
       case ChargePointStatus.SUSPENDED_EV:
       case ChargePointStatus.SUSPENDED_EVSE:
       case ChargePointStatus.FINISHING:
