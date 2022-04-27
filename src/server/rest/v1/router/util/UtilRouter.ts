@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-misused-promises */
 import { RESTServerRoute, ServerAction } from '../../../../../types/Server';
 import express, { NextFunction, Request, Response } from 'express';
 
@@ -39,50 +38,50 @@ export default class UtilRouter {
   }
 
   private buildRouteGetTenantLogo(): void {
-    this.router.get(`/${RESTServerRoute.REST_TENANT_LOGO}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleRestServerAction(TenantService.handleGetTenantLogo.bind(this), ServerAction.TENANT_LOGO, req, res, next);
+    this.router.get(`/${RESTServerRoute.REST_TENANT_LOGO}`, (req: Request, res: Response, next: NextFunction) => {
+      void RouterUtils.handleRestServerAction(TenantService.handleGetTenantLogo.bind(this), ServerAction.TENANT_LOGO, req, res, next);
     });
   }
 
   private buildRouteGetCarCatalogImage(): void {
-    this.router.get(`/${RESTServerRoute.REST_CAR_CATALOG_IMAGE}`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.get(`/${RESTServerRoute.REST_CAR_CATALOG_IMAGE}`, (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
-      await RouterUtils.handleRestServerAction(CarService.handleGetCarCatalogImage.bind(this), ServerAction.CAR_CATALOG_IMAGE, req, res, next);
+      void RouterUtils.handleRestServerAction(CarService.handleGetCarCatalogImage.bind(this), ServerAction.CAR_CATALOG_IMAGE, req, res, next);
     });
   }
 
   private buildRouteGetAssetImage(): void {
-    this.router.get(`/${RESTServerRoute.REST_ASSET_IMAGE}`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.get(`/${RESTServerRoute.REST_ASSET_IMAGE}`, (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
-      await RouterUtils.handleRestServerAction(AssetService.handleGetAssetImage.bind(this), ServerAction.ASSET_IMAGE, req, res, next);
+      void RouterUtils.handleRestServerAction(AssetService.handleGetAssetImage.bind(this), ServerAction.ASSET_IMAGE, req, res, next);
     });
   }
 
   private buildRouteGetCompanyLogo(): void {
-    this.router.get(`/${RESTServerRoute.REST_COMPANY_LOGO}`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.get(`/${RESTServerRoute.REST_COMPANY_LOGO}`, (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
-      await RouterUtils.handleRestServerAction(CompanyService.handleGetCompanyLogo.bind(this), ServerAction.COMPANY_LOGO, req, res, next);
+      void RouterUtils.handleRestServerAction(CompanyService.handleGetCompanyLogo.bind(this), ServerAction.COMPANY_LOGO, req, res, next);
     });
   }
 
   private buildRouteGetSiteAreaImage(): void {
-    this.router.get(`/${RESTServerRoute.REST_SITE_AREA_IMAGE}`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.get(`/${RESTServerRoute.REST_SITE_AREA_IMAGE}`, (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
-      await RouterUtils.handleRestServerAction(SiteAreaService.handleGetSiteAreaImage.bind(this), ServerAction.SITE_AREA_IMAGE, req, res, next);
+      void RouterUtils.handleRestServerAction(SiteAreaService.handleGetSiteAreaImage.bind(this), ServerAction.SITE_AREA_IMAGE, req, res, next);
     });
   }
 
   private buildRouteChargingStationDownloadFirmware(): void {
-    this.router.get(`/${RESTServerRoute.REST_CHARGING_STATIONS_DOWNLOAD_FIRMWARE}`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.get(`/${RESTServerRoute.REST_CHARGING_STATIONS_DOWNLOAD_FIRMWARE}`, (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
-      await RouterUtils.handleRestServerAction(ChargingStationService.handleGetFirmware.bind(this), ServerAction.FIRMWARE_DOWNLOAD, req, res, next);
+      void RouterUtils.handleRestServerAction(ChargingStationService.handleGetFirmware.bind(this), ServerAction.FIRMWARE_DOWNLOAD, req, res, next);
     });
   }
 
   private buildRouteGetSiteImage(): void {
-    this.router.get(`/${RESTServerRoute.REST_SITE_IMAGE}`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.get(`/${RESTServerRoute.REST_SITE_IMAGE}`, (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
-      await RouterUtils.handleRestServerAction(SiteService.handleGetSiteImage.bind(this), ServerAction.SITE_IMAGE, req, res, next);
+      void RouterUtils.handleRestServerAction(SiteService.handleGetSiteImage.bind(this), ServerAction.SITE_IMAGE, req, res, next);
     });
   }
 }

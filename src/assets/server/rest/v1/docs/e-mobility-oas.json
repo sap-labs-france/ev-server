@@ -11,12 +11,7 @@
     "description": "Charging Station Management Software",
     "version": "1.0.0",
     "contact": {
-      "name": "Serge FABIANO",
-      "email": "serge.fabiano@sap.com"
-    },
-    "license": {
-      "name": "Apache 2.0",
-      "url": "https://github.com/sap-labs-france/ev-server/blob/master/LICENSE"
+      "name": "Serge FABIANO"
     }
   },
   "tags": [
@@ -1076,11 +1071,11 @@
                 "properties": {
                   "email": {
                     "type": "string",
-                    "example": "demo.demo@sap.com"
+                    "example": "user@domain.com"
                   },
                   "password": {
                     "type": "string",
-                    "example": "DeM*Us$r1"
+                    "example": "password"
                   },
                   "acceptEula": {
                     "type": "boolean",
@@ -1146,7 +1141,7 @@
                 "properties": {
                   "email": {
                     "type": "string",
-                    "example": "demo.demo@sap.com"
+                    "example": "user@domain.com"
                   },
                   "name": {
                     "type": "string",
@@ -1158,7 +1153,11 @@
                   },
                   "password": {
                     "type": "string",
-                    "example": "DeM*Us$r1"
+                    "example": "password"
+                  },
+                  "mobile": {
+                    "type": "string",
+                    "example": "+33666696969"
                   },
                   "acceptEula": {
                     "type": "boolean",
@@ -1234,7 +1233,7 @@
                 "properties": {
                   "email": {
                     "type": "string",
-                    "example": "demo.demo@sap.com"
+                    "example": "user@domain.com"
                   },
                   "password": {
                     "type": "string"
@@ -1253,7 +1252,7 @@
                 "resetRequest": {
                   "summary": "Request a password reset",
                   "value": {
-                    "email": "demo.demo@sap.com",
+                    "email": "user@domain.com",
                     "captcha": "03AGdBq26Ca8rdqn0-odDV18kJCLnVytzGPXVPyW811IY4pqyQuak-o59MZlYfUIVS-ToLBiL4o7fBfPPvmkAhQLKoMXtqitKxRTG016wmGbFLvZWnOSkJKreB1Kx6n3dB7uYd302UVyVpJJ0BGFcmXWnWZmGnR3ZJC8IE1r7oVohcYVLttnKXtuhJwg5IdHe0HleYzOjxCBw9FnCJhVoSmaPn6FeVjWC9d8vSDwBq-18dA_cm6CQb7BhZm6LXWhMdW1_e_5DcSs1koj_vn3FGB7UQESsPp81WBfr6msCNiddNc1D4MRfF4wXeimJ1wplqoGOmMmI2Y_i-120grLrjkfzBNgDPQPWvfpUjeyW1f_T-5SaObYpUFEEZ4YW6Xt2revAWMmZ6i9_QOWWUcukaZU3jr_MzR1YIMscKrnBP3Zhl45zLXOY-0Bi28z6XxsMqqSHE8lY_C8B-7M-X3PNc_293qtrEnE2rhG9PU-RdFJG4dqBcwU6YfZJwwyXDWG7eyNG8iJoBDgCWrbib2jLKTmuwWCowApAoeA",
                     "tenant": "slf"
                   }
@@ -1261,7 +1260,7 @@
                 "resetValidation": {
                   "summary": "Validate password reset",
                   "value": {
-                    "email": "demo.demo@sap.com",
+                    "email": "user@domain.com",
                     "captcha": "03AGdBq26Ca8rdqn0-odDV18kJCLnVytzGPXVPyW811IY4pqyQuak-o59MZlYfUIVS-ToLBiL4o7fBfPPvmkAhQLKoMXtqitKxRTG016wmGbFLvZWnOSkJKreB1Kx6n3dB7uYd302UVyVpJJ0BGFcmXWnWZmGnR3ZJC8IE1r7oVohcYVLttnKXtuhJwg5IdHe0HleYzOjxCBw9FnCJhVoSmaPn6FeVjWC9d8vSDwBq-18dA_cm6CQb7BhZm6LXWhMdW1_e_5DcSs1koj_vn3FGB7UQESsPp81WBfr6msCNiddNc1D4MRfF4wXeimJ1wplqoGOmMmI2Y_i-120grLrjkfzBNgDPQPWvfpUjeyW1f_T-5SaObYpUFEEZ4YW6Xt2revAWMmZ6i9_QOWWUcukaZU3jr_MzR1YIMscKrnBP3Zhl45zLXOY-0Bi28z6XxsMqqSHE8lY_C8B-7M-X3PNc_293qtrEnE2rhG9PU-RdFJG4dqBcwU6YfZJwwyXDWG7eyNG8iJoBDgCWrbib2jLKTmuwWCowApAoeA",
                     "hash": "dcff1ec7-cecb-4c2f-99da-47aeb1f83509",
                     "password": "Azerty123?",
@@ -1344,7 +1343,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "example": "demo.demo@sap.com"
+              "example": "user@domain.com"
             }
           },
           {
@@ -1399,7 +1398,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "example": "demo.demo@sap.com"
+              "example": "user@domain.com"
             }
           },
           {
@@ -1408,7 +1407,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "example": "demo.demo@sap.com"
+              "example": "user@domain.com"
             }
           },
           {
@@ -1458,7 +1457,7 @@
                 "properties": {
                   "email": {
                     "type": "string",
-                    "example": "demo.demo@sap.com"
+                    "example": "user@domain.com"
                   },
                   "tenant": {
                     "type": "string",
@@ -5186,7 +5185,7 @@
               "text/csv": {
                 "schema": {
                   "type": "string",
-                  "example": "Charging Station\tName\tValue\tSite Area\tSite\nSAP-Mougins-03\tAllowOfflineTxForUnknownId\ttrue\tMougins - South\tSAP Labs Mougins\nSAP-Mougins-03\tallowpluggedcable\true\tMougins - South\tSAP Labs Mougins"
+                  "example": "Charging Station\tName\tValue\tSite Area\tSite\nCS-03\tAllowOfflineTxForUnknownId\ttrue\tMougins - South\tLabs Mougins\nCS-03\tallowpluggedcable\true\tMougins - South\tLabs Mougins"
                 }
               }
             }
@@ -6560,7 +6559,7 @@
                   },
                   "password": {
                     "type": "string",
-                    "example": "DeM*Us$r1"
+                    "example": "password"
                   },
                   "phone": {
                     "type": "string",
@@ -6568,7 +6567,7 @@
                   },
                   "email": {
                     "type": "string",
-                    "example": "user.demo@sap.com"
+                    "example": "user@domain.com"
                   },
                   "issuer": {
                     "type": "boolean"
@@ -7225,7 +7224,7 @@
             "description": "Users exported successfully",
             "content": {
               "text/csv": {
-                "example": "id,name,firstName,locale,role,status,email,eulaAcceptedOn,createdOn,changedOn,changedBy\n\"###\",\"DEMO\",\"User\",\"en_EN\",\"B\",\"P\",\"user.demo@sap.com\",\"2021-06-09\",\"2021-04-23\",\"2021-06-09\",\"\""
+                "example": "id,name,firstName,locale,role,status,email,eulaAcceptedOn,createdOn,changedOn,changedBy\n\"###\",\"DEMO\",\"User\",\"en_EN\",\"B\",\"P\",\"user@domain.com\",\"2021-06-09\",\"2021-04-23\",\"2021-06-09\",\"\""
               }
             }
           },
@@ -7429,12 +7428,6 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/userID"
-          },
-          {
-            "$ref": "#/components/parameters/Skip"
-          },
-          {
-            "$ref": "#/components/parameters/Limit"
           }
         ],
         "tags": [
@@ -11941,7 +11934,50 @@
         }
       }
     },
-    "/api/oicp/endpoints": {
+    "/api/ocpi/endpoints/{id}/credentials": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Update credentials of an OCPI Endpoint",
+        "tags": [
+          "OCPI"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OCPIEndpointID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OCPI Endpoint updated",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success",
+                  "statusCode": 200,
+                  "statusText": "OK"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },    "/api/oicp/endpoints": {
       "post": {
         "security": [
           {
@@ -13968,16 +14004,16 @@
         "properties": {
           "id": {
             "type": "string",
-            "example": "5be7fb271014d90008992347",
+            "example": "66666666666666666666666",
             "readOnly": true
           },
           "name": {
             "type": "string",
-            "example": "SAP Labs France"
+            "example": "Labs France"
           },
           "email": {
             "type": "string",
-            "example": "serge.fabiano@sap.com"
+            "example": "user@domain.com"
           },
           "subdomain": {
             "type": "string",
@@ -14910,7 +14946,7 @@
           },
           "password": {
             "type": "string",
-            "example": "DeM*Us$r1"
+            "example": "password"
           },
           "phone": {
             "type": "string",
@@ -14918,7 +14954,7 @@
           },
           "email": {
             "type": "string",
-            "example": "user.demo@sap.com"
+            "example": "user@domain.com"
           },
           "issuer": {
             "type": "boolean"

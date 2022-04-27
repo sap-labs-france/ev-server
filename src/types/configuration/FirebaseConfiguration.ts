@@ -11,6 +11,5 @@ export default interface FirebaseConfiguration {
   tokenURI: string;
   authProviderX509CertURL: string;
   clientX509CertURL: string;
-  databaseURL: string;
   tenants: TenantConfiguration<FirebaseConfiguration>[];
 }

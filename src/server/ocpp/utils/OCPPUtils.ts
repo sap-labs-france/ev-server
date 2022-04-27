@@ -1129,7 +1129,7 @@ export default class OCPPUtils {
     headers.tenantID = urlParts.query.tenantid as string;
     headers.tokenID = urlParts.query.token as string;
     // Get all the necessary entities
-    const { tenant, chargingStation, token } = await OCPPUtils.checkAndGetChargingStationData(
+    const { tenant, chargingStation, token } = await OCPPUtils.checkAndGetChargingStationConnectionData(
       OCPPUtils.buildServerActionFromOcppCommand(command), headers.tenantID, headers.chargeBoxIdentity, headers.tokenID);
     // Set
     headers.tenant = tenant;
@@ -1242,7 +1242,7 @@ export default class OCPPUtils {
         meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC);
   }
 
-  public static checkChargingStationOcppParameters(action: ServerAction, tenantID: string, tokenID: string, chargingStationID: string): void {
+  public static checkChargingStationConnectionData(action: ServerAction, tenantID: string, tokenID: string, chargingStationID: string): void {
     // Check Charging Station
     if (!chargingStationID) {
       throw new BackendError({
@@ -1283,10 +1283,10 @@ export default class OCPPUtils {
     }
   }
 
-  public static async checkAndGetChargingStationData(action: ServerAction, tenantID: string, chargingStationID: string,
+  public static async checkAndGetChargingStationConnectionData(action: ServerAction, tenantID: string, chargingStationID: string,
       tokenID: string): Promise<{ tenant: Tenant; chargingStation?: ChargingStation; token?: RegistrationToken }> {
     // Check parameters
-    OCPPUtils.checkChargingStationOcppParameters(
+    OCPPUtils.checkChargingStationConnectionData(
       ServerAction.WS_SERVER_CONNECTION, tenantID, tokenID, chargingStationID);
     // Get Tenant
     const tenant = await TenantStorage.getTenant(tenantID);
@@ -1814,15 +1814,14 @@ export default class OCPPUtils {
 
   private static checkAndGetConnectorAmperageLimit(chargingStation: ChargingStation, connector: Connector, nrOfPhases?: number): number {
     const numberOfPhases = nrOfPhases ?? Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
-    const connectorAmperageLimitMax = Utils.getChargingStationAmperage(chargingStation, null, connector.connectorId);
     const connectorAmperageLimitMin = StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases;
-    if (!Utils.objectHasProperty(connector, 'amperageLimit') || (Utils.objectHasProperty(connector, 'amperageLimit') && Utils.isNullOrUndefined(connector.amperageLimit))) {
-      return connectorAmperageLimitMax;
-    } else if (Utils.objectHasProperty(connector, 'amperageLimit') && connector.amperageLimit > connectorAmperageLimitMax) {
-      return connectorAmperageLimitMax;
-    } else if (Utils.objectHasProperty(connector, 'amperageLimit') && connector.amperageLimit < connectorAmperageLimitMin) {
+    if (connector.amperageLimit // Must be ignored when set to 0
+      && connector.amperageLimit < connectorAmperageLimitMin) {
+      // Return the minimal value
       return connectorAmperageLimitMin;
     }
+    // Return the maximal value
+    return Utils.getChargingStationAmperage(chargingStation, null, connector.connectorId);
   }
 
   private static async setConnectorPhaseAssignment(tenant: Tenant, chargingStation: ChargingStation, connector: Connector, nrOfPhases?: number): Promise<void> {
