@@ -4,10 +4,12 @@
   "type": "object",
   "properties": {
     "connectorId": {
-      "type": "integer"
+      "type": "integer",
+      "default" : 0
     },
     "transactionId": {
-      "type": "integer"
+      "type": "integer",
+      "default" : 0
     },
     "meterValue": {
       "oneOf": [
