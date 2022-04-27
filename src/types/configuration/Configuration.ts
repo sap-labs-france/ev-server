@@ -14,7 +14,7 @@ import FirebaseConfiguration from './FirebaseConfiguration';
 import HealthCheckConfiguration from './HealthCheckConfiguration';
 import JsonEndpointConfiguration from './JsonEndpointConfiguration';
 import LocalesConfiguration from './LocalesConfiguration';
-import LoggingConfiguration from './LoggingConfiguration';
+import LogConfiguration from './LogConfiguration';
 import MigrationConfiguration from './MigrationConfiguration';
 import MonitoringConfiguration from './MonitoringConfiguration';
 import NotificationConfiguration from './NotificationConfiguration';
@@ -50,7 +50,7 @@ export interface Configuration {
   Locales?: LocalesConfiguration;
   Scheduler: SchedulerConfiguration;
   AsyncTask: AsyncTaskConfiguration;
-  Logging: LoggingConfiguration;
+  Logging: LogConfiguration;
   HealthCheck?: HealthCheckConfiguration;
   Migration?: MigrationConfiguration;
   EVDatabase?: EVDatabaseConfiguration;
@@ -60,4 +60,4 @@ export interface Configuration {
   Monitoring?: MonitoringConfiguration;
 }
 
-export type ConfigurationSection = CryptoConfiguration|CentralSystemServerConfiguration|CentralSystemConfiguration|CentralSystemRestServiceConfiguration|CentralSystemFrontEndConfiguration|WSDLEndpointConfiguration|JsonEndpointConfiguration|OCPIEndpointConfiguration|OCPIServiceConfiguration|ODataServiceConfiguration|FirebaseConfiguration|EmailConfiguration|StorageConfiguration|NotificationConfiguration|AuthorizationConfiguration|ChargingStationConfiguration|SchedulerConfiguration|LocalesConfiguration|LoggingConfiguration|HealthCheckConfiguration|MigrationConfiguration|EVDatabaseConfiguration|ChargingStationTemplatesConfiguration|AxiosConfiguration;
+export type ConfigurationSection = CryptoConfiguration|CentralSystemServerConfiguration|CentralSystemConfiguration|CentralSystemRestServiceConfiguration|CentralSystemFrontEndConfiguration|WSDLEndpointConfiguration|JsonEndpointConfiguration|OCPIEndpointConfiguration|OCPIServiceConfiguration|ODataServiceConfiguration|FirebaseConfiguration|EmailConfiguration|StorageConfiguration|NotificationConfiguration|AuthorizationConfiguration|ChargingStationConfiguration|SchedulerConfiguration|LocalesConfiguration|LogConfiguration|HealthCheckConfiguration|MigrationConfiguration|EVDatabaseConfiguration|ChargingStationTemplatesConfiguration|AxiosConfiguration;

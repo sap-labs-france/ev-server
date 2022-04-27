@@ -1,6 +1,6 @@
 {
-  "$id": "loggings-get",
-  "title": "Get Loggings",
+  "$id": "logs-get",
+  "title": "Get Logs",
   "type": "object",
   "properties": {
     "StartDateTime": {
