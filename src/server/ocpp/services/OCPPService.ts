@@ -483,7 +483,7 @@ export default class OCPPService {
       // Soft Stop
       this.checkSoftStopTransaction(transaction, stopTransaction, isSoftStop);
       // Transaction End has already been received?
-      await this.checkAndApplyLastConsumptionInStopTransaction(tenant, transaction.user, chargingStation, transaction, stopTransaction);
+      await this.checkAndApplyLastConsumptionInStopTransaction(tenant, chargingStation, transaction, stopTransaction, user);
       // Signed Data
       this.checkAndUpdateTransactionWithSignedDataInStopTransaction(transaction, stopTransaction);
       // Update Transaction with Stop Transaction and Stop MeterValues
@@ -802,7 +802,7 @@ export default class OCPPService {
         if (lastTransaction.stop) {
           // Check Inactivity
           const transactionUpdated = await this.checkAndComputeTransactionExtraInactivityFromStatusNotification(
-            tenant, lastTransaction.user, chargingStation, lastTransaction, connector, statusNotification);
+            tenant, chargingStation, lastTransaction, lastTransaction.user, connector, statusNotification);
           // Billing: Trigger the asynchronous billing task
           const billingDataUpdated = await this.checkAndBillTransaction(tenant, lastTransaction);
           // OCPI: Post the CDR
@@ -831,8 +831,8 @@ export default class OCPPService {
     }
   }
 
-  private async checkAndComputeTransactionExtraInactivityFromStatusNotification(tenant: Tenant, user: User, chargingStation: ChargingStation,
-      transaction: Transaction, connector: Connector, statusNotification: OCPPStatusNotificationRequestExtended): Promise<boolean> {
+  private async checkAndComputeTransactionExtraInactivityFromStatusNotification(tenant: Tenant, chargingStation: ChargingStation,
+      transaction: Transaction, user: User, connector: Connector, statusNotification: OCPPStatusNotificationRequestExtended): Promise<boolean> {
     let extraInactivityUpdated = false;
     if (Utils.objectHasProperty(statusNotification, 'timestamp')) {
       // Session is finished
@@ -1799,8 +1799,8 @@ export default class OCPPService {
     }
   }
 
-  private async checkAndApplyLastConsumptionInStopTransaction(tenant: Tenant, user: User, chargingStation: ChargingStation,
-      transaction: Transaction, stopTransaction: OCPPStopTransactionRequestExtended) {
+  private async checkAndApplyLastConsumptionInStopTransaction(tenant: Tenant, chargingStation: ChargingStation,
+      transaction: Transaction, stopTransaction: OCPPStopTransactionRequestExtended, user: User) {
     // No need to compute the last consumption if Transaction.End Meter Value has been received
     if (!transaction.transactionEndReceived) {
       // Recreate the last meter value to price the last Consumption
