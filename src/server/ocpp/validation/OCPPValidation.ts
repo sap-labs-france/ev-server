@@ -137,7 +137,7 @@ export default class OCPPValidation extends SchemaValidator {
     // Transaction ID is provided on Connector
     if (foundConnector?.currentTransactionID > 0) {
       // Check if provided in Meter Values
-      if (meterValues.transactionId === 0 && foundConnector.currentTransactionID > 0) {
+      if (Utils.isNullOrUndefined(meterValues.transactionId)) {
         // Reuse Transaction ID from Connector
         meterValues.transactionId = foundConnector.currentTransactionID;
         await Logging.logWarning({
