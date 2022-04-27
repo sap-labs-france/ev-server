@@ -22,7 +22,7 @@ export default class CheckSessionNotStartedAfterAuthorizeTask extends TenantSche
         });
         if (notificationTransactionNotStarted.result && notificationTransactionNotStarted.result.length > 0) {
           for (const notification of notificationTransactionNotStarted.result) {
-            void NotificationHandler.sendSessionNotStarted(tenant,
+            void NotificationHandler.sendTransactionNotStarted(tenant,
               `${notification.tagID}-${notification.authDate.toString()}`,
               notification.chargingStation, {
                 user: notification.user,
