@@ -70,9 +70,9 @@ export enum ServerAction {
   TRANSACTIONS_DELETE = 'TransactionsDelete',
   UPDATE_TRANSACTION = 'UpdateTransaction',
 
-  LOGGINGS = 'Loggings',
-  LOGGING = 'Logging',
-  LOGGINGS_EXPORT = 'LoggingsExport',
+  LOGS = 'Logs',
+  LOG = 'Log',
+  LOGS_EXPORT = 'LogsExport',
 
   CHARGING_STATIONS = 'ChargingStations',
 
@@ -593,13 +593,12 @@ export enum RESTServerRoute {
   REST_CONNECTIONS = 'connections',
   REST_CONNECTION = 'connections/:id',
 
-  REST_LOGGINGS = 'loggings',
-  REST_LOGGING = 'loggings/:id',
-  REST_LOGGINGS_EXPORT = 'loggings/action/export',
+  REST_LOGS = 'logs',
+  REST_LOG = 'logs/:id',
+  REST_LOGS_EXPORT = 'logs/action/export',
 
   REST_NOTIFICATIONS = 'notifications',
   REST_NOTIFICATIONS_END_USER_REPORT_ERROR = 'notifications/action/end-user/report-error',
-
 
   REST_OCPI_ENDPOINT_PING = 'ocpi/endpoints/:id/ping',
   REST_OCPI_ENDPOINT_CHECK_CDRS = 'ocpi/endpoints/:id/cdrs/check',

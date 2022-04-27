@@ -6,7 +6,7 @@ import CarRouter from './api/CarRouter';
 import ChargingStationRouter from './api/ChargingStationRouter';
 import CompanyRouter from './api/CompanyRouter';
 import ConnectionRouter from './api/ConnectionRouter';
-import LoggingRouter from './api/LoggingRouter';
+import LoggingRouter from './api/LogRouter';
 import NotificationRouter from './api/NotificationRouter';
 import OCPIEndpointRouter from './api/OCPIEndpointRouter';
 import OICPEndpointRouter from './api/OICPEndpointRouter';

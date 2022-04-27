@@ -17,7 +17,7 @@ import ContextProvider from './context/ContextProvider';
 import Cypher from '../../src/utils/Cypher';
 import { DataResult } from '../../src/types/DataResult';
 import Decimal from 'decimal.js';
-import LoggingStorage from '../../src/storage/mongodb/LoggingStorage';
+import LogStorage from '../../src/storage/mongodb/LogStorage';
 import SiteAreaContext from './context/SiteAreaContext';
 import SiteContext from './context/SiteContext';
 import { StatusCodes } from 'http-status-codes';
@@ -526,7 +526,7 @@ export default class BillingTestHelper {
   public async dumpLastErrors(): Promise<void> {
     const params = { levels: ['E'] };
     const dbParams = { limit: 2, skip: 0, sort: { timestamp: -1 } }; // the 2 last errors
-    const loggedErrors = await LoggingStorage.getLogs(this.tenantContext.getTenant(), params, dbParams, null);
+    const loggedErrors = await LogStorage.getLogs(this.tenantContext.getTenant(), params, dbParams, null);
     if (loggedErrors?.result.length > 0) {
       for (const loggedError of loggedErrors.result) {
         console.error(
