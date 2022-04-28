@@ -1,42 +1,41 @@
-import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, CarConnectorSettingsType, CryptoKeyProperties, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
-import { Car, CarCatalog } from '../types/Car';
-import { ChargePointStatus, OCPPProtocol, OCPPVersion, OCPPVersionURLPath } from '../types/ocpp/OCPPServer';
-import ChargingStation, { ChargePoint, ChargingStationEndpoint, Connector, ConnectorCurrentLimitSource, CurrentType, Voltage } from '../types/ChargingStation';
-import PerformanceRecord, { PerformanceRecordGroup } from '../types/Performance';
-import Tenant, { TenantComponentContent, TenantComponents } from '../types/Tenant';
-import Transaction, { CSPhasesUsed, InactivityStatus } from '../types/Transaction';
-import User, { UserRole, UserStatus } from '../types/User';
-import crypto, { CipherGCMTypes, randomUUID } from 'crypto';
-import global, { EntityData } from '../types/GlobalType';
-
-import Address from '../types/Address';
 import { AxiosError } from 'axios';
-import BackendError from '../exception/BackendError';
-import Configuration from './Configuration';
-import ConnectorStats from '../types/ConnectorStats';
-import Constants from './Constants';
-import { Decimal } from 'decimal.js';
-import I18nManager from './I18nManager';
-import LoggingHelper from './LoggingHelper';
-import { Promise } from 'bluebird';
-import QRCode from 'qrcode';
-import { Request } from 'express';
-import { ServerAction } from '../types/Server';
-import SiteArea from '../types/SiteArea';
-import Tag from '../types/Tag';
-import UserToken from '../types/UserToken';
-import { WebSocketCloseEventStatusString } from '../types/WebSocket';
-import _ from 'lodash';
 import bcrypt from 'bcryptjs';
+import { Promise } from 'bluebird';
+import crypto, { CipherGCMTypes, randomUUID } from 'crypto';
+import { Decimal } from 'decimal.js';
+import { Request } from 'express';
 import fs from 'fs';
 import http from 'http';
+import _ from 'lodash';
 import moment from 'moment';
 import { nanoid } from 'nanoid';
 import os from 'os';
 import passwordGenerator from 'password-generator';
 import path from 'path';
+import QRCode from 'qrcode';
 import tzlookup from 'tz-lookup';
 import validator from 'validator';
+import BackendError from '../exception/BackendError';
+import Address from '../types/Address';
+import { Car, CarCatalog } from '../types/Car';
+import ChargingStation, { ChargePoint, ChargingStationEndpoint, Connector, ConnectorCurrentLimitSource, CurrentType, Voltage } from '../types/ChargingStation';
+import ConnectorStats from '../types/ConnectorStats';
+import global, { EntityData } from '../types/GlobalType';
+import { ChargePointStatus, OCPPProtocol, OCPPVersion, OCPPVersionURLPath } from '../types/ocpp/OCPPServer';
+import PerformanceRecord, { PerformanceRecordGroup } from '../types/Performance';
+import { ServerAction } from '../types/Server';
+import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, CarConnectorSettingsType, CryptoKeyProperties, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
+import SiteArea from '../types/SiteArea';
+import Tag from '../types/Tag';
+import Tenant, { TenantComponentContent, TenantComponents } from '../types/Tenant';
+import Transaction, { CSPhasesUsed, InactivityStatus } from '../types/Transaction';
+import User, { UserRole, UserStatus } from '../types/User';
+import UserToken from '../types/UserToken';
+import { WebSocketCloseEventStatusString } from '../types/WebSocket';
+import Configuration from './Configuration';
+import Constants from './Constants';
+import LoggingHelper from './LoggingHelper';
+
 
 const MODULE_NAME = 'Utils';
 
@@ -1788,18 +1787,5 @@ export default class Utils {
       totalDurationSecs = moment.duration(moment(transaction.lastConsumption.timestamp).diff(moment(transaction.timestamp))).asSeconds();
     }
     return moment.duration(totalDurationSecs, 's').format('h[h]mm', { trim: false });
-  }
-
-  public static transactionInactivityToString(transaction: Transaction, user: User, i18nHourShort = 'h') {
-    const i18nManager = I18nManager.getInstanceForLocale(user ? user.locale : Constants.DEFAULT_LANGUAGE);
-    // Get total
-    const totalInactivitySecs = transaction.stop.totalInactivitySecs;
-    // None?
-    if (totalInactivitySecs === 0) {
-      return `0${i18nHourShort}00 (${i18nManager.formatPercentage(0)})`;
-    }
-    // Build the inactivity percentage
-    const totalInactivityPercent = i18nManager.formatPercentage(Math.round((totalInactivitySecs / transaction.stop.totalDurationSecs) * 100) / 100);
-    return moment.duration(totalInactivitySecs, 's').format(`h[${i18nHourShort}]mm`, { trim: false }) + ` (${totalInactivityPercent})`;
   }
 }
