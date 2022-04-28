@@ -1,5 +1,5 @@
 import CrudApi from './utils/CrudApi';
-import { RESTServerRoute } from '../../types/Server';
+import { RESTServerRoute } from '../../../src/types/Server';
 import { StatusCodes } from 'http-status-codes';
 import TestConstants from './utils/TestConstants';
 import { expect } from 'chai';
