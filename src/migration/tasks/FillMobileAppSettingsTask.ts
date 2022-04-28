@@ -43,7 +43,7 @@ export default class FillMobileAppSettingsTask extends TenantMigrationTask {
   }
 
   public getVersion(): string {
-    return '1.5';
+    return '1.0';
   }
 
   public getName(): string {
