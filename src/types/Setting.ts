@@ -72,6 +72,7 @@ export interface SettingDBContent {
   carConnector?: CarConnectorSetting;
   crypto?: CryptoSetting;
   user?: UserSetting;
+  mobile?: MobileSetting;
 }
 
 export enum MobileSettingsType {

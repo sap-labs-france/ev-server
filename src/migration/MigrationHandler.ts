@@ -3,6 +3,7 @@ import AddCompanyIDToTransactionsTask from './tasks/AddCompanyIDToTransactionsTa
 import AddUserIDToCarsTask from './tasks/AddUserIDToCarsTask';
 import AlignEntitiesWithOrganizationIDsTask from './tasks/AlignEntitiesWithOrganizationIDsTask';
 import Constants from '../utils/Constants';
+import FillMobileAppSettingsTask from './tasks/FillMobileAppSettingsTask';
 import { LockEntity } from '../types/Locking';
 import LockingManager from '../locking/LockingManager';
 import Logging from '../utils/Logging';
@@ -152,6 +153,7 @@ export default class MigrationHandler {
     currentMigrationTasks.push(new UserCleanUpTask());
     currentMigrationTasks.push(new AlignEntitiesWithOrganizationIDsTask());
     currentMigrationTasks.push(new RemoveLogoFromTenantTask());
+    currentMigrationTasks.push(new FillMobileAppSettingsTask());
     return currentMigrationTasks;
   }
 }
