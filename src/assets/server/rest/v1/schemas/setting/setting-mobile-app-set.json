@@ -1,0 +1,53 @@
+{
+  "$id": "setting-mobile-app-set",
+  "title": "Set Mobile Application Settings",
+  "type": "object",
+  "properties": {
+    "content": {
+      "type": "object",
+      "properties": {
+        "mobile": {
+          "type": "object",
+          "properties": {
+            "settingsIOSMobileAppID": {
+              "type": "string",
+              "sanitize": "mongo"
+            },
+            "settingsAndroidMobileAppID": {
+              "type": "string",
+              "sanitize": "mongo"
+            },
+            "scheme": {
+              "type": "string",
+              "sanitize": "mongo"
+            }
+          }
+        },
+        "type": {
+          "type": "string",
+          "sanitize": "mongo",
+          "enum": ["mobile"]
+        }
+      },
+      "required": [
+        "type",
+        "mobile"
+      ]
+    },
+    "id": {
+      "$ref": "common#/definitions/id"
+    },
+    "identifier": {
+      "type": "string",
+      "sanitize": "mongo",
+      "enum": ["mobile"]
+    },
+    "sensitiveData": {
+      "$ref": "setting#/definitions/sensitiveData"
+    }
+  },
+  "required": [
+    "identifier"
+  ]
+}
+

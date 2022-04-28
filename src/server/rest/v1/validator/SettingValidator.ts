@@ -25,6 +25,7 @@ export default class SettingValidator extends SchemaValidator {
   private settingGetByID = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-by-id.json`, 'utf8'));
   private settingGetByIdentifier = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-by-identifier.json`, 'utf8'));
   private settingsGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/settings-get.json`, 'utf8'));
+  private settingMobileAppSet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-mobile-app-set.json`, 'utf8'));
 
   private constructor() {
     super('SettingValidator');
@@ -103,5 +104,9 @@ export default class SettingValidator extends SchemaValidator {
 
   public validateSettingStatisticsSetReq(data: Record<string, unknown>): SettingDB {
     return this.validate(this.settingStatisticsSet, data);
+  }
+
+  public validateSettingMobileAppSetReq(data: Record<string, unknown>): SettingDB {
+    return this.validate(this.settingMobileAppSet, data);
   }
 }

@@ -339,6 +339,8 @@ export default class SettingService {
         return SettingValidator.getInstance().validateSettingOrganizationSetReq(req.body);
       case IntegrationSettings.STATISTICS:
         return SettingValidator.getInstance().validateSettingStatisticsSetReq(req.body);
+      case IntegrationSettings.MOBILE:
+        return SettingValidator.getInstance().validateSettingMobileAppSetReq(req.body);
       default:
         throw new AppError({
           module: MODULE_NAME,

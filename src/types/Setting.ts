@@ -5,6 +5,7 @@ import { TenantComponents } from './Tenant';
 export enum TechnicalSettings {
   CRYPTO = 'crypto',
   USER = 'user',
+  MOBILE = 'mobile'
 }
 
 export enum IntegrationSettings {
@@ -19,7 +20,8 @@ export enum IntegrationSettings {
   BILLING = 'billing',
   CAR = 'car',
   ORGANIZATION = 'organization',
-  STATISTICS = 'statistics'
+  STATISTICS = 'statistics',
+  MOBILE = 'mobile'
 }
 
 export interface Setting extends AuthorizationActions, CreatedUpdatedProps {
@@ -54,7 +56,8 @@ export interface SettingDBContent {
   | SmartChargingContentType
   | CryptoSettingsType
   | UserSettingsType
-  | CarConnectorSettingsType;
+  | CarConnectorSettingsType
+  | MobileSettingsType;
   ocpi?: OcpiSetting;
   oicp?: OicpSetting;
   // pricing?: PricingSetting;  // TODO - reorg pricing similar to billing
@@ -69,6 +72,10 @@ export interface SettingDBContent {
   carConnector?: CarConnectorSetting;
   crypto?: CryptoSetting;
   user?: UserSetting;
+}
+
+export enum MobileSettingsType {
+  MOBILE = 'mobile',
 }
 
 export enum PricingSettingsType {
@@ -105,6 +112,17 @@ export interface RoamingSettings extends Setting {
   type: RoamingSettingsType;
   ocpi?: OcpiSetting;
   oicp?: OicpSetting;
+}
+export interface MobileSettings extends Setting {
+  identifier: TechnicalSettings.MOBILE;
+  type: MobileSettingsType;
+  mobile?: MobileSetting;
+}
+
+export interface MobileSetting {
+  settingsIOSMobileAppID: string;
+  settingsAndroidMobileAppID: string;
+  scheme: string;
 }
 
 export interface OcpiSetting {
